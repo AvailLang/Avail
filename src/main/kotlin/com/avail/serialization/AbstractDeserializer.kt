@@ -37,7 +37,9 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
@@ -67,8 +69,9 @@ import java.io.InputStream
  *   deserialization.
  */
 abstract class AbstractDeserializer constructor(
-	protected val input: InputStream,
-	val runtime: AvailRuntime)
+	internal val input: InputStream,
+	internal val runtime: AvailRuntime,
+	internal val lookupPumpedObject: (Int)->A_BasicObject)
 {
 	/** The current [module][ModuleDescriptor]. */
 	var currentModule: A_Module = nil

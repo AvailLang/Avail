@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.isOpen
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType

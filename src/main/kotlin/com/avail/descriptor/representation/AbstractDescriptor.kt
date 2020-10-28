@@ -36,6 +36,7 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.annotations.ThreadSafe
 import com.avail.compiler.AvailCodeGenerator
+import com.avail.compiler.ModuleHeader
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
@@ -174,7 +175,6 @@ import java.util.concurrent.locks.ReadWriteLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Stream
 import kotlin.concurrent.read
-import kotlin.contracts.ExperimentalContracts
 import kotlin.math.max
 import kotlin.math.min
 
@@ -1040,7 +1040,7 @@ abstract class AbstractDescriptor protected constructor (
 	/**
 	 * @param self
 	 * @param grammaticalRestriction
-	 * @see AvailObject.moduleAddGrammaticalRestriction
+	 * @see A_Module.moduleAddGrammaticalRestriction
 	 */
 	abstract fun o_AddGrammaticalRestriction (
 		self: AvailObject,
@@ -1049,7 +1049,7 @@ abstract class AbstractDescriptor protected constructor (
 	/**
 	 * @param self
 	 * @param definition
-	 * @see AvailObject.moduleAddDefinition
+	 * @see A_Module.moduleAddDefinition
 	 */
 	abstract fun o_ModuleAddDefinition (
 		self: AvailObject,
@@ -1695,8 +1695,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number
-
-	abstract fun o_NameVisible (self: AvailObject, trueName: A_Atom): Boolean
 
 	abstract fun o_OptionallyNilOuterVar (
 		self: AvailObject,
@@ -2953,8 +2951,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_WriteType (self: AvailObject): A_Type
 
-	abstract fun o_SetVersions (self: AvailObject, versionStrings: A_Set)
-
 	abstract fun o_Versions (self: AvailObject): A_Set
 
 	abstract fun o_TypeUnionOfPhraseType (
@@ -3469,14 +3465,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_EntryPoints (self: AvailObject): A_Map
 
-	abstract fun o_AddEntryPoint (
-		self: AvailObject,
-		stringName: A_String,
-		trueName: A_Atom)
-
 	abstract fun o_AllAncestors (self: AvailObject): A_Set
-
-	abstract fun o_AddAncestors (self: AvailObject, moreAncestors: A_Set)
 
 	abstract fun o_ArgumentRestrictionSets (self: AvailObject): A_Tuple
 
@@ -3701,10 +3690,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress)
 
-	abstract fun o_ModuleSemanticRestrictions (self: AvailObject): A_Set
-
-	abstract fun o_ModuleGrammaticalRestrictions (self: AvailObject): A_Set
-
 	abstract fun o_FieldAt (self: AvailObject, field: A_Atom): AvailObject
 
 	abstract fun o_FieldAtOrNull (
@@ -3828,13 +3813,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleAddMacro (self: AvailObject, macro: A_Macro)
 
-	abstract fun o_ModuleMacros (self: AvailObject): A_Set
-
 	abstract fun o_RemoveMacro (self: AvailObject, macro: A_Macro)
 
 	abstract fun o_AddBundle (self: AvailObject, bundle: A_Bundle)
-
-	abstract fun o_ModuleBundles (self: AvailObject): A_Set
 
 	abstract fun o_ReturnTypeIfPrimitiveFails (self: AvailObject): A_Type
 
@@ -3881,6 +3862,15 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		codePoint: Int,
 		applicability: Boolean)
+
+	abstract fun o_SerializedObjects(
+		self: AvailObject,
+		serializedObjects: A_Tuple)
+
+	abstract fun o_ApplyModuleHeader(
+		self: AvailObject,
+		loader: AvailLoader,
+		moduleHeader: ModuleHeader): String?
 
 	companion object
 	{

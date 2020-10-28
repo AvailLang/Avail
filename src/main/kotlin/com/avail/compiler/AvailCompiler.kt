@@ -124,6 +124,17 @@ import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_A
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addConstantBinding
+import com.avail.descriptor.module.A_Module.Companion.addVariableBinding
+import com.avail.descriptor.module.A_Module.Companion.allAncestors
+import com.avail.descriptor.module.A_Module.Companion.closeModule
+import com.avail.descriptor.module.A_Module.Companion.constantBindings
+import com.avail.descriptor.module.A_Module.Companion.exportedNames
+import com.avail.descriptor.module.A_Module.Companion.importedNames
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.privateNames
+import com.avail.descriptor.module.A_Module.Companion.removeFrom
+import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt

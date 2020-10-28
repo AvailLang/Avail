@@ -54,6 +54,7 @@ import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module.Companion.addBundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
@@ -523,7 +524,7 @@ class MessageBundleDescriptor private constructor(
 		/**
 		 * Create a new [message&#32;bundle][A_Bundle] for the given message.
 		 * Add the bundle to the method's collection of
-		 * [owning&32;bundles][MethodDescriptor.ObjectSlots.OWNING_BUNDLES].
+		 * [owning&32;bundles][MethodDescriptor.owningBundles].
 		 *
 		 * @param methodName
 		 *   The message name, an [atom][AtomDescriptor].

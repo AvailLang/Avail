@@ -36,6 +36,7 @@ import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.A_BasicObject

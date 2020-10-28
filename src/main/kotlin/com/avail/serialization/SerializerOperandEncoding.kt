@@ -210,7 +210,7 @@ internal enum class SerializerOperandEncoding
 
 		override fun write(obj: AvailObject, serializer: Serializer) =
 			writeCompressedPositiveInt(
-				serializer.compressObjectIndex(obj),
+				serializer.compressedObjectIndex(obj),
 				serializer)
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject =
@@ -277,7 +277,7 @@ internal enum class SerializerOperandEncoding
 			for (element in obj)
 			{
 				writeCompressedPositiveInt(
-					serializer.compressObjectIndex(element),
+					serializer.compressedObjectIndex(element),
 					serializer)
 			}
 		}
@@ -518,10 +518,10 @@ internal enum class SerializerOperandEncoding
 			for ((key, value) in obj.mapIterable())
 			{
 				writeCompressedPositiveInt(
-					serializer.compressObjectIndex(key),
+					serializer.compressedObjectIndex(key),
 					serializer)
 				writeCompressedPositiveInt(
-					serializer.compressObjectIndex(value),
+					serializer.compressedObjectIndex(value),
 					serializer)
 			}
 		}

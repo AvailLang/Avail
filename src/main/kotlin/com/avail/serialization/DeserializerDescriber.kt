@@ -54,7 +54,10 @@ import java.io.InputStream
  */
 class DeserializerDescriber constructor(
 	input: InputStream,
-	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
+	runtime: AvailRuntime) : AbstractDeserializer(
+		input,
+		runtime,
+		{ throw Exception("DeserializerDescriber cannot be pumped") })
 {
 	/** The [StringBuilder] on which the description is being written.  */
 	private val builder = StringBuilder(1000)

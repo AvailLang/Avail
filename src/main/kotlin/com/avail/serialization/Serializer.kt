@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
@@ -55,29 +56,39 @@ import java.util.ArrayDeque
  * [serialize] into a stream of bytes which, when replayed in a [Deserializer],
  * will reconstruct an analogous series of objects.
  *
+ * The serializer is also provided a function for recognizing objects that do
+ * not need to be scanned because they're explicitly provided.  These objects
+ * are numbered with negative indices.  The inverse of this function needs to be
+ * provided to the [Deserializer], so that negative indices can be converted to
+ * objects.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- *
- * @param output
+ *   Construct a [Serializer] which converts a series of objects into bytes.
+ * @property output
  *   An [OutputStream] on which to write the serialized objects.
- * @param module
+ * @property module
  *   The optional [A_Module] within which serialization is occurring.  If
- *   non-null, it is used to detect capture of atoms that are not defined in
+ *   present, it is used to detect capture of atoms that are not defined in
  *   ancestor modules.
- * @param pumpedObjects
- *   An optional [Map] from [A_BasicObject] to [Int] to prime serialization, so
- *   that the pumped objects will be output simply as a reference, which an
- *   equivalently pumped [Deserializer] will be able to decode.
+ * @property lookupPumpedObject
+ *   A function that checks if the provided [A_BasicObject] happens to be one of
+ *   the objects that this serializer was primed with.  If so, it answers the
+ *   object's index, which must be negative.  If not present, it answers 0,
+ *   which implies the object will need to be serialized.  Positive indices are
+ *   not permitted.  It's up to the caller to decide how to map from objects to
+ *   indices, but a [Deserializer] must be provided the inverse of this function
+ *   to convert negative indices to objects.
  */
-class Serializer constructor(
+class Serializer constructor (
 	val output: OutputStream,
 	val module: A_Module? = null,
-	val pumpedObjects: Map<A_BasicObject, Int> = emptyMap())
+	val lookupPumpedObject: (A_BasicObject)->Int = { 0 })
 {
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
-	 * from each [AvailObject] to the [SerializerInstruction] that will be
+	 * from each [A_BasicObject] to the [SerializerInstruction] that will be
 	 * output for it at the appropriate time.
 	 */
 	private val encounteredObjects =
@@ -187,6 +198,19 @@ class Serializer constructor(
 	}
 
 	/**
+	 * Look up the object.  If it is already in the [encounteredObjects] list,
+	 * answer the corresponding [SerializerInstruction].
+	 *
+	 * @param obj
+	 *   The object to look up.
+	 * @return
+	 *   The object's zero-based index in `encounteredObjects`.
+	 */
+	internal fun instructionForObject(
+		obj: A_BasicObject
+	): SerializerInstruction = encounteredObjects[obj]!!
+
+	/**
 	 * Look up the object and return the existing instruction that produces it.
 	 * The instruction must have an index other than -1, which indicates that
 	 * the instruction has not yet been written; that is, the instruction must
@@ -197,7 +221,7 @@ class Serializer constructor(
 	 * @return
 	 *   The (non-negative) index of the instruction that produced the object.
 	 */
-	internal fun compressObjectIndex(obj: A_BasicObject): Int
+	internal fun compressedObjectIndex(obj: A_BasicObject): Int
 	{
 		val instruction = encounteredObjects[obj]!!
 		assert(instruction.hasBeenWritten)

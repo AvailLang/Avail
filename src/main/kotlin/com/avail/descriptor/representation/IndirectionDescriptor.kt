@@ -32,6 +32,7 @@
 package com.avail.descriptor.representation
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.AvailCodeGenerator
+import com.avail.compiler.ModuleHeader
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
@@ -117,6 +118,45 @@ import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addBundle
+import com.avail.descriptor.module.A_Module.Companion.addConstantBinding
+import com.avail.descriptor.module.A_Module.Companion.addImportedName
+import com.avail.descriptor.module.A_Module.Companion.addImportedNames
+import com.avail.descriptor.module.A_Module.Companion.addLexer
+import com.avail.descriptor.module.A_Module.Companion.addPrivateName
+import com.avail.descriptor.module.A_Module.Companion.addPrivateNames
+import com.avail.descriptor.module.A_Module.Companion.addSeal
+import com.avail.descriptor.module.A_Module.Companion.addUnloadFunction
+import com.avail.descriptor.module.A_Module.Companion.addVariableBinding
+import com.avail.descriptor.module.A_Module.Companion.allAncestors
+import com.avail.descriptor.module.A_Module.Companion.applyModuleHeader
+import com.avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
+import com.avail.descriptor.module.A_Module.Companion.closeModule
+import com.avail.descriptor.module.A_Module.Companion.constantBindings
+import com.avail.descriptor.module.A_Module.Companion.createLexicalScanner
+import com.avail.descriptor.module.A_Module.Companion.entryPoints
+import com.avail.descriptor.module.A_Module.Companion.exportedNames
+import com.avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import com.avail.descriptor.module.A_Module.Companion.importedNames
+import com.avail.descriptor.module.A_Module.Companion.introduceNewName
+import com.avail.descriptor.module.A_Module.Companion.isOpen
+import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
+import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
+import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
+import com.avail.descriptor.module.A_Module.Companion.moduleAddMacro
+import com.avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.newNames
+import com.avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
+import com.avail.descriptor.module.A_Module.Companion.privateNames
+import com.avail.descriptor.module.A_Module.Companion.recordBlockPhrase
+import com.avail.descriptor.module.A_Module.Companion.removeFrom
+import com.avail.descriptor.module.A_Module.Companion.resolveForward
+import com.avail.descriptor.module.A_Module.Companion.serializedObjects
+import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
+import com.avail.descriptor.module.A_Module.Companion.variableBindings
+import com.avail.descriptor.module.A_Module.Companion.versions
+import com.avail.descriptor.module.A_Module.Companion.visibleNames
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.addToDoubleCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToFloatCanDestroy
@@ -1430,11 +1470,6 @@ class IndirectionDescriptor private constructor(
 		multiplyByIntegerCanDestroy(anInteger, canDestroy)
 	}
 
-	override fun o_NameVisible(
-		self: AvailObject,
-		trueName: A_Atom
-	): Boolean = self .. { nameVisible(trueName) }
-
 	override fun o_OptionallyNilOuterVar(
 		self: AvailObject,
 		index: Int
@@ -2339,12 +2374,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_WriteType(self: AvailObject): A_Type =
 		self .. { writeType() }
 
-	override fun o_SetVersions(
-		self: AvailObject,
-		versionStrings: A_Set) {
-		self .. { setVersions(versionStrings) }
-	}
-
 	override fun o_Versions(self: AvailObject): A_Set =
 		self .. { versions() }
 
@@ -3036,17 +3065,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_EntryPoints(self: AvailObject): A_Map =
 		self .. { entryPoints() }
 
-	override fun o_AddEntryPoint(
-		self: AvailObject,
-		stringName: A_String,
-		trueName: A_Atom
-	) = self .. { addEntryPoint(stringName, trueName) }
-
 	override fun o_AllAncestors(self: AvailObject): A_Set =
 		self .. { allAncestors() }
-
-	override fun o_AddAncestors(self: AvailObject, moreAncestors: A_Set) =
-		self .. { addAncestors(moreAncestors) }
 
 	override fun o_ArgumentRestrictionSets(self: AvailObject): A_Tuple =
 		self .. { argumentRestrictionSets() }
@@ -3341,12 +3361,6 @@ class IndirectionDescriptor private constructor(
 		planInProgress: A_ParsingPlanInProgress
 	) = self .. { removePlanInProgress(planInProgress) }
 
-	override fun o_ModuleSemanticRestrictions(self: AvailObject): A_Set =
-		self .. { moduleSemanticRestrictions() }
-
-	override fun o_ModuleGrammaticalRestrictions(self: AvailObject): A_Set =
-		self .. { moduleGrammaticalRestrictions() }
-
 	override fun o_FieldAt(
 		self: AvailObject, field: A_Atom
 	): AvailObject = self .. { fieldAt(field) }
@@ -3561,17 +3575,11 @@ class IndirectionDescriptor private constructor(
 	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro) =
 		self .. { moduleAddMacro(macro) }
 
-	override fun o_ModuleMacros(self: AvailObject): A_Set =
-		self .. { moduleMacros() }
-
 	override fun o_RemoveMacro(self: AvailObject, macro: A_Macro) =
 		self .. { removeMacro(macro) }
 
 	override fun o_AddBundle(self: AvailObject, bundle: A_Bundle): Unit =
 		self .. { addBundle(bundle) }
-
-	override fun o_ModuleBundles(self: AvailObject): A_Set =
-		self .. { moduleBundles() }
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		self .. { returnTypeIfPrimitiveFails() }
@@ -3631,4 +3639,15 @@ class IndirectionDescriptor private constructor(
 		codePoint: Int,
 		applicability: Boolean
 	) = self .. { setLexerApplicability(codePoint, applicability) }
+
+	override fun o_SerializedObjects(
+		self: AvailObject,
+		serializedObjects: A_Tuple
+	) = self .. { serializedObjects(serializedObjects) }
+
+	override fun o_ApplyModuleHeader(
+		self: AvailObject,
+		loader: AvailLoader,
+		moduleHeader: ModuleHeader
+	): String? = self .. { applyModuleHeader(loader, moduleHeader) }
 }

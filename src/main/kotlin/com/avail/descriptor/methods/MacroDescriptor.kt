@@ -44,6 +44,7 @@ import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.BUNDLE
 import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS
 import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.ListPhraseDescriptor

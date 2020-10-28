@@ -37,6 +37,7 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addLexer
 import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.LATIN1_BIT_VECTORS_

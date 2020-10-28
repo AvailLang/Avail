@@ -42,6 +42,7 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.methods.A_ChunkDependable
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.representation.AvailObject

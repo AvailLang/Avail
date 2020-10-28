@@ -61,6 +61,7 @@ import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.representation.A_BasicObject

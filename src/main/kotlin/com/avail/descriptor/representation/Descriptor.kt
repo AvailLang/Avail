@@ -32,6 +32,7 @@
 package com.avail.descriptor.representation
 
 import com.avail.compiler.AvailCodeGenerator
+import com.avail.compiler.ModuleHeader
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
@@ -106,7 +107,6 @@ import java.util.NoSuchElementException
 import java.util.Spliterator
 import java.util.TimerTask
 import java.util.stream.Stream
-import kotlin.contracts.ExperimentalContracts
 
 /**
  * This is the primary subclass of [AbstractDescriptor]. It has the sibling
@@ -181,18 +181,9 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		arguments: A_Tuple): Boolean = unsupported
 
-	override fun o_AddAncestors (
-		self: AvailObject,
-		moreAncestors: A_Set): Unit = unsupported
-
 	override fun o_AddDependentChunk (
 		self: AvailObject,
 		chunk: L2Chunk): Unit = unsupported
-
-	override fun o_AddEntryPoint (
-		self: AvailObject,
-		stringName: A_String,
-		trueName: A_Atom): Unit = unsupported
 
 	override fun o_AddUnloadFunction (
 		self: AvailObject,
@@ -635,9 +626,6 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number = unsupported
-
-	override fun o_NameVisible (self: AvailObject, trueName: A_Atom): Boolean =
-		unsupported
 
 	override fun o_OptionallyNilOuterVar (
 		self: AvailObject,
@@ -1710,11 +1698,6 @@ abstract class Descriptor protected constructor (
 
 	override fun o_WriteType (self: AvailObject): A_Type = unsupported
 
-	override fun o_SetVersions (
-		self: AvailObject,
-		versionStrings: A_Set
-	): Unit = unsupported
-
 	override fun o_Versions (self: AvailObject): A_Set = unsupported
 
 	override fun o_PhraseExpressionType (self: AvailObject): A_Type =
@@ -2474,12 +2457,6 @@ abstract class Descriptor protected constructor (
 		self: AvailObject, planInProgress: A_ParsingPlanInProgress): Unit =
 		unsupported
 
-	override fun o_ModuleSemanticRestrictions (self: AvailObject): A_Set =
-		unsupported
-
-	override fun o_ModuleGrammaticalRestrictions (self: AvailObject): A_Set =
-		unsupported
-
 	override fun o_ComputeTypeTag (self: AvailObject): TypeTag = unsupported
 
 	override fun o_FieldAt (
@@ -2624,15 +2601,11 @@ abstract class Descriptor protected constructor (
 	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro): Unit =
 		unsupported
 
-	override fun o_ModuleMacros(self: AvailObject): A_Set = unsupported
-
 	override fun o_RemoveMacro(self: AvailObject, macro: A_Macro): Unit =
 		unsupported
 
 	override fun o_AddBundle(self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported
-
-	override fun o_ModuleBundles(self: AvailObject): A_Set = unsupported
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		unsupported
@@ -2690,4 +2663,15 @@ abstract class Descriptor protected constructor (
 		codePoint: Int,
 		applicability: Boolean
 	): Unit = unsupported
+
+	override fun o_SerializedObjects(
+		self: AvailObject,
+		serializedObjects: A_Tuple
+	): Unit = unsupported
+
+	override fun o_ApplyModuleHeader(
+		self: AvailObject,
+		loader: AvailLoader,
+		moduleHeader: ModuleHeader
+	): String? = unsupported
 }

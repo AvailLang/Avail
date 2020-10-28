@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
+import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

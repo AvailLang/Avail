@@ -57,6 +57,9 @@ import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addImportedNames
+import com.avail.descriptor.module.A_Module.Companion.entryPoints
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.phrases.A_Phrase

@@ -44,6 +44,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.ListPhraseDescriptor

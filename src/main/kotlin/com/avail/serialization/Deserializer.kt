@@ -34,8 +34,12 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import java.io.InputStream
 
 /**
@@ -53,10 +57,21 @@ import java.io.InputStream
  * @param runtime
  *   The [AvailRuntime] from which to locate well-known objects during
  *   deserialization.
+ * @property lookupPumpedObject
+ *   A function that checks if the provided [A_BasicObject] happens to be one of
+ *   the objects that this serializer was primed with.  If so, it answers the
+ *   object's index, which must be negative.  If not present, it answers 0,
+ *   which implies the object will need to be serialized.  Positive indices are
+ *   not permitted.  It's up to the caller to decide how to map from objects to
+ *   indices, but a [Deserializer] must be provided the inverse of this function
+ *   to convert negative indices to objects.
  */
 class Deserializer constructor(
 	input: InputStream,
-	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
+	runtime: AvailRuntime,
+	lookupPumpedObject: (Int)->A_BasicObject =
+		{ throw Exception("Deserializer has no pumped objects.") }
+) : AbstractDeserializer(input, runtime, lookupPumpedObject)
 {
 	/** The objects that have been assembled so far. */
 	private val assembledObjects = mutableListOf<AvailObject>()
@@ -146,6 +161,13 @@ class Deserializer constructor(
 		assert(producedObject === null)
 		producedObject = obj
 	}
+
+	/**
+	 * Answer a [tuple][A_Tuple] containing the sequence of objects that have
+	 * been deserialized by this [Deserializer].  This is the same sequence of
+	 * objects that the [Serializer] generated.
+	 */
+	fun allDeserializedObjects(): A_Tuple = tupleFromList(assembledObjects)
 
 	companion object
 	{

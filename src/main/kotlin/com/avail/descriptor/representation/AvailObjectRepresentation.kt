@@ -648,6 +648,54 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
+	 * Extract the current value of the indexable object slot, pass it to the
+	 * supplied inline Kotlin function, and write the result back to the slot
+	 * with a compare-and-set, retrying from the beginning if it fails.
+	 *
+	 * @param field
+	 *   The indexable [AvailObject] slot to access.
+	 * @param subscript
+	 *   The one-based subscript within the given indexable field.
+	 * @param updater
+	 *   The transformation to perform on the [AvailObject] in the slot to
+	 *   produce a replacement [A_BasicObject].  Note that this may run multiple
+	 *   times if the compare-and-set encounters contention.
+	 * @return
+	 *   The object that was eventually successfully written.
+	 */
+	fun atomicUpdateSlot(
+		field: ObjectSlotsEnum,
+		subscript: Int,
+		updater: (AvailObject)->A_BasicObject
+	): AvailObject
+	{
+		checkSlot(field)
+		checkWriteForField(field)
+		assert(subscript >= 1)
+		assert(subscript == 1 || field.fieldName().endsWith('_'))
+		val arrayIndex = field.fieldOrdinal() + subscript - 1
+		when {
+			currentDescriptor.isShared ->
+			{
+				while (true)
+				{
+					val oldValue = objectSlots[arrayIndex]!!
+					val newValue = updater(oldValue) as AvailObject
+					if (VolatileSlotHelper.compareAndSet(
+							objectSlots, arrayIndex, oldValue, newValue)
+					) return newValue
+				}
+			}
+			else ->
+			{
+				val newValue = updater(objectSlots[arrayIndex]!!) as AvailObject
+				objectSlots[arrayIndex] = newValue
+				return newValue
+			}
+		}
+	}
+
+	/**
 	 * Extract the current value of the indexable [Long] slot, pass it to the
 	 * supplied inline Kotlin function, and write the result back to the slot
 	 * with a compare-and-set, retrying from the beginning if it fails.
@@ -664,10 +712,13 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun atomicUpdateSlot(
 		field: IntegerSlotsEnum,
 		subscript: Int,
-		updater: (Long)->Long)
+		updater: (Long)->Long
+	): Long
 	{
 		checkSlot(field)
 		checkWriteForField(field)
+		assert(subscript >= 1)
+		assert(subscript == 1 || field.fieldName().endsWith('_'))
 		val arrayIndex = field.fieldOrdinal() + subscript - 1
 		when {
 			currentDescriptor.isShared ->
@@ -677,11 +728,16 @@ abstract class AvailObjectRepresentation protected constructor(
 					val oldValue = longSlots[arrayIndex]
 					val newValue = updater(oldValue)
 					if (VolatileSlotHelper.compareAndSet(
-							longSlots, subscript, oldValue, newValue)
-					) break
+							longSlots, arrayIndex, oldValue, newValue)
+					) return newValue
 				}
 			}
-			else -> longSlots[arrayIndex] = updater(longSlots[arrayIndex])
+			else ->
+			{
+				val newValue = updater(longSlots[arrayIndex])
+				longSlots[arrayIndex] = newValue
+				return newValue
+			}
 		}
 	}
 

@@ -46,6 +46,10 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.removeFrom
+import com.avail.descriptor.module.A_Module.Companion.serializedObjects
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
@@ -358,7 +362,9 @@ internal class BuildLoader constructor(
 			// Read the module data from the repository.
 			val bytes = compilation.bytes!!
 			val inputStream = validatedBytesFrom(bytes)
-			deserializer = Deserializer(inputStream, availBuilder.runtime)
+			deserializer = Deserializer(inputStream, availBuilder.runtime) {
+				throw Exception("Not yet implemented") // TODO MvG
+			}
 			deserializer.currentModule = module
 		}
 		catch (e: MalformedSerialStreamException)
@@ -436,6 +442,8 @@ internal class BuildLoader constructor(
 					}
 				else ->
 				{
+					module.serializedObjects(
+						deserializer.allDeserializedObjects())
 					availBuilder.runtime.addModule(module)
 					val loadedModule = LoadedModule(
 						moduleName,

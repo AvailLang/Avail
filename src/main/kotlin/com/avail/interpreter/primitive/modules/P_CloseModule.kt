@@ -33,6 +33,7 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.closeModule
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith

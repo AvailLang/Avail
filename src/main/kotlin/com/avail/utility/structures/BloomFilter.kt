@@ -51,10 +51,9 @@ import com.avail.descriptor.numbers.IntegerDescriptor
 class BloomFilter
 {
 	/**
-	 * @constructor
-	 *   Construct a new instance that initially reports `false` for every
-	 *   membership test.  If a non-null `existingFilter` is provided, it is
-	 *   copied instead.
+	 * Construct a new instance that initially reports `false` for every
+	 * membership test.  If a non-null `existingFilter` is provided, it is
+	 * copied instead.
 	 *
 	 * @param bitCount
 	 *   The number of bits that can be set independently in the table.  This

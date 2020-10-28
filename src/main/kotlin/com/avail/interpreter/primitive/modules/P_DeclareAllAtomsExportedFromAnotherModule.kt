@@ -34,6 +34,9 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.module.A_Module.Companion.addImportedNames
+import com.avail.descriptor.module.A_Module.Companion.addPrivateNames
+import com.avail.descriptor.module.A_Module.Companion.exportedNames
 import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil

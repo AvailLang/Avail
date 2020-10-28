@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_NEW_NAME
+import com.avail.descriptor.module.A_Module.Companion.addImportedName
+import com.avail.descriptor.module.A_Module.Companion.introduceNewName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set

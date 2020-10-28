@@ -35,7 +35,6 @@ import com.avail.serialization.MalformedSerialStreamException
 import com.avail.utility.LRUCache
 import com.avail.utility.safeWrite
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
@@ -686,7 +685,7 @@ class IndexedFile internal constructor(
 			longTermLock = acquireLockForWriting()
 			channel.write(buffer)
 			channel.force(true)
-			action()
+			this.action()
 			longTermLock!!.close()
 			channel.close()
 
