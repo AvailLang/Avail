@@ -1,5 +1,5 @@
 /*
- * L2_GET_LATEST_RETURN_VALUE.java
+ * L2_GET_LATEST_RETURN_VALUE.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

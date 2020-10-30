@@ -1,5 +1,5 @@
 /*
- * L2_TYPE_UNION.java
+ * L2_TYPE_UNION.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

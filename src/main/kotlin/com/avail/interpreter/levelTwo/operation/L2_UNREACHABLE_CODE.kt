@@ -1,5 +1,5 @@
 /*
- * L2_UNREACHABLE_CODE.java
+ * L2_UNREACHABLE_CODE.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
