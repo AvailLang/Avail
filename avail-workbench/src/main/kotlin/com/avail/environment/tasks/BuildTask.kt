@@ -58,6 +58,9 @@ class BuildTask (
 	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
 		assert(targetModuleName !== null)
+		workbench.resolver.moduleRoots.roots.forEach { root ->
+			root.repository.reopenIfNecessary()
+		}
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,

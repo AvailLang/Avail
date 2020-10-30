@@ -59,6 +59,9 @@ class DocumentationTask (
 	{
 		try
 		{
+			workbench.resolver.moduleRoots.roots.forEach { root ->
+				root.repository.reopenIfNecessary()
+			}
 			workbench.availBuilder.generateDocumentation(
 				targetModuleName(),
 				workbench.documentationPath,

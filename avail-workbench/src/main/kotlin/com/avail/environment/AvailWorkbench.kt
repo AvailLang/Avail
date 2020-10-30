@@ -109,6 +109,7 @@ import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
+import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.resolver.ResolverReference
@@ -530,6 +531,14 @@ class AvailWorkbench internal constructor (
 	private var perModuleStatusTextSize = 0
 
 	/**
+	 * A gate that prevents multiple [AbstractWorkbenchTask]s from running at
+	 * once. `true` indicates a task is running and will prevent a second task
+	 * from starting; `false` indicates the workbench is available to run a
+	 * task.
+	 */
+	private var taskGate = AtomicBoolean(false)
+
+	/**
 	 * `AbstractWorkbenchTask` is a foundation for long running [AvailBuilder]
 	 * operations.
 	 *
@@ -598,9 +607,23 @@ class AvailWorkbench internal constructor (
 		@Throws(Exception::class)
 		override fun doInBackground(): Void?
 		{
+			if (workbench.taskGate.getAndSet(true))
+			{
+				// task is running
+				return null
+			}
 			startTimeMillis = currentTimeMillis()
 			executeTaskThen {
-				stopTimeMillis = currentTimeMillis()
+				try
+				{
+					Repositories.closeAllRepositories()
+					stopTimeMillis = currentTimeMillis()
+				}
+				finally
+				{
+					workbench.taskGate.set(false)
+				}
+
 			}
 			return null
 		}
