@@ -30,13 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.persistence
+package com.avail.persistence.cache
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder.Companion.validatedBytesFrom
 import com.avail.descriptor.module.A_Module
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.serialization.DeserializerDescriber
 import com.avail.serialization.MalformedSerialStreamException
 

@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -40,10 +40,16 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
+import com.avail.error.ErrorCodeRangeRegistry
+import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
+import com.avail.persistence.cache.Repositories
+import com.avail.resolver.ModuleRootResolver
+import com.avail.server.error.ServerErrorCodeRange
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
+import org.junit.jupiter.api.Assertions
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -55,6 +61,7 @@ import java.io.StringReader
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.Semaphore
 import java.util.function.Consumer
 
 /**
@@ -62,6 +69,7 @@ import java.util.function.Consumer
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  * Construct an `AvailTest`.
@@ -78,14 +86,25 @@ class AvailRuntimeTestHelper
 		RenamesFileParserException::class)
 	constructor()
 {
+	init
+	{
+		ErrorCodeRangeRegistry.register(ServerErrorCodeRange)
+	}
+
+	/** The [FileManager] used in this test. */
+	val fileManager: FileManager = FileManager()
+
+	val moduleRoots: ModuleRoots = createModuleRoots(fileManager)
+
 	/** The [module name resolver][ModuleNameResolver].  */
 	@Suppress("MemberVisibilityCanBePrivate")
-	val resolver: ModuleNameResolver =
-		createModuleNameResolver(createModuleRoots())
+	val resolver: ModuleNameResolver by lazy {
+		createModuleNameResolver(moduleRoots)
+	}
 
 	/** The [Avail runtime][AvailRuntime].  */
 	@JvmField
-	val runtime: AvailRuntime = createAvailRuntime(resolver)
+	val runtime: AvailRuntime = createAvailRuntime(resolver, fileManager)
 
 	/** The [Avail builder][AvailBuilder].  */
 	@JvmField
@@ -98,6 +117,14 @@ class AvailRuntimeTestHelper
 	/** The maximum notification rate for partially-loaded modules.  */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var updateRateMillis: Long = 500
+
+	val testModuleRootResolver: ModuleRootResolver by lazy {
+		moduleRoots.moduleRootFor("tests")!!.resolver!!
+	}
+
+	val availModuleRootResolver: ModuleRootResolver by lazy {
+		moduleRoots.moduleRootFor("avail")!!.resolver!!
+	}
 
 	/**
 	 * A `TestErrorChannel` augments a [TextOutputChannel] with error detection.
@@ -339,16 +366,37 @@ class AvailRuntimeTestHelper
 		 * Create [ModuleRoots] from the information supplied in the
 		 * `availRoots` system property.
 		 *
+		 * @param fileManager
+		 *   The [FileManager] used to access files.
 		 * @return
 		 *   The specified Avail roots.
 		 */
-		fun createModuleRoots(): ModuleRoots
+		fun createModuleRoots(fileManager: FileManager): ModuleRoots
 		{
+			val repoString = System.getProperty("repositories", null)
+			if (repoString == null)
+			{
+				Assertions.fail<Any>(
+					"system property \"repositories\" is not set")
+			}
+//			Repositories.setDirectoryLocation(File(repoString))
 			val userDir = System.getProperty("user.dir")
 			val path = userDir.replace("/avail-server", "")
-			val roots = "avail=$path/repositories/avail.repo,$path/distro/src/avail;" +
-				"tests=$userDir/src/test/resources/repos/tests.repo,$userDir/src/test/resources/tests"
-			return ModuleRoots(roots)
+			val uri = "file://$path"
+			val roots = "avail=$uri/distro/src/avail;" +
+				"tests=$userDir/src/test/resources/tests"
+			val semaphore = Semaphore(0)
+			val mrs = ModuleRoots(fileManager, roots) {
+				if (it.isNotEmpty())
+				{
+					System.err.println(
+						"Failed to initialize module roots fully")
+				}
+				it.forEach { msg -> System.err.println(msg) }
+				semaphore.release()
+			}
+			semaphore.acquireUninterruptibly()
+			return mrs
 		}
 
 		/**
@@ -402,10 +450,14 @@ class AvailRuntimeTestHelper
 		 *
 		 * @param resolver
 		 *   The [ModuleNameResolver] for resolving module names.
+		 * @param fileManager
+		 *   The system [FileManager].
 		 * @return
 		 *   An Avail runtime.
 		 */
-		fun createAvailRuntime(resolver: ModuleNameResolver): AvailRuntime =
-			AvailRuntime(resolver)
+		fun createAvailRuntime(
+			resolver: ModuleNameResolver,
+			fileManager: FileManager): AvailRuntime =
+			AvailRuntime(resolver, fileManager)
 	}
 }

@@ -36,6 +36,7 @@ import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
+import com.avail.files.FileManager
 import com.avail.server.AvailServer
 import com.avail.utility.configuration.Configuration
 import java.io.File
@@ -48,8 +49,19 @@ import kotlin.text.Charsets.UTF_8
  * [AvailServer].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property fileManager
+ *   The [FileManager] that will manage the Avail files.
+ *
+ * @constructor
+ * Construct a new [AvailServerConfiguration]
+ *
+ * @param fileManager
+ *   The [FileManager] that will manage the Avail files.
  */
-class AvailServerConfiguration : Configuration
+class AvailServerConfiguration constructor(private val fileManager: FileManager)
+	: Configuration
 {
 	/** The [Avail roots][ModuleRoots] path. */
 	@Suppress("MemberVisibilityCanBePrivate")
@@ -72,7 +84,9 @@ class AvailServerConfiguration : Configuration
 			var roots = privateAvailRoots
 			if (roots === null)
 			{
-				roots = ModuleRoots(availRootsPath)
+				roots = ModuleRoots(fileManager, availRootsPath) {
+					it.forEach { msg -> System.err.println(msg) }
+				}
 				privateAvailRoots = roots
 			}
 			return roots

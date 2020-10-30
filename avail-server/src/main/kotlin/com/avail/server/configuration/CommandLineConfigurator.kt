@@ -143,9 +143,8 @@ class CommandLineConfigurator constructor(
 				+ "root specifications. Each module root specification "
 				+ "comprises a  logical root name, then an equals (=), then a "
 				+ "module root location. A module root location comprises the "
-				+ "absolute path to a binary module repository, then "
-				+ "optionally a comma (,) and the  absolute path to a source "
-				+ "package. This option overrides environment variables.")
+				+ "absolute path to a source package. This option overrides "
+				+ "environment variables.")
 				{
 					configuration.availRootsPath = argument
 				}
@@ -218,6 +217,7 @@ class CommandLineConfigurator constructor(
 			}
 			catch (e: Exception)
 			{
+				e.printStackTrace()
 				throw ConfigurationException(
 					"unexpected configuration error", e)
 			}

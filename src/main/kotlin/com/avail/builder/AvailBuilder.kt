@@ -72,10 +72,10 @@ import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
-import com.avail.persistence.Repository
-import com.avail.persistence.Repository.ModuleArchive
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.Repository.ModuleVersion
+import com.avail.persistence.cache.Repository
+import com.avail.persistence.cache.Repository.ModuleArchive
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
@@ -602,12 +602,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	{
 		val semaphore = Semaphore(0)
 		buildTargetThen(
-				target,
-				localTracker,
-				globalTracker,
-				problemHandler) {
-			semaphore.release()
-		}
+			target,
+			localTracker,
+			globalTracker,
+			problemHandler) { semaphore.release() }
 		semaphore.acquireUninterruptibly()
 	}
 
@@ -703,29 +701,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Note that the action may be invoked in multiple [Thread]s simultaneously,
 	 * so the client may need to provide suitable synchronization.
 	 *
-	 * Also note that the method only returns after all tracing has completed.
-	 *
-	 * @param action
-	 *   What to do with each module version.  The third argument to it is a
-	 *   function to invoke when the module is considered processed.
-	 */
-	fun traceDirectories(
-		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
-	{
-		val semaphore = Semaphore(0)
-		traceDirectories(action) { semaphore.release() }
-		// Trace is not currently interruptible.
-		semaphore.acquireUninterruptibly()
-	}
-
-	/**
-	 * Scan all module files in all visible source directories, passing each
-	 * [ResolvedModuleName] and corresponding [ModuleVersion] to the provided
-	 * function.
-	 *
-	 * Note that the action may be invoked in multiple [Thread]s simultaneously,
-	 * so the client may need to provide suitable synchronization.
-	 *
 	 * The method may return before tracing has completed, but `afterAll` will
 	 * eventually be invoked in some [Thread] after all modules have been
 	 * processed.
@@ -736,7 +711,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @param afterAll
 	 *   What to do after all of the modules have been processed.
 	 */
-	private fun traceDirectories(
+	fun traceDirectoriesThen(
 		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
 		afterAll: ()->Unit)
 	{

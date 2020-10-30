@@ -69,7 +69,7 @@ object P_ServerSocketOpen : Primitive(1, CanInline, HasSideEffect)
 		val name = interpreter.argument(0)
 		return try {
 			val handle = createAtom(name, currentModule)
-			val channel = currentRuntime().ioSystem().openServerSocket()
+			val channel = currentRuntime().ioSystem.openServerSocket()
 			handle.setAtomProperty(
 				SERVER_SOCKET_KEY.atom, identityPojo(channel))
 			interpreter.primitiveSuccess(handle)

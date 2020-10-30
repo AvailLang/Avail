@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,15 +30,16 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.server.io.files
+package com.avail.files
 
-import com.avail.server.error.ServerErrorCode
-import com.avail.server.io.files.RedoAction.execute
-import com.avail.server.io.files.UndoAction.execute
+import com.avail.error.ErrorCode
+import com.avail.files.RedoAction.execute
+import com.avail.files.UndoAction.execute
+import java.util.UUID
 
 /**
  * `FileActionType` is an enum that describes the types of actions that can be
- * requested occur when interacting with an [AvailServerFile].
+ * requested occur when interacting with an [AvailFile].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
@@ -47,7 +48,7 @@ enum class FileActionType
 	/** Represents the canonical non-action when nothing is to be done. */
 	NO_ACTION,
 
-	/** Save the [AvailServerFile] to disk. */
+	/** Save the [AvailFile] to disk. */
 	SAVE,
 
 	/**
@@ -74,24 +75,27 @@ enum class FileActionType
 
 /**
  * `FileAction` declares the methods and states for a performing a
- * [FileActionType] on an [AvailServerFile].
+ * [FileActionType] on an [AvailFile].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 interface FileAction
 {
 	/**
-	 * Executes the action on the provided [AvailServerFile] and answer the
+	 * Executes the action on the provided [AvailFile] and answer the
 	 * [TracedAction] required to reverse this `FileAction` update.
 	 *
 	 * @param file
 	 *   The `AvailServerFile` to update.
 	 * @param timestamp
 	 *   The time when this [FileAction] request was received.
+	 * @param originator
+	 *   The [Session.id] of the session that originated the change.
 	 * @return
 	 *   The [TracedAction], when applied, will reverse this `FileAction`.
 	 */
-	fun execute (file: AvailServerFile, timestamp: Long): TracedAction
+	fun execute (
+		file: AvailFile, timestamp: Long, originator: UUID): TracedAction
 
 	/**
 	 * The [FileActionType] that represents this [FileAction].
@@ -131,13 +135,16 @@ interface FileAction
  *   The location in the file to stop overwriting, exclusive. All data from
  *   this point should be preserved.
  */
-internal class EditRange constructor(
+class EditRange constructor(
 	val data: ByteArray,
 	private val start: Int,
 	private val end: Int): FileAction
 {
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
-		file.editRange(data, start, end, timestamp)
+	override fun execute(
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID): TracedAction =
+		file.editRange(data, start, end, timestamp, originator)
 
 	override val type: FileActionType = FileActionType.EDIT_RANGE
 
@@ -159,10 +166,13 @@ internal class EditRange constructor(
  * @param data
  *   The [ByteArray] that is to be inserted in the file.
  */
-internal class ReplaceContents constructor(val data: ByteArray): FileAction
+class ReplaceContents constructor(val data: ByteArray): FileAction
 {
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
-		file.replaceFile(data, timestamp)
+	override fun execute(
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID): TracedAction =
+		file.replaceFile(data, timestamp, originator)
 
 	override val type: FileActionType = FileActionType.REPLACE_CONTENTS
 
@@ -177,11 +187,18 @@ internal class ReplaceContents constructor(val data: ByteArray): FileAction
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal object NoAction: FileAction
+object NoAction: FileAction
 {
-	val tracedAction = TracedAction(0, NoAction, NoAction)
+	/** The canonical non-session id. */
+	private val NON_SESSION_ID =
+		UUID.nameUUIDFromBytes("NON_SESSION".toByteArray())
 
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction =
+	val tracedAction = TracedAction(0,  NON_SESSION_ID, NoAction, NoAction)
+
+	override fun execute(
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID): TracedAction =
 		tracedAction
 
 	override val type: FileActionType = FileActionType.NO_ACTION
@@ -195,11 +212,14 @@ internal object NoAction: FileAction
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal object UndoAction: FileAction
+object UndoAction: FileAction
 {
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
+	override fun execute(
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID): TracedAction
 	{
-		file.serverFileWrapper.undo()
+		file.fileWrapper.undo(originator)
 		return NoAction.tracedAction
 	}
 
@@ -212,11 +232,14 @@ internal object UndoAction: FileAction
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-internal object RedoAction: FileAction
+object RedoAction: FileAction
 {
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
+	override fun execute(
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID): TracedAction
 	{
-		file.serverFileWrapper.redo()
+		file.fileWrapper.redo(originator)
 		return NoAction.tracedAction
 	}
 
@@ -224,27 +247,30 @@ internal object RedoAction: FileAction
 }
 
 /**
- * `SaveAction` is a [FileAction] that forces a save of an [AvailServerFile] to
+ * `SaveAction` is a [FileAction] that forces a save of an [AvailFile] to
  * disk outside of the normal save mechanism.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property failureHandler
- *   A function that accepts a [ServerErrorCode] that describes the nature
+ *   A function that accepts a [ErrorCode] that describes the nature
  *   of the failure and an optional [Throwable]. TODO refine error handling
  *
  * @constructor
  * Construct a [SaveAction].
  *
  * @param failureHandler
- *   A function that accepts a [ServerErrorCode] that describes the nature
+ *   A function that accepts a [ErrorCode] that describes the nature
  *   of the failure and an optional [Throwable].
  */
-internal class SaveAction constructor(
+class SaveAction constructor(
 	private val fileManager: FileManager,
-	private val failureHandler: (ServerErrorCode, Throwable?) -> Unit): FileAction
+	private val failureHandler: (ErrorCode, Throwable?) -> Unit): FileAction
 {
-	override fun execute(file: AvailServerFile, timestamp: Long): TracedAction
+	override fun execute(
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID): TracedAction
 	{
 		fileManager.saveFile(file, failureHandler)
 		return NoAction.tracedAction
@@ -261,6 +287,8 @@ internal class SaveAction constructor(
  *
  * @property timestamp
  *   The time when this [FileAction] request was received.
+ * @property originator
+ *   The [Session.id] of the session that originator of the change.
  * @property forwardAction
  *   The originally requested [FileAction] that was made to a file.
  * @property reverseAction
@@ -271,13 +299,16 @@ internal class SaveAction constructor(
  *
  * @param timestamp
  *   The time when this [FileAction] request was performed.
- * @property forwardAction
+ * @param originator
+ *   The [Session.id] of the session that originator of the change.
+ * @param forwardAction
  *   The originally requested [FileAction] that was made to a file.
- * @property reverseAction
+ * @param reverseAction
  *   The [FileAction] that reverses the `forwardAction`.
  */
 class TracedAction constructor(
-	val timestamp: Long,
+	private val timestamp: Long,
+	private val originator: UUID,
 	private val forwardAction: FileAction,
 	private val reverseAction: FileAction)
 {
@@ -290,24 +321,24 @@ class TracedAction constructor(
 	fun isTraced () : Boolean = forwardAction.isTraced && reverseAction.isTraced
 
 	/**
-	 * Run the [reverseAction] on the provided [AvailServerFile].
+	 * Run the [reverseAction] on the provided [AvailFile].
 	 *
 	 * @param file
-	 *   The [AvailServerFile] to reverse.
+	 *   The [AvailFile] to reverse.
 	 */
-	fun undo (file: AvailServerFile)
+	fun undo (file: AvailFile)
 	{
-		reverseAction.execute(file, System.currentTimeMillis())
+		reverseAction.execute(file, System.currentTimeMillis(), originator)
 	}
 
 	/**
-	 * Run the [forwardAction] on the provided [AvailServerFile].
+	 * Run the [forwardAction] on the provided [AvailFile].
 	 *
 	 * @param file
-	 *   The [AvailServerFile] to redo.
+	 *   The [AvailFile] to redo.
 	 */
-	fun redo (file: AvailServerFile)
+	fun redo (file: AvailFile)
 	{
-		forwardAction.execute(file, System.currentTimeMillis())
+		forwardAction.execute(file, System.currentTimeMillis(), originator)
 	}
 }

@@ -108,7 +108,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 			alignmentInt = 4096
 		}
 		assert(alignmentInt > 0)
-		val ioSystem = currentRuntime().ioSystem()
+		val ioSystem = currentRuntime().ioSystem
 		val fileOptions = openOptionsFor(options)
 		val fileAttributes = permissionsFor(permissions)
 		if (!fileOptions.contains(READ) && !fileOptions.contains(WRITE))

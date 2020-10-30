@@ -129,7 +129,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	: TransportAdapter<AsynchronousSocketChannel>
 {
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
-	internal val serverChannel = server.runtime.ioSystem().openServerSocket()
+	internal val serverChannel = server.runtime.ioSystem.openServerSocket()
 
 	init
 	{

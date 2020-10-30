@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,6 +32,7 @@
 
 package com.avail.server.test
 
+import com.avail.files.FileErrorCode
 import com.avail.server.AvailServer
 import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.error.ServerErrorCode
@@ -65,8 +66,12 @@ class BinaryAPITests
 {
 	/** The [AvailServer] used for these API tests. */
 	private val server: AvailServer by lazy {
-		val config = AvailServerConfiguration()
-		AvailServer(config, AvailRuntimeTestHelper.helper.runtime)
+		val config = AvailServerConfiguration(
+			AvailRuntimeTestHelper.helper.fileManager)
+		AvailServer(
+			config,
+			AvailRuntimeTestHelper.helper.runtime,
+			AvailRuntimeTestHelper.helper.fileManager)
 	}
 
 	/**
@@ -419,7 +424,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -861,7 +866,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.FILE_ALREADY_EXISTS, errorCode)
+			assertEquals(FileErrorCode.FILE_ALREADY_EXISTS, errorCode)
 		}
 		else
 		{
@@ -934,7 +939,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.FILE_NOT_FOUND, errorCode)
+			assertEquals(FileErrorCode.FILE_NOT_FOUND, errorCode)
 		}
 		else
 		{
@@ -959,7 +964,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.FILE_NOT_FOUND, errorCode)
+			assertEquals(FileErrorCode.FILE_NOT_FOUND, errorCode)
 		}
 		else
 		{
@@ -984,7 +989,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.FILE_NOT_FOUND, errorCode)
+			assertEquals(FileErrorCode.FILE_NOT_FOUND, errorCode)
 		}
 		else
 		{
@@ -1009,7 +1014,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1034,7 +1039,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1058,7 +1063,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1082,7 +1087,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1106,7 +1111,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{

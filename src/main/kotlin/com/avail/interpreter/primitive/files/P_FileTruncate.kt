@@ -138,7 +138,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		runtime.ioSystem().executeFileTask(
+		runtime.ioSystem.executeFileTask(
 			Runnable {
 	           try
 	           {

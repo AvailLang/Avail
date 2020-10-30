@@ -123,7 +123,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		fail.makeShared()
 
 		val replace = replaceExisting.extractBoolean()
-		runtime.ioSystem().executeFileTask(
+		runtime.ioSystem.executeFileTask(
 			Runnable {
                val options = mutableListOf<CopyOption>()
                if (replace)

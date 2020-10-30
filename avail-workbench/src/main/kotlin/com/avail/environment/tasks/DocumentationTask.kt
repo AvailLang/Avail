@@ -55,10 +55,13 @@ class DocumentationTask (
 		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName?)
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
 		try
 		{
+			workbench.resolver.moduleRoots.roots.forEach { root ->
+				root.repository.reopenIfNecessary()
+			}
 			workbench.availBuilder.generateDocumentation(
 				targetModuleName(),
 				workbench.documentationPath,
@@ -70,7 +73,10 @@ class DocumentationTask (
 			// exceptions.
 			throw e
 		}
-
+		finally
+		{
+			afterExecute()
+		}
 	}
 
 	override fun done()

@@ -1,5 +1,5 @@
 /*
- * Message.kt
+ * NotificationMessage.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,60 +32,22 @@
 
 package com.avail.server.messages
 
-import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
-import java.nio.charset.StandardCharsets
 
 /**
- * An [AvailServer] sends and receives `Message`s. A `Message` received by the
- * server represents a command from the client, whereas a `Message` sent by the
- * server represents a response to a command.
+ * A `NotificationMessage` is TODO: Document this!
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property content
- *   The [content][ByteArray] of the [message][Message].
- * @property state
- *   The [AvailServerChannel.ProtocolState] the source/target
- *   [AvailServerChannel] was at when this [Message] was received/created.
- * @property closeAfterSending
- *   Should the [channel][AvailServerChannel] be
- *   [closed][AvailServerChannel.scheduleClose] after transmitting this
- *   [message][Message]?
- *
- * @constructor
- * Construct a new [Message].
- *
- * @param content
- *   The [content][ByteArray].
- * @param state
- *   The [AvailServerChannel.ProtocolState] the source/target
- *   [AvailServerChannel] was at when this `Message` was received/created.
- * @param closeAfterSending
- *   `true` if the [channel][AvailServerChannel] should be
- *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
  */
-class Message constructor(
-	val content: ByteArray,
-	private val state: AvailServerChannel.ProtocolState,
-	val closeAfterSending: Boolean = false)
+class NotificationMessage: CommandMessage()
 {
-	// TODO Process all message data as bytes and transform it just before
-	// actually using the data when being read.
-	val stringContent: String get()
-	{
-		require(!state.generalBinary)
-		{
-			"Message.stringContent was called but message was received as " +
-			"$state."
-		}
-		return String(content, StandardCharsets.UTF_8)
-	}
+	override val command: TextCommand
+		get() = TODO("Not yet implemented")
 
-	companion object
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: ()->Unit)
 	{
-		/** The maximum allowed size of a frame.  */
-		const val MAX_SIZE = 1024000
+		TODO("Not yet implemented")
 	}
 }
