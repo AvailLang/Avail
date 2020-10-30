@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT.java
+ * L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

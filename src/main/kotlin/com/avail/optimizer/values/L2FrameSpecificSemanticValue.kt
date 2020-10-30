@@ -1,5 +1,5 @@
 /*
- * L2FrameSpecificSemanticValue.java
+ * L2FrameSpecificSemanticValue.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

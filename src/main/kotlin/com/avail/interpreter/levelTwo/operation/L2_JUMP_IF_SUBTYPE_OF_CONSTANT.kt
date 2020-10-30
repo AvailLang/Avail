@@ -1,5 +1,5 @@
 /*
- * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.java
+ * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * L2SemanticSlot.java
+ * L2SemanticSlot.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * JSONWriterTest.java
+ * JSONWriterTest.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

@@ -1,5 +1,5 @@
 /*
- * L2SemanticTemp.java
+ * L2SemanticTemp.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *

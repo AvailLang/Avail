@@ -1,5 +1,5 @@
 /*
- * L2Inliner.java
+ * L2Inliner.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
