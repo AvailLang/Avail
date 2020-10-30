@@ -9,8 +9,8 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
@@ -49,7 +49,7 @@ object Repositories
 	/**
 	 * The file extension for a repo.
 	 */
-	private const val repoExtension = "repo"
+	private const val repositoryExtension = "repo"
 
 	/**
 	 * The [Repository]s directory.
@@ -103,7 +103,7 @@ object Repositories
 		repositories[root.name] =
 			Repository(
 				root.name,
-				File("${directory.absolutePath}/${root.name}.${repoExtension}"))
+				File("${directory.absolutePath}/${root.name}.${repositoryExtension}"))
 	}
 
 	/**

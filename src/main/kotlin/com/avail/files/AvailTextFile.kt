@@ -9,8 +9,8 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
@@ -34,6 +34,7 @@ package com.avail.files
 
 import com.avail.descriptor.tuples.A_Tuple
 import java.nio.ByteBuffer
+import java.nio.charset.CharacterCodingException
 import java.nio.charset.Charset
 import java.nio.charset.CodingErrorAction
 import java.util.UUID
@@ -73,21 +74,32 @@ internal class AvailTextFile : AbstractAvailTextFile
 			try
 			{
 				content = decoder.decode(ByteBuffer.wrap(bytes)).toString()
-				fileWrapper.notifyReady()
+			}
+			catch (e: CharacterCodingException)
+			{
+				System.err.println(
+					"Attempted to decode bytes from supposed text file " +
+						fileWrapper.reference.uri)
+				e.printStackTrace()
+				fileWrapper.notifyOpenFailure(FileErrorCode.DECODER_FAILURE, e)
+				return@readFile
 			}
 			catch (e: Throwable)
 			{
 				System.err.println(
 					"Attempted to decode bytes from supposed text file " +
 						fileWrapper.reference.uri)
-				System.err.println(e)
+				e.printStackTrace()
+				fileWrapper.notifyOpenFailure(FileErrorCode.UNSPECIFIED, e)
+				return@readFile
 			}
+			fileWrapper.notifyReady()
 		}) { code, ex ->
-				// TODO figure out what to do with these!!! Probably report them?
-				System.err.println(
-					"Received ErrorCode: $code while attempting read file: " +
-						"${fileWrapper.reference.uri} with exception:\n")
-				ex?.printStackTrace()
+			System.err.println(
+				"Received ErrorCode: $code while attempting read file: " +
+					"${fileWrapper.reference.uri} with exception:\n")
+			ex?.printStackTrace()
+			fileWrapper.notifyOpenFailure(code, ex)
 		}
 	}
 
@@ -113,13 +125,26 @@ internal class AvailTextFile : AbstractAvailTextFile
 		{
 			content = decoder.decode(ByteBuffer.wrap(raw)).toString()
 		}
+
+		catch (e: CharacterCodingException)
+		{
+			System.err.println(
+				"Attempted to decode bytes from supposed text file " +
+					fileWrapper.reference.uri)
+			e.printStackTrace()
+			fileWrapper.notifyOpenFailure(FileErrorCode.DECODER_FAILURE, e)
+			return
+		}
 		catch (e: Throwable)
 		{
 			System.err.println(
 				"Attempted to decode bytes from supposed text file " +
 					fileWrapper.reference.uri)
-			System.err.println(e)
+			e.printStackTrace()
+			fileWrapper.notifyOpenFailure(FileErrorCode.UNSPECIFIED, e)
+			return
 		}
+		fileWrapper.notifyReady()
 	}
 
 	override fun replaceFile(

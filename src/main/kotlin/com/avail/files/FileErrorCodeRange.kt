@@ -9,8 +9,8 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
@@ -89,7 +89,17 @@ enum class FileErrorCode(code: Int): ErrorCode
 	 * An attempt to access a [FileManager]-cached file that has been closed
 	 * and removed from the cache has occurred.
 	 */
-	FILE_CLOSED(200005);
+	FILE_CLOSED(200005),
+
+	/**
+	 * Encoding the file for storage has failed.
+	 */
+	ENCODER_FAILURE(200006),
+
+	/**
+	 * Decoding a file has failed.
+	 */
+	DECODER_FAILURE(200007);
 
 	override val errorCodeRange: ErrorCodeRange
 		get() = FileErrorCodeRange

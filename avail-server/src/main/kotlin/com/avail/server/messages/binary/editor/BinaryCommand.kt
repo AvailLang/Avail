@@ -9,8 +9,8 @@
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice, this
- *   list of conditions and the following disclaimer in the documentation
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
  *   and/or other materials provided with the distribution.
  *
  * * Neither the name of the copyright holder nor the names of the contributors
@@ -231,7 +231,7 @@ enum class BinaryCommand constructor(val id: Int)
 									}) { code, ex ->
 										ex?.let { e ->
 											logger.log(Level.SEVERE, e) {
-												"Could not read file, " +
+												"Could not read file: " +
 													qualifiedName
 											}
 										}
@@ -243,7 +243,7 @@ enum class BinaryCommand constructor(val id: Int)
 							}) { code, throwable ->
 								throwable?.let { e ->
 									logger.log(Level.SEVERE, e) {
-										"Could not create file," +
+										"Could not create file: " +
 											resolver.fullResourceURI(
 												qualifiedName)
 									}
@@ -337,7 +337,15 @@ enum class BinaryCommand constructor(val id: Int)
 							// Request is asynchronous, so continue
 							continuation()
 						}) { code, ex ->
-
+							ex?.let { e ->
+								logger.log(Level.SEVERE, e) {
+									"Could not read file: " +
+										target.qualifiedName
+								}
+								e.printStackTrace()
+							}
+							channel.enqueueMessageThen(
+								ErrorBinaryMessage(commandId, code).message) {}
 						}
 					}
 				} ?: {

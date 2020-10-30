@@ -134,7 +134,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					if (double[1].isEmpty())
 					{
 						throw RuntimeException(
-							"ModuleRoot, $name, is missing a source URI")
+							"Module root, $name, is missing a source URI")
 					}
 					else
 					{

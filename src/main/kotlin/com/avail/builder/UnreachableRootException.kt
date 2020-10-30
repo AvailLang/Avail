@@ -76,5 +76,4 @@ class UnreachableRootException internal constructor(
 				"$unresolvedRootName, which has no module root resolver that " +
 				"can be used to reach the source."
 		}
-
 }
