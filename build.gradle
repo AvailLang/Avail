@@ -114,6 +114,9 @@ dependencies {
 		name: 'asm-util',
 		version: "$asm_version"
 
+	// https://tika.apache.org for file MIME type detection
+	implementation 'org.apache.tika:tika-core:1.22'
+
 	// JUnit 5.
 	testRuntimeOnly group: 'org.junit.jupiter',
 		name: 'junit-jupiter-engine',
@@ -324,8 +327,8 @@ To develop Avail code, you will also need to set AVAIL_ROOTS to a
 valid module root path. If AVAIL_ROOTS is not set, then avail-dev
 temporarily sets it to:
 
-\tavail=\$HOME/.avail/repos/avail.repo,$projectDir/distro/src/avail;\\
-\texamples=\$HOME/.avail/repos/examples.repo,$projectDir/distro/src/examples
+\tavail=$projectDir/distro/src/avail;\\
+\texamples=$projectDir/distro/src/examples
 
 This is convenient for experimenting with Avail, but must be
 extended with custom module roots as you develop your own modules.

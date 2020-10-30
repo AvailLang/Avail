@@ -1,21 +1,21 @@
 /*
- * AvailServerFile.kt
+ * AvailFile.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -29,50 +29,50 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.server.io.files
+package com.avail.files
 
-import com.avail.server.AvailServer
-import java.io.IOException
-import java.nio.channels.AsynchronousFileChannel
-import java.util.logging.Level
+import com.avail.builder.ModuleRoot
+import com.avail.io.AvailClient
+import java.nio.charset.Charset
+import java.util.UUID
 
 /**
- * `AvailSeverFile` is a specification for declaring behavior and state for a
- * file that has been opened by the Avail Server.
+ * `AvailFile` is a specification for declaring behavior and state for a
+ * file that has been opened from the hierarchy of an Avail [ModuleRoot].
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property path
- *   The on-disk absolute location of the file.
- * @property file
- *   The [AsynchronousFileChannel] used to access the file.
- * @property mimeType
- *   The MIME type of the file.
- * @property serverFileWrapper
- *   The [ServerFileWrapper] that wraps this [AvailServerFile].
+ * @property fileWrapper
+ *   The [AbstractFileWrapper] that wraps this [AvailFile].
  *
  * @constructor
- * Construct an [AvailServerFile].
+ * Construct an [AvailFile].
  *
- * @param path
- *   The on-disk absolute location of the file.
- * @param file
- *   The [AsynchronousFileChannel] used to access the file.
- * @param mimeType
- *   The MIME type of the file.
- * @param serverFileWrapper
- *   The [ServerFileWrapper] that wraps this [AvailServerFile].
+ * @param charset
+ *   The [Charset] of the file.
+ * @param fileWrapper
+ *   The [AbstractFileWrapper] that wraps this [AvailFile].
  */
-abstract class AvailServerFile constructor(
-	val path: String,
-	protected val file: AsynchronousFileChannel,
-	val mimeType: String,
-	val serverFileWrapper: ServerFileWrapper)
+abstract class AvailFile constructor(
+	val fileWrapper: AbstractFileWrapper)
 {
 	/** The raw bytes of the file. */
 	abstract val rawContent: ByteArray
 
-	open fun getSaveContent (): ByteArray = rawContent
+	/** The mime type of this file. */
+	val mimeType: String = fileWrapper.reference.mimeType
+
+	/**
+	 * The last time in milliseconds since the Unix epoch that the file was
+	 * updated.
+	 */
+	var lastModified: Long = fileWrapper.reference.lastModified
+
+	/**
+	 * @return
+	 *   The most recent file content eligible to be saved.
+	 */
+	open fun getSaveableContent (): ByteArray = rawContent
 
 	/**
 	 * Time in milliseconds since the unix epoch UTC when this file was lasted
@@ -110,22 +110,10 @@ abstract class AvailServerFile constructor(
 		}
 	}
 
-	/** Close the backing channel [file]. */
-	fun close () =
-		try
-		{
-			file.close()
-		}
-		catch (e: IOException)
-		{
-			AvailServer.logger.log(Level.WARNING, e) {
-				"Could not close file, $path" }
-		}
-
 	/**
-	 * `true` indicates the [file] is open; `false` indicates it is closed.
+	 * `true` indicates the file is open; `false` indicates it is closed.
 	 */
-	val isOpen: Boolean get() = file.isOpen
+	val isOpen: Boolean get() = !fileWrapper.isClosed
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This
@@ -134,7 +122,7 @@ abstract class AvailServerFile constructor(
 	 * range.
 	 *
 	 * @param data
-	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 *   The `ByteArray` data to add to this [AvailFile].
 	 * @param start
 	 *   The location in the file to inserting/overwriting the data, exclusive.
 	 * @param end
@@ -142,6 +130,8 @@ abstract class AvailServerFile constructor(
 	 *   should be preserved.
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @param originator
+	 *   The [AvailClient.id] of the session that originated the change.
 	 * @return
 	 *   The [TracedAction] that preserves this edit and how to reverse it.
 	 */
@@ -149,19 +139,56 @@ abstract class AvailServerFile constructor(
 		data: ByteArray,
 		start: Int,
 		end: Int,
-		timestamp: Long = System.currentTimeMillis()): TracedAction
+		timestamp: Long = System.currentTimeMillis(),
+		originator: UUID): TracedAction
 
 	/**
 	 * Replace the entire contents of the file with the provided byte array.
 	 *
 	 * @param data
-	 *   The `ByteArray` data to add to this [AvailServerFile].
+	 *   The `ByteArray` data to add to this [AvailFile].
 	 * @param timestamp
 	 *   The time in milliseconds since the Unix Epoch UTC the update occurred.
+	 * @param originator
+	 *   The [AvailClient.id] of the session that originated the change.
 	 * @return
 	 *   The [TracedAction] that preserves this edit and how to reverse it.
 	 */
 	abstract fun replaceFile (
 		data: ByteArray,
-		timestamp: Long = System.currentTimeMillis()): TracedAction
+		timestamp: Long = System.currentTimeMillis(),
+		originator: UUID): TracedAction
+
+	companion object
+	{
+		/**
+		 * A set of known text mime types.
+		 */
+		private val knownTextMimeTypes = setOf(
+			"text/plain",
+			"text/css",
+			"text/csv",
+			"text/html",
+			"text/javascript",
+			"application/json",
+			"application/xml",
+			"text/xml")
+
+		/**
+		 * The mime type of an Avail module file.
+		 */
+		val availMimeType = "text/avail"
+
+		/**
+		 * Indicate whether the provided mime type should be treated as an
+		 * [AvailTextFile]?
+		 *
+		 * @param mimeType
+		 *   The mime type to check.
+		 * @return
+		 *   `true` indicates it should be; `false` otherwise.
+		 */
+		fun isTextFile (mimeType: String) =
+			knownTextMimeTypes.contains(mimeType)
+	}
 }

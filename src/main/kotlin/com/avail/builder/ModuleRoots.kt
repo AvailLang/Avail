@@ -34,11 +34,18 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.persistence.Repository.Companion.isIndexedRepositoryFile
+import com.avail.error.ErrorCode
+import com.avail.files.FileManager
+import com.avail.persistence.cache.Repositories
+import com.avail.resolver.ModuleRootResolver
+import com.avail.resolver.ModuleRootResolverRegistry
+import com.avail.resolver.ResolverReference
 import com.avail.utility.json.JSONWriter
-import java.io.File
-import java.io.IOException
+import java.net.URI
+import java.util.Collections
 import java.util.Collections.unmodifiableSet
+import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The
@@ -64,18 +71,30 @@ import java.util.Collections.unmodifiableSet
  * and may be sometimes be omitted (e.g., when compilation is not required).
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property fileManager
+ *   The associated [FileManager].
  *
  * @constructor
  *
  * Construct a new `ModuleRoots` from the specified Avail roots path.
  *
+ * @param fileManager
+ *   The associated [FileManager].
  * @param modulePath
  *   An Avail [module][ModuleDescriptor] path.
+ * @param withFailures
+ *   A lambda that accepts [List] of the string [ModuleRoot] [URI]s that failed
+ *   to [resolve][ModuleRootResolver.resolve].
  * @throws IllegalArgumentException
  *   If the Avail [module][ModuleDescriptor] path is malformed.
  */
 @ThreadSafe
-class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
+class ModuleRoots constructor(
+	val fileManager: FileManager,
+	modulePath: String,
+	withFailures: (List<String>) -> Unit) : Iterable<ModuleRoot>
 {
 	/**
 	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
@@ -97,12 +116,9 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 			builder.append(root.name)
 			builder.append("=")
 			builder.append(root.repository.fileName.path)
-			val sourceDirectory = root.sourceDirectory
-			if (sourceDirectory !== null)
-			{
-				builder.append(",")
-				builder.append(sourceDirectory.path)
-			}
+			val resolver = root.resolver
+			builder.append(",")
+			builder.append(resolver.uri.toString())
 			first = false
 		}
 		builder.toString()
@@ -114,60 +130,75 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	 *
 	 * @param modulePath
 	 *   The module roots path string.
+	 * @param withFailures
+	 *   A lambda that accepts [List] of the string [ModuleRoot] [URI]s that failed
+	 *   to [resolve][ModuleRootResolver.resolve].
 	 * @throws IllegalArgumentException
 	 *   If any component of the Avail [module][ModuleDescriptor] path is
 	 *   invalid.
 	 */
-	private fun parseAvailModulePath(modulePath: String)
+	private fun parseAvailModulePathThen(
+		modulePath: String, withFailures: (List<String>) -> Unit)
 	{
 		clearRoots()
 		// Root definitions are separated by semicolons.
-		var components = modulePath.split(";")
-		if (modulePath.isEmpty())
-		{
-			components = listOf()
-		}
+		val components =
+			if (modulePath.isEmpty())
+			{
+				listOf()
+			}
+			else
+			{
+				modulePath.split(";")
+			}
+		val workCount = AtomicInteger(components.size)
+		val failures = mutableListOf<String>()
+		val lock = ReentrantLock()
 		for (component in components)
 		{
 			// An equals separates the root name from its paths.
 			val binding = component.split("=")
-			require(binding.size == 2)
+			require(binding.size == 2) {
+				"Bad module root location setting: $component"
+			}
 
 			// A comma separates the repository path from the source directory
 			// path.
 			val rootName = binding[0]
-			val paths = binding[1].split(",")
-			require(paths.size <= 2)
+			val location = binding[1]
 
-			// All paths must be absolute.
-			for (path in paths)
-			{
-				val file = File(path)
-				require(file.isAbsolute)
+			val rootUri = URI(location)
+			val resolver =
+				ModuleRootResolverRegistry.createResolver(
+					rootName,
+					rootUri,
+					fileManager)
+
+			resolver.resolve(
+				{
+					synchronized(lock)
+					{
+						addRoot(resolver.moduleRoot)
+						if (workCount.decrementAndGet() == 0)
+						{
+							withFailures(failures)
+						}
+					}
+				}
+			) { code, ex ->
+				val message =
+					"$code: Could not resolve module root, $rootName ($rootUri)"
+				synchronized(lock)
+				{
+					failures.add(message)
+				}
+				System.err.println(message)
+				ex?.printStackTrace()
+				if (workCount.decrementAndGet() == 0)
+				{
+					withFailures(failures)
+				}
 			}
-
-			// If only one path is supplied, then it must reference a valid
-			// repository.
-			val repositoryFile = File(paths[0])
-			try
-			{
-				require(!(paths.size == 1
-					&& !isIndexedRepositoryFile(repositoryFile)))
-			}
-			catch (e: IOException)
-			{
-				throw IllegalArgumentException(e)
-			}
-
-			// If two paths are provided, then the first path need not reference
-			// an existing file. The second path, however, must reference a
-			// directory.
-			val sourceDirectory =
-				if (paths.size == 2) File(paths[1])
-				else null
-			require(!(sourceDirectory !== null && !sourceDirectory.isDirectory))
-
-			addRoot(ModuleRoot(rootName, repositoryFile, sourceDirectory))
 		}
 	}
 
@@ -185,6 +216,20 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	fun addRoot(root: ModuleRoot)
 	{
 		rootMap[root.name] = root
+		Repositories.addRepository(root)
+	}
+
+	/**
+	 * Fully remove the provided [ModuleRoot.name].
+	 *
+	 * @param name
+	 *   The name of the root to remove.
+	 */
+	fun removeRoot (name: String)
+	{
+		rootMap.remove(name)?.let {
+			Repositories.deleteRepository(name)
+		}
 	}
 
 	/**
@@ -213,9 +258,46 @@ class ModuleRoots(modulePath: String) : Iterable<ModuleRoot>
 	 */
 	fun moduleRootFor(rootName: String): ModuleRoot? = rootMap[rootName]
 
+	/**
+	 * Retrieve all of the root [ResolverReference]s for each [ModuleRoot] in
+	 * this [ModuleRoots] and pass them to the provided function.
+	 *
+	 * @param withResults
+	 *   A lambda that accepts a [list][List] of successfully resolved
+	 *   [ResolverReference]s and a list of [ModuleRoot.name] - [ErrorCode] -
+	 *   `nullable` [Throwable] [Triple]s that contains all failed resolutions.
+	 */
+	fun moduleRootTreesThen (
+		withResults: (List<
+			ResolverReference>,
+			List<Triple<String, ErrorCode, Throwable?>>)->Unit)
+	{
+		val rootsToAcquire = roots
+		val countdown = AtomicInteger(rootsToAcquire.size)
+		val references =
+			Collections.synchronizedList(mutableListOf<ResolverReference>())
+		val failures = Collections.synchronizedList(
+			mutableListOf<Triple<String, ErrorCode, Throwable?>>())
+		rootsToAcquire.iterator().forEach { mr ->
+			mr.resolver.provideModuleRootTree({
+				references.add(it)
+				if (countdown.decrementAndGet() == 0)
+				{
+					withResults(references, failures)
+				}
+			}) { code, ex ->
+				failures.add(Triple(mr.name, code, ex))
+				if (countdown.decrementAndGet() == 0)
+				{
+					withResults(references, failures)
+				}
+			}
+		}
+	}
+
 	init
 	{
-		parseAvailModulePath(modulePath)
+		parseAvailModulePathThen(modulePath, withFailures)
 	}
 
 	/**

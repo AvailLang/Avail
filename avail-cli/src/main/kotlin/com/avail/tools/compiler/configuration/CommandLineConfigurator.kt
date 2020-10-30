@@ -182,13 +182,12 @@ class CommandLineConfigurator constructor(
 			optionWithArgument(
 				AVAIL_ROOTS,
 				listOf("availRoots"),
-				"The Avail roots, as a semicolon (;) separated list of module root "
-				+ "specifications. Each module root specification comprises a "
-				+ "logical root name, then an equals (=), then a module root "
-				+ "location. A module root location comprises the absolute "
-				+ "path to a binary module repository, then optionally a comma "
-				+ "(,) and the absolute path to a source package. This option "
-				+ "overrides environment variables.")
+				"The Avail roots, as a semicolon (;) separated list of module "
+					+ "root specifications. Each module root specification "
+					+ "comprises a  logical root name, then an equals (=), then a "
+					+ "module root location. A module root location comprises the "
+					+ "absolute path to a source package. This option overrides "
+					+ "environment variables.")
 				{
 					configuration.availRootsPath = argument
 				}

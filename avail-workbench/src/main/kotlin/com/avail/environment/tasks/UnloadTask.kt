@@ -55,9 +55,10 @@ class UnloadTask constructor(
 		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName?)
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
 		workbench.availBuilder.unloadTarget(targetModuleName)
+		afterExecute()
 	}
 
 	override fun done()

@@ -57,9 +57,8 @@ class GraphTask constructor(
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
 	@Throws(Exception::class)
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
-
 		try
 		{
 			val file = File("modules.dot")
@@ -78,7 +77,10 @@ class GraphTask constructor(
 			// Put a breakpoint here to debug graph exceptions.
 			throw e
 		}
-
+		finally
+		{
+			afterExecute()
+		}
 	}
 
 	override fun done()

@@ -1,7 +1,7 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="Avail Workbench (Mac OS X)" type="JarApplication">
     <option name="JAR_PATH" value="$PROJECT_DIR$/distro/lib/avail-workbench.jar" />
-    <option name="VM_PARAMETERS" value="-ea -Xmx6g -Xdock:name=&quot;Avail Workbench&quot; -Xdock:icon=$PROJECT_DIR$/distro/images/AvailHammer.png -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;experimental=$PROJECT_DIR$/repositories/experimental.repo,$PROJECT_DIR$/experimental/even-newer-avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/repositories/website.repo,$PROJECT_DIR$/distro/src/website" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx6g -Xdock:name=&quot;Avail Workbench&quot; -Xdock:icon=$PROJECT_DIR$/distro/images/AvailHammer.png -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;experimental=$PROJECT_DIR$/experimental/even-newer-avail;examples=$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/distro/src/website" />
     <option name="PROGRAM_PARAMETERS" value="&quot;/avail/Avail Tests&quot;" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
     <option name="ALTERNATIVE_JRE_PATH" />

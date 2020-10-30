@@ -84,7 +84,7 @@ abstract class AbstractServerOutputChannel constructor(
 			at("tag") { write(channelTag) }
 			at("content") { write(data) }
 		}
-		return Message(writer.toString().toByteArray(), channel.state)
+		return Message(writer, channel.state)
 	}
 
 	override fun <A> write(

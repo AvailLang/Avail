@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -61,9 +61,11 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.files.FileManager
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
-import com.avail.persistence.Repository.Companion.createTemporary
+import com.avail.persistence.cache.Repositories
+import com.avail.persistence.cache.Repository.Companion.createTemporary
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
@@ -80,6 +82,7 @@ import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.StringReader
 import java.util.Random
+import java.util.concurrent.Semaphore
 import kotlin.math.min
 
 /**
@@ -96,6 +99,11 @@ class SerializerTest
 	private var runtime: AvailRuntime? = null
 
 	/**
+	 * The [FileManager] used to conduct these tests.
+	 */
+	private val fileManager = FileManager()
+
+	/**
 	 * @return
 	 *   The [AvailRuntime] used by the serializer and deserializer.
 	 */
@@ -108,15 +116,20 @@ class SerializerTest
 	@BeforeAll
 	fun initializeAllWellKnownObjects()
 	{
-		val repository = createTemporary(
-			"avail",
-			"test repository",
-			null)
-		val repositoryFile = repository.fileName
-		repository.close()
+		val semaphore = Semaphore(0)
 		val roots = ModuleRoots(
-			"avail=${repositoryFile.absolutePath}," +
-				File("distro/src/avail").absolutePath)
+			fileManager,
+			"avail=${File("distro/src/avail").absolutePath}")
+		{
+			if (it.isNotEmpty())
+			{
+				System.err.println(
+					"Serializer Test: Failed to fully resolve ModuleRoots")
+				it.forEach { msg -> System.err.println(msg) }
+			}
+			semaphore.release()
+		}
+		semaphore.acquireUninterruptibly()
 		val parser = RenamesFileParser(StringReader(""), roots)
 		val resolver: ModuleNameResolver
 		resolver = try
@@ -127,7 +140,8 @@ class SerializerTest
 		{
 			throw RuntimeException(e)
 		}
-		runtime = AvailRuntime(resolver)
+		runtime = AvailRuntime(resolver, fileManager)
+		fileManager.associateRuntime(runtime())
 	}
 
 	/**

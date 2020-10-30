@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -34,16 +34,19 @@ package com.avail.server.messages.binary.editor
 
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleRoot
+import com.avail.builder.ModuleRootErrorCode.*
+import com.avail.error.ErrorCode
 import com.avail.server.AvailServer.Companion.logger
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.error.ServerErrorCode.*
 import com.avail.server.io.AvailServerChannel
-import com.avail.server.io.files.EditRange
-import com.avail.server.io.files.RedoAction
-import com.avail.server.io.files.ReplaceContents
-import com.avail.server.io.files.SaveAction
-import com.avail.server.io.files.UndoAction
+import com.avail.files.EditRange
+import com.avail.files.FileErrorCode.*
+import com.avail.files.RedoAction
+import com.avail.files.ReplaceContents
+import com.avail.files.SaveAction
+import com.avail.files.UndoAction
 import com.avail.server.messages.Message
 import com.avail.server.session.Session
 import java.lang.UnsupportedOperationException
@@ -183,56 +186,74 @@ enum class BinaryCommand constructor(val id: Int)
 			channel: AvailServerChannel,
 			continuation: () -> Unit)
 		{
+			// TODO support creating a package
+			val mimeSize = buffer.int
+			val mimeBytes = ByteArray(mimeSize)
+			buffer.get(mimeBytes)
+			val mimeType = String(mimeBytes, Charsets.UTF_8)
 			val raw = ByteArray(buffer.remaining())
 			buffer.get(raw)
-			val relativePath = String(raw, Charsets.UTF_8)
-			assert(relativePath.isNotEmpty())
-			val target = ModuleName(relativePath)
+			val qualifiedName = String(raw, Charsets.UTF_8)
+			assert(qualifiedName.isNotEmpty())
+			val target = ModuleName(qualifiedName)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.sourceDirectory?.let {
-						val path =
-							Paths.get(it.path, target.rootRelativeName).toString()
+					mr.resolver.let { resolver ->
 						channel.server.fileManager.createFile(
-							path,
-							{ uuid, mime, bytes ->
-								channel.sessionId?.let { sessionId ->
-									channel.server.sessions[sessionId]?.let { session ->
-										val fileId =
-											session.addFileCacheId(uuid)
-										FileOpenedMessage(
-												commandId, fileId, bytes.size, mime)
-											.processThen(channel)
-											{
-												FileStreamMessage(
-														commandId, fileId, bytes)
+							qualifiedName,
+							mimeType, // TODO adjust for MIME type
+							resolver,
+							{
+								channel.server.fileManager.readFile(
+									qualifiedName,
+									resolver,
+									{ uuid, mime, file ->
+										channel.sessionId?.let { sessionId ->
+											channel.server
+												.sessions[sessionId]?.let {
+												val fileId =
+													it.addFileCacheId(uuid)
+												FileOpenedMessage(
+													commandId,
+													fileId,
+													file.rawContent.size.toLong(),
+													mime)
 													.processThen(channel)
+													{
+														FileStreamMessage(
+															commandId,
+															fileId,
+															file.rawContent)
+															.processThen(channel)
+													}
 											}
-									}
+										}
+									}) { code, ex ->
+										ex?.let { e ->
+											logger.log(Level.SEVERE, e) {
+												"Could not read file: " +
+													qualifiedName
+											}
+										}
+										channel.enqueueMessageThen(
+											ErrorBinaryMessage(commandId, code)
+												.message) {}
 								}
 								// TODO [RAA] handle session not found
 							}) { code, throwable ->
 								throwable?.let { e ->
 									logger.log(Level.SEVERE, e) {
-										"Could not create file, $path" }
+										"Could not create file: " +
+											resolver.fullResourceURI(
+												qualifiedName)
+									}
 								}
 								channel.enqueueMessageThen(
 									ErrorBinaryMessage(commandId, code).message) {}
 							}
 						// Request is asynchronous, so continue
 						continuation()
-					} ?: {
-						// No source directory
-						channel.enqueueMessageThen(
-							ErrorBinaryMessage(
-								commandId,
-								NO_SOURCE_DIRECTORY,
-								false,
-								"No source directory found for " +
-								target.rootName
-							).message,
-							continuation)
-					}()
+					}
 				} ?: {
 				// No module root found
 				channel.enqueueMessageThen(
@@ -274,47 +295,59 @@ enum class BinaryCommand constructor(val id: Int)
 			val relativePath = String(raw, Charsets.UTF_8)
 			assert(relativePath.isNotEmpty())
 			val target = ModuleName(relativePath)
+			val fileManager = channel.server.fileManager
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.sourceDirectory?.let {
-						val path =
-							Paths.get(it.path, target.rootRelativeName).toString()
-						channel.server.fileManager.readFile(
-							path,
-							{ uuid, mime, bytes ->
-								channel.session?.let { session ->
-									val fileId = session.addFileCacheId(uuid)
-									FileOpenedMessage(
-											commandId, fileId, bytes.size, mime)
-										.processThen(channel)
-										{
-											FileStreamMessage(
-													commandId, fileId, bytes)
-												.processThen(channel)
-										}
+					mr.resolver.let {
+						it.provideResolverReference(target.qualifiedName, { ref ->
+							fileManager.readFile(
+								target.qualifiedName,
+								it,
+								{ uuid, mime, file ->
+									channel.session?.let { session ->
+										val fileId =
+											session.addFileCacheId(uuid)
+										FileOpenedMessage(
+											commandId,
+											fileId,
+											ref.size,
+											ref.mimeType)
+											.processThen(channel)
+											{
+												FileStreamMessage(
+														commandId,
+														fileId,
+														file.rawContent)
+													.processThen(channel)
+											}
+									}
 								}
-							}) { code, throwable ->
+							) { code, throwable ->
 								throwable?.let { e ->
 									logger.log(Level.SEVERE, e) {
-										"Could not read file, $path" }
+										"Could not read file: ${ref.qualifiedName}"
+									}
+									e.printStackTrace()
 								}
 								channel.enqueueMessageThen(
-									ErrorBinaryMessage(commandId, code).message) {}
+									ErrorBinaryMessage(
+										commandId,
+										code).message) {}
 							}
-						// Request is asynchronous, so continue
-						continuation()
-					} ?: {
-						// No source directory
-						channel.enqueueMessageThen(
-							ErrorBinaryMessage(
-								commandId,
-								NO_SOURCE_DIRECTORY,
-								false,
-								"No source directory found for " +
-								target.rootName
-							).message,
-							continuation)
-					}()
+							// Request is asynchronous, so continue
+							continuation()
+						}) { code, ex ->
+							ex?.let { e ->
+								logger.log(Level.SEVERE, e) {
+									"Could not read file: " +
+										target.qualifiedName
+								}
+								e.printStackTrace()
+							}
+							channel.enqueueMessageThen(
+								ErrorBinaryMessage(commandId, code).message) {}
+						}
+					}
 				} ?: {
 				// No module root found
 				channel.enqueueMessageThen(
@@ -409,7 +442,7 @@ enum class BinaryCommand constructor(val id: Int)
 					.processThen(channel)
 				return
 			}
-			val fail: (ServerErrorCode, Throwable?) -> Unit =
+			val fail: (ErrorCode, Throwable?) -> Unit =
 				{ code, e ->
 					logger.log(Level.SEVERE, "Save file error: $code", e)
 					ErrorBinaryMessage(commandId, code, false)
@@ -418,6 +451,7 @@ enum class BinaryCommand constructor(val id: Int)
 			channel.server.fileManager.executeAction(
 				uuid,
 				SaveAction(channel.server.fileManager, fail),
+				channel.sessionId!!,
 				continuation,
 				fail)
 		}
@@ -509,7 +543,11 @@ enum class BinaryCommand constructor(val id: Int)
 			val data = ByteArray(buffer.remaining())
 			buffer.get(data)
 			val edit = EditRange(data, start, end)
-			channel.server.fileManager.executeAction(uuid, edit, continuation)
+			channel.server.fileManager.executeAction(
+				uuid,
+				edit,
+				channel.sessionId!!,
+				continuation)
 			{ code, e ->
 				logger.log(Level.SEVERE, "Edit file range error: $code", e)
 				ErrorBinaryMessage(commandId, code, false)
@@ -555,7 +593,7 @@ enum class BinaryCommand constructor(val id: Int)
 				return
 			}
 			channel.server.fileManager.executeAction(
-				uuid, UndoAction, continuation) { code, e ->
+				uuid, UndoAction, channel.sessionId!!, continuation) { code, e ->
 					logger.log(Level.SEVERE, "Undo edit error: $code", e)
 					ErrorBinaryMessage(commandId, code, false)
 						.processThen(channel)
@@ -600,7 +638,7 @@ enum class BinaryCommand constructor(val id: Int)
 				return
 			}
 			channel.server.fileManager.executeAction(
-				uuid, RedoAction, continuation) { code, e ->
+				uuid, RedoAction, channel.sessionId!!, continuation) { code, e ->
 					logger.log(Level.SEVERE, "Redo file error: $code", e)
 					ErrorBinaryMessage(commandId, code, false)
 						.processThen(channel)
@@ -636,44 +674,51 @@ enum class BinaryCommand constructor(val id: Int)
 			val target = ModuleName(relativePath)
 			channel.server.runtime.moduleRoots()
 				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.sourceDirectory?.let {
-						val path =
-							Paths.get(it.path, target.rootRelativeName).toString()
-						channel.server.fileManager.delete(
-							path,
-							{ fileId ->
-								if (fileId != null)
-								{
-									channel.server.sessions.values
-										.forEach { session ->
-											session.removeFile(fileId)
-											// TODO RAA notify interested parties?
-										}
-								}
-								OkMessage(commandId)
-									.processThen(channel, continuation)
-							}) { code, throwable ->
+					mr.resolver.let {
+						val path = Paths.get(
+								it.uri.toString(), target.rootRelativeName)
+							.toString()
+						it.provideResolverReference(target.qualifiedName,
+						{ reference ->
+							channel.server.fileManager.delete(
+								reference,
+								{ fileId ->
+									if (fileId != null)
+									{
+										channel.server.sessions.values
+											.forEach { session ->
+												session.removeFile(fileId)
+												// TODO RAA notify interested parties?
+
+											}
+									}
+									OkMessage(commandId)
+										.processThen(channel, continuation)
+								}) { code, throwable ->
 								throwable?.let { e ->
 									logger.log(Level.SEVERE, e) {
-										"Could not delete file, $path" }
+										"Could not delete file: $path"
+									}
 								}
 								channel.enqueueMessageThen(
-									ErrorBinaryMessage(commandId, code).message) {}
+									ErrorBinaryMessage(
+										commandId,
+										code).message) {}
 							}
-						// Request is asynchronous, so continue
-						continuation()
-					} ?: {
-						// No source directory
-						channel.enqueueMessageThen(
-							ErrorBinaryMessage(
-								commandId,
-								NO_SOURCE_DIRECTORY,
-								false,
-								"No source directory found for " +
-								target.rootName
-							).message,
-							continuation)
-					}()
+						})
+						{ code, ex ->
+								ex?.printStackTrace()
+								channel.enqueueMessageThen(
+									ErrorBinaryMessage(
+										commandId,
+										code,
+										false,
+										"Could not delete " +
+											target.qualifiedName
+									).message,
+									continuation)
+						}
+					}
 				} ?: {
 				// No module root found
 				channel.enqueueMessageThen(
@@ -731,6 +776,7 @@ enum class BinaryCommand constructor(val id: Int)
 			buffer.get(data)
 			channel.server.fileManager.executeAction(
 				uuid, ReplaceContents(data),
+				channel.sessionId!!,
 				continuation)
 				{ code, e ->
 					logger.log(Level.SEVERE, "Edit file range error: $code", e)

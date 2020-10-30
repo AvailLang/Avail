@@ -6,6 +6,9 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
  * * Redistributions of source code must retain the above copyright notice, this
  *   list of conditions and the following disclaimer.
  *
@@ -30,7 +33,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.persistence
+package com.avail.persistence.cache
 
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ResolvedModuleName
@@ -39,6 +42,11 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.error.ErrorCode
+import com.avail.persistence.IndexedFile
+import com.avail.persistence.IndexedFileBuilder
+import com.avail.persistence.IndexedFileException
+import com.avail.resolver.ResolverReference
 import com.avail.serialization.Serializer
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
@@ -48,8 +56,6 @@ import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
 import java.io.RandomAccessFile
-import java.security.MessageDigest
-import java.security.NoSuchAlgorithmException
 import java.util.Collections.unmodifiableList
 import java.util.Collections.unmodifiableSortedMap
 import java.util.Formatter
@@ -67,15 +73,55 @@ import kotlin.streams.toList
  * An `Repository` manages a persistent [IndexedFile] of compiled
  * [modules][ModuleDescriptor].
  *
+ * **Metadata:**
+ *  1. #modules
+ *  2. For each module,
+ *    2a. moduleArchive
+ * **ModuleArchive:**
+ * 1. UTF8 rootRelativeName
+ * 2. digestCache size
+ * 3. For each cached digest,
+ *    3a. timestamp (long)
+ *    3b. digest (32 bytes)
+ * 4. #versions
+ * 5. For each version,
+ *    5a. ModuleVersionKey
+ *    5b. ModuleVersion
+ * **ModuleVersionKey:**
+ * 1. isPackage (byte)
+ * 2. digest (32 bytes)
+ * **ModuleVersion:**
+ * 1. moduleSize (long)
+ * 2. localImportNames size (int)
+ * 3. For each import name,
+ *    3a. UTF8 import name
+ * 4. entryPoints size (int)
+ * 5. For each entry point,
+ *    5a. UTF8 entry point name
+ * 6. compilations size (int)
+ * 7. For each compilation.
+ *    7a. ModuleCompilationKey
+ *    7b. ModuleCompilation
+ * 8. moduleHeaderRecordNumber (long)
+ * 9. stacksRecordNumber (long)
+ * **ModuleCompilationKey:**
+ * 1. predecessorCompilationTimes length (int)
+ * 2. For each predecessor compilation time,
+ *    2a. predecessor compilation time (long)
+ * **ModuleCompilation:**
+ * 1. compilationTime (long)
+ * 2. recordNumber (long)
+ * 3. recordNumberOfBlockPhrases (long)
+ *
  * @property rootName
  *   The name of the [Avail&#32;root][ModuleRoot] represented by this
  *   [IndexedFile].
  * @property fileName
  *   The [filename][File] of the [IndexedFile].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
- *
  * Construct a new `Repository`.
  *
  * @param rootName
@@ -189,6 +235,11 @@ class Repository constructor(
 		internal val rootRelativeName: String
 
 		/**
+		 * The time of the most recent digest placed in the [digestCache].
+		 */
+		private var lastUpdate: Long = 0L
+
+		/**
 		 * A [LimitedCache] used to avoid computing digests of files when the
 		 * file's timestamp has not changed.  Each key is a [Long] representing
 		 * the file's [last][File.lastModified].  The value is a byte array
@@ -196,6 +247,23 @@ class Repository constructor(
 		 */
 		private val digestCache =
 			LimitedCache<Long, ByteArray>(MAX_RECORDED_DIGESTS_PER_MODULE)
+
+		/**
+		 * Immediately answer the [digest][ByteArray] for the given
+		 * [ResolverReference] or `null` if it has not been calculated.
+		 *
+		 * @param reference
+		 *   The `ResolverReference` that points to the module to retrieve the
+		 *   digest for.
+		 */
+		internal fun provideDigest (reference: ResolverReference): ByteArray?
+		{
+			require(rootRelativeName == reference.qualifiedName) {
+				"${reference.qualifiedName} attempted to access archive for " +
+					rootRelativeName
+			}
+			return digestCache[reference.lastModified]
+		}
 
 		/**
 		 * Answer an immutable [Map] from [ModuleVersionKey] to [ModuleVersion],
@@ -221,57 +289,43 @@ class Repository constructor(
 		 * @param resolvedModuleName
 		 *   The [resolved&#32;name][ResolvedModuleName] of the module, in case
 		 *   the backing source file must be read to produce a digest.
-		 * @return
-		 *   The digest of the file, updating the [digestCache] if necessary.
+		 * @param forceRefreshDigest
+		 *   `true` forces a recalculation of the digest; `false` supplies the last
+		 *   known digest presuming the file has not changed.
+		 * @param failureHandler
+		 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+		 *   to be called in the event of failure.
 		 */
-		fun digestForFile(resolvedModuleName: ResolvedModuleName): ByteArray
+		fun digestForFile(
+			resolvedModuleName: ResolvedModuleName,
+			forceRefreshDigest: Boolean,
+			withDigest: (ByteArray)->Unit,
+			failureHandler: (ErrorCode, Throwable?) -> Unit)
 		{
 			assert(resolvedModuleName.rootRelativeName == rootRelativeName)
-			val sourceFile = resolvedModuleName.sourceReference
-			val lastModification = sourceFile.lastModified()
-			var digest: ByteArray? = digestCache[lastModification]
-			if (digest === null)
+			val sourceReference = resolvedModuleName.resolverReference
+			val lastModification = sourceReference.lastModified
+			val digest: ByteArray? = digestCache[lastModification]
+			if (digest !== null && !forceRefreshDigest)
 			{
-				// Don't bother protecting against computing the digest for the
-				// same file in multiple threads.  At worst it's extra work, and
-				// it's not likely that maintenance on the build mechanism would
-				// *ever* cause it to do that anyhow.
-				val newDigest: ByteArray =
-					try
+				withDigest(digest)
+				return
+			}
+
+			val success: (ByteArray, Long) -> Unit =
+				{ newDigest, lastModified ->
+					assert(newDigest.size == DIGEST_SIZE)
+					if (lastModified >= lastModification)
 					{
-						RandomAccessFile(sourceFile, "r").use { reader ->
-							val hasher =
-								MessageDigest.getInstance(DIGEST_ALGORITHM)
-							val buffer = ByteArray(4096)
-							while (true)
-							{
-								val bufferSize = reader.read(buffer)
-								if (bufferSize == -1)
-								{
-									break
-								}
-								hasher.update(buffer, 0, bufferSize)
-							}
-							hasher.digest()
+						lock.withLock {
+							digestCache[lastModified] = newDigest
+							lastUpdate = lastModified
+							markDirty()
 						}
 					}
-					catch (e: NoSuchAlgorithmException)
-					{
-						throw RuntimeException(e)
-					}
-					catch (e: IOException)
-					{
-						throw RuntimeException(e)
-					}
-
-				assert(newDigest.size == DIGEST_SIZE)
-				digest = newDigest
-				lock.withLock {
-					digestCache[lastModification] = newDigest
-					markDirty()
+					withDigest(newDigest)
 				}
-			}
-			return digest
+			sourceReference.digest(forceRefreshDigest, success, failureHandler)
 		}
 
 		/**
@@ -371,7 +425,10 @@ class Repository constructor(
 		 */
 		fun putVersion(versionKey: ModuleVersionKey, version: ModuleVersion) =
 			lock.withLock {
-				assert(!versions.containsKey(versionKey))
+				assert(!versions.containsKey(versionKey)) {
+					"A version for $rootRelativeName has already been added " +
+						"for this ModuleVersionKey"
+				}
 				versions[versionKey] = version
 				markDirty()
 			}
@@ -1306,9 +1363,6 @@ class Repository constructor(
 				}
 			}
 		}
-
-		/** The name of the [MessageDigest] used to detect file changes. */
-		private const val DIGEST_ALGORITHM = "SHA-256"
 
 		/** The size in bytes of the digest of a source file. */
 		private const val DIGEST_SIZE = 256 shr 3

@@ -37,7 +37,6 @@ import com.avail.AvailRuntimeConfiguration.activeVersionSummary
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
-import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
@@ -51,7 +50,6 @@ import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSub
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRootsKeyString
-import com.avail.environment.LayoutConfiguration.Companion.moduleRootsRepoSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRootsSourceSubkeyString
 import com.avail.environment.actions.AboutAction
 import com.avail.environment.actions.BuildAction
@@ -105,11 +103,17 @@ import com.avail.environment.streams.StreamStyle.INFO
 import com.avail.environment.streams.StreamStyle.OUT
 import com.avail.environment.streams.StreamStyle.values
 import com.avail.environment.tasks.BuildTask
+import com.avail.files.FileManager
 import com.avail.io.ConsoleInputChannel
 import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
+import com.avail.persistence.cache.Repositories
+import com.avail.resolver.ModuleRootResolver
+import com.avail.resolver.ModuleRootResolverRegistry
+import com.avail.resolver.ResolverReference
+import com.avail.resolver.ResourceType
 import com.avail.stacks.StacksGenerator
 import com.avail.utility.IO
 import com.avail.utility.cast
@@ -138,23 +142,20 @@ import java.io.UnsupportedEncodingException
 import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.currentTimeMillis
+import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitor
-import java.nio.file.Files
 import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.ArrayDeque
 import java.util.Arrays
-import java.util.Deque
-import java.util.EnumSet
+import java.util.Collections
+import java.util.Collections.synchronizedMap
 import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
+import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
@@ -205,19 +206,26 @@ import kotlin.math.min
  * `AvailWorkbench` is a simple user interface for the
  * [Avail&#32;builder][AvailBuilder].
  *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property fileManager
+ *   The [FileManager] used to manage Avail files.
  * @property resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  *
  * @constructor
  * Construct a new `AvailWorkbench`.
  *
+ * @param fileManager
+ *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
  */
-class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
-	: JFrame()
+class AvailWorkbench internal constructor (
+	private val fileManager: FileManager,
+	val resolver: ModuleNameResolver) : JFrame()
 {
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -523,6 +531,14 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	private var perModuleStatusTextSize = 0
 
 	/**
+	 * A gate that prevents multiple [AbstractWorkbenchTask]s from running at
+	 * once. `true` indicates a task is running and will prevent a second task
+	 * from starting; `false` indicates the workbench is available to run a
+	 * task.
+	 */
+	private var taskGate = AtomicBoolean(false)
+
+	/**
 	 * `AbstractWorkbenchTask` is a foundation for long running [AvailBuilder]
 	 * operations.
 	 *
@@ -591,33 +607,36 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		@Throws(Exception::class)
 		override fun doInBackground(): Void?
 		{
-			startTimeMillis = currentTimeMillis()
-			try
+			if (workbench.taskGate.getAndSet(true))
 			{
-				// Reopen the repositories if necessary.
-				workbench.resolver.moduleRoots.roots.forEach { root ->
-					root.repository.reopenIfNecessary()
-				}
-				executeTask()
+				// task is running
 				return null
 			}
-			finally
-			{
-				// Close all the repositories.
-				workbench.resolver.moduleRoots.roots.forEach { root ->
-					root.repository.close()
+			startTimeMillis = currentTimeMillis()
+			executeTaskThen {
+				try
+				{
+					Repositories.closeAllRepositories()
+					stopTimeMillis = currentTimeMillis()
 				}
-				stopTimeMillis = currentTimeMillis()
+				finally
+				{
+					workbench.taskGate.set(false)
+				}
+
 			}
+			return null
 		}
 
 		/**
 		 * Execute this `AbstractWorkbenchTask`.
 		 *
+		 * @param afterExecute
+		 *   The lambda to run after the task completes.
 		 * @throws Exception If anything goes wrong.
 		 */
 		@Throws(Exception::class)
-		protected abstract fun executeTask()
+		protected abstract fun executeTaskThen(afterExecute: ()->Unit)
 	}
 
 	/**
@@ -892,18 +911,32 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
+	 * `true` indicates the entire tree is currently being calculated; `false`
+	 * permits a new calculation of the tree.
+	 */
+	private val treeCalculationInProgress = AtomicBoolean(false)
+
+	/**
 	 * Re-parse the package structure from scratch.  Answer a pair consisting
 	 * of the module tree and the entry points tree, but don't install them.
 	 * This can safely be run outside the UI thread.
 	 *
-	 * @return The &lt;module tree, entry points tree&gt; [Pair].
+	 * @param withPair
+	 *   Lambda that accepts the &lt;module tree, entry points tree&gt; [Pair].
 	 */
-	fun calculateRefreshedTrees(): Pair<TreeNode, TreeNode>
+	fun calculateRefreshedTreesThen(
+		withPair: (Pair<TreeNode, TreeNode>) -> Unit)
 	{
-		resolver.clearCache()
-		val modules = newModuleTree()
-		val entryPoints = newEntryPointsTree()
-		return modules to entryPoints
+		if (!treeCalculationInProgress.getAndSet(true))
+		{
+			resolver.clearCache()
+			newModuleTreeThen { modules ->
+				newEntryPointsTreeThen {
+					withPair(modules to it)
+					treeCalculationInProgress.set(false)
+				}
+			}
+		}
 	}
 
 	/**
@@ -942,222 +975,140 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 	}
 
 	/**
-	 * Answer a [FileVisitor] suitable for recursively exploring an
-	 * Avail root. A new `FileVisitor` should be obtained for each Avail
-	 * root.
-	 *
-	 * @param stack
-	 *   The stack on which to place Avail roots and packages.
-	 * @param moduleRoot
-	 *   The [ModuleRoot] within which to scan recursively.
-	 * @return A `FileVisitor`.
-	 */
-	private fun moduleTreeVisitor(
-		stack: Deque<DefaultMutableTreeNode>,
-		moduleRoot: ModuleRoot
-	): FileVisitor<Path>
-	{
-		var isRoot = true
-		return object : FileVisitor<Path>
-		{
-			/**
-			 * Resolve a file name relative to an existing
-			 * [DefaultMutableTreeNode].
-			 *
-			 * @param parentNode
-			 *   The [DefaultMutableTreeNode] in which to resolve the file name.
-			 * @param fileName
-			 *   The [String] containing the file name to resolve.
-			 * @return The resolved [ModuleName].
-			 */
-			private fun resolveModule(
-				parentNode: DefaultMutableTreeNode,
-				fileName: String
-			): ModuleName
-			{
-				val localName = fileName.substring(
-					0, fileName.length - availExtension.length)
-				val moduleName: ModuleName
-				if (parentNode is ModuleRootNode)
-				{
-					// Add a top-level package.
-					val thisRoot = parentNode.moduleRoot
-					assert(thisRoot == moduleRoot)
-					moduleName = ModuleName(
-						"/" + moduleRoot.name + "/" + localName)
-				}
-				else
-				{
-					// Add a non-top-level package.
-					assert(parentNode is ModuleOrPackageNode)
-					val strongParentNode = parentNode as ModuleOrPackageNode
-					assert(strongParentNode.isPackage)
-					val parentModuleName =
-						strongParentNode.resolvedModuleName
-					// The (resolved) parent is a package representative
-					// module, so use its parent, the package itself.
-					moduleName = ModuleName(
-						parentModuleName.packageName, localName)
-				}
-				return moduleName
-			}
-
-			override fun preVisitDirectory(
-				dir: Path?, unused: BasicFileAttributes?
-			): FileVisitResult
-			{
-				assert(dir !== null)
-				val parentNode = stack.peekFirst()
-				if (isRoot)
-				{
-					// Add a ModuleRoot.
-					isRoot = false
-					assert(stack.size == 1)
-					val node = ModuleRootNode(availBuilder, moduleRoot)
-					parentNode.add(node)
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-				val fileName = dir!!.fileName.toString()
-				if (fileName.endsWith(availExtension))
-				{
-					val moduleName = resolveModule(parentNode, fileName)
-					val resolved: ResolvedModuleName
-					try
-					{
-						resolved = resolver.resolve(moduleName)
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						// The directory didn't contain the necessary package
-						// representative, so simply skip the whole directory.
-						return FileVisitResult.SKIP_SUBTREE
-					}
-
-					val node = ModuleOrPackageNode(
-						availBuilder, moduleName, resolved, true)
-					parentNode.add(node)
-					if (resolved.isRename)
-					{
-						// Don't examine modules inside a package which is the
-						// source of a rename.  They wouldn't have resolvable
-						// dependencies anyhow.
-						return FileVisitResult.SKIP_SUBTREE
-					}
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-				return FileVisitResult.SKIP_SUBTREE
-			}
-
-			override fun postVisitDirectory(
-				dir: Path?, ex: IOException?
-			): FileVisitResult
-			{
-				assert(dir !== null)
-				// Pop the node from the stack.
-				stack.removeFirst()
-				return FileVisitResult.CONTINUE
-			}
-
-			@Throws(IOException::class)
-			override fun visitFile(
-				file: Path?, attributes: BasicFileAttributes?
-			): FileVisitResult
-			{
-				assert(file !== null)
-				val parentNode = stack.peekFirst()
-				if (isRoot)
-				{
-					throw IOException("Avail root should be a directory")
-				}
-				val fileName = file!!.fileName.toString()
-				if (fileName.endsWith(availExtension))
-				{
-					val moduleName = resolveModule(parentNode, fileName)
-					try
-					{
-						val resolved =
-							resolver.resolve(moduleName)
-						val node = ModuleOrPackageNode(
-							availBuilder, moduleName, resolved, false)
-						if (resolved.isRename || !resolved.isPackage)
-						{
-							parentNode.add(node)
-						}
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						// TODO MvG - Find a better way of reporting broken
-						// dependencies. Ignore for now (during directory scan).
-						throw RuntimeException(e)
-					}
-				}
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun visitFileFailed(
-				file: Path?, ex: IOException?
-			): FileVisitResult =
-				FileVisitResult.CONTINUE
-		}
-	}
-
-	/**
 	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
 	 * of the Avail module tree.
 	 *
-	 * @return The (invisible) root of the module tree.
+	 * @param withTreeNode
+	 *   The lambda that accepts the (invisible) root of the module tree.
 	 */
-	private fun newModuleTree(): TreeNode
+	private fun newModuleTreeThen(withTreeNode: (TreeNode) -> Unit)
 	{
 		val roots = resolver.moduleRoots
+		val sortedRootNodes = Collections.synchronizedList(
+			mutableListOf<ModuleRootNode>())
+
 		val treeRoot = DefaultMutableTreeNode(
 			"(packages hidden root)")
+		val rootCount = AtomicInteger(roots.roots.size)
 		// Put the invisible root onto the work stack.
-		val stack = ArrayDeque<DefaultMutableTreeNode>()
-		stack.add(treeRoot)
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			val rootDirectory = root.sourceDirectory!!
-			try
-			{
-				Files.walkFileTree(
-					Paths.get(rootDirectory.absolutePath),
-					EnumSet.of(FileVisitOption.FOLLOW_LINKS),
-					Integer.MAX_VALUE,
-					moduleTreeVisitor(stack, root))
-			}
-			catch (e: IOException)
-			{
-				e.printStackTrace()
-				stack.clear()
-				stack.add(treeRoot)
+			root.resolver.provideModuleRootTree({
+				val node = ModuleRootNode(availBuilder, root)
+				createRootNodes(node, it)
+				sortedRootNodes.add(node)
+
+				// Need to wait for every module to finish the resolution
+				// process before handing in the hidden, top level tree node.
+				if (rootCount.decrementAndGet() == 0)
+				{
+					sortedRootNodes.sort()
+					sortedRootNodes.forEach { m -> treeRoot.add(m) }
+					val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+						treeRoot.preorderEnumeration().cast()
+					// Skip the invisible root.
+					enumeration.nextElement()
+					while (enumeration.hasMoreElements())
+					{
+						val subNode: AbstractBuilderFrameTreeNode =
+							enumeration.nextElement().cast()
+						subNode.sortChildren()
+					}
+					withTreeNode(treeRoot)
+				}
+			}) { code, ex ->
+				System.err.println(
+					"Workbench could not walk root: ${root.name}: $code")
+				ex?.printStackTrace()
 			}
 		}
-		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
-			treeRoot.preorderEnumeration().cast()
-		// Skip the invisible root.
-		enumeration.nextElement()
-		for (node in enumeration)
-		{
-			node.sortChildren()
-		}
-		return treeRoot
 	}
 
 	/**
-	 * Answer a [tree&#32;node][TreeNode] that represents the (invisible) root
+	 * Populate the provided [rootNode][ModuleRootNode] with tree nodes to be
+	 * displayed in the workbench.
+	 *
+	 * @param rootNode
+	 *   The [ModuleRootNode] to populate.
+	 * @param parentRef
+	 *   The root's [ResolverReference] that will be
+	 *   [traversed][ResolverReference.walkChildrenThen].
+	 */
+	private fun createRootNodes (
+		rootNode: ModuleRootNode,
+		parentRef: ResolverReference)
+	{
+		val parentMap = mutableMapOf<String, DefaultMutableTreeNode>()
+		parentMap[parentRef.qualifiedName] = rootNode
+		parentRef.walkChildrenThen(false, {
+			if (it.isRoot)
+			{
+				return@walkChildrenThen
+			}
+			val parentNode = parentMap[it.qualifiedLocation]
+				?: return@walkChildrenThen
+			if (it.type == ResourceType.MODULE)
+			{
+				try
+				{
+					val resolved =
+						resolver.resolve(it.moduleName)
+					val node = ModuleOrPackageNode(
+						availBuilder, it.moduleName, resolved, false)
+					parentNode.add(node)
+				}
+				catch (e: UnresolvedDependencyException)
+				{
+					// TODO MvG - Find a better way of reporting broken
+					// dependencies. Ignore for now (during directory scan).
+					throw RuntimeException(e)
+				}
+			}
+			else if (it.type == ResourceType.PACKAGE)
+			{
+				val moduleName = it.moduleName
+				val resolved: ResolvedModuleName
+				try
+				{
+					resolved = resolver.resolve(moduleName)
+				}
+				catch (e: UnresolvedDependencyException)
+				{
+					// The directory didn't contain the necessary package
+					// representative, so simply skip the whole directory.
+					return@walkChildrenThen
+				}
+
+				val node = ModuleOrPackageNode(
+					availBuilder, moduleName, resolved, true)
+				parentNode.add(node)
+				if (resolved.isRename)
+				{
+					// Don't examine modules inside a package which is the
+					// source of a rename.  They wouldn't have resolvable
+					// dependencies anyhow.
+					return@walkChildrenThen
+				}
+				parentMap[it.qualifiedName] = node
+			}
+		}) {}
+	}
+
+	/**
+	 * Provide a [tree&#32;node][TreeNode] that represents the (invisible) root
 	 * of the Avail entry points tree.
 	 *
-	 * @return The (invisible) root of the entry points tree.
+	 * @param withTreeNode
+	 *   Function that accepts a [TreeNode] that contains all the
+	 *   [EntryPointModuleNode]s.
 	 */
-	private fun newEntryPointsTree(): TreeNode
+	private fun newEntryPointsTreeThen(withTreeNode: (TreeNode) -> Unit)
 	{
 		val mutex = ReentrantReadWriteLock()
-		val moduleNodes = mutableMapOf<String, DefaultMutableTreeNode>()
-		availBuilder.traceDirectories { resolvedName, moduleVersion, after ->
+		val moduleNodes = synchronizedMap(
+			mutableMapOf<String, DefaultMutableTreeNode>())
+		availBuilder.traceDirectoriesThen({ resolvedName, moduleVersion, after ->
 			val entryPoints = moduleVersion.getEntryPoints()
 			if (entryPoints.isNotEmpty())
 			{
@@ -1173,23 +1124,25 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				}
 			}
 			after()
+		}) {
+			val entryPointsTreeRoot =
+				DefaultMutableTreeNode("(entry points hidden root)")
+
+			val mapKeys = moduleNodes.keys.toTypedArray()
+			Arrays.sort(mapKeys)
+			mapKeys.forEach { moduleLabel ->
+				entryPointsTreeRoot.add(moduleNodes[moduleLabel])
+			}
+			val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+				entryPointsTreeRoot.preorderEnumeration().cast()
+			// Skip the invisible root.
+			enumeration.nextElement()
+			for (node in enumeration)
+			{
+				node.sortChildren()
+			}
+			 withTreeNode(entryPointsTreeRoot)
 		}
-		val mapKeys = moduleNodes.keys.toTypedArray()
-		Arrays.sort(mapKeys)
-		val entryPointsTreeRoot =
-			DefaultMutableTreeNode("(entry points hidden root)")
-		mapKeys.forEach { moduleLabel ->
-			entryPointsTreeRoot.add(moduleNodes[moduleLabel])
-		}
-		val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
-			entryPointsTreeRoot.preorderEnumeration().cast()
-		// Skip the invisible root.
-		enumeration.nextElement()
-		for (node in enumeration)
-		{
-			node.sortChildren()
-		}
-		return entryPointsTreeRoot
 	}
 
 	/**
@@ -1485,12 +1438,13 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			}
 			roots.forEach { root ->
 				val childNode = rootsNode.node(root.name)
-				childNode.put(
-					moduleRootsRepoSubkeyString,
-					root.repository.fileName.path)
+				// TODO delete me
+//				childNode.put(
+//					moduleRootsRepoSubkeyString,
+//					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
-					root.sourceDirectory!!.path)
+					root.resolver.uri.toString())
 			}
 
 			val renamesNode =
@@ -1579,7 +1533,8 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 	init
 	{
-		val runtime = AvailRuntime(resolver)
+		val runtime = AvailRuntime(resolver, fileManager)
+		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
 		// Get the existing preferences early for plugging in at the right
@@ -2081,11 +2036,17 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		/**
 		 * Parse the [ModuleRoots] from the module roots preferences node.
 		 *
+		 * @param fileManager
+		 *   The [FileManager] used to manage Avail files.
 		 * @return The `ModuleRoots` constructed from the preferences node.
 		 */
-		private fun loadModuleRoots(): ModuleRoots
+		private fun loadModuleRoots(fileManager: FileManager): ModuleRoots
 		{
-			val roots = ModuleRoots("")
+			val outerSemaphore = Semaphore(0)
+			val roots = ModuleRoots(fileManager, "") {
+				outerSemaphore.release()
+			}
+			outerSemaphore.acquireUninterruptibly()
 			roots.clearRoots()
 			val node = basePreferences.node(moduleRootsKeyString)
 			try
@@ -2093,15 +2054,25 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				val childNames = node.childrenNames()
 				childNames.forEach { childName ->
 					val childNode = node.node(childName)
-					val repoName = childNode.get(
-						moduleRootsRepoSubkeyString, "")
 					val sourceName = childNode.get(
 						moduleRootsSourceSubkeyString, "")
-					roots.addRoot(
-						ModuleRoot(
-							childName,
-							File(repoName),
-							File(sourceName)))
+					val resolver =
+						if (sourceName.isEmpty())
+						{
+							RuntimeException(
+								"ModuleRoot, $childName, is missing a source URI")
+								.printStackTrace()
+							return@forEach
+						}
+						else
+						{
+							val uri = URI(sourceName)
+							ModuleRootResolverRegistry.createResolver(
+								childName,
+								uri,
+								fileManager)
+						}
+					roots.addRoot(ModuleRoot(childName, resolver))
 				}
 			}
 			catch (e: BackingStoreException)
@@ -2302,6 +2273,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			val fileManager = FileManager()
 			if (runningOnMac)
 			{
 				setUpForMac()
@@ -2310,16 +2282,29 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 			{
 				UIManager.setLookAndFeel(DarculaLaf())
 			}
-
+			val rootResolutionStart = currentTimeMillis()
+			val failedResolutions = mutableListOf<String>()
 			val rootsString = System.getProperty("availRoots", "")
 			val roots = when
 			{
 				// Read the persistent preferences file...
-				rootsString.isEmpty() -> loadModuleRoots()
+				rootsString.isEmpty() -> loadModuleRoots(fileManager)
 				// Providing availRoots on command line overrides preferences...
-				else -> ModuleRoots(rootsString)
+				else ->
+				{
+					val semaphore = Semaphore(0)
+					val mrs = ModuleRoots(fileManager, rootsString) { fails ->
+						if (fails.isNotEmpty())
+						{
+							failedResolutions.addAll(fails)
+						}
+						semaphore.release()
+					}
+					semaphore.acquireUninterruptibly()
+					mrs
+				}
 			}
-
+			val resolutionTime = currentTimeMillis() - rootResolutionStart
 			val resolver: ModuleNameResolver
 			var reader: Reader? = null
 			try
@@ -2354,7 +2339,7 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 
 			// Display the UI.
 			invokeLater {
-				val bench = AvailWorkbench(resolver)
+				val bench = AvailWorkbench(fileManager, resolver)
 				if (runningOnMac)
 				{
 					bench.setUpInstanceForMac()
@@ -2362,50 +2347,87 @@ class AvailWorkbench internal constructor (val resolver: ModuleNameResolver)
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
 					{
-						override fun executeTask()
+						override fun executeTaskThen(afterExecute: ()->Unit)
 						{
+							if (failedResolutions.isEmpty())
+							{
+								workbench.writeText(
+									format(
+										"Resolved all module roots in %,3dms\n",
+										resolutionTime),
+									INFO)
+							}
+							else
+							{
+								workbench.writeText(
+									format(
+										"Resolved module roots in %,3dms " +
+											"with failures:\n",
+										resolutionTime),
+									INFO)
+								failedResolutions.forEach {
+									workbench.writeText(
+										format("%s\n", it),
+										INFO)
+								}
+							}
 							// First refresh the module and entry point trees.
 							workbench.writeText(
-								"Scanning all module headers.\n",
+								"Scanning all module headers...\n",
 								INFO)
 							val before = currentTimeMillis()
-							val modulesAndEntryPoints =
-								workbench.calculateRefreshedTrees()
-							val after = currentTimeMillis()
-							workbench.writeText(
-								format("...done (%,3dms)\n", after - before),
-								INFO)
-							// Now select an initial module, if specified.
-							invokeLater {
-								workbench.refreshFor(
-									modulesAndEntryPoints.first,
-									modulesAndEntryPoints.second)
-								if (initial.isNotEmpty())
-								{
-									val path = workbench.modulePath(initial)
-									if (path !== null)
+							workbench.calculateRefreshedTreesThen {
+								modulesAndEntryPoints ->
+								val after = currentTimeMillis()
+								workbench.writeText(
+									format(
+										"...done (%,3dms)\n",
+										after - before),
+									INFO)
+								// Now select an initial module, if specified.
+								invokeLater {
+									workbench.refreshFor(
+										modulesAndEntryPoints.first,
+										modulesAndEntryPoints.second)
+									if (initial.isNotEmpty())
 									{
-										workbench.moduleTree.selectionPath = path
-										workbench.moduleTree.scrollRowToVisible(
-											workbench.moduleTree
-												.getRowForPath(path))
+										val path = workbench.modulePath(initial)
+										if (path !== null)
+										{
+											workbench.moduleTree.selectionPath = path
+											workbench.moduleTree.scrollRowToVisible(
+												workbench.moduleTree
+													.getRowForPath(path))
+										}
+										else
+										{
+											workbench.writeText(
+												"Command line argument '$initial' was "
+													+ "not a valid module path",
+												ERR)
+										}
 									}
-									else
-									{
-										workbench.writeText(
-											"Command line argument '$initial' was "
-												+ "not a valid module path",
-											ERR)
-									}
+									workbench.backgroundTask = null
+									workbench.setEnablements()
+									afterExecute()
 								}
-								workbench.backgroundTask = null
-								workbench.setEnablements()
 							}
 						}
 					}
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()
 				bench.isVisible = true
+				resolver.moduleRoots.roots.forEach {
+					it.resolver.watchRoot()
+					it.resolver.subscribeRootWatcher { event, ref ->
+						when (event)
+						{
+							ModuleRootResolver.WatchEventType.CREATE,
+							ModuleRootResolver.WatchEventType.DELETE ->
+								bench.refreshAction // TODO how is this run?
+						}
+					}
+				}
 				initialRefreshTask.execute()
 			}
 		}

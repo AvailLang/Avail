@@ -129,23 +129,48 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				val loadedModule = availBuilder.getLoadedModule(moduleName)!!
 				val repository = moduleName.repository
 				val archive = repository.getArchive(moduleName.rootRelativeName)
-				val sourceFile = moduleName.sourceReference
-				dirty =
-					if (!sourceFile.isFile)
-					{
-						true
+				val resolverReference = moduleName.resolverReference
+				if (resolverReference.isPackage)
+				{
+					loadedModule.deletionRequest = dirty
+					AvailBuilder.log(
+						Level.FINEST, "(Module %s is dirty)", moduleName)
+					completionAction()
+				}
+				else
+				{
+					archive.digestForFile(
+						moduleName,
+						false,
+						{ latestDigest ->
+							!latestDigest.contentEquals(
+								loadedModule.sourceDigest)
+							loadedModule.deletionRequest = dirty
+							AvailBuilder.log(
+								Level.FINEST, "(Module %s is dirty)", moduleName)
+							completionAction()
+						}
+					){ code, ex ->
+						AvailBuilder.log(
+							Level.SEVERE,
+							"Could not determineDirtyModules for %s. " +
+								"Received %s: %s",
+							moduleName,
+							code,
+							ex ?: "")
+						// TODO Probably ok?
+						completionAction()
 					}
-					else
-					{
-						val latestDigest = archive.digestForFile(moduleName)
-						!latestDigest.contentEquals(loadedModule.sourceDigest)
-					}
+				}
 			}
-			val loadedModule = availBuilder.getLoadedModule(moduleName)!!
-			loadedModule.deletionRequest = dirty
-			AvailBuilder.log(
-				Level.FINEST, "(Module %s is dirty)", moduleName)
-			completionAction()
+			else
+			{
+				val loadedModule = availBuilder.getLoadedModule(moduleName)!!
+				loadedModule.deletionRequest = dirty
+				AvailBuilder.log(
+					Level.FINEST, "(Module %s is dirty)", moduleName)
+				completionAction()
+			}
 		}
 	}
 
@@ -275,6 +300,9 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				moduleCount--
 			}
 		}
-		assert(availBuilder.moduleGraph.vertexCount == moduleCount)
+		assert(availBuilder.moduleGraph.vertexCount == moduleCount) {
+			"Expected $moduleCount modules are loaded, however after unload " +
+				"${availBuilder.moduleGraph.vertexCount} modules are loaded."
+		}
 	}
 }

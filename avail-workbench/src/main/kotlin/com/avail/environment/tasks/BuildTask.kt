@@ -55,14 +55,18 @@ class BuildTask (
 		targetModuleName: ResolvedModuleName)
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
 		assert(targetModuleName !== null)
+		workbench.resolver.moduleRoots.roots.forEach { root ->
+			root.repository.reopenIfNecessary()
+		}
 		workbench.availBuilder.buildTarget(
 			targetModuleName(),
 			workbench::eventuallyUpdatePerModuleProgress,
 			workbench::eventuallyUpdateBuildProgress,
 			workbench.availBuilder.buildProblemHandler)
+		afterExecute()
 	}
 
 	override fun done()

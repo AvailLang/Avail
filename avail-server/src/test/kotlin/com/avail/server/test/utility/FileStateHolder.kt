@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,8 +32,9 @@
 
 package com.avail.server.test.utility
 
+import com.avail.error.ErrorCode
 import com.avail.server.error.ServerErrorCode
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
 import com.avail.utility.Mutable
 import java.util.UUID
 
@@ -51,7 +52,7 @@ class FileStateHolder
 	val error get() =  errorWrapper.value
 
 	/** Mutable holder for any [ServerErrorCode]s that have been reported. */
-	private val errorCodeWrapper: Mutable<ServerErrorCode?> = Mutable(null)
+	private val errorCodeWrapper: Mutable<ErrorCode?> = Mutable(null)
 
 	/** The currently wrapped [ServerErrorCode]. */
 	val errorCode get() = errorCodeWrapper.value
@@ -126,7 +127,7 @@ class FileStateHolder
 	 * @param e
 	 *   The contents of [errorWrapper].
 	 */
-	fun updateError (code: ServerErrorCode, e: Throwable?)
+	fun updateError (code: ErrorCode, e: Throwable?)
 	{
 		errorWrapper.value = e
 		errorCodeWrapper.value = code

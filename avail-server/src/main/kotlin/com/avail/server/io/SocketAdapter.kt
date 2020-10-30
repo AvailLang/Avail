@@ -91,7 +91,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 	/** The [server socket channel][AsynchronousServerSocketChannel]. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	internal val serverChannel: AsynchronousServerSocketChannel =
-		server.runtime.ioSystem().openServerSocket()
+		server.runtime.ioSystem.openServerSocket()
 
 	init
 	{

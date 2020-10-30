@@ -148,7 +148,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
 		}
 		val runtime = interpreter.runtime
-		val ioSystem = runtime.ioSystem()
+		val ioSystem = runtime.ioSystem
 		val oneBasedPositionLong = positionObject.extractLong()
 		// Guaranteed positive by argument constraint.
 		assert(oneBasedPositionLong > 0L)

@@ -35,8 +35,8 @@ package com.avail.environment.actions
 import com.avail.AvailRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.environment.AvailWorkbench
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.RepositoryDescriber
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.RepositoryDescriber
 import com.avail.utility.cast
 import java.awt.event.ActionEvent
 import javax.swing.Action

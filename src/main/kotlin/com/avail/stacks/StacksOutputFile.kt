@@ -95,7 +95,7 @@ class StacksOutputFile @Throws(IOException::class) constructor(
 
 		val filePath = outputPath.resolve(fileName)
 		Files.createDirectories(outputPath)
-		this.outputFile = runtime.ioSystem().openFile(
+		this.outputFile = runtime.ioSystem.openFile(
 			filePath, EnumSet.of(
 				StandardOpenOption.CREATE,
 				StandardOpenOption.WRITE,

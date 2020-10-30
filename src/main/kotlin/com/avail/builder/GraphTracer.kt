@@ -341,7 +341,7 @@ internal class GraphTracer constructor(
 		}
 		val channel: AsynchronousFileChannel
 		try {
-			channel = availBuilder.runtime.ioSystem().openFile(
+			channel = availBuilder.runtime.ioSystem.openFile(
 				outputFile.toPath(),
 				EnumSet.of(
 					StandardOpenOption.WRITE,
