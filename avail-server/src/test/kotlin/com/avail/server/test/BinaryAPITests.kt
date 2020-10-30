@@ -424,7 +424,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1014,7 +1014,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1039,7 +1039,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1063,7 +1063,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1087,7 +1087,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{
@@ -1111,7 +1111,7 @@ class BinaryAPITests
 			assertEquals(BinaryCommand.ERROR, first.binaryCommand)
 			val errorCodeId = first.buffer.int
 			val errorCode = ServerErrorCode.code(errorCodeId)
-			assertEquals(ServerErrorCode.BAD_FILE_ID, errorCode)
+			assertEquals(FileErrorCode.BAD_FILE_ID, errorCode)
 		}
 		else
 		{

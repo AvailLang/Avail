@@ -300,6 +300,9 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				moduleCount--
 			}
 		}
-		assert(availBuilder.moduleGraph.vertexCount == moduleCount)
+		assert(availBuilder.moduleGraph.vertexCount == moduleCount) {
+			"Expected $moduleCount modules are loaded, however after unload " +
+				"${availBuilder.moduleGraph.vertexCount} modules are loaded."
+		}
 	}
 }

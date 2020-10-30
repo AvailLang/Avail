@@ -109,7 +109,6 @@ import com.avail.io.ConsoleOutputChannel
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
-import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.resolver.ResolverReference
@@ -600,30 +599,21 @@ class AvailWorkbench internal constructor (
 		override fun doInBackground(): Void?
 		{
 			startTimeMillis = currentTimeMillis()
-			try
-			{
-				// Reopen the repositories if necessary.
-				workbench.resolver.moduleRoots.roots.forEach { root ->
-					root.repository.reopenIfNecessary()
-				}
-				executeTask()
-				return null
-			}
-			finally
-			{
-				// Close all the repositories.
-				Repositories.closeAllRepositories()
+			executeTaskThen {
 				stopTimeMillis = currentTimeMillis()
 			}
+			return null
 		}
 
 		/**
 		 * Execute this `AbstractWorkbenchTask`.
 		 *
+		 * @param afterExecute
+		 *   The lambda to run after the task completes.
 		 * @throws Exception If anything goes wrong.
 		 */
 		@Throws(Exception::class)
-		protected abstract fun executeTask()
+		protected abstract fun executeTaskThen(afterExecute: ()->Unit)
 	}
 
 	/**
@@ -2334,7 +2324,7 @@ class AvailWorkbench internal constructor (
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
 					{
-						override fun executeTask()
+						override fun executeTaskThen(afterExecute: ()->Unit)
 						{
 							if (failedResolutions.isEmpty())
 							{
@@ -2396,6 +2386,7 @@ class AvailWorkbench internal constructor (
 									}
 									workbench.backgroundTask = null
 									workbench.setEnablements()
+									afterExecute()
 								}
 							}
 						}

@@ -55,7 +55,7 @@ class BuildTask (
 		targetModuleName: ResolvedModuleName)
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
 		assert(targetModuleName !== null)
 		workbench.availBuilder.buildTarget(
@@ -63,6 +63,7 @@ class BuildTask (
 			workbench::eventuallyUpdatePerModuleProgress,
 			workbench::eventuallyUpdateBuildProgress,
 			workbench.availBuilder.buildProblemHandler)
+		afterExecute()
 	}
 
 	override fun done()

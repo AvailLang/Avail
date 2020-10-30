@@ -55,7 +55,7 @@ class DocumentationTask (
 		workbench: AvailWorkbench, targetModuleName: ResolvedModuleName?)
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
 		try
 		{
@@ -70,7 +70,10 @@ class DocumentationTask (
 			// exceptions.
 			throw e
 		}
-
+		finally
+		{
+			afterExecute()
+		}
 	}
 
 	override fun done()
