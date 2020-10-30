@@ -928,7 +928,7 @@ class AvailServer constructor(
 		val logger: Logger = Logger.getLogger(AvailServer::class.java.name)
 
 		/** The current server protocol version.  */
-		private const val protocolVersion = 5
+		private const val protocolVersion = 6
 
 		/** The supported client protocol versions.  */
 		private val supportedProtocolVersions = setOf(protocolVersion)
