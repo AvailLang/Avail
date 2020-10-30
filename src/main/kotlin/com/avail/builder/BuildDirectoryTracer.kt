@@ -39,7 +39,6 @@ import com.avail.error.ErrorCode
 import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.persistence.cache.Repository.ModuleVersionKey
 import com.avail.resolver.ModuleRootResolver
-import com.avail.resolver.ResourceType
 import java.net.URI
 import java.util.Collections.synchronizedSet
 import java.util.concurrent.atomic.AtomicBoolean
@@ -79,13 +78,6 @@ class BuildDirectoryTracer constructor(
 	/** A flag to indicate when all requests have been queued.  */
 	@GuardedBy("this")
 	private var allQueued = false
-
-	/**
-	 * The total number of modules [ResourceType.REPRESENTATIVE]s and
-	 * [ResourceType.MODULE]s visited. This should reflect the final number
-	 * of [traceRequests] and [traceCompletions].
-	 */
-	private val totalVisited = AtomicInteger(0)
 
 	/**
 	 * How to indicate to the caller that the tracing has completed.  Note that
@@ -145,7 +137,6 @@ class BuildDirectoryTracer constructor(
 							"exception:\n")
 					ex?.printStackTrace()
 				}) {
-				totalVisited.addAndGet(it)
 				if (countDown.decrementAndGet() == 0)
 				{
 					synchronized(this) {
@@ -412,7 +403,6 @@ class BuildDirectoryTracer constructor(
 		assert(Thread.holdsLock(this))
 
 		if (allQueued
-			&& traceCompletions.size == totalVisited.get()
 			&& traceRequests.minus(traceCompletions).isEmpty())
 		{
 			afterTraceCompletes()
