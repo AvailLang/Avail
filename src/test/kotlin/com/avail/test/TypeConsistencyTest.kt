@@ -92,7 +92,7 @@ import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor
@@ -786,7 +786,7 @@ class TypeConsistencyTest
 					phraseKind.isSubkindOf(PhraseKind.LIST_PHRASE) ->
 					{
 						val subexpressionsTupleType =
-							tupleTypeFromTupleOfTypes(innerType) {
+							mappingElementTypes(innerType) {
 								PhraseKind.PARSE_PHRASE.create(it)
 							}
 						createListNodeType(

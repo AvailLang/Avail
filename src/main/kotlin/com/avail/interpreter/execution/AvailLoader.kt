@@ -93,9 +93,9 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addLexer
 import com.avail.descriptor.module.A_Module.Companion.addPrivateName
 import com.avail.descriptor.module.A_Module.Companion.addSeal
-import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
 import com.avail.descriptor.module.A_Module.Companion.createLexicalScanner
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
@@ -1011,25 +1011,22 @@ class AvailLoader(
 			}
 		}
 		if (phase == EXECUTING_FOR_COMPILE) {
-			val finalForward = forward
-			val finalModule = module
-			finalModule.lock {
-				val ancestorModules = finalModule.allAncestors()
+			module.lock {
 				val root = rootBundleTree()
-				if (finalForward !== null) {
+				forward?.let { forward ->
 					method.bundles().forEach { bundle ->
-						if (ancestorModules.hasElement(
-								bundle.message().issuingModule())) {
+						if (module.hasAncestor(
+								bundle.message().issuingModule()))
+						{
 							// Remove the appropriate forwarder plan from the
 							// bundle tree.
 							val plan: A_DefinitionParsingPlan =
-								bundle.definitionParsingPlans()
-									.mapAt(finalForward)
+								bundle.definitionParsingPlans().mapAt(forward)
 							val planInProgress = newPlanInProgress(plan, 1)
 							root.removePlanInProgress(planInProgress)
 						}
 					}
-					removeForward(finalForward)
+					removeForward(forward)
 				}
 				try {
 					method.methodAddDefinition(newDefinition)
@@ -1041,15 +1038,15 @@ class AvailLoader(
 					LoadingEffectToAddDefinition(
 						methodName.bundleOrCreate(), newDefinition))
 				method.bundles().forEach { bundle ->
-					if (ancestorModules.hasElement(
-							bundle.message().issuingModule())) {
+					if (module.hasAncestor(bundle.message().issuingModule()))
+					{
 						val plan: A_DefinitionParsingPlan =
 							bundle.definitionParsingPlans().mapAt(newDefinition)
 						val planInProgress = newPlanInProgress(plan, 1)
 						root.addPlanInProgress(planInProgress)
 					}
 				}
-				finalModule.moduleAddDefinition(newDefinition)
+				module.moduleAddDefinition(newDefinition)
 			}
 		} else {
 			try {

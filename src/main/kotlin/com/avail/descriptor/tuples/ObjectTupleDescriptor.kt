@@ -522,6 +522,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			size: Int,
 			generator: (Int) -> A_BasicObject): AvailObject
 		{
+			if (size == 0) return emptyTuple
 			val result = createUninitialized(size)
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.

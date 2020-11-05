@@ -62,6 +62,7 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
@@ -117,6 +118,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.SHARED
@@ -133,7 +135,6 @@ import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
-import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
@@ -300,12 +301,10 @@ class ModuleDescriptor private constructor(
 	}
 
 	/**
-	 * The [set][A_Set] of all ancestor modules of this module, including the
-	 * module itself.  The provided set must always be [SHARED], which might
-	 * seem like a circularity, but this field can be modified even if the
-	 * module is `SHARED`.
+	 * The [set][A_Set] of all ancestor modules of this module, but *not*
+	 * including the module itself.  The provided set must always be [SHARED].
 	 */
-	val allAncestors = AtomicReference<A_Set>(nil)
+	val allAncestors = AtomicReference<A_Set>(emptySet)
 
 	/**
 	 * The [set][A_Set] of [versions][A_String] that this module alleges to
@@ -377,6 +376,14 @@ class ModuleDescriptor private constructor(
 	var serializedObjects: A_Tuple = nil
 
 	/**
+	 * When set to non-[nil], this is the [A_Map] of objects that were
+	 * serialized or deserialized for the body of this module.  The values are
+	 * the one-based indices of the objects.
+	 */
+	@Volatile
+	var serializedObjectsMap: A_Map = nil
+
+	/**
 	 * A map of the negative offsets of the ancestor modules'
 	 * [serializedObjects].  The ancestors should first be ordered in a stable,
 	 * reproducible way, and then the offsets should be assigned such that the
@@ -392,24 +399,43 @@ class ModuleDescriptor private constructor(
 	@Volatile
 	var ancestorOffsetMap: A_Map = nil
 
-	@Volatile
-	var localFilter: BloomFilter? = null
-
+	/**
+	 * The union of all ancestor filters.  If there are no ancestors, this is
+	 * simply [nil].
+	 */
 	@Volatile
 	var unionFilter: BloomFilter? = null
 
+	/**
+	 * A filter to detect uses of objects defined in this module.  A miss of the
+	 * filter always indicates the object was not defined in this module, but
+	 * the filter can sometimes indicate a hit even when the object is not
+	 * defined in this module.
+	 *
+	 * This filter is lazily constructed only when needed.
+	 */
+	@Volatile
+	var localFilter: BloomFilter? = null
 
-	//TODO Finish these.
-	var canonicalAncestors: A_Tuple? = null
-
-
-	val objectsToIndex: Map<A_BasicObject, Int>? = null
-
+	/**
+	 * The union of [unionFilter] and [localFilter].  This is created lazily.
+	 */
+	@Volatile
 	var aggregateFilter: BloomFilter? = null
 
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum
+	): Boolean = true
 
-
-
+	override fun printObjectOnAvoidingIndent(
+		self: AvailObject,
+		builder: StringBuilder,
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int)
+	{
+		builder.append("module ")
+		builder.append(self.moduleName())
+	}
 
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
@@ -429,6 +455,8 @@ class ModuleDescriptor private constructor(
 		}
 		self.addImportedNames(newAtoms)
 
+		var ancestors = allAncestors.get()
+
 		for (moduleImport in moduleHeader.importedModules)
 		{
 			val ref: ResolvedModuleName
@@ -447,8 +475,7 @@ class ModuleDescriptor private constructor(
 			val availRef = stringFrom(ref.qualifiedName)
 			if (!runtime.includesModuleNamed(availRef))
 			{
-				return ("module \"" + ref.qualifiedName
-					+ "\" to be loaded already")
+				return "module \"${ref.qualifiedName}\" to be loaded already"
 			}
 
 			val mod = runtime.moduleAt(availRef)
@@ -465,9 +492,8 @@ class ModuleDescriptor private constructor(
 							+ "$reqVersions")
 				}
 			}
-			allAncestors.updateAndGet {
-				it.setUnionCanDestroy(mod.allAncestors(), true).makeShared()
-			}
+			ancestors = ancestors.setUnionCanDestroy(mod.allAncestors(), true)
+			ancestors = ancestors.setWithElementCanDestroy(mod, true)
 
 			// Figure out which strings to make available.
 			var stringsToImport: A_Set
@@ -586,8 +612,9 @@ class ModuleDescriptor private constructor(
 			}
 		}
 
-		for (name in moduleHeader.entryPoints)
-		{
+		allAncestors.set(ancestors.makeShared())
+
+		moduleHeader.entryPoints.forEach { name ->
 			assert(name.isString)
 			try
 			{
@@ -609,8 +636,7 @@ class ModuleDescriptor private constructor(
 						trueName = trueNames.iterator().next()
 					}
 					else -> return (
-						"entry point \"${name.asNativeString()}\" to be "
-							+ "unambiguous")
+						"entry point $name to be unambiguous")
 				}
 				entryPoints = entryPoints.mapAtPuttingCanDestroy(
 					name, trueName, true
@@ -618,30 +644,27 @@ class ModuleDescriptor private constructor(
 			}
 			catch (e: MalformedMessageException)
 			{
-				return (
-					"entry point \"${name.asNativeString()}\" to be a "
-						+ "valid name")
+				return "entry point $name to be a valid name"
 			}
-
 		}
-
 		return null
 	}
 
-
-
-	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum
-	): Boolean = true
-
-	override fun printObjectOnAvoidingIndent(
-		self: AvailObject,
-		builder: StringBuilder,
-		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
-	{
-		builder.append("module ")
-		builder.append(self.moduleName())
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> {
+		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
+		fields.add(AvailObjectFieldHelper(
+			self,
+			DebuggerObjectSlots("Descriptor"),
+			-1,
+			this@ModuleDescriptor))
+		return fields.toTypedArray()
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String =
@@ -682,11 +705,11 @@ class ModuleDescriptor private constructor(
 			{
 				// Compute it.
 				exportedNames = emptySet
-				self.slot(IMPORTED_NAMES).mapIterable().forEach { (_, value) ->
+				self.slot(IMPORTED_NAMES).forEach { _, value ->
 					exportedNames = exportedNames.setUnionCanDestroy(
 						value.makeShared(), true)
 				}
-				self.slot(PRIVATE_NAMES).mapIterable().forEach { (_, value) ->
+				self.slot(PRIVATE_NAMES).forEach { _, value ->
 					exportedNames = exportedNames.setMinusCanDestroy(
 						value.makeShared(), true)
 				}
@@ -986,9 +1009,12 @@ class ModuleDescriptor private constructor(
 				lock.withLock { repository!![phrasesKey] }
 			}
 			val bytes = validatedBytesFrom(record)
-			val deserializer = Deserializer(bytes, runtime)
+			val delta = serializedObjects.tupleSize() + 1
+			val deserializer = Deserializer(bytes, runtime) {
+				serializedObjects.tupleAt(it - delta)
+			}
 			deserializer.currentModule = self
-			phrases = deserializer.deserialize()!!
+			phrases = deserializer.deserialize()!!.makeShared()
 			assert(phrases.isTuple)
 			self.setVolatileSlot(ALL_BLOCK_PHRASES, phrases)
 			assert(deserializer.deserialize() === null)
@@ -1030,7 +1056,14 @@ class ModuleDescriptor private constructor(
 		self: AvailObject,
 		serializedObjects: A_Tuple)
 	{
-		this.serializedObjects = serializedObjects
+		this.serializedObjects = serializedObjects.makeShared()
+	}
+
+	override fun o_SerializedObjectsMap(
+		self: AvailObject,
+		serializedObjectsMap: A_Map)
+	{
+		this.serializedObjectsMap = serializedObjectsMap.makeShared()
 	}
 
 	/**
@@ -1047,29 +1080,16 @@ class ModuleDescriptor private constructor(
 	{
 		val runtime = loader.runtime()
 		// Remove method definitions.
-		for (definition in self.methodDefinitions())
-		{
-			loader.removeDefinition(definition)
-		}
-		for (macro in macroDefinitions)
-		{
-			loader.removeMacro(macro)
-		}
+		self.methodDefinitions().forEach { loader.removeDefinition(it) }
+		macroDefinitions.forEach { loader.removeMacro(it) }
 		// Remove semantic restrictions.
-		for (restriction in semanticRestrictions)
-		{
-			runtime.removeTypeRestriction(restriction)
-		}
-		for (restriction in grammaticalRestrictions)
-		{
-			runtime.removeGrammaticalRestriction(restriction)
+		semanticRestrictions.forEach { runtime.removeTypeRestriction(it) }
+		grammaticalRestrictions.forEach {
+			runtime.removeGrammaticalRestriction(it)
 		}
 		// Remove seals.
-		val seals: A_Map = self.slot(SEALS)
-		for ((methodName, values) in seals.mapIterable())
-		{
-			for (seal in values)
-			{
+		self.slot(SEALS).forEach { methodName, values ->
+			values.forEach { seal ->
 				try
 				{
 					runtime.removeSeal(methodName, seal)
@@ -1081,22 +1101,42 @@ class ModuleDescriptor private constructor(
 				}
 			}
 		}
-		// Remove lexers.  Don't bother adjusting the
-		// loader, since it's not going to parse anything
-		// again.  Don't even bother removing it from the
-		// module, since that's being unloaded.
-		for (lexer in self.slot(LEXERS))
-		{
-			lexer.lexerMethod().setLexer(nil)
-		}
+		// Remove lexers.  Don't bother adjusting the loader, since it's not
+		// going to parse anything again.  Don't even bother removing it from
+		// the module, since that's being unloaded.
+		self.slot(LEXERS).forEach { it.lexerMethod().setLexer(nil) }
 		// Remove bundles created by this module.
-		for (bundle in self.slot(BUNDLES))
-		{
+		self.slot(BUNDLES).forEach { bundle ->
 			// Remove the bundle from the atom.
 			bundle.message().setAtomBundle(nil)
 			// Remove the bundle from the method.
 			bundle.bundleMethod().methodRemoveBundle(bundle)
 		}
+		// Tidy up the module to make it easier for the garbage collector to
+		// clean things up piecemeal.
+		allAncestors.set(nil)
+		macroDefinitions = nil
+		grammaticalRestrictions = nil
+		semanticRestrictions = nil
+		serializedObjects = nil
+		serializedObjectsMap = nil
+		ancestorOffsetMap = nil
+		unionFilter = null
+		localFilter = null
+		aggregateFilter = null
+		self.setSlot(NEW_NAMES, nil)
+		self.setSlot(IMPORTED_NAMES, nil)
+		self.setSlot(PRIVATE_NAMES, nil)
+		self.setSlot(VISIBLE_NAMES, nil)
+		self.setSlot(CACHED_EXPORTED_NAMES, nil)
+		self.setSlot(BUNDLES, nil)
+		self.setSlot(METHOD_DEFINITIONS_SET, nil)
+		self.setSlot(VARIABLE_BINDINGS, nil)
+		self.setSlot(CONSTANT_BINDINGS, nil)
+		self.setSlot(SEALS, nil)
+		self.setSlot(UNLOAD_FUNCTIONS, nil)
+		self.setSlot(LEXERS, nil)
+		self.setSlot(ALL_BLOCK_PHRASES, nil)
 	}
 
 	/**
@@ -1182,18 +1222,17 @@ class ModuleDescriptor private constructor(
 		val filteredBundleTree = newBundleTree(nil)
 		val ancestors: A_Set = allAncestors.get()
 		synchronized(self) {
-			for (visibleName in self.visibleNames())
-			{
+			self.visibleNames().forEach { visibleName ->
 				val bundle: A_Bundle = visibleName.bundleOrNil()
 				if (!bundle.equalsNil())
 				{
-					for ((key, plan) in
-					bundle.definitionParsingPlans().mapIterable())
-					{
-						if (ancestors.hasElement(key.definitionModule()))
+					bundle.definitionParsingPlans().forEach { key, plan ->
+						val definitionModule = key.definitionModule()
+						if (ancestors.hasElement(definitionModule)
+							|| definitionModule.equals(self))
 						{
-							val planInProgress = newPlanInProgress(plan, 1)
-							filteredBundleTree.addPlanInProgress(planInProgress)
+							filteredBundleTree.addPlanInProgress(
+								newPlanInProgress(plan, 1))
 						}
 					}
 				}
@@ -1269,6 +1308,17 @@ class ModuleDescriptor private constructor(
 		newValue: AvailObject
 	): AvailObject = self.getAndSetVolatileSlot(ALL_BLOCK_PHRASES, newValue)
 
+	override fun o_HasAncestor(
+		self: AvailObject,
+		potentialAncestor: A_Module
+	): Boolean =
+		when
+		{
+			potentialAncestor.equals(self) -> true
+			allAncestors.get().hasElement(potentialAncestor) -> true
+			else -> false
+		}
+
 	@Deprecated("Not supported", ReplaceWith("newModule()"))
 	override fun mutable() = unsupported
 
@@ -1305,14 +1355,9 @@ class ModuleDescriptor private constructor(
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(LEXERS, emptySet)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
-				// Adding the module to its ancestors set will cause recursive
-				// scanning to mark everything as shared, so it's essential that
-				// all fields have been initialized to *something* by now.
 				val newDescriptor = ModuleDescriptor(
-					SHARED,
-					moduleName.makeShared())
+					SHARED, moduleName.makeShared())
 				setDescriptor(newDescriptor)
-				newDescriptor.allAncestors.set(set(this).makeShared())
 			}
 
 		/**

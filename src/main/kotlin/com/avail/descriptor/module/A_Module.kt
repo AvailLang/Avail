@@ -197,13 +197,26 @@ interface A_Module : A_BasicObject
 		) = dispatch { o_AddVariableBinding(it, name, variableBinding) }
 
 		/**
-		 * Return the set of all ancestor modules of this module. Include this
-		 * module in the set.
+		 * Return the set of all ancestor modules of this module. Exclude this
+		 * module from the set.
 		 *
 		 * @return
 		 *   The set of all ancestors of this module, including itself.
 		 */
 		fun A_Module.allAncestors(): A_Set = dispatch { o_AllAncestors(it) }
+
+		/**
+		 * Determine if the given module is equal to or an ancestor of the
+		 * receiver.
+		 *
+		 * @param potentialAncestor
+		 *   The [A_Module] to test for membership in the receiver's ancestry.
+		 * @return
+		 *   `true` if [potentialAncestor] equals or is an ancestor of `this`,
+		 *   otherwise `false`.
+		 */
+		fun A_Module.hasAncestor(potentialAncestor: A_Module): Boolean =
+			dispatch { o_HasAncestor(it, potentialAncestor) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -438,5 +451,14 @@ interface A_Module : A_BasicObject
 		 */
 		fun A_Module.serializedObjects(serializedObjects: A_Tuple) =
 			dispatch { o_SerializedObjects(it, serializedObjects) }
+
+		/**
+		 * Serialization has completed, and this is the [A_Map] from the newly
+		 * serialized objects to their local one-based index.  This map can be
+		 * inverted to form a [tuple][A_Tuple], if needed, or vice-versa.
+		 * Either can be used to populate the [filter]
+		 */
+		fun A_Module.serializedObjectsMap(serializedObjects: A_Map) =
+			dispatch { o_SerializedObjectsMap(it, serializedObjects) }
 	}
 }

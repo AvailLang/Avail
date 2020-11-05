@@ -47,7 +47,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleAddMacro
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
-import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForDefinition
+import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -61,7 +61,7 @@ import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.LEXER_OR_NIL
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEALED_ARGUMENTS_TYPES_TUPLE
 import com.avail.descriptor.methods.MethodDescriptor.ObjectSlots.SEMANTIC_RESTRICTIONS_SET
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.allAncestors
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.representation.A_BasicObject
@@ -76,7 +76,6 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
@@ -214,14 +213,39 @@ class MethodDescriptor private constructor(
 	@Volatile
 	private var methodTestingTree: LookupTree<A_Definition, A_Tuple>? = null
 
-	val dynamicLookupStat = Statistic(DYNAMIC_LOOKUP_TIME) {
-		when (owningBundles.setSize())
+	/**
+	 * The statistic that tracks dynamic lookups, involving type testing within
+	 * a [LookupTree].  By the time the first one occurs, a bundle will have
+	 * been set.
+	 */
+	@Volatile
+	private var dynamicLookupStat: Statistic? = null
+
+	/**
+	 * Answer the [Statistic] that tracks dynamic lookups, involving type
+	 * testing within a [LookupTree].  By the time the first one occurs, a
+	 * bundle will have been set.
+	 */
+	fun dynamicLookupStat(): Statistic
+	{
+		dynamicLookupStat?.let { return it }
+		return synchronized(this)
 		{
-			0 -> "(no name)"
-			1 -> owningBundles.single().message().toString()
-			else -> owningBundles.iterator().next().toString() + " & aliases"
+			// Double-check the volatile field.
+			dynamicLookupStat?.let { return it }
+			val name = when (owningBundles.setSize())
+			{
+				0 -> "(no name)"
+				1 -> owningBundles.single().message().toString()
+				else -> owningBundles.iterator().next().toString() +
+					" & aliases"
+			}
+			val stat = Statistic(DYNAMIC_LOOKUP_TIME, name)
+			dynamicLookupStat = stat
+			stat
 		}
 	}
+
 
 	/**
 	 * A weak set (implemented as the [key&#32;set][Map.keys] of a
@@ -395,10 +419,9 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		currentModule: A_Module
 	): A_Bundle {
-		val visibleModules = currentModule.allAncestors()
 		val bundles: A_Set = owningBundles
 		return bundles.find {
-			visibleModules.hasElement(it.message().issuingModule())
+			currentModule.hasAncestor(it.message().issuingModule())
 		} ?: bundles.iterator().next() // Fall back to any bundle.
 	}
 
@@ -429,7 +452,7 @@ class MethodDescriptor private constructor(
 
 	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple
 	{
-		synchronized(self) { return self.slot(DEFINITIONS_TUPLE) }
+		return synchronized(self) { self.slot(DEFINITIONS_TUPLE) }
 	}
 
 	override fun o_DescribeForDebugger(
@@ -572,9 +595,9 @@ class MethodDescriptor private constructor(
 				throw SignatureException(E_METHOD_IS_SEALED)
 			}
 		}
-		val oldTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
-		val newTuple = oldTuple.appendCanDestroy(definition, true)
-		self.setSlot(DEFINITIONS_TUPLE, newTuple.makeShared())
+		self.updateSlotShared(DEFINITIONS_TUPLE) {
+			appendCanDestroy(definition, true)
+		}
 		owningBundles.forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 		}
@@ -599,11 +622,11 @@ class MethodDescriptor private constructor(
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
 		assert(!definition.definitionModule().equalsNil())
-		var definitionsTuple: A_Tuple = self.slot(DEFINITIONS_TUPLE)
-		definitionsTuple = tupleWithout(definitionsTuple, definition)
-		self.setSlot(DEFINITIONS_TUPLE, definitionsTuple.makeShared())
+		self.updateSlotShared(DEFINITIONS_TUPLE) {
+			tupleWithout(this, definition)
+		}
 		owningBundles.forEach { bundle ->
-			bundle.removePlanForDefinition(definition)
+			bundle.removePlanForSendable(definition)
 		}
 		self.membershipChanged()
 	}

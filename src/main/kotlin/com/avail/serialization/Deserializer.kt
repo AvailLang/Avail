@@ -167,7 +167,7 @@ class Deserializer constructor(
 	 * been deserialized by this [Deserializer].  This is the same sequence of
 	 * objects that the [Serializer] generated.
 	 */
-	fun allDeserializedObjects(): A_Tuple = tupleFromList(assembledObjects)
+	fun serializedObjects(): A_Tuple = tupleFromList(assembledObjects)
 
 	companion object
 	{

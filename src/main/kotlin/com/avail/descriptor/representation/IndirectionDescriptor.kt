@@ -60,7 +60,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeMacro
-import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForDefinition
+import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import com.avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
@@ -117,6 +117,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addBundle
 import com.avail.descriptor.module.A_Module.Companion.addConstantBinding
@@ -137,6 +138,7 @@ import com.avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.A_Module.Companion.exportedNames
 import com.avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.introduceNewName
 import com.avail.descriptor.module.A_Module.Companion.isOpen
@@ -153,6 +155,7 @@ import com.avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import com.avail.descriptor.module.A_Module.Companion.removeFrom
 import com.avail.descriptor.module.A_Module.Companion.resolveForward
 import com.avail.descriptor.module.A_Module.Companion.serializedObjects
+import com.avail.descriptor.module.A_Module.Companion.serializedObjectsMap
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.module.A_Module.Companion.versions
@@ -3324,10 +3327,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetIntersects(self: AvailObject, otherSet: A_Set): Boolean =
 		self .. { setIntersects(otherSet) }
 
-	override fun o_RemovePlanForDefinition(
+	override fun o_RemovePlanForSendable(
 		self: AvailObject,
-		definition: A_Definition
-	) = self .. { removePlanForDefinition(definition) }
+		sendable: A_Sendable
+	) = self .. { removePlanForSendable(sendable) }
 
 	override fun o_DefinitionParsingPlans(self: AvailObject): A_Map =
 		self .. { definitionParsingPlans() }
@@ -3645,9 +3648,19 @@ class IndirectionDescriptor private constructor(
 		serializedObjects: A_Tuple
 	) = self .. { serializedObjects(serializedObjects) }
 
+	override fun o_SerializedObjectsMap(
+		self: AvailObject,
+		serializedObjectsMap: A_Map
+	) = self .. { serializedObjectsMap(serializedObjectsMap) }
+
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
 		moduleHeader: ModuleHeader
 	): String? = self .. { applyModuleHeader(loader, moduleHeader) }
+
+	override fun o_HasAncestor(
+		self: AvailObject,
+		potentialAncestor: A_Module
+	): Boolean = self .. { hasAncestor(potentialAncestor) }
 }

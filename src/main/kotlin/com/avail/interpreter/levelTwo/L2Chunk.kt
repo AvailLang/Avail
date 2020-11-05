@@ -69,11 +69,10 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.utility.safeWrite
+import java.lang.ref.WeakReference
 import java.util.ArrayDeque
-import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.Deque
-import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
@@ -175,6 +174,9 @@ class L2Chunk private constructor(
 	/** Allow reads but not writes of this property. */
 	fun contingentValues() = contingentValues
 
+	/** The [WeakReference] that points to this [L2Chunk]. */
+	val weakReference = WeakReference(this)
+
 	/**
 	 * An indication of how recently this chunk has been accessed, expressed as
 	 * a reference to a [Generation].
@@ -190,8 +192,8 @@ class L2Chunk private constructor(
 		/**
 		 * The weak set of [L2Chunk]s in this generation.
 		 */
-		private val chunks =
-			synchronizedSet(newSetFromMap(WeakHashMap<L2Chunk, Boolean>()))
+		private val chunks = synchronizedSet(HashSet<WeakReference<L2Chunk>>())
+
 		override fun toString(): String
 		{
 			return super.toString() + " (size=" + chunks.size + ")"
@@ -244,7 +246,7 @@ class L2Chunk private constructor(
 			fun addNewChunk(newChunk: L2Chunk)
 			{
 				newChunk.generation = newest
-				newest.chunks.add(newChunk)
+				newest.chunks.add(newChunk.weakReference)
 				if (newest.chunks.size > maximumNewestGenerationSize)
 				{
 					generationsLock.safeWrite {
@@ -268,7 +270,7 @@ class L2Chunk private constructor(
 						}
 						// Remove the obsolete generations, gathering the chunks.
 						val chunksToInvalidate =
-							mutableListOf<L2Chunk>()
+							mutableListOf<WeakReference<L2Chunk>>()
 						while (generations.last !== lastGenerationToKeep)
 						{
 							chunksToInvalidate.addAll(
@@ -288,7 +290,7 @@ class L2Chunk private constructor(
 							{
 								invalidationLock.withLock {
 									chunksToInvalidate.forEach {
-										it.invalidate(EVICTION)
+										it.get()?.invalidate(EVICTION)
 									}
 								}
 							}
@@ -313,14 +315,14 @@ class L2Chunk private constructor(
 				val oldGen = chunk.generation
 				if (oldGen === theNewest)
 				{
-					// The chunk is already in the newest generation, which should
-					// be the most common case by far.  Do nothing.
+					// The chunk is already in the newest generation, which
+					// should be the most common case by far.  Do nothing.
 					return
 				}
 				// Move the chunk to the newest generation.  Create a newer
 				// generation if it fills up.
-				oldGen?.chunks?.remove(chunk)
-				theNewest.chunks.add(chunk)
+				oldGen?.chunks?.remove(chunk.weakReference)
+				theNewest.chunks.add(chunk.weakReference)
 				chunk.generation = theNewest
 				if (theNewest.chunks.size > maximumNewestGenerationSize)
 				{
@@ -351,10 +353,8 @@ class L2Chunk private constructor(
 			 */
 			fun removeInvalidatedChunk(chunk: L2Chunk)
 			{
-				val gen = chunk.generation
-				if (gen !== null)
-				{
-					gen.chunks.remove(chunk)
+				chunk.generation?.let {
+					it.chunks.remove(chunk.weakReference)
 					chunk.generation = null
 				}
 			}

@@ -42,7 +42,6 @@ import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import com.avail.descriptor.representation.A_BasicObject
@@ -52,7 +51,6 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
-import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList

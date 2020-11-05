@@ -65,6 +65,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -3660,9 +3661,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_SetIntersects (self: AvailObject, otherSet: A_Set): Boolean
 
-	abstract fun o_RemovePlanForDefinition (
+	abstract fun o_RemovePlanForSendable (
 		self: AvailObject,
-		definition: A_Definition)
+		sendable: A_Sendable)
 
 	abstract fun o_DefinitionParsingPlans (self: AvailObject): A_Map
 
@@ -3867,10 +3868,20 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		serializedObjects: A_Tuple)
 
+	abstract fun o_SerializedObjectsMap(
+		self: AvailObject,
+		serializedObjectsMap: A_Map
+	)
+
 	abstract fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
 		moduleHeader: ModuleHeader): String?
+
+	abstract fun o_HasAncestor(
+		self: AvailObject,
+		potentialAncestor: A_Module
+	): Boolean
 
 	companion object
 	{

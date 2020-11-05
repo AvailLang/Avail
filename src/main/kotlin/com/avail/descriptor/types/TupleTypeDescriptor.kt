@@ -755,7 +755,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 *   element type of the supplied tuple type.
 		 */
 		@JvmStatic
-		fun tupleTypeFromTupleOfTypes(
+		fun mappingElementTypes(
 			aTupleType: A_Type,
 			elementTransformer: (A_Type) -> A_Type): A_Type
 		{

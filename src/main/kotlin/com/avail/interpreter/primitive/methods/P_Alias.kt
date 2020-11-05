@@ -111,15 +111,14 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
 		}
-		val newBundle: A_Bundle
-		try
+		val newBundle: A_Bundle = try
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
 			val method = oldBundle.bundleMethod()
-			newBundle = newBundle(newAtom, method, MessageSplitter(newString))
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
+			newBundle(newAtom, method, MessageSplitter(newString))
 		}
 		catch (e: MalformedMessageException)
 		{

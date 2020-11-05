@@ -46,12 +46,17 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.maps.A_Map.Companion.hasKey
+import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.removeFrom
 import com.avail.descriptor.module.A_Module.Companion.serializedObjects
+import com.avail.descriptor.module.A_Module.Companion.serializedObjectsMap
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
@@ -146,7 +151,8 @@ internal class BuildLoader constructor(
 	 */
 	private fun scheduleLoadModule(
 		target: ResolvedModuleName,
-		completionAction: ()->Unit)
+		completionAction: ()->Unit
+	)
 	{
 		// Avoid scheduling new tasks if an exception has happened.
 		if (availBuilder.shouldStopBuild)
@@ -186,15 +192,17 @@ internal class BuildLoader constructor(
 	 */
 	private fun loadModule(
 		moduleName: ResolvedModuleName,
-		completionAction: ()->Unit)
+		completionAction: ()->Unit
+	)
 	{
 		globalTracker(bytesCompiled.get(), globalCodeSize)
 		// If the module is already loaded into the runtime, then we must not
 		// reload it.
 		val isLoaded = availBuilder.getLoadedModule(moduleName) !== null
 
-		assert(isLoaded == availBuilder.runtime.includesModuleNamed(
-			stringFrom(moduleName.qualifiedName)))
+		assert(
+			isLoaded == availBuilder.runtime.includesModuleNamed(
+				stringFrom(moduleName.qualifiedName)))
 		if (isLoaded)
 		{
 			// The module is already loaded.
@@ -210,64 +218,67 @@ internal class BuildLoader constructor(
 			val repository = moduleName.repository
 			val archive = repository.getArchive(moduleName.rootRelativeName)
 			archive.digestForFile(moduleName, false,
-			{ digest ->
-				val versionKey = ModuleVersionKey(moduleName, digest)
-				val version = archive.getVersion(versionKey) ?: error(
-					"Version should have been populated during tracing")
-				val imports = version.imports
-				val resolver = availBuilder.runtime.moduleNameResolver
-				val loadedModulesByName = mutableMapOf<String, LoadedModule>()
-				for (localName in imports)
-				{
-					val resolvedName: ResolvedModuleName
-					try
+				{ digest ->
+					val versionKey = ModuleVersionKey(moduleName, digest)
+					val version = archive.getVersion(versionKey) ?: error(
+						"Version should have been populated during tracing")
+					val imports = version.imports
+					val resolver = availBuilder.runtime.moduleNameResolver
+					val loadedModulesByName = mutableMapOf<String, LoadedModule>()
+					for (localName in imports)
 					{
-						resolvedName = resolver.resolve(
-							moduleName.asSibling(localName), moduleName)
-					}
-					catch (e: UnresolvedDependencyException)
-					{
-						availBuilder.stopBuildReason =
-							format(
-								"A module predecessor was malformed or absent: "
-									+ "%s -> %s\n",
-								moduleName.qualifiedName,
-								localName)
-						completionAction()
-						return@digestForFile
-					}
+						val resolvedName: ResolvedModuleName
+						try
+						{
+							resolvedName = resolver.resolve(
+								moduleName.asSibling(localName), moduleName)
+						}
+						catch (e: UnresolvedDependencyException)
+						{
+							availBuilder.stopBuildReason =
+								format(
+									"A module predecessor was malformed or absent: "
+										+ "%s -> %s\n",
+									moduleName.qualifiedName,
+									localName)
+							completionAction()
+							return@digestForFile
+						}
 
-					val loadedPredecessor =
-						availBuilder.getLoadedModule(resolvedName)!!
-					loadedModulesByName[localName] = loadedPredecessor
-				}
-				val predecessorCompilationTimes = LongArray(imports.size)
-				for (i in predecessorCompilationTimes.indices)
-				{
-					val loadedPredecessor = loadedModulesByName[imports[i]]!!
-					predecessorCompilationTimes[i] =
-						loadedPredecessor.compilation.compilationTime
-				}
-				val compilationKey =
-					ModuleCompilationKey(predecessorCompilationTimes)
-				val compilation = version.getCompilation(compilationKey)
-				if (compilation !== null)
-				{
-					// The current version of the module is already compiled, so
-					// load the repository's version.
-					loadRepositoryModule(
-						moduleName,
-						version,
-						compilation,
-						versionKey.sourceDigest,
-						completionAction)
-				}
-				else
-				{
-					// Compile the module and cache its compiled form.
-					compileModule(moduleName, compilationKey, completionAction)
-				}
-			}){ code, ex ->
+						val loadedPredecessor =
+							availBuilder.getLoadedModule(resolvedName)!!
+						loadedModulesByName[localName] = loadedPredecessor
+					}
+					val predecessorCompilationTimes = LongArray(imports.size)
+					for (i in predecessorCompilationTimes.indices)
+					{
+						val loadedPredecessor = loadedModulesByName[imports[i]]!!
+						predecessorCompilationTimes[i] =
+							loadedPredecessor.compilation.compilationTime
+					}
+					val compilationKey =
+						ModuleCompilationKey(predecessorCompilationTimes)
+					val compilation = version.getCompilation(compilationKey)
+					if (compilation !== null)
+					{
+						// The current version of the module is already compiled, so
+						// load the repository's version.
+						loadRepositoryModule(
+							moduleName,
+							version,
+							compilation,
+							versionKey.sourceDigest,
+							completionAction)
+					}
+					else
+					{
+						// Compile the module and cache its compiled form.
+						compileModule(
+							moduleName,
+							compilationKey,
+							completionAction)
+					}
+				}) { code, ex ->
 				// TODO figure out what to do with these!!! Probably report them?
 				System.err.println(
 					"Received ErrorCode: $code with exception:\n")
@@ -301,7 +312,8 @@ internal class BuildLoader constructor(
 		version: ModuleVersion,
 		compilation: ModuleCompilation,
 		sourceDigest: ByteArray,
-		completionAction: ()->Unit)
+		completionAction: ()->Unit
+	)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
 		val module = newModule(stringFrom(moduleName.qualifiedName))
@@ -442,8 +454,7 @@ internal class BuildLoader constructor(
 					}
 				else ->
 				{
-					module.serializedObjects(
-						deserializer.allDeserializedObjects())
+					module.serializedObjects(deserializer.serializedObjects())
 					availBuilder.runtime.addModule(module)
 					val loadedModule = LoadedModule(
 						moduleName,
@@ -480,7 +491,8 @@ internal class BuildLoader constructor(
 	private fun compileModule(
 		moduleName: ResolvedModuleName,
 		compilationKey: ModuleCompilationKey,
-		completionAction: ()->Unit)
+		completionAction: ()->Unit
+	)
 	{
 		val repository = moduleName.repository
 		val archive = repository.getArchive(moduleName.rootRelativeName)
@@ -526,14 +538,25 @@ internal class BuildLoader constructor(
 							// tuple of block phrases.
 							val blockPhrasesOutputStream =
 								IndexedFile.ByteArrayOutputStream(5000)
-							Serializer(
+							val bodyObjectsMap = compiler.compilationContext.serializer
+								.serializedObjectsMap()
+							val delta = bodyObjectsMap.mapSize()
+							val blockPhraseSerializer = Serializer(
 								blockPhrasesOutputStream,
-								module).serialize(
+								module
+							) { obj ->
+								when (bodyObjectsMap.hasKey(obj))
+								{
+									true ->
+										bodyObjectsMap
+											.mapAt(obj)
+											.extractInt() - delta
+									else -> 0
+								}
+							}
+							blockPhraseSerializer.serialize(
 								module.getAndSetTupleOfBlockPhrases(nil))
 							appendCRC(blockPhrasesOutputStream)
-
-							//TODO Remove
-							println("(${stream.size()}, ${blockPhrasesOutputStream.size()})  ${moduleName.localName}")
 
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()
@@ -550,7 +573,8 @@ internal class BuildLoader constructor(
 							//		final A_Tuple comments = fromList(
 							//         module.commentTokens());
 							val comments = emptyTuple
-							Serializer(out, module).serialize(comments)
+							val serializer = Serializer(out, module)
+							serializer.serialize(comments)
 							module.getAndSetTupleOfBlockPhrases(
 								fromLong(compilation.recordNumberOfBlockPhrases))
 							appendCRC(out)
@@ -561,6 +585,9 @@ internal class BuildLoader constructor(
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)
 							postLoad(moduleName, lastPosition)
+							module.serializedObjects(serializer.serializedObjects())
+							module.serializedObjectsMap(
+								serializer.serializedObjectsMap())
 							availBuilder.putLoadedModule(
 								moduleName,
 								LoadedModule(

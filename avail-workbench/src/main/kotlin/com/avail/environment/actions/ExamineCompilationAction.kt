@@ -50,7 +50,7 @@ import javax.swing.JOptionPane
  *   The active [AvailRuntime].
  *
  * @constructor
- * Construct a new `ExamineRepositoryAction`.
+ * Construct a new `ExamineCompilationAction`.
  *
  * @param workbench
  *   The owning [AvailWorkbench].
@@ -58,8 +58,9 @@ import javax.swing.JOptionPane
  *   The active [AvailRuntime].
  */
 class ExamineCompilationAction constructor (
-		workbench: AvailWorkbench, private val runtime: AvailRuntime)
-	: AbstractWorkbenchAction(workbench, "Examine compilation")
+	workbench: AvailWorkbench,
+	private val runtime: AvailRuntime
+) : AbstractWorkbenchAction(workbench, "Examine compilation")
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
@@ -73,24 +74,22 @@ class ExamineCompilationAction constructor (
 				val compilations = archive.allKnownVersions.flatMap {
 					it.value.allCompilations
 				}
-				val compilationsArray =
-					compilations.toTypedArray()
-				val selectedCompilation =
-					JOptionPane.showInputDialog(
-						workbench,
-						"Select module compilation to examine",
-						"Examine compilation",
-						JOptionPane.PLAIN_MESSAGE,
-						null,
-						compilationsArray,
-						if (compilationsArray.isNotEmpty())
-						{
-							compilationsArray[0]
-						}
-						else
-						{
-							null
-						})
+				val compilationsArray = compilations.toTypedArray()
+				val selectedCompilation = JOptionPane.showInputDialog(
+					workbench,
+					"Select module compilation to examine",
+					"Examine compilation",
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					compilationsArray,
+					if (compilationsArray.isNotEmpty())
+					{
+						compilationsArray[0]
+					}
+					else
+					{
+						null
+					})
 				when (selectedCompilation)
 				{
 					is ModuleCompilation ->

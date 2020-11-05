@@ -126,10 +126,10 @@ import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addConstantBinding
 import com.avail.descriptor.module.A_Module.Companion.addVariableBinding
-import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.module.A_Module.Companion.closeModule
 import com.avail.descriptor.module.A_Module.Companion.constantBindings
 import com.avail.descriptor.module.A_Module.Companion.exportedNames
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.privateNames
@@ -1568,35 +1568,37 @@ class AvailCompiler(
 		val actions = bundleTree.lazyActions()
 		if (actions.mapSize() > 0)
 		{
-			for (entry in actions.mapIterable())
-			{
-				val keyInt = entry.key().extractInt()
-				val op = decode(keyInt)
-				if (skipCheckArgumentAction && op === CHECK_ARGUMENT)
+			actions.forEach { operation, value ->
+				val operationInt = operation.extractInt()
+				val op = decode(operationInt)
+				when
 				{
-					// Skip this action, because the latest argument was a send
-					// that had an entry in the prefilter map, so it has already
-					// been dealt with.
-					continue
-				}
-				// Eliminate it before queueing a work unit if it shouldn't run
-				// due to there being a first argument already pre-parsed.
-				if (firstArgOrNull === null || op.canRunIfHasFirstArgument)
-				{
-					start.workUnitDo(entry.value()) {
-						runParsingInstructionThen(
-							start,
-							keyInt,
-							firstArgOrNull,
-							argsSoFar,
-							marksSoFar,
-							initialTokenPosition,
-							consumedAnything,
-							consumedAnythingBeforeLatestArgument,
-							consumedTokens,
-							it,
-							superexpressions,
-							continuation)
+					skipCheckArgumentAction && op === CHECK_ARGUMENT ->
+					{
+						// Skip this action, because the latest argument was a
+						// send that had an entry in the prefilter map, so it
+						// has already been dealt with.
+					}
+					firstArgOrNull === null || op.canRunIfHasFirstArgument ->
+					{
+						// Eliminate it before queueing a work unit if it
+						// shouldn't run due to there being a first argument
+						// already pre-parsed.
+						start.workUnitDo {
+							runParsingInstructionThen(
+								start,
+								operationInt,
+								firstArgOrNull,
+								argsSoFar,
+								marksSoFar,
+								initialTokenPosition,
+								consumedAnything,
+								consumedAnythingBeforeLatestArgument,
+								consumedTokens,
+								value,
+								superexpressions,
+								continuation)
+						}
 					}
 				}
 			}
@@ -1741,17 +1743,16 @@ class AvailCompiler(
 		skipWhitespaceAndComments(
 			start,
 			compilationContext.workUnitCompletion(
-				start.lexingState, null
+				start.lexingState,
+				null
 			) { statesAfterWhitespace ->
-				for (state in statesAfterWhitespace)
-				{
+				statesAfterWhitespace.forEach { state ->
 					state.lexingState.withTokensDo { tokens ->
-						for (token in tokens)
-						{
+						tokens.forEach { token ->
 							val tokenType = token.tokenType()
 							if (tokenType != WHITESPACE && tokenType != COMMENT)
 							{
-								state.workUnitDo(token, continuation)
+								state.workUnitDo { continuation(token) }
 							}
 						}
 					}
@@ -1782,13 +1783,9 @@ class AvailCompiler(
 	{
 		val typeSet = mutableSetOf<A_Type>()
 		val typesByPlanString = mutableMapOf<String, MutableSet<A_Type>>()
-		for (entry in bundleTree.allParsingPlansInProgress().mapIterable())
-		{
-			val submap = entry.value()
-			for (subentry in submap.mapIterable())
-			{
-				for (planInProgress in subentry.value())
-				{
+		bundleTree.allParsingPlansInProgress().forEach { _, submap ->
+			submap.forEach { _, plans ->
+				plans.forEach { planInProgress ->
 					val plan = planInProgress.parsingPlan()
 					val instructions = plan.parsingInstructions()
 					val instruction =
@@ -2135,14 +2132,13 @@ class AvailCompiler(
 		// Find all method definitions that could match the argument types.
 		// Only consider definitions that are defined in the current module or
 		// an ancestor.
-		val allAncestors = compilationContext.module.allAncestors()
 		val filteredByTypes =
 			if (macroOrNil.equalsNil()) method.filterByTypes(argTypes)
 			else listOf(macroOrNil)
 		val satisfyingDefinitions = filteredByTypes.filter { definition ->
 			val definitionModule = definition.definitionModule()
-			(definitionModule.equalsNil()
-				|| allAncestors.hasElement(definitionModule))
+			definitionModule.equalsNil()
+				|| compilationContext.module.hasAncestor(definitionModule)
 		}
 		if (satisfyingDefinitions.isEmpty())
 		{
@@ -2155,7 +2151,7 @@ class AvailCompiler(
 					else emptyTuple(),
 					if (macroOrNil.equalsNil()) emptyTuple()
 					else tuple(macroOrNil),
-					allAncestors))
+					compilationContext.module))
 			return
 		}
 		// Compute the intersection of the return types of the possible callees.
@@ -2175,11 +2171,10 @@ class AvailCompiler(
 		}
 		// Determine which semantic restrictions are relevant.
 		val restrictionsToTry = mutableListOf<A_SemanticRestriction>()
-		for (restriction in restrictions)
-		{
+		restrictions.forEach { restriction ->
 			val definitionModule = restriction.definitionModule()
 			if (definitionModule.equalsNil()
-				|| allAncestors.hasElement(restriction.definitionModule()))
+				|| compilationContext.module.hasAncestor(definitionModule))
 			{
 				if (restriction.function().kind().acceptsListOfArgValues(
 						argTypes))
@@ -2294,9 +2289,9 @@ class AvailCompiler(
 	 *   The [A_Macro] definitions that were visible (defined in the current or
 	 *   an ancestor module) but not applicable.  This and the definitionsTuple
 	 *   should not both be non-empty.
-	 * @param allAncestorModules
-	 *   The [set][A_Set] containing the current [module][A_Module] and its
-	 *   ancestors.
+	 * @param scopeModule
+	 *   The [A_Module] for which the message should be tailored, showing only
+	 *   content visible within that module and its ancestors.
 	 * @return
 	 *   A [Describer] able to describe why none of the definitions were
 	 *   applicable.
@@ -2306,7 +2301,7 @@ class AvailCompiler(
 		argTypes: List<A_Type>,
 		definitionsTuple: A_Tuple,
 		macrosTuple: A_Tuple,
-		allAncestorModules: A_Set): Describer
+		scopeModule: A_Module): Describer
 	{
 		assert((definitionsTuple.tupleSize() > 0)
 			xor (macrosTuple.tupleSize() > 0))
@@ -2317,20 +2312,18 @@ class AvailCompiler(
 				else -> "method"
 			}
 			val allVisible = mutableListOf<A_Sendable>()
-			for (def in definitionsTuple)
-			{
+			definitionsTuple.forEach { def ->
 				val definingModule = def.definitionModule()
 				if (definingModule.equalsNil()
-					|| allAncestorModules.hasElement(def.definitionModule()))
+					|| scopeModule.hasAncestor(definingModule))
 				{
 					allVisible.add(def)
 				}
 			}
-			for (def in macrosTuple)
-			{
+			macrosTuple.forEach { def ->
 				val definingModule = def.definitionModule()
 				if (definingModule.equalsNil()
-					|| allAncestorModules.hasElement(def.definitionModule()))
+					|| scopeModule.hasAncestor(definingModule))
 				{
 					allVisible.add(def)
 				}
@@ -2501,13 +2494,12 @@ class AvailCompiler(
 			// Find all macro definitions that could match the argument phrases.
 			// Only consider definitions that are defined in the current module
 			// or an ancestor.
-			val allAncestors = compilationContext.module.allAncestors()
 			val visibleDefinitions = mutableListOf<A_Macro>()
 			for (definition in macros)
 			{
 				val definitionModule = definition.definitionModule()
 				if (definitionModule.equalsNil()
-					|| allAncestors.hasElement(definitionModule))
+					|| compilationContext.module.hasAncestor(definitionModule))
 				{
 					visibleDefinitions.add(definition)
 				}
@@ -2613,7 +2605,7 @@ class AvailCompiler(
 							phraseTypes,
 							emptyTuple(),
 							macros,
-							allAncestors))
+							compilationContext.module))
 					// Don't report it as a failed method lookup, since there
 					// were none.
 					return
@@ -4175,7 +4167,7 @@ class AvailCompiler(
 		superexpressions: PartialSubexpressionList?,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
-		start.workUnitDo("ignored") {
+		start.workUnitDo {
 			parseRestOfSendNode(
 				start,
 				bundleTree,
@@ -4207,7 +4199,7 @@ class AvailCompiler(
 			else
 				compilationContext.module.privateNames()
 		var namesByModule = emptyMap
-		sourceNames.mapIterable().forEach { (_, atoms) ->
+		sourceNames.forEach { _, atoms ->
 			atoms.forEach { atom ->
 				namesByModule = namesByModule.mapAtReplacingCanDestroy(
 					atom.issuingModule(),
@@ -4218,7 +4210,7 @@ class AvailCompiler(
 		}
 		var completeModuleNames = emptySet
 		var leftovers = emptySet
-		namesByModule.mapIterable().forEach { (module, names) ->
+		namesByModule.forEach { module, names ->
 			if (!module.equals(compilationContext.module)
 				&& module.exportedNames().equals(names))
 			{

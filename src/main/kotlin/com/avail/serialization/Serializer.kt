@@ -37,12 +37,17 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.allAncestors
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.variables.A_Variable
 import com.avail.serialization.SerializerOperation.ASSIGN_TO_VARIABLE
 import com.avail.serialization.SerializerOperation.CHECKPOINT
@@ -94,6 +99,35 @@ class Serializer constructor (
 	private val encounteredObjects =
 		mutableMapOf<A_BasicObject, SerializerInstruction>()
 
+
+	/**
+	 * The [map][A_Map] from objects that were serialized by this serializer, to
+	 * their one-based index.  This is only valid after serialization completes.
+	 */
+	private val serializedObjectsMap by lazy {
+		var m = emptyMap
+		serializedObjectsList.forEachIndexed { zeroIndex, obj ->
+			m = m.mapAtPuttingCanDestroy(obj, fromInt(zeroIndex + 1), true)
+		}
+		m.makeShared()
+	}
+
+	/**
+	 * The actual sequence of objects that have been serialized so far.  This is
+	 * not needed by serialization itself, but it's useful to collect the
+	 * objects to allow a [tuple][A_Tuple]] built from this [List] to be
+	 * extracted after.
+	 */
+	private val serializedObjectsList = mutableListOf<A_BasicObject>()
+
+	/**
+	 * The [tuple][A_Tuple] of objects that were serialized by this serializer.
+	 * This is only valid after serialization completes.
+	 */
+	private val serializedObjects by lazy {
+		tupleFromList(serializedObjectsList)
+	}
+
 	/**
 	 * All variables that must have their values assigned to them upon
 	 * deserialization.  The set is cleared at every checkpoint.
@@ -133,7 +167,7 @@ class Serializer constructor (
 		{
 			return
 		}
-		assert(module.allAncestors().hasElement(atomModule))
+		assert(module.hasAncestor(atomModule))
 	}
 
 	/**
@@ -357,6 +391,17 @@ class Serializer constructor (
 			compressor.incrementIndex()
 		}
 	}
+
+	/**
+	 * Answer an [A_Tuple] of objects that were serialized.
+	 */
+	fun serializedObjects(): A_Tuple = serializedObjects
+
+	/**
+	 * Answer an [A_Map] from objects that were serialized to their one-based
+	 * indices.
+	 */
+	fun serializedObjectsMap(): A_Map = serializedObjectsMap
 
 	companion object
 	{

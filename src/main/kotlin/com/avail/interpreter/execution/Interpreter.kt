@@ -75,6 +75,7 @@ import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -134,7 +135,6 @@ import com.avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
 import com.avail.utility.Strings.tab
 import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
-import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
@@ -2360,7 +2360,7 @@ class Interpreter(
 	) {
 		val method = bundle.bundleMethod()
 		val descriptor = method.traversed().descriptor() as MethodDescriptor
-		descriptor.dynamicLookupStat.record(nanos)
+		descriptor.dynamicLookupStat().record(nanos)
 	}
 
 	/**
@@ -2374,17 +2374,14 @@ class Interpreter(
 	 */
 	fun recordTopStatementEvaluation(
 		sample: Double,
-		module: A_Module
-	) {
+		module: A_Module)
+	{
 		var statistic: Statistic
 		synchronized(topStatementEvaluationStats) {
-			val moduleTraversed: A_Module = module.traversed()
 			statistic = topStatementEvaluationStats.computeIfAbsent(
-				moduleTraversed
-			) { mod ->
-				Statistic(
-					TOP_LEVEL_STATEMENTS,
-					mod.moduleName().asNativeString())
+				module.moduleName()
+			) {
+				Statistic(TOP_LEVEL_STATEMENTS, it.asNativeString())
 			}
 		}
 		statistic.record(sample, interpreterIndex)
@@ -2997,9 +2994,7 @@ class Interpreter(
 			// to run when Level One safety is no longer required.
 			runtime.whenLevelOneUnsafeDo(
 				aFiber.priority(),
-				AvailTask.forFiberResumption(
-					aFiber
-				) {
+				AvailTask.forFiberResumption(aFiber) {
 					val interpreter = current()
 					assert(aFiber === interpreter.fiberOrNull())
 					assert(aFiber.executionState() === RUNNING)
@@ -3199,7 +3194,7 @@ class Interpreter(
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().equals(failureFunction))
 			executeFiber(runtime, aFiber)
-			 { interpreter: Interpreter ->
+			{ interpreter: Interpreter ->
 				val code = failureFunction.code()
 				val prim = code.primitive()!!
 				assert(!prim.hasFlag(CannotFail))
@@ -3316,10 +3311,10 @@ class Interpreter(
 		}
 
 		/**
-		 * Top-level statement evaluation statistics, keyed by module.
+		 * Top-level statement evaluation statistics, keyed by module name.
 		 */
 		private val topStatementEvaluationStats =
-			WeakHashMap<A_Module, Statistic>()
+			mutableMapOf<A_String, Statistic>()
 
 		/**
 		 * Answer the bootstrapped [assignment&#32;function][P_SetValue] used to

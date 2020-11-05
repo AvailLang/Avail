@@ -43,6 +43,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
@@ -62,6 +63,7 @@ import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
@@ -797,14 +799,15 @@ class ObjectTypeDescriptor internal constructor(
 			assert(aString.isString)
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			synchronized(propertyKey) {
-				anObjectType.fieldTypeMap().mapIterable().forEach { (atom, _) ->
+				anObjectType.fieldTypeMap().forEach { atom, _ ->
 					if (!atom.isAtomSpecial()) {
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (!namesMap.equalsNil()
 							&& namesMap.hasKey(anObjectType))
 						{
-							// In theory the user can give this type multiple names,
-							// so only remove the one that we've been told to.
+							// In theory the user can give this type multiple
+							// names, so only remove the one that we've been
+							// told to.
 							var namesSet: A_Set = namesMap.mapAt(anObjectType)
 							namesSet = namesSet.setWithoutElementCanDestroy(
 								aString, false)
@@ -814,7 +817,12 @@ class ObjectTypeDescriptor internal constructor(
 								else -> namesMap.mapAtPuttingCanDestroy(
 									anObjectType, namesSet, false)
 							}
-							atom.setAtomProperty(propertyKey, namesMap)
+							when (namesMap.mapSize())
+							{
+								0 -> atom.setAtomProperty(propertyKey, nil)
+								else -> atom.setAtomProperty(
+									propertyKey, namesMap)
+							}
 						}
 					}
 				}

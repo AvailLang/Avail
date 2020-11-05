@@ -216,8 +216,8 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	}
 
 	/**
-	 * Add or replace a property of this
-	 * [atom&#32;with&#32;properties][AtomWithPropertiesDescriptor].
+	 * Add or replace a property of this [A_Atom].  If the provided value is
+	 * [nil], remove the property.
 	 */
 	override fun o_SetAtomProperty(
 		self: AvailObject,

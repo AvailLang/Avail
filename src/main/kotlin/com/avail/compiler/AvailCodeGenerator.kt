@@ -77,6 +77,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.labels
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
@@ -935,7 +936,7 @@ class AvailCodeGenerator private constructor(
 				primitive,
 				locals(blockPhrase),
 				constants(blockPhrase),
-				BlockPhraseDescriptor.labels(blockPhrase),
+				labels(blockPhrase),
 				toList(blockPhrase.neededVariables()),
 				blockPhrase.resultType(),
 				resultTypeIfPrimitiveFails,

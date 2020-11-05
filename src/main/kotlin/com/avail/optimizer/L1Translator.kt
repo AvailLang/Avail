@@ -3287,8 +3287,7 @@ class L1Translator private constructor(
 				outerConstants.add(outerType.instance())
 			}
 			// This includes the case of there being no outers.
-			return createFunction(
-				theCode, tupleFromList(outerConstants))
+			return createFunction(theCode, tupleFromList(outerConstants))
 		}
 
 		/**

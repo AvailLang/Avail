@@ -54,6 +54,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
@@ -2421,9 +2422,10 @@ abstract class Descriptor protected constructor (
 	override fun o_SetIntersects (self: AvailObject, otherSet: A_Set): Boolean =
 		unsupported
 
-	override fun o_RemovePlanForDefinition (
+	override fun o_RemovePlanForSendable (
 		self: AvailObject,
-		definition: A_Definition): Unit = unsupported
+		sendable: A_Sendable
+	): Unit = unsupported
 
 	override fun o_DefinitionParsingPlans (self: AvailObject): A_Map =
 		unsupported
@@ -2669,9 +2671,19 @@ abstract class Descriptor protected constructor (
 		serializedObjects: A_Tuple
 	): Unit = unsupported
 
+	override fun o_SerializedObjectsMap(
+		self: AvailObject,
+		serializedObjectsMap: A_Map
+	): Unit = unsupported
+
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
 		moduleHeader: ModuleHeader
 	): String? = unsupported
+
+	override fun o_HasAncestor(
+		self: AvailObject,
+		potentialAncestor: A_Module
+	): Boolean = unsupported
 }

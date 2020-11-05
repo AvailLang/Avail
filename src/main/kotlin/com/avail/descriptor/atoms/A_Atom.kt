@@ -97,6 +97,7 @@ interface A_Atom : A_BasicObject {
 		 *   The property key to affect, an [atom][AtomDescriptor].
 		 * @param value
 		 *   The value to associate with that property key within the receiver.
+		 *   If it's [nil], remove the property.
 		 */
 		fun A_Atom.setAtomProperty(key: A_Atom, value: A_BasicObject) =
 			dispatch { o_SetAtomProperty(it, key, value) }

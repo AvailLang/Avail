@@ -64,7 +64,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
@@ -181,7 +181,7 @@ class MacroDescriptor private constructor(
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
-			tupleTypeFromTupleOfTypes(argsTupleType) {
+			mappingElementTypes(argsTupleType) {
 				it.phraseTypeExpressionType()
 			},
 			argsTupleType)

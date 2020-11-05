@@ -73,8 +73,8 @@ import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addPrivateName
-import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.module.A_Module.Companion.constantBindings
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.module.A_Module.Companion.isOpen
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.newNames
@@ -1244,7 +1244,7 @@ enum class SerializerOperation constructor(
 				module.equalsNil()
 					|| !module.isOpen()
 					|| serializer.module === null
-					|| !serializer.module.allAncestors().contains(module)
+					|| !serializer.module.hasAncestor(module)
 					|| originatingPhraseOrIndex.equalsNil()
 					|| originatingPhraseOrIndex.isInt
 				-> originatingPhraseOrIndex

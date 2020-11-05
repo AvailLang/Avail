@@ -39,6 +39,7 @@ import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -66,7 +67,6 @@ import com.avail.utility.evaluation.SimpleDescriber
 import java.io.PrintWriter
 import java.io.StringWriter
 import java.lang.String.format
-import java.util.Collections.singletonList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Function
@@ -133,49 +133,6 @@ class LexingState constructor(
 	private var actions: MutableList<(List<A_Token>)->Unit>? = mutableListOf()
 
 	/**
-	 * Eventually invoke the given functions, each with the given argument.
-	 * Track them as outstanding actions, ensuring
-	 * [CompilationContext.noMoreWorkUnits] is invoked only when all such queued
-	 * actions for the [CompilationContext] have completed.  Ensure the queued
-	 * count is increased prior to actually queueing any of the actions, to
-	 * ensure a hasty execution of a prefix of the tasks doesn't cause the
-	 * `noMoreWorkUnits` to be executed prematurely.
-	 *
-	 * @param ArgType
-	 *   The type of argument to the given continuation.
-	 * @param continuations
-	 *   The non-empty list of continuations to execute, each with the passed
-	 *   argument.
-	 * @param argument
-	 *   What to pass as an argument to the provided functions.
-	 */
-	private fun <ArgType> workUnitsDo(
-		continuations: List<(ArgType)->Unit>,
-		argument: ArgType)
-	{
-		compilationContext.workUnitsDo(this, continuations, argument)
-	}
-
-	/**
-	 * Eventually invoke the given function with the given argument.  Track it
-	 * as an outstanding action, ensuring [CompilationContext.noMoreWorkUnits]
-	 * is invoked only when all such queued actions have completed.
-	 *
-	 * @param ArgType
-	 *   The type of argument to the given continuation.
-	 * @param continuation
-	 *   What to execute with the passed argument.
-	 * @param argument
-	 *   What to pass as an argument to the provided functions.
-	 */
-	fun <ArgType> workUnitDo(
-		continuation: (ArgType)->Unit,
-		argument: ArgType)
-	{
-		compilationContext.workUnitsDo(this, listOf(continuation), argument)
-	}
-
-	/**
 	 * Eventually invoke the given 0-argument function.  Track it as an
 	 * outstanding action, ensuring [CompilationContext.noMoreWorkUnits] is
 	 * invoked only when all such queued actions have completed.
@@ -185,8 +142,15 @@ class LexingState constructor(
 	 */
 	fun workUnitDo(continuation: ()->Unit)
 	{
-		compilationContext.workUnitsDo(
-			this, singletonList { _ -> continuation() }, Unit)
+		assert(compilationContext.noMoreWorkUnits !== null)
+		compilationContext.startWorkUnits(1)
+		val workUnit =
+			compilationContext.workUnitCompletion(this, null) { _: Unit ->
+				continuation()
+			}
+		compilationContext.runtime.execute(FiberDescriptor.compilerPriority) {
+			workUnit(Unit)
+		}
 	}
 
 	/**
@@ -205,7 +169,8 @@ class LexingState constructor(
 		{
 			// The complete list of tokens was already computed, and actions
 			// that arrived before that completed have already been started.
-			workUnitDo(newAction, nextTokens!!)
+			val theTokens = nextTokens!!
+			workUnitDo { newAction(theTokens) }
 			return
 		}
 		// Postpone the action until the tokens have been computed.
@@ -221,7 +186,7 @@ class LexingState constructor(
 		// This was the first action, so launch the lexers to produce the list
 		// of nextTokens and then run the queued actions.
 		nextTokens = mutableListOf()
-		val nextTokens = nextTokens!!
+		val theTokens = nextTokens!!
 		val source = compilationContext.source
 		if (position > source.tupleSize())
 		{
@@ -229,10 +194,9 @@ class LexingState constructor(
 			assert(position == source.tupleSize() + 1)
 			val endOfFileToken = newToken(
 				endOfFileLexeme, position, lineNumber, END_OF_FILE)
-			nextTokens.add(endOfFileToken)
-			for (action in actions)
-			{
-				workUnitDo(action, nextTokens)
+			theTokens.add(endOfFileToken)
+			actions.forEach { action ->
+				workUnitDo { action(theTokens) }
 			}
 			this.actions = null
 			return
@@ -263,8 +227,7 @@ class LexingState constructor(
 		{
 			// No applicable lexers.
 			val scanner = compilationContext.loader.lexicalScanner()
-			val codePoint =
-				compilationContext.source.tupleCodePointAt(position)
+			val codePoint = compilationContext.source.tupleCodePointAt(position)
 			val charString =
 				CharacterDescriptor.fromCodePoint(codePoint).toString()
 			expected(
@@ -275,9 +238,10 @@ class LexingState constructor(
 					scanner.allVisibleLexers.size,
 					charString,
 					codePoint))
-			for (action in actions!!)
-			{
-				workUnitDo(action, theNextTokens)
+			actions!!.forEach { action ->
+				workUnitDo {
+					action(theNextTokens)
+				}
 			}
 			actions = null
 			return
@@ -290,8 +254,7 @@ class LexingState constructor(
 			compilationContext.source,
 			fromInt(position),
 			fromInt(lineNumber))
-		for (lexer in applicableLexers)
-		{
+		applicableLexers.forEach { lexer ->
 			evaluateLexerAndRunActionsWhenZero(lexer, arguments, countdown)
 		}
 	}
@@ -471,7 +434,7 @@ class LexingState constructor(
 		{
 			// We just heard from the last lexer.  Run the actions once, and
 			// ensure any new actions start immediately with nextTokens.
-			workUnitsDo(consumeActions, nextTokens!!)
+			compilationContext.workUnitsDo(this, consumeActions, nextTokens!!)
 		}
 	}
 

@@ -54,7 +54,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 
@@ -151,7 +151,7 @@ protected constructor(
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
 			argsTupleType,
-			tupleTypeFromTupleOfTypes(argsTupleType) {
+			mappingElementTypes(argsTupleType) {
 				yieldType -> PhraseKind.EXPRESSION_PHRASE.create(yieldType)
 			})
 	}

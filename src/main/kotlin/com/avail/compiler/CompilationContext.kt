@@ -488,8 +488,7 @@ class CompilationContext constructor(
 		// new unit being queued, to increment the completed count when it
 		// completes, and to run the noMoreWorkUnits action as soon the counters
 		// coincide (indicating the last work unit just completed).
-		for (continuation in continuations)
-		{
+		continuations.forEach { continuation ->
 			val workUnit = workUnitCompletion(lexingState, null, continuation)
 			runtime.execute(FiberDescriptor.compilerPriority) {
 				workUnit(argument)
