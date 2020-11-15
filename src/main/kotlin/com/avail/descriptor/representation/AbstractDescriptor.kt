@@ -3789,7 +3789,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit)
 
-	abstract fun o_SetSuccessAndFailureContinuations (
+	abstract fun o_SetSuccessAndFailure (
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit)

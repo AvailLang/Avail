@@ -64,7 +64,6 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
@@ -447,8 +446,7 @@ class AvailLoader(
 			when (codePoint)
 			{
 				in 0..255 -> allVisibleLexers.forEach {
-					val status = it.lexerApplicability(codePoint)
-					when (status)
+					when (it.lexerApplicability(codePoint))
 					{
 						null -> undecidedLexers.add(it)
 						true -> applicableLexers.add(it)

@@ -52,7 +52,6 @@ import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -179,12 +178,12 @@ class CallbackTest
 		val fiber = createFiber(
 			Types.NUMBER.o,
 			FiberDescriptor.commandPriority,
-			nil,
+			null,
 			{ stringFrom("testDivisionCallback") },
 			helper().runtime)
 		val expectedAnswer = fromInt(14)
 		val mailbox = SynchronousQueue<Runnable>()
-		fiber.setSuccessAndFailureContinuations(
+		fiber.setSuccessAndFailure(
 			{ result: AvailObject? ->
 				try
 				{

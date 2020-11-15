@@ -259,7 +259,7 @@ interface A_Fiber : A_BasicObject {
 	 * @param onFailure
 	 *   The action to invoke with the responsible throwable.
 	 */
-	fun setSuccessAndFailureContinuations(
+	fun setSuccessAndFailure(
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit)
 

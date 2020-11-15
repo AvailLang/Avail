@@ -1212,10 +1212,10 @@ class AvailObject private constructor(
 		descriptor().o_FailureContinuation(this)
 
 
-	override fun setSuccessAndFailureContinuations(
+	override fun setSuccessAndFailure(
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit
-	) = descriptor().o_SetSuccessAndFailureContinuations(this, onSuccess, onFailure)
+	) = descriptor().o_SetSuccessAndFailure(this, onSuccess, onFailure)
 
 	/**
 	 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]

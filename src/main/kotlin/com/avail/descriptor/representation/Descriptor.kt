@@ -2581,7 +2581,7 @@ abstract class Descriptor protected constructor (
 			action: (AvailObject, AvailObject) -> Unit): Unit =
 		unsupported
 
-	override fun o_SetSuccessAndFailureContinuations (
+	override fun o_SetSuccessAndFailure (
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit): Unit = unsupported

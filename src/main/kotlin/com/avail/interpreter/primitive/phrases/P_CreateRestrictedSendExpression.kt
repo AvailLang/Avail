@@ -42,7 +42,6 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple

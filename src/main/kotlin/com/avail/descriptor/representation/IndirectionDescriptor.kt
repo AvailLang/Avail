@@ -3548,11 +3548,11 @@ class IndirectionDescriptor private constructor(
 		action: (AvailObject, AvailObject) -> Unit
 	) = self .. { forEachInMapBin(action) }
 
-	override fun o_SetSuccessAndFailureContinuations(
+	override fun o_SetSuccessAndFailure(
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit
-	) = self .. { setSuccessAndFailureContinuations(onSuccess, onFailure) }
+	) = self .. { setSuccessAndFailure(onSuccess, onFailure) }
 
 	override fun o_ClearLexingState(self: AvailObject) =
 		self .. { clearLexingState() }

@@ -189,6 +189,7 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.L1_NAIVE_TRANSLATION_TIME
 import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES
+import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 
 /**
@@ -3418,9 +3419,15 @@ class L1Translator private constructor(
 		private val translationSizeStat = Statistic(
 			L2_TRANSLATION_VALUES, "L2 instruction count")
 
-		/** Statistic for number of methods depended on by L2 translations.  */
-		private val translationDependenciesStat = Statistic(
-			L2_TRANSLATION_VALUES, "Number of methods depended upon")
+		/**
+		 * An array of statistics for tracking the distribution of the number of
+		 * methods depended on by L2 translations.  The index into the array is
+		 * the number of methods depended upon, and the count (the only part of
+		 * the [Statistic] that is meaningful) is how many [L2Chunk]s had
+		 * exactly that number of dependencies.
+		 */
+		private val translationDependenciesStat =
+			AtomicReference(arrayOf<Statistic>())
 
 		/** Statistics about the naive L1 to L2 translation.  */
 		private val translateL1Stat = Statistic(
@@ -3480,9 +3487,29 @@ class L1Translator private constructor(
 			translationSizeStat.record(
 				chunk.instructions.size.toLong(),
 				interpreter.interpreterIndex)
-			translationDependenciesStat.record(
-				generator.contingentValues.setSize().toLong(),
-				interpreter.interpreterIndex)
+			val dependencyCount = generator.contingentValues.setSize()
+			var array = translationDependenciesStat.get()
+			if (dependencyCount >= array.size)
+			{
+				array = translationDependenciesStat.updateAndGet { old ->
+					if (dependencyCount >= old.size )
+					{
+						// Allocate a spare as well.
+						Array(dependencyCount + 2) {
+							if (it < old.size) old[it]
+							else Statistic(
+								L2_TRANSLATION_VALUES, "Dependency count = $it")
+						}
+					}
+					else
+					{
+						// It was already updated by another thread.
+						old
+					}
+				}
+			}
+			assert(dependencyCount < array.size)
+			array[dependencyCount].record(1)
 		}
 	}
 

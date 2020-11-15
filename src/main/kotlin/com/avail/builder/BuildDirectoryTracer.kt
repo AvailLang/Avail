@@ -150,7 +150,7 @@ class BuildDirectoryTracer constructor(
 
 	/**
 	 * Schedule a hierarchical tracing of all module files in all visible
-	 * subdirectories of the associated [moduleRoot].  Do not resolve the
+	 * subdirectories of the associated [ModuleRoot].  Do not resolve the
 	 * imports.  Ignore any modules that have syntax errors in their headers.
 	 * Update the repositories with the latest module version information, or at
 	 * least cause the version caches to treat the current versions as having

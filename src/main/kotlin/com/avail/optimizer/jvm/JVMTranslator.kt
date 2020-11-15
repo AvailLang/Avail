@@ -675,6 +675,7 @@ class JVMTranslator constructor(
 				else string
 			return buildString {
 				trimmed.forEach { c ->
+					@Suppress("SpellCheckingInspection")
 					when (c)
 					{
 						'.' -> append("dot")
@@ -1561,8 +1562,6 @@ class JVMTranslator constructor(
 		val badOffsetLabel = Label()
 		method.visitLookupSwitchInsn(badOffsetLabel, offsets, entries)
 		// Translate the instructions.
-		val thread = AvailThread.currentOrNull()
-		val interpreter = thread?.interpreter
 		for (instruction in instructions)
 		{
 			val label = labels[instruction.offset()]
@@ -1607,15 +1606,7 @@ class JVMTranslator constructor(
 				}
 				Interpreter.traceL2Method.generateCall(method)
 			}
-			val beforeTranslation = AvailRuntimeSupport.captureNanos()
 			instruction.translateToJVM(this, method)
-			val afterTranslation = AvailRuntimeSupport.captureNanos()
-			if (interpreter !== null)
-			{
-				instruction.operation().jvmTranslationTime.record(
-					afterTranslation - beforeTranslation,
-					interpreter.interpreterIndex)
-			}
 		}
 		// An L2Chunk always ends with an explicit transfer of control, so we
 		// shouldn't generate a return here.

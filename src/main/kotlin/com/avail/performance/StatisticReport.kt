@@ -88,9 +88,6 @@ enum class StatisticReport constructor(
 	/** Dimensionless values related to L2Chunk creation.  */
 	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
 
-	/** A breakdown of time spent in translation of L2 instructions to JVM.  */
-	L2_TO_JVM_TRANSLATION_TIME("L2 to JVM Translation time", NANOSECONDS),
-
 	/** A breakdown of final generation phases of L2->JVM.  */
 	FINAL_JVM_TRANSLATION_TIME("Final JVM Translation time", NANOSECONDS),
 

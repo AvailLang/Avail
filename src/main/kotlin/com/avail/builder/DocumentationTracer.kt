@@ -43,7 +43,6 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.error.ErrorCode
-import com.avail.persistence.IndexedFile
 import com.avail.persistence.IndexedFile.Companion.validatedBytesFrom
 import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.persistence.cache.Repository.ModuleVersionKey
