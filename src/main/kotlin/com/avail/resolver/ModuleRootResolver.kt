@@ -468,9 +468,10 @@ interface ModuleRootResolver
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
 		val relative = targetURI.path.split(uri.path)[1]
+		val cleansedRelative = relative.replace(".avail", "")
 		return "/${moduleRoot.name}" +
-			if (relative.startsWith("/")) "" else "/" +
-				relative
+			(if (relative.startsWith("/")) "" else "/") +
+			cleansedRelative
 	}
 
 	/**

@@ -151,8 +151,8 @@ class Repository constructor(
 	internal val lock = ReentrantLock()
 
 	/**
-	 * The [repository][IndexedFile] that stores this
-	 * [Repository]'s compiled [modules][ModuleDescriptor].
+	 * The [repository][IndexedFile] that stores this [Repository]'s compiled
+	 * [modules][ModuleDescriptor].
 	 */
 	internal var repository: IndexedFile? = null
 
@@ -993,7 +993,7 @@ class Repository constructor(
 		val recordNumber: Long
 
 		/** The byte array containing a serialization of this compilation. */
-		val bytes: ByteArray?
+		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
 
 		/**

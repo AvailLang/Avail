@@ -361,14 +361,14 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @property compilation
 	 *   The [ModuleCompilation] which was loaded for this module.  This
 	 *   indicates when the compilation happened, and where in the
-	 *   [repository][Repository] we can find the
-	 *   [serialized][Serializer] module content.
+	 *   [repository][Repository] we can find the [serialized][Serializer]
+	 *   module content.
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 *
 	 * @constructor
 	 *
-	 * Construct a new `LoadedModule` to represent
-	 * information about an Avail module that has been loaded.
+	 * Construct a new `LoadedModule` to represent information about an Avail
+	 * module that has been loaded.
 	 *
 	 * @param name
 	 *   The [name][ResolvedModuleName] of the module.

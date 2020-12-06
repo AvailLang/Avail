@@ -2425,6 +2425,8 @@ class AvailWorkbench internal constructor (
 							ModuleRootResolver.WatchEventType.CREATE,
 							ModuleRootResolver.WatchEventType.DELETE ->
 								bench.refreshAction // TODO how is this run?
+							ModuleRootResolver.WatchEventType.MODIFY ->
+								Unit // TODO Maybe mark dirty?
 						}
 					}
 				}

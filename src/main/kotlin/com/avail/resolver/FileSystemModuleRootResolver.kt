@@ -80,6 +80,7 @@ import java.util.Collections
 import java.util.Deque
 import java.util.EnumSet
 import java.util.LinkedList
+import java.util.concurrent.atomic.AtomicBoolean
 
 /**
  * `FileSystemModuleRootResolver` is a [ModuleRootResolver] used for accessing
@@ -133,9 +134,9 @@ class FileSystemModuleRootResolver constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		executeTask {
-			moduleRootTree?.let { successHandler(it) } ?: {
+			moduleRootTree?.let { successHandler(it) } ?: run {
 				resolve(successHandler, failureHandler)
-			}()
+			}
 		}
 	}
 
@@ -293,13 +294,18 @@ class FileSystemModuleRootResolver constructor(
 		withReference: (ResolverReference)->Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
-		referenceMap[qualifiedName]?.let { withReference(it) } ?: {
+		referenceMap[qualifiedName]?.let { withReference(it) } ?: run {
 			try
 			{
 				withReference(
 					resolverReference(
-						absolutePath(uri, qualifiedName),
-						qualifiedName))
+						absolutePath(
+							uri,
+							qualifiedName
+						),
+						qualifiedName
+					)
+				)
 			}
 			catch (e: NoSuchFileException)
 			{
@@ -309,7 +315,7 @@ class FileSystemModuleRootResolver constructor(
 			{
 				failureHandler(FileErrorCode.PERMISSIONS, e)
 			}
-		}()
+		}
 	}
 
 	override fun refreshResolverMetaData(
@@ -977,8 +983,10 @@ class FileSystemModuleRootResolver constructor(
 	 * the local file system directories of the [ModuleRoot]s loaded into the
 	 * AvailRuntime.
 	 */
-	inner class FileSystemWatcher
+	inner class FileSystemWatcher constructor()
 	{
+		private val initialized = AtomicBoolean(false)
+
 		/**
 		 * The [WatchService] watching the [FileManager] directories where
 		 * the [AvailRuntime] loaded [ModuleRoot]s are stored.
@@ -993,11 +1001,16 @@ class FileSystemModuleRootResolver constructor(
 		val watchMap = mutableMapOf<WatchKey, RootWatcher>()
 
 		/**
-		 * Add a new [ModuleRoot] to be watched by this [FileSystemWatcher].
+		 * Add the [FileSystemModuleRootResolver.moduleRoot] to be watched by
+		 * this [FileSystemWatcher] and initialize it.
 		 */
 		fun add ()
 		{
-			RootWatcher(this)
+			if (!initialized.getAndSet(true))
+			{
+				RootWatcher(this)
+				initialize()
+			}
 		}
 
 		/**
@@ -1009,18 +1022,10 @@ class FileSystemModuleRootResolver constructor(
 		}
 
 		/**
-		 * Initialize this [FileSystemWatcher] to watch the [ModuleRoot]s in the
-		 * provided [ModuleRoots].
-		 *
-		 * @param moduleRoots
-		 *   The [ModuleRoots] to watch.
+		 * Initialize this [FileSystemWatcher].
 		 */
-		fun initialize(moduleRoots: ModuleRoots)
+		fun initialize()
 		{
-			moduleRoots.roots.forEach { root ->
-				root.resolver?.let { RootWatcher(this) }
-			}
-
 			// Rename steps:
 			// 1 - Parent directory Modify
 			// 2 - "New" directory Create (new folder name)
@@ -1077,7 +1082,7 @@ class FileSystemModuleRootResolver constructor(
 			{
 				event.kind() == StandardWatchEventKinds.ENTRY_DELETE ->
 				{
-					val uriPath = URI("file://$path")
+					val uriPath = URI("file://$path/${event.context()}")
 					val qualifiedName = getQualifiedName(uriPath)
 					val ref = referenceMap.remove(qualifiedName) ?: return
 					// TODO remove from reference tree
@@ -1088,17 +1093,23 @@ class FileSystemModuleRootResolver constructor(
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ->
 				{
-					val uriPath = URI("file://$path")
+					val uriPath = URI("file://$path/${event.context()}")
 					val qualifiedName = getQualifiedName(uriPath)
 					val ref = referenceMap[qualifiedName] ?: return
-					watchEventSubscriptions.values.forEach {
-						 it(MODIFY, ref)
-					}
+					this@FileSystemModuleRootResolver.refreshResolverMetaData(
+						ref,
+						{ _ ->
+							watchEventSubscriptions.values.forEach {
+								it(MODIFY, ref)
+							}
+						}) { _, _ ->
+							// Nothing to be done here...
+						}
 					key.reset()
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_CREATE ->
 				{
-					val uriPath = URI("file://$path")
+					val uriPath = URI("file://$path/${event.context()}")
 					val qualifiedName = getQualifiedName(uriPath)
 					val type = determineResourceType(file)
 					val ref =
