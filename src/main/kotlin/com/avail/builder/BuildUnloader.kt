@@ -143,11 +143,16 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 						moduleName,
 						false,
 						{ latestDigest ->
-							!latestDigest.contentEquals(
-								loadedModule.sourceDigest)
-							loadedModule.deletionRequest = dirty
-							AvailBuilder.log(
-								Level.FINEST, "(Module %s is dirty)", moduleName)
+							if (!latestDigest.contentEquals(
+								loadedModule.sourceDigest))
+							{
+								loadedModule.deletionRequest = true
+								AvailBuilder.log(
+									Level.FINEST,
+									"(Module %s is dirty)",
+									moduleName
+								)
+							}
 							completionAction()
 						}
 					){ code, ex ->
@@ -158,7 +163,6 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 							moduleName,
 							code,
 							ex ?: "")
-						// TODO Probably ok?
 						completionAction()
 					}
 				}
