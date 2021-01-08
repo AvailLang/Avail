@@ -42,6 +42,8 @@ import com.avail.files.FileManager
 import com.avail.files.ManagedFileWrapper
 import com.avail.persistence.cache.Repository
 import java.net.URI
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.util.UUID
 
 /**
@@ -77,6 +79,8 @@ interface ModuleRootResolver
 	 * The [URI] that identifies the location of the [ModuleRoot].
 	 */
 	val uri: URI
+
+//	val urlEncodedURI get() = URLEncoder.encode(uri, CharSet.)
 
 	/**
 	 * The [ModuleRoot] this [ModuleRootResolver] resolves to.
@@ -450,9 +454,13 @@ interface ModuleRootResolver
 	 *   The [fully-qualified name][ModuleName] of the module or resource.
 	 * @return
 	 *   A `URI` for the resource.
+	 *
+	 *   URLEncoder.encode(value, StandardCharsets.UTF_8.toString())
 	 */
 	fun fullResourceURI(qualifiedName: String): URI =
-		URI("$uri/$qualifiedName")
+		URI(URLEncoder.encode(
+			"$uri/$qualifiedName",
+			StandardCharsets.UTF_8.toString()))
 
 	/**
 	 * Answer a qualified name for the given [URI] that points to a file in the
@@ -462,12 +470,12 @@ interface ModuleRootResolver
 	 *   The [URI] to transform into qualified name.
 	 * @return The qualified name.
 	 */
-	fun getQualifiedName(targetURI: URI): String
+	fun getQualifiedName(targetURI: String): String
 	{
-		assert(targetURI.path.startsWith(uri.path)) {
+		assert(targetURI.startsWith(uri.path)) {
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
-		val relative = targetURI.path.split(uri.path)[1]
+		val relative = targetURI.split(uri.path)[1]
 		val cleansedRelative = relative.replace(".avail", "")
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +

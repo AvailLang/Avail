@@ -1082,7 +1082,7 @@ class FileSystemModuleRootResolver constructor(
 			{
 				event.kind() == StandardWatchEventKinds.ENTRY_DELETE ->
 				{
-					val uriPath = URI("file://$path/${event.context()}")
+					val uriPath = "$path/${event.context()}"
 					val qualifiedName = getQualifiedName(uriPath)
 					val ref = referenceMap.remove(qualifiedName) ?: return
 					// TODO remove from reference tree
@@ -1093,7 +1093,7 @@ class FileSystemModuleRootResolver constructor(
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ->
 				{
-					val uriPath = URI("file://$path/${event.context()}")
+					val uriPath = "$path/${event.context()}"
 					val qualifiedName = getQualifiedName(uriPath)
 					val ref = referenceMap[qualifiedName] ?: return
 					this@FileSystemModuleRootResolver.refreshResolverMetaData(
@@ -1109,7 +1109,7 @@ class FileSystemModuleRootResolver constructor(
 				}
 				event.kind() == StandardWatchEventKinds.ENTRY_CREATE ->
 				{
-					val uriPath = URI("file://$path/${event.context()}")
+					val uriPath = "$path/${event.context()}"
 					val qualifiedName = getQualifiedName(uriPath)
 					val type = determineResourceType(file)
 					val ref =
