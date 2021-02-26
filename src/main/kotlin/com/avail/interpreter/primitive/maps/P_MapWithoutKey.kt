@@ -94,9 +94,9 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 		}
 		// It's possible that the new map will be smaller by one.
 		var minSize = mapSizes.lowerBound()
-		if (minSize.greaterThan(zero()))
+		if (minSize.greaterThan(zero))
 		{
-			minSize = minSize.minusCanDestroy(one(), false)
+			minSize = minSize.minusCanDestroy(one, false)
 		}
 		val newSizeRange = integerRangeType(
 			minSize, true, mapSizes.upperBound(), mapSizes.upperInclusive())

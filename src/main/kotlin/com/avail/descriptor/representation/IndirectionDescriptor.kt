@@ -576,7 +576,7 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		visitor: AvailSubobjectVisitor
 	) {
-		visitor.invoke(self.slot(INDIRECTION_TARGET))
+		visitor(self.slot(INDIRECTION_TARGET))
 	}
 
 	override fun o_MakeImmutable(self: AvailObject): AvailObject {

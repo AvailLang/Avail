@@ -467,7 +467,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val startInSecondObject =
 			startIndexObject.minusCanDestroy(firstUpper, false)
 		val startInSecond =
-			if (startInSecondObject.lessThan(one())) 1
+			if (startInSecondObject.lessThan(one)) 1
 			else startInSecondObject.extractInt()
 		val endInSecondObject = fromInt(endIndex).minusCanDestroy(
 			firstTupleType.sizeRange().lowerBound(),
@@ -475,7 +475,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val endInSecond =
 			when
 			{
-				endInSecondObject.lessThan(one()) -> 1
+				endInSecondObject.lessThan(one) -> 1
 				endInSecondObject.isInt -> endInSecondObject.extractInt()
 				else -> Int.MAX_VALUE
 			}

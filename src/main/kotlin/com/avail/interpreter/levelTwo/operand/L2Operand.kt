@@ -34,7 +34,6 @@ package com.avail.interpreter.levelTwo.operand
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
-import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ValueManifest
@@ -117,25 +116,6 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	}
 
 	/**
-	 * This is an operand of the given instruction, which was once emitted, then
-	 * removed, and has just now been added again to a basic block.  Its
-	 * instruction was just set.
-	 *
-	 * Since this operation can take place after initial code generation, we
-	 * have to compensate for reads of semantic values that no longer exist,
-	 * due to elision of moves that would have augmented a synonym.  This logic
-	 * is in [L2ReadOperand.adjustedForReinsertion] and
-	 * [L2ReadVectorOperand.adjustedForReinsertion].
-	 *
-	 * @param manifest
-	 *   The [L2ValueManifest] that is active where this [L2Instruction] was
-	 *   just added to its [L2BasicBlock].
-	 * @return
-	 *   The replacement `L2Operand`, possibly the receiver.
-	 */
-	open fun adjustedForReinsertion(manifest: L2ValueManifest): L2Operand = this
-
-	/**
 	 * This is an operand of the given instruction, which was just inserted into
 	 * its basic block as part of an optimization pass.
 	 *
@@ -188,8 +168,9 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @return
 	 *   The transformed operand or the receiver.
 	 */
-	open fun transformEachRead(transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>)
-		: L2Operand = this
+	open fun transformEachRead(
+		transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>
+	) : L2Operand = this
 
 	/**
 	 * Capture all [L2ReadOperand]s within this operand into the provided
@@ -367,36 +348,4 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * and synonym information will be reconstructed without too much cost.
 	 */
 	open fun postOptimizationCleanup() { }
-
-	companion object
-	{
-		/**
-		 * This vector operand is the input to an [L2_PHI_PSEUDO_OPERATION]
-		 * instruction that has just been added.  Update it specially, to take
-		 * into account the correspondence between vector elements and
-		 * predecessor edges.
-		 *
-		 * @param readVector
-		 *   The [L2ReadVectorOperand] for which we're noting that the
-		 *   containing instruction has just been added.
-		 * @param predecessorEdges
-		 *   The [List] of predecessor edges ([L2PcOperand]s) that correspond
-		 *   positionally with the elements of the vector.
-		 */
-		@JvmStatic
-		fun instructionWasAddedForPhi(
-			readVector: L2ReadVectorOperand<*, *>,
-			predecessorEdges: List<L2PcOperand>)
-		{
-			assert(readVector.instruction().operation() is L2_PHI_PSEUDO_OPERATION<*, *, *>)
-			val fanIn = readVector.elements.size
-			assert(fanIn == predecessorEdges.size)
-			for (i in 0 until fanIn)
-			{
-				// The read operand should use the corresponding incoming manifest.
-				readVector.elements[i].instructionWasAdded(
-					predecessorEdges[i].manifest())
-			}
-		}
-	}
 }

@@ -136,6 +136,7 @@ import com.avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import com.avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
@@ -168,7 +169,10 @@ import com.avail.utility.structures.BloomFilter
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import kotlin.concurrent.read
 import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 
 /**
  * A [module][ModuleDescriptor] is the mechanism by which Avail code is
@@ -341,13 +345,10 @@ class ModuleDescriptor private constructor(
 	@Volatile
 	var semanticRestrictions: A_Set = emptySet
 
-
-
-
-
-
-
-
+	/**
+	 * The lock used to control access to this module's modifiable parts.
+	 */
+	val lock = ReentrantReadWriteLock()
 
 	/**
 	 * Whether the module is capable of receiving new content. Modules are
@@ -674,33 +675,31 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleName(self: AvailObject): A_String = moduleName
 
 	override fun o_Versions(self: AvailObject): A_Set =
-		synchronized(self) { return versions }
+		lock.read { versions }
 
 	override fun o_NewNames(self: AvailObject): A_Map =
-		synchronized(self) { return self.slot(NEW_NAMES) }
+		lock.read { self.slot(NEW_NAMES) }
 
 	override fun o_ImportedNames(self: AvailObject): A_Map =
-		synchronized(self) {
-			return self.slot(IMPORTED_NAMES)
-		}
+		lock.read { self.slot(IMPORTED_NAMES) }
 
 	override fun o_PrivateNames(self: AvailObject): A_Map =
-		synchronized(self) {
-			return self.slot(PRIVATE_NAMES)
-		}
+		lock.read { self.slot(PRIVATE_NAMES) }
 
 	override fun o_EntryPoints(self: AvailObject): A_Map = entryPoints
 
 	override fun o_VisibleNames(self: AvailObject): A_Set =
-		synchronized(self) {
-			return self.slot(VISIBLE_NAMES)
-		}
+		lock.read { self.slot(VISIBLE_NAMES) }
 
 	override fun o_ExportedNames(self: AvailObject): A_Set
 	{
-		var exportedNames: A_Set
-		synchronized(self) {
-			exportedNames = self.slot(CACHED_EXPORTED_NAMES)
+		lock.read {
+			self.slot(CACHED_EXPORTED_NAMES).let {
+				if (!it.equalsNil()) return it
+			}
+		}
+		return lock.write {
+			var exportedNames: A_Set = self.slot(CACHED_EXPORTED_NAMES)
 			if (exportedNames.equalsNil())
 			{
 				// Compute it.
@@ -720,33 +719,25 @@ class ModuleDescriptor private constructor(
 					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
 				}
 			}
+			exportedNames
 		}
-		return exportedNames
 	}
 
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
-		synchronized(self) {
-			self.slot(METHOD_DEFINITIONS_SET)
-		}
+		lock.read { self.slot(METHOD_DEFINITIONS_SET) }
 
 	override fun o_VariableBindings(self: AvailObject): A_Map =
-		synchronized(self) {
-			self.slot(VARIABLE_BINDINGS)
-		}
+		lock.read { self.slot(VARIABLE_BINDINGS) }
 
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
-		synchronized(self) {
-			self.slot(CONSTANT_BINDINGS)
-		}
+		lock.read { self.slot(CONSTANT_BINDINGS) }
 
 	override fun o_AddConstantBinding(
 		self: AvailObject,
 		name: A_String,
 		constantBinding: A_Variable
-	) = synchronized(self) {
-		assert(
-			constantBinding.kind().isSubtypeOf(
-				mostGeneralVariableType()))
+	) = lock.write {
+		assert(constantBinding.kind().isSubtypeOf(mostGeneralVariableType()))
 		isOpen.get() || throw AvailRuntimeException(E_MODULE_IS_CLOSED)
 		self.updateSlotShared(CONSTANT_BINDINGS) {
 			mapAtPuttingCanDestroy(name, constantBinding, true)
@@ -754,26 +745,28 @@ class ModuleDescriptor private constructor(
 	}
 
 	override fun o_ModuleAddDefinition(
-		self: AvailObject, definition: A_Definition
-	) = synchronized(self) {
+		self: AvailObject,
+		definition: A_Definition
+	) = lock.write {
 		self.updateSlotShared(METHOD_DEFINITIONS_SET) {
 			setWithElementCanDestroy(definition, false)
 		}
 	}
 
-	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro) =
-		synchronized(self) {
-			assertOpen()
-			macroDefinitions = macroDefinitions.setWithElementCanDestroy(
-				macro, false
-			).makeShared()
-		}
+	override fun o_ModuleAddMacro(
+		self: AvailObject,
+		macro: A_Macro
+	) = lock.write {
+		assertOpen()
+		macroDefinitions =
+			macroDefinitions.setWithElementCanDestroy(macro, false).makeShared()
+	}
 
 	override fun o_AddSeal(
 		self: AvailObject,
 		methodName: A_Atom,
 		argumentTypes: A_Tuple
-	) = synchronized(self) {
+	) = lock.write {
 		assertOpen()
 		self.updateSlotShared(SEALS) {
 			var tuple: A_Tuple = when
@@ -789,7 +782,7 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleAddSemanticRestriction(
 		self: AvailObject,
 		semanticRestriction: A_SemanticRestriction
-	) = synchronized(self) {
+	) = lock.write {
 		assertOpen()
 		semanticRestrictions = semanticRestrictions.setWithElementCanDestroy(
 			semanticRestriction, true
@@ -800,7 +793,7 @@ class ModuleDescriptor private constructor(
 		self: AvailObject,
 		name: A_String,
 		variableBinding: A_Variable
-	) = synchronized(self) {
+	) = lock.write {
 		assert(variableBinding.kind().isSubtypeOf(mostGeneralVariableType()))
 		assertOpen()
 		self.updateSlotShared(VARIABLE_BINDINGS) {
@@ -808,21 +801,65 @@ class ModuleDescriptor private constructor(
 		}
 	}
 
-	override fun o_AddImportedName( self: AvailObject, trueName: A_Atom) =
+	override fun o_AddImportedName(
+		self: AvailObject,
+		trueName: A_Atom
+	) = lock.write {
 		// Add the atom to the current public scope.
-		synchronized(self) {
-			assertOpen()
-			val string: A_String = trueName.atomName()
-			self.updateSlotShared(IMPORTED_NAMES) {
-				mapAtReplacingCanDestroy(
+		assertOpen()
+		val string: A_String = trueName.atomName()
+		self.updateSlotShared(IMPORTED_NAMES) {
+			mapAtReplacingCanDestroy(
+				string,
+				emptySet,
+				{ _, set: A_Set ->
+					set.setWithElementCanDestroy(trueName, true)
+				},
+				true)
+		}
+		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		if (privateNames.hasKey(string)
+			&& privateNames.mapAt(string).hasElement(trueName))
+		{
+			// Inclusion has priority over exclusion, even along a
+			// different chain of modules.
+			val set: A_Set = privateNames.mapAt(string)
+			privateNames = if (set.setSize() == 1)
+			{
+				privateNames.mapWithoutKeyCanDestroy(string, true)
+			}
+			else
+			{
+				privateNames.mapAtPuttingCanDestroy(
 					string,
-					emptySet,
-					{ _, set: A_Set ->
-						set.setWithElementCanDestroy(trueName, true)
-					},
+					set.setWithoutElementCanDestroy(trueName, true),
 					true)
 			}
-			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+		}
+		self.updateSlotShared(VISIBLE_NAMES) {
+			setWithElementCanDestroy(trueName, true)
+		}
+	}
+
+	override fun o_AddImportedNames(
+		self: AvailObject,
+		trueNames: A_Set
+	) = lock.write {
+		// Add the set of atoms to the current public scope.
+		assertOpen()
+		var importedNames: A_Map = self.slot(IMPORTED_NAMES)
+		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		for (trueName in trueNames)
+		{
+			val string: A_String = trueName.atomName()
+			importedNames = importedNames.mapAtReplacingCanDestroy(
+				string,
+				emptySet,
+				{ _, set: A_Set ->
+					set.setWithElementCanDestroy(trueName, true)
+				},
+				true)
 			if (privateNames.hasKey(string)
 				&& privateNames.mapAt(string).hasElement(trueName))
 			{
@@ -840,126 +877,93 @@ class ModuleDescriptor private constructor(
 						set.setWithoutElementCanDestroy(trueName, true),
 						true)
 				}
-				self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
-			}
-			self.updateSlotShared(VISIBLE_NAMES) {
-				setWithElementCanDestroy(trueName, true)
 			}
 		}
-
-	override fun o_AddImportedNames(self: AvailObject, trueNames: A_Set) =
-		// Add the set of atoms to the current public scope.
-		synchronized(self) {
-			assertOpen()
-			var importedNames: A_Map = self.slot(IMPORTED_NAMES)
-			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
-			for (trueName in trueNames)
-			{
-				val string: A_String = trueName.atomName()
-				importedNames = importedNames.mapAtReplacingCanDestroy(
-					string,
-					emptySet,
-					{ _, set: A_Set ->
-						set.setWithElementCanDestroy(trueName, true)
-					},
-					true)
-				if (privateNames.hasKey(string)
-					&& privateNames.mapAt(string).hasElement(trueName))
-				{
-					// Inclusion has priority over exclusion, even along a
-					// different chain of modules.
-					val set: A_Set = privateNames.mapAt(string)
-					privateNames = if (set.setSize() == 1)
-					{
-						privateNames.mapWithoutKeyCanDestroy(string, true)
-					}
-					else
-					{
-						privateNames.mapAtPuttingCanDestroy(
-							string,
-							set.setWithoutElementCanDestroy(trueName, true),
-							true)
-					}
-				}
-			}
-			self.setSlot(IMPORTED_NAMES, importedNames.makeShared())
-			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
-			self.updateSlotShared(VISIBLE_NAMES) {
-				setUnionCanDestroy(trueNames, true)
-			}
+		self.setSlot(IMPORTED_NAMES, importedNames.makeShared())
+		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+		self.updateSlotShared(VISIBLE_NAMES) {
+			setUnionCanDestroy(trueNames, true)
 		}
+	}
 
-	override fun o_IntroduceNewName(self: AvailObject, trueName: A_Atom) =
+	override fun o_IntroduceNewName(
+		self: AvailObject,
+		trueName: A_Atom
+	) = lock.write {
 		// Set up this true name, which is local to the module.
-		synchronized(self) {
-			assertOpen()
-			val string: A_String = trueName.atomName()
-			self.updateSlotShared(NEW_NAMES) {
-				assert(!hasKey(string)) {
-					"Can't define a new true name twice in a module"
-				}
-				mapAtPuttingCanDestroy(string, trueName, true)
+		assertOpen()
+		val string: A_String = trueName.atomName()
+		self.updateSlotShared(NEW_NAMES) {
+			assert(!hasKey(string)) {
+				"Can't define a new true name twice in a module"
 			}
-			self.updateSlotShared(VISIBLE_NAMES) {
-				setWithElementCanDestroy(trueName, true)
-			}
+			mapAtPuttingCanDestroy(string, trueName, true)
 		}
+		self.updateSlotShared(VISIBLE_NAMES) {
+			setWithElementCanDestroy(trueName, true)
+		}
+	}
 
-	override fun o_AddPrivateName(self: AvailObject, trueName: A_Atom) =
+	override fun o_AddPrivateName(
+		self: AvailObject,
+		trueName: A_Atom
+	) = lock.write {
 		// Add the atom to the current private scope.
-		synchronized(self) {
-			assertOpen()
-			val string: A_String = trueName.atomName()
-			self.updateSlotShared(PRIVATE_NAMES) {
-				mapAtReplacingCanDestroy(
-					string,
-					emptySet,
-					{ _, set: A_Set ->
-						set.setWithElementCanDestroy(trueName, true)
-					},
-					true)
-			}
-			self.updateSlotShared(VISIBLE_NAMES) {
-				setWithElementCanDestroy(trueName, true)
-			}
+		assertOpen()
+		val string: A_String = trueName.atomName()
+		self.updateSlotShared(PRIVATE_NAMES) {
+			mapAtReplacingCanDestroy(
+				string,
+				emptySet,
+				{ _, set: A_Set ->
+					set.setWithElementCanDestroy(trueName, true)
+				},
+				true)
 		}
+		self.updateSlotShared(VISIBLE_NAMES) {
+			setWithElementCanDestroy(trueName, true)
+		}
+	}
 
-	override fun o_AddPrivateNames(self: AvailObject, trueNames: A_Set) =
+	override fun o_AddPrivateNames(
+		self: AvailObject,
+		trueNames: A_Set
+	) = lock.write {
 		// Add the set of atoms to the current private scope.
-		synchronized(self) {
-			assertOpen()
-			var privateNames: A_Map = self.slot(PRIVATE_NAMES)
-			var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
-			for (trueName in trueNames)
-			{
-				val string: A_String = trueName.atomName()
-				privateNames = privateNames.mapAtReplacingCanDestroy(
-					string,
-					emptySet,
-					{ _, set: A_Set ->
-						set.setWithElementCanDestroy(trueName, true)
-					},
-					true)
-				visibleNames = visibleNames.setWithElementCanDestroy(
-					trueName, true)
-			}
-			self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
-			self.setSlot(VISIBLE_NAMES, visibleNames.makeShared())
+		assertOpen()
+		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
+		var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
+		for (trueName in trueNames)
+		{
+			val string: A_String = trueName.atomName()
+			privateNames = privateNames.mapAtReplacingCanDestroy(
+				string,
+				emptySet,
+				{ _, set: A_Set ->
+					set.setWithElementCanDestroy(trueName, true)
+				},
+				true)
+			visibleNames = visibleNames.setWithElementCanDestroy(trueName, true)
 		}
+		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())
+		self.setSlot(VISIBLE_NAMES, visibleNames.makeShared())
+	}
 
-	override fun o_AddLexer(self: AvailObject, lexer: A_Lexer) =
-		synchronized(self) {
-			// To support entry points and evaluation, this needs to remain
-			// mutable even when a module is closed.
-			self.updateSlotShared(LEXERS) {
-				setWithElementCanDestroy(lexer, false)
-			}
+	override fun o_AddLexer(
+		self: AvailObject,
+		lexer: A_Lexer
+	) = lock.write {
+		// To support entry points and evaluation, this needs to remain mutable
+		// even when a module is closed.
+		self.updateSlotShared(LEXERS) {
+			setWithElementCanDestroy(lexer, false)
 		}
+	}
 
 	override fun o_AddUnloadFunction(
 		self: AvailObject,
 		unloadFunction: A_Function
-	) = synchronized(self) {
+	) = lock.write {
 		assertOpen()
 		self.updateSlotShared(UNLOAD_FUNCTIONS) {
 			appendCanDestroy(unloadFunction, true)
@@ -967,7 +971,6 @@ class ModuleDescriptor private constructor(
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
-		// Compare by address (identity).
 		another.traversed().sameAddressAs(self)
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -985,7 +988,7 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleAddGrammaticalRestriction(
 		self: AvailObject,
 		grammaticalRestriction: A_GrammaticalRestriction
-	) = synchronized(self) {
+	) = lock.write {
 		assertOpen()
 		grammaticalRestrictions =
 			grammaticalRestrictions.setWithElementCanDestroy(
@@ -995,7 +998,8 @@ class ModuleDescriptor private constructor(
 
 	override fun o_OriginatingPhraseAtIndex(
 		self: AvailObject,
-		index: Int): A_Phrase
+		index: Int
+	): A_Phrase
 	{
 		var phrases = self.volatileSlot(ALL_BLOCK_PHRASES)
 		if (phrases.isLong)
@@ -1024,21 +1028,21 @@ class ModuleDescriptor private constructor(
 
 	override fun o_RecordBlockPhrase(
 		self: AvailObject,
-		blockPhrase: A_Phrase): A_Number
-	{
+		blockPhrase: A_Phrase
+	): A_Number = lock.write {
 		assertOpen()
 		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES, 1) {
 			assert(it.isTuple)
 			it.appendCanDestroy(blockPhrase, false).makeShared()
 		}
-		return fromInt(newTuple.tupleSize())
+		fromInt(newTuple.tupleSize())
 	}
 
 	override fun o_RemoveFrom(
 		self: AvailObject,
 		loader: AvailLoader,
 		afterRemoval: () -> Unit
-	) = synchronized(self) {
+	) = lock.write {
 		val unloadFunctions =
 			self.getAndSetVolatileSlot(UNLOAD_FUNCTIONS, nil).tupleReverse()
 		// Run unload functions, asynchronously but serially, in reverse
@@ -1153,7 +1157,7 @@ class ModuleDescriptor private constructor(
 	override fun o_ResolveForward(
 		self: AvailObject,
 		forwardDefinition: A_BasicObject
-	) = synchronized(self) {
+	) = lock.write {
 		// Asserted because only the compiler should do this directly, and
 		// never for a closed module.
 		assertOpen()
@@ -1182,32 +1186,44 @@ class ModuleDescriptor private constructor(
 	override fun o_TrueNamesForStringName(
 		self: AvailObject,
 		stringName: A_String
-	): A_Set =
-		synchronized(self) {
-			assert(stringName.isTuple)
-			if (self.slot(NEW_NAMES).hasKey(stringName))
-			{
-				return emptySet.setWithElementCanDestroy(
-					self.slot(NEW_NAMES).mapAt(stringName),
-					false)
-			}
-			val imported = self.slot(IMPORTED_NAMES)
-			val publicNames: A_Set = when
-			{
-				imported.hasKey(stringName) -> imported.mapAt(stringName)
-				else -> emptySet
-			}
-			if (!self.slot(PRIVATE_NAMES).hasKey(stringName))
-			{
-				return publicNames
-			}
-			val privates: A_Set = self.slot(PRIVATE_NAMES).mapAt(stringName)
-			return when(publicNames.setSize())
-			{
-				0 -> privates
-				else -> publicNames.setUnionCanDestroy(privates, false)
+	): A_Set
+	{
+		lock.read {
+			self.slot(NEW_NAMES).let { newNames ->
+				if (newNames.hasKey(stringName))
+				{
+					return singletonSet(self.slot(NEW_NAMES).mapAt(stringName))
+				}
 			}
 		}
+		lock.write {
+			self.slot(NEW_NAMES).let { newNames ->
+				if (newNames.hasKey(stringName))
+				{
+					return singletonSet(self.slot(NEW_NAMES).mapAt(stringName))
+				}
+			}
+			val publicNames: A_Set = self.slot(IMPORTED_NAMES).let { imported ->
+				when
+				{
+					imported.hasKey(stringName) -> imported.mapAt(stringName)
+					else -> emptySet
+				}
+			}
+			self.slot(PRIVATE_NAMES).let { privateNames ->
+				if (privateNames.hasKey(stringName))
+				{
+					val privates: A_Set = privateNames.mapAt(stringName)
+					return when (publicNames.setSize())
+					{
+						0 -> privates
+						else -> publicNames.setUnionCanDestroy(privates, false)
+					}
+				}
+			}
+			return publicNames
+		}
+	}
 
 	/**
 	 * Create a [bundle&#32;tree][MessageBundleTreeDescriptor] to have the
@@ -1221,7 +1237,7 @@ class ModuleDescriptor private constructor(
 	{
 		val filteredBundleTree = newBundleTree(nil)
 		val ancestors: A_Set = allAncestors.get()
-		synchronized(self) {
+		lock.write {
 			self.visibleNames().forEach { visibleName ->
 				val bundle: A_Bundle = visibleName.bundleOrNil()
 				if (!bundle.equalsNil())
@@ -1255,7 +1271,7 @@ class ModuleDescriptor private constructor(
 	override fun o_CreateLexicalScanner(self: AvailObject): LexicalScanner
 	{
 		val lexers = mutableSetOf<A_Lexer>()
-		synchronized(self) {
+		lock.read {
 			for (visibleName in self.visibleNames())
 			{
 				val bundle: A_Bundle = visibleName.bundleOrNil()

@@ -116,7 +116,7 @@ object L2_REIFY : L2ControlFlowOperation(
 	// Technically it doesn't have a side-effect, but this flag keeps the
 	// instruction from being re-ordered to a place where the interpreter's
 	// top reified continuation is no longer the right one.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

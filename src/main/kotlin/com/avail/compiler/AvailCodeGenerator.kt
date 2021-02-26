@@ -75,7 +75,6 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
-import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.labels
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals

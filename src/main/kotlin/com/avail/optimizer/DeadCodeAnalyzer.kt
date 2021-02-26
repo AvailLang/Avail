@@ -34,11 +34,12 @@ package com.avail.optimizer
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
 import java.util.ArrayDeque
 import java.util.Collections
-import java.util.Deque
+import java.util.Collections.nCopies
 
 /**
  * A mechanism for determining which instructions are dead versus live.
@@ -62,9 +63,11 @@ internal class DeadCodeAnalyzer constructor(
 {
 	/**
 	 * A [Map] from each [L2PcOperand] to the [Set] of
-	 * [entities][L2Entity] that might be consumed after this edge.
+	 * [entities][L2Entity]/[RegisterKind] pairs that might be consumed after
+	 * this edge.
 	 */
-	private val edgeNeeds = mutableMapOf<L2PcOperand, MutableSet<L2Entity>>()
+	private val edgeNeeds =
+		mutableMapOf<L2PcOperand, MutableSet<L2EntityAndKind>>()
 
 	/** The [L2Instruction]s that have been marked as live so far.  */
 	private val liveInstructions = mutableSetOf<L2Instruction>()
@@ -83,40 +86,37 @@ internal class DeadCodeAnalyzer constructor(
 		// lot of dead code.
 		for (block in controlFlowGraph.basicBlockOrder)
 		{
-			for (i in block.predecessorEdgesCount() - 1 downTo 0)
+			for (i in block.predecessorEdges().size - 1 downTo 0)
 			{
 				val edge = block.predecessorEdges()[i]
-				if (edge.forcedClampedEntities === null)
-				{
-					continue
-				}
-				val needs = mutableSetOf<L2Entity>()
-				for (entity in edge.forcedClampedEntities!!)
-				{
-					if (entity is L2SemanticValue)
+				edge.forcedClampedEntities?.let { clamped ->
+					val needs = mutableSetOf<L2EntityAndKind>()
+					for (pair in clamped)
 					{
-						if (dataCouplingMode.considersSemanticValues())
+						val (entity, _) = pair
+						if (entity is L2SemanticValue)
 						{
-							needs.add(entity)
+							if (dataCouplingMode.considersSemanticValues)
+							{
+								needs.add(pair)
+							}
+						}
+						else if (dataCouplingMode.considersRegisters)
+						{
+							needs.add(pair)
 						}
 					}
-					else if (dataCouplingMode.considersRegisters())
-					{
-						needs.add(entity)
-					}
+					edgeNeeds[edge] = needs
 				}
-				edgeNeeds[edge] = needs
 			}
 		}
 
 		// Start with each block that has no successors, or which has only
 		// backward successor edges, collected above.
-		val toVisit: Deque<L2BasicBlock> =
-			ArrayDeque(controlFlowGraph.basicBlockOrder
-				.filter { block: L2BasicBlock ->
-					block.successorEdgesCopy().stream()
-						.allMatch { edgeNeeds.containsKey(it) }
-				})
+		val toVisit = ArrayDeque(controlFlowGraph.basicBlockOrder
+			.filter { block: L2BasicBlock ->
+				block.successorEdges().all { edgeNeeds.containsKey(it) }
+			})
 
 		// Visit the blocks in reverse dependency order, ignoring back-edges.
 		// Collect all instructions that have side effects or produce values
@@ -125,10 +125,11 @@ internal class DeadCodeAnalyzer constructor(
 		{
 			val block = toVisit.removeFirst()
 			// All of its successors have already been processed.
-			val neededEntities = mutableSetOf<L2Entity>()
-			block.successorEdgesIterator()
-				.forEachRemaining { neededEntities.addAll(edgeNeeds[it]!!) }
-			val predecessorCount = block.predecessorEdgesCount()
+			val neededEntities = mutableSetOf<L2EntityAndKind>()
+			block.successorEdges().forEach {
+				neededEntities.addAll(edgeNeeds[it]!!)
+			}
+			val predecessorCount = block.predecessorEdges().size
 			val instructions = block.instructions()
 			var index: Int = instructions.size
 			while (--index >= 0)
@@ -150,7 +151,7 @@ internal class DeadCodeAnalyzer constructor(
 						dataCouplingMode.readEntitiesOf(instruction))
 				}
 			}
-			val entitiesByPredecessor: List<MutableSet<L2Entity>>
+			val entitiesByPredecessor: List<MutableSet<L2EntityAndKind>>
 			if (index >= 0)
 			{
 				// At least one phi is present in the block.  Compute a separate
@@ -160,7 +161,7 @@ internal class DeadCodeAnalyzer constructor(
 				while (index >= 0)
 				{
 					val phiInstruction = instructions[index]
-					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *> =
+					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
 						phiInstruction.operation().cast()
 					val readOperands =
 						phiOperation.sourceRegisterReads(phiInstruction)
@@ -172,8 +173,7 @@ internal class DeadCodeAnalyzer constructor(
 							|| phiInstruction.hasSideEffect)
 						{
 							liveInstructions.add(phiInstruction)
-							val readOperand =
-								readOperands[predecessorIndex]
+							val readOperand = readOperands[predecessorIndex]
 							dataCouplingMode.addEntitiesFromRead(
 								readOperand, entities)
 							entities.addAll(
@@ -188,9 +188,9 @@ internal class DeadCodeAnalyzer constructor(
 				// There were no phi instructions, so we need the same thing
 				// from each predecessor.
 				entitiesByPredecessor =
-					Collections.nCopies(predecessorCount, neededEntities)
+					nCopies(predecessorCount, neededEntities)
 			}
-			assert(block.predecessorEdgesCount() != 0
+			assert(block.predecessorEdges().isNotEmpty()
 			   || neededEntities.isEmpty())
 			{
 				("Instruction consumes $neededEntities but a preceding "
@@ -207,8 +207,8 @@ internal class DeadCodeAnalyzer constructor(
 					edgeNeeds[predecessor] = entities
 					val predecessorBlock =
 						predecessor.instruction().basicBlock()
-					if (predecessorBlock.successorEdgesCopy()
-						.all { edgeNeeds.containsKey(it) })
+					if (predecessorBlock.successorEdges()
+							.all(edgeNeeds::containsKey))
 					{
 						toVisit.add(predecessorBlock)
 					}

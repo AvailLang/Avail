@@ -63,5 +63,5 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(topMeta()),
-			inclusive(zero(), positiveInfinity()))
+			inclusive(zero, positiveInfinity()))
 }

@@ -266,7 +266,7 @@ class GraphTest
 				Assertions.assertFalse(previousVertex % vertex == 0)
 			}
 			visitedVertices.add(vertex)
-			completion.invoke()
+			completion()
 		}
 		Assertions.assertEquals(scale, visitedVertices.size)
 		Assertions.assertEquals(scale, visitedVertices.toSet().size)

@@ -98,7 +98,7 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 		val upperDelta = delta.upperBound()
 		return when
 		{
-			lowerDelta.greaterThan(zero()) || upperDelta.lessThan(zero()) ->
+			lowerDelta.greaterThan(zero) || upperDelta.lessThan(zero) ->
 				CallSiteCannotFail
 			lowerDelta.equalsInt(0) && upperDelta.equalsInt(0) ->
 				CallSiteMustFail

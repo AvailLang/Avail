@@ -136,7 +136,7 @@ internal class FreeList<Value>
 			val id = list.size
 			list.add(link)
 			id
-		}.invoke()
+		}()
 
 	/**
 	 * Answer the `Value` at the provided [list] location.

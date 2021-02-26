@@ -43,6 +43,7 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.LayoutConfiguration.Companion.basePreferences
 import com.avail.environment.LayoutConfiguration.Companion.initialConfiguration
@@ -146,7 +147,7 @@ import java.net.URI
 import java.nio.charset.StandardCharsets
 import java.nio.file.FileSystems
 import java.nio.file.Path
-import java.util.Arrays
+import java.util.Arrays.sort
 import java.util.Collections
 import java.util.Collections.synchronizedMap
 import java.util.Enumeration
@@ -1005,7 +1006,7 @@ class AvailWorkbench internal constructor (
 				{
 					sortedRootNodes.sort()
 					sortedRootNodes.forEach { m -> treeRoot.add(m) }
-					val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+					val enumeration: Enumeration<DefaultMutableTreeNode> =
 						treeRoot.preorderEnumeration().cast()
 					// Skip the invisible root.
 					enumeration.nextElement()
@@ -1129,17 +1130,18 @@ class AvailWorkbench internal constructor (
 				DefaultMutableTreeNode("(entry points hidden root)")
 
 			val mapKeys = moduleNodes.keys.toTypedArray()
-			Arrays.sort(mapKeys)
+			sort(mapKeys)
 			mapKeys.forEach { moduleLabel ->
 				entryPointsTreeRoot.add(moduleNodes[moduleLabel])
 			}
-			val enumeration: Enumeration<AbstractBuilderFrameTreeNode> =
+			val enumeration: Enumeration<DefaultMutableTreeNode> =
 				entryPointsTreeRoot.preorderEnumeration().cast()
 			// Skip the invisible root.
 			enumeration.nextElement()
 			for (node in enumeration)
 			{
-				node.sortChildren()
+				val strongNode: AbstractBuilderFrameTreeNode = node.cast()
+				strongNode.sortChildren()
 			}
 			 withTreeNode(entryPointsTreeRoot)
 		}
@@ -2251,9 +2253,8 @@ class AvailWorkbench internal constructor (
 					"true")
 
 				val application = OSXUtility.macOSXApplication
-				OSXUtility.setDockIconBadgeMethod.invoke(
-					application, activeVersionSummary
-				)
+				OSXUtility.setDockIconBadgeMethod(
+					application, activeVersionSummary)
 			}
 			catch (e: Exception)
 			{
@@ -2419,14 +2420,13 @@ class AvailWorkbench internal constructor (
 				bench.isVisible = true
 				resolver.moduleRoots.roots.forEach {
 					it.resolver.watchRoot()
-					it.resolver.subscribeRootWatcher { event, ref ->
+					it.resolver.subscribeRootWatcher { event, _ ->
 						when (event)
 						{
 							ModuleRootResolver.WatchEventType.CREATE,
+							ModuleRootResolver.WatchEventType.MODIFY,
 							ModuleRootResolver.WatchEventType.DELETE ->
-								bench.refreshAction // TODO how is this run?
-							ModuleRootResolver.WatchEventType.MODIFY ->
-								Unit // TODO Maybe mark dirty?
+								bench.refreshAction.runAction()
 						}
 					}
 				}

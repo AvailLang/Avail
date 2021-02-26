@@ -43,7 +43,6 @@ import com.avail.builder.UnresolvedDependencyException
 import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
-import com.avail.persistence.cache.Repositories
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
 import org.junit.jupiter.api.Assertions

@@ -32,10 +32,8 @@
 
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.interpreter.levelTwo.L2Instruction
@@ -47,7 +45,6 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.Strings.increaseIndentation
 import org.objectweb.asm.MethodVisitor
@@ -65,41 +62,6 @@ object L2_CREATE_FUNCTION : L2Operation(
 	L2OperandType.READ_BOXED_VECTOR.named("captured variables"),
 	L2OperandType.WRITE_BOXED.named("new function"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val code = instruction.operand<L2ConstantOperand>(0)
-		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val function = instruction.operand<L2WriteBoxedOperand>(2)
-		registerSet.typeAtPut(
-			function.register(), code.constant.functionType(), instruction)
-		if (registerSet.allRegistersAreConstant(outers.elements()))
-		{
-			// This can be replaced with a statically constructed function
-			// during regeneration, but for now capture the exact function that
-			// will be constructed.
-			val numOuters = outers.elements().size
-			assert(numOuters == code.constant.numOuters())
-			val newFunction: A_Function =
-				createExceptOuters(code.constant, numOuters)
-			for (i in 1 .. numOuters)
-			{
-				newFunction.outerVarAtPut(
-					i,
-					registerSet.constantAt(
-						outers.elements()[i - 1].register()))
-			}
-			registerSet.constantAtPut(
-				function.register(), newFunction, instruction)
-		}
-		else
-		{
-			registerSet.removeConstantAt(function.register())
-		}
-	}
-
 	override fun extractFunctionOuter(
 		instruction: L2Instruction,
 		functionRegister: L2ReadBoxedOperand,
@@ -154,7 +116,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 	 *   The constant [A_RawFunction] extracted from the instruction.
 	 */
 	override fun getConstantCodeFrom(
-		instruction: L2Instruction): A_RawFunction?
+		instruction: L2Instruction): A_RawFunction
 	{
 		assert(instruction.operation() === this)
 		val constant = instruction.operand<L2ConstantOperand>(0)

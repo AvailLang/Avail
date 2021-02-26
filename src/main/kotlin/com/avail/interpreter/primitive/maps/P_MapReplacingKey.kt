@@ -98,12 +98,12 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 		if (oldMapKeyType.typeIntersection(newKeyType).isBottom
 		    || newMin.equalsInt(0))
 		{
-			newMin = newMin.plusCanDestroy(one(), false)
+			newMin = newMin.plusCanDestroy(one, false)
 		}
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.
 		val newMaxPlusOne =
-			oldSizes.upperBound().plusCanDestroy(two(), false)
+			oldSizes.upperBound().plusCanDestroy(two, false)
 		val newSizes = integerRangeType(
 			newMin, true, newMaxPlusOne, false)
 

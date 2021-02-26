@@ -32,6 +32,7 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.AvailRuntime
+import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.reportWrongReturnTypeMethod
@@ -55,7 +56,7 @@ import org.objectweb.asm.Opcodes
 /**
  * Invoke the [AvailRuntime.resultDisagreedWithExpectedTypeFunction] handler
  * function, via [Interpreter.reportWrongReturnType], which takes responsibility
- * for assembling an [A_Continuation in the event of reification.
+ * for assembling an [A_Continuation] in the event of reification.
  *
  * Note that it implicitly uses the [Interpreter.function] and
  * [Interpreter.returningFunction].
@@ -97,7 +98,7 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 	}
 
 	// Never remove this.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

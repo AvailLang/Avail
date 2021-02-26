@@ -32,6 +32,7 @@
 package com.avail.optimizer
 
 import com.avail.interpreter.levelTwo.L2Instruction
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 
 /**
  * An `L2Entity` is an abstraction for things that have reads and writes within
@@ -41,3 +42,19 @@ import com.avail.interpreter.levelTwo.L2Instruction
  */
 interface L2Entity
 // No methods are needed, beyond equals() and hashCode().
+
+/**
+ * An `L2EntityAndKind` bundles an [L2Entity] and [RegisterKind].  It's useful
+ * for keeping track of the needs and production of values in the
+ * [L2ControlFlowGraph] by the [DeadCodeAnalyzer], to determine which
+ * instructions can be removed and which are essential.
+ */
+data class L2EntityAndKind constructor(
+	val entity: L2Entity,
+	val kind: RegisterKind)
+{
+	override fun toString(): String
+	{
+		return "$entity[${kind.kindName}]"
+	}
+}

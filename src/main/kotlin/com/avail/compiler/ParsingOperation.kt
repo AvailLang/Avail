@@ -100,7 +100,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import com.avail.utility.PrefixSharingList.Companion.append
-import com.avail.utility.PrefixSharingList.Companion.last
 import com.avail.utility.PrefixSharingList.Companion.withoutLast
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.Describer
@@ -175,7 +174,7 @@ enum class ParsingOperation constructor(
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				append(argsSoFar, emptyListNode()),
+				argsSoFar.append(emptyListNode()),
 				marksSoFar,
 				superexpressions,
 				continuation)
@@ -207,9 +206,9 @@ enum class ParsingOperation constructor(
 		)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			val value = last(argsSoFar)
-			val poppedOnce = withoutLast(argsSoFar)
-			val oldNode = last(poppedOnce)
+			val value = argsSoFar.last()
+			val poppedOnce = argsSoFar.withoutLast()
+			val oldNode = poppedOnce.last()
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -218,7 +217,7 @@ enum class ParsingOperation constructor(
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				append(withoutLast(poppedOnce), oldNode.copyWith(value)),
+				poppedOnce.withoutLast().append(oldNode.copyWith(value)),
 				marksSoFar,
 				superexpressions,
 				continuation)
@@ -260,7 +259,7 @@ enum class ParsingOperation constructor(
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
-				append(marksSoFar, marker),
+				marksSoFar.append(marker),
 				superexpressions,
 				continuation)
 		}
@@ -297,7 +296,7 @@ enum class ParsingOperation constructor(
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
-				withoutLast(marksSoFar),
+				marksSoFar.withoutLast(),
 				superexpressions,
 				continuation)
 		}
@@ -328,7 +327,7 @@ enum class ParsingOperation constructor(
 		)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			val oldMarker = last(marksSoFar)
+			val oldMarker = marksSoFar.last()
 			if (oldMarker == start.position)
 			{
 				// No progress has been made.  Reject this path.
@@ -344,7 +343,7 @@ enum class ParsingOperation constructor(
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
 				argsSoFar,
-				append(withoutLast(marksSoFar), newMarker),
+				marksSoFar.withoutLast().append(newMarker),
 				superexpressions,
 				continuation)
 		}
@@ -401,7 +400,7 @@ enum class ParsingOperation constructor(
 					// consumedAnythingBeforeLatestArgument.
 					consumedAnything,
 					consumedStaticTokens,
-					append(argsSoFar, phrase),
+					argsSoFar.append(phrase),
 					marksSoFar,
 					superexpressions,
 					continuation)
@@ -466,7 +465,7 @@ enum class ParsingOperation constructor(
 					// consumedAnythingBeforeLatestArgument.
 					consumedAnything,
 					consumedStaticTokens,
-					append(argsSoFar, phrase),
+					argsSoFar.append(phrase),
 					marksSoFar,
 					superexpressions,
 					continuation)
@@ -572,7 +571,7 @@ enum class ParsingOperation constructor(
 					// consumedAnythingBeforeLatestArgument.
 					consumedAnything,
 					consumedStaticTokens,
-					append(argsSoFar, variableReference),
+					argsSoFar.append(variableReference),
 					marksSoFar,
 					superexpressions,
 					continuation)
@@ -668,7 +667,7 @@ enum class ParsingOperation constructor(
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
 				val newArgsSoFar =
-					append(argsSoFar, literalNodeFromToken(syntheticToken))
+					argsSoFar.append(literalNodeFromToken(syntheticToken))
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(token.nextLexingState(), start.clientDataMap),
 					successorTrees.tupleAt(1),
@@ -750,7 +749,7 @@ enum class ParsingOperation constructor(
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
 				val newArgsSoFar =
-					append(argsSoFar, literalNodeFromToken(syntheticToken))
+					argsSoFar.append(literalNodeFromToken(syntheticToken))
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
@@ -835,7 +834,7 @@ enum class ParsingOperation constructor(
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
 				val newArgsSoFar =
-					append(argsSoFar, literalNodeFromToken(syntheticToken))
+					argsSoFar.append(literalNodeFromToken(syntheticToken))
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
@@ -921,8 +920,8 @@ enum class ParsingOperation constructor(
 					token.lineNumber(),
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
-				val newArgsSoFar = append(
-					argsSoFar, literalNodeFromToken(syntheticToken))
+				val newArgsSoFar = argsSoFar.append(
+					literalNodeFromToken(syntheticToken))
 				compiler.eventuallyParseRestOfSendNode(
 					ParserState(
 						token.nextLexingState(), start.clientDataMap),
@@ -966,10 +965,10 @@ enum class ParsingOperation constructor(
 		)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			val right = last(argsSoFar)
-			val popped1 = withoutLast(argsSoFar)
-			val left = last(popped1)
-			val popped2 = withoutLast(popped1)
+			val right = argsSoFar.last()
+			val popped1 = argsSoFar.withoutLast()
+			val left = popped1.last()
+			val popped2 = popped1.withoutLast()
 			val concatenated = when {
 				left.expressionsSize() == 0 -> right
 				else -> left.copyConcatenating(right)
@@ -982,7 +981,7 @@ enum class ParsingOperation constructor(
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				append(popped2, concatenated),
+				popped2.append(concatenated),
 				marksSoFar,
 				superexpressions,
 				continuation)
@@ -1296,7 +1295,7 @@ enum class ParsingOperation constructor(
 		)
 		{
 			assert(successorTrees.tupleSize() == 1)
-			val input = last(argsSoFar)
+			val input = argsSoFar.last()
 			val sanityFlag = AtomicBoolean()
 			val conversionRule = ruleNumber(operand(instruction))
 			conversionRule.convert(
@@ -1313,7 +1312,7 @@ enum class ParsingOperation constructor(
 						consumedAnything,
 						consumedAnythingBeforeLatestArgument,
 						consumedStaticTokens,
-						append(withoutLast(argsSoFar), replacementExpression),
+						argsSoFar.withoutLast().append(replacementExpression),
 						marksSoFar,
 						superexpressions,
 						continuation)
@@ -1369,11 +1368,11 @@ enum class ParsingOperation constructor(
 			for (i in fixupDepth downTo 2)
 			{
 				// Pop the last element and append it to the second last.
-				val value = last(stackCopy)
-				val poppedOnce = withoutLast(stackCopy)
-				val oldNode = last(poppedOnce)
+				val value = stackCopy.last()
+				val poppedOnce = stackCopy.withoutLast()
+				val oldNode = poppedOnce.last()
 				val listNode = oldNode.copyWith(value)
-				stackCopy = append(withoutLast(poppedOnce), listNode)
+				stackCopy = poppedOnce.withoutLast().append(listNode)
 			}
 			assert(stackCopy.size == 1)
 			for (successorTree in successorTrees)
@@ -1386,7 +1385,7 @@ enum class ParsingOperation constructor(
 					consumedAnything,
 					consumedAnythingBeforeLatestArgument,
 					consumedStaticTokens,
-					append(argsSoFar, stackCopy[0]),
+					argsSoFar.append(stackCopy[0]),
 					marksSoFar,
 					superexpressions,
 					continuation)
@@ -1440,13 +1439,13 @@ enum class ParsingOperation constructor(
 				start,
 				successorTree,
 				prefixFunction,
-				toList(last(argsSoFar).expressionsTuple()),
+				toList(argsSoFar.last().expressionsTuple()),
 				firstArgOrNull,
 				initialTokenPosition,
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				withoutLast(argsSoFar),
+				argsSoFar.withoutLast(),
 				marksSoFar,
 				superexpressions,
 				continuation)
@@ -1478,9 +1477,6 @@ enum class ParsingOperation constructor(
 		{
 			val permutationIndex = operand(instruction)
 			val permutation = permutationAtIndex(permutationIndex)
-			val poppedList = last(argsSoFar)
-			var stack = withoutLast(argsSoFar)
-			stack = append(stack, newPermutedListNode(poppedList, permutation))
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -1489,7 +1485,8 @@ enum class ParsingOperation constructor(
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				stack,
+				argsSoFar.withoutLast().append(
+					newPermutedListNode(argsSoFar.last(), permutation)),
 				marksSoFar,
 				superexpressions,
 				continuation)
@@ -1520,7 +1517,7 @@ enum class ParsingOperation constructor(
 		)
 		{
 			val limit = operand(instruction)
-			val top = last(argsSoFar)
+			val top = argsSoFar.last()
 			if (top.expressionsSize() >= limit)
 			{
 				compiler.eventuallyParseRestOfSendNode(
@@ -1563,7 +1560,7 @@ enum class ParsingOperation constructor(
 		)
 		{
 			val limit = operand(instruction)
-			val top = last(argsSoFar)
+			val top = argsSoFar.last()
 			if (top.expressionsSize() <= limit)
 			{
 				compiler.eventuallyParseRestOfSendNode(
@@ -1653,7 +1650,7 @@ enum class ParsingOperation constructor(
 			val unpopped = argsSoFar.subList(0, totalSize - listSize)
 			val popped = argsSoFar.subList(totalSize - listSize, totalSize)
 			val newListNode = newListNode(tupleFromList(popped))
-			val newArgsSoFar = append(unpopped, newListNode)
+			val newArgsSoFar = unpopped.append(newListNode)
 			compiler.eventuallyParseRestOfSendNode(
 				start,
 				successorTrees.tupleAt(1),
@@ -1706,7 +1703,7 @@ enum class ParsingOperation constructor(
 				consumedAnything,
 				consumedAnythingBeforeLatestArgument,
 				consumedStaticTokens,
-				append(argsSoFar, literalNodeFromToken(token)),
+				argsSoFar.append(literalNodeFromToken(token)),
 				marksSoFar,
 				superexpressions,
 				continuation)

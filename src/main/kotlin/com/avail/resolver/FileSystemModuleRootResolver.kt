@@ -134,9 +134,8 @@ class FileSystemModuleRootResolver constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		executeTask {
-			moduleRootTree?.let { successHandler(it) } ?: run {
+			moduleRootTree?.let { successHandler(it) } ?:
 				resolve(successHandler, failureHandler)
-			}
 		}
 	}
 
@@ -209,6 +208,11 @@ class FileSystemModuleRootResolver constructor(
 	}
 
 	/**
+	 * Create the [Tika] mime detector once, lazily.
+	 */
+	private val tika: Tika by lazy { Tika() }
+
+	/**
 	 * Answer the [ResolverReference] for the given absolute [Path].
 	 *
 	 * @param path
@@ -232,9 +236,8 @@ class FileSystemModuleRootResolver constructor(
 		val isPackage = file.isDirectory
 		val lastModified = file.lastModified()
 		val size = if (isPackage) 0 else file.length()
-		val mimeType = if (isPackage) "" else Tika().detect(path)
-		val qname =
-			qualifiedName.replace(ModuleNameResolver.availExtension, "")
+		val mimeType = if (isPackage) "" else tika.detect(path)
+		val qname = qualifiedName.replace(ModuleNameResolver.availExtension, "")
 		return ResolverReference(
 			this,
 			path.toUri(),
@@ -273,8 +276,7 @@ class FileSystemModuleRootResolver constructor(
 
 				val localName = fileName.substring(
 					0,
-					fileName.length
-						- ModuleNameResolver.availExtension.length)
+					fileName.length - ModuleNameResolver.availExtension.length)
 				if (parent == localName) REPRESENTATIVE
 				else MODULE
 			}

@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.LATEST_RETURN_VALUE
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -50,7 +51,7 @@ import org.objectweb.asm.MethodVisitor
  */
 @ReadsHiddenVariable(LATEST_RETURN_VALUE::class)
 object L2_GET_LATEST_RETURN_VALUE : L2Operation(
-	L2OperandType.WRITE_BOXED.named("latest result"))
+	WRITE_BOXED.named("latest result"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

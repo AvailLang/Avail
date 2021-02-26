@@ -153,5 +153,5 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(inclusive(zero(), positiveInfinity())), TOP.o)
+		functionType(tuple(inclusive(zero, positiveInfinity())), TOP.o)
 }

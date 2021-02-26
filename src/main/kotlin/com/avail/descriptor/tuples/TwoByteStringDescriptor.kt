@@ -345,7 +345,7 @@ class TwoByteStringDescriptor private constructor(
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? = self.asNativeString()
+		classHint: Class<*>?): Any = self.asNativeString()
 
 	override fun o_ConcatenateWith(
 		self: AvailObject,
@@ -371,9 +371,11 @@ class TwoByteStringDescriptor private constructor(
 			return self
 		}
 		val newSize = size1 + size2
-		if (otherTuple.isTwoByteString && newSize <= maximumCopySize)
+		if (newSize <= maximumCopySize
+			&& (otherTuple.isTwoByteString || otherTuple.isByteString))
 		{
-			// Copy the characters.
+			// Copy the characters, extending otherTuple's characters to
+			// two-byte characters if necessary.
 			val newLongCount = newSize + 3 shr 2
 			val deltaSlots = newLongCount - self.variableIntegerSlotsCount()
 			val result: AvailObject

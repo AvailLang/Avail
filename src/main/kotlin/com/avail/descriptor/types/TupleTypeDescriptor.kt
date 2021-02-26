@@ -764,8 +764,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			val defaultType = aTupleType.defaultType()
 			val limit = typeTuple.tupleSize()
 			val transformedTypeTuple: A_Tuple = generateObjectTupleFrom(limit)
-				{ elementTransformer.invoke(typeTuple.tupleAt(it)) }
-			val transformedDefaultType = elementTransformer.invoke(defaultType)
+				{ elementTransformer(typeTuple.tupleAt(it)) }
+			val transformedDefaultType = elementTransformer(defaultType)
 			return tupleTypeForSizesTypesDefaultType(
 				sizeRange, transformedTypeTuple, transformedDefaultType)
 		}

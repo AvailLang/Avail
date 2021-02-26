@@ -563,7 +563,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		{
 			assert(!delta.equalsInt(0))
 			val difference = end.minusCanDestroy(start, false)
-			val zero: A_Number = zero()
+			val zero: A_Number = zero
 
 			// If there is only one member in the range, return that integer in
 			// its own tuple.

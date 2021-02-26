@@ -60,9 +60,11 @@ internal class L2SemanticLabel constructor(frame: Frame)
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer.invoke(frame).let {
+			frameTransformer(frame).let {
 				return if (it == frame) this else L2SemanticLabel(it)
 			}
+
+	override fun primaryVisualSortKey() = PrimaryVisualSortKey.LABEL
 
 	override fun toString(): String = "Label for $frame"
 }

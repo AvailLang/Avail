@@ -242,7 +242,7 @@ class InfinityDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = zero()
+	): A_Number = zero
 
 	override fun o_DivideIntoDoubleCanDestroy(
 		self: AvailObject,
@@ -278,7 +278,7 @@ class InfinityDescriptor private constructor(
 	): A_Number = when {
 		anInteger.equalsInt(0) ->
 			throw ArithmeticException(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY)
-		anInteger.greaterThan(zero()) xor self.isPositive() ->
+		anInteger.greaterThan(zero) xor self.isPositive() ->
 			negativeInfinity()
 		else -> positiveInfinity()
 	}

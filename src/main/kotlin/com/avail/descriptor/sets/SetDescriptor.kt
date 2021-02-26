@@ -620,7 +620,7 @@ private constructor(
 		 *   The new mutable set.
 		 */
 		fun set(vararg errorCodeElements: AvailErrorCode): A_Set =
-			generateSetFrom(errorCodeElements) { it.numericCode() }
+			generateSetFrom(errorCodeElements, AvailErrorCode::numericCode)
 
 		/** The mutable [SetDescriptor].  */
 		private val mutable = SetDescriptor(Mutability.MUTABLE)

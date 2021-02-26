@@ -37,7 +37,6 @@ import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.cache.Repository.ModuleCompilation
 import com.avail.persistence.cache.RepositoryDescriber
-import com.avail.utility.cast
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane

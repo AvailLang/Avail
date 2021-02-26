@@ -110,7 +110,7 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 		// Invoke the instance method.
 		val result: Any? = try
 		{
-			method.invoke(receiver, *marshaledArgs!!)
+			method(receiver, *marshaledArgs!!)
 		}
 		catch (e: InvocationTargetException)
 		{

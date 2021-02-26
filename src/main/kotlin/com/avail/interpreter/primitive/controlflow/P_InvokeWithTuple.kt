@@ -61,6 +61,7 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMayInvoke
 import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Invokes
@@ -138,7 +139,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			&& paramsType.sizeRange().equals(argTupleType.sizeRange())
 			&& argTupleType.isSubtypeOf(paramsType))
 		{
-			return CallSiteCannotFail
+			return CallSiteMayInvoke
 		}
 		return CallSiteCanFail
 	}

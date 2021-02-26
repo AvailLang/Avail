@@ -87,7 +87,7 @@ import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeTag
@@ -97,7 +97,7 @@ import com.avail.exceptions.SignatureException
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.Collections.nCopies
@@ -208,8 +208,7 @@ class MessageBundleDescriptor private constructor(
 				nCopies(
 					numArgs,
 					restrictionForType(
-						PhraseKind.PARSE_PHRASE.mostGeneralType(),
-						RestrictionFlagEncoding.BOXED)),
+						PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
 				Unit)
 			do {
 				// Try to replace null with the new tree.  If the replacement

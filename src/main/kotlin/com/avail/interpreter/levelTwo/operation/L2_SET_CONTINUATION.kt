@@ -52,7 +52,7 @@ object L2_SET_CONTINUATION : L2Operation(
 	L2OperandType.READ_BOXED.named("replacement continuation"))
 {
 	// It updates the current continuation of the interpreter.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

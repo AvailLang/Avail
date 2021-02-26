@@ -51,8 +51,8 @@ import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
@@ -64,15 +64,18 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import com.avail.interpreter.levelTwo.operation.L2_MOVE
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_NO_FAIL
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
+import com.avail.optimizer.values.L2SemanticUnboxedInt
+import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import java.lang.Integer.MAX_VALUE
 
 /**
@@ -134,7 +137,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 
 		val tupleTypeSizes = tupleType.sizeRange()
 		val minTupleSize = tupleTypeSizes.lowerBound()
-		return if (subscripts.lowerBound().greaterOrEqual(one())
+		return if (subscripts.lowerBound().greaterOrEqual(one)
 			&& subscripts.upperBound().lessOrEqual(minTupleSize))
 		{
 			CallSiteCannotFail
@@ -157,24 +160,38 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		{
 			// We can't guarantee success, so do a dynamic bounds check.
 			val failed = generator.createBasicBlock("failed bounds check")
-			val semanticSize = generator.primitiveInvocation(
-				P_TupleSize, listOf(tupleReg))
+			val unboxedSemanticSize = L2SemanticUnboxedInt(
+				primitiveInvocation(
+					P_TupleSize, listOf(tupleReg.semanticValue())))
 			val intSizeRestriction = restrictionForType(
-				tupleReg.type().sizeRange().typeIntersection(int32),
-				UNBOXED_INT)
-			val sizeWriter = generator.intWrite(
-				semanticSize, intSizeRestriction)
-			translator.addInstruction(
-				L2_TUPLE_SIZE,
-				tupleReg,
-				sizeWriter)
+				tupleReg.type().sizeRange().typeIntersection(nonnegativeInt32),
+				UNBOXED_INT_FLAG)
+			val intSizeType = intSizeRestriction.type
+			if (intSizeType.lowerBound().equals(intSizeType.upperBound()))
+			{
+				val sizeRead = generator.unboxedIntConstant(
+					intSizeType.lowerBound().extractInt())
+				generator.moveRegister(
+					L2_MOVE.unboxedInt,
+					sizeRead.semanticValue(),
+					unboxedSemanticSize)
+			}
+			else
+			{
+				val sizeWriter = generator.intWrite(
+					setOf(unboxedSemanticSize), intSizeRestriction)
+				translator.addInstruction(
+					L2_TUPLE_SIZE,
+					tupleReg,
+					sizeWriter)
+			}
 			val readSubscript = generator.readInt(
-				subscriptReg.semanticValue(), failed)
+				L2SemanticUnboxedInt(subscriptReg.semanticValue()),
+				failed)
 			// At this position, we have the tuple size and subscript in int
 			// registers. Check the lower bound, if necessary.
 			if (generator.currentlyReachable()
-				&& readSubscript.restriction().type.lowerBound()
-					.lessThan(one()))
+				&& readSubscript.restriction().type.lowerBound().lessThan(one))
 			{
 				val success1 = generator.createBasicBlock(
 					"passed lower bound check")
@@ -196,7 +213,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				generator.addInstruction(
 					L2_JUMP_IF_COMPARE_INT.lessOrEqual,
 					readSubscript,
-					generator.currentManifest().readInt(semanticSize),
+					generator.currentManifest().readInt(unboxedSemanticSize),
 					edgeTo(success2),
 					edgeTo(failed))
 				generator.startBlock(success2)
@@ -207,9 +224,9 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 					returnTypeGuaranteedByVM(
 						rawFunction,
 						listOf(argumentTypes[0], intSizeRestriction.type)),
-					BOXED)
-				val semanticResult =
-					generator.primitiveInvocation(this, arguments)
+					BOXED_FLAG)
+				val semanticResult = primitiveInvocation(
+					this, arguments.map { it.semanticValue() })
 				val writeResult =
 					generator.boxedWrite(semanticResult, resultRestriction)
 				generator.addInstruction(
@@ -242,7 +259,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		val writer = generator.boxedWriteTemp(
 			restrictionForType(
 				returnTypeGuaranteedByVM(rawFunction, argumentTypes),
-				BOXED))
+				BOXED_FLAG))
 		if (lower.equals(upper))
 		{
 			// The subscript is a constant (and it's within range).
@@ -259,9 +276,9 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		val subscriptConversionFailure =
 			generator.createBasicBlock("Should be unreachable")
 		val subscriptIntReg = generator.readInt(
-			subscriptReg.semanticValue(),
+			L2SemanticUnboxedInt(subscriptReg.semanticValue()),
 			subscriptConversionFailure)
-		assert(subscriptConversionFailure.predecessorEdgesCount() == 0)
+		assert(subscriptConversionFailure.predecessorEdges().isEmpty())
 		translator.addInstruction(
 			L2_TUPLE_AT_NO_FAIL,
 			tupleReg,

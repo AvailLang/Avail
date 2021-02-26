@@ -53,10 +53,7 @@ object L2_NEGATE_INT_NO_CHECK : L2Operation(
 	L2OperandType.READ_INT.named("value"),
 	L2OperandType.WRITE_INT.named("negation"))
 {
-	override fun hasSideEffect(): Boolean
-	{
-		return true
-	}
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

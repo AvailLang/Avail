@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.numbers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
@@ -65,12 +66,14 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_ADD_INT_TO_INT
 import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
+import com.avail.optimizer.values.L2SemanticUnboxedInt
+import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Add two [numbers][AbstractNumberDescriptor].
@@ -141,9 +144,9 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 					positiveInfinity().isInstanceOf(aType)
 						|| positiveInfinity().isInstanceOf(bType)
 				return integerRangeType(
-					low.minusCanDestroy(one(), false),
+					low.minusCanDestroy(one, false),
 					includesNegativeInfinity,
-					high.plusCanDestroy(one(), false),
+					high.plusCanDestroy(one, false),
 					includesInfinity)
 			}
 		}
@@ -189,37 +192,50 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val a = arguments[0]
-		val b = arguments[1]
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (a, b) = arguments
+		val (aType, bType) = argumentTypes
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
+		val aIntersectInt32 = aType.typeIntersection(int32)
+		val bIntersectInt32 = bType.typeIntersection(int32)
 		if (aType.typeIntersection(int32).isBottom
 		    || bType.typeIntersection(int32).isBottom)
 		{
+			return false
+		}
+		// lowest and highest can be at most ±2^32, so there's lots of room in
+		// a long.
+		val lowest = aIntersectInt32.lowerBound().extractLong() +
+			bIntersectInt32.lowerBound().extractLong()
+		val highest = aIntersectInt32.lowerBound().extractLong() +
+			bIntersectInt32.lowerBound().extractLong()
+		if (lowest > Int.MAX_VALUE || highest < Int.MIN_VALUE)
+		{
+			// The sum is definitely out of range, so don't bother switching to
+			// int math.
 			return false
 		}
 
 		// Attempt to unbox the arguments.
 		val generator = translator.generator
 		val fallback = generator.createBasicBlock("fall back to boxed addition")
-		val intA = generator.readInt(a.semanticValue(), fallback)
-		val intB = generator.readInt(b.semanticValue(), fallback)
+		val intA = generator.readInt(
+			L2SemanticUnboxedInt(a.semanticValue()), fallback)
+		val intB = generator.readInt(
+			L2SemanticUnboxedInt(b.semanticValue()), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
 			// available unboxed arithmetic.
-			val returnTypeIfInts =
-				returnTypeGuaranteedByVM(
-					rawFunction,
-					argumentTypes.map { it.typeIntersection(int32) })
-			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
-			val tempWriter =
-				generator.intWrite(
-					semanticTemp,
-					restrictionForType(returnTypeIfInts, UNBOXED_INT))
+			val returnTypeIfInts = returnTypeGuaranteedByVM(
+				rawFunction,
+				listOf(aIntersectInt32, bIntersectInt32))
+			val semanticTemp = primitiveInvocation(
+				this, listOf(a.semanticValue(), b.semanticValue()))
+			val tempWriter = generator.intWrite(
+				setOf(L2SemanticUnboxedInt(semanticTemp)),
+				restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
 			if (returnTypeIfInts.isSubtypeOf(int32))
 			{
 				// The result is guaranteed not to overflow, so emit an
@@ -248,7 +264,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			// which could allow the boxing instruction to evaporate.
 			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
 		}
-		if (fallback.predecessorEdgesCount() > 0)
+		if (fallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,

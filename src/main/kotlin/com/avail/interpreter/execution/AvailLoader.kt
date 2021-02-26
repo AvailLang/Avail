@@ -68,6 +68,7 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -1242,8 +1243,8 @@ class AvailLoader(
 				// grammatical restriction.
 				val treesToVisit =
 					ArrayDeque<Pair<A_BundleTree, A_ParsingPlanInProgress>>()
-				bundle.definitionParsingPlans().mapIterable().forEach {
-					(_, plan: A_DefinitionParsingPlan) ->
+				bundle.definitionParsingPlans().forEach {
+					_, plan: A_DefinitionParsingPlan ->
 					treesToVisit.addLast(root to newPlanInProgress(plan, 1))
 					while (treesToVisit.isNotEmpty()) {
 						val (tree, planInProgress) = treesToVisit.removeLast()

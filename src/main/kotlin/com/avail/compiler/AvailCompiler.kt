@@ -88,7 +88,6 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePoj
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.fiber.A_Fiber
-import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -275,7 +274,7 @@ import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunctio
 import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.primitive.compiler.P_RejectParsing
 import com.avail.io.TextInterface
 import com.avail.performance.Statistic
@@ -284,7 +283,6 @@ import com.avail.persistence.cache.Repository
 import com.avail.utility.Mutable
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.Companion.append
-import com.avail.utility.PrefixSharingList.Companion.last
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.evaluation.Describer
@@ -1464,7 +1462,7 @@ class AvailCompiler(
 			val prefilter = bundleTree.lazyPrefilterMap()
 			if (prefilter.mapSize() > 0)
 			{
-				val latestArgument = last(argsSoFar)
+				val latestArgument = argsSoFar.last()
 				if (latestArgument.isMacroSubstitutionNode()
 					|| latestArgument.isInstanceOfKind(
 						SEND_PHRASE.mostGeneralType()))
@@ -1509,7 +1507,7 @@ class AvailCompiler(
 				// Use the most recently pushed phrase's type to look up the
 				// successor bundle tree.  This implements aggregated argument
 				// type filtering.
-				val latestPhrase = last(argsSoFar)
+				val latestPhrase = argsSoFar.last()
 				val typeFilterTree = typeFilterTreePojo.javaObjectNotNull<
 					LookupTree<A_Tuple, A_BundleTree>>()
 				val timeBefore = captureNanos()
@@ -1696,7 +1694,7 @@ class AvailCompiler(
 							initialTokenPosition,
 							true, // Just consumed a token.
 							consumedAnythingBeforeLatestArgument,
-							append(consumedTokens, token),
+							consumedTokens.append(token),
 							argsSoFar,
 							marksSoFar,
 							superexpressions,
@@ -2525,7 +2523,7 @@ class AvailCompiler(
 				for (argPhrase in argumentsListNode.expressionsTuple())
 				{
 					phraseRestrictions.add(
-						restrictionForConstant(argPhrase, BOXED))
+						restrictionForConstant(argPhrase, BOXED_FLAG))
 				}
 				val filtered = mutableListOf<A_Macro>()
 				for (macroDefinition in visibleDefinitions)
@@ -2867,7 +2865,7 @@ class AvailCompiler(
 						return@parseSendArgumentWithExplanationThen
 					}
 				}
-				val newArgsSoFar = append(argsSoFar, newArg)
+				val newArgsSoFar = argsSoFar.append(newArg)
 				eventuallyParseRestOfSendNode(
 					afterArg.withMap(start.clientDataMap),
 					successorTrees.tupleAt(1),
@@ -3509,7 +3507,7 @@ class AvailCompiler(
 			// What to do after running all these simple statements.
 			val resumeParsing = {
 				// Report progress.
-				compilationContext.progressReporter.invoke(
+				compilationContext.progressReporter(
 					moduleName,
 					source.tupleSize().toLong(),
 					afterStatement.position.toLong(),

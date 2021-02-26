@@ -224,7 +224,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	// Technically my instance is the instance I specify, which is a type,
 	// *plus* all subtypes of it.  However, to distinguish metas from kinds
 	// we need it to answer one here.
-	override fun o_InstanceCount(self: AvailObject): A_Number = one()
+	override fun o_InstanceCount(self: AvailObject): A_Number = one
 
 	override fun o_Instances(self: AvailObject): A_Set =
 		singletonSet(getInstance(self))
@@ -261,7 +261,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
 		field: A_Atom
-	): A_Type? = unsupported
+	): A_Type = unsupported
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map = unsupported
 

@@ -32,12 +32,11 @@
 package com.avail.optimizer
 
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
-import com.avail.utility.PrefixSharingList
+import com.avail.optimizer.reoptimizer.L2Regenerator
 import com.avail.utility.cast
 import java.lang.Integer.toHexString
 
@@ -169,14 +168,6 @@ class L2BasicBlock @JvmOverloads constructor(
 	fun predecessorEdges(): List<L2PcOperand> = predecessorEdges
 
 	/**
-	 * Answer the number of predecessor edges that this block has.
-	 *
-	 * @return
-	 *   The number of predecessors.
-	 */
-	fun predecessorEdgesCount(): Int = predecessorEdges.size
-
-	/**
 	 * Add a predecessor, due to an earlier basic block adding an instruction
 	 * that reaches this basic block.  Also allow backward edges to attach to
 	 * a loop head after code generation has already taken place in the target.
@@ -201,13 +192,12 @@ class L2BasicBlock @JvmOverloads constructor(
 					// exhausted them.
 					break
 				}
-				val phiOperation = operation
-					.cast<L2Operation?, L2_PHI_PSEUDO_OPERATION<*, *, *>>()
+				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
+					operation.cast()
 
 				// The body of the loop is required to still have available
 				// every semantic value mentioned in the original phis.
-				phiOperation.updateLoopHeadPhi(
-					predecessorManifest, instruction)
+				phiOperation.updateLoopHeadPhi(predecessorManifest, instruction)
 			}
 		}
 	}
@@ -233,10 +223,9 @@ class L2BasicBlock @JvmOverloads constructor(
 					// Phi functions are always at the start of a block.
 					break
 				}
-				val phiOperation = instruction.operation()
-						.cast<L2Operation?, L2_PHI_PSEUDO_OPERATION<*, *, *>>()
-				val replacement =
-					phiOperation.withoutIndex(instruction, index)
+				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
+					instruction.operation().cast()
+				val replacement = phiOperation.withoutIndex(instruction, index)
 				instruction.justRemoved()
 				instructions[i] = replacement
 				replacement.justInserted()
@@ -246,52 +235,14 @@ class L2BasicBlock @JvmOverloads constructor(
 	}
 
 	/**
-	 * Answer the number of successor edges that this block has.
+	 * Answer the non-modifiable [List] of successor edges that this block has.
+	 * The underlying [MutableList] might be changed by other operations, so be
+	 * aware that it's not truly immutable, just an immutable view.
 	 *
 	 * @return
-	 *   The number of successors.
+	 *   The successors, as a non-modifiable list.
 	 */
-	fun successorEdgesCount(): Int = successorEdges.size
-
-	/**
-	 * Answer an [Iterator] over the successor edges.  Don't change them
-	 * during iteration.
-	 *
-	 * @return
-	 *   The iterator over successors.
-	 */
-	fun successorEdgesIterator(): Iterator<L2PcOperand> =
-		successorEdges.iterator()
-
-	/**
-	 * Invoke the given lambda with each outgoing [edge][L2PcOperand].
-	 *
-	 * @param consumer
-	 *   What to do with each edge.
-	 */
-	fun successorEdgesDo(consumer: (L2PcOperand) -> Unit)
-	{
-		successorEdges.forEach { consumer.invoke(it) }
-	}
-
-	/**
-	 * Answer a copy of the list of successor edges.
-	 *
-	 * @return
-	 *   The successor edges, copied to a new list.
-	 */
-	fun successorEdgesCopy(): List<L2PcOperand> = successorEdges.toList()
-
-	/**
-	 * Answer the successor [edge][L2PcOperand] with the given index in my list
-	 * of successors.
-	 *
-	 * @param index
-	 *   The index of the outgoing edge.
-	 * @return
-	 *   The indicated successor.
-	 */
-	fun successorEdgeAt(index: Int): L2PcOperand = successorEdges[index]
+	fun successorEdges(): List<L2PcOperand> = successorEdges
 
 	/**
 	 * Add a successor edge.
@@ -331,8 +282,17 @@ class L2BasicBlock @JvmOverloads constructor(
 	 *
 	 * @param generator
 	 *   The [L2Generator] generating instructions.
+	 * @param generatePhis
+	 *   Whether to automatically generate phi instructions if there are
+	 *   multiple incoming edges with different registers associated with the
+	 *   same semantic values.
+	 * @param regenerator
+	 *   The optional [L2Regenerator] to use.
 	 */
-	fun startIn(generator: L2Generator)
+	fun startIn(
+		generator: L2Generator,
+		generatePhis: Boolean = true,
+		regenerator: L2Regenerator? = null)
 	{
 		generator.currentManifest().clear()
 		if (isIrremovable)
@@ -344,13 +304,12 @@ class L2BasicBlock @JvmOverloads constructor(
 		}
 		// Keep semantic values that are common to all incoming paths.  Create
 		// phi functions if the registers disagree.
-		val manifests = mutableListOf<L2ValueManifest>()
-		for (predecessorEdge in predecessorEdges)
-		{
-			manifests.add(predecessorEdge.manifest())
-		}
 		generator.currentManifest().populateFromIntersection(
-			manifests, generator, isLoopHead, false)
+			predecessorEdges.map(L2PcOperand::manifest),
+			generator,
+			generatePhis,
+			isLoopHead,
+			regenerator)
 	}
 
 	/**
@@ -366,7 +325,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	 */
 	fun addInstruction(instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		assert(isIrremovable || predecessorEdgesCount() > 0)
+		assert(isIrremovable || predecessorEdges().isNotEmpty())
 		justAddInstruction(instruction)
 		instruction.justAdded(manifest)
 	}
@@ -460,6 +419,15 @@ class L2BasicBlock @JvmOverloads constructor(
 	}
 
 	/**
+	 * The final instruction of the block altered control flow, it was removed
+	 * and later re-added to the instructions list directly.
+	 */
+	fun readdedControlFlowInstruction()
+	{
+		hasControlFlowAtEnd = true
+	}
+
+	/**
 	 * Determine whether code added after the last instruction of this block
 	 * would be reachable.  Take into account whether the block itself seems to
 	 * be reachable.
@@ -524,7 +492,7 @@ class L2BasicBlock @JvmOverloads constructor(
 		if (instructions.size > 0)
 		{
 			val firstOffset = instructions[0].offset()
-			val lastOffset = PrefixSharingList.last(instructions).offset()
+			val lastOffset = instructions.last().offset()
 			if (firstOffset != -1 && lastOffset != -1)
 			{
 				suffix = " [$firstOffset..$lastOffset]"

@@ -32,7 +32,6 @@
 package com.avail.interpreter.primitive.tuples
 
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -43,7 +42,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.interpreter.Primitive
@@ -52,9 +51,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_SIZE
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -82,7 +80,7 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].sizeRange().typeIntersection(int32)
+	): A_Type = argumentTypes[0].sizeRange().typeIntersection(nonnegativeInt32)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -94,29 +92,32 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		val tupleReg = arguments[0]
 
-		val returnType = returnTypeGuaranteedByVM(
-			rawFunction, argumentTypes)
-		//		assert returnType.isSubtypeOf(int32());
-		val unboxedValue: L2ReadIntOperand = when {
-			returnType.lowerBound().equals(returnType.upperBound()) ->
+		val generator = translator.generator
+		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val lower = returnType.lowerBound()
+		val upper = returnType.upperBound()
+		when {
+			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that
 				// information to produce a constant.
-				translator.generator.unboxedIntConstant(
-					returnType.lowerBound().extractInt())
-			else -> {
+				callSiteHelper.useAnswer(generator.boxedConstant(lower))
+			else ->
+			{
 				// The exact size of the tuple isn't known, so generate code to
-				// extract it.
-				val restriction = restrictionForType(returnType, UNBOXED_INT)
-				val writer = translator.generator.intWriteTemp(restriction)
-				translator.addInstruction(
+				// extract it into an int register, then move that to a boxed
+				// register.  If the boxed form isn't needed, that instruction
+				// will be eliminated later.
+				val restriction =
+					restrictionForType(returnType, UNBOXED_INT_FLAG)
+				val writer = generator.intWriteTemp(restriction)
+				generator.addInstruction(
 					L2_TUPLE_SIZE,
 					tupleReg,
 					writer)
-				translator.currentManifest().readInt(writer.onlySemanticValue())
+				callSiteHelper.useAnswer(
+					generator.readBoxed(writer.onlySemanticValue().base))
 			}
 		}
-		val boxed = translator.generator.readBoxed(unboxedValue.semanticValue())
-		callSiteHelper.useAnswer(boxed)
 		return true
 	}
 }

@@ -545,17 +545,6 @@ class AvailRuntime constructor(
 	fun textInterface(): TextInterface = runtimeLock.read { textInterface }
 
 	/**
-	 * Answer the [raw&#32;pojo][RawPojoDescriptor] that wraps the
-	 * [default][textInterface] [text&#32;interface][TextInterface].
-	 *
-	 * @return
-	 *   The raw pojo holding the default text interface.
-	 */
-	@ThreadSafe
-	fun textInterfacePojo(): AvailObject =
-		runtimeLock.read { textInterfacePojo }
-
-	/**
 	 * Set the runtime's default [text interface][TextInterface].
 	 *
 	 * @param textInterface
@@ -740,7 +729,7 @@ class AvailRuntime constructor(
 		 *   The [A_Function] currently in that hook.
 		 */
 		operator fun get(runtime: AvailRuntime): A_Function =
-			runtime.hooks[this]
+			runtime.hooks[this]!!
 
 		/**
 		 * Set this hook for the given runtime to the given function.
@@ -759,7 +748,7 @@ class AvailRuntime constructor(
 	}
 
 	/** The collection of hooks for this runtime. */
-	val hooks = enumMap(HookType.values()) { it.defaultFunctionSupplier() }
+	val hooks = enumMap { hook: HookType -> hook.defaultFunctionSupplier() }
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever the value
@@ -1071,7 +1060,7 @@ class AvailRuntime constructor(
 			put(unsignedShorts)
 			put(emptyTuple)
 			put(functionType(tuple(bottom), Types.TOP.o))
-			put(instanceType(zero()))
+			put(instanceType(zero))
 			put(functionTypeReturning(topMeta()))
 			put(tupleTypeForSizesTypesDefaultType(
 				wholeNumbers,
@@ -1081,7 +1070,7 @@ class AvailRuntime constructor(
 				PhraseKind.PARSE_PHRASE.mostGeneralType()))
 
 			at(110)
-			put(instanceType(two()))
+			put(instanceType(two))
 			put(fromDouble(Math.E))
 			put(instanceType(fromDouble(Math.E)))
 			put(instanceMeta(
@@ -1091,7 +1080,7 @@ class AvailRuntime constructor(
 			put(Types.TOKEN.o)
 			put(mostGeneralLiteralTokenType())
 			put(zeroOrMoreOf(anyMeta()))
-			put(inclusive(zero(), positiveInfinity()))
+			put(inclusive(zero, positiveInfinity()))
 			put(zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
@@ -1187,7 +1176,7 @@ class AvailRuntime constructor(
 				stringType()))
 
 			at(173)
-		}.list().apply { forEach { assert(!it.isAtom || it.isAtomSpecial()) } }
+		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial()) }
 
 		/**
 		 * Answer the [special object][AvailObject] with the specified ordinal.
@@ -1256,7 +1245,7 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
-		}.list().apply { forEach { assert(it.isAtomSpecial()) } }
+		}.list().onEach { assert(it.isAtomSpecial()) }
 	}
 
 	/**

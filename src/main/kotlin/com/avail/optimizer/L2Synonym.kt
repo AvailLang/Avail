@@ -31,6 +31,7 @@
  */
 package com.avail.optimizer
 
+import com.avail.descriptor.representation.AvailObject
 import com.avail.optimizer.values.Frame
 import com.avail.optimizer.values.L2SemanticValue
 
@@ -49,12 +50,36 @@ import com.avail.optimizer.values.L2SemanticValue
  *   The non-empty collection of [L2SemanticValue]s bound to this synonym.
  */
 class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
+	: Comparable<L2Synonym>
 {
 	/**
 	 * The [L2SemanticValue]s for which this synonym's registers hold the (same)
 	 * value.
 	 */
-	private val semanticValues: Set<L2SemanticValue>
+	private val semanticValues: Set<L2SemanticValue> =
+		semanticValues.toSet().also { assert(semanticValues.isNotEmpty()) }
+
+	/**
+	 * The eagerly computed, permanent hash value of this synonym.  Note that it
+	 * must produce the same value even if the set of semantic values is
+	 * traversed in a different order.
+	 */
+	private val hash = semanticValues.fold(0x5C278E78) { acc, sv ->
+		((sv.hashCode() xor 0x53B478BB) * AvailObject.multiplier) xor acc
+	}
+
+	override fun hashCode() = hash
+
+	override fun equals(other: Any?) =
+		when
+		{
+			other === null -> false
+			this === other -> true
+			other !is L2Synonym -> false
+			other.hash != hash -> false
+			other.semanticValues == semanticValues -> true
+			else -> false
+		}
 
 	/**
 	 * Answer the immutable set of [L2SemanticValue]s of this synonym.
@@ -89,8 +114,7 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 		var changed = false
 		for (semanticValue in semanticValues)
 		{
-			val newSemanticValue =
-				semanticValueTransformer.invoke(semanticValue)
+			val newSemanticValue = semanticValueTransformer(semanticValue)
 			newSemanticValues.add(newSemanticValue)
 			changed = changed or (newSemanticValue != semanticValue)
 		}
@@ -99,9 +123,9 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 
 	override fun toString(): String
 	{
-		val sortedStrings: MutableList<String> = semanticValues
-			.map { it.toStringForSynonym() }.toMutableList()
-		sortedStrings.sort()
+		val sortedStrings = semanticValues
+			.sorted()
+			.map(L2SemanticValue::toStringForSynonym)
 		val builder = StringBuilder()
 		builder.append('〖')
 		var first = true
@@ -126,10 +150,6 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 		return builder.toString()
 	}
 
-	init
-	{
-		val size = semanticValues.size
-		assert(size > 0)
-		this.semanticValues = semanticValues.toSet()
-	}
+	override fun compareTo(other: L2Synonym) =
+		semanticValues.min()!!.compareTo(other.semanticValues.min()!!)
 }

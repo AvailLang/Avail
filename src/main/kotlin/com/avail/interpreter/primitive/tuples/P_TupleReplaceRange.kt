@@ -152,16 +152,16 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 			tupleSizeRange,
 			singleInt(1),
 			integerRangeType(
-				startType.lowerBound().noFailMinusCanDestroy(one(), false),
+				startType.lowerBound().noFailMinusCanDestroy(one, false),
 				startType.lowerInclusive(),
-				startType.upperBound().noFailMinusCanDestroy(one(), false),
+				startType.upperBound().noFailMinusCanDestroy(one, false),
 				startType.upperInclusive()))
 		val rightFallibility = P_ExtractSubtuple.checkFallibility(
 			tupleSizeRange,
 			integerRangeType(
-				endType.lowerBound().noFailPlusCanDestroy(one(), false),
+				endType.lowerBound().noFailPlusCanDestroy(one, false),
 				endType.lowerInclusive(),
-				endType.upperBound().noFailPlusCanDestroy(one(), false),
+				endType.upperBound().noFailPlusCanDestroy(one, false),
 				endType.upperInclusive()),
 			tupleSizeRange)
 		// It's only the extraction of the left and right parts that can fail,
@@ -190,16 +190,16 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 			tupleType,
 			singleInt(1),
 			integerRangeType(
-				startType.lowerBound().noFailMinusCanDestroy(one(), false),
+				startType.lowerBound().noFailMinusCanDestroy(one, false),
 				startType.lowerInclusive(),
-				startType.upperBound().noFailMinusCanDestroy(one(), false),
+				startType.upperBound().noFailMinusCanDestroy(one, false),
 				startType.upperInclusive()))
 		val rightTupleType = P_ExtractSubtuple.computeSliceType(
 			tupleType,
 			integerRangeType(
-				endType.lowerBound().noFailPlusCanDestroy(one(), false),
+				endType.lowerBound().noFailPlusCanDestroy(one, false),
 				endType.lowerInclusive(),
-				endType.upperBound().noFailPlusCanDestroy(one(), false),
+				endType.upperBound().noFailPlusCanDestroy(one, false),
 				endType.upperInclusive()),
 			tupleSizeRange)
 		return concatenatingAnd(

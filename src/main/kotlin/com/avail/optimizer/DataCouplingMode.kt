@@ -40,89 +40,106 @@ import com.avail.optimizer.values.L2SemanticValue
 /**
  * Whether [L2SemanticValue]s or the underlying [L2Register]s should be
  * considered when following data flow to determine liveness.
+ *
+ * @property considersRegisters
+ *   Answer whether [L2Register]s should be tracked by this policy.
+ * @property considersSemanticValues
+ *   Answer whether [L2SemanticValue]s should be tracked by this policy.
+ *
+ * @constructor
+ *   Initialize an instance of this enumeration.
  */
-enum class DataCouplingMode
+enum class DataCouplingMode constructor(
+	val considersRegisters: Boolean,
+	val considersSemanticValues: Boolean)
 {
 	/**
 	 * The liveness analyses should consider the flows through
 	 * [L2SemanticValue]s.
 	 */
 	@Suppress("unused")
-	FOLLOW_SEMANTIC_VALUES
+	FOLLOW_SEMANTIC_VALUES(false, true)
 	{
 		override fun addEntitiesFromRead(
 			readOperand: L2ReadOperand<*>,
-			accumulatingSet: MutableSet<L2Entity>)
+			accumulatingSet: MutableSet<L2EntityAndKind>)
 		{
-			accumulatingSet.add(readOperand.semanticValue())
+			accumulatingSet.add(
+				L2EntityAndKind(
+					readOperand.semanticValue(), readOperand.registerKind()))
 		}
 
 		override fun addEntitiesFromWrite(
 			writeOperand: L2WriteOperand<*>,
-			accumulatingSet: MutableSet<L2Entity>)
+			accumulatingSet: MutableSet<L2EntityAndKind>)
 		{
-			accumulatingSet.addAll(writeOperand.semanticValues())
+			writeOperand.semanticValues().forEach {
+				accumulatingSet.add(
+					L2EntityAndKind(
+						it, writeOperand.registerKind()))
+			}
 		}
-
-		override fun considersRegisters(): Boolean = false
-
-		override fun considersSemanticValues(): Boolean = true
 	},
 
 	/**
 	 * [L2SemanticValue]s can be ignored, and only [L2Register]s should be
 	 * considered for the liveness analysis.
 	 */
-	FOLLOW_REGISTERS
+	FOLLOW_REGISTERS(true, false)
 	{
 		override fun addEntitiesFromRead(
 			readOperand: L2ReadOperand<*>,
-			accumulatingSet: MutableSet<L2Entity>)
+			accumulatingSet: MutableSet<L2EntityAndKind>)
 		{
-			accumulatingSet.add(readOperand.register())
+			accumulatingSet.add(
+				L2EntityAndKind(
+					readOperand.register(), readOperand.registerKind()))
 		}
 
 		override fun addEntitiesFromWrite(
 			writeOperand: L2WriteOperand<*>,
-			accumulatingSet: MutableSet<L2Entity>)
+			accumulatingSet: MutableSet<L2EntityAndKind>)
 		{
-			accumulatingSet.add(writeOperand.register())
+			accumulatingSet.add(
+				L2EntityAndKind(
+					writeOperand.register(), writeOperand.registerKind()))
 		}
-
-		override fun considersRegisters(): Boolean = true
-
-		override fun considersSemanticValues(): Boolean = false
 	},
 
 	/**
 	 * Both [L2SemanticValue]s and [L2Register]s should be traced for liveness.
 	 */
-	FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
+	FOLLOW_SEMANTIC_VALUES_AND_REGISTERS(true, true)
 	{
 		override fun addEntitiesFromRead(
 			readOperand: L2ReadOperand<*>,
-			accumulatingSet: MutableSet<L2Entity>)
+			accumulatingSet: MutableSet<L2EntityAndKind>)
 		{
-			accumulatingSet.add(readOperand.semanticValue())
-			accumulatingSet.add(readOperand.register())
+			accumulatingSet.add(
+				L2EntityAndKind(
+					readOperand.semanticValue(), readOperand.registerKind()))
+			accumulatingSet.add(
+				L2EntityAndKind(
+					readOperand.register(), readOperand.registerKind()))
 		}
 
 		override fun addEntitiesFromWrite(
 			writeOperand: L2WriteOperand<*>,
-			accumulatingSet: MutableSet<L2Entity>)
+			accumulatingSet: MutableSet<L2EntityAndKind>)
 		{
-			accumulatingSet.addAll(writeOperand.semanticValues())
-			accumulatingSet.add(writeOperand.register())
+			writeOperand.semanticValues().forEach {
+				accumulatingSet.add(
+					L2EntityAndKind(it, writeOperand.registerKind()))
+			}
+			accumulatingSet.add(
+				L2EntityAndKind(
+					writeOperand.register(), writeOperand.registerKind()))
 		}
-
-		override fun considersRegisters(): Boolean = true
-
-		override fun considersSemanticValues(): Boolean = true
 	};
 
 	/**
-	 * Extract each [L2Entity] that this policy is concerned with from the given
-	 * [L2ReadOperand].
+	 * Extract each [L2EntityAndKind] that this policy is concerned with from
+	 * the given [L2ReadOperand].
 	 *
 	 * @param readOperand
 	 *   The [L2ReadOperand] to examine.
@@ -131,10 +148,10 @@ enum class DataCouplingMode
 	 */
 	abstract fun addEntitiesFromRead(
 		readOperand: L2ReadOperand<*>,
-		accumulatingSet: MutableSet<L2Entity>)
+		accumulatingSet: MutableSet<L2EntityAndKind>)
 
 	/**
-	 * Extract each [L2Entity] that this policy is concerned with from the given
+	 * Extract each [L2EntityAndKind] that this policy is concerned with from the given
 	 * [L2WriteOperand].
 	 *
 	 * @param writeOperand
@@ -144,23 +161,7 @@ enum class DataCouplingMode
 	 */
 	abstract fun addEntitiesFromWrite(
 		writeOperand: L2WriteOperand<*>,
-		accumulatingSet: MutableSet<L2Entity>)
-
-	/**
-	 * Answer whether [L2Register]s should be tracked by this policy.
-	 *
-	 * @return
-	 *   `true` iff registers should be tracked.
-	 */
-	abstract fun considersRegisters(): Boolean
-
-	/**
-	 * Answer whether [L2SemanticValue]s should be tracked by this policy.
-	 *
-	 * @return
-	 *   `true` iff semantic values should be tracked.
-	 */
-	abstract fun considersSemanticValues(): Boolean
+		accumulatingSet: MutableSet<L2EntityAndKind>)
 
 	/**
 	 * Extract each relevant [L2Entity] consumed by the given [L2ReadOperand].
@@ -171,9 +172,9 @@ enum class DataCouplingMode
 	 *   Each [L2Entity] read by the [L2ReadOperand], and which the policy deems
 	 *   relevant.
 	 */
-	fun readEntitiesOf(readOperand: L2ReadOperand<*>): Set<L2Entity>
+	fun readEntitiesOf(readOperand: L2ReadOperand<*>): Set<L2EntityAndKind>
 	{
-		val entitiesRead = mutableSetOf<L2Entity>()
+		val entitiesRead = mutableSetOf<L2EntityAndKind>()
 		addEntitiesFromRead(readOperand, entitiesRead)
 		return entitiesRead
 	}
@@ -188,9 +189,9 @@ enum class DataCouplingMode
 	 *   deems relevant.
 	 */
 	@Suppress("unused")
-	fun writeEntitiesOf(writeOperand: L2WriteOperand<*>): Set<L2Entity>
+	fun writeEntitiesOf(writeOperand: L2WriteOperand<*>): Set<L2EntityAndKind>
 	{
-		val entitiesWritten = mutableSetOf<L2Entity>()
+		val entitiesWritten = mutableSetOf<L2EntityAndKind>()
 		addEntitiesFromWrite(writeOperand, entitiesWritten)
 		return entitiesWritten
 	}
@@ -204,26 +205,27 @@ enum class DataCouplingMode
 	 *   Each [L2Entity] read by the instruction, and which the policy deems
 	 *   relevant.
 	 */
-	fun readEntitiesOf(instruction: L2Instruction): Set<L2Entity>
+	fun readEntitiesOf(instruction: L2Instruction): Set<L2EntityAndKind>
 	{
-		val entitiesRead = mutableSetOf<L2Entity>()
+		val entitiesRead = mutableSetOf<L2EntityAndKind>()
 		instruction.readOperands()
 			.forEach { addEntitiesFromRead(it, entitiesRead) }
 		return entitiesRead
 	}
 
 	/**
-	 * Extract each relevant [L2Entity] produced by the given [L2Instruction].
+	 * Extract each relevant [L2EntityAndKind] produced by the given
+	 * [L2Instruction].
 	 *
 	 * @param instruction
 	 *   The [L2Instruction] to examine.
 	 * @return
-	 *   Each [L2Entity] written by the instruction, and which the policy deems
-	 *   relevant.
+	 *   Each [L2EntityAndKind] written by the instruction, and which the policy
+	 *   deems relevant.
 	 */
-	fun writeEntitiesOf(instruction: L2Instruction): Set<L2Entity>
+	fun writeEntitiesOf(instruction: L2Instruction): Set<L2EntityAndKind>
 	{
-		val entitiesWritten = mutableSetOf<L2Entity>()
+		val entitiesWritten = mutableSetOf<L2EntityAndKind>()
 		instruction.writeOperands()
 			.forEach { addEntitiesFromWrite(it, entitiesWritten) }
 		return entitiesWritten

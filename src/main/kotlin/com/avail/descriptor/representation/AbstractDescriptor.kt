@@ -4179,7 +4179,7 @@ abstract class AbstractDescriptor protected constructor (
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
-					val allValues: Array<AbstractSlotsEnum> =
+					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
 						describingClass.enumConstants.cast()
 					if (value in allValues.indices)
 					{
@@ -4199,13 +4199,11 @@ abstract class AbstractDescriptor protected constructor (
 					// this case, not necessarily an Enum.
 					val lookupMethod = describingClass.getMethod(
 						lookupName, Int::class.javaPrimitiveType)
-					when (val lookedUp =
-						lookupMethod.invoke(null, value.toInt()))
+					when (val lookedUp = lookupMethod(null, value.toInt()))
 					{
 						is IntegerEnumSlotDescriptionEnum ->
 							append(lookedUp.fieldName())
-						else ->
-							append("null")
+						else -> append("null")
 					}
 				}
 			}

@@ -34,8 +34,8 @@ package com.avail.serialization
 
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -126,13 +126,10 @@ internal enum class SerializerOperandEncoding
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject
 		{
-			val firstByte = deserializer.readByte()
-			val intValue: Int
-			intValue = when
+			val intValue: Int = when (val firstByte = deserializer.readByte())
 			{
-				firstByte < 128 -> firstByte
-				firstByte < 255 ->
-					(firstByte - 128 shl 8) + deserializer.readByte()
+				in 0..127 -> firstByte
+				in 128..254 -> (firstByte - 128 shl 8) + deserializer.readByte()
 				else -> deserializer.readShort()
 			}
 			return fromInt(intValue)
@@ -505,8 +502,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun trace(obj: AvailObject, serializer: Serializer)
 		{
-			for ((key, value) in obj.mapIterable())
-			{
+			obj.forEach { key, value ->
 				serializer.traceOne(key)
 				serializer.traceOne(value)
 			}
@@ -515,8 +511,7 @@ internal enum class SerializerOperandEncoding
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
 			writeCompressedPositiveInt(obj.mapSize(), serializer)
-			for ((key, value) in obj.mapIterable())
-			{
+			obj.forEach { key, value ->
 				writeCompressedPositiveInt(
 					serializer.compressedObjectIndex(key),
 					serializer)

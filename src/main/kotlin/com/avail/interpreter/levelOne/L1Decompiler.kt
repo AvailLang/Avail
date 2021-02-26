@@ -112,7 +112,6 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_P
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import com.avail.interpreter.Primitive
-import com.avail.utility.PrefixSharingList.Companion.last
 import java.util.function.Function
 
 /**
@@ -498,7 +497,7 @@ class L1Decompiler constructor(
 			if (statements.size > previousStatementCount)
 			{
 				assert(statements.size == previousStatementCount + 1)
-				assert(last(statements) === declaration)
+				assert(statements.last() === declaration)
 				// This was the first use of the variable, so it was written as
 				// a statement automatically.  Create a new variable with an
 				// initialization expression, and replace the old declaration in

@@ -61,7 +61,7 @@ object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
 
 		val tupleObject = generateObjectTupleFrom(code.numLiterals()) {
 			val literal = code.literalAt(it)
-			if (literal.equalsNil()) zero() else literal
+			if (literal.equalsNil()) zero else literal
 		}
 		return interpreter.primitiveSuccess(tupleObject)
 	}

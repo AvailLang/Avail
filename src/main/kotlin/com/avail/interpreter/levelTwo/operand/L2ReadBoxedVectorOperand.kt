@@ -52,7 +52,7 @@ import com.avail.utility.cast
  */
 class L2ReadBoxedVectorOperand constructor(
 		elements: List<L2ReadBoxedOperand>)
-	: L2ReadVectorOperand<L2ReadBoxedOperand, L2BoxedRegister>(elements)
+	: L2ReadVectorOperand<L2BoxedRegister, L2ReadBoxedOperand>(elements)
 {
 	override fun clone(): L2ReadBoxedVectorOperand =
 		L2ReadBoxedVectorOperand(
@@ -61,9 +61,8 @@ class L2ReadBoxedVectorOperand constructor(
 				it.clone().cast()
 			})
 
-	override fun clone(replacementElements: List<L2ReadBoxedOperand>)
-		: L2ReadBoxedVectorOperand =
-			L2ReadBoxedVectorOperand(replacementElements)
+	override fun clone(replacementElements: List<L2ReadBoxedOperand>) =
+		L2ReadBoxedVectorOperand(replacementElements)
 
 	override fun operandType(): L2OperandType = L2OperandType.READ_BOXED_VECTOR
 

@@ -179,6 +179,9 @@ open class CompiledCodeDescriptor protected constructor(
 	ObjectSlots::class.java,
 	IntegerSlots::class.java
 ) {
+	/** A descriptive [A_String] that names this [A_RawFunction]. */
+	protected var methodName = unknownFunctionName
+
 	/**
 	 * The [L2Chunk] that should be invoked whenever this code is started. The
 	 * chunk may no longer be [valid][L2Chunk.isValid], in which case the
@@ -187,9 +190,6 @@ open class CompiledCodeDescriptor protected constructor(
 	 */
 	@Volatile
 	private var startingChunk = L2Chunk.unoptimizedChunk
-
-	/** A descriptive [A_String] that names this [A_RawFunction]. */
-	protected var methodName = unknownFunctionName
 
 	/**
 	 * An [InvocationStatistic] for tracking invocations of this
@@ -996,7 +996,7 @@ open class CompiledCodeDescriptor protected constructor(
 					if (literal.equalsNil())
 					{
 						// Value doesn't matter, but it can't be nil.  Use zero.
-						literal = zero()
+						literal = zero
 					}
 					literal.writeSummaryTo(writer)
 				}

@@ -79,6 +79,7 @@ import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2ControlFlowGraphVisualizer
 import com.avail.optimizer.StackReifier
@@ -465,7 +466,7 @@ class JVMTranslator constructor(
 	 * The [L2Register]s used by the [L2Chunk], mapped to their JVM local
 	 * indices.
 	 */
-	val locals = enumMap(RegisterKind.values()) { mutableMapOf<Int, Int>() }
+	val locals = enumMap { _: RegisterKind -> mutableMapOf<Int, Int>() }
 
 	/**
 	 * Answer the next JVM local. The initial value is chosen to skip over the
@@ -500,7 +501,7 @@ class JVMTranslator constructor(
 	 *   Its position in the JVM frame.
 	 */
 	fun localNumberFromRegister(register: L2Register): Int =
-		locals[register.registerKind()][register.finalIndex()]!!
+		locals[register.registerKind()]!![register.finalIndex()]!!
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
@@ -599,19 +600,19 @@ class JVMTranslator constructor(
 
 		override fun doOperand(operand: L2ReadIntOperand)
 		{
-			locals[RegisterKind.INTEGER].computeIfAbsent(
+			locals[INTEGER_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex()) { nextLocal(Type.INT_TYPE) }
 		}
 
 		override fun doOperand(operand: L2ReadFloatOperand)
 		{
-			locals[RegisterKind.FLOAT].computeIfAbsent(
+			locals[FLOAT_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex()) { nextLocal(Type.DOUBLE_TYPE) }
 		}
 
 		override fun doOperand(operand: L2ReadBoxedOperand)
 		{
-			locals[RegisterKind.BOXED].computeIfAbsent(
+			locals[BOXED_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex())
 				{ nextLocal(Type.getType(AvailObject::class.java)) }
 		}
@@ -638,21 +639,21 @@ class JVMTranslator constructor(
 
 		override fun doOperand(operand: L2WriteIntOperand)
 		{
-			locals[RegisterKind.INTEGER].computeIfAbsent(
+			locals[INTEGER_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex())
 				{ nextLocal(Type.INT_TYPE) }
 		}
 
 		override fun doOperand(operand: L2WriteFloatOperand)
 		{
-			locals[RegisterKind.FLOAT].computeIfAbsent(
+			locals[FLOAT_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex())
 				{ nextLocal(Type.DOUBLE_TYPE) }
 		}
 
 		override fun doOperand(operand: L2WriteBoxedOperand)
 		{
-			locals[RegisterKind.BOXED].computeIfAbsent(
+			locals[BOXED_KIND]!!.computeIfAbsent(
 				operand.register().finalIndex())
 				{ nextLocal(Type.getType(AvailObject::class.java)) }
 		}
@@ -781,9 +782,7 @@ class JVMTranslator constructor(
 				entryPoints[instruction.offset()] = label
 				labels[instruction.offset()] = label
 			}
-			instruction.operandsDo {
-				it.dispatchOperand(preparer)
-			}
+			instruction.operands().forEach { it.dispatchOperand(preparer) }
 		}
 	}
 
@@ -1529,15 +1528,15 @@ class JVMTranslator constructor(
 				{
 					when (kind)
 					{
-						RegisterKind.BOXED -> {
+						BOXED_KIND -> {
 							method.visitInsn(ACONST_NULL)
 							method.visitVarInsn(ASTORE, localIndex)
 						}
-						RegisterKind.INTEGER -> {
+						INTEGER_KIND -> {
 							intConstant(method, 0)
 							method.visitVarInsn(ISTORE, localIndex)
 						}
-						RegisterKind.FLOAT -> {
+						FLOAT_KIND -> {
 							doubleConstant(method, 0.0)
 							method.visitVarInsn(DSTORE, localIndex)
 						}
@@ -1862,7 +1861,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = false //TODO true
+		const val debugNicerJavaDecompilation = true //TODO false
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to

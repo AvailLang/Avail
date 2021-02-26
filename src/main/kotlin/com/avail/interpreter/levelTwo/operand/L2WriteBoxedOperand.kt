@@ -35,6 +35,7 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
 import com.avail.optimizer.values.L2SemanticValue
 
 /**
@@ -62,7 +63,7 @@ class L2WriteBoxedOperand constructor(
 {
 	override fun operandType(): L2OperandType = L2OperandType.WRITE_BOXED
 
-	override fun registerKind(): RegisterKind = RegisterKind.BOXED
+	override fun registerKind(): RegisterKind = BOXED_KIND
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

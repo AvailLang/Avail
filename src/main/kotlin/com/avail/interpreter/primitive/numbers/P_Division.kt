@@ -93,7 +93,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 		val bTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(bType)
 				|| positiveInfinity().isInstanceOf(bType)
-		val bTypeIncludesZero = zero().isInstanceOf(bType)
+		val bTypeIncludesZero = zero.isInstanceOf(bType)
 		return if (bTypeIncludesZero
 			|| aTypeIncludesInfinity && bTypeIncludesInfinity)
 		{
@@ -106,5 +106,6 @@ object P_Division : Primitive(2, CanFold, CanInline)
 	}
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_CANNOT_DIVIDE_BY_ZERO, E_CANNOT_DIVIDE_INFINITIES))
+		enumerationWith(
+			set(E_CANNOT_DIVIDE_BY_ZERO, E_CANNOT_DIVIDE_INFINITIES))
 }

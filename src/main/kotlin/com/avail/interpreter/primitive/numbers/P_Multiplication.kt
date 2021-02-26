@@ -70,12 +70,14 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
 import com.avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
+import com.avail.optimizer.values.L2SemanticUnboxedInt
+import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Multiply two extended integers.
@@ -100,6 +102,9 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -246,8 +251,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			/** Partition the integers by sign.  */
 			private val interestingRanges = listOf(
 				inclusive(negativeInfinity(), negativeOne()),
-				inclusive(zero(), zero()),
-				inclusive(one(), positiveInfinity()))
+				inclusive(zero, zero),
+				inclusive(one, positiveInfinity()))
 
 			/**
 			 * Partition the integer range into negatives, zero, and positives,
@@ -266,11 +271,11 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
 
-		val aTypeIncludesZero = zero().isInstanceOf(aType)
+		val aTypeIncludesZero = zero.isInstanceOf(aType)
 		val aTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(aType)
 				|| positiveInfinity().isInstanceOf(aType)
-		val bTypeIncludesZero = zero().isInstanceOf(bType)
+		val bTypeIncludesZero = zero.isInstanceOf(bType)
 		val bTypeIncludesInfinity =
 			negativeInfinity().isInstanceOf(bType)
 				|| positiveInfinity().isInstanceOf(bType)
@@ -285,21 +290,17 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY))
-
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper
+		): Boolean
 	{
-		val a = arguments[0]
-		val b = arguments[1]
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (a, b) = arguments
+		val (aType, bType) = argumentTypes
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
@@ -313,8 +314,10 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		val generator = translator.generator
 		val fallback = generator.createBasicBlock(
 			"fall back to boxed multiplication")
-		val intA = generator.readInt(a.semanticValue(), fallback)
-		val intB = generator.readInt(b.semanticValue(), fallback)
+		val intA = generator.readInt(
+			L2SemanticUnboxedInt(a.semanticValue()), fallback)
+		val intB = generator.readInt(
+			L2SemanticUnboxedInt(b.semanticValue()), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
@@ -322,11 +325,11 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			val returnTypeIfInts = returnTypeGuaranteedByVM(
 				rawFunction,
 				argumentTypes.map { it.typeIntersection(int32) })
-			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
-			val tempWriter =
-				generator.intWrite(
-					semanticTemp,
-					restrictionForType(returnTypeIfInts, UNBOXED_INT))
+			val semanticTemp = primitiveInvocation(
+				this, listOf(a.semanticValue(), b.semanticValue()))
+			val tempWriter = generator.intWrite(
+				setOf(L2SemanticUnboxedInt(semanticTemp)),
+				restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
 			if (returnTypeIfInts.isSubtypeOf(int32))
 			{
 				// The result is guaranteed not to overflow, so emit an
@@ -359,7 +362,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			// which could allow the boxing instruction to evaporate.
 			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
 		}
-		if (fallback.predecessorEdgesCount() > 0)
+		if (fallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,
@@ -370,5 +373,4 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		}
 		return true
 	}
-
 }

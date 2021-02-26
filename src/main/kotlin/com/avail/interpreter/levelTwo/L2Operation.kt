@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
@@ -55,21 +56,20 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operation.L2ControlFlowOperation
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import com.avail.interpreter.levelTwo.operation.L2_TUPLE_AT_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
-import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ControlFlowGraph.Zone
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
-import com.avail.optimizer.reoptimizer.L2Inliner
+import com.avail.optimizer.reoptimizer.L2Regenerator
+import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Strings.escape
 import com.avail.utility.Strings.increaseIndentation
 import com.avail.utility.cast
@@ -219,54 +219,6 @@ protected constructor(
 		}
 
 	/**
-	 * Propagate type, value, alias, and source instruction information due to
-	 * the execution of this instruction.  If the operation
-	 * [altersControlFlow], expect a [RegisterSet] per outgoing edge, in the
-	 * same order.  Otherwise expect one [RegisterSet].
-	 *
-	 * @param instruction
-	 *   The L2Instruction containing this L2Operation.
-	 * @param registerSets
-	 *   A list of RegisterSets to update with information that this operation
-	 *   provides.
-	 * @param generator
-	 *   The L2Generator for which to advance the type analysis.
-	 */
-	protected open fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		assert(this !is L2ControlFlowOperation)
-		throw UnsupportedOperationException(
-			"Multi-target propagateTypes is only applicable to an "
-				+ "L2ControlFlowOperation")
-	}
-
-	/**
-	 * Propagate type, value, alias, and source instruction information due to
-	 * the execution of this instruction.  The instruction must not have
-	 * multiple possible successor instructions.
-	 *
-	 * @param instruction
-	 *   The L2Instruction containing this L2Operation.
-	 * @param registerSet
-	 *   A [RegisterSet] to supply with information.
-	 * @param generator
-	 *   The L2Generator for which to advance the type analysis.
-	 * @see [propagateTypes]
-	 */
-	protected open fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		// We're phasing this out, so don't make this an abstract method.
-		throw UnsupportedOperationException(
-			"Single-target propagateTypes should be overridden.")
-	}
-
-	/**
 	 * Answer whether an instruction using this operation should be emitted
 	 * during final code generation. For example, a move between registers with
 	 * the same finalIndex can be left out during code generation, although it
@@ -348,8 +300,7 @@ protected constructor(
 	 * @return
 	 *   Whether the instruction causes a variable to be read.
 	 */
-	open val isVariableGet: Boolean
-		get() = false
+	open val isVariableGet: Boolean get() = false
 
 	/**
 	 * Answer whether execution of this instruction causes a
@@ -383,13 +334,12 @@ protected constructor(
 
 	/**
 	 * Answer whether this operation is a placeholder, and should be replaced
-	 * using [L2Generator.replaceInstructionByGenerating].
-	 * Placeholder instructions (like [L2_VIRTUAL_CREATE_LABEL]) are free
-	 * to be moved through much of the control flow graph, even though the
-	 * subgraphs they eventually get replaced by would be too complex to move.
-	 * The mobility of placeholder instructions is essential to postponing stack
-	 * reification and label creation into off-ramps (reification [Zone]s)
-	 * as much as possible.
+	 * using the [L2Regenerator]. Placeholder instructions (like
+	 * [L2_VIRTUAL_CREATE_LABEL]) are free to be moved through much of the
+	 * control flow graph, even though the subgraphs they eventually get
+	 * replaced by would be too complex to move. The mobility of placeholder
+	 * instructions is essential to postponing stack reification and label
+	 * creation into off-ramps (reification [Zone]s) as much as possible.
 	 *
 	 * @return
 	 *   Whether the [L2Instruction] using this operation is a placeholder,
@@ -474,30 +424,27 @@ protected constructor(
 		assert(!isEntryPoint(instruction)
 			   || instruction.basicBlock().instructions()[0] == instruction)
 		{ "Entry point instruction must be at start of a block" }
-		instruction.operandsDo { it.instructionWasInserted(instruction) }
+		instruction.operands().forEach {
+			it.instructionWasInserted(instruction)
+		}
 	}
 
 	/**
-	 * Write the given instruction's equivalent effect through the given
-	 * [L2Inliner].  The given [L2Instruction]'s
-	 * [operation][L2Instruction.operation] must be the current receiver.
+	 * Write the given [L2Operation]'s equivalent effect through the given
+	 * [L2Regenerator], with the given already-transformed [L2Operand]s.
 	 *
-	 * @param instruction
-	 *   The [L2Instruction] for which to write an equivalent effect to the
-	 *   inliner.
 	 * @param transformedOperands
-	 *   The operands of the instruction, already transformed for the inliner.
-	 * @param retranslator
-	 *   The [L2Inliner] through which to write the instruction's equivalent
+	 *   The operands of the instruction, already transformed for the
+	 *   regenerator.
+	 * @param regenerator
+	 *   The [L2Regenerator] through which to write the instruction's equivalent
 	 *   effect.
 	 */
-	fun emitTransformedInstruction(
-		instruction: L2Instruction,
+	open fun emitTransformedInstruction(
 		transformedOperands: Array<L2Operand>,
-		retranslator: L2Inliner)
+		regenerator: L2Regenerator)
 	{
-		assert(instruction.operation() === this)
-		retranslator.emitInstruction(this, *transformedOperands)
+		regenerator.emitInstruction(this, *transformedOperands)
 	}
 
 	/**
@@ -530,8 +477,7 @@ protected constructor(
 	{
 		assert(instruction.operation() === this)
 		val writer = generator.boxedWriteTemp(
-			restrictionForType(
-				outerType, RestrictionFlagEncoding.BOXED))
+			restrictionForType(outerType, BOXED_FLAG))
 		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE,
 			L2IntImmediateOperand(outerIndex),
@@ -720,10 +666,33 @@ protected constructor(
 					val value = operand.constant
 					when {
 						value.isFunction ->
-							sources.add(
-								value.code().methodName().asNativeString())
+						{
+							val code: A_RawFunction = value.code()
+							var str = code.methodName().asNativeString()
+							val mod = code.module()
+							if (!mod.equalsNil())
+							{
+								val modName = mod.moduleName().asNativeString()
+								val shortName = modName.split("/").last()
+								val line = code.startingLineNumber()
+								str += "@$shortName:$line"
+							}
+							sources.add(str)
+						}
 						value.isInstanceOf(mostGeneralCompiledCodeType()) ->
-							sources.add(value.methodName().asNativeString())
+						{
+							val code: A_RawFunction = value
+							var str = code.methodName().asNativeString()
+							val mod = code.module()
+							if (!mod.equalsNil())
+							{
+								val modName = mod.moduleName().asNativeString()
+								val shortName = modName.split("/").last()
+								val line = code.startingLineNumber()
+								str += "@$shortName:$line"
+							}
+							sources.add(str)
+						}
 						else -> sources.add(
 							escape(operand.constant.toString().run {
 								if (length > 20) substring(0, 20) + "…"
@@ -750,9 +719,12 @@ protected constructor(
 			}
 		}
 		targets.joinTo(builder)
-		builder.append(" ⇦ ")
-		commands.joinTo(builder, "/")
-		sources.joinTo(builder, ", ", "(", ")")
+		if (sources.isNotEmpty() || commands.isNotEmpty())
+		{
+			builder.append(" ⇦ ")
+			commands.joinTo(builder, "/")
+			sources.joinTo(builder, ", ", "(", ")")
+		}
 	}
 
 	/**
@@ -773,28 +745,23 @@ protected constructor(
 		instruction: L2Instruction)
 
 	/**
-	 * Generate code to replace this [L2Instruction].  The instruction has
-	 * already been removed.  Leave the generator in a state that ensures any
-	 * [L2Register]s that would have been written by the old instruction
-	 * are instead written by the new code.
-	 *
-	 * Leave the code generation at the point where subsequent instructions of
-	 * the rebuilt block will be re-emitted, whether that's in the same block
-	 * or not.
+	 * Generate code to replace this [L2Instruction].  Leave the generator in a
+	 * state that ensures any [L2SemanticValue]s that would have been written by
+	 * the old instruction are instead written by the new code.  Leave the code
+	 * regenerator at the point where subsequent instructions of the rebuilt
+	 * block will be re-emitted, whether that's in the same block or not.
 	 *
 	 * @param instruction
 	 *   The [L2Instruction] being replaced.
-	 * @param generator
-	 *   An [L2Generator] that has been configured for writing arbitrary
+	 * @param regenerator
+	 *   An [L2Regenerator] that has been configured for writing arbitrary
 	 *   replacement code for this instruction.
 	 */
 	open fun generateReplacement(
 		instruction: L2Instruction,
-		generator: L2Generator)
+		regenerator: L2Regenerator)
 	{
-		throw RuntimeException(
-			"A ${instruction.operation()} cannot be transformed " +
-				"by regeneration")
+		regenerator.basicProcessInstruction(instruction)
 	}
 
 	/**
@@ -824,8 +791,7 @@ protected constructor(
 			val operand = instruction.operand<L2Operand>(i)
 			if (operand is L2WriteOperand<*>)
 			{
-				val write =
-					operand.cast<L2Operand?, L2WriteOperand<*>>()
+				val write: L2WriteOperand<*> = operand.cast()
 				// Pay attention to purpose-less writes, or writes for the
 				// specified purpose.
 				if (namedOperandTypes[i].purpose() === null
@@ -836,23 +802,6 @@ protected constructor(
 			}
 		}
 	}
-
-	/**
-	 * The given instruction has been declared dead code (the receiver is that
-	 * instruction's operation).  If there's an alternative form of that
-	 * instruction that should replace it, provide it.
-	 *
-	 * Note that the old instruction will be removed and the new one added,
-	 * so now's a good time to switch [L2PcOperand]s that may need to be
-	 * moved between the instructions.
-	 *
-	 * @param instruction
-	 *   The instruction about to be removed or replaced.
-	 * @return
-	 *   Either null or a replacement `L2Instruction` for the given dead one.
-	 */
-	open fun optionalReplacementForDeadInstruction(
-		instruction: L2Instruction): L2Instruction? = null
 
 	// Do some more initialization for both constructors.
 	init
@@ -910,9 +859,7 @@ protected constructor(
 	{
 		// The default case is to dynamically extract the value from the tuple.
 		val elementWriter = generator.boxedWriteTemp(
-			restrictionForType(
-				tupleReg.type().typeAtIndex(index),
-				RestrictionFlagEncoding.BOXED))
+			restrictionForType(tupleReg.type().typeAtIndex(index), BOXED_FLAG))
 		generator.addInstruction(
 			L2_TUPLE_AT_CONSTANT,
 			tupleReg,

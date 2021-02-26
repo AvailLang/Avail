@@ -131,7 +131,7 @@ import com.avail.dispatch.TypeComparison.Companion.compareForParsing
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.utility.Mutable
@@ -607,8 +607,7 @@ class MessageBundleTreeDescriptor private constructor(
 					toList(typeFilterPairs.value),
 					listOf(
 						restrictionForType(
-							PARSE_PHRASE.mostGeneralType(),
-							RestrictionFlagEncoding.BOXED)),
+							PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
 					latestBackwardJump)
 				self.setSlot(
 					LAZY_TYPE_FILTER_TREE_POJO, identityPojo(tree).makeShared())

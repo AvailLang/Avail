@@ -41,9 +41,8 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.instances
@@ -51,7 +50,6 @@ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
@@ -64,18 +62,18 @@ import com.avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
-import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.SELECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
-import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import com.avail.optimizer.L2Generator
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -83,7 +81,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.Collections
 import java.util.logging.Level
 
 /**
@@ -96,16 +93,12 @@ import java.util.logging.Level
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
-	L2OperandType.SELECTOR.named("message bundle"),
-	L2OperandType.READ_BOXED_VECTOR.named("argument types"),
-	L2OperandType.WRITE_BOXED.named(
-		"looked up function", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.named(
-		"error code", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.named(
-		"lookup succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named(
-		"lookup failed", L2NamedOperandType.Purpose.FAILURE))
+	SELECTOR.named("message bundle"),
+	READ_BOXED_VECTOR.named("argument types"),
+	WRITE_BOXED.named("looked up function", SUCCESS),
+	WRITE_BOXED.named("error code", FAILURE),
+	PC.named("lookup succeeded", SUCCESS),
+	PC.named("lookup failed", FAILURE))
 {
 	/** The type of failure codes that a failed lookup can produce.  */
 	private val failureCodesType =
@@ -122,16 +115,11 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 	{
 		assert(this == instruction.operation())
 		//		final L2SelectorOperand bundle = instruction.operand(0);
-		val argTypeRegs =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg =
-			instruction.operand<L2WriteBoxedOperand>(3)
-		val lookupSucceeded =
-			instruction.operand<L2PcOperand>(4)
-		val lookupFailed =
-			instruction.operand<L2PcOperand>(5)
+		val argTypeRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
+		val errorCodeReg = instruction.operand<L2WriteBoxedOperand>(3)
+		val lookupSucceeded = instruction.operand<L2PcOperand>(4)
+		val lookupFailed = instruction.operand<L2PcOperand>(5)
 		super.instructionWasAdded(instruction, manifest)
 
 		// If the lookup failed, it supplies the reason to the errorCodeReg.
@@ -170,90 +158,17 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		}
 	}
 
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		// Find all possible definitions (taking into account the types
-		// of the argument registers).  Then build an enumeration type over
-		// those functions.
-		val bundleOperand =
-			instruction.operand<L2SelectorOperand>(0)
-		val argTypeRegs =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg =
-			instruction.operand<L2WriteBoxedOperand>(3)
-		//		final L2PcOperand lookupSucceeded = instruction.operand(4);
-//		final L2PcOperand lookupFailed = instruction.operand(5);
-
-		// If the lookup fails, then only the error code register changes.
-		registerSets[0].typeAtPut(
-			errorCodeReg.register(), failureCodesType, instruction)
-		// If the lookup succeeds, then the situation is more complex.
-		val registerSet = registerSets[1]
-
-		// TODO MvG Should be removed?
-//		val numArgs = argTypeRegs.elements().size
-
-		val argRestrictions = argTypeRegs.elements()
-			.map { argRegister: L2ReadBoxedOperand ->
-				if (registerSet.hasTypeAt(argRegister.register()))
-				{
-					registerSet.typeAt(argRegister.register())
-				}
-				else
-				{
-					ANY.o
-				}
-			}
-			.map { type: A_Type ->
-				TypeRestriction.restrictionForType(
-					type, RestrictionFlagEncoding.BOXED)
-			}.toList()
-		// Figure out what could be invoked at runtime given these argument
-		// type constraints.
-		val possibleDefinitions: List<A_Definition> =
-			bundleOperand.bundle.bundleMethod().definitionsAtOrBelow(
-			argRestrictions)
-		val possibleFunctions = possibleDefinitions
-			.filter { it.isMethodDefinition() }
-			.map { it.bodyBlock() }
-		if (possibleFunctions.size == 1)
-		{
-			// Only one function could be looked up (it's monomorphic for
-			// this call site).  Therefore we know strongly what the
-			// function is.
-			registerSet.constantAtPut(
-				functionReg.register(),
-				possibleFunctions[0],
-				instruction)
-		}
-		else
-		{
-			val enumType =
-				AbstractEnumerationTypeDescriptor.enumerationWith(
-					setFromCollection(possibleFunctions))
-			registerSet.typeAtPut(
-				functionReg.register(), enumType, instruction)
-		}
-	}
+	override fun hasSideEffect() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val bundleOperand =
-			instruction.operand<L2SelectorOperand>(0)
-		val argTypeRegs =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg =
-			instruction.operand<L2WriteBoxedOperand>(3)
+		val bundleOperand = instruction.operand<L2SelectorOperand>(0)
+		val argTypeRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
+		val errorCodeReg = instruction.operand<L2WriteBoxedOperand>(3)
 		val lookupSucceeded = instruction.operand<L2PcOperand>(4)
 		val lookupFailed = instruction.operand<L2PcOperand>(5)
 
@@ -323,30 +238,24 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 				interpreter.debugModeString,
 				bundle.message().atomName())
 		}
-		val typesList = mutableListOf<AvailObject>()
-		Collections.addAll(typesList, *types)
+		val typesList = mutableListOf(*types)
 		val method: A_Method = bundle.bundleMethod()
 		val before = AvailRuntimeSupport.captureNanos()
-		val definitionToCall: A_Definition
-		definitionToCall = try
+		val definitionToCall: A_Definition = try
 		{
-			method.lookupByTypesFromTuple(
-				ObjectTupleDescriptor.tupleFromList(typesList))
+			method.lookupByTypesFromTuple(tupleFromList(typesList))
 		}
 		finally
 		{
 			val after = AvailRuntimeSupport.captureNanos()
 			interpreter.recordDynamicLookup(bundle, after - before.toDouble())
 		}
-		if (definitionToCall.isAbstractDefinition())
+		when
 		{
-			throw abstractMethod()
+			definitionToCall.isAbstractDefinition() -> throw abstractMethod()
+			definitionToCall.isForwardDefinition() -> throw forwardMethod()
+			else -> return definitionToCall.bodyBlock()
 		}
-		if (definitionToCall.isForwardDefinition())
-		{
-			throw forwardMethod()
-		}
-		return definitionToCall.bodyBlock()
 	}
 
 	/**

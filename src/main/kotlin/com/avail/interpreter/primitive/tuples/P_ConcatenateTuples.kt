@@ -142,7 +142,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 				val maxSize = tuplesSizes.upperBound().timesCanDestroy(
 					innerSizes.upperBound(), false)
 				val newSizeRange = integerRangeType(
-					minSize, true, maxSize.plusCanDestroy(one(), true), false)
+					minSize, true, maxSize.plusCanDestroy(one, true), false)
 				return tupleTypeForSizesTypesDefaultType(
 					newSizeRange, emptyTuple, innerTupleType.defaultType())
 			}

@@ -1074,16 +1074,49 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 		// checks are negligible to the overall time cost of the operation.
 		i := i - (i mod 30) ?→ whole number;
 	];
-	Until i > stop do
+	// Specialize for 32-bit limits.
+	cast stop into
 	[
-		// micro-sieve: primes > 5 can only have these 8 remainders mod 30
-		For each m of <1, 7, 11, 13, 17, 19, 23, 29> do
+		smallStop : [0..2^31 - 30)
+	|
+		factor ::= [
+			j : [0..2^31 - 30)
+		|
+			$scan : [0..2^31);
+			Exit scan with 0 if j > smallStop;
+			// micro-sieve: primes > 5 can only have these 8 remainders mod 30
+			Exit scan with j+1 if n mod (j+1) = 0;
+			Exit scan with j+7 if n mod (j+7) = 0;
+			Exit scan with j+11 if n mod (j+11) = 0;
+			Exit scan with j+13 if n mod (j+13) = 0;
+			Exit scan with j+17 if n mod (j+17) = 0;
+			Exit scan with j+19 if n mod (j+19) = 0;
+			Exit scan with j+23 if n mod (j+23) = 0;
+			Exit scan with j+29 if n mod (j+29) = 0;
+			Restart scan with <j + 30 ?→ [0..2^31 - 30)>
+		](i ?→ [0..2^31 - 30));
+		if factor = 0 then
 		[
-			Exit body with <n ÷ (i+m), i+m> if n mod (i+m) = 0;
+			<0, 0>
+		]
+		else
+		[
+			<n ÷ factor, factor>
+		]
+	]
+	else
+	[
+		Until i > stop do
+		[
+			// micro-sieve: primes > 5 can only have these 8 remainders mod 30
+			For each m of <1, 7, 11, 13, 17, 19, 23, 29> do
+			[
+				Exit body with <n ÷ (i+m), i+m> if n mod (i+m) = 0;
+			];
+			i += 30;
 		];
-		i += 30;
-	];
-	<0, 0>
+		<0, 0>
+	]
 ];
 
 /**

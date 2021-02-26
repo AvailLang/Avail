@@ -31,21 +31,15 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
-import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -61,56 +55,6 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("parameter index"),
 	L2OperandType.WRITE_BOXED.named("parameter type"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val functionReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val paramIndex = instruction.operand<L2IntImmediateOperand>(1)
-		val outputParamTypeReg = instruction.operand<L2WriteBoxedOperand>(2)
-
-		// Function types are contravariant, so we may have to fall back on
-		// just saying the parameter type must be a type and can't be top –
-		// i.e., any's type.
-		if (registerSet.hasConstantAt(functionReg.register()))
-		{
-			// Exact function is known.
-			val function: A_Function =
-				registerSet.constantAt(functionReg.register())
-			val functionType = function.code().functionType()
-			registerSet.constantAtPut(
-				outputParamTypeReg.register(),
-				functionType.argsTupleType().typeAtIndex(paramIndex.value),
-				instruction)
-			return
-		}
-		val sources =
-			registerSet.stateForReading(functionReg.register())
-				.sourceInstructions()
-		if (sources.size == 1)
-		{
-			val source = sources[0]
-			if (source.operation() === L2_CREATE_FUNCTION)
-			{
-				val code: A_RawFunction =
-					L2_CREATE_FUNCTION.constantRawFunctionOf(source)
-				val functionType = code.functionType()
-				registerSet.constantAtPut(
-					outputParamTypeReg.register(),
-					functionType.argsTupleType().typeAtIndex(paramIndex.value),
-					instruction)
-				return
-			}
-		}
-		// We don't know the exact type of the block argument, so since it's
-		// contravariant we can only assume it's some non-top type.
-		registerSet.typeAtPut(
-			outputParamTypeReg.register(),
-			InstanceMetaDescriptor.anyMeta(),
-			instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

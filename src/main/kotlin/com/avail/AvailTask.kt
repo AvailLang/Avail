@@ -165,7 +165,7 @@ class AvailTask constructor(
 					{
 						fiber.setExecutionState(ExecutionState.ABORTED)
 					}
-					fiber.failureContinuation().invoke(e)
+					fiber.failureContinuation()(e)
 					fiber.setExecutionState(ExecutionState.RETIRED)
 					interpreter.runtime.unregisterFiber(fiber)
 				}
@@ -192,7 +192,7 @@ class AvailTask constructor(
 				fiber.lock {
 					if (fiber.executionState() === ExecutionState.TERMINATED)
 					{
-						fiber.resultContinuation().invoke(fiber.fiberResult())
+						fiber.resultContinuation()(fiber.fiberResult())
 						fiber.setExecutionState(ExecutionState.RETIRED)
 						interpreter.runtime.unregisterFiber(fiber)
 					}
@@ -241,7 +241,7 @@ class AvailTask constructor(
 					// fiber and invoke its failure continuation with the
 					// throwable.
 					fiber.setExecutionState(ExecutionState.ABORTED)
-					fiber.failureContinuation().invoke(e)
+					fiber.failureContinuation()(e)
 				}
 				assert(current().fiberOrNull() === null)
 			}

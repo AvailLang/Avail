@@ -435,7 +435,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsTupleType(self: AvailObject): Boolean =
 		getInstance(self).isTuple
 
-	override fun o_InstanceCount(self: AvailObject): A_Number = one()
+	override fun o_InstanceCount(self: AvailObject): A_Number = one
 
 	override fun o_Instances(self: AvailObject): A_Set =
 		singletonSet(getInstance(self))

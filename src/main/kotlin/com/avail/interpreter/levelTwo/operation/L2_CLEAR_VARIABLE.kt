@@ -31,16 +31,12 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -53,18 +49,6 @@ import org.objectweb.asm.MethodVisitor
 object L2_CLEAR_VARIABLE : L2Operation(
 	L2OperandType.READ_BOXED.named("variable"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val variableReg =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		assert(registerSet.hasTypeAt(variableReg.register()))
-		val varType = registerSet.typeAt(variableReg.register())
-		assert(varType.isSubtypeOf(mostGeneralVariableType()))
-	}
-
 	override fun hasSideEffect(): Boolean
 	{
 		return true

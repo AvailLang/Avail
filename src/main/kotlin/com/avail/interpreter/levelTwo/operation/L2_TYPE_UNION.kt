@@ -32,14 +32,11 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -55,21 +52,6 @@ object L2_TYPE_UNION : L2Operation(
 	L2OperandType.READ_BOXED.named("second type"),
 	L2OperandType.WRITE_BOXED.named("union type"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val firstType = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondType = instruction.operand<L2ReadBoxedOperand>(1)
-		val outputType = instruction.operand<L2WriteBoxedOperand>(2)
-		val firstMeta = registerSet.typeAt(firstType.register())
-		val secondMeta = registerSet.typeAt(secondType.register())
-		val unionMeta = firstMeta.typeUnion(secondMeta)
-		registerSet.typeAtPut(
-			outputType.register(), unionMeta, instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

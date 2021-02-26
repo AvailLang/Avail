@@ -31,8 +31,9 @@
  */
 package com.avail.interpreter.levelTwo.register
 
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*
 import com.avail.optimizer.L2Generator
-import com.avail.optimizer.reoptimizer.L2Inliner
+import com.avail.optimizer.reoptimizer.L2Regenerator
 
 /**
  * `L2FloatRegister` models the conceptual usage of a register that can store a
@@ -49,7 +50,7 @@ import com.avail.optimizer.reoptimizer.L2Inliner
  */
 class L2FloatRegister constructor(debugValue: Int) : L2Register(debugValue)
 {
-	override fun registerKind(): RegisterKind = RegisterKind.FLOAT
+	override fun registerKind() = FLOAT_KIND
 
 	override fun copyForTranslator(
 		generator: L2Generator): L2FloatRegister
@@ -64,6 +65,6 @@ class L2FloatRegister constructor(debugValue: Int) : L2Register(debugValue)
 		return result
 	}
 
-	override fun copyForInliner(inliner: L2Inliner): L2FloatRegister =
-		L2FloatRegister(inliner.nextUnique())
+	override fun copyForRegenerator(regenerator: L2Regenerator) =
+		L2FloatRegister(regenerator.nextUnique())
 }

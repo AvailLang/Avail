@@ -59,7 +59,6 @@ import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE
 import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.tuples.A_String
-import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.StringDescriptor
@@ -327,7 +326,7 @@ open class TokenDescriptor protected constructor(
 			string.tupleCodePointAt(it) == '\n'.toInt()
 		}
 		// Now lookup/capture the next state.
-		val allTokens = append(priorLexingState.allTokens, self)
+		val allTokens = priorLexingState.allTokens.append(self)
 		val state = LexingState(
 			priorLexingState.compilationContext, positionAfter, line, allTokens)
 		self.setSlot(NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared())

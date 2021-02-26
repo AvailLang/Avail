@@ -1019,7 +1019,6 @@ class AvailServer constructor(
 		 * @return
 		 *   A message.
 		 */
-		@JvmOverloads
 		internal fun newNotificationMessage(
 			channel: AvailServerChannel,
 			message: String): Message

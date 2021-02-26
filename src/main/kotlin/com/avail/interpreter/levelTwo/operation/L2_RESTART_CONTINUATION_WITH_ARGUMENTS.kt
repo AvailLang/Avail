@@ -40,8 +40,6 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -64,22 +62,7 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED.named("continuation to restart"),
 	L2OperandType.READ_BOXED_VECTOR.named("arguments"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		// Do nothing; there are no destinations reached from here within the
-		// current chunk.  Technically the restart might be to somewhere in the
-		// current chunk, but that's not a requirement.
-		assert(registerSets.isEmpty())
-	}
-
-	override fun hasSideEffect(): Boolean
-	{
-		// Never remove this.
-		return true
-	}
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

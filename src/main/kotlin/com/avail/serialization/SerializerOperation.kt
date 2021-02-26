@@ -60,10 +60,10 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompil
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
@@ -331,7 +331,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return zero()
+			return zero
 		}
 	},
 
@@ -352,7 +352,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return one()
+			return one
 		}
 	},
 
@@ -373,7 +373,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return two()
+			return two
 		}
 	},
 
@@ -2961,12 +2961,11 @@ enum class SerializerOperation constructor(
 			assert(obj.isPojoType)
 			assert(obj.isPojoFusedType)
 			var symbolicMap = emptyMap
-			for (entry in obj.javaAncestors().mapIterable())
-			{
-				val baseClass = entry.key().javaObjectNotNull<Class<*>>()
+			obj.javaAncestors().forEach { key, value ->
+				val baseClass = key.javaObjectNotNull<Class<*>>()
 				val className = stringFrom(baseClass.name)
 				val processedParameters = mutableListOf<A_BasicObject>()
-				for (parameter in entry.value())
+				for (parameter in value)
 				{
 					assert(!parameter.isTuple)
 					if (parameter.isPojoSelfType)
@@ -2993,14 +2992,12 @@ enum class SerializerOperation constructor(
 			var ancestorMap = emptyMap
 			try
 			{
-				for (entry in subobjects[0].mapIterable())
-				{
+				subobjects[0].forEach { key, value ->
 					val baseClass = Class.forName(
-						entry.key().asNativeString(), true, classLoader)
+						key.asNativeString(), true, classLoader)
 					val rawPojo = equalityPojo(baseClass)
 					val processedParameters = mutableListOf<AvailObject>()
-					for (parameter in entry.value())
-					{
+					value.forEach { parameter ->
 						if (parameter.isTuple)
 						{
 							processedParameters.add(

@@ -50,7 +50,7 @@ import com.avail.utility.cast
  * The list of [L2ReadIntOperand]s.
  */
 class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
-	: L2ReadVectorOperand<L2ReadIntOperand, L2IntRegister>(elements)
+	: L2ReadVectorOperand<L2IntRegister, L2ReadIntOperand>(elements)
 {
 	override fun clone(): L2ReadIntVectorOperand =
 		L2ReadIntVectorOperand(
@@ -59,9 +59,7 @@ class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
 				it.clone().cast()
 			})
 
-	override fun clone(
-		replacementElements: List<L2ReadIntOperand>
-	): L2ReadIntVectorOperand =
+	override fun clone(replacementElements: List<L2ReadIntOperand>) =
 		L2ReadIntVectorOperand(replacementElements)
 
 	override fun operandType(): L2OperandType = L2OperandType.READ_INT_VECTOR

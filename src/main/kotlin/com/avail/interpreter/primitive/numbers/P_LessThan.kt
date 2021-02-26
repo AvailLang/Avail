@@ -127,8 +127,7 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The branch direction has been statically proven.
 			callSiteHelper.useAnswer(
-				generator
-					.boxedConstant(objectFromBoolean(canBeTrue)))
+				generator.boxedConstant(objectFromBoolean(canBeTrue)))
 			return true
 		}
 		val firstConstant = firstReg.constantOrNull()

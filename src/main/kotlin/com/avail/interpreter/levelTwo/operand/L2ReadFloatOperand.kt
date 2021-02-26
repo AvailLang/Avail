@@ -36,9 +36,11 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
 import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.values.L2SemanticUnboxedFloat
 import com.avail.optimizer.values.L2SemanticValue
+import com.avail.utility.cast
 
 /**
  * An `L2ReadFloatOperand` is an operand of type [L2OperandType.READ_FLOAT]. It
@@ -74,8 +76,7 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 		: super(
 			semanticValue,
 			restriction,
-			manifest.getDefinition<L2FloatRegister>(
-				semanticValue, RegisterKind.FLOAT))
+			manifest.getDefinition<L2FloatRegister>(semanticValue, FLOAT_KIND))
 	{
 		assert(restriction.isUnboxedFloat)
 	}
@@ -98,9 +99,8 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 			register: L2FloatRegister)
 		: super(semanticValue, restriction, register)
 
-	override fun copyForSemanticValue(
-		newSemanticValue: L2SemanticValue): L2ReadFloatOperand =
-			L2ReadFloatOperand(newSemanticValue, restriction(), register())
+	override fun semanticValue(): L2SemanticUnboxedFloat =
+		super.semanticValue().cast()
 
 	override fun copyForRegister(newRegister: L2Register): L2ReadFloatOperand =
 		L2ReadFloatOperand(
@@ -113,5 +113,5 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 		dispatcher.doOperand(this)
 	}
 
-	override fun registerKind(): RegisterKind = RegisterKind.FLOAT
+	override fun registerKind() = FLOAT_KIND
 }

@@ -59,7 +59,7 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
 	// It jumps if the result doesn't fit in an int.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

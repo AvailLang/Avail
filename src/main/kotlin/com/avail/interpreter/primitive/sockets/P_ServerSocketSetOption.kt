@@ -75,11 +75,6 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused")
 object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 {
-	/**
-	 * A one-based list of the standard socket options.
-	 */
-	private val socketOptions = arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
@@ -143,3 +138,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_IO_ERROR))
 }
+
+/** A one-based list of the standard socket options. */
+private val socketOptions =
+	arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)

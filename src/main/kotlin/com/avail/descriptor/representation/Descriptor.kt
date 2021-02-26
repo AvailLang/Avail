@@ -716,7 +716,7 @@ abstract class Descriptor protected constructor (
 			val child = self.slot(
 				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
 				i)
-			val replacementChild = visitor.invoke(child)
+			val replacementChild = visitor(child)
 			if (replacementChild !== child)
 			{
 				self.writeBackSlot(

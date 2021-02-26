@@ -35,7 +35,9 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.optimizer.values.L2SemanticUnboxedInt
 import com.avail.optimizer.values.L2SemanticValue
+import com.avail.utility.cast
 
 /**
  * An `L2WriteIntOperand` is an operand of type [L2OperandType.WRITE_INT].  It
@@ -56,15 +58,17 @@ import com.avail.optimizer.values.L2SemanticValue
  *   The initial [L2IntRegister] that backs this operand.
  */
 class L2WriteIntOperand constructor(
-		semanticValues: Set<L2SemanticValue>,
+		semanticValues: Set<L2SemanticUnboxedInt>,
 		restriction: TypeRestriction,
 		register: L2IntRegister)
 	: L2WriteOperand<L2IntRegister>(semanticValues, restriction, register)
 {
 	override fun operandType(): L2OperandType = L2OperandType.WRITE_INT
 
-	override fun registerKind(): RegisterKind = RegisterKind.INTEGER
+	override fun registerKind(): RegisterKind = RegisterKind.INTEGER_KIND
 
+	override fun onlySemanticValue(): L2SemanticUnboxedInt =
+		super.onlySemanticValue().cast()
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

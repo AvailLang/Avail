@@ -127,6 +127,7 @@ import com.avail.optimizer.jvm.CheckedField.Companion.instanceField
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
@@ -906,8 +907,7 @@ class Interpreter(
 			aFiber.setExecutionState(state)
 			aFiber.setContinuation(getReifiedContinuation()!!)
 			setReifiedContinuation(null)
-			val bound = aFiber.getAndSetSynchronizationFlag(
-				BOUND, false)
+			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
 			assert(bound)
 			fiber(null, "primitiveSuspend")
 		}
@@ -985,8 +985,7 @@ class Interpreter(
 			aFiber.setExecutionState(state)
 			aFiber.setContinuation(nil)
 			aFiber.setFiberResult(finalObject)
-			val bound = aFiber.getAndSetSynchronizationFlag(
-				BOUND, false)
+			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
 			assert(bound)
 			fiber(null, "exitFiber")
 		}
@@ -1211,17 +1210,19 @@ class Interpreter(
 		val savedChunk = chunk!!
 		val savedOffset = offset
 		val savedPointers = stepper.pointers
+		// Save the argsBuffer, since we now (Feb 2021) allow infallible
+		// primitives to be postponed all the way into the start of a
+		// reification zone, and the current calling convention destroys the
+		// existing argument list.
+		val savedArgs = argsBuffer.toTypedArray()
 
-		// Continue in this frame where it left off, right after
-		// the L2_TRY_OPTIONAL_PRIMITIVE instruction.
-		// Inline and non-inline primitives are each allowed to
-		// change the continuation.  The stack has already been
-		// reified here, so just continue in whatever frame was
-		// set up by the continuation.
-		// The exitNow flag is set to ensure the interpreter
-		// will wind down correctly.  It should be in a state
-		// where all frames have been reified, so returnNow
-		// would be unnecessary.
+		// Continue in this frame where it left off, right after the
+		// L2_TRY_OPTIONAL_PRIMITIVE instruction. Inline and non-inline
+		// primitives are each allowed to change the continuation.  The stack
+		// has already been reified here, so just continue in whatever frame was
+		// set up by the continuation. The exitNow flag is set to ensure the
+		// interpreter will wind down correctly.  It should be in a state where
+		// all frames have been reified, so returnNow would be unnecessary.
 		isReifying = true
 		return StackReifier(true, primitive.reificationForNoninlineStat!!)
 		{
@@ -1240,6 +1241,8 @@ class Interpreter(
 					debugModeString,
 					primitive.name)
 			}
+			argsBuffer.clear()
+			argsBuffer.addAll(savedArgs)
 			val timeBefore = beforeAttemptPrimitive(primitive)
 			val result = primitive.attempt(this)
 			afterAttemptPrimitive(primitive, timeBefore, result)
@@ -1415,8 +1418,7 @@ class Interpreter(
 	{
 		theReifiedContinuation = continuation as AvailObject?
 		if (debugL2) {
-			val text: String
-			text = when {
+			val text = when {
 				continuation === null -> "null"
 				continuation.equalsNil() -> continuation.toString()
 				else -> {
@@ -2306,7 +2308,7 @@ class Interpreter(
 		pc: Int,
 		stackp: Int,
 		vararg slots: A_BasicObject
-	) : StackReifier?
+	) : StackReifier
 	{
 		val returner = returningFunction!!
 		val caller = function!!
@@ -2327,7 +2329,65 @@ class Interpreter(
 			val continuation = createContinuationWithFrame(
 				caller,
 				it.getReifiedContinuation() ?: nil,
-				createRegisterDump(arrayOf(), LongArray(0)),
+				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
+				pc,
+				stackp,
+				L2Chunk.unoptimizedChunk,
+				ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk,
+				listOf(*slots),
+				0)
+			setReifiedContinuation(continuation)
+		}
+		return reifier
+	}
+
+	/**
+	 * Handle having attempted to read from a variable that does not currently
+	 * have a value. This shrinks the control flow graph in L2, which is not
+	 * just a time saving during creation and memory saving ongoing, but may
+	 * also increase HotSpot's effectiveness.
+	 *
+	 * This [Interpreter]'s [function] is expected to contain the current
+	 * function.
+	 *
+	 * Note that if the handler ([HookType.READ_UNASSIGNED_VARIABLE]) asks to
+	 * reify, this method will construct a continuation representing the current
+	 * function.  The continuation frame can't be resumed, so it will use the
+	 * [L2Chunk.unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
+	 *
+	 * @param pc
+	 *   The level one [A_Continuation.pc] to use in a new continuation, if
+	 *   reification happens inside the error handler.
+	 * @param stackp
+	 *   The level one parameter stack pointer to use in a new continuation, if
+	 *   reification happens inside the error handler.
+	 * @param slots
+	 *   Values that will populate a continuation's frame slots if reification
+	 *   happens inside the error handler.
+	 * @return
+	 *   Either `null` or a [StackReifier] that the calling code should simply
+	 *   return.  This method creates a stack frame on behalf of the current
+	 *   executing function if needed.
+	 */
+	@ReferencedInGeneratedCode
+	fun reportUnassignedVariableRead(
+		pc: Int,
+		stackp: Int,
+		vararg slots: A_BasicObject
+	) : StackReifier
+	{
+		val currentFunction = function!!
+		argsBuffer.clear()
+		val reifier = invokeFunction(runtime.unassignedVariableReadFunction())
+		assert(reifier !== null) {
+			"unassigned-variable-read handler must not return."
+		}
+		// Assemble a (non-resumable) stack frame for the reifier.
+		reifier!!.pushAction {
+			val continuation = createContinuationWithFrame(
+				currentFunction,
+				it.getReifiedContinuation() ?: nil,
+				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
 				pc,
 				stackp,
 				L2Chunk.unoptimizedChunk,
@@ -2961,6 +3021,18 @@ class Interpreter(
 			StackReifier::class.java,
 			A_BasicObject::class.java,
 			A_Type::class.java,
+			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType!!,
+			Array<A_BasicObject>::class.java)
+
+		/**
+		 * Access the [reportUnassignedVariableRead] method.
+		 */
+		@JvmField
+		var reportUnassignedVariableReadMethod: CheckedMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::reportUnassignedVariableRead.name,
+			StackReifier::class.java,
 			Int::class.javaPrimitiveType!!,
 			Int::class.javaPrimitiveType!!,
 			Array<A_BasicObject>::class.java)
