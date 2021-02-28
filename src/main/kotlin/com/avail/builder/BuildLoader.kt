@@ -371,7 +371,7 @@ internal class BuildLoader constructor(
 		try
 		{
 			// Read the module data from the repository.
-			val bytes = compilation.bytes!!
+			val bytes = compilation.bytes
 			val inputStream = validatedBytesFrom(bytes)
 			deserializer = Deserializer(inputStream, availBuilder.runtime) {
 				throw Exception("Not yet implemented") // TODO MvG

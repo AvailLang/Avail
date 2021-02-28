@@ -551,30 +551,27 @@ class CompilationContext constructor(
 		{
 			loader.startRecordingEffects()
 		}
-		var adjustedSuccess = onSuccess
-		if (shouldSerialize)
+		val adjustedSuccess: (AvailObject) -> Unit
+		when
 		{
-			val before = AvailRuntimeSupport.captureNanos()
-			adjustedSuccess = { successValue ->
-				val after = AvailRuntimeSupport.captureNanos()
-				Interpreter.current().recordTopStatementEvaluation(
-					(after - before).toDouble(), module)
-				loader.stopRecordingEffects()
-				serializeAfterRunning(function)
-				onSuccess(successValue)
+			shouldSerialize ->
+			{
+				val before = AvailRuntimeSupport.captureNanos()
+				adjustedSuccess = { successValue ->
+					val after = AvailRuntimeSupport.captureNanos()
+					Interpreter.current().recordTopStatementEvaluation(
+						(after - before).toDouble(), module)
+					loader.stopRecordingEffects()
+					serializeAfterRunning(function)
+					onSuccess(successValue)
+				}
 			}
+			else -> adjustedSuccess = onSuccess
 		}
 		if (trackTasks)
 		{
-			val finalAdjustedSuccess = adjustedSuccess
 			lexingState.setFiberContinuationsTrackingWork(
-				fiber,
-				{ value ->
-					finalAdjustedSuccess(value)
-				},
-				{ throwable ->
-					onFailure(throwable)
-				})
+				fiber, adjustedSuccess, onFailure)
 		}
 		else
 		{

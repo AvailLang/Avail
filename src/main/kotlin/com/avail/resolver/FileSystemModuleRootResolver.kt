@@ -637,12 +637,11 @@ class FileSystemModuleRootResolver constructor(
 
 		val nameStack = LinkedList<String>()
 		nameStack.addLast("/${moduleRoot.name}")
-		var pathStack: Deque<File>? = null
+		val pathStack: Deque<File> = LinkedList()
 
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
 		val sourceDirectory = Paths.get(uri).toFile()
-		pathStack = LinkedList()
 		pathStack.addLast(sourceDirectory)
 		for (index in 2 until components.size)
 		{

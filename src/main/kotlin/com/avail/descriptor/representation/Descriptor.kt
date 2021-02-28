@@ -38,6 +38,7 @@ import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -1028,8 +1029,12 @@ abstract class Descriptor protected constructor (
 
 	override fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
-		continuation: (Boolean)->Unit): Unit =
-		unsupported
+		continuation: (Boolean)->Unit
+	): Unit = unsupported
+	override fun o_DecreaseCountdownToReoptimizeFromPoll(
+		self: AvailObject,
+		delta: Long
+	): Unit = unsupported
 
 	override fun o_IsAbstract (self: AvailObject): Boolean = unsupported
 
@@ -2288,7 +2293,7 @@ abstract class Descriptor protected constructor (
 		whenReified: (A_Continuation) -> Unit): Unit = unsupported
 
 	override fun o_GetAndClearReificationWaiters (
-		self: AvailObject): A_Set = unsupported
+		self: AvailObject): List<(A_Continuation)->Unit> = unsupported
 
 	// Only types should be tested for being bottom.
 	override fun o_IsBottom (self: AvailObject): Boolean = unsupported
@@ -2686,4 +2691,9 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		potentialAncestor: A_Module
 	): Boolean = unsupported
+
+	override fun o_FiberHelper(
+		self: AvailObject
+	): FiberDescriptor.FiberHelper = unsupported
+
 }

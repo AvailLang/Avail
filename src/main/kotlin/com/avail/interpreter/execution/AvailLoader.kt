@@ -1314,9 +1314,7 @@ class AvailLoader(
 						module().moduleName())
 				}
 				fiber.setTextInterface(textInterface)
-				fiber.setSuccessAndFailure(
-					{ again() },
-					{ again() })
+				fiber.setSuccessAndFailure({ again() }, { again() })
 				runOutermostFunction(
 					runtime(), fiber, unloadFunction, emptyList())
 			} else {

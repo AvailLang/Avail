@@ -37,26 +37,11 @@ import com.avail.AvailRuntimeSupport
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion.PRIORITY
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._BOUND
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._CAN_REJECT_PARSE
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._IS_EVALUATING_MACRO
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._PERMIT_UNAVAILABLE
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._REIFICATION_REQUESTED
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._SCHEDULED
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._TERMINATION_REQUESTED
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._TRACE_VARIABLE_READS_BEFORE_WRITES
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.Companion._TRACE_VARIABLE_WRITES
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.DEBUG_UNIQUE_ID
-import com.avail.descriptor.fiber.FiberDescriptor.IntegerSlots.EXECUTION_STATE
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.FIBER_GLOBALS
-import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.HELPER
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.HERITABLE_FIBER_GLOBALS
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.JOINING_FIBERS
-import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.REIFICATION_WAITERS
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.RESULT
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.RESULT_TYPE
 import com.avail.descriptor.fiber.FiberDescriptor.ObjectSlots.SUSPENDING_FUNCTION
@@ -72,16 +57,14 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
-import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
-import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
@@ -101,7 +84,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
 import com.avail.utility.json.JSONWriter
-import java.util.EnumSet
 import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
@@ -138,13 +120,14 @@ import java.util.concurrent.atomic.AtomicInteger
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 class FiberDescriptor private constructor(
-	mutability: Mutability
+	mutability: Mutability,
+	val helper: FiberHelper
 ) : Descriptor(
 	mutability,
 	TypeTag.FIBER_TAG,
 	ObjectSlots::class.java,
-	IntegerSlots::class.java
-) {
+	null)
+{
 	/**
 	 * A helper class, one per [fiber][A_Fiber].  It's referenced referenced
 	 * through a pojo from a field of the fiber, so that the [FiberDescriptor]
@@ -172,8 +155,62 @@ class FiberDescriptor private constructor(
 	class FiberHelper constructor(
 		internal var loader: AvailLoader?,
 		internal var textInterface: TextInterface,
-		nameSupplier: (()->A_String)
-	) {
+		initialPriority: Int,
+		nameSupplier: (()->A_String))
+	{
+		/** The random, permanent hash value of the fiber. */
+		val hash: Int = AvailRuntimeSupport.nextHash()
+
+		/**
+		 * The fiber's priority, in `[0..255]`.  Higher priority fibers are
+		 * serviced more quickly than lower priority fibers.  255 is the highest
+		 * priority and 0 is the lowest.
+		 */
+		@Volatile
+		var priority: Int = initialPriority
+
+		/** The fiber's [Flag]s, encoded as an [AtomicInteger]. */
+		var flags = AtomicInteger(0)
+
+		/** Retrieve the given flag as a boolean. */
+		fun getFlag(flag: FlagGroup): Boolean = flags.get() and flag.mask != 0
+
+		/**
+		 * Atomically replace the given flag with the boolean.
+		 */
+		fun setFlag(flag: FlagGroup, value: Boolean)
+		{
+			flags.getAndUpdate { old ->
+				when
+				{
+					value -> old or flag.mask
+					else -> old and flag.mask.inv()
+				}
+			}
+		}
+
+		/**
+		 * Atomically replace the given flag with the boolean, answering the
+		 * boolean that previously occupied that flag.
+		 */
+		fun getAndSetFlag(flag: FlagGroup, value: Boolean): Boolean =
+			flags.getAndUpdate { old ->
+				when
+				{
+					value -> old or flag.mask
+					else -> old and flag.mask.inv()
+				}
+			} and flag.mask != 0
+
+		/**
+		 * The [ExecutionState] of the fiber, indicating whether the fiber is
+		 * e.g., [running][ExecutionState.RUNNING],
+		 * [suspended][ExecutionState.SUSPENDED] or
+		 * [terminated][ExecutionState.TERMINATED].
+		 */
+		@Volatile
+		var executionState = ExecutionState.UNSTARTED
+
 		/**
 		 * The Kotlin [Function] that should be invoked when the fiber completes
 		 * successfully, passing the value produced by the outermost frame.
@@ -191,11 +228,6 @@ class FiberDescriptor private constructor(
 		/**
 		 * The [TimerTask] responsible for waking up this sleeping fiber, or
 		 * `null` if the fiber is not sleeping.
-		 *   A [WeakHashMap] holding the [variables][A_Variable] that were
-		 *   encountered during a variable access trace.  The corresponding values
-		 *   are `true` iff the variable was read before it was written.
-		 *
-		 *   See [TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES].
 		 */
 		@Volatile
 		internal var wakeupTask: TimerTask? = null
@@ -238,198 +270,196 @@ class FiberDescriptor private constructor(
 		 * which has terminated typically also collects that fiber's log.
 		 */
 		val debugLog = StringBuilder()
+
+		/**
+		 * A 64-bit unique value for this fiber, allocated from a monotonically
+		 * increasing counter.  Since it's only used for debugging, it's safe
+		 * even if the counter eventually overflows.
+		 */
+		val debugUniqueId = uniqueDebugCounter.incrementAndGet().toLong()
+
+		/**
+		 * A [set][SetDescriptor] of raw [pojos][RawPojoDescriptor], each of
+		 * which wraps an action indicating what to do with the fiber's reified
+		 * [CONTINUATION] when the fiber next reaches a suitable safe point.
+		 *
+		 * The non-emptiness of this set must agree with the value of the
+		 * [InterruptRequestFlag.REIFICATION_REQUESTED] flag.
+		 */
+		val reificationWaiters = mutableSetOf<(A_Continuation) -> Unit>()
+
+		/**
+		 * An amount to subtract from readings of the current time for the
+		 * purpose of measuring elapsed time *excluding* time when the fiber was
+		 * suspended.  This metric is far more useful than raw elapsed time for
+		 * measuring performance, especially in the presence of many fibers that
+		 * take significant time in suspended primitives or preempting each
+		 * other.
+		 *
+		 * Each suspension/resumption pair causes this field to increase.
+		 */
+		private var clockBiasNanos: Long = 0L
+
+		/**
+		 * The last system clock time, in nanoseconds, that this fiber was
+		 * suspended, or blocked in any other way.  It must be zero (`0L`) while
+		 * the fiber is running.
+		 */
+		private var suspensionTimeNanos: Long = 0L
+
+		/**
+		 * Answer a [Long], representing nanoseconds, which increases
+		 * monotonically at the normal rate of time while the fiber is running,
+		 * but stops when it is not.
+		 */
+		fun fiberTime(): Long = when (val suspended = suspensionTimeNanos)
+		{
+			// The fiber is not suspended.  Report the current clock
+			// adjusted to be a fiber time.
+			0L -> AvailRuntimeSupport.captureNanos() - clockBiasNanos
+			// The fiber is suspended.  Report the time that it was
+			// suspended, adjusted to be a fiber time.
+			else -> suspended - clockBiasNanos
+		}
+	}
+
+	/** The interpretation of the [FiberHelper]'s [flags][FiberHelper.flags]. */
+	enum class Flag constructor (val shift: Int) : FlagGroup
+	{
+		/** See [InterruptRequestFlag.TERMINATION_REQUESTED]. */
+		TERMINATION_REQUESTED(0),
+
+		/** See [InterruptRequestFlag.REIFICATION_REQUESTED]. */
+		REIFICATION_REQUESTED(1),
+
+		/** See [SynchronizationFlag.BOUND]. */
+		BOUND(2),
+
+		/** See [SynchronizationFlag.SCHEDULED]. */
+		SCHEDULED(3),
+
+		/** See [SynchronizationFlag.PERMIT_UNAVAILABLE]. */
+		PERMIT_UNAVAILABLE(4),
+
+		/** See [TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]. */
+		TRACE_VARIABLE_READS_BEFORE_WRITES(5),
+
+		/** See [TraceFlag.TRACE_VARIABLE_WRITES]. */
+		TRACE_VARIABLE_WRITES(6),
+
+		/** See [GeneralFlag.CAN_REJECT_PARSE]. */
+		CAN_REJECT_PARSE(7),
+
+		/** See [GeneralFlag.CAN_REJECT_PARSE]. */
+		IS_EVALUATING_MACRO(8);
+
+		/** The [Int] mask corresponding with the [shift]. */
+		override val mask = 1 shl shift
+
+		override val flag: Flag get() = this
+	}
+
+	/**
+	 * A useful interface for enums to have, if they comprise a collection of
+	 * enumerations that have a [flag] field of type [Flag].
+	 */
+	interface FlagGroup
+	{
+		/** The [Flag] that this enum represents. */
+		val flag: Flag
+
+		val mask: Int get() = flag.mask
 	}
 
 	/**
 	 * The advisory interrupt request flags. The flags declared as enumeration
 	 * values within this `enum` are the interrupt request flags.
-	 *
-	 * @constructor
-	 *
-	 * @property bitField
-	 *   The [BitField] that encodes this flag.
 	 */
-	enum class InterruptRequestFlag(
-		@field:Transient val bitField: BitField
-	) {
+	enum class InterruptRequestFlag(override val flag: Flag) : FlagGroup
+	{
 		/**
 		 * Termination of the target fiber has been requested.
 		 */
-		TERMINATION_REQUESTED(_TERMINATION_REQUESTED),
+		TERMINATION_REQUESTED(Flag.TERMINATION_REQUESTED),
 
 		/**
 		 * Another fiber wants to know what this fiber's reified continuation
 		 * is.
 		 */
-		REIFICATION_REQUESTED(_REIFICATION_REQUESTED);
+		REIFICATION_REQUESTED(Flag.REIFICATION_REQUESTED);
 	}
 
 	/**
 	 * The synchronization flags. The flags declared as enumeration values
 	 * within this `enum` are for synchronization-related conditions.
-	 *
-	 * @constructor
-	 *
-	 * @property bitField
-	 *   The [BitField] that encodes this flag.
 	 */
-	enum class SynchronizationFlag(
-		@field:Transient val bitField: BitField
-	) {
+	enum class SynchronizationFlag(override val flag: Flag) : FlagGroup
+	{
 		/**
 		 * The fiber is bound to an [interpreter][Interpreter].
 		 */
-		BOUND(_BOUND),
+		BOUND(Flag.BOUND),
 
 		/**
 		 * The fiber has been scheduled for resumption.
 		 */
-		SCHEDULED(_SCHEDULED),
+		SCHEDULED(Flag.SCHEDULED),
 
 		/**
 		 * The parking permit is unavailable.
 		 */
-		PERMIT_UNAVAILABLE(_PERMIT_UNAVAILABLE);
+		PERMIT_UNAVAILABLE(Flag.PERMIT_UNAVAILABLE);
 	}
 
 	/**
 	 * The trace flags. The flags declared as enumeration values within this
 	 * [Enum] are for system tracing modes.
-	 *
-	 * @constructor
-	 *
-	 * @property bitField
-	 *   The [BitField] that encodes this flag.
 	 */
-	enum class TraceFlag(
-		@field:Transient val bitField: BitField
-	) {
+	enum class TraceFlag(override val flag: Flag) : FlagGroup
+	{
 		/**
 		 * Should the [interpreter][Interpreter] record which
 		 * [variables][VariableDescriptor] are read before written while running
 		 * this [fiber][FiberDescriptor]?
 		 */
-		TRACE_VARIABLE_READS_BEFORE_WRITES(_TRACE_VARIABLE_READS_BEFORE_WRITES),
+		TRACE_VARIABLE_READS_BEFORE_WRITES(
+			Flag.TRACE_VARIABLE_READS_BEFORE_WRITES),
 
 		/**
 		 * Should the [interpreter][Interpreter] record which
 		 * [variables][VariableDescriptor] are written while running this
 		 * [fiber][FiberDescriptor]?
 		 */
-		TRACE_VARIABLE_WRITES(_TRACE_VARIABLE_WRITES);
+		TRACE_VARIABLE_WRITES(Flag.TRACE_VARIABLE_WRITES);
 	}
 
 	/**
 	 * The general flags. These are flags that are not otherwise grouped for
 	 * semantic purposes, such as indicating [interrupt][InterruptRequestFlag]
 	 * requests or [synchronization][SynchronizationFlag].
-	 *
-	 * @constructor
-	 *
-	 * @property bitField
-	 *   The [BitField] that encodes this flag.
 	 */
-	enum class GeneralFlag(
-		@field:Transient val bitField: BitField
-	) {
+	enum class GeneralFlag(override val flag: Flag) : FlagGroup
+	{
 		/**
 		 * Was the fiber started to apply a semantic restriction?
 		 */
-		CAN_REJECT_PARSE(_CAN_REJECT_PARSE),
+		CAN_REJECT_PARSE(Flag.CAN_REJECT_PARSE),
 
 		/**
 		 * Was the fiber started to evaluate a macro invocation?
 		 */
-		IS_EVALUATING_MACRO(_IS_EVALUATING_MACRO);
-
-	}
-
-	/**
-	 * The layout of integer slots for my instances.
-	 */
-	enum class IntegerSlots : IntegerSlotsEnum {
-		/** The unique id. */
-		DEBUG_UNIQUE_ID,
-
-		/** [BitField]s containing the hash, priority, and flags. */
-		FLAGS,
-
-		/**
-		 * The [execution&#32;state][ExecutionState] of the fiber, indicating
-		 * whether the fiber is [running][ExecutionState.RUNNING],
-		 * [suspended][ExecutionState.SUSPENDED] or
-		 * [terminated][ExecutionState.TERMINATED].
-		 */
-		EXECUTION_STATE;
-
-		@Suppress("ObjectPropertyName")
-		companion object {
-			/**
-			 * The hash of this fiber, which is chosen randomly on the first
-			 * demand.
-			 */
-			@JvmField
-			val HASH_OR_ZERO = BitField(FLAGS, 0, 32)
-
-			/**
-			 * The priority of this fiber, where processes with larger values
-			 * get at least as much opportunity to run as processes with lower
-			 * values.
-			 */
-			@JvmField
-			val PRIORITY = BitField(FLAGS, 32, 8)
-
-			/** See [InterruptRequestFlag.TERMINATION_REQUESTED]. */
-			@JvmField
-			val _TERMINATION_REQUESTED = BitField(FLAGS, 40, 1)
-
-			/** See [InterruptRequestFlag.REIFICATION_REQUESTED]. */
-			@JvmField
-			val _REIFICATION_REQUESTED = BitField(FLAGS, 41, 1)
-
-			/** See [SynchronizationFlag.BOUND]. */
-			@JvmField
-			val _BOUND = BitField(FLAGS, 42, 1)
-
-			/** See [SynchronizationFlag.SCHEDULED]. */
-			@JvmField
-			val _SCHEDULED = BitField(FLAGS, 43, 1)
-
-			/** See [SynchronizationFlag.PERMIT_UNAVAILABLE]. */
-			@JvmField
-			val _PERMIT_UNAVAILABLE = BitField(FLAGS, 44, 1)
-
-			/** See [TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]. */
-			@JvmField
-			val _TRACE_VARIABLE_READS_BEFORE_WRITES = BitField(FLAGS, 45, 1)
-
-			/** See [TraceFlag.TRACE_VARIABLE_WRITES]. */
-			@JvmField
-			val _TRACE_VARIABLE_WRITES = BitField(FLAGS, 46, 1)
-
-			/** See [GeneralFlag.CAN_REJECT_PARSE]. */
-			@JvmField
-			val _CAN_REJECT_PARSE = BitField(FLAGS, 47, 1)
-
-			/** See [GeneralFlag.CAN_REJECT_PARSE]. */
-			@JvmField
-			val _IS_EVALUATING_MACRO = BitField(FLAGS, 48, 1)
-		}
+		IS_EVALUATING_MACRO(Flag.IS_EVALUATING_MACRO);
 	}
 
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
-		/**
-		 * A reference to this fiber's dedicated [FiberHelper], wrapped in a raw
-		 * [pojo][RawPojoDescriptor].
-		 */
-		HELPER,
-
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * The current [state][ContinuationDescriptor] of execution of the
-		 * fiber.  This is a [continuation][A_Continuation].
+		 * fiber.  This is a [continuation][A_Continuation], or [nil] while the
+		 * fiber is running or completed.
 		 */
 		@HideFieldJustForPrinting
 		CONTINUATION,
@@ -466,7 +496,8 @@ class FiberDescriptor private constructor(
 		HERITABLE_FIBER_GLOBALS,
 
 		/**
-		 * The result of running this [fiber][FiberDescriptor] to completion.
+		 * The result of having running this [fiber][FiberDescriptor] to
+		 * completion.  Always [nil] if the fiber has not yet completed.
 		 */
 		@HideFieldJustForPrinting
 		RESULT,
@@ -486,18 +517,7 @@ class FiberDescriptor private constructor(
 		 * this fiber to end its execution, in either success or failure.
 		 */
 		@HideFieldJustForPrinting
-		JOINING_FIBERS,
-
-		/**
-		 * A [set][SetDescriptor] of raw [pojos][RawPojoDescriptor], each of
-		 * which wraps an action indicating what to do with the fiber's reified
-		 * [CONTINUATION] when the fiber next reaches a suitable safe point.
-		 *
-		 * The non-emptiness of this set must agree with the value of the
-		 * [InterruptRequestFlag.REIFICATION_REQUESTED] flag.
-		 */
-		@HideFieldJustForPrinting
-		REIFICATION_WAITERS
+		JOINING_FIBERS;
 	}
 
 	/**
@@ -512,80 +532,51 @@ class FiberDescriptor private constructor(
 	 */
 	enum class ExecutionState(
 		val indicatesSuspension: Boolean,
-		val indicatesTermination: Boolean
-	) : IntegerEnumSlotDescriptionEnum {
+		val indicatesTermination: Boolean,
+		private val privateSuccessors: ()->Set<ExecutionState>
+	)
+	{
 		/**
 		 * The fiber has not been started.
 		 */
-		UNSTARTED(true, false) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(RUNNING)
-			}
-		},
+		UNSTARTED(true, false, { setOf(RUNNING) }),
 
 		/**
 		 * The fiber is running or waiting for another fiber to yield.
 		 */
-		RUNNING(false, false) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(
-					SUSPENDED, INTERRUPTED, PARKED, TERMINATED, ABORTED)
-			}
-		},
-
+		RUNNING(
+			false,
+			false,
+			{ setOf(SUSPENDED, INTERRUPTED, PARKED, TERMINATED, ABORTED) }),
 		/**
 		 * The fiber has been suspended.
 		 */
-		SUSPENDED(true, false) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(RUNNING, ABORTED, ASLEEP)
-			}
-		},
+		SUSPENDED(true, false, { setOf(RUNNING, ABORTED, ASLEEP) }),
 
 		/**
 		 * The fiber has been interrupted.
 		 */
-		INTERRUPTED(true, false) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(RUNNING)
-			}
-		},
+		INTERRUPTED(true, false, { setOf(RUNNING) }),
 
 		/**
 		 * The fiber has been parked.
 		 */
-		PARKED(true, false) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(SUSPENDED)
-			}
-		},
+		PARKED(true, false, { setOf(SUSPENDED) }),
 
 		/**
 		 * The fiber is asleep.
 		 */
-		ASLEEP(true, false) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(SUSPENDED)
-			}
-		},
+		ASLEEP(true, false, { setOf(SUSPENDED) }),
 
 		/**
 		 * The fiber has terminated successfully.
 		 */
-		TERMINATED(false, true) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(ABORTED, RETIRED)
-			}
-		},
+		TERMINATED(false, true, { setOf(ABORTED, RETIRED) }),
 
 		/**
 		 * The fiber has aborted (due to an exception).
 		 */
-		ABORTED(false, true) {
-			override fun privateSuccessors(): Set<ExecutionState> {
-				return EnumSet.of(RETIRED)
-			}
-		},
+		ABORTED(false, true, { setOf(RETIRED) }),
 
 		/**
 		 * The fiber has run either its
@@ -593,11 +584,7 @@ class FiberDescriptor private constructor(
 		 * [failure&#32;continuation][o_FailureContinuation]. This state is
 		 * permanent.
 		 */
-		RETIRED(false, true);
-
-		override fun fieldName(): String = name
-
-		override fun fieldOrdinal(): Int = ordinal
+		RETIRED(false, true, { setOf() });
 
 		/**
 		 * The valid successor [states][ExecutionState], encoded as a 1-bit for
@@ -617,146 +604,76 @@ class FiberDescriptor private constructor(
 		fun mayTransitionTo(newState: ExecutionState): Boolean {
 			if (successors == -1) {
 				// No lock - redundant computation in other threads is stable.
-				var s = 0
-				for (successor in privateSuccessors()) {
-					s = s or (1 shl successor.ordinal)
-				}
-				successors = s
+				successors = privateSuccessors().sumBy { 1 shl it.ordinal }
 			}
 			return successors ushr newState.ordinal and 1 == 1
 		}
-
-		/**
-		 * Answer my legal successor execution states.  None by default.
-		 *
-		 * @return
-		 *   A [Set] of execution states.
-		 */
-		protected open fun privateSuccessors(): Set<ExecutionState> {
-			return emptySet()
-		}
-
-		/**
-		 * Does this execution state indicate that a [fiber][A_Fiber] is
-		 * suspended for some reason?
-		 *
-		 * @return
-		 *   `true` if the execution state represents suspension, `false`
-		 *   otherwise.
-		 */
-		fun indicatesSuspension(): Boolean = indicatesSuspension
-
-		/**
-		 * Does this execution state indicate that a [fiber][A_Fiber] has
-		 * terminated for some reason?
-		 *
-		 * @return
-		 *   `true` if the execution state represents termination, `false`
-		 *   otherwise.
-		 */
-		fun indicatesTermination(): Boolean = indicatesTermination
-
-		companion object {
-			/** An array of all [ExecutionState] enumeration values. */
-			private val all = values()
-
-			/**
-			 * Answer the `ExecutionState` enum value having the given ordinal.
-			 *
-			 * @param ordinal
-			 *   The ordinal to look up.
-			 * @return
-			 *   The indicated `ExecutionState`.
-			 */
-			fun lookup(ordinal: Int): ExecutionState = all[ordinal]
-		}
 	}
 
+	// Allow mutable access to all fiber slots.
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean {
-		// Allow mutable access to all fiber slots.
-		return true
-	}
+		e: AbstractSlotsEnum
+	): Boolean = true
+
+	override fun o_FiberHelper(self: AvailObject): FiberHelper = helper
 
 	override fun o_ExecutionState(self: AvailObject): ExecutionState =
-		ExecutionState.lookup(self.mutableSlot(EXECUTION_STATE).toInt())
+		helper.executionState
 
-	override fun o_SetExecutionState(self: AvailObject, value: ExecutionState) =
-		synchronized(self) {
-			val index = self.mutableSlot(EXECUTION_STATE).toInt()
-			val current = ExecutionState.lookup(index)
-			assert(current.mayTransitionTo(value))
-			self.setSlot(EXECUTION_STATE, value.ordinal.toLong())
-		}
+	override fun o_SetExecutionState(self: AvailObject, value: ExecutionState)
+	{
+		assert(helper.executionState.mayTransitionTo(value))
+		helper.executionState = value
+	}
 
-	override fun o_Priority(self: AvailObject): Int = self.mutableSlot(PRIORITY)
+	override fun o_Priority(self: AvailObject): Int = helper.priority
 
-	override fun o_SetPriority(self: AvailObject, value: Int) =
-		self.setMutableSlot(PRIORITY, value)
+	override fun o_SetPriority(self: AvailObject, value: Int)
+	{
+		helper.priority = value
+	}
 
 	override fun o_UniqueId(self: AvailObject): Long =
-		self.slot(DEBUG_UNIQUE_ID)
+		helper.debugUniqueId
 
 	override fun o_InterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
-	): Boolean = synchronized(self) { self.slot(flag.bitField) == 1 }
+	): Boolean = helper.getFlag(flag)
 
 	override fun o_SetInterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
-	) = synchronized(self) { self.setSlot(flag.bitField, 1) }
+	) = helper.setFlag(flag, true)
 
 	override fun o_GetAndClearInterruptRequestFlag(
 		self: AvailObject,
 		flag: InterruptRequestFlag
-	): Boolean = synchronized(self) {
-		val value = self.slot(flag.bitField)
-		self.setSlot(flag.bitField, 0)
-		value == 1
-	}
+	) = helper.getAndSetFlag(flag, false)
 
 	override fun o_GetAndSetSynchronizationFlag(
 		self: AvailObject,
 		flag: SynchronizationFlag,
 		value: Boolean
-	): Boolean {
-		var oldValue: Int
-		val newBit = if (value) 1 else 0
-		synchronized(self) {
-			oldValue = self.slot(flag.bitField)
-			self.setSlot(flag.bitField, newBit)
-		}
-		return oldValue == 1
-	}
+	): Boolean = helper.getAndSetFlag(flag, value)
 
-	override fun o_GeneralFlag(self: AvailObject, flag: GeneralFlag): Boolean {
-		val value: Int = synchronized(self) { self.slot(flag.bitField) }
-		return value == 1
-	}
+	override fun o_GeneralFlag(self: AvailObject, flag: GeneralFlag): Boolean =
+		helper.getFlag(flag)
 
-	override fun o_SetGeneralFlag(
-		self: AvailObject,
-		flag: GeneralFlag
-	) = synchronized(self) { self.setSlot(flag.bitField, 1) }
+	override fun o_SetGeneralFlag(self: AvailObject, flag: GeneralFlag) =
+		helper.setFlag(flag, true)
 
-	override fun o_ClearGeneralFlag(
-		self: AvailObject,
-		flag: GeneralFlag
-	) = synchronized(self) { self.setSlot(flag.bitField, 0) }
+	override fun o_ClearGeneralFlag(self: AvailObject, flag: GeneralFlag) =
+		helper.setFlag(flag, false)
 
 	override fun o_TraceFlag(self: AvailObject, flag: TraceFlag): Boolean =
-		synchronized(self) { self.slot(flag.bitField) == 1 }
+		helper.getFlag(flag)
 
-	override fun o_SetTraceFlag(
-		self: AvailObject,
-		flag: TraceFlag
-	) = synchronized(self) { self.setSlot(flag.bitField, 1) }
+	override fun o_SetTraceFlag(self: AvailObject, flag: TraceFlag) =
+		helper.setFlag(flag, true)
 
-	override fun o_ClearTraceFlag(
-		self: AvailObject,
-		flag: TraceFlag
-	) = synchronized(self) { self.setSlot(flag.bitField, 0) }
+	override fun o_ClearTraceFlag(self: AvailObject, flag: TraceFlag) =
+		helper.setFlag(flag, false)
 
 	override fun o_Continuation(self: AvailObject): A_Continuation =
 		self.mutableSlot(CONTINUATION)
@@ -768,12 +685,12 @@ class FiberDescriptor private constructor(
 	override fun o_SetContinuation(self: AvailObject, value: A_Continuation) =
 		self.setContinuationSlotOfFiber(CONTINUATION, value)
 
-	override fun o_FiberName(self: AvailObject): A_String = self.helper.name
+	override fun o_FiberName(self: AvailObject): A_String = helper.name
 
 	override fun o_FiberNameSupplier(
 		self: AvailObject,
 		supplier: () -> A_String
-	) = self.helper.nameSupplier(supplier)
+	) = helper.nameSupplier(supplier)
 
 	override fun o_FiberGlobals(self: AvailObject): A_Map =
 		self.mutableSlot(FIBER_GLOBALS)
@@ -801,42 +718,38 @@ class FiberDescriptor private constructor(
 	override fun o_SetBreakpointBlock(self: AvailObject, value: AvailObject) =
 		self.setMutableSlot(BREAKPOINT_BLOCK, value)
 
-	override fun o_AvailLoader(self: AvailObject): AvailLoader? =
-		self.helper.loader
+	override fun o_AvailLoader(self: AvailObject): AvailLoader? = helper.loader
 
 	override fun o_SetAvailLoader(
 		self: AvailObject,
-		loader: AvailLoader?
-	) {
-		self.helper.loader = loader
+		loader: AvailLoader?)
+	{
+		helper.loader = loader
 	}
 
-	override fun o_ResultContinuation(
-		self: AvailObject
-	): (AvailObject)->Unit = synchronized(self) {
-		self.helper.run {
-			val result = resultContinuation
-			assert(result !== null) { "Fiber attempting to succeed twice!" }
-			resultContinuation = null
-			failureContinuation = null
-			result!!
+	override fun o_ResultContinuation(self: AvailObject): (AvailObject)->Unit =
+		synchronized(self) {
+			helper.run {
+				val result = resultContinuation
+				assert(result !== null) { "Fiber attempting to succeed twice!" }
+				resultContinuation = null
+				failureContinuation = null
+				result!!
+			}
 		}
-	}
 
 	override fun o_SetSuccessAndFailure(
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit
 	) = synchronized(self) {
-		self.helper.run {
-			resultContinuation = onSuccess
-			failureContinuation = onFailure
-		}
+		helper.resultContinuation = onSuccess
+		helper.failureContinuation = onFailure
 	}
 
 	override fun o_FailureContinuation(self: AvailObject): (Throwable) -> Unit =
 		synchronized(self) {
-			self.helper.run {
+			helper.run {
 				val result = failureContinuation
 				assert(result !== null) { "Fiber attempting to succeed twice!" }
 				resultContinuation = null
@@ -851,34 +764,33 @@ class FiberDescriptor private constructor(
 	override fun o_SetJoiningFibers(self: AvailObject, joiners: A_Set) =
 		self.setMutableSlot(JOINING_FIBERS, joiners)
 
-	override fun o_WakeupTask(self: AvailObject): TimerTask? =
-		self.helper.wakeupTask
+	override fun o_WakeupTask(self: AvailObject): TimerTask? = helper.wakeupTask
 
 	override fun o_SetWakeupTask(
 		self: AvailObject,
-		task: TimerTask?
-	) {
-		self.helper.wakeupTask = task
+		task: TimerTask?)
+	{
+		helper.wakeupTask = task
 	}
 
 	override fun o_TextInterface(self: AvailObject): TextInterface =
-		self.helper.textInterface
+		helper.textInterface
 
 	override fun o_SetTextInterface(
 		self: AvailObject,
-		textInterface: TextInterface
-	) {
-		self.helper.textInterface = textInterface
+		textInterface: TextInterface)
+	{
+		helper.textInterface = textInterface
 	}
 
 	override fun o_RecordVariableAccess(
 		self: AvailObject,
 		variable: A_Variable,
-		wasRead: Boolean
-	) {
-		assert((self.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) == 1)
-			xor (self.mutableSlot(_TRACE_VARIABLE_WRITES) == 1))
-		val map = self.helper.tracedVariables
+		wasRead: Boolean)
+	{
+		assert(helper.getFlag(Flag.TRACE_VARIABLE_READS_BEFORE_WRITES)
+			xor helper.getFlag(Flag.TRACE_VARIABLE_WRITES))
+		val map = helper.tracedVariables
 		synchronized(map) {
 			if (!map.containsKey(variable))
 			{
@@ -889,8 +801,8 @@ class FiberDescriptor private constructor(
 
 	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set
 	{
-		assert(self.mutableSlot(_TRACE_VARIABLE_READS_BEFORE_WRITES) != 1)
-		val map = self.helper.tracedVariables
+		assert(!helper.getFlag(Flag.TRACE_VARIABLE_READS_BEFORE_WRITES))
+		val map = helper.tracedVariables
 		var set = emptySet
 		synchronized(map) {
 			map.forEach { (key, value) ->
@@ -905,8 +817,8 @@ class FiberDescriptor private constructor(
 
 	override fun o_VariablesWritten(self: AvailObject): A_Set
 	{
-		assert(self.mutableSlot(_TRACE_VARIABLE_WRITES) != 1)
-		val map = self.helper.tracedVariables
+		assert(!helper.getFlag(Flag.TRACE_VARIABLE_WRITES))
+		val map = helper.tracedVariables
 		return synchronized(map) {
 			val set = setFromCollection(map.keys)
 			map.clear()
@@ -922,8 +834,7 @@ class FiberDescriptor private constructor(
 		return another.traversed().sameAddressAs(self)
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		self.synchronizeIf(isShared) { hash(self) }
+	override fun o_Hash(self: AvailObject): Int = helper.hash
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		FiberTypeDescriptor.fiberType(self.slot(RESULT_TYPE))
@@ -935,7 +846,6 @@ class FiberDescriptor private constructor(
 		self: AvailObject,
 		whenReified: (A_Continuation) -> Unit
 	) = self.lock {
-		@Suppress("WHEN_ENUM_CAN_BE_NULL_IN_JAVA")
 		when (self.executionState()) {
 			ExecutionState.ABORTED,
 			ExecutionState.ASLEEP,
@@ -948,21 +858,20 @@ class FiberDescriptor private constructor(
 				whenReified(self.continuation().makeShared())
 			}
 			ExecutionState.RUNNING -> {
-				val pojo: A_BasicObject = identityPojo(whenReified)
-				val oldSet: A_Set = self.slot(REIFICATION_WAITERS)
-				val newSet = oldSet.setWithElementCanDestroy(pojo, true)
-				self.setSlot(REIFICATION_WAITERS, newSet.makeShared())
+				helper.reificationWaiters.add(whenReified)
 				self.setInterruptRequestFlag(
 					InterruptRequestFlag.REIFICATION_REQUESTED)
 			}
 		}
 	}
 
-	override fun o_GetAndClearReificationWaiters(self: AvailObject): A_Set =
+	override fun o_GetAndClearReificationWaiters(
+		self: AvailObject
+	): List<(A_Continuation)->Unit> =
 		synchronized(self) {
-			val previousSet = self.slot(REIFICATION_WAITERS)
-			self.setSlot(REIFICATION_WAITERS, emptySet)
-			previousSet
+			val previous = helper.reificationWaiters.toList()
+			helper.reificationWaiters.clear()
+			previous
 		}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
@@ -1000,29 +909,34 @@ class FiberDescriptor private constructor(
 	override fun o_SuspendingFunction(self: AvailObject): A_Function =
 		self.slot(SUSPENDING_FUNCTION)
 
-	override fun o_DebugLog(self: AvailObject): StringBuilder =
-		self.helper.debugLog
+	override fun o_DebugLog(self: AvailObject): StringBuilder = helper.debugLog
 
 	override fun <T> o_Lock(self: AvailObject, body: ()->T): T =
 		when (val interpreter = Interpreter.currentOrNull()) {
-			null -> {
-				// It's not running an AvailThread, so don't bother detecting
-				// multiple nested fiber locks (which would suggest a deadlock
-				// hazard)..
-				synchronized(self) { body() }
-			}
-			else -> {
-				interpreter.lockFiberWhile(self) {
-					synchronized(self) { body() }
-				}
+			// It's not running an AvailThread, so don't bother detecting
+			// multiple nested fiber locks (which would suggest a deadlock
+			// hazard)..
+			null -> synchronized(self, body)
+			else -> interpreter.lockFiberWhile(self) {
+				synchronized(self, body)
 			}
 		}
 
-	override fun mutable() = mutable
 
-	override fun immutable() = immutable
+	@Deprecated(
+		"Not supported",
+		ReplaceWith("createFiber()"))
+	override fun mutable() = unsupported
 
-	override fun shared() = shared
+	@Deprecated(
+		"Not supported",
+		ReplaceWith("createFiber()"))
+	override fun immutable() = FiberDescriptor(IMMUTABLE, helper)
+
+	@Deprecated(
+		"Not supported",
+		ReplaceWith("createFiber()"))
+	override fun shared() = FiberDescriptor(SHARED, helper)
 
 	companion object {
 		/** A simple counter for identifying fibers by creation order. */
@@ -1045,31 +959,6 @@ class FiberDescriptor private constructor(
 
 		/** The priority for invalidating expired L2 chunks in bulk. */
 		const val bulkL2InvalidationPriority = 90
-
-		/**
-		 * Lazily compute and install the hash of the specified
-		 * [fiber][FiberDescriptor].  This should be protected by a synchronized
-		 * section if there's a chance this fiber might be hashed by some other
-		 * fiber.  If the fiber is not shared, this shouldn't be a problem.
-		 *
-		 * @param self
-		 *   The fiber.
-		 * @return
-		 *   The fiber's hash value.
-		 */
-		private fun hash(self: AvailObject): Int {
-			var hash = self.slot(HASH_OR_ZERO)
-			if (hash == 0) {
-				synchronized(self) {
-					hash = self.slot(HASH_OR_ZERO)
-					if (hash == 0) {
-						hash = AvailRuntimeSupport.nextNonzeroHash()
-						self.setSlot(HASH_OR_ZERO, hash)
-					}
-				}
-			}
-			return hash
-		}
 
 		/**
 		 * Look up the [declaration][DeclarationPhraseDescriptor] with the given
@@ -1134,15 +1023,6 @@ class FiberDescriptor private constructor(
 			return null
 		}
 
-		/** The mutable [FiberDescriptor]. */
-		val mutable = FiberDescriptor(Mutability.MUTABLE)
-
-		/** The immutable [FiberDescriptor]. */
-		private val immutable = FiberDescriptor(Mutability.IMMUTABLE)
-
-		/** The shared [FiberDescriptor]. */
-		private val shared = FiberDescriptor(Mutability.SHARED)
-
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
 		 * with the specified [result&#32;type][A_Type] and initial priority.
@@ -1165,7 +1045,7 @@ class FiberDescriptor private constructor(
 			priority: Int,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType, priority, null, nameSupplier, currentRuntime())
+			resultType, priority, null, currentRuntime(), nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
@@ -1190,11 +1070,7 @@ class FiberDescriptor private constructor(
 			loader: AvailLoader?,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType,
-			loaderPriority,
-			loader,
-			nameSupplier,
-			currentRuntime())
+			resultType, loaderPriority, loader, currentRuntime(), nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
@@ -1224,31 +1100,25 @@ class FiberDescriptor private constructor(
 			resultType: A_Type,
 			priority: Int,
 			loader: AvailLoader?,
-			nameSupplier: ()->A_String,
-			runtime: AvailRuntime
-		): A_Fiber {
+			runtime: AvailRuntime,
+			nameSupplier: ()->A_String
+		): A_Fiber
+		{
 			assert(priority and 255.inv() == 0) { "Priority must be [0..255]" }
-			return mutable.create {
-				val helper = FiberHelper(
-					loader,
-					runtime.textInterface(),
-					nameSupplier)
-				setSlot(HELPER, identityPojo(helper))
+			val helper = FiberHelper(
+				loader,
+				runtime.textInterface(),
+				priority,
+				nameSupplier)
+			return FiberDescriptor(MUTABLE, helper).create {
 				setSlot(RESULT_TYPE, resultType.makeShared())
-				setSlot(PRIORITY, priority)
 				setSlot(CONTINUATION, nil)
 				setSlot(SUSPENDING_FUNCTION, nil)
-				setSlot(
-					EXECUTION_STATE, ExecutionState.UNSTARTED.ordinal.toLong())
 				setSlot(BREAKPOINT_BLOCK, nil)
 				setSlot(FIBER_GLOBALS, emptyMap)
 				setSlot(HERITABLE_FIBER_GLOBALS, emptyMap)
 				setSlot(RESULT, nil)
 				setSlot(JOINING_FIBERS, emptySet)
-				setSlot(REIFICATION_WAITERS, emptySet)
-				setSlot(
-					DEBUG_UNIQUE_ID,
-					uniqueDebugCounter.incrementAndGet().toLong())
 				runtime.registerFiber(this)
 			}
 		}
@@ -1261,17 +1131,5 @@ class FiberDescriptor private constructor(
 		 *   A fiber.
 		 */
 		fun currentFiber(): A_Fiber = Interpreter.current().fiber()
-
-
-		/**
-		 * Extract the [FiberHelper] from the fiber that is the implied receiver.
-		 *
-		 * @receiver
-		 *   The [AvailObject] which is known to be a fiber.
-		 * @return
-		 *   The [FiberHelper] extracted from that fiber.
-		 */
-		private val AvailObject.helper: FiberHelper
-			get() = slot(HELPER).javaObjectNotNull()
 	}
 }

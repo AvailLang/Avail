@@ -667,10 +667,27 @@ class L2Chunk private constructor(
 		 * [compiled&#32;code][CompiledCodeDescriptor] object, *after creation*,
 		 * before attempting to optimize it for the first time.
 		 *
+		 * This number not only counts down by one every time the corresponding
+		 * code is called, but it is also decreased by a larger amount every
+		 * time the periodic timer goes off and polls the active interpreters
+		 * to see what function they're currently running.  These big decrements
+		 * are arranged never to cross zero, allowing the next caller to do the
+		 * optimization work.
+		 *
 		 * @return
 		 *   The number of invocations before initial optimization.
 		 */
-		fun countdownForNewCode(): Long = 100
+		const val countdownForNewCode: Long = 10000
+
+		/**
+		 * Each time an [A_RawFunction] is found to be the running code for some
+		 * interpreter during periodic polling, atomically decrease its
+		 * countdown by this amount, avoiding going below one (`1`).
+		 *
+		 * This temporal signal should be more effective at deciding what to
+		 * optimize than just counting the number of times the code is called.
+		 */
+		const val decrementForPolledActiveCode: Long = 1000
 
 		/**
 		 * Return the number of times to invoke a
@@ -684,8 +701,7 @@ class L2Chunk private constructor(
 		 */
 		// TODO: [MvG] Set this to something sensible when optimization levels
 		// are implemented.
-		@JvmStatic
-		fun countdownForNewlyOptimizedCode(): Long = 1_000_000_000_000_000_000
+		const val countdownForNewlyOptimizedCode: Long = 1_000_000_000_000_000_000
 
 		/**
 		 * The [lock][ReentrantLock] that protects invalidation of chunks due to
@@ -780,7 +796,7 @@ class L2Chunk private constructor(
 				contingentValues,
 				jvmTranslator.jvmChunk())
 			code?.setStartingChunkAndReoptimizationCountdown(
-				chunk, countdownForNewlyOptimizedCode())
+				chunk, countdownForNewlyOptimizedCode)
 			for (value in contingentValues)
 			{
 				value.addDependentChunk(chunk)

@@ -115,6 +115,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.withLock
+import kotlin.math.max
 
 /**
  * A [compiled&#32;code][CompiledCodeDescriptor] object is created whenever a
@@ -337,7 +338,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 * An [AtomicLong] that indicates how many more invocations can take
 		 * place before the corresponding [L2Chunk] should be re-optimized.
 		 */
-		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode())
+		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode)
 
 		/** A statistic for all functions that return. */
 		@Volatile
@@ -635,6 +636,19 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 	}
 
+	override fun o_DecreaseCountdownToReoptimizeFromPoll (
+		self: AvailObject,
+		delta: Long)
+	{
+		val counter = invocationStatistic.countdownToReoptimize
+		do
+		{
+			val current = counter.get()
+		}
+		while (current <= 0
+			|| !counter.compareAndSet(current, max(1, current - delta)))
+	}
+
 	/**
 	 * {@inheritDoc}
 	 *
@@ -895,22 +909,21 @@ open class CompiledCodeDescriptor protected constructor(
 		// Now scan all sub-blocks. Some literals will be functions and some
 		// will be compiled code objects.
 		var counter = 1
-		for (i in 1..self.numLiterals())
+		loop@for (i in 1..self.numLiterals())
 		{
 			val literal = self.literalAt(i)
-			val subCode: A_RawFunction?
-			subCode = when
+			val subCode: A_RawFunction = when
 			{
 				literal.isFunction -> literal.code()
 				literal.isInstanceOf(mostGeneralCompiledCodeType()) -> literal
-				else -> null
+				else -> continue@loop
 			}
-			if (subCode !== null) {
-				val suffix = "#$counter"
-				counter++
-				val newName = concatenate(methodName, stringFrom(suffix), true)
-				subCode.setMethodName(newName)
-			}
+			subCode.setMethodName(
+				concatenate(
+					methodName,
+					stringFrom("#${counter++}"),
+					true
+				).makeShared())
 		}
 	}
 

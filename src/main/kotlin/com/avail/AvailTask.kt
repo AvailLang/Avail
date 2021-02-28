@@ -125,7 +125,7 @@ class AvailTask constructor(
 			fiber: A_Fiber,
 			body: () -> Unit): () -> Unit
 		{
-			assert(fiber.executionState().indicatesSuspension())
+			assert(fiber.executionState().indicatesSuspension)
 			val scheduled =
 				fiber.getAndSetSynchronizationFlag(
 					SynchronizationFlag.SCHEDULED, true)
@@ -134,7 +134,7 @@ class AvailTask constructor(
 				val interpreter = current()
 				assert(interpreter.fiberOrNull() === null)
 				fiber.lock {
-					assert(fiber.executionState().indicatesSuspension())
+					assert(fiber.executionState().indicatesSuspension)
 					val bound =
 						fiber.getAndSetSynchronizationFlag(
 							SynchronizationFlag.BOUND, true)
@@ -156,7 +156,7 @@ class AvailTask constructor(
 					// failure continuation with the throwable.
 					interpreter.adjustUnreifiedCallDepthBy(
 						-interpreter.unreifiedCallDepth())
-					if (!fiber.executionState().indicatesTermination())
+					if (!fiber.executionState().indicatesTermination)
 					{
 						assert(interpreter.fiberOrNull() === fiber)
 						interpreter.abortFiber()

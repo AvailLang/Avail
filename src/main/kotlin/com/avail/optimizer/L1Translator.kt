@@ -2731,7 +2731,7 @@ class L1Translator private constructor(
 		if (generator.optimizationLevel == OptimizationLevel.UNOPTIMIZED)
 		{
 			// Optimize it again if it's called frequently enough.
-			code.countdownToReoptimize(countdownForNewlyOptimizedCode())
+			code.countdownToReoptimize(countdownForNewlyOptimizedCode)
 			addInstruction(
 				L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO,
 				L2IntImmediateOperand(

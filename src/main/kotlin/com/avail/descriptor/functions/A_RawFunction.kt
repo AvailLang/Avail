@@ -97,8 +97,14 @@ interface A_RawFunction : A_BasicObject {
 	 *   The action responsible for reoptimizing this function implementation in
 	 *   the event that the countdown reaches zero (`0`).
 	 */
-	fun decrementCountdownToReoptimize(
-		continuation: (Boolean) -> Unit)
+	fun decrementCountdownToReoptimize(continuation: (Boolean) -> Unit)
+
+	/**
+	 * This raw function was found to be running in an interpreter during a
+	 * periodic poll.  Decrease its countdown to reoptimization by the indicated
+	 * amount, being careful not to drop below one (`1`).
+	 */
+	fun decreaseCountdownToReoptimizeFromPoll(delta: Long)
 
 	/**
 	 * For this raw function, compute the tuple of its declaration names

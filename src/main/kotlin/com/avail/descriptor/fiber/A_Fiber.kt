@@ -333,7 +333,7 @@ interface A_Fiber : A_BasicObject {
 	 * @return
 	 *   The set of outstanding actions, prior to clearing it.
 	 */
-	fun getAndClearReificationWaiters(): A_Set
+	fun getAndClearReificationWaiters(): List<(A_Continuation)->Unit>
 
 	/**
 	 * Answer the [TextInterface] for this fiber.
@@ -375,4 +375,9 @@ interface A_Fiber : A_BasicObject {
 	 *   The function that suspended the fiber.
 	 */
 	fun suspendingFunction(): A_Function
+
+	/**
+	 * Answer the [FiberDescriptor.FiberHelper] associated with this [A_Fiber].
+	 */
+	fun fiberHelper(): FiberDescriptor.FiberHelper
 }

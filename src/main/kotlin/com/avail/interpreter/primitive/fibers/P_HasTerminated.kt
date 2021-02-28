@@ -61,7 +61,7 @@ object P_HasTerminated : Primitive(
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(fiber.executionState().indicatesTermination()))
+			objectFromBoolean(fiber.executionState().indicatesTermination))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

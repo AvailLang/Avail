@@ -81,7 +81,7 @@ import java.util.concurrent.SynchronousQueue
 class CallbackTest
 {
 	/** Setup for the test.  */
-	var helper: AvailRuntimeTestHelper? = null
+	private var helper: AvailRuntimeTestHelper? = null
 
 	/**
 	 * Answer the [AvailRuntimeTestHelper], ensuring it's not `null`.
@@ -89,7 +89,7 @@ class CallbackTest
 	 * @return
 	 *   The [AvailRuntimeTestHelper].
 	 */
-	fun helper(): AvailRuntimeTestHelper = helper!!
+	private fun helper(): AvailRuntimeTestHelper = helper!!
 
 	/**
 	 * Clear all repositories iff the `clearAllRepositories` system
@@ -179,8 +179,10 @@ class CallbackTest
 			Types.NUMBER.o,
 			FiberDescriptor.commandPriority,
 			null,
-			{ stringFrom("testDivisionCallback") },
 			helper().runtime)
+		{
+			stringFrom("testDivisionCallback")
+		}
 		val expectedAnswer = fromInt(14)
 		val mailbox = SynchronousQueue<Runnable>()
 		fiber.setSuccessAndFailure(

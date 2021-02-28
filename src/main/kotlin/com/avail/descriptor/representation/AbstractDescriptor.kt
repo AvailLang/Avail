@@ -47,6 +47,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -2153,6 +2154,10 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		continuation: (Boolean) -> Unit)
 
+	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
+		self: AvailObject,
+		delta: Long)
+
 	abstract fun o_IsAbstract (self: AvailObject): Boolean
 
 	abstract fun o_IsAbstractDefinition (self: AvailObject): Boolean
@@ -3546,7 +3551,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		whenReified: (A_Continuation) -> Unit)
 
-	abstract fun o_GetAndClearReificationWaiters (self: AvailObject): A_Set
+	abstract fun o_GetAndClearReificationWaiters (
+		self: AvailObject
+	): List<(A_Continuation)->Unit>
 
 	abstract fun o_IsBottom (self: AvailObject): Boolean
 
@@ -3882,6 +3889,10 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		potentialAncestor: A_Module
 	): Boolean
+
+	abstract fun o_FiberHelper(
+		self: AvailObject
+	): FiberDescriptor.FiberHelper
 
 	companion object
 	{

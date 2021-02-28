@@ -56,6 +56,7 @@ import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.newCrashFunction
@@ -229,6 +230,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
@@ -267,6 +269,15 @@ class AvailRuntime constructor(
 	init
 	{
 		fileManager.associateRuntime(this)
+	}
+
+	/**
+	 * An array of AtomicReference<Interpreter>, each of which is initially
+	 * null, but is populated as the interpreter thread pool adds more workers.
+	 * After an entry has been set, it is never changed or reset to null.
+	 */
+	val interpreterHolders = Array(maxInterpreters) {
+		AtomicReference<Interpreter>()
 	}
 
 	/**
@@ -315,7 +326,11 @@ class AvailRuntime constructor(
 		10L,
 		TimeUnit.SECONDS,
 		PriorityBlockingQueue(),
-		ThreadFactory { AvailThread(it, Interpreter(this)) },
+		ThreadFactory {
+			val interpreter = Interpreter(this)
+			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
+			AvailThread(it, interpreter)
+		},
 		AbortPolicy())
 
 	/**
@@ -358,10 +373,21 @@ class AvailRuntime constructor(
 	 * The [timer][Timer] that managed scheduled [tasks][TimerTask] for this
 	 * [runtime][AvailRuntime]. The timer thread is not an
 	 * [Avail&#32;thread][AvailThread], and therefore cannot directly execute
-	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks.
+	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks
+	 *
+	 * Additionally, we help drive the dynamic optimization of [A_RawFunction]s
+	 * into [L2Chunk]s by iterating over the existing Interpreters, asking each
+	 * one to significantly decrease the countdown for whatever raw function is
+	 * running (being careful not to cross zero).
 	 */
 	val timer =  fixedRateTimer("timer for Avail runtime", true, period = 10) {
 		clock.increment()
+		interpreterHolders.forEach { holder ->
+			holder.get()
+				?.pollActiveRawFunction()
+				?.decreaseCountdownToReoptimizeFromPoll(
+					L2Chunk.decrementForPolledActiveCode)
+		}
 	}
 
 	/**
@@ -870,14 +896,6 @@ class AvailRuntime constructor(
 		 *   The Avail runtime of the current thread.
 		 */
 		fun currentRuntime(): AvailRuntime = current().runtime
-
-		/**
-		 * The [CheckedMethod] for [resultDisagreedWithExpectedTypeFunction].
-		 */
-		val resultDisagreedWithExpectedTypeFunctionMethod = instanceMethod(
-			AvailRuntime::class.java,
-			AvailRuntime::resultDisagreedWithExpectedTypeFunction.name,
-			A_Function::class.java)
 
 		/**
 		 * The [CheckedMethod] for [implicitObserveFunction].

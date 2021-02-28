@@ -79,6 +79,7 @@ import com.avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammatic
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import com.avail.descriptor.character.A_Character.Companion.isCharacter
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -1931,6 +1932,11 @@ class IndirectionDescriptor private constructor(
 		continuation: (Boolean)->Unit
 	) = self .. { decrementCountdownToReoptimize(continuation) }
 
+	override fun o_DecreaseCountdownToReoptimizeFromPoll (
+		self: AvailObject,
+		delta: Long
+	) = self .. { decreaseCountdownToReoptimizeFromPoll(delta) }
+
 	override fun o_IsAbstractDefinition(self: AvailObject): Boolean =
 		self .. { isAbstractDefinition() }
 
@@ -3162,7 +3168,9 @@ class IndirectionDescriptor private constructor(
 		whenReified: (A_Continuation) -> Unit
 	) = self .. { whenContinuationIsAvailableDo(whenReified) }
 
-	override fun o_GetAndClearReificationWaiters(self: AvailObject): A_Set =
+	override fun o_GetAndClearReificationWaiters(
+		self: AvailObject
+	): List<(A_Continuation)->Unit> =
 		self .. { getAndClearReificationWaiters() }
 
 	override fun o_IsBottom(self: AvailObject): Boolean =
@@ -3663,4 +3671,8 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		potentialAncestor: A_Module
 	): Boolean = self .. { hasAncestor(potentialAncestor) }
+
+	override fun o_FiberHelper(
+		self: AvailObject
+	): FiberDescriptor.FiberHelper = self .. { fiberHelper() }
 }

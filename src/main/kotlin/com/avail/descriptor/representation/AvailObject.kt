@@ -719,6 +719,9 @@ class AvailObject private constructor(
 		continuation: (Boolean) -> Unit
 	) = descriptor().o_DecrementCountdownToReoptimize(this, continuation)
 
+	override fun decreaseCountdownToReoptimizeFromPoll(delta: Long) =
+		descriptor().o_DecreaseCountdownToReoptimizeFromPoll(this, delta)
+
 	override fun countdownToReoptimize(value: Long) =
 		descriptor().o_CountdownToReoptimize(this, value)
 
@@ -1360,7 +1363,7 @@ class AvailObject private constructor(
 		whenReified: (A_Continuation) -> Unit
 	) = descriptor().o_WhenContinuationIsAvailableDo(this, whenReified)
 
-	override fun getAndClearReificationWaiters() =
+	override fun getAndClearReificationWaiters(): List<(A_Continuation)->Unit> =
 		descriptor().o_GetAndClearReificationWaiters(this)
 
 	override val isBottom get() = descriptor().o_IsBottom(this)
@@ -1505,6 +1508,9 @@ class AvailObject private constructor(
 
 	override fun setOriginatingPhraseOrIndex(phraseOrIndex: AvailObject) =
 		descriptor().o_SetOriginatingPhraseOrIndex(this, phraseOrIndex)
+
+	override fun fiberHelper(): FiberDescriptor.FiberHelper =
+		descriptor().o_FiberHelper(this)
 
 	companion object {
 		/**

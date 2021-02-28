@@ -204,7 +204,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * compute this function type multiple times.
 	 */
 	@Suppress("LeakingThis")
-	private val blockTypeRestriction = privateBlockTypeRestriction()
+	private val blockTypeRestriction =
+		privateBlockTypeRestriction().makeShared()
 
 	/**
 	 * A [type][TypeDescriptor] to constrain the [A_Type.writeType] of the
@@ -235,7 +236,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	var reificationForNoninlineStat: Statistic? = null
 		private set
 
-	/** Capture the name of the primitive class once for performance.  */
+	/** Capture the name of the primitive class once for performance. */
 	val name: String
 
 	/**
