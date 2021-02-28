@@ -99,7 +99,7 @@ constructor(
 	open fun onlySemanticValue(): L2SemanticValue
 	{
 		assert(semanticValues.size == 1)
-		return semanticValues.iterator().next()
+		return semanticValues.single()
 	}
 
 	/**
@@ -110,7 +110,7 @@ constructor(
 	 *   The write operand's [L2SemanticValue].
 	 */
 	fun pickSemanticValue(): L2SemanticValue =
-		semanticValues.iterator().next()
+		semanticValues.first()
 
 	/**
 	 * Answer this write's [TypeRestriction].

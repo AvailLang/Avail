@@ -95,7 +95,7 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 	 * @return
 	 *   An arbitrary [L2SemanticValue] of this synonym.
 	 */
-	fun pickSemanticValue(): L2SemanticValue = semanticValues.iterator().next()
+	fun pickSemanticValue(): L2SemanticValue = semanticValues.first()
 
 	/**
 	 * Transform the [Frame]s and [L2SemanticValue]s within this synonym to

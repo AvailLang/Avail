@@ -562,15 +562,12 @@ class L2ValueManifest
 							}
 					val primitiveSynonyms =
 						map.computeIfAbsent(argumentSynonyms) { mutableSetOf() }
-					val invocationSynonym =
-						semanticValueToSynonym[invocation]!!
+					val invocationSynonym = semanticValueToSynonym[invocation]!!
 					if (primitiveSynonyms.isNotEmpty()
 						&& !primitiveSynonyms.contains(invocationSynonym))
 					{
-						val sampleSynonym =
-							primitiveSynonyms.iterator().next()
-						val sampleInvocation =
-							sampleSynonym.pickSemanticValue()
+						val sampleSynonym = primitiveSynonyms.first()
+						val sampleInvocation = sampleSynonym.pickSemanticValue()
 						followupMerges.add(invocation to sampleInvocation)
 					}
 					primitiveSynonyms.add(invocationSynonym)
@@ -1017,7 +1014,7 @@ class L2ValueManifest
 		val suitableSemanticValue = when (semanticValue)
 		{
 			in suitableSemanticValues -> semanticValue
-			else -> suitableSemanticValues.iterator().next()
+			else -> suitableSemanticValues.first()
 		}
 		assert(register.definitions().all { it.instructionHasBeenEmitted() })
 		return L2ReadBoxedOperand(suitableSemanticValue, restriction, this)
@@ -1046,7 +1043,7 @@ class L2ValueManifest
 		val suitableSemanticValue = when (semanticValue)
 		{
 			in suitableSemanticValues -> semanticValue
-			else -> suitableSemanticValues.iterator().next()
+			else -> suitableSemanticValues.first()
 		}
 		assert(register.definitions().all { it.instructionHasBeenEmitted() })
 		return L2ReadIntOperand(suitableSemanticValue, restriction, this)
@@ -1075,7 +1072,7 @@ class L2ValueManifest
 		val suitableSemanticValue = when (semanticValue)
 		{
 			in suitableSemanticValues -> semanticValue
-			else -> suitableSemanticValues.iterator().next()
+			else -> suitableSemanticValues.first()
 		}
 		assert(register.definitions().all { it.instructionHasBeenEmitted() })
 		return L2ReadFloatOperand(suitableSemanticValue, restriction, this)

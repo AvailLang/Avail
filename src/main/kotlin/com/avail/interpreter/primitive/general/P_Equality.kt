@@ -87,7 +87,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		    && type1.equals(type2)
 		    && type1.instanceCount().equalsInt(1))
 		{
-			val value = type1.instances().iterator().next()
+			val value = type1.instances().single()
 			// Because of metacovariance, a meta may actually have many
 			// instances.  For instance, tuple's type contains not only tuple,
 			// but every subtype of tuple (e.g., string, <>'s type, etc.).

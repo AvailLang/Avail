@@ -237,7 +237,7 @@ class MethodDescriptor private constructor(
 			{
 				0 -> "(no name)"
 				1 -> owningBundles.single().message().toString()
-				else -> owningBundles.iterator().next().toString() +
+				else -> owningBundles.first().toString() +
 					" & aliases"
 			}
 			val stat = Statistic(DYNAMIC_LOOKUP_TIME, name)
@@ -422,7 +422,7 @@ class MethodDescriptor private constructor(
 		val bundles: A_Set = owningBundles
 		return bundles.find {
 			currentModule.hasAncestor(it.message().issuingModule())
-		} ?: bundles.iterator().next() // Fall back to any bundle.
+		} ?: bundles.first() // Fall back to any bundle.
 	}
 
 	/**

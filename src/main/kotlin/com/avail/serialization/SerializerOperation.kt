@@ -3599,10 +3599,7 @@ enum class SerializerOperation constructor(
 			if (privateNames.hasKey(atomName))
 			{
 				val candidates = privateNames.mapAt(atomName)
-				if (candidates.setSize() == 1)
-				{
-					return candidates.iterator().next()
-				}
+				if (candidates.setSize() == 1) return candidates.single()
 				if (candidates.setSize() > 1)
 				{
 					throw RuntimeException(

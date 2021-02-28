@@ -1185,12 +1185,11 @@ class TypeRestriction private constructor(
 				// enumeration (or bottom's type, which has only one instance,
 				// bottom).  See if excluding disallowed types and values
 				// happens to leave exactly zero or one possibility.
-				val instances =
-					toSet(type.instances()).toMutableSet()
+				val instances = type.instances().toMutableSet()
 				instances.removeAll(givenExcludedValues)
-				instances.removeIf { instance: AvailObject ->
-					givenExcludedTypes.any { aType: A_Type ->
-							instance.isInstanceOf(aType)
+				instances.removeIf { instance ->
+					givenExcludedTypes.any { aType ->
+						instance.isInstanceOf(aType)
 					}
 				}
 				return when (instances.size)
@@ -1198,8 +1197,7 @@ class TypeRestriction private constructor(
 					0 -> bottomRestriction
 					1 ->
 					{
-						val instance: A_BasicObject =
-							instances.iterator().next()
+						val instance: A_BasicObject = instances.single()
 						fromCanonical(
 							instanceTypeOrMetaOn(instance),
 							instance,
@@ -1222,9 +1220,10 @@ class TypeRestriction private constructor(
 			}
 			if (constantOrNull !== null)
 			{
-				// A constant was specified.  Use it if it satisfies the main type
-				// constraint and isn't specifically excluded, otherwise use the
-				// bottomRestriction, which is the impossible restriction.
+				// A constant was specified.  Use it if it satisfies the main
+				// type constraint and isn't specifically excluded, otherwise
+				// use the bottomRestriction, which is the impossible
+				// restriction.
 				if (constantOrNull.equalsNil())
 				{
 					return nilRestriction
@@ -1391,21 +1390,8 @@ class TypeRestriction private constructor(
 		// survive the L2 translation and end up in an L2Chunk.
 		this.type = type.makeImmutable()
 		this.constantOrNull = constantOrNull?.makeImmutable()
-		val typesSize = excludedTypes.size
-		this.excludedTypes = when (typesSize)
-		{
-			0 -> emptySet()
-			1 -> setOf(excludedTypes.iterator().next())
-			else -> excludedTypes.toSet()
-		}
-		val constantsSize = excludedValues.size
-		this.excludedValues =
-			when (constantsSize)
-			{
-				0 -> emptySet()
-				1 -> setOf(excludedValues.iterator().next())
-				else -> excludedValues.toSet()
-			}
+		this.excludedTypes = excludedTypes.toSet()
+		this.excludedValues = excludedValues.toSet()
 		this.flags = flags
 	}
 }

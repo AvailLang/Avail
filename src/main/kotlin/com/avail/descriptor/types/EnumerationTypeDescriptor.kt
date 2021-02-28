@@ -710,25 +710,10 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		writer.endObject()
 	}
 
-	override fun o_ComputeTypeTag(self: AvailObject): TypeTag
-	{
-		val tags: MutableSet<TypeTag> = EnumSet.noneOf(TypeTag::class.java)
-		for (instance in getInstances(self))
-		{
-			tags.add(instance.typeTag())
-		}
-		if (tags.size == 1)
-		{
-			return tags.iterator().next()
-		}
-		val iterator: Iterator<TypeTag> = tags.iterator()
-		var ancestor = iterator.next()
-		while (iterator.hasNext())
-		{
-			ancestor = ancestor.commonAncestorWith(iterator.next())
-		}
-		return ancestor
-	}
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
+		getInstances(self)
+			.map(AvailObject::typeTag)
+			.reduce(TypeTag::commonAncestorWith)
 
 	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
 

@@ -876,7 +876,7 @@ class L2Optimizer internal constructor(
 				// block at random.
 				if (victim === null)
 				{
-					victim = countdowns.keys.iterator().next()
+					victim = countdowns.keys.first()
 				}
 				countdowns.remove(victim)
 				zeroed.add(victim)

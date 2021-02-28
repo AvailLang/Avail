@@ -140,7 +140,7 @@ object PrimitiveHelper
 				}
 			}
 			when (methods.size) {
-				1 -> return methods.iterator().next()
+				1 -> return methods.single()
 				0 -> errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
 				else -> errorOut.value = E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 			}
@@ -199,7 +199,7 @@ object PrimitiveHelper
 				}
 			}
 			when (fields.size) {
-				1 -> return fields.iterator().next()
+				1 -> return fields.single()
 				0 -> errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE
 				else -> errorOut.value = E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
 			}

@@ -547,7 +547,7 @@ class ModuleDescriptor private constructor(
 						"module \"${ref.qualifiedName}\" to export a unique "
 							+ "name $oldString for renaming to $newString")
 				}
-				val oldAtom = oldCandidates.iterator().next()
+				val oldAtom = oldCandidates.single()
 				// Find or create the new atom.
 				val newAtom: A_Atom
 				val newNames = self.newNames()
@@ -620,9 +620,8 @@ class ModuleDescriptor private constructor(
 			try
 			{
 				val trueNames = self.trueNamesForStringName(name)
-				val size = trueNames.setSize()
 				val trueName: AvailObject
-				when (size)
+				when (trueNames.setSize())
 				{
 					0 ->
 					{
@@ -634,7 +633,7 @@ class ModuleDescriptor private constructor(
 					{
 						// Just validate the name.
 						MessageSplitter(name)
-						trueName = trueNames.iterator().next()
+						trueName = trueNames.single()
 					}
 					else -> return (
 						"entry point $name to be unambiguous")

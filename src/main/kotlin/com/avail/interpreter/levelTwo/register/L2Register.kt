@@ -322,7 +322,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	fun definition(): L2WriteOperand<*>
 	{
 		assert(definitions.size == 1)
-		return definitions.iterator().next()
+		return definitions.single()
 	}
 
 	/**

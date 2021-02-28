@@ -473,7 +473,7 @@ class AvailCompiler(
 					val plans = bundlesMap.mapAt(bundle)
 					// Pick an active plan arbitrarily for this bundle.
 					val plansInProgress = plans.mapIterable().next().value()
-					val planInProgress = plansInProgress.iterator().next()
+					val planInProgress = plansInProgress.first()
 					// Adjust the pc to refer to the actual instruction that
 					// caused the argument parse, not the successor instruction
 					// that was captured.
@@ -758,8 +758,7 @@ class AvailCompiler(
 		) {
 			formatString(
 				"Semantic restriction %s, in %s:%d",
-				restriction.definitionMethod().bundles()
-					.iterator().next().message(),
+				restriction.definitionMethod().bundles().first().message(),
 				if (mod.equalsNil())
 					"no module"
 				else

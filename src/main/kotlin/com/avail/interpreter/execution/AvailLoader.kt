@@ -1361,7 +1361,7 @@ class AvailLoader(
 					module.addPrivateName(trueName)
 					trueName
 				}
-				1 -> who.iterator().next()
+				1 -> who.single()
 				else -> null
 			}
 		} ?: throw AmbiguousNameException()
