@@ -34,12 +34,16 @@ package com.avail.descriptor.types
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.A_Number.Companion.isPositive
 import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign.NEGATIVE
+import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign.POSITIVE
 import com.avail.descriptor.numbers.InfinityDescriptor
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
@@ -54,10 +58,12 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.A_Type.Companion.instanceCount
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfIntegerRangeType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
+import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfIntegerRangeType
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfIntegerRangeType
 import com.avail.descriptor.types.A_Type.Companion.upperBound
@@ -286,6 +292,53 @@ class IntegerRangeTypeDescriptor private constructor(
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.INTEGER_RANGE_TYPE
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type =
+		when
+		{
+			self.isSubtypeOf(typeToRemove) -> bottom
+			!typeToRemove.isIntegerRangeType -> self
+			// Don't use a conservative union of the values' types.
+			typeToRemove.isEnumeration &&
+				!typeToRemove.instanceCount().equalsInt(1) -> self
+			(!self.lowerInclusive()
+					&& typeToRemove.lowerBound().equals(negativeInfinity))
+				|| self.lowerBound().isInstanceOf(typeToRemove) ->
+			{
+				// The x&&y part of the condition means it starts at -∞
+				// exclusive.  The other clause allows a lower bound that's a
+				// member of typeToRemove.
+				//
+				// (-∞..m] - (-∞..q]           -> (q..m]
+				// (-∞..m] - [-∞..q]           -> (q..m]
+				// [-∞..-∞] - (-∞..q]          -> excluded (not element)
+				// [-∞..-∞] - [-∞..q]          -> excluded (subtype)
+				// [-∞..-∞] - [p..q]           -> excluded (not element)
+				// [-∞..m] - (-∞..q]           -> excluded (not element)
+				// [-∞..m] - [-∞..q]           -> (q..m]
+				// [-∞..m] - [p..q]            -> excluded (not element)
+				// [m..n] - [p..q] where p≤m≤q -> (q..m]
+				integerRangeType(
+					typeToRemove.upperBound(),
+					typeToRemove.upperBound().equalsInfinity(POSITIVE),
+					positiveInfinity,
+					true
+				).typeIntersection(self)
+			}
+			(!self.upperInclusive()
+					&& typeToRemove.upperBound().equals(positiveInfinity))
+				|| self.upperBound().isInstanceOf(typeToRemove) ->
+			{
+				// By symmetry on the other bound.
+				integerRangeType(
+					negativeInfinity,
+					true,
+					typeToRemove.lowerBound(),
+					typeToRemove.lowerBound().equalsInfinity(NEGATIVE)
+				).typeIntersection(self)
+			}
+			else -> self
+		}
 
 	override fun o_TypeIntersection(
 		self: AvailObject,
@@ -649,17 +702,17 @@ class IntegerRangeTypeDescriptor private constructor(
 
 		/** The range of integers including infinities, [-∞..∞]. */
 		val extendedIntegers: A_Type =
-			inclusive(negativeInfinity(), positiveInfinity()).makeShared()
+			inclusive(negativeInfinity, positiveInfinity).makeShared()
 
 		/** The range of integers not including infinities, (∞..∞). */
 		val integers: A_Type =
 			integerRangeType(
-				negativeInfinity(), false, positiveInfinity(), false)
+				negativeInfinity, false, positiveInfinity, false)
 					.makeShared()
 
 		/** The range of natural numbers, [1..∞). */
 		val naturalNumbers: A_Type =
-			integerRangeType(one, true, positiveInfinity(), false)
+			integerRangeType(one, true, positiveInfinity, false)
 				.makeShared()
 
 		/** The range [0..15]. */
@@ -671,7 +724,7 @@ class IntegerRangeTypeDescriptor private constructor(
 
 		/** The range of whole numbers, [0..∞). */
 		val wholeNumbers: A_Type =
-			integerRangeType(zero, true, positiveInfinity(), false)
+			integerRangeType(zero, true, positiveInfinity, false)
 				.makeShared()
 
 		/** The range of a signed 32-bit `int`, `[-2^31..2^31)`. */

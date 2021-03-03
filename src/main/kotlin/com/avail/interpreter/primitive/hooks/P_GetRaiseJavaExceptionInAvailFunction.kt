@@ -35,9 +35,12 @@ package com.avail.interpreter.primitive.hooks
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import com.avail.CallbackSystem.Callback
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.Primitive.Flag.HasSideEffect
@@ -65,5 +68,10 @@ object P_GetRaiseJavaExceptionInAvailFunction
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, RAISE_JAVA_EXCEPTION_IN_AVAIL.functionType)
+		functionType(
+			emptyTuple,
+			functionType(
+				tuple(
+					pojoTypeForClass(Throwable::class.java)),
+				bottom))
 }

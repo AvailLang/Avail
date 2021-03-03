@@ -138,11 +138,11 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 				val high = aType.upperBound().plusCanDestroy(
 					bType.upperBound(), false)
 				val includesNegativeInfinity =
-					negativeInfinity().isInstanceOf(aType)
-						|| negativeInfinity().isInstanceOf(bType)
+					negativeInfinity.isInstanceOf(aType)
+						|| negativeInfinity.isInstanceOf(bType)
 				val includesInfinity =
-					positiveInfinity().isInstanceOf(aType)
-						|| positiveInfinity().isInstanceOf(bType)
+					positiveInfinity.isInstanceOf(aType)
+						|| positiveInfinity.isInstanceOf(bType)
 				return integerRangeType(
 					low.minusCanDestroy(one, false),
 					includesNegativeInfinity,
@@ -164,14 +164,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
 
-		val aTypeIncludesNegativeInfinity =
-			negativeInfinity().isInstanceOf(aType)
-		val aTypeIncludesInfinity =
-			positiveInfinity().isInstanceOf(aType)
-		val bTypeIncludesNegativeInfinity =
-			negativeInfinity().isInstanceOf(bType)
-		val bTypeIncludesInfinity =
-			positiveInfinity().isInstanceOf(bType)
+		val aTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(aType)
+		val aTypeIncludesInfinity = positiveInfinity.isInstanceOf(aType)
+		val bTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(bType)
+		val bTypeIncludesInfinity = positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesInfinity && bTypeIncludesNegativeInfinity
            || aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
 		{

@@ -277,7 +277,7 @@ internal class Group : Expression
 		val requiredRange = integerRangeType(
 			zero,
 			true,
-			if (maximumCardinality == Integer.MAX_VALUE) positiveInfinity()
+			if (maximumCardinality == Integer.MAX_VALUE) positiveInfinity
 			else fromInt(maximumCardinality + 1),
 			false)
 

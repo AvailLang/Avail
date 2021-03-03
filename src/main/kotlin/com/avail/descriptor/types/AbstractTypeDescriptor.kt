@@ -250,6 +250,10 @@ abstract class AbstractTypeDescriptor protected constructor(
 
 	abstract override fun o_SizeRange(self: AvailObject): A_Type
 
+	abstract override fun o_TrimType(
+		self: AvailObject,
+		typeToRemove: A_Type): A_Type
+
 	abstract override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type
 
 	abstract override fun o_TypeIntersection(

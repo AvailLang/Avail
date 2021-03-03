@@ -528,8 +528,7 @@ abstract class TypeDescriptor protected constructor(
 		self: AvailObject,
 		potentialInstance: AvailObject): Boolean = false
 
-	override fun o_InstanceCount(self: AvailObject): A_Number =
-		positiveInfinity()
+	override fun o_InstanceCount(self: AvailObject): A_Number = positiveInfinity
 
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
@@ -667,6 +666,12 @@ abstract class TypeDescriptor protected constructor(
 	override fun o_ReturnType(self: AvailObject): A_Type = unsupported
 
 	override fun o_SizeRange(self: AvailObject): A_Type = unsupported
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		return self
+	}
 
 	override fun o_TypeAtIndex(self: AvailObject, index: Int): A_Type =
 		unsupported

@@ -634,7 +634,7 @@ class DoubleDescriptor private constructor(
 			val neg = inputD < 0.0
 			if (isInfinite(inputD)) {
 				// Return the corresponding integral infinity.
-				return if (neg) negativeInfinity() else positiveInfinity()
+				return if (neg) negativeInfinity else positiveInfinity
 			}
 			var d = abs(inputD)
 			val exponent = getExponent(d)

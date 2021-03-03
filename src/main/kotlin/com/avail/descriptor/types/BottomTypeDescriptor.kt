@@ -307,7 +307,7 @@ class BottomTypeDescriptor private constructor()
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
-	override fun o_LowerBound(self: AvailObject): A_Number = positiveInfinity()
+	override fun o_LowerBound(self: AvailObject): A_Number = positiveInfinity
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
@@ -333,6 +333,9 @@ class BottomTypeDescriptor private constructor()
 	// See ListPhraseDescriptor.
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type = self
 
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type =
+		self
+
 	// Answer what type the given index would have in an object instance of
 	// me. Answer ⊥ if the index is out of bounds, which is always because
 	// I'm a degenerate tuple type.
@@ -351,7 +354,7 @@ class BottomTypeDescriptor private constructor()
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
-	override fun o_UpperBound(self: AvailObject): A_Number = negativeInfinity()
+	override fun o_UpperBound(self: AvailObject): A_Number = negativeInfinity
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.

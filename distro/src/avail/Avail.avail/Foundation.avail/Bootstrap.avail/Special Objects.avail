@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/8/21 7:13 AM
+ * * Last Generated: 3/2/21 6:23 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2208,7 +2208,7 @@ Special object "whitespace" is special object 165;
  * The type of the character position within an Avail source module.
  *
  * @category "Primitives" "Types"
- * @type "[0..4294967295]"
+ * @type "[0..2147483647]"
  * @alias "source position"
  */
 Special object "source position" is special object 166;

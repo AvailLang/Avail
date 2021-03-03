@@ -250,9 +250,9 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		{
 			/** Partition the integers by sign.  */
 			private val interestingRanges = listOf(
-				inclusive(negativeInfinity(), negativeOne()),
+				inclusive(negativeInfinity, negativeOne()),
 				inclusive(zero, zero),
-				inclusive(one, positiveInfinity()))
+				inclusive(one, positiveInfinity))
 
 			/**
 			 * Partition the integer range into negatives, zero, and positives,
@@ -273,12 +273,12 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		val aTypeIncludesZero = zero.isInstanceOf(aType)
 		val aTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(aType)
-				|| positiveInfinity().isInstanceOf(aType)
+			negativeInfinity.isInstanceOf(aType)
+				|| positiveInfinity.isInstanceOf(aType)
 		val bTypeIncludesZero = zero.isInstanceOf(bType)
 		val bTypeIncludesInfinity =
-			negativeInfinity().isInstanceOf(bType)
-				|| positiveInfinity().isInstanceOf(bType)
+			negativeInfinity.isInstanceOf(bType)
+				|| positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesZero && bTypeIncludesInfinity
 			|| aTypeIncludesInfinity && bTypeIncludesZero)
 		{

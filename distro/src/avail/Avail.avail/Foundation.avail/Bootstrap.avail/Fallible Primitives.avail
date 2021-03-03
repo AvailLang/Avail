@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/8/21 7:13 AM
+ * * Last Generated: 3/2/21 6:23 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2349,7 +2349,7 @@ Primitive "semantic restrictions for_given_" is
  *        The atom that names the lexer.
  * @param "filterFunction" "[character]→boolean"
  *        The filter function of the lexer.
- * @param "bodyFunction" "[string, [1..4294967295], [1..268435455]]→{<token…|1..∞>|}"
+ * @param "bodyFunction" "[string, [1..2147483647], [1..268435455]]→{<token…|1..∞>|}"
  *        The body of the lexer.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"

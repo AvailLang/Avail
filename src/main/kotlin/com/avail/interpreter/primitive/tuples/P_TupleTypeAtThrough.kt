@@ -83,6 +83,6 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 				naturalNumbers,
 				inclusive(
 					zero,
-					positiveInfinity())),
+					positiveInfinity)),
 			anyMeta())
 }

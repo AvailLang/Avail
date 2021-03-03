@@ -295,7 +295,8 @@ class LinearSetBinDescriptor private constructor(
 			var index = self.variableObjectSlotsCount()
 
 			override fun next(): AvailObject {
-				if (index < 1) throw NoSuchElementException()
+				if (index < 1)
+					throw NoSuchElementException()
 				return self.slot(BIN_ELEMENT_AT_, index--)
 			}
 

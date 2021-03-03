@@ -71,6 +71,7 @@ import com.avail.descriptor.types.A_Type.Companion.fieldTypeTuple
 import com.avail.descriptor.types.A_Type.Companion.functionType
 import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.A_Type.Companion.returnType
@@ -529,6 +530,12 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.INSTANCE_TYPE
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		return self
+	}
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,

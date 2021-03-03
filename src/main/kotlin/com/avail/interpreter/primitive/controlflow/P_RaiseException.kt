@@ -51,12 +51,13 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Raise an exception. Scan the stack of
  * [continuations][ContinuationDescriptor] until one is found for a
  * [function][FunctionDescriptor] whose [code][A_RawFunction] is
- * [P_CatchException]. Get that continuation's second argument (a handler block
- * of one argument), and check if that handler block will accept
- * `exceptionValue`. If not, keep looking. If it will accept it, unwind the
- * stack so that the [P_CatchException] continuation is the top entry, and
- * invoke the handler block with `exceptionValue`. If there is no suitable
- * handler block, then fail this primitive (with the unhandled exception).
+ * [P_CatchException]. Get that continuation's second argument (a tuple of
+ * handler functions of one argument), and check if any of the handler functions
+ * will accept `exceptionValue`. If not, keep looking. If it will accept it,
+ * unwind the stack so that the [P_CatchException] continuation is the top
+ * entry, and invoke the handler block with `exceptionValue`. If there is no
+ * suitable handler block, then fail this primitive (with the unhandled
+ * exception).
  */
 @Suppress("unused")
 object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
@@ -66,6 +67,8 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 		interpreter.checkArgumentCount(1)
 		val exception = interpreter.argument(0)
 
+		// The call stack should have been reified prior to invoking this
+		// primitive.
 		assert(interpreter.unreifiedCallDepth() == 0)
 
 		// Attach the current continuation to the exception, so that a stack

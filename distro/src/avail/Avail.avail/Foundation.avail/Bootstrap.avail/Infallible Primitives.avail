@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/8/21 7:13 AM
+ * * Last Generated: 3/2/21 6:23 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2584,7 +2584,7 @@ Primitive "_→literal phrase" is
  *        The value of the literal.
  * @param "lexeme" "string"
  *        The source text of the literal.
- * @param "start" "[0..4294967295]"
+ * @param "start" "[0..2147483647]"
  *        The one-based starting character position of the literal. A {@code 0}
  *        indicates that the character position is unknown or meaningless.
  * @param "line" "[0..268435455]"

@@ -1133,6 +1133,9 @@ abstract class Descriptor protected constructor (
 
 	override fun o_TrimExcessInts (self: AvailObject): Unit = unsupported
 
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type =
+		unsupported
+
 	override fun o_TupleSize (self: AvailObject): Int = unsupported
 
 	override fun o_TypeTuple (self: AvailObject): A_Tuple = unsupported

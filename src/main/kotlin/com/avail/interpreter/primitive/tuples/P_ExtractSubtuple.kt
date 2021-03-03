@@ -260,7 +260,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		val maxSizeObject = when
 		{
 			endUpper == Int.MAX_VALUE && sizeUpper == Int.MAX_VALUE ->
-				positiveInfinity()
+				positiveInfinity
 			else -> fromInt(maxSize)
 		}
 		return tupleTypeForSizesTypesDefaultType(

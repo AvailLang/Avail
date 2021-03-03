@@ -1034,8 +1034,8 @@ class AvailRuntime constructor(
 			put(setTypeForSizesContentType(wholeNumbers, stringType()))
 			put(functionType(tuple(naturalNumbers), bottom))
 			put(emptySet)
-			put(negativeInfinity())
-			put(positiveInfinity())
+			put(negativeInfinity)
+			put(positiveInfinity)
 
 			at(80)
 			put(mostGeneralPojoType())
@@ -1098,7 +1098,7 @@ class AvailRuntime constructor(
 			put(Types.TOKEN.o)
 			put(mostGeneralLiteralTokenType())
 			put(zeroOrMoreOf(anyMeta()))
-			put(inclusive(zero, positiveInfinity()))
+			put(inclusive(zero, positiveInfinity))
 			put(zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
@@ -1140,8 +1140,7 @@ class AvailRuntime constructor(
 			put(oneOrMoreOf(Types.ANY.o))
 			put(zeroOrMoreOf(integers))
 			put(tupleTypeForSizesTypesDefaultType(
-				integerRangeType(
-					fromInt(2), true, positiveInfinity(), false),
+				integerRangeType(fromInt(2), true, positiveInfinity, false),
 				emptyTuple(),
 				Types.ANY.o))
 
@@ -1180,7 +1179,7 @@ class AvailRuntime constructor(
 			put(TokenType.OPERATOR.atom)
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
-			put(inclusive(0, (1L shl 32) - 1))
+			put(inclusive(0, (1L shl 31) - 1))
 			put(inclusive(0, (1L shl 28) - 1))
 			put(inclusive(1L, 4L))
 			put(inclusive(0L, 31L))

@@ -48,6 +48,7 @@ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfMapType
 import com.avail.descriptor.types.A_Type.Companion.keyType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.trimType
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfMapType
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
@@ -199,6 +200,48 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 			&& (self.slot(KEY_TYPE).isVacuousType
 		        || self.slot(VALUE_TYPE).isVacuousType))
 
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
+		{
+			// Make the object shared, since there isn't an immutable
+			// descriptor.
+			self.makeShared()
+		}
+		else self
+
+	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
+		SerializerOperation.MAP_TYPE
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		if (!typeToRemove.isMapType) return self
+		if (typeToRemove.isEnumeration) return self
+		self.makeImmutable()
+		typeToRemove.makeImmutable()
+		val keyType = self.keyType()
+		val valueType = self.valueType()
+		val sizeRange = self.sizeRange()
+		val removedKeyType = typeToRemove.keyType()
+		val removedValueType = typeToRemove.valueType()
+		val removedSizeRange = typeToRemove.sizeRange()
+		if (keyType.isSubtypeOf(removedKeyType)
+			&& valueType.isSubtypeOf(removedValueType))
+		{
+			// The key/value types won't be enough to keep maps around, so we
+			// can use the map sizes to determine what we can actually exclude.
+			return mapTypeForSizesKeyTypeValueType(
+				sizeRange.trimType(removedSizeRange),
+				keyType,
+				valueType)
+		}
+		// We could do something similar if the sizes and keys were all excluded
+		// but not the values, or the sizes and values but not the keys, but
+		// we'd have to decide which conservative approximation would be most
+		// worth returning.
+		return self
+	}
+
 	// Answer the most general type that is still at least as specific as
 	// these.
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
@@ -253,18 +296,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 					aMapType.keyType()).makeImmutable(),
 				self.slot(VALUE_TYPE).typeUnion(
 					aMapType.valueType()).makeImmutable())
-
-	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		SerializerOperation.MAP_TYPE
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared, since there isn't an immutable
-			// descriptor.
-			self.makeShared()
-		}
-		else self
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{

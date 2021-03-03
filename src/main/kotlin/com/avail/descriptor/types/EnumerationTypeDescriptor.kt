@@ -59,6 +59,7 @@ import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
@@ -102,7 +103,6 @@ import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import java.util.EnumSet
 import java.util.IdentityHashMap
 
 /**
@@ -683,6 +683,13 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ENUMERATION_TYPE
+
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		val values = getInstances(self).filter { it.isInstanceOf(typeToRemove) }
+		return enumerationWith(setFromCollection(values))
+	}
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,

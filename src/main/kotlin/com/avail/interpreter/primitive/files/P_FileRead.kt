@@ -338,7 +338,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		functionType(
 			tupleFromArray(
 				naturalNumbers,
-				inclusive(one, positiveInfinity()),
+				inclusive(one, positiveInfinity),
 				ATOM.o,
 				functionType(tuple(zeroOrMoreOf(bytes)), TOP.o),
 				functionType(

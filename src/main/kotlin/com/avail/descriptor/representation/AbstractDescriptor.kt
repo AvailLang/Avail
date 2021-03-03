@@ -3890,9 +3890,9 @@ abstract class AbstractDescriptor protected constructor (
 		potentialAncestor: A_Module
 	): Boolean
 
-	abstract fun o_FiberHelper(
-		self: AvailObject
-	): FiberDescriptor.FiberHelper
+	abstract fun o_FiberHelper(self: AvailObject): FiberDescriptor.FiberHelper
+
+	abstract fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 
 	companion object
 	{

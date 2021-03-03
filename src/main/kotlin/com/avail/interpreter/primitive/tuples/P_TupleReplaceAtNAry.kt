@@ -207,7 +207,7 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 					integerRangeType(
 						fromInt(2),
 						true,
-						positiveInfinity(),
+						positiveInfinity,
 						false),
 					emptyTuple,
 					ANY.o

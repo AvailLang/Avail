@@ -400,6 +400,7 @@ import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.A_Type.Companion.trimType
 import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
@@ -3675,4 +3676,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_FiberHelper(
 		self: AvailObject
 	): FiberDescriptor.FiberHelper = self .. { fiberHelper() }
+
+	override fun o_TrimType(
+		self: AvailObject,
+		typeToRemove: A_Type
+	): A_Type = self .. { trimType(typeToRemove) }
 }

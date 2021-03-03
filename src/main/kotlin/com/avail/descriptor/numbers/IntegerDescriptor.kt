@@ -451,8 +451,8 @@ class IntegerDescriptor private constructor(
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number {
-		return if (sign == Sign.POSITIVE) positiveInfinity()
-		else negativeInfinity()
+		return if (sign == Sign.POSITIVE) positiveInfinity
+		else negativeInfinity
 	}
 
 	/**
@@ -593,8 +593,8 @@ class IntegerDescriptor private constructor(
 		self.equals(zero) ->
 			throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
 		self.greaterThan(zero) xor (sign == Sign.POSITIVE) ->
-			negativeInfinity()
-		else -> positiveInfinity()
+			negativeInfinity
+		else -> positiveInfinity
 	}
 
 	/**
@@ -736,8 +736,8 @@ class IntegerDescriptor private constructor(
 		self.equals(zero) ->
 			throw ArithmeticException(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY)
 		self.greaterThan(zero) xor (sign == Sign.POSITIVE) ->
-			negativeInfinity()
-		else -> positiveInfinity()
+			negativeInfinity
+		else -> positiveInfinity
 	}
 
 	override fun o_MultiplyByIntegerCanDestroy(
@@ -872,7 +872,7 @@ class IntegerDescriptor private constructor(
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number =
-		if (sign == Sign.POSITIVE) positiveInfinity() else negativeInfinity()
+		if (sign == Sign.POSITIVE) positiveInfinity else negativeInfinity
 
 	override fun o_SubtractFromIntegerCanDestroy(
 		self: AvailObject,

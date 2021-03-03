@@ -293,7 +293,7 @@ class LexerDescriptor private constructor(
 		private val lexerBodyFunctionType: A_Type = functionType(
 			tuple(
 				stringType(),
-				inclusive(1, (1L shl 32) - 1),
+				inclusive(1, (1L shl 31) - 1),
 				inclusive(1, (1L shl 28) - 1)),
 			setTypeForSizesContentType(
 				wholeNumbers,

@@ -61,15 +61,12 @@ object L2_CREATE_OBJECT : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val variantOperand =
-			instruction.operand<L2ConstantOperand>(0)
-		val fieldsVector =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val `object` =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val variantOperand = instruction.operand<L2ConstantOperand>(0)
+		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
-		builder.append(`object`.registerString())
+		builder.append(newObject.registerString())
 		builder.append(" ← {")
 		val variant =
 			variantOperand.constant.javaObjectNotNull<ObjectLayoutVariant>()
@@ -87,12 +84,9 @@ object L2_CREATE_OBJECT : L2Operation(
 		instruction: L2Instruction)
 	{
 		assert(this == instruction.operation())
-		val variantOperand =
-			instruction.operand<L2ConstantOperand>(0)
-		val fieldsVector =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val `object` =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val variantOperand = instruction.operand<L2ConstantOperand>(0)
+		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
 		val variant =
 			variantOperand.constant.javaObjectNotNull<ObjectLayoutVariant>()
 		method.visitLdcInsn(variant)
@@ -105,6 +99,6 @@ object L2_CREATE_OBJECT : L2Operation(
 			translator.load(method, fieldSources[i].register())
 			ObjectDescriptor.setFieldMethod.generateCall(method) // Returns object for chaining.
 		}
-		translator.store(method, `object`.register())
+		translator.store(method, newObject.register())
 	}
 }
