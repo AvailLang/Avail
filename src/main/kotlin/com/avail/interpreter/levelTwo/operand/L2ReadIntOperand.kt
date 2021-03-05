@@ -36,9 +36,11 @@ import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2IntRegister
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import com.avail.optimizer.L2ValueManifest
+import com.avail.optimizer.values.L2SemanticUnboxedInt
 import com.avail.optimizer.values.L2SemanticValue
+import com.avail.utility.cast
 
 /**
  * An `L2ReadIntOperand` is an operand of type [L2OperandType.READ_INT]. It
@@ -74,8 +76,7 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 		: super(
 			semanticValue,
 			restriction,
-			manifest.getDefinition<L2IntRegister>(
-				semanticValue, RegisterKind.INTEGER))
+			manifest.getDefinition<L2IntRegister>(semanticValue, INTEGER_KIND))
 	{
 		assert(restriction.isUnboxedInt)
 	}
@@ -98,9 +99,8 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 			register: L2IntRegister)
 		: super(semanticValue, restriction, register)
 
-	override fun copyForSemanticValue(
-		newSemanticValue: L2SemanticValue): L2ReadIntOperand =
-			L2ReadIntOperand(newSemanticValue, restriction(), register())
+	override fun semanticValue(): L2SemanticUnboxedInt =
+		super.semanticValue().cast()
 
 	override fun copyForRegister(newRegister: L2Register): L2ReadIntOperand =
 		L2ReadIntOperand(
@@ -113,5 +113,5 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 		dispatcher.doOperand(this)
 	}
 
-	override fun registerKind(): RegisterKind = RegisterKind.INTEGER
+	override fun registerKind() = INTEGER_KIND
 }

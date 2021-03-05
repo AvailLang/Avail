@@ -95,11 +95,10 @@ object P_BootstrapPrefixPrimitiveDeclaration
 				STRONG, "primitive specification to be a literal keyword token")
 		}
 		val primName = primNamePhrase.token().string()
-		val prim =
-			primitiveByName(primName.asNativeString())
-	           ?: throw AvailRejectedParseException(
-		           STRONG,
-		           "a supported primitive name, not $primName")
+		val prim = primitiveByName(primName.asNativeString())
+		   ?: throw AvailRejectedParseException(
+			   STRONG,
+			   "a supported primitive name, not $primName")
 
 		// Check that the primitive signature agrees with the arguments.
 		val blockArgumentPhrases = mutableListOf<A_Phrase>()
@@ -210,7 +209,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 					zeroOrOneOf(
 						/* Primitive declaration */
 						tupleTypeForTypes(
-							/* Primitive number. */
+							/* Primitive name. */
 							TOKEN.o,
 							/* Optional failure variable declaration. */
 							zeroOrOneOf(

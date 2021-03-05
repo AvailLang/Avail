@@ -32,15 +32,13 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.HookType
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -52,25 +50,12 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.named("implicit observe function"))
+	WRITE_BOXED.named("implicit observe function"))
 {
 	override fun hasSideEffect(): Boolean
 	{
 		// Keep this instruction pinned in place for safety during inlining.
 		return true
-	}
-
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
-		registerSet.typeAtPut(
-			function.register(),
-			HookType.IMPLICIT_OBSERVE.functionType,
-			instruction)
 	}
 
 	override fun appendToWithWarnings(
@@ -80,8 +65,8 @@ object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
+		val function = instruction.operand<L2WriteBoxedOperand>(0)
+
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(function.registerString())
@@ -92,8 +77,7 @@ object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
+		val function = instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: register = interpreter.runtime().implicitObserveFunction();
 		translator.loadInterpreter(method)

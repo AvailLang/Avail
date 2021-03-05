@@ -78,6 +78,65 @@ inline fun <T, R> Iterable<T>.mapToSet (
 	transform: (T) -> R
 ): MutableSet<R> = mapTo(destination, transform)
 
+/**
+ * Given an [Iterable] receiver, run the normal `forEach` operation to produce
+ * a series of values, apply the extractor extension function to each of those
+ * values to produce an `Iterable` for each of them, and run `forEach` on those
+ * `Iterables`, in order, using the [body] function.
+ *
+ * @receiver
+ *   The outer [Iterable] to visit.
+ * @param extractor
+ *   A transformation from values produced by the receiver to an Iterable that
+ *   should be visited with the [body].
+ * @param body
+ *   The function to run with each value produced by each of the invocations of
+ *   the [extractor] on each element of the receiver [Iterable].
+ */
+inline fun <A: Iterable<B>, B, C > A.deepForEach (
+	extractor: B.()->Iterable<C>,
+	body: (C)->Unit
+) = this.forEach { b -> b.extractor().forEach(body) }
+
+/**
+ * Given an [Iterable] receiver, run the normal `forEach` operation to produce
+ * a series of values, apply the [extractor1] extension function to each of
+ * those values to produce an `Iterable` for each of them, run the [extractor2]
+ * extension function to produce an `Iterable` to run `forEach` on, with the
+ * [body] function.
+ *
+ * and run `forEach` on those
+ * `Iterables`, in order.
+ *
+ * @receiver
+ *   The outer [Iterable] to visit.
+ * @param extractor1
+ *   A transformation from values produced by the receiver to an Iterable that
+ *   should be visited.
+ * @param extractor2
+ *   A transformation from values produced by the extractor1's iterator, to an
+ *   Iterable that should be visited with the [body].
+ * @param body
+ *   The function to run with each value produced by each of the invocations of
+ *   the [extractor2] on each element produced by the [extractor1] on each
+ *   element of the receiver [Iterable].
+ */
+inline fun <A: Iterable<B>, B, C, D> A.deepForEach (
+	extractor1: B.()->Iterable<C>,
+	extractor2: C.()->Iterable<D>,
+	body: (D)->Unit
+) = this.forEach { b ->
+	b.extractor1().forEach { c ->
+		c.extractor2().forEach(body)
+	}
+}
+
+/**
+ * Kotlin has one of these in experimental, which forces the Universe to say
+ * it's also experimental.  So boo.
+ */
+fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
+
 /** Tuple of length 1. */
 data class Tuple1<T1> constructor (val t1: T1)
 

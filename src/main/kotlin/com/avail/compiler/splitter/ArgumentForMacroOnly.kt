@@ -51,12 +51,12 @@ import com.avail.descriptor.types.A_Type
  * what get passed to the macro body.
  *
  * Because [list&#32;phrases][ListPhraseDescriptor] have an
- * [expression&#32;type][A_Phrase.expressionType] that depends on the types of
- * the `expressionType` of each subexpression, and because ⊥ as an element in a
- * tuple type makes the entire resulting tuple type also be ⊥, we can't just
- * directly accept an expression that produces ⊤ or ⊥ (e.g., the resulting
- * list's apparent cardinality would be lost, as ⊥ is a subtype of every tuple
- * type.
+ * [expression&#32;type][A_Phrase.phraseExpressionType] that depends on the
+ * types of the `expressionType` of each subexpression, and because ⊥ as an
+ * element in a tuple type makes the entire resulting tuple type also be ⊥, we
+ * can't just directly accept an expression that produces ⊤ or ⊥ (e.g., the
+ * resulting list's apparent cardinality would be lost, as ⊥ is a subtype of
+ * every tuple type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *

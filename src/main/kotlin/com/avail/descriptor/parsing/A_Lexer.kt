@@ -113,5 +113,31 @@ interface A_Lexer : A_BasicObject {
 		 */
 		fun A_Lexer.definitionModule(): A_Module =
 			dispatch { o_DefinitionModule(it) }
+
+		/**
+		 * If the filter function cas already run for this single-byte codePoint
+		 * in the past, answer the boolean value that it produced.  Otherwise
+		 * answer `null`.
+		 *
+		 * @param codePoint
+		 *   The codePoint [Int] in the range [0..255].
+		 */
+		fun A_Lexer.lexerApplicability(codePoint: Int): Boolean? =
+			dispatch { o_LexerApplicability(it, codePoint) }
+
+		/**
+		 * Record the fact that the filter ran for this single-byte codePoint,
+		 * and produced the provided [applicability] boolean.
+		 *
+		 * @param codePoint
+		 *   The codePoint [Int] in the range [0..255] that was tested.
+		 * @param applicability
+		 *   A boolean indicating whether the lexer's filter indicated that the
+		 *   lexer's body should run when this codePoint is encountered.
+		 */
+		fun A_Lexer.setLexerApplicability(
+			codePoint: Int,
+			applicability: Boolean
+		) = dispatch { o_SetLexerApplicability(it, codePoint, applicability) }
 	}
 }

@@ -69,6 +69,9 @@ import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
@@ -89,6 +92,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import com.avail.utility.safeWrite
+import com.avail.utility.structures.EnumMap
 import java.lang.Double.isInfinite
 import java.lang.Math.getExponent
 import java.lang.Math.scalb
@@ -97,7 +101,6 @@ import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
-import kotlin.experimental.and
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -173,9 +176,9 @@ class IntegerDescriptor private constructor(
 			builder.append(self.extractLong())
 		} else {
 			var magnitude: A_Number = self
-			if (self.lessThan(zero())) {
+			if (self.lessThan(zero)) {
 				builder.append('-')
-				magnitude = zero().minusCanDestroy(self, false)
+				magnitude = zero.minusCanDestroy(self, false)
 			}
 			printBigInteger(magnitude, builder, 0)
 		}
@@ -448,8 +451,8 @@ class IntegerDescriptor private constructor(
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number {
-		return if (sign == Sign.POSITIVE) positiveInfinity()
-		else negativeInfinity()
+		return if (sign == Sign.POSITIVE) positiveInfinity
+		else negativeInfinity
 	}
 
 	/**
@@ -587,11 +590,11 @@ class IntegerDescriptor private constructor(
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number = when {
-		self.equals(zero()) ->
+		self.equals(zero) ->
 			throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
-		self.greaterThan(zero()) xor (sign == Sign.POSITIVE) ->
-			negativeInfinity()
-		else -> positiveInfinity()
+		self.greaterThan(zero) xor (sign == Sign.POSITIVE) ->
+			negativeInfinity
+		else -> positiveInfinity
 	}
 
 	/**
@@ -656,7 +659,7 @@ class IntegerDescriptor private constructor(
 		// Rare - fall back to slower math.
 		var numerator: A_Number = anInteger
 		var denominator: A_Number = self
-		if (denominator.lessThan(zero()))
+		if (denominator.lessThan(zero))
 		{
 			// n/d for d<0:  Compute (-n/-d) instead.
 			numerator =
@@ -665,7 +668,7 @@ class IntegerDescriptor private constructor(
 				denominator.subtractFromIntegerCanDestroy(zero, canDestroy)
 		}
 		var invertResult = false
-		if (numerator.lessThan(zero()))
+		if (numerator.lessThan(zero))
 		{
 			// n/d for n<0, d>0:  use -1-(-1-n)/d
 			// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
@@ -730,11 +733,11 @@ class IntegerDescriptor private constructor(
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number = when {
-		self.equals(zero()) ->
+		self.equals(zero) ->
 			throw ArithmeticException(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY)
-		self.greaterThan(zero()) xor (sign == Sign.POSITIVE) ->
-			negativeInfinity()
-		else -> positiveInfinity()
+		self.greaterThan(zero) xor (sign == Sign.POSITIVE) ->
+			negativeInfinity
+		else -> positiveInfinity
 	}
 
 	override fun o_MultiplyByIntegerCanDestroy(
@@ -869,7 +872,7 @@ class IntegerDescriptor private constructor(
 		sign: Sign,
 		canDestroy: Boolean
 	): A_Number =
-		if (sign == Sign.POSITIVE) positiveInfinity() else negativeInfinity()
+		if (sign == Sign.POSITIVE) positiveInfinity else negativeInfinity
 
 	override fun o_SubtractFromIntegerCanDestroy(
 		self: AvailObject,
@@ -1145,7 +1148,7 @@ class IntegerDescriptor private constructor(
 		if (!shiftFactor.isInt) {
 			// e.g., 123 >> 999999999999999999 is 0
 			// also 123 << 999999999999999999 truncated to N bits (N<2^31) is 0.
-			return zero()
+			return zero
 		}
 		val shiftInt = shiftFactor.extractInt()
 		if (self.isLong) {
@@ -1240,7 +1243,7 @@ class IntegerDescriptor private constructor(
 		shiftFactor: A_Number,
 		canDestroy: Boolean
 	): A_Number {
-		if (self.equals(zero())) {
+		if (self.equals(zero)) {
 			if (!canDestroy || isMutable) {
 				self.makeImmutable()
 			}
@@ -1255,7 +1258,7 @@ class IntegerDescriptor private constructor(
 			}
 			return when (Order.MORE) {
 				// e.g., 123 >> 999999999999999999 is 0
-				self.numericCompareToInteger(zero) -> zero()
+				self.numericCompareToInteger(zero) -> zero
 				// e.g., -123 >> 999999999999999999 is -1
 				else -> negativeOne()
 			}
@@ -1493,6 +1496,30 @@ class IntegerDescriptor private constructor(
 		}
 
 		/**
+		 * Convert the specified Kotlin [Int] into an Avail integer.
+		 *
+		 * @param anInteger
+		 *   A Java [Int] (Kotlin [Int]).
+		 * @return
+		 *   An [AvailObject].
+		 */
+		@JvmStatic
+		@ReferencedInGeneratedCode
+		fun fromInt(anInteger: Int): AvailObject =
+			when (anInteger) {
+				in 0..255 -> smallIntegers[anInteger]!!
+				in 0 until smallIntegerLimit -> smallIntegers[anInteger] ?:
+					createUninitializedInteger(1).apply {
+						setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
+						makeShared()
+						smallIntegers[anInteger] = this
+					}
+				else -> createUninitializedInteger(1).apply {
+					setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
+				}
+			}
+
+		/**
 		 * Convert the specified [Long] into a boxed Avail integer.
 		 *
 		 * @param aLong
@@ -1502,7 +1529,13 @@ class IntegerDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun fromLong(aLong: Long): AvailObject = when (aLong) {
-			in 0..255 -> immutableByteObjects[aLong.toInt()]
+			in 0..255 -> smallIntegers[aLong.toInt()]!!
+			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
+				createUninitializedInteger(1).apply {
+					setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
+					makeShared()
+					smallIntegers[aLong.toInt()] = this
+				}
 			aLong.toInt().toLong() -> createUninitializedInteger(1).apply {
 				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
 			}
@@ -1591,28 +1624,10 @@ class IntegerDescriptor private constructor(
 			}
 			out.trimExcessInts()
 			return when {
-				neg -> zero().noFailMinusCanDestroy(out, true)
+				neg -> zero.noFailMinusCanDestroy(out, true)
 				else -> out
 			}
 		}
-
-		/**
-		 * Convert the specified Kotlin [Int] into an Avail integer.
-		 *
-		 * @param anInteger
-		 *   A Java [Int] (Kotlin [Int]).
-		 * @return
-		 *   An [AvailObject].
-		 */
-		@JvmStatic
-		@ReferencedInGeneratedCode
-		fun fromInt(anInteger: Int): AvailObject =
-			when (anInteger) {
-				anInteger and 255 -> immutableByteObjects[anInteger]
-				else -> createUninitializedInteger(1).apply {
-					setIntSlot(RAW_LONG_SLOTS_, 1, anInteger)
-				}
-			}
 
 		/** The [CheckedMethod] for [IntegerDescriptor.fromInt].  */
 		@JvmField
@@ -1634,7 +1649,7 @@ class IntegerDescriptor private constructor(
 		@JvmStatic
 		fun fromUnsignedByte(anInteger: Short): AvailObject {
 			assert(anInteger in 0..255)
-			return immutableByteObjects[anInteger.toInt()]
+			return smallIntegers[anInteger.toInt()]!!
 		}
 
 		/**
@@ -1704,7 +1719,7 @@ class IntegerDescriptor private constructor(
 		 */
 		@JvmStatic
 		fun hashOfUnsignedByte(anInteger: Short) =
-			hashesOfUnsignedBytes[anInteger.toInt()]
+			hashesOfSmallIntegers[anInteger.toInt()]
 
 		/** The initialization value for computing the hash of an integer.  */
 		private const val initialHashValue = 0x13592884
@@ -1820,15 +1835,43 @@ class IntegerDescriptor private constructor(
 			mutableFor(size).create(size + 1 shr 1)
 
 		/**
-		 * The static list of descriptors of this kind, organized in such a way
-		 * that they can be found by mutability and the number of unused ints in
-		 * the last long.
+		 * The static list of descriptors of this kind, organized by mutability
+		 * and then the number of unused ints in the last long.  This is mostly
+		 * a vestigial effect of having used 32-bit integer slots in the past.
+		 * There is still some merit to the technique, since for example integer
+		 * multiplication has to use u32xu32->u64 for speed.
 		 */
-		private val descriptors = Array(2 * 3) {
-			IntegerDescriptor(
-				Mutability.values()[it.rem(3)],
-				(it / 3).toByte())
+		private val descriptors = EnumMap.enumMap { mut: Mutability ->
+			Array(2) { unusedInts ->
+				IntegerDescriptor(mut, unusedInts.toByte())
+			}
 		}
+
+		/**
+		 * Values below this limit can be looked up in [smallIntegers], and
+		 * their hashes can also be looked up in [hashesOfSmallIntegers].  This
+		 * value MUST be at least 256.
+		 */
+		private const val smallIntegerLimit = 16384
+
+		/**
+		 * A cache that maps from an index to a corresponding [A_Number].  The
+		 * elements `[0..255]` are pre-populated here.  The remaining elements
+		 * are only populated as needed.  No lock is needed, since the
+		 * descriptor field of AvailObject is volatile, and set to the shared
+		 * descriptor just prior to being put in the array.  If another thread
+		 * sees the value, it can be assured that the content of the object was
+		 * written at a `happens-before` time.
+		 */
+		private val smallIntegers =
+			arrayOfNulls<AvailObject>(smallIntegerLimit).also { array ->
+				(0..255).forEach { i ->
+					array[i] = createUninitializedInteger(1).apply {
+						rawSignedIntegerAtPut(1, i)
+						makeShared()
+					}
+				}
+			}
 
 		/**
 		 * Answer the mutable descriptor that is suitable to describe an integer
@@ -1841,71 +1884,31 @@ class IntegerDescriptor private constructor(
 		 *   An `IntegerDescriptor` suitable for representing an integer of the
 		 *   given mutability and int slot count.
 		 */
-		private fun mutableFor(size: Int) = descriptors[(size and 1) * 3]
+		private fun mutableFor(size: Int) = descriptors[MUTABLE]!![size and 1]
 
 		/**
-		 * An array of 256 [Int]s, corresponding to the hashes of the integers
-		 * `0..255` inclusive.
+		 * An array of size [smallIntegerLimit] of [Int]s, corresponding to the
+		 * hashes of the integers at the corresponding indices.
 		 */
-		private val hashesOfUnsignedBytes = IntArray(256) {
+		private val hashesOfSmallIntegers = IntArray(smallIntegerLimit) {
 			computeHashOfInt(it)
 		}
 
-		/**
-		 * An array of 256 immutable [integers][IntegerDescriptor],
-		 * corresponding with the indices `0..255` inclusive.  These make many
-		 * kinds of calculations much more efficient than naively constructing a
-		 * fresh [AvailObject] unconditionally.
-		 */
-		private val immutableByteObjects = Array(256) {
-			createUninitializedInteger(1).apply {
-				rawSignedIntegerAtPut(1, it)
-				makeShared()
-			}
-		}
-
 		/** An Avail integer representing zero (0).  */
-		private val zero: AvailObject = immutableByteObjects[0]
+		val zero: AvailObject = smallIntegers[0]!!
 
 		/** An Avail integer representing one (1).  */
-		private val one: AvailObject = immutableByteObjects[1]
+		val one: AvailObject = smallIntegers[1]!!
 
 		/** An Avail integer representing two (2).  */
-		private val two: AvailObject = immutableByteObjects[2]
+		val two: AvailObject = smallIntegers[2]!!
 
 		/** The Avail integer negative one (-1).  */
-		private var negativeOne: AvailObject =
+		var negativeOne: AvailObject =
 			createUninitializedInteger(1).apply {
 				rawSignedIntegerAtPut(1, -1)
 				makeShared()
 			}
-
-		/**
-		 * Answer an [AvailObject] representing the integer zero (`0`).
-		 *
-		 * @return
-		 *   The Avail integer zero.
-		 */
-		@JvmStatic
-		fun zero(): A_Number = zero
-
-		/**
-		 * Answer an [AvailObject] representing the integer one (`1`).
-		 *
-		 * @return
-		 *   The Avail integer one.
-		 */
-		@JvmStatic
-		fun one() = one
-
-		/**
-		 * Answer an [AvailObject] representing the integer two (`2`).
-		 *
-		 * @return
-		 *   The Avail integer two.
-		 */
-		@JvmStatic
-		fun two() = two
 
 		/**
 		 * One (U.S.) quintillion, which is 10^18.  This is the largest power of
@@ -1963,12 +1966,10 @@ class IntegerDescriptor private constructor(
 		}
 	}
 
-	override fun mutable() = descriptors[
-		(unusedIntsOfLastLong and 1) * 3 + Mutability.MUTABLE.ordinal]
+	override fun mutable() = descriptors[MUTABLE]!![unusedIntsOfLastLong.toInt()]
 
-	override fun immutable() = descriptors[
-		(unusedIntsOfLastLong and 1) * 3 + Mutability.IMMUTABLE.ordinal]
+	override fun immutable() =
+		descriptors[IMMUTABLE]!![unusedIntsOfLastLong.toInt()]
 
-	override fun shared() = descriptors[
-		(unusedIntsOfLastLong and 1) * 3 + Mutability.SHARED.ordinal]
+	override fun shared() = descriptors[SHARED]!![unusedIntsOfLastLong.toInt()]
 }

@@ -38,6 +38,7 @@ package com.avail.persistence.cache
 import com.avail.builder.ModuleRoot
 import com.avail.builder.ResolvedModuleName
 import com.avail.compiler.ModuleHeader
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.tokens.CommentTokenDescriptor
@@ -992,9 +993,19 @@ class Repository constructor(
 		 */
 		val recordNumber: Long
 
+		/**
+		 * The record number at which a tuple of block phrases for this
+		 * compilation is stored.  This can be fetched on demand, separately
+		 * from the [A_RawFunction]s needed to load the module.
+		 */
+		val recordNumberOfBlockPhrases: Long
+
 		/** The byte array containing a serialization of this compilation. */
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
+
+		val blockPhraseBytes: ByteArray?
+			get() = lock.withLock { repository!![recordNumberOfBlockPhrases] }
 
 		/**
 		 * Output this module compilation to the provided [DataOutputStream].
@@ -1011,13 +1022,15 @@ class Repository constructor(
 		{
 			binaryStream.writeLong(compilationTime)
 			binaryStream.writeLong(recordNumber)
+			binaryStream.writeLong(recordNumberOfBlockPhrases)
 		}
 
 		override fun toString(): String =
 			String.format(
-				"Compilation(%tFT%<tTZ, rec=%d)",
+				"Compilation(%tFT%<tTZ, rec=%d, phrases=%d)",
 				compilationTime,
-				recordNumber)
+				recordNumber,
+				recordNumberOfBlockPhrases)
 
 		/**
 		 * Reconstruct a `ModuleCompilation`, having previously been written via
@@ -1033,6 +1046,7 @@ class Repository constructor(
 		{
 			compilationTime = binaryStream.readLong()
 			recordNumber = binaryStream.readLong()
+			recordNumberOfBlockPhrases = binaryStream.readLong()
 		}
 
 		/**
@@ -1041,23 +1055,29 @@ class Repository constructor(
 		 *
 		 * @param compilationTime
 		 *   The compilation time of this module.
-		 * @param bytes
+		 * @param serializedBody
 		 *   The [serialized][Serializer] form of the compiled module.
+		 * @param serializedBlockPhrases
+		 *   The [serialized][Serializer] form of the module's block phrases.
 		 */
-		constructor(compilationTime: Long, bytes: ByteArray)
+		constructor(
+			compilationTime: Long,
+			serializedBody: ByteArray,
+			serializedBlockPhrases: ByteArray)
 		{
-			lock.lock()
-			try
-			{
-				this.compilationTime = compilationTime
-				val repo = repository!!
-				this.recordNumber = repo.size
-				repo.add(bytes)
+			// No need to hold a lock during initialization.
+			this.compilationTime = compilationTime
+			val repo = repository!!
+			var indexOfRecord: Long = -1
+			var indexOfBlockPhrasesRecord: Long = -1
+			lock.withLock {
+				indexOfRecord = repo.size
+				repo.add(serializedBody)
+				indexOfBlockPhrasesRecord = repo.size
+				repo.add(serializedBlockPhrases)
 			}
-			finally
-			{
-				lock.unlock()
-			}
+			this.recordNumber = indexOfRecord
+			this.recordNumberOfBlockPhrases = indexOfBlockPhrasesRecord
 		}
 	}
 

@@ -42,6 +42,8 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.versions
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set

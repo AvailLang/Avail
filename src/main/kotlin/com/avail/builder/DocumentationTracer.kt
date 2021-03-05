@@ -43,6 +43,7 @@ import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tokens.CommentTokenDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.error.ErrorCode
+import com.avail.persistence.IndexedFile.Companion.validatedBytesFrom
 import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.persistence.cache.Repository.ModuleVersionKey
 import com.avail.serialization.Deserializer
@@ -127,92 +128,92 @@ internal class DocumentationTracer constructor(
 		completionAction: ()->Unit)
 	{
 		getVersion(moduleName,
-		{ version ->
-			if (version?.comments === null)
-			{
-				val problem = object : Problem(
-					moduleName,
-					1,
-					0,
-					TRACE,
-					"Module \"{0}\" should have been compiled already",
-					moduleName)
+			{ version ->
+				if (version?.comments === null)
 				{
-					override fun abortCompilation()
+					val problem = object : Problem(
+						moduleName,
+						1,
+						0,
+						TRACE,
+						"Module \"{0}\" should have been compiled already",
+						moduleName)
 					{
-						availBuilder.stopBuildReason = "Comment loading failed"
-						completionAction()
+						override fun abortCompilation()
+						{
+							availBuilder.stopBuildReason = "Comment loading failed"
+							completionAction()
+						}
 					}
+					problemHandler.handle(problem)
+					return@getVersion
 				}
-				problemHandler.handle(problem)
-				return@getVersion
-			}
-			val tuple: A_Tuple?
-			try
-			{
-				val bytes = version.comments!!
-				val `in` = AvailBuilder.validatedBytesFrom(bytes)
-				val deserializer = Deserializer(`in`, availBuilder.runtime)
-				tuple = deserializer.deserialize()
-				assert(tuple !== null)
-				assert(tuple!!.isTuple)
-				val residue = deserializer.deserialize()
-				assert(residue === null)
-			}
-			catch (e: MalformedSerialStreamException)
-			{
-				val problem = object : Problem(
-					moduleName,
-					1,
-					0,
-					INTERNAL,
-					"Couldn''t deserialize comment tuple for module \"{0}\"",
-					moduleName)
+				val tuple: A_Tuple?
+				try
 				{
-					override fun abortCompilation()
-					{
-						availBuilder.stopBuildReason =
-							"Comment deserialization failed"
-						completionAction()
-					}
+					val bytes = version.comments!!
+					val input = validatedBytesFrom(bytes)
+					val deserializer = Deserializer(input, availBuilder.runtime)
+					tuple = deserializer.deserialize()
+					assert(tuple !== null)
+					assert(tuple!!.isTuple)
+					val residue = deserializer.deserialize()
+					assert(residue === null)
 				}
-				problemHandler.handle(problem)
-				return@getVersion
-			}
+				catch (e: MalformedSerialStreamException)
+				{
+					val problem = object : Problem(
+						moduleName,
+						1,
+						0,
+						INTERNAL,
+						"Couldn''t deserialize comment tuple for module \"{0}\"",
+						moduleName)
+					{
+						override fun abortCompilation()
+						{
+							availBuilder.stopBuildReason =
+								"Comment deserialization failed"
+							completionAction()
+						}
+					}
+					problemHandler.handle(problem)
+					return@getVersion
+				}
 
-			val header: ModuleHeader
-			try
-			{
-				val `in` = AvailBuilder.validatedBytesFrom(version.moduleHeader)
-				val deserializer = Deserializer(`in`, availBuilder.runtime)
-				header = ModuleHeader(moduleName)
-				header.deserializeHeaderFrom(deserializer)
-			}
-			catch (e: MalformedSerialStreamException)
-			{
-				val problem = object : Problem(
-					moduleName,
-					1,
-					0,
-					INTERNAL,
-					"Couldn''t deserialize header for module \"{0}\"",
-					moduleName)
+				val header: ModuleHeader
+				try
 				{
-					override fun abortCompilation()
-					{
-						availBuilder.stopBuildReason =
-							"Module header deserialization failed when " +
-								"loading comments"
-						completionAction()
-					}
+					val input = validatedBytesFrom(version.moduleHeader)
+					val deserializer = Deserializer(input, availBuilder.runtime)
+					header = ModuleHeader(moduleName)
+					header.deserializeHeaderFrom(deserializer)
 				}
-				problemHandler.handle(problem)
-				return@getVersion
-			}
+				catch (e: MalformedSerialStreamException)
+				{
+					val problem = object : Problem(
+						moduleName,
+						1,
+						0,
+						INTERNAL,
+						"Couldn''t deserialize header for module \"{0}\"",
+						moduleName)
+					{
+						override fun abortCompilation()
+						{
+							availBuilder.stopBuildReason =
+								"Module header deserialization failed when " +
+									"loading comments"
+							completionAction()
+						}
+					}
+					problemHandler.handle(problem)
+					return@getVersion
+				}
 
-			generator.add(header, tuple)
-			completionAction()
-		}) { code, ex ->
+				generator.add(header, tuple)
+				completionAction()
+			}) { code, ex ->
 			val problem = object : Problem(
 				moduleName,
 				1,

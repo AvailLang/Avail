@@ -99,8 +99,8 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 		try
 		{
 			result = marshaledArgs
-				?.let { method.invoke(null, *it) }
-				?: method.invoke(null, null)
+				?.let { method(null, *it) }
+				?: method(null, null)
 		}
 		catch (e: InvocationTargetException)
 		{

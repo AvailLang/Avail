@@ -32,19 +32,13 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.instance
-import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.TupleTypeDescriptor
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypesForTypesArrayMethod
-import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -60,55 +54,6 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 	L2OperandType.READ_BOXED_VECTOR.named("element types"),
 	L2OperandType.WRITE_BOXED.named("tuple type"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val types =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tupleType =
-			instruction.operand<L2WriteBoxedOperand>(1)
-		val elements = types.elements()
-		if (registerSet.allRegistersAreConstant(elements))
-		{
-			// The types are all constants, so create the tuple type statically.
-			val constants =
-				elements.map { registerSet.constantAt(it.register()) }
-			val newTupleType = tupleTypeForTypesList(constants)
-			newTupleType.makeImmutable()
-			registerSet.constantAtPut(
-				tupleType.register(), newTupleType, instruction)
-		}
-		else
-		{
-			val newTypes = elements.map {
-				if (registerSet.hasTypeAt(it.register()))
-				{
-					val meta = registerSet.typeAt(it.register())
-					if (meta.isInstanceMeta)
-					{
-						meta.instance()
-					}
-					else
-					{
-						Types.ANY.o
-					}
-				}
-				else
-				{
-					Types.ANY.o
-				}
-			}
-			val newTupleType = tupleTypeForTypesList(newTypes)
-			val newTupleMeta = instanceMeta(newTupleType)
-			newTupleMeta.makeImmutable()
-			registerSet.removeConstantAt(tupleType.register())
-			registerSet.typeAtPut(
-				tupleType.register(), newTupleMeta, instruction)
-		}
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

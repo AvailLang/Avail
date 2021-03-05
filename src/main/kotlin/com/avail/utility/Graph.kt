@@ -912,7 +912,7 @@ class Graph<Vertex> constructor ()
 					}
 					predecessors.size == 1 ->
 					{
-						val predecessor = predecessors.iterator().next()
+						val predecessor = predecessors.single()
 						ancestorSet = ancestorSets[predecessor]!!.toMutableSet()
 						ancestorSet.add(predecessor)
 					}

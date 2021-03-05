@@ -42,9 +42,13 @@ import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2Entity
+import com.avail.optimizer.L2EntityAndKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
@@ -54,8 +58,8 @@ import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
 import java.util.ArrayDeque
-import java.util.Deque
 import java.util.concurrent.atomic.LongAdder
+
 /**
  * An `L2PcOperand` is an operand of type [L2OperandType.PC].
  * It refers to a target [L2BasicBlock], that either be branched to at
@@ -70,9 +74,9 @@ import java.util.concurrent.atomic.LongAdder
  *   [L2BasicBlock.isLoopHead], thereby closing a loop.
  *
  * @constructor
- * Construct a new `L2PcOperand` that leads to the specified
- * [L2BasicBlock].  Set [isBackward] to true if this is a
- * back-link to a [loop&#32;head][L2BasicBlock.isLoopHead],
+ * Construct a new `L2PcOperand` that leads to the specified [L2BasicBlock].
+ * Set [isBackward] to true if this is a back-link to a
+ * [loop&#32;head][L2BasicBlock.isLoopHead],
  *
  * @param targetBlock
  *   The [L2BasicBlock] The target basic block.
@@ -80,20 +84,15 @@ import java.util.concurrent.atomic.LongAdder
  *   Whether this edge is a back-link to a loop head.
  */
 class L2PcOperand constructor (
-		private var targetBlock: L2BasicBlock,
-		var isBackward: Boolean)
-	: L2Operand()
+	private var targetBlock: L2BasicBlock,
+	var isBackward: Boolean
+) : L2Operand()
 {
 	/**
 	 * The manifest linking semantic values and registers at this control flow
 	 * edge.
 	 */
 	private var manifest: L2ValueManifest? = null
-
-	/**
-	 * Answer whether this edge points backward to a block marked as
-	 * [L2BasicBlock.isLoopHead], thereby closing a loop.
-	 */
 
 	/**
 	 * The [Set] of [L2Register]s that are written in all pasts, and
@@ -115,17 +114,17 @@ class L2PcOperand constructor (
 	 * This is a subset of [alwaysLiveInRegisters].
 	 */
 	@JvmField
-	val sometimesLiveInRegisters= mutableSetOf<L2Register>()
+	val sometimesLiveInRegisters = mutableSetOf<L2Register>()
 
 	/**
-	 * Either `null`, the normal case, or a set with each [L2Entity]
-	 * that is allowed to pass along this edge.  This mechanism is used to break
-	 * control flow cycles, allowing a simple liveness algorithm to be used,
-	 * instead of iterating (backward) through loops until the live set has
-	 * converged.
+	 * Either `null`, the normal case, or a set with each
+	 * [L2Entity]/[RegisterKind] that is allowed to pass along this edge.  This
+	 * mechanism is used to break control flow cycles, allowing a simple
+	 * liveness algorithm to be used, instead of iterating (backward) through
+	 * loops until the live set has converged.
 	 */
 	@JvmField
-	var forcedClampedEntities: MutableSet<L2Entity>? = null
+	var forcedClampedEntities: MutableSet<L2EntityAndKind>? = null
 
 	/**
 	 * A counter of how many times this edge has been traversed.  This will be
@@ -145,7 +144,8 @@ class L2PcOperand constructor (
 	/**
 	 * Create a remapped `L2PcOperand` from the original operand, the new target
 	 * [L2BasicBlock], and the transformed [L2ValueManifest]. Set [isBackward]
-	 * to true if this is a back-link to a [loop&#32;head][L2BasicBlock.isLoopHead].
+	 * to true if this is a back-link to a
+	 * [loop&#32;head][L2BasicBlock.isLoopHead].
 	 *
 	 * @param newTargetBlock
 	 *   The transformed target [L2BasicBlock] of the new edge.
@@ -226,14 +226,17 @@ class L2PcOperand constructor (
 		registerRemap: Map<L2Register, L2Register>,
 		theInstruction: L2Instruction)
 	{
-		forcedClampedEntities?.toMutableList()?.forEach {
-			if (registerRemap.containsKey(it))
-			{
-				forcedClampedEntities!!.remove(it)
-				forcedClampedEntities!!.add(registerRemap[it]!!)
+		forcedClampedEntities?.run {
+			toMutableList().forEach { pair ->
+				val (entity, kind) = pair
+				if (registerRemap.containsKey(entity))
+				{
+					remove(pair)
+					add(L2EntityAndKind(registerRemap[entity]!!, kind))
+				}
 			}
+			super.replaceRegisters(registerRemap, theInstruction)
 		}
-		super.replaceRegisters(registerRemap, theInstruction)
 	}
 
 	/**
@@ -372,12 +375,12 @@ class L2PcOperand constructor (
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
 		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
-		val liveMap = enumMap(RegisterKind.values()) { mutableListOf<Int>() }
+		val liveMap = enumMap { _: RegisterKind -> mutableListOf<Int>() }
 		val liveRegistersList =
 			(alwaysLiveInRegisters + sometimesLiveInRegisters)
 				.sortedBy(L2Register::finalIndex)
 		liveRegistersList.forEach {
-			liveMap[it.registerKind()].add(
+			liveMap[it.registerKind()]!!.add(
 				translator.localNumberFromRegister(it))
 		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =
@@ -386,7 +389,7 @@ class L2PcOperand constructor (
 		// Emit code to save those registers' values.  Start with the objects.
 		// :: array = new «arrayClass»[«limit»];
 		// :: array[0] = ...; array[1] = ...;
-		val boxedLocalNumbers: List<Int> = liveMap[RegisterKind.BOXED]
+		val boxedLocalNumbers: List<Int> = liveMap[BOXED_KIND]!!
 		if (boxedLocalNumbers.isEmpty())
 		{
 			JVMChunk.noObjectsField.generateRead(method)
@@ -402,14 +405,13 @@ class L2PcOperand constructor (
 				method.visitInsn(Opcodes.DUP)
 				translator.intConstant(method, i)
 				method.visitVarInsn(
-					RegisterKind.BOXED.loadInstruction,
-					boxedLocalNumbers[i])
+					BOXED_KIND.loadInstruction, boxedLocalNumbers[i])
 				method.visitInsn(Opcodes.AASTORE)
 			}
 		}
 		// Now create the array of longs, including both ints and doubles.
-		val intLocalNumbers = liveMap[RegisterKind.INTEGER]
-		val floatLocalNumbers = liveMap[RegisterKind.FLOAT]
+		val intLocalNumbers = liveMap[INTEGER_KIND]!!
+		val floatLocalNumbers = liveMap[FLOAT_KIND]!!
 		val count = intLocalNumbers.size + floatLocalNumbers.size
 		if (count == 0)
 		{
@@ -425,8 +427,7 @@ class L2PcOperand constructor (
 				method.visitInsn(Opcodes.DUP)
 				translator.intConstant(method, i)
 				method.visitVarInsn(
-					RegisterKind.INTEGER.loadInstruction,
-					intLocalNumbers[i])
+					INTEGER_KIND.loadInstruction, intLocalNumbers[i])
 				method.visitInsn(Opcodes.I2L)
 				method.visitInsn(Opcodes.LASTORE)
 				i++
@@ -436,8 +437,7 @@ class L2PcOperand constructor (
 				method.visitInsn(Opcodes.DUP)
 				translator.intConstant(method, i)
 				method.visitVarInsn(
-					RegisterKind.FLOAT.loadInstruction,
-					floatLocalNumbers[i])
+					FLOAT_KIND.loadInstruction, floatLocalNumbers[i])
 				bitCastDoubleToLongMethod.generateCall(method)
 				method.visitInsn(Opcodes.LASTORE)
 				i++
@@ -463,7 +463,7 @@ class L2PcOperand constructor (
 	fun forgetRegistersInManifestsRecursively(
 		registersToForget: Set<L2Register>)
 	{
-		val workQueue: Deque<L2PcOperand> = ArrayDeque()
+		val workQueue = ArrayDeque<L2PcOperand>()
 		workQueue.add(this)
 		while (!workQueue.isEmpty())
 		{
@@ -474,7 +474,7 @@ class L2PcOperand constructor (
 			}
 			if (edge.manifest().forgetRegisters(registersToForget))
 			{
-				workQueue.addAll(edge.targetBlock().successorEdgesCopy())
+				workQueue.addAll(edge.targetBlock().successorEdges())
 			}
 		}
 	}
@@ -494,7 +494,9 @@ class L2PcOperand constructor (
 		manifest = null
 		alwaysLiveInRegisters.clear()
 		sometimesLiveInRegisters.clear()
-		forcedClampedEntities?.retainAll { it is L2Register }
+		forcedClampedEntities?.retainAll {
+			(entity, _) -> entity is L2Register
+		}
 	}
 }
 

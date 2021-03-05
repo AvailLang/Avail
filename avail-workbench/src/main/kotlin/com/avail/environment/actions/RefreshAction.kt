@@ -54,6 +54,14 @@ class RefreshAction constructor(workbench: AvailWorkbench)
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
+		runAction()
+	}
+
+	/**
+	 * Actually perform a refresh, causing the workbench's tree to be rebuilt.
+	 */
+	fun runAction()
+	{
 		workbench.calculateRefreshedTreesThen { modulesAndEntryPoints ->
 			invokeLater {
 				workbench.refreshFor(

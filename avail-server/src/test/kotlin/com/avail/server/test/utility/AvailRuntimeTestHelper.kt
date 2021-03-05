@@ -44,7 +44,6 @@ import com.avail.error.ErrorCodeRangeRegistry
 import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
-import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
 import com.avail.server.error.ServerErrorCodeRange
 import com.avail.utility.IO.closeIfNotNull
@@ -119,11 +118,11 @@ class AvailRuntimeTestHelper
 	var updateRateMillis: Long = 500
 
 	val testModuleRootResolver: ModuleRootResolver by lazy {
-		moduleRoots.moduleRootFor("tests")!!.resolver!!
+		moduleRoots.moduleRootFor("tests")!!.resolver
 	}
 
 	val availModuleRootResolver: ModuleRootResolver by lazy {
-		moduleRoots.moduleRootFor("avail")!!.resolver!!
+		moduleRoots.moduleRootFor("avail")!!.resolver
 	}
 
 	/**

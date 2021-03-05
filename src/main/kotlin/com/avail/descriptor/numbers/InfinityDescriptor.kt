@@ -100,8 +100,8 @@ class InfinityDescriptor private constructor(
 		else -> TypeTag.NEGATIVE_INFINITY_TAG
 	},
 	null,
-	null
-) {
+	null)
+{
 	init {
 		assert(sign == POSITIVE || sign == Sign.NEGATIVE)
 	}
@@ -110,8 +110,8 @@ class InfinityDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		builder.append(if (self.isPositive()) "\u221E" else "-\u221E")
 	}
 
@@ -125,9 +125,7 @@ class InfinityDescriptor private constructor(
 		sign: Sign
 	): Boolean = this.sign == sign
 
-	/*
-	 * Infinities are either above or below all integers, depending on sign.
-	 */
+	// Infinities are either above or below all integers, depending on sign.
 	override fun o_NumericCompareToInteger(
 		self: AvailObject,
 		anInteger: AvailObject
@@ -153,25 +151,23 @@ class InfinityDescriptor private constructor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		if (sign == POSITIVE) 0x14B326DA else 0xBF9302D
+		if (sign == POSITIVE) 0x14B326DA else 0x0BF9302D
 
 	override fun o_IsFinite(self: AvailObject): Boolean = false
 
 	override fun o_Kind(self: AvailObject): A_Type = singleInteger(self)
 
-	override fun o_ExtractDouble(self: AvailObject): Double =
-		when {
-			self.isPositive() -> Double.POSITIVE_INFINITY
-			else -> Double.NEGATIVE_INFINITY
-		}
+	override fun o_ExtractDouble(self: AvailObject): Double = when (sign)
+	{
+		POSITIVE -> Double.POSITIVE_INFINITY
+		else -> Double.NEGATIVE_INFINITY
+	}
 
-	override fun o_ExtractFloat(
-		self: AvailObject
-	): Float =
-		when {
-			self.isPositive() -> Float.POSITIVE_INFINITY
-			else -> Float.NEGATIVE_INFINITY
-		}
+	override fun o_ExtractFloat(self: AvailObject): Float = when (sign)
+	{
+		POSITIVE -> Float.POSITIVE_INFINITY
+		else -> Float.NEGATIVE_INFINITY
+	}
 
 	override fun o_DivideCanDestroy(
 		self: AvailObject,
@@ -242,7 +238,7 @@ class InfinityDescriptor private constructor(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = zero()
+	): A_Number = zero
 
 	override fun o_DivideIntoDoubleCanDestroy(
 		self: AvailObject,
@@ -266,9 +262,10 @@ class InfinityDescriptor private constructor(
 		self: AvailObject,
 		sign: Sign,
 		canDestroy: Boolean
-	): A_Number = when {
-		(sign == POSITIVE) == self.isPositive() -> positiveInfinity()
-		else -> negativeInfinity()
+	): A_Number = when (sign)
+	{
+		this.sign -> positiveInfinity
+		else -> negativeInfinity
 	}
 
 	override fun o_MultiplyByIntegerCanDestroy(
@@ -278,9 +275,9 @@ class InfinityDescriptor private constructor(
 	): A_Number = when {
 		anInteger.equalsInt(0) ->
 			throw ArithmeticException(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY)
-		anInteger.greaterThan(zero()) xor self.isPositive() ->
-			negativeInfinity()
-		else -> positiveInfinity()
+		anInteger.greaterThan(zero) xor self.isPositive() ->
+			negativeInfinity
+		else -> positiveInfinity
 	}
 
 	override fun o_MultiplyByDoubleCanDestroy(
@@ -308,17 +305,18 @@ class InfinityDescriptor private constructor(
 	): A_Number = when (sign) {
 		this.sign ->
 			throw ArithmeticException(E_CANNOT_SUBTRACT_LIKE_INFINITIES)
-		POSITIVE -> positiveInfinity()
-		else -> negativeInfinity()
+		POSITIVE -> positiveInfinity
+		else -> negativeInfinity
 	}
 
 	override fun o_SubtractFromIntegerCanDestroy(
 		self: AvailObject,
 		anInteger: AvailObject,
 		canDestroy: Boolean
-	): A_Number = when {
-		self.isPositive() -> negativeInfinity()
-		else -> positiveInfinity()
+	): A_Number = when (sign)
+	{
+		POSITIVE -> negativeInfinity
+		else -> positiveInfinity
 	}
 
 	override fun o_SubtractFromDoubleCanDestroy(
@@ -349,17 +347,9 @@ class InfinityDescriptor private constructor(
 		aDouble: Double
 	): Order = compareDoubles(sign.limitDouble(), aDouble)
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		assert(isShared)
-		return self
-	}
+	override fun o_MakeImmutable(self: AvailObject): AvailObject = self
 
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		if (!isShared) {
-			self.setDescriptor(shared())
-		}
-		return self
-	}
+	override fun o_MakeShared(self: AvailObject): AvailObject = self
 
 	/*
 	 * Not finite, so not numerically equal to an integer.
@@ -392,63 +382,26 @@ class InfinityDescriptor private constructor(
 			if (sign == POSITIVE) Double.POSITIVE_INFINITY
 			else Double.NEGATIVE_INFINITY)
 
-	override fun mutable() =
-		if (sign == POSITIVE) mutablePositive else mutableNegative
+	override fun mutable() = unsupported
 
-	// There isn't an immutable variant; answer a shared one.
-	override fun immutable() = shared()
+	override fun immutable() = unsupported
 
-	override fun shared() =
-		if (sign == POSITIVE) sharedPositive else sharedNegative
+	override fun shared() = unsupported
 
-	companion object {
-		/** The mutable [InfinityDescriptor] for positive infinity.  */
-		private val mutablePositive =
-			InfinityDescriptor(Mutability.MUTABLE, POSITIVE)
-
-		/** The mutable [InfinityDescriptor] for negative infinity.  */
-		private val mutableNegative =
-			InfinityDescriptor(Mutability.MUTABLE, Sign.NEGATIVE)
-
-		/** The shared [InfinityDescriptor] for positive infinity.  */
-		private val sharedPositive =
-			InfinityDescriptor(Mutability.SHARED, POSITIVE)
-
-		/** The shared [InfinityDescriptor] for negative infinity.  */
-		private val sharedNegative =
-			InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE)
-
+	companion object
+	{
 		/**
 		 * The Avail [extended&#32;integer][ExtendedIntegerDescriptor]
 		 * representing positive infinity.
 		 */
-		private val positiveInfinity: A_Number =
-			mutablePositive.createShared { }
-
-		/**
-		 * Answer the positive infinity object.
-		 *
-		 * @return
-		 *   Positive infinity.
-		 */
-		@JvmStatic
-		fun
-			positiveInfinity(): A_Number = positiveInfinity
+		val positiveInfinity: A_Number =
+			InfinityDescriptor(Mutability.SHARED, POSITIVE).create { }
 
 		/**
 		 * The Avail [extended&#32;integer][ExtendedIntegerDescriptor]
 		 * representing negative infinity.
 		 */
-		private val negativeInfinity: A_Number =
-			mutableNegative.createShared { }
-
-		/**
-		 * Answer the negative infinity object.
-		 *
-		 * @return
-		 *   Negative infinity.
-		 */
-		@JvmStatic
-		fun negativeInfinity(): A_Number = negativeInfinity
+		val negativeInfinity: A_Number =
+			InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE).create { }
 	}
 }

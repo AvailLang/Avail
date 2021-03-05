@@ -76,7 +76,12 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 			}
 			else
 			{
-				append(constant)
+				var string = constant.toString()
+				if (string.length > 40)
+				{
+					string = string.take(40) + "…"
+				}
+				append(string)
 			}
 			append(")")
 			Unit

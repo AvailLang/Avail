@@ -35,8 +35,12 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -52,10 +56,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("source"),
-	L2OperandType.WRITE_FLOAT.named("destination", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("if not unboxed", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.named("if unboxed", L2NamedOperandType.Purpose.SUCCESS))
+	READ_BOXED.named("source"),
+	WRITE_FLOAT.named("destination", SUCCESS),
+	PC.named("if not unboxed", FAILURE),
+	PC.named("if unboxed", SUCCESS))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -87,10 +91,8 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
 		val ifUnboxed = instruction.operand<L2PcOperand>(3)
 		source.instructionWasAdded(manifest)
 		ifNotUnboxed.instructionWasAdded(manifest)
-		// Ensure the new write ends up in the same synonym as the source, along
-		// the success edge.
-		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest)
+		// Ensure the value is available along the success edge.
+		destination.instructionWasAdded(manifest)
 		ifUnboxed.instructionWasAdded(manifest)
 	}
 

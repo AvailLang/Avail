@@ -69,7 +69,7 @@ object P_DoubleTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 
 		val scale = when {
 			b.isInt -> min(max(b.extractInt(), -10000), 10000)
-			b.greaterOrEqual(zero()) -> 10000
+			b.greaterOrEqual(zero) -> 10000
 			else -> -10000
 		}
 		val d = scalb(a.extractDouble(), scale)
@@ -80,7 +80,7 @@ object P_DoubleTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				DOUBLE.o,
-				instanceType(two()),
+				instanceType(two),
 				integers
 			),
 			DOUBLE.o

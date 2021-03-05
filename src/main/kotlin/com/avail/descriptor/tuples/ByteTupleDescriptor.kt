@@ -572,8 +572,8 @@ class ByteTupleDescriptor private constructor(
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
-			size: Int): ByteTupleDescriptor =
-				descriptors[(size and 7) * 3 + flag.ordinal]!!
+			size: Int
+		): ByteTupleDescriptor = descriptors[(size and 7) * 3 + flag.ordinal]!!
 
 		/**
 		 * Build a mutable byte tuple with the specified number of zeroed

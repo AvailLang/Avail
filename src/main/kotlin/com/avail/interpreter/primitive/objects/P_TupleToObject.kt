@@ -69,7 +69,7 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
 import com.avail.optimizer.L1Translator
 
@@ -188,16 +188,12 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			}
 		}
 		val write = generator.boxedWriteTemp(
-			restrictionForType(callSiteHelper.expectedType, BOXED))
+			restrictionForType(callSiteHelper.expectedType, BOXED_FLAG))
 
 		generator.addInstruction(
 			L2_CREATE_OBJECT,
 			L2ConstantOperand(variant.thisPojo),
-			L2ReadBoxedVectorOperand(
-				Array(sourcesByFieldIndex.size)
-				{
-					sourcesByFieldIndex[it]!!
-				}.toList()),
+			L2ReadBoxedVectorOperand(sourcesByFieldIndex.map { it!! }),
 			write)
 		callSiteHelper.useAnswer(generator.readBoxed(write))
 		return true

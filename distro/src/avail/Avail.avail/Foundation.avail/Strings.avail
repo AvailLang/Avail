@@ -472,7 +472,7 @@ Private method "range element string for_" is
 ];
 
 /**
- * Stringify the argument.
+ * Stringify the argument, which is the general case of a set.
  *
  * @method "“_”"
  * @param "aSet" "set"
@@ -483,60 +483,80 @@ Method "“_”" is
 [
 	aSet : set
 |
-	if aSet is empty then ["∅"]
-	else if aSet ∈ {character|} then
+	Assert: ¬aSet is empty;
+	aTuple ::= aSet→tuple;
+	s : string := "{";
+	index : natural number := 1;
+	Do
 	[
-		chars ::= cast aSet into [x : {character|} | x];
-		index : natural number := 1;
-		out : string := "¢[";
-		unorderedString ::= map each c of chars→tuple through [c's code point];
-		sorted ::= quicksort unorderedString;
-		size ::= |sorted|;
-		position : natural number := 1;
-		Do
-		[
-			runStart ::= sorted[(position++)];
-			runEnd : code point := runStart;
-			While
-			[
-				position ≤ size ∧ sorted[position] = runEnd + 1
-			]
-			do
-			[
-				position++;
-				runEnd++;
-			];
-			out ++= range element string for runStart → character;
-			If runEnd ≠ runStart then
-			[
-				/* Skip the dash if the start and end are consecutive. */
-				If runEnd ≠ runStart + 1 then
-				[
-					out ++= "-";
-				];
-				out ++= range element string for runEnd → character;
-			];
-		]
-		while position ≤ size;
-		out ++ "]"
+		elem ::= aTuple[index];
+		s := eject s ++ “elem”;
+		index++;
 	]
-	else
+	while index ≤ |aTuple|
+	alternate with [s := eject s ++ ", ";];
+	eject s ++ "}"
+] : string;
+
+/**
+ * Stringify the argument, which is the empty set.
+ *
+ * @method "“_”"
+ * @param "aSet" "set"
+ * @returns "string"
+ * @category "Sets" "Stringification"
+ */
+Method "“_”" is
+[
+	aSet : ∅'s type
+|
+	"∅"
+] : string;
+
+/**
+ * Stringify the argument, which is a set of characters.
+ *
+ * @method "“_”"
+ * @param "aSet" "set"
+ * @returns "string"
+ * @category "Sets" "Stringification"
+ */
+Method "“_”" is
+[
+	aSet : {character|}
+|
+	index : natural number := 1;
+	out : string := "¢[";
+	unorderedString ::= map each c of aSet→tuple through [c's code point];
+	sorted ::= quicksort unorderedString;
+	size ::= |sorted|;
+	position : natural number := 1;
+	Do
 	[
-		Assert: ¬aSet is empty;
-		aTuple ::= aSet→tuple;
-		s : string := "{";
-		index : natural number := 1;
-		Do
+		runStart ::= sorted[(position++)];
+		runEnd : code point := runStart;
+		While
 		[
-			elem ::= aTuple[index];
-			s := eject s ++ “elem”;
-			index++;
+			position ≤ size ∧ sorted[position] = runEnd + 1
 		]
-		while index ≤ |aTuple|
-		alternate with [s := eject s ++ ", ";];
-		s := eject s ++ "}";
-		s
+		do
+		[
+			position++;
+			runEnd++;
+		];
+		out ++= range element string for runStart → character;
+		If runEnd ≠ runStart then
+		[
+			/* Skip the dash if the start and end are consecutive. */
+			If runEnd ≠ runStart + 1 then
+			[
+				out ++= "-";
+			];
+			out ++= range element string for runEnd → character;
+		];
 	]
+	while position ≤ size;
+	out ++ "]"
 ] : string;
 
 /**

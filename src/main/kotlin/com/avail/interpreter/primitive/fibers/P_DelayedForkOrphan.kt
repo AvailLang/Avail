@@ -36,6 +36,7 @@ import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractLong
@@ -163,7 +164,7 @@ object P_DelayedForkOrphan : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				inclusive(zero(), positiveInfinity()),
+				inclusive(zero, positiveInfinity),
 				functionTypeReturning(TOP.o),
 				mostGeneralTupleType(),
 				bytes

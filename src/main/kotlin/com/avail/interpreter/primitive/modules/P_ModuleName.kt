@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.modules
 
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor

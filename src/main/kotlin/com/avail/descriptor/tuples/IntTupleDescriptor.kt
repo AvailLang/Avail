@@ -627,14 +627,14 @@ class IntTupleDescriptor private constructor(
 				val lower = when
 				{
 					lowerObject.isInt -> lowerObject.extractInt()
-					lowerObject.lessThan(zero()) -> Int.MIN_VALUE
+					lowerObject.lessThan(zero) -> Int.MIN_VALUE
 					else -> return false
 				}
 				val upperObject = type.upperBound()
 				val upper = when
 				{
 					upperObject.isInt -> upperObject.extractInt()
-					upperObject.greaterThan(zero()) -> Int.MAX_VALUE
+					upperObject.greaterThan(zero) -> Int.MAX_VALUE
 					else -> return false
 				}
 				(startIndex .. endIndex).all {

@@ -36,6 +36,7 @@ import com.avail.AvailRuntimeSupport
 import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.ThreadSafe
+import com.avail.compiler.AvailRejectedParseException
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
@@ -48,13 +49,15 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.NYBBLE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TYPE
 import com.avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
+import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import com.avail.descriptor.representation.AvailObjectFieldHelper
@@ -67,12 +70,14 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.concatenate
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
+import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -92,6 +97,7 @@ import com.avail.interpreter.levelOne.L1Operation
 import com.avail.interpreter.levelOne.L1Operation.Companion.lookup
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
+import com.avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.performance.Statistic
@@ -109,6 +115,7 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentMap
 import java.util.concurrent.atomic.AtomicLong
 import kotlin.concurrent.withLock
+import kotlin.math.max
 
 /**
  * A [compiled&#32;code][CompiledCodeDescriptor] object is created whenever a
@@ -145,11 +152,13 @@ import kotlin.concurrent.withLock
  *   The [Mutability] of the resulting descriptor.  This should only be
  *   [Mutability.MUTABLE] for the [initialMutableDescriptor], and
  *   [Mutability.SHARED] for normal instances.
- * @param originatingPhrase
- *   The [block&#32;phrase][BlockPhraseDescriptor] from which this raw function
- *   was generated.
  * @param module
  *   The [module][A_Module] creating this raw function.
+ * @param originatingPhraseOrIndex
+ *   Usually a one-based index into the module's tuple of block phrases.  This
+ *   mechanism allows the tuple to be loaded from a repository on demand,
+ *   reducing the memory footprint when this information is not in use.  If the
+ *   module is [nil], the value should be the originating phrase itself.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -160,8 +169,9 @@ import kotlin.concurrent.withLock
  */
 open class CompiledCodeDescriptor protected constructor(
 	mutability: Mutability,
-	private val originatingPhrase: A_Phrase,
 	private val module: A_Module,
+	@Volatile private var originatingPhraseOrIndex: AvailObject,
+	private val packedDeclarationNames: A_String,
 	private val lineNumber: Int,
 	private val lineNumberEncodedDeltas: A_Tuple
 ) : Descriptor(
@@ -170,6 +180,9 @@ open class CompiledCodeDescriptor protected constructor(
 	ObjectSlots::class.java,
 	IntegerSlots::class.java
 ) {
+	/** A descriptive [A_String] that names this [A_RawFunction]. */
+	protected var methodName = unknownFunctionName
+
 	/**
 	 * The [L2Chunk] that should be invoked whenever this code is started. The
 	 * chunk may no longer be [valid][L2Chunk.isValid], in which case the
@@ -178,9 +191,6 @@ open class CompiledCodeDescriptor protected constructor(
 	 */
 	@Volatile
 	private var startingChunk = L2Chunk.unoptimizedChunk
-
-	/** A descriptive [A_String] that names this [A_RawFunction]. */
-	protected var methodName = unknownFunctionName
 
 	/**
 	 * An [InvocationStatistic] for tracking invocations of this
@@ -328,7 +338,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 * An [AtomicLong] that indicates how many more invocations can take
 		 * place before the corresponding [L2Chunk] should be re-optimized.
 		 */
-		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode())
+		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode)
 
 		/** A statistic for all functions that return. */
 		@Volatile
@@ -558,6 +568,52 @@ open class CompiledCodeDescriptor protected constructor(
 		invocationStatistic.countdownToReoptimize.set(value)
 	}
 
+	override fun o_DeclarationNames(self: AvailObject): A_Tuple
+	{
+		val names = mutableListOf<A_String>()
+		val limit = packedDeclarationNames.tupleSize()
+		if (limit == 0) return emptyTuple
+		var position = 1
+		while (true)
+		{
+			if (packedDeclarationNames.tupleCodePointAt(position)
+				== '\"'.toInt())
+			{
+				val token = try
+				{
+					P_BootstrapLexerStringBody.parseString(
+						packedDeclarationNames, position, 1)
+				}
+				catch (e: AvailRejectedParseException)
+				{
+					throw RuntimeException("Invalid encoded declaration names")
+				}
+				names.add(token.literal())
+				position += token.string().tupleSize()
+			}
+			else
+			{
+				val start = position
+				while (position <= limit
+					&& packedDeclarationNames.tupleCodePointAt(position)
+						!= ','.toInt())
+				{
+					position++
+				}
+				names.add(packedDeclarationNames.copyStringFromToCanDestroy(
+					start, position - 1, false))
+			}
+			if (position == limit + 1)
+				return tupleFromList(names)
+			if (packedDeclarationNames.tupleCodePointAt(position)
+				!= ','.toInt())
+			{
+				throw RuntimeException("Invalid encoded declaration names")
+			}
+			position++
+		}
+	}
+
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
 		continuation: (Boolean)->Unit)
@@ -578,6 +634,19 @@ open class CompiledCodeDescriptor protected constructor(
 					invocationStatistic.countdownToReoptimize.get() <= 0)
 			}
 		}
+	}
+
+	override fun o_DecreaseCountdownToReoptimizeFromPoll (
+		self: AvailObject,
+		delta: Long)
+	{
+		val counter = invocationStatistic.countdownToReoptimize
+		do
+		{
+			val current = counter.get()
+		}
+		while (current <= 0
+			|| !counter.compareAndSet(current, max(1, current - delta)))
 	}
 
 	/**
@@ -725,18 +794,29 @@ open class CompiledCodeDescriptor protected constructor(
 		val longCount = self.variableIntegerSlotsCount()
 		if (longCount == 0) {
 			// Special case: when there are no nybbles, don't reserve any longs.
-			return TupleDescriptor.emptyTuple
+			return emptyTuple
 		}
 		val decoder = L1InstructionDecoder()
 		self.setUpInstructionDecoder(decoder)
 		decoder.pc(1)
-		return NybbleTupleDescriptor.generateNybbleTupleFrom(
-			o_NumNybbles(self)
-		) { decoder.getNybble() }
+		return generateNybbleTupleFrom(o_NumNybbles(self)) {
+			decoder.getNybble()
+		}
 	}
 
-	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase =
-		originatingPhrase
+	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase
+	{
+		if (originatingPhraseOrIndex.isInt)
+		{
+			originatingPhraseOrIndex = module.originatingPhraseAtIndex(
+				originatingPhraseOrIndex.extractInt()
+			) as AvailObject
+		}
+		return originatingPhraseOrIndex
+	}
+
+	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
+		originatingPhraseOrIndex
 
 	override fun o_OuterTypeAt(self: AvailObject, index: Int): A_Type
 	{
@@ -747,6 +827,9 @@ open class CompiledCodeDescriptor protected constructor(
 			- self.numOuters())
 			+ index)
 	}
+
+	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
+		packedDeclarationNames
 
 	override fun o_Primitive(self: AvailObject): Primitive? = null
 
@@ -826,24 +909,32 @@ open class CompiledCodeDescriptor protected constructor(
 		// Now scan all sub-blocks. Some literals will be functions and some
 		// will be compiled code objects.
 		var counter = 1
-		for (i in 1..self.numLiterals())
+		loop@for (i in 1..self.numLiterals())
 		{
 			val literal = self.literalAt(i)
-			val subCode: A_RawFunction?
-			subCode = when
+			val subCode: A_RawFunction = when
 			{
 				literal.isFunction -> literal.code()
 				literal.isInstanceOf(mostGeneralCompiledCodeType()) -> literal
-				else -> null
+				else -> continue@loop
 			}
-			if (subCode !== null) {
-				val suffix = "#$counter"
-				counter++
-				val newName = concatenate(methodName, stringFrom(suffix), true)
-				subCode.setMethodName(newName)
-			}
+			subCode.setMethodName(
+				concatenate(
+					methodName,
+					stringFrom("#${counter++}"),
+					true
+				).makeShared())
 		}
 	}
+
+	override fun o_SetOriginatingPhraseOrIndex(
+		self: AvailObject,
+		phraseOrIndex: AvailObject
+	)
+	{
+		originatingPhraseOrIndex = phraseOrIndex
+	}
+
 
 	override fun o_SetStartingChunkAndReoptimizationCountdown(
 		self: AvailObject,
@@ -918,7 +1009,7 @@ open class CompiledCodeDescriptor protected constructor(
 					if (literal.equalsNil())
 					{
 						// Value doesn't matter, but it can't be nil.  Use zero.
-						literal = zero()
+						literal = zero
 					}
 					literal.writeSummaryTo(writer)
 				}
@@ -1008,10 +1099,9 @@ open class CompiledCodeDescriptor protected constructor(
 					// Loop over each instance, setting the touched flag to
 					// false and discarding optimizations.
 					for (rawFunction in activeRawFunctions) {
-						val self = rawFunction.cast<
-							A_RawFunction, AvailObject>()
-						val descriptor = self.descriptor().cast<
-							AbstractDescriptor, CompiledCodeDescriptor>()
+						val self: AvailObject = rawFunction.cast()
+						val descriptor: CompiledCodeDescriptor =
+							self.descriptor().cast()
 						descriptor.invocationStatistic.hasRun = false
 						if (!descriptor.module.equalsNil()) {
 							descriptor.startingChunk.invalidate(CODE_COVERAGE)
@@ -1038,7 +1128,7 @@ open class CompiledCodeDescriptor protected constructor(
 
 			// Loop over each instance, creating its report object.
 			for (rawFunction in activeRawFunctions) {
-				val self = rawFunction.cast<A_RawFunction, AvailObject>()
+				val self: AvailObject = rawFunction.cast()
 				val descriptor: CompiledCodeDescriptor =
 					self.descriptor().cast()
 				val module = descriptor.module
@@ -1104,8 +1194,13 @@ open class CompiledCodeDescriptor protected constructor(
 		 *   delta magnitude, and the low bit is zero for a positive delta, and
 		 *   one for a negative delta.  May be nil if line number information is
 		 *   not intended to be captured.
-		 * @param originatingPhrase
-		 *   The [A_Phrase] from which this is built.
+		 * @param originatingPhraseOrIndex
+		 *   Either the block [A_Phrase] from which this is built, an integer
+		 *   ([A_Number]) that can be used to fetch the phrase from the module,
+		 *   or [nil] if such a phrase does not exist.
+		 * @param packedDeclarationNames
+		 *   A packed [A_String] containing the names of the block's arguments,
+		 *   locals, and constants.
 		 * @return
 		 *   The new compiled code object.
 		 */
@@ -1122,7 +1217,8 @@ open class CompiledCodeDescriptor protected constructor(
 			module: A_Module,
 			lineNumber: Int,
 			lineNumberEncodedDeltas: A_Tuple,
-			originatingPhrase: A_Phrase
+			originatingPhraseOrIndex: AvailObject,
+			packedDeclarationNames: A_String
 		): AvailObject {
 			if (primitive !== null) {
 				// Sanity check for primitive blocks.  Use this to hunt incorrectly
@@ -1163,12 +1259,15 @@ open class CompiledCodeDescriptor protected constructor(
 			code.setSlot(FUNCTION_TYPE, functionType.makeShared())
 
 			// Fill in the nybblecodes.
-			if (nybbleCount > 0) {
+			if (nybbleCount > 0)
+			{
 				var longIndex = 1
 				var currentLong = (15 - nybbleCount and 15).toLong()
-				for (i in 1..nybbleCount) {
+				for (i in 1 .. nybbleCount)
+				{
 					val subIndex = i and 15
-					if (subIndex == 0) {
+					if (subIndex == 0)
+					{
 						code.setSlot(NYBBLECODES_, longIndex++, currentLong)
 						currentLong = 0
 					}
@@ -1201,8 +1300,9 @@ open class CompiledCodeDescriptor protected constructor(
 						Mutability.SHARED,
 						primitive,
 						returnTypeIfPrimitiveFails,
-						originatingPhrase.makeShared(),
 						module.makeShared(),
+						originatingPhraseOrIndex,
+						packedDeclarationNames,
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
 			}
@@ -1211,8 +1311,9 @@ open class CompiledCodeDescriptor protected constructor(
 				code.setDescriptor(
 					CompiledCodeDescriptor(
 						Mutability.SHARED,
-						originatingPhrase.makeShared(),
 						module.makeShared(),
+						originatingPhraseOrIndex,
+						packedDeclarationNames,
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
 			}
@@ -1228,7 +1329,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 * while initializing a new [A_RawFunction].
 		 */
 		private val initialMutableDescriptor =
-			CompiledCodeDescriptor(Mutability.MUTABLE, nil, nil, -1, nil)
+			CompiledCodeDescriptor(Mutability.MUTABLE, nil, nil, nil, -1, nil)
 
 		/**
 		 * A [ConcurrentMap] from A_String to Statistic, used to record type

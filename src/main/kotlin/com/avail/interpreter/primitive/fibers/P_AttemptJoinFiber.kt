@@ -92,7 +92,8 @@ object P_AttemptJoinFiber : Primitive(
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
 		val succeed = joinee.lock {
-			if (joinee.executionState().indicatesTermination()) {
+			if (joinee.executionState().indicatesTermination)
+			{
 				return@lock true
 			}
 			// Add to the joinee's set of joining fibers.  To avoid deadlock,

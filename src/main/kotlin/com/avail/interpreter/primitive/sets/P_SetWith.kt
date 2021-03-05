@@ -102,9 +102,9 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 			if (mightBePresent)
 				sizes.lowerBound()
 			else
-				sizes.lowerBound().plusCanDestroy(one(), false),
+				sizes.lowerBound().plusCanDestroy(one, false),
 			true,
-			sizes.upperBound().plusCanDestroy(two(), false),
+			sizes.upperBound().plusCanDestroy(two, false),
 			false)
 		val unionType = setTypeForSizesContentType(
 			unionSize, setType.contentType().typeUnion(newElementType))

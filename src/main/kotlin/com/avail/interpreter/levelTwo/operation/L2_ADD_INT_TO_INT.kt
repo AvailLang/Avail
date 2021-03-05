@@ -76,7 +76,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 	}
 
 	// It jumps if the result doesn't fit in an int.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

@@ -35,10 +35,11 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteFloatOperand
-import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -48,8 +49,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_UNBOX_FLOAT : L2Operation(
-	L2OperandType.READ_BOXED.named("source"),
-	L2OperandType.WRITE_FLOAT.named("destination"))
+	READ_BOXED.named("source"),
+	WRITE_FLOAT.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -58,10 +59,8 @@ object L2_UNBOX_FLOAT : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val source =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val destination =
-			instruction.operand<L2WriteFloatOperand>(1)
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteFloatOperand>(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(destination.registerString())
@@ -69,31 +68,13 @@ object L2_UNBOX_FLOAT : L2Operation(
 		builder.append(source.registerString())
 	}
 
-	override fun instructionWasAdded(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest)
-	{
-		assert(this == instruction.operation())
-		val source =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val destination =
-			instruction.operand<L2WriteFloatOperand>(1)
-
-		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(manifest)
-		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest)
-	}
-
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val source =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val destination =
-			instruction.operand<L2WriteFloatOperand>(1)
+		val source = instruction.operand<L2ReadBoxedOperand>(0)
+		val destination = instruction.operand<L2WriteFloatOperand>(1)
 
 		// :: destination = source.extractDouble();
 		translator.load(method, source.register())

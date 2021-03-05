@@ -34,6 +34,7 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
@@ -86,12 +87,16 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)
 		val ifUnboxed = instruction.operand<L2PcOperand>(3)
 		source.instructionWasAdded(manifest)
-		ifNotUnboxed.instructionWasAdded(manifest)
-		// Ensure the new write ends up in the same synonym as the source, along
-		// the success edge.
-		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest)
-		ifUnboxed.instructionWasAdded(manifest)
+		ifNotUnboxed.instructionWasAdded(
+			L2ValueManifest(manifest).apply {
+				subtractType(source.semanticValue(), int32)
+			})
+		// Ensure the value is available along the success edge.
+		destination.instructionWasAdded(manifest)
+		ifUnboxed.instructionWasAdded(
+			L2ValueManifest(manifest).apply {
+				intersectType(destination.pickSemanticValue(), int32)
+			})
 	}
 
 	override fun translateToJVM(
@@ -107,7 +112,8 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		// :: if (!source.isInt()) goto ifNotUnboxed;
 		translator.load(method, source.register())
 		A_BasicObject.isIntMethod.generateCall(method)
-		method.visitJumpInsn(Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
+		method.visitJumpInsn(
+			Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
 		// :: else {
 		// ::    destination = source.extractInt();
 		// ::    goto ifUnboxed;

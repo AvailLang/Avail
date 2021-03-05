@@ -37,11 +37,17 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.variables.A_Variable
 import com.avail.serialization.SerializerOperation.ASSIGN_TO_VARIABLE
 import com.avail.serialization.SerializerOperation.CHECKPOINT
@@ -55,17 +61,72 @@ import java.util.ArrayDeque
  * [serialize] into a stream of bytes which, when replayed in a [Deserializer],
  * will reconstruct an analogous series of objects.
  *
+ * The serializer is also provided a function for recognizing objects that do
+ * not need to be scanned because they're explicitly provided.  These objects
+ * are numbered with negative indices.  The inverse of this function needs to be
+ * provided to the [Deserializer], so that negative indices can be converted to
+ * objects.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *   Construct a [Serializer] which converts a series of objects into bytes.
+ * @property output
+ *   An [OutputStream] on which to write the serialized objects.
+ * @property module
+ *   The optional [A_Module] within which serialization is occurring.  If
+ *   present, it is used to detect capture of atoms that are not defined in
+ *   ancestor modules.
+ * @property lookupPumpedObject
+ *   A function that checks if the provided [A_BasicObject] happens to be one of
+ *   the objects that this serializer was primed with.  If so, it answers the
+ *   object's index, which must be negative.  If not present, it answers 0,
+ *   which implies the object will need to be serialized.  Positive indices are
+ *   not permitted.  It's up to the caller to decide how to map from objects to
+ *   indices, but a [Deserializer] must be provided the inverse of this function
+ *   to convert negative indices to objects.
  */
-class Serializer
+class Serializer constructor (
+	val output: OutputStream,
+	val module: A_Module? = null,
+	val lookupPumpedObject: (A_BasicObject)->Int = { 0 })
 {
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
-	 * from each [AvailObject] to the [SerializerInstruction] that will be
+	 * from each [A_BasicObject] to the [SerializerInstruction] that will be
 	 * output for it at the appropriate time.
 	 */
 	private val encounteredObjects =
 		mutableMapOf<A_BasicObject, SerializerInstruction>()
+
+
+	/**
+	 * The [map][A_Map] from objects that were serialized by this serializer, to
+	 * their one-based index.  This is only valid after serialization completes.
+	 */
+	private val serializedObjectsMap by lazy {
+		var m = emptyMap
+		serializedObjectsList.forEachIndexed { zeroIndex, obj ->
+			m = m.mapAtPuttingCanDestroy(obj, fromInt(zeroIndex + 1), true)
+		}
+		m.makeShared()
+	}
+
+	/**
+	 * The actual sequence of objects that have been serialized so far.  This is
+	 * not needed by serialization itself, but it's useful to collect the
+	 * objects to allow a [tuple][A_Tuple]] built from this [List] to be
+	 * extracted after.
+	 */
+	private val serializedObjectsList = mutableListOf<A_BasicObject>()
+
+	/**
+	 * The [tuple][A_Tuple] of objects that were serialized by this serializer.
+	 * This is only valid after serialization completes.
+	 */
+	private val serializedObjects by lazy {
+		tupleFromList(serializedObjectsList)
+	}
 
 	/**
 	 * All variables that must have their values assigned to them upon
@@ -73,8 +134,11 @@ class Serializer
 	 */
 	private val variablesToAssign = mutableSetOf<A_Variable>()
 
-	/** The number of instructions that have been written to the [output]. */
-	private var instructionsWritten = 0
+	/**
+	 * The [IndexCompressor] used for encoding indices.  This must agree with
+	 * the compressor which will be used later by the [Deserializer].
+	 */
+	private val compressor = FourStreamIndexCompressor()
 
 	/**
 	 * This maintains a stack of [serializer][SerializerInstruction] that need
@@ -84,15 +148,6 @@ class Serializer
 	 * deep.
 	 */
 	private val workStack = ArrayDeque<() -> Unit>(1000)
-
-	/** The [OutputStream] on which to write the serialized objects. */
-	private val output: OutputStream
-
-	/**
-	 * The module within which serialization is occurring.  If non-null, it is
-	 * used to detect capture of atoms that are not defined in ancestor modules.
-	 */
-	val module: A_Module?
 
 	/**
 	 * Check that the atom is defined in the ancestry of the current module, if
@@ -112,7 +167,7 @@ class Serializer
 		{
 			return
 		}
-		assert(module.allAncestors().hasElement(atomModule))
+		assert(module.hasAncestor(atomModule))
 	}
 
 	/**
@@ -186,8 +241,8 @@ class Serializer
 	 *   The object's zero-based index in `encounteredObjects`.
 	 */
 	internal fun instructionForObject(
-			obj: A_BasicObject): SerializerInstruction =
-		encounteredObjects[obj]!!
+		obj: A_BasicObject
+	): SerializerInstruction = encounteredObjects[obj]!!
 
 	/**
 	 * Look up the object and return the existing instruction that produces it.
@@ -200,11 +255,11 @@ class Serializer
 	 * @return
 	 *   The (non-negative) index of the instruction that produced the object.
 	 */
-	internal fun indexOfExistingObject(obj: A_BasicObject): Int
+	internal fun compressedObjectIndex(obj: A_BasicObject): Int
 	{
 		val instruction = encounteredObjects[obj]!!
 		assert(instruction.hasBeenWritten)
-		return instruction.index
+		return compressor.compress(instruction.index)
 	}
 
 	/**
@@ -260,9 +315,10 @@ class Serializer
 			workStack.addLast {
 				if (!instruction.hasBeenWritten)
 				{
-					instruction.index = instructionsWritten++
+					instruction.index = compressor.currentIndex()
 					instruction.writeTo(this@Serializer)
 					assert(instruction.hasBeenWritten)
+					compressor.incrementIndex()
 				}
 			}
 			// Push actions for the subcomponents in reverse order to make the
@@ -292,32 +348,6 @@ class Serializer
 	}
 
 	/**
-	 * Construct a new `Serializer`.
-	 *
-	 * @param output
-	 *   An [OutputStream] on which to write the module.
-	 * @param module
-	 *   The [A_Module] being compiled.
-	 */
-	constructor(output: OutputStream, module: A_Module)
-	{
-		this.output = output
-		this.module = module
-	}
-
-	/**
-	 * Construct a new `Serializer`.
-	 *
-	 * @param output
-	 *   An [OutputStream] on which to write the module.
-	 */
-	constructor(output: OutputStream)
-	{
-		this.output = output
-		this.module = null
-	}
-
-	/**
 	 * Serialize this [AvailObject] so that it will appear as the next
 	 * checkpoint object during deserialization.
 	 *
@@ -341,10 +371,10 @@ class Serializer
 					ASSIGN_TO_VARIABLE,
 					variable,
 					this)
-				assignment.index = instructionsWritten
-				instructionsWritten++
+				assignment.index = compressor.currentIndex()
 				assignment.writeTo(this)
 				assert(assignment.hasBeenWritten)
+				compressor.incrementIndex()
 			}
 		}
 		variablesToAssign.clear()
@@ -355,12 +385,23 @@ class Serializer
 				CHECKPOINT,
 				strongObject,
 				this)
-			checkpoint.index = instructionsWritten
-			instructionsWritten++
+			checkpoint.index = compressor.currentIndex()
 			checkpoint.writeTo(this)
 			assert(checkpoint.hasBeenWritten)
+			compressor.incrementIndex()
 		}
 	}
+
+	/**
+	 * Answer an [A_Tuple] of objects that were serialized.
+	 */
+	fun serializedObjects(): A_Tuple = serializedObjects
+
+	/**
+	 * Answer an [A_Map] from objects that were serialized to their one-based
+	 * indices.
+	 */
+	fun serializedObjectsMap(): A_Map = serializedObjectsMap
 
 	companion object
 	{

@@ -421,7 +421,7 @@ internal constructor(
 		// If another process runs expandIfNecessary(), it will either see null
 		// for this field, or see non-null and be guaranteed that all subsequent
 		// reads will see all the previous writes.
-		argumentTypeToTest = typeToTest
+		argumentTypeToTest = typeToTest.makeShared()
 	}
 
 	override val solutionOrNull: Result?

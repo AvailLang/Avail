@@ -39,6 +39,8 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
+import com.avail.descriptor.module.A_Module.Companion.constantBindings
+import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType

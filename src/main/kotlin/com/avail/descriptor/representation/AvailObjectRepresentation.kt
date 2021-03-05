@@ -648,6 +648,100 @@ abstract class AvailObjectRepresentation protected constructor(
 	}
 
 	/**
+	 * Extract the current value of the indexable object slot, pass it to the
+	 * supplied inline Kotlin function, and write the result back to the slot
+	 * with a compare-and-set, retrying from the beginning if it fails.
+	 *
+	 * @param field
+	 *   The indexable [AvailObject] slot to access.
+	 * @param subscript
+	 *   The one-based subscript within the given indexable field.
+	 * @param updater
+	 *   The transformation to perform on the [AvailObject] in the slot to
+	 *   produce a replacement [A_BasicObject].  Note that this may run multiple
+	 *   times if the compare-and-set encounters contention.
+	 * @return
+	 *   The object that was eventually successfully written.
+	 */
+	fun atomicUpdateSlot(
+		field: ObjectSlotsEnum,
+		subscript: Int,
+		updater: (AvailObject)->A_BasicObject
+	): AvailObject
+	{
+		checkSlot(field)
+		checkWriteForField(field)
+		assert(subscript >= 1)
+		assert(subscript == 1 || field.fieldName().endsWith('_'))
+		val arrayIndex = field.fieldOrdinal() + subscript - 1
+		when {
+			currentDescriptor.isShared ->
+			{
+				while (true)
+				{
+					val oldValue = objectSlots[arrayIndex]!!
+					val newValue = updater(oldValue) as AvailObject
+					if (VolatileSlotHelper.compareAndSet(
+							objectSlots, arrayIndex, oldValue, newValue)
+					) return newValue
+				}
+			}
+			else ->
+			{
+				val newValue = updater(objectSlots[arrayIndex]!!) as AvailObject
+				objectSlots[arrayIndex] = newValue
+				return newValue
+			}
+		}
+	}
+
+	/**
+	 * Extract the current value of the indexable [Long] slot, pass it to the
+	 * supplied inline Kotlin function, and write the result back to the slot
+	 * with a compare-and-set, retrying from the beginning if it fails.
+	 *
+	 * @param field
+	 *   The indexable [Long] slot to access.
+	 * @param subscript
+	 *   The one-based subscript within the given indexable field.
+	 * @param updater
+	 *   The transformation to perform on the [Long] in the slot to produce a
+	 *   replacement [Long].  Note that this may run multiple times if the
+	 *   compare-and-set encounters contention.
+	 */
+	fun atomicUpdateSlot(
+		field: IntegerSlotsEnum,
+		subscript: Int,
+		updater: (Long)->Long
+	): Long
+	{
+		checkSlot(field)
+		checkWriteForField(field)
+		assert(subscript >= 1)
+		assert(subscript == 1 || field.fieldName().endsWith('_'))
+		val arrayIndex = field.fieldOrdinal() + subscript - 1
+		when {
+			currentDescriptor.isShared ->
+			{
+				while (true)
+				{
+					val oldValue = longSlots[arrayIndex]
+					val newValue = updater(oldValue)
+					if (VolatileSlotHelper.compareAndSet(
+							longSlots, arrayIndex, oldValue, newValue)
+					) return newValue
+				}
+			}
+			else ->
+			{
+				val newValue = updater(longSlots[arrayIndex])
+				longSlots[arrayIndex] = newValue
+				return newValue
+			}
+		}
+	}
+
+	/**
 	 * Extract the current value of the slot, pass it to the supplied inline
 	 * Kotlin function, and write the result back to the slot.
 	 */
@@ -1358,7 +1452,6 @@ abstract class AvailObjectRepresentation protected constructor(
 		field: ObjectSlotsEnum,
 		anAvailObject: A_BasicObject
 	): AvailObject {
-		assert(anAvailObject.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
 		return VolatileSlotHelper.getAndSet(
@@ -1511,7 +1604,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	 *   The number of valid int-sized slots (starting at the specified slot's
 	 *   ordinal).
 	 * @param key
-	 *   The long value to seek in the designated region of the longSlots array.
+	 *   The [Int] value to seek in the designated region of the [longSlots]
+	 *   array.
 	 * @return
 	 *   The zero-based index of the key within the variable-length repeated
 	 *   slot if found, or else (-n-1) where n is the zero-based index of the
@@ -1542,6 +1636,66 @@ abstract class AvailObjectRepresentation protected constructor(
 			}
 		}
 		return -(low - fromIntIndex + 1) // key not found.
+	}
+
+	/**
+	 * Search for the key in the 32-bit [Int]s encoded within the [longSlots]
+	 * that occur within those slots identified with the specified
+	 * [IntegerSlotsEnum].  Only search the given range of indices.  If the
+	 * given [Int] value is found within the given range, answer the index of
+	 * the [intSlot].  Otherwise answer zero (0).
+	 *
+	 * @param slot
+	 *   The final integer slot, which must be the variable-length part of the
+	 *   longSlots array.
+	 * @param startIndex
+	 *   The first [intSlot] index to examine.  It must be in range for this
+	 *   repeated slot.
+	 * @param endIndex
+	 *   The last [intSlot] index to examine.  It must be in range for this
+	 *   repeated slot.
+	 * @param key
+	 *   The [Int] value to seek in the designated region of the [longSlots]
+	 *   array.
+	 * @return
+	 *   The one-based index of the key [Int], if found, otherwise 0.
+	 */
+	fun intLinearSearch(
+		slot: IntegerSlotsEnum,
+		startIndex: Int,
+		endIndex: Int,
+		key: Int
+	): Int {
+		if (startIndex > endIndex) return 0
+		val longOffset = slot.fieldOrdinal()
+		var longIndex = longOffset + ((startIndex - 1) ushr 1)
+		var longVal: Long
+		if (startIndex and 1 == 0)
+		{
+			// The one-based index is even, so only examine the second element
+			// encoded in the long (the high part).
+			longVal = longSlots[longIndex]
+			if ((longVal shr 32).toInt() == key) return startIndex
+			longIndex++
+		}
+		// Process the bulk of the values two ints at a time.
+		val lastCompleteLongOffset = longOffset + (endIndex ushr 1) - 1
+		while (longIndex <= lastCompleteLongOffset)
+		{
+			longVal = longSlots[longIndex]
+			if (longVal.toInt() == key)
+				return ((longIndex - longOffset) shl 1) + 1
+			if ((longVal shr 32).toInt() == key)
+				return ((longIndex - longOffset) shl 1) + 2
+			longIndex++
+		}
+		if (endIndex and 1 == 1)
+		{
+			// The last one-based index is odd, so only examine the low part.
+			longVal = longSlots[longIndex]
+			if (longVal.toInt() == key) return endIndex
+		}
+		return 0
 	}
 
 	/**

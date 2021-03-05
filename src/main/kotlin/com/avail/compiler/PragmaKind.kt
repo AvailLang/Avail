@@ -34,6 +34,7 @@ package com.avail.compiler
 
 import com.avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
+import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
@@ -259,29 +260,22 @@ enum class PragmaKind constructor(val lexeme: String)
 			val availName = stringFrom(lexerName)
 			val module = state.lexingState.compilationContext.module
 			val atoms = module.trueNamesForStringName(availName)
-			if (atoms.setSize() == 0)
+			when (atoms.setSize())
 			{
-				state.expected(
+				0 -> state.expected(
 					STRONG,
 					"lexer name to be introduced in this module")
-				return
-			}
-			if (atoms.setSize() > 1)
-			{
-				state.expected(
+				1 -> compiler.bootstrapLexerThen(
+					state,
+					pragmaToken,
+					atoms.single(),
+					filterPrimitiveName,
+					bodyPrimitiveName,
+					success)
+				else -> state.expected(
 					STRONG,
 					"lexer name to be unambiguous in this module")
-				return
 			}
-			val lexerAtom = atoms.iterator().next()
-
-			compiler.bootstrapLexerThen(
-				state,
-				pragmaToken,
-				lexerAtom,
-				filterPrimitiveName,
-				bodyPrimitiveName,
-				success)
 		}
 	};
 

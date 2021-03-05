@@ -218,14 +218,14 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		self: AvailObject,
 		aFusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeUnionOfPojoType(
@@ -242,14 +242,14 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		self: AvailObject,
 		aFusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeUnionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeVariables(self: AvailObject): A_Map = emptyMap

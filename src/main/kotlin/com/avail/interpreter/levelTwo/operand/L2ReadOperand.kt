@@ -75,8 +75,8 @@ import com.avail.utility.cast
  *   The [L2Register] being read by this operand.
  */
 abstract class L2ReadOperand<R : L2Register> protected constructor(
-	private var semanticValue: L2SemanticValue?,
-	private val restriction: TypeRestriction,
+	private var semanticValue: L2SemanticValue,
+	private var restriction: TypeRestriction,
 	private var register: R) : L2Operand()
 {
 	/**
@@ -85,7 +85,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The [L2SemanticValue].
 	 */
-	fun semanticValue(): L2SemanticValue = semanticValue!!
+	open fun semanticValue(): L2SemanticValue = semanticValue
 
 	/**
 	 * Answer this read's [L2Register].
@@ -101,9 +101,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   A [String].
 	 */
-	fun registerString(): String =
-		if (semanticValue != null) "$register[$semanticValue]"
-		else "$register"
+	fun registerString(): String = "$register[$semanticValue]"
 
 	/**
 	 * Answer the [L2Register]'s [finalIndex][L2Register.finalIndex].
@@ -162,45 +160,28 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		manifest.setRestriction(semanticValue!!, restriction)
+		// Adjust this operand's restriction to include the exact list of
+		// register kinds that are actually present in the manifest.  It can
+		// happen that optimization via a regeneration (see L2Regenerator) can
+		// eliminate some of the kinds, or make them available at an earlier
+		// time, so the stored restriction should be an intersection of type
+		// constraints, but use the exact kinds from the manifest.
+		val manifestRestriction = manifest.restrictionFor(semanticValue)
+		var intersection = restriction.intersection(manifestRestriction)
+		if (intersection.flags != manifestRestriction.flags)
+		{
+			TypeRestriction.RestrictionFlagEncoding.values().forEach {
+				intersection = when
+				{
+					manifestRestriction.hasFlag(it) -> intersection.withFlag(it)
+					else -> intersection.withoutFlag(it)
+				}
+			}
+		}
+		restriction = intersection
+		manifest.setRestriction(semanticValue, restriction)
 		register().addUse(this)
 	}
-
-	override fun adjustedForReinsertion(
-		manifest: L2ValueManifest): L2ReadOperand<*>
-	{
-		if (manifest.hasSemanticValue(semanticValue!!))
-		{
-			return this
-		}
-		// Be lenient.  This gets called after (or just before) placeholder
-		// replacement, when reinserting instructions that preceded or followed
-		// the placeholder in its original basic block.  However, some of the
-		// instructions might reference valid registers via semantic values that
-		// were removed in a prior dead code elimination.  That's because moves
-		// that extend a synonym can disappear, even though subsequent code uses
-		// a semantic value introduced by that move.
-		//
-		// The good news is that the register is still valid, so we can simply
-		// rewrite this operation to use a semantic value that's still in the
-		// manifest, or even add a new one.
-		val synonyms = manifest.synonymsForRegister(register)
-		assert(synonyms.isNotEmpty())
-		val newSemanticValue = synonyms[0].pickSemanticValue()
-		return copyForSemanticValue(newSemanticValue)
-	}
-
-	/**
-	 * Create an `L2ReadOperand` like this one, but with a different
-	 * [semanticValue].
-	 *
-	 * @param newSemanticValue
-	 *   The [L2SemanticValue] to use in the copy.
-	 * @return
-	 *   A duplicate of the receiver, but with a different [L2SemanticValue].
-	 */
-	abstract fun copyForSemanticValue(
-		newSemanticValue: L2SemanticValue): L2ReadOperand<R>
 
 	/**
 	 * Create an `L2ReadOperand` like this one, but with a different
@@ -241,8 +222,8 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	}
 
 	override fun transformEachRead(
-			transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>)
-		: L2ReadOperand<*> = transformer(this)
+		transformer: (L2ReadOperand<*>) -> L2ReadOperand<*>
+	) : L2ReadOperand<*> = transformer(this)
 
 	override fun addReadsTo(readOperands: MutableList<L2ReadOperand<*>>)
 	{
@@ -283,7 +264,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			val op = other.operation()
 			other = when
 			{
-				op is L2_MOVE<*,*,*> ->
+				op is L2_MOVE<*,*,*, *> ->
 				{
 					op.sourceOf(other).definition().instruction()
 				}
@@ -394,7 +375,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			if (instruction.operation().isMove)
 			{
 				val operation = instruction.operation()
-					.cast<L2Operation?, L2_MOVE<*, *, *>>()
+					.cast<L2Operation?, L2_MOVE<*, *, *, *>>()
 				def = operation.sourceOf(instruction).definition()
 				continue
 			}
@@ -447,6 +428,6 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	override fun postOptimizationCleanup()
 	{
 		// Leave the restriction in place.  It shouldn't be all that big.
-		semanticValue = null
+		// Same for the semanticValue.
 	}
 }

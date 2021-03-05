@@ -33,8 +33,6 @@
 package com.avail.server.test.utility
 
 import com.avail.error.ErrorCodeRangeRegistry
-import com.avail.files.FileErrorCode
-import com.avail.server.error.ServerErrorCode
 import com.avail.server.messages.Message
 import com.avail.server.messages.binary.editor.BinaryCommand
 import java.nio.ByteBuffer

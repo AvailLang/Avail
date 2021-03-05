@@ -118,7 +118,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 					}
 					if (result.equalsNil())
 					{
-						cleanup.invoke(afterward)
+						cleanup(afterward)
 						return@attemptCommand
 					}
 					Interpreter.stringifyThen(
@@ -130,7 +130,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 							.outputStream()
 							.append(resultString)
 							.append("\n")
-						cleanup.invoke(afterward)
+						cleanup(afterward)
 					}
 				},
 				onFailure = {

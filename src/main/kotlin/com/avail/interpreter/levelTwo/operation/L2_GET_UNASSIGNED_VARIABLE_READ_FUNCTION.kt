@@ -38,11 +38,10 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -55,20 +54,8 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.named("unassigned variable read function"))
+	WRITE_BOXED.named("unassigned variable read function"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val function = instruction.operand<L2WriteBoxedOperand>(0)
-		registerSet.typeAtPut(
-			function.register(),
-			HookType.READ_UNASSIGNED_VARIABLE.functionType,
-			instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

@@ -57,6 +57,12 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue = this
 
+	override fun primaryVisualSortKey() = when
+	{
+		value.equalsNil() -> PrimaryVisualSortKey.CONSTANT_NIL
+		else -> PrimaryVisualSortKey.CONSTANT
+	}
+
 	override val isConstant: Boolean
 		get() = true
 

@@ -120,7 +120,8 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			module,
 			0,
 			emptyTuple,
-			nil)
+			nil,
+			emptyTuple)
 		val newFunction = createWithOuters1(rawFunction, fieldAtom)
 		return interpreter.primitiveSuccess(newFunction)
 	}

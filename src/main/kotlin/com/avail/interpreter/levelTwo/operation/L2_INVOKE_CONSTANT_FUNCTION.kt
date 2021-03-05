@@ -79,8 +79,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 	PC.named("on return", Purpose.SUCCESS),
 	PC.named("on reification", Purpose.OFF_RAMP))
 {
-	// Never remove invocations -- but inlining might make them go away.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -89,14 +88,11 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val constantFunction =
-			instruction.operand<L2ConstantOperand>(0)
-		val arguments =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val result =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val constantFunction = instruction.operand<L2ConstantOperand>(0)
+		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val result = instruction.operand<L2WriteBoxedOperand>(2)
 		//		final L2PcOperand onReturn = instruction.operand(3);
-//		final L2PcOperand onReification = instruction.operand(4);
+		//		final L2PcOperand onReification = instruction.operand(4);
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(result.registerString())

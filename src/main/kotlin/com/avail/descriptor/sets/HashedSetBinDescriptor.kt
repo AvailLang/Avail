@@ -692,6 +692,7 @@ class HashedSetBinDescriptor private constructor(
 					totalCount += childBin.setBinSize()
 					hash += childBin.setBinHash()
 					hashedBin.setSlot(BIN_ELEMENT_AT_, ++written, childBin)
+					groups[binIndex] = null  // Allow GC to clean it up early.
 				}
 			}
 			if (hashedBin.setBinSize() == 1) {

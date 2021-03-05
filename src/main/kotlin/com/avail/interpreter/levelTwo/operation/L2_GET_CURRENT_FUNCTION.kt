@@ -55,7 +55,7 @@ import org.objectweb.asm.Type
 object L2_GET_CURRENT_FUNCTION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("current function"))
 {
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

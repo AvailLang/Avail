@@ -352,7 +352,7 @@ Private macro "Do_and_;" is
  * @category "Bootstrap" "Primitives" "Exception Handling" "Control Structures"
  */
 Private method "Private guard_intercept_ensure_" is
-[
+ 	[
 	body : []→⊤,
 	handlers : <[⊥]→⊤…|>,
 	unwind : []→⊤

@@ -451,7 +451,7 @@ class DoubleDescriptor private constructor(
 					return compareDoubles(
 						aDouble, anInteger.extractInt().toDouble())
 				}
-				aDouble == 0.0 -> return zero().numericCompare(anInteger)
+				aDouble == 0.0 -> return zero.numericCompare(anInteger)
 			}
 			// The integer is beyond an int's range.  Perhaps even beyond a
 			// double. For boundary purposes, check now if it's exactly
@@ -634,7 +634,7 @@ class DoubleDescriptor private constructor(
 			val neg = inputD < 0.0
 			if (isInfinite(inputD)) {
 				// Return the corresponding integral infinity.
-				return if (neg) negativeInfinity() else positiveInfinity()
+				return if (neg) negativeInfinity else positiveInfinity
 			}
 			var d = abs(inputD)
 			val exponent = getExponent(d)
@@ -652,7 +652,7 @@ class DoubleDescriptor private constructor(
 			}
 			out.trimExcessInts()
 			if (neg) {
-				out = zero().noFailMinusCanDestroy(out, true)
+				out = zero.noFailMinusCanDestroy(out, true)
 			}
 			return out
 		}

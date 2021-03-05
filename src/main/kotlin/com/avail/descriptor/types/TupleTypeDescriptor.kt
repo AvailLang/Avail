@@ -60,6 +60,7 @@ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfTupleType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.trimType
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfTupleType
@@ -70,6 +71,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -379,6 +381,65 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_SizeRange(self: AvailObject): A_Type =
 		self.slot(SIZE_RANGE)
 
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		if (!typeToRemove.isTupleType) return self
+		if (typeToRemove.isEnumeration) return self
+		self.makeImmutable()
+		typeToRemove.makeImmutable()
+		val leadingTypes = self.typeTuple()
+		val defaultType = self.defaultType()
+		val removedLeadingTypes = typeToRemove.typeTuple()
+		val variationLimit =
+			max(leadingTypes.tupleSize(), removedLeadingTypes.tupleSize()) + 1
+		val firstVariation = (1..variationLimit).indexOfFirst { i ->
+			// Test whether the element that position would always be excluded
+			// by the removed type.
+			!self.typeAtIndex(i).isSubtypeOf(typeToRemove.typeAtIndex(i))
+		} + 1  // from Kotlin index -> one-based
+		val sizeRange = self.sizeRange()
+		val removedSizeRange = typeToRemove.sizeRange()
+		if (firstVariation == 0)
+		{
+			// At every element position, the type in the receiver is subsumed
+			// by the removed type.  Therefore, the only actual tuples that
+			// could be in the receiver but not in the removed type are those
+			// with a size that the removed type doesn't have.
+			return tupleTypeForSizesTypesDefaultType(
+				sizeRange.trimType(removedSizeRange), leadingTypes, defaultType)
+		}
+		// All elements from 1 to firstVariation were subsumed by the removed
+		// type, so all tuples of size 1..firstVariation that match self would
+		// also match typeToRemove.
+		val permittedSizes = sizeRange.trimType(
+			inclusive(0, (firstVariation - 1).toLong()))
+		if (!permittedSizes.equals(sizeRange))
+		{
+			// Some of the sizes were excluded.  Good enough – use this
+			// restricted type.
+			return tupleTypeForSizesTypesDefaultType(
+				permittedSizes, leadingTypes, defaultType)
+		}
+		// None of the tuple sizes were excluded.  Even if both tuple types are
+		// completely homogenous, with self having element type A∪B and the
+		// excluded element type B, we can't say the result is A, because only
+		// tuples where *all* elements are B are excluded.  For example, the
+		// tuple <b, a, b> would continue to be included.  The remaining case we
+		// can make progress on is tuples of size 0 or 1, since there are no
+		// "other" elements that could save the tuple from exclusion.
+		if (sizeRange.upperBound().equalsInt(1))
+		{
+			assert (leadingTypes.tupleSize() == 0)
+			return tupleTypeForSizesTypesDefaultType(
+				if (removedSizeRange.lowerBound().equalsInt(0)) singleInt(1)
+				else sizeRange,
+				emptyTuple,
+				defaultType.trimType(typeToRemove.typeAtIndex(1)))
+		}
+		return self
+	}
+
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,
 		startIndex: Int,
@@ -426,13 +487,15 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		else self.slot(DEFAULT_TYPE)
 	}
 
-	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
-		when
-		{
-			self.isSubtypeOf(another) -> self
-			another.isSubtypeOf(self) -> another
-			else -> another.typeIntersectionOfTupleType(self)
-		}
+	override fun o_TypeIntersection(
+		self: AvailObject,
+		another: A_Type
+	): A_Type = when
+	{
+		self.isSubtypeOf(another) -> self
+		another.isSubtypeOf(self) -> another
+		else -> another.typeIntersectionOfTupleType(self)
+	}
 
 	override fun o_TypeIntersectionOfTupleType(
 		self: AvailObject,
@@ -607,10 +670,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			    && sizeRange.lowerBound().equalsInt(0))
 			{
 				return privateTupleTypeForSizesTypesDefaultType(
-					sizeRange,
-					emptyTuple,
-					bottom
-				)
+					sizeRange, emptyTuple, bottom)
 			}
 			val typeTupleSize = typeTuple.tupleSize()
 			if (fromInt(typeTupleSize).greaterOrEqual(sizeRange.upperBound()))
@@ -630,7 +690,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			{
 				//  See how many other redundant entries we can drop.
 				var index = typeTupleSize - 1
-				while (index > 0 && typeTuple.tupleAt(index).equals(defaultType))
+				while (index > 0
+					&& typeTuple.tupleAt(index).equals(defaultType))
 				{
 					index--
 				}
@@ -755,7 +816,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 *   element type of the supplied tuple type.
 		 */
 		@JvmStatic
-		fun tupleTypeFromTupleOfTypes(
+		fun mappingElementTypes(
 			aTupleType: A_Type,
 			elementTransformer: (A_Type) -> A_Type): A_Type
 		{
@@ -764,8 +825,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			val defaultType = aTupleType.defaultType()
 			val limit = typeTuple.tupleSize()
 			val transformedTypeTuple: A_Tuple = generateObjectTupleFrom(limit)
-				{ elementTransformer.invoke(typeTuple.tupleAt(it)) }
-			val transformedDefaultType = elementTransformer.invoke(defaultType)
+				{ elementTransformer(typeTuple.tupleAt(it)) }
+			val transformedDefaultType = elementTransformer(defaultType)
 			return tupleTypeForSizesTypesDefaultType(
 				sizeRange, transformedTypeTuple, transformedDefaultType)
 		}

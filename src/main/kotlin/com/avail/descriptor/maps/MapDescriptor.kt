@@ -32,6 +32,7 @@
 package com.avail.descriptor.maps
 
 import com.avail.annotations.ThreadSafe
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -169,7 +170,7 @@ class MapDescriptor private constructor(
 		}
 		if (multiline) {
 			first = true
-			for ((key, value) in self.mapIterable()) {
+			self.forEach { key, value ->
 				if (!first) {
 					builder.append(',')
 				}
@@ -529,8 +530,7 @@ class MapDescriptor private constructor(
 			{
 				at("map") {
 					writeObject {
-						for ((key, value) in self.mapIterable())
-						{
+						self.forEach { key, value ->
 							key.writeTo(writer)
 							value.writeTo(writer)
 						}
@@ -541,8 +541,7 @@ class MapDescriptor private constructor(
 			{
 				at("bindings") {
 					writeArray {
-						for ((key, value) in self.mapIterable())
-						{
+						self.forEach { key, value ->
 							writeArray {
 								key.writeTo(writer)
 								value.writeTo(writer)
@@ -560,8 +559,7 @@ class MapDescriptor private constructor(
 			{
 				at("map") {
 					writeObject {
-						for ((key, value) in self.mapIterable())
-						{
+						self.forEach { key, value ->
 							key.writeTo(writer)
 							value.writeSummaryTo(writer)
 						}
@@ -572,8 +570,7 @@ class MapDescriptor private constructor(
 			{
 				at("bindings") {
 					writeArray {
-						for ((key, value) in self.mapIterable())
-						{
+						self.forEach { key, value ->
 							writeArray {
 								key.writeSummaryTo(writer)
 								value.writeSummaryTo(writer)

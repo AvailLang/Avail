@@ -36,7 +36,7 @@ import com.avail.AvailRuntime.HookType
 import com.avail.AvailRuntime.HookType.RAISE_JAVA_EXCEPTION_IN_AVAIL
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.APPLY
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -126,8 +126,7 @@ object PrimitiveHelper
 			// It's a fused type, so iterate through its ancestry in an attempt
 			// to uniquely resolve the method.
 			val methods = mutableSetOf<Method>()
-			for ((_, ancestor) in pojoType.javaAncestors().mapIterable())
-			{
+			pojoType.javaAncestors().forEach { _, ancestor ->
 				val javaClass = marshalDefiningType(ancestor)
 				try
 				{
@@ -141,7 +140,7 @@ object PrimitiveHelper
 				}
 			}
 			when (methods.size) {
-				1 -> return methods.iterator().next()
+				1 -> return methods.single()
 				0 -> errorOut.value = E_JAVA_METHOD_NOT_AVAILABLE
 				else -> errorOut.value = E_JAVA_METHOD_REFERENCE_IS_AMBIGUOUS
 			}
@@ -188,8 +187,7 @@ object PrimitiveHelper
 			// The pojoType is a fused type, so iterate through its ancestry in
 			// an attempt to uniquely resolve the field.
 			val fields = mutableSetOf<Field>()
-			for ((_, ancestor) in pojoType.javaAncestors().mapIterable())
-			{
+			pojoType.javaAncestors().forEach { _, ancestor ->
 				val javaClass = marshalDefiningType(ancestor)
 				try
 				{
@@ -201,7 +199,7 @@ object PrimitiveHelper
 				}
 			}
 			when (fields.size) {
-				1 -> return fields.iterator().next()
+				1 -> return fields.single()
 				0 -> errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE
 				else -> errorOut.value = E_JAVA_FIELD_REFERENCE_IS_AMBIGUOUS
 			}

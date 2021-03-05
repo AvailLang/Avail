@@ -222,320 +222,320 @@ class ResolverReference constructor(
 		qualifiedName.substring(0..end)
 	}
 
-		/**
-		 * The last known time this was updated since the Unix Epoch.
-		 */
-		var lastModified: Long
-			private set
+	/**
+	 * The last known time this was updated since the Unix Epoch.
+	 */
+	var lastModified: Long
+		private set
 
-		/**
-		 * The size, in bytes, of the backing file, or 0 if [isPackage] is true.
-		 */
-		var size: Long
-			private set
+	/**
+	 * The size, in bytes, of the backing file, or 0 if [isPackage] is true.
+	 */
+	var size: Long
+		private set
 
-		/**
-		 * The cryptographic hash of the file's most recently reported contents.
-		 */
-		private val digest: ByteArray? get() = archive.provideDigest(this)
+	/**
+	 * The cryptographic hash of the file's most recently reported contents.
+	 */
+	private val digest: ByteArray? get() = archive.provideDigest(this)
 
-		/**
-		 * The [exception][Throwable] that prevented the most recent attempt at
-		 * accessing the source location of this [ResolverReference].
-		 */
-		var accessException: Throwable? = null
+	/**
+	 * The [exception][Throwable] that prevented the most recent attempt at
+	 * accessing the source location of this [ResolverReference].
+	 */
+	var accessException: Throwable? = null
 
-		init
+	init
+	{
+		this.lastModified = lastModified
+		this.size = size
+	}
+
+	/**
+	 * Answer an [AvailFile] for the given raw bytes. This should be the
+	 * contents of the file represented by this [ResolverReference].
+	 *
+	 * @param rawBytes
+	 *   The raw binary file bytes.
+	 */
+	fun file (rawBytes: ByteArray): AvailFile =
+		when (type)
 		{
+			ResourceType.MODULE,
+			ResourceType.REPRESENTATIVE,
+			ResourceType.RESOURCE ->
+				AvailModuleFile(
+					rawBytes,
+					NullFileWrapper(rawBytes, this, resolver.fileManager))
+			ResourceType.PACKAGE,
+			ResourceType.ROOT,
+			ResourceType.DIRECTORY ->
+				throw UnsupportedOperationException(
+					"$qualifiedName ($type) cannot be an AvailFile")
+		}
+
+	/**
+	 * Recursively write the receiver to the supplied [JSONWriter].
+	 *
+	 * @param writer
+	 *   A `JSONWriter`.
+	 */
+	private fun recursivelyWriteOn(writer: JSONWriter, builder: AvailBuilder)
+	{
+		// Representatives should not have a visible footprint in the
+		// tree; we want their enclosing packages to represent them.
+		if (type !== ResourceType.REPRESENTATIVE)
+		{
+			writer.writeObject {
+				at("localName") { write(localName) }
+				at("qualifiedName") { write(qualifiedName) }
+				at("type") { write(type.label) }
+				accessException?.let {
+					at("error") { write(it.localizedMessage) }
+				}
+				when (type)
+				{
+					ResourceType.PACKAGE ->
+					{
+						// Handle a missing representative as a special
+						// kind of error, but only if another error
+						// hasn't already been reported.
+						if (accessException === null
+							&& modules.none {
+								it.localName == localName
+							})
+						{
+							at("error") {
+								write("Missing representative")
+							}
+						}
+						writeResolutionInformationOn(writer, builder)
+					}
+					ResourceType.MODULE ->
+						writeResolutionInformationOn(writer, builder)
+					else -> { }
+				}
+				if (modules.isNotEmpty() || resources.isNotEmpty())
+				{
+					at("childNodes") {
+						writeArray {
+							modules.forEach { module ->
+								module.recursivelyWriteOn(writer, builder)
+							}
+							resources.forEach { resource ->
+								resource.recursivelyWriteOn(writer, builder)
+							}
+						}
+					}
+				}
+			}
+		}
+	}
+
+	/**
+	 * Write information that requires [module resolution][ModuleNameResolver].
+	 *
+	 * @param writer
+	 *   A `JSONWriter`.
+	 */
+	private fun writeResolutionInformationOn(
+		writer: JSONWriter, builder: AvailBuilder) =
+		with(writer)
+		{
+			val resolver = builder.runtime.moduleNameResolver
+			var resolved: ResolvedModuleName? = null
+			var resolutionException: Throwable? = null
+			val loaded =
+				try
+				{
+					resolved = resolver.resolve(ModuleName(qualifiedName))
+					builder.getLoadedModule(resolved) !== null
+				}
+				catch (e: UnresolvedModuleException)
+				{
+					resolutionException = e
+					false
+				}
+			at("status") {
+				write(if (loaded) "loaded" else "not loaded")
+			}
+			if (resolved?.isRename == true)
+			{
+				at("resolvedName") { write(resolved.qualifiedName) }
+			}
+			else if (accessException === null && resolutionException !== null)
+			{
+				at("error") {
+					write(resolutionException.localizedMessage)
+				}
+			}
+			resolver.renameRulesInverted[qualifiedName]?.let {
+				at("redirectedNames") {
+					writeArray { it.forEach(this::write) }
+				}
+			}
+		}
+
+	/**
+	 * Write the `ModuleNode` to the supplied [JSONWriter].
+	 *
+	 * @param writer
+	 *   A `JSONWriter`.
+	 */
+	fun writeOn(writer: JSONWriter, builder: AvailBuilder)
+	{
+		recursivelyWriteOn(writer, builder)
+	}
+
+	/**
+	 * Update the mutable state of this [ResolverReference].
+	 *
+	 * @param lastModified
+	 *   The last known time this was updated since the Unix Epoch.
+	 * @param size
+	 *   The size, in bytes, of the backing file, or 0 if [isPackage] is true.
+	 */
+	fun refresh (lastModified: Long, size: Long)
+	{
+		if (this.lastModified < lastModified)
+		{
+			// this represents the latest and greatest!
 			this.lastModified = lastModified
 			this.size = size
 		}
+	}
 
-		/**
-		 * Answer an [AvailFile] for the given raw bytes. This should be the
-		 * contents of the file represented by this [ResolverReference].
-		 *
-		 * @param rawBytes
-		 *   The raw binary file bytes.
-		 */
-		fun file (rawBytes: ByteArray): AvailFile =
-			when (type)
-			{
-				ResourceType.MODULE,
-				ResourceType.REPRESENTATIVE,
-				ResourceType.RESOURCE ->
-					AvailModuleFile(
-						rawBytes,
-						NullFileWrapper(rawBytes, this, resolver.fileManager))
-				ResourceType.PACKAGE,
-				ResourceType.ROOT,
-				ResourceType.DIRECTORY ->
-					throw UnsupportedOperationException(
-						"$qualifiedName ($type) cannot be an AvailFile")
-			}
-
-		/**
-		 * Recursively write the receiver to the supplied [JSONWriter].
-		 *
-		 * @param writer
-		 *   A `JSONWriter`.
-		 */
-		private fun recursivelyWriteOn(writer: JSONWriter, builder: AvailBuilder)
+	/**
+	 * Retrieve the cryptographic hash of the file's most recently reported
+	 * contents.
+	 *
+	 * @param refresh
+	 *   `true` forces a recalculation of the digest; `false` supplies the last
+	 *   known digest presuming the file has not changed.
+	 * @param withDigest
+	 *   The function that accepts the [digest] once it is retrieved/calculated
+	 *   and the [lastModified] of this [ResolverReference].
+	 * @param failureHandler
+	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
+	 *   to be called in the event of failure.
+	 */
+	internal fun digest (
+		refresh: Boolean = false,
+		withDigest: (ByteArray, Long)->Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+	{
+		val currentDigest = digest
+		if (!refresh && currentDigest !== null)
 		{
-			// Representatives should not have a visible footprint in the
-			// tree; we want their enclosing packages to represent them.
-			if (type !== ResourceType.REPRESENTATIVE)
-			{
-				writer.writeObject {
-					at("localName") { write(localName) }
-					at("qualifiedName") { write(qualifiedName) }
-					at("type") { write(type.label) }
-					accessException?.let {
-						at("error") { write(it.localizedMessage) }
-					}
-					when (type)
-					{
-						ResourceType.PACKAGE ->
-						{
-							// Handle a missing representative as a special
-							// kind of error, but only if another error
-							// hasn't already been reported.
-							if (accessException === null
-								&& modules.none {
-									it.localName == localName
-								})
-							{
-								at("error") {
-									write("Missing representative")
-								}
-							}
-							writeResolutionInformationOn(writer, builder)
-						}
-						ResourceType.MODULE ->
-							writeResolutionInformationOn(writer, builder)
-						else -> { }
-					}
-					if (modules.isNotEmpty() || resources.isNotEmpty())
-					{
-						at("childNodes") {
-							writeArray {
-								modules.forEach { module ->
-									module.recursivelyWriteOn(writer, builder)
-								}
-								resources.forEach { resource ->
-									resource.recursivelyWriteOn(writer, builder)
-								}
-							}
-						}
-					}
-				}
-			}
+			withDigest(currentDigest, lastModified)
+			return
 		}
+		resolver.refreshResolverReferenceDigest(
+			this,
+			{ newDigest, fromSaveTime ->
+				withDigest(newDigest, fromSaveTime)
+			},
+			failureHandler)
+	}
 
-		/**
-		 * Write information that requires [module resolution][ModuleNameResolver].
-		 *
-		 * @param writer
-		 *   A `JSONWriter`.
-		 */
-		private fun writeResolutionInformationOn(
-			writer: JSONWriter, builder: AvailBuilder) =
-			with(writer)
-			{
-				val resolver = builder.runtime.moduleNameResolver
-				var resolved: ResolvedModuleName? = null
-				var resolutionException: Throwable? = null
-				val loaded =
-					try
-					{
-						resolved = resolver.resolve(ModuleName(qualifiedName))
-						builder.getLoadedModule(resolved) !== null
-					}
-					catch (e: UnresolvedModuleException)
-					{
-						resolutionException = e
-						false
-					}
-				at("status") {
-					write(if (loaded) "loaded" else "not loaded")
-				}
-				if (resolved?.isRename == true)
-				{
-					at("resolvedName") { write(resolved.qualifiedName) }
-				}
-				else if (accessException === null && resolutionException !== null)
-				{
-					at("error") {
-						write(resolutionException.localizedMessage)
-					}
-				}
-				resolver.renameRulesInverted[qualifiedName]?.let {
-					at("redirectedNames") {
-						writeArray { it.forEach(this::write) }
-					}
-				}
-			}
+	/**
+	 * Retrieve the resource and provide it with a request to obtain
+	 * the raw file bytes.
+	 *
+	 * @param byPassFileManager
+	 *   `true` indicates the file should be read directly from the source
+	 *   location; `false` indicates an attempt to read from the [FileManager]
+	 *   should be made.
+	 * @param withContents
+	 *   A function that accepts the raw bytes of the read file.
+	 * @param failureHandler
+	 *   A function that accepts a [ErrorCode] that describes the nature
+	 *   of the failure and a `nullable` [Throwable].
+	 */
+	fun readFile (
+		byPassFileManager: Boolean,
+		withContents: (ByteArray, UUID?) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+	{
+		resolver.readFile(byPassFileManager, this, withContents, failureHandler)
+	}
 
-		/**
-		 * Write the `ModuleNode` to the supplied [JSONWriter].
-		 *
-		 * @param writer
-		 *   A `JSONWriter`.
-		 */
-		fun writeOn(writer: JSONWriter, builder: AvailBuilder)
+	override fun equals(other: Any?): Boolean
+	{
+		if (this === other) return true
+		if (other !is ResolverReference) return false
+
+		return resolver.uri == other.resolver.uri
+			&& qualifiedName == other.qualifiedName
+	}
+
+	override fun hashCode(): Int
+	{
+		var result = resolver.uri.hashCode()
+		result = 31 * result + qualifiedName.hashCode()
+		return result
+	}
+
+	override fun toString(): String = qualifiedName
+
+	/**
+	 * Walk the [children][childReferences] of this [ResolverReference]. This
+	 * reference **must** be either a [root][ResourceType.ROOT],
+	 * [package][ResourceType.PACKAGE], or
+	 * [directory][ResourceType.DIRECTORY].
+	 *
+	 * **NOTE** Graph uses depth-first traversal to visit each reference.
+	 *
+	 * @param visitResources
+	 *   `true` indicates [resources][ResolverReference.isResource] should
+	 *   be included in the walk; `false` indicates walk should be
+	 *   restricted to packages and [modules][ResourceType.MODULE].
+	 * @param withReference
+	 *   The lambda that accepts the visited [ResolverReference]. This
+	 *   `ResolverReference` will not be provided to the lambda.
+	 * @param afterAllVisited
+	 *   The lambda that accepts the total number of
+	 *   [modules][ResolverReference.isModule] visited to be called after
+	 *   all `ResolverReference`s have been visited.
+	 */
+	fun walkChildrenThen(
+		visitResources: Boolean,
+		withReference: (ResolverReference)->Unit,
+		afterAllVisited: (Int)->Unit)
+	{
+		require(type == ResourceType.ROOT
+			|| isPackage
+			|| type == ResourceType.DIRECTORY)
 		{
-			recursivelyWriteOn(writer, builder)
+			"ModuleResourceResolver.walk must start with a Root, Package, " +
+				"or Directory; $qualifiedName is none of those things."
 		}
-
-		/**
-		 * Update the mutable state of this [ResolverReference].
-		 *
-		 * @param lastModified
-		 *   The last known time this was updated since the Unix Epoch.
-		 * @param size
-		 *   The size, in bytes, of the backing file, or 0 if [isPackage] is true.
-		 */
-		fun refresh (lastModified: Long, size: Long)
+		if (!visitResources && isResource)
 		{
-			if (this.lastModified < lastModified)
-			{
-				// this represents the latest and greatest!
-				this.lastModified = lastModified
-				this.size = size
-			}
+			System.err.println(
+				"ModuleRootResolver.walkRoot provided root, $this which " +
+					"is a non-package directory, but visitResources was " +
+					"false, so no work was done")
+			return
 		}
-
-		/**
-		 * Retrieve the cryptographic hash of the file's most recently reported
-		 * contents.
-		 *
-		 * @param refresh
-		 *   `true` forces a recalculation of the digest; `false` supplies the last
-		 *   known digest presuming the file has not changed.
-		 * @param withDigest
-		 *   The function that accepts the [digest] once it is retrieved/calculated
-		 *   and the [lastModified] of this [ResolverReference].
-		 * @param failureHandler
-		 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
-		 *   to be called in the event of failure.
-		 */
-		internal fun digest (
-			refresh: Boolean = false,
-			withDigest: (ByteArray, Long)->Unit,
-			failureHandler: (ErrorCode, Throwable?) -> Unit)
+		val visited = AtomicInteger(0)
+		val stack = ArrayDeque<ResolverReference>()
+		if (!visitResources)
 		{
-			val currentDigest = digest
-			if (!refresh && currentDigest !== null)
-			{
-				withDigest(currentDigest, lastModified)
-				return
-			}
-			resolver.refreshResolverReferenceDigest(
-				this,
-				{ newDigest, fromSaveTime ->
-					withDigest(newDigest, fromSaveTime)
-				},
-				failureHandler)
-		}
-
-		/**
-		 * Retrieve the resource and provide it with a request to obtain
-		 * the raw file bytes.
-		 *
-		 * @param byPassFileManager
-		 *   `true` indicates the file should be read directly from the source
-		 *   location; `false` indicates an attempt to read from the [FileManager]
-		 *   should be made.
-		 * @param withContents
-		 *   A function that accepts the raw bytes of the read file.
-		 * @param failureHandler
-		 *   A function that accepts a [ErrorCode] that describes the nature
-		 *   of the failure and a `nullable` [Throwable].
-		 */
-		fun readFile (
-			byPassFileManager: Boolean,
-			withContents: (ByteArray, UUID?) -> Unit,
-			failureHandler: (ErrorCode, Throwable?) -> Unit)
-		{
-			resolver.readFile(byPassFileManager, this, withContents, failureHandler)
-		}
-
-		override fun equals(other: Any?): Boolean
-		{
-			if (this === other) return true
-			if (other !is ResolverReference) return false
-
-			return resolver.uri == other.resolver.uri
-				&& qualifiedName == other.qualifiedName
-		}
-
-		override fun hashCode(): Int
-		{
-			var result = resolver.uri.hashCode()
-			result = 31 * result + qualifiedName.hashCode()
-			return result
-		}
-
-		override fun toString(): String = qualifiedName
-
-		/**
-		 * Walk the [children][childReferences] of this [ResolverReference]. This
-		 * reference **must** be either a [root][ResourceType.ROOT],
-		 * [package][ResourceType.PACKAGE], or
-		 * [directory][ResourceType.DIRECTORY].
-		 *
-		 * **NOTE** Graph uses depth-first traversal to visit each reference.
-		 *
-		 * @param visitResources
-		 *   `true` indicates [resources][ResolverReference.isResource] should
-		 *   be included in the walk; `false` indicates walk should be
-		 *   restricted to packages and [modules][ResourceType.MODULE].
-		 * @param withReference
-		 *   The lambda that accepts the visited [ResolverReference]. This
-		 *   `ResolverReference` will not be provided to the lambda.
-		 * @param afterAllVisited
-		 *   The lambda that accepts the total number of
-		 *   [modules][ResolverReference.isModule] visited to be called after
-		 *   all `ResolverReference`s have been visited.
-		 */
-		fun walkChildrenThen(
-			visitResources: Boolean,
-			withReference: (ResolverReference)->Unit,
-			afterAllVisited: (Int)->Unit)
-		{
-			require(type == ResourceType.ROOT
-				|| isPackage
-				|| type == ResourceType.DIRECTORY)
-			{
-				"ModuleResourceResolver.walk must start with a Root, Package, " +
-					"or Directory; $qualifiedName is none of those things."
-			}
-			if (!visitResources && isResource)
-			{
-				System.err.println(
-					"ModuleRootResolver.walkRoot provided root, $this which " +
-						"is a non-package directory, but visitResources was " +
-						"false, so no work was done")
-				return
-			}
-			val visited = AtomicInteger(0)
-			val stack = ArrayDeque<ResolverReference>()
-			if (!visitResources)
-			{
-				modules.forEach {
-					visitReference(
-						it, visitResources, visited, stack, withReference)
-				}
-				afterAllVisited(visited.get())
-				return
-			}
-
-			childReferences(visitResources).forEach {
+			modules.forEach {
 				visitReference(
 					it, visitResources, visited, stack, withReference)
 			}
 			afterAllVisited(visited.get())
+			return
 		}
+
+		childReferences(visitResources).forEach {
+			visitReference(
+				it, visitResources, visited, stack, withReference)
+		}
+		afterAllVisited(visited.get())
+	}
 
 	companion object
 	{

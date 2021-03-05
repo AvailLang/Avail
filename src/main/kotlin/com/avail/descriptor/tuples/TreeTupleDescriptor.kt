@@ -66,7 +66,7 @@ import com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.CUMULATIVE_S
 import com.avail.descriptor.tuples.TreeTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.tuples.TreeTupleDescriptor.ObjectSlots.SUBTUPLE_AT_
 import com.avail.descriptor.types.A_Type
-import com.avail.utility.structures.EnumMap
+import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.nio.ByteBuffer
 import kotlin.math.max
 import kotlin.math.min
@@ -815,7 +815,7 @@ class TreeTupleDescriptor internal constructor(
 					// the new peer.  Be careful of the int-packed cumulative sizes
 					// area.
 					val withoutLast = newLike(
-						descriptors[MUTABLE][level1],
+						descriptors[MUTABLE]!![level1],
 						tuple1,
 						-1,
 						-(childCount1 and 1))
@@ -837,7 +837,7 @@ class TreeTupleDescriptor internal constructor(
 					}
 					else
 					{
-						newLike(descriptors[MUTABLE][level1], tuple1, 0, 0)
+						newLike(descriptors[MUTABLE]!![level1], tuple1, 0, 0)
 					}
 				result.setSlot(SUBTUPLE_AT_, childCount1, newLast)
 				result.setIntSlot(
@@ -914,6 +914,12 @@ class TreeTupleDescriptor internal constructor(
 		}
 
 		/**
+		 * When enabled, extra safety checks are run to ensure tree-tuples are
+		 * working correctly.
+		 */
+		private const val shouldCheckTreeTuple = false
+
+		/**
 		 * Answer one less than the first one-based index of elements that fall
 		 * within the subtuple with the specified childSubscript.  This is the
 		 * difference between the coordinate system of the tuple and the
@@ -929,16 +935,12 @@ class TreeTupleDescriptor internal constructor(
 		 */
 		private fun offsetForChildSubscript(
 			self: AvailObject,
-			childSubscript: Int): Int =
-				if (childSubscript == 1)
-				{
-					0
-				}
-				else
-				{
-					self.intSlot(
-						CUMULATIVE_SIZES_AREA_, childSubscript - 1)
-				}
+			childSubscript: Int
+		): Int = when (childSubscript)
+		{
+			1 -> 0
+			else -> self.intSlot(CUMULATIVE_SIZES_AREA_, childSubscript - 1)
+		}
 
 		/**
 		 * Perform a sanity check on the passed tree tuple.  Fail if it's
@@ -949,6 +951,8 @@ class TreeTupleDescriptor internal constructor(
 		 */
 		private fun check(self: AvailObject)
 		{
+			if (!shouldCheckTreeTuple) return
+
 			assert(self.descriptor() is TreeTupleDescriptor)
 			assert(self.variableObjectSlotsCount() + 1 shr 1
 					   == self.variableIntegerSlotsCount())
@@ -965,9 +969,8 @@ class TreeTupleDescriptor internal constructor(
 				val childSize = child.tupleSize()
 				assert(childSize > 0)
 				cumulativeSize += childSize
-				assert(self.intSlot(
-					CUMULATIVE_SIZES_AREA_, childIndex)
-						   == cumulativeSize)
+				assert(self.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
+					== cumulativeSize)
 			}
 		}
 
@@ -990,7 +993,7 @@ class TreeTupleDescriptor internal constructor(
 			val instance = newObjectIndexedIntegerIndexedDescriptor(
 				size,
 				size + 1 shr 1,
-				descriptors[MUTABLE][level])
+				descriptors[MUTABLE]!![level])
 			instance.setSlot(HASH_OR_ZERO, 0)
 			return instance
 		}
@@ -1087,17 +1090,15 @@ class TreeTupleDescriptor internal constructor(
 		/**
 		 * The [TreeTupleDescriptor]s, organized by mutability then level.
 		 */
-		val descriptors = EnumMap.enumMap(Mutability.values()) { mutability ->
-			Array(numberOfLevels) { level ->
-				TreeTupleDescriptor(mutability, level)
-			}
+		val descriptors = enumMap { mut: Mutability ->
+			Array(numberOfLevels) { level -> TreeTupleDescriptor(mut, level) }
 		}
 	}
 
-	override fun mutable(): TreeTupleDescriptor = descriptors[MUTABLE][level]
+	override fun mutable(): TreeTupleDescriptor = descriptors[MUTABLE]!![level]
 
 	override fun immutable(): TreeTupleDescriptor =
-		descriptors[IMMUTABLE][level]
+		descriptors[IMMUTABLE]!![level]
 
-	override fun shared(): TreeTupleDescriptor = descriptors[SHARED][level]
+	override fun shared(): TreeTupleDescriptor = descriptors[SHARED]!![level]
 }

@@ -221,7 +221,7 @@ class MessageSplitterTest private constructor ()
 			val lower: A_Number = fromInt(lowerBound)
 			val upperPlusOne =
 				if (upperBound >= 0) fromLong(upperBound + 1L)
-				else positiveInfinity()
+				else positiveInfinity
 			val subexpressionsTupleType = tupleTypeForSizesTypesDefaultType(
 				integerRangeType(
 					lower,
@@ -1114,7 +1114,7 @@ class MessageSplitterTest private constructor ()
 							integerRangeType(
 								fromInt(3),
 								true,
-								positiveInfinity(),
+								positiveInfinity,
 								false
 							)
 						)

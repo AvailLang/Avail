@@ -64,7 +64,7 @@ import java.util.logging.Level
  */
 object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 {
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

@@ -92,7 +92,7 @@ import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor
@@ -101,6 +101,7 @@ import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadW
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.interpreter.Primitive
 import com.avail.utility.structures.EnumMap
+import com.avail.utility.structures.EnumMap.Companion.enumMap
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -243,7 +244,7 @@ class TypeConsistencyTest
 			 */
 			private val primitiveTypes: EnumMap<Types, Node> = run {
 				val tempMap = mutableMapOf<Types, Node>()
-				EnumMap.enumMap(Types.values()) { type ->
+				enumMap { type: Types ->
 					val parents = when (val parent = type.parent)
 					{
 						null -> emptyArray()
@@ -257,7 +258,7 @@ class TypeConsistencyTest
 
 			/** The most general metatype.  */
 			private val TOP_META = Node(
-				"TOP_META", topMeta(), primitiveTypes[Types.ANY])
+				"TOP_META", topMeta(), primitiveTypes[Types.ANY]!!)
 
 			/** The type of `any`.  */
 			private val ANY_META = Node("ANY_META", anyMeta(), TOP_META)
@@ -272,7 +273,7 @@ class TypeConsistencyTest
 			private val TUPLE = Node(
 				"TUPLE",
 				mostGeneralTupleType(),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The type `string`, which is the same as `tuple of
@@ -290,19 +291,19 @@ class TypeConsistencyTest
 
 			/** The type `set`  */
 			private val SET = Node(
-				"SET", mostGeneralSetType(), primitiveTypes[Types.NONTYPE])
+				"SET", mostGeneralSetType(), primitiveTypes[Types.NONTYPE]!!)
 
 			/** The most general fiber type.  */
 			private val FIBER = Node(
 				"FIBER",
 				mostGeneralFiberType(),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/** The most general function type.  */
 			private val MOST_GENERAL_FUNCTION = Node(
 				"MOST_GENERAL_FUNCTION",
 				mostGeneralFunctionType(),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The type for functions that accept no arguments and return an
@@ -348,7 +349,7 @@ class TypeConsistencyTest
 			private val EXTENDED_INTEGER = Node(
 				"EXTENDED_INTEGER",
 				extendedIntegers,
-				primitiveTypes[Types.NUMBER])
+				primitiveTypes[Types.NUMBER]!!)
 
 			/** The primitive type representing whole numbers `[0..∞)`. */
 			private val WHOLE_NUMBER = Node(
@@ -361,7 +362,7 @@ class TypeConsistencyTest
 					createAtom(
 						stringFrom("something"),
 						NilDescriptor.nil)),
-				primitiveTypes[Types.ATOM])
+				primitiveTypes[Types.ATOM]!!)
 
 			/**
 			 * The instance type of an [atom][AtomDescriptor] different from
@@ -373,7 +374,7 @@ class TypeConsistencyTest
 					createAtom(
 						stringFrom("another"),
 						NilDescriptor.nil)),
-				primitiveTypes[Types.ATOM])
+				primitiveTypes[Types.ATOM]!!)
 
 			/**
 			 * The base [object type][ObjectTypeDescriptor].
@@ -381,7 +382,7 @@ class TypeConsistencyTest
 			private val OBJECT_TYPE = Node(
 				"OBJECT_TYPE",
 				mostGeneralObjectType(),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * A simple non-root [object type][ObjectTypeDescriptor].
@@ -427,7 +428,7 @@ class TypeConsistencyTest
 				pojoTypeForClassWithTypeArguments(
 					Comparable::class.java,
 					tuple(mostGeneralPojoType())),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The pojo type representing [Comparable]&lt;[Int]&gt;.
@@ -498,7 +499,7 @@ class TypeConsistencyTest
 				pojoTypeForClassWithTypeArguments(
 					Comparable::class.java,
 					tuple(integers)),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The pojo type representing the Java [Array] type [Object]`[].
@@ -506,7 +507,7 @@ class TypeConsistencyTest
 			private val JAVA_OBJECT_ARRAY_POJO = Node(
 				"JAVA_OBJECT_ARRAY_POJO",
 				pojoArrayType(mostGeneralPojoType(), wholeNumbers),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The pojo type representing the Java [Array] type [String]`[].
@@ -569,7 +570,7 @@ class TypeConsistencyTest
 			private val ROOT_VARIABLE = Node(
 				"ROOT_VARIABLE",
 				mostGeneralVariableType(),
-				primitiveTypes[Types.NONTYPE])
+				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The [type of variable][VariableTypeDescriptor] which
@@ -605,7 +606,7 @@ class TypeConsistencyTest
 			private val END_OF_FILE_TOKEN = Node(
 				"END_OF_FILE_TOKEN",
 				tokenType(TokenDescriptor.TokenType.END_OF_FILE),
-				primitiveTypes[Types.TOKEN])
+				primitiveTypes[Types.TOKEN]!!)
 
 			/**
 			 * The [token type][TokenTypeDescriptor] whose
@@ -615,7 +616,7 @@ class TypeConsistencyTest
 			private val KEYWORD_TOKEN = Node(
 				"KEYWORD_TOKEN",
 				tokenType(TokenDescriptor.TokenType.KEYWORD),
-				primitiveTypes[Types.TOKEN])
+				primitiveTypes[Types.TOKEN]!!)
 
 			/**
 			 * The [token type][TokenTypeDescriptor] whose
@@ -625,7 +626,7 @@ class TypeConsistencyTest
 			private val OPERATOR_TOKEN = Node(
 				"OPERATOR_TOKEN",
 				tokenType(TokenDescriptor.TokenType.OPERATOR),
-				primitiveTypes[Types.TOKEN])
+				primitiveTypes[Types.TOKEN]!!)
 
 			/**
 			 * The [token type][TokenTypeDescriptor] whose
@@ -635,7 +636,7 @@ class TypeConsistencyTest
 			private val COMMENT_TOKEN = Node(
 				"COMMENT_TOKEN",
 				tokenType(TokenDescriptor.TokenType.COMMENT),
-				primitiveTypes[Types.TOKEN])
+				primitiveTypes[Types.TOKEN]!!)
 
 			/**
 			 * The [token type][TokenTypeDescriptor] whose
@@ -645,7 +646,7 @@ class TypeConsistencyTest
 			private val WHITESPACE_TOKEN = Node(
 				"WHITESPACE_TOKEN",
 				tokenType(TokenDescriptor.TokenType.WHITESPACE),
-				primitiveTypes[Types.TOKEN])
+				primitiveTypes[Types.TOKEN]!!)
 
 			/**
 			 * The [literal token type][LiteralTokenTypeDescriptor] whose
@@ -654,7 +655,7 @@ class TypeConsistencyTest
 			private val ANY_LITERAL_TOKEN = Node(
 				"ANY_LITERAL_TOKEN",
 				mostGeneralLiteralTokenType(),
-				primitiveTypes[Types.TOKEN])
+				primitiveTypes[Types.TOKEN]!!)
 
 			/**
 			 * The [literal&#32;token&#32;type][LiteralTokenTypeDescriptor]
@@ -727,8 +728,7 @@ class TypeConsistencyTest
 			 * should be [BOTTOM], even though it hasn't been defined yet.
 			 */
 			private val phraseTypeMap =
-				EnumMap.enumMap<PhraseKind, MutableMap<Node?, Node>>(
-					PhraseKind.values()) { mutableMapOf() }
+				enumMap { _: PhraseKind -> mutableMapOf<Node?, Node>() }
 
 			/**
 			 * Create a phrase type Node with the given name, phrase kind, Node
@@ -758,7 +758,7 @@ class TypeConsistencyTest
 					when
 					{
 						phraseTypeMap.containsKey(phraseKind) ->
-							phraseTypeMap[phraseKind]
+							phraseTypeMap[phraseKind]!!
 						else -> mutableMapOf<Node?, Node>().also {
 							phraseTypeMap[phraseKind] = it
 						}
@@ -767,11 +767,11 @@ class TypeConsistencyTest
 				when (phraseKind.parentKind())
 				{
 					null ->
-						primitiveTypes[Types.NONTYPE].also { parents.add(it) }
+						primitiveTypes[Types.NONTYPE]!!.also { parents.add(it) }
 					else ->
 					{
 						val m: Map<Node?, Node> =
-							phraseTypeMap[phraseKind.parentKind()!!]
+							phraseTypeMap[phraseKind.parentKind()!!]!!
 						m[innerNode]?.let { parents.add(it) }
 					}
 				}
@@ -786,7 +786,7 @@ class TypeConsistencyTest
 					phraseKind.isSubkindOf(PhraseKind.LIST_PHRASE) ->
 					{
 						val subexpressionsTupleType =
-							tupleTypeFromTupleOfTypes(innerType) {
+							mappingElementTypes(innerType) {
 								PhraseKind.PARSE_PHRASE.create(it)
 							}
 						createListNodeType(
@@ -874,9 +874,9 @@ class TypeConsistencyTest
 			{
 				// Include all phrase types.  Include a minimal diamond of types
 				// for each phrase kind.
-				val topNode = primitiveTypes[Types.TOP]
-				val anyNode = primitiveTypes[Types.ANY]
-				val nontypeNode = primitiveTypes[Types.NONTYPE]
+				val topNode = primitiveTypes[Types.TOP]!!
+				val anyNode = primitiveTypes[Types.ANY]!!
+				val nontypeNode = primitiveTypes[Types.NONTYPE]!!
 				val atomNode = SOME_ATOM_TYPE
 				val anotherAtomNode = ANOTHER_ATOM_TYPE
 				for (kind in PhraseKind.all())

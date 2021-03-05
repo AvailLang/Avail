@@ -39,13 +39,17 @@ Uses
 Names
 	"modules",
 	"modules:=_",
+	"`↑modules",
 	"root suite",
 	"root suite:=_",
+	"`↑root suite",
 	"suite lock",
 	"suites by atom",
 	"suites by atom:=_",
+	"`↑suites by atom",
 	"tests by atom",
-	"tests by atom:=_"
+	"tests by atom:=_",
+	"`↑tests by atom"
 Body
 
 /**

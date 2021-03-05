@@ -56,6 +56,7 @@ import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.newCrashFunction
@@ -80,6 +81,14 @@ import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.closeModule
+import com.avail.descriptor.module.A_Module.Companion.importedNames
+import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.newNames
+import com.avail.descriptor.module.A_Module.Companion.privateNames
+import com.avail.descriptor.module.A_Module.Companion.removeFrom
+import com.avail.descriptor.module.A_Module.Companion.visibleNames
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
@@ -221,6 +230,7 @@ import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Consumer
@@ -259,6 +269,15 @@ class AvailRuntime constructor(
 	init
 	{
 		fileManager.associateRuntime(this)
+	}
+
+	/**
+	 * An array of AtomicReference<Interpreter>, each of which is initially
+	 * null, but is populated as the interpreter thread pool adds more workers.
+	 * After an entry has been set, it is never changed or reset to null.
+	 */
+	val interpreterHolders = Array(maxInterpreters) {
+		AtomicReference<Interpreter>()
 	}
 
 	/**
@@ -307,7 +326,11 @@ class AvailRuntime constructor(
 		10L,
 		TimeUnit.SECONDS,
 		PriorityBlockingQueue(),
-		ThreadFactory { AvailThread(it, Interpreter(this)) },
+		ThreadFactory {
+			val interpreter = Interpreter(this)
+			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
+			AvailThread(it, interpreter)
+		},
 		AbortPolicy())
 
 	/**
@@ -350,10 +373,21 @@ class AvailRuntime constructor(
 	 * The [timer][Timer] that managed scheduled [tasks][TimerTask] for this
 	 * [runtime][AvailRuntime]. The timer thread is not an
 	 * [Avail&#32;thread][AvailThread], and therefore cannot directly execute
-	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks.
+	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks
+	 *
+	 * Additionally, we help drive the dynamic optimization of [A_RawFunction]s
+	 * into [L2Chunk]s by iterating over the existing Interpreters, asking each
+	 * one to significantly decrease the countdown for whatever raw function is
+	 * running (being careful not to cross zero).
 	 */
 	val timer =  fixedRateTimer("timer for Avail runtime", true, period = 10) {
 		clock.increment()
+		interpreterHolders.forEach { holder ->
+			holder.get()
+				?.pollActiveRawFunction()
+				?.decreaseCountdownToReoptimizeFromPoll(
+					L2Chunk.decrementForPolledActiveCode)
+		}
 	}
 
 	/**
@@ -535,17 +569,6 @@ class AvailRuntime constructor(
 	 */
 	@ThreadSafe
 	fun textInterface(): TextInterface = runtimeLock.read { textInterface }
-
-	/**
-	 * Answer the [raw&#32;pojo][RawPojoDescriptor] that wraps the
-	 * [default][textInterface] [text&#32;interface][TextInterface].
-	 *
-	 * @return
-	 *   The raw pojo holding the default text interface.
-	 */
-	@ThreadSafe
-	fun textInterfacePojo(): AvailObject =
-		runtimeLock.read { textInterfacePojo }
 
 	/**
 	 * Set the runtime's default [text interface][TextInterface].
@@ -732,7 +755,7 @@ class AvailRuntime constructor(
 		 *   The [A_Function] currently in that hook.
 		 */
 		operator fun get(runtime: AvailRuntime): A_Function =
-			runtime.hooks[this]
+			runtime.hooks[this]!!
 
 		/**
 		 * Set this hook for the given runtime to the given function.
@@ -746,12 +769,12 @@ class AvailRuntime constructor(
 		{
 			assert(function.isInstanceOf(functionType))
 			function.code().setMethodName(hookName)
-			runtime.hooks[this] = function
+			runtime.hooks[this] = function.makeShared()
 		}
 	}
 
 	/** The collection of hooks for this runtime. */
-	val hooks = enumMap(HookType.values()) { it.defaultFunctionSupplier() }
+	val hooks = enumMap { hook: HookType -> hook.defaultFunctionSupplier() }
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever the value
@@ -873,14 +896,6 @@ class AvailRuntime constructor(
 		 *   The Avail runtime of the current thread.
 		 */
 		fun currentRuntime(): AvailRuntime = current().runtime
-
-		/**
-		 * The [CheckedMethod] for [resultDisagreedWithExpectedTypeFunction].
-		 */
-		val resultDisagreedWithExpectedTypeFunctionMethod = instanceMethod(
-			AvailRuntime::class.java,
-			AvailRuntime::resultDisagreedWithExpectedTypeFunction.name,
-			A_Function::class.java)
 
 		/**
 		 * The [CheckedMethod] for [implicitObserveFunction].
@@ -1019,8 +1034,8 @@ class AvailRuntime constructor(
 			put(setTypeForSizesContentType(wholeNumbers, stringType()))
 			put(functionType(tuple(naturalNumbers), bottom))
 			put(emptySet)
-			put(negativeInfinity())
-			put(positiveInfinity())
+			put(negativeInfinity)
+			put(positiveInfinity)
 
 			at(80)
 			put(mostGeneralPojoType())
@@ -1063,7 +1078,7 @@ class AvailRuntime constructor(
 			put(unsignedShorts)
 			put(emptyTuple)
 			put(functionType(tuple(bottom), Types.TOP.o))
-			put(instanceType(zero()))
+			put(instanceType(zero))
 			put(functionTypeReturning(topMeta()))
 			put(tupleTypeForSizesTypesDefaultType(
 				wholeNumbers,
@@ -1073,7 +1088,7 @@ class AvailRuntime constructor(
 				PhraseKind.PARSE_PHRASE.mostGeneralType()))
 
 			at(110)
-			put(instanceType(two()))
+			put(instanceType(two))
 			put(fromDouble(Math.E))
 			put(instanceType(fromDouble(Math.E)))
 			put(instanceMeta(
@@ -1083,7 +1098,7 @@ class AvailRuntime constructor(
 			put(Types.TOKEN.o)
 			put(mostGeneralLiteralTokenType())
 			put(zeroOrMoreOf(anyMeta()))
-			put(inclusive(zero(), positiveInfinity()))
+			put(inclusive(zero, positiveInfinity))
 			put(zeroOrMoreOf(
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(2),
@@ -1125,8 +1140,7 @@ class AvailRuntime constructor(
 			put(oneOrMoreOf(Types.ANY.o))
 			put(zeroOrMoreOf(integers))
 			put(tupleTypeForSizesTypesDefaultType(
-				integerRangeType(
-					fromInt(2), true, positiveInfinity(), false),
+				integerRangeType(fromInt(2), true, positiveInfinity, false),
 				emptyTuple(),
 				Types.ANY.o))
 
@@ -1165,7 +1179,7 @@ class AvailRuntime constructor(
 			put(TokenType.OPERATOR.atom)
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
-			put(inclusive(0, (1L shl 32) - 1))
+			put(inclusive(0, (1L shl 31) - 1))
 			put(inclusive(0, (1L shl 28) - 1))
 			put(inclusive(1L, 4L))
 			put(inclusive(0L, 31L))
@@ -1179,7 +1193,7 @@ class AvailRuntime constructor(
 				stringType()))
 
 			at(173)
-		}.list().apply { forEach { assert(!it.isAtom || it.isAtomSpecial()) } }
+		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial()) }
 
 		/**
 		 * Answer the [special object][AvailObject] with the specified ordinal.
@@ -1248,7 +1262,7 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
-		}.list().apply { forEach { assert(it.isAtomSpecial()) } }
+		}.list().onEach { assert(it.isAtomSpecial()) }
 	}
 
 	/**

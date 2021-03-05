@@ -86,7 +86,7 @@ import org.objectweb.asm.MethodVisitor
  */
 class L2_MOVE_CONSTANT<C : L2Operand, R : L2Register, WR : L2WriteOperand<R>>
 private constructor(
-	val variantName: String,
+	private val variantName: String,
 	private val pushConstant: (JVMTranslator, MethodVisitor, C) -> Unit,
 	vararg theNamedOperandTypes: L2NamedOperandType)
 : L2Operation(*theNamedOperandTypes)

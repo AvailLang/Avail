@@ -61,7 +61,7 @@ object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 			aFunction.numOuterVars()
 		) { index ->
 			val outer = aFunction.outerVarAt(index)
-			if (outer.equalsNil()) zero() else outer
+			if (outer.equalsNil()) zero else outer
 		}
 		return interpreter.primitiveSuccess(newTupleObject)
 	}

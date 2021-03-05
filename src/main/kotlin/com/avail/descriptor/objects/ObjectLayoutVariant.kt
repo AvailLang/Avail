@@ -71,8 +71,8 @@ import kotlin.concurrent.read
  */
 class ObjectLayoutVariant private constructor(
 	allFields: A_Set,
-	val variantId: Int
-) {
+	val variantId: Int)
+{
 	/**
 	 * The set of all fields present in this variant.  This includes not just
 	 * the real fields that can hold multiple potential values, but also the

@@ -33,16 +33,11 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.ConcatenatedTupleTypeDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -59,34 +54,6 @@ object L2_CONCATENATE_TUPLES : L2Operation(
 	L2OperandType.READ_BOXED_VECTOR.named("tuples to concatenate"),
 	L2OperandType.WRITE_BOXED.named("concatenated tuple"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		// Approximate it for now.  If testing the return type dynamically
-		// becomes a bottleneck, we can improve this bound.
-		val tuples = instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val output = instruction.operand<L2WriteBoxedOperand>(1)
-		if (tuples.elements().isEmpty())
-		{
-			registerSet.constantAtPut(
-				output.register(),
-				emptyTuple,
-				instruction)
-			return
-		}
-		var index = tuples.elements().size - 1
-		var resultType: A_Type = tuples.elements()[index].type()
-		while (--index >= 0)
-		{
-			resultType = ConcatenatedTupleTypeDescriptor.concatenatingAnd(
-				tuples.elements()[index].type(), resultType)
-		}
-		registerSet.constantAtPut(
-			output.register(), resultType, instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

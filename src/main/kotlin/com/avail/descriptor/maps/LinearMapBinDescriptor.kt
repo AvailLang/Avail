@@ -30,39 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.descriptor.maps
-
- import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
- import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
- import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
- import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
- import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_
- import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
- import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
- import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
- import com.avail.descriptor.maps.MapDescriptor.MapIterable
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
- import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.Mutability.IMMUTABLE
- import com.avail.descriptor.representation.Mutability.MUTABLE
- import com.avail.descriptor.representation.Mutability.SHARED
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.A_Type.Companion.typeUnion
- import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
- import com.avail.descriptor.types.TypeTag
- import com.avail.utility.cast
- import java.util.NoSuchElementException
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
+import com.avail.descriptor.maps.A_MapBin.Companion.mapBinSize
+import com.avail.descriptor.maps.HashedMapBinDescriptor.Companion.checkHashedMapBin
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.COMBINED_HASHES
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.Companion.VALUES_HASH_OR_ZERO
+import com.avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA_
+import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
+import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
+import com.avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
+import com.avail.descriptor.maps.MapDescriptor.MapIterable
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.Mutability.IMMUTABLE
+import com.avail.descriptor.representation.Mutability.MUTABLE
+import com.avail.descriptor.representation.Mutability.SHARED
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.TypeTag
+import com.avail.utility.cast
+import java.util.NoSuchElementException
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s
@@ -183,15 +182,17 @@ internal class LinearMapBinDescriptor private constructor(
 		key: A_BasicObject,
 		keyHash: Int
 	): AvailObject? {
-		for (i in 1..entryCount(self))
+		val limit = entryCount(self)
+		var index = 1
+		while (true)
 		{
-			if (self.intSlot(KEY_HASHES_AREA_, i) == keyHash
-				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
-				return self.slot(BIN_SLOT_AT_, i shl 1)
-			}
+			index = self.intLinearSearch(
+				KEY_HASHES_AREA_, index, limit, keyHash)
+			if (index == 0) return null
+			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+				return self.slot(BIN_SLOT_AT_, index shl 1)
+			index++
 		}
-		// Not found. Answer null.
-		return null
 	}
 
 	override fun o_MapBinAtHashPutLevelCanDestroy(
@@ -208,13 +209,94 @@ internal class LinearMapBinDescriptor private constructor(
 		// other references exist.
 		assert(myLevel == level)
 		val oldSize = entryCount(self)
-		for (i in 1..oldSize) {
-			if (self.intSlot(KEY_HASHES_AREA_, i) == keyHash
-				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
-				val oldValue: A_BasicObject = self.slot(BIN_SLOT_AT_, i shl 1)
-				if (oldValue.equals(value)) {
+		var index = 1
+		while (true)
+		{
+			index = self.intLinearSearch(
+				KEY_HASHES_AREA_, index, oldSize, keyHash)
+			if (index == 0)
+			{
+				// It's not present, so grow the list.  Keep it simple for now
+				// by always replacing the list.
+				if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash)
+				{
+					// Convert to a hashed bin.
+					var bitPosition = (keyHash ushr (6 * myLevel)) and 63
+					var bitVector = 1L shl bitPosition
+					for (i in 1 .. oldSize)
+					{
+						val anotherKeyHash = self.intSlot(KEY_HASHES_AREA_, i)
+						bitPosition = (anotherKeyHash ushr (6 * myLevel)) and 63
+						bitVector = bitVector or (1L shl bitPosition)
+					}
+					val result = HashedMapBinDescriptor.createLevelBitVector(
+						myLevel, bitVector)
+					for (i in 0 .. oldSize)
+					{
+						val eachKey: A_BasicObject
+						val eachHash: Int
+						val eachValue: A_BasicObject
+						if (i == 0)
+						{
+							eachKey = key
+							eachHash = keyHash
+							eachValue = value
+						}
+						else
+						{
+							eachKey = self.slot(BIN_SLOT_AT_, (i shl 1) - 1)
+							eachHash = self.intSlot(KEY_HASHES_AREA_, i)
+							eachValue = self.slot(BIN_SLOT_AT_, i shl 1)
+						}
+						assert(result.descriptor().isMutable)
+						val localAddResult =
+							result.mapBinAtHashPutLevelCanDestroy(
+								eachKey, eachHash, eachValue, myLevel, true)
+						assert(localAddResult.sameAddressAs(result)) {
+							"The element should have been added without copying"
+						}
+					}
+					assert(result.mapBinSize() == oldSize + 1)
+					checkHashedMapBin(result)
+					return result
+				}
+				//  Make a slightly larger linear bin and populate it.
+				val result = newLike(
+					descriptorFor(MUTABLE, myLevel),
+					self,
+					2,
+					// Grow if it had an even number of ints
+					oldSize and 1 xor 1)
+				result.setSlot(KEYS_HASH, self.mapBinKeysHash() + keyHash)
+				result.setSlot(VALUES_HASH_OR_ZERO, 0)
+				result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash)
+				result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 1, key)
+				result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 2, value)
+
+				// Clear the key/value kind fields.  We could be more precise,
+				// but that has a cost that's probably not worthwhile.
+				result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
+				result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
+				when
+				{
+					canDestroy && isMutable ->
+						// Ensure destruction of the old object doesn't drag
+						// along anything shared, but don't go to the expense of
+						// marking anything in common as shared.
+						self.setToInvalidDescriptor()
+					isMutable -> self.makeSubobjectsImmutable()
+				}
+				check(result)
+				return result
+			}
+			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+			{
+				val oldValue = self.slot(BIN_SLOT_AT_, index shl 1)
+				if (oldValue.equals(value))
+				{
 					// The (key,value) pair is present.
-					if (isMutable) {
+					if (isMutable)
+					{
 						// This may seem silly, but a common usage pattern is to
 						// have a map whose values are sets.  Some key is looked
 						// up, the value (set) is modified destructively, and
@@ -225,7 +307,8 @@ internal class LinearMapBinDescriptor private constructor(
 						self.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
 						// No need to clear the key union kind, since the keys
 						// didn't change.
-						if (!canDestroy) {
+						if (!canDestroy)
+						{
 							self.makeImmutable()
 						}
 					}
@@ -234,16 +317,16 @@ internal class LinearMapBinDescriptor private constructor(
 				}
 				// The key is present with a different value.
 				val newBin: AvailObject =
-					if (canDestroy && isMutable) {
-						self
-					} else {
-						if (isMutable) {
-							self.makeSubobjectsImmutable()
+					when
+					{
+						canDestroy && isMutable -> self
+						else ->
+						{
+							if (isMutable) self.makeSubobjectsImmutable()
+							newLike(descriptorFor(MUTABLE, level), self, 0, 0)
 						}
-						newLike(
-							descriptorFor(MUTABLE, level), self, 0, 0)
 					}
-				newBin.setSlot(BIN_SLOT_AT_, i shl 1, value)
+				newBin.setSlot(BIN_SLOT_AT_, index shl 1, value)
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0)
 				// The keys didn't change.
 				// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
@@ -251,73 +334,8 @@ internal class LinearMapBinDescriptor private constructor(
 				check(newBin)
 				return newBin
 			}
+			index++
 		}
-		// It's not present, so grow the list.  Keep it simple for now by always
-		// replacing the list.
-		if (myLevel < numberOfLevels - 1 && oldSize >= thresholdToHash) {
-			// Convert to a hashed bin.
-			var bitPosition = bitShiftInt(keyHash, -6 * myLevel) and 63
-			var bitVector = 1L shl bitPosition
-			for (i in 1..oldSize) {
-				val anotherKeyHash = self.intSlot(KEY_HASHES_AREA_, i)
-				bitPosition =
-					bitShiftInt(anotherKeyHash, -6 * myLevel) and 63
-				bitVector = bitVector or (1L shl bitPosition)
-			}
-			val result =
-				HashedMapBinDescriptor.createLevelBitVector(myLevel, bitVector)
-			for (i in 0..oldSize) {
-				val eachKey: A_BasicObject
-				val eachHash: Int
-				val eachValue: A_BasicObject
-				if (i == 0) {
-					eachKey = key
-					eachHash = keyHash
-					eachValue = value
-				} else {
-					eachKey = self.slot(BIN_SLOT_AT_, (i shl 1) - 1)
-					eachHash = self.intSlot(KEY_HASHES_AREA_, i)
-					eachValue = self.slot(BIN_SLOT_AT_, i shl 1)
-				}
-				assert(result.descriptor().isMutable)
-				val localAddResult = result.mapBinAtHashPutLevelCanDestroy(
-					eachKey, eachHash, eachValue, myLevel, true)
-				assert(localAddResult.sameAddressAs(result)) {
-					"The element should have been added without copying"
-				}
-			}
-			assert(result.mapBinSize() == oldSize + 1)
-			checkHashedMapBin(result)
-			return result
-		}
-		//  Make a slightly larger linear bin and populate it.
-		val result = newLike(
-			descriptorFor(MUTABLE, myLevel),
-			self,
-			2,
-			// Grow if it had an even number of ints
-			oldSize and 1 xor 1)
-		result.setSlot(KEYS_HASH, self.mapBinKeysHash() + keyHash)
-		result.setSlot(VALUES_HASH_OR_ZERO, 0)
-		result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash)
-		result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 1, key)
-		result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 2, value)
-
-		// Clear the key/value kind fields.  We could be more precise, but that
-		// has a cost that's probably not worthwhile.
-		result.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil)
-		result.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, nil)
-
-		if (canDestroy && isMutable) {
-			// Ensure destruction of the old object doesn't drag along anything
-			// shared, but don't go to the expense of marking anything in common
-			// as shared.
-			self.setToInvalidDescriptor()
-		} else if (isMutable) {
-			self.makeSubobjectsImmutable()
-		}
-		check(result)
-		return result
 	}
 
 	/**
@@ -332,27 +350,39 @@ internal class LinearMapBinDescriptor private constructor(
 	): A_MapBin {
 		check(self)
 		val oldSize = entryCount(self)
-		for (searchIndex in 1..oldSize) {
-			if (self.intSlot(KEY_HASHES_AREA_, searchIndex) == keyHash
-				&& self.slot(BIN_SLOT_AT_, (searchIndex shl 1) - 1)
-					.equals(key)) {
-				if (oldSize == 1) {
-					return emptyLinearMapBin(level)
-				}
+		var index = 1
+		while (true)
+		{
+			index = self.intLinearSearch(
+				KEY_HASHES_AREA_, index, oldSize, keyHash)
+			if (index == 0)
+			{
+				// The key was not found.
+				if (!canDestroy) self.makeImmutable()
+				check(self)
+				return self
+			}
+			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+			{
+				// Found the key.
+				if (oldSize == 1) return emptyLinearMapBin(level)
 				val result = newLike(
 					descriptorFor(MUTABLE, level),
 					self,
 					-2,
 					-(oldSize and 1)) // Reduce size only if it was odd
-				if (searchIndex < oldSize) {
-					result.setIntSlot(KEY_HASHES_AREA_,
-						searchIndex,
+				if (index < oldSize) {
+					result.setIntSlot(
+						KEY_HASHES_AREA_,
+						index,
 						self.intSlot(KEY_HASHES_AREA_, oldSize))
-					result.setSlot(BIN_SLOT_AT_,
-						(searchIndex shl 1) - 1,
+					result.setSlot(
+						BIN_SLOT_AT_,
+						(index shl 1) - 1,
 						self.slot(BIN_SLOT_AT_, (oldSize shl 1) - 1))
-					result.setSlot(BIN_SLOT_AT_,
-						searchIndex shl 1,
+					result.setSlot(
+						BIN_SLOT_AT_,
+						index shl 1,
 						self.slot(BIN_SLOT_AT_, oldSize shl 1))
 				}
 				// Adjust keys hash by the removed key.
@@ -366,12 +396,8 @@ internal class LinearMapBinDescriptor private constructor(
 				check(result)
 				return result
 			}
+			index++
 		}
-		if (!canDestroy) {
-			self.makeImmutable()
-		}
-		check(self)
-		return self
 	}
 
 	override fun o_MapBinAtHashReplacingLevelCanDestroy(
@@ -389,22 +415,39 @@ internal class LinearMapBinDescriptor private constructor(
 		// other references exist.
 		assert(myLevel == level)
 		val oldSize = entryCount(self)
-		for (i in 1..oldSize) {
-			if (self.intSlot(KEY_HASHES_AREA_, i) == keyHash
-				&& self.slot(BIN_SLOT_AT_, (i shl 1) - 1).equals(key)) {
+		var index = 1
+		while (true)
+		{
+			index = self.intLinearSearch(
+				KEY_HASHES_AREA_, index, oldSize, keyHash)
+			if (index == 0)
+			{
+				// It's not present, so grow the list.  Keep it simple for now
+				// by always replacing the list.  This call will scan the linear
+				// bin one more time, but at least it's a leaf.
+				return self.mapBinAtHashPutLevelCanDestroy(
+					key,
+					keyHash,
+					transformer(key.cast(), notFoundValue.cast()),
+					myLevel,
+					canDestroy)
+			}
+			if (self.slot(BIN_SLOT_AT_, (index shl 1) - 1).equals(key))
+			{
 				// The key is present.
-				val oldValue: AvailObject = self.slot(BIN_SLOT_AT_, i shl 1)
+				val oldValue = self.slot(BIN_SLOT_AT_, index shl 1)
 				val newValue = transformer(key.cast(), oldValue)
 				val newBin: AvailObject =
-					if (canDestroy && isMutable) {
-						self
-					} else {
-						if (isMutable) {
-							self.makeSubobjectsImmutable()
+					when
+					{
+						canDestroy && isMutable -> self
+						else ->
+						{
+							if (isMutable) self.makeSubobjectsImmutable()
+							newLike(descriptorFor(MUTABLE, level), self, 0, 0)
 						}
-						newLike(descriptorFor(MUTABLE, level), self, 0, 0)
 					}
-				newBin.setSlot(BIN_SLOT_AT_, i shl 1, newValue)
+				newBin.setSlot(BIN_SLOT_AT_, index shl 1, newValue)
 				newBin.setSlot(VALUES_HASH_OR_ZERO, 0)
 				// The keys didn't change.
 				// newBin.setSlot(BIN_KEY_UNION_KIND_OR_NIL, nil);
@@ -412,17 +455,8 @@ internal class LinearMapBinDescriptor private constructor(
 				check(newBin)
 				return newBin
 			}
+			index++
 		}
-
-		// It's not present, so grow the list.  Keep it simple for now by always
-		// replacing the list.  This call will scan the linear bin one more
-		// time, but at least it's a leaf.
-		return self.mapBinAtHashPutLevelCanDestroy(
-			key,
-			keyHash,
-			transformer(key.cast(), notFoundValue.cast()),
-			myLevel,
-			canDestroy)
 	}
 
 	/**

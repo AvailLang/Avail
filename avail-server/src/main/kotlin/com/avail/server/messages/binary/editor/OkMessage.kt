@@ -34,8 +34,6 @@ package com.avail.server.messages.binary.editor
 
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 
 /**
  * `OkMessage` is a [BinaryMessage] used to affirm a request to the client.

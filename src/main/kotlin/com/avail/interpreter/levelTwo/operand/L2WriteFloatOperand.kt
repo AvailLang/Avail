@@ -34,8 +34,10 @@ package com.avail.interpreter.levelTwo.operand
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.register.L2FloatRegister
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
+import com.avail.optimizer.values.L2SemanticUnboxedFloat
 import com.avail.optimizer.values.L2SemanticValue
+import com.avail.utility.cast
 
 /**
  * An `L2WriteFloatOperand` is an operand of type [L2OperandType.WRITE_FLOAT].
@@ -55,14 +57,17 @@ import com.avail.optimizer.values.L2SemanticValue
  *   The initial [L2FloatRegister] that backs this operand.
  */
 class L2WriteFloatOperand constructor(
-		semanticValues: Set<L2SemanticValue>,
+		semanticValues: Set<L2SemanticUnboxedFloat>,
 		restriction: TypeRestriction,
 		register: L2FloatRegister)
 	: L2WriteOperand<L2FloatRegister>(semanticValues, restriction, register)
 {
 	override fun operandType(): L2OperandType = L2OperandType.WRITE_FLOAT
 
-	override fun registerKind(): RegisterKind = RegisterKind.FLOAT
+	override fun registerKind() = FLOAT_KIND
+
+	override fun onlySemanticValue(): L2SemanticUnboxedFloat =
+		super.onlySemanticValue().cast()
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

@@ -83,11 +83,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 	PC.named("on return", Purpose.SUCCESS),
 	PC.named("on reification", Purpose.OFF_RAMP))
 {
-	override fun hasSideEffect(): Boolean
-	{
-		// Never remove invocations -- but inlining might make them go away.
-		return true
-	}
+	override fun hasSideEffect(): Boolean = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

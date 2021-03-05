@@ -64,11 +64,11 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -90,13 +90,31 @@ import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMeth
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addLexer
+import com.avail.descriptor.module.A_Module.Companion.addPrivateName
+import com.avail.descriptor.module.A_Module.Companion.addSeal
+import com.avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
+import com.avail.descriptor.module.A_Module.Companion.createLexicalScanner
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
+import com.avail.descriptor.module.A_Module.Companion.importedNames
+import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
+import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
+import com.avail.descriptor.module.A_Module.Companion.moduleAddMacro
+import com.avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.newNames
+import com.avail.descriptor.module.A_Module.Companion.privateNames
+import com.avail.descriptor.module.A_Module.Companion.resolveForward
+import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.parsing.A_Lexer.Companion.definitionModule
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerApplicability
 import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
 import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+import com.avail.descriptor.parsing.A_Lexer.Companion.setLexerApplicability
 import com.avail.descriptor.parsing.A_ParsingPlanInProgress
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
@@ -169,7 +187,7 @@ import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Combinator.recurse
 import com.avail.utility.safeWrite
 import java.util.ArrayDeque
-import java.util.Arrays
+import java.util.concurrent.atomic.AtomicReferenceArray
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
@@ -228,8 +246,8 @@ class AvailLoader(
 		/**
 		 * A 256-way dispatch table that takes a Latin-1 character's Unicode
 		 * codepoint (which is in [0..255]) to a [tuple][A_Tuple] of
-		 * [lexers][A_Lexer].  Non-Latin1 characters (i.e., with codepoints ≥
-		 * 256) are tracked separately in [nonLatin1Lexers].
+		 * [lexers][A_Lexer].  Non-Latin1 characters (i.e., with codepoints
+		 * ≥ 256) are tracked separately in [nonLatin1Lexers].
 		 *
 		 * This array is populated lazily and incrementally, so if an entry is
 		 * null, it should be constructed by testing the character against all
@@ -244,14 +262,7 @@ class AvailLoader(
 		 * incrementally constructed.  We also clear the map from lexer sets to
 		 * canonical tuples.
 		 */
-		@GuardedBy("latin1Lock")
-		private val latin1ApplicableLexers = arrayOfNulls<A_Tuple>(256)
-
-		/**
-		 * The lock controlling access to the array of lexers filtered on
-		 * characters within the Latin1 block of Unicode (i.e., U+0000..U+00FF).
-		 */
-		private val latin1Lock = ReentrantReadWriteLock()
+		private val latin1ApplicableLexers = AtomicReferenceArray<A_Tuple>(256)
 
 		/**
 		 * A map from non-Latin-1 codepoint (i.e., ≥ 256) to the tuple of lexers
@@ -297,7 +308,10 @@ class AvailLoader(
 			// canonical tuple of lexers, we can skip clearing the tables if the
 			// canonical map is empty.
 			if (canonicalLexerTuples.isNotEmpty()) {
-				Arrays.fill(latin1ApplicableLexers, null)
+				for (i in 0..255)
+				{
+					latin1ApplicableLexers[i] = null
+				}
 				nonLatin1Lexers.clear()
 				canonicalLexerTuples.clear()
 			}
@@ -330,82 +344,77 @@ class AvailLoader(
 			onFailure: (Map<A_Lexer, Throwable>)->Unit
 		) {
 			if (codePoint and 255.inv() == 0) {
-				val tuple = latin1Lock.read {
-					latin1ApplicableLexers[codePoint]
+				latin1ApplicableLexers[codePoint]?.let {
+					continuation(it)
+					return
 				}
-				when (tuple) {
-					is Any -> continuation(tuple)
-					// Run the filters to produce the set of applicable
-					// lexers, then use the canonical map to make it a
-					// tuple, then invoke the continuation with it.
-					else -> selectLexersPassingFilterThen(
-						lexingState, codePoint
-					) { applicable, failures ->
-						if (failures.isNotEmpty()) {
+				// Run the filters to produce the set of applicable lexers, then
+				// use the canonical map to make it a tuple, then invoke the
+				// continuation with it.
+				selectLexersPassingFilterThen(lexingState, codePoint)
+				{ applicable, failures ->
+					when
+					{
+						failures.isNotEmpty() ->
+						{
 							onFailure(failures)
-							// Don't cache the successful lexer filter
-							// results, because we shouldn't continue and
-							// neither should lexing of any codePoint equal
-							// to the one that caused this trouble.
-							return@selectLexersPassingFilterThen
+							// Don't cache the successful lexer filter results,
+							// because we shouldn't continue and neither should
+							// lexing of any codePoint equal to the one that
+							// caused this trouble.
 						}
-						var tupleOfLexers: A_Tuple?
-						synchronized(canonicalLexerTuples) {
-							tupleOfLexers = canonicalLexerTuples[applicable]
-							if (tupleOfLexers === null) {
-								tupleOfLexers =
-									applicable.asTuple().makeShared()
-								canonicalLexerTuples[applicable.makeShared()] =
-									tupleOfLexers!!
-							}
+						else ->
+						{
+							val lexers = canonicalTupleOfLexers(applicable)
+							// Just replace it, even if another thread beat us
+							// to the punch, since it's semantically idempotent.
+							latin1ApplicableLexers[codePoint] = lexers
+							continuation(lexers)
 						}
-						// Just replace it, even if another thread beat
-						// us to the punch, since it's semantically
-						// idempotent.
-						latin1Lock.safeWrite {
-							latin1ApplicableLexers[codePoint] = tupleOfLexers
-						}
-						continuation(tupleOfLexers!!)
 					}
 				}
 				return
 			}
+
 			// It's non-Latin1.
 			val tuple = nonLatin1Lock.read {
 				nonLatin1Lexers[codePoint]
 			}
-			if (tuple is Any) return continuation(tuple)
-			// Run the filters to produce the set of applicable
-			// lexers, then use the canonical map to make it a
-			// tuple, then invoke the continuation with it.
+			if (tuple !== null) return continuation(tuple)
+			// Run the filters to produce the set of applicable lexers, then use
+			// the canonical map to make it a tuple, then invoke the
+			// continuation with it.
 			selectLexersPassingFilterThen(lexingState, codePoint) {
 				applicable, failures ->
 				if (failures.isNotEmpty()) {
 					onFailure(failures)
-					// Don't cache the successful lexer filter
-					// results, because we shouldn't continue and
-					// neither should lexing of any codePoint equal
-					// to the one that caused this trouble.
+					// Don't cache the successful lexer filter results, because
+					// we shouldn't continue and neither should lexing of any
+					// codePoint equal to the one that caused this trouble.
 					return@selectLexersPassingFilterThen
 				}
-				var tupleOfLexers: A_Tuple?
-				synchronized(canonicalLexerTuples) {
-					tupleOfLexers = canonicalLexerTuples[applicable]
-					if (tupleOfLexers === null) {
-						tupleOfLexers = applicable.asTuple().makeShared()
-						canonicalLexerTuples[applicable.makeShared()] =
-							tupleOfLexers!!
-					}
-					// Just replace it, even if another thread beat
-					// us to the punch, since it's semantically
-					// idempotent.
-					nonLatin1Lock.safeWrite {
-						nonLatin1Lexers.put(codePoint, tupleOfLexers!!)
-					}
+				val lexers = canonicalTupleOfLexers(applicable)
+				// Just replace it, even if another thread beat us to the punch,
+				// since it's semantically idempotent.
+				nonLatin1Lock.safeWrite {
+					nonLatin1Lexers.put(codePoint, lexers)
 				}
-				continuation(tupleOfLexers!!)
+				continuation(lexers)
 			}
 		}
+
+		/**
+		 * Given an [A_Set] of [A_Lexer]s applicable for some character, look up
+		 * the corresponding canonical [A_Tuple], recording it if necessary.
+		 */
+		private fun canonicalTupleOfLexers(applicable: A_Set): A_Tuple =
+			synchronized(canonicalLexerTuples) {
+				canonicalLexerTuples[applicable] ?: run {
+					applicable.asTuple().makeShared().also {
+						canonicalLexerTuples[applicable.makeShared()] = it
+					}
+				}
+			}
 
 		/**
 		 * Collect the lexers that should run when we encounter a character with
@@ -433,9 +442,22 @@ class AvailLoader(
 			codePoint: Int,
 			continuation: (A_Set, Map<A_Lexer, Throwable>)->Unit
 		) {
-			var countdown = allVisibleLexers.size
+			val applicableLexers = mutableListOf<A_Lexer>()
+			val undecidedLexers = mutableListOf<A_Lexer>()
+			when (codePoint)
+			{
+				in 0..255 -> allVisibleLexers.forEach {
+					when (it.lexerApplicability(codePoint))
+					{
+						null -> undecidedLexers.add(it)
+						true -> applicableLexers.add(it)
+					}
+				}
+				else -> undecidedLexers.addAll(allVisibleLexers)
+			}
+			var countdown = undecidedLexers.size
 			if (countdown == 0) {
-				continuation(emptySet, emptyMap())
+				continuation(setFromCollection(applicableLexers), emptyMap())
 				return
 			}
 			// Initially use the immutable emptyMap for the failureMap, but
@@ -443,16 +465,15 @@ class AvailLoader(
 			val argsList = listOf(fromCodePoint(codePoint))
 			val compilationContext = lexingState.compilationContext
 			val loader = compilationContext.loader
-			val applicableLexers = mutableListOf<A_Lexer>()
 			val joinLock = ReentrantLock()
 			val failureMap = mutableMapOf<A_Lexer, Throwable>()
-			val fibers = allVisibleLexers.map { lexer ->
+			val fibers = undecidedLexers.map { lexer ->
 				newLoaderFiber(
 					EnumerationTypeDescriptor.booleanType,
 					loader
 				) {
 					formatString(
-						"Check lexer filter %s for U+%04x",
+						"Check lexer filter %s for U+%06x",
 						lexer.lexerMethod().chooseBundle(loader.module())
 							.message().atomName(),
 						codePoint)
@@ -460,17 +481,25 @@ class AvailLoader(
 					setTextInterface(loader.textInterface)
 					lexingState.setFiberContinuationsTrackingWork(
 						this@apply,
-						{ boolValue: AvailObject ->
-							assert(boolValue.isBoolean)
+						{ boolObject: AvailObject ->
+							val boolValue = boolObject.extractBoolean()
+							if (codePoint in 0..255) {
+								// Cache the filter result with the lexer
+								// itself, so other modules can reuse it.
+								lexer.setLexerApplicability(
+									codePoint, boolValue)
+							}
 							val countdownHitZero = joinLock.withLock {
-								if (boolValue.extractBoolean()) {
+								if (boolValue)
+								{
 									applicableLexers.add(lexer)
 								}
 								countdown--
 								assert(countdown >= 0)
 								countdown == 0
 							}
-							if (countdownHitZero) {
+							if (countdownHitZero)
+							{
 								// This was the fiber reporting the last result.
 								continuation(
 									setFromCollection(applicableLexers),
@@ -484,7 +513,8 @@ class AvailLoader(
 								assert(countdown >= 0)
 								countdown == 0
 							}
-							if (countdownHitZero) {
+							if (countdownHitZero)
+							{
 								// This was the fiber reporting the last result
 								// (a fiber failure).
 								continuation(
@@ -505,7 +535,7 @@ class AvailLoader(
 				runOutermostFunction(
 					loader.runtime(),
 					fiber,
-					allVisibleLexers[i].lexerFilterFunction(),
+					undecidedLexers[i].lexerFilterFunction(),
 					argsList)
 			}
 		}
@@ -980,25 +1010,22 @@ class AvailLoader(
 			}
 		}
 		if (phase == EXECUTING_FOR_COMPILE) {
-			val finalForward = forward
-			val finalModule = module
-			finalModule.lock {
-				val ancestorModules = finalModule.allAncestors()
+			module.lock {
 				val root = rootBundleTree()
-				if (finalForward !== null) {
+				forward?.let { forward ->
 					method.bundles().forEach { bundle ->
-						if (ancestorModules.hasElement(
-								bundle.message().issuingModule())) {
+						if (module.hasAncestor(
+								bundle.message().issuingModule()))
+						{
 							// Remove the appropriate forwarder plan from the
 							// bundle tree.
 							val plan: A_DefinitionParsingPlan =
-								bundle.definitionParsingPlans()
-									.mapAt(finalForward)
+								bundle.definitionParsingPlans().mapAt(forward)
 							val planInProgress = newPlanInProgress(plan, 1)
 							root.removePlanInProgress(planInProgress)
 						}
 					}
-					removeForward(finalForward)
+					removeForward(forward)
 				}
 				try {
 					method.methodAddDefinition(newDefinition)
@@ -1010,15 +1037,15 @@ class AvailLoader(
 					LoadingEffectToAddDefinition(
 						methodName.bundleOrCreate(), newDefinition))
 				method.bundles().forEach { bundle ->
-					if (ancestorModules.hasElement(
-							bundle.message().issuingModule())) {
+					if (module.hasAncestor(bundle.message().issuingModule()))
+					{
 						val plan: A_DefinitionParsingPlan =
 							bundle.definitionParsingPlans().mapAt(newDefinition)
 						val planInProgress = newPlanInProgress(plan, 1)
 						root.addPlanInProgress(planInProgress)
 					}
 				}
-				finalModule.moduleAddDefinition(newDefinition)
+				module.moduleAddDefinition(newDefinition)
 			}
 		} else {
 			try {
@@ -1216,8 +1243,8 @@ class AvailLoader(
 				// grammatical restriction.
 				val treesToVisit =
 					ArrayDeque<Pair<A_BundleTree, A_ParsingPlanInProgress>>()
-				bundle.definitionParsingPlans().mapIterable().forEach {
-					(_, plan: A_DefinitionParsingPlan) ->
+				bundle.definitionParsingPlans().forEach {
+					_, plan: A_DefinitionParsingPlan ->
 					treesToVisit.addLast(root to newPlanInProgress(plan, 1))
 					while (treesToVisit.isNotEmpty()) {
 						val (tree, planInProgress) = treesToVisit.removeLast()
@@ -1287,9 +1314,7 @@ class AvailLoader(
 						module().moduleName())
 				}
 				fiber.setTextInterface(textInterface)
-				fiber.setSuccessAndFailure(
-					{ again() },
-					{ again() })
+				fiber.setSuccessAndFailure({ again() }, { again() })
 				runOutermostFunction(
 					runtime(), fiber, unloadFunction, emptyList())
 			} else {
@@ -1336,7 +1361,7 @@ class AvailLoader(
 					module.addPrivateName(trueName)
 					trueName
 				}
-				1 -> who.iterator().next()
+				1 -> who.single()
 				else -> null
 			}
 		} ?: throw AmbiguousNameException()

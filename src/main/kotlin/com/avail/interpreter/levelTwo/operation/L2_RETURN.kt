@@ -36,8 +36,6 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -53,17 +51,7 @@ import org.objectweb.asm.Opcodes
 object L2_RETURN : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED.named("return value"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		// A return instruction doesn't mention where it might end up.
-		assert(registerSets.isEmpty())
-	}
-
-	// Never remove this.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

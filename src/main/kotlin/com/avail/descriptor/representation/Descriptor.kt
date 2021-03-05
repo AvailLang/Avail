@@ -32,11 +32,13 @@
 package com.avail.descriptor.representation
 
 import com.avail.compiler.AvailCodeGenerator
+import com.avail.compiler.ModuleHeader
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_BundleTree
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -53,6 +55,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
@@ -99,13 +102,13 @@ import com.avail.utility.json.JSONWriter
 import com.avail.utility.visitor.AvailSubobjectVisitor
 import com.avail.utility.visitor.BeImmutableSubobjectVisitor
 import com.avail.utility.visitor.BeSharedSubobjectVisitor
- import java.math.BigInteger
- import java.nio.ByteBuffer
- import java.util.Deque
- import java.util.NoSuchElementException
- import java.util.Spliterator
- import java.util.TimerTask
- import java.util.stream.Stream
+import java.math.BigInteger
+import java.nio.ByteBuffer
+import java.util.Deque
+import java.util.NoSuchElementException
+import java.util.Spliterator
+import java.util.TimerTask
+import java.util.stream.Stream
 
 /**
  * This is the primary subclass of [AbstractDescriptor]. It has the sibling
@@ -180,18 +183,9 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		arguments: A_Tuple): Boolean = unsupported
 
-	override fun o_AddAncestors (
-		self: AvailObject,
-		moreAncestors: A_Set): Unit = unsupported
-
 	override fun o_AddDependentChunk (
 		self: AvailObject,
 		chunk: L2Chunk): Unit = unsupported
-
-	override fun o_AddEntryPoint (
-		self: AvailObject,
-		stringName: A_String,
-		trueName: A_Atom): Unit = unsupported
 
 	override fun o_AddUnloadFunction (
 		self: AvailObject,
@@ -635,9 +629,6 @@ abstract class Descriptor protected constructor (
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number = unsupported
 
-	override fun o_NameVisible (self: AvailObject, trueName: A_Atom): Boolean =
-		unsupported
-
 	override fun o_OptionallyNilOuterVar (
 		self: AvailObject,
 		index: Int): Boolean = unsupported
@@ -726,7 +717,7 @@ abstract class Descriptor protected constructor (
 			val child = self.slot(
 				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
 				i)
-			val replacementChild = visitor.invoke(child)
+			val replacementChild = visitor(child)
 			if (replacementChild !== child)
 			{
 				self.writeBackSlot(
@@ -947,6 +938,11 @@ abstract class Descriptor protected constructor (
 		key: A_BasicObject,
 		value: A_BasicObject): Unit = unsupported
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicRemoveFromMap (
+		self: AvailObject,
+		key: A_BasicObject): Unit = unsupported
+
 	@Throws(VariableGetException::class)
 	override fun o_VariableMapHasKey (
 		self: AvailObject,
@@ -1033,8 +1029,12 @@ abstract class Descriptor protected constructor (
 
 	override fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
-		continuation: (Boolean)->Unit): Unit =
-		unsupported
+		continuation: (Boolean)->Unit
+	): Unit = unsupported
+	override fun o_DecreaseCountdownToReoptimizeFromPoll(
+		self: AvailObject,
+		delta: Long
+	): Unit = unsupported
 
 	override fun o_IsAbstract (self: AvailObject): Boolean = unsupported
 
@@ -1132,6 +1132,9 @@ abstract class Descriptor protected constructor (
 		unsupported
 
 	override fun o_TrimExcessInts (self: AvailObject): Unit = unsupported
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type =
+		unsupported
 
 	override fun o_TupleSize (self: AvailObject): Int = unsupported
 
@@ -1703,11 +1706,6 @@ abstract class Descriptor protected constructor (
 	override fun o_ReadType (self: AvailObject): A_Type = unsupported
 
 	override fun o_WriteType (self: AvailObject): A_Type = unsupported
-
-	override fun o_SetVersions (
-		self: AvailObject,
-		versionStrings: A_Set
-	): Unit = unsupported
 
 	override fun o_Versions (self: AvailObject): A_Set = unsupported
 
@@ -2298,7 +2296,7 @@ abstract class Descriptor protected constructor (
 		whenReified: (A_Continuation) -> Unit): Unit = unsupported
 
 	override fun o_GetAndClearReificationWaiters (
-		self: AvailObject): A_Set = unsupported
+		self: AvailObject): List<(A_Continuation)->Unit> = unsupported
 
 	// Only types should be tested for being bottom.
 	override fun o_IsBottom (self: AvailObject): Boolean = unsupported
@@ -2432,9 +2430,10 @@ abstract class Descriptor protected constructor (
 	override fun o_SetIntersects (self: AvailObject, otherSet: A_Set): Boolean =
 		unsupported
 
-	override fun o_RemovePlanForDefinition (
+	override fun o_RemovePlanForSendable (
 		self: AvailObject,
-		definition: A_Definition): Unit = unsupported
+		sendable: A_Sendable
+	): Unit = unsupported
 
 	override fun o_DefinitionParsingPlans (self: AvailObject): A_Map =
 		unsupported
@@ -2466,12 +2465,6 @@ abstract class Descriptor protected constructor (
 
 	override fun o_RemovePlanInProgress (
 		self: AvailObject, planInProgress: A_ParsingPlanInProgress): Unit =
-		unsupported
-
-	override fun o_ModuleSemanticRestrictions (self: AvailObject): A_Set =
-		unsupported
-
-	override fun o_ModuleGrammaticalRestrictions (self: AvailObject): A_Set =
 		unsupported
 
 	override fun o_ComputeTypeTag (self: AvailObject): TypeTag = unsupported
@@ -2596,7 +2589,7 @@ abstract class Descriptor protected constructor (
 			action: (AvailObject, AvailObject) -> Unit): Unit =
 		unsupported
 
-	override fun o_SetSuccessAndFailureContinuations (
+	override fun o_SetSuccessAndFailure (
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit): Unit = unsupported
@@ -2618,15 +2611,11 @@ abstract class Descriptor protected constructor (
 	override fun o_ModuleAddMacro(self: AvailObject, macro: A_Macro): Unit =
 		unsupported
 
-	override fun o_ModuleMacros(self: AvailObject): A_Set = unsupported
-
 	override fun o_RemoveMacro(self: AvailObject, macro: A_Macro): Unit =
 		unsupported
 
 	override fun o_AddBundle(self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported
-
-	override fun o_ModuleBundles(self: AvailObject): A_Set = unsupported
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
 		unsupported
@@ -2645,4 +2634,69 @@ abstract class Descriptor protected constructor (
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported
+
+	override fun o_OriginatingPhraseAtIndex(
+		self: AvailObject,
+		index: Int
+	): A_Phrase = unsupported
+
+	override fun o_RecordBlockPhrase(
+		self: AvailObject,
+		blockPhrase: A_Phrase
+	): A_Number = unsupported
+
+	override fun o_GetAndSetTupleOfBlockPhrases(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject = unsupported
+
+	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
+		unsupported
+
+	override fun o_DeclarationNames(self: AvailObject): A_Tuple = unsupported
+
+	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
+		unsupported
+
+	override fun o_SetOriginatingPhraseOrIndex(
+		self: AvailObject,
+		phraseOrIndex: AvailObject
+	): Unit = unsupported
+
+	override fun o_LexerApplicability(
+		self: AvailObject,
+		codePoint: Int
+	): Boolean? = unsupported
+
+	override fun o_SetLexerApplicability(
+		self: AvailObject,
+		codePoint: Int,
+		applicability: Boolean
+	): Unit = unsupported
+
+	override fun o_SerializedObjects(
+		self: AvailObject,
+		serializedObjects: A_Tuple
+	): Unit = unsupported
+
+	override fun o_SerializedObjectsMap(
+		self: AvailObject,
+		serializedObjectsMap: A_Map
+	): Unit = unsupported
+
+	override fun o_ApplyModuleHeader(
+		self: AvailObject,
+		loader: AvailLoader,
+		moduleHeader: ModuleHeader
+	): String? = unsupported
+
+	override fun o_HasAncestor(
+		self: AvailObject,
+		potentialAncestor: A_Module
+	): Boolean = unsupported
+
+	override fun o_FiberHelper(
+		self: AvailObject
+	): FiberDescriptor.FiberHelper = unsupported
+
 }

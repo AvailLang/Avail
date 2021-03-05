@@ -78,7 +78,7 @@ object P_BootstrapLexerWhitespaceBody
 			{
 				break
 			}
-			position++
+				position++
 		}
 		val token = newToken(
 			source.copyStringFromToCanDestroy(

@@ -64,10 +64,9 @@ object L2_GET_VARIABLE : L2ControlFlowOperation(
 	PC.named("read failed", Purpose.OFF_RAMP))
 {
 	// Subtle. Reading from a variable can fail, so don't remove this.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
-	override val isVariableGet: Boolean
-		get() = true
+	override val isVariableGet: Boolean get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

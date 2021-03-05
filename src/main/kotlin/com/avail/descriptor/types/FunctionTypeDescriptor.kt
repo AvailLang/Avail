@@ -663,43 +663,41 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private fun normalizeExceptionSet(exceptionSet: A_Set): A_Set
 		{
-			// This is probably the most common case -- no checked exceptions.
-			// Return the argument.
-			if (exceptionSet.setSize() == 0)
+			val setSize = exceptionSet.setSize()
+			return when
 			{
-				return exceptionSet
-			}
+				// This is probably the most common case – no checked
+				// exceptions. Return the argument.
+				setSize == 0 -> emptySet
+				// This is probably the next most common case – just one checked
+				// exception. If the element is bottom, then exclude it.
+				setSize == 1 && exceptionSet.single().isBottom -> emptySet
+				setSize == 1 -> exceptionSet
 
-			// This is probably the next most common case -- just one checked
-			// exception. If the element is bottom, then exclude it.
-			if (exceptionSet.setSize() == 1)
-			{
-				return if (exceptionSet.iterator().next().isBottom)
+				// Actually normalize the set. That is, eliminate types for
+				// which a supertype is already present. Also, eliminate bottom.
+				else ->
 				{
-					emptySet
-				}
-				else exceptionSet
-			}
-
-			// Actually normalize the set. That is, eliminate types for which a
-			// supertype is already present. Also, eliminate bottom.
-			var normalizedSet = emptySet
-			each_outer@ for (outer in exceptionSet)
-			{
-				if (!outer.isBottom)
-				{
-					for (inner in exceptionSet)
+					var normalizedSet = emptySet
+					each_outer@ for (outer in exceptionSet)
 					{
-						if (outer.isSubtypeOf(inner))
+						if (!outer.isBottom)
 						{
-							continue@each_outer
+							for (inner in exceptionSet)
+							{
+								if (outer.isSubtypeOf(inner))
+								{
+									continue@each_outer
+								}
+							}
+							normalizedSet =
+								normalizedSet.setWithElementCanDestroy(
+									outer, true)
 						}
 					}
-					normalizedSet = normalizedSet.setWithElementCanDestroy(
-						outer, true)
+					normalizedSet
 				}
 			}
-			return normalizedSet
 		}
 
 		/**

@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -71,17 +72,15 @@ object P_CatchException : Primitive(
 	PreserveArguments,
 	CanInline)
 {
-
 	override fun attempt(
 		interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(3)
-		//		final A_BasicObject bodyBlock = interpreter.argument(0);
-		val handlerBlocks = interpreter.argument(1)
-		//		final A_BasicObject ensureBlock = interpreter.argument(2);
+		//val bodyBlock: A_Function = interpreter.argument(0);
+		val handlerBlocks: A_Tuple = interpreter.argument(1)
+		//val ensureBlock: A_Function = interpreter.argument(2);
 
-		val innerVariable = newVariableWithOuterType(
-			failureVariableType)
+		val innerVariable = newVariableWithOuterType(failureVariableType)
 
 		for (block in handlerBlocks)
 		{

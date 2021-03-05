@@ -31,22 +31,14 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
-import com.avail.descriptor.types.A_Type.Companion.lowerBound
-import com.avail.descriptor.types.A_Type.Companion.typeIntersection
-import com.avail.descriptor.types.A_Type.Companion.unionOfTypesAtThrough
-import com.avail.descriptor.types.A_Type.Companion.upperBound
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -61,24 +53,6 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 	L2OperandType.READ_INT.named("int subscript"),
 	L2OperandType.WRITE_BOXED.named("destination"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
-		val subscript = instruction.operand<L2ReadIntOperand>(1)
-		val destination = instruction.operand<L2WriteBoxedOperand>(2)
-		val tupleType = tuple.type()
-		val bounded = subscript.type().typeIntersection(int32)
-		val minInt = bounded.lowerBound().extractInt()
-		val maxInt = bounded.upperBound().extractInt()
-		registerSet.typeAtPut(
-			destination.register(),
-			tupleType.unionOfTypesAtThrough(minInt, maxInt),
-			instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

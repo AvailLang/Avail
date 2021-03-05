@@ -1,5 +1,5 @@
 /*
- * P_BundleMessage.kt
+ * L2SemanticUnboxedInt.kt
  * Copyright © 1993-2020, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,37 +29,34 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.methods
+package com.avail.optimizer.values
 
-import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.bundles.A_Bundle.Companion.message
-import com.avail.descriptor.bundles.MessageBundleDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.execution.Interpreter
+import com.avail.interpreter.levelTwo.register.L2IntRegister
 
 /**
- * **Primitive:** Answer a [message&#32;bundle's][MessageBundleDescriptor]
- * message (an [atom][AtomDescriptor], the message's true name).
+ * A semantic value which represents the [base] semantic value, but unboxed as
+ * an int (in some [L2IntRegister].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticUnboxedInt` semantic value.
+ *
+ * @param base
+ *   The unboxed semantic value from which this unboxed value is derived.
  */
-@Suppress("unused")
-object P_BundleMessage : Primitive(1, CannotFail, CanFold, CanInline)
+class L2SemanticUnboxedInt constructor(val base: L2SemanticValue)
+	: L2SemanticValue(base.hash xor 0x27F6F766)
 {
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(1)
-		val bundle = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			bundle.message().makeImmutable())
-	}
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+		other is L2SemanticUnboxedInt && base.equalsSemanticValue(other.base)
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MESSAGE_BUNDLE.o), ATOM.o)
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
+			semanticValueTransformer(base).let {
+				if (it == base) this else L2SemanticUnboxedInt(it)
+		}
+
+	override fun toString(): String = "Int($base)"
 }

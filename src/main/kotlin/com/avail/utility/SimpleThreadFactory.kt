@@ -57,6 +57,11 @@ class SimpleThreadFactory constructor(prefix: String) : ThreadFactory
 	 */
 	private val counter = AtomicInteger()
 
-	override fun newThread(runnable: Runnable): Thread =
-		Thread(runnable, prefixWithDash + counter.incrementAndGet())
+	/**
+	 * The group for organizing related threads.
+	 */
+	private val threadGroup = ThreadGroup(prefix)
+
+	override fun newThread(runnable: Runnable) = Thread(
+		threadGroup, runnable, prefixWithDash + counter.incrementAndGet())
 }

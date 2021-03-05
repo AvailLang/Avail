@@ -61,14 +61,13 @@ import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
+import com.avail.interpreter.Primitive.Fallibility.CallSiteMayInvoke
 import com.avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.Invokes
 import com.avail.interpreter.Primitive.Result.READY_TO_INVOKE
 import com.avail.interpreter.execution.Interpreter
-import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
@@ -138,7 +137,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 			&& paramsType.sizeRange().equals(argTupleType.sizeRange())
 			&& argTupleType.isSubtypeOf(paramsType))
 		{
-			return CallSiteCannotFail
+			return CallSiteMayInvoke
 		}
 		return CallSiteCanFail
 	}
@@ -293,12 +292,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 				if (constantExactArgType !== null)
 				{
 					// We have a known exact type to compare against.
-					generator.addInstruction(
-						L2_JUMP_IF_KIND_OF_CONSTANT,
+					translator.jumpIfKindOfConstant(
 						argReg,
-						L2ConstantOperand(constantExactArgType),
-						edgeTo(passedAnother),
-						edgeTo(failurePath))
+						constantExactArgType,
+						passedAnother,
+						failurePath)
 				}
 				else
 				{

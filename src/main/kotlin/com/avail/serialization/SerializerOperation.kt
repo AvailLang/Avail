@@ -60,10 +60,10 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompil
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
@@ -72,6 +72,16 @@ import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module.Companion.addPrivateName
+import com.avail.descriptor.module.A_Module.Companion.constantBindings
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
+import com.avail.descriptor.module.A_Module.Companion.isOpen
+import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.newNames
+import com.avail.descriptor.module.A_Module.Companion.privateNames
+import com.avail.descriptor.module.A_Module.Companion.recordBlockPhrase
+import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
+import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
 import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
@@ -321,7 +331,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return zero()
+			return zero
 		}
 	},
 
@@ -342,7 +352,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return one()
+			return one
 		}
 	},
 
@@ -363,7 +373,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return two()
+			return two
 		}
 	},
 
@@ -1220,12 +1230,33 @@ enum class SerializerOperation constructor(
 		OBJECT_REFERENCE.named("Module name"),
 		UNSIGNED_INT.named("Line number"),
 		COMPRESSED_INT_TUPLE.named("Encoded line number deltas"),
-		OBJECT_REFERENCE.named("Originating phrase"))
+		OBJECT_REFERENCE.named("Originating phrase"),
+		OBJECT_REFERENCE.named("Packed declaration names"))
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
+			val originatingPhraseOrIndex = obj.originatingPhraseOrIndex()
+			val module = obj.module()
+			val phraseOrIndex = when
+			{
+				module.equalsNil()
+					|| !module.isOpen()
+					|| serializer.module === null
+					|| !serializer.module.hasAncestor(module)
+					|| originatingPhraseOrIndex.equalsNil()
+					|| originatingPhraseOrIndex.isInt
+				-> originatingPhraseOrIndex
+				else ->
+				{
+					val index = module.recordBlockPhrase(
+						originatingPhraseOrIndex.makeShared())
+					obj.setOriginatingPhraseOrIndex(index as AvailObject)
+					index
+				}
+			}
+
 			val numLocals = obj.numLocals()
 			val numConstants = obj.numConstants()
 			val numOuters = obj.numOuters()
@@ -1234,31 +1265,19 @@ enum class SerializerOperation constructor(
 			val regularLiterals = generateObjectTupleFrom(numRegularLiterals) {
 				obj.literalAt(it)
 			}
-			val localTypes = generateObjectTupleFrom(numLocals) {
-				obj.localTypeAt(it)
-			}
-			val constantTypes = generateObjectTupleFrom(numConstants) {
-				obj.constantTypeAt(it)
-			}
-			val outerTypes = generateObjectTupleFrom(numOuters) {
-				obj.outerTypeAt(it)
-			}
-			val module = obj.module()
-			val moduleName = if (module.equalsNil())
-				emptyTuple
-			else
-				module.moduleName()
+			val localTypes =
+				generateObjectTupleFrom(numLocals) { obj.localTypeAt(it) }
+			val constantTypes =
+				generateObjectTupleFrom(numConstants) { obj.constantTypeAt(it) }
+			val outerTypes =
+				generateObjectTupleFrom(numOuters) { obj.outerTypeAt(it) }
+			val moduleName =
+				if (module.equalsNil()) emptyTuple
+				else module.moduleName()
 			val primitive = obj.primitive()
-			val primName: A_String
-			primName =
-				if (primitive === null)
-				{
-					emptyTuple
-				}
-				else
-				{
-					stringFrom(primitive.name)
-				}
+			val primName =
+				if (primitive === null) emptyTuple
+				else stringFrom(primitive.name)
 			return array(
 				fromInt(obj.numSlots()),
 				primName,
@@ -1272,7 +1291,8 @@ enum class SerializerOperation constructor(
 				moduleName,
 				fromInt(obj.startingLineNumber()),
 				obj.lineNumberEncodedDeltas(),
-				obj.originatingPhrase())
+				phraseOrIndex,
+				obj.packedDeclarationNames())
 		}
 
 		override fun compose(
@@ -1292,6 +1312,7 @@ enum class SerializerOperation constructor(
 			val lineNumberInteger = subobjects[10]
 			val lineNumberEncodedDeltas = subobjects[11]
 			val originatingPhrase = subobjects[12]
+			val packedDeclarationNames = subobjects[13]
 
 			val numArgsRange = functionType.argsTupleType().sizeRange()
 			val numArgs = numArgsRange.lowerBound().extractInt()
@@ -1299,10 +1320,9 @@ enum class SerializerOperation constructor(
 			val numLocals = localTypes.tupleSize()
 			val numConstants = constantTypes.tupleSize()
 
-			val module = if (moduleName.tupleSize() == 0)
-				nil
-			else
-				deserializer.moduleNamed(moduleName)
+			val module =
+				if (moduleName.tupleSize() == 0) nil
+				else deserializer.moduleNamed(moduleName)
 			return newCompiledCode(
 				nybbles,
 				numSlots - numConstants - numLocals - numArgs,
@@ -1316,7 +1336,8 @@ enum class SerializerOperation constructor(
 				module,
 				lineNumberInteger.extractInt(),
 				lineNumberEncodedDeltas,
-				originatingPhrase)
+				originatingPhrase,
+				packedDeclarationNames)
 		}
 	},
 
@@ -2940,12 +2961,11 @@ enum class SerializerOperation constructor(
 			assert(obj.isPojoType)
 			assert(obj.isPojoFusedType)
 			var symbolicMap = emptyMap
-			for (entry in obj.javaAncestors().mapIterable())
-			{
-				val baseClass = entry.key().javaObjectNotNull<Class<*>>()
+			obj.javaAncestors().forEach { key, value ->
+				val baseClass = key.javaObjectNotNull<Class<*>>()
 				val className = stringFrom(baseClass.name)
 				val processedParameters = mutableListOf<A_BasicObject>()
-				for (parameter in entry.value())
+				for (parameter in value)
 				{
 					assert(!parameter.isTuple)
 					if (parameter.isPojoSelfType)
@@ -2972,14 +2992,12 @@ enum class SerializerOperation constructor(
 			var ancestorMap = emptyMap
 			try
 			{
-				for (entry in subobjects[0].mapIterable())
-				{
+				subobjects[0].forEach { key, value ->
 					val baseClass = Class.forName(
-						entry.key().asNativeString(), true, classLoader)
+						key.asNativeString(), true, classLoader)
 					val rawPojo = equalityPojo(baseClass)
 					val processedParameters = mutableListOf<AvailObject>()
-					for (parameter in entry.value())
-					{
+					value.forEach { parameter ->
 						if (parameter.isTuple)
 						{
 							processedParameters.add(
@@ -3581,10 +3599,7 @@ enum class SerializerOperation constructor(
 			if (privateNames.hasKey(atomName))
 			{
 				val candidates = privateNames.mapAt(atomName)
-				if (candidates.setSize() == 1)
-				{
-					return candidates.iterator().next()
-				}
+				if (candidates.setSize() == 1) return candidates.single()
 				if (candidates.setSize() > 1)
 				{
 					throw RuntimeException(

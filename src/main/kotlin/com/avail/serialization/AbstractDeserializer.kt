@@ -37,7 +37,9 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
@@ -67,8 +69,9 @@ import java.io.InputStream
  *   deserialization.
  */
 abstract class AbstractDeserializer constructor(
-	protected val input: InputStream,
-	val runtime: AvailRuntime)
+	internal val input: InputStream,
+	internal val runtime: AvailRuntime,
+	internal val lookupPumpedObject: (Int)->A_BasicObject)
 {
 	/** The current [module][ModuleDescriptor]. */
 	var currentModule: A_Module = nil
@@ -162,12 +165,15 @@ abstract class AbstractDeserializer constructor(
 	 * Convert an index into an object.  The object must already have been
 	 * assembled.
 	 *
-	 * @param index
-	 *   The zero-based index at which to fetch the object.
+	 * @param compressedIndex
+	 *   A compressed [Int] that can be decompressed by the [Deserializer]'s
+	 *   [IndexCompressor], when applied in the same order as the [Int]s that
+	 *   were previously compressed by a [Serializer].
 	 * @return
-	 *   The already constructed object at the specified index.
+	 *   The already constructed object at the specified relative index.
 	 */
-	internal abstract fun objectFromIndex(index: Int): AvailObject
+	internal abstract fun fromCompressedObjectIndex(
+		compressedIndex: Int): AvailObject
 
 	/**
 	 * Record the provided object as an end product of deserialization.

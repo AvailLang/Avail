@@ -191,7 +191,7 @@ class AvailTest
 		helper().builder.attemptCommand(
 			"Run all tests",
 			{ commands: List<CompiledCommand>, proceed: (CompiledCommand) -> Unit ->
-				proceed.invoke(commands[0])
+				proceed(commands[0])
 			},
 			{ result: AvailObject, cleanup: (() -> Unit) -> Unit ->
 				cleanup.invoke {

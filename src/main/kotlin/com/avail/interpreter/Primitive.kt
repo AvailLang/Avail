@@ -44,7 +44,6 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
@@ -85,7 +84,7 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import com.avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import com.avail.interpreter.primitive.privatehelpers.P_PushConstant
@@ -101,6 +100,7 @@ import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.optimizer.values.L2SemanticPrimitiveInvocation
 import com.avail.optimizer.values.L2SemanticValue
+import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.PRIMITIVES
 import com.avail.performance.StatisticReport.PRIMITIVE_RETURNER_TYPE_CHECKS
@@ -198,12 +198,14 @@ import java.util.regex.Pattern
 abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 {
 	/**
-	 * A [function&#32;type][FunctionTypeDescriptor] that restricts the
-	 * type of block that can use this primitive.  This is initialized lazily to
-	 * the value provided by [privateBlockTypeRestriction], to avoid
-	 * having to compute this function type multiple times.
+	 * A [function&#32;type][FunctionTypeDescriptor] that restricts the type of
+	 * block that can use this primitive.  This is set during initialization to
+	 * the value provided by [privateBlockTypeRestriction], to avoid having to
+	 * compute this function type multiple times.
 	 */
-	private var cachedBlockTypeRestriction: A_Type? = null
+	@Suppress("LeakingThis")
+	private val blockTypeRestriction =
+		privateBlockTypeRestriction().makeShared()
 
 	/**
 	 * A [type][TypeDescriptor] to constrain the [A_Type.writeType] of the
@@ -234,7 +236,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	var reificationForNoninlineStat: Statistic? = null
 		private set
 
-	/** Capture the name of the primitive class once for performance.  */
+	/** Capture the name of the primitive class once for performance. */
 	val name: String
 
 	/**
@@ -485,13 +487,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	{
 		/**
 		 * The fallible [primitive][Primitive] cannot fail when
-		 * invoked with arguments of the specified [ types][TypeDescriptor].
+		 * invoked with arguments of the specified [types][TypeDescriptor].
 		 */
 		CallSiteCannotFail,
 
 		/**
 		 * The fallible [primitive][Primitive] can indeed fail when
-		 * invoked with arguments of the specified [ types][TypeDescriptor].
+		 * invoked with arguments of the specified [types][TypeDescriptor].
 		 */
 		CallSiteCanFail,
 
@@ -499,7 +501,15 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		 * The fallible [primitive][Primitive] must fail when invoked
 		 * with arguments of the specified [types][TypeDescriptor].
 		 */
-		CallSiteMustFail
+		CallSiteMustFail,
+
+		/**
+		 * The fallible [primitive][Primitive] may have the effect of invoking
+		 * some function body, which makes it subject to reification while it
+		 * runs.  The call site should be prepared to produce a reified
+		 * continuation if this happens.
+		 */
+		CallSiteMayInvoke
 	}
 
 	/**
@@ -551,22 +561,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   A function type that restricts the type of a block that uses this
 	 *   primitive.
 	 */
-	fun blockTypeRestriction(): A_Type
-	{
-		var restriction = cachedBlockTypeRestriction
-		if (restriction === null)
-		{
-			restriction = privateBlockTypeRestriction().makeShared()
-			cachedBlockTypeRestriction = restriction
-			val argsTupleType = restriction.argsTupleType()
-			val sizeRange = argsTupleType.sizeRange()
-			assert(restriction.isBottom
-			       || argCount == -1
-			       || sizeRange.lowerBound().extractInt() == argCount
-			       && sizeRange.upperBound().extractInt() == argCount)
-		}
-		return restriction
-	}
+	fun blockTypeRestriction(): A_Type = blockTypeRestriction
 
 	/**
 	 * Answer the type of the result that will be produced by a call site with
@@ -755,7 +750,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		deltaNanoseconds: Long, interpreterIndex: Int) =
 			resultTypeCheckingNanos.record(deltaNanoseconds, interpreterIndex)
 
-
 	/**
 	 * The primitive couldn't be folded out, so see if alternative instructions
 	 * can be generated for its invocation.  If so, answer `true`, ensure
@@ -795,6 +789,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// the fiber (which can happen even if it's infallible), be careful not
 		// to inline it.
 		if (hasFlag(CanSuspend)
+			|| hasFlag(Invokes)
 		    || fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			return false
@@ -806,20 +801,19 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		val guaranteedType =
 			returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		val restriction = restrictionForType(
-			if (guaranteedType.isBottom) TOP.o else guaranteedType, BOXED)
+			if (guaranteedType.isBottom) TOP.o else guaranteedType, BOXED_FLAG)
 		val semanticValue: L2SemanticValue
 		if (hasFlag(CanFold) && !guaranteedType.isBottom)
 		{
-			semanticValue = generator.primitiveInvocation(this, arguments)
+			semanticValue = primitiveInvocation(
+				this, arguments.map(L2ReadBoxedOperand::semanticValue))
 			// See if we already have a value for an equivalent invocation.
-			val equivalent = generator.currentManifest()
-				.equivalentSemanticValue(semanticValue)
-			if (equivalent !== null)
-			{
+			val manifest = generator.currentManifest
+			manifest.equivalentSemanticValue(semanticValue)?.let { equivalent ->
 				// Reuse the previously computed result.
-				generator.currentManifest().setRestriction(
+				manifest.setRestriction(
 					equivalent,
-					generator.currentManifest().restrictionFor(equivalent)
+					manifest.restrictionFor(equivalent)
 						.intersectionWithType(guaranteedType))
 				callSiteHelper.useAnswer(generator.readBoxed(equivalent))
 				return true
@@ -827,7 +821,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		else
 		{
-			semanticValue = generator.topFrame.temp(generator.nextUnique())
+			semanticValue = generator.newTemp()
 		}
 		val writer = generator.boxedWrite(semanticValue, restriction)
 		translator.addInstruction(

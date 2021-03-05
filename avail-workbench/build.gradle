@@ -79,8 +79,8 @@ dependencies {
 		version: "$jsr_version"
 
 	// Dark mode look & feel.  Embed the jar's contents in the fat shadow jar.
-	// This comes from https://repo.spring.io/plugins-release/
-	api group: 'com.bulenkov', name: 'darcula', version: '2018.2'
+	// This was based on the Darcula module.
+	implementation("com.github.weisj:darklaf-core:2.5.5")
 }
 
 // Capture the time at which the build began and record it into a resource file.

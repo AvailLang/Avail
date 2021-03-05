@@ -118,7 +118,7 @@ class PojoFieldDescriptor private constructor(
 				fieldType == Float::class.javaPrimitiveType -> 0.0f
 				fieldType == Double::class.javaPrimitiveType -> 0.0
 				fieldType == Char::class.javaPrimitiveType -> 0.toChar()
-				else -> zero().marshalToJava(fieldType)
+				else -> zero.marshalToJava(fieldType)
 			}
 		// Clear the variable by writing the appropriate default value.
 		try
@@ -185,7 +185,7 @@ class PojoFieldDescriptor private constructor(
 		{
 			return SerializerOperation.STATIC_POJO_FIELD
 		}
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_SetValue(

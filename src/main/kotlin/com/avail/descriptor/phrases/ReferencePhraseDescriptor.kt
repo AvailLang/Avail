@@ -30,38 +30,37 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.descriptor.phrases
-
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
- import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
- import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
- import com.avail.descriptor.phrases.A_Phrase.Companion.token
- import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
- import com.avail.descriptor.phrases.A_Phrase.Companion.variable
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
- import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
- import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.error
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TypeTag
- import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
- import java.util.IdentityHashMap
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.literalObject
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.A_Phrase.Companion.variable
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LABEL
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_CONSTANT
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.MODULE_VARIABLE
+import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
+import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.error
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * My instances represent a reference-taking expression.  A variable itself is

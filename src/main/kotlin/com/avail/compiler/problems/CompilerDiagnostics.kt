@@ -634,7 +634,7 @@ class CompilerDiagnostics(
 			// of displaying the diagnostics.  We only care about the tokens
 			// that have already been formed, not ones in progress.
 			findLongestTokenThen(lexingStates) { longestToken ->
-				val before = lexingStates.iterator().next()
+				val before = lexingStates.first()
 				groupedProblems.add(
 					ProblemsAtPosition(
 						before,
@@ -916,7 +916,7 @@ class CompilerDiagnostics(
 				.flatten()
 			if (candidates.isEmpty())
 			{
-				val state = startLexingStates.iterator().next()
+				val state = startLexingStates.first()
 				val emptyToken = newToken(
 					emptyTuple,
 					state.position,

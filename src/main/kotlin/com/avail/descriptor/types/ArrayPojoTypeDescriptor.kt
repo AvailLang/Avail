@@ -255,14 +255,14 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		self: AvailObject,
 		aFusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeUnionOfPojoType(

@@ -566,14 +566,14 @@ class LongTupleDescriptor private constructor(
 				val lower = when
 				{
 					lowerObject.isLong -> lowerObject.extractLong()
-					lowerObject.lessThan(zero()) -> Long.MIN_VALUE
+					lowerObject.lessThan(zero) -> Long.MIN_VALUE
 					else -> return false
 				}
 				val upperObject = type.upperBound()
 				val upper = when
 				{
 					upperObject.isLong -> upperObject.extractLong()
-					upperObject.greaterThan(zero()) -> Long.MAX_VALUE
+					upperObject.greaterThan(zero) -> Long.MAX_VALUE
 					else -> return false
 				}
 				(startIndex .. endIndex).all {

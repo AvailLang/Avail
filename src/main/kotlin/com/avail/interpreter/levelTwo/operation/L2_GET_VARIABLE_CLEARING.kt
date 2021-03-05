@@ -34,9 +34,6 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractAvailObject
 import com.avail.descriptor.representation.AbstractDescriptor
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.A_Type.Companion.readType
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.VariableGetException
@@ -51,8 +48,6 @@ import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -73,30 +68,9 @@ object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 	PC.named("read succeeded", Purpose.SUCCESS),
 	PC.named("read failed", Purpose.OFF_RAMP))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		val variableReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val destReg = instruction.operand<L2WriteBoxedOperand>(1)
-		//		final int successIndex = instruction.pcOffsetAt(2);
-//		final int failureIndex = instruction.pcOffsetAt(3);
-		//TODO MvG - Rework everything related to type propagation.
-		// Only update the success register set; no registers are affected if
-		// the failure branch is taken.
-		val registerSet = registerSets[1]
-		assert(registerSet.hasTypeAt(variableReg.register()))
-		val varType = registerSet.typeAt(variableReg.register())
-		assert(varType.isSubtypeOf(mostGeneralVariableType()))
-		registerSet.removeConstantAt(destReg.register())
-		registerSet.typeAtPut(
-			destReg.register(), varType.readType(), instruction)
-	}
-
 	// Subtle. Reading from a variable can fail, so don't remove this.
 	// Also it clears the variable.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override val isVariableGet: Boolean get() = true
 

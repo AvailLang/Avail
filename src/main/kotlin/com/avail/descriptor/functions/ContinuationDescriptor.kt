@@ -48,10 +48,7 @@ import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTIO
 import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import com.avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
-import com.avail.descriptor.phrases.A_Phrase
-import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
-import com.avail.descriptor.phrases.A_Phrase.Companion.token
-import com.avail.descriptor.phrases.BlockPhraseDescriptor
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
@@ -64,7 +61,9 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
@@ -293,20 +292,13 @@ class ContinuationDescriptor private constructor(
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
-		val block = code.originatingPhrase()
-		val declarations = mutableListOf<A_Phrase>()
-		if (!block.equalsNil())
-		{
-			declarations.addAll(block.argumentsTuple())
-			declarations.addAll(BlockPhraseDescriptor.locals(block))
-			declarations.addAll(BlockPhraseDescriptor.constants(block))
-		}
+		val declarationNames = code.declarationNames()
 		for (i in 1..self.numSlots())
 		{
-			var name = if (i <= declarations.size)
+			var name = if (i <= declarationNames.tupleSize())
 			{
-				val declName = declarations[i-1].token().string()
-				"FRAME[$i: ${declName.asNativeString()}]"
+				val declName = declarationNames.tupleAt(i).asNativeString()
+				"FRAME[$i: $declName]"
 			}
 			else
 			{

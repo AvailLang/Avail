@@ -47,6 +47,7 @@ import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.module.A_Module.Companion.addPrivateName
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
@@ -64,8 +65,6 @@ import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.files.FileManager
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.primitive.floats.P_FloatFloor
-import com.avail.persistence.cache.Repositories
-import com.avail.persistence.cache.Repository.Companion.createTemporary
 import com.avail.serialization.Deserializer
 import com.avail.serialization.MalformedSerialStreamException
 import com.avail.serialization.Serializer
@@ -131,8 +130,7 @@ class SerializerTest
 		}
 		semaphore.acquireUninterruptibly()
 		val parser = RenamesFileParser(StringReader(""), roots)
-		val resolver: ModuleNameResolver
-		resolver = try
+		val resolver: ModuleNameResolver = try
 		{
 			parser.parse()
 		}

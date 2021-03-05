@@ -33,6 +33,7 @@ package com.avail.descriptor.sets
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character.Companion.codePoint
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
@@ -66,12 +67,22 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjec
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.contentType
+import com.avail.descriptor.types.A_Type.Companion.defaultType
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.trimType
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.A_Type.Companion.typeTuple
+import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import com.avail.descriptor.types.BottomTypeDescriptor
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.types.TypeTag
@@ -84,6 +95,7 @@ import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 import java.util.SortedSet
 import java.util.TreeSet
+import kotlin.math.max
 
 /**
  * An Avail [set][SetDescriptor] refers to the root of a Bagwell Ideal Hash
@@ -620,7 +632,7 @@ private constructor(
 		 *   The new mutable set.
 		 */
 		fun set(vararg errorCodeElements: AvailErrorCode): A_Set =
-			generateSetFrom(errorCodeElements) { it.numericCode() }
+			generateSetFrom(errorCodeElements, AvailErrorCode::numericCode)
 
 		/** The mutable [SetDescriptor].  */
 		private val mutable = SetDescriptor(Mutability.MUTABLE)

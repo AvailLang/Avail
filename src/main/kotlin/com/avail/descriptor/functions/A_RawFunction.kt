@@ -35,9 +35,11 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecode
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
@@ -95,8 +97,25 @@ interface A_RawFunction : A_BasicObject {
 	 *   The action responsible for reoptimizing this function implementation in
 	 *   the event that the countdown reaches zero (`0`).
 	 */
-	fun decrementCountdownToReoptimize(
-		continuation: (Boolean) -> Unit)
+	fun decrementCountdownToReoptimize(continuation: (Boolean) -> Unit)
+
+	/**
+	 * This raw function was found to be running in an interpreter during a
+	 * periodic poll.  Decrease its countdown to reoptimization by the indicated
+	 * amount, being careful not to drop below one (`1`).
+	 */
+	fun decreaseCountdownToReoptimizeFromPoll(delta: Long)
+
+	/**
+	 * For this raw function, compute the tuple of its declaration names
+	 * (arguments, locals, constants).  This is useful for decompilation, for
+	 * giving meaningful names to registers in L2 translations, and for
+	 * presenting reified continuations.
+	 *
+	 * @return
+	 *   The tuple of declaration names.
+	 */
+	fun declarationNames(): A_Tuple = dispatch { o_DeclarationNames(it) }
 
 	/**
 	 * Answer the [function&#32;type][FunctionTypeDescriptor] associated with
@@ -253,6 +272,19 @@ interface A_RawFunction : A_BasicObject {
 	fun originatingPhrase(): A_Phrase
 
 	/**
+	 * Answer either
+	 *   1. the [block&#32;phrase][BlockPhraseDescriptor] from which this raw
+	 *      function was constructed,
+	 *   2. the index ([A_Number]) that can fetch and reconstruct the phrase
+	 *      from the repository, or
+	 *   3. [nil] if this information is not available for this raw function.
+	 *
+	 * @return
+	 *   The phrase or nil from which this raw function was created.
+	 */
+	fun originatingPhraseOrIndex(): AvailObject
+
+	/**
 	 * Answer the [type][A_Type] of the `index`-th outer variable.
 	 *
 	 * @param index
@@ -261,6 +293,12 @@ interface A_RawFunction : A_BasicObject {
 	 *   The requested type.
 	 */
 	fun outerTypeAt(index: Int): A_Type
+
+	/**
+	 * Answer an [A_String] containing the concatenated names of the originating
+	 * block's declarations.
+	 */
+	fun packedDeclarationNames(): A_String
 
 	/**
 	 * Answer this raw function's [Primitive] or `null`.
@@ -301,6 +339,13 @@ interface A_RawFunction : A_BasicObject {
 	 *   The method name to associate with this function implementation.
 	 */
 	fun setMethodName(methodName: A_String)
+
+	/**
+	 * Update the raw function's originating phrase, or record an external key
+	 * ([A_Number]) that will allow it to be recovered from a repository on
+	 * demand.
+	 */
+	fun setOriginatingPhraseOrIndex(phraseOrIndex: AvailObject)
 
 	/**
 	 * Set the [chunk][L2Chunk] that implements this [A_RawFunction], and the

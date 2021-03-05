@@ -53,9 +53,11 @@ internal class L2SemanticCaller constructor(frame: Frame)
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer.invoke(frame).let {
+			frameTransformer(frame).let {
 				if (it == frame) this else L2SemanticCaller(it)
 			}
+
+	override fun primaryVisualSortKey() = PrimaryVisualSortKey.CALLER
 
 	override fun toString(): String =
 		"ReifiedCaller${if (frame.depth() == 1) "" else "[of $frame]"}"

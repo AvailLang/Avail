@@ -87,7 +87,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		    && type1.equals(type2)
 		    && type1.instanceCount().equalsInt(1))
 		{
-			val value = type1.instances().iterator().next()
+			val value = type1.instances().single()
 			// Because of metacovariance, a meta may actually have many
 			// instances.  For instance, tuple's type contains not only tuple,
 			// but every subtype of tuple (e.g., string, <>'s type, etc.).
@@ -144,12 +144,13 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		// It's contingent.  Eventually we could turn this into an
+		// It's contingent.  Fall back on generating the primitive invocation,
+		// knowing that the L1Translator will notice it and replace it with a
 		// L2_JUMP_IF_OBJECTS_EQUAL, producing true on one path and false on the
-		// other, merging with a phi.  That would introduce an opportunity for
-		// code splitting back to here, if subsequent uses of the phi register
-		// noticed its origins and cared to do something substantially different
-		// in the true and false cases (say dispatching to an if/then/else).
+		// other, merging with a phi.  That's a good opportunity for code
+		// splitting, as a constant true or false is a tasty piece of state that
+		// subsequent code can frequently make use of, say, for branching again
+		// based on the boolean value (for an if/then/else).
 		return super.tryToGenerateSpecialPrimitiveInvocation(
 			functionToCallReg,
 			rawFunction,

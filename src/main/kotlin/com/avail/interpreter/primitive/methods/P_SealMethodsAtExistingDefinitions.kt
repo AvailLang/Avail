@@ -37,6 +37,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.module.A_Module.Companion.addSeal
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

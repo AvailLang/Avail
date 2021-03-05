@@ -112,12 +112,12 @@ abstract class StringDescriptor protected constructor(
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)

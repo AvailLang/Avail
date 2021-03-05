@@ -1060,6 +1060,10 @@ Public method "Public variable_is_" is
 	writerBlock ::= «[<arg> | <««↓decl» := «↓arg»» → statement phrase>]: ⊤»;
 	Method cast concatenate <accessorName, ":=_"> into [t : string | t] is
 		writerBlock → function;
+	usePhrase ::= «↓decl»(this token: SomeModuleVariable);
+	varBlock ::= «[<>| <«↑usePhrase»>] : var's type»;
+	Method cast concatenate <"`↑", accessorName> into [t : string | t] is
+		varBlock → function;
 ] : ⊤;
 
 /**

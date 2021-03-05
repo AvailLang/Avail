@@ -92,7 +92,7 @@ object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 			permutation.maxBy { it.extractInt() }!!.extractInt() != size ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
-			permutation.equals(createInterval(one(), fromInt(size), one())) ->
+			permutation.equals(createInterval(one, fromInt(size), one)) ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			else -> interpreter.primitiveSuccess(
 				newPermutedListNode(list, permutation))

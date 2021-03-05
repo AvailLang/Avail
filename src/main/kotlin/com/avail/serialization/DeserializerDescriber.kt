@@ -36,7 +36,6 @@ import com.avail.AvailRuntime
 import com.avail.descriptor.representation.AvailObject
 
 import java.io.InputStream
-
 /**
  * A [DeserializerDescriber] takes a stream of bytes and outputs a
  * description of what would be reconstructed by a [Deserializer].
@@ -55,10 +54,32 @@ import java.io.InputStream
  */
 class DeserializerDescriber constructor(
 	input: InputStream,
-	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
+	runtime: AvailRuntime) : AbstractDeserializer(
+		input,
+		runtime,
+		{ throw Exception("DeserializerDescriber cannot be pumped") })
 {
 	/** The [StringBuilder] on which the description is being written.  */
 	private val builder = StringBuilder(1000)
+
+	/**
+	 * The [IndexCompressor] used to convert compressed indices into absolute
+	 * indices into previously deserialized objects.  This must be of the same
+	 * kind as the one used in [Serializer].
+	 */
+	private val compressor = FourStreamIndexCompressor()
+
+	/**
+	 * Describe a compressed index on the [builder], decompressing it to ensure
+	 * the [compressor] is advanced to its next state correctly.
+	 *
+	 * Indices are shown as `[compressed:decompressed]`.
+	 */
+	fun printCompressedIndex(compressedIndex: Int)
+	{
+		val decompressed = compressor.decompress(compressedIndex)
+		builder.append("[$compressedIndex:$decompressed]")
+	}
 
 	/**
 	 * Decode all of the deserialization steps, and return the resulting
@@ -74,13 +95,13 @@ class DeserializerDescriber constructor(
 	{
 		try
 		{
-			var objectNumber = 0
 			while (input.available() > 0)
 			{
-				append((objectNumber++).toString())
+				append((compressor.currentIndex()).toString())
 				append(": ")
 				SerializerOperation.byOrdinal(readByte()).describe(this)
 				append("\n")
+				compressor.incrementIndex()
 			}
 		}
 		catch (e: Exception)
@@ -90,7 +111,7 @@ class DeserializerDescriber constructor(
 		return builder.toString()
 	}
 
-	override fun objectFromIndex(index: Int) =
+	override fun fromCompressedObjectIndex(compressedIndex: Int) =
 		throw UnsupportedOperationException()
 
 	override fun recordProducedObject(obj: AvailObject) =

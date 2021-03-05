@@ -42,7 +42,6 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.stringificationPriority
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
@@ -64,6 +63,7 @@ import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Compani
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -73,7 +73,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
-import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -126,6 +126,7 @@ import com.avail.optimizer.jvm.CheckedField.Companion.instanceField
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
+import com.avail.optimizer.jvm.JVMChunk
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
@@ -133,7 +134,6 @@ import com.avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
 import com.avail.utility.Strings.tab
 import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
-import java.util.WeakHashMap
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
@@ -234,6 +234,44 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	val runtime: AvailRuntime)
 {
+	/**
+	 * As the system runs, the clock thread periodically wakes up and samples
+	 * the running interpreters to get an indication of which [A_RawFunction]s
+	 * are taking up time.  Those raw functions have their countdowns decreased
+	 * by a big jump, being careful not to reach or cross zero.  That way, the
+	 * logic for creating an optimized [L2Chunk]s for it remains within the
+	 * execution mechanism.
+	 *
+	 * This method runs *in a foreign thread*, not the interpreter thread.  It
+	 * answers the best estimate of which [A_RawFunction] is currently being run
+	 * by this interpreter.  It polls the volatile [function] field to get a
+	 * coherent read of the [A_Function] that's currently running, or at least
+	 * was recently running.  The cost of having [function] be volatile should
+	 * be relatively minor, but it ensures coherent access to the
+	 * [A_Function.code] within it, and that [A_RawFunction]'s fields as well.
+	 *
+	 * TODO Eventually we may rework this, to allow dedicated threads to perform
+	 *  the optimization while the execution threads continue to make progress.
+	 *  In that case we would allow a zero crossing from either the periodic
+	 *  polling or the invocation logic, and it would simply queue a task for
+	 *  that raw function in the optimization thread pool.
+	 */
+	fun pollActiveRawFunction(): A_RawFunction?
+	{
+		val f: A_Function? = function
+		return when
+		{
+			f === null || f === nil ->
+				// Don't replace ===nil with .equalsNil(), since that might
+				// have to dispatch on an object whose descriptor is in flux.
+				null
+			else ->
+				// A running A_RawFunction is always shared, so safe to access
+				// from this polling thread.
+				f.code()
+		}
+	}
+
 	/**
 	 * The [fiber][FiberDescriptor] that is currently locked for this
 	 * interpreter, or `null` if no fiber is currently locked.  This
@@ -898,7 +936,7 @@ class Interpreter(
 	private fun primitiveSuspend(state: ExecutionState): Result
 	{
 		assert(!exitNow)
-		assert(state.indicatesSuspension())
+		assert(state.indicatesSuspension)
 		assert(unreifiedCallDepth() == 0)
 		val aFiber = fiber()
 		aFiber.lock {
@@ -906,8 +944,7 @@ class Interpreter(
 			aFiber.setExecutionState(state)
 			aFiber.setContinuation(getReifiedContinuation()!!)
 			setReifiedContinuation(null)
-			val bound = aFiber.getAndSetSynchronizationFlag(
-				BOUND, false)
+			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
 			assert(bound)
 			fiber(null, "primitiveSuspend")
 		}
@@ -978,15 +1015,14 @@ class Interpreter(
 		state: ExecutionState)
 	{
 		assert(!exitNow)
-		assert(state.indicatesTermination())
+		assert(state.indicatesTermination)
 		val aFiber = fiber()
 		aFiber.lock {
 			assert(aFiber.executionState() === RUNNING)
 			aFiber.setExecutionState(state)
 			aFiber.setContinuation(nil)
 			aFiber.setFiberResult(finalObject)
-			val bound = aFiber.getAndSetSynchronizationFlag(
-				BOUND, false)
+			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
 			assert(bound)
 			fiber(null, "exitFiber")
 		}
@@ -1211,17 +1247,19 @@ class Interpreter(
 		val savedChunk = chunk!!
 		val savedOffset = offset
 		val savedPointers = stepper.pointers
+		// Save the argsBuffer, since we now (Feb 2021) allow infallible
+		// primitives to be postponed all the way into the start of a
+		// reification zone, and the current calling convention destroys the
+		// existing argument list.
+		val savedArgs = argsBuffer.toTypedArray()
 
-		// Continue in this frame where it left off, right after
-		// the L2_TRY_OPTIONAL_PRIMITIVE instruction.
-		// Inline and non-inline primitives are each allowed to
-		// change the continuation.  The stack has already been
-		// reified here, so just continue in whatever frame was
-		// set up by the continuation.
-		// The exitNow flag is set to ensure the interpreter
-		// will wind down correctly.  It should be in a state
-		// where all frames have been reified, so returnNow
-		// would be unnecessary.
+		// Continue in this frame where it left off, right after the
+		// L2_TRY_OPTIONAL_PRIMITIVE instruction. Inline and non-inline
+		// primitives are each allowed to change the continuation.  The stack
+		// has already been reified here, so just continue in whatever frame was
+		// set up by the continuation. The exitNow flag is set to ensure the
+		// interpreter will wind down correctly.  It should be in a state where
+		// all frames have been reified, so returnNow would be unnecessary.
 		isReifying = true
 		return StackReifier(true, primitive.reificationForNoninlineStat!!)
 		{
@@ -1240,6 +1278,8 @@ class Interpreter(
 					debugModeString,
 					primitive.name)
 			}
+			argsBuffer.clear()
+			argsBuffer.addAll(savedArgs)
 			val timeBefore = beforeAttemptPrimitive(primitive)
 			val result = primitive.attempt(this)
 			afterAttemptPrimitive(primitive, timeBefore, result)
@@ -1415,8 +1455,7 @@ class Interpreter(
 	{
 		theReifiedContinuation = continuation as AvailObject?
 		if (debugL2) {
-			val text: String
-			text = when {
+			val text = when {
 				continuation === null -> "null"
 				continuation.equalsNil() -> continuation.toString()
 				else -> {
@@ -1483,9 +1522,14 @@ class Interpreter(
 	 */
 	private var unreifiedCallDepth = 0
 
-	/** The [A_Function] being executed.  */
+	/**
+	 * The [A_Function] being executed.  This is only volatile so that the
+	 * [AvailRuntime.clock] thread can safely [pollActiveRawFunction], then
+	 * navigate from the [A_Function] to the [A_RawFunction] inside it.
+	 */
 	@JvmField
 	@ReferencedInGeneratedCode
+	@Volatile
 	var function: A_Function? = null
 
 	/** The [L2Chunk] being executed.  */
@@ -1557,6 +1601,32 @@ class Interpreter(
 	/**
 	 * Answer true if an interrupt has been requested. The interrupt may be
 	 * specific to the current [fiber] or global to the [runtime][AvailRuntime].
+	 * There are several reasons why an interrupt might be requested:
+	 *
+	 * * Level one safety might be requested by the runtime, to ensure no fibers
+	 *   are executing during a critical operation, such as adding a method
+	 *   definition.  This requires more than just a lock, since it will cause
+	 *   [L2Chunk]s that rely on that method to be invalidated, which would not
+	 *   work if those chunks were running.  Reified continuations that get
+	 *   built for such chunks always check for validity when they're resumed,
+	 *   allowing them to downgrade safely to the default chunk that runs the L1
+	 *   interpreter.
+	 * * The stack might be deeper than the [maxUnreifiedCallDepth].  This is
+	 *   currently measured by number of Avail function calls.  A reification of
+	 *   the frames from the JVM stack effectively resets this to zero without
+	 *   affecting program semantics, allowing interpreter stacks to be bounded.
+	 *   This is not just to support deep recursion, but to ensure any interrupt
+	 *   can reify the stack in a reasonable time.
+	 * * The current clock tick counter may indicate that more than
+	 *   [timeSliceTicks] have elapsed since starting or resuming the current
+	 *   fiber.  In that case, a task to resume the fiber should be queued, and
+	 *   the next eligible fiber should be run (which might end up being the
+	 *   current fiber again).
+	 * * The [REIFICATION_REQUESTED] flag may have been set on the current
+	 *   fiber.  This mechanism allows a fiber to efficiently poll another
+	 *   fiber's current [A_Continuation] periodically.  Note that the reified
+	 *   continuation is always made [Shared][AvailObject.makeShared] in this
+	 *   situation, so that both fibers will be able to access the state safely.
 	 *
 	 * @return
 	 *   `true` if an interrupt is pending, `false` otherwise.
@@ -1566,8 +1636,7 @@ class Interpreter(
 		get() = (runtime.levelOneSafetyRequested()
 			|| unreifiedCallDepth > maxUnreifiedCallDepth
 			|| runtime.clock.get() - startTick >= timeSliceTicks
-			|| fiber().interruptRequestFlag(
-				REIFICATION_REQUESTED))
+			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED))
 
 	/**
 	 * The current [fiber] has been asked to pause for an inter-nybblecode
@@ -1584,7 +1653,7 @@ class Interpreter(
 		assert(!exitNow)
 		assert(!returnNow)
 		val aFiber = fiber()
-		var waiters: A_Set? = null
+		var waiters: List<(A_Continuation) -> Unit> = emptyList()
 		aFiber.lock {
 			synchronized(aFiber) {
 				assert(aFiber.executionState() === RUNNING)
@@ -1595,7 +1664,7 @@ class Interpreter(
 				{
 					continuation.makeShared()
 					waiters = aFiber.getAndClearReificationWaiters()
-					assert(waiters!!.setSize() > 0)
+					assert(waiters.isNotEmpty())
 				}
 				val bound = fiber().getAndSetSynchronizationFlag(BOUND, false)
 				assert(bound)
@@ -1617,11 +1686,7 @@ class Interpreter(
 		setLatestResult(null)
 		levelOneStepper.wipeRegisters()
 		postExitContinuation {
-			waiters?.forEach { pojo ->
-				val waiter: (A_Continuation) -> Unit =
-					pojo.javaObjectNotNull()
-				waiter(continuation)
-			}
+			waiters.forEach { action -> action(continuation) }
 			resumeFromInterrupt(aFiber)
 		}
 	}
@@ -2306,7 +2371,7 @@ class Interpreter(
 		pc: Int,
 		stackp: Int,
 		vararg slots: A_BasicObject
-	) : StackReifier?
+	) : StackReifier
 	{
 		val returner = returningFunction!!
 		val caller = function!!
@@ -2327,7 +2392,65 @@ class Interpreter(
 			val continuation = createContinuationWithFrame(
 				caller,
 				it.getReifiedContinuation() ?: nil,
-				createRegisterDump(arrayOf(), LongArray(0)),
+				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
+				pc,
+				stackp,
+				L2Chunk.unoptimizedChunk,
+				ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk,
+				listOf(*slots),
+				0)
+			setReifiedContinuation(continuation)
+		}
+		return reifier
+	}
+
+	/**
+	 * Handle having attempted to read from a variable that does not currently
+	 * have a value. This shrinks the control flow graph in L2, which is not
+	 * just a time saving during creation and memory saving ongoing, but may
+	 * also increase HotSpot's effectiveness.
+	 *
+	 * This [Interpreter]'s [function] is expected to contain the current
+	 * function.
+	 *
+	 * Note that if the handler ([HookType.READ_UNASSIGNED_VARIABLE]) asks to
+	 * reify, this method will construct a continuation representing the current
+	 * function.  The continuation frame can't be resumed, so it will use the
+	 * [L2Chunk.unoptimizedChunk]'s [ChunkEntryPoint.UNREACHABLE].
+	 *
+	 * @param pc
+	 *   The level one [A_Continuation.pc] to use in a new continuation, if
+	 *   reification happens inside the error handler.
+	 * @param stackp
+	 *   The level one parameter stack pointer to use in a new continuation, if
+	 *   reification happens inside the error handler.
+	 * @param slots
+	 *   Values that will populate a continuation's frame slots if reification
+	 *   happens inside the error handler.
+	 * @return
+	 *   Either `null` or a [StackReifier] that the calling code should simply
+	 *   return.  This method creates a stack frame on behalf of the current
+	 *   executing function if needed.
+	 */
+	@ReferencedInGeneratedCode
+	fun reportUnassignedVariableRead(
+		pc: Int,
+		stackp: Int,
+		vararg slots: A_BasicObject
+	) : StackReifier
+	{
+		val currentFunction = function!!
+		argsBuffer.clear()
+		val reifier = invokeFunction(runtime.unassignedVariableReadFunction())
+		assert(reifier !== null) {
+			"unassigned-variable-read handler must not return."
+		}
+		// Assemble a (non-resumable) stack frame for the reifier.
+		reifier!!.pushAction {
+			val continuation = createContinuationWithFrame(
+				currentFunction,
+				it.getReifiedContinuation() ?: nil,
+				createRegisterDump(JVMChunk.noObjects, JVMChunk.noLongs),
 				pc,
 				stackp,
 				L2Chunk.unoptimizedChunk,
@@ -2359,7 +2482,7 @@ class Interpreter(
 	) {
 		val method = bundle.bundleMethod()
 		val descriptor = method.traversed().descriptor() as MethodDescriptor
-		descriptor.dynamicLookupStat.record(nanos)
+		descriptor.dynamicLookupStat().record(nanos)
 	}
 
 	/**
@@ -2373,17 +2496,14 @@ class Interpreter(
 	 */
 	fun recordTopStatementEvaluation(
 		sample: Double,
-		module: A_Module
-	) {
+		module: A_Module)
+	{
 		var statistic: Statistic
 		synchronized(topStatementEvaluationStats) {
-			val moduleTraversed: A_Module = module.traversed()
 			statistic = topStatementEvaluationStats.computeIfAbsent(
-				moduleTraversed
-			) { mod ->
-				Statistic(
-					TOP_LEVEL_STATEMENTS,
-					mod.moduleName().asNativeString())
+				module.moduleName()
+			) {
+				Statistic(TOP_LEVEL_STATEMENTS, it.asNativeString())
 			}
 		}
 		statistic.record(sample, interpreterIndex)
@@ -2969,6 +3089,18 @@ class Interpreter(
 			Array<A_BasicObject>::class.java)
 
 		/**
+		 * Access the [reportUnassignedVariableRead] method.
+		 */
+		@JvmField
+		var reportUnassignedVariableReadMethod: CheckedMethod = instanceMethod(
+			Interpreter::class.java,
+			Interpreter::reportUnassignedVariableRead.name,
+			StackReifier::class.java,
+			Int::class.javaPrimitiveType!!,
+			Int::class.javaPrimitiveType!!,
+			Array<A_BasicObject>::class.java)
+
+		/**
 		 * Schedule the specified
 		 * [suspended][ExecutionState.indicatesSuspension]
 		 * [fiber][FiberDescriptor] to execute for a while as a
@@ -2991,14 +3123,12 @@ class Interpreter(
 			aFiber: A_Fiber,
 			continuation: (Interpreter) -> Unit)
 		{
-			assert(aFiber.executionState().indicatesSuspension())
+			assert(aFiber.executionState().indicatesSuspension)
 			// We cannot simply run the specified function, we must queue a task
 			// to run when Level One safety is no longer required.
 			runtime.whenLevelOneUnsafeDo(
 				aFiber.priority(),
-				AvailTask.forFiberResumption(
-					aFiber
-				) {
+				AvailTask.forFiberResumption(aFiber) {
 					val interpreter = current()
 					assert(aFiber === interpreter.fiberOrNull())
 					assert(aFiber.executionState() === RUNNING)
@@ -3198,7 +3328,7 @@ class Interpreter(
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().equals(failureFunction))
 			executeFiber(runtime, aFiber)
-			 { interpreter: Interpreter ->
+			{ interpreter: Interpreter ->
 				val code = failureFunction.code()
 				val prim = code.primitive()!!
 				assert(!prim.hasFlag(CannotFail))
@@ -3315,10 +3445,10 @@ class Interpreter(
 		}
 
 		/**
-		 * Top-level statement evaluation statistics, keyed by module.
+		 * Top-level statement evaluation statistics, keyed by module name.
 		 */
 		private val topStatementEvaluationStats =
-			WeakHashMap<A_Module, Statistic>()
+			mutableMapOf<A_String, Statistic>()
 
 		/**
 		 * Answer the bootstrapped [assignment&#32;function][P_SetValue] used to

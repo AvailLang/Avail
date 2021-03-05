@@ -414,7 +414,7 @@ class Multigraph<V, E : Edge<V>> constructor (original: Multigraph<V, E>)
 		{
 			if (sourceInGraph.outbound.size == 1)
 			{
-				return sourceInGraph.outbound.values.iterator().next().toSet()
+				return sourceInGraph.outbound.values.single().toSet()
 			}
 			val edges = mutableSetOf<E>()
 			sourceInGraph.outbound.values.forEach { submap ->
@@ -443,8 +443,7 @@ class Multigraph<V, E : Edge<V>> constructor (original: Multigraph<V, E>)
 		{
 			if (destinationInGraph.inbound.size == 1)
 			{
-				return (
-					destinationInGraph.inbound.values.iterator().next().toSet())
+				return destinationInGraph.inbound.values.single().toSet()
 			}
 			val edges = mutableSetOf<E>()
 			destinationInGraph.inbound.values.forEach { submap ->
