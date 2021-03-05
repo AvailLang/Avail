@@ -46,7 +46,6 @@ plugins {
 compileKotlin {
 	kotlinOptions {
 		jvmTarget = "1.8"
-		useIR = true
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 	}
 }
@@ -54,7 +53,6 @@ compileKotlin {
 compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = "1.8"
-		useIR = true
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 	}
 }

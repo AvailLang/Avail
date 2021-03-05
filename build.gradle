@@ -211,7 +211,7 @@ task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
 
 // Install MkDocs and other dependencies
 task installDocsToolsMac(type:Exec) {
-	description 'Installing documenation website dependencies'
+	description 'Installing documentation website dependencies'
 	commandLine './documentation/docs.sh', 'install'
 }
 

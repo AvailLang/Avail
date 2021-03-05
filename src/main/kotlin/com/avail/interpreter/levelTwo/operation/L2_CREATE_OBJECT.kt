@@ -35,6 +35,9 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectLayoutVariant
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -50,9 +53,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_OBJECT : L2Operation(
-	L2OperandType.CONSTANT.named("variant pojo"),
-	L2OperandType.READ_BOXED_VECTOR.named("field values"),
-	L2OperandType.WRITE_BOXED.named("new object"))
+	CONSTANT.named("variant pojo"),
+	READ_BOXED_VECTOR.named("field values"),
+	WRITE_BOXED.named("new object"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
