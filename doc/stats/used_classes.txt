@@ -1,4 +1,4 @@
-com/bulenkov/darcula/DarculaLaf
+com/github/weisj/darklaf/DarkLaf
 java/awt/BorderLayout
 java/awt/Color
 java/awt/Container
@@ -74,12 +74,14 @@ java/lang/String
 java/lang/StringBuilder
 java/lang/System
 java/lang/Thread
+java/lang/ThreadGroup
 java/lang/ThreadLocal
 java/lang/Throwable
 java/lang/UnsupportedOperationException
 java/lang/ref/Reference
 java/lang/ref/ReferenceQueue
 java/lang/ref/SoftReference
+java/lang/ref/WeakReference
 java/lang/reflect/Array
 java/lang/reflect/Constructor
 java/lang/reflect/Field
@@ -92,8 +94,10 @@ java/math/BigInteger
 java/net/Inet6Address
 java/net/InetAddress
 java/net/InetSocketAddress
+java/net/URI
 java/net/URL
 java/net/URLConnection
+java/net/URLEncoder
 java/nio/ByteBuffer
 java/nio/CharBuffer
 java/nio/channels/AsynchronousChannelGroup
@@ -103,6 +107,7 @@ java/nio/channels/AsynchronousSocketChannel
 java/nio/channels/ClosedChannelException
 java/nio/channels/FileChannel
 java/nio/channels/FileLock
+java/nio/charset/CharacterCodingException
 java/nio/charset/Charset
 java/nio/charset/CharsetDecoder
 java/nio/charset/CharsetEncoder
@@ -153,6 +158,7 @@ java/util/Random
 java/util/ResourceBundle$Control
 java/util/ResourceBundle
 java/util/Scanner
+java/util/Stack
 java/util/StringTokenizer
 java/util/Timer
 java/util/TimerTask
@@ -175,6 +181,7 @@ java/util/concurrent/atomic/AtomicBoolean
 java/util/concurrent/atomic/AtomicInteger
 java/util/concurrent/atomic/AtomicLong
 java/util/concurrent/atomic/AtomicReference
+java/util/concurrent/atomic/AtomicReferenceArray
 java/util/concurrent/atomic/AtomicReferenceFieldUpdater
 java/util/concurrent/atomic/LongAdder
 java/util/concurrent/locks/ReentrantLock
@@ -239,6 +246,7 @@ javax/xml/parsers/SAXParser
 javax/xml/parsers/SAXParserFactory
 kotlin/LazyKt
 kotlin/NoWhenBranchMatchedException
+kotlin/NotImplementedError
 kotlin/Pair
 kotlin/Result
 kotlin/ResultKt
@@ -256,6 +264,7 @@ kotlin/comparisons/ComparisonsKt
 kotlin/concurrent/TimersKt
 kotlin/io/CloseableKt
 kotlin/io/FilesKt
+kotlin/io/NoSuchFileException
 kotlin/jvm/JvmClassMappingKt
 kotlin/jvm/internal/ArrayIteratorKt
 kotlin/jvm/internal/DoubleCompanionObject
@@ -264,7 +273,6 @@ kotlin/jvm/internal/FunctionReference
 kotlin/jvm/internal/InlineMarker
 kotlin/jvm/internal/Intrinsics
 kotlin/jvm/internal/Lambda
-kotlin/jvm/internal/MutablePropertyReference1
 kotlin/jvm/internal/PropertyReference1
 kotlin/jvm/internal/Ref$BooleanRef
 kotlin/jvm/internal/Ref$IntRef
@@ -272,6 +280,9 @@ kotlin/jvm/internal/Ref$LongRef
 kotlin/jvm/internal/Ref$ObjectRef
 kotlin/jvm/internal/Reflection
 kotlin/jvm/internal/TypeIntrinsics
+kotlin/random/Random$Default
+kotlin/random/Random
+kotlin/random/RandomKt
 kotlin/ranges/IntProgression
 kotlin/ranges/IntRange
 kotlin/ranges/LongProgression
@@ -281,6 +292,7 @@ kotlin/sequences/SequencesKt
 kotlin/streams/jdk8/StreamsKt
 kotlin/text/Regex
 kotlin/text/StringsKt
+org/apache/tika/Tika
 org/junit/jupiter/api/Assertions
 org/objectweb/asm/AnnotationVisitor
 org/objectweb/asm/ClassWriter

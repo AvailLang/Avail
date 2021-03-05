@@ -649,8 +649,8 @@ abstract class AvailObjectRepresentation protected constructor(
 
 	/**
 	 * Extract the current value of the indexable object slot, pass it to the
-	 * supplied inline Kotlin function, and write the result back to the slot
-	 * with a compare-and-set, retrying from the beginning if it fails.
+	 * supplied Kotlin function, and write the result back to the slot with a
+	 * compare-and-set, retrying from the beginning if it fails.
 	 *
 	 * @param field
 	 *   The indexable [AvailObject] slot to access.

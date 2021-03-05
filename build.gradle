@@ -130,9 +130,14 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect:1.3.72"
 }
 
+def repositoriesPath = {
+	def home = System.getenv("user.home")
+	"$home/.avail/repositories/"
+}()
+
 // Compute the Avail roots. This is needed to properly configure "test".
 def computeAvailRoots = {
-	def pathRepos = "$projectDir/repositories"
+	def pathRepos = repositoriesPath
 	def pathRootsSrc = "$projectDir/distro/src"
 	def roots = [
 			["avail", "$pathRootsSrc/avail"],
@@ -150,6 +155,7 @@ test {
 	minHeapSize = "4g"
 	maxHeapSize = "6g"
 	enableAssertions = true
+	systemProperty "repositories", repositoriesPath
 	systemProperty "availRoots", computeAvailRoots
 }
 

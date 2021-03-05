@@ -684,7 +684,6 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ENUMERATION_TYPE
 
-
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
 		val values = getInstances(self).filter { it.isInstanceOf(typeToRemove) }
