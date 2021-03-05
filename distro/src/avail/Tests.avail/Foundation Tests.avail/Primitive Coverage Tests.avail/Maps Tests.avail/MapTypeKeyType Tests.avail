@@ -37,8 +37,12 @@ Uses
 	"Primitive Test Common"
 Body
 
-Test "MapTypeKeyType ok" in primitive maps test suite if supported is
+Test "MapTypeKeyType ok" in primitive maps test suite is
 [
-	Skip test
+	Require: {string → integer |1..∞}'s key type = string;
+	Require: {integer → integer |3..100}'s key type = integer;
+	Require: {double → integer |}'s key type = double;
+	Require: {any → integer |1}'s key type = any;
+	Require: {number → string |10}'s key type = number;
 ];
 
