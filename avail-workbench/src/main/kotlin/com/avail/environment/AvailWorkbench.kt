@@ -119,7 +119,8 @@ import com.avail.stacks.StacksGenerator
 import com.avail.utility.IO
 import com.avail.utility.cast
 import com.avail.utility.safeWrite
-import com.bulenkov.darcula.DarculaLaf
+import com.github.weisj.darklaf.LafManager
+import com.github.weisj.darklaf.theme.DarculaTheme
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
@@ -183,7 +184,6 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.SwingWorker
-import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
 import javax.swing.text.SimpleAttributeSet
@@ -2281,7 +2281,7 @@ class AvailWorkbench internal constructor (
 			}
 			if (darkMode)
 			{
-				UIManager.setLookAndFeel(DarculaLaf())
+				LafManager.install(DarculaTheme());
 			}
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()

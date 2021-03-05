@@ -156,7 +156,7 @@ class FiberDescriptor private constructor(
 		internal var loader: AvailLoader?,
 		internal var textInterface: TextInterface,
 		initialPriority: Int,
-		nameSupplier: (()->A_String))
+		nameSupplier: ()->A_String)
 	{
 		/** The random, permanent hash value of the fiber. */
 		val hash: Int = AvailRuntimeSupport.nextHash()
