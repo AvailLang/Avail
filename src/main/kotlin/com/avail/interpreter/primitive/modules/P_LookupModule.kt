@@ -1,6 +1,6 @@
 /*
- * P_SocketOpen.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * P_LookupModule.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,58 +30,60 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.sockets
+package com.avail.interpreter.primitive.modules
 
-import com.avail.AvailRuntime.Companion.currentRuntime
-import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
-import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
-import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.builder.ModuleName
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.exceptions.AvailErrorCode.E_IO_ERROR
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
+import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
+import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import com.avail.interpreter.execution.Interpreter
-import java.io.IOException
-import java.nio.channels.AsynchronousSocketChannel
 
 /**
- * **Primitive:** Open an [AsynchronousSocketChannel]. Answer a
- * [handle][AtomDescriptor] that uniquely identifies the socket.
+ * **Primitive:** Resolve the given fully qualified module name, and answer the
+ * loaded module having that name.  Fail if such a module is not currently
+ * loaded.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SocketOpen : Primitive(1, CanInline, HasSideEffect)
+object P_LookupModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val name = interpreter.argument(0)
-		return try {
-			val handle = createAtom(name, interpreter.module())
-			val channel = currentRuntime().ioSystem.openSocket()
-			handle.setAtomProperty(SOCKET_KEY.atom, identityPojo(channel))
-			interpreter.primitiveSuccess(handle)
-		} catch (e: IOException) {
-			interpreter.primitiveFailure(E_IO_ERROR)
+		val pathString: A_String = interpreter.argument(0)
+
+		val runtime = interpreter.runtime
+		return try
+		{
+			val qualifiedName = ModuleName(pathString.asNativeString())
+			val resolvedName = runtime.moduleNameResolver.resolve(qualifiedName)
+			interpreter.primitiveSuccess(
+				runtime.moduleAt(stringFrom(resolvedName.qualifiedName)))
+		}
+		catch (e: Exception)
+		{
+			interpreter.primitiveFailure(E_KEY_NOT_FOUND)
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(nonemptyStringType()),
-			ATOM.o
-		)
+			tuple(
+				stringType()),
+			MODULE.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_IO_ERROR))
+		enumerationWith(set(E_LOADING_IS_OVER))
 }

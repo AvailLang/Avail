@@ -379,7 +379,8 @@ open class VariableSharedDescriptor protected constructor(
 		// Simply read, add, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
 		val writeType = outerKind.writeType()
-		while (true) {
+		do
+		{
 			val oldValue = self.volatileSlot(VALUE)
 			if (oldValue.equalsNil())
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -406,11 +407,8 @@ open class VariableSharedDescriptor protected constructor(
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
-			if (o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
-			{
-				break
-			}
 		}
+		while (!o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)

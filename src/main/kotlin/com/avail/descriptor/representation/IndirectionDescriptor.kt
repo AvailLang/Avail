@@ -133,7 +133,6 @@ import com.avail.descriptor.module.A_Module.Companion.addVariableBinding
 import com.avail.descriptor.module.A_Module.Companion.allAncestors
 import com.avail.descriptor.module.A_Module.Companion.applyModuleHeader
 import com.avail.descriptor.module.A_Module.Companion.buildFilteredBundleTree
-import com.avail.descriptor.module.A_Module.Companion.closeModule
 import com.avail.descriptor.module.A_Module.Companion.constantBindings
 import com.avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import com.avail.descriptor.module.A_Module.Companion.entryPoints
@@ -142,13 +141,13 @@ import com.avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhras
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.introduceNewName
-import com.avail.descriptor.module.A_Module.Companion.isOpen
 import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
 import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import com.avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import com.avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
 import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
 import com.avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
 import com.avail.descriptor.module.A_Module.Companion.privateNames
@@ -157,10 +156,12 @@ import com.avail.descriptor.module.A_Module.Companion.removeFrom
 import com.avail.descriptor.module.A_Module.Companion.resolveForward
 import com.avail.descriptor.module.A_Module.Companion.serializedObjects
 import com.avail.descriptor.module.A_Module.Companion.serializedObjectsMap
+import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.module.A_Module.Companion.versions
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.addToDoubleCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToFloatCanDestroy
@@ -3604,10 +3605,13 @@ class IndirectionDescriptor private constructor(
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		self .. { extractDumpedLongAt(index) }
 
-	override fun o_IsOpen(self: AvailObject) = self .. { isOpen() }
+	override fun o_ModuleState(self: AvailObject): ModuleDescriptor.State =
+		self .. { moduleState() }
 
-	override fun o_CloseModule(self: AvailObject) =
-		self .. { closeModule() }
+	override fun o_SetModuleState(
+		self: AvailObject,
+		newState: ModuleDescriptor.State
+	) = self .. { setModuleState(newState) }
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
 		self .. { setAtomBundle(bundle) }

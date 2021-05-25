@@ -1135,10 +1135,11 @@ class IndexedFile internal constructor(
 			// the metadataCache: they will all write the same answer. This is
 			// why we only grab a read lock.
 			metadataCache ?: master!!.run {
-				when {
-					metadataCache !== null -> metadataCache
-					metadataLocation == RecordCoordinates.origin -> null
-					else -> {
+				when (metadataLocation)
+				{
+					RecordCoordinates.origin -> null
+					else ->
+					{
 						val block =
 							blockAtFilePosition(metadataLocation.filePosition)
 						val buffer = ByteBuffer.wrap(block)

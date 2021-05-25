@@ -139,6 +139,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.annotation.CheckReturnValue
 
 /**
  * This class is used to execute [Level&#32;Two&#32;code][L2Chunk], which is a
@@ -783,6 +784,7 @@ class Interpreter(
 	 * @param body
 	 *   What to do when the fiber has been suspended.
 	 */
+	@CheckReturnValue
 	fun suspendThen (body: SuspensionHelper<A_BasicObject>.()->Unit): Result
 	{
 		val copiedArgs = argsBuffer.map { it }
@@ -824,6 +826,7 @@ class Interpreter(
 	 * @return
 	 *   Primitive [Result.SUCCESS].
 	 */
+	@CheckReturnValue
 	fun primitiveSuccess(result: A_BasicObject): Result
 	{
 		assert(fiber().executionState() === RUNNING)
@@ -841,6 +844,7 @@ class Interpreter(
 	 * @return
 	 *   Primitive [Result.FAILURE].
 	 */
+	@CheckReturnValue
 	fun primitiveFailure(code: AvailErrorCode): Result =
 		primitiveFailure(code.numericCode())
 
@@ -855,6 +859,7 @@ class Interpreter(
 	 * @return
 	 *   Primitive [Result.FAILURE].
 	 */
+	@CheckReturnValue
 	fun primitiveFailure(exception: AvailException): Result =
 		primitiveFailure(exception.numericCode())
 
@@ -868,6 +873,7 @@ class Interpreter(
 	 * @return
 	 *   Primitive [Result.FAILURE].
 	 */
+	@CheckReturnValue
 	fun primitiveFailure(exception: AvailRuntimeException): Result =
 		primitiveFailure(exception.numericCode)
 
@@ -880,6 +886,7 @@ class Interpreter(
 	 * @return
 	 *   Primitive [failure][Result.FAILURE].
 	 */
+	@CheckReturnValue
 	fun primitiveFailure(result: A_BasicObject): Result
 	{
 		assert(fiber().executionState() === RUNNING)
@@ -933,6 +940,7 @@ class Interpreter(
 	 * @return
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
+	@CheckReturnValue
 	private fun primitiveSuspend(state: ExecutionState): Result
 	{
 		assert(!exitNow)
@@ -974,6 +982,7 @@ class Interpreter(
 	 * @return
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
+	@CheckReturnValue
 	fun primitiveSuspend(suspendingFunction: A_Function): Result
 	{
 		val prim = suspendingFunction.code().primitive()!!
@@ -994,6 +1003,7 @@ class Interpreter(
 	 * @return
 	 *   [Result.FIBER_SUSPENDED], for convenience.
 	 */
+	@CheckReturnValue
 	fun primitivePark(suspendingFunction: A_Function): Result
 	{
 		fiber().setSuspendingFunction(suspendingFunction)

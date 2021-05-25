@@ -62,9 +62,8 @@ object P_LookupName : Primitive(1, CanInline, ReadsFromHiddenGlobalState)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader =
-			interpreter.fiber().availLoader()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = interpreter.fiber().availLoader()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		return try
 		{
 			interpreter.primitiveSuccess(loader.lookupName(name))

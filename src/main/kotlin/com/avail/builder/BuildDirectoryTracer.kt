@@ -315,7 +315,9 @@ class BuildDirectoryTracer constructor(
 		val sourceReference = resolvedName.resolverReference
 		val archive = repository.getArchive(
 			resolvedName.rootRelativeName)
-		archive.digestForFile(resolvedName, false,
+		archive.digestForFile(
+			resolvedName,
+			false,
 			{ digest ->
 				val versionKey = ModuleVersionKey(resolvedName, digest)
 				val existingVersion = archive.getVersion(versionKey)

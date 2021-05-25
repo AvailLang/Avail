@@ -102,11 +102,13 @@ import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestri
 import com.avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import com.avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
 import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
 import com.avail.descriptor.module.A_Module.Companion.privateNames
 import com.avail.descriptor.module.A_Module.Companion.resolveForward
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.State.Loading
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_Lexer
@@ -185,13 +187,10 @@ import com.avail.interpreter.primitive.methods.P_Alias
 import com.avail.io.TextInterface
 import com.avail.utility.StackPrinter
 import com.avail.utility.evaluation.Combinator.recurse
-import com.avail.utility.safeWrite
 import java.util.ArrayDeque
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReferenceArray
 import java.util.concurrent.locks.ReentrantLock
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import javax.annotation.concurrent.GuardedBy
-import kotlin.concurrent.read
 import kotlin.concurrent.withLock
 
 /**
@@ -265,15 +264,11 @@ class AvailLoader(
 		private val latin1ApplicableLexers = AtomicReferenceArray<A_Tuple>(256)
 
 		/**
-		 * A map from non-Latin-1 codepoint (i.e., ≥ 256) to the tuple of lexers
-		 * that should run when that character is encountered at a lexing point.
-		 * Should only be accessed within [nonLatin1Lock].
+		 * A [ConcurrentHashMap] from non-Latin-1 codepoint (i.e., ≥ 256) to the
+		 * tuple of lexers that should run when that character is encountered at
+		 * a lexing point.
 		 */
-		@GuardedBy("nonLatin1Lock")
-		private val nonLatin1Lexers = mutableMapOf<Int, A_Tuple>()
-
-		/** A lock to protect [nonLatin1Lexers]. */
-		private val nonLatin1Lock = ReentrantReadWriteLock()
+		private val nonLatin1Lexers = ConcurrentHashMap<Int, A_Tuple>()
 
 		/**
 		 * The canonical mapping from each set of lexers to a tuple of lexers.
@@ -299,7 +294,10 @@ class AvailLoader(
 			lexer.lexerMethod().setLexer(lexer)
 			val module: A_Module = lexer.definitionModule()
 			if (!module.equalsNil()) {
-				module.addLexer(lexer)
+				if (module.moduleState() == Loading)
+				{
+					module.addLexer(lexer)
+				}
 			}
 			// Update the loader's lexing tables...
 			allVisibleLexers.add(lexer)
@@ -377,9 +375,7 @@ class AvailLoader(
 			}
 
 			// It's non-Latin1.
-			val tuple = nonLatin1Lock.read {
-				nonLatin1Lexers[codePoint]
-			}
+			val tuple = nonLatin1Lexers[codePoint]
 			if (tuple !== null) return continuation(tuple)
 			// Run the filters to produce the set of applicable lexers, then use
 			// the canonical map to make it a tuple, then invoke the
@@ -396,9 +392,7 @@ class AvailLoader(
 				val lexers = canonicalTupleOfLexers(applicable)
 				// Just replace it, even if another thread beat us to the punch,
 				// since it's semantically idempotent.
-				nonLatin1Lock.safeWrite {
-					nonLatin1Lexers.put(codePoint, lexers)
-				}
+				nonLatin1Lexers[codePoint] = lexers
 				continuation(lexers)
 			}
 		}
@@ -648,9 +642,7 @@ class AvailLoader(
 	 * @return
 	 *   The [LexicalScanner], which must not be `null`.
 	 */
-	fun lexicalScanner(): LexicalScanner {
-		return lexicalScanner!!
-	}
+	fun lexicalScanner(): LexicalScanner = lexicalScanner!!
 
 	/**
 	 * Answer the [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor]

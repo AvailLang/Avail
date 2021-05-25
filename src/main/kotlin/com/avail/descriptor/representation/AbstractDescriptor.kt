@@ -71,6 +71,9 @@ import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
+import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
@@ -3805,10 +3808,12 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_RegisterDump (self: AvailObject): AvailObject
 
-	abstract fun o_IsOpen (self: AvailObject): Boolean
 
-	@Throws(AvailRuntimeException::class)
-	abstract fun o_CloseModule (self: AvailObject)
+	abstract fun o_ModuleState(self: AvailObject): ModuleDescriptor.State
+
+	abstract fun o_SetModuleState(
+		self: AvailObject,
+		newState: ModuleDescriptor.State)
 
 	abstract fun o_MembershipChanged (self: AvailObject)
 

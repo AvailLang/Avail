@@ -50,6 +50,7 @@ import com.avail.descriptor.sets.SetDescriptor.SetIterator
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
+import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.NoSuchElementException
 
 /**
@@ -374,14 +375,14 @@ class LinearSetBinDescriptor private constructor(
 			}
 
 		/**
-		 * [LinearSetBinDescriptor]s clustered by mutability and level.
+		 * The [LinearSetBinDescriptor] instances.  Each [Array] is indexed by
+		 * level.
 		 */
-		val descriptors: Array<LinearSetBinDescriptor> =
-			Array(HashedSetBinDescriptor.numberOfLevels * 3) {
-				val level = it / 3
-				val mut = Mutability.values()[it - level * 3]
+		private val descriptors = enumMap { mut: Mutability ->
+			Array(HashedSetBinDescriptor.numberOfLevels) { level ->
 				LinearSetBinDescriptor(mut, level)
 			}
+		}
 
 		/**
 		 * Answer a suitable descriptor for a linear bin with the specified
@@ -399,7 +400,7 @@ class LinearSetBinDescriptor private constructor(
 			level: Int
 		): LinearSetBinDescriptor {
 			assert(level in 0 until HashedSetBinDescriptor.numberOfLevels)
-			return descriptors[level * 3 + flag.ordinal]
+			return descriptors[flag]!![level]
 		}
 
 		/**
@@ -450,16 +451,18 @@ class LinearSetBinDescriptor private constructor(
 			var written = 0
 			val bin = descriptorFor(Mutability.MUTABLE, level).create(size) {
 				var hash = 0
-				for (i in 1 .. size)
+				outer@ for (i in 1 .. size)
 				{
 					val element = generator(i)
-					if ((1 .. written).none { j ->
-							element.equals(slot(BIN_ELEMENT_AT_, j))
-						})
+					for (j in 1 .. written)
 					{
-						setSlot(BIN_ELEMENT_AT_, ++written, element)
-						hash += element.hash()
+						if (element.equals(slot(BIN_ELEMENT_AT_, j)))
+						{
+							continue@outer
+						}
 					}
+					setSlot(BIN_ELEMENT_AT_, ++written, element)
+					hash += element.hash()
 				}
 				setSlot(BIN_HASH, hash)
 			}

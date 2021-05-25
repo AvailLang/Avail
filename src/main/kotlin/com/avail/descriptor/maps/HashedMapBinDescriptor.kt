@@ -74,6 +74,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.cast
+import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Deque
 import java.util.NoSuchElementException
@@ -737,6 +738,16 @@ class HashedMapBinDescriptor private constructor(
 		private const val numberOfLevels: Int = 6
 
 		/**
+		 * The [HashedMapBinDescriptor] instances.  Each [Array] is indexed by
+		 * level.
+		 */
+		private val descriptors = enumMap { mut: Mutability ->
+			Array(numberOfLevels) { level ->
+				HashedMapBinDescriptor(mut, level)
+			}
+		}
+
+		/**
 		 * Answer the appropriate [HashedMapBinDescriptor] to use for the given
 		 * mutability and level.
 		 *
@@ -752,16 +763,7 @@ class HashedMapBinDescriptor private constructor(
 			level: Int
 		): HashedMapBinDescriptor {
 			assert(level in 0 until numberOfLevels)
-			return descriptors[level * 3 + flag.ordinal]
-		}
-
-		/**
-		 * [HashedMapBinDescriptor]s clustered by mutability and level.
-		 */
-		val descriptors = Array(numberOfLevels * 3) {
-			val level = it / 3
-			val mut = Mutability.values()[it - level * 3]
-			HashedMapBinDescriptor(mut, level)
+			return descriptors[flag]!![level]
 		}
 	}
 

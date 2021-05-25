@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.modules
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module.Companion.addUnloadFunction
-import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -54,7 +53,7 @@ import com.avail.interpreter.execution.Interpreter
 
 /**
 * **Primitive:** Add the specified [unload&#32;function][A_Function] to the
- * [current][ModuleDescriptor.currentModule].
+ * [current][Interpreter.module] module.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

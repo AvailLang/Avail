@@ -60,7 +60,8 @@ import com.avail.descriptor.module.ModuleDescriptor
  *   If the argument was malformed.
  */
 open class ModuleName
-@Throws(IllegalArgumentException::class) @JvmOverloads constructor(
+@Throws(IllegalArgumentException::class)
+constructor(
 	val qualifiedName: String,
 	val isRename: Boolean = false)
 {

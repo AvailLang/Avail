@@ -390,25 +390,6 @@ interface A_Module : A_BasicObject
 		fun A_Module.visibleNames(): A_Set = dispatch { o_VisibleNames(it) }
 
 		/**
-		 * Determine whether the [module][A_Module] is still open to the
-		 * performance of further side effects upon it.
-		 *
-		 * @return
-		 *   `true` iff the module is open.
-		 */
-		fun A_Module.isOpen(): Boolean = dispatch { o_IsOpen(it) }
-
-		/**
-		 * Close the [module][A_Module] to prevent the performance of further
-		 * side effects upon it.
-		 *
-		 * @throws AvailRuntimeException
-		 *   If the [module][A_Module] is already closed.
-		 */
-		@Throws(AvailRuntimeException::class)
-		fun A_Module.closeModule() = dispatch { o_CloseModule(it) }
-
-		/**
 		 * Add the given [A_Bundle] to this module.  It will be removed from its
 		 * connected [A_Method] when this module is unloaded.
 		 */
@@ -460,5 +441,19 @@ interface A_Module : A_BasicObject
 		 */
 		fun A_Module.serializedObjectsMap(serializedObjects: A_Map) =
 			dispatch { o_SerializedObjectsMap(it, serializedObjects) }
+
+		/**
+		 * Read the current [state][ModuleDescriptor.State] of the module, which
+		 * indicates whether the module is loading, unloading, or in a stable
+		 * state.
+		 */
+		fun A_Module.moduleState() = dispatch { o_ModuleState(it) }
+
+		/**
+		 * Set the [state][ModuleDescriptor.State] of the module.  State changes
+		 * are restricted by the state enum's directed graph of successors.
+		 */
+		fun A_Module.setModuleState(newState: ModuleDescriptor.State) =
+			dispatch { o_SetModuleState(it, newState) }
 	}
 }

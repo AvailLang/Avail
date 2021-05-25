@@ -57,6 +57,7 @@ import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import com.avail.descriptor.numbers.AbstractNumberDescriptor.Sign
@@ -2628,9 +2629,14 @@ abstract class Descriptor protected constructor (
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		unsupported
 
-	override fun o_IsOpen(self: AvailObject): Boolean = unsupported
+	override fun o_ModuleState(
+		self: AvailObject
+	): ModuleDescriptor.State = unsupported
 
-	override fun o_CloseModule (self: AvailObject): Unit = unsupported
+	override fun o_SetModuleState(
+		self: AvailObject,
+		newState: ModuleDescriptor.State
+	): Unit = unsupported
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle): Unit =
 		unsupported

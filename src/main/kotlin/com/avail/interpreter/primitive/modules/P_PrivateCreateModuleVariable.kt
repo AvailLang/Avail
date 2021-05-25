@@ -76,13 +76,10 @@ object P_PrivateCreateModuleVariable
 			variable.setValueWasStablyComputed(true)
 		}
 		// The compiler should ensure this will always succeed.
-		if (isConstant)
+		when
 		{
-			module.addConstantBinding(name, variable)
-		}
-		else
-		{
-			module.addVariableBinding(name, variable)
+			isConstant -> module.addConstantBinding(name, variable)
+			else -> module.addVariableBinding(name, variable)
 		}
 		return interpreter.primitiveSuccess(variable)
 	}

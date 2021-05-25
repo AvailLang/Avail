@@ -215,7 +215,9 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 		repository.commitIfStaleChanges(AvailBuilder.maximumStaleRepositoryMs)
 		val sourceFile = resolvedName.resolverReference
 		val archive = repository.getArchive(resolvedName.rootRelativeName)
-		archive.digestForFile(resolvedName, false,
+		archive.digestForFile(
+			resolvedName,
+			false,
 			{ digest ->
 				val versionKey = ModuleVersionKey(resolvedName, digest)
 				val version = archive.getVersion(versionKey)

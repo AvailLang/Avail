@@ -514,7 +514,6 @@ class ByteStringDescriptor private constructor(
 		 * @return
 		 *   The new Avail [A_String].
 		 */
-		@JvmStatic
 		fun generateByteString(
 			size: Int,
 			generator: (Int) -> Int): AvailObject

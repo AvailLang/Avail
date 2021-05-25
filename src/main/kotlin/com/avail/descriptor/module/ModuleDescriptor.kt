@@ -35,7 +35,6 @@ import com.avail.AvailRuntime
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
-import com.avail.compiler.AvailCompiler
 import com.avail.compiler.ModuleHeader
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
@@ -57,7 +56,6 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
-import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -90,7 +88,9 @@ import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.introduceNewName
 import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
 import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
+import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.versions
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
@@ -107,6 +107,10 @@ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEALS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.UNLOAD_FUNCTIONS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VARIABLE_BINDINGS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VISIBLE_NAMES
+import com.avail.descriptor.module.ModuleDescriptor.State.Loaded
+import com.avail.descriptor.module.ModuleDescriptor.State.Loading
+import com.avail.descriptor.module.ModuleDescriptor.State.Unloaded
+import com.avail.descriptor.module.ModuleDescriptor.State.Unloading
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -122,7 +126,6 @@ import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.SHARED
-import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
@@ -159,20 +162,17 @@ import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.MalformedMessageException
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.execution.AvailLoader.LexicalScanner
-import com.avail.interpreter.primitive.modules.P_CloseModule
-import com.avail.interpreter.primitive.modules.P_CreateAnonymousModule
 import com.avail.persistence.IndexedFile.Companion.validatedBytesFrom
 import com.avail.serialization.Deserializer
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
+import com.avail.utility.safeWrite
 import com.avail.utility.structures.BloomFilter
 import java.util.IdentityHashMap
-import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.withLock
-import kotlin.concurrent.write
 
 /**
  * A [module][ModuleDescriptor] is the mechanism by which Avail code is
@@ -351,21 +351,53 @@ class ModuleDescriptor private constructor(
 	val lock = ReentrantReadWriteLock()
 
 	/**
-	 * Whether the module is capable of receiving new content. Modules are
-	 * created in an open state. Static modules are closed by the
-	 * [compiler][AvailCompiler] following a successful parse of the entire
-	 * module body. [Anonymous modules][P_CreateAnonymousModule] must be
-	 * [closed explicitly][P_CloseModule].
+	 * An enumeration describing the loading state of a module.  Modules are
+	 * created in the [Loading] state, and reach the [Loaded] state when all of
+	 * its statements have executed.  If the module is asked to unload, its
+	 * descendants must first arrange to be unloaded, then the module state
+	 * transitions to [Unloading], and ultimately [Unloaded].
 	 */
-	private val isOpen = AtomicBoolean(true)
+	enum class State(
+		privateSuccessors: ()->Set<State>)
+	{
+		/**
+		 * The module has not yet been fully loaded, and additional changes to
+		 * it are still permitted.
+		 */
+		Loading({ setOf(Loaded, Unloading) }),
 
-	/** Answer whether the module is still open. */
-	private fun isOpen() = isOpen.get()
+		/**
+		 * The module is fully loaded, and additional changes are not permitted.
+		 */
+		Loaded({ setOf(Unloading) }),
+
+		/**
+		 * The module is in the process of unloading.  Unloading activities are
+		 * permitted, but new definitions are not.
+		 */
+		Unloading({ setOf(Unloaded) }),
+
+		/**
+		 * The module has been fully unloaded.
+		 */
+		Unloaded({ setOf() });
+
+		/**
+		 * The permitted successors of this state.  Lazily computed *only*
+		 * because of the design choices of Java and Kotlin.
+		 */
+		val successors by lazy(privateSuccessors)
+	}
+
+	/** The current [state](State) of this module. */
+	private val stateField = AtomicReference(Loading)
 
 	/** Assert that the module is still open. */
-	private fun assertOpen() {
-		if (!isOpen()) {
-			throw AvailRuntimeException(E_MODULE_IS_CLOSED)
+	private fun assertState(expectedState: State)
+	{
+		if (stateField.get() != expectedState)
+		{
+			throw AvailRuntimeException(E_MODULE_IS_CLOSED)  //TODO too specific.
 		}
 	}
 
@@ -443,7 +475,7 @@ class ModuleDescriptor private constructor(
 		loader: AvailLoader,
 		moduleHeader: ModuleHeader): String?
 	{
-		assertOpen()
+		assertState(Loading)
 		val runtime = AvailRuntime.currentRuntime()
 		val resolver = runtime.moduleNameResolver
 		versions = setFromCollection(moduleHeader.versions).makeShared()
@@ -659,11 +691,13 @@ class ModuleDescriptor private constructor(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper> {
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
-		fields.add(AvailObjectFieldHelper(
-			self,
-			DebuggerObjectSlots("Descriptor"),
-			-1,
-			this@ModuleDescriptor))
+		fields.add(
+			0,
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("Descriptor"),
+				-1,
+				this@ModuleDescriptor))
 		return fields.toTypedArray()
 	}
 
@@ -697,7 +731,7 @@ class ModuleDescriptor private constructor(
 				if (!it.equalsNil()) return it
 			}
 		}
-		return lock.write {
+		return lock.safeWrite {
 			var exportedNames: A_Set = self.slot(CACHED_EXPORTED_NAMES)
 			if (exportedNames.equalsNil())
 			{
@@ -712,7 +746,7 @@ class ModuleDescriptor private constructor(
 						value.makeShared(), true)
 				}
 				exportedNames = exportedNames.makeShared()
-				if (!isOpen.get())
+				if (self.moduleState() != Loading)
 				{
 					// The module is closed, so cache it for next time.
 					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
@@ -735,9 +769,9 @@ class ModuleDescriptor private constructor(
 		self: AvailObject,
 		name: A_String,
 		constantBinding: A_Variable
-	) = lock.write {
+	) = lock.safeWrite {
 		assert(constantBinding.kind().isSubtypeOf(mostGeneralVariableType()))
-		isOpen.get() || throw AvailRuntimeException(E_MODULE_IS_CLOSED)
+		assertState(Loading)
 		self.updateSlotShared(CONSTANT_BINDINGS) {
 			mapAtPuttingCanDestroy(name, constantBinding, true)
 		}
@@ -746,7 +780,8 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleAddDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	) = lock.write {
+	) = lock.safeWrite {
+		assertState(Loading)
 		self.updateSlotShared(METHOD_DEFINITIONS_SET) {
 			setWithElementCanDestroy(definition, false)
 		}
@@ -755,8 +790,8 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleAddMacro(
 		self: AvailObject,
 		macro: A_Macro
-	) = lock.write {
-		assertOpen()
+	) = lock.safeWrite {
+		assertState(Loading)
 		macroDefinitions =
 			macroDefinitions.setWithElementCanDestroy(macro, false).makeShared()
 	}
@@ -765,8 +800,8 @@ class ModuleDescriptor private constructor(
 		self: AvailObject,
 		methodName: A_Atom,
 		argumentTypes: A_Tuple
-	) = lock.write {
-		assertOpen()
+	) = lock.safeWrite {
+		assertState(Loading)
 		self.updateSlotShared(SEALS) {
 			var tuple: A_Tuple = when
 			{
@@ -781,8 +816,8 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleAddSemanticRestriction(
 		self: AvailObject,
 		semanticRestriction: A_SemanticRestriction
-	) = lock.write {
-		assertOpen()
+	) = lock.safeWrite {
+		assertState(Loading)
 		semanticRestrictions = semanticRestrictions.setWithElementCanDestroy(
 			semanticRestriction, true
 		).makeShared()
@@ -792,9 +827,9 @@ class ModuleDescriptor private constructor(
 		self: AvailObject,
 		name: A_String,
 		variableBinding: A_Variable
-	) = lock.write {
+	) = lock.safeWrite {
 		assert(variableBinding.kind().isSubtypeOf(mostGeneralVariableType()))
-		assertOpen()
+		assertState(Loading)
 		self.updateSlotShared(VARIABLE_BINDINGS) {
 			mapAtPuttingCanDestroy(name, variableBinding, true)
 		}
@@ -803,9 +838,9 @@ class ModuleDescriptor private constructor(
 	override fun o_AddImportedName(
 		self: AvailObject,
 		trueName: A_Atom
-	) = lock.write {
+	) = lock.safeWrite {
 		// Add the atom to the current public scope.
-		assertOpen()
+		assertState(Loading)
 		val string: A_String = trueName.atomName()
 		self.updateSlotShared(IMPORTED_NAMES) {
 			mapAtReplacingCanDestroy(
@@ -844,9 +879,9 @@ class ModuleDescriptor private constructor(
 	override fun o_AddImportedNames(
 		self: AvailObject,
 		trueNames: A_Set
-	) = lock.write {
+	) = lock.safeWrite {
 		// Add the set of atoms to the current public scope.
-		assertOpen()
+		assertState(Loading)
 		var importedNames: A_Map = self.slot(IMPORTED_NAMES)
 		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 		for (trueName in trueNames)
@@ -888,9 +923,9 @@ class ModuleDescriptor private constructor(
 	override fun o_IntroduceNewName(
 		self: AvailObject,
 		trueName: A_Atom
-	) = lock.write {
+	) = lock.safeWrite {
 		// Set up this true name, which is local to the module.
-		assertOpen()
+		assertState(Loading)
 		val string: A_String = trueName.atomName()
 		self.updateSlotShared(NEW_NAMES) {
 			assert(!hasKey(string)) {
@@ -906,9 +941,9 @@ class ModuleDescriptor private constructor(
 	override fun o_AddPrivateName(
 		self: AvailObject,
 		trueName: A_Atom
-	) = lock.write {
+	) = lock.safeWrite {
 		// Add the atom to the current private scope.
-		assertOpen()
+		assertState(Loading)
 		val string: A_String = trueName.atomName()
 		self.updateSlotShared(PRIVATE_NAMES) {
 			mapAtReplacingCanDestroy(
@@ -927,9 +962,9 @@ class ModuleDescriptor private constructor(
 	override fun o_AddPrivateNames(
 		self: AvailObject,
 		trueNames: A_Set
-	) = lock.write {
+	) = lock.safeWrite {
 		// Add the set of atoms to the current private scope.
-		assertOpen()
+		assertState(Loading)
 		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 		var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
 		for (trueName in trueNames)
@@ -951,9 +986,9 @@ class ModuleDescriptor private constructor(
 	override fun o_AddLexer(
 		self: AvailObject,
 		lexer: A_Lexer
-	) = lock.write {
-		// To support entry points and evaluation, this needs to remain mutable
-		// even when a module is closed.
+	) = lock.safeWrite {
+		// Only call this when the module is compiling or loading.
+		assertState(Loading)
 		self.updateSlotShared(LEXERS) {
 			setWithElementCanDestroy(lexer, false)
 		}
@@ -962,8 +997,8 @@ class ModuleDescriptor private constructor(
 	override fun o_AddUnloadFunction(
 		self: AvailObject,
 		unloadFunction: A_Function
-	) = lock.write {
-		assertOpen()
+	) = lock.safeWrite {
+		assertState(Loading)
 		self.updateSlotShared(UNLOAD_FUNCTIONS) {
 			appendCanDestroy(unloadFunction, true)
 		}
@@ -987,8 +1022,8 @@ class ModuleDescriptor private constructor(
 	override fun o_ModuleAddGrammaticalRestriction(
 		self: AvailObject,
 		grammaticalRestriction: A_GrammaticalRestriction
-	) = lock.write {
-		assertOpen()
+	) = lock.safeWrite {
+		assertState(Loading)
 		grammaticalRestrictions =
 			grammaticalRestrictions.setWithElementCanDestroy(
 				grammaticalRestriction, true
@@ -1028,8 +1063,8 @@ class ModuleDescriptor private constructor(
 	override fun o_RecordBlockPhrase(
 		self: AvailObject,
 		blockPhrase: A_Phrase
-	): A_Number = lock.write {
-		assertOpen()
+	): A_Number = lock.safeWrite {
+		assertState(Loading)
 		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES, 1) {
 			assert(it.isTuple)
 			it.appendCanDestroy(blockPhrase, false).makeShared()
@@ -1041,7 +1076,8 @@ class ModuleDescriptor private constructor(
 		self: AvailObject,
 		loader: AvailLoader,
 		afterRemoval: () -> Unit
-	) = lock.write {
+	) = lock.safeWrite {
+		self.setModuleState(Unloading)
 		val unloadFunctions =
 			self.getAndSetVolatileSlot(UNLOAD_FUNCTIONS, nil).tupleReverse()
 		// Run unload functions, asynchronously but serially, in reverse
@@ -1050,7 +1086,7 @@ class ModuleDescriptor private constructor(
 			finishUnloading(self, loader)
 			// The module may already be closed, but ensure that it is closed
 			// following removal.
-			isOpen.set(false)
+			self.setModuleState(Unloaded)
 			afterRemoval()
 		}
 	}
@@ -1156,10 +1192,10 @@ class ModuleDescriptor private constructor(
 	override fun o_ResolveForward(
 		self: AvailObject,
 		forwardDefinition: A_BasicObject
-	) = lock.write {
+	) = lock.safeWrite {
 		// Asserted because only the compiler should do this directly, and
 		// never for a closed module.
-		assertOpen()
+		assertState(Loading)
 		assert(forwardDefinition.isInstanceOfKind(Types.FORWARD_DEFINITION.o))
 		self.updateSlotShared(METHOD_DEFINITIONS_SET) {
 			assert(hasElement(forwardDefinition))
@@ -1195,7 +1231,7 @@ class ModuleDescriptor private constructor(
 				}
 			}
 		}
-		lock.write {
+		lock.safeWrite {
 			self.slot(NEW_NAMES).let { newNames ->
 				if (newNames.hasKey(stringName))
 				{
@@ -1236,7 +1272,7 @@ class ModuleDescriptor private constructor(
 	{
 		val filteredBundleTree = newBundleTree(nil)
 		val ancestors: A_Set = allAncestors.get()
-		lock.write {
+		lock.safeWrite {
 			self.visibleNames().forEach { visibleName ->
 				val bundle: A_Bundle = visibleName.bundleOrNil()
 				if (!bundle.equalsNil())
@@ -1292,12 +1328,13 @@ class ModuleDescriptor private constructor(
 
 	override fun o_AllAncestors(self: AvailObject): A_Set = allAncestors.get()
 
-	override fun o_IsOpen (self: AvailObject): Boolean = isOpen()
+	override fun o_ModuleState(self: AvailObject): State = stateField.get()
 
-	override fun o_CloseModule(self: AvailObject)
+	override fun o_SetModuleState(self: AvailObject, newState: State)
 	{
-		val wasOpen = isOpen.getAndSet(false)
-		if (!wasOpen) throw AvailRuntimeException(E_MODULE_IS_CLOSED)
+		val oldState = stateField.get()
+		assert(newState in oldState.successors)
+		stateField.set(newState)
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -1370,9 +1407,7 @@ class ModuleDescriptor private constructor(
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(LEXERS, emptySet)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
-				val newDescriptor = ModuleDescriptor(
-					SHARED, moduleName.makeShared())
-				setDescriptor(newDescriptor)
+				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))
 			}
 
 		/**
@@ -1381,24 +1416,6 @@ class ModuleDescriptor private constructor(
 		 */
 		private val initialMutableDescriptor = ModuleDescriptor(
 			Mutability.MUTABLE, emptyTuple)
-
-		/**
-		 * Answer the `ModuleDescriptor module` currently undergoing
-		 * [loading][AvailLoader] on the
-		 * [current&#32;fiber][FiberDescriptor.currentFiber].
-		 *
-		 * @return
-		 *   The module currently undergoing loading, or
-		 *   [nil][NilDescriptor.nil] if the current fiber is not a loader
-		 *   fiber.
-		 */
-		val currentModule: A_Module
-			get()
-			{
-				val fiber = FiberDescriptor.currentFiber()
-				val loader = fiber.availLoader() ?: return nil
-				return loader.module()
-			}
 
 		/**
 		 * Create an empty [BloomFilter] for use as a module serialization
@@ -1430,3 +1447,4 @@ class ModuleDescriptor private constructor(
 		}
 	}
 }
+

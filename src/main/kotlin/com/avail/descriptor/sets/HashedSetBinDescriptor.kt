@@ -63,6 +63,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
+import com.avail.utility.structures.EnumMap
 import java.util.ArrayDeque
 import java.util.NoSuchElementException
 
@@ -713,6 +714,16 @@ class HashedSetBinDescriptor private constructor(
 		const val numberOfLevels: Int = 6
 
 		/**
+		 * The [HashedSetBinDescriptor] instances.  Each [Array] is indexed by
+		 * level.
+		 */
+		private val descriptors = EnumMap.enumMap { mut: Mutability ->
+			Array(numberOfLevels) { level ->
+				HashedSetBinDescriptor(mut, level)
+			}
+		}
+
+		/**
 		 * Answer the appropriate `HashedSetBinDescriptor` to use for the given
 		 * mutability and level.
 		 *
@@ -728,16 +739,7 @@ class HashedSetBinDescriptor private constructor(
 			level: Int
 		): HashedSetBinDescriptor {
 			assert(level in 0 until numberOfLevels)
-			return descriptors[level * 3 + flag.ordinal]
-		}
-
-		/**
-		 * [HashedSetBinDescriptor]s are clustered by mutability and level.
-		 */
-		val descriptors = Array(numberOfLevels * 3) {
-			val level = it / 3
-			val mut = Mutability.values()[it - level * 3]
-			HashedSetBinDescriptor(mut, level)
+			return descriptors[flag]!![level]
 		}
 	}
 }

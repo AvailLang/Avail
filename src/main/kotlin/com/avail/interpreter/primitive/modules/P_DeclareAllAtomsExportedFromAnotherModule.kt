@@ -37,7 +37,6 @@ import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addImportedNames
 import com.avail.descriptor.module.A_Module.Companion.addPrivateNames
 import com.avail.descriptor.module.A_Module.Companion.exportedNames
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set.Companion.setSize
@@ -79,7 +78,7 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 	{
 		interpreter.checkArgumentCount(2)
 		val (importedModuleNames, isPublic) = interpreter.argsBuffer
-		val module = currentModule
+		val module = interpreter.module()
 		assert(!module.equalsNil())
 		val runtime = interpreter.runtime
 		val sets = importedModuleNames.map { importedModuleName ->

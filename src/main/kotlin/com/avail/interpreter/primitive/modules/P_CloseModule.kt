@@ -33,7 +33,10 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.closeModule
+import com.avail.descriptor.module.A_Module.Companion.moduleState
+import com.avail.descriptor.module.A_Module.Companion.setModuleState
+import com.avail.descriptor.module.ModuleDescriptor.State.Loaded
+import com.avail.descriptor.module.ModuleDescriptor.State.Loading
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
@@ -41,7 +44,6 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_MODULE_IS_CLOSED
-import com.avail.exceptions.AvailRuntimeException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
@@ -59,17 +61,13 @@ object P_CloseModule : Primitive(1, CanInline)
 		interpreter.checkArgumentCount(1)
 		val module: A_Module = interpreter.argument(0)
 
-		return try
+		if (module.moduleState() != Loading)
 		{
-			module.closeModule()
-			interpreter.primitiveSuccess(TOP.o)
+			// TODO Should rename error code.
+			return interpreter.primitiveFailure(E_MODULE_IS_CLOSED)
 		}
-		catch (e: AvailRuntimeException)
-		{
-			val errorCode = e.errorCode
-			assert(errorCode === E_MODULE_IS_CLOSED)
-			interpreter.primitiveFailure(errorCode)
-		}
+		module.setModuleState(Loaded)
+		return interpreter.primitiveSuccess(TOP.o)
 	}
 
 	override fun privateBlockTypeRestriction () =

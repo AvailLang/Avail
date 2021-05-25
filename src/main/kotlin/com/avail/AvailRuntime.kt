@@ -81,15 +81,18 @@ import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.closeModule
 import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
 import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
 import com.avail.descriptor.module.A_Module.Companion.privateNames
 import com.avail.descriptor.module.A_Module.Companion.removeFrom
+import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.ModuleDescriptor.State.Loaded
+import com.avail.descriptor.module.ModuleDescriptor.State.Loading
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
@@ -237,7 +240,6 @@ import java.util.function.Consumer
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.read
 import kotlin.concurrent.withLock
-import kotlin.concurrent.write
 import kotlin.math.min
 
 /**
@@ -276,7 +278,7 @@ class AvailRuntime constructor(
 	 * null, but is populated as the interpreter thread pool adds more workers.
 	 * After an entry has been set, it is never changed or reset to null.
 	 */
-	val interpreterHolders = Array(maxInterpreters) {
+	private val interpreterHolders = Array(maxInterpreters) {
 		AtomicReference<Interpreter>()
 	}
 
@@ -1281,7 +1283,9 @@ class AvailRuntime constructor(
 	fun addModule(module: A_Module)
 	{
 		// Ensure that the module is closed before installing it globally.
-		module.closeModule()
+		assert(module.moduleState() == Loading)
+		module.setModuleState(Loaded)
+
 		runtimeLock.safeWrite {
 			assert(!includesModuleNamed(module.moduleName()))
 			modules = modules.mapAtPuttingCanDestroy(
@@ -1367,7 +1371,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	fun removeDefinition(definition: A_Definition)
 	{
-		runtimeLock.write{
+		runtimeLock.safeWrite {
 			definition.definitionMethod().removeDefinition(definition)
 		}
 	}
@@ -1381,7 +1385,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	fun removeMacro(macro: A_Macro)
 	{
-		runtimeLock.write{
+		runtimeLock.safeWrite {
 			macro.definitionBundle().removeMacro(macro)
 		}
 	}

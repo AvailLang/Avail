@@ -125,7 +125,6 @@ import com.avail.descriptor.methods.SemanticRestrictionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addConstantBinding
 import com.avail.descriptor.module.A_Module.Companion.addVariableBinding
-import com.avail.descriptor.module.A_Module.Companion.closeModule
 import com.avail.descriptor.module.A_Module.Companion.constantBindings
 import com.avail.descriptor.module.A_Module.Companion.exportedNames
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
@@ -721,7 +720,9 @@ class AvailCompiler(
 
 	/**
 	 * Commit the [module][A_Module] that was defined since the most recent
-	 * [startModuleTransaction]. [Close][A_Module.closeModule] the module.
+	 * [startModuleTransaction].  This also closes the module against further
+	 * changes by [setting][ModuleDescriptor.o_SetModuleState] its state to
+	 * [Loaded][ModuleDescriptor.State.Loaded].
 	 */
 	private fun commitModuleTransaction() =
 		compilationContext.runtime.addModule(compilationContext.module)

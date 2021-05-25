@@ -41,7 +41,6 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addPrivateName
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set.Companion.setSize
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -73,7 +72,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val module = currentModule
+		val module = interpreter.module()
 		val trueName = Mutable<A_Atom?>(null)
 		val errorCode = Mutable<AvailErrorCode?>(null)
 		if (!module.equalsNil())

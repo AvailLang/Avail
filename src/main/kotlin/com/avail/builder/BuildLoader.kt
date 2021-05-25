@@ -216,7 +216,9 @@ internal class BuildLoader constructor(
 		{
 			val repository = moduleName.repository
 			val archive = repository.getArchive(moduleName.rootRelativeName)
-			archive.digestForFile(moduleName, false,
+			archive.digestForFile(
+				moduleName,
+				false,
 				{ digest ->
 					val versionKey = ModuleVersionKey(moduleName, digest)
 					val version = archive.getVersion(versionKey) ?: error(
@@ -495,7 +497,9 @@ internal class BuildLoader constructor(
 	{
 		val repository = moduleName.repository
 		val archive = repository.getArchive(moduleName.rootRelativeName)
-		archive.digestForFile(moduleName, false,
+		archive.digestForFile(
+			moduleName,
+			false,
 			{ digest ->
 				val versionKey = ModuleVersionKey(moduleName, digest)
 				var lastPosition = 0L

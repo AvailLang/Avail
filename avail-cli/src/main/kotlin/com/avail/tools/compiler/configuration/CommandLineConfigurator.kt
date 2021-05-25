@@ -176,9 +176,9 @@ class CommandLineConfigurator constructor(
 				listOf("availRenames"),
 				"The path to the renames file. This option overrides "
 				+ "environment variables.")
-				{
-					configuration.renamesFilePath = argument
-				}
+			{
+				configuration.renamesFilePath = argument
+			}
 			optionWithArgument(
 				AVAIL_ROOTS,
 				listOf("availRoots"),
@@ -188,16 +188,16 @@ class CommandLineConfigurator constructor(
 					+ "module root location. A module root location comprises the "
 					+ "absolute path to a source package. This option overrides "
 					+ "environment variables.")
-				{
-					configuration.availRootsPath = argument
-				}
+			{
+				configuration.availRootsPath = argument
+			}
 			option(
 				COMPILE_MODULES,
 				listOf("c", "compile"),
 				"Compile the target module and its ancestors.")
-				{
-					configuration.compileModules = true
-				}
+			{
+				configuration.compileModules = true
+			}
 			option(
 				CLEAR_REPOSITORIES,
 				listOf("f", "clearRepositories"),
@@ -207,10 +207,10 @@ class CommandLineConfigurator constructor(
 				+ "emptied. In an invocation with a valid target module name, "
 				+ "the repositories will be cleared before compilation is "
 				+ "attempted. Mutually exclusive with -g.")
-				{
-					processor.checkEncountered(GENERATE_DOCUMENTATION, 0)
-					configuration.clearRepositories = true
-				}
+			{
+				processor.checkEncountered(GENERATE_DOCUMENTATION, 0)
+				configuration.clearRepositories = true
+			}
 			option(
 				GENERATE_DOCUMENTATION,
 				listOf("g", "generateDocumentation"),
@@ -218,37 +218,35 @@ class CommandLineConfigurator constructor(
 				+ "ancestors. The relevant repositories must already contain "
 				+ "compilations for every module implied by the request. "
 				+ "Mutually exclusive with -f.")
-				{
-					processor.checkEncountered(CLEAR_REPOSITORIES, 0)
-					processor.checkEncountered(SHOW_STATISTICS, 0)
-					configuration.generateDocumentation = true
-				}
+			{
+				processor.checkEncountered(CLEAR_REPOSITORIES, 0)
+				processor.checkEncountered(SHOW_STATISTICS, 0)
+				configuration.generateDocumentation = true
+			}
 			optionWithArgument(
 				DOCUMENTATION_PATH,
 				listOf("G", "documentationPath"),
 				"The path to the output directory where documentation and data "
 				+ "files will appear when Stacks documentation is generated. "
 				+ "Requires -g.")
+			{
+				configuration.documentationPath = try
 				{
-					val path: Path
-					try
-					{
-						path = Paths.get(argument)
-					}
-					catch (e: InvalidPathException)
-					{
-						throw OptionProcessingException(
-							"$keyword: invalid path: ${e.localizedMessage}")
-					}
-					configuration.documentationPath = path
+					Paths.get(argument)
 				}
+				catch (e: InvalidPathException)
+				{
+					throw OptionProcessingException(
+						"$keyword: invalid path: ${e.localizedMessage}")
+				}
+			}
 			option(
 				QUIET,
 				listOf("q", "quiet"),
 				"Mute all output originating from user code.")
-				{
-					configuration.quiet = true
-				}
+			{
+				configuration.quiet = true
+			}
 			optionWithArgument(
 				SHOW_STATISTICS,
 				listOf("s", "showStatistics"),
@@ -266,27 +264,30 @@ class CommandLineConfigurator constructor(
 				+ "time-intensive to run overall.\n"
 				+ "PrimitiveReturnTypeChecks - The primitives that take the "
 				+ "most time checking return types.")
+			{
+				processor.checkEncountered(GENERATE_DOCUMENTATION, 0)
+				val reportsArr = argument
+					.split(",".toRegex())
+					.filter(String::isNotEmpty)
+					.ifEmpty { listOf("") }  // Triggers exception below.
+				val reports = EnumSet.noneOf(StatisticReport::class.java)
+				for (reportName in reportsArr)
 				{
-					processor.checkEncountered(GENERATE_DOCUMENTATION, 0)
-					val reportsArr = argument
-						.split(",".toRegex())
-						.filter(String::isNotEmpty)
-						.ifEmpty { listOf("") }  // Triggers exception below.
-					val reports = EnumSet.noneOf(StatisticReport::class.java)
-					for (reportName in reportsArr) {
-						if (reportName == "*") {
-							reports.addAll(
-								EnumSet.allOf(StatisticReport::class.java))
-						}
-						else {
-							reports.add(
-								StatisticReport.reportFor(reportName)
-									?: throw OptionProcessingException(
-										"$keyword: Illegal argument."))
-						}
+					if (reportName == "*")
+					{
+						reports.addAll(
+							EnumSet.allOf(StatisticReport::class.java))
 					}
-					configuration.reports = reports
+					else
+					{
+						reports.add(
+							StatisticReport.reportFor(reportName)
+								?: throw OptionProcessingException(
+									"$keyword: Illegal argument."))
+					}
 				}
+				configuration.reports = reports
+			}
 			optionWithArgument(
 				VERBOSE_MODE,
 				listOf("v", "verboseMode"),
@@ -299,22 +300,22 @@ class CommandLineConfigurator constructor(
 				+ "any error messages will be output.\n"
 				+ "2 - Global progress is output along with the local module "
 				+ "compilation progress and any error messages.")
+			{
+				try
 				{
-					try
-					{
-						// This parseInt will (also) throw an exception if
-						// it tries to parse "" as a result of the illegal
-						// use of "=" without any items following.
-						val level = Integer.parseInt(argument)
-						configuration.verbosityLevel = VerbosityLevel.atLevel(level)
-					}
-					catch (e: NumberFormatException)
-					{
-						throw OptionProcessingException(
-							"$keyword: Illegal argument.",
-							e)
-					}
+					// This parseInt will (also) throw an exception if
+					// it tries to parse "" as a result of the illegal
+					// use of "=" without any items following.
+					val level = Integer.parseInt(argument)
+					configuration.verbosityLevel = VerbosityLevel.atLevel(level)
 				}
+				catch (e: NumberFormatException)
+				{
+					throw OptionProcessingException(
+						"$keyword: Illegal argument.",
+						e)
+				}
+			}
 			helpOption(
 				HELP,
 				"The Avail compiler understands the following options: ",
@@ -328,35 +329,40 @@ class CommandLineConfigurator constructor(
 				+ "/usr/local/avail/stuff/, and module \"frog\" is in the root "
 				+ "directory as /usr/local/avail/stuff/frog, the target module "
 				+ "name would be /foo/frog.")
+			{
+				try
 				{
-					  try
-					  {
-						  configuration.targetModuleName =
-							  ModuleName(argument)
-					  }
-					  catch (e: OptionProcessingException)
-					  {
-						  throw OptionProcessingException(
-							  "«default»: ${e.message}",
-							  e)
-					  }
+					configuration.targetModuleName = ModuleName(argument)
 				}
+				catch (e: OptionProcessingException)
+				{
+					throw OptionProcessingException(
+						"«default»: ${e.message}",
+						e)
+				}
+			}
 			configuration.rule(
 				"Must include either --compile, --generateDocumentation, "
-					+ "--clearRepositories, or -?"
-			) {
+					+ "--clearRepositories, or -?")
+			{
 				compileModules || generateDocumentation || clearRepositories
 			}
-			configuration.rule("Could not resolve specified module") {
-				try {
+			configuration.rule("Could not resolve specified module")
+			{
+				try
+				{
 					// Just try to create a module name resolver. If this fails,
 					// then the configuration is invalid. Otherwise, it should
 					// be okay.
 					moduleNameResolver
 					true
-				} catch (e: FileNotFoundException) {
+				}
+				catch (e: FileNotFoundException)
+				{
 					false
-				} catch (e: RenamesFileParserException) {
+				}
+				catch (e: RenamesFileParserException)
+				{
 					false
 				}
 			}

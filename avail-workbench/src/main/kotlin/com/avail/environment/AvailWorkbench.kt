@@ -199,7 +199,6 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.concurrent.schedule
-import kotlin.concurrent.write
 import kotlin.math.max
 import kotlin.math.min
 
@@ -722,7 +721,7 @@ class AvailWorkbench internal constructor (
 		// decreasing totalQueuedTextSize just before unlocking.
 		var lengthToInsert = 0
 		val aggregatedEntries = mutableListOf<BuildOutputStreamEntry>()
-		val wentToZero = dequeLock.write {
+		val wentToZero = dequeLock.safeWrite {
 			var removedSize = privateDiscardExcessLeadingQueuedUpdates()
 			var currentStyle: StreamStyle? = null
 			val builder = StringBuilder()
@@ -1512,7 +1511,7 @@ class AvailWorkbench internal constructor (
 			// to happen within the dequeLock, it nicely blocks this writer
 			// while whoever owns the lock does its own cleanup.
 			val beforeLock = System.nanoTime()
-			dequeLock.write {
+			dequeLock.safeWrite {
 				waitForDequeLockStat.record(System.nanoTime() - beforeLock)
 				try
 				{

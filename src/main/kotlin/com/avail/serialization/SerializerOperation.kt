@@ -75,13 +75,14 @@ import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addPrivateName
 import com.avail.descriptor.module.A_Module.Companion.constantBindings
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
-import com.avail.descriptor.module.A_Module.Companion.isOpen
 import com.avail.descriptor.module.A_Module.Companion.moduleName
+import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
 import com.avail.descriptor.module.A_Module.Companion.privateNames
 import com.avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.variableBindings
+import com.avail.descriptor.module.ModuleDescriptor.State.Loading
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
 import com.avail.descriptor.numbers.A_Number.Companion.extractFloat
@@ -1242,7 +1243,7 @@ enum class SerializerOperation constructor(
 			val phraseOrIndex = when
 			{
 				module.equalsNil()
-					|| !module.isOpen()
+					|| module.moduleState() != Loading
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
 					|| originatingPhraseOrIndex.equalsNil()

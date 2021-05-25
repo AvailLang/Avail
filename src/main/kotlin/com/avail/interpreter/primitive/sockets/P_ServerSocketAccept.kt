@@ -43,7 +43,6 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
@@ -134,7 +133,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		val runtime = currentRuntime()
 		return try
 		{
-			val module = currentModule
+			val module = interpreter.module()
 			socket.accept(
 				dummy,
 				SimpleCompletionHandler(

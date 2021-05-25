@@ -68,7 +68,7 @@ class BloomFilter
 	constructor(bitCount: Int, hashCount: Int)
 	{
 		this.hashCount = hashCount
-		this.array = LongArray((bitCount + 63) shr 64)
+		this.array = LongArray((bitCount + 63) shr 6)
 	}
 
 	/**

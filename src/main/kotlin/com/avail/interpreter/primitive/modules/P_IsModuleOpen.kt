@@ -34,7 +34,8 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.isOpen
+import com.avail.descriptor.module.A_Module.Companion.moduleState
+import com.avail.descriptor.module.ModuleDescriptor.State.Loading
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -59,7 +60,7 @@ object P_IsModuleOpen : Primitive(1, CanInline, CannotFail)
 		val module: A_Module = interpreter.argument(0)
 
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(module.isOpen()))
+			objectFromBoolean(module.moduleState() == Loading))
 	}
 
 	override fun privateBlockTypeRestriction () =

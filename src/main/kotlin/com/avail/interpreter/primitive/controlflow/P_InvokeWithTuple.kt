@@ -109,10 +109,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		// The arguments and parameter types agree.  Can't fail after here, so
 		// feel free to clobber the argsBuffer.
 		interpreter.argsBuffer.clear()
-		for (arg in argTuple)
-		{
-			interpreter.argsBuffer.add(arg)
-		}
+		interpreter.argsBuffer.addAll(argTuple)
 		interpreter.function = function
 		return READY_TO_INVOKE
 	}

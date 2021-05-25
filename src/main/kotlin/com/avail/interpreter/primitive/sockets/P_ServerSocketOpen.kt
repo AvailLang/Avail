@@ -37,7 +37,6 @@ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -68,7 +67,7 @@ object P_ServerSocketOpen : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
 		return try {
-			val handle = createAtom(name, currentModule)
+			val handle = createAtom(name, interpreter.module())
 			val channel = currentRuntime().ioSystem.openServerSocket()
 			handle.setAtomProperty(
 				SERVER_SOCKET_KEY.atom, identityPojo(channel))

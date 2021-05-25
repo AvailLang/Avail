@@ -49,6 +49,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import com.avail.interpreter.primitive.pojos.P_InvokeCallback
 import com.avail.interpreter.primitive.pojos.PrimitiveHelper.rawPojoInvokerFunctionFromFunctionType
 import com.avail.utility.SimpleThreadFactory
+import com.avail.utility.safeWrite
 import java.util.WeakHashMap
 import java.util.concurrent.LinkedBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
@@ -58,7 +59,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.function.Function
 import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.read
-import kotlin.concurrent.write
 
 /**
  * A mechanism for adapting a Java [Function] into an Avail [A_Function].  The
@@ -289,7 +289,7 @@ class CallbackSystem
 				) = callbackFunction(argumentsTuple, completion, failure)
 			}
 			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
-			val rawFunction = rawFunctionCacheLock.write {
+			val rawFunction = rawFunctionCacheLock.safeWrite {
 				rawFunctionCache.computeIfAbsent(functionType) { fType ->
 					rawPojoInvokerFunctionFromFunctionType(
 						P_InvokeCallback, fType, callbackTypePojo)
@@ -322,7 +322,7 @@ class CallbackSystem
 			val callbackPojo = newPojo(identityPojo(callback), callbackTypePojo)
 			val rawFunction = rawFunctionCacheLock.read {
 				rawFunctionCache[functionType]
-			} ?: rawFunctionCacheLock.write {
+			} ?: rawFunctionCacheLock.safeWrite {
 				rawFunctionCache.computeIfAbsent(functionType) { fType ->
 					rawPojoInvokerFunctionFromFunctionType(
 						P_InvokeCallback, fType, callbackTypePojo)

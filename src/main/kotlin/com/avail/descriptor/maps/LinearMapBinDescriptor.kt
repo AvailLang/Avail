@@ -61,6 +61,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.cast
+import com.avail.utility.structures.EnumMap
 import java.util.NoSuchElementException
 
 /**
@@ -704,6 +705,16 @@ internal class LinearMapBinDescriptor private constructor(
 		private const val numberOfLevels: Int = 8
 
 		/**
+		 * The [LinearMapBinDescriptor] instances.  Each [Array] is indexed by
+		 * level.
+		 */
+		private val descriptors = EnumMap.enumMap { mut: Mutability ->
+			Array(numberOfLevels) { level ->
+				LinearMapBinDescriptor(mut, level)
+			}
+		}
+
+		/**
 		 * Answer a suitable descriptor for a linear bin with the specified
 		 * mutability and at the specified level.
 		 *
@@ -719,17 +730,7 @@ internal class LinearMapBinDescriptor private constructor(
 			level: Int
 		): LinearMapBinDescriptor {
 			assert(level in 0 until numberOfLevels)
-			return descriptors[level * 3 + flag.ordinal]
-		}
-
-		/**
-		 * [LinearMapBinDescriptor]s clustered by mutability and level.
-		 */
-		val descriptors = Array(numberOfLevels * 3) {
-			val level = it / 3
-			@Suppress("RemoveRedundantQualifierName")
-			val mut = Mutability.values()[it - level * 3]
-			LinearMapBinDescriptor(mut, level)
+			return descriptors[flag]!![level]
 		}
 
 		/**
