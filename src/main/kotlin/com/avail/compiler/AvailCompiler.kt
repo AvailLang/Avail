@@ -708,7 +708,7 @@ class AvailCompiler(
 
 	/**
 	 * Rollback the [module][ModuleDescriptor] that was defined since the most
-	 * recent [startModuleTransaction]. [Close][A_Module.closeModule] the
+	 * recent [startModuleTransaction]. [Close][A_Module.setModuleState] the
 	 * module.
 	 *
 	 * @param afterRollback
@@ -721,7 +721,7 @@ class AvailCompiler(
 	/**
 	 * Commit the [module][A_Module] that was defined since the most recent
 	 * [startModuleTransaction].  This also closes the module against further
-	 * changes by [setting][ModuleDescriptor.o_SetModuleState] its state to
+	 * changes by [setting][A_Module.setModuleState] its state to
 	 * [Loaded][ModuleDescriptor.State.Loaded].
 	 */
 	private fun commitModuleTransaction() =
@@ -2223,8 +2223,7 @@ class AvailCompiler(
 				restriction,
 				argTypes,
 				state.lexingState,
-				intersectAndDecrement,
-				{ e ->
+				intersectAndDecrement) { e ->
 					if (e is AvailAcceptedParseException)
 					{
 						// This is really a success.
@@ -2238,8 +2237,9 @@ class AvailCompiler(
 							e.rejectionString.asNativeString()
 								+ " (while parsing send of "
 								+ bundle.message()
-									.atomName().asNativeString()
-								+ ')'.toString())
+								.atomName().asNativeString()
+								+ ")"
+						)
 						is FiberTerminationException -> state.expected(
 							STRONG,
 							"semantic restriction not to raise an "
@@ -2247,14 +2247,16 @@ class AvailCompiler(
 								+ "send of "
 								+ bundle.message().atomName().asNativeString()
 								+ "):\n\t"
-								+ e)
+								+ e
+						)
 						is AvailAssertionFailedException -> state.expected(
 							STRONG,
 							"assertion not to have failed "
 								+ "(while parsing send of "
 								+ bundle.message().atomName().asNativeString()
 								+ "):\n\t"
-								+ e.assertionString.asNativeString())
+								+ e.assertionString.asNativeString()
+						)
 						else -> state.expected(
 							STRONG,
 							FormattingDescriber(
@@ -2265,7 +2267,7 @@ class AvailCompiler(
 					{
 						whenDone()
 					}
-				})
+			}
 		}
 	}
 
