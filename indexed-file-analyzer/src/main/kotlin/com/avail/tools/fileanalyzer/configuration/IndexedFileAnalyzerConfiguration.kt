@@ -82,6 +82,23 @@ class IndexedFileAnalyzerConfiguration : Configuration
 	internal var explodeDirectory: File? = null
 
 	/**
+	 * The directory, containing records and optionally metadata, to assemble
+	 * into an indexed file.
+	 */
+	internal var implodeDirectory: File? = null
+
+	/**
+	 * The header string that indicates the kind of [IndexedFile] to create.
+	 * Must be present iff [implodeDirectory] is present.
+	 */
+	internal var implodeHeader: String? = null
+
+	/**
+	 * The output [File] for an implosion from some [implodeDirectory].
+	 */
+	internal var implodeOutput: File? = null
+
+	/**
 	 * `true` iff metadata should be processed as well.  `false` by default.
 	 */
 	internal var metadata = false
