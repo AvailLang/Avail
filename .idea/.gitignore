@@ -1,6 +1,7 @@
 # Default ignored files
 /jarRepositories.xml
 /libraries
+/libraries-with-intellij-classes.xml
 /modules
 /workspace.xml
 /modules.xml
