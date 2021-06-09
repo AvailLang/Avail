@@ -41,19 +41,13 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
-import com.avail.builder.UnresolvedModuleException
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.module.A_Module
+import com.avail.error.ErrorCodeRangeRegistry
 import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
-import com.avail.persistence.Repository
-import com.avail.server.AvailServer.ModuleNodeType.DIRECTORY
-import com.avail.server.AvailServer.ModuleNodeType.MODULE
-import com.avail.server.AvailServer.ModuleNodeType.PACKAGE
-import com.avail.server.AvailServer.ModuleNodeType.REPRESENTATIVE
-import com.avail.server.AvailServer.ModuleNodeType.RESOURCE
-import com.avail.server.AvailServer.ModuleNodeType.ROOT
+import com.avail.persistence.cache.Repository
 import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
@@ -69,8 +63,8 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
-import com.avail.server.io.files.FileManager
-import com.avail.server.io.files.LocalFileManager
+import com.avail.files.FileManager
+import com.avail.server.error.ServerErrorCodeRange
 import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
@@ -81,7 +75,6 @@ import com.avail.server.messages.SimpleCommandMessage
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
-import com.avail.utility.Mutable
 import com.avail.server.messages.binary.editor.BinaryCommand
 import com.avail.server.messages.binary.editor.ErrorBinaryMessage
 import com.avail.server.session.Session
@@ -91,17 +84,8 @@ import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.nio.file.FileVisitOption
-import java.nio.file.FileVisitResult
-import java.nio.file.FileVisitor
-import java.nio.file.Files
-import java.nio.file.Path
-import java.nio.file.Paths
-import java.nio.file.attribute.BasicFileAttributes
-import java.util.ArrayDeque
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
-import java.util.EnumSet
 import java.util.TimerTask
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -136,14 +120,17 @@ import kotlin.collections.set
  *   An Avail runtime.
  * @param fileManager
  *   The [FileManager] used to manage files by this [AvailServer].
- *   [LocalFileManager] by default.
  */
 class AvailServer constructor(
 	@Suppress("MemberVisibilityCanBePrivate")
 	val configuration: AvailServerConfiguration,
 	val runtime: AvailRuntime,
-	internal val fileManager: FileManager = LocalFileManager(runtime))
+	val fileManager: FileManager)
 {
+	init
+	{
+		fileManager.associateRuntime(runtime)
+	}
 	/**
 	 * The [Avail builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
@@ -287,322 +274,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * A `ModuleNodeType` represents the type of a [ModuleNode].
-	 *
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 */
-	internal enum class ModuleNodeType
-	{
-		/** Represents an ordinary Avail module. */
-		MODULE,
-
-		/** Represents an Avail package representative. */
-		REPRESENTATIVE,
-
-		/** Represents an Avail package. */
-		PACKAGE,
-
-		/** Represents an Avail root. */
-		ROOT,
-
-		/** Represents an arbitrary directory. */
-		DIRECTORY,
-
-		/** Represents an arbitrary resource. */
-		RESOURCE;
-
-		/** A short description of the receiver. */
-		val label get () = name.toLowerCase()
-	}
-
-	/**
-	 * A `ModuleNode` represents a node in a module tree.
-	 *
-	 * @property localName
-	 *   The local name associated with the [node][ModuleNode].
-	 * @property qualifiedName
-	 *   The fully qualified name associated with the [node][ModuleNode].
-	 * @property type
-	 *   The type associated with the [node][ModuleNode].
-	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 *
-	 * @constructor
-	 *
-	 * Construct a new `ModuleNode`.
-	 *
-	 * @property localName
-	 *   The local name associated with the node.
-	 * @property qualifiedName
-	 *   The fully qualified name associated with the node.
-	 * @property type
-	 *   The type associated with the node. Defaults to `"module"`.
-	 */
-	internal inner class ModuleNode constructor(
-		val localName: String,
-		val qualifiedName: String,
-		@Suppress("MemberVisibilityCanBePrivate")
-		val type: ModuleNodeType = MODULE)
-	{
-		/** The children of the [node][ModuleNode]. */
-		val modules = mutableListOf<ModuleNode>()
-
-		/** The resources of the [node][ModuleNode]. */
-		val resources = mutableListOf<ModuleNode>()
-
-		/**
-		 * The [exception][Throwable] that prevented evaluation of this
-		 * [node][ModuleNode].
-		 */
-		var exception: Throwable? = null
-
-		/**
-		 * Recursively write the receiver to the supplied [JSONWriter].
-		 *
-		 * @param writer
-		 *   A `JSONWriter`.
-		 */
-		private fun recursivelyWriteOn(writer: JSONWriter)
-		{
-			// Representatives should not have a visible footprint in the
-			// tree; we want their enclosing packages to represent them.
-			if (type !== REPRESENTATIVE)
-			{
-				writer.writeObject {
-					at("localName") { write(localName) }
-					at("qualifiedName") { write(qualifiedName) }
-					at("type") { write(type.label) }
-					exception?.let {
-						at("error") { write(it.localizedMessage) }
-					}
-					when (type)
-					{
-						PACKAGE ->
-						{
-							// Handle a missing representative as a special
-							// kind of error, but only if another error
-							// hasn't already been reported.
-							if (exception === null
-								&& modules.none {
-									it.localName == localName
-								})
-							{
-								at("error") {
-									write("Missing representative")
-								}
-							}
-							writeResolutionInformationOn(writer)
-						}
-						MODULE -> writeResolutionInformationOn(writer)
-						else -> { }
-					}
-					if (modules.isNotEmpty() || resources.isNotEmpty())
-					{
-						at("childNodes") {
-							writeArray {
-								modules.forEach { module ->
-									module.recursivelyWriteOn(writer)
-								}
-								resources.forEach { resource ->
-									resource.recursivelyWriteOn(writer)
-								}
-							}
-						}
-					}
-				}
-			}
-		}
-
-		/**
-		 * Write information that requires
-		 * [module resolution][ModuleNameResolver].
-		 *
-		 * @param writer
-		 *   A `JSONWriter`.
-		 */
-		private fun writeResolutionInformationOn(writer: JSONWriter) =
-			with(writer) {
-				val resolver = runtime.moduleNameResolver
-				var resolved: ResolvedModuleName? = null
-				var resolutionException: Throwable? = null
-				val loaded =
-					try
-					{
-						resolved = resolver.resolve(ModuleName(qualifiedName))
-						builder.getLoadedModule(resolved) !== null
-					}
-					catch (e: UnresolvedModuleException)
-					{
-						resolutionException = e
-						false
-					}
-				at("status") { write(if (loaded) "loaded" else "not loaded") }
-				if (resolved?.isRename == true)
-				{
-					at("resolvedName") { write(resolved.qualifiedName) }
-				}
-				else if (exception === null && resolutionException !== null)
-				{
-					at("error") { write(resolutionException.localizedMessage) }
-				}
-				resolver.renameRulesInverted[qualifiedName]?.let {
-					at("redirectedNames") {
-						writeArray { it.forEach(this::write) }
-					}
-				}
-			}
-
-		/**
-		 * Write the `ModuleNode` to the supplied [JSONWriter].
-		 *
-		 * @param writer
-		 *   A `JSONWriter`.
-		 */
-		fun writeOn(writer: JSONWriter)
-		{
-			recursivelyWriteOn(writer)
-		}
-	}
-
-	/**
-	 * Answer a [visitor][FileVisitor] able to visit every source module
-	 * beneath the specified [module root][ModuleRoot].
-	 *
-	 * @param root
-	 *   A module root.
-	 * @param tree
-	 *   The [holder][Mutable] for the resultant tree of [modules][ModuleNode].
-	 * @return
-	 *   A `FileVisitor`.
-	 */
-	private fun sourceModuleVisitor(
-		root: ModuleRoot,
-		tree: Mutable<ModuleNode?>): FileVisitor<Path>
-	{
-		val extension = ModuleNameResolver.availExtension
-		var isRoot = true
-		val stack = ArrayDeque<ModuleNode>()
-		return object : FileVisitor<Path>
-		{
-			override fun preVisitDirectory(
-				dir: Path,
-				attrs: BasicFileAttributes): FileVisitResult
-			{
-				// If this directory is a root, then create its node now and
-				// then recurse into it. Turn off the isRoot flag.
-				if (isRoot)
-				{
-					isRoot = false
-					val node = ModuleNode(root.name, "/${root.name}", ROOT)
-					tree.value = node
-					stack.add(node)
-					return FileVisitResult.CONTINUE
-				}
-				val parent = stack.peekFirst()!!
-				// The directory is not a root. If it has an Avail
-				// extension, then it is a package.
-				val fileName = dir.fileName.toString()
-				if (fileName.endsWith(extension))
-				{
-					val localName = fileName.substring(
-						0, fileName.length - extension.length)
-					val node = ModuleNode(
-						localName,
-						"${parent.qualifiedName}/$localName",
-						PACKAGE)
-					parent.modules.add(node)
-					stack.addFirst(node)
-					return FileVisitResult.CONTINUE
-				}
-				// This is an ordinary directory.
-				val node = ModuleNode(
-					fileName,
-					"${parent.qualifiedName}/$fileName",
-					DIRECTORY)
-				parent.resources.add(node)
-				stack.addFirst(node)
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun postVisitDirectory(
-				dir: Path,
-				e: IOException?): FileVisitResult
-			{
-				stack.removeFirst()
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun visitFile(
-				file: Path,
-				attrs: BasicFileAttributes): FileVisitResult
-			{
-				// The root should be a directory, not a file.
-				if (isRoot)
-				{
-					throw IOException("alleged root is not a directory")
-				}
-				// A file with an Avail extension is an Avail module.
-				val parent = stack.peekFirst()!!
-				val fileName = file.fileName.toString()
-				if (fileName.endsWith(extension))
-				{
-					val localName = fileName.substring(
-						0, fileName.length - extension.length)
-					val type =
-						if (parent.localName == localName) REPRESENTATIVE
-						else MODULE
-					val node = ModuleNode(
-						localName,
-						"${parent.qualifiedName}/$localName",
-						type)
-					parent.modules.add(node)
-				}
-				// Otherwise, it is a resource.
-				else
-				{
-					val node = ModuleNode(
-						fileName,
-						"${parent.qualifiedName}/$fileName",
-						RESOURCE)
-					parent.resources.add(node)
-				}
-				return FileVisitResult.CONTINUE
-			}
-
-			override fun visitFileFailed(
-				file: Path,
-				e: IOException): FileVisitResult
-			{
-				val parent = stack.peekFirst()!!
-				val isDirectory = file.toFile().isDirectory
-				val fileName = file.fileName.toString()
-				if (fileName.endsWith(extension))
-				{
-					val localName = fileName.substring(
-						0, fileName.length - extension.length)
-					val node = ModuleNode(
-						localName,
-						"${parent.qualifiedName}/$localName",
-						if (isDirectory) PACKAGE else MODULE)
-					node.exception = e
-					parent.modules.add(node)
-				}
-				else
-				{
-					val node = ModuleNode(
-						fileName,
-						"${parent.qualifiedName}/$fileName",
-						if (isDirectory) DIRECTORY else RESOURCE)
-					node.exception = e
-					parent.resources.add(node)
-				}
-				return FileVisitResult.CONTINUE
-			}
-		}
-	}
-
-	/**
-	 * List all source modules reachable from the
-	 * [module roots][ModuleRoots].
+	 * List all source modules reachable from the [module roots][ModuleRoots].
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -619,38 +291,37 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === TextCommand.SOURCE_MODULES)
-		val message = newSuccessMessage(channel, command) {
-			val roots = runtime.moduleRoots()
-			writeArray {
-				for (root in roots)
-				{
-					val tree = Mutable<ModuleNode?>(null)
-					val directory = root.sourceDirectory
-					if (directory !== null)
-					{
-						try
-						{
-							Files.walkFileTree(
-								Paths.get(directory.absolutePath),
-								EnumSet.of(FileVisitOption.FOLLOW_LINKS),
-								Integer.MAX_VALUE,
-								sourceModuleVisitor(root, tree))
-						}
-						catch (e: IOException)
-						{
-							// This shouldn't happen, since we never raise any
-							// exceptions in the visitor.
+		runtime.moduleRoots().moduleRootTreesThen { resolved, failed ->
+			val writer = JSONWriter()
+			writer.writeObject {
+				writeStatusOn(true, writer)
+				writeCommandOn(command.command, writer)
+				writeCommandIdentifierOn(command.commandId, writer)
+				at("content") {
+					writeArray {
+						resolved.forEach { it.writeOn(writer, builder) }
+					}
+				}
+				at("failures") {
+					writeArray {
+						failed.forEach {
+							writeObject {
+								at("root") { write(it.first) }
+								at("code") { write(it.second.code) }
+								System.err.println(it.third)
+							}
 						}
 					}
-					tree.value!!.writeOn(this)
 				}
 			}
+			channel.enqueueMessageThen(
+				Message(writer, channel.state), continuation)
+
 		}
-		channel.enqueueMessageThen(message, continuation)
 	}
 
 	/**
-	 * List all source modules reachable from the
+	 * Provide all source modules' entry points reachable from the
 	 * [module roots][ModuleRoots].
 	 *
 	 * @param channel
@@ -668,29 +339,31 @@ class AvailServer constructor(
 		continuation: ()->Unit)
 	{
 		assert(command.command === TextCommand.ENTRY_POINTS)
-		val message = newSuccessMessage(channel, command) {
+		newSuccessMessagePayloadThen(command) {
 			val map = synchronizedMap(mutableMapOf<String, List<String>>())
-			builder.traceDirectories { name, version, after ->
+			builder.traceDirectoriesThen({ name, version, after ->
 				val entryPoints = version.getEntryPoints()
 				if (entryPoints.isNotEmpty())
 				{
 					map[name.qualifiedName] = entryPoints
 				}
 				after()
-			}
-			writeArray {
-				map.forEach { (key, value) ->
-					writeObject {
-						at(key) {
-							writeArray {
-								value.forEach(this::write)
+			}) {
+				writeArray {
+					map.forEach { (key, value) ->
+						writeObject {
+							at(key) {
+								writeArray {
+									value.forEach(this::write)
+								}
 							}
 						}
 					}
 				}
 			}
+			channel.enqueueMessageThen(
+				Message(this, channel.state), continuation)
 		}
-		channel.enqueueMessageThen(message, continuation)
 	}
 
 	/**
@@ -715,6 +388,7 @@ class AvailServer constructor(
 		{
 			for (root in runtime.moduleNameResolver.moduleRoots.roots)
 			{
+				// TODO [RAA] only clear repos w/ resolvers
 				root.clearRepository()
 			}
 			newSimpleSuccessMessage(channel, command)
@@ -807,7 +481,7 @@ class AvailServer constructor(
 	}
 
 	/**
-	 * Request new file-editing [channel][AvailServerChannel].
+	 * Request to receive server push notifications.
 	 *
 	 * @param channel
 	 *   The [channel][AvailServerChannel] on which the
@@ -846,6 +520,62 @@ class AvailServer constructor(
 		channel.enqueueMessageThen(
 			newUpgradeRequestMessage(channel, command, uuid),
 			afterEnqueuing)
+	}
+
+	/**
+	 * Request server notifications be stopped.
+	 *
+	 * @param channel
+	 *   The [channel][AvailServerChannel] on which the
+	 *   [response][CommandMessage] should be sent.
+	 * @param command
+	 *   An [OPEN_EDITOR][TextCommand.OPEN_EDITOR] command message.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred (and the
+	 *   `AvailServer` wishes to begin receiving messages again).
+	 */
+	fun requestSubscribeNotificationsThen(
+		channel: AvailServerChannel,
+		command: CommandMessage,
+		continuation: () -> Unit)
+	{
+		assert(command.command === TextCommand.SUBSCRIBE_NOTIFICATIONS)
+		channel.session?.let {
+			it.receiveNotifications()
+			channel.enqueueMessageThen(
+				newSimpleSuccessMessage(channel, command),
+				continuation)
+		} ?: channel.enqueueMessageThen(
+			newErrorMessage(channel, command, "Could not locate session"),
+			continuation)
+	}
+
+	/**
+	 * Request new file-editing [channel][AvailServerChannel].
+	 *
+	 * @param channel
+	 *   The [channel][AvailServerChannel] on which the
+	 *   [response][CommandMessage] should be sent.
+	 * @param command
+	 *   An [OPEN_EDITOR][TextCommand.OPEN_EDITOR] command message.
+	 * @param continuation
+	 *   What to do when sufficient processing has occurred (and the
+	 *   `AvailServer` wishes to begin receiving messages again).
+	 */
+	fun requestUnsubscribeNotificationsThen(
+		channel: AvailServerChannel,
+		command: CommandMessage,
+		continuation: () -> Unit)
+	{
+		assert(command.command === TextCommand.UNSUBSCRIBE_NOTIFICATIONS)
+		channel.session?.let {
+			it.receiveNotifications(false)
+			channel.enqueueMessageThen(
+				newSimpleSuccessMessage(channel, command),
+				continuation)
+		} ?: channel.enqueueMessageThen(
+			newErrorMessage(channel, command, "Could not locate session"),
+			continuation)
 	}
 
 	/**
@@ -1198,7 +928,7 @@ class AvailServer constructor(
 		val logger: Logger = Logger.getLogger(AvailServer::class.java.name)
 
 		/** The current server protocol version.  */
-		private const val protocolVersion = 5
+		private const val protocolVersion = 6
 
 		/** The supported client protocol versions.  */
 		private val supportedProtocolVersions = setOf(protocolVersion)
@@ -1275,10 +1005,30 @@ class AvailServer constructor(
 				}
 				at("reason") { write(reason) }
 			}
-			return Message(
-				writer.toString().toByteArray(),
-				channel.state,
-				closeAfterSending)
+			return Message(writer, channel.state, closeAfterSending)
+		}
+
+		/**
+		 * Answer a notification [message][Message] that incorporates the
+		 * specified message,
+		 *
+		 * @param channel
+		 *   The [AvailServerChannel] the message will be sent on.
+		 * @param message
+		 *   The message the notification is meant to contain.
+		 * @return
+		 *   A message.
+		 */
+		internal fun newNotificationMessage(
+			channel: AvailServerChannel,
+			message: String): Message
+		{
+			val writer = JSONWriter()
+			writer.writeObject {
+				writeCommandIdentifierOn(0, writer)
+				at("message") { write(message) }
+			}
+			return Message(writer, channel.state)
 		}
 
 		/**
@@ -1300,7 +1050,7 @@ class AvailServer constructor(
 				writeCommandOn(command.command, writer)
 				writeCommandIdentifierOn(command.commandId, writer)
 			}
-			return Message(writer.toString().toByteArray(), channel.state)
+			return Message(writer, channel.state)
 		}
 
 		/**
@@ -1327,7 +1077,29 @@ class AvailServer constructor(
 				write("content")
 				content()
 			}
-			return Message(writer.toString().toByteArray(), channel.state)
+			return Message(writer, channel.state)
+		}
+
+		/**
+		 * Provide a success [message][Message] initialized [JSONWriter]
+		 * to the specified content writer.
+		 *
+		 * @param command
+		 *   The [command][CommandMessage] for which this is a response.
+		 * @param content
+		 *   How to write the content of the message.
+		 */
+		internal fun newSuccessMessagePayloadThen(
+			command: CommandMessage,
+			content: JSONWriter.() -> Unit)
+		{
+			val writer = JSONWriter()
+			writer.writeObject {
+				writeStatusOn(true, writer)
+				writeCommandOn(command.command, writer)
+				writeCommandIdentifierOn(command.commandId, writer)
+				at("content", content)
+			}
 		}
 
 		/**
@@ -1356,8 +1128,7 @@ class AvailServer constructor(
 				writeCommandIdentifierOn(command.commandId, writer)
 				at("upgrade") { write(uuid.toString()) }
 			}
-			return Message(
-				writer.toString().toByteArray(), channel.state)
+			return Message(writer, channel.state)
 		}
 
 		/**
@@ -1567,6 +1338,8 @@ class AvailServer constructor(
 		 * Obtain the [configuration][AvailServerConfiguration] of the
 		 * `AvailServer`.
 		 *
+		 * @param fileManager
+		 *   The [FileManager] to be used to manage Avail files.
 		 * @param args
 		 *   The command-line arguments.
 		 * @return
@@ -1575,9 +1348,11 @@ class AvailServer constructor(
 		 *   If configuration fails for any reason.
 		 */
 		@Throws(ConfigurationException::class)
-		private fun configure(args: Array<String>): AvailServerConfiguration
+		private fun configure(
+			fileManager: FileManager,
+			args: Array<String>): AvailServerConfiguration
 		{
-			val configuration = AvailServerConfiguration()
+			val configuration = AvailServerConfiguration(fileManager)
 			val environmentConfigurator = EnvironmentConfigurator(configuration)
 			environmentConfigurator.updateConfiguration()
 			val commandLineConfigurator =
@@ -1596,11 +1371,13 @@ class AvailServer constructor(
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			ErrorCodeRangeRegistry.register(ServerErrorCodeRange)
+			val fileManager = FileManager()
 			val configuration: AvailServerConfiguration
 			val resolver: ModuleNameResolver
 			try
 			{
-				configuration = configure(args)
+				configuration = configure(fileManager, args)
 				resolver = configuration.moduleNameResolver()
 			}
 			catch (e: ConfigurationException)
@@ -1623,9 +1400,8 @@ class AvailServer constructor(
 				System.err.println(e.message)
 				return
 			}
-
-			val runtime = AvailRuntime(resolver)
-			val server = AvailServer(configuration, runtime)
+			val runtime = AvailRuntime(resolver, fileManager)
+			val server = AvailServer(configuration, runtime, fileManager)
 			try
 			{
 				WebSocketAdapter(
@@ -1650,6 +1426,7 @@ class AvailServer constructor(
 			}
 			finally
 			{
+				server.fileManager.close()
 				runtime.destroy()
 			}
 		}

@@ -1,6 +1,6 @@
 /*
  * L2_GET_INVALID_MESSAGE_SEND_FUNCTION.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,15 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.AvailRuntime
-import com.avail.AvailRuntime.HookType
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.GLOBAL_STATE
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -56,21 +54,8 @@ import org.objectweb.asm.MethodVisitor
  */
 @ReadsHiddenVariable(GLOBAL_STATE::class)
 object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.named("invalid message send function"))
+	WRITE_BOXED.named("invalid message send function"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
-		registerSet.typeAtPut(
-			function.register(),
-			HookType.INVALID_MESSAGE_SEND.functionType,
-			instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
@@ -78,8 +63,8 @@ object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
+		val function = instruction.operand<L2WriteBoxedOperand>(0)
+
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(function.registerString())
@@ -90,8 +75,7 @@ object L2_GET_INVALID_MESSAGE_SEND_FUNCTION : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val function =
-			instruction.operand<L2WriteBoxedOperand>(0)
+		val function = instruction.operand<L2WriteBoxedOperand>(0)
 
 		// :: destination = interpreter.runtime().invalidMessageSendFunction();
 		translator.loadInterpreter(method)

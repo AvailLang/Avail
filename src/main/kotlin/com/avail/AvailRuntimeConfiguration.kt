@@ -1,6 +1,6 @@
 /*
  * AvailRuntimeConfiguration.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -51,7 +51,7 @@ object AvailRuntimeConfiguration
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	val activeVersions = arrayOf("1.4.0")
+	val activeVersions = arrayOf("1.5.0")
 
 	/**
 	 * Answer a short string indicating the most recent version of Avail

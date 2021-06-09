@@ -1,6 +1,6 @@
 /*
- * L2ConditionalJump.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2ConditionalJump.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,7 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
-import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -50,7 +48,6 @@ import org.objectweb.asm.MethodVisitor
  * @constructor
  * Protect the constructor so the subclasses can maintain a fly-weight
  * pattern (or arguably a singleton).
- *
  *
  * By convention, there are always 2 [targetEdges], the first of which is the
  * "taken" branch, and the second of which is the "not taken" branch.
@@ -70,43 +67,6 @@ abstract class L2ConditionalJump protected constructor(
 		targetEdges(instruction).forEach {
 			it.installCounter()
 		}
-	}
-
-	/**
-	 * An `enum` indicating whether the decision whether to branch or not can be
-	 * reduced to a static decision.
-	 */
-	enum class BranchReduction
-	{
-		/** The branch will always be taken.  */
-		AlwaysTaken,
-
-		/** The branch will never be taken.  */
-		NeverTaken,
-
-		/** It could not be determined if the branch will be taken or not.  */
-		SometimesTaken
-	}
-
-	/**
-	 * Determine if the branch can be eliminated.
-	 *
-	 * @param instruction
-	 *   The [L2Instruction] being examined.
-	 * @param registerSet
-	 *   The [RegisterSet] at the current code position.
-	 * @param generator
-	 *   The [L2Generator] in which code (re)generation is taking place.
-	 * @return
-	 *   A [BranchReduction] indicating whether the branch direction can be
-	 *   statically decided.
-	 */
-	open fun branchReduction(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator): BranchReduction
-	{
-		return BranchReduction.SometimesTaken
 	}
 
 	override fun hasSideEffect(): Boolean

@@ -1,6 +1,6 @@
 /*
  * L2_GET_TYPE.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,8 +41,6 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -59,41 +57,6 @@ object L2_GET_TYPE : L2Operation(
 	L2OperandType.READ_BOXED.named("value"),
 	L2OperandType.WRITE_BOXED.named("value's type"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val valueReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val typeReg = instruction.operand<L2WriteBoxedOperand>(1)
-		registerSet.removeConstantAt(typeReg.register())
-		if (registerSet.hasTypeAt(valueReg.register()))
-		{
-			val type = registerSet.typeAt(valueReg.register())
-			// Apply the rule of metacovariance. It says that given types T1
-			// and T2, T1 <= T2 implies T1 type <= T2 type. It is guaranteed
-			// true for all types in Avail.
-			val meta = InstanceMetaDescriptor.instanceMeta(type)
-			registerSet.typeAtPut(typeReg.register(), meta, instruction)
-		}
-		else
-		{
-			registerSet.typeAtPut(
-				typeReg.register(),
-				InstanceMetaDescriptor.topMeta(),
-				instruction)
-		}
-		if (registerSet.hasConstantAt(valueReg.register())
-			&& !registerSet.constantAt(valueReg.register()).isType)
-		{
-			registerSet.constantAtPut(
-				typeReg.register(),
-				AbstractEnumerationTypeDescriptor.instanceTypeOrMetaOn(
-					registerSet.constantAt(valueReg.register())),
-				instruction)
-		}
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

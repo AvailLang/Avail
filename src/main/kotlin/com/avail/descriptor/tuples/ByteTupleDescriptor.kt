@@ -1,6 +1,6 @@
 /*
  * ByteTupleDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -572,8 +572,8 @@ class ByteTupleDescriptor private constructor(
 		 */
 		private fun descriptorFor(
 			flag: Mutability,
-			size: Int): ByteTupleDescriptor =
-				descriptors[(size and 7) * 3 + flag.ordinal]!!
+			size: Int
+		): ByteTupleDescriptor = descriptors[(size and 7) * 3 + flag.ordinal]!!
 
 		/**
 		 * Build a mutable byte tuple with the specified number of zeroed

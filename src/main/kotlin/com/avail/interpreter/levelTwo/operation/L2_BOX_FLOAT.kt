@@ -1,6 +1,6 @@
 /*
- * L2_BOX_FLOAT.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2_BOX_FLOAT.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,10 +35,11 @@ import com.avail.descriptor.numbers.DoubleDescriptor
 import com.avail.descriptor.representation.AvailObject
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_FLOAT
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -48,8 +49,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_BOX_FLOAT : L2Operation(
-	L2OperandType.READ_FLOAT.named("source"),
-	L2OperandType.WRITE_BOXED.named("destination"))
+	READ_FLOAT.named("source"),
+	WRITE_BOXED.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -58,31 +59,13 @@ object L2_BOX_FLOAT : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val sourceReg =
-			instruction.operand<L2ReadFloatOperand>(0)
-		val destinationReg =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val sourceReg = instruction.operand<L2ReadFloatOperand>(0)
+		val destinationReg = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(destinationReg.registerString())
 		builder.append(" ← ")
 		builder.append(sourceReg.registerString())
-	}
-
-	override fun instructionWasAdded(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest)
-	{
-		assert(this == instruction.operation())
-		val source =
-			instruction.operand<L2ReadFloatOperand>(0)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(1)
-
-		// Ensure the new write ends up in the same synonym as the source.
-		source.instructionWasAdded(manifest)
-		destination.instructionWasAddedForMove(
-			source.semanticValue(), manifest)
 	}
 
 	override fun translateToJVM(

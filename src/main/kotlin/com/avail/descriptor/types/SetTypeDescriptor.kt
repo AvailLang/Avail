@@ -1,6 +1,6 @@
 /*
  * SetTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,6 +49,7 @@ import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfSetType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.trimType
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfSetType
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
@@ -183,6 +184,34 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		(!self.slot(SIZE_RANGE).lowerBound().equalsInt(0)
 	        && self.slot(CONTENT_TYPE).isVacuousType)
 
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		if (!typeToRemove.isSetType) return self
+		if (typeToRemove.isEnumeration) return self
+		self.makeImmutable()
+		typeToRemove.makeImmutable()
+		val contentType = self.contentType()
+		val removedContentType = typeToRemove.contentType()
+		val sizeRange = self.sizeRange()
+		val removedSizeRange = typeToRemove.sizeRange()
+		if (contentType.isSubtypeOf(removedContentType))
+		{
+			// The element types won't be enough to keep sets around, so we can
+			// use the set sizes to determine what we can actually exclude.
+			return setTypeForSizesContentType(
+				sizeRange.trimType(removedSizeRange), contentType)
+		}
+		if (sizeRange.isSubtypeOf(removedSizeRange))
+		{
+			// The sizes won't be enough to keep sets around, so we can use the
+			// content type to determine what we can actually exclude.
+			return setTypeForSizesContentType(
+				sizeRange, contentType.trimType(removedContentType))
+		}
+		return self
+	}
+
 	// Answer the most general type that is still at least as specific as
 	// these.
 	override fun o_TypeIntersection(
@@ -305,7 +334,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 				return bottom
 			}
 			assert(sizeRange.lowerBound().isFinite)
-			assert(zero().lessOrEqual(sizeRange.lowerBound()))
+			assert(zero.lessOrEqual(sizeRange.lowerBound()))
 			assert(sizeRange.upperBound().isFinite
 			       || !sizeRange.upperInclusive())
 			val sizeRangeKind =
@@ -326,7 +355,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 					{
 						// sizeRange includes at least 0 and 1, but the content
 						// type is bottom, so no contents exist.
-						newSizeRange = singleInteger(zero())
+						newSizeRange = singleInteger(zero)
 						newContentType = bottom
 					}
 					else
@@ -347,7 +376,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 							{
 								// There can't ever be more elements in the set
 								// than there are distinct possible values.
-								inclusive(zero(), contentType.instanceCount())
+								inclusive(zero, contentType.instanceCount())
 							}
 							contentType.isIntegerRangeType
 							&& (contentType.lowerBound().isFinite
@@ -359,10 +388,10 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 								// test rules out [-∞..∞], [-∞..∞), (-∞..∞], and
 								// (-∞..∞), allowing safe subtraction.
 								inclusive(
-									zero(),
+									zero,
 									contentType.upperBound().minusCanDestroy(
 										contentType.lowerBound(), false)
-										.plusCanDestroy(one(), false))
+										.plusCanDestroy(one, false))
 							}
 							else ->
 							{

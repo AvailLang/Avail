@@ -1,6 +1,6 @@
 /*
  * MessageSplitterTest.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -221,7 +221,7 @@ class MessageSplitterTest private constructor ()
 			val lower: A_Number = fromInt(lowerBound)
 			val upperPlusOne =
 				if (upperBound >= 0) fromLong(upperBound + 1L)
-				else positiveInfinity()
+				else positiveInfinity
 			val subexpressionsTupleType = tupleTypeForSizesTypesDefaultType(
 				integerRangeType(
 					lower,
@@ -1114,7 +1114,7 @@ class MessageSplitterTest private constructor ()
 							integerRangeType(
 								fromInt(3),
 								true,
-								positiveInfinity(),
+								positiveInfinity,
 								false
 							)
 						)

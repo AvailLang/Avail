@@ -1,6 +1,6 @@
 /*
  * L1InstructionWriter.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -40,6 +40,10 @@ import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.IntegerDescriptor
 import com.avail.descriptor.phrases.A_Phrase
+import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.token
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
+import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
@@ -47,6 +51,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.NybbleTupleDescriptor
 import com.avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
@@ -381,6 +386,22 @@ class L1InstructionWriter constructor(
 		assert(p === null || p.hasFlag(Flag.CannotFail) || localTypes.size > 0) {
 			"Fallible primitive needs a primitive failure variable"
 		}
+
+		val declarations = mutableListOf<A_Phrase>()
+		if (!phrase.equalsNil())
+		{
+			declarations.addAll(phrase.argumentsTuple())
+			declarations.addAll(locals(phrase))
+			declarations.addAll(constants(phrase))
+		}
+		val packedDeclarationNames = declarations.joinToString(",") {
+			// Quote-escape any name that contains a comma (,) or quote (").
+			val name = it.token().string().asNativeString()
+			if (name.contains(',') || name.contains('\"'))
+				stringFrom(name).toString()
+			else name
+		}
+
 		return newCompiledCode(
 			nybbles(),
 			stackTracker.maxDepth,
@@ -394,6 +415,7 @@ class L1InstructionWriter constructor(
 			module,
 			startingLineNumber,
 			tupleFromIntegerList(lineNumberEncodedDeltas),
-			phrase)
+			phrase as AvailObject,
+			stringFrom(packedDeclarationNames))
 	}
 }

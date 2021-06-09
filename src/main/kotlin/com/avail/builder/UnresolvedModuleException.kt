@@ -1,6 +1,6 @@
 /*
  * UnresolvedModuleException.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 package com.avail.builder
 
-import java.util.Collections.unmodifiableList
+import com.avail.resolver.ModuleRootResolver
 
 /**
  * `UnresolvedModuleException` is a type of [UnresolvedDependencyException] that
@@ -42,9 +42,11 @@ import java.util.Collections.unmodifiableList
  * acceptable locations for the missing module according to its dependent's
  * location.
  *
- * @property acceptablePaths
- *   he list of the places the unresolved module could have been.
+ * @property resolver
+ *   The [ModuleRootResolver] that could have contained the module.
+ *
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
@@ -54,18 +56,11 @@ import java.util.Collections.unmodifiableList
  *   The name of the module which contained the invalid module reference.
  * @param unresolvedModuleName
  *   The name of the module which could not be resolved.
- * @param acceptablePaths
- *   The list of places the module could have been.
+ * @param resolver
+ *   The [ModuleRootResolver] that could have contained the module.
  */
 class UnresolvedModuleException  internal constructor(
 	referringModuleName: ResolvedModuleName?,
 	unresolvedModuleName: String,
-	acceptablePaths: List<ModuleName>)
+	val resolver: ModuleRootResolver)
 : UnresolvedDependencyException(referringModuleName, unresolvedModuleName)
-{
-	/**
-	 * The list of the places the unresolved module could have been.
-	 */
-	@Suppress("MemberVisibilityCanBePrivate")
-	val acceptablePaths: List<ModuleName> = unmodifiableList(acceptablePaths)
-}

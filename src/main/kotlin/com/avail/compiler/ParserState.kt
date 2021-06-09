@@ -1,6 +1,6 @@
 /*
  * ParserState.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -234,21 +234,6 @@ class ParserState internal constructor(
 	 */
 	internal fun expected(level: ParseNotificationLevel, aString: String) =
 		expected(level, SimpleDescriber(aString))
-
-	/**
-	 * Queue an action to be performed later, passing an argument.
-	 *
-	 * @param ArgType
-	 *   The type of argument to the given continuation.
-	 * @param continuation
-	 *   What to execute with the passed argument.
-	 * @param argument
-	 *   What to pass as an argument to the provided function.
-	 */
-	internal fun <ArgType> workUnitDo(
-		argument: ArgType,
-		continuation: (ArgType) -> Unit
-	) = lexingState.workUnitDo(continuation, argument)
 
 	/**
 	 * Queue an action to be performed later, with no arguments.

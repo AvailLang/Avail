@@ -1,6 +1,6 @@
 /*
  * EnumMap.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -78,7 +78,7 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 		assert(enums.size == sourceValues.size)
 	}
 
-	override val size: Int = sourceValues.count { it !== null }
+	override val size: Int get() = sourceValues.count { it !== null }
 
 	override val keys: MutableSet<K> get() =
 		sourceValues.indices
@@ -163,7 +163,10 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	override fun containsValue(value: V): Boolean =
 		sourceValues.any { value == it }
 
-	override operator fun get(key: K): V = sourceValues[key.ordinal]!!
+	override operator fun get(key: K): V? = sourceValues[key.ordinal]
+
+	/** Answer the value if present, otherwise `null`. */
+	fun getOrNull(key: K): V? = sourceValues[key.ordinal]
 
 	override fun isEmpty(): Boolean = false
 
@@ -198,48 +201,42 @@ class EnumMap<K: Enum<K>, V : Any> constructor(
 	companion object
 	{
 		/**
-		 * Answer a new [EnumMap].
+		 * Create an empty [EnumMap] for the provided reified key type.  This
+		 * form of creation avoids the need for the client to extract the enum's
+		 * array of constants.
+		 */
+		inline fun <reified K : Enum<K>, V : Any> enumMap () : EnumMap<K, V> =
+			EnumMap(K::class.java.enumConstants)
+
+		/**
+		 * Answer a new [EnumMap].  The key type must be known statically at the
+		 * call site, since this inline function is reified for the key type
+		 * parameter.
 		 *
-		 * @param enums
-		 *   The [Array] of [Enum]s, in [Enum.ordinal] order of all the `Enum`
-		 *   values represented in the `Enum`. It is expected that **all** enum
-		 *   values will be present.
 		 * @param values
 		 *   The vararg [Array] of values stored in this `Enum`.
 		 */
-		fun <K : Enum<K>, V : Any> enumMap (enums: Array<K>, vararg values: V)
-			: EnumMap<K, V> =
-				EnumMap(enums, Array<Any?>(enums.size) { values[it] }
-					as Array<V?>)
+		inline fun <reified K : Enum<K>, V : Any> enumMap (vararg values: V?)
+				: EnumMap<K, V> =
+			EnumMap(K::class.java.enumConstants, values as Array<V?>)
 
 		/**
 		 * Answer a new [EnumMap].
 		 *
-		 * @param enums
-		 *   The [Array] of [Enum]s, in [Enum.ordinal] order of all the `Enum`
-		 *   values represented in the `Enum`. It is expected that **all** enum
-		 *   values will be present.
 		 * @param populator
 		 *   A lambda that accepts a value of the Enum and answers a value to be
 		 *   stored at the enum value key.
 		 */
-		fun <K : Enum<K>, V : Any> enumMap (
-			enums: Array<K>,
+		inline fun <reified K : Enum<K>, V : Any> enumMap (
 			populator: (K) -> V?
-		): EnumMap<K, V> =
-			EnumMap(
-				enums,
-				(Array<Any?>(enums.size) { populator(enums[it]) }) as Array<V?>)
-
-		/**
-		 * Answer a new [EnumMap].
-		 *
-		 * @param enums
-		 *   The [Array] of [Enum]s, in [Enum.ordinal] order of all the `Enum`
-		 *   values represented in the `Enum`. It is expected that **all** enum
-		 *   values will be present.
-		 */
-		fun <K : Enum<K>, V : Any> enumMap (enums: Array<K>): EnumMap<K, V> =
-			EnumMap(enums)
+		): EnumMap<K, V>
+		{
+			val keys = K::class.java.enumConstants
+			val map = EnumMap<K, V>(keys)
+			keys.forEach { key ->
+				populator(key)?.let { value -> map[key] = value }
+			}
+			return map
+		}
 	}
 }

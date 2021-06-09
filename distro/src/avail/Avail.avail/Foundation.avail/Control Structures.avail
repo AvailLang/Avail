@@ -1,6 +1,6 @@
 /*
  * Control Structures.avail
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Control Structures"
 Versions
-	"1.4.0"
+	"1.5.0"
 Extends
 	"Early Control Structures" =
 	(
@@ -2294,23 +2294,30 @@ Public method "Choose|choose_from_where«_is_‡,»«,else_»" is
 	caseTuple : <<any, []→⊤…|2>…|1..>,
 	else : ([]→⊤)?
 |
-	[
-		index : natural number
+	index ::= [
+		index: natural number,
+		end : whole number,
+		innerTuple : <<any, []→⊤…|2>…|1..>,
+		innerValue : any
 	|
-		$body;
-		if index > |caseTuple| then
+		$loop : whole number;
+		Exit loop with 0 if index > end;
+		matched ::= innerTuple[index][1] = value;
+		Exit loop with index if matched;
+		Restart loop with <index + 1, end, innerTuple, innerValue>
+	](1, |caseTuple|, caseTuple, value);
+	(
+		cast index into
 		[
-			(else[1] else [[]])();
-		]
-		else if caseTuple[index][1] = value then
-		[
-			caseTuple[index][2]();
+			i : natural number
+		|
+			caseTuple[i][2]
 		]
 		else
 		[
-			Restart body with <index + 1>
-		];
-	](1);
+			else[1] else [[]]
+		]
+	)();
 ] : ⊤;
 
 /**

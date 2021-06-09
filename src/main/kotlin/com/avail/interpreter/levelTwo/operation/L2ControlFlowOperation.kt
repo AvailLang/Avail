@@ -1,6 +1,6 @@
 /*
  * L2ControlFlowOperation.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.L2BasicBlock
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 
 /**
  * An [L2Operation] that alters control flow, and therefore does not fall
@@ -62,35 +60,9 @@ abstract class L2ControlFlowOperation protected constructor(
 	/**
 	 * The array of operand indices which have type [L2PcOperand].
 	 */
-	protected val labelOperandIndices: IntArray
+	private val labelOperandIndices: IntArray
 
-	override fun altersControlFlow(): Boolean = true
-
-	/**
-	 * Propagate type, value, alias, and source instruction information due to
-	 * the execution of this instruction.  The instruction must not have
-	 * multiple possible successor instructions.
-	 *
-	 * Present here only to avoid subclasses from implementing this form.
-	 *
-	 * @param instruction
-	 *   The L2Instruction containing this L2Operation.
-	 * @param registerSet
-	 *   A RegisterSet to advance to a state corresponding with after having run
-	 *   the given instruction.
-	 * @param generator
-	 *   The [L2Generator] for which to advance the type analysis.
-	 * @see propagateTypes
-	 */
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		throw UnsupportedOperationException(
-			"Single-target propagateTypes is not applicable to an "
-				+ "L2ControlFlowOperation")
-	}
+	override fun altersControlFlow() = true
 
 	/**
 	 * Extract the operands which are [L2PcOperand]s.  These are what lead to

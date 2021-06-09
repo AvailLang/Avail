@@ -1,6 +1,6 @@
 /*
- * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2_JUMP_IF_SUBTYPE_OF_CONSTANT.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,20 +31,13 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.instance
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.A_Type.Companion.typeIntersection
-import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -62,62 +55,6 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 	L2OperandType.PC.named("is subtype", L2NamedOperandType.Purpose.SUCCESS),
 	L2OperandType.PC.named("not subtype", L2NamedOperandType.Purpose.FAILURE))
 {
-	override fun branchReduction(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator): BranchReduction
-	{
-		// Eliminate tests due to type propagation.
-		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		//		final L2PcOperand isSubtype = instruction.operand(2);
-//		final L2PcOperand notSubtype = instruction.operand(3);
-		val exactType: A_BasicObject? = typeToCheck.constantOrNull()
-		return when
-		{
-			exactType !== null
-					&& exactType.isInstanceOf(constantType.constant) ->
-				BranchReduction.AlwaysTaken
-			exactType !== null -> BranchReduction.NeverTaken
-			// It's a subtype, so it must always pass the type test.
-			typeToCheck.type().instance().isSubtypeOf(constantType.constant) ->
-				BranchReduction.AlwaysTaken
-			// The types don't intersect, so it can't ever pass the type test.
-			typeToCheck.type().instance()
-					.typeIntersection(constantType.constant).isBottom ->
-				BranchReduction.NeverTaken
-			else -> BranchReduction.SometimesTaken
-		}
-	}
-
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		assert(registerSets.size == 2)
-		val isSubtypeSet = registerSets[0]
-		assert(isSubtypeSet.hasTypeAt(typeToCheck.register()))
-		if (isSubtypeSet.hasConstantAt(typeToCheck.register()))
-		{
-			// The *exact* type is already known.  Don't weaken it by recording
-			// type information for it (a meta).
-		}
-		else
-		{
-			val existingMeta = isSubtypeSet.typeAt(typeToCheck.register())
-			val existingType: A_Type = existingMeta.instance()
-			val intersectionType =
-				existingType.typeIntersection(constantType.constant)
-			val intersectionMeta =
-				InstanceMetaDescriptor.instanceMeta(intersectionType)
-			isSubtypeSet.strengthenTestedTypeAtPut(
-				typeToCheck.register(), intersectionMeta)
-		}
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

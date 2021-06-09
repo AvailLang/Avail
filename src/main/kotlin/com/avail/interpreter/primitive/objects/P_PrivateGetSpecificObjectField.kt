@@ -1,6 +1,6 @@
 /*
  * P_PrivateGetSpecificObjectField.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
 import com.avail.optimizer.L1Translator
 
@@ -128,7 +128,7 @@ object P_PrivateGetSpecificObjectField : Primitive(
 
 			else -> {
 				val write = translator.generator.boxedWriteTemp(
-					restrictionForType(fieldType, BOXED))
+					restrictionForType(fieldType, BOXED_FLAG))
 				translator.addInstruction(
 					L2_GET_OBJECT_FIELD,
 					objectReg,

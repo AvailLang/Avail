@@ -1,6 +1,6 @@
 /*
  * A_Fiber.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -259,7 +259,7 @@ interface A_Fiber : A_BasicObject {
 	 * @param onFailure
 	 *   The action to invoke with the responsible throwable.
 	 */
-	fun setSuccessAndFailureContinuations(
+	fun setSuccessAndFailure(
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit)
 
@@ -333,7 +333,7 @@ interface A_Fiber : A_BasicObject {
 	 * @return
 	 *   The set of outstanding actions, prior to clearing it.
 	 */
-	fun getAndClearReificationWaiters(): A_Set
+	fun getAndClearReificationWaiters(): List<(A_Continuation)->Unit>
 
 	/**
 	 * Answer the [TextInterface] for this fiber.
@@ -375,4 +375,9 @@ interface A_Fiber : A_BasicObject {
 	 *   The function that suspended the fiber.
 	 */
 	fun suspendingFunction(): A_Function
+
+	/**
+	 * Answer the [FiberDescriptor.FiberHelper] associated with this [A_Fiber].
+	 */
+	fun fiberHelper(): FiberDescriptor.FiberHelper
 }

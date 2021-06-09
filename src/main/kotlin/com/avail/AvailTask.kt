@@ -1,21 +1,21 @@
 /*
  * AvailTask.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -125,7 +125,7 @@ class AvailTask constructor(
 			fiber: A_Fiber,
 			body: () -> Unit): () -> Unit
 		{
-			assert(fiber.executionState().indicatesSuspension())
+			assert(fiber.executionState().indicatesSuspension)
 			val scheduled =
 				fiber.getAndSetSynchronizationFlag(
 					SynchronizationFlag.SCHEDULED, true)
@@ -134,7 +134,7 @@ class AvailTask constructor(
 				val interpreter = current()
 				assert(interpreter.fiberOrNull() === null)
 				fiber.lock {
-					assert(fiber.executionState().indicatesSuspension())
+					assert(fiber.executionState().indicatesSuspension)
 					val bound =
 						fiber.getAndSetSynchronizationFlag(
 							SynchronizationFlag.BOUND, true)
@@ -156,7 +156,7 @@ class AvailTask constructor(
 					// failure continuation with the throwable.
 					interpreter.adjustUnreifiedCallDepthBy(
 						-interpreter.unreifiedCallDepth())
-					if (!fiber.executionState().indicatesTermination())
+					if (!fiber.executionState().indicatesTermination)
 					{
 						assert(interpreter.fiberOrNull() === fiber)
 						interpreter.abortFiber()
@@ -165,7 +165,7 @@ class AvailTask constructor(
 					{
 						fiber.setExecutionState(ExecutionState.ABORTED)
 					}
-					fiber.failureContinuation().invoke(e)
+					fiber.failureContinuation()(e)
 					fiber.setExecutionState(ExecutionState.RETIRED)
 					interpreter.runtime.unregisterFiber(fiber)
 				}
@@ -192,7 +192,7 @@ class AvailTask constructor(
 				fiber.lock {
 					if (fiber.executionState() === ExecutionState.TERMINATED)
 					{
-						fiber.resultContinuation().invoke(fiber.fiberResult())
+						fiber.resultContinuation()(fiber.fiberResult())
 						fiber.setExecutionState(ExecutionState.RETIRED)
 						interpreter.runtime.unregisterFiber(fiber)
 					}
@@ -241,7 +241,7 @@ class AvailTask constructor(
 					// fiber and invoke its failure continuation with the
 					// throwable.
 					fiber.setExecutionState(ExecutionState.ABORTED)
-					fiber.failureContinuation().invoke(e)
+					fiber.failureContinuation()(e)
 				}
 				assert(current().fiberOrNull() === null)
 			}

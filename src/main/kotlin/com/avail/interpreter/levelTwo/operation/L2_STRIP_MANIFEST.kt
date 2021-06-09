@@ -1,6 +1,6 @@
 /*
  * L2_STRIP_MANIFEST.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -54,7 +54,7 @@ object L2_STRIP_MANIFEST : L2Operation(
 {
 	// Prevent this instruction from being removed, because it constrains
 	// the manifest along a back-edge, even after optimization.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

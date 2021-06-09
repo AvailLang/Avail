@@ -1,6 +1,6 @@
 /*
  * Disconnect.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,6 +33,7 @@
 package com.avail.server.io
 
 import com.avail.server.messages.Message
+import java.nio.channels.ClosedChannelException
 import java.util.logging.Level
 import java.util.logging.Logger
 
@@ -84,6 +85,12 @@ interface DisconnectReason
 	 * The loggable String describing the reason for the disconnect.
 	 */
 	val logEntry: String get() = "$origin($code): ${javaClass.simpleName}"
+
+	/**
+	 * An optional [Throwable] associated with this [DisconnectReason]. `null`
+	 * if no associated error.
+	 */
+	val error: Throwable? get() = null
 
 	/**
 	 * Log this [DisconnectReason] to the provided [Logger] at the provided
@@ -149,6 +156,9 @@ object ClientDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.CLIENT_ORIGIN
 	override val code get () = -3
+	// We don't know that the close was healthy, only that the client closed
+	// the connection. We should presume it can have a negative cascading impact
+	override val error: Throwable? = ClosedChannelException()
 }
 
 /**
@@ -162,6 +172,7 @@ object HeartbeatFailureDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
 	override val code get () = -4
+	override val error: Throwable? = ClosedChannelException()
 }
 
 /**
@@ -219,14 +230,13 @@ object MismatchDisconnect: DisconnectReason
  * @param e
  *   The [Throwable] related to the error or `null` if none.
  */
-class CommunicationErrorDisconnect constructor(val e: Throwable?)
+class CommunicationErrorDisconnect constructor(override val error: Throwable?)
 	: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
 	override val code get () = -8
-
 	override val logEntry: String
-		get() = e?.let {
+		get() = error?.let {
 			"${super.logEntry} - ${it.message}"
 		} ?: super.logEntry
 }

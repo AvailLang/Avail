@@ -1,6 +1,6 @@
 /*
- * VariableDescriptor.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * VariableDescriptor.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,8 +44,8 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.numbers.A_Number
-import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
@@ -65,9 +65,9 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.keyType
+import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
-import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
@@ -412,39 +412,70 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val readType = outerKind.readType()
-		assert(readType.isMapType)
+		val writeType = outerKind.writeType()
 		val oldMap: A_Map = self.slot(VALUE)
 		if (oldMap.equalsNil())
-		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
-		}
-		assert(oldMap.isMap)
-		if (readType.isMapType)
+		if (!oldMap.isMap)
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+		val newMap = oldMap.mapAtPuttingCanDestroy(key, value, true)
+		if (writeType.isMapType)
 		{
-			// Make sure the new map will satisfy the writeType.  We do these
-			// checks before modifying the map, since the new key/value pair can
-			// be added destructively.
-			if (!key.isInstanceOf(readType.keyType())
-			    || !value.isInstanceOf(readType.valueType()))
+			// Just check the new size, new key, and new value.
+			if (!writeType.sizeRange().rangeIncludesLong(
+					newMap.mapSize().toLong())
+				|| !key.isInstanceOf(writeType.keyType())
+				|| !value.isInstanceOf(writeType.valueType()))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
-			if (readType.sizeRange().upperBound().equalsInt(oldMap.mapSize()))
-			{
-				// Map is as full as the type will allow.  Ensure we're
-				// replacing a key, not adding one.
-				if (!oldMap.hasKey(key))
-				{
-					throw VariableSetException(
-						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
-				}
-			}
 		}
-		val newMap = oldMap.mapAtPuttingCanDestroy(key, value, true)
+		else
+		{
+			// Do a full type-check.
+			if (!newMap.isInstanceOf(writeType))
+				throw VariableSetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+		}
 		// We already checked the key, value, and resulting size, so we can skip
 		// a separate type check.
+		self.setSlot(VALUE, newMap.makeShared())
+	}
+
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicRemoveFromMap(
+		self: AvailObject,
+		key: A_BasicObject)
+	{
+		handleVariableWriteTracing(self)
+		val outerKind: A_Type = self.slot(KIND)
+		val writeType = outerKind.writeType()
+		val oldMap: A_Map = self.slot(VALUE)
+		if (oldMap.equalsNil())
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+		if (!oldMap.isMap)
+			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+		val newMap = oldMap.mapWithoutKeyCanDestroy(key, true)
+		if (writeType.isMapType)
+		{
+			// Just check the new size, new key, and new value.
+			if (!writeType.sizeRange().rangeIncludesLong(
+					newMap.mapSize().toLong()))
+			{
+				throw VariableSetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			}
+		}
+		else
+		{
+			// Do a full type-check.
+			if (!newMap.isInstanceOf(writeType))
+				throw VariableSetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+		}
+		// We already checked the new size was ok, and we're not introducing any
+		// new keys or values, so the new map must still be type-safe.
 		self.setSlot(VALUE, newMap.makeShared())
 	}
 

@@ -1,6 +1,6 @@
 /*
  * ByteStringDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -375,7 +375,7 @@ class ByteStringDescriptor private constructor(
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? = self.asNativeString()
+		classHint: Class<*>?): Any = self.asNativeString()
 
 	override fun o_CopyTupleFromToCanDestroy(
 		self: AvailObject,
@@ -514,7 +514,6 @@ class ByteStringDescriptor private constructor(
 		 * @return
 		 *   The new Avail [A_String].
 		 */
-		@JvmStatic
 		fun generateByteString(
 			size: Int,
 			generator: (Int) -> Int): AvailObject
@@ -608,10 +607,8 @@ class ByteStringDescriptor private constructor(
 		 * number of spare bytes it contains, [0..7], which is *not* in the
 		 * order of tuple sizes.
 		 */
-		private val descriptors = enumMap(Mutability.values()) { mut ->
-			Array(8) {
-				ByteStringDescriptor(mut, it)
-			}
+		private val descriptors = enumMap { mut: Mutability ->
+			Array(8) { i -> ByteStringDescriptor(mut, i) }
 		}
 
 		/**
@@ -629,15 +626,15 @@ class ByteStringDescriptor private constructor(
 		private fun descriptorFor(
 			mutability: Mutability,
 			size: Int
-		): ByteStringDescriptor = descriptors[mutability][-size and 7]
+		): ByteStringDescriptor = descriptors[mutability]!![-size and 7]
 	}
 
 	override fun mutable(): ByteStringDescriptor =
-		descriptors[Mutability.MUTABLE][unusedBytesOfLastLong]
+		descriptors[Mutability.MUTABLE]!![unusedBytesOfLastLong]
 
 	override fun immutable(): ByteStringDescriptor =
-		descriptors[Mutability.IMMUTABLE][unusedBytesOfLastLong]
+		descriptors[Mutability.IMMUTABLE]!![unusedBytesOfLastLong]
 
 	override fun shared(): ByteStringDescriptor =
-		descriptors[Mutability.SHARED][unusedBytesOfLastLong]
+		descriptors[Mutability.SHARED]!![unusedBytesOfLastLong]
 }

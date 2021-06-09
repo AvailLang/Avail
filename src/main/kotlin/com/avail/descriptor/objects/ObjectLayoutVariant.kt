@@ -1,6 +1,6 @@
 /*
  * ObjectLayoutVariant.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,8 +71,8 @@ import kotlin.concurrent.read
  */
 class ObjectLayoutVariant private constructor(
 	allFields: A_Set,
-	val variantId: Int
-) {
+	val variantId: Int)
+{
 	/**
 	 * The set of all fields present in this variant.  This includes not just
 	 * the real fields that can hold multiple potential values, but also the

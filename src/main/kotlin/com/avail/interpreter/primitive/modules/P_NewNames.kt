@@ -1,6 +1,6 @@
 /*
  * P_NewNames.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.module.A_Module.Companion.newNames
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

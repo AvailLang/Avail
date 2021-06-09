@@ -1,6 +1,6 @@
 /*
  * P_ServerSocketSetOption.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -75,11 +75,6 @@ import java.nio.channels.AsynchronousServerSocketChannel
 @Suppress("unused")
 object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 {
-	/**
-	 * A one-based list of the standard socket options.
-	 */
-	private val socketOptions = arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)
-
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
@@ -97,7 +92,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		{
 			for ((key, value) in options.mapIterable())
 			{
-				val option = socketOptions[key.extractInt()]!!
+				val option = Options.socketOptions[key.extractInt()]!!
 				if (option.type() == java.lang.Boolean::class.java
 						&& value.isBoolean) {
 					val booleanOption: SocketOption<Boolean> = option.cast()
@@ -128,8 +123,8 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				ATOM.o,
 				mapTypeForSizesKeyTypeValueType(
-					inclusive(0, (socketOptions.size - 1).toLong()),
-					inclusive(1, (socketOptions.size - 1).toLong()),
+					inclusive(0, (Options.socketOptions.size - 1).toLong()),
+					inclusive(1, (Options.socketOptions.size - 1).toLong()),
 					ANY.o
 				)),
 			TOP.o
@@ -142,4 +137,18 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				E_SPECIAL_ATOM,
 				E_INCORRECT_ARGUMENT_TYPE,
 				E_IO_ERROR))
+
+	/**
+	 * Protect the creation of this constant array, since if we just make it a
+	 * field of the outer object, it gets initialized *after* it's needed by
+	 * [privateBlockTypeRestriction].  That's because the supertype, Primitive,
+	 * invokes that function during instance initialization, which happens
+	 * before the subtype (the object) gets a chance to do its initialization.
+	 */
+	object Options
+	{
+		/** A one-based list of the standard socket options. */
+		val socketOptions =
+			arrayOf<SocketOption<*>?>(null, SO_RCVBUF, SO_REUSEADDR)
+	}
 }

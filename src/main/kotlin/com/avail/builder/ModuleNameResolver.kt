@@ -1,6 +1,6 @@
 /*
  * ModuleNameResolver.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,12 +34,10 @@ package com.avail.builder
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repositories
 import com.avail.utility.LRUCache
 import java.io.File
 import java.util.Collections
-import java.util.Deque
-import java.util.LinkedList
 
 /**
  * A `ModuleNameResolver` resolves fully-qualified references to Avail
@@ -77,6 +75,7 @@ import java.util.LinkedList
  *   The [Avail&#32;module roots][ModuleRoots].
  * @author Todd L Smith &lt;todd@availlang.org &gt;
  * @author Leslie Schultz &lt;leslie@availlang.org &gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
@@ -174,7 +173,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 */
 	fun destroy()
 	{
-		moduleRoots.forEach { root -> root.repository.close() }
+		Repositories.closeAndRemoveAllRepositories()
 	}
 
 	/**
@@ -196,133 +195,99 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		// If the root cannot be resolved, then neither can the module.
 		val enclosingRoot = canonicalName.rootName
-		var root: ModuleRoot? = moduleRoots.moduleRootFor(enclosingRoot)
+		val root: ModuleRoot? = moduleRoots.moduleRootFor(enclosingRoot)
 			?: return ModuleNameResolutionResult(
 				UnresolvedRootException(
 					null, qualifiedName.localName, enclosingRoot))
 
-		val components = canonicalName.packageName.split("/")
-		assert(components.size > 1)
-		assert(components[0].isEmpty())
-
-		val nameStack = LinkedList<String>()
-		nameStack.addLast("/$enclosingRoot")
-		var pathStack: Deque<File>? = null
-
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
-		var sourceDirectory = root!!.sourceDirectory
-		if (sourceDirectory !== null)
+		val rootResolver = root!!.resolver
+		if (rootResolver === null)
 		{
-			pathStack = LinkedList()
-			pathStack.addLast(sourceDirectory)
+			return ModuleNameResolutionResult(
+				UnreachableRootException(
+					null, qualifiedName.localName, enclosingRoot, null))
 		}
-		for (index in 2 until components.size)
+		if (!rootResolver.resolvesToValidModuleRoot())
 		{
-			assert(components[index].isNotEmpty())
-			nameStack.addLast(String.format(
-				"%s/%s",
-				nameStack.peekLast(),
-				components[index]))
-			if (sourceDirectory !== null)
-			{
-				pathStack!!.addLast(File(
-					pathStack.peekLast(),
-					components[index] + availExtension))
-			}
+			return ModuleNameResolutionResult(
+				UnreachableRootException(
+					null, qualifiedName.localName, enclosingRoot, rootResolver))
 		}
+		var reference =
+			rootResolver.getResolverReference(canonicalName.qualifiedName)
 
-		// If the source directory is available, then search the file system.
-		val checkedPaths = mutableListOf<ModuleName>()
-		var repository: Repository? = null
-		var sourceFile: File? = null
-		if (sourceDirectory !== null)
+		if (reference === null)
 		{
-			assert(!pathStack!!.isEmpty())
-			// Explore the search stack from most enclosing package to least
-			// enclosing.
-			while (!pathStack.isEmpty())
+			val result = rootResolver.find(
+				qualifiedName, canonicalName, this)
+			if (result != null)
 			{
-				canonicalName = ModuleName(
-					nameStack.removeLast(),
-					canonicalName.localName,
-					canonicalName.isRename)
-				checkedPaths.add(canonicalName)
-				val trial = File(filenameFor(
-					pathStack.removeLast().path,
-					canonicalName.localName))
-				if (trial.exists())
-				{
-					repository = root.repository
-					sourceFile = trial
-					break
-				}
+				return result
 			}
-		}
-
-		// If resolution failed, then one final option is available: search the
-		// other roots.
-		if (repository === null)
-		{
-			for (rootName in moduleRoots.rootNames)
+			// Try other roots
+			for (other in moduleRoots)
 			{
-				if (rootName != enclosingRoot)
+				if (other.name != enclosingRoot)
 				{
+					val resolver = other.resolver ?: continue
 					canonicalName = ModuleName(
-						String.format(
-							"/%s/%s", rootName, canonicalName.localName),
+						"/${other.name}/${canonicalName.localName}",
 						canonicalName.isRename)
-					checkedPaths.add(canonicalName)
-					root = moduleRoots.moduleRootFor(rootName)
-					assert(root !== null)
-					sourceDirectory = root!!.sourceDirectory
-					if (sourceDirectory !== null)
+					reference =
+						resolver.getResolverReference(
+							canonicalName.qualifiedName) ?: continue
+					// located in other root
+					if (reference.isPackage)
 					{
-						val trial = File(
-							sourceDirectory,
-							canonicalName.localName + availExtension)
-						if (trial.exists())
-						{
-							repository = root.repository
-							sourceFile = trial
-							break
-						}
+						// replace with package representative
+						canonicalName = ModuleName(
+							"/${other.name}/${canonicalName.localName}/${canonicalName.localName}",
+							canonicalName.isRename)
+						reference =
+							resolver.getResolverReference(
+								canonicalName.qualifiedName) ?:
+									// No package representative
+									return ModuleNameResolutionResult(
+										UnresolvedModuleException(
+											null,
+											qualifiedName.localName,
+											rootResolver))
 					}
-				}
-			}
-		}
-
-		// We found a candidate.
-		if (repository !== null)
-		{
-			// If the candidate is a package, then substitute
-			// the package representative.
-			if (sourceFile!!.isDirectory)
-			{
-				sourceFile = File(
-					sourceFile,
-					canonicalName.localName + availExtension)
-				canonicalName = ModuleName(
-					canonicalName.qualifiedName,
-					canonicalName.localName,
-					canonicalName.isRename)
-				if (!sourceFile.isFile)
-				{
-					// Alas, the package representative did not exist.
 					return ModuleNameResolutionResult(
-						UnresolvedModuleException(
-							null, qualifiedName.localName, checkedPaths))
+						ResolvedModuleName(
+							canonicalName,
+							moduleRoots,
+							reference,
+							canonicalName.isRename))
 				}
 			}
 			return ModuleNameResolutionResult(
-				ResolvedModuleName(
-					canonicalName, moduleRoots, canonicalName.isRename))
+				UnresolvedModuleException(
+					null, qualifiedName.localName, rootResolver))
 		}
 
-		// Resolution failed.
+		if (reference.isPackage)
+		{
+			// We must substitute the package with its package representative
+			canonicalName = ModuleName(
+				qualifiedName.qualifiedName,
+				canonicalName.localName,
+				canonicalName.isRename)
+			reference =
+				rootResolver.getResolverReference(canonicalName.qualifiedName)
+			if (reference === null)
+			{
+				return ModuleNameResolutionResult(
+					UnresolvedModuleException(
+						null, qualifiedName.localName, rootResolver))
+			}
+		}
+
 		return ModuleNameResolutionResult(
-			UnresolvedModuleException(
-				null, qualifiedName.localName, checkedPaths))
+			ResolvedModuleName(
+				canonicalName, moduleRoots, reference, canonicalName.isRename))
 	}
 
 	/**
@@ -330,7 +295,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 * the [ModuleNameResolver] could bundle information about the different
 	 * paths checked for the missing file into the exception itself.
 	 */
-	internal class ModuleNameResolutionResult
+	class ModuleNameResolutionResult
 	{
 		/** The module that was successfully resolved, or null if not found.  */
 		internal val resolvedModule: ResolvedModuleName?
@@ -393,7 +358,11 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		qualifiedName: ModuleName,
 		dependent: ResolvedModuleName? = null): ResolvedModuleName
 	{
-		val result = resolutionCache[qualifiedName]
+		var result = resolutionCache[qualifiedName]
+		if (!result.isResolved)
+		{
+			result = privateResolve(qualifiedName)
+		}
 		if (!result.isResolved)
 		{
 			// The resolution failed.

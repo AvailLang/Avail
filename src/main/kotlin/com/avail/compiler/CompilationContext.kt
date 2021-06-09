@@ -1,6 +1,6 @@
 /*
  * CompilationContext.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -49,7 +49,6 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
@@ -58,6 +57,7 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.PhraseDescriptor
@@ -77,9 +77,9 @@ import com.avail.interpreter.levelOne.L1Decompiler
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 import com.avail.io.TextInterface
+import com.avail.persistence.IndexedFile
 import com.avail.serialization.Serializer
 import com.avail.utility.StackPrinter.Companion.trace
-import java.io.ByteArrayOutputStream
 import java.lang.String.format
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -134,7 +134,7 @@ import java.util.logging.Logger
  * @param problemHandler
  *   The [ProblemHandler] used for reporting compilation problems.
  */
-class CompilationContext(
+class CompilationContext constructor(
 	val moduleHeader: ModuleHeader?,
 	val module: A_Module,
 	internal val source: A_String,
@@ -218,7 +218,7 @@ class CompilationContext(
 		}
 
 	/** The output stream on which the serializer writes.  */
-	val serializerOutputStream = ByteArrayOutputStream(1000)
+	val serializerOutputStream = IndexedFile.ByteArrayOutputStream(1000)
 
 	/**
 	 * The serializer that captures the sequence of bytes representing the
@@ -487,8 +487,7 @@ class CompilationContext(
 		// new unit being queued, to increment the completed count when it
 		// completes, and to run the noMoreWorkUnits action as soon the counters
 		// coincide (indicating the last work unit just completed).
-		for (continuation in continuations)
-		{
+		continuations.forEach { continuation ->
 			val workUnit = workUnitCompletion(lexingState, null, continuation)
 			runtime.execute(FiberDescriptor.compilerPriority) {
 				workUnit(argument)
@@ -552,30 +551,27 @@ class CompilationContext(
 		{
 			loader.startRecordingEffects()
 		}
-		var adjustedSuccess = onSuccess
-		if (shouldSerialize)
+		val adjustedSuccess: (AvailObject) -> Unit
+		when
 		{
-			val before = AvailRuntimeSupport.captureNanos()
-			adjustedSuccess = { successValue ->
-				val after = AvailRuntimeSupport.captureNanos()
-				Interpreter.current().recordTopStatementEvaluation(
-					(after - before).toDouble(), module)
-				loader.stopRecordingEffects()
-				serializeAfterRunning(function)
-				onSuccess(successValue)
+			shouldSerialize ->
+			{
+				val before = AvailRuntimeSupport.captureNanos()
+				adjustedSuccess = { successValue ->
+					val after = AvailRuntimeSupport.captureNanos()
+					Interpreter.current().recordTopStatementEvaluation(
+						(after - before).toDouble(), module)
+					loader.stopRecordingEffects()
+					serializeAfterRunning(function)
+					onSuccess(successValue)
+				}
 			}
+			else -> adjustedSuccess = onSuccess
 		}
 		if (trackTasks)
 		{
-			val finalAdjustedSuccess = adjustedSuccess
 			lexingState.setFiberContinuationsTrackingWork(
-				fiber,
-				{ value ->
-					finalAdjustedSuccess(value)
-				},
-				{ throwable ->
-					onFailure(throwable)
-				})
+				fiber, adjustedSuccess, onFailure)
 		}
 		else
 		{

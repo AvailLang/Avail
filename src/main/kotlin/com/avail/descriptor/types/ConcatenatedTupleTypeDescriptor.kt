@@ -1,6 +1,6 @@
 /*
  * ConcatenatedTupleTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -467,7 +467,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val startInSecondObject =
 			startIndexObject.minusCanDestroy(firstUpper, false)
 		val startInSecond =
-			if (startInSecondObject.lessThan(one())) 1
+			if (startInSecondObject.lessThan(one)) 1
 			else startInSecondObject.extractInt()
 		val endInSecondObject = fromInt(endIndex).minusCanDestroy(
 			firstTupleType.sizeRange().lowerBound(),
@@ -475,7 +475,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val endInSecond =
 			when
 			{
-				endInSecondObject.lessThan(one()) -> 1
+				endInSecondObject.lessThan(one) -> 1
 				endInSecondObject.isInt -> endInSecondObject.extractInt()
 				else -> Int.MAX_VALUE
 			}
@@ -523,7 +523,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 
 	override fun shared(): ConcatenatedTupleTypeDescriptor
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	companion object

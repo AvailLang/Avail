@@ -1,6 +1,6 @@
 /*
  * PrefixSharingListTest.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@ package com.avail.test
 
 import com.avail.utility.PrefixSharingList
 import com.avail.utility.PrefixSharingList.Companion.append
-import com.avail.utility.PrefixSharingList.Companion.last
 import com.avail.utility.PrefixSharingList.Companion.withoutLast
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.RepeatedTest
@@ -72,11 +71,11 @@ class PrefixSharingListTest
 		// Now do non-destructive appends.
 		for (i in flatCount until count)
 		{
-			result = append(result, i)
+			result = result.append(i)
 			if (rnd.nextInt(4) == 0)
 			{
 				// Try popping and appending.
-				result = append(withoutLast(result), i)
+				result = result.withoutLast().append(i)
 			}
 			if (rnd.nextInt(4) == 0)
 			{
@@ -118,6 +117,6 @@ class PrefixSharingListTest
 		val i = rnd.nextInt(count)
 		assert(list1.indexOf(i) == i)
 		assert(list2.lastIndexOf(i) == i)
-		assert(last(list2) == count - 1)
+		assert(list2.last() == count - 1)
 	}
 }

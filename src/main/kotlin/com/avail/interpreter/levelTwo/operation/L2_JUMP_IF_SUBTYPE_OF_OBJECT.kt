@@ -1,6 +1,6 @@
 /*
  * L2_JUMP_IF_SUBTYPE_OF_OBJECT.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,11 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -57,32 +54,6 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 	L2OperandType.PC.named("is subtype", L2NamedOperandType.Purpose.SUCCESS),
 	L2OperandType.PC.named("not subtype", L2NamedOperandType.Purpose.FAILURE))
 {
-	override fun branchReduction(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator): BranchReduction
-	{
-		// Eliminate tests due to type propagation.
-		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
-//		val isSubtype = instruction.operand(2);
-//		val notSubtype = instruction.operand(3);
-
-		val exactSecondType: A_Type? = secondReg.constantOrNull()
-		return when
-		{
-			exactSecondType !== null
-				&& firstReg.type().isSubtypeOf(secondReg.type()) ->
-					BranchReduction.AlwaysTaken
-			// The first type falls entirely in a type tree excluded
-			// from the second restriction.
-			secondReg.restriction().excludedTypes
-				.any {firstReg.type().isSubtypeOf(it) } ->
-					BranchReduction.NeverTaken
-			else -> BranchReduction.SometimesTaken
-		}
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

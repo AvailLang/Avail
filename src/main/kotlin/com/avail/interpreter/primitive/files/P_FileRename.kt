@@ -1,6 +1,6 @@
 /*
  * P_FileRename.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,7 +123,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		fail.makeShared()
 
 		val replace = replaceExisting.extractBoolean()
-		runtime.ioSystem().executeFileTask(
+		runtime.ioSystem.executeFileTask(
 			Runnable {
                val options = mutableListOf<CopyOption>()
                if (replace)

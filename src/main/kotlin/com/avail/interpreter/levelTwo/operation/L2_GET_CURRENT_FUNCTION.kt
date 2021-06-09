@@ -1,6 +1,6 @@
 /*
  * L2_GET_CURRENT_FUNCTION.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -55,7 +55,7 @@ import org.objectweb.asm.Type
 object L2_GET_CURRENT_FUNCTION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("current function"))
 {
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

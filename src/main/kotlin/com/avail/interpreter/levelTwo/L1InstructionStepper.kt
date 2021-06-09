@@ -1,6 +1,6 @@
 /*
  * L1InstructionStepper.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -140,6 +140,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	var pointers : Array<AvailObject> = emptyPointersArray
 
 	/**
+	 * Get the current program counter.
+	 */
+	fun pc(): Int = instructionDecoder.pc()
+
+	/**
 	 * Read from the specified object register.
 	 *
 	 * @param index
@@ -230,7 +235,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val operationOrdinal = instructionDecoder.getOperationOrdinal()
 			if (Interpreter.debugL1)
 			{
-				val savePc = instructionDecoder.pc()
+				val savePc = pc()
 				val operation = L1Operation.lookup(operationOrdinal)
 				val operands = operation.operandTypes.map {
 					instructionDecoder.getOperand()
@@ -495,7 +500,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
 					val savedFunction = interpreter.function!!
 					val savedPointers = pointers
-					val savedPc = instructionDecoder.pc()
+					val savedPc = pc()
 					val savedStackp = stackp
 
 					// Note that the locals are not present in the new
@@ -722,7 +727,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			function,
 			nil,
 			nil,
-			instructionDecoder.pc(),  // Right after the set-variable.
+			pc(),  // Right after the set-variable.
 			stackp,
 			L2Chunk.unoptimizedChunk,
 			entryPoint.offsetInDefaultChunk,
@@ -767,7 +772,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedFunction = interpreter.function!!
 			val savedPointers = pointers
 			val savedOffset = interpreter.offset
-			val savedPc = instructionDecoder.pc()
+			val savedPc = pc()
 			val savedStackp = stackp
 			val implicitObserveFunction =
 				HookType.IMPLICIT_OBSERVE[interpreter.runtime]
@@ -821,7 +826,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedFunction = interpreter.function!!
 			val savedPointers = pointers
 			val savedOffset = interpreter.offset
-			val savedPc = instructionDecoder.pc()
+			val savedPc = pc()
 			val savedStackp = stackp
 			val implicitObserveFunction =
 				interpreter.runtime.implicitObserveFunction()
@@ -884,7 +889,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
 		val savedOffset = interpreter.offset
 		val savedPointers = pointers
-		val savedPc = instructionDecoder.pc()
+		val savedPc = pc()
 		val savedStackp = stackp
 		val functionToInvoke = matching.bodyBlock()
 		val reifier = interpreter.invokeFunction(functionToInvoke)
@@ -959,7 +964,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
 			val savedOffset = interpreter.offset
 			val savedPointers = pointers
-			val savedPc = instructionDecoder.pc()
+			val savedPc = pc()
 			val savedStackp = stackp
 			val reportedResult = newVariableWithContentType(Types.ANY.o)
 			reportedResult.setValueNoCheck(result)
@@ -1013,7 +1018,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
 		val savedOffset = interpreter.offset
 		val savedPointers = pointers
-		val savedPc = instructionDecoder.pc()
+		val savedPc = pc()
 		val savedStackp = stackp
 		with (interpreter.argsBuffer) {
 			clear()

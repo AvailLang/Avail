@@ -1,6 +1,6 @@
 /*
  * RenamesFileParser.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -362,7 +362,7 @@ class RenamesFileParser @ThreadSafe constructor(
 		 *   next [token][Token].
 		 */
 		@Throws(IOException::class)
-		internal abstract fun scan(
+		abstract fun scan(
 			parser: RenamesFileParser,
 			firstChar: Int): Token?
 

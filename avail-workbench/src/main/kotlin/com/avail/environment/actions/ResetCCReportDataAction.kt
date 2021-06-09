@@ -1,6 +1,6 @@
 /*
- * ResetCCReportDataAction.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * ResetCCReportDataAction.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import com.avail.AvailRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.resetCodeCoverageDetailsThen
 import com.avail.environment.AvailWorkbench
-import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import com.avail.environment.streams.StreamStyle.INFO
 import java.awt.event.ActionEvent
 import javax.swing.Action
 

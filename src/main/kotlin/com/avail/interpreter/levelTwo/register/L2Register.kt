@@ -1,6 +1,6 @@
 /*
  * L2Register.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,14 +39,19 @@ import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadFloatOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand
+import com.avail.interpreter.levelTwo.operand.L2ReadVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_MOVE
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2Entity
 import com.avail.optimizer.L2Generator
-import com.avail.optimizer.reoptimizer.L2Inliner
+import com.avail.optimizer.L2Synonym
+import com.avail.optimizer.reoptimizer.L2Regenerator
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
 import org.objectweb.asm.Opcodes
@@ -115,13 +120,13 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		/**
 		 * The kind of register that holds an [AvailObject].
 		 */
-		BOXED(
+		BOXED_KIND(
 			"boxed",
 			"r",
 			Type.getDescriptor(AvailObject::class.java),
 			Opcodes.ALOAD,
 			Opcodes.ASTORE,
-			RestrictionFlagEncoding.BOXED)
+			BOXED_FLAG)
 		{
 			override fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
 				semanticValue: L2SemanticValue,
@@ -138,13 +143,13 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		/**
 		 * The kind of register that holds an [Int].
 		 */
-		INTEGER(
+		INTEGER_KIND(
 			"int",
 			"i",
 			Type.INT_TYPE.descriptor,
 			Opcodes.ILOAD,
 			Opcodes.ISTORE,
-			RestrictionFlagEncoding.UNBOXED_INT)
+			UNBOXED_INT_FLAG)
 		{
 			override fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
 				semanticValue: L2SemanticValue,
@@ -161,13 +166,13 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		/**
 		 * The kind of register that holds a `double`.
 		 */
-		FLOAT(
+		FLOAT_KIND(
 			"float",
 			"f",
 			Type.DOUBLE_TYPE.descriptor,
 			Opcodes.DLOAD,
 			Opcodes.DSTORE,
-			RestrictionFlagEncoding.UNBOXED_FLOAT)
+			UNBOXED_FLOAT_FLAG)
 		{
 			override fun <R : L2Register, RR : L2ReadOperand<R>> readOperand(
 				semanticValue: L2SemanticValue,
@@ -213,30 +218,29 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 		 * Answer a suitable [L2_MOVE] operation for transferring values of this
 		 * kind.
 		 *
-		 * @return
-		 *   The new [L2ReadOperand].
 		 * @param R
 		 *   The [L2Register] subclass.
 		 * @param RR
 		 *   The [L2ReadOperand] subclass.
 		 * @param WR
 		 *   The [L2WriteOperand] subclass.
+		 * @param RV
+		 *   The [L2ReadVectorOperand] subclass.
+		 * @return
+		 *   The new [L2ReadOperand].
 		 */
-		fun <R : L2Register, RR : L2ReadOperand<R>, WR : L2WriteOperand<R>> move()
-			: L2_MOVE<R, RR, WR> =
-			L2_MOVE.moveByKind<
-					L2Register,
-					L2ReadOperand<L2Register>,
-					L2WriteOperand<L2Register>>(this)
-				.cast<L2_MOVE<*, *, *>?, L2_MOVE<R, RR, WR>>()
+		fun <
+			R : L2Register,
+			RR : L2ReadOperand<R>,
+			WR : L2WriteOperand<R>,
+			RV : L2ReadVectorOperand<R, RR>>
+		move(): L2_MOVE<R, RR, WR, RV> = L2_MOVE.moveByKind(this)
 
 		companion object
 		{
 			/** Don't modify this array.  */
-			@JvmField
 			val all = values()
 		}
-
 	}
 
 	/**
@@ -318,7 +322,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	fun definition(): L2WriteOperand<*>
 	{
 		assert(definitions.size == 1)
-		return definitions.iterator().next()
+		return definitions.single()
 	}
 
 	/**
@@ -393,12 +397,12 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * Answer a copy of the receiver. Subclasses can be covariantly stronger in
 	 * the return type.
 	 *
-	 * @param inliner
-	 *   The [L2Inliner] for which copying is requested.
+	 * @param regenerator
+	 *   The [L2Regenerator] for which copying is requested.
 	 * @return
 	 *   A copy of the receiver.
 	 */
-	abstract fun copyForInliner(inliner: L2Inliner): L2Register
+	abstract fun copyForRegenerator(regenerator: L2Regenerator): L2Register
 
 	/**
 	 * Answer the prefix for non-constant registers. This is used only for

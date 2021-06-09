@@ -1,6 +1,6 @@
 /*
  * BottomTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -209,7 +209,7 @@ class BottomTypeDescriptor private constructor()
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
 		field: A_Atom
-	): A_Type? = self
+	): A_Type = self
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map
 	{
@@ -217,7 +217,7 @@ class BottomTypeDescriptor private constructor()
 		// unchecked exception. Or if we ever implement more precise map types
 		// containing key type -> value type pairs we might be able to change
 		// the object type interface to use one of those instead of a map.
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_FunctionType(self: AvailObject): A_Type = self
@@ -229,7 +229,7 @@ class BottomTypeDescriptor private constructor()
 		potentialInstance: AvailObject): Boolean = false
 
 	// ⊥ is the empty enumeration.
-	override fun o_InstanceCount(self: AvailObject): A_Number = zero()
+	override fun o_InstanceCount(self: AvailObject): A_Number = zero
 
 	// ⊥ is the empty enumeration.
 	override fun o_Instances(self: AvailObject): A_Set = emptySet
@@ -307,7 +307,7 @@ class BottomTypeDescriptor private constructor()
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
-	override fun o_LowerBound(self: AvailObject): A_Number = positiveInfinity()
+	override fun o_LowerBound(self: AvailObject): A_Number = positiveInfinity
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
@@ -315,7 +315,7 @@ class BottomTypeDescriptor private constructor()
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
@@ -332,6 +332,9 @@ class BottomTypeDescriptor private constructor()
 
 	// See ListPhraseDescriptor.
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type = self
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type =
+		self
 
 	// Answer what type the given index would have in an object instance of
 	// me. Answer ⊥ if the index is out of bounds, which is always because
@@ -351,7 +354,7 @@ class BottomTypeDescriptor private constructor()
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
-	override fun o_UpperBound(self: AvailObject): A_Number = negativeInfinity()
+	override fun o_UpperBound(self: AvailObject): A_Number = negativeInfinity
 
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
@@ -387,12 +390,12 @@ class BottomTypeDescriptor private constructor()
 
 	override fun mutable(): BottomTypeDescriptor
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun immutable(): BottomTypeDescriptor
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun shared(): BottomTypeDescriptor = shared

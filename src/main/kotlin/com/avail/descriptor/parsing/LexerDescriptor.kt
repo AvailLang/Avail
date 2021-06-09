@@ -1,6 +1,6 @@
 /*
  * LexerDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,43 +31,44 @@
  */
 package com.avail.descriptor.parsing
 
- import com.avail.compiler.scanning.LexingState
- import com.avail.descriptor.bundles.A_Bundle.Companion.message
- import com.avail.descriptor.functions.A_Function
- import com.avail.descriptor.methods.A_Method
- import com.avail.descriptor.methods.MacroDescriptor
- import com.avail.descriptor.module.A_Module
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerFilterFunction
- import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
- import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.DEFINITION_MODULE
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION
- import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.AvailObject.Companion.multiplier
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.Descriptor
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tuples.ObjectTupleDescriptor
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
- import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
- import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
- import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
- import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
- import com.avail.descriptor.types.TypeDescriptor.Types
- import com.avail.descriptor.types.TypeDescriptor.Types.LEXER
- import com.avail.descriptor.types.TypeTag
- import com.avail.utility.json.JSONWriter
- import java.util.IdentityHashMap
+import com.avail.compiler.scanning.LexingState
+import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.MacroDescriptor
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addLexer
+import com.avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
+import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.Companion.HASH
+import com.avail.descriptor.parsing.LexerDescriptor.IntegerSlots.LATIN1_BIT_VECTORS_
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.DEFINITION_MODULE
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_BODY_FUNCTION
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_FILTER_FUNCTION
+import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeDescriptor.Types.LEXER
+import com.avail.descriptor.types.TypeTag
+import com.avail.utility.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * A method maintains all definitions that have the same name.  At compile time
@@ -105,7 +106,15 @@ class LexerDescriptor private constructor(
 		/**
 		 * [BitField]s for the hash and the argument count.  See below.
 		 */
-		HASH_AND_MORE;
+		HASH_AND_MORE,
+
+		/**
+		 * Eight longs, indicating applicability of the Latin-1 characters (the
+		 * single-byte Unicode codepoints).  See [o_LexerApplicability] and
+		 * [o_SetLexerApplicability] for details of which bits encode the
+		 * filter values and whether the filter has run.
+		 */
+		LATIN1_BIT_VECTORS_;
 
 		companion object {
 			/**
@@ -149,6 +158,10 @@ class LexerDescriptor private constructor(
 		LEXER_BODY_FUNCTION
 	}
 
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum
+	): Boolean = e === LATIN1_BIT_VECTORS_
+
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
@@ -167,39 +180,56 @@ class LexerDescriptor private constructor(
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(DEFINITION_MODULE)
 
-	override fun o_LexerMethod(self: AvailObject): A_Method =
-		self.slot(LEXER_METHOD)
-
-	override fun o_LexerFilterFunction(self: AvailObject): A_Function =
-		self.slot(LEXER_FILTER_FUNCTION)
-
-	override fun o_LexerBodyFunction(self: AvailObject): A_Function =
-		self.slot(LEXER_BODY_FUNCTION)
-
-	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean {
-		val otherTraversed = another.traversed()
-		return when {
-			otherTraversed.sameAddressAs(self) -> true
-			otherTraversed.typeTag() != TypeTag.LEXER_TAG -> false
-			self.slot(HASH) != otherTraversed.hash() -> false
-			!self.slot(LEXER_METHOD).equals(otherTraversed.definitionModule())
-				-> false
-			!self.slot(LEXER_FILTER_FUNCTION)
-					.equals(otherTraversed.lexerFilterFunction())
-				-> false
-			!self.slot(LEXER_BODY_FUNCTION)
-					.equals(otherTraversed.lexerBodyFunction())
-				-> false
-			!self.slot(DEFINITION_MODULE)
-					.equals(otherTraversed.definitionModule())
-				-> false
-			else -> true
-		}
-	}
+	override fun o_Equals(
+		self: AvailObject,
+		another: A_BasicObject
+	): Boolean = another.equalsVariable(self)
 
 	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
 	override fun o_Kind(self: AvailObject): A_Type = LEXER.o
+
+	/**
+	 * Answer either `null` if the filter has not yet run for this Latin1
+	 * (`[0..255]`) code point, `true` if it has passed, or `false` if it has
+	 * failed.  These are cached in the 8 [Long]s of [LATIN1_BIT_VECTORS_], in
+	 * pairs of bits where the upper is the validity bit, and the lower is the
+	 * previous result of the filter.
+	 *
+	 * @param self
+	 *   The [A_Lexer].
+	 * @param codePoint
+	 *   The Latin1 (`[0..255]`) Unicode code point to look up.
+	 * @return
+	 *   Either `null` for undecided, or a [Boolean] indicating a previously
+	 *   cached result of having run the lexer's filter for this code point.
+	 */
+	override fun o_LexerApplicability(
+		self: AvailObject,
+		codePoint: Int
+	): Boolean?
+	{
+		assert(codePoint and 255.inv() == 0)
+		val offset = (codePoint ushr 5) + 1
+		val shift = (codePoint and 31) shl 1
+		val long = self.mutableSlot(LATIN1_BIT_VECTORS_, offset)
+		return when (long ushr shift and 3)
+		{
+			0b00L -> null
+			0b10L -> false
+			0b11L -> true
+			else -> throw RuntimeException("Invalid filter cache encoding")
+		}
+	}
+
+	override fun o_LexerBodyFunction(self: AvailObject): A_Function =
+		self.slot(LEXER_BODY_FUNCTION)
+
+	override fun o_LexerFilterFunction(self: AvailObject): A_Function =
+		self.slot(LEXER_FILTER_FUNCTION)
+
+	override fun o_LexerMethod(self: AvailObject): A_Method =
+		self.slot(LEXER_METHOD)
 
 	// A method is always shared. Never make it immutable.
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
@@ -207,6 +237,22 @@ class LexerDescriptor private constructor(
 			isMutable -> self.makeShared()
 			else -> self
 		}
+
+	/**
+	 * @see [o_LexerApplicability].
+	 */
+	override fun o_SetLexerApplicability(
+		self: AvailObject,
+		codePoint: Int,
+		applicability: Boolean)
+	{
+		assert(codePoint and 255.inv() == 0)
+		val offset = (codePoint ushr 5) + 1
+		val shift = (codePoint and 31) shl 1
+		self.atomicUpdateSlot(LATIN1_BIT_VECTORS_, offset) {
+			it or ((0b10L + if (applicability) 0b01L else 0b00L) shl shift)
+		}
+	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -237,7 +283,7 @@ class LexerDescriptor private constructor(
 
 	companion object {
 		private val lexerFilterFunctionType: A_Type = functionType(
-			ObjectTupleDescriptor.tuple(Types.CHARACTER.o),
+			tuple(Types.CHARACTER.o),
 			booleanType
 		).makeShared()
 
@@ -245,9 +291,9 @@ class LexerDescriptor private constructor(
 		fun lexerFilterFunctionType(): A_Type = lexerFilterFunctionType
 
 		private val lexerBodyFunctionType: A_Type = functionType(
-			ObjectTupleDescriptor.tuple(
+			tuple(
 				stringType(),
-				inclusive(1, (1L shl 32) - 1),
+				inclusive(1, (1L shl 31) - 1),
 				inclusive(1, (1L shl 28) - 1)),
 			setTypeForSizesContentType(
 				wholeNumbers,
@@ -281,7 +327,7 @@ class LexerDescriptor private constructor(
 			lexerMethod: A_Method,
 			definitionModule: A_Module
 		): A_Lexer {
-			val lexer = mutable.createShared {
+			val lexer = mutable.createShared(8) {
 				setSlot(LEXER_FILTER_FUNCTION, lexerFilterFunction)
 				setSlot(LEXER_BODY_FUNCTION, lexerBodyFunction!!)
 				setSlot(LEXER_METHOD, lexerMethod)

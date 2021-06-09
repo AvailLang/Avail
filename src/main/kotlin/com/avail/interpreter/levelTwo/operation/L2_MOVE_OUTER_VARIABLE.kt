@@ -1,6 +1,6 @@
 /*
  * L2_MOVE_OUTER_VARIABLE.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,7 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
@@ -42,8 +41,6 @@ import com.avail.interpreter.levelTwo.ReadsHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -61,27 +58,6 @@ object L2_MOVE_OUTER_VARIABLE : L2Operation(
 	L2OperandType.READ_BOXED.named("function"),
 	L2OperandType.WRITE_BOXED.named("destination"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val outerIndex =
-			instruction.operand<L2IntImmediateOperand>(0)
-		val function =
-			instruction.operand<L2ReadBoxedOperand>(1)
-		val destination =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		if (registerSet.hasConstantAt(function.register()))
-		{
-			// The exact function is known.
-			val fn: A_Function = registerSet.constantAt(function.register())
-			val value = fn.outerVarAt(outerIndex.value)
-			registerSet.constantAtPut(
-				destination.register(), value, instruction)
-		}
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

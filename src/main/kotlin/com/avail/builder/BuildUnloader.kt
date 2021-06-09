@@ -1,6 +1,6 @@
 /*
  * BuildUnloader.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package com.avail.builder
 import com.avail.AvailTask
 import com.avail.builder.AvailBuilder.LoadedModule
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import com.avail.descriptor.module.A_Module.Companion.removeFrom
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.utility.Graph
 import java.util.logging.Level
@@ -108,15 +109,13 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	 *   `deletionRequest`) of the given module.
 	 */
 	private fun determineDirtyModules(
-		moduleName: ResolvedModuleName?,
-		completionAction: (()->Unit)?)
+		moduleName: ResolvedModuleName,
+		completionAction: (()->Unit))
 	{
-		assert(moduleName !== null)
-		assert(completionAction !== null)
 		availBuilder.runtime.execute(loaderPriority) {
 			var dirty = false
 			for (predecessor
-				in availBuilder.moduleGraph.predecessorsOf(moduleName!!))
+				in availBuilder.moduleGraph.predecessorsOf(moduleName))
 			{
 				val loadedModule = availBuilder.getLoadedModule(predecessor)!!
 				if (loadedModule.deletionRequest)
@@ -131,23 +130,52 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				val loadedModule = availBuilder.getLoadedModule(moduleName)!!
 				val repository = moduleName.repository
 				val archive = repository.getArchive(moduleName.rootRelativeName)
-				val sourceFile = moduleName.sourceReference
-				dirty =
-					if (!sourceFile.isFile)
-					{
-						true
+				val resolverReference = moduleName.resolverReference
+				if (resolverReference.isPackage)
+				{
+					loadedModule.deletionRequest = dirty
+					AvailBuilder.log(
+						Level.FINEST, "(Module %s is dirty)", moduleName)
+					completionAction()
+				}
+				else
+				{
+					archive.digestForFile(
+						moduleName,
+						false,
+						{ latestDigest ->
+							if (!latestDigest.contentEquals(
+								loadedModule.sourceDigest))
+							{
+								loadedModule.deletionRequest = true
+								AvailBuilder.log(
+									Level.FINEST,
+									"(Module %s is dirty)",
+									moduleName
+								)
+							}
+							completionAction()
+						}
+					){ code, ex ->
+						AvailBuilder.log(
+							Level.SEVERE,
+							"Could not determineDirtyModules for %s. " +
+								"Received %s: %s",
+							moduleName,
+							code,
+							ex ?: "")
+						completionAction()
 					}
-					else
-					{
-						val latestDigest = archive.digestForFile(moduleName)
-						!latestDigest.contentEquals(loadedModule.sourceDigest)
-					}
+				}
 			}
-			val loadedModule = availBuilder.getLoadedModule(moduleName)!!
-			loadedModule.deletionRequest = dirty
-			AvailBuilder.log(
-				Level.FINEST, "(Module %s is dirty)", moduleName)
-			completionAction!!()
+			else
+			{
+				val loadedModule = availBuilder.getLoadedModule(moduleName)!!
+				loadedModule.deletionRequest = dirty
+				AvailBuilder.log(
+					Level.FINEST, "(Module %s is dirty)", moduleName)
+				completionAction()
+			}
 		}
 	}
 
@@ -277,6 +305,9 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 				moduleCount--
 			}
 		}
-		assert(availBuilder.moduleGraph.vertexCount == moduleCount)
+		assert(availBuilder.moduleGraph.vertexCount == moduleCount) {
+			"Expected $moduleCount modules are loaded, however after unload " +
+				"${availBuilder.moduleGraph.vertexCount} modules are loaded."
+		}
 	}
 }

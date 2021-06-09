@@ -1,6 +1,6 @@
 /*
- * GraphTask.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * GraphTask.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,7 +36,7 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AbstractWorkbenchTask
-import com.avail.environment.AvailWorkbench.StreamStyle.INFO
+import com.avail.environment.streams.StreamStyle.INFO
 import java.awt.Cursor
 import java.io.File
 
@@ -57,9 +57,8 @@ class GraphTask constructor(
 	: AbstractWorkbenchTask(workbench, targetModuleName)
 {
 	@Throws(Exception::class)
-	override fun executeTask()
+	override fun executeTaskThen(afterExecute: ()->Unit)
 	{
-
 		try
 		{
 			val file = File("modules.dot")
@@ -78,7 +77,10 @@ class GraphTask constructor(
 			// Put a breakpoint here to debug graph exceptions.
 			throw e
 		}
-
+		finally
+		{
+			afterExecute()
+		}
 	}
 
 	override fun done()

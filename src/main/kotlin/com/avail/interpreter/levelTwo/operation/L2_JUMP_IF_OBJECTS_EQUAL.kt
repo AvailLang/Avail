@@ -1,6 +1,6 @@
 /*
  * L2_JUMP_IF_OBJECTS_EQUAL.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,15 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -52,10 +52,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("first value"),
-	L2OperandType.READ_BOXED.named("second value"),
-	L2OperandType.PC.named("is equal", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("is not equal", L2NamedOperandType.Purpose.FAILURE))
+	READ_BOXED.named("first value"),
+	READ_BOXED.named("second value"),
+	PC.named("is equal", SUCCESS),
+	PC.named("is not equal", FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
@@ -65,79 +65,13 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
 		val ifEqual = instruction.operand<L2PcOperand>(2)
-//		val ifNotEqual = instruction.operand<L2PcOperand>(3)
+		//val ifNotEqual = instruction.operand<L2PcOperand>(3)
 
 		super.instructionWasAdded(instruction, manifest)
 
 		// Merge the source and destination only along the ifEqual branch.
 		ifEqual.manifest().mergeExistingSemanticValues(
 			first.semanticValue(), second.semanticValue())
-	}
-
-	override fun branchReduction(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator): BranchReduction
-	{
-		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
-		//		final L2PcOperand ifEqual = instruction.operand(2);
-//		final L2PcOperand notEqual = instruction.operand(3);
-		val constant1: A_BasicObject? = firstReg.constantOrNull()
-		val constant2: A_BasicObject? = secondReg.constantOrNull()
-		return when
-		{
-			constant1 !== null
-					&& constant2 !== null
-					&& constant1.equals(constant2) ->
-				BranchReduction.AlwaysTaken
-			constant1 !== null && constant2 !== null ->
-				BranchReduction.NeverTaken
-			// They can't be equal.
-			firstReg.type().typeIntersection(secondReg.type()).isBottom ->
-				BranchReduction.NeverTaken
-			// Otherwise it's still contingent.
-			else -> BranchReduction.SometimesTaken
-		}
-	}
-
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
-		assert(registerSets.size == 2)
-		//		final RegisterSet fallThroughSet = registerSets.get(0);
-		val postJumpSet = registerSets[1]
-
-		// In the path where the registers compared equal, we can deduce that
-		// both registers' origin registers must be constrained to the type
-		// intersection of the two registers.
-		val intersection =
-			postJumpSet.typeAt(firstReg.register()).typeIntersection(
-				postJumpSet.typeAt(secondReg.register()))
-		postJumpSet.strengthenTestedTypeAtPut(
-			firstReg.register(), intersection)
-		postJumpSet.strengthenTestedTypeAtPut(
-			secondReg.register(), intersection)
-
-		// Furthermore, if one register is a constant, then in the path where
-		// the registers compared equal we can deduce that both registers'
-		// origin registers hold that same constant.
-		if (postJumpSet.hasConstantAt(firstReg.register()))
-		{
-			postJumpSet.strengthenTestedValueAtPut(
-				secondReg.register(),
-				postJumpSet.constantAt(firstReg.register()))
-		}
-		else if (postJumpSet.hasConstantAt(secondReg.register()))
-		{
-			postJumpSet.strengthenTestedValueAtPut(
-				firstReg.register(),
-				postJumpSet.constantAt(secondReg.register()))
-		}
 	}
 
 	override fun appendToWithWarnings(
@@ -147,12 +81,11 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val first =
-			instruction.operand<L2ReadBoxedOperand>(0)
-		val second =
-			instruction.operand<L2ReadBoxedOperand>(1)
-		//		final L2PcOperand ifEqual = instruction.operand(2);
-//		final L2PcOperand ifNotEqual = instruction.operand(3);
+		val first = instruction.operand<L2ReadBoxedOperand>(0)
+		val second = instruction.operand<L2ReadBoxedOperand>(1)
+		//val ifEqual = instruction.operand<L2PcOperand>(2);
+		//val ifNotEqual = instruction.operand<L2PcOperand>(3);
+
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(first.registerString())
@@ -176,6 +109,7 @@ object L2_JUMP_IF_OBJECTS_EQUAL : L2ConditionalJump(
 		translator.load(method, first.register())
 		translator.load(method, second.register())
 		A_BasicObject.equalsMethod.generateCall(method)
-		emitBranch(translator, method, instruction, Opcodes.IFNE, ifEqual, ifNotEqual)
+		emitBranch(
+			translator, method, instruction, Opcodes.IFNE, ifEqual, ifNotEqual)
 	}
 }

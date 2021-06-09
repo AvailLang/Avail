@@ -1,6 +1,6 @@
 /*
  * P_TupleToSet.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -60,9 +60,10 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_SET
 import com.avail.optimizer.L1Translator
+import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] into a
@@ -106,8 +107,8 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		// the empty tuple can produce the empty set, and the set size is never
 		// greater than the tuple size.
 		val minSize =
-			if (tupleSizes.lowerBound().equalsInt(0)) zero()
-			else one()
+			if (tupleSizes.lowerBound().equalsInt(0)) zero
+			else one
 		val setSizes = integerRangeType(
 			minSize,
 			true,
@@ -147,10 +148,10 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		// Create the set directly from the values.  This may turn the tuple
 		// creation instruction into dead code.
 		val restriction = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val semanticResult = generator.primitiveInvocation(this, arguments)
+		val semanticResult = primitiveInvocation(
+			this, arguments.map { it.semanticValue() })
 		val write = generator.boxedWrite(
-			semanticResult,
-			restrictionForType(restriction, RestrictionFlagEncoding.BOXED))
+			semanticResult, restrictionForType(restriction, BOXED_FLAG))
 		generator.addInstruction(
 			L2_CREATE_SET,
 			L2ReadBoxedVectorOperand(elementRegs),

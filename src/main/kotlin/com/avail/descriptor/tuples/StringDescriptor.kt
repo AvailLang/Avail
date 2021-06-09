@@ -1,6 +1,6 @@
 /*
  * StringDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -112,12 +112,12 @@ abstract class StringDescriptor protected constructor(
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)

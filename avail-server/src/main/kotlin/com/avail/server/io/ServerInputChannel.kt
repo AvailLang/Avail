@@ -1,6 +1,6 @@
 /*
  * ServerInputChannel.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,16 +32,17 @@
 
 package com.avail.server.io
 
+import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInputChannel
 import com.avail.server.messages.Message
 import com.avail.utility.cast
 import java.io.IOException
 import java.nio.BufferOverflowException
 import java.nio.CharBuffer
-import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler
 import java.util.ArrayDeque
 import java.util.Deque
+import javax.annotation.concurrent.GuardedBy
 import kotlin.math.min
 
 /**
@@ -63,6 +64,25 @@ import kotlin.math.min
 class ServerInputChannel constructor(
 	private val channel: AvailServerChannel) : TextInputChannel
 {
+	/**
+	 * The [Throwable] that, when not `null` the execution of [read] can no
+	 * longer proceed, and thus should fail.
+	 */
+	@GuardedBy("this")
+	private var error: Throwable? = null
+		private set(value)
+		{
+			if (field === null && value !== null)
+			{
+				field = value
+				while (waiters.isNotEmpty())
+				{
+					val waiter = waiters.removeFirst()
+					waiter.failed(value)
+				}
+			}
+		}
+
 	/**
 	 * The [queue][Deque] of [messages][Message] awaiting delivery. It is
 	 * invariant that there are either pending messages or pending [waiters].
@@ -111,27 +131,39 @@ class ServerInputChannel constructor(
 	 *   The [completion&#32;handler][CompletionHandler] provided for
 	 *   notification of data availability.
 	 */
-	private class Waiter internal constructor(
-		internal val buffer: CharBuffer,
-		internal val attachment: Any?,
+	private class Waiter constructor(
+		val buffer: CharBuffer,
+		val attachment: Any?,
 		handler: CompletionHandler<Int, *>)
 	{
 		/**
 		 * The [completion&#32;handler][CompletionHandler] provided for
 		 * notification of data availability.
 		 */
-		internal val handler: CompletionHandler<Int, Any> = handler.cast()
+		val handler: CompletionHandler<Int, Any> = handler.cast()
 
 		/** The number of bytes read. */
-		internal var bytesRead = 0
+		var bytesRead = 0
 
 		/**
 		 * Invoke the [handler][CompletionHandler]'s
 		 * [success][CompletionHandler.completed] entry point.
 		 */
-		internal fun completed()
+		fun completed()
 		{
 			handler.completed(bytesRead, attachment)
+		}
+
+		/**
+		 * Invoke the [handler][CompletionHandler]'s
+		 * [failed][CompletionHandler.failed] entry point.
+		 *
+		 * @param exception
+		 *   The cause of the failure.
+		 */
+		fun failed(exception: Throwable)
+		{
+			handler.failed(exception, attachment)
 		}
 	}
 
@@ -198,29 +230,39 @@ class ServerInputChannel constructor(
 		attachment: A?,
 		handler: CompletionHandler<Int, A>)
 	{
-		// If the underlying channel is closed, then invoke the handler's
-		// failure entry point.
-		if (!isOpen)
-		{
-			try
-			{
-				throw ClosedChannelException()
-			}
-			catch (e: ClosedChannelException)
-			{
-				handler.failed(e, attachment)
-				return
-			}
-
-		}
 		var totalSize = 0
 		synchronized(this) {
-			if (messages.isEmpty())
+			if (error !== null)
 			{
-				val waiter = Waiter(buffer, attachment, handler)
-				waiters.addLast(waiter)
+				assert(waiters.isEmpty())
+				handler.failed(error!!, attachment)
 				return
 			}
+			if (messages.isEmpty())
+			{
+				// Send an input notification. We don't really care if this
+				// succeeds, per se, except that failure probably indicates that
+				// the transport is now defunct. It's only an advisory to the
+				// client that input is actively wanted; we assume that any sane
+				// user experience will independently make clear that input is
+				// wanted.
+				SimpleCompletionHandler<Int>(
+					{
+						val waiter = Waiter(buffer, attachment, handler)
+						synchronized(this) {
+							waiters.addLast(waiter)
+						}
+					},
+					{
+						handler.failed(throwable, attachment)
+					}
+				).guardedDo {
+					channel.inputNotificationChannel?.write(
+						"", dummy, this.handler)
+				}
+				return
+			}
+			assert(error === null)
 			assert(waiters.isEmpty())
 			// Otherwise, attempt to fill the buffer.
 			while (buffer.hasRemaining() && !messages.isEmpty())
@@ -285,6 +327,7 @@ class ServerInputChannel constructor(
 	{
 		val ready: MutableList<Waiter>
 		synchronized(this) {
+			assert(error === null)
 			if (waiters.isEmpty())
 			{
 				messages.addLast(message)
@@ -353,6 +396,20 @@ class ServerInputChannel constructor(
 			waiter.completed()
 		}
 		receiveNext()
+	}
+
+	/**
+	 * Receive an [error][Throwable] indicating this [ServerInputChannel] is
+	 * no longer viable.
+	 *
+	 * @param cause
+	 *   The [Throwable] cause for killing this [ServerInputChannel].
+	 */
+	fun receiveError(cause: Throwable)
+	{
+		synchronized(this) {
+			error = cause
+		}
 	}
 
 	override fun close()

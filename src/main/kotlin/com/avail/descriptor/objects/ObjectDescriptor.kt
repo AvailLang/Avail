@@ -1,6 +1,6 @@
 /*
  * ObjectDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,9 +39,9 @@ import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.objects.ObjectDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -530,14 +530,14 @@ class ObjectDescriptor internal constructor(
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap().mapIterable().forEach { (k, _) ->
+			baseType.fieldTypeMap().forEach { k, _ ->
 				if (!k.getAtomProperty(explicitSubclassingKey).equalsNil()) {
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(k, true)
 				}
 			}
 		}
 		var first = true
-		self.fieldMap().mapIterable().forEach { (key, value) ->
+		self.fieldMap().forEach { key, value ->
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false
@@ -628,7 +628,7 @@ class ObjectDescriptor internal constructor(
 			val mutableDescriptor = variant.mutableObjectDescriptor
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
-				map.mapIterable().forEach { (key, value) ->
+				map.forEach { key, value ->
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {

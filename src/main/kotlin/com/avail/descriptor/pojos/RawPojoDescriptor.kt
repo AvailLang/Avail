@@ -1,6 +1,6 @@
 /*
  * RawPojoDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -202,20 +202,26 @@ open class RawPojoDescriptor protected constructor(
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun mutable() =
-		throw unsupportedOperationException()
+	override fun mutable(): Nothing
+	{
+		unsupportedOperation()
+	}
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun immutable() =
-		throw unsupportedOperationException()
+	override fun immutable(): Nothing
+	{
+		unsupportedOperation()
+	}
 
 	@Deprecated(
 		"Not applicable to pojos",
 		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun shared() =
-		throw unsupportedOperationException()
+	override fun shared(): Nothing
+	{
+		unsupportedOperation()
+	}
 
 	companion object
 	{

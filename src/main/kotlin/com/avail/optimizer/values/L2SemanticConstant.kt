@@ -1,6 +1,6 @@
 /*
- * L2SemanticConstant.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2SemanticConstant.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -56,6 +56,12 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue = this
+
+	override fun primaryVisualSortKey() = when
+	{
+		value.equalsNil() -> PrimaryVisualSortKey.CONSTANT_NIL
+		else -> PrimaryVisualSortKey.CONSTANT
+	}
 
 	override val isConstant: Boolean
 		get() = true

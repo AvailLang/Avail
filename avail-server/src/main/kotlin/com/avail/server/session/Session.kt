@@ -1,21 +1,21 @@
 /*
  * Session.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -36,9 +36,11 @@ import com.avail.server.AvailServer
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.DisconnectReason
 import com.avail.server.io.ParentChannelDisconnect
-import com.avail.server.io.files.FileManager
+import com.avail.files.FileManager
+import com.avail.io.AvailClient
 import java.util.*
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.logging.Level
 
 /**
@@ -66,7 +68,8 @@ import java.util.logging.Level
  *   [AvailServerChannel.ProtocolState.COMMAND] and is eligible to create child
  *   `AvailServerChannel`s.
  */
-class Session constructor(val commandChannel: AvailServerChannel)
+class Session constructor(private val commandChannel: AvailServerChannel):
+	AvailClient
 {
 	// TODO
 	//  - Maintain space for user data, this includes
@@ -77,7 +80,23 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 * The [UUID] that uniquely identifies this [Session]. This is also the
 	 * [commandChannel]'s [AvailServerChannel.id].
 	 */
-	val id: UUID = commandChannel.id
+	override val id: UUID = commandChannel.id
+
+	/**
+	 * `true` indicates client wishes to receive server push; `false` otherwise.
+	 */
+	private val receiveNotifications = AtomicBoolean(false)
+
+	/**
+	 * Set session to receive notifications.
+	 *
+	 * @param receive
+	 *   `true` indicates notifications should be received; `false` otherwise.
+	 */
+	fun receiveNotifications (receive: Boolean = true)
+	{
+		receiveNotifications.set(receive)
+	}
 
 	/**
 	 * The [Map] from [AvailServerChannel.id] to [AvailServerChannel] for all
@@ -159,7 +178,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 		}
 		commandChannel.server.sessions.remove(id)
 		fileCacheIdSessionId.keys.forEach {
-			commandChannel.server.fileManager.deregisterInterest(it)
+			commandChannel.server.fileManager.deregisterInterest(it, id)
 		}
 		AvailServer.logger.log(Level.INFO, "Session $id closed")
 	}
@@ -181,7 +200,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 			// it had a file open and re-requested it, then this Session would
 			// have been double-counted in the ServerFileWrapper's
 			// interestCount, which needs to be adjusted.
-			commandChannel.server.fileManager.deregisterInterest(uuid)
+			commandChannel.server.fileManager.deregisterInterest(uuid, id)
 			it
 		} ?: sessionFileCache.add(uuid).apply {
 				fileCacheIdSessionId[uuid] = this
@@ -199,7 +218,7 @@ class Session constructor(val commandChannel: AvailServerChannel)
 	 */
 	fun removeFileCacheId (id: Int) =
 		sessionFileCache.remove(id)?.let {
-			commandChannel.server.fileManager.deregisterInterest(it)
+			commandChannel.server.fileManager.deregisterInterest(it, this.id)
 			fileCacheIdSessionId.remove(it)
 		}
 

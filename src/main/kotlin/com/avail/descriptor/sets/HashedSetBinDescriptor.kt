@@ -1,6 +1,6 @@
 /*
  * HashedSetBinDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,6 +63,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
+import com.avail.utility.structures.EnumMap
 import java.util.ArrayDeque
 import java.util.NoSuchElementException
 
@@ -692,6 +693,7 @@ class HashedSetBinDescriptor private constructor(
 					totalCount += childBin.setBinSize()
 					hash += childBin.setBinHash()
 					hashedBin.setSlot(BIN_ELEMENT_AT_, ++written, childBin)
+					groups[binIndex] = null  // Allow GC to clean it up early.
 				}
 			}
 			if (hashedBin.setBinSize() == 1) {
@@ -712,6 +714,16 @@ class HashedSetBinDescriptor private constructor(
 		const val numberOfLevels: Int = 6
 
 		/**
+		 * The [HashedSetBinDescriptor] instances.  Each [Array] is indexed by
+		 * level.
+		 */
+		private val descriptors = EnumMap.enumMap { mut: Mutability ->
+			Array(numberOfLevels) { level ->
+				HashedSetBinDescriptor(mut, level)
+			}
+		}
+
+		/**
 		 * Answer the appropriate `HashedSetBinDescriptor` to use for the given
 		 * mutability and level.
 		 *
@@ -727,16 +739,7 @@ class HashedSetBinDescriptor private constructor(
 			level: Int
 		): HashedSetBinDescriptor {
 			assert(level in 0 until numberOfLevels)
-			return descriptors[level * 3 + flag.ordinal]
-		}
-
-		/**
-		 * [HashedSetBinDescriptor]s are clustered by mutability and level.
-		 */
-		val descriptors = Array(numberOfLevels * 3) {
-			val level = it / 3
-			val mut = Mutability.values()[it - level * 3]
-			HashedSetBinDescriptor(mut, level)
+			return descriptors[flag]!![level]
 		}
 	}
 }

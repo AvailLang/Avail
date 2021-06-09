@@ -1,6 +1,6 @@
 /*
  * TokenDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,48 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.descriptor.tokens
-
- import com.avail.annotations.EnumField
- import com.avail.annotations.EnumField.Converter
- import com.avail.annotations.HideFieldInDebugger
- import com.avail.compiler.scanning.LexingState
- import com.avail.descriptor.atoms.A_Atom
- import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
- import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
- import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
- import com.avail.descriptor.pojos.RawPojoDescriptor
- import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.BitField
- import com.avail.descriptor.representation.Descriptor
- import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
- import com.avail.descriptor.representation.IntegerSlotsEnum
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.NilDescriptor
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
- import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
- import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
- import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
- import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
- import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
- import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
- import com.avail.descriptor.tuples.A_String
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
- import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
- import com.avail.descriptor.tuples.StringDescriptor
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
- import com.avail.descriptor.types.A_Type.Companion.tokenType
- import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
- import com.avail.descriptor.types.TypeDescriptor.Types
- import com.avail.descriptor.types.TypeTag
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.PrefixSharingList.Companion.append
- import com.avail.utility.json.JSONWriter
- import java.util.IdentityHashMap
+import com.avail.annotations.EnumField
+import com.avail.annotations.EnumField.Converter
+import com.avail.annotations.HideFieldInDebugger
+import com.avail.compiler.scanning.LexingState
+import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.pojos.RawPojoDescriptor
+import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.BitField
+import com.avail.descriptor.representation.Descriptor
+import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
+import com.avail.descriptor.representation.IntegerSlotsEnum
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
+import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
+import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
+import com.avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
+import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import com.avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
+import com.avail.descriptor.tuples.A_String
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
+import com.avail.descriptor.types.A_Type.Companion.tokenType
+import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
+import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.TypeTag
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.PrefixSharingList.Companion.append
+import com.avail.utility.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * I represent a token scanned from Avail source code.
@@ -320,7 +318,7 @@ open class TokenDescriptor protected constructor(
 		priorLexingState: LexingState
 	) {
 		// First, figure out where the token ends.
-		val string: A_Tuple = self.slot(STRING)
+		val string: A_String = self.slot(STRING)
 		val stringSize = string.tupleSize()
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)
@@ -328,7 +326,7 @@ open class TokenDescriptor protected constructor(
 			string.tupleCodePointAt(it) == '\n'.toInt()
 		}
 		// Now lookup/capture the next state.
-		val allTokens = append(priorLexingState.allTokens, self)
+		val allTokens = priorLexingState.allTokens.append(self)
 		val state = LexingState(
 			priorLexingState.compilationContext, positionAfter, line, allTokens)
 		self.setSlot(NEXT_LEXING_STATE_POJO, identityPojo(state).makeShared())

@@ -1,6 +1,6 @@
 /*
  * L2_INTERPRET_LEVEL_ONE.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,8 +39,6 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
@@ -76,18 +74,9 @@ object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
 	L2OperandType.PC.named(
 		"interrupt reentry point", L2NamedOperandType.Purpose.ON_RAMP))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		// No real optimization should ever be done near this wordcode.
-		// Do nothing.
-	}
-
-	// Keep this instruction from being removed, since it's only used
-	// by the default chunk.
-	override fun hasSideEffect(): Boolean = true
+	// Keep this instruction from being removed, since it's only used by the
+	// default chunk.
+	override fun hasSideEffect() = true
 
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

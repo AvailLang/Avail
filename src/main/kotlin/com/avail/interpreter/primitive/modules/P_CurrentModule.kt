@@ -1,6 +1,6 @@
 /*
  * P_CurrentModule.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,6 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -58,12 +57,12 @@ object P_CurrentModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		val module = currentModule
-		return if (module.equalsNil())
+		val module = interpreter.module()
+		if (module.equalsNil())
 		{
-			interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
-		else interpreter.primitiveSuccess(module)
+		return interpreter.primitiveSuccess(module)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

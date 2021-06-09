@@ -1,6 +1,6 @@
 /*
  * IOSystem.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -84,7 +84,7 @@ import java.util.concurrent.TimeUnit
  * @param runtime
  *   The [AvailRuntime].
  */
-class IOSystem constructor(val runtime: AvailRuntime)
+class IOSystem
 {
 	/**
 	 * The [thread&#32;pool&#32;executor][ThreadPoolExecutor] for asynchronous
@@ -214,6 +214,42 @@ class IOSystem constructor(val runtime: AvailRuntime)
 		vararg attributes: FileAttribute<*>): AsynchronousFileChannel =
 			AsynchronousFileChannel.open(
 				path, options, fileExecutor, *attributes)
+
+	/**
+	 * Open an [asynchronous&#32;file&#32;channel][AsynchronousFileChannel] for
+	 * the specified [path][Path].
+	 *
+	 * @param path
+	 *   A path.
+	 * @param options
+	 *   The [open&#32;options][OpenOption].
+	 * @param attributes
+	 *   The [file&#32;attributes][FileAttribute] (for newly created files
+	 *   only).
+	 * @return
+	 *   An asynchronous file channel.
+	 * @throws IllegalArgumentException
+	 *   If the combination of options is invalid.
+	 * @throws UnsupportedOperationException
+	 *   If an option is invalid for the specified path.
+	 * @throws SecurityException
+	 *   If the [security&#32;manager][SecurityManager] denies permission to
+	 *   complete the operation.
+	 * @throws IOException
+	 *   If the open fails for any reason.
+	 */
+	@Throws(
+		IllegalArgumentException::class,
+		UnsupportedOperationException::class,
+		SecurityException::class,
+		IOException::class)
+	fun openFileWithAvailThread(
+		path: Path,
+		runtime: AvailRuntime,
+		options: Set<OpenOption>,
+		vararg attributes: FileAttribute<*>): AsynchronousFileChannel =
+		AsynchronousFileChannel.open(
+			path, options, runtime.executor, *attributes)
 
 	/**
 	 * A `BufferKey` identifies a file buffer in the [cache][cachedBuffers].

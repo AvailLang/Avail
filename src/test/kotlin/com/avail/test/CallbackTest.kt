@@ -1,21 +1,21 @@
 /*
  * CallbackTest.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -48,10 +48,10 @@ import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -81,7 +81,7 @@ import java.util.concurrent.SynchronousQueue
 class CallbackTest
 {
 	/** Setup for the test.  */
-	var helper: AvailRuntimeTestHelper? = null
+	private var helper: AvailRuntimeTestHelper? = null
 
 	/**
 	 * Answer the [AvailRuntimeTestHelper], ensuring it's not `null`.
@@ -89,7 +89,7 @@ class CallbackTest
 	 * @return
 	 *   The [AvailRuntimeTestHelper].
 	 */
-	fun helper(): AvailRuntimeTestHelper = helper!!
+	private fun helper(): AvailRuntimeTestHelper = helper!!
 
 	/**
 	 * Clear all repositories iff the `clearAllRepositories` system
@@ -178,12 +178,14 @@ class CallbackTest
 		val fiber = createFiber(
 			Types.NUMBER.o,
 			FiberDescriptor.commandPriority,
-			nil,
-			{ stringFrom("testDivisionCallback") },
+			null,
 			helper().runtime)
+		{
+			stringFrom("testDivisionCallback")
+		}
 		val expectedAnswer = fromInt(14)
 		val mailbox = SynchronousQueue<Runnable>()
-		fiber.setSuccessAndFailureContinuations(
+		fiber.setSuccessAndFailure(
 			{ result: AvailObject? ->
 				try
 				{

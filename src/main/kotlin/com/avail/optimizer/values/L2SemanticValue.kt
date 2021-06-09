@@ -1,6 +1,6 @@
 /*
- * L2SemanticValue.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2SemanticValue.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,8 @@ package com.avail.optimizer.values
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.interpreter.Primitive
 import com.avail.optimizer.L2Entity
+import com.avail.optimizer.L2Synonym
+import com.avail.utility.ifZero
 
 /**
  * An `L2SemanticValue` represents a value stably computed from constants,
@@ -51,8 +53,27 @@ import com.avail.optimizer.L2Entity
  * @param hash
  *   The pre-computed hash value to use for this semantic value.
  */
-abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
+abstract class L2SemanticValue protected constructor(val hash: Int)
+	: L2Entity, Comparable<L2SemanticValue>
 {
+	/**
+	 * The major ordering of semantic values when printing an [L2Synonym].
+	 * Synonyms and value manifests' contents sort by the ordinal, so rearrange
+	 * the enum values to change this order.
+	 */
+	enum class PrimaryVisualSortKey
+	{
+		CONSTANT_NIL,
+		CONSTANT,
+		CALLER,
+		LABEL,
+		OUTER,
+		PRIMITIVE_INVOCATION,
+		TEMP,
+		OTHER,
+		SLOT;
+	}
+
 	override fun hashCode(): Int = hash
 
 	override fun equals(other: Any?): Boolean =
@@ -88,6 +109,20 @@ abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue
 
+	override fun compareTo(other: L2SemanticValue) =
+		primaryVisualSortKey().ordinal.compareTo(
+				other.primaryVisualSortKey().ordinal)
+			.ifZero {
+				// Alphabetize within the category.
+				toStringForSynonym().compareTo(other.toStringForSynonym())
+			}
+
+	/**
+	 * The primary criterion by which to sort (ascending) the semantic values in
+	 * a synonym when presenting them visually.
+	 */
+	open fun primaryVisualSortKey() = PrimaryVisualSortKey.OTHER
+
 	/**
 	 * Produce a compact textual representation suitable for displaying within
 	 * a synonym in a debugger or visualized control flow graph.
@@ -107,7 +142,6 @@ abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 		 * @return
 		 *   A [L2SemanticConstant] representing the constant.
 		 */
-		@JvmStatic
 		fun constant(value: A_BasicObject): L2SemanticValue =
 			L2SemanticConstant(value.makeImmutable())
 
@@ -122,7 +156,6 @@ abstract class L2SemanticValue protected constructor(val hash: Int) : L2Entity
 		 * @return
 		 *   The semantic value representing the primitive result.
 		 */
-		@JvmStatic
 		fun primitiveInvocation(
 				primitive: Primitive,
 				argumentSemanticValues: List<L2SemanticValue>)

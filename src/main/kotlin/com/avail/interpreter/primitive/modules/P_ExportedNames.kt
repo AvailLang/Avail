@@ -1,6 +1,6 @@
 /*
  * P_ExportedNames.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.module.A_Module.Companion.exportedNames
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -46,8 +46,8 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the [exported&#32;names][A_Module.exportedNames] of the
- * [current&#32;module][ModuleDescriptor.currentModule].
+ * **Primitive:** Answer the [exported][A_Module.exportedNames] names of the
+ * [current][Interpreter.module] module.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */

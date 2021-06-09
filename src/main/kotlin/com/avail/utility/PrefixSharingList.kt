@@ -1,6 +1,6 @@
 /*
  * PrefixSharingList.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,6 +34,7 @@ package com.avail.utility
 import com.avail.utility.PrefixSharingList.Companion.append
 import com.avail.utility.PrefixSharingList.Companion.withoutLast
 import java.util.AbstractList
+import java.util.Collections.singletonList
 import java.util.NoSuchElementException
 
 /**
@@ -274,7 +275,7 @@ class PrefixSharingList<E> : AbstractList<E>
 		 * not be modified after this operation) and the new element to follow
 		 * them.
 		 *
-		 * @param allButLast
+		 * @receiver
 		 *   The leading elements of the list.
 		 * @param lastElement
 		 *   The value by which to extend the list.
@@ -283,20 +284,21 @@ class PrefixSharingList<E> : AbstractList<E>
 		 * @param E2
 		 *   The list's element type.
 		 */
-		@JvmStatic
-		fun <E2> append(allButLast: List<E2>, lastElement: E2): List<E2> =
-			if (allButLast.isEmpty())
+		fun <E2> List<E2>.append(lastElement: E2): List<E2>
+		{
+			return when
 			{
-				listOf(lastElement)
+				isEmpty() -> singletonList(lastElement)
+				else -> PrefixSharingList(this, lastElement)
 			}
-			else PrefixSharingList(allButLast, lastElement)
+		}
 
 		/**
 		 * Produce a new immutable list based on the given list, but with the
 		 * last element excluded.  Try to avoid creating new objects if
 		 * possible.
 		 *
-		 * @param originalList
+		 * @receiver
 		 *   The original list.
 		 * @return
 		 *   An immutable list containing all but the last element of the
@@ -305,38 +307,23 @@ class PrefixSharingList<E> : AbstractList<E>
 		 *   The list's element type.
 		 */
 		@JvmStatic
-		fun <E2> withoutLast(originalList: List<E2>): List<E2>
+		fun <E2> List<E2>.withoutLast(): List<E2>
 		{
-			assert(originalList.isNotEmpty())
-			if (originalList.size == 1)
+			assert(isNotEmpty())
+			return when
 			{
-				return emptyList()
-			}
-			if (originalList is PrefixSharingList<*>)
-			{
-				val strongOriginal = originalList as PrefixSharingList<E2>
-				val butLast = strongOriginal.allButLast
-				if (butLast !== null)
+				size == 1 -> emptyList()
+				this is PrefixSharingList<E2> ->
 				{
-					return butLast
+					val butLast = allButLast
+					if (butLast !== null)
+					{
+						return butLast
+					}
+					PrefixSharingList(cachedFlatListOrMore!!, size - 1)
 				}
-				val flat = strongOriginal.cachedFlatListOrMore!!
-				return PrefixSharingList(flat, originalList.size - 1)
+				else -> PrefixSharingList(this, size - 1)
 			}
-			return PrefixSharingList(originalList, originalList.size - 1)
 		}
-
-		/**
-		 * Answer the last element of the given non-empty list.
-		 *
-		 * @param list
-		 *   The list.
-		 * @return
-		 *   The last element of that list.
-		 * @param E2
-		 *   The list's element type.
-		 */
-		@JvmStatic
-		fun <E2> last(list: List<E2>): E2 = list[list.size - 1]
 	}
 }

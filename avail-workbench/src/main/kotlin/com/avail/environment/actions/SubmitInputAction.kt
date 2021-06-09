@@ -1,6 +1,6 @@
 /*
- * SubmitInputAction.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * SubmitInputAction.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 					}
 					if (result.equalsNil())
 					{
-						cleanup.invoke(afterward)
+						cleanup(afterward)
 						return@attemptCommand
 					}
 					Interpreter.stringifyThen(
@@ -130,7 +130,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 							.outputStream()
 							.append(resultString)
 							.append("\n")
-						cleanup.invoke(afterward)
+						cleanup(afterward)
 					}
 				},
 				onFailure = {

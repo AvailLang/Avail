@@ -1,6 +1,6 @@
 /*
  * L2RegisterColorer.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 package com.avail.optimizer
 
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
@@ -141,10 +140,10 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				val instruction = read.instruction()
 				if (instruction.operation().isPhi)
 				{
-					val phiOperation = instruction.operation()
-						.cast<L2Operation?, L2_PHI_PSEUDO_OPERATION<*, *, *>>()
-					for (predBlock in
-						phiOperation.predecessorBlocksForUseOf(instruction, reg))
+					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
+						instruction.operation().cast()
+					for (predBlock in phiOperation.predecessorBlocksForUseOf(
+						instruction, reg))
 					{
 						if (reachedBlocks.add(predBlock))
 						{

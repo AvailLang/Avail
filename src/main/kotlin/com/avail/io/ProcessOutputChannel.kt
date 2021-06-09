@@ -1,6 +1,6 @@
 /*
  * ProcessOutputChannel.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -79,7 +79,7 @@ class ProcessOutputChannel constructor(stream: PrintStream) : TextOutputChannel
 		buffer: CharBuffer, attachment: A?, handler: CompletionHandler<Int, A>)
 	{
 		val runtime = currentRuntime()
-		runtime.ioSystem().executeFileTask (Runnable {
+		runtime.ioSystem.executeFileTask (Runnable {
 			try
 			{
 				out.write(buffer.toString())
@@ -99,7 +99,7 @@ class ProcessOutputChannel constructor(stream: PrintStream) : TextOutputChannel
 		data: String, attachment: A?, handler: CompletionHandler<Int, A>)
 	{
 		val runtime = currentRuntime()
-		runtime.ioSystem().executeFileTask (Runnable {
+		runtime.ioSystem.executeFileTask (Runnable {
 			try
 			{
 				out.write(data)

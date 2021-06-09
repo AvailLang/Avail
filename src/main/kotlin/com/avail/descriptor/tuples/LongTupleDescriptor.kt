@@ -1,6 +1,6 @@
 /*
  * LongTupleDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -566,14 +566,14 @@ class LongTupleDescriptor private constructor(
 				val lower = when
 				{
 					lowerObject.isLong -> lowerObject.extractLong()
-					lowerObject.lessThan(zero()) -> Long.MIN_VALUE
+					lowerObject.lessThan(zero) -> Long.MIN_VALUE
 					else -> return false
 				}
 				val upperObject = type.upperBound()
 				val upper = when
 				{
 					upperObject.isLong -> upperObject.extractLong()
-					upperObject.greaterThan(zero()) -> Long.MAX_VALUE
+					upperObject.greaterThan(zero) -> Long.MAX_VALUE
 					else -> return false
 				}
 				(startIndex .. endIndex).all {

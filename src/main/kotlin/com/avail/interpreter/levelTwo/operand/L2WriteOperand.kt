@@ -1,6 +1,6 @@
 /*
- * L2WriteOperand.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2WriteOperand.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -68,11 +68,12 @@ import com.avail.utility.cast
  * @param register
  *   The [L2Register] to write.
  */
-abstract class L2WriteOperand<R : L2Register> constructor(
-		semanticValues: Set<L2SemanticValue>,
-		private val restriction: TypeRestriction,
-		protected var register: R)
-	: L2Operand()
+abstract class L2WriteOperand<R : L2Register>
+constructor(
+	semanticValues: Set<L2SemanticValue>,
+	private val restriction: TypeRestriction,
+	protected var register: R
+) : L2Operand()
 {
 	/**
 	 * The [L2SemanticValue]s being written when an [L2Instruction] uses this
@@ -95,10 +96,10 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 * @return
 	 *   The write operand's [L2SemanticValue].
 	 */
-	fun onlySemanticValue(): L2SemanticValue
+	open fun onlySemanticValue(): L2SemanticValue
 	{
 		assert(semanticValues.size == 1)
-		return semanticValues.iterator().next()
+		return semanticValues.single()
 	}
 
 	/**
@@ -109,7 +110,7 @@ abstract class L2WriteOperand<R : L2Register> constructor(
 	 *   The write operand's [L2SemanticValue].
 	 */
 	fun pickSemanticValue(): L2SemanticValue =
-		semanticValues.iterator().next()
+		semanticValues.first()
 
 	/**
 	 * Answer this write's [TypeRestriction].

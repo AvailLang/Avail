@@ -6,7 +6,7 @@
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />
-    <option name="VM_PARAMETERS" value="-ea -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/repositories/avail.repo,$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/repositories/examples.repo,$PROJECT_DIR$/distro/src/examples;experimental=$PROJECT_DIR$/repositories/experimental.repo,$PROJECT_DIR$/experimental/even-newer-avail" />
+    <option name="VM_PARAMETERS" value="-ea -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples;experimental=$PROJECT_DIR$/experimental/even-newer-avail -Drepositories=$PROJECT_DIR$/repositories/" />
     <option name="PARAMETERS" value="" />
     <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
     <option name="TEST_SEARCH_SCOPE">

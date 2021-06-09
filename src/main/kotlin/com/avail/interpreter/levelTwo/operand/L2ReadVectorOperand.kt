@@ -1,6 +1,6 @@
 /*
- * L2ReadVectorOperand.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2ReadVectorOperand.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,9 +34,9 @@ package com.avail.interpreter.levelTwo.operand
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2ValueManifest
-import com.avail.utility.cast
 import java.util.Collections
 
 /**
@@ -50,8 +50,8 @@ import java.util.Collections
  *   A subclass of L2Register
  */
 abstract class L2ReadVectorOperand<
-	RR : L2ReadOperand<R>,
-	R : L2Register>
+	R : L2Register,
+	RR : L2ReadOperand<R>>
 constructor(elements: List<RR>) : L2Operand()
 {
 	/**
@@ -59,7 +59,7 @@ constructor(elements: List<RR>) : L2Operand()
 	 */
 	val elements: List<RR> = Collections.unmodifiableList(elements)
 
-	abstract override fun clone(): L2ReadVectorOperand<RR, R>
+	abstract override fun clone(): L2ReadVectorOperand<R, RR>
 
 	/**
 	 * Create a vector like this one, but using the provided elements.
@@ -71,7 +71,8 @@ constructor(elements: List<RR>) : L2Operand()
 	 *   having the given elements.
 	 */
 	abstract fun clone(
-		replacementElements: List<RR>): L2ReadVectorOperand<RR, R>
+		replacementElements: List<RR>
+	): L2ReadVectorOperand<R, RR>
 
 	override fun assertHasBeenEmitted()
 	{
@@ -105,14 +106,6 @@ constructor(elements: List<RR>) : L2Operand()
 		elements.forEach{ it.instructionWasAdded(manifest) }
 	}
 
-	override fun adjustedForReinsertion(manifest: L2ValueManifest)
-			: L2ReadVectorOperand<RR, R> =
-		clone(elements.map { element ->
-			element.adjustedForReinsertion(manifest)
-				.cast<L2ReadOperand<*>?, RR>()
-		})
-
-
 	override fun instructionWasInserted(newInstruction: L2Instruction)
 	{
 		super.instructionWasInserted(newInstruction)
@@ -138,12 +131,12 @@ constructor(elements: List<RR>) : L2Operand()
 	}
 
 	override fun transformEachRead(
-			transformer: (L2ReadOperand<*>) -> (L2ReadOperand<*>))
-		: L2ReadVectorOperand<RR, R>
+		transformer: (L2ReadOperand<*>) -> (L2ReadOperand<*>)
+	) : L2ReadVectorOperand<R, RR>
 	{
 		val vs: List<RR> = elements.map {
-			val x: RR = it.transformEachRead(transformer).cast()
-			x
+			@Suppress("UNCHECKED_CAST")
+			it.transformEachRead(transformer) as RR
 		}
 		return clone(vs)
 	}
@@ -190,4 +183,25 @@ constructor(elements: List<RR>) : L2Operand()
 
 	override fun postOptimizationCleanup() =
 		elements.forEach { it.postOptimizationCleanup() }
+
+
+	/**
+	 * This vector operand is the input to an [L2_PHI_PSEUDO_OPERATION]
+	 * instruction that has just been added.  Update it specially, to take into
+	 * account the correspondence between vector elements and predecessor edges.
+	 *
+	 * @param predecessorEdges
+	 *   The [List] of predecessor edges ([L2PcOperand]s) that correspond
+	 *   positionally with the elements of the vector.
+	 */
+	fun instructionWasAddedForPhi(predecessorEdges: List<L2PcOperand>)
+	{
+		val fanIn = elements.size
+		assert(fanIn == predecessorEdges.size)
+		for (i in 0 until fanIn)
+		{
+			// The read operand should use the corresponding incoming manifest.
+			elements[i].instructionWasAdded(predecessorEdges[i].manifest())
+		}
+	}
 }

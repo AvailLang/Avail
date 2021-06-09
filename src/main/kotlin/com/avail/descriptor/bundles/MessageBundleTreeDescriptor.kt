@@ -1,6 +1,6 @@
 /*
  * MessageBundleTreeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -69,7 +69,6 @@ import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor
@@ -77,6 +76,7 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -116,7 +116,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.component2
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import com.avail.descriptor.tuples.ObjectTupleDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
@@ -131,7 +131,7 @@ import com.avail.dispatch.TypeComparison.Companion.compareForParsing
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.utility.Mutable
@@ -493,8 +493,8 @@ class MessageBundleTreeDescriptor private constructor(
 	 */
 	override fun o_Expand(
 		self: AvailObject,
-		module: A_Module
-	) {
+		module: A_Module)
+	{
 		var unclassified: A_Map = self.volatileSlot(UNCLASSIFIED)
 		if (unclassified.mapSize() == 0) {
 			return
@@ -515,7 +515,6 @@ class MessageBundleTreeDescriptor private constructor(
 			val typeFilterPairs = Mutable<A_Tuple>(
 				self.slot(LAZY_TYPE_FILTER_PAIRS_TUPLE))
 			val oldTypeFilterSize = typeFilterPairs.value.tupleSize()
-			val allAncestorModules = module.allAncestors()
 			val allPlansInProgress: A_Map = self.slot(ALL_PLANS_IN_PROGRESS)
 
 			// Figure out what the latestBackwardJump will be for any successor
@@ -555,10 +554,9 @@ class MessageBundleTreeDescriptor private constructor(
 			}
 
 			// Update my components.
-			unclassified.mapIterable().forEach {
-				(bundle, defToPlansInProgress: A_Map) ->
-				defToPlansInProgress.mapIterable().forEach {
-					(_, plansInProgress: A_Set) ->
+			unclassified.forEach { bundle, defToPlansInProgress: A_Map ->
+				defToPlansInProgress.forEach {
+					_, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
 						val pc = planInProgress.parsingPc()
 						val plan = planInProgress.parsingPlan()
@@ -577,7 +575,7 @@ class MessageBundleTreeDescriptor private constructor(
 								self,
 								plan,
 								pc,
-								allAncestorModules,
+								module,
 								complete,
 								incomplete,
 								caseInsensitive,
@@ -595,11 +593,13 @@ class MessageBundleTreeDescriptor private constructor(
 			// Write back the updates.
 			self.setSlot(LAZY_COMPLETE, complete.value.makeShared())
 			self.setSlot(LAZY_INCOMPLETE, incomplete.value.makeShared())
-			self.setSlot(LAZY_INCOMPLETE_CASE_INSENSITIVE,
+			self.setSlot(
+				LAZY_INCOMPLETE_CASE_INSENSITIVE,
 				caseInsensitive.value.makeShared())
 			self.setSlot(LAZY_ACTIONS, actionMap.value.makeShared())
 			self.setSlot(LAZY_PREFILTER_MAP, prefilterMap.value.makeShared())
-			self.setSlot(LAZY_TYPE_FILTER_PAIRS_TUPLE,
+			self.setSlot(
+				LAZY_TYPE_FILTER_PAIRS_TUPLE,
 				typeFilterPairs.value.makeShared())
 			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize) {
 				// Rebuild the type-checking lookup tree.
@@ -607,8 +607,7 @@ class MessageBundleTreeDescriptor private constructor(
 					toList(typeFilterPairs.value),
 					listOf(
 						restrictionForType(
-							PARSE_PHRASE.mostGeneralType(),
-							RestrictionFlagEncoding.BOXED)),
+							PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
 					latestBackwardJump)
 				self.setSlot(
 					LAZY_TYPE_FILTER_TREE_POJO, identityPojo(tree).makeShared())
@@ -966,11 +965,11 @@ class MessageBundleTreeDescriptor private constructor(
 		 *   [instructions][A_DefinitionParsingPlan.parsingInstructions]. Note
 		 *   that this value can be one past the end of the instructions,
 		 *   indicating parsing is complete.
-		 * @param allAncestorModules
-		 *   The [A_Set] of modules that are ancestors of (or equal to) the
-		 *   current module being parsed.  This is used to restrict the
-		 *   visibility of semantic and grammatical restrictions, as well as
-		 *   which method and macro [A_Definition]s can be parsed.
+		 * @param module
+		 *   The [A_Module] that limits the scope of information used for
+		 *   parsing.  This is used to restrict the visibility of semantic and
+		 *   grammatical restrictions, as well as which method and macro
+		 *   [A_Definition]s can be parsed.
 		 * @param complete
 		 *   A [Mutable] [set][A_Set] of [A_Bundle]s which have had a send
 		 *   phrase completely parsed at this position.
@@ -1006,7 +1005,7 @@ class MessageBundleTreeDescriptor private constructor(
 			bundleTree: AvailObject,
 			plan: A_DefinitionParsingPlan,
 			pc: Int,
-			allAncestorModules: A_Set,
+			module: A_Module,
 			complete: Mutable<A_Set>,
 			incomplete: Mutable<A_Map>,
 			caseInsensitive: Mutable<A_Map>,
@@ -1049,7 +1048,7 @@ class MessageBundleTreeDescriptor private constructor(
 							bundleTree,
 							plan,
 							nextPc,
-							allAncestorModules,
+							module,
 							complete,
 							incomplete,
 							caseInsensitive,
@@ -1105,7 +1104,7 @@ class MessageBundleTreeDescriptor private constructor(
 					val typeIndex = op.typeCheckArgumentIndex(instruction)
 					val phraseType: A_Type = constantForIndex(typeIndex)
 					val planInProgress = newPlanInProgress(plan, pc + 1)
-					val pair = ObjectTupleDescriptor.tuple(phraseType, planInProgress)
+					val pair = tuple(phraseType, planInProgress)
 					typeFilterTuples.value =
 						typeFilterTuples.value.appendCanDestroy(pair, true)
 					return
@@ -1125,7 +1124,7 @@ class MessageBundleTreeDescriptor private constructor(
 						successor = newBundleTree(latestBackwardJump)
 						actionMap.value =
 							actionMap.value.mapAtPuttingCanDestroy(
-								instructionObject, ObjectTupleDescriptor.tuple(successor), true)
+								instructionObject, tuple(successor), true)
 					}
 					var forbiddenBundles = emptySet
 					plan.bundle().grammaticalRestrictions().forEach {
@@ -1134,8 +1133,7 @@ class MessageBundleTreeDescriptor private constructor(
 						// in an ancestor module.
 						val definitionModule = restriction.definitionModule()
 						if (definitionModule.equalsNil()
-							|| allAncestorModules
-								.hasElement(definitionModule)
+							|| module.hasAncestor(definitionModule)
 						) {
 							val bundles: A_Set =
 								restriction.argumentRestrictionSets().tupleAt(
@@ -1147,8 +1145,8 @@ class MessageBundleTreeDescriptor private constructor(
 					}
 					val planInProgress = newPlanInProgress(plan, pc + 1)
 					// Add it to every existing branch where it's permitted.
-					prefilterMap.value.mapIterable().forEach {
-						(bundle, prefilterSuccessor) ->
+					prefilterMap.value.forEach {
+						bundle, prefilterSuccessor ->
 						if (!forbiddenBundles.hasElement(bundle)) {
 							prefilterSuccessor.addPlanInProgress(planInProgress)
 						}
@@ -1165,15 +1163,14 @@ class MessageBundleTreeDescriptor private constructor(
 							// successor found under this instruction, since it
 							// *has* been kept up to date as the bundles have
 							// gotten classified.
-							successor.allParsingPlansInProgress().mapIterable()
-								.forEach {
-									(_, defMap) ->
-									defMap.mapIterable().forEach { (_, plans) ->
-										plans.forEach { inProgress ->
-											newTarget.addPlanInProgress(inProgress)
-										}
+							successor.allParsingPlansInProgress().forEach {
+								_, defMap ->
+								defMap.forEach { _, plans ->
+									plans.forEach { inProgress ->
+										newTarget.addPlanInProgress(inProgress)
 									}
 								}
+							}
 							prefilterMap.value =
 								prefilterMap.value.mapAtPuttingCanDestroy(
 									restrictedBundle, newTarget, true)
@@ -1210,7 +1207,7 @@ class MessageBundleTreeDescriptor private constructor(
 				successor = successors.tupleAt(1)
 			} else {
 				successor = newBundleTree(latestBackwardJump)
-				val successors = ObjectTupleDescriptor.tuple(successor)
+				val successors = tuple(successor)
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 					instructionObject, successors, true)
 			}

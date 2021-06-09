@@ -1,6 +1,6 @@
 /*
  * P_Subtraction.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -65,12 +65,14 @@ import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import com.avail.interpreter.levelTwo.operation.L2_SUBTRACT_INT_MINUS_INT
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L1Translator.CallSiteHelper
 import com.avail.optimizer.L2Generator.Companion.edgeTo
+import com.avail.optimizer.values.L2SemanticUnboxedInt
+import com.avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
 
 /**
  * **Primitive:** Subtract [number][AbstractNumberDescriptor] b from a.
@@ -95,6 +97,9 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(NUMBER.o, NUMBER.o), NUMBER.o)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_SUBTRACT_LIKE_INFINITIES))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
@@ -132,15 +137,15 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				val high = aType.upperBound().minusCanDestroy(
 					bType.lowerBound(), false)
 				val includesNegativeInfinity =
-					negativeInfinity().isInstanceOf(aType)
-						|| positiveInfinity().isInstanceOf(bType)
+					negativeInfinity.isInstanceOf(aType)
+						|| positiveInfinity.isInstanceOf(bType)
 				val includesInfinity =
-					positiveInfinity().isInstanceOf(aType)
-						|| negativeInfinity().isInstanceOf(bType)
+					positiveInfinity.isInstanceOf(aType)
+						|| negativeInfinity.isInstanceOf(bType)
 				return integerRangeType(
-					low.minusCanDestroy(one(), false),
+					low.minusCanDestroy(one, false),
 					includesNegativeInfinity,
-					high.plusCanDestroy(one(), false),
+					high.plusCanDestroy(one, false),
 					includesInfinity)
 			}
 		}
@@ -158,14 +163,10 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		val aType = argumentTypes[0]
 		val bType = argumentTypes[1]
 
-		val aTypeIncludesNegativeInfinity =
-			negativeInfinity().isInstanceOf(aType)
-		val aTypeIncludesInfinity =
-			positiveInfinity().isInstanceOf(aType)
-		val bTypeIncludesNegativeInfinity =
-			negativeInfinity().isInstanceOf(bType)
-		val bTypeIncludesInfinity =
-			positiveInfinity().isInstanceOf(bType)
+		val aTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(aType)
+		val aTypeIncludesInfinity = positiveInfinity.isInstanceOf(aType)
+		val bTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(bType)
+		val bTypeIncludesInfinity = positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesNegativeInfinity && bTypeIncludesNegativeInfinity
            || aTypeIncludesInfinity && bTypeIncludesInfinity)
 		{
@@ -177,9 +178,6 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		}
 	}
 
-	override fun privateFailureVariableType(): A_Type =
-		 enumerationWith(set(E_CANNOT_SUBTRACT_LIKE_INFINITIES))
-
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
 		rawFunction: A_RawFunction,
@@ -189,10 +187,8 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		callSiteHelper: CallSiteHelper
 	): Boolean
 	{
-		val a = arguments[0]
-		val b = arguments[1]
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (a, b) = arguments
+		val (aType, bType) = argumentTypes
 
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
@@ -206,21 +202,22 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		val generator = translator.generator
 		val fallback = generator.createBasicBlock(
 			"fall back to boxed subtraction")
-		val intA = generator.readInt(a.semanticValue(), fallback)
-		val intB = generator.readInt(b.semanticValue(), fallback)
+		val intA = generator.readInt(
+			L2SemanticUnboxedInt(a.semanticValue()), fallback)
+		val intB = generator.readInt(
+			L2SemanticUnboxedInt(b.semanticValue()), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  Generate the most efficient
 			// available unboxed arithmetic.
-			val returnTypeIfInts =
-				returnTypeGuaranteedByVM(
-					rawFunction,
-					argumentTypes.map { it.typeIntersection(int32) })
-			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
-			val tempWriter =
-				generator.intWrite(
-					semanticTemp,
-					restrictionForType(returnTypeIfInts, UNBOXED_INT))
+			val returnTypeIfInts = returnTypeGuaranteedByVM(
+				rawFunction,
+				argumentTypes.map { it.typeIntersection(int32) })
+			val semanticTemp = primitiveInvocation(
+				this, listOf(a.semanticValue(), b.semanticValue()))
+			val tempWriter = generator.intWrite(
+				setOf(L2SemanticUnboxedInt(semanticTemp)),
+				restrictionForType(returnTypeIfInts, UNBOXED_INT_FLAG))
 			if (returnTypeIfInts.isSubtypeOf(int32))
 			{
 				// The result is guaranteed not to overflow, so emit an
@@ -229,10 +226,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_BIT_LOGIC_OP.wrappedSubtract,
-					intA,
-					intB,
-					tempWriter)
+					L2_BIT_LOGIC_OP.wrappedSubtract, intA, intB, tempWriter)
 			}
 			else
 			{
@@ -253,7 +247,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 			// which could allow the boxing instruction to evaporate.
 			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
 		}
-		if (fallback.predecessorEdgesCount() > 0)
+		if (fallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,

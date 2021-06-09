@@ -1,6 +1,6 @@
 /*
  * L2_CREATE_VARIABLE.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,8 +38,6 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
@@ -54,22 +52,6 @@ object L2_CREATE_VARIABLE : L2Operation(
 	L2OperandType.CONSTANT.named("outerType"),
 	L2OperandType.WRITE_BOXED.named("variable"))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		val outerType =
-			instruction.operand<L2ConstantOperand>(0)
-		val variable =
-			instruction.operand<L2WriteBoxedOperand>(1)
-
-		// Not a constant, but we know the type...
-		registerSet.removeConstantAt(variable.register())
-		registerSet.typeAtPut(
-			variable.register(), outerType.constant, instruction)
-	}
-
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,

@@ -1,6 +1,6 @@
 /*
  * FusedPojoTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,11 +33,11 @@ package com.avail.descriptor.types
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -80,7 +80,7 @@ import java.util.IdentityHashMap
  * hierarchy. This is a superset of Java's own reference type hierarchy. In
  * particular, the pojo type hierarchy includes type unions and type
  * intersections that may still conform to actual (but unspecified) Java classes
- * and interfaces. For instance, the type intersection of [Cloneable] and
+ * and interfaces. For instance, the type intersection of Java's `Cloneable` and
  * [Serializable] describes **1)** any interface that extends both and **2)**
  * any class that implements both.
  *
@@ -222,7 +222,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? = Any::class.java
+		classHint: Class<*>?): Any = Any::class.java
 
 	/**
 	 * Lazily compute the self type of the specified
@@ -411,19 +411,14 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		if (typeVars.equalsNil())
 		{
 			typeVars = emptyMap
-			for (entry in
-				self.slot(JAVA_ANCESTORS).mapIterable())
-			{
-				val ancestor = entry.key().javaObjectNotNull<Class<*>>()
+			self.slot(JAVA_ANCESTORS).forEach { key, value ->
+				val ancestor = key.javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
-//				val vars: Array<TypeVariable<*>> = ancestor.typeParameters
-				val typeArgs: A_Tuple = entry.value()
+				val typeArgs: A_Tuple = value
 				assert(vars.size == typeArgs.tupleSize())
-				for (i in vars.indices)
-				{
+				vars.forEachIndexed { i, eachVar ->
 					typeVars = typeVars.mapAtPuttingCanDestroy(
-						stringFrom(
-							ancestor.name + "." + vars[i].name),
+						stringFrom(ancestor.name + "." + eachVar.name),
 						typeArgs.tupleAt(i + 1),
 						true)
 				}

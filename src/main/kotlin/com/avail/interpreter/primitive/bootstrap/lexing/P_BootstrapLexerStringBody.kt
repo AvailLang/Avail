@@ -1,6 +1,6 @@
 /*
  * P_BootstrapLexerStringBody.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -75,8 +76,35 @@ object P_BootstrapLexerStringBody
 		val startPosition = sourcePositionInteger.extractInt()
 		val startLineNumber = lineNumberInteger.extractInt()
 
-		val scanner = Scanner(
-			source, startPosition + 1, startLineNumber)
+		val token = parseString(source, startPosition, startLineNumber)
+		return interpreter.primitiveSuccess(set(tuple(token)))
+	}
+
+	/**
+	 * Attempt to parse string from the given string, starting at the given
+	 * position, and treating it as starting at the given line number.
+	 *
+	 * @param source
+	 *   The source to parse a string literal from.
+	 * @param startPosition
+	 *   The one-based position at which to start parsing.
+	 * @param startLineNumber
+	 *   What line to treat the first character as occurring on.
+	 * @return
+	 *   The resulting token, if successful.  Note that the size of the token's
+	 *   lexeme ([A_Token.string]) accurately conveys how many codpoints were
+	 *   consumed.
+	 * @throws AvailRejectedParseException
+	 *   If a string token could not be parsed starting at the given position.
+	 */
+	@Throws(AvailRejectedParseException::class)
+	fun parseString (
+		source: A_String,
+		startPosition: Int,
+		startLineNumber: Int
+	): A_Token
+	{
+		val scanner = Scanner(source, startPosition + 1, startLineNumber)
 		val builder = StringBuilder(32)
 		var canErase = true
 		var erasurePosition = 0
@@ -93,7 +121,7 @@ object P_BootstrapLexerStringBody
 						startPosition,
 						startLineNumber,
 						stringFrom(builder.toString()))
-					return interpreter.primitiveSuccess(set(tuple(token)))
+					return token
 				}
 				'\\' ->
 				{
@@ -101,7 +129,8 @@ object P_BootstrapLexerStringBody
 					{
 						throw AvailRejectedParseException(
 							STRONG,
-							"more characters after backslash in string " + "literal")
+							"more characters after backslash in string " +
+								"literal")
 					}
 					c = scanner.next().toChar()
 					when (c)
@@ -114,7 +143,8 @@ object P_BootstrapLexerStringBody
 						'\r' ->
 						{
 							// Treat \r or \r\n in the source just like \n.
-							if (scanner.hasNext() && scanner.peek() == '\n'.toInt())
+							if (scanner.hasNext()
+								&& scanner.peek() == '\n'.toInt())
 							{
 								scanner.next()
 							}
@@ -154,9 +184,9 @@ object P_BootstrapLexerStringBody
 						else -> throw AvailRejectedParseException(
 							STRONG,
 							"Backslash escape should be followed by "
-							+ "one of n, r, t, \\, \", (, [, |, or a "
-							+ "line break, not Unicode character "
-							+ c)
+								+ "one of n, r, t, \\, \", (, [, |, or a "
+								+ "line break, not Unicode character "
+								+ c)
 					}
 					erasurePosition = builder.length
 				}
@@ -193,6 +223,7 @@ object P_BootstrapLexerStringBody
 		// easier to figure out where the end-quote is missing.
 		throw AvailRejectedParseException(
 			STRONG, "close-quote (\") for string literal")
+
 	}
 
 	/**

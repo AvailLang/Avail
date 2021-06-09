@@ -1,6 +1,6 @@
 /*
  * IndexedFile.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,10 @@
  */
 package com.avail.persistence
 
+import com.avail.serialization.MalformedSerialStreamException
 import com.avail.utility.LRUCache
 import com.avail.utility.safeWrite
+import java.io.ByteArrayInputStream
 import java.io.DataOutputStream
 import java.io.File
 import java.io.IOException
@@ -247,7 +249,7 @@ class IndexedFile internal constructor(
 	 * @param size
 	 *   The initial size of the backing byte array.
 	 */
-	internal class ByteArrayOutputStream(size: Int)
+	class ByteArrayOutputStream(size: Int)
 		: java.io.ByteArrayOutputStream(size)
 	{
 		/** The backing byte array. Do not copy it. */
@@ -683,7 +685,7 @@ class IndexedFile internal constructor(
 			longTermLock = acquireLockForWriting()
 			channel.write(buffer)
 			channel.force(true)
-			action()
+			this.action()
 			longTermLock!!.close()
 			channel.close()
 
@@ -1133,10 +1135,11 @@ class IndexedFile internal constructor(
 			// the metadataCache: they will all write the same answer. This is
 			// why we only grab a read lock.
 			metadataCache ?: master!!.run {
-				when {
-					metadataCache !== null -> metadataCache
-					metadataLocation == RecordCoordinates.origin -> null
-					else -> {
+				when (metadataLocation)
+				{
+					RecordCoordinates.origin -> null
+					else ->
+					{
 						val block =
 							blockAtFilePosition(metadataLocation.filePosition)
 						val buffer = ByteBuffer.wrap(block)
@@ -1228,4 +1231,51 @@ class IndexedFile internal constructor(
 
 	override fun toString(): String =
 		"${this@IndexedFile.javaClass.simpleName}[$size] (for $fileReference)"
+
+	companion object
+	{
+		/**
+		 * Given a ByteArrayOutputStream, compute and append a 4-byte cyclic
+		 * redundancy checksum.  Write the [Int] in big-Endian order. The CRC is
+		 * reasonably resilient to single-bit errors, and usually catches longer
+		 * errors as well.
+		 *
+		 * @param byteStream
+		 *   The [ByteArrayOutputStream] to read and append to.
+		 */
+		fun appendCRC(byteStream: ByteArrayOutputStream)
+		{
+			val checksum = CRC32()
+			checksum.update(byteStream.unsafeBytes, 0, byteStream.size())
+			val bytes = ByteArray(4)
+			ByteBuffer.wrap(bytes).putInt(checksum.value.toInt())
+			byteStream.write(bytes)
+		}
+
+		/**
+		 * Given an array of bytes, check that the last four bytes, when treated
+		 * as a Big Endian unsigned int, agree with the [CRC32] checksum of the
+		 * bytes excluding the last four.  Fail if they disagree.  Answer a
+		 * ByteArrayInputStream on the bytes excluding the last four.
+		 *
+		 * @param bytes
+		 *   An array of bytes.
+		 * @return
+		 *   A ByteArrayInputStream on the non-CRC portion of the bytes.
+		 * @throws MalformedSerialStreamException
+		 *   If the CRC check fails.
+		 */
+		@Throws(MalformedSerialStreamException::class)
+		fun validatedBytesFrom(bytes: ByteArray): ByteArrayInputStream
+		{
+			val storedChecksum = ByteBuffer.wrap(bytes).getInt(bytes.size - 4)
+			val checksum = CRC32()
+			checksum.update(bytes, 0, bytes.size - 4)
+			if (checksum.value.toInt() != storedChecksum)
+			{
+				throw MalformedSerialStreamException(null)
+			}
+			return ByteArrayInputStream(bytes, 0, bytes.size - 4)
+		}
+	}
 }

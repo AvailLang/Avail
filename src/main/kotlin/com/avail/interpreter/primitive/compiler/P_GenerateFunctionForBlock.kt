@@ -1,6 +1,6 @@
 /*
  * P_GenerateFunctionForBlock.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,7 +35,6 @@ package com.avail.interpreter.primitive.compiler
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
-import com.avail.descriptor.module.ModuleDescriptor.Companion.currentModule
 import com.avail.descriptor.phrases.A_Phrase.Companion.generateInModule
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
 import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
@@ -86,7 +85,7 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 		val compiledCode: A_RawFunction
 		try
 		{
-			compiledCode = block.generateInModule(currentModule)
+			compiledCode = block.generateInModule(interpreter.module())
 		}
 		catch (e: Exception)
 		{

@@ -1,6 +1,6 @@
 /*
  * P_CreateRestrictedSendExpression.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -42,15 +42,14 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.sets.A_Set.Companion.hasElement
 import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_String
@@ -153,7 +152,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
-		val allVisibleModules = loader.module().allAncestors()
+		val module = loader.module()
 		var intersection: A_Type = returnType
 		val resultLock = ReentrantReadWriteLock()
 		// Merge in the applicable (and visible) definition return types.
@@ -162,7 +161,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		{
 			val definitionModule = definition.definitionModule()
 			if (definitionModule.equalsNil()
-				|| allVisibleModules.hasElement(definitionModule))
+				|| module.hasAncestor(definitionModule))
 			{
 				intersection = intersection.typeIntersection(
 					definition.bodySignature().returnType())
@@ -176,8 +175,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		// Note, the semantic restriction takes the *types* as arguments.
 		val applicableRestrictions =
 			bundle.bundleMethod().semanticRestrictions().filter {
-				allVisibleModules.hasElement(it.definitionModule()) &&
-					it.function().kind().acceptsListOfArgValues(argTypesList)
+				module.hasAncestor(it.definitionModule())
+					&& it.function().kind().acceptsListOfArgValues(argTypesList)
 			}
 		val restrictionsSize = applicableRestrictions.size
 		if (restrictionsSize == 0)

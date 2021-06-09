@@ -1,6 +1,6 @@
 /*
  * P_LessThan.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -127,8 +127,7 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		{
 			// The branch direction has been statically proven.
 			callSiteHelper.useAnswer(
-				generator
-					.boxedConstant(objectFromBoolean(canBeTrue)))
+				generator.boxedConstant(objectFromBoolean(canBeTrue)))
 			return true
 		}
 		val firstConstant = firstReg.constantOrNull()

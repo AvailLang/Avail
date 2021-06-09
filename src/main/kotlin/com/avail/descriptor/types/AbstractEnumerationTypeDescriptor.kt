@@ -1,6 +1,6 @@
 /*
  * AbstractEnumerationTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -45,6 +45,9 @@ import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
@@ -518,38 +521,24 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 			val setSize = instancesSet.setSize()
 			if (setSize == 0)
 			{
-				return BottomTypeDescriptor.bottom
+				return bottom
 			}
-			var typeCount = 0
-			for (element in instancesSet)
+			val typeCount = instancesSet.count(AvailObject::isType)
+			return when
 			{
-				if (element.isType)
-				{
-					typeCount++
-				}
-			}
-			if (typeCount == 0)
-			{
-				return if (setSize == 1)
-				{
-					InstanceTypeDescriptor.instanceType(
-						instancesSet.iterator().next())
-				}
-				else EnumerationTypeDescriptor.fromNormalizedSet(instancesSet)
-			}
-			if (typeCount == setSize)
-			{
+				typeCount == 0 && setSize == 1 ->
+					instanceType(instancesSet.single())
+				typeCount == 0 ->
+					EnumerationTypeDescriptor.fromNormalizedSet(instancesSet)
 				// They're all types.
-				val iterator: Iterator<AvailObject> = instancesSet.iterator()
-				var typesUnion: A_Type = iterator.next()
-				while (iterator.hasNext())
-				{
-					typesUnion = typesUnion.typeUnion(iterator.next())
-				}
-				return InstanceMetaDescriptor.instanceMeta(typesUnion)
+				typeCount == setSize ->
+					instanceMeta(
+						instancesSet.reduce { union: A_Type, type ->
+							union.typeUnion(type)
+						})
+				// It's a mix of types and non-types.
+				else -> Types.ANY.o
 			}
-			// It's a mix of types and non-types.
-			return Types.ANY.o
 		}
 
 		/**
@@ -570,11 +559,11 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 		fun instanceTypeOrMetaOn(instance: A_BasicObject): A_Type =
 			if (instance.isType)
 			{
-				InstanceMetaDescriptor.instanceMeta(instance as A_Type)
+				instanceMeta(instance as A_Type)
 			}
 			else
 			{
-				InstanceTypeDescriptor.instanceType(instance)
+				instanceType(instance)
 			}
 
 		/**

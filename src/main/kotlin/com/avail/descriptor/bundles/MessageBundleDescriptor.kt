@@ -1,6 +1,6 @@
 /*
  * MessageBundleDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,8 +52,10 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.module.A_Module.Companion.addBundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
@@ -85,7 +87,7 @@ import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeTag
@@ -95,7 +97,7 @@ import com.avail.exceptions.SignatureException
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.Collections.nCopies
@@ -206,8 +208,7 @@ class MessageBundleDescriptor private constructor(
 				nCopies(
 					numArgs,
 					restrictionForType(
-						PhraseKind.PARSE_PHRASE.mostGeneralType(),
-						RestrictionFlagEncoding.BOXED)),
+						PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
 				Unit)
 			do {
 				// Try to replace null with the new tree.  If the replacement
@@ -270,9 +271,7 @@ class MessageBundleDescriptor private constructor(
 			}
 		}
 		// Install the macro.
-		self.updateSlot(MACROS_TUPLE) {
-			appendCanDestroy(macro, true).makeShared()
-		}
+		self.updateSlotShared(MACROS_TUPLE) { appendCanDestroy(macro, true) }
 		// It's only a macro change, so don't invalidate dependent L2Chunks.
 		synchronized(self) {
 			macroTestingTree = null
@@ -366,11 +365,11 @@ class MessageBundleDescriptor private constructor(
 		removeMacro(self, macro)
 	}
 
-	override fun o_RemovePlanForDefinition(
+	override fun o_RemovePlanForSendable(
 		self: AvailObject,
-		definition: A_Definition
+		sendable: A_Sendable
 	) = self.synchronizeIf(isShared) {
-		removePlanForDefinition(self, definition)
+		removePlanForSendable(self, sendable)
 	}
 
 	override fun o_RemoveGrammaticalRestriction(
@@ -465,28 +464,29 @@ class MessageBundleDescriptor private constructor(
 		 */
 		private fun removeMacro(
 			self: AvailObject,
-			macro: A_Macro
-		) = self.updateSlotShared(MACROS_TUPLE) { tupleWithout(this, macro) }
+			macro: A_Macro)
+		{
+			self.updateSlotShared(MACROS_TUPLE) { tupleWithout(this, macro) }
+			removePlanForSendable(self, macro)
+		}
 
 		/**
-		 * Remove a [A_DefinitionParsingPlan] from this bundle, specifically
-		 * the one associated with the given [A_Definition].  This is performed
-		 * to make the bundle agree with the method's definitions and macro
-		 * definitions.
+		 * Remove a [A_DefinitionParsingPlan] from this bundle, specifically the
+		 * one associated with the given [A_Sendable] (which is either an
+		 * [A_Definition] or [A_Macro]).  This is performed to make the bundle
+		 * agree with the method's definitions and macros.
 		 *
 		 * @param self
 		 *   The affected message bundle.
-		 * @param definition
-		 *   A definition whose plan should be removed.
+		 * @param sendable
+		 *   A method definition or macro whose plan should be removed.
 		 */
-		private fun removePlanForDefinition(
+		private fun removePlanForSendable(
 			self: AvailObject,
-			definition: A_Definition
-		) {
-			var plans: A_Map = self.mutableSlot(DEFINITION_PARSING_PLANS)
-			assert(plans.hasKey(definition))
-			plans = plans.mapWithoutKeyCanDestroy(definition, true)
-			self.setMutableSlot(DEFINITION_PARSING_PLANS, plans.makeShared())
+			sendable: A_Sendable
+		) = self.updateSlotShared(DEFINITION_PARSING_PLANS) {
+			assert(hasKey(sendable))
+			mapWithoutKeyCanDestroy(sendable, true)
 		}
 
 		/**
@@ -523,7 +523,7 @@ class MessageBundleDescriptor private constructor(
 		/**
 		 * Create a new [message&#32;bundle][A_Bundle] for the given message.
 		 * Add the bundle to the method's collection of
-		 * [owning&32;bundles][MethodDescriptor.ObjectSlots.OWNING_BUNDLES].
+		 * [owning&32;bundles][MethodDescriptor.owningBundles].
 		 *
 		 * @param methodName
 		 *   The message name, an [atom][AtomDescriptor].

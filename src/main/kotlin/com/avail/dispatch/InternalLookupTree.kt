@@ -1,6 +1,6 @@
 /*
  * InternalLookupTree.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -421,7 +421,7 @@ internal constructor(
 		// If another process runs expandIfNecessary(), it will either see null
 		// for this field, or see non-null and be guaranteed that all subsequent
 		// reads will see all the previous writes.
-		argumentTypeToTest = typeToTest
+		argumentTypeToTest = typeToTest.makeShared()
 	}
 
 	override val solutionOrNull: Result?

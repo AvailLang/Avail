@@ -1,6 +1,6 @@
 /*
  * L2_PREPARE_NEW_FRAME_FOR_L1.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,8 +43,6 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
@@ -74,17 +72,7 @@ import org.objectweb.asm.Opcodes
  */
 object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator)
-	{
-		// No real optimization should ever be done near this L2 instruction.
-		// Do nothing.
-	}
-	// Keep this instruction from being removed, since it's only used
-	// by the default chunk.
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
@@ -126,33 +114,22 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		val code = function.code()
 		val numArgs = code.numArgs()
 		val numLocals = code.numLocals()
+		val numArgsAndLocals = numArgs + numLocals
 		val numSlots = code.numSlots()
 		// The L2 instructions that implement L1 don't reserve room for any
 		// fixed registers, but they assume [0] is unused (to simplify
 		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
 		val stepper = interpreter.levelOneStepper
-		var argsBufferIndex = 0
-		var localVariablesIndex = 1
-		stepper.pointers = Array(numSlots + 1)
-		{
+		stepper.pointers = Array(numSlots + 1) { i ->
 			when
 			{
-				it == 0 ->
-				{
-					// The 0th position will never be accessed
-					NilDescriptor.nil
-				}
-				argsBufferIndex < interpreter.argsBuffer.size ->
-				{
-					// Populate the arguments from argsBuffer.
-					interpreter.argsBuffer[argsBufferIndex++]
-				}
-				localVariablesIndex <= numLocals ->
-				{
-					// Create actual local variables.
-					newVariableWithOuterType(
-						code.localTypeAt(localVariablesIndex++))
-				}
+				// The 0th position will never be accessed
+				i == 0 -> NilDescriptor.nil
+				// Populate the arguments from argsBuffer.
+				i <= numArgs -> interpreter.argsBuffer[i - 1]
+				// Create actual local variables.
+				i <= numArgsAndLocals ->
+					newVariableWithOuterType(code.localTypeAt(i - numArgs))
 				else ->
 				{
 					// Write nil into the remaining stack slots.

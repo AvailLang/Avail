@@ -1,6 +1,6 @@
 /*
  * L2_ENTER_L2_CHUNK.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,9 @@ import com.avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINU
 import com.avail.interpreter.levelTwo.ReadsHiddenVariable
 import com.avail.interpreter.levelTwo.WritesHiddenVariable
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -67,7 +69,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 
-	override fun hasSideEffect(): Boolean = true
+	override fun hasSideEffect() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -117,9 +119,9 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 			translator.liveLocalNumbersByKindPerEntryPoint[instruction]
 		if (localNumberLists !== null)
 		{
-			val boxedList = localNumberLists[RegisterKind.BOXED]
-			val intsList = localNumberLists[RegisterKind.INTEGER]
-			val floatsList = localNumberLists[RegisterKind.FLOAT]
+			val boxedList = localNumberLists[BOXED_KIND]!!
+			val intsList = localNumberLists[INTEGER_KIND]!!
+			val floatsList = localNumberLists[FLOAT_KIND]!!
 			val boxedCount = boxedList.size
 			val intsCount = intsList.size
 			val floatsCount = floatsList.size
@@ -141,7 +143,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 					translator.intConstant(method, i + 1) //one-based
 					extractDumpedObjectAtMethod.generateCall(method)
 					method.visitVarInsn(
-						RegisterKind.BOXED.storeInstruction, boxedList[i])
+						BOXED_KIND.storeInstruction, boxedList[i])
 				}
 				var i = 1  //one-based
 				for (intRegisterIndex in intsList)
@@ -155,7 +157,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 					extractDumpedLongAtMethod.generateCall(method)
 					method.visitInsn(Opcodes.L2I)
 					method.visitVarInsn(
-						RegisterKind.INTEGER.storeInstruction, intRegisterIndex)
+						INTEGER_KIND.storeInstruction, intRegisterIndex)
 				}
 				for (floatRegisterIndex in floatsList)
 				{
@@ -168,7 +170,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 					extractDumpedLongAtMethod.generateCall(method)
 					bitCastLongToDoubleMethod.generateCall(method)
 					method.visitVarInsn(
-						RegisterKind.FLOAT.storeInstruction, floatRegisterIndex)
+						FLOAT_KIND.storeInstruction, floatRegisterIndex)
 				}
 				assert(countdown == 0)
 				// The last copy of registerDumps was popped.

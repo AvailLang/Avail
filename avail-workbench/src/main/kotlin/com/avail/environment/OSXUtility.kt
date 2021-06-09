@@ -1,6 +1,6 @@
 /*
- * OSXUtility.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * OSXUtility.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -154,7 +154,7 @@ object OSXUtility
 		// com.apple.eawt.Application reflectively.
 		try
 		{
-			enableAboutMethod.invoke(macOSXApplication, true)
+			enableAboutMethod(macOSXApplication, true)
 		}
 		catch (ex: Exception)
 		{
@@ -177,7 +177,7 @@ object OSXUtility
 		// calling com.apple.eawt.Application reflectively.
 		try
 		{
-			enablePreferencesMethod.invoke(macOSXApplication, true)
+			enablePreferencesMethod(macOSXApplication, true)
 		}
 		catch (ex: Exception)
 		{
@@ -204,7 +204,7 @@ object OSXUtility
 			val filename: String
 			try
 			{
-				filename = getFilenameMethod.invoke(event) as String
+				filename = getFilenameMethod(event) as String
 			}
 			catch (e: IllegalAccessException)
 			{
@@ -248,7 +248,7 @@ object OSXUtility
 				setApplicationEventHandled(args[0], success)
 				success
 			}
-			addListenerMethod.invoke(macOSXApplication, proxy)
+			addListenerMethod(macOSXApplication, proxy)
 		}
 		catch (e: IllegalAccessException)
 		{
@@ -283,7 +283,7 @@ object OSXUtility
 				event.javaClass.getDeclaredMethod(
 					"setHandled", Boolean::class.javaPrimitiveType)
 			// If the target method returns a boolean, use that as a hint
-			setHandledMethod.invoke(event, handled)
+			setHandledMethod(event, handled)
 		}
 		catch (e: Exception)
 		{

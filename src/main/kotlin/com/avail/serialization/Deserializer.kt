@@ -1,6 +1,6 @@
 /*
  * Deserializer.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -34,13 +34,16 @@ package com.avail.serialization
 
 import com.avail.AvailRuntime
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import java.io.InputStream
 
 /**
- * A [Deserializer] takes a stream of bytes and reconstructs objects that
- * had been previously [ serialized][Serializer.serialize] with a [Serializer].
+ * A [Deserializer] takes a stream of bytes and reconstructs objects that had
+ * been previously [serialized][Serializer.serialize] with a [Serializer].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -53,10 +56,21 @@ import java.io.InputStream
  * @param runtime
  *   The [AvailRuntime] from which to locate well-known objects during
  *   deserialization.
+ * @property lookupPumpedObject
+ *   A function that checks if the provided [A_BasicObject] happens to be one of
+ *   the objects that this serializer was primed with.  If so, it answers the
+ *   object's index, which must be negative.  If not present, it answers 0,
+ *   which implies the object will need to be serialized.  Positive indices are
+ *   not permitted.  It's up to the caller to decide how to map from objects to
+ *   indices, but a [Deserializer] must be provided the inverse of this function
+ *   to convert negative indices to objects.
  */
 class Deserializer constructor(
 	input: InputStream,
-	runtime: AvailRuntime) : AbstractDeserializer(input, runtime)
+	runtime: AvailRuntime,
+	lookupPumpedObject: (Int)->A_BasicObject =
+		{ throw Exception("Deserializer has no pumped objects.") }
+) : AbstractDeserializer(input, runtime, lookupPumpedObject)
 {
 	/** The objects that have been assembled so far. */
 	private val assembledObjects = mutableListOf<AvailObject>()
@@ -69,6 +83,13 @@ class Deserializer constructor(
 		Array(SerializerOperation.maxSubobjects) { nil }
 
 	/**
+	 * The [IndexCompressor] used to convert compressed indices into absolute
+	 * indices into previously deserialized objects.  This must be of the same
+	 * kind as the one used in [Serializer].
+	 */
+	private val compressor = FourStreamIndexCompressor()
+
+	/**
 	 * Record a newly reconstituted object.
 	 *
 	 * @param newObject
@@ -76,7 +97,8 @@ class Deserializer constructor(
 	 */
 	private fun addObject(newObject: AvailObject)
 	{
-		assembledObjects.add(newObject)
+		assembledObjects.add(newObject.makeImmutable())
+		compressor.incrementIndex()
 	}
 
 	/**
@@ -123,8 +145,8 @@ class Deserializer constructor(
 		}
 	}
 
-	override fun objectFromIndex(index: Int): AvailObject =
-		assembledObjects[index]
+	override fun fromCompressedObjectIndex(compressedIndex: Int): AvailObject =
+		assembledObjects[compressor.decompress(compressedIndex)]
 
 	/**
 	 * Record the provided object as an end product of deserialization.
@@ -138,6 +160,13 @@ class Deserializer constructor(
 		assert(producedObject === null)
 		producedObject = obj
 	}
+
+	/**
+	 * Answer a [tuple][A_Tuple] containing the sequence of objects that have
+	 * been deserialized by this [Deserializer].  This is the same sequence of
+	 * objects that the [Serializer] generated.
+	 */
+	fun serializedObjects(): A_Tuple = tupleFromList(assembledObjects)
 
 	companion object
 	{

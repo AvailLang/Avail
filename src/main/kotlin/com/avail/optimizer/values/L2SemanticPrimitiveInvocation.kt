@@ -1,6 +1,6 @@
 /*
- * L2SemanticPrimitiveInvocation.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2SemanticPrimitiveInvocation.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -57,8 +57,8 @@ import com.avail.interpreter.Primitive
  *   The semantic values supplied as arguments.
  */
 class L2SemanticPrimitiveInvocation internal constructor(
-	@JvmField val primitive: Primitive,
-	@JvmField val argumentSemanticValues: List<L2SemanticValue>
+	val primitive: Primitive,
+	val argumentSemanticValues: List<L2SemanticValue>
 ) : L2SemanticValue(computeHash(primitive, argumentSemanticValues))
 {
 	init
@@ -93,6 +93,9 @@ class L2SemanticPrimitiveInvocation internal constructor(
 		}
 		return L2SemanticPrimitiveInvocation(primitive, newArguments)
 	}
+
+	override fun primaryVisualSortKey() =
+		PrimaryVisualSortKey.PRIMITIVE_INVOCATION
 
 	companion object
 	{

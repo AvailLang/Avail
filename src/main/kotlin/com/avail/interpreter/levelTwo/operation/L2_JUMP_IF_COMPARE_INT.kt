@@ -1,6 +1,6 @@
 /*
- * L2_JUMP_IF_COMPARE_INT.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2_JUMP_IF_COMPARE_INT.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,14 +31,26 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.typeUnion
+import com.avail.descriptor.types.A_Type.Companion.upperBound
+import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.utility.Tuple4
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
+import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Jump to the target if int1 is less than int2.
@@ -58,16 +70,62 @@ import org.objectweb.asm.Opcodes
  *   The opcode number for this compare-and-branch.
  * @param opcodeName
  *   The symbolic name of the opcode for this compare-and-branch.
+ * @param computeRestrictions
+ *   A function for computing output ranges along the ifTrue and ifFalse edges.
+ *   It takes the first operand's lower and upper bounds, and the second
+ *   operand's lower and upper bound.  These are in the [int32] range, but are
+ *   passed as a Long to simplify calculation.  It then produces four integer
+ *   range [types][A_Type]s, restricting:
+ *   1. the first operand if the condition holds,
+ *   2. the second operand if the condition holds,
+ *   3. the first operand if the condition fails,
+ *   4. the second operand if the condition failse,
  */
 class L2_JUMP_IF_COMPARE_INT private constructor(
 		private val opcode: Int,
-		private val opcodeName: String) :
-	L2ConditionalJump(
+		private val opcodeName: String,
+		private val computeRestrictions: (Long, Long, Long, Long) ->
+			Tuple4<A_Type, A_Type, A_Type, A_Type>
+	) : L2ConditionalJump(
 		L2OperandType.READ_INT.named("int1"),
 		L2OperandType.READ_INT.named("int2"),
 		L2OperandType.PC.named("if true", L2NamedOperandType.Purpose.SUCCESS),
 		L2OperandType.PC.named("if false", L2NamedOperandType.Purpose.FAILURE))
 {
+	override fun instructionWasAdded(
+		instruction: L2Instruction, manifest: L2ValueManifest)
+	{
+		assert(this == instruction.operation())
+		super.instructionWasAdded(instruction, manifest)
+		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
+		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
+		val ifTrue = instruction.operand<L2PcOperand>(2)
+		val ifFalse = instruction.operand<L2PcOperand>(3)
+
+		val restriction1 = int1Reg.restriction()
+		val restriction2 = int2Reg.restriction()
+
+		val low1 = restriction1.type.lowerBound().extractLong()
+		val high1 = restriction1.type.upperBound().extractLong()
+		val low2 = restriction2.type.lowerBound().extractLong()
+		val high2 = restriction2.type.upperBound().extractLong()
+
+		// Restrict both values along both branches.
+		val (type1, type2, type3, type4) =
+			computeRestrictions(low1, high1, low2, high2)
+		ifTrue.manifest().setRestriction(
+			int1Reg.semanticValue(),
+			restriction1.intersectionWithType(type1))
+		ifTrue.manifest().setRestriction(
+			int2Reg.semanticValue(),
+			restriction2.intersectionWithType(type2))
+		ifFalse.manifest().setRestriction(
+			int1Reg.semanticValue(),
+			restriction1.intersectionWithType(type3))
+		ifFalse.manifest().setRestriction(
+			int2Reg.semanticValue(),
+			restriction2.intersectionWithType(type4))
+	}
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -79,7 +137,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
 		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
 		//		final L2PcOperand ifTrue = instruction.operand(2);
-//		final L2PcOperand ifFalse = instruction.operand(3);
+		//		final L2PcOperand ifFalse = instruction.operand(3);
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(int1Reg.registerString())
@@ -114,23 +172,126 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 
 	companion object
 	{
-		/** An instance for testing whether a < b.  */
-		val less = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLT, "<")
+		private fun A_Type.narrow(): A_Type = when
+		{
+			lowerBound().equals(upperBound()) -> instanceType(lowerBound())
+			else -> this
+		}
 
-		/** An instance for testing whether a > b.  */
-		val greater = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPGT, ">")
+		/**
+		 * Given two [int32] subranges, answer the range that a value from the
+		 * first range can have if it's known to be less than a value from the
+		 * second range.
+		 */
+		@Suppress("UNUSED_PARAMETER")
+		private fun lessHelper(
+			low1: Long, high1: Long, low2: Long, high2: Long
+		) = inclusive(low1, min(high1, high2 - 1)).narrow()
 
-		/** An instance for testing whether a ≤ b.  */
-		val lessOrEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLE, "≤")
+		/**
+		 * Given two [int32] subranges, answer the range that a value from the
+		 * first range can have if it's known to be less than or equal to a
+		 * value from the second range.
+		 */
+		@Suppress("UNUSED_PARAMETER")
+		private fun lessOrEqualHelper(
+			low1: Long, high1: Long, low2: Long, high2: Long
+		) = inclusive(low1, min(high1, high2)).narrow()
 
-		/** An instance for testing whether a ≥ b.  */
-		val greaterOrEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPGE, "≥")
+		/**
+		 * Given two [int32] subranges, answer the range that a value from the
+		 * first range can have if it's known to be greater than a value from
+		 * the second range.
+		 */
+		@Suppress("UNUSED_PARAMETER")
+		private fun greaterHelper(
+			low1: Long, high1: Long, low2: Long, high2: Long
+		) = inclusive(max(low1, low2 + 1), high1).narrow()
 
-		/** An instance for testing whether a = b.  */
-		val equal = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPEQ, "=")
+		/**
+		 * Given two [int32] subranges, answer the range that a value from the
+		 * first range can have if it's known to be greater than or equal to a
+		 * value from the second range.
+		 */
+		@Suppress("UNUSED_PARAMETER")
+		private fun greaterOrEqualHelper(
+			low1: Long, high1: Long, low2: Long, high2: Long
+		) = inclusive(max(low1, low2), high1).narrow()
 
-		/** An instance for testing whether a ≠ b.  */
-		val notEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPNE, "≠")
+		/**
+		 * Given two [int32] subranges, answer the range that a value from the
+		 * first range can have if it's known to be equal to a value from the
+		 * second range.
+		 */
+		private fun equalHelper(
+			low1: Long, high1: Long, low2: Long, high2: Long
+		) = inclusive(max(low1, low2), min(high1, high2)).narrow()
+
+		/**
+		 * Given two [int32] subranges, answer the range that a value from the
+		 * first range can have if it's known to be unequal to some value from
+		 * the second range.
+		 */
+		private fun unequalHelper(
+			low1: Long, high1: Long, low2: Long, high2: Long
+		) : A_Type =
+			lessHelper(low1, high1, low2, high2).typeUnion(
+				greaterHelper(low1, high1, low2, high2)
+			).narrow()
+
+		/** An instance for testing whether a < b. */
+		val less = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLT, "<") {
+			low1, high1, low2, high2 -> Tuple4(
+				lessHelper(low1, high1, low2, high2),
+				greaterHelper(low2, high2, low1, high1),
+				greaterOrEqualHelper(low1, high1, low2, high2),
+				lessOrEqualHelper(low2, high2, low1, high1))
+		}
+
+		/** An instance for testing whether a > b. */
+		val greater = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPGT, ">") {
+			low1, high1, low2, high2 -> Tuple4(
+				greaterHelper(low1, high1, low2, high2),
+				lessHelper(low2, high2, low1, high1),
+				lessOrEqualHelper(low1, high1, low2, high2),
+				greaterOrEqualHelper(low2, high2, low1, high1))
+		}
+
+		/** An instance for testing whether a ≤ b. */
+		val lessOrEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLE, "≤") {
+			low1, high1, low2, high2 -> Tuple4(
+				lessOrEqualHelper(low1, high1, low2, high2),
+				greaterOrEqualHelper(low2, high2, low1, high1),
+				greaterHelper(low1, high1, low2, high2),
+				lessHelper(low2, high2, low1, high1))
+		}
+
+		/** An instance for testing whether a ≥ b. */
+		val greaterOrEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPGE, "≥") {
+			low1, high1, low2, high2 -> Tuple4(
+				greaterOrEqualHelper(low1, high1, low2, high2),
+				lessOrEqualHelper(low2, high2, low1, high1),
+				lessHelper(low1, high1, low2, high2),
+				greaterHelper(low2, high2, low1, high1))
+		}
+
+		/** An instance for testing whether a = b. */
+		val equal = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPEQ, "=") {
+			low1, high1, low2, high2 -> Tuple4(
+				equalHelper(low1, high1, low2, high2),
+				equalHelper(low2, high2, low1, high1),
+				unequalHelper(low1, high1, low2, high2),
+				unequalHelper(low2, high2, low1, high1))
+		}
+
+		/** An instance for testing whether a ≠ b. */
+		val notEqual = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPNE, "≠") {
+			low1, high1, low2, high2 -> Tuple4(
+				unequalHelper(low1, high1, low2, high2),
+				unequalHelper(low2, high2, low1, high1),
+				equalHelper(low1, high1, low2, high2),
+				equalHelper(low2, high2, low1, high1))
+		}
 	}
 
 }

@@ -1,6 +1,6 @@
 /*
  * StacksOutputFile.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -95,7 +95,7 @@ class StacksOutputFile @Throws(IOException::class) constructor(
 
 		val filePath = outputPath.resolve(fileName)
 		Files.createDirectories(outputPath)
-		this.outputFile = runtime.ioSystem().openFile(
+		this.outputFile = runtime.ioSystem.openFile(
 			filePath, EnumSet.of(
 				StandardOpenOption.CREATE,
 				StandardOpenOption.WRITE,

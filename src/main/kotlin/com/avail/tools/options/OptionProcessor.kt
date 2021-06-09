@@ -1,6 +1,6 @@
 /*
  * OptionProcessor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -136,8 +136,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	{
 		val optionKey = allKeywords[keyword]
 			?: throw UnrecognizedKeywordException(keyword)
-		val option = allOptions[optionKey]
-		timesEncountered[optionKey].getAndIncrement()
+		val option = allOptions[optionKey]!!
+		timesEncountered[optionKey]!!.getAndIncrement()
 		// Make sure we haven't exceeded the maximum count.
 		checkEncountered(optionKey, option.cardinality.max)
 		if (option.takesArgument) {
@@ -218,7 +218,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 			val keyword = keywords.substring(i, i + 1)
 			val optionKey = allKeywords[keyword]
 				?: throw UnrecognizedKeywordException(keyword)
-			val option = allOptions[optionKey]
+			val option = allOptions[optionKey]!!
 			if (option.takesArgument) {
 				throw OptionProcessingException(
 					"\"$keyword\" requires an argument, so it may only be at "
@@ -230,7 +230,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 		val keyword = keywords.takeLast(1)
 		val optionKey = allKeywords[keyword]
 			?: throw UnrecognizedKeywordException(keyword)
-		val option = allOptions[optionKey]
+		val option = allOptions[optionKey]!!
 		var argument: String? = null
 		if (option.takesArgument)
 		{
@@ -364,7 +364,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 	 * @return
 	 *   The number of times that the option has been processed.
 	 */
-	fun timesEncountered(key: OptionKeyType) = timesEncountered[key].get()
+	fun timesEncountered(key: OptionKeyType) = timesEncountered[key]!!.get()
 
 	/**
 	 * If the specified key was encountered more times than allowed, then throw

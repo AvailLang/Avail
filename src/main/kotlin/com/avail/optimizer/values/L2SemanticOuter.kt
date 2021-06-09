@@ -1,6 +1,6 @@
 /*
- * L2SemanticOuter.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2SemanticOuter.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -63,16 +63,18 @@ constructor(
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer.invoke(frame) .let {
+			frameTransformer(frame) .let {
 				if (it == frame) this
 				else L2SemanticOuter(it, outerIndex, optionalName)
 			}
+
+	override fun primaryVisualSortKey() = PrimaryVisualSortKey.OUTER
 
 	override fun toString(): String = buildString {
 		when (optionalName)
 		{
 			null -> append("Outer#$outerIndex")
-			else -> append("Outer:$optionalName")
+			else -> append("Outer#$outerIndex($optionalName)")
 		}
 		if (frame.depth() > 1) append(" [$frame]")
 	}

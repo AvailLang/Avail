@@ -1,6 +1,6 @@
 /*
- * L2SemanticSlot.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2SemanticSlot.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ import com.avail.descriptor.representation.AvailObject
  *   Either a [String] that provides a useful naming hint for this slot, or
  *   `null`.
  */
-internal class L2SemanticSlot(
+internal class L2SemanticSlot constructor(
 	frame: Frame,
 	val slotIndex: Int,
 	val pcAfter: Int,
@@ -84,10 +84,12 @@ internal class L2SemanticSlot(
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer.invoke(frame()).let {
+			frameTransformer(frame()).let {
 			if (it == frame()) this
 			else L2SemanticSlot(it, slotIndex, pcAfter, optionalName)
 		}
+
+	override fun primaryVisualSortKey() = PrimaryVisualSortKey.SLOT
 
 	override fun toString(): String = buildString {
 		when (optionalName)

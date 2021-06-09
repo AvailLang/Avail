@@ -1,6 +1,6 @@
 /*
  * DefinitionDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import com.avail.descriptor.maps.MapBinDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.representation.A_BasicObject
@@ -53,7 +54,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 
@@ -150,7 +151,7 @@ protected constructor(
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
 			argsTupleType,
-			tupleTypeFromTupleOfTypes(argsTupleType) {
+			mappingElementTypes(argsTupleType) {
 				yieldType -> PhraseKind.EXPRESSION_PHRASE.create(yieldType)
 			})
 	}

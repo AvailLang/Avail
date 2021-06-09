@@ -1,6 +1,6 @@
 /*
  * CompilerConfiguration.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -38,6 +38,7 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.files.FileManager
 import com.avail.performance.StatisticReport
 import com.avail.stacks.StacksGenerator
 import com.avail.tools.compiler.Compiler
@@ -50,6 +51,9 @@ import java.io.Reader
 import java.io.StringReader
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.EnumSet
+import java.util.concurrent.Semaphore
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 /**
  * A `CompilerConfiguration` instructs a [compiler][Compiler] on
@@ -57,8 +61,19 @@ import java.util.EnumSet
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Leslie Schultz &lt;leslie@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property fileManager
+ *   The [FileManager] that will manage the Avail files.
+ *
+ * @constructor
+ * Construct a new [CompilerConfiguration]
+ *
+ * @param fileManager
+ *   The [FileManager] that will manage the Avail files.
  */
-class CompilerConfiguration : Configuration
+class CompilerConfiguration constructor(private val fileManager: FileManager)
+	: Configuration
 {
 	/** The [Avail roots][ModuleRoots] path. */
 	internal var availRootsPath = ""
@@ -68,18 +83,33 @@ class CompilerConfiguration : Configuration
 			availRoots = null
 		}
 
+	/**
+	 * A [ReentrantLock] for guarding the setting of [availRoots].
+	 */
+	private val lock = ReentrantLock()
+
 	/** The [Avail roots][ModuleRoots].  */
 	private var availRoots: ModuleRoots? = null
-		get()
-		{
-			var roots = field
-			if (roots === null)
-			{
-				roots = ModuleRoots(availRootsPath)
-				availRoots = roots
+		get() =
+			// It is possible for multiple threads to race to this condition
+			// if the value has not been set, we want to ensure only one thread
+			// can set availRoots
+			lock.withLock {
+				var roots = field
+				// If availRoots is not set, set it now
+				if (roots === null)
+				{
+					val semaphore = Semaphore(0)
+					roots = ModuleRoots(fileManager, availRootsPath) {
+						it.forEach { msg -> System.err.println(msg) }
+						semaphore.release()
+					}
+					semaphore.acquireUninterruptibly()
+					field = roots
+				}
+				field
 			}
-			return roots
-		}
+
 
 
 	/** The path to the [renames file][RenamesFileParser].  */

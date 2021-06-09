@@ -1,6 +1,6 @@
 /*
  * PermutedListPhraseDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,48 +30,47 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.descriptor.phrases
-
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.numbers.A_Number.Companion.extractInt
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
- import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
- import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
- import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
- import com.avail.descriptor.phrases.A_Phrase.Companion.list
- import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
- import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
- import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
- import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.EXPRESSION_TYPE
- import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.LIST
- import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.PERMUTATION
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
- import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
- import com.avail.descriptor.tuples.TupleDescriptor
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.A_Type.Companion.lowerBound
- import com.avail.descriptor.types.A_Type.Companion.sizeRange
- import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
- import com.avail.descriptor.types.TypeTag
- import com.avail.interpreter.levelOne.L1Operation
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
- import java.util.IdentityHashMap
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.lastExpression
+import com.avail.descriptor.phrases.A_Phrase.Companion.list
+import com.avail.descriptor.phrases.A_Phrase.Companion.permutation
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.EXPRESSION_TYPE
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.LIST
+import com.avail.descriptor.phrases.PermutedListPhraseDescriptor.ObjectSlots.PERMUTATION
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.lowerBound
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TypeTag
+import com.avail.interpreter.levelOne.L1Operation
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * My instances represent [phrases][PhraseDescriptor] which will generate

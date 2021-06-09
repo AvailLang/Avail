@@ -1,6 +1,6 @@
 /*
  * AbstractDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,7 @@ import com.avail.annotations.HideFieldInDebugger
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.annotations.ThreadSafe
 import com.avail.compiler.AvailCodeGenerator
+import com.avail.compiler.ModuleHeader
 import com.avail.compiler.scanning.LexingState
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.descriptor.atoms.A_Atom
@@ -46,6 +47,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.character.A_Character
 import com.avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import com.avail.descriptor.fiber.A_Fiber
+import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -64,10 +66,14 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
+import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
@@ -831,7 +837,12 @@ abstract class AbstractDescriptor protected constructor (
 			}
 			catch (e: Exception)
 			{
-				e.stackTrace[1].methodName
+				var name = e.stackTrace[1].methodName
+				if (name == "getUnsupported")  // ::unsupported property getter.
+				{
+					name = e.stackTrace[2].methodName
+				}
+				name
 			}
 		throw AvailUnsupportedOperationException(javaClass, callerName)
 	}
@@ -843,39 +854,6 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	val unsupported: Nothing
 		get() = unsupportedOperation()
-
-	/**
-	 * Throw an
-	 * [unsupported&#32;operation&#32;exception][AvailUnsupportedOperationException]
-	 * suitable to be thrown by the sender.
-	 *
-	 * The exception indicates that the receiver does not meaningfully implement
-	 * the method that immediately invoked this.  This is a strong indication
-	 * that the wrong kind of object is being used somewhere.
-	 *
-	 * This is a variant on [unsupported] to support Java implementations of
-	 * [AbstractDescriptor] until porting of the hierarchy is finished. It
-	 * should be thrown by Java callers, which cannot correctly reason about
-	 * flow around non-returning functions.
-	 *
-	 * @return
-	 *   Never returns anything; always throws.
-	 * @throws AvailUnsupportedOperationException
-	 *   Always.
-	 */
-	fun unsupportedOperationException (): AvailUnsupportedOperationException
-	{
-		val callerName =
-			try
-			{
-				throw Exception("just want the caller's frame")
-			}
-			catch (e: Exception)
-			{
-				e.stackTrace[1].methodName
-			}
-		throw AvailUnsupportedOperationException(javaClass, callerName)
-	}
 
 	/**
 	 * Answer whether the [argument&#32;types][A_Type.argsTupleType]
@@ -1067,7 +1045,7 @@ abstract class AbstractDescriptor protected constructor (
 	/**
 	 * @param self
 	 * @param grammaticalRestriction
-	 * @see AvailObject.moduleAddGrammaticalRestriction
+	 * @see A_Module.moduleAddGrammaticalRestriction
 	 */
 	abstract fun o_AddGrammaticalRestriction (
 		self: AvailObject,
@@ -1076,7 +1054,7 @@ abstract class AbstractDescriptor protected constructor (
 	/**
 	 * @param self
 	 * @param definition
-	 * @see AvailObject.moduleAddDefinition
+	 * @see A_Module.moduleAddDefinition
 	 */
 	abstract fun o_ModuleAddDefinition (
 		self: AvailObject,
@@ -1723,8 +1701,6 @@ abstract class AbstractDescriptor protected constructor (
 		anInteger: AvailObject,
 		canDestroy: Boolean): A_Number
 
-	abstract fun o_NameVisible (self: AvailObject, trueName: A_Atom): Boolean
-
 	abstract fun o_OptionallyNilOuterVar (
 		self: AvailObject,
 		index: Int): Boolean
@@ -2097,6 +2073,11 @@ abstract class AbstractDescriptor protected constructor (
 		key: A_BasicObject,
 		value: A_BasicObject)
 
+	@Throws(VariableGetException::class, VariableSetException::class)
+	abstract fun o_AtomicRemoveFromMap (
+		self: AvailObject,
+		key: A_BasicObject)
+
 	@Throws(VariableGetException::class)
 	abstract fun o_VariableMapHasKey (
 		self: AvailObject,
@@ -2175,6 +2156,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
 		continuation: (Boolean) -> Unit)
+
+	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
+		self: AvailObject,
+		delta: Long)
 
 	abstract fun o_IsAbstract (self: AvailObject): Boolean
 
@@ -2975,8 +2960,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_WriteType (self: AvailObject): A_Type
 
-	abstract fun o_SetVersions (self: AvailObject, versionStrings: A_Set)
-
 	abstract fun o_Versions (self: AvailObject): A_Set
 
 	abstract fun o_TypeUnionOfPhraseType (
@@ -3491,14 +3474,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_EntryPoints (self: AvailObject): A_Map
 
-	abstract fun o_AddEntryPoint (
-		self: AvailObject,
-		stringName: A_String,
-		trueName: A_Atom)
-
 	abstract fun o_AllAncestors (self: AvailObject): A_Set
-
-	abstract fun o_AddAncestors (self: AvailObject, moreAncestors: A_Set)
 
 	abstract fun o_ArgumentRestrictionSets (self: AvailObject): A_Tuple
 
@@ -3578,7 +3554,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		whenReified: (A_Continuation) -> Unit)
 
-	abstract fun o_GetAndClearReificationWaiters (self: AvailObject): A_Set
+	abstract fun o_GetAndClearReificationWaiters (
+		self: AvailObject
+	): List<(A_Continuation)->Unit>
 
 	abstract fun o_IsBottom (self: AvailObject): Boolean
 
@@ -3693,9 +3671,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_SetIntersects (self: AvailObject, otherSet: A_Set): Boolean
 
-	abstract fun o_RemovePlanForDefinition (
+	abstract fun o_RemovePlanForSendable (
 		self: AvailObject,
-		definition: A_Definition)
+		sendable: A_Sendable)
 
 	abstract fun o_DefinitionParsingPlans (self: AvailObject): A_Map
 
@@ -3722,10 +3700,6 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_RemovePlanInProgress (
 		self: AvailObject,
 		planInProgress: A_ParsingPlanInProgress)
-
-	abstract fun o_ModuleSemanticRestrictions (self: AvailObject): A_Set
-
-	abstract fun o_ModuleGrammaticalRestrictions (self: AvailObject): A_Set
 
 	abstract fun o_FieldAt (self: AvailObject, field: A_Atom): AvailObject
 
@@ -3825,7 +3799,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		action: (AvailObject, AvailObject) -> Unit)
 
-	abstract fun o_SetSuccessAndFailureContinuations (
+	abstract fun o_SetSuccessAndFailure (
 		self: AvailObject,
 		onSuccess: (AvailObject) -> Unit,
 		onFailure: (Throwable) -> Unit)
@@ -3834,10 +3808,12 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_RegisterDump (self: AvailObject): AvailObject
 
-	abstract fun o_IsOpen (self: AvailObject): Boolean
 
-	@Throws(AvailRuntimeException::class)
-	abstract fun o_CloseModule (self: AvailObject)
+	abstract fun o_ModuleState(self: AvailObject): ModuleDescriptor.State
+
+	abstract fun o_SetModuleState(
+		self: AvailObject,
+		newState: ModuleDescriptor.State)
 
 	abstract fun o_MembershipChanged (self: AvailObject)
 
@@ -3850,13 +3826,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleAddMacro (self: AvailObject, macro: A_Macro)
 
-	abstract fun o_ModuleMacros (self: AvailObject): A_Set
-
 	abstract fun o_RemoveMacro (self: AvailObject, macro: A_Macro)
 
 	abstract fun o_AddBundle (self: AvailObject, bundle: A_Bundle)
-
-	abstract fun o_ModuleBundles (self: AvailObject): A_Set
 
 	abstract fun o_ReturnTypeIfPrimitiveFails (self: AvailObject): A_Type
 
@@ -3868,6 +3840,64 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_ExtractDumpedLongAt (self: AvailObject, index: Int): Long
 
 	abstract fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
+
+	abstract fun o_OriginatingPhraseAtIndex(
+		self: AvailObject,
+		index: Int
+	): A_Phrase
+
+	abstract fun o_RecordBlockPhrase(
+		self: AvailObject,
+		blockPhrase: A_Phrase
+	): A_Number
+
+	abstract fun o_GetAndSetTupleOfBlockPhrases(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject
+
+	abstract fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject
+
+	abstract fun o_DeclarationNames(self: AvailObject): A_Tuple
+
+	abstract fun o_PackedDeclarationNames(self: AvailObject): A_String
+
+	abstract fun o_SetOriginatingPhraseOrIndex(
+		self: AvailObject,
+		phraseOrIndex: AvailObject)
+
+	abstract fun o_LexerApplicability(
+		self: AvailObject,
+		codePoint: Int
+	): Boolean?
+
+	abstract fun o_SetLexerApplicability(
+		self: AvailObject,
+		codePoint: Int,
+		applicability: Boolean)
+
+	abstract fun o_SerializedObjects(
+		self: AvailObject,
+		serializedObjects: A_Tuple)
+
+	abstract fun o_SerializedObjectsMap(
+		self: AvailObject,
+		serializedObjectsMap: A_Map
+	)
+
+	abstract fun o_ApplyModuleHeader(
+		self: AvailObject,
+		loader: AvailLoader,
+		moduleHeader: ModuleHeader): String?
+
+	abstract fun o_HasAncestor(
+		self: AvailObject,
+		potentialAncestor: A_Module
+	): Boolean
+
+	abstract fun o_FiberHelper(self: AvailObject): FiberDescriptor.FiberHelper
+
+	abstract fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 
 	companion object
 	{
@@ -4165,7 +4195,7 @@ abstract class AbstractDescriptor protected constructor (
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
-					val allValues: Array<AbstractSlotsEnum> =
+					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
 						describingClass.enumConstants.cast()
 					if (value in allValues.indices)
 					{
@@ -4185,13 +4215,11 @@ abstract class AbstractDescriptor protected constructor (
 					// this case, not necessarily an Enum.
 					val lookupMethod = describingClass.getMethod(
 						lookupName, Int::class.javaPrimitiveType)
-					when (val lookedUp =
-						lookupMethod.invoke(null, value.toInt()))
+					when (val lookedUp = lookupMethod(null, value.toInt()))
 					{
 						is IntegerEnumSlotDescriptionEnum ->
 							append(lookedUp.fieldName())
-						else ->
-							append("null")
+						else -> append("null")
 					}
 				}
 			}

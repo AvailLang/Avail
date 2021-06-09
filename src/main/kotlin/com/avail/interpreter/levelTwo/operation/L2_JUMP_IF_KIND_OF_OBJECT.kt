@@ -1,6 +1,6 @@
 /*
  * L2_JUMP_IF_KIND_OF_OBJECT.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,18 +32,13 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.instance
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -77,64 +72,6 @@ object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
 		ifKind.manifest().intersectType(
 			value.semanticValue(),
 			type.type().instance())
-	}
-
-	override fun branchReduction(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator): BranchReduction
-	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val type = instruction.operand<L2ReadBoxedOperand>(1)
-		//		final L2PcOperand ifKind = instruction.operand(2);
-//		final L2PcOperand ifNotKind = instruction.operand(3);
-		if (registerSet.hasConstantAt(type.register()))
-		{
-			// Replace this compare-and-branch with one that compares against
-			// a constant.  This further opens the possibility of eliminating
-			// one of the branches.
-			val constantType: A_Type = registerSet.constantAt(type.register())
-			val valueType = registerSet.typeAt(value.register())
-			if (valueType.isSubtypeOf(constantType))
-			{
-				return BranchReduction.AlwaysTaken
-			}
-			if (valueType.typeIntersection(constantType).isBottom)
-			{
-				return BranchReduction.NeverTaken
-			}
-		}
-		return BranchReduction.SometimesTaken
-	}
-
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		val valueReg = instruction.operand<L2ReadBoxedOperand>(0)
-		val typeReg = instruction.operand<L2ReadBoxedOperand>(1)
-		assert(registerSets.size == 2)
-		val isKindSet = registerSets[0]
-		//		final RegisterSet isNotKindSet = registerSets.get(1);
-		val type: A_Type
-		type = if (isKindSet.hasConstantAt(typeReg.register()))
-		{
-			// The type is statically known.
-			isKindSet.constantAt(typeReg.register())
-		}
-		else
-		{
-			// The exact type being tested against isn't known, but the metatype
-			// is.
-			assert(isKindSet.hasTypeAt(typeReg.register()))
-			val meta = isKindSet.typeAt(typeReg.register())
-			assert(meta.isInstanceMeta)
-			meta.instance()
-		}
-		isKindSet.strengthenTestedTypeAtPut(
-			valueReg.register(),
-			type.typeIntersection(isKindSet.typeAt(valueReg.register())))
 	}
 
 	override fun appendToWithWarnings(

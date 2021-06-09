@@ -1,6 +1,6 @@
 /*
  * ListPhraseDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,46 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package com.avail.descriptor.phrases
-
- import com.avail.compiler.AvailCodeGenerator
- import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
- import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
- import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
- import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
- import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
- import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
- import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
- import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE
- import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
- import com.avail.descriptor.representation.A_BasicObject
- import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
- import com.avail.descriptor.representation.AbstractSlotsEnum
- import com.avail.descriptor.representation.AvailObject
- import com.avail.descriptor.representation.Mutability
- import com.avail.descriptor.representation.NilDescriptor.Companion.nil
- import com.avail.descriptor.representation.ObjectSlotsEnum
- import com.avail.descriptor.tokens.A_Token
- import com.avail.descriptor.tuples.A_Tuple
- import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
- import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
- import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
- import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
- import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
- import com.avail.descriptor.tuples.TupleDescriptor
- import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
- import com.avail.descriptor.types.A_Type
- import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
- import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
- import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
- import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
- import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
- import com.avail.descriptor.types.TypeTag
- import com.avail.serialization.SerializerOperation
- import com.avail.utility.json.JSONWriter
- import java.util.IdentityHashMap
+import com.avail.compiler.AvailCodeGenerator
+import com.avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
+import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import com.avail.descriptor.phrases.A_Phrase.Companion.hasSuperCast
+import com.avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import com.avail.descriptor.phrases.A_Phrase.Companion.stripMacro
+import com.avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.EXPRESSIONS_TUPLE
+import com.avail.descriptor.phrases.ListPhraseDescriptor.ObjectSlots.TUPLE_TYPE
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import com.avail.descriptor.representation.AbstractSlotsEnum
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.A_Token
+import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
+import com.avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import com.avail.descriptor.tuples.TupleDescriptor
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import com.avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
+import com.avail.descriptor.types.TypeTag
+import com.avail.serialization.SerializerOperation
+import com.avail.utility.json.JSONWriter
+import java.util.IdentityHashMap
 
 /**
  * My instances represent [phrases][PhraseDescriptor] which will generate tuples

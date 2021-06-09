@@ -1,6 +1,6 @@
 /*
  * InstanceMetaDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -224,7 +224,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	// Technically my instance is the instance I specify, which is a type,
 	// *plus* all subtypes of it.  However, to distinguish metas from kinds
 	// we need it to answer one here.
-	override fun o_InstanceCount(self: AvailObject): A_Number = one()
+	override fun o_InstanceCount(self: AvailObject): A_Number = one
 
 	override fun o_Instances(self: AvailObject): A_Set =
 		singletonSet(getInstance(self))
@@ -261,7 +261,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
 		field: A_Atom
-	): A_Type? = unsupported
+	): A_Type = unsupported
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map = unsupported
 
@@ -375,6 +375,12 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
 		getInstance(self).typeTag().metaTag()
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		return self
+	}
 
 	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
 

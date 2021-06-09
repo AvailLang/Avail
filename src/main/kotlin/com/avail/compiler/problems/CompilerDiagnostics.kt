@@ -1,6 +1,6 @@
 /*
  * CompilerDiagnostics.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -53,7 +53,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.addLineNumbers
 import com.avail.utility.Strings.lineBreakPattern
@@ -634,7 +634,7 @@ class CompilerDiagnostics(
 			// of displaying the diagnostics.  We only care about the tokens
 			// that have already been formed, not ones in progress.
 			findLongestTokenThen(lexingStates) { longestToken ->
-				val before = lexingStates.iterator().next()
+				val before = lexingStates.first()
 				groupedProblems.add(
 					ProblemsAtPosition(
 						before,
@@ -916,7 +916,7 @@ class CompilerDiagnostics(
 				.flatten()
 			if (candidates.isEmpty())
 			{
-				val state = startLexingStates.iterator().next()
+				val state = startLexingStates.first()
 				val emptyToken = newToken(
 					emptyTuple,
 					state.position,

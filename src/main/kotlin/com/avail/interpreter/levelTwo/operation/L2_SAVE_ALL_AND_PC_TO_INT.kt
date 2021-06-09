@@ -1,6 +1,6 @@
 /*
  * L2_SAVE_ALL_AND_PC_TO_INT.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,8 +33,12 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.REFERENCED_AS_INT
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -56,10 +60,10 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
-	L2OperandType.PC.named("reference", L2NamedOperandType.Purpose.REFERENCED_AS_INT),
-	L2OperandType.WRITE_INT.named("L2 address", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.named("register dump", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("fall-through", L2NamedOperandType.Purpose.SUCCESS))
+	PC.named("reference", REFERENCED_AS_INT),
+	WRITE_INT.named("L2 address", SUCCESS),
+	WRITE_BOXED.named("register dump", SUCCESS),
+	PC.named("fall-through", SUCCESS))
 {
 	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
 	{
@@ -67,23 +71,9 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		return listOf(instruction.operand(0), instruction.operand(3))
 	}
 
-	override fun hasSideEffect(
-		instruction: L2Instruction): Boolean
-	{
-		// Don't let it be removed if either edge crosses a zone boundary.
-		assert(this == instruction.operation())
-		val target = instruction.operand<L2PcOperand>(0)
-		//		final L2WriteIntOperand targetAsInt = instruction.operand(1);
-//		final L2WriteBoxedOperand registerDump = instruction.operand(2);
-		val fallThrough = instruction.operand<L2PcOperand>(3)
-		return (instruction.basicBlock().zone !== fallThrough.targetBlock().zone
-				|| instruction.basicBlock().zone !== target.targetBlock().zone)
-	}
+	override fun hasSideEffect() = true
 
-	override fun altersControlFlow(): Boolean
-	{
-		return true
-	}
+	override fun altersControlFlow() = true
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -107,20 +97,6 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	 *   arriving at this instruction.
 	 */
 	override fun goesMultipleWays(): Boolean = true
-
-	override fun optionalReplacementForDeadInstruction(
-		instruction: L2Instruction): L2Instruction?
-	{
-		// Nobody is using the targetAsInt, so nobody is synthesizing a
-		// continuation that could ever resume, so nobody needs to capture the
-		// live register state.  Turn the instruction into an unconditional jump
-		// along the fallThrough edge.
-		val fallThroughEdge = instruction.operand<L2PcOperand>(3)
-		return L2Instruction(
-			instruction.basicBlock(),
-			L2_JUMP,
-			fallThroughEdge)
-	}
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -159,7 +135,8 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		val fallThrough = instruction.operand<L2PcOperand>(3)
 		target.createAndPushRegisterDumpArrays(translator, method)
 		// :: [AvailObject[], long[]]
-		ContinuationRegisterDumpDescriptor.createRegisterDumpMethod.generateCall(method)
+		ContinuationRegisterDumpDescriptor.createRegisterDumpMethod
+			.generateCall(method)
 		// :: [registerDump]
 		translator.store(method, registerDump.register())
 		// :: []

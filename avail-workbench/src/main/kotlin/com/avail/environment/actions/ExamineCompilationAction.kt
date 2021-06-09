@@ -1,6 +1,6 @@
 /*
- * ExamineCompilationAction.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * ExamineCompilationAction.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,9 +35,8 @@ package com.avail.environment.actions
 import com.avail.AvailRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.environment.AvailWorkbench
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.RepositoryDescriber
-import com.avail.utility.cast
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.RepositoryDescriber
 import java.awt.event.ActionEvent
 import javax.swing.Action
 import javax.swing.JOptionPane
@@ -50,7 +49,7 @@ import javax.swing.JOptionPane
  *   The active [AvailRuntime].
  *
  * @constructor
- * Construct a new `ExamineRepositoryAction`.
+ * Construct a new `ExamineCompilationAction`.
  *
  * @param workbench
  *   The owning [AvailWorkbench].
@@ -58,46 +57,49 @@ import javax.swing.JOptionPane
  *   The active [AvailRuntime].
  */
 class ExamineCompilationAction constructor (
-		workbench: AvailWorkbench, private val runtime: AvailRuntime)
-	: AbstractWorkbenchAction(workbench, "Examine compilation")
+	workbench: AvailWorkbench,
+	private val runtime: AvailRuntime
+) : AbstractWorkbenchAction(workbench, "Examine compilation")
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
 		workbench.clearTranscript()
 		runtime.execute(FiberDescriptor.commandPriority)
 		execute@{
-			val moduleName =
-				workbench.selectedModule()!!
+			val moduleName = workbench.selectedModule()!!
 			moduleName.repository.use { repository ->
 				repository.reopenIfNecessary()
 				val archive = repository.getArchive(moduleName.rootRelativeName)
 				val compilations = archive.allKnownVersions.flatMap {
 					it.value.allCompilations
 				}
-				val compilationsArray =
-					compilations.toTypedArray()
-				val selectedCompilation =
-					JOptionPane.showInputDialog(
-						workbench,
-						"Select module compilation to examine",
-						"Examine compilation",
-						JOptionPane.PLAIN_MESSAGE,
-						null,
-						compilationsArray,
-						if (compilationsArray.isNotEmpty())
-						{
-							compilationsArray[0]
-						}
-						else
-						{
-							null
-						}).cast<Any, ModuleCompilation?>()
-					?: return@execute // Nothing was selected, so abort the command silently.
-
-				val describer = RepositoryDescriber(repository)
-				val description = describer.describeCompilation(
-					selectedCompilation.recordNumber)
-				workbench.outputStream.println(description)
+				val compilationsArray = compilations.toTypedArray()
+				val selectedCompilation = JOptionPane.showInputDialog(
+					workbench,
+					"Select module compilation to examine",
+					"Examine compilation",
+					JOptionPane.PLAIN_MESSAGE,
+					null,
+					compilationsArray,
+					if (compilationsArray.isNotEmpty())
+					{
+						compilationsArray[0]
+					}
+					else
+					{
+						null
+					})
+				when (selectedCompilation)
+				{
+					is ModuleCompilation ->
+					{
+						val describer = RepositoryDescriber(repository)
+						val description = describer.describeCompilation(
+							selectedCompilation.recordNumber)
+						workbench.outputStream.println(description)
+					}
+					is Any -> assert(false) { "Unknown type selected" }
+				}
 			}
 		}
 	}

@@ -1,6 +1,6 @@
 /*
- * MacroDefinitionDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * MacroDescriptor.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,6 +44,7 @@ import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.BUNDLE
 import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.MACRO_PREFIX_FUNCTIONS
 import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.phrases.ListPhraseDescriptor
@@ -63,7 +64,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeFromTupleOfTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
@@ -180,7 +181,7 @@ class MacroDescriptor private constructor(
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
-			tupleTypeFromTupleOfTypes(argsTupleType) {
+			mappingElementTypes(argsTupleType) {
 				it.phraseTypeExpressionType()
 			},
 			argsTupleType)

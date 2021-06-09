@@ -1,6 +1,6 @@
 /*
  * IntTupleDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -627,14 +627,14 @@ class IntTupleDescriptor private constructor(
 				val lower = when
 				{
 					lowerObject.isInt -> lowerObject.extractInt()
-					lowerObject.lessThan(zero()) -> Int.MIN_VALUE
+					lowerObject.lessThan(zero) -> Int.MIN_VALUE
 					else -> return false
 				}
 				val upperObject = type.upperBound()
 				val upper = when
 				{
 					upperObject.isInt -> upperObject.extractInt()
-					upperObject.greaterThan(zero()) -> Int.MAX_VALUE
+					upperObject.greaterThan(zero) -> Int.MAX_VALUE
 					else -> return false
 				}
 				(startIndex .. endIndex).all {

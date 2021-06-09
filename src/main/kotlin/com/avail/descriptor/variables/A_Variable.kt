@@ -1,6 +1,6 @@
 /*
- * A_Variable.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * A_Variable.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -316,6 +316,23 @@ interface A_Variable : A_ChunkDependable
 	 */
 	@Throws(VariableGetException::class, VariableSetException::class)
 	fun atomicAddToMap(key: A_BasicObject, value: A_BasicObject)
+
+	/**
+	 * Extract the map from this variable, remove the key if present, and write
+	 * it back into the variable.
+	 *
+	 * This is an atomic operation, so the update is serialized with respect
+	 * to other operations on this variable.
+	 *
+	 * @param key
+	 *   The key to remove from the map.
+	 * @throws VariableGetException
+	 *   If the variable does not contain a map.
+	 * @throws VariableSetException
+	 *    If the updated map cannot be written back.
+	 */
+	@Throws(VariableGetException::class, VariableSetException::class)
+	fun atomicRemoveFromMap(key: A_BasicObject)
 
 	/**
 	 * Test whether the map in this variable has the specified key.

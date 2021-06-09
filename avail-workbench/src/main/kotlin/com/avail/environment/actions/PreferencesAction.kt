@@ -1,6 +1,6 @@
 /*
- * PreferencesAction.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * PreferencesAction.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,13 +35,15 @@ package com.avail.environment.actions
 import com.avail.builder.ModuleRoot
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedFileException
+import com.avail.persistence.cache.Repositories
+import com.avail.resolver.ModuleRootResolverRegistry
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dialog.ModalityType
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import java.io.File
+import java.net.URI
 import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
@@ -73,7 +75,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	internal var preferencesDialog: JDialog? = null
 
 	internal val rootsTableModel =
-		SimpleTableModel("root", "repository", "source")
+		SimpleTableModel("root", "source")
 
 	internal val renamesTableModel =
 		SimpleTableModel("module", "replacement path")
@@ -119,23 +121,28 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	{
 		// Rebuild the ModuleRoots from the rootsTableModel.
 		val roots = workbench.resolver.moduleRoots
-		for (root in roots.roots)
-		{
-			root.repository.close()
-		}
+		Repositories.closeAllRepositories()
 		roots.clearRoots()
-		for (triple in rootsTableModel.rows)
+		for (double in rootsTableModel.rows)
 		{
-			assert(triple.size == 3)
+			assert(double.size == 2)
 			try
 			{
+				val name = double[0]
 				val root = ModuleRoot(
-					triple[0],
-					File(triple[1]),
-					if (triple[2].isEmpty())
-						null
+					name,
+					if (double[1].isEmpty())
+					{
+						throw RuntimeException(
+							"Module root, $name, is missing a source URI")
+					}
 					else
-						File(triple[2]))
+					{
+						ModuleRootResolverRegistry.createResolver(
+							name,
+							URI(double[1]),
+							roots.fileManager)
+					})
 				roots.addRoot(root)
 			}
 			catch (e: IndexedFileException)
@@ -181,12 +188,10 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		rootsTableModel.rows.clear()
 		for (root in workbench.resolver.moduleRoots.roots)
 		{
-			val triple = mutableListOf<String>()
-			triple.add(root.name)
-			triple.add(root.repository.fileName.path)
-			val source = root.sourceDirectory
-			triple.add(if (source === null) "" else source.path)
-			rootsTableModel.rows.add(triple)
+			val double = mutableListOf<String>()
+			double.add(root.name)
+			double.add(root.resolver.uri.toString())
+			rootsTableModel.rows.add(double)
 		}
 		val rootsTable = JTable(rootsTableModel)
 		rootsTable.putClientProperty("terminateEditOnFocusLost", java.lang.Boolean.TRUE)
@@ -194,9 +199,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		rootsColumns.getColumn(0).minWidth = 30
 		rootsColumns.getColumn(0).preferredWidth = 60
 		rootsColumns.getColumn(1).minWidth = 50
-		rootsColumns.getColumn(1).preferredWidth = 400
-		rootsColumns.getColumn(2).minWidth = 50
-		rootsColumns.getColumn(2).preferredWidth = 400
+		rootsColumns.getColumn(1).preferredWidth = 500
 		rootsTable.gridColor = Color.gray
 		rootsTable.fillsViewportHeight = true
 		val rootsScrollPane = JScrollPane(rootsTable)
@@ -212,7 +215,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					insertionIndex = rootsTableModel.rowCount
 				}
 				rootsTableModel.rows.add(
-					insertionIndex, mutableListOf("", "", ""))
+					insertionIndex, mutableListOf("", ""))
 				rootsTableModel.fireTableDataChanged()
 				rootsTable.changeSelection(
 					insertionIndex, 0, false, false)
@@ -326,10 +329,11 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			override fun actionPerformed(e: ActionEvent)
 			{
 				savePreferences()
-				val trees = workbench.calculateRefreshedTrees()
-				invokeLater {
-					workbench.refreshFor(trees.first, trees.second)
-					preferencesDialog!!.isVisible = false
+				workbench.calculateRefreshedTreesThen { trees ->
+					invokeLater {
+						workbench.refreshFor(trees.first, trees.second)
+						preferencesDialog!!.isVisible = false
+					}
 				}
 			}
 		}

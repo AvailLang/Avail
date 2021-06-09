@@ -1,6 +1,6 @@
 /*
- * L2_LOOKUP_BY_VALUES.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2_LOOKUP_BY_VALUES.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,7 +41,6 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
-import com.avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
@@ -50,7 +49,6 @@ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_FORWARD_METHOD_DEFINITION
@@ -63,17 +61,19 @@ import com.avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
-import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.SELECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2SelectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
-import com.avail.optimizer.L2Generator
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.bottomRestriction
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -81,7 +81,6 @@ import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.Collections
 import java.util.logging.Level
 
 /**
@@ -94,16 +93,12 @@ import java.util.logging.Level
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
-	L2OperandType.SELECTOR.named("message bundle"),
-	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
-	L2OperandType.WRITE_BOXED.named(
-		"looked up function", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_BOXED.named(
-		"error code", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.named(
-		"lookup succeeded", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named(
-		"lookup failed", L2NamedOperandType.Purpose.FAILURE))
+	SELECTOR.named("message bundle"),
+	READ_BOXED_VECTOR.named("arguments"),
+	WRITE_BOXED.named("looked up function", SUCCESS),
+	WRITE_BOXED.named("error code", FAILURE),
+	PC.named("lookup succeeded", SUCCESS),
+	PC.named("lookup failed", FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,
@@ -111,12 +106,9 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 	{
 		assert(this == instruction.operation())
 		//		final L2SelectorOperand bundle = instruction.operand(0);
-		val argRegs =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg =
-			instruction.operand<L2WriteBoxedOperand>(3)
+		val argRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
+		val errorCodeReg = instruction.operand<L2WriteBoxedOperand>(3)
 		val lookupSucceeded = instruction.operand<L2PcOperand>(4)
 		val lookupFailed = instruction.operand<L2PcOperand>(5)
 		super.instructionWasAdded(instruction, manifest)
@@ -129,7 +121,8 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		// If the lookup succeeds, the functionReg will be set, and we can also
 		// conclude that the arguments satisfied at least one of the found
 		// function types.
-		lookupSucceeded.manifest().setRestriction(
+		val successManifest = lookupSucceeded.manifest()
+		successManifest.setRestriction(
 			functionReg.pickSemanticValue(),
 			functionReg.restriction())
 		// The function type should be an enumeration, so we know that each
@@ -149,9 +142,20 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 			for (i in 1 .. numArgs)
 			{
 				val argumentUnion = argumentTupleUnionType.typeAtIndex(i)
-				lookupSucceeded.manifest().intersectType(
-					arguments[i - 1].semanticValue(),
-					argumentUnion)
+				val semanticValue = arguments[i - 1].semanticValue()
+				val intersection =
+					successManifest.restrictionFor(semanticValue)
+						.intersectionWithType(argumentUnion)
+				if (intersection == bottomRestriction)
+				{
+					// We just discovered statically that the lookup can't
+					// actually succeed.  Simply don't strengthen the argument,
+					// and continue generating code that's not really reachable.
+				}
+				else
+				{
+					successManifest.setRestriction(semanticValue, intersection)
+				}
 			}
 			// If only one argument wasn't strongly typed enough to prove
 			// statically, we could subtract the functions' argument types from
@@ -160,77 +164,17 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		}
 	}
 
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		// Find all possible definitions (taking into account the types of the
-		// argument registers).  Then build an enumeration type over those
-		// functions.
-		val bundleOperand =
-			instruction.operand<L2SelectorOperand>(0)
-		val argRegs =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg =
-			instruction.operand<L2WriteBoxedOperand>(3)
-		//		final L2PcOperand lookupSucceeded = instruction.operand(4);
-//		final L2PcOperand lookupFailed = instruction.operand(5);
-
-		// If the lookup fails, then only the error code register changes.
-		registerSets[0].typeAtPut(
-			errorCodeReg.register(), lookupErrorsType, instruction)
-		// If the lookup succeeds, then the situation is more complex.
-		val registerSet = registerSets[1]
-		val argRestrictions = argRegs.elements().map { argRegister ->
-			val type = when
-				{
-					registerSet.hasTypeAt(argRegister.register()) ->
-						registerSet.typeAt(argRegister.register())
-					else -> ANY.o
-				}
-			restrictionForType(type, RestrictionFlagEncoding.BOXED)
-
-		}
-		// Figure out what could be invoked at runtime given these argument
-		// type constraints.
-		val possibleDefinitions: List<A_Definition> =
-			bundleOperand.bundle.bundleMethod().definitionsAtOrBelow(
-				argRestrictions)
-		val possibleFunctions = possibleDefinitions
-			.filter(A_Definition::isMethodDefinition)
-			.map(A_Definition::bodyBlock)
-		if (possibleFunctions.size == 1)
-		{
-			// Only one function could be looked up (it's monomorphic for this
-			// call site).  Therefore we know strongly what the function is.
-			registerSet.constantAtPut(
-				functionReg.register(),
-				possibleFunctions[0],
-				instruction)
-		}
-		else
-		{
-			val enumType = enumerationWith(setFromCollection(possibleFunctions))
-			registerSet.typeAtPut(functionReg.register(), enumType, instruction)
-		}
-	}
+	override fun hasSideEffect() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val bundleOperand =
-			instruction.operand<L2SelectorOperand>(0)
-		val argRegs =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val functionReg =
-			instruction.operand<L2WriteBoxedOperand>(2)
-		val errorCodeReg =
-			instruction.operand<L2WriteBoxedOperand>(3)
+		val bundleOperand = instruction.operand<L2SelectorOperand>(0)
+		val argRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
+		val errorCodeReg = instruction.operand<L2WriteBoxedOperand>(3)
 		val lookupSucceeded = instruction.operand<L2PcOperand>(4)
 		val lookupFailed = instruction.operand<L2PcOperand>(5)
 
@@ -312,12 +256,10 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 				interpreter.debugModeString,
 				bundle.message().atomName())
 		}
-		val valuesList = mutableListOf<AvailObject>()
-		Collections.addAll(valuesList, *values)
+		val valuesList = mutableListOf(*values)
 		val method: A_Method = bundle.bundleMethod()
 		val before = AvailRuntimeSupport.captureNanos()
-		val definitionToCall: A_Definition
-		definitionToCall = try
+		val definitionToCall: A_Definition = try
 		{
 			method.lookupByValuesFromList(valuesList)
 		}
@@ -326,15 +268,12 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 			val after = AvailRuntimeSupport.captureNanos()
 			interpreter.recordDynamicLookup(bundle, after - before.toDouble())
 		}
-		if (definitionToCall.isAbstractDefinition())
+		when
 		{
-			throw abstractMethod()
+			definitionToCall.isAbstractDefinition() -> throw abstractMethod()
+			definitionToCall.isForwardDefinition() -> throw forwardMethod()
+			else -> return definitionToCall.bodyBlock()
 		}
-		if (definitionToCall.isForwardDefinition())
-		{
-			throw forwardMethod()
-		}
-		return definitionToCall.bodyBlock()
 	}
 
 	/**

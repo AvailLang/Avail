@@ -1,6 +1,6 @@
 /*
- * L2SemanticTemp.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * L2SemanticTemp.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -62,9 +62,12 @@ internal class L2SemanticTemp constructor(frame: Frame, val uniqueId: Int)
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
 		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			frameTransformer.invoke(frame).let {
+			frameTransformer(frame).let {
 				if (it == frame) this else L2SemanticTemp(it, uniqueId)
 			}
+
+
+	override fun primaryVisualSortKey() = PrimaryVisualSortKey.TEMP
 
 	override fun toString(): String =
 		"Temp#$uniqueId${if (frame.depth() == 1) "" else "Temp#$uniqueId in $frame"}"

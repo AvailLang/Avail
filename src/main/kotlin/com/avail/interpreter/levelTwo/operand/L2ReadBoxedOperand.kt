@@ -1,6 +1,6 @@
 /*
  * L2ReadBoxedOperand.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -44,7 +44,7 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT.Companion.constantOf
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.values.L2SemanticValue
 
@@ -76,14 +76,13 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	 *   instruction.
 	 */
 	constructor(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			manifest: L2ValueManifest)
-		: super(
-			semanticValue,
-			restriction,
-			manifest.getDefinition<L2BoxedRegister>(
-				semanticValue, RegisterKind.BOXED))
+		semanticValue: L2SemanticValue,
+		restriction: TypeRestriction,
+		manifest: L2ValueManifest
+	) : super(
+		semanticValue,
+		restriction,
+		manifest.getDefinition<L2BoxedRegister>(semanticValue, BOXED_KIND))
 	{
 		assert(restriction.isBoxed)
 	}
@@ -106,10 +105,6 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 		register: L2BoxedRegister
 	) : super(semanticValue, restriction, register)
 
-	override fun copyForSemanticValue(
-		newSemanticValue: L2SemanticValue): L2ReadBoxedOperand =
-			L2ReadBoxedOperand(newSemanticValue, restriction(), register())
-
 	override fun copyForRegister(newRegister: L2Register): L2ReadBoxedOperand =
 		L2ReadBoxedOperand(
 			semanticValue(), restriction(), newRegister as L2BoxedRegister)
@@ -121,7 +116,7 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 		dispatcher.doOperand(this)
 	}
 
-	override fun registerKind(): RegisterKind = RegisterKind.BOXED
+	override fun registerKind() = BOXED_KIND
 
 	/**
 	 * See if we can determine the exact type of this register, which holds a

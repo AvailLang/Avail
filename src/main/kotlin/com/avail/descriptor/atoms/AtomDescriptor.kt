@@ -1,6 +1,6 @@
 /*
  * AtomDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -52,6 +52,7 @@ import com.avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.s
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum

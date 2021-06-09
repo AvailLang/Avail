@@ -1,6 +1,6 @@
 /*
  * L1Decompiler.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,9 +111,8 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.REFERENCE_PHRA
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
-import com.avail.utility.PrefixSharingList.Companion.last
+import com.avail.interpreter.Primitive
 import java.util.function.Function
-import java.util.function.UnaryOperator
 
 /**
  * The [L1Decompiler] converts a [compiled&#32;code][CompiledCodeDescriptor]
@@ -141,7 +140,7 @@ import java.util.function.UnaryOperator
 class L1Decompiler constructor(
 	internal val code: A_RawFunction,
 	outerDeclarations: Array<A_Phrase>,
-	internal val tempGenerator: UnaryOperator<String>)
+	internal val tempGenerator: (String)->String)
 {
 	/**
 	 * The number of nybbles in the nybblecodes of the raw function being
@@ -199,7 +198,7 @@ class L1Decompiler constructor(
 	internal val statements = mutableListOf<A_Phrase>()
 
 	/**
-	 * A flag to indicate that the last instruction was a push of the null
+	 * A flag to indicate that the last instruction was a push of the [nil]
 	 * object.
 	 */
 	internal var endsWithPushNil = false
@@ -217,7 +216,7 @@ class L1Decompiler constructor(
 		val tupleType = code.functionType().argsTupleType()
 		args = Array(code.numArgs()) {
 			val token = newToken(
-				stringFrom(tempGenerator.apply("arg")),
+				stringFrom(tempGenerator("arg")),
 				0,
 				0,
 				KEYWORD)
@@ -226,13 +225,20 @@ class L1Decompiler constructor(
 		mentionedLocals = BooleanArray(code.numLocals())
 		locals = Array(code.numLocals()) {
 			val token = newToken(
-				stringFrom(tempGenerator.apply("local")),
+				stringFrom(tempGenerator("local")),
 				0,
 				0,
 				KEYWORD)
 			val declaration = newVariable(
 				token, code.localTypeAt(it + 1).writeType(), nil, nil)
 			declaration
+		}
+		code.primitive()?.let { prim ->
+			if (!prim.hasFlag(Primitive.Flag.CannotFail)) {
+				// It's fallible, so we have to declare the failure variable.
+				// Look up the local, but don't do anything with it.
+				argOrLocalOrConstant(args.size + 1)
+			}
 		}
 		// Don't initialize the constants – we may as well wait until we reach
 		// the initialization for each, identified by an L1Ext_doSetSlot().
@@ -431,7 +437,8 @@ class L1Decompiler constructor(
 
 		override fun L1_doPushLastLocal()
 		{
-			val declaration = argOrLocalOrConstant(instructionDecoder.getOperand())
+			val declaration =
+				argOrLocalOrConstant(instructionDecoder.getOperand())
 			val use = newUse(declaration.token(), declaration)
 			use.isLastUse(true)
 			if (declaration.declarationKind().isVariable)
@@ -446,7 +453,8 @@ class L1Decompiler constructor(
 
 		override fun L1_doPushLocal()
 		{
-			val declaration = argOrLocalOrConstant(instructionDecoder.getOperand())
+			val declaration =
+				argOrLocalOrConstant(instructionDecoder.getOperand())
 			val use = newUse(declaration.token(), declaration)
 			if (declaration.declarationKind().isVariable)
 			{
@@ -476,9 +484,7 @@ class L1Decompiler constructor(
 				   || kind === LITERAL_PHRASE)
 			}
 			val decompiler = L1Decompiler(
-				theCode,
-				theOuters.toTypedArray(),
-				tempGenerator)
+				theCode, theOuters.toTypedArray(), tempGenerator)
 			pushExpression(decompiler.block)
 		}
 
@@ -491,7 +497,7 @@ class L1Decompiler constructor(
 			if (statements.size > previousStatementCount)
 			{
 				assert(statements.size == previousStatementCount + 1)
-				assert(last(statements) === declaration)
+				assert(statements.last() === declaration)
 				// This was the first use of the variable, so it was written as
 				// a statement automatically.  Create a new variable with an
 				// initialization expression, and replace the old declaration in
@@ -677,7 +683,7 @@ class L1Decompiler constructor(
 			else
 			{
 				val labelToken = newToken(
-					stringFrom(tempGenerator.apply("label")),
+					stringFrom(tempGenerator("label")),
 					0,
 					0,
 					KEYWORD)
@@ -767,7 +773,8 @@ class L1Decompiler constructor(
 			val superUnionType = code.literalAt(instructionDecoder.getOperand())
 			val method = bundle.bundleMethod()
 			val nArgs = method.numArgs()
-			val argsNode = reconstructListWithSuperUnionType(nArgs, superUnionType)
+			val argsNode =
+				reconstructListWithSuperUnionType(nArgs, superUnionType)
 			val sendNode = newSendNode(emptyTuple, bundle, argsNode, type)
 			pushExpression(sendNode)
 		}
@@ -780,10 +787,12 @@ class L1Decompiler constructor(
 			// inline-assignment form of constant declaration, so we don't need
 			// to look for a DUP marker.
 			val constSubscript =
-				(instructionDecoder.getOperand() - code.numArgs()
-	- code.numLocals() - 1)
+				(instructionDecoder.getOperand()
+					- code.numArgs()
+					- code.numLocals()
+					- 1)
 			val token = newToken(
-				stringFrom(tempGenerator.apply("const")),
+				stringFrom(tempGenerator("const")),
 				0,
 				0,
 				KEYWORD)
@@ -927,12 +936,12 @@ class L1Decompiler constructor(
 				val i = it + 1
 				outerPhraseForDecompiler(i, code.outerTypeAt(i))
 			}
-			val decompiler = L1Decompiler(code, functionOuters, UnaryOperator {
+			val decompiler = L1Decompiler(code, functionOuters) {
 				var newCount: Int? = counts[it]
 				newCount = if (newCount === null) 1 else newCount + 1
 				counts[it] = newCount
 				it + newCount
-			})
+			}
 			return decompiler.block
 		}
 	}

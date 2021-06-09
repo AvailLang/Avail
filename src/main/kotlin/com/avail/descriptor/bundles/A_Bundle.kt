@@ -1,6 +1,6 @@
 /*
  * A_Bundle.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -39,6 +39,7 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
@@ -74,14 +75,14 @@ interface A_Bundle : A_BasicObject {
 			dispatch { o_AddDefinitionParsingPlan(it, plan) }
 
 		/**
-		 * Remove information about this [definition][A_Definition] from this
-		 * bundle.
+		 * Remove information about this [definition][A_Definition] or
+		 * [macro][A_Macro] from this bundle.
 		 *
-		 * @param definition
-		 *   The definition whose plan should be removed.
+		 * @param sendable
+		 *   The method definition or macro whose plan should be removed.
 		 */
-		fun A_Bundle.removePlanForDefinition(definition: A_Definition) =
-			dispatch { o_RemovePlanForDefinition(it, definition) }
+		fun A_Bundle.removePlanForSendable(sendable: A_Sendable) =
+			dispatch { o_RemovePlanForSendable(it, sendable) }
 
 		/**
 		 * Add a [grammatical][GrammaticalRestrictionDescriptor] to the

@@ -1,6 +1,6 @@
 /*
  * ResolvedModuleName.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,9 +32,9 @@
 
 package com.avail.builder
 
-import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.persistence.Repository
+import com.avail.persistence.cache.Repository
+import com.avail.resolver.ResolverReference
 import java.io.File
 
 /**
@@ -44,7 +44,10 @@ import java.io.File
  *
  * @property moduleRoots
  *   The [ModuleRoots] in which to look up the root name.
+ * @property resolverReference
+ *   The [ResolverReference] for the module.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @constructor
  *
@@ -54,6 +57,8 @@ import java.io.File
  *   The just-resolved [module&#32;name][ModuleName].
  * @param moduleRoots
  *   The [ModuleRoots] with which to look up the module.
+ * @param resolverReference
+ *   The [ResolverReference] for the module.
  * @param isRename
  *   Whether module resolution followed a renaming rule.
  */
@@ -61,6 +66,7 @@ class ResolvedModuleName
 internal constructor(
 	qualifiedName: ModuleName,
 	private val moduleRoots: ModuleRoots,
+	val resolverReference: ResolverReference,
 	isRename: Boolean) : ModuleName(qualifiedName.qualifiedName, isRename)
 {
 	/**
@@ -69,6 +75,9 @@ internal constructor(
 	 */
 	val isPackage: Boolean
 
+	/**
+	 * The [ModuleRoot] that this [ResolvedModuleName] belongs to.
+	 */
 	private val moduleRoot get() = moduleRoots.moduleRootFor(rootName)!!
 
 	/**
@@ -78,38 +87,15 @@ internal constructor(
 	val repository get() = moduleRoot.repository
 
 	/**
-	 * The [resolved][ModuleNameResolver.resolve] source
-	 * [file&#32;reference][File].
-	 */
-	val sourceReference: File
-		get()
-		{
-			val builder = StringBuilder(100)
-			val sourceDirectory = moduleRoot.sourceDirectory!!
-			builder.append(sourceDirectory)
-			for (part in rootRelativeName.split("/"))
-			{
-				builder.append('/')
-				builder.append(part)
-				builder.append(availExtension)
-			}
-			return File(builder.toString())
-		}
-
-	/**
 	 * The size, in bytes, of the [module][ModuleDescriptor]. If the source
 	 * module is available, then the size of the source module is used;
 	 * otherwise, the size of the compiled module is used.
 	 */
-	val moduleSize = sourceReference.length()
+	val moduleSize = resolverReference.size
 
 	init
 	{
-		val ref = sourceReference
-		assert(ref.isFile)
-		val fileName = ref.name
-		val directoryName = ref.parentFile
-		this.isPackage = directoryName !== null && fileName == directoryName.name
+		this.isPackage = resolverReference.isPackage
 	}
 
 	/**

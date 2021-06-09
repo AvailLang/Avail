@@ -1,6 +1,6 @@
 /*
  * L2ControlFlowGraph.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.optimizer.L2ControlFlowGraph.StateFlag.IS_SSA
 import com.avail.utility.Strings.increaseIndentation
+import java.lang.StringBuilder
 import java.util.Collections
 import kotlin.reflect.KClass
 
@@ -152,7 +153,9 @@ class L2ControlFlowGraph
 	 * @param zoneName
 	 *   The zone's optional (non-unique) descriptive name.
 	 */
-	class Zone internal constructor(val zoneType: ZoneType, val zoneName: String)
+	class Zone internal constructor(
+		val zoneType: ZoneType,
+		val zoneName: String)
 
 	/**
 	 * A categorization of kinds of [Zone]s that will be shown as  subgraphs
@@ -215,11 +218,11 @@ class L2ControlFlowGraph
 	 * @param block
 	 *   The [L2BasicBlock] in which to start generating [L2Instruction]s.
 	 */
-	fun startBlock(block: L2BasicBlock?)
+	fun startBlock(block: L2BasicBlock)
 	{
-		assert(block!!.instructions().isEmpty())
+		assert(block.instructions().isEmpty())
 		assert(!basicBlockOrder.contains(block))
-		if (block.isIrremovable || block.predecessorEdgesCount() > 0)
+		if (block.isIrremovable || block.predecessorEdges().isNotEmpty())
 		{
 			basicBlockOrder.add(block)
 		}
@@ -243,6 +246,17 @@ class L2ControlFlowGraph
 			}
 		}
 		return allRegisters.toMutableList()
+	}
+
+	/**
+	 * Remove all [L2BasicBlock]s, moving them to another [L2ControlFlowGraph]
+	 * that is initially empty.
+	 */
+	fun evacuateTo(destinationControlFlowGraph: L2ControlFlowGraph)
+	{
+		assert(destinationControlFlowGraph.basicBlockOrder.isEmpty())
+		destinationControlFlowGraph.basicBlockOrder.addAll(basicBlockOrder)
+		basicBlockOrder.clear()
 	}
 
 	override fun toString(): String = buildString {
@@ -293,17 +307,18 @@ class L2ControlFlowGraph
 	 *   The requested visualization.
 	 */
 	@Suppress("unused")
-	fun visualize(): String = buildString {
-		val visualizer = L2ControlFlowGraphVisualizer(
+	fun visualize() = StringBuilder().let { builder ->
+		L2ControlFlowGraphVisualizer(
 			"«control flow graph»",
 			"«chunk»",
 			80,
-			this@L2ControlFlowGraph,
+			this,
 			true,
 			true,
 			true,
-			this)
-		visualizer.visualize()
+			builder
+		).visualize()
+		builder.toString()
 	}
 
 	/**
@@ -313,16 +328,17 @@ class L2ControlFlowGraph
 	 * @return
 	 *   The requested visualization.
 	 */
-	fun simplyVisualize(): String = buildString {
-		val visualizer = L2ControlFlowGraphVisualizer(
+	fun simplyVisualize() = StringBuilder().let { builder ->
+		L2ControlFlowGraphVisualizer(
 			"«SIMPLE control flow graph»",
 			"«chunk»",
 			80,
-			this@L2ControlFlowGraph,
+			this,
 			false,
 			false,
 			false,
-			this)
-		visualizer.visualize()
+			builder
+		).visualize()
+		builder.toString()
 	}
 }

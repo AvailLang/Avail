@@ -1,6 +1,6 @@
 /*
  * AbstractNumberDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -659,8 +659,8 @@ abstract class AbstractNumberDescriptor protected constructor(
 					} else {
 						// The value is infinite.
 						val integerInfinity: A_Number =
-							if (firstValue.isPositive()) positiveInfinity()
-							else negativeInfinity()
+							if (firstValue.isPositive()) positiveInfinity
+							else negativeInfinity
 						if (integerInfinity.isInstanceOf(secondType)) {
 							possibleResults.add(EQUAL)
 							return possibleResults
@@ -691,8 +691,8 @@ abstract class AbstractNumberDescriptor protected constructor(
 					} else {
 						// The value is infinite.
 						val integerInfinity: A_Number =
-							if (secondValue.isPositive()) positiveInfinity()
-							else negativeInfinity()
+							if (secondValue.isPositive()) positiveInfinity
+							else negativeInfinity
 						if (integerInfinity.isInstanceOf(firstType)) {
 							possibleResults.add(EQUAL)
 							return possibleResults

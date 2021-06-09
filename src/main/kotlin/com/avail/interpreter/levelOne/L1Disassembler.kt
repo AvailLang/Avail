@@ -1,6 +1,6 @@
 /*
  * L1Disassembler.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -98,6 +98,12 @@ class L1Disassembler constructor(
 		 */
 		fun endOperation(operation: L1Operation)
 	}
+
+	/**
+	 * Extract the names of arg/local/constant declarations from the raw
+	 * function.
+	 */
+	val declarationNames = code.declarationNames().map { it.asNativeString() }
 
 	/**
 	 * Visit the given [L1DisassemblyVisitor] with my [L1Operation]s and
@@ -338,10 +344,11 @@ class L1Disassembler constructor(
 
 			override fun doLocal(index: Int)
 			{
+				val name = declarationNames[index - 1]
 				nameBuilder.append(
 					when {
-						index <= code.numArgs() -> "arg#$index"
-						else -> "local#${index - code.numArgs()}"
+						index <= code.numArgs() -> "arg#$index = $name"
+						else -> "local#${index - code.numArgs()} = $name"
 					})
 			}
 

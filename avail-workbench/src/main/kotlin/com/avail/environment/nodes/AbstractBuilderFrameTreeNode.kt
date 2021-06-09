@@ -1,6 +1,6 @@
 /*
- * AbstractBuilderFrameTreeNode.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * AbstractBuilderFrameTreeNode.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,7 @@ package com.avail.environment.nodes
 import com.avail.builder.AvailBuilder
 import com.avail.environment.AvailWorkbench
 import com.avail.environment.AvailWorkbench.AdaptiveColor
+import com.avail.environment.LayoutConfiguration.Companion.resource
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded
 import com.avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.NotRenamed
@@ -231,7 +232,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		private val cachedScaledIcons = LRUCache<Pair<String, Int>, ImageIcon>(
 			100, 20,
 			{ (iconResourceName, height) ->
-				val path = AvailWorkbench.resource("$iconResourceName.png")
+				val path = resource("$iconResourceName.png")
 				val thisClass = AbstractBuilderFrameTreeNode::class.java
 				val resource = thisClass.getResource(path)
 				val originalIcon = ImageIcon(resource)

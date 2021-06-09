@@ -1,6 +1,6 @@
 /*
  * L2_CREATE_OBJECT.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -35,6 +35,9 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectLayoutVariant
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -50,9 +53,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_OBJECT : L2Operation(
-	L2OperandType.CONSTANT.named("variant pojo"),
-	L2OperandType.READ_BOXED_VECTOR.named("field values"),
-	L2OperandType.WRITE_BOXED.named("new object"))
+	CONSTANT.named("variant pojo"),
+	READ_BOXED_VECTOR.named("field values"),
+	WRITE_BOXED.named("new object"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -61,15 +64,12 @@ object L2_CREATE_OBJECT : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation())
-		val variantOperand =
-			instruction.operand<L2ConstantOperand>(0)
-		val fieldsVector =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val `object` =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val variantOperand = instruction.operand<L2ConstantOperand>(0)
+		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
-		builder.append(`object`.registerString())
+		builder.append(newObject.registerString())
 		builder.append(" ← {")
 		val variant =
 			variantOperand.constant.javaObjectNotNull<ObjectLayoutVariant>()
@@ -87,12 +87,9 @@ object L2_CREATE_OBJECT : L2Operation(
 		instruction: L2Instruction)
 	{
 		assert(this == instruction.operation())
-		val variantOperand =
-			instruction.operand<L2ConstantOperand>(0)
-		val fieldsVector =
-			instruction.operand<L2ReadBoxedVectorOperand>(1)
-		val `object` =
-			instruction.operand<L2WriteBoxedOperand>(2)
+		val variantOperand = instruction.operand<L2ConstantOperand>(0)
+		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
+		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
 		val variant =
 			variantOperand.constant.javaObjectNotNull<ObjectLayoutVariant>()
 		method.visitLdcInsn(variant)
@@ -105,6 +102,6 @@ object L2_CREATE_OBJECT : L2Operation(
 			translator.load(method, fieldSources[i].register())
 			ObjectDescriptor.setFieldMethod.generateCall(method) // Returns object for chaining.
 		}
-		translator.store(method, `object`.register())
+		translator.store(method, newObject.register())
 	}
 }

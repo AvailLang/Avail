@@ -1,6 +1,6 @@
 /*
  * AvailBuilder.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,6 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import com.avail.descriptor.fiber.FiberDescriptor.Companion.setSuccessAndFailure
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
@@ -57,6 +56,9 @@ import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.module.A_Module.Companion.addImportedNames
+import com.avail.descriptor.module.A_Module.Companion.entryPoints
+import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import com.avail.descriptor.phrases.A_Phrase
@@ -72,20 +74,18 @@ import com.avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.TextInterface
-import com.avail.persistence.Repository
-import com.avail.persistence.Repository.ModuleArchive
-import com.avail.persistence.Repository.ModuleCompilation
-import com.avail.persistence.Repository.ModuleVersion
-import com.avail.serialization.MalformedSerialStreamException
+import com.avail.persistence.IndexedFile
+import com.avail.persistence.IndexedFile.Companion.appendCRC
+import com.avail.persistence.cache.Repository
+import com.avail.persistence.cache.Repository.ModuleArchive
+import com.avail.persistence.cache.Repository.ModuleCompilation
+import com.avail.persistence.cache.Repository.ModuleVersion
 import com.avail.serialization.Serializer
 import com.avail.utility.Graph
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.safeWrite
-import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.File
 import java.lang.String.format
-import java.nio.ByteBuffer
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes
 import java.util.Collections.synchronizedList
@@ -98,7 +98,6 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.logging.Level
 import java.util.logging.Logger
 import java.util.stream.Collectors.joining
-import java.util.zip.CRC32
 import kotlin.collections.component1
 import kotlin.collections.component2
 import kotlin.collections.set
@@ -341,11 +340,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	internal fun serialize(header: ModuleHeader, version: ModuleVersion)
 	{
-		val out = ByteArrayOutputStream(1000)
-		val serializer = Serializer(out)
-		header.serializeHeaderOn(serializer)
-		val bytes = appendCRC(out.toByteArray())
-		version.putModuleHeader(bytes)
+		val out = IndexedFile.ByteArrayOutputStream(1000)
+		header.serializeHeaderOn(Serializer(out))
+		appendCRC(out)
+		version.putModuleHeader(out.toByteArray())
 	}
 
 	/**
@@ -361,14 +359,14 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @property compilation
 	 *   The [ModuleCompilation] which was loaded for this module.  This
 	 *   indicates when the compilation happened, and where in the
-	 *   [repository][Repository] we can find the
-	 *   [serialized][Serializer] module content.
+	 *   [repository][Repository] we can find the [serialized][Serializer]
+	 *   module content.
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 *
 	 * @constructor
 	 *
-	 * Construct a new `LoadedModule` to represent
-	 * information about an Avail module that has been loaded.
+	 * Construct a new `LoadedModule` to represent information about an Avail
+	 * module that has been loaded.
 	 *
 	 * @param name
 	 *   The [name][ResolvedModuleName] of the module.
@@ -602,12 +600,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	{
 		val semaphore = Semaphore(0)
 		buildTargetThen(
-				target,
-				localTracker,
-				globalTracker,
-				problemHandler) {
-			semaphore.release()
-		}
+			target,
+			localTracker,
+			globalTracker,
+			problemHandler) { semaphore.release() }
 		semaphore.acquireUninterruptibly()
 	}
 
@@ -703,29 +699,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * Note that the action may be invoked in multiple [Thread]s simultaneously,
 	 * so the client may need to provide suitable synchronization.
 	 *
-	 * Also note that the method only returns after all tracing has completed.
-	 *
-	 * @param action
-	 *   What to do with each module version.  The third argument to it is a
-	 *   function to invoke when the module is considered processed.
-	 */
-	fun traceDirectories(
-		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit)
-	{
-		val semaphore = Semaphore(0)
-		traceDirectories(action) { semaphore.release() }
-		// Trace is not currently interruptible.
-		semaphore.acquireUninterruptibly()
-	}
-
-	/**
-	 * Scan all module files in all visible source directories, passing each
-	 * [ResolvedModuleName] and corresponding [ModuleVersion] to the provided
-	 * function.
-	 *
-	 * Note that the action may be invoked in multiple [Thread]s simultaneously,
-	 * so the client may need to provide suitable synchronization.
-	 *
 	 * The method may return before tracing has completed, but `afterAll` will
 	 * eventually be invoked in some [Thread] after all modules have been
 	 * processed.
@@ -736,7 +709,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 * @param afterAll
 	 *   What to do after all of the modules have been processed.
 	 */
-	private fun traceDirectories(
+	fun traceDirectoriesThen(
 		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
 		afterAll: ()->Unit)
 	{
@@ -1230,55 +1203,5 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * attempt failed before its data could be committed.
 		 */
 		internal const val maximumStaleRepositoryMs = 2000L
-
-		/**
-		 * Given a byte array, compute the [CRC32] checksum and append the [Int]
-		 * value as four bytes (Big Endian), answering the new augmented byte
-		 * array.
-		 *
-		 * @param bytes
-		 *   The input bytes.
-		 * @return
-		 *   The bytes followed by the checksum.
-		 */
-		internal fun appendCRC(bytes: ByteArray): ByteArray
-		{
-			val checksum = CRC32()
-			checksum.update(bytes)
-			val checksumInt = checksum.value.toInt()
-			val combined = ByteBuffer.allocate(bytes.size + 4)
-			combined.put(bytes)
-			combined.putInt(checksumInt)
-			val combinedBytes = ByteArray(bytes.size + 4)
-			combined.flip()
-			combined.get(combinedBytes)
-			return combinedBytes
-		}
-
-		/**
-		 * Given an array of bytes, check that the last four bytes, when treated
-		 * as a Big Endian unsigned int, agree with the [CRC32] checksum of the
-		 * bytes excluding the last four.  Fail if they disagree.  Answer a
-		 * ByteArrayInputStream on the bytes excluding the last four.
-		 *
-		 * @param bytes
-		 *   An array of bytes.
-		 * @return
-		 *   A ByteArrayInputStream on the non-CRC portion of the bytes.
-		 * @throws MalformedSerialStreamException
-		 *   If the CRC check fails.
-		 */
-		@Throws(MalformedSerialStreamException::class)
-		fun validatedBytesFrom(bytes: ByteArray): ByteArrayInputStream
-		{
-			val storedChecksum = ByteBuffer.wrap(bytes).getInt(bytes.size - 4)
-			val checksum = CRC32()
-			checksum.update(bytes, 0, bytes.size - 4)
-			if (checksum.value.toInt() != storedChecksum)
-			{
-				throw MalformedSerialStreamException(null)
-			}
-			return ByteArrayInputStream(bytes, 0, bytes.size - 4)
-		}
 	}
 }

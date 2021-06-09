@@ -1,6 +1,6 @@
 /*
  * L2_BIT_LOGIC_OP.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,14 +36,17 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_INT
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.values.L2SemanticUnboxedInt
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
@@ -58,9 +61,9 @@ class L2_BIT_LOGIC_OP(
 	private vararg val jvmOpcodes: Int
 ) : L2Operation(
 	"BIT_LOGIC_OP($name)",
-	L2OperandType.READ_INT.named("input1"),
-	L2OperandType.READ_INT.named("input2"),
-	L2OperandType.WRITE_INT.named("output"))
+	READ_INT.named("input1"),
+	READ_INT.named("input2"),
+	WRITE_INT.named("output"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -102,23 +105,23 @@ class L2_BIT_LOGIC_OP(
 		// Attempt to unbox the arguments.
 		val generator = callSiteHelper.generator()
 		val fallback = generator.createBasicBlock("fall back to boxed logic")
-		val intA = generator.readInt(a.semanticValue(), fallback)
-		val intB = generator.readInt(b.semanticValue(), fallback)
+		val intA = generator.readInt(
+			L2SemanticUnboxedInt(a.semanticValue()), fallback)
+		val intB = generator.readInt(
+			L2SemanticUnboxedInt(b.semanticValue()), fallback)
 		if (generator.currentlyReachable())
 		{
 			// The happy path is reachable.  In this region, the output is
 			// guaranteed to be an Int.
-			val semanticTemp = generator.topFrame.temp(generator.nextUnique())
+			val semanticTemp = generator.newTemp()
 			val typeGuarantee = typeGuaranteeFunction(
 				listOf(
 					aType.typeIntersection(int32),
 					bType.typeIntersection(int32)))
 			val tempWriter =
 				generator.intWrite(
-					semanticTemp,
-					restrictionForType(
-						typeGuarantee,
-						RestrictionFlagEncoding.UNBOXED_INT))
+					setOf(L2SemanticUnboxedInt(semanticTemp)),
+					restrictionForType(typeGuarantee, UNBOXED_INT_FLAG))
 			// Note that both the unboxed and boxed registers end up in the same
 			// synonym, so subsequent uses of the result might use either
 			// register, depending whether an unboxed value is desired.
@@ -128,7 +131,7 @@ class L2_BIT_LOGIC_OP(
 			// which could allow the boxing instruction to evaporate.
 			callSiteHelper.useAnswer(generator.readBoxed(semanticTemp))
 		}
-		if (fallback.predecessorEdgesCount() > 0)
+		if (fallback.predecessorEdges().isNotEmpty())
 		{
 			// The fallback block is reachable, so generate the slow case within
 			// it.  Fallback may happen from conversion of non-int32 arguments,

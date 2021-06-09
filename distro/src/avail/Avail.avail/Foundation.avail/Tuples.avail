@@ -1,6 +1,6 @@
 /*
  * Tuples.avail
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Tuples"
 Versions
-	"1.4.0"
+	"1.5.0"
 Extends
 	"Collections",
 	"Early Tuples"
@@ -178,13 +178,15 @@ Method "For each of⁇_do_" is
 |
 	[
 		index : natural number,
-		end : whole number
+		end : whole number,
+		innerTuple : tuple,
+		innerAction : [⊥]→⊤
 	|
 		$loop : ⊤;
 		Exit loop if index > end;
-		action(aTuple[index]);
-		Restart loop with <index + 1, end>
-	](1, |aTuple|);
+		innerAction(innerTuple[index]);
+		Restart loop with <index + 1, end, innerTuple, innerAction>
+	](1, |aTuple|, aTuple, action);
 ] : ⊤;
 
 /**
@@ -205,13 +207,15 @@ Method "For each of⁇_do_" is
 |
 	[
 		index : natural number,
-		end : whole number
+		end : whole number,
+		innerTuple : tuple,
+		innerAction : [⊥, ⊥]→⊤
 	|
 		$loop : ⊤;
 		Exit loop if index > end;
-		action(aTuple[index], index);
-		Restart loop with <index + 1, end>
-	](1, |aTuple|);
+		innerAction(aTuple[index], index);
+		Restart loop with <index + 1, end, innerTuple, innerAction>
+	](1, |aTuple|, aTuple, action);
 ] : ⊤;
 
 /**

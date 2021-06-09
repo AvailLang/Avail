@@ -1,6 +1,6 @@
 /*
  * L2_JUMP_IF_KIND_OF_CONSTANT.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,17 +32,13 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.A_BasicObject
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -79,61 +75,6 @@ object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
 		ifNotKind.manifest().setRestriction(
 			value.semanticValue(),
 			oldRestriction.minusType(constantType.constant))
-	}
-
-	override fun branchReduction(
-		instruction: L2Instruction,
-		registerSet: RegisterSet,
-		generator: L2Generator): BranchReduction
-	{
-		// Eliminate tests due to type propagation.
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		//		final L2PcOperand ifKind = instruction.operand(2);
-//		final L2PcOperand ifNotKind = instruction.operand(3);
-		val valueConstant: A_BasicObject? = value.constantOrNull()
-		if (valueConstant !== null)
-		{
-			return if (valueConstant.isInstanceOf(constantType.constant))
-			{
-				BranchReduction.AlwaysTaken
-			}
-			else
-			{
-				BranchReduction.NeverTaken
-			}
-		}
-		val knownType = value.type()
-		if (knownType.isSubtypeOf(constantType.constant))
-		{
-			// It's a subtype, so it must always pass the type test.
-			return BranchReduction.AlwaysTaken
-		}
-		val intersection = constantType.constant.typeIntersection(knownType)
-		return if (intersection.isVacuousType)
-		{
-			// The types don't intersect, so it can't ever pass the type test.
-			BranchReduction.NeverTaken
-		}
-		else
-		{
-			BranchReduction.SometimesTaken
-		}
-	}
-
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val constantType = instruction.operand<L2ConstantOperand>(1)
-		assert(registerSets.size == 2)
-		val isKindSet = registerSets[0]
-		//		final RegisterSet notKindSet = registerSets.get(1);
-		val existingType = isKindSet.typeAt(value.register())
-		val intersection = existingType.typeIntersection(constantType.constant)
-		isKindSet.strengthenTestedTypeAtPut(value.register(), intersection)
 	}
 
 	override fun appendToWithWarnings(

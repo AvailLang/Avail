@@ -1,6 +1,6 @@
 /*
  * P_Alias.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -111,15 +111,14 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
 		}
-		val newBundle: A_Bundle
-		try
+		val newBundle: A_Bundle = try
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
 			val method = oldBundle.bundleMethod()
-			newBundle = newBundle(newAtom, method, MessageSplitter(newString))
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
+			newBundle(newAtom, method, MessageSplitter(newString))
 		}
 		catch (e: MalformedMessageException)
 		{

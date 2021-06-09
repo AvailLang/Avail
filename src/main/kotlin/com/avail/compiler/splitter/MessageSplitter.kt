@@ -1,6 +1,6 @@
 /*
  * MessageSplitter.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,6 +123,7 @@ import com.avail.utility.safeWrite
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
+import kotlin.streams.toList
 
 /**
  * `MessageSplitter` is used to split Avail message names into a sequence of
@@ -1314,7 +1315,8 @@ class MessageSplitter
 			circledNumbersString.codePointCount(0, circledNumbersString.length)
 
 		/** An array of the circled number code points.  */
-		private val circledNumberCodePoints = IntArray(circledNumbersCount)
+		private val circledNumberCodePoints: IntArray =
+			circledNumbersString.codePoints().toList().toIntArray()
 
 		/**
 		 * Answer the Unicode codepoint for a circled number with the given
@@ -1338,20 +1340,8 @@ class MessageSplitter
 		 *
 		 * @see [circledNumbersString]
 		 */
-		private val circledNumbersMap = mutableMapOf<Int, Int>()
-
-		/** Initialize circledNumbersMap and circledNumberCodePoints */
-		init {
-			var positionInString = 0
-			var number = 0
-			while (positionInString < circledNumbersString.length) {
-				val codePoint =
-					circledNumbersString.codePointAt(positionInString)
-				circledNumbersMap[codePoint] = number
-				circledNumberCodePoints[number++] = codePoint
-				positionInString += Character.charCount(codePoint)
-			}
-		}
+		private val circledNumbersMap =
+			circledNumberCodePoints.withIndex().associate { (i, cp) -> cp to i }
 
 		/**
 		 * The tuple of all encountered permutations (tuples of integers) found

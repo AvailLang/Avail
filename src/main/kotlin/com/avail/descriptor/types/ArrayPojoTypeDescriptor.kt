@@ -1,6 +1,6 @@
 /*
  * ArrayPojoTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -255,14 +255,14 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		self: AvailObject,
 		aFusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeIntersectionOfPojoUnfusedType(
 		self: AvailObject,
 		anUnfusedPojoType: A_Type): A_Type
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_TypeUnionOfPojoType(

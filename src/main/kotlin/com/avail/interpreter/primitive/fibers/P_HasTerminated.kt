@@ -1,6 +1,6 @@
 /*
  * P_HasTerminated.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -61,7 +61,7 @@ object P_HasTerminated : Primitive(
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(fiber.executionState().indicatesTermination()))
+			objectFromBoolean(fiber.executionState().indicatesTermination))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

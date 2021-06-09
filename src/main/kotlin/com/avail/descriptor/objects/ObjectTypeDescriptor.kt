@@ -1,6 +1,6 @@
 /*
  * ObjectTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -43,6 +43,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.keysAsSet
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
@@ -62,6 +63,7 @@ import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.hasElement
@@ -182,7 +184,7 @@ class ObjectTypeDescriptor internal constructor(
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap().mapIterable().forEach { (atom, type) ->
+			baseType.fieldTypeMap().forEach { atom, type ->
 				if (!atom.getAtomProperty(explicitSubclassingKey).equalsNil()
 					|| myFieldTypeMap.mapAt(atom).equals(type))
 				{
@@ -191,7 +193,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 		}
 		var first = true
-		self.fieldTypeMap().mapIterable().forEach { (key, type) ->
+		self.fieldTypeMap().forEach { key, type ->
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false
@@ -586,7 +588,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("object type") }
-			self.fieldTypeMap().mapIterable().forEach { (key, value) ->
+			self.fieldTypeMap().forEach { key, value ->
 				key.atomName().writeTo(writer)
 				value.writeTo(writer)
 			}
@@ -595,7 +597,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("object type") }
-			self.fieldTypeMap().mapIterable().forEach { (key, value) ->
+			self.fieldTypeMap().forEach { key, value ->
 				key.atomName().writeTo(writer)
 				value.writeSummaryTo(writer)
 			}
@@ -676,7 +678,7 @@ class ObjectTypeDescriptor internal constructor(
 			val mutableDescriptor = variant.mutableObjectTypeDescriptor
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
-				map.mapIterable().forEach { (key, value) ->
+				map.forEach { key, value ->
 					@Suppress("MapGetWithNotNullAssertionOperator")
 					val slotIndex = slotMap[key]!!
 					if (slotIndex > 0) {
@@ -797,14 +799,15 @@ class ObjectTypeDescriptor internal constructor(
 			assert(aString.isString)
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			synchronized(propertyKey) {
-				anObjectType.fieldTypeMap().mapIterable().forEach { (atom, _) ->
+				anObjectType.fieldTypeMap().forEach { atom, _ ->
 					if (!atom.isAtomSpecial()) {
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (!namesMap.equalsNil()
 							&& namesMap.hasKey(anObjectType))
 						{
-							// In theory the user can give this type multiple names,
-							// so only remove the one that we've been told to.
+							// In theory the user can give this type multiple
+							// names, so only remove the one that we've been
+							// told to.
 							var namesSet: A_Set = namesMap.mapAt(anObjectType)
 							namesSet = namesSet.setWithoutElementCanDestroy(
 								aString, false)
@@ -814,7 +817,12 @@ class ObjectTypeDescriptor internal constructor(
 								else -> namesMap.mapAtPuttingCanDestroy(
 									anObjectType, namesSet, false)
 							}
-							atom.setAtomProperty(propertyKey, namesMap)
+							when (namesMap.mapSize())
+							{
+								0 -> atom.setAtomProperty(propertyKey, nil)
+								else -> atom.setAtomProperty(
+									propertyKey, namesMap)
+							}
 						}
 					}
 				}
@@ -839,10 +847,10 @@ class ObjectTypeDescriptor internal constructor(
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			var applicable = emptyMap
 			synchronized(propertyKey) {
-				anObjectType.fieldTypeMap().mapIterable().forEach { (key, _) ->
+				anObjectType.fieldTypeMap().forEach { key, _ ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
 					if (!map.equalsNil()) {
-						map.mapIterable().forEach { (namedType, innerValue) ->
+						map.forEach { namedType, innerValue ->
 							if (anObjectType.isSubtypeOf(namedType)) {
 								var nameSet: A_Set = innerValue
 								if (applicable.hasKey(namedType)) {
@@ -859,8 +867,8 @@ class ObjectTypeDescriptor internal constructor(
 				applicable.makeImmutable()
 			}
 			var filtered = applicable
-			applicable.mapIterable().forEach { (childType, _) ->
-				applicable.mapIterable().forEach { (parentType, _) ->
+			applicable.forEach { childType, _ ->
+				applicable.forEach { parentType, _ ->
 					if (!childType.equals(parentType)
 						&& childType.isSubtypeOf(parentType)) {
 						filtered = filtered.mapWithoutKeyCanDestroy(
@@ -870,7 +878,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 			var names = emptySet
 			var baseTypes = emptySet
-			filtered.mapIterable().forEach { (name, type) ->
+			filtered.forEach { name, type ->
 				names = names.setUnionCanDestroy(type, true)
 				baseTypes = baseTypes.setWithElementCanDestroy(name, true)
 			}

@@ -1,6 +1,6 @@
 /*
  * L2_SET_VARIABLE.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -31,8 +31,6 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.exceptions.VariableSetException
@@ -43,8 +41,6 @@ import com.avail.interpreter.levelTwo.L2OperandType.PC
 import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import com.avail.optimizer.L2Generator
-import com.avail.optimizer.RegisterSet
 import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
@@ -63,27 +59,9 @@ object L2_SET_VARIABLE : L2ControlFlowOperation(
 	PC.named("write succeeded", Purpose.SUCCESS),
 	PC.named("write failed", Purpose.OFF_RAMP))
 {
-	override fun propagateTypes(
-		instruction: L2Instruction,
-		registerSets: List<RegisterSet>,
-		generator: L2Generator)
-	{
-		val variable = instruction.operand<L2ReadBoxedOperand>(0)
-		//		final L2ReadBoxedOperand value = instruction.operand(1);
-//		final L2PcOperand success = instruction.operand(2);
-//		final L2PcOperand failure = instruction.operand(3);
+	override fun hasSideEffect() = true
 
-		// The two register sets are clones, so only cross-check one of them.
-		val registerSet = registerSets[0]
-		assert(registerSet.hasTypeAt(variable.register()))
-		val varType = registerSet.typeAt(variable.register())
-		assert(varType.isSubtypeOf(mostGeneralVariableType()))
-	}
-
-	override fun hasSideEffect(): Boolean = true
-
-	override val isVariableSet: Boolean
-		get() = true
+	override val isVariableSet: Boolean get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

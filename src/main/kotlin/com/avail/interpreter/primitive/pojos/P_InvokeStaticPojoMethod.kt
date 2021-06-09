@@ -1,6 +1,6 @@
 /*
  * P_InvokeStaticPojoMethod.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -99,8 +99,8 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 		try
 		{
 			result = marshaledArgs
-				?.let { method.invoke(null, *it) }
-				?: method.invoke(null, null)
+				?.let { method(null, *it) }
+				?: method(null, null)
 		}
 		catch (e: InvocationTargetException)
 		{

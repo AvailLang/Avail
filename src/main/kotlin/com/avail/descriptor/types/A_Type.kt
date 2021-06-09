@@ -1,6 +1,6 @@
 /*
  * A_Type.ky
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -473,6 +473,25 @@ interface A_Type : A_BasicObject
 		 * @return
 		 */
 		fun A_Type.sizeRange(): A_Type = dispatch { o_SizeRange(it) }
+
+		/**
+		 * Answer a type that includes *at least* all values from the receiver
+		 * that aren't also in the [typeToRemove].  Note that the answer can be
+		 * conservatively large, and is typically just the receiver, even if the
+		 * types overlap.
+		 *
+		 * The resulting type *must* include every element of the receiver that
+		 * isn't in [typeToRemove], but it *may* include additional elements
+		 * that are in both the receiver and [typeToRemove].  It must not
+		 * include elements that were not in the receiver.
+		 *
+		 * The receiver may be destroyed or recycled if it's mutable.
+		 *
+		 * This provides an opportunity to tighten the bounds for integer
+		 * ranges, or reduce the element and size bounds on map/tuple/set types.
+		 */
+		fun A_Type.trimType(typeToRemove: A_Type) =
+			dispatch { o_TrimType(it, typeToRemove) }
 
 		/**
 		 * Dispatch to the descriptor.

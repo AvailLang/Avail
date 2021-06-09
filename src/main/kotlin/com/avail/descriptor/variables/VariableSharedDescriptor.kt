@@ -1,6 +1,6 @@
 /*
- * VariableSharedDescriptor.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * VariableSharedDescriptor.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -36,6 +36,8 @@ import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import com.avail.descriptor.pojos.RawPojoDescriptor
@@ -50,6 +52,10 @@ import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.keyType
+import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor
@@ -352,17 +358,16 @@ open class VariableSharedDescriptor protected constructor(
 	{
 		// Simply read, add, and compare-and-set until it succeeds.
 		var oldValue: A_Number
-		var success: Boolean
-		do
-		{
+		while (true) {
 			oldValue = self.value()
 			if (oldValue.equalsNil())
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 			val newValue = oldValue.plusCanDestroy(addend, false)
-			success = o_CompareAndSwapValues(self, oldValue, newValue)
+			if (o_CompareAndSwapValues(self, oldValue, newValue))
+			{
+				return oldValue
+			}
 		}
-		while (!success)
-		return oldValue
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -372,16 +377,79 @@ open class VariableSharedDescriptor protected constructor(
 		value: A_BasicObject)
 	{
 		// Simply read, add, and compare-and-set until it succeeds.
-		var success: Boolean
+		val outerKind: A_Type = self.slot(KIND)
+		val writeType = outerKind.writeType()
 		do
 		{
 			val oldValue = self.volatileSlot(VALUE)
 			if (oldValue.equalsNil())
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
-			val newValue = oldValue.mapAtPuttingCanDestroy(key, value, false)
-			success = o_CompareAndSwapValues(self, oldValue, newValue)
+			if (!oldValue.isMap)
+				throw VariableGetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			val newMap = oldValue.mapAtPuttingCanDestroy(key, value, false)
+			if (writeType.isMapType)
+			{
+				// Just check the new size, new key, and new value.
+				if (!writeType.sizeRange().rangeIncludesLong(
+						newMap.mapSize().toLong())
+					|| !key.isInstanceOf(writeType.keyType())
+					|| !value.isInstanceOf(writeType.valueType()))
+				{
+					throw VariableSetException(
+						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+				}
+			}
+			else
+			{
+				// Do a full type-check.
+				if (!newMap.isInstanceOf(writeType))
+					throw VariableSetException(
+						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			}
 		}
-		while (!success)
+		while (!o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
+	}
+
+	@Throws(VariableGetException::class, VariableSetException::class)
+	override fun o_AtomicRemoveFromMap(
+		self: AvailObject,
+		key: A_BasicObject)
+	{
+		// Simply read, remove, and compare-and-set until it succeeds.
+		val outerKind: A_Type = self.slot(KIND)
+		val writeType = outerKind.writeType()
+		while (true) {
+			val oldValue = self.volatileSlot(VALUE)
+			if (oldValue.equalsNil())
+				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+			if (!oldValue.isMap)
+				throw VariableGetException(
+					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			val newMap = oldValue.mapWithoutKeyCanDestroy(key, false)
+			if (writeType.isMapType)
+			{
+				// We only have to check the size, since we didn't add any new
+				// information to the map, other than to potentially shrink it.
+				if (!writeType.sizeRange().rangeIncludesLong(
+						newMap.mapSize().toLong()))
+				{
+					throw VariableSetException(
+						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+				}
+			}
+			else
+			{
+				// Do a full type-check.
+				if (!newMap.isInstanceOf(writeType))
+					throw VariableSetException(
+						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			}
+			if (o_CompareAndSwapValuesNoCheck(self, oldValue, newMap))
+			{
+				break
+			}
+		}
 	}
 
 	@Throws(VariableGetException::class)

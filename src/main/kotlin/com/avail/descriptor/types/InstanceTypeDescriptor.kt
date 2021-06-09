@@ -1,6 +1,6 @@
 /*
  * InstanceTypeDescriptor.kt
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -71,6 +71,7 @@ import com.avail.descriptor.types.A_Type.Companion.fieldTypeTuple
 import com.avail.descriptor.types.A_Type.Companion.functionType
 import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.A_Type.Companion.returnType
@@ -435,7 +436,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsTupleType(self: AvailObject): Boolean =
 		getInstance(self).isTuple
 
-	override fun o_InstanceCount(self: AvailObject): A_Number = one()
+	override fun o_InstanceCount(self: AvailObject): A_Number = one
 
 	override fun o_Instances(self: AvailObject): A_Set =
 		singletonSet(getInstance(self))
@@ -506,7 +507,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
-		throw unsupportedOperationException()
+		unsupportedOperation()
 	}
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
@@ -529,6 +530,12 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.INSTANCE_TYPE
+
+	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+	{
+		if (self.isSubtypeOf(typeToRemove)) return bottom
+		return self
+	}
 
 	override fun o_TupleOfTypesFromTo(
 		self: AvailObject,

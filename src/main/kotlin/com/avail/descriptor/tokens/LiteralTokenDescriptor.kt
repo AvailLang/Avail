@@ -1,6 +1,6 @@
 /*
- * LiteralTokenDescriptor.java
- * Copyright © 1993-2020, The Avail Foundation, LLC.
+ * LiteralTokenDescriptor.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without

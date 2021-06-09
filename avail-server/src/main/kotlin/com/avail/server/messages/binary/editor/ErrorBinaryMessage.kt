@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice, this
- *     list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice, this
- *     list of conditions and the following disclaimer in the documentation
- *     and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -32,7 +32,7 @@
 
 package com.avail.server.messages.binary.editor
 
-import com.avail.server.error.ServerErrorCode
+import com.avail.error.ErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import java.nio.charset.StandardCharsets
@@ -46,7 +46,7 @@ import java.util.logging.Level
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property error
- *   The [ServerErrorCode] that identifies the type of error.
+ *   The [ErrorCode] that identifies the type of error.
  * @property description
  *   Optional String that describes the error or null if not described.
  *
@@ -57,7 +57,7 @@ import java.util.logging.Level
  *   The identifier of the [message][BinaryMessage]. This identifier should
  *   appear in any responses to this message.
  * @param error
- *   The [ServerErrorCode] that identifies the type of error.
+ *   The [ErrorCode] that identifies the type of error.
  * @param closeAfterSending
  *   `true` if the [channel][AvailServerChannel] should be
  *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
@@ -66,7 +66,7 @@ import java.util.logging.Level
  */
 internal class ErrorBinaryMessage constructor(
 	override var commandId: Long,
-	val error: ServerErrorCode,
+	val error: ErrorCode,
 	private val closeAfterSending: Boolean = false,
 	private val description: String? = null): BinaryMessage()
 {
