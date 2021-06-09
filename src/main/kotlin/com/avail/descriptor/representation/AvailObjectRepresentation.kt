@@ -200,7 +200,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param field
 	 *   The integer slot to validate for the receiver.
 	 */
-	private inline fun checkSlot(field: IntegerSlotsEnum)
+	private fun checkSlot(field: IntegerSlotsEnum)
 	{
 		@Suppress("ConstantConditionIf")
 		if (shouldCheckSlots)

@@ -67,7 +67,6 @@ allprojects {
 
 repositories {
 	mavenCentral()
-	jcenter()
 }
 
 compileKotlin {
@@ -131,7 +130,7 @@ dependencies {
 }
 
 def repositoriesPath = {
-	def home = System.getenv("user.home")
+	def home = System.getProperty("user.home")
 	"$home/.avail/repositories/"
 }()
 

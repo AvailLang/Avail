@@ -114,8 +114,9 @@ object ErrorCodeRangeRegistry
 	 *
 	 * @param code
 	 *   The [ErrorCode.code] to lookup.
-	 * @return The associated `ErrorCode` or [InvalidErrorCode] if the provided
-	 *   code is not valid.
+	 * @return
+	 *   The associated `ErrorCode` or [InvalidErrorCode] if the provided code
+	 *   is not valid.
 	 */
 	fun errorCode (code: Int): ErrorCode
 	{

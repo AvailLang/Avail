@@ -45,7 +45,7 @@ class InvalidErrorCode constructor(
 	override val name: String = "INVALID_ERROR_CODE"
 }
 
-class InvalidErrorCodeRange constructor(code: Int): ErrorCodeRange
+class InvalidErrorCodeRange constructor(val code: Int): ErrorCodeRange
 {
 	override val name: String = "InvalidErrorCodeRange"
 	override val range: IntRange = IntRange(-1, -1)
