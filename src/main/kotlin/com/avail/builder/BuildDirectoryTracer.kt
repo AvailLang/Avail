@@ -129,14 +129,13 @@ class BuildDirectoryTracer constructor(
 		val countDown = AtomicInteger(moduleRoots.roots.size)
 		for (moduleRoot in moduleRoots)
 		{
-			traceAllModuleHeaders(moduleRoot.resolver, moduleAction,
-				{ name, code, ex ->
-					// TODO figure out what to do with these!!! Probably report them?
-					System.err.println(
-						"Received ErrorCode: $code while tracing $name with " +
-							"exception:\n")
-					ex?.printStackTrace()
-				}) {
+			traceAllModuleHeaders(
+				moduleRoot.resolver,
+				moduleAction,
+				{ _, _, _ ->
+					// Ignore exceptions during header tracing.
+				}
+			) {
 				if (countDown.decrementAndGet() == 0)
 				{
 					synchronized(this) {
@@ -202,20 +201,17 @@ class BuildDirectoryTracer constructor(
 						visited,
 						false)
 					val ran = AtomicBoolean(false)
-					traceOneModuleHeader(
-						resolved,
-						moduleAction,
-						{
-							val oldRan = ran.getAndSet(true)
-							assert(!oldRan) {
-								"${visited.localName} already ran " +
-									"BuildDirectoryTracer.traceOneModuleHeader"
-							}
-							indicateFileCompleted(visited.uri)
-						})
+					traceOneModuleHeader(resolved, moduleAction) {
+						val oldRan = ran.getAndSet(true)
+						assert(!oldRan) {
+							"${visited.localName} already ran " +
+								"BuildDirectoryTracer.traceOneModuleHeader"
+						}
+						indicateFileCompleted(visited.uri)
+					}
 				}
 			},
-				afterAllQueued)
+			afterAllQueued)
 		}) { code, ex ->
 			moduleFailureHandler(
 				"Could not get ${resolver.moduleRoot.name} ResolverReference",

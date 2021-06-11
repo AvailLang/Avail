@@ -60,28 +60,13 @@ object Repositories
 	{
 		// Initialize the repositories directory. If it doesn't exist it will
 		// be created
-		val home = System.getProperty("user.home")
-		val repositoriesPath = "$home/.avail/repositories/"
+		val repositoriesPath = System.getProperty("avail.repositories") ?: run {
+			val home = System.getProperty("user.home")
+			"$home/.avail/repositories/"
+		}
 		val repos = File(repositoriesPath)
-		if (!repos.exists())
-		{
-			val availDir = File("$home/.avail")
-			if (!availDir.exists())
-			{
-				assert(availDir.mkdir()) {
-					"Could not create avail directory $availDir"
-				}
-			}
-			assert(repos.mkdir()) {
-				"Could not create repositories directory $repositoriesPath"
-			}
-		}
-		else
-		{
-			assert(repos.isDirectory) {
-				"$repositoriesPath exists as a file but must be a directory"
-			}
-		}
+		repos.mkdirs()
+		assert(repos.isDirectory) { "$repositoriesPath must be a directory" }
 		directory = repos
 	}
 

@@ -42,45 +42,49 @@ import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedModuleException
 import com.avail.error.ErrorCode
 import com.avail.error.StandardErrorCode
-import com.avail.files.AvailFile
 import com.avail.files.FileErrorCode
 import com.avail.files.FileManager
 import com.avail.io.SimpleCompletionHandler
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.cache.Repository
 import com.avail.resolver.ModuleRootResolver.WatchEventType
-import com.avail.resolver.ModuleRootResolver.WatchEventType.*
+import com.avail.resolver.ModuleRootResolver.WatchEventType.CREATE
+import com.avail.resolver.ModuleRootResolver.WatchEventType.DELETE
+import com.avail.resolver.ModuleRootResolver.WatchEventType.MODIFY
+import com.avail.resolver.ResourceType.DIRECTORY
+import com.avail.resolver.ResourceType.MODULE
+import com.avail.resolver.ResourceType.PACKAGE
+import com.avail.resolver.ResourceType.REPRESENTATIVE
+import com.avail.resolver.ResourceType.RESOURCE
+import com.avail.resolver.ResourceType.ROOT
+import io.methvin.watcher.DirectoryChangeEvent
+import io.methvin.watcher.DirectoryChangeEvent.EventType
+import io.methvin.watcher.DirectoryWatcher
+import io.methvin.watcher.hashing.FileHasher
 import org.apache.tika.Tika
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.nio.file.ClosedWatchServiceException
-import java.nio.file.FileSystems
+import java.nio.ByteBuffer
+import java.nio.channels.AsynchronousFileChannel
+import java.nio.channels.CompletionHandler
 import java.nio.file.FileVisitOption
 import java.nio.file.FileVisitResult
 import java.nio.file.FileVisitor
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
-import java.nio.file.SimpleFileVisitor
-import java.nio.file.StandardWatchEventKinds
-import java.nio.file.WatchEvent
-import java.nio.file.WatchKey
+import java.nio.file.StandardOpenOption
 import java.nio.file.WatchService
 import java.nio.file.attribute.BasicFileAttributes
-import java.util.UUID
-import com.avail.resolver.ResourceType.*
-import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousFileChannel
-import java.nio.channels.CompletionHandler
-import java.nio.file.StandardOpenOption
 import java.security.MessageDigest
 import java.util.ArrayDeque
 import java.util.Collections
 import java.util.Deque
 import java.util.EnumSet
 import java.util.LinkedList
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.UUID
+import kotlin.concurrent.thread
 
 /**
  * `FileSystemModuleRootResolver` is a [ModuleRootResolver] used for accessing
@@ -104,6 +108,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @throws IndexedFileException
  *   If the indexed repository could not be opened.
  */
+@Suppress("RemoveRedundantQualifierName")
 class FileSystemModuleRootResolver constructor(
 		val name: String,
 		override val uri: URI,
@@ -144,7 +149,7 @@ class FileSystemModuleRootResolver constructor(
 
 	override fun close()
 	{
-		fileSystemWatcher.watchService.close()
+		fileSystemWatcher.close()
 	}
 
 	override fun resolvesToValidModuleRoot(): Boolean =
@@ -517,7 +522,7 @@ class FileSystemModuleRootResolver constructor(
 	}
 
 	override fun readFile(
-		byPassFileManager: Boolean,
+		bypassFileManager: Boolean,
 		reference: ResolverReference,
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -525,7 +530,7 @@ class FileSystemModuleRootResolver constructor(
 		require(!setOf(ROOT, DIRECTORY, PACKAGE).contains(reference.type)) {
 			"${reference.qualifiedName} is not a file that can be read!"
 		}
-		if (!byPassFileManager)
+		if (!bypassFileManager)
 		{
 			val isBeingRead =
 				fileManager.optionallyProvideExistingFile(
@@ -616,11 +621,6 @@ class FileSystemModuleRootResolver constructor(
 				ex.printStackTrace()
 				failureHandler(StandardErrorCode.IO_EXCEPTION, ex)
 			}).guardedDo { file.read(buffer, 0L, dummy, handler) }
-	}
-
-	override fun watchRoot()
-	{
-		fileSystemWatcher.add()
 	}
 
 	override fun find (
@@ -884,65 +884,6 @@ class FileSystemModuleRootResolver constructor(
 				file: Path,
 				e: IOException): FileVisitResult
 			{
-				val parent = stack.peekFirst()!!
-				val isDirectory = file.toFile().isDirectory
-				val fileName = file.fileName.toString()
-				if (fileName.endsWith(extension))
-				{
-					val localName = fileName.substring(
-						0, fileName.length - extension.length)
-					val qualifiedName = "${parent.qualifiedName}/$localName"
-					val mime: String
-					val type =
-						if (isDirectory)
-						{
-							mime = ""
-							ResourceType.PACKAGE
-						}
-						else
-						{
-							mime = AvailFile.availMimeType
-							ResourceType.MODULE
-						}
-					var fileURI = file.toUri()
-					if (fileURI.scheme === null)
-					{
-						fileURI = URI("file://$file")
-					}
-					val reference = ResolverReference(
-						this@FileSystemModuleRootResolver,
-						fileURI,
-						qualifiedName,
-						type,
-						mime,
-						0,
-						0)
-					reference.accessException = e
-					referenceMap[qualifiedName] = reference
-					parent.modules.add(reference)
-				}
-				else
-				{
-					val qualifiedName = "${parent.qualifiedName}/$fileName"
-					var fileURI = file.toUri()
-					if (fileURI.scheme === null)
-					{
-						fileURI = URI("file://$file")
-					}
-					val reference = ResolverReference(
-						this@FileSystemModuleRootResolver,
-						fileURI,
-						qualifiedName,
-						if (isDirectory)
-							ResourceType.DIRECTORY
-						else ResourceType.RESOURCE,
-						"",
-						0,
-						0)
-					reference.accessException = e
-					referenceMap[qualifiedName] = reference
-					parent.modules.add(reference)
-				}
 				return FileVisitResult.CONTINUE
 			}
 		}
@@ -984,118 +925,89 @@ class FileSystemModuleRootResolver constructor(
 	 * the local file system directories of the [ModuleRoot]s loaded into the
 	 * AvailRuntime.
 	 */
-	inner class FileSystemWatcher constructor()
+	inner class FileSystemWatcher
 	{
-		private val initialized = AtomicBoolean(false)
-
 		/**
 		 * The [WatchService] watching the [FileManager] directories where
 		 * the [AvailRuntime] loaded [ModuleRoot]s are stored.
 		 */
-		val watchService: WatchService =
-			FileSystems.getDefault().newWatchService()
-
-		/**
-		 * A [Map] from a [WatchKey] to the [RootWatcher] for the [ModuleRoot]
-		 * hierarchy where the `WatchKey` is used.
-		 */
-		val watchMap = mutableMapOf<WatchKey, RootWatcher>()
-
-		/**
-		 * Add the [FileSystemModuleRootResolver.moduleRoot] to be watched by
-		 * this [FileSystemWatcher] and initialize it.
-		 */
-		fun add ()
-		{
-			if (!initialized.getAndSet(true))
-			{
-				RootWatcher(this)
-				initialize()
+		private val directoryWatcher = DirectoryWatcher.builder()
+			.fileHasher(FileHasher.LAST_MODIFIED_TIME)
+			.listener { e -> resolveEvent(e) }
+			.path(Paths.get(moduleRoot.resolver.uri))
+			.build()!!
+			.apply {
+				// Allocate a dedicated thread to observing changes to the
+				// filesystem.
+				thread (
+					isDaemon = true,
+					name = "file system observer"
+				) {
+					while (true)
+					{
+						try
+						{
+							watch()
+						}
+						catch (t: Throwable)
+						{
+							// Try again.
+						}
+					}
+				}
 			}
-		}
 
 		/**
 		 * Shutdown this [FileSystemWatcher].
 		 */
 		fun close ()
 		{
-			watchService.close()
+			directoryWatcher.close()
 		}
 
-		/**
-		 * Initialize this [FileSystemWatcher].
-		 */
-		fun initialize()
+		private fun resolveEvent (event: DirectoryChangeEvent)
 		{
-			// Rename steps:
-			// 1 - Parent directory Modify
-			// 2 - "New" directory Create (new folder name)
-			// 3 - Old name directory Delete
-
-			this@FileSystemModuleRootResolver.executeTask {
-				try
-				{
-					var key: WatchKey
-					while (watchService.take().also { key = it } != null)
-					{
-						watchMap[key]?.let { rw ->
-							rw.watchMap[key]?.let { path ->
-								for (event: WatchEvent<*> in key.pollEvents())
-								{
-									resolveEvent(key, path, event)
-								}
-							}
-						}
-						key.reset()
-					}
-				}
-				catch (e: ClosedWatchServiceException)
-				{
-					// The watch service is closing and the thread is currently
-					// blocked in the take or poll methods waiting for a key to
-					// be queued. This ensures an immediate stop to this
-					// service. Nothing else to do here.
-				}
-			}
-		}
-
-		private fun resolveEvent (
-			key: WatchKey,
-			path: Path,
-			event: WatchEvent<*>)
-		{
+			val base = moduleRoot.resolver.uri
+			val path = event.path()?.toString() ?: return
 			// Mac stuff to ignore
-			if (event.context().toString() == ".DS_Store")
+			if (path == ".DS_Store" || path.endsWith("/.DS_Store"))
 			{
-				key.reset()
 				return
 			}
-			val file = File("$path/${event.context()}")
+			val file = File(base.resolve(path))
 			val isDirectory = file.isDirectory
+			val eventType = event.eventType()
 			if (isDirectory
-				&& (event.kind() == StandardWatchEventKinds.ENTRY_MODIFY
-					|| event.kind() == StandardWatchEventKinds.ENTRY_CREATE))
+				&& (eventType == EventType.MODIFY
+					|| eventType == EventType.CREATE))
 			{
-				key.reset()
 				return
 			}
-			when
+			val qualifiedName = getQualifiedName(file.toString())
+			when (eventType)
 			{
-				event.kind() == StandardWatchEventKinds.ENTRY_DELETE ->
+				EventType.DELETE ->
 				{
-					val uriPath = "$path/${event.context()}"
-					val qualifiedName = getQualifiedName(uriPath)
 					val ref = referenceMap.remove(qualifiedName) ?: return
-					// TODO remove from reference tree
+					val parent = referenceMap[ref.parentName]
+					if (parent !== null)
+					{
+						val children = when (ref.isResource)
+						{
+							true -> parent.resources
+							false -> parent.modules
+						}
+						children.remove(ref)
+					}
+					ref.walkChildrenThen(
+						true,
+						{ referenceMap.remove(it.qualifiedName) })
 					watchEventSubscriptions.values.forEach {
 						it(DELETE, ref)
 					}
-					key.reset()
 				}
-				event.kind() == StandardWatchEventKinds.ENTRY_MODIFY ->
+				EventType.MODIFY ->
 				{
-					val uriPath = "$path/${event.context()}"
-					val qualifiedName = getQualifiedName(uriPath)
 					val ref = referenceMap[qualifiedName] ?: return
 					this@FileSystemModuleRootResolver.refreshResolverMetaData(
 						ref,
@@ -1103,73 +1015,36 @@ class FileSystemModuleRootResolver constructor(
 							watchEventSubscriptions.values.forEach {
 								it(MODIFY, ref)
 							}
-						}) { _, _ ->
-							// Nothing to be done here...
-						}
-					key.reset()
+						},
+						{ _, _ -> })
 				}
-				event.kind() == StandardWatchEventKinds.ENTRY_CREATE ->
+				EventType.CREATE ->
 				{
-					val uriPath = "$path/${event.context()}"
-					val qualifiedName = getQualifiedName(uriPath)
 					val type = determineResourceType(file)
-					val ref =
-						resolverReference(
-							path,
-							qualifiedName,
-							type)
-					referenceMap[ref.qualifiedName] = ref
-					// TODO insert into reference tree
+					val ref = resolverReference(
+						file.toPath(),
+						qualifiedName,
+						type)
+					referenceMap[qualifiedName] = ref
+					val parent = referenceMap[ref.parentName]
+					if (parent !== null)
+					{
+						val children = when (ref.isResource)
+						{
+							true -> parent.resources
+							false -> parent.modules
+						}
+						children.add(ref)
+					}
+					ref.walkChildrenThen(
+						true,
+						{ referenceMap[it.qualifiedName] = it })
 					watchEventSubscriptions.values.forEach {
 						it(CREATE, ref)
 					}
-					key.reset()
 				}
+				else -> {}
 			}
-		}
-	}
-
-	/**
-	 * `RootWatcher` is responsible for managing the watching of a [ModuleRoot]
-	 * by a [FileSystemWatcher].
-	 *
-	 * @property fileSystemWatcher
-	 *   The [FileSystemWatcher] watching the `root` directory.
-	 *
-	 * @constructor
-	 * Construct a [RootWatcher].
-	 *
-	 * @param fileSystemWatcher
-	 *   The [FileSystemWatcher] watching the `root` directory.
-	 */
-	inner class RootWatcher @Throws(IOException::class) constructor(
-		val fileSystemWatcher: FileSystemWatcher)
-	{
-		/**
-		 * [Map] from a [WatchKey] to the [Path] of the directory that
-		 * `WatchKey` is watching.
-		 */
-		val watchMap = mutableMapOf<WatchKey, Path>()
-
-		init
-		{
-			Files.walkFileTree(Paths.get(uri),
-				object : SimpleFileVisitor<Path>()
-				{
-					@Throws(IOException::class)
-					override fun preVisitDirectory(
-						dir: Path, attrs: BasicFileAttributes): FileVisitResult
-					{
-						val watcher = dir.register(
-							fileSystemWatcher.watchService,
-							StandardWatchEventKinds.ENTRY_CREATE,
-							StandardWatchEventKinds.ENTRY_DELETE,
-							StandardWatchEventKinds.ENTRY_MODIFY)
-						watchMap[watcher] = dir
-						fileSystemWatcher.watchMap[watcher] = this@RootWatcher
-						return FileVisitResult.CONTINUE
-					}
-				})
 		}
 	}
 }

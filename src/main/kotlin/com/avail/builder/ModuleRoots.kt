@@ -217,6 +217,7 @@ class ModuleRoots constructor(
 	{
 		rootMap[root.name] = root
 		Repositories.addRepository(root)
+		// TODO: Hm, this mechanism won't scan the ModuleRoot.
 	}
 
 	/**

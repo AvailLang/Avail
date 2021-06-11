@@ -595,8 +595,10 @@ class MethodDescriptor private constructor(
 				throw SignatureException(E_METHOD_IS_SEALED)
 			}
 		}
-		self.updateSlotShared(DEFINITIONS_TUPLE) {
-			appendCanDestroy(definition, true)
+		synchronized(self) {
+			self.updateSlotShared(DEFINITIONS_TUPLE) {
+				appendCanDestroy(definition, true)
+			}
 		}
 		owningBundles.forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
@@ -622,8 +624,10 @@ class MethodDescriptor private constructor(
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
 		assert(!definition.definitionModule().equalsNil())
-		self.updateSlotShared(DEFINITIONS_TUPLE) {
-			tupleWithout(this, definition)
+		synchronized(self) {
+			self.updateSlotShared(DEFINITIONS_TUPLE) {
+				tupleWithout(this, definition)
+			}
 		}
 		owningBundles.forEach { bundle ->
 			bundle.removePlanForSendable(definition)

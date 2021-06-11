@@ -90,17 +90,6 @@ open class FileManager
 	}
 
 	/**
-	 * Watch the [ModuleRoot] for external file system changes.
-	 *
-	 * @param root
-	 *   The root location.
-	 */
-	fun watchRoot (root: ModuleRoot)
-	{
-		root.resolver.watchRoot()
-	}
-
-	/**
 	 * The [thread pool executor][ThreadPoolExecutor] for asynchronous file
 	 * operations performed on behalf of this [FileManager].
 	 */

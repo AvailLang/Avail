@@ -1,4 +1,5 @@
 # Default ignored files
+/dataSources.local.xml
 /jarRepositories.xml
 /libraries
 /libraries-with-intellij-classes.xml

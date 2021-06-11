@@ -30,6 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+
+import org.jetbrains.dokka.gradle.DokkaTask
+
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -112,6 +115,11 @@ dependencies {
 	api group: 'org.ow2.asm',
 		name: 'asm-util',
 		version: "$asm_version"
+
+	// Java's file-watcher mechanism is garbage, so use this instead.
+	api group: 'io.methvin',
+		name: 'directory-watcher',
+		version: "${directoryWatcherVersion}"
 
 	// https://tika.apache.org for file MIME type detection
 	implementation 'org.apache.tika:tika-core:1.22'
@@ -209,7 +217,7 @@ dokka {
 	]
 }
 
-task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
+task dokkaHTML(type: DokkaTask) {
 	outputFormat = 'html'
 	outputDirectory = "$buildDir/dokka"
 }
