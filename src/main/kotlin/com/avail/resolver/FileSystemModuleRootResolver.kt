@@ -967,14 +967,15 @@ class FileSystemModuleRootResolver constructor(
 
 		private fun resolveEvent (event: DirectoryChangeEvent)
 		{
-			val base = moduleRoot.resolver.uri
-			val path = event.path()?.toString() ?: return
-			// Mac stuff to ignore
-			if (path == ".DS_Store" || path.endsWith("/.DS_Store"))
+			// Mac stuff to ignore.
+			val path = event.path()
+			if (path.endsWith(".DS_Store"))
 			{
 				return
 			}
-			val file = File(base.resolve(path))
+			val base = moduleRoot.resolver.uri
+			val uri = event.path()?.toUri() ?: return
+			val file = File(base.resolve(uri))
 			val isDirectory = file.isDirectory
 			val eventType = event.eventType()
 			if (isDirectory
@@ -999,11 +1000,8 @@ class FileSystemModuleRootResolver constructor(
 						}
 						children.remove(ref)
 					}
-					ref.walkChildrenThen(
-						true,
-						{ referenceMap.remove(it.qualifiedName) })
-					watchEventSubscriptions.values.forEach {
-						it(DELETE, ref)
+					watchEventSubscriptions.values.forEach { subscriber ->
+						subscriber(DELETE, ref)
 					}
 				}
 				EventType.MODIFY ->
@@ -1011,36 +1009,64 @@ class FileSystemModuleRootResolver constructor(
 					val ref = referenceMap[qualifiedName] ?: return
 					this@FileSystemModuleRootResolver.refreshResolverMetaData(
 						ref,
-						{ _ ->
+						{
 							watchEventSubscriptions.values.forEach {
-								it(MODIFY, ref)
+								subscriber -> subscriber(MODIFY, ref)
 							}
 						},
 						{ _, _ -> })
 				}
 				EventType.CREATE ->
 				{
+					if (referenceMap[qualifiedName] != null)
+					{
+						// Already exists.
+						return
+					}
 					val type = determineResourceType(file)
-					val ref = resolverReference(
+					val added = LinkedList<ResolverReference>()
+					var ref = resolverReference(
 						file.toPath(),
 						qualifiedName,
 						type)
+					added.addFirst(ref)
 					referenceMap[qualifiedName] = ref
-					val parent = referenceMap[ref.parentName]
-					if (parent !== null)
+					do
 					{
+						// When moving a directory into place, the directory
+						// and its children may be notified in arbitrary order,
+						// so take care to create entries for the missing
+						// parents as needed.
+						var parent = referenceMap[ref.parentName]
+						val parentExisted = parent != null
+						if (!parentExisted)
+						{
+							val parentFile = File(ref.uri).parentFile
+							val parentType = determineResourceType(parentFile)
+							parent = resolverReference(
+								parentFile.toPath(),
+								ref.parentName,
+								parentType)
+							added.addFirst(parent)
+							referenceMap[parent.qualifiedName] = parent
+						}
+						// Assert that the parent is not null (because the
+						// flow analyzer isn't quite powerful enough to prove
+						// this).
+						parent!!
 						val children = when (ref.isResource)
 						{
 							true -> parent.resources
 							false -> parent.modules
 						}
 						children.add(ref)
+						ref = parent
 					}
-					ref.walkChildrenThen(
-						true,
-						{ referenceMap[it.qualifiedName] = it })
-					watchEventSubscriptions.values.forEach {
-						it(CREATE, ref)
+					while (!parentExisted)
+					added.forEach { newRef ->
+						watchEventSubscriptions.values.forEach { subscriber ->
+							subscriber(CREATE, newRef)
+						}
 					}
 				}
 				else -> {}
