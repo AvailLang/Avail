@@ -32,7 +32,7 @@
 
 Module "MutuallyRecursive3"
 Versions
-	"1.5.0"
+	"1.5.1"
 Uses
 	"UsedByMutuallyRecursive3",
 	"MutuallyRecursive1"

@@ -45,13 +45,11 @@ import com.avail.files.FileManager
 import com.avail.files.NullFileWrapper
 import com.avail.persistence.cache.Repository
 import com.avail.utility.json.JSONWriter
-import java.lang.UnsupportedOperationException
 import java.net.URI
 import java.security.MessageDigest
-import java.util.ArrayDeque
 import java.util.Deque
+import java.util.LinkedList
 import java.util.UUID
-import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * A `ResolverReference` is a reference to a [module][ModuleName] or a module
@@ -168,6 +166,7 @@ class ResolverReference constructor(
 	 * @return
 	 *   `true` if this is a descendant; `false` otherwise.
 	 */
+	@Suppress("unused")
 	fun isDescendantOf (reference: ResolverReference): Boolean =
 		reference.hasChildren
 			&& qualifiedName.startsWith(reference.qualifiedName)
@@ -181,6 +180,7 @@ class ResolverReference constructor(
 	 * @return
 	 *   `true` if this is a descendant; `false` otherwise.
 	 */
+	@Suppress("unused")
 	fun isChildOf (reference: ResolverReference): Boolean =
 		reference.hasChildren
 			&& childReferences(true).contains(this)
@@ -213,11 +213,10 @@ class ResolverReference constructor(
 	 * The local name of the file referenced by this `ModuleName`.
 	 */
 	val localName: String by lazy {
-		if (localName.isEmpty()) moduleName.localName
-		else localName
+		localName.ifEmpty { moduleName.localName }
 	}
 
-	val qualifiedLocation: String by lazy {
+	val parentName: String by lazy {
 		val end = qualifiedName.length - this.localName.length - 2
 		qualifiedName.substring(0..end)
 	}
@@ -442,7 +441,7 @@ class ResolverReference constructor(
 	 * Retrieve the resource and provide it with a request to obtain
 	 * the raw file bytes.
 	 *
-	 * @param byPassFileManager
+	 * @param bypassFileManager
 	 *   `true` indicates the file should be read directly from the source
 	 *   location; `false` indicates an attempt to read from the [FileManager]
 	 *   should be made.
@@ -453,11 +452,11 @@ class ResolverReference constructor(
 	 *   of the failure and a `nullable` [Throwable].
 	 */
 	fun readFile (
-		byPassFileManager: Boolean,
+		bypassFileManager: Boolean,
 		withContents: (ByteArray, UUID?) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
-		resolver.readFile(byPassFileManager, this, withContents, failureHandler)
+		resolver.readFile(bypassFileManager, this, withContents, failureHandler)
 	}
 
 	override fun equals(other: Any?): Boolean
@@ -501,40 +500,24 @@ class ResolverReference constructor(
 	fun walkChildrenThen(
 		visitResources: Boolean,
 		withReference: (ResolverReference)->Unit,
-		afterAllVisited: (Int)->Unit)
+		afterAllVisited: (Int)->Unit = {})
 	{
-		require(type == ResourceType.ROOT
-			|| isPackage
-			|| type == ResourceType.DIRECTORY)
+		if (
+			type != ResourceType.ROOT
+				&& !isPackage
+				&& type != ResourceType.DIRECTORY)
 		{
-			"ModuleResourceResolver.walk must start with a Root, Package, " +
-				"or Directory; $qualifiedName is none of those things."
-		}
-		if (!visitResources && isResource)
-		{
-			System.err.println(
-				"ModuleRootResolver.walkRoot provided root, $this which " +
-					"is a non-package directory, but visitResources was " +
-					"false, so no work was done")
+			// If there's nothing to walk, then walk nothing.
 			return
 		}
-		val visited = AtomicInteger(0)
-		val stack = ArrayDeque<ResolverReference>()
-		if (!visitResources)
-		{
-			modules.forEach {
-				visitReference(
-					it, visitResources, visited, stack, withReference)
-			}
-			afterAllVisited(visited.get())
-			return
-		}
-
-		childReferences(visitResources).forEach {
-			visitReference(
-				it, visitResources, visited, stack, withReference)
-		}
-		afterAllVisited(visited.get())
+		val top = modules + LinkedList(
+			if (visitResources) childReferences(true)
+			else emptyList())
+		afterAllVisited(
+			top.fold(0) { count, module ->
+				count + visitReference(
+					module, visitResources, withReference = withReference)
+			})
 	}
 
 	companion object
@@ -546,7 +529,7 @@ class ResolverReference constructor(
 		 * Visit the provided [ResolverReference] by handing it to the provided
 		 * lambda then add all its [children][childReferences] to the provided
 		 * `stack`. Then pop the next `ResolverReference` and recursively visit
-		 * visit it by calling this function on it. An empty stack indicates all
+		 * it by calling this function on it. An empty stack indicates all
 		 * children have been visited.
 		 *
 		 * **NOTE** Graph uses depth-first traversal to visit each reference.
@@ -565,21 +548,20 @@ class ResolverReference constructor(
 		 * @param withReference
 		 *   The lambda that accepts the visited [ResolverReference]. This
 		 *   `ResolverReference` will not be provided to the lambda.
+		 * @return
+		 *   The value of [visited] after completing this step of the recursion.
 		 */
+		@Suppress("TAILREC_WITH_DEFAULTS")
 		private tailrec fun visitReference (
 			reference: ResolverReference,
 			visitResources: Boolean,
-			visited: AtomicInteger,
-			stack: Deque<ResolverReference>,
-			withReference: (ResolverReference)->Unit)
+			visited: Int = 0,
+			stack: Deque<ResolverReference> = LinkedList<ResolverReference>(),
+			withReference: (ResolverReference)->Unit
+		): Int
 		{
 			if (visitResources || !reference.isResource)
 			{
-				// Track number visited
-				if (reference.isModule)
-				{
-					visited.incrementAndGet()
-				}
 				withReference(reference)
 				if (reference.hasChildren)
 				{
@@ -591,14 +573,15 @@ class ResolverReference constructor(
 				}
 				if (stack.isNotEmpty())
 				{
-					visitReference(
+					return visitReference(
 						stack.removeFirst(),
 						visitResources,
-						visited,
+						visited + 1,
 						stack,
 						withReference)
 				}
 			}
+			return visited
 		}
 	}
 }

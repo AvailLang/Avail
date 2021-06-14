@@ -32,7 +32,7 @@
 
 Module "Perl Lite"
 Versions
-	"1.5.0"
+	"1.5.1"
 Uses
 	"Avail",
 	"Perl Lite Implementation"

@@ -195,20 +195,14 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		// If the root cannot be resolved, then neither can the module.
 		val enclosingRoot = canonicalName.rootName
-		val root: ModuleRoot? = moduleRoots.moduleRootFor(enclosingRoot)
+		val root: ModuleRoot = moduleRoots.moduleRootFor(enclosingRoot)
 			?: return ModuleNameResolutionResult(
 				UnresolvedRootException(
 					null, qualifiedName.localName, enclosingRoot))
 
 		// If the source directory is available, then build a search stack of
 		// trials at ascending tiers of enclosing packages.
-		val rootResolver = root!!.resolver
-		if (rootResolver === null)
-		{
-			return ModuleNameResolutionResult(
-				UnreachableRootException(
-					null, qualifiedName.localName, enclosingRoot, null))
-		}
+		val rootResolver = root.resolver
 		if (!rootResolver.resolvesToValidModuleRoot())
 		{
 			return ModuleNameResolutionResult(
@@ -231,7 +225,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 			{
 				if (other.name != enclosingRoot)
 				{
-					val resolver = other.resolver ?: continue
+					val resolver = other.resolver
 					canonicalName = ModuleName(
 						"/${other.name}/${canonicalName.localName}",
 						canonicalName.isRename)

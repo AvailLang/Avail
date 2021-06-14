@@ -1275,7 +1275,10 @@ abstract class TupleDescriptor protected constructor(
 					return generateObjectTupleFrom(originalSize - 1) {
 						if (index == seekIndex)
 						{
-							// Skip that element.
+							// Skip that element.  Note that if index is
+							// pointing at the last index of the original tuple,
+							// this won't be reached anyhow, because the
+							// generator won't ask for that element.
 							index++
 						}
 						originalTuple.tupleAt(index++)

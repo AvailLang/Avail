@@ -2,6 +2,7 @@
 /**/*.jpage
 /**/*.ws.kts
 /.gradle
+/.swp
 /build
 /stacks
 /modules.dot

@@ -51,7 +51,7 @@ object AvailRuntimeConfiguration
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	val activeVersions = arrayOf("1.5.0")
+	val activeVersions = arrayOf("1.5.1")
 
 	/**
 	 * Answer a short string indicating the most recent version of Avail

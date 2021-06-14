@@ -775,7 +775,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedPc = pc()
 			val savedStackp = stackp
 			val implicitObserveFunction =
-				HookType.IMPLICIT_OBSERVE[interpreter.runtime]
+				HookType.READ_UNASSIGNED_VARIABLE[interpreter.runtime]
 			interpreter.argsBuffer.clear()
 			val reifier =
 				interpreter.invokeFunction(implicitObserveFunction)!!

@@ -32,7 +32,7 @@
 
 Module "MutuallyRecursive1"
 Versions
-	"1.5.0"
+	"1.5.1"
 Uses
 	"MutuallyRecursive2"
 Body

@@ -32,7 +32,7 @@
 
 Module "Base64 Converters"
 Versions
-	"1.5.0"
+	"1.5.1"
 Extends
 	"Abstract Converters",
 	"Foundation",

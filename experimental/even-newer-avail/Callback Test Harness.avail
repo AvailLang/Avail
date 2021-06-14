@@ -32,7 +32,7 @@
 
 Module "Callback Test Harness"
 Versions
-	"1.5.0"
+	"1.5.1"
 Extends
 	"Avail"
 Entries

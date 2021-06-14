@@ -994,34 +994,38 @@ class AvailWorkbench internal constructor (
 		roots.roots.forEach { root ->
 			// Obtain the path associated with the module root.
 			root.repository.reopenIfNecessary()
-			root.resolver.provideModuleRootTree({
-				val node = ModuleRootNode(availBuilder, root)
-				createRootNodes(node, it)
-				sortedRootNodes.add(node)
-
-				// Need to wait for every module to finish the resolution
-				// process before handing in the hidden, top level tree node.
-				if (rootCount.decrementAndGet() == 0)
+			root.resolver.provideModuleRootTree(
 				{
-					sortedRootNodes.sort()
-					sortedRootNodes.forEach { m -> treeRoot.add(m) }
-					val enumeration: Enumeration<DefaultMutableTreeNode> =
-						treeRoot.preorderEnumeration().cast()
-					// Skip the invisible root.
-					enumeration.nextElement()
-					while (enumeration.hasMoreElements())
-					{
-						val subNode: AbstractBuilderFrameTreeNode =
-							enumeration.nextElement().cast()
-						subNode.sortChildren()
+					val node = ModuleRootNode(availBuilder, root)
+					createRootNodesThen(node, it) {
+						sortedRootNodes.add(node)
+						// Need to wait for every module to finish the
+						// resolution process before handing in the hidden, top
+						// level tree node.
+						if (rootCount.decrementAndGet() == 0)
+						{
+							sortedRootNodes.sort()
+							sortedRootNodes.forEach { m -> treeRoot.add(m) }
+							val enumeration: Enumeration<DefaultMutableTreeNode> =
+								treeRoot.preorderEnumeration().cast()
+							// Skip the invisible root.
+							enumeration.nextElement()
+							while (enumeration.hasMoreElements())
+							{
+								val subNode: AbstractBuilderFrameTreeNode =
+									enumeration.nextElement().cast()
+								subNode.sortChildren()
+							}
+							withTreeNode(treeRoot)
+						}
 					}
-					withTreeNode(treeRoot)
-				}
-			}) { code, ex ->
-				System.err.println(
-					"Workbench could not walk root: ${root.name}: $code")
-				ex?.printStackTrace()
-			}
+				},
+				{ code, ex ->
+					System.err.println(
+						"Workbench could not walk root: ${root.name}: $code"
+					)
+					ex?.printStackTrace()
+				})
 		}
 	}
 
@@ -1034,65 +1038,72 @@ class AvailWorkbench internal constructor (
 	 * @param parentRef
 	 *   The root's [ResolverReference] that will be
 	 *   [traversed][ResolverReference.walkChildrenThen].
+	 * @param afterCreated
+	 *   What to do after all root nodes have been recursively created. Accepts
+	 *   the count of created nodes across all roots.
 	 */
-	private fun createRootNodes (
+	private fun createRootNodesThen (
 		rootNode: ModuleRootNode,
-		parentRef: ResolverReference)
+		parentRef: ResolverReference,
+		afterCreated: (Int)->Unit)
 	{
 		val parentMap = mutableMapOf<String, DefaultMutableTreeNode>()
 		parentMap[parentRef.qualifiedName] = rootNode
-		parentRef.walkChildrenThen(false, {
-			if (it.isRoot)
+		parentRef.walkChildrenThen(
+			false,
 			{
-				return@walkChildrenThen
-			}
-			val parentNode = parentMap[it.qualifiedLocation]
-				?: return@walkChildrenThen
-			if (it.type == ResourceType.MODULE)
-			{
-				try
+				if (it.isRoot)
 				{
-					val resolved =
-						resolver.resolve(it.moduleName)
-					val node = ModuleOrPackageNode(
-						availBuilder, it.moduleName, resolved, false)
-					parentNode.add(node)
-				}
-				catch (e: UnresolvedDependencyException)
-				{
-					// TODO MvG - Find a better way of reporting broken
-					// dependencies. Ignore for now (during directory scan).
-					throw RuntimeException(e)
-				}
-			}
-			else if (it.type == ResourceType.PACKAGE)
-			{
-				val moduleName = it.moduleName
-				val resolved: ResolvedModuleName
-				try
-				{
-					resolved = resolver.resolve(moduleName)
-				}
-				catch (e: UnresolvedDependencyException)
-				{
-					// The directory didn't contain the necessary package
-					// representative, so simply skip the whole directory.
 					return@walkChildrenThen
 				}
+				val parentNode = parentMap[it.parentName]
+					?: return@walkChildrenThen
+				if (it.type == ResourceType.MODULE)
+				{
+					try
+					{
+						val resolved =
+							resolver.resolve(it.moduleName)
+						val node = ModuleOrPackageNode(
+							availBuilder, it.moduleName, resolved, false)
+						parentNode.add(node)
+					}
+					catch (e: UnresolvedDependencyException)
+					{
+						// TODO MvG - Find a better way of reporting broken
+						//  dependencies. Ignore for now (during scan).
+						throw RuntimeException(e)
+					}
+				}
+				else if (it.type == ResourceType.PACKAGE)
+				{
+					val moduleName = it.moduleName
+					val resolved: ResolvedModuleName
+					try
+					{
+						resolved = resolver.resolve(moduleName)
+					}
+					catch (e: UnresolvedDependencyException)
+					{
+						// The directory didn't contain the necessary package
+						// representative, so simply skip the whole directory.
+						return@walkChildrenThen
+					}
 
-				val node = ModuleOrPackageNode(
-					availBuilder, moduleName, resolved, true)
-				parentNode.add(node)
-				if (resolved.isRename)
-				{
-					// Don't examine modules inside a package which is the
-					// source of a rename.  They wouldn't have resolvable
-					// dependencies anyhow.
-					return@walkChildrenThen
+					val node = ModuleOrPackageNode(
+						availBuilder, moduleName, resolved, true)
+					parentNode.add(node)
+					if (resolved.isRename)
+					{
+						// Don't examine modules inside a package which is the
+						// source of a rename.  They wouldn't have resolvable
+						// dependencies anyhow.
+						return@walkChildrenThen
+					}
+					parentMap[it.qualifiedName] = node
 				}
-				parentMap[it.qualifiedName] = node
-			}
-		}) {}
+			},
+			afterCreated)
 	}
 
 	/**
@@ -2280,7 +2291,7 @@ class AvailWorkbench internal constructor (
 			}
 			if (darkMode)
 			{
-				LafManager.install(DarculaTheme());
+				LafManager.install(DarculaTheme())
 			}
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
@@ -2418,7 +2429,6 @@ class AvailWorkbench internal constructor (
 				bench.setEnablements()
 				bench.isVisible = true
 				resolver.moduleRoots.roots.forEach {
-					it.resolver.watchRoot()
 					it.resolver.subscribeRootWatcher { event, _ ->
 						when (event)
 						{

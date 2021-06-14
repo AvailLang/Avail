@@ -80,8 +80,6 @@ interface ModuleRootResolver
 	 */
 	val uri: URI
 
-//	val urlEncodedURI get() = URLEncoder.encode(uri, CharSet.)
-
 	/**
 	 * The [ModuleRoot] this [ModuleRootResolver] resolves to.
 	 */
@@ -153,12 +151,6 @@ interface ModuleRootResolver
 	 * proper clean up of any open resources.
 	 */
 	fun close () = Unit
-
-	/**
-	 * Watch [moduleRoot] for changes to files that occur in the root outside
-	 * of the currently running instance of Avail.
-	 */
-	fun watchRoot ()
 
 	/**
 	 * Subscribe to receive notifications of [WatchEventType]s occurring to this
@@ -321,7 +313,7 @@ interface ModuleRootResolver
 	 * Retrieve the resource and provide it with a request to obtain
 	 * the raw file bytes.
 	 *
-	 * @param byPassFileManager
+	 * @param bypassFileManager
 	 *   `true` indicates the file should be read directly from the source
 	 *   location; `false` indicates an attempt to read from the [FileManager]
 	 *   should be made.
@@ -336,7 +328,7 @@ interface ModuleRootResolver
 	 *   of the failure and a `nullable` [Throwable].
 	 */
 	fun readFile(
-		byPassFileManager: Boolean,
+		bypassFileManager: Boolean,
 		reference: ResolverReference,
 		withContents: (ByteArray, UUID?)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)

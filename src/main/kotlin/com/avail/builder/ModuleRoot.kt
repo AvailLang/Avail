@@ -62,7 +62,7 @@ import java.lang.RuntimeException
  * @param resolver
  *   The [ModuleRootResolver] used to provide access to the location that
  *   contains source [modules][ModuleDescriptor] and resources for this
- *   [root][ModuleRoot], or `null` if no `ModuleRootResolver` is available.
+ *   [root][ModuleRoot].
  * @throws IndexedFileException
  *   If the indexed repository could not be opened.
  */

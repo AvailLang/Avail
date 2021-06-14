@@ -304,6 +304,7 @@ class ExampleUsage
 			outOfRange = generator.unreachablePcOperand(),
 			inRange = generator.unreachablePcOperand())
 		//gen.addInstruction(instruction)
-		println(add)
+		// Just check that toString doesn't crash.
+		add.toString()
 	}
 }
