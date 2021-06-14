@@ -64,7 +64,6 @@ class AvailThread internal constructor(
 	/**
 	 * The [Avail runtime][AvailRuntime] that owns this [thread][AvailThread].
 	 */
-	@JvmField
 	val runtime: AvailRuntime = interpreter.runtime
 
 	companion object
@@ -101,7 +100,6 @@ class AvailThread internal constructor(
 		 * @throws ClassCastException
 		 *   If the current thread isn't an `AvailThread`.
 		 */
-		@JvmStatic
 		@Throws(ClassCastException::class)
 		fun current(): AvailThread = currentThread().cast()
 	}

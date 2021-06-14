@@ -239,8 +239,8 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 	 * @throws MethodDefinitionException
 	 *   If the lookup did not resolve to a unique executable function.
 	 */
-	@JvmStatic
 	@ReferencedInGeneratedCode
+	@JvmStatic
 	@Throws(MethodDefinitionException::class)
 	fun lookup(
 		interpreter: Interpreter,

@@ -406,7 +406,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The most general pojo type.
 		 */
-		@JvmStatic
 		fun mostGeneralPojoType(): A_Type =
 			UnfusedPojoTypeDescriptor.mostGeneralType
 
@@ -416,7 +415,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The most general pojo array type.
 		 */
-		@JvmStatic
 		fun mostGeneralPojoArrayType(): A_Type =
 			ArrayPojoTypeDescriptor.mostGeneralType
 
@@ -435,7 +433,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The pojo self type atom.
 		 */
-		@JvmStatic
 		fun pojoSelfTypeAtom(): A_Atom = selfTypeAtom
 
 		/**
@@ -453,7 +450,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The pojo self type atom.
 		 */
-		@JvmStatic
 		fun pojoSelfType(): A_Type = selfType
 
 		/**
@@ -472,7 +468,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   `[-128..127]`.
 		 */
-		@JvmStatic
 		fun byteRange(): A_Type = byteRange
 
 		/**
@@ -491,7 +486,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   `[-32768..32767]`.
 		 */
-		@JvmStatic
 		fun shortRange(): A_Type = shortRange
 
 		/**
@@ -507,7 +501,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   `[-2147483648..2147483647]`.
 		 */
-		@JvmStatic
 		fun intRange(): A_Type = intRange
 
 		/**
@@ -523,7 +516,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   `[-9223372036854775808..9223372036854775807]`.
 		 */
-		@JvmStatic
 		fun longRange(): A_Type = longRange
 
 		/**
@@ -542,7 +534,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   `[-9223372036854775808..9223372036854775807]`.
 		 */
-		@JvmStatic
 		fun charRange(): A_Type = charRange
 
 
@@ -895,7 +886,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   An Avail type.
 		 */
-		@JvmStatic
 		fun resolvePojoType(type: Type, typeVars: A_Map): A_Type
 		{
 			// If type is a Java class or interface, then answer a pojo type.
@@ -1031,7 +1021,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The canonical Avail type for the given pojo type.
 		 */
-		@JvmStatic
 		fun canonicalPojoType(
 			probablePojoType: A_Type,
 			allowMetas: Boolean): A_Type
@@ -1253,7 +1242,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The requested pojo type.
 		 */
-		@JvmStatic
 		fun pojoTypeForClassWithTypeArguments(
 			target: Class<*>,
 			typeArgs: A_Tuple): AvailObject
@@ -1270,7 +1258,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The requested pojo type.
 		 */
-		@JvmStatic
 		fun pojoTypeForClass(target: Class<*>): AvailObject
 		{
 			val paramCount = target.typeParameters.size
@@ -1304,7 +1291,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The requested pojo type.
 		 */
-		@JvmStatic
 		fun pojoArrayType(elementType: A_Type, sizeRange: A_Type): AvailObject
 		{
 			assert(sizeRange.isSubtypeOf(
@@ -1369,7 +1355,6 @@ abstract class PojoTypeDescriptor protected constructor(
 		 * @return
 		 *   The requested pojo type.
 		 */
-		@JvmStatic
 		fun selfTypeForClass(target: Class<*>): AvailObject
 		{
 			val canon = Canon()

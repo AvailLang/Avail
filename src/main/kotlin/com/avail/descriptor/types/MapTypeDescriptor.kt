@@ -59,6 +59,7 @@ import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots
@@ -214,11 +215,30 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
+		if (!self.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			self.makeImmutable()
+			return mapTypeForSizesKeyTypeValueType(
+				self.sizeRange().typeIntersection(int32),
+				self.keyType(),
+				self.valueType()
+			).trimType(typeToRemove)
+		}
 		if (self.isSubtypeOf(typeToRemove)) return bottom
 		if (!typeToRemove.isMapType) return self
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
+		if (!typeToRemove.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			return self.trimType(
+				mapTypeForSizesKeyTypeValueType(
+					typeToRemove.sizeRange().typeIntersection(int32),
+					typeToRemove.keyType(),
+					typeToRemove.valueType()))
+		}
 		val keyType = self.keyType()
 		val valueType = self.valueType()
 		val sizeRange = self.sizeRange()
@@ -383,7 +403,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The requested map type.
 		 */
-		@JvmStatic
 		fun mapTypeForSizesKeyTypeValueType(
 			sizeRange: A_Type,
 			keyType: A_Type,
@@ -478,7 +497,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The most general map type.
 		 */
-		@JvmStatic
 		fun mostGeneralMapType(): A_Type = mostGeneralType
 
 		/**
@@ -492,7 +510,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun mapMeta(): A_Type =  meta
 	}
 }

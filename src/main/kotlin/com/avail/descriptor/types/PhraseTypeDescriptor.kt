@@ -121,7 +121,6 @@ open class PhraseTypeDescriptor protected constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -542,7 +541,6 @@ open class PhraseTypeDescriptor protected constructor(
 			 *   An array of all `PhraseKind` enum values.  Do not modify the
 			 *   array.
 			 */
-			@JvmStatic
 			fun all(): Array<PhraseKind> = all.clone()
 
 			/**

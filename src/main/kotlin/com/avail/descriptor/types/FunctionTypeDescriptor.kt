@@ -135,7 +135,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -631,7 +630,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The function type "[…]→⊤".
 		 */
-		@JvmStatic
 		fun mostGeneralFunctionType(): A_Type = mostGeneralType
 
 		/**
@@ -647,7 +645,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The (meta-)type of the function type "[…]→⊤".
 		 */
-		@JvmStatic
 		fun functionMeta(): A_Type = meta
 
 		/**
@@ -721,7 +718,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *  A function type.
 		 */
-		@JvmStatic
 		fun functionTypeFromArgumentTupleType(
 			argsTupleType: A_Type,
 			returnType: A_Type?,
@@ -751,7 +747,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A function type.
 		 */
-		@JvmStatic
 		@JvmOverloads
 		fun functionType(
 			argTypes: A_Tuple,
@@ -779,7 +774,6 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A function type.
 		 */
-		@JvmStatic
 		fun functionTypeReturning(returnType: A_Type): A_Type =
 			functionTypeFromArgumentTupleType(
 				bottom,

@@ -218,7 +218,6 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A [literal&#32;token&#32;type][LiteralTokenTypeDescriptor].
 		 */
-		@JvmStatic
 		fun literalTokenType(literalType: A_Type): AvailObject =
 			mutable.create {
 				setSlot(LITERAL_TYPE, literalType.makeImmutable())
@@ -242,7 +241,6 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 * The most general literal token type.
 		 */
-		@JvmStatic
 		fun mostGeneralLiteralTokenType(): A_Type = mostGeneralType
 	}
 }

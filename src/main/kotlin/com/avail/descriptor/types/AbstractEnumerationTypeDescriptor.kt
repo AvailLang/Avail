@@ -515,7 +515,6 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 		 *   An [AvailObject] representing the type whose instances are those
 		 *   objects specified in the argument.
 		 */
-		@JvmStatic
 		fun enumerationWith(instancesSet: A_Set): A_Type
 		{
 			val setSize = instancesSet.setSize()
@@ -554,8 +553,8 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 		 *   An [AvailObject] representing the type whose instance is the object
 		 *   specified in the argument.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun instanceTypeOrMetaOn(instance: A_BasicObject): A_Type =
 			if (instance.isType)
 			{

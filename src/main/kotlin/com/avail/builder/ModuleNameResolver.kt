@@ -386,7 +386,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		 * The standard extension for Avail [module][ModuleDescriptor] source
 		 * files.
 		 */
-		@JvmStatic val availExtension = ".avail"
+		val availExtension = ".avail"
 
 		/**
 		 * Trivially translate the specified package name and local module name

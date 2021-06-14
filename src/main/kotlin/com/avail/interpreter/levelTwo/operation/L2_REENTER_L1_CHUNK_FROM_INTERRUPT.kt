@@ -79,8 +79,8 @@ object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 	 * @param interpreter
 	 *   The [Interpreter].
 	 */
-	@JvmStatic
 	@ReferencedInGeneratedCode
+	@JvmStatic
 	fun reenter(interpreter: Interpreter)
 	{
 		val continuation: A_Continuation =

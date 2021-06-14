@@ -157,7 +157,6 @@ class JVMChunkClassLoader : ClassLoader(JVMChunk::class.java.classLoader)
 	companion object
 	{
 		/** The [CheckedField] for [parameters].  */
-		@JvmField
 		val parametersField = instanceField(
 			JVMChunkClassLoader::class.java,
 			JVMChunkClassLoader::parameters.name,

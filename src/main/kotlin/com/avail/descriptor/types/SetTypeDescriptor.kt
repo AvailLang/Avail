@@ -59,6 +59,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots
@@ -186,11 +187,28 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
+		if (!self.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			self.makeImmutable()
+			return setTypeForSizesContentType(
+				self.sizeRange().typeIntersection(int32),
+				self.contentType()
+			).trimType(typeToRemove)
+		}
 		if (self.isSubtypeOf(typeToRemove)) return bottom
 		if (!typeToRemove.isSetType) return self
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
+		if (!typeToRemove.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			return self.trimType(
+				setTypeForSizesContentType(
+					typeToRemove.sizeRange().typeIntersection(int32),
+					typeToRemove.contentType()))
+		}
 		val contentType = self.contentType()
 		val removedContentType = typeToRemove.contentType()
 		val sizeRange = self.sizeRange()
@@ -324,7 +342,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   An immutable set type as specified.
 		 */
-		@JvmStatic
 		fun setTypeForSizesContentType(
 			sizeRange: A_Type,
 			contentType: A_Type): A_Type
@@ -427,7 +444,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return T
 		 *   The most general set type.
 		 */
-		@JvmStatic
 		fun mostGeneralSetType(): A_Type = mostGeneralType
 
 		/**
@@ -441,7 +457,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun setMeta(): A_Type =  meta
 	}
 }

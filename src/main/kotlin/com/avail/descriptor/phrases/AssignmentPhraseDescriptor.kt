@@ -102,7 +102,6 @@ class AssignmentPhraseDescriptor private constructor(
 			/**
 			 * Is this an inline [assignment][AssignmentPhraseDescriptor]?
 			 */
-			@JvmField
 			val IS_INLINE = BitField(FLAGS, 0, 1)
 		}
 	}

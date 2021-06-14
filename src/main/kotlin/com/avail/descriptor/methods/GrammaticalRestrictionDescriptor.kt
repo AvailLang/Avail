@@ -114,7 +114,6 @@ class GrammaticalRestrictionDescriptor private constructor(
 			 * A slot to hold the hash value, a random value computed at
 			 * construction time.
 			 */
-			@JvmField
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -185,7 +184,6 @@ class GrammaticalRestrictionDescriptor private constructor(
 		 * @return
 		 *   The new grammatical restriction.
 		 */
-		@JvmStatic
 		fun newGrammaticalRestriction(
 			argumentRestrictionSets: A_Tuple,
 			restrictedBundle: A_Bundle,

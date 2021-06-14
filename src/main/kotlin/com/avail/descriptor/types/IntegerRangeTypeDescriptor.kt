@@ -493,7 +493,6 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * @return
 		 *   A [range][IntegerRangeTypeDescriptor] containing a single value.
 		 */
-		@JvmStatic
 		fun singleInteger(integerObject: A_Number): A_Type
 		{
 			integerObject.makeImmutable()
@@ -508,7 +507,6 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * @return
 		 *   A range containing a single value.
 		 */
-		@JvmStatic
 		fun singleInt(anInt: Int): A_Type
 		{
 			val integerObject: A_Number = fromInt(anInt).makeImmutable()
@@ -531,7 +529,6 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * @return
 		 *   The new normalized integer range type.
 		 */
-		@JvmStatic
 		fun integerRangeType(
 			lowerBound: A_Number,
 			lowerInclusive: Boolean,
@@ -605,7 +602,6 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * @return
 		 *   The integral type containing the bounds and all integers between.
 		 */
-		@JvmStatic
 		fun inclusive(lowerBound: A_Number, upperBound: A_Number): A_Type =
 			integerRangeType(lowerBound, true, upperBound, true)
 
@@ -619,7 +615,6 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * @return
 		 *   The integral type containing the bounds and all integers between.
 		 */
-		@JvmStatic
 		fun inclusive(lowerBound: Long, upperBound: Long): A_Type =
 			integerRangeType(
 				fromLong(lowerBound), true, fromLong(upperBound), true)

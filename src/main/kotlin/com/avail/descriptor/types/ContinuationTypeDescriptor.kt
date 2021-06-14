@@ -266,7 +266,6 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A new continuation type.
 		 */
-		@JvmStatic
 		fun continuationTypeForFunctionType(
 			functionType: A_Type
 		): A_Type = mutable.createImmutable {
@@ -299,7 +298,6 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 *   A continuation type which has no supertypes that are themselves
 		 *   continuation types.
 		 */
-		@JvmStatic
 		fun mostGeneralContinuationType(): A_Type = mostGeneralType
 
 		/**
@@ -316,7 +314,6 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun continuationMeta(): A_Type =  meta
 	}
 }

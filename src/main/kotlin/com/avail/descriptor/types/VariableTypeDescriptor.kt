@@ -253,7 +253,6 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new variable type.
 		 */
-		@JvmStatic
 		fun variableTypeFor(innerType: A_Type): A_Type = mutable.create {
 			setSlot(INNER_TYPE, innerType.makeImmutable())
 		}
@@ -269,7 +268,6 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new variable type.
 		 */
-		@JvmStatic
 		fun variableReadWriteType(readType: A_Type, writeType: A_Type): A_Type =
 			if (readType.equals(writeType))
 			{
@@ -301,7 +299,6 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 *   The most general
 		 *   [variable&amp;#32;type][ReadWriteVariableTypeDescriptor].
 		 */
-		@JvmStatic
 		fun mostGeneralVariableType(): A_Type = mostGeneralType
 
 		/**
@@ -318,7 +315,6 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		 *   The instance type containing the most general
 		 *   [variable][ReadWriteVariableTypeDescriptor] metatype.
 		 */
-		@JvmStatic
 		fun variableMeta(): A_Type = variableMeta
 	}
 }

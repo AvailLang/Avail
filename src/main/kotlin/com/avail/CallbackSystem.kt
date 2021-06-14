@@ -271,7 +271,6 @@ class CallbackSystem
 		 * @return
 		 *   The Avail [A_Function].
 		 */
-		@JvmStatic
 		fun createCallbackFunction(
 			functionType: A_Type,
 			callbackFunction: (
@@ -313,7 +312,6 @@ class CallbackSystem
 		 *   The Avail [A_Function].
 		 */
 		@Suppress("unused")
-		@JvmStatic
 		fun createCallbackFunctionInJava(
 			functionType: A_Type,
 			callback: Callback

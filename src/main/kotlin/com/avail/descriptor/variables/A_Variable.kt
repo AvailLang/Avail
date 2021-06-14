@@ -380,14 +380,12 @@ interface A_Variable : A_ChunkDependable
 	companion object
 	{
 		/** The [CheckedMethod] for [getValue].  */
-		@JvmField
 		val getValueMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
 			A_Variable::getValue.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [setValue].  */
-		@JvmField
 		val setValueMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
 			A_Variable::setValue.name,
@@ -395,7 +393,6 @@ interface A_Variable : A_ChunkDependable
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [setValueNoCheck]. */
-		@JvmField
 		val setValueNoCheckMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
 			A_Variable::setValueNoCheck.name,
@@ -403,7 +400,6 @@ interface A_Variable : A_ChunkDependable
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [compareAndSwapValuesNoCheck]. */
-		@JvmField
 		val compareAndSwapValuesNoCheckMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
 			A_Variable::compareAndSwapValuesNoCheck.name,

@@ -112,13 +112,11 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			/**
 			 * The first index of the basis tuple that is within this subrange.
 			 */
-			@JvmField
 			val START_INDEX = BitField(START_AND_SIZE, 0, 32)
 
 			/**
@@ -126,7 +124,6 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			 * [START_INDEX].  Must not be zero, and should probably be at
 			 * least some reasonable size to avoid time and space overhead.
 			 */
-			@JvmField
 			val SIZE = BitField(START_AND_SIZE, 32, 32)
 
 			init

@@ -126,7 +126,6 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -209,7 +208,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any?
+		classHint: Class<*>?): Any
 	{
 		val elementType: A_BasicObject = self.slot(CONTENT_TYPE)
 		return Array.newInstance(
@@ -438,7 +437,6 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		 * @return
 		 *   The requested pojo array type.
 		 */
-		@JvmStatic
 		fun arrayPojoType(
 			elementType: A_Type,
 			sizeRange: A_Type): AvailObject
@@ -474,7 +472,6 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		}
 
 		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor].  */
-		@JvmField
 		val mostGeneralType: A_Type =
 			pojoArrayType(Types.ANY.o, wholeNumbers).makeShared()
 	}

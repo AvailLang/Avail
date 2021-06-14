@@ -99,7 +99,6 @@ class LiteralTokenDescriptor private constructor(
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
-			@JvmField
 			val LINE_NUMBER = BitField(START_AND_LINE, 4, 28)
 
 			/**
@@ -109,7 +108,6 @@ class LiteralTokenDescriptor private constructor(
 			 * deeply flexible syntax.
 			 */
 			@HideFieldInDebugger
-			@JvmField
 			val START = BitField(START_AND_LINE, 32, 32)
 
 			init
@@ -255,7 +253,6 @@ class LiteralTokenDescriptor private constructor(
 		 * @return
 		 *   The new literal token.
 		 */
-		@JvmStatic
 		fun literalToken(
 			string: A_String,
 			start: Int,

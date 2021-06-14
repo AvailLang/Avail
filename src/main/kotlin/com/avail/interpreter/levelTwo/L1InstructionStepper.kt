@@ -126,17 +126,14 @@ import java.util.regex.Pattern
 class L1InstructionStepper constructor(val interpreter: Interpreter)
 {
 	/** The current position in the nybblecodes.  */
-	@JvmField
 	val instructionDecoder = L1InstructionDecoder()
 
 	/** The current stack position as would be seen in a continuation.  */
-	@JvmField
 	var stackp = 0
 
 	/**
 	 * The registers that hold [Avail&#32;objects][AvailObject].
 	 */
-	@JvmField
 	var pointers : Array<AvailObject> = emptyPointersArray
 
 	/**
@@ -1063,7 +1060,6 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		private val whitespaces = Pattern.compile("\\s+")
 
 		/** The [CheckedMethod] for [run].  */
-		@JvmField
 		val runMethod: CheckedMethod = instanceMethod(
 			L1InstructionStepper::class.java,
 			L1InstructionStepper::run.name,

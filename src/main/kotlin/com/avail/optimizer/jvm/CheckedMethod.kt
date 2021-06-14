@@ -161,7 +161,6 @@ class CheckedMethod private constructor(
 		 * @return
 		 *   The `CheckedMethod`.
 		 */
-		@JvmStatic
 		fun instanceMethod(
 			receiverClass: Class<*>,
 			methodName: String,
@@ -191,7 +190,6 @@ class CheckedMethod private constructor(
 		 * @return
 		 *   The `CheckedMethod`.
 		 */
-		@JvmStatic
 		fun staticMethod(
 			receiverClass: Class<*>,
 			methodName: String,

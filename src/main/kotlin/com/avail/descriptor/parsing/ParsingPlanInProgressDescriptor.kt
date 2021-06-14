@@ -101,7 +101,6 @@ class ParsingPlanInProgressDescriptor private constructor(
 
 		companion object {
 			/** The subscript into my parsing plan's parsing instructions. */
-			@JvmField
 			val PARSING_PC = BitField(PARSING_PC_AND_MORE, 0, 32)
 		}
 	}
@@ -201,7 +200,6 @@ class ParsingPlanInProgressDescriptor private constructor(
 		 * @return
 		 *   A new parsing-plan-in-progress.
 		 */
-		@JvmStatic
 		fun newPlanInProgress(
 			plan: A_DefinitionParsingPlan,
 			pc: Int

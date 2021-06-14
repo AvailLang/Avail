@@ -123,14 +123,12 @@ class TypeRestriction private constructor(
 	 * The type of value that known to be in this register if this control
 	 * flow path is taken.
 	 */
-	@JvmField
 	val type: A_Type
 
 	/**
 	 * The exact value that is known to be in this register if this control flow
 	 * path is taken, or `null` if unknown.
 	 */
-	@JvmField
 	val constantOrNull: AvailObject?
 
 	/**
@@ -918,7 +916,6 @@ class TypeRestriction private constructor(
 		 * The [TypeRestriction] for a register that has any value whatsoever,
 		 * excluding [NilDescriptor.nil], but it's not known to be immutable.
 		 */
-		@JvmField
 		val anyRestriction = TypeRestriction(
 			ANY.o,
 			null,
@@ -950,7 +947,6 @@ class TypeRestriction private constructor(
 		 * It's marked as immutable because nothing can read from a register
 		 * with this restriction.
 		 */
-		@JvmField
 		val bottomRestriction = TypeRestriction(
 			BottomTypeDescriptor.bottom,
 			null,
@@ -1349,7 +1345,6 @@ class TypeRestriction private constructor(
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
-		@JvmStatic
 		fun restrictionForType(
 			type: A_Type,
 			encoding: RestrictionFlagEncoding): TypeRestriction
@@ -1378,7 +1373,6 @@ class TypeRestriction private constructor(
 		 * @return
 		 *   The new or existing canonical TypeRestriction.
 		 */
-		@JvmStatic
 		fun restrictionForConstant(
 			constant: A_BasicObject,
 			encoding: RestrictionFlagEncoding): TypeRestriction

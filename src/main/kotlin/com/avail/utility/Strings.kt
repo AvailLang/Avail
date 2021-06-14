@@ -138,7 +138,6 @@ object Strings {
 	 * @receiver A [StringBuilder].
 	 * @param indent The number of tabs to append.
 	 */
-	@JvmStatic
 	fun StringBuilder.tab(
 		indent: Int
 	) {
@@ -154,7 +153,6 @@ object Strings {
 	 * @param builder A [StringBuilder].
 	 * @param indent The number of tabs to append after the newline.
 	 */
-	@JvmStatic
 	fun newlineTab(
 		builder: StringBuilder,
 		indent: Int
@@ -169,7 +167,6 @@ object Strings {
 	 * Answer a [String] consisting of [count] repetitions of [string],
 	 * concatenated.
 	 */
-	@JvmStatic
 	fun repeated (string: String, count: Int): String
 	{
 		assert(count >= 0)
@@ -193,7 +190,6 @@ object Strings {
 	 * The number of additional tabs ( 0) to add after each line break.
 	 * @return The newly indented string.
 	 */
-	@JvmStatic
 	fun increaseIndentation(
 		originalString: String,
 		increasedIndentation: Int
@@ -214,7 +210,6 @@ object Strings {
 	 * @param e A [Throwable].
 	 * @return The stringification of the stack trace.
 	 */
-	@JvmStatic
 	fun traceFor(e: Throwable): String {
 		return try {
 			val traceBytes = ByteArrayOutputStream()

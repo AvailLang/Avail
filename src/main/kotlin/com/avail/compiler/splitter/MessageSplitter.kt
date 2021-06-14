@@ -1281,7 +1281,6 @@ class MessageSplitter
 		 * The [set][A_Set] of all [errors][AvailErrorCode] that can happen
 		 * during [message&#32;splitting][MessageSplitter].
 		 */
-		@JvmStatic
 		val possibleErrors: A_Set = set(
 			E_INCORRECT_ARGUMENT_TYPE,
 			E_INCORRECT_TYPE_FOR_GROUP,
@@ -1328,7 +1327,6 @@ class MessageSplitter
 		 * @return
 		 *   The codepoint which depicts that number inside a circle.
 		 */
-		@JvmStatic
 		fun circledNumberCodePoint(number: Int): Int {
 			assert(number in 0 until circledNumbersCount)
 			return circledNumberCodePoints[number]
@@ -1385,7 +1383,6 @@ class MessageSplitter
 		 * @return
 		 *   The permutation (a [tuple][A_Tuple] of Avail integers).
 		 */
-		@JvmStatic
 		fun permutationAtIndex(index: Int): AvailObject =
 			permutations.get().tupleAt(index)
 
@@ -1398,7 +1395,6 @@ class MessageSplitter
 		 *   determined.
 		 * @return The permutation's one-based index.
 		 */
-		@JvmStatic
 		fun indexForPermutation(permutation: A_Tuple): Int {
 			var checkedLimit = 0
 			while (true) {
@@ -1430,7 +1426,6 @@ class MessageSplitter
 		 *   The one-based index of the type, which can be retrieved later via
 		 *   [constantForIndex].
 		 */
-		@JvmStatic
 		fun indexForConstant(constant: A_BasicObject): Int {
 			val strongConstant = constant.makeShared()
 			constantsLock.read {
@@ -1454,11 +1449,9 @@ class MessageSplitter
 		}
 
 		/** The position at which true is stored in the [constantsList].  */
-		@JvmStatic
 		val indexForTrue = indexForConstant(trueObject)
 
 		/** The position at which false is stored in the [constantsList].  */
-		@JvmStatic
 		val indexForFalse = indexForConstant(falseObject)
 
 		/**
@@ -1470,7 +1463,6 @@ class MessageSplitter
 		 * @return
 		 *   The [AvailObject] at the given index.
 		 */
-		@JvmStatic
 		fun constantForIndex(index: Int): AvailObject =
 			constantsLock.read { constantsList[index - 1] }
 
@@ -1526,7 +1518,6 @@ class MessageSplitter
 		 * @throws SignatureException
 		 *         Always, with the given error code.
 		 */
-		@JvmStatic
 		@Throws(SignatureException::class)
 		fun throwSignatureException(errorCode: AvailErrorCode): Nothing {
 			throw SignatureException(errorCode)
@@ -1546,7 +1537,6 @@ class MessageSplitter
 		 *   thrown so that the caller can pretend to throw it again to indicate
 		 *   to Java that this call terminates the control flow unconditionally.
 		 */
-		@JvmStatic
 		@Throws(MalformedMessageException::class)
 		fun throwMalformedMessageException(
 			errorCode: AvailErrorCode, errorMessage: String
@@ -1581,7 +1571,6 @@ class MessageSplitter
 		 *   Whether the codePoint can be used as an operator character in a
 		 *   method name.
 		 */
-		@JvmStatic
 		fun isOperator(cp: Int) =
 			!(Character.isDigit(cp)
 				|| Character.isUnicodeIdentifierStart(cp)

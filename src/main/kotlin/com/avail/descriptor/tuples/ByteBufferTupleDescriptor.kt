@@ -110,7 +110,6 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -567,7 +566,6 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		 * @return
 		 *   The requested byte buffer tuple.
 		 */
-		@JvmStatic
 		fun tupleForByteBuffer(buffer: ByteBuffer): AvailObject =
 			mutable.create {
 				assert(buffer.position() == 0)

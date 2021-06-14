@@ -1431,7 +1431,6 @@ class Repository constructor(
 		 * @throws IndexedFileException
 		 *   If an [exception][Exception] occurs.
 		 */
-		@JvmStatic
 		fun createTemporary(
 			rootName: String,
 			prefix: String,
@@ -1469,7 +1468,6 @@ class Repository constructor(
 		 *   If an [I/O&#32;exception][IOException] occurs.
 		 */
 		@Suppress("unused")
-		@JvmStatic
 		@Throws(IOException::class)
 		fun isIndexedRepositoryFile(path: File): Boolean
 		{

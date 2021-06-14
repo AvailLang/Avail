@@ -142,7 +142,6 @@ class ContinuationDescriptor private constructor(
 			 * The index into the current continuation's [FUNCTION]'s compiled
 			 * code's tuple of nybblecodes at which execution will next occur.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -154,7 +153,6 @@ class ContinuationDescriptor private constructor(
 			 * It grows from the top + 1 (empty stack), and at its deepest it
 			 * just abuts the last local variable.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -165,7 +163,6 @@ class ContinuationDescriptor private constructor(
 			 * The Level Two [instruction][L2Chunk.instructions] index at
 			 * which to resume.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -174,7 +171,6 @@ class ContinuationDescriptor private constructor(
 			/**
 			 * Either zero or the hash of this [A_Continuation].
 			 */
-			@JvmField
 			@HideFieldInDebugger
 			val HASH_OR_ZERO = BitField(LEVEL_TWO_OFFSET_AND_HASH, 0, 32)
 		}
@@ -523,7 +519,6 @@ class ContinuationDescriptor private constructor(
 
 	companion object {
 		/** The [CheckedMethod] for [A_Continuation.function]. */
-		@JvmField
 		val continuationFunctionMethod: CheckedMethod = instanceMethod(
 			A_Continuation::class.java,
 			A_Continuation::function.name,
@@ -548,7 +543,6 @@ class ContinuationDescriptor private constructor(
 		 * @return
 		 *   The new continuation.
 		 */
-		@JvmStatic
 		fun createLabelContinuation(
 			function: A_Function,
 			caller: A_Continuation,
@@ -602,8 +596,8 @@ class ContinuationDescriptor private constructor(
 		 * @return
 		 *   A new mutable continuation.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createContinuationExceptFrame(
 			function: A_Function,
 			caller: A_Continuation,
@@ -627,7 +621,6 @@ class ContinuationDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [createContinuationExceptFrame]. */
-		@JvmField
 		val createContinuationExceptFrameMethod: CheckedMethod = staticMethod(
 			ContinuationDescriptor::class.java,
 			::createContinuationExceptFrame.name,
@@ -666,7 +659,6 @@ class ContinuationDescriptor private constructor(
 		 * @return
 		 *   A new mutable continuation.
 		 */
-		@JvmStatic
 		fun createContinuationWithFrame(
 			function: A_Function,
 			caller: A_Continuation,
@@ -713,8 +705,8 @@ class ContinuationDescriptor private constructor(
 		 *   A new continuation, which can be resumed but is not reflectively
 		 *   meaningful.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createDummyContinuation(
 			function: A_Function,
 			boxedRegisters: Array<AvailObject>,
@@ -734,7 +726,6 @@ class ContinuationDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [createDummyContinuation]. */
-		@JvmField
 		val createDummyContinuationMethod: CheckedMethod = staticMethod(
 			ContinuationDescriptor::class.java,
 			::createDummyContinuation.name,

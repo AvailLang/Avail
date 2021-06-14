@@ -112,7 +112,6 @@ class ListPhraseTypeDescriptor internal constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -430,7 +429,6 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A canonized list phrase type.
 		 */
-		@JvmStatic
 		fun createListNodeType(
 			kind: PhraseKind,
 			yieldType: A_Type,
@@ -469,7 +467,6 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A canonized list phrase type.
 		 */
-		@JvmStatic
 		fun createListNodeType(subexpressionsTupleType: A_Type): A_Type
 		{
 			assert(subexpressionsTupleType.isTupleType)
@@ -507,7 +504,6 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A list phrase type.
 		 */
-		@JvmStatic
 		fun createListNodeTypeNoCheck(
 			listNodeEnumKind: PhraseKind,
 			yieldType: A_Type,

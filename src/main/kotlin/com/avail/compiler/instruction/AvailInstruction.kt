@@ -131,7 +131,6 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 		 * @param aStream
 		 *   The stream on which to write the integer.
 		 */
-		@JvmStatic
 		fun writeIntegerOn(anInteger: Int, aStream: NybbleOutputStream)
 		{
 			assert(anInteger >= 0) { "only positive integers" }

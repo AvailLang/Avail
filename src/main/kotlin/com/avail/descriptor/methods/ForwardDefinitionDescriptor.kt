@@ -188,7 +188,6 @@ class ForwardDefinitionDescriptor private constructor(
 		 * @return
 		 *   The new forward declaration signature.
 		 */
-		@JvmStatic
 		fun newForwardDefinition(
 			definitionMethod: A_BasicObject,
 			definitionModule: A_Module,

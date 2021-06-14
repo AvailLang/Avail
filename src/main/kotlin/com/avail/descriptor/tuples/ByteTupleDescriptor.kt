@@ -124,7 +124,6 @@ class ByteTupleDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -584,8 +583,8 @@ class ByteTupleDescriptor private constructor(
 		 * @return
 		 *   A byte tuple with the specified number of bytes (initially zero).
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun mutableObjectOfSize(size: Int): AvailObject
 		{
 			val descriptor = descriptorFor(Mutability.MUTABLE, size)
@@ -594,7 +593,6 @@ class ByteTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		@JvmField
 		val createUninitializedByteTupleMethod: CheckedMethod = staticMethod(
 			ByteTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
@@ -614,7 +612,6 @@ class ByteTupleDescriptor private constructor(
 		 * @return
 		 *   The new tuple.
 		 */
-		@JvmStatic
 		fun generateByteTupleFrom(
 			size: Int,
 			generator: (Int) -> Int): AvailObject

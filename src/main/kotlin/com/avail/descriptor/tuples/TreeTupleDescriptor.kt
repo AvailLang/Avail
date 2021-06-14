@@ -126,7 +126,6 @@ class TreeTupleDescriptor internal constructor(
 			 * subtuples is easily computable from the hashes of the subtuples
 			 * and their lengths.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -773,7 +772,6 @@ class TreeTupleDescriptor internal constructor(
 		 * @return
 		 * The concatenated tuple, perhaps having destroyed or recycled one of the input tuples if permitted.
 		 */
-		@JvmStatic
 		fun concatenateAtLeastOneTree(
 			tuple1: AvailObject,
 			tuple2: A_Tuple,
@@ -1013,7 +1011,6 @@ class TreeTupleDescriptor internal constructor(
 		 * @return
 		 *   A new tree tuple at newLevel.
 		 */
-		@JvmStatic
 		fun createTwoPartTreeTuple(
 			left: A_Tuple,
 			right: A_Tuple,

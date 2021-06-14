@@ -158,7 +158,6 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	 * @return
 	 *   The instruction's source [L2ReadBoxedOperand].
 	 */
-	@JvmStatic
 	fun sourceOfImmutable(instruction: L2Instruction): L2ReadBoxedOperand
 	{
 		assert(instruction.operation() is L2_MAKE_IMMUTABLE)

@@ -1924,7 +1924,6 @@ class JVMTranslator constructor(
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
-		@JvmField
 		var debugJVM = false
 	}
 

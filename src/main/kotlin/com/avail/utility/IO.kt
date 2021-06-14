@@ -75,7 +75,6 @@ object IO
 	 * @param closeable
 	 *   A closeable resource, or `null`.
 	 */
-	@JvmStatic
 	fun closeIfNotNull(closeable: AutoCloseable?)
 	{
 		if (closeable !== null)

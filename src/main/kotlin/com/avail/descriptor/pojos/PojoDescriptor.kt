@@ -180,7 +180,6 @@ class PojoDescriptor private constructor(
 		 * @return
 		 *   The new Avail [pojo][PojoDescriptor].
 		 */
-		@JvmStatic
 		fun newPojo(
 			rawPojo: AvailObject,
 			pojoType: A_Type
@@ -200,7 +199,6 @@ class PojoDescriptor private constructor(
 		 * @return
 		 *   The `null` pojo.
 		 */
-		@JvmStatic
 		fun nullPojo(): AvailObject = nullObject
 	}
 }

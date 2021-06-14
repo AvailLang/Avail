@@ -96,7 +96,6 @@ open class AvailException : Exception
 	companion object
 	{
 		/** The [CheckedMethod] for [numericCode]. */
-		@JvmStatic
 		val numericCodeMethod: CheckedMethod = instanceMethod(
 			AvailException::class.java,
 			AvailException::numericCode.name,

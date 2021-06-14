@@ -209,7 +209,6 @@ enum class StatisticReport constructor(
 		 * @return
 		 *   The specified reports as a single [String].
 		 */
-		@JvmStatic
 		fun produceReports(reports: EnumSet<StatisticReport>): String =
 			StringBuilder("\n").apply {
 				reports.forEach { report ->

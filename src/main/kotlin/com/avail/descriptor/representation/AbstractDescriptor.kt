@@ -4241,7 +4241,6 @@ abstract class AbstractDescriptor protected constructor (
 		 * @param builder
 		 *   Where to describe the number.
 		 */
-		@JvmStatic
 		fun describeLong (
 			value: Long,
 			numBits: Int,

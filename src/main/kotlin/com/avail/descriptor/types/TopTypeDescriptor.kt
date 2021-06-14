@@ -77,7 +77,6 @@ class TopTypeDescriptor internal constructor(
 			/**
 			 * The hash, populated during construction.
 			 */
-			@JvmField
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 
 			init

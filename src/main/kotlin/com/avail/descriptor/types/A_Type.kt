@@ -1024,8 +1024,8 @@ interface A_Type : A_BasicObject
 		/**
 		 * Static method to extract the [argsTupleType] of a function type.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun argsTupleTypeStatic(self: AvailObject): AvailObject =
 			self.descriptor().o_ArgsTupleType(self) as AvailObject
 
@@ -1036,8 +1036,8 @@ interface A_Type : A_BasicObject
 			AvailObject::class.java,
 			AvailObject::class.java)
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun isSubtypeOfStatic(self: AvailObject, aType: A_Type): Boolean =
 			self.descriptor().o_IsSubtypeOf(self, aType)
 
@@ -1049,8 +1049,8 @@ interface A_Type : A_BasicObject
 			AvailObject::class.java,
 			A_Type::class.java)
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun typeAtIndexStatic(self: AvailObject, index: Int): AvailObject =
 			self.descriptor().o_TypeAtIndex(self, index) as AvailObject
 
@@ -1062,8 +1062,8 @@ interface A_Type : A_BasicObject
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun typeUnionStatic(self: AvailObject, another: A_Type): AvailObject =
 			self.descriptor().o_TypeUnion(self, another) as AvailObject
 

@@ -111,7 +111,6 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -550,7 +549,6 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		 * @return
 		 *   The requested pojo type.
 		 */
-		@JvmStatic
 		fun createFusedPojoType(javaAncestors: A_Map?): AvailObject =
 			mutable.createImmutable {
 				setSlot(HASH_OR_ZERO, 0)

@@ -108,18 +108,15 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		companion object
 		{
 			/** The number of elements in the tuple.  */
-			@JvmField
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
 			/** The first value in the tuple, inclusive.  */
-			@JvmField
 			val START = BitField(START_AND_END, 32, 32)
 
 			/**
 			 * The last value in the tuple, inclusive. Within the constructor,
 			 * the supplied END is normalized to the actual last value.
 			 */
-			@JvmField
 			val END = BitField(START_AND_END, 0, 32)
 
 			/**
@@ -128,7 +125,6 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -622,7 +618,6 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		 * @return
 		 *   The new interval.
 		 */
-		@JvmStatic
 		fun createSmallInterval(
 			newStart: Int,
 			newEnd: Int,

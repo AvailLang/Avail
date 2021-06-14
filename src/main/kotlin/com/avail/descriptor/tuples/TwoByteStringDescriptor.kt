@@ -115,7 +115,6 @@ class TwoByteStringDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -474,14 +473,13 @@ class TwoByteStringDescriptor private constructor(
 		 * @return
 		 *   The new tuple, initialized to null characters (code point 0).
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun mutableTwoByteStringOfSize(size: Int): AvailObject =
 			descriptorFor(Mutability.MUTABLE, size).create(size + 3 shr 2)
 
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		@JvmField
 		val createUninitializedTwoByteStringMethod: CheckedMethod =
 			staticMethod(
 				TwoByteStringDescriptor::class.java,
@@ -538,7 +536,6 @@ class TwoByteStringDescriptor private constructor(
 		 * @return
 		 *   The new Avail string.
 		 */
-		@JvmStatic
 		fun generateTwoByteString(
 			size: Int,
 			generator: (Int)->Int): AvailObject

@@ -49,9 +49,9 @@ import com.avail.annotations.EnumField
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class BitField (
-	@JvmField val integerSlot: IntegerSlotsEnum,
-	@JvmField val shift: Int,
-	@JvmField val bits: Int
+	val integerSlot: IntegerSlotsEnum,
+	val shift: Int,
+	val bits: Int
 ) : Comparable<BitField?> {
 	init {
 		assert(shift == shift and 63)
@@ -90,7 +90,6 @@ class BitField (
 	 * [object&#32;printing][AbstractDescriptor.printObjectOnAvoidingIndent]
 	 * mechanism.
 	 */
-	@JvmField
 	var name: String? = null
 
 	/**
@@ -98,7 +97,6 @@ class BitField (
 	 * populated by the default
 	 * [printing][AbstractDescriptor.printObjectOnAvoidingIndent] mechanism.
 	 */
-	@JvmField
 	var enumField: EnumField? = null
 
 	/**

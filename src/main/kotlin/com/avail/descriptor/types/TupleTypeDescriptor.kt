@@ -72,6 +72,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -383,22 +384,41 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
+		if (!self.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			self.makeImmutable()
+			return tupleTypeForSizesTypesDefaultType(
+					self.sizeRange().typeIntersection(int32),
+					self.typeTuple(),
+					self.defaultType()
+				).trimType(typeToRemove)
+		}
 		if (self.isSubtypeOf(typeToRemove)) return bottom
 		if (!typeToRemove.isTupleType) return self
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
+		if (!typeToRemove.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			return self.trimType(
+				tupleTypeForSizesTypesDefaultType(
+					typeToRemove.sizeRange().typeIntersection(int32),
+					typeToRemove.typeTuple(),
+					typeToRemove.defaultType()))
+		}
+		val sizeRange = self.sizeRange()
 		val leadingTypes = self.typeTuple()
 		val defaultType = self.defaultType()
 		val removedLeadingTypes = typeToRemove.typeTuple()
 		val variationLimit =
 			max(leadingTypes.tupleSize(), removedLeadingTypes.tupleSize()) + 1
 		val firstVariation = (1..variationLimit).indexOfFirst { i ->
-			// Test whether the element that position would always be excluded
-			// by the removed type.
+			// Test whether the element at that position would always be
+			// excluded by the removed type.
 			!self.typeAtIndex(i).isSubtypeOf(typeToRemove.typeAtIndex(i))
 		} + 1  // from Kotlin index -> one-based
-		val sizeRange = self.sizeRange()
 		val removedSizeRange = typeToRemove.sizeRange()
 		if (firstVariation == 0)
 		{
@@ -653,7 +673,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A canonized tuple type with the specified properties.
 		 */
-		@JvmStatic
 		fun tupleTypeForSizesTypesDefaultType(
 			sizeRange: A_Type,
 			typeTuple: A_Tuple,
@@ -725,7 +744,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A size [0..∞) tuple type whose elements have the given type.
 		 */
-		@JvmStatic
 		fun zeroOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				wholeNumbers,
@@ -741,7 +759,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A size [1..∞) tuple type whose elements have the given type.
 		 */
-		@JvmStatic
 		fun oneOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				naturalNumbers,
@@ -757,8 +774,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A fixed-size tuple type.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tupleTypeForTypes(vararg types: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
@@ -793,7 +810,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 		/** Access the method [tupleTypeForTypes].  */
 		@Suppress("unused")
-		@JvmField
 		val tupleTypesForTypesListMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
 			::tupleTypeForTypesList.name,
@@ -815,7 +831,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 *   A tuple type resulting from applying the transformation to each
 		 *   element type of the supplied tuple type.
 		 */
-		@JvmStatic
 		fun mappingElementTypes(
 			aTupleType: A_Type,
 			elementTransformer: (A_Type) -> A_Type): A_Type
@@ -916,7 +931,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The most general tuple type.
 		 */
-		@JvmStatic
 		fun mostGeneralTupleType(): A_Type = mostGeneralType
 
 		/** The most general string type (i.e., tuples of characters).  */
@@ -930,7 +944,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The string type.
 		 */
-		@JvmStatic
 		fun stringType(): A_Type = stringType
 
 		/** The most general string type (i.e., tuples of characters).  */
@@ -944,7 +957,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The non-empty string type.
 		 */
-		@JvmStatic
 		fun nonemptyStringType(): A_Type = nonemptyStringType
 
 		/** The metatype for all tuple types.  */
@@ -956,7 +968,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun tupleMeta(): A_Type = meta
 	}
 }

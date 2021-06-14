@@ -116,7 +116,6 @@ class VariableSharedGlobalDescriptor private constructor(
 			 * making a variable shared.
 			 */
 			@HideFieldInDebugger
-			@JvmField
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 
 			/**
@@ -125,7 +124,6 @@ class VariableSharedGlobalDescriptor private constructor(
 			 * kind of computation that does not disqualify [LoadingEffect]s set
 			 * being recorded in place of top level statements.
 			 */
-			@JvmField
 			val VALUE_IS_STABLE = BitField(HASH_AND_MORE, 32, 1)
 
 			init

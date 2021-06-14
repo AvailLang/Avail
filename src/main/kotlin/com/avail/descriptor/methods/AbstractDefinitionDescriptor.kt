@@ -159,7 +159,6 @@ class AbstractDefinitionDescriptor private constructor(
 		 * @return
 		 *   An abstract method signature.
 		 */
-		@JvmStatic
 		fun newAbstractDefinition(
 			definitionMethod: A_Method,
 			definitionModule: A_Module,

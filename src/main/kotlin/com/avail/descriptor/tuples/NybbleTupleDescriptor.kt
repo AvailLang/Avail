@@ -135,7 +135,6 @@ class NybbleTupleDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -714,8 +713,8 @@ class NybbleTupleDescriptor private constructor(
 		 * @return
 		 *   A mutable nybble tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun mutableObjectOfSize(size: Int): AvailObject
 		{
 			val d = descriptorFor(Mutability.MUTABLE, size)
@@ -724,7 +723,6 @@ class NybbleTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		@JvmField
 		val createUninitializedNybbleTupleMethod: CheckedMethod = staticMethod(
 			NybbleTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,

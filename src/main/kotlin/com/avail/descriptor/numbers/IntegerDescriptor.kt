@@ -1503,8 +1503,8 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun fromInt(anInteger: Int): AvailObject =
 			when (anInteger) {
 				in 0..255 -> smallIntegers[anInteger]!!
@@ -1527,7 +1527,6 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		@JvmStatic
 		fun fromLong(aLong: Long): AvailObject = when (aLong) {
 			in 0..255 -> smallIntegers[aLong.toInt()]!!
 			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
@@ -1554,7 +1553,6 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An Avail integer representing the same number as the argument.
 		 */
-		@JvmStatic
 		fun fromBigInteger(bigInteger: BigInteger): A_Number {
 			val bytes = bigInteger.toByteArray()
 			if (bytes.size <= 8) {
@@ -1630,7 +1628,6 @@ class IntegerDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [IntegerDescriptor.fromInt].  */
-		@JvmField
 		val fromIntMethod: CheckedMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
@@ -1646,7 +1643,6 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		@JvmStatic
 		fun fromUnsignedByte(anInteger: Short): AvailObject {
 			assert(anInteger in 0..255)
 			return smallIntegers[anInteger.toInt()]!!
@@ -1717,7 +1713,6 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   The hash of the passed unsigned byte.
 		 */
-		@JvmStatic
 		fun hashOfUnsignedByte(anInteger: Short) =
 			hashesOfSmallIntegers[anInteger.toInt()]
 
@@ -1763,7 +1758,6 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   The hash of the given [Int], consistent with Avail integer hashing.
 		 */
-		@JvmStatic
 		fun computeHashOfInt(anInt: Int): Int {
 			var output = combineHash(initialHashValue, anInt)
 			output *= multiplier
@@ -1782,7 +1776,6 @@ class IntegerDescriptor private constructor(
 		 * @return
 		 *   The hash of the given [Long], consistent with Avail integer hashing.
 		 */
-		@JvmStatic
 		fun computeHashOfLong(aLong: Long): Int {
 			val lowInt = aLong.toInt()
 			if (aLong == lowInt.toLong()) return computeHashOfInt(lowInt)

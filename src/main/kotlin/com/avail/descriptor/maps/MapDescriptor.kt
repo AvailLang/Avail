@@ -831,8 +831,8 @@ class MapDescriptor private constructor(
 		 * @return
 		 *   The empty map.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun emptyAvailMap() = emptyMap
 
 		/** The [CheckedMethod] for [emptyMap].  */

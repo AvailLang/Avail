@@ -1095,7 +1095,6 @@ class FiberDescriptor private constructor(
 		 * @return
 		 *   The new fiber.
 		 */
-		@JvmStatic
 		fun createFiber(
 			resultType: A_Type,
 			priority: Int,

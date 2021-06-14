@@ -74,8 +74,8 @@ object L2_UNREACHABLE_CODE : L2ControlFlowOperation()
 	 * @return
 	 * Never returns, always throws `UnreachableCodeException`.
 	 */
-	@JvmStatic
 	@ReferencedInGeneratedCode
+	@JvmStatic
 	fun throwUnreachableCodeException(): UnreachableCodeException
 	{
 		throw UnreachableCodeException()

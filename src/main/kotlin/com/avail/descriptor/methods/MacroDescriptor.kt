@@ -248,7 +248,6 @@ class MacroDescriptor private constructor(
 		 * @return
 		 *   A macro definition.
 		 */
-		@JvmStatic
 		fun newMacroDefinition(
 			bundle: A_Bundle,
 			definitionModule: A_Module,

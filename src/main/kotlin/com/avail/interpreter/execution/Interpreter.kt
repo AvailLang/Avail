@@ -231,8 +231,8 @@ import javax.annotation.CheckReturnValue
  */
 @Renderer(childrenArray = "describeForDebugger()")
 class Interpreter(
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	val runtime: AvailRuntime)
 {
 	/**
@@ -430,11 +430,9 @@ class Interpreter(
 	}
 
 	/** Capture a unique ID between 0 and [maxInterpreters] minus one. */
-	@JvmField
 	val interpreterIndex = runtime.allocateInterpreterIndex()
 
 	/** Text to show at the starts of lines in debug traces. */
-	@JvmField
 	var debugModeString = ""
 
 	/**
@@ -682,8 +680,8 @@ class Interpreter(
 	 * used for statistics collection and reporting errors when returning a
 	 * value that disagrees with semantic restrictions.
 	 */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	var returningFunction: A_Function? = null
 
 	/**
@@ -900,15 +898,14 @@ class Interpreter(
 	 * it should resume the top reified continuation's chunk, giving it an
 	 * opportunity to accept the return value and de-reify.
 	 */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	var returnNow = false
 
 	/**
 	 * Should the [Interpreter] exit its [run] loop?  This can happen when the
 	 * [fiber][A_Fiber] has completed, failed, or been suspended.
 	 */
-	@JvmField
 	var exitNow = true
 
 	/**
@@ -1537,22 +1534,22 @@ class Interpreter(
 	 * [AvailRuntime.clock] thread can safely [pollActiveRawFunction], then
 	 * navigate from the [A_Function] to the [A_RawFunction] inside it.
 	 */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	@Volatile
 	var function: A_Function? = null
 
 	/** The [L2Chunk] being executed.  */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	var chunk: L2Chunk? = null
 
 	/**
 	 * The current zero-based L2 offset within the current L2Chunk's
 	 * instructions.
 	 */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	var offset = 0
 
 	/**
@@ -1569,8 +1566,8 @@ class Interpreter(
 	 * A reusable temporary buffer used to hold arguments during method
 	 * invocations.
 	 */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	val argsBuffer = mutableListOf<AvailObject>()
 
 	/**
@@ -1598,8 +1595,8 @@ class Interpreter(
 	 * The [L1InstructionStepper] used to simulate execution of Level One
 	 * nybblecodes.
 	 */
-	@JvmField
 	@ReferencedInGeneratedCode
+	@JvmField
 	val levelOneStepper = L1InstructionStepper(this)
 
 	/**
@@ -1886,7 +1883,6 @@ class Interpreter(
 	}
 
 	/** An indication that a reification action is running.  */
-	@JvmField
 	var isReifying = false
 
 	/**
@@ -2521,12 +2517,10 @@ class Interpreter(
 
 	companion object {
 		/** Whether to print detailed Level One debug information.  */
-		@JvmField
 		@Volatile
 		var debugL1 = false
 
 		/** Whether to print detailed Level Two debug information.  */
-		@JvmField
 		@Volatile
 		var debugL2 = false
 
@@ -2565,17 +2559,14 @@ class Interpreter(
 			Interpreter::class.java.canonicalName)
 
 		/** A [logger][Logger].  */
-		@JvmField
 		val loggerDebugL1: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugL1")
 
 		/** A [logger][Logger].  */
-		@JvmField
 		val loggerDebugL2: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugL2")
 
 		/** A [logger][Logger].  */
-		@JvmField
 		val loggerDebugJVM: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugJVM")
 
@@ -2727,8 +2718,8 @@ class Interpreter(
 		 * @param firstReadOperandValue
 		 *   The value of the first read operand.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun traceL2(
 			executableChunk: ExecutableChunk,
 			offset: Int,
@@ -2759,7 +2750,6 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] referring to the static method [traceL2].
 		 */
-		@JvmField
 		val traceL2Method: CheckedMethod = staticMethod(
 			Interpreter::class.java,
 			::traceL2.name,
@@ -2777,7 +2767,6 @@ class Interpreter(
 		 * @return
 		 *   The current Level Two interpreter.
 		 */
-		@JvmStatic
 		fun current(): Interpreter = AvailThread.current().interpreter
 
 		/**
@@ -2802,12 +2791,10 @@ class Interpreter(
 		 *   The current Avail `Interpreter`, or `null` if the current [Thread]
 		 *   is not an [AvailThread].
 		 */
-		@JvmStatic
 		fun currentOrNull(): Interpreter? =
 			AvailThread.currentOrNull()?.interpreter
 
 		/** Access the [callerIsReified] method.  */
-		@JvmField
 		val callerIsReifiedMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::callerIsReified.name,
@@ -2815,14 +2802,12 @@ class Interpreter(
 
 
 		/** The [CheckedField] for [runtime].  */
-		@JvmField
 		val runtimeField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::runtime.name,
 			AvailRuntime::class.java)
 
 		/** Access the [setLatestResult] method.  */
-		@JvmField
 		var setLatestResultMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setLatestResult.name,
@@ -2830,21 +2815,18 @@ class Interpreter(
 			A_BasicObject::class.java)
 
 		/** Access the [getLatestResult] method.  */
-		@JvmField
 		var getLatestResultMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getLatestResult.name,
 			AvailObject::class.java)
 
 		/** The [CheckedField] for the field argsBuffer.  */
-		@JvmField
 		val interpreterReturningFunctionField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::returningFunction.name,
 			A_Function::class.java)
 
 		/** Access the [returnNow] field.  */
-		@JvmField
 		val returnNowField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::returnNow.name,
@@ -2867,14 +2849,12 @@ class Interpreter(
 			Result::class.java)
 
 		/** Access the [getReifiedContinuation] method.  */
-		@JvmField
 		val getReifiedContinuationMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getReifiedContinuation.name,
 			AvailObject::class.java)
 
 		/** Access the [setReifiedContinuation] method.  */
-		@JvmField
 		val setReifiedContinuationMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setReifiedContinuation.name,
@@ -2882,7 +2862,6 @@ class Interpreter(
 			A_Continuation::class.java)
 
 		/** Access the [popContinuation] method.  */
-		@JvmField
 		var popContinuationMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::popContinuation.name,
@@ -2895,35 +2874,30 @@ class Interpreter(
 		private const val maxUnreifiedCallDepth = 50
 
 		/** The [CheckedField] for the field [function].  */
-		@JvmField
 		val interpreterFunctionField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::function.name,
 			A_Function::class.java)
 
 		/** Access to the field [chunk].  */
-		@JvmField
 		var chunkField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::chunk.name,
 			L2Chunk::class.java)
 
 		/** The [CheckedField] for [offset].  */
-		@JvmField
 		val offsetField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::offset.name,
 			Int::class.javaPrimitiveType!!)
 
 		/** The [CheckedField] for the field [.argsBuffer].  */
-		@JvmField
 		val argsBufferField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::argsBuffer.name,
 			MutableList::class.java)
 
 		/** The [CheckedField] for [.levelOneStepper].  */
-		@JvmField
 		val levelOneStepperField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::levelOneStepper.name,
@@ -2935,14 +2909,12 @@ class Interpreter(
 		private const val timeSliceTicks = 20
 
 		/** Access the [isInterruptRequested] method.  */
-		@JvmField
 		val isInterruptRequestedMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::isInterruptRequested.name,
 			Boolean::class.javaPrimitiveType!!)
 
 		/** A method to access [checkValidity].  */
-		@JvmField
 		val checkValidityMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::checkValidity.name,
@@ -2952,7 +2924,6 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] for [reifierToRestart].
 		 */
-		@JvmField
 		val reifierToRestartMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reifierToRestart.name,
@@ -2960,7 +2931,6 @@ class Interpreter(
 			A_Continuation::class.java)
 
 		/** The [CheckedMethod] for [reify].  */
-		@JvmField
 		val reifyMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reify.name,
@@ -2972,7 +2942,6 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] for [reifierToRestartWithArguments].
 		 */
-		@JvmField
 		val reifierToRestartWithArgumentsMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reifierToRestartWithArguments.name,
@@ -2981,7 +2950,6 @@ class Interpreter(
 			Array<AvailObject>::class.java)
 
 		/** Access the [preinvoke0] method.  */
-		@JvmField
 		var preinvoke0Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke0.name,
@@ -2989,7 +2957,6 @@ class Interpreter(
 			A_Function::class.java)
 
 		/** Access the [preinvoke1] method.  */
-		@JvmField
 		var preinvoke1Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke1.name,
@@ -3000,7 +2967,6 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke2] method.
 		 */
-		@JvmField
 		var preinvoke2Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke2.name,
@@ -3012,7 +2978,6 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke3] method.
 		 */
-		@JvmField
 		var preinvoke3Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke3.name,
@@ -3025,7 +2990,6 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke] method.
 		 */
-		@JvmField
 		var preinvokeMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke.name,
@@ -3036,7 +3000,6 @@ class Interpreter(
 		/**
 		 * Access the [postinvoke] method.
 		 */
-		@JvmField
 		var postinvokeMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::postinvoke.name,
@@ -3048,7 +3011,6 @@ class Interpreter(
 		/**
 		 * Access the [runChunk] method.
 		 */
-		@JvmField
 		var interpreterRunChunkMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::runChunk.name,
@@ -3087,7 +3049,6 @@ class Interpreter(
 		/**
 		 * Access the [reportWrongReturnType] method.
 		 */
-		@JvmField
 		var reportWrongReturnTypeMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportWrongReturnType.name,
@@ -3101,7 +3062,6 @@ class Interpreter(
 		/**
 		 * Access the [reportUnassignedVariableRead] method.
 		 */
-		@JvmField
 		var reportUnassignedVariableReadMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportUnassignedVariableRead.name,
@@ -3179,7 +3139,6 @@ class Interpreter(
 		 * @param arguments
 		 *   The arguments for the function.
 		 */
-		@JvmStatic
 		fun runOutermostFunction(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
@@ -3467,7 +3426,6 @@ class Interpreter(
 		 * @return
 		 *   The assignment function.
 		 */
-		@JvmStatic
 		fun assignmentFunction(): A_Function =
 			VariableDescriptor.bootstrapAssignmentFunction
 	}

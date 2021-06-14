@@ -120,7 +120,6 @@ class LexerDescriptor private constructor(
 			/**
 			 * The hash of this lexer.  Set during construction.
 			 */
-			@JvmField
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -287,7 +286,6 @@ class LexerDescriptor private constructor(
 			booleanType
 		).makeShared()
 
-		@JvmStatic
 		fun lexerFilterFunctionType(): A_Type = lexerFilterFunctionType
 
 		private val lexerBodyFunctionType: A_Type = functionType(
@@ -300,7 +298,6 @@ class LexerDescriptor private constructor(
 				oneOrMoreOf(Types.TOKEN.o))
 		).makeShared()
 
-		@JvmStatic
 		fun lexerBodyFunctionType(): A_Type = lexerBodyFunctionType
 
 		/**
@@ -320,7 +317,6 @@ class LexerDescriptor private constructor(
 		 * @return
 		 *   A new method with no name.
 		 */
-		@JvmStatic
 		fun newLexer(
 			lexerFilterFunction: A_Function,
 			lexerBodyFunction: A_Function?,

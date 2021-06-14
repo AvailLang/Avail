@@ -638,8 +638,8 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   An [AvailObject] representing the type of the argument.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun instanceType(instance: A_BasicObject): AvailObject =
 			mutable.create {
 				assert(!instance.isType)

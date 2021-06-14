@@ -306,7 +306,6 @@ class PrefixSharingList<E> : AbstractList<E>
 		 * @param E2
 		 *   The list's element type.
 		 */
-		@JvmStatic
 		fun <E2> List<E2>.withoutLast(): List<E2>
 		{
 			assert(isNotEmpty())

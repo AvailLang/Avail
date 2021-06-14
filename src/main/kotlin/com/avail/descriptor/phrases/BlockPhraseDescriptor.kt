@@ -134,7 +134,6 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			/**
 			 * The line number on which this block starts.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")

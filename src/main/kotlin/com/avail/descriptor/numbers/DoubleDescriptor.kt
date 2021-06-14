@@ -533,15 +533,14 @@ class DoubleDescriptor private constructor(
 		 *   The boxed Avail [double][DoubleDescriptor]-precision floating point
 		 *   object.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun fromDouble(aDouble: Double): A_Number =
 			mutable.create {
 				setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
 			}
 
 		/** The [CheckedMethod] for [fromDouble].  */
-		@JvmField
 		val fromDoubleMethod: CheckedMethod = staticMethod(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
@@ -622,7 +621,6 @@ class DoubleDescriptor private constructor(
 		 * @return
 		 *   The output `extended integer`.
 		 */
-		@JvmStatic
 		fun doubleTruncatedToExtendedInteger(
 			inputD: Double
 		): A_Number {
@@ -664,7 +662,6 @@ class DoubleDescriptor private constructor(
 		 * @return
 		 *   The Avail object for double-precision positive infinity.
 		 */
-		@JvmStatic
 		fun doublePositiveInfinity(): A_Number =
 			Sign.POSITIVE.limitDoubleObject()
 
@@ -675,7 +672,6 @@ class DoubleDescriptor private constructor(
 		 * @return
 		 *   The Avail object for double-precision negative infinity.
 		 */
-		@JvmStatic
 		fun doubleNegativeInfinity(): A_Number =
 			Sign.NEGATIVE.limitDoubleObject()
 
@@ -684,7 +680,6 @@ class DoubleDescriptor private constructor(
 		 *
 		 * @return The Avail object for double-precision not-a-number.
 		 */
-		@JvmStatic
 		fun doubleNotANumber(): A_Number =
 			Sign.INDETERMINATE.limitDoubleObject()
 
@@ -695,7 +690,6 @@ class DoubleDescriptor private constructor(
 		 *   The Avail object for double-precision (positive) zero.
 		 */
 		@Suppress("unused")
-		@JvmStatic
 		fun doubleZero(): A_Number = Sign.ZERO.limitDoubleObject()
 
 		/** The mutable [DoubleDescriptor].  */

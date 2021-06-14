@@ -285,7 +285,6 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 *   A compiled code type which has no supertypes that are themselves
 		 *   compiled code types.
 		 */
-		@JvmStatic
 		fun mostGeneralCompiledCodeType(): A_Type =  mostGeneralType
 
 		/**
