@@ -329,9 +329,9 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			override fun actionPerformed(e: ActionEvent)
 			{
 				savePreferences()
-				workbench.calculateRefreshedTreesThen { trees ->
+				workbench.calculateRefreshedTreesThen { modules, entryPoints ->
 					invokeLater {
-						workbench.refreshFor(trees.first, trees.second)
+						workbench.refreshFor(modules, entryPoints)
 						preferencesDialog!!.isVisible = false
 					}
 				}

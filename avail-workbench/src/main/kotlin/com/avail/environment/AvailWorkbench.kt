@@ -917,22 +917,22 @@ class AvailWorkbench internal constructor (
 	private val treeCalculationInProgress = AtomicBoolean(false)
 
 	/**
-	 * Re-parse the package structure from scratch.  Answer a pair consisting
-	 * of the module tree and the entry points tree, but don't install them.
-	 * This can safely be run outside the UI thread.
+	 * Re-parse the package structure from scratch.  Invoke the provided closure
+	 * with the module tree and entry points tree, but don't install them. This
+	 * can safely be run outside the UI thread.
 	 *
-	 * @param withPair
-	 *   Lambda that accepts the &lt;module tree, entry points tree&gt; [Pair].
+	 * @param withTrees
+	 *   Lambda that accepts the modules tree and entry points tree.
 	 */
 	fun calculateRefreshedTreesThen(
-		withPair: (Pair<TreeNode, TreeNode>) -> Unit)
+		withTrees: (TreeNode, TreeNode) -> Unit)
 	{
 		if (!treeCalculationInProgress.getAndSet(true))
 		{
 			resolver.clearCache()
 			newModuleTreeThen { modules ->
-				newEntryPointsTreeThen {
-					withPair(modules to it)
+				newEntryPointsTreeThen { entryPoints ->
+					withTrees(modules, entryPoints)
 					treeCalculationInProgress.set(false)
 				}
 			}
@@ -952,25 +952,34 @@ class AvailWorkbench internal constructor (
 	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
 	{
 		val selection = selectedModule()
-
-		moduleTree.model = DefaultTreeModel(modules)
-		for (i in moduleTree.rowCount - 1 downTo 0)
+		moduleTree.isVisible = false
+		entryPointsTree.isVisible = false
+		try
 		{
-			moduleTree.expandRow(i)
-		}
-		if (selection !== null)
-		{
-			val path = modulePath(selection.qualifiedName)
-			if (path !== null)
+			moduleTree.model = DefaultTreeModel(modules)
+			for (i in moduleTree.rowCount - 1 downTo 0)
 			{
-				moduleTree.selectionPath = path
+				moduleTree.expandRow(i)
+			}
+			if (selection !== null)
+			{
+				val path = modulePath(selection.qualifiedName)
+				if (path !== null)
+				{
+					moduleTree.selectionPath = path
+				}
+			}
+
+			entryPointsTree.model = DefaultTreeModel(entryPoints)
+			for (i in entryPointsTree.rowCount - 1 downTo 0)
+			{
+				entryPointsTree.expandRow(i)
 			}
 		}
-
-		entryPointsTree.model = DefaultTreeModel(entryPoints)
-		for (i in entryPointsTree.rowCount - 1 downTo 0)
+		finally
 		{
-			entryPointsTree.expandRow(i)
+			moduleTree.isVisible = true
+			entryPointsTree.isVisible = true
 		}
 	}
 
@@ -2388,7 +2397,7 @@ class AvailWorkbench internal constructor (
 								INFO)
 							val before = currentTimeMillis()
 							workbench.calculateRefreshedTreesThen {
-								modulesAndEntryPoints ->
+								modules, entryPoints ->
 								val after = currentTimeMillis()
 								workbench.writeText(
 									format(
@@ -2397,9 +2406,7 @@ class AvailWorkbench internal constructor (
 									INFO)
 								// Now select an initial module, if specified.
 								invokeLater {
-									workbench.refreshFor(
-										modulesAndEntryPoints.first,
-										modulesAndEntryPoints.second)
+									workbench.refreshFor(modules, entryPoints)
 									if (initial.isNotEmpty())
 									{
 										val path = workbench.modulePath(initial)
@@ -2427,7 +2434,6 @@ class AvailWorkbench internal constructor (
 					}
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()
-				bench.isVisible = true
 				resolver.moduleRoots.roots.forEach {
 					it.resolver.subscribeRootWatcher { event, _ ->
 						when (event)
@@ -2440,6 +2446,7 @@ class AvailWorkbench internal constructor (
 					}
 				}
 				initialRefreshTask.execute()
+				bench.isVisible = true
 			}
 		}
 	}

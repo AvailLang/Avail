@@ -62,12 +62,8 @@ class RefreshAction constructor(workbench: AvailWorkbench)
 	 */
 	fun runAction()
 	{
-		workbench.calculateRefreshedTreesThen { modulesAndEntryPoints ->
-			invokeLater {
-				workbench.refreshFor(
-					modulesAndEntryPoints.first,
-					modulesAndEntryPoints.second)
-			}
+		workbench.calculateRefreshedTreesThen { modules, entryPoints ->
+			invokeLater { workbench.refreshFor(modules, entryPoints) }
 		}
 	}
 
