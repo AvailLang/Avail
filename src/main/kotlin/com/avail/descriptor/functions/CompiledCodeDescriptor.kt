@@ -1104,7 +1104,11 @@ open class CompiledCodeDescriptor protected constructor(
 							self.descriptor().cast()
 						descriptor.invocationStatistic.hasRun = false
 						if (!descriptor.module.equalsNil()) {
-							descriptor.startingChunk.invalidate(CODE_COVERAGE)
+							val chunk = descriptor.startingChunk
+							if (chunk != L2Chunk.unoptimizedChunk)
+							{
+								chunk.invalidate(CODE_COVERAGE)
+							}
 						}
 					}
 					AvailRuntime.currentRuntime().whenLevelOneUnsafeDo(

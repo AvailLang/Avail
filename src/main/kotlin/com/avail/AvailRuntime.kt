@@ -221,9 +221,7 @@ import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.OnceSupplier
 import com.avail.utility.safeWrite
 import com.avail.utility.structures.EnumMap.Companion.enumMap
-import java.util.ArrayDeque
 import java.util.Collections
-import java.util.Queue
 import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
@@ -236,7 +234,7 @@ import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
-import java.util.function.Consumer
+import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.fixedRateTimer
 import kotlin.concurrent.read
 import kotlin.concurrent.withLock
@@ -1495,7 +1493,7 @@ class AvailRuntime constructor(
 	private val levelOneSafeLock = ReentrantLock()
 
 	/**
-	 * The [queue][Queue] of Level One-safe [tasks][Runnable]. A Level One-safe
+	 * The [list][List] of Level One-safe [tasks][Runnable]. A Level One-safe
 	 * task requires that no
 	 * [Level&#32;One-unsafe&#32;tasks][levelOneUnsafeTasks] are running.
 	 *
@@ -1504,20 +1502,21 @@ class AvailRuntime constructor(
 	 * [running][FiberDescriptor.ExecutionState.RUNNING] a Level Two chunk.
 	 * These two activities are mutually exclusive.
 	 */
-	private val levelOneSafeTasks: Queue<AvailTask> = ArrayDeque()
+	private val levelOneSafeTasks = mutableListOf<AvailTask>()
 
 	/**
-	 * The [queue][Queue] of Level One-unsafe [tasks][Runnable]. A Level
-	 * One-unsafe task requires that no [Level One-safe
-	 * tasks][levelOneSafeTasks] are running.
+	 * The [list][List] of Level One-unsafe [tasks][Runnable]. A Level
+	 * One-unsafe task requires that no
+	 * [Level&#32;One-safe&32;tasks][levelOneSafeTasks] are running.
 	 */
-	private val levelOneUnsafeTasks: Queue<AvailTask> = ArrayDeque()
+	private val levelOneUnsafeTasks = mutableListOf<AvailTask>()
 
 	/**
 	 * The number of [Level&#32;One-safe&#32;tasks][levelOneSafeTasks] that have
 	 * been [scheduled&#32;for&#32;execution][executor] but have not yet reached
 	 * completion.
 	 */
+	@GuardedBy("levelOneSafeLock")
 	private var incompleteLevelOneSafeTasks = 0
 
 	/**
@@ -1525,6 +1524,7 @@ class AvailRuntime constructor(
 	 * have been [scheduled&#32;for&#32;execution][executor] but have not yet
 	 * reached completion.
 	 */
+	@GuardedBy("levelOneSafeLock")
 	private var incompleteLevelOneUnsafeTasks = 0
 
 	/**
@@ -1539,7 +1539,7 @@ class AvailRuntime constructor(
 	 * @return
 	 *   `true` if Level One safety has been requested, `false` otherwise.
 	 */
-	fun levelOneSafetyRequested(): Boolean =  levelOneSafetyRequested
+	fun levelOneSafetyRequested(): Boolean = levelOneSafetyRequested
 
 	/**
 	 * Request that the specified continuation be executed as a Level One-unsafe
@@ -1573,7 +1573,7 @@ class AvailRuntime constructor(
 					{
 						assert(incompleteLevelOneSafeTasks == 0)
 						incompleteLevelOneSafeTasks = levelOneSafeTasks.size
-						levelOneSafeTasks.forEach(Consumer { this.execute(it) })
+						levelOneSafeTasks.forEach(this::execute)
 						levelOneSafeTasks.clear()
 					}
 				}
@@ -1630,10 +1630,7 @@ class AvailRuntime constructor(
 						assert(incompleteLevelOneUnsafeTasks == 0)
 						levelOneSafetyRequested = false
 						incompleteLevelOneUnsafeTasks = levelOneUnsafeTasks.size
-						for (t in levelOneUnsafeTasks)
-						{
-							execute(t)
-						}
+						levelOneUnsafeTasks.forEach(this::execute)
 						levelOneUnsafeTasks.clear()
 					}
 				}
