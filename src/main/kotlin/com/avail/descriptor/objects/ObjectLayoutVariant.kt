@@ -87,7 +87,6 @@ class ObjectLayoutVariant private constructor(
 	 * slots are in the same order that the slots should have in the object or
 	 * object type.
 	 */
-	@JvmField
 	val realSlots: List<A_Atom>
 
 	/**

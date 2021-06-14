@@ -121,7 +121,6 @@ class LongTupleDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -646,12 +645,11 @@ class LongTupleDescriptor private constructor(
 		 * @return
 		 *   A long tuple with the specified number of longs (initially zero).
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun mutableObjectOfSize(size: Int): AvailObject = mutable.create(size)
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		@JvmField
 		val createUninitializedLongTupleMethod: CheckedMethod = staticMethod(
 			LongTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
@@ -671,7 +669,6 @@ class LongTupleDescriptor private constructor(
 		 * @return
 		 *   The new [A_Tuple].
 		 */
-		@JvmStatic
 		fun generateLongTupleFrom(
 			size: Int,
 			generator: (Int) -> Long): AvailObject

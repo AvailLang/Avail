@@ -1085,7 +1085,7 @@ class DotWriter constructor(
 		 * @return
 		 *   The requested node.
 		 */
-		@JvmStatic fun node(name: String) = DecoratedNode(name, null, null)
+		fun node(name: String) = DecoratedNode(name, null, null)
 
 		/**
 		 * Answer a [DecoratedNode] suitable for complex edge specification.
@@ -1097,8 +1097,7 @@ class DotWriter constructor(
 		 * @return
 		 *   The requested node.
 		 */
-		@JvmStatic fun node(name: String, port: String) =
-			DecoratedNode(name, port, null)
+		fun node(name: String, port: String) = DecoratedNode(name, port, null)
 
 		/**
 		 * Answer a [DecoratedNode] suitable for complex edge specification.
@@ -1112,11 +1111,11 @@ class DotWriter constructor(
 		 * @return
 		 *   The requested node.
 		 */
-		@JvmStatic fun node(
-				name: String,
-				port: String,
-				compassPoint: CompassPoint) =
-			DecoratedNode(name, port, compassPoint)
+		fun node(
+			name: String,
+			port: String,
+			compassPoint: CompassPoint
+		) = DecoratedNode(name, port, compassPoint)
 
 		/** The pattern to match for light/dark bimodal colors. */
 		val multicolorPattern: Pattern =

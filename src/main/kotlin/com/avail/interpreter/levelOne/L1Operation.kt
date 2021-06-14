@@ -422,7 +422,6 @@ enum class L1Operation constructor(
 		 * @return
 		 *  The looked up `L1Operation`.
 		 */
-		@JvmStatic
 		fun lookup(ordinal: Int): L1Operation = all[ordinal]
 	}
 }

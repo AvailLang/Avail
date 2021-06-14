@@ -306,7 +306,6 @@ abstract class TypeDescriptor protected constructor(
 			 * @return
 			 *   The immutable [List] of all `Types`.
 			 */
-			@JvmStatic
 			fun all(): List<Types> = all
 
 			init

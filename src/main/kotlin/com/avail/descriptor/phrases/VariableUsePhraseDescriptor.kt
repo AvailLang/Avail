@@ -99,7 +99,6 @@ class VariableUsePhraseDescriptor private constructor(
 			 * the phrase is immutable.  It should not be made visible to the
 			 * Avail language.
 			 */
-			@JvmField
 			val LAST_USE = BitField(FLAGS, 0, 1)
 		}
 	}

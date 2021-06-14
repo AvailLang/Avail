@@ -236,7 +236,6 @@ open class RawPojoDescriptor protected constructor(
 		 * @return
 		 *   A raw pojo that represents `Object`.
 		 */
-		@JvmStatic
 		fun rawObjectClass(): AvailObject = rawObjectClass
 
 		/** The `null` [pojo][PojoDescriptor].  */
@@ -248,7 +247,6 @@ open class RawPojoDescriptor protected constructor(
 		 * @return
 		 *   The `null` pojo.
 		 */
-		@JvmStatic
 		fun rawNullPojo(): AvailObject = rawNullObject
 
 		/**
@@ -260,7 +258,6 @@ open class RawPojoDescriptor protected constructor(
 		 * @return
 		 *   The new Avail [pojo][PojoDescriptor].
 		 */
-		@JvmStatic
 		fun identityPojo(javaObject: Any?): AvailObject =
 			RawPojoDescriptor(Mutability.MUTABLE, javaObject).create { }
 
@@ -273,7 +270,6 @@ open class RawPojoDescriptor protected constructor(
 		 * @return
 		 *   The new [Avail&#32;pojo][PojoDescriptor].
 		 */
-		@JvmStatic
 		fun equalityPojo(javaObject: Any): AvailObject =
 			EqualityRawPojoDescriptor(Mutability.MUTABLE, javaObject).create { }
 	}

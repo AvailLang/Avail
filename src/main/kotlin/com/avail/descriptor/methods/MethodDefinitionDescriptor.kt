@@ -157,7 +157,6 @@ class MethodDefinitionDescriptor private constructor(
 		 * @return
 		 *   A method signature.
 		 */
-		@JvmStatic
 		fun newMethodDefinition(
 			definitionMethod: A_Method,
 			definitionModule: A_Module,

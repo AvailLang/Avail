@@ -215,7 +215,6 @@ private constructor(
 		/**
 		 * Initialize the move-constant operation for float values.
 		 */
-		@JvmField
 		val unboxedFloat = L2_MOVE_CONSTANT<
 				L2FloatImmediateOperand,
 				L2FloatRegister,
@@ -239,7 +238,6 @@ private constructor(
 		 * @return
 		 *   The constant [AvailObject] that is moved by the instruction.
 		 */
-		@JvmStatic
 		fun constantOf(instruction: L2Instruction): AvailObject
 		{
 			assert(instruction.operation() === boxed)

@@ -171,7 +171,6 @@ open class VariableDescriptor protected constructor(
 			/**
 			 * A slot to hold the cached hash value.  Zero if not yet computed.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -735,7 +734,6 @@ open class VariableDescriptor protected constructor(
 		}
 
 		/** The [CheckedMethod] for [A_Variable.clearValue].  */
-		@JvmField
 		val clearVariableMethod: CheckedMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::clearValue.name,
@@ -745,7 +743,6 @@ open class VariableDescriptor protected constructor(
 		 * The bootstrapped [assignment&#32;function][P_SetValue] used to
 		 * restart implicitly observed assignments.
 		 */
-		@JvmField
 		val bootstrapAssignmentFunction: A_Function =
 			createFunction(
 				newPrimitiveRawFunction(P_SetValue, nil, 0),
@@ -761,7 +758,6 @@ open class VariableDescriptor protected constructor(
 		 * @return
 		 *   A new variable able to hold the specified type of objects.
 		 */
-		@JvmStatic
 		fun newVariableWithContentType(contentType: A_Type): AvailObject =
 			newVariableWithOuterType(variableTypeFor(contentType))
 
@@ -780,8 +776,8 @@ open class VariableDescriptor protected constructor(
 		 * @return
 		 *   A new variable of the given type.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun newVariableWithOuterType(variableType: A_Type?): AvailObject =
 			mutable.create {
 				setSlot(KIND, variableType!!)
@@ -793,7 +789,6 @@ open class VariableDescriptor protected constructor(
 		/**
 		 * The [CheckedMethod] for [newVariableWithOuterType].
 		 */
-		@JvmField
 		val newVariableWithOuterTypeMethod: CheckedMethod = staticMethod(
 			VariableDescriptor::class.java,
 			::newVariableWithOuterType.name,

@@ -114,7 +114,6 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			 * type. This may become a conservatively large estimate due to my
 			 * subobjects being coalesced with more direct representations.
 			 */
-			@JvmField
 			val TUPLE_TYPE_COMPLEXITY =
 				BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32)
 		}

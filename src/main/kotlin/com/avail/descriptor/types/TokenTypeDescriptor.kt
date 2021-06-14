@@ -199,7 +199,6 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A [token type][TokenTypeDescriptor].
 		 */
-		@JvmStatic
 		fun tokenType(tokenType: TokenDescriptor.TokenType): AvailObject =
 			mutable.create {
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal.toLong())

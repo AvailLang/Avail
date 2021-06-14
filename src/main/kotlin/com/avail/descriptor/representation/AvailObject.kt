@@ -1531,7 +1531,6 @@ class AvailObject private constructor(
 		 * @param arguments
 		 *   The arguments to insert into the `messagePattern`.
 		 */
-		@JvmStatic
 		fun error(messagePattern: String?, vararg arguments: Any?): Nothing =
 			throw RuntimeException(String.format(messagePattern!!, *arguments))
 
@@ -1547,7 +1546,6 @@ class AvailObject private constructor(
 		 * @return
 		 *   A new uninitialized [AvailObject].
 		 */
-		@JvmStatic
 		fun newIndexedDescriptor(
 			size: Int,
 			descriptor: AbstractDescriptor
@@ -1577,7 +1575,6 @@ class AvailObject private constructor(
 		 * @return
 		 *   A new [AvailObject].
 		 */
-		@JvmStatic
 		fun newObjectIndexedIntegerIndexedDescriptor(
 			variableObjectSlots: Int,
 			variableIntegerSlots: Int,
@@ -1593,14 +1590,12 @@ class AvailObject private constructor(
 
 		/** The [CheckedMethod] for [iterator]. */
 		@Suppress("unused")
-		@JvmField
 		val iteratorMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
 			Iterator::class.java)
 
 		/** Access the [frameAt] method.  */
-		@JvmField
 		val frameAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::frameAt.name,
@@ -1608,7 +1603,6 @@ class AvailObject private constructor(
 			Int::class.javaPrimitiveType!!)
 
 		/** Access the [frameAtPut] method.  */
-		@JvmField
 		val frameAtPutMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::frameAtPut.name,
@@ -1617,14 +1611,12 @@ class AvailObject private constructor(
 			AvailObject::class.java)
 
 		/** Access the [registerDump] method.  */
-		@JvmField
 		val registerDumpMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::registerDump.name,
 			AvailObject::class.java)
 
 		/** Access the [fieldAt] method.  */
-		@JvmField
 		val fieldAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::fieldAt.name,

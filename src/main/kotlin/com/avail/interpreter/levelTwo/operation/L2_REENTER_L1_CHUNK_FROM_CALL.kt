@@ -84,8 +84,8 @@ object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 	 * @param interpreter
 	 * The [Interpreter].
 	 */
-	@JvmStatic
 	@ReferencedInGeneratedCode
+	@JvmStatic
 	fun reenter(interpreter: Interpreter)
 	{
 		if (Interpreter.debugL1)

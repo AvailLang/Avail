@@ -926,7 +926,6 @@ class L1Decompiler constructor(
 		 *   The [block][BlockPhraseDescriptor] that is the decompilation of the
 		 *   provided raw function.
 		 */
-		@JvmStatic
 		fun decompile(code: A_RawFunction): A_Phrase
 		{
 			val counts = mutableMapOf<String, Int>()

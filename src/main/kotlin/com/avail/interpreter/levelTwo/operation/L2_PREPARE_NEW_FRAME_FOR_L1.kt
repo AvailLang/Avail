@@ -105,8 +105,8 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 	 * @return
 	 *   A [StackReifier], if any.
 	 */
-	@JvmStatic
 	@ReferencedInGeneratedCode
+	@JvmStatic
 	fun prepare(interpreter: Interpreter): StackReifier?
 	{
 		assert(!interpreter.exitNow)

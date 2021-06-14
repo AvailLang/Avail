@@ -95,7 +95,6 @@ abstract class SetBinDescriptor protected constructor(
 			 * A slot to hold the bin's hash value, or zero if it has not been
 			 * computed.
 			 */
-			@JvmField
 			val BIN_HASH = BitField(BIN_HASH_AND_MORE, 0, 32)
 		}
 	}

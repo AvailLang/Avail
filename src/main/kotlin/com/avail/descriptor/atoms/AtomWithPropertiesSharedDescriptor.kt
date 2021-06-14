@@ -129,7 +129,6 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init {

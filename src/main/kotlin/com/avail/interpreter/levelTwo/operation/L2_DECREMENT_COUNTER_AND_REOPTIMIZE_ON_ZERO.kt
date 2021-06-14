@@ -103,8 +103,8 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 	 * @return
 	 * Whether a new chunk was created.
 	 */
-	@JvmStatic
 	@ReferencedInGeneratedCode
+	@JvmStatic
 	fun decrement(
 		interpreter: Interpreter,
 		targetOptimizationLevel: Int): Boolean

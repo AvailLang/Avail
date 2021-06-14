@@ -56,7 +56,6 @@ enum class StackPrinter
 		 * @return
 		 *   The [String] form of the stack trace.
 		 */
-		@JvmStatic
 		fun trace(t: Throwable): String
 		{
 			val inner = CharArrayWriter()

@@ -64,7 +64,6 @@ abstract class AbstractAvailObject protected constructor(
 	 * including how its fields are laid out.
 	 */
 	@field:Volatile
-	@JvmField
 	protected var currentDescriptor = initialDescriptor
 
 	/** Retrieve this object's current [descriptor][AbstractDescriptor]. */
@@ -200,7 +199,6 @@ abstract class AbstractAvailObject protected constructor(
 
 	companion object {
 		/** The [CheckedMethod] for [descriptor].  */
-		@JvmField
 		val descriptorMethod: CheckedMethod = instanceMethod(
 			AbstractAvailObject::class.java,
 			AbstractAvailObject::descriptor.name,

@@ -409,7 +409,6 @@ interface A_RawFunction : A_BasicObject {
 
 	companion object {
 		/** The [CheckedMethod] for [functionType].  */
-		@JvmField
 		val functionTypeMethod: CheckedMethod = instanceMethod(
 			A_RawFunction::class.java,
 			A_RawFunction::functionType.name,

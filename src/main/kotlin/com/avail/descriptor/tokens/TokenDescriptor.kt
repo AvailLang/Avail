@@ -117,7 +117,6 @@ open class TokenDescriptor protected constructor(
 			 * what basic kind of token this is.  Currently four bits are
 			 * reserved for this purpose.
 			 */
-			@JvmField
 			@EnumField(describedBy = TokenType::class)
 			val TOKEN_TYPE_CODE = BitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4)
 
@@ -125,7 +124,6 @@ open class TokenDescriptor protected constructor(
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = Converter::class,
 				lookupMethodName = "decimal")
@@ -137,7 +135,6 @@ open class TokenDescriptor protected constructor(
 			 * need to parse 2GB of *Avail* source in one file, due to its
 			 * deeply flexible syntax.
 			 */
-			@JvmField
 			@HideFieldInDebugger
 			val START = BitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32)
 		}
@@ -212,7 +209,6 @@ open class TokenDescriptor protected constructor(
 		override fun fieldOrdinal(): Int = ordinal
 
 		/** The associated special atom.  */
-		@JvmField
 		val atom: A_Atom =
 			createSpecialAtom(name.toLowerCase().replace('_', ' ')).apply {
 				setAtomProperty(
@@ -234,7 +230,6 @@ open class TokenDescriptor protected constructor(
 			 * @return
 			 *   The `TokenType`.
 			 */
-			@JvmStatic
 			fun lookupTokenType(ordinal: Int): TokenType = all[ordinal]
 		}
 
@@ -248,7 +243,6 @@ open class TokenDescriptor protected constructor(
 		 * enumeration. It is keyed to the [ordinal][TokenType.fieldOrdinal]
 		 * of a [TokenType].
 		 */
-		@JvmField
 		var tokenTypeOrdinalKey: A_Atom = createSpecialAtom(
 			"token type ordinal key")
 	}

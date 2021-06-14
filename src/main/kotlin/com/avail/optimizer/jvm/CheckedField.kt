@@ -177,7 +177,6 @@ class CheckedField private constructor(
 		 * @return
 		 *   The `CheckedField`.
 		 */
-		@JvmStatic
 		fun instanceField(
 			receiverClass: Class<*>,
 			fieldName: String,

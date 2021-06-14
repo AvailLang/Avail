@@ -120,7 +120,6 @@ enum class TypeComparison
 		 *   A [TypeComparison] representing the relationship between the
 		 *   restrictions and the signature type.
 		 */
-		@JvmStatic
 		fun compareForDispatch(
 			argumentRestrictions: List<TypeRestriction>,
 			elementSignature: A_Type): TypeComparison
@@ -160,7 +159,6 @@ enum class TypeComparison
 		 *   A TypeComparison representing the relationship between the
 		 *   restrictions and the signature.
 		 */
-		@JvmStatic
 		fun compareForParsing(
 			argumentRestrictions: List<TypeRestriction>,
 			someType: A_Type): TypeComparison

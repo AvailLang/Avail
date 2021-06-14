@@ -1060,8 +1060,8 @@ interface A_Number : A_BasicObject
 			dispatch { o_EqualsInteger(it, anAvailInteger) }
 
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun divideStatic(
 			self: AvailObject,
 			aNumber: AvailObject,
@@ -1083,8 +1083,8 @@ interface A_Number : A_BasicObject
 			Boolean::class.javaPrimitiveType!!)
 
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun extractDoubleStatic(self: AvailObject): Double =
 			self.dispatch { o_ExtractDouble(it) }
 
@@ -1098,8 +1098,8 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java)
 
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun extractIntStatic(self: AvailObject): Int =
 			self.dispatch { o_ExtractInt(it) }
 
@@ -1113,8 +1113,8 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java)
 
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun minusStatic(
 			self: AvailObject,
 			aNumber: AvailObject,
@@ -1136,8 +1136,8 @@ interface A_Number : A_BasicObject
 			Boolean::class.javaPrimitiveType!!)
 
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun numericCompareStatic(
 			self: AvailObject,
 			another: AvailObject
@@ -1154,8 +1154,8 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java)
 
 
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun timesStatic(
 			self: AvailObject,
 			aNumber: AvailObject,

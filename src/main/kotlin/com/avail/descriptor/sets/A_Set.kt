@@ -247,8 +247,8 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		/**
 		 * Answer the given [A_Set]'s size.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun setSizeStatic(self: AvailObject): Int =
 			self.descriptor().o_SetSize(self)
 
@@ -263,8 +263,8 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		 * Answer an [A_Set] with an additional element.  The original can be
 		 * destroyed if it's mutable.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun setWithElementStatic(
 			self: AvailObject,
 			newElementObject: AvailObject

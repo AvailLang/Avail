@@ -92,7 +92,6 @@ class FloatDescriptor private constructor(
 
 		companion object {
 			/** The Java `float` value, packed into an [Int] field. */
-			@JvmField
 			val RAW_INT = BitField(RAW_INT_AND_MORE, 0, 32)
 		}
 	}
@@ -422,7 +421,6 @@ class FloatDescriptor private constructor(
 		 * @return
 		 *   The boxed Avail `float`.
 		 */
-		@JvmStatic
 		fun fromFloat(aFloat: Float): A_Number =
 			mutable.create {
 				setSlot(RAW_INT, floatToRawIntBits(aFloat))
@@ -496,7 +494,6 @@ class FloatDescriptor private constructor(
 		 * @return
 		 *   The Avail object for float positive infinity.
 		 */
-		@JvmStatic
 		fun floatPositiveInfinity(): A_Number = Sign.POSITIVE.limitFloatObject()
 
 		/**
@@ -506,7 +503,6 @@ class FloatDescriptor private constructor(
 		 * @return
 		 *   The Avail object for float negative infinity.
 		 */
-		@JvmStatic
 		fun floatNegativeInfinity(): A_Number = Sign.NEGATIVE.limitFloatObject()
 
 		/**
@@ -515,7 +511,6 @@ class FloatDescriptor private constructor(
 		 * @return
 		 *   The Avail object for float not-a-number.
 		 */
-		@JvmStatic
 		fun floatNotANumber(): A_Number = Sign.INDETERMINATE.limitFloatObject()
 
 		/**
@@ -525,7 +520,6 @@ class FloatDescriptor private constructor(
 		 *   The Avail object for float (positive) zero.
 		 */
 		@Suppress("unused")
-		@JvmStatic
 		fun floatZero(): A_Number = Sign.ZERO.limitFloatObject()
 
 		/** The mutable [FloatDescriptor].  */

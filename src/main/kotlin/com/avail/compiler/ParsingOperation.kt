@@ -1949,7 +1949,6 @@ enum class ParsingOperation constructor(
 		 * @return
 		 *   The operand.
 		 */
-		@JvmStatic
 		fun operand(instruction: Int) =
 			instruction shr distinctInstructionsShift
 
@@ -1961,7 +1960,6 @@ enum class ParsingOperation constructor(
 		 * @return
 		 *   The decoded operation.
 		 */
-		@JvmStatic
 		fun decode(instruction: Int): ParsingOperation
 		{
 			if (instruction < distinctInstructions)

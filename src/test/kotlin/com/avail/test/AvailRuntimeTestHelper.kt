@@ -91,11 +91,9 @@ class AvailRuntimeTestHelper
 		createModuleNameResolver(createModuleRoots(fileManager))
 
 	/** The [Avail runtime][AvailRuntime].  */
-	@JvmField
 	val runtime: AvailRuntime = createAvailRuntime(resolver, fileManager)
 
 	/** The [Avail builder][AvailBuilder].  */
-	@JvmField
 	val builder: AvailBuilder = createAvailBuilder()
 
 	/** The last [System.currentTimeMillis] that an update was shown.  */

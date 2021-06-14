@@ -153,7 +153,6 @@ open class AtomDescriptor protected constructor (
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -322,7 +321,7 @@ open class AtomDescriptor protected constructor (
 	 *   The actual [A_Atom] to be held by this [SpecialAtom].
 	 */
 	enum class SpecialAtom constructor (
-		@JvmField val atom: A_Atom
+		val atom: A_Atom
 	) {
 		/** The atom representing the Avail concept "true". */
 		TRUE(
@@ -457,7 +456,6 @@ open class AtomDescriptor protected constructor (
 		 *   The new atom, not equal to any object in use before this method was
 		 *   invoked.
 		 */
-		@JvmStatic
 		fun createAtom (
 			name: A_String,
 			issuingModule: A_Module
@@ -479,7 +477,6 @@ open class AtomDescriptor protected constructor (
 		 *   The new atom, not equal to any object in use before this method was
 		 *   invoked.
 		 */
-		@JvmStatic
 		fun createSpecialAtom (
 			name: String
 		) = AtomWithPropertiesSharedDescriptor.sharedSpecial.createInitialized(

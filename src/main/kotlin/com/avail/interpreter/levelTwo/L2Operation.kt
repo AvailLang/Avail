@@ -150,7 +150,6 @@ protected constructor(
 	 * [L2Instruction]s using this operation.  Note that all reads are
 	 * considered to happen before all writes.
 	 */
-	@JvmField
 	var readsHiddenVariablesMask = 0
 
 	/**
@@ -158,7 +157,6 @@ protected constructor(
 	 * [L2Instruction]s using this operation.  Note that all reads are
 	 * considered to happen before all writes.
 	 */
-	@JvmField
 	var writesHiddenVariablesMask = 0
 
 	/**
@@ -175,7 +173,6 @@ protected constructor(
 	 * The [named&#32;operand&#32;types][L2NamedOperandType] that this
 	 * [operation][L2Operation] expects.
 	 */
-	@JvmField
 	val namedOperandTypes: Array<out L2NamedOperandType> =
 		theNamedOperandTypes.clone().also { types ->
 			assert(this is L2ControlFlowOperation

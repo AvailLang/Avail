@@ -218,7 +218,6 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		 * @return
 		 *   A new fiber type.
 		 */
-		@JvmStatic
 		fun fiberType(resultType: A_Type): AvailObject = mutable.createShared {
 			setSlot(RESULT_TYPE, resultType.makeImmutable())
 		}
@@ -235,7 +234,6 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		 * @return
 		 *   The most general fiber type.
 		 */
-		@JvmStatic
 		fun mostGeneralFiberType(): A_Type = mostGeneralFiberType
 
 		/**
@@ -250,7 +248,6 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 		 * @return
 		 *   The metatype for all fiber types.
 		 */
-		@JvmStatic
 		fun fiberMeta(): A_Type = meta
 	}
 }

@@ -56,7 +56,6 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 	/**
 	 * The actual constant value.
 	 */
-	@JvmField
 	val constant: AvailObject = constant.makeShared()
 
 	override fun operandType(): L2OperandType = L2OperandType.CONSTANT

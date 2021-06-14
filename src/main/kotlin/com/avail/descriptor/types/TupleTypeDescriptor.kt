@@ -653,7 +653,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A canonized tuple type with the specified properties.
 		 */
-		@JvmStatic
 		fun tupleTypeForSizesTypesDefaultType(
 			sizeRange: A_Type,
 			typeTuple: A_Tuple,
@@ -725,7 +724,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A size [0..∞) tuple type whose elements have the given type.
 		 */
-		@JvmStatic
 		fun zeroOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				wholeNumbers,
@@ -741,7 +739,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A size [1..∞) tuple type whose elements have the given type.
 		 */
-		@JvmStatic
 		fun oneOrMoreOf(aType: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				naturalNumbers,
@@ -757,8 +754,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A fixed-size tuple type.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tupleTypeForTypes(vararg types: A_Type): A_Type =
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
@@ -793,7 +790,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 		/** Access the method [tupleTypeForTypes].  */
 		@Suppress("unused")
-		@JvmField
 		val tupleTypesForTypesListMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
 			::tupleTypeForTypesList.name,
@@ -815,7 +811,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 *   A tuple type resulting from applying the transformation to each
 		 *   element type of the supplied tuple type.
 		 */
-		@JvmStatic
 		fun mappingElementTypes(
 			aTupleType: A_Type,
 			elementTransformer: (A_Type) -> A_Type): A_Type
@@ -916,7 +911,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The most general tuple type.
 		 */
-		@JvmStatic
 		fun mostGeneralTupleType(): A_Type = mostGeneralType
 
 		/** The most general string type (i.e., tuples of characters).  */
@@ -930,7 +924,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The string type.
 		 */
-		@JvmStatic
 		fun stringType(): A_Type = stringType
 
 		/** The most general string type (i.e., tuples of characters).  */
@@ -944,7 +937,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The non-empty string type.
 		 */
-		@JvmStatic
 		fun nonemptyStringType(): A_Type = nonemptyStringType
 
 		/** The metatype for all tuple types.  */
@@ -956,7 +948,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun tupleMeta(): A_Type = meta
 	}
 }

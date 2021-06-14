@@ -1807,7 +1807,6 @@ abstract class AvailObjectRepresentation protected constructor(
 		 * @return
 		 *   A new object.
 		 */
-		@JvmStatic
 		fun newLike(
 			descriptor: AbstractDescriptor,
 			objectToCopy: AvailObjectRepresentation,

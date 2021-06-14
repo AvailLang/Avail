@@ -152,7 +152,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			 * The hash value of this [compiled][CompiledCodeDescriptor].  It is
 			 * computed at construction time.
 			 */
-			@JvmField
 			@HideFieldInDebugger
 			val HASH = BitField(HASH_AND_OUTERS, 32, 32)
 
@@ -160,7 +159,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			 * The number of outer variables that must be captured by my
 			 * [functions][FunctionDescriptor].
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -170,7 +168,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			 * The number of [frame&#32;slots][A_Continuation.frameAt] to
 			 * allocate for continuations running this code.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -180,7 +177,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			/**
 			 * The number of [arguments][ARGUMENT] that this code expects.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -190,7 +186,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			 * The number of local variables declared in this code.  This does
 			 * not include arguments or local constants.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -201,7 +196,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			 * The number of local constants declared in this code.  These occur
 			 * in the frame after the arguments and local variables.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -301,7 +295,6 @@ class PrimitiveCompiledCodeDescriptor constructor(
 		 * @return
 		 *   A function.
 		 */
-		@JvmStatic
 		fun newPrimitiveRawFunction(
 			primitive: Primitive,
 			module: A_Module,

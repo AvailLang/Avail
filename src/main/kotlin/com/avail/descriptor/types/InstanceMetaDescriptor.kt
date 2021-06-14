@@ -425,7 +425,6 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   `⊤`'s type.
 		 */
-		@JvmStatic
 		fun topMeta(): A_Type = topMeta
 
 		/**
@@ -439,7 +438,6 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   `any`'s type.
 		 */
-		@JvmStatic
 		fun anyMeta(): A_Type = anyMeta
 
 		/**
@@ -451,8 +449,8 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   An [AvailObject] representing the type of the argument.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun instanceMeta(instance: A_Type): A_Type = mutable.create {
 			assert(instance.isType)
 			setSlot(INSTANCE, instance.makeImmutable())

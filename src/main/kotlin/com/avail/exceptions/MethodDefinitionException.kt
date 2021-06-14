@@ -72,7 +72,6 @@ class MethodDefinitionException private constructor(code: AvailErrorCode)
 		 * @return
 		 *   The requested exception.
 		 */
-		@JvmStatic
 		fun noMethod(): MethodDefinitionException =
 			MethodDefinitionException(E_NO_METHOD)
 
@@ -84,7 +83,6 @@ class MethodDefinitionException private constructor(code: AvailErrorCode)
 		 * @return
 		 *   The requested exception.
 		 */
-		@JvmStatic
 		fun forwardMethod(): MethodDefinitionException =
 			MethodDefinitionException(E_FORWARD_METHOD_DEFINITION)
 
@@ -96,7 +94,6 @@ class MethodDefinitionException private constructor(code: AvailErrorCode)
 		 * @return
 		 *   The requested exception.
 		 */
-		@JvmStatic
 		fun abstractMethod(): MethodDefinitionException =
 			MethodDefinitionException(E_ABSTRACT_METHOD_DEFINITION)
 
@@ -112,7 +109,6 @@ class MethodDefinitionException private constructor(code: AvailErrorCode)
 		 * @throws MethodDefinitionException
 		 *   If the tuple did not contain exactly one definition.
 		 */
-		@JvmStatic
 		@Throws(MethodDefinitionException::class)
 		fun extractUniqueMethod(methodDefinitions: A_Tuple): A_Definition
 		{

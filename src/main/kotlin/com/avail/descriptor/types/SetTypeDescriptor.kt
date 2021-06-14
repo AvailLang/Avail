@@ -324,7 +324,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   An immutable set type as specified.
 		 */
-		@JvmStatic
 		fun setTypeForSizesContentType(
 			sizeRange: A_Type,
 			contentType: A_Type): A_Type
@@ -427,7 +426,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return T
 		 *   The most general set type.
 		 */
-		@JvmStatic
 		fun mostGeneralSetType(): A_Type = mostGeneralType
 
 		/**
@@ -441,7 +439,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun setMeta(): A_Type =  meta
 	}
 }

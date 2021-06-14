@@ -376,7 +376,6 @@ class L2Chunk private constructor(
 	/**
 	 * The sequence of [L2Instruction]s that make up this L2Chunk.
 	 */
-	@JvmField
 	val instructions: Array<L2Instruction> = instructions.toTypedArray()
 
 	/**
@@ -659,7 +658,6 @@ class L2Chunk private constructor(
 		 * @return
 		 *   The effective name of the function.
 		 */
-		@JvmStatic
 		private fun name(code: A_RawFunction?): String =
 			code?.methodName()?.asNativeString() ?: "«default»"
 
@@ -745,7 +743,6 @@ class L2Chunk private constructor(
 		 * @return
 		 *   The new level two chunk.
 		 */
-		@JvmStatic
 		fun allocate(
 			code: A_RawFunction?,
 			numObjects: Int,
@@ -812,8 +809,8 @@ class L2Chunk private constructor(
 		 * [compiled&#32;code][CompiledCodeDescriptor] has been executed some
 		 * number of times (specified in [countdownForNewCode]).
 		 */
-		@JvmField
 		@ReferencedInGeneratedCode
+		@JvmField
 		val unoptimizedChunk = createDefaultChunk()
 
 		/**

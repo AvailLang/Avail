@@ -116,8 +116,8 @@ class ContinuationRegisterDumpDescriptor private constructor(
 		 * @return
 		 *   The new register dump object or [nil].
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createRegisterDump(
 			objects: Array<AvailObject>,
 			longs: LongArray
@@ -138,7 +138,6 @@ class ContinuationRegisterDumpDescriptor private constructor(
 			}
 
 		/** Access the method [createRegisterDump]. */
-		@JvmField
 		var createRegisterDumpMethod: CheckedMethod = staticMethod(
 			ContinuationRegisterDumpDescriptor::class.java,
 			::createRegisterDump.name,

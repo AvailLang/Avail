@@ -4300,7 +4300,6 @@ class AvailCompiler(
 		 *   What to do with the resultant compiler in the event of success.
 		 *   This is a continuation that accepts the new compiler.
 		 */
-		@JvmStatic
 		fun create(
 			resolvedName: ResolvedModuleName,
 			runtime: AvailRuntime,

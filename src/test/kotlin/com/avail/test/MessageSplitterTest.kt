@@ -334,7 +334,6 @@ class MessageSplitterTest private constructor ()
 		 *   The [Stream] of [Arguments] for parameterizing a JUnit test.
 		 */
 		@Suppress("unused")
-		@JvmStatic
 		fun casesProvider(): Stream<Arguments> =
 			Arrays.stream(splitCases).map { arguments: Case? ->
 				Arguments.of(arguments)

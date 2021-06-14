@@ -85,7 +85,6 @@ object JavaLibrary
 	val doubleBoxed = JavaDouble::class.java
 
 	/** Static method to cast from `long` to `double`.  */
-	@JvmStatic
 	var bitCastLongToDoubleMethod: CheckedMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
@@ -94,7 +93,6 @@ object JavaLibrary
 			long)
 
 	/** Static method to cast from `double` to `long`.  */
-	@JvmStatic
 	var bitCastDoubleToLongMethod: CheckedMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
@@ -103,7 +101,6 @@ object JavaLibrary
 			double)
 
 	/** The [CheckedMethod] for [Class.getClassLoader]. */
-	@JvmStatic
 	val getClassLoader: CheckedMethod =
 		javaLibraryInstanceMethod(
 			Class::class.java,
@@ -111,7 +108,6 @@ object JavaLibrary
 			ClassLoader::class.java)
 
 	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
-	@JvmStatic
 	val javaUnboxIntegerMethod: CheckedMethod = javaLibraryStaticMethod(
 		intBoxed,
 		"valueOf",
@@ -119,7 +115,6 @@ object JavaLibrary
 		int)
 
 	/** The [CheckedMethod] for [java.util.List.get].  */
-	@JvmStatic
 	val listGetMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::get.name,
@@ -127,14 +122,12 @@ object JavaLibrary
 		int)
 
 	/** The [CheckedMethod] for [java.util.List.clear].  */
-	@JvmStatic
 	val listClearMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::clear.name,
 		void)
 
 	/** The [CheckedMethod] for [java.util.List.add].  */
-	@JvmStatic
 	val listAddMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		"add",
@@ -142,7 +135,6 @@ object JavaLibrary
 		Object::class.java)
 
 	/** The [CheckedMethod] for [LongAdder.increment]. */
-	@JvmStatic
 	val longAdderIncrement: CheckedMethod = javaLibraryInstanceMethod(
 		LongAdder::class.java,
 		LongAdder::increment.name,

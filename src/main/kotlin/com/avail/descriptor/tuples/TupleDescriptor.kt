@@ -142,7 +142,6 @@ abstract class TupleDescriptor protected constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -1212,8 +1211,8 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   The empty tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun emptyTuple(): AvailObject = emptyTuple
 
 		/**
@@ -1227,7 +1226,6 @@ abstract class TupleDescriptor protected constructor(
 		 * @param X
 		 *   The Java type of the elements.
 		 */
-		@JvmStatic
 		fun <X : A_BasicObject?> toList(tuple: A_Tuple): MutableList<X> =
 			tuple.toMutableList() as MutableList<X>
 
@@ -1339,7 +1337,6 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   [AvailObject.multiplier] raised to the specified power.
 		 */
-		@JvmStatic
 		fun multiplierRaisedTo(anInteger: Int): Int =
 			(powersOfMultiplier[0][anInteger and 0xFF]
 				* powersOfMultiplier[1][anInteger shr 8 and 0xFF]
@@ -1380,8 +1377,8 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   The concatenated tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun staticConcatenateTuples(
 			firstTuple: A_Tuple,
 			secondTuple: A_Tuple,
@@ -1389,7 +1386,6 @@ abstract class TupleDescriptor protected constructor(
 		): A_Tuple = firstTuple.concatenateWith(secondTuple, canDestroy)
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
-		@JvmField
 		val concatenateTupleMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticConcatenateTuples.name,
@@ -1408,13 +1404,12 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   The element of the tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun staticTupleAt(tuple: A_Tuple, index: Int): AvailObject =
 			tuple.tupleAt(index)
 
 		/** The [CheckedMethod] for [staticTupleAt].  */
-		@JvmField
 		val tupleAtMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAt.name,
@@ -1437,15 +1432,14 @@ abstract class TupleDescriptor protected constructor(
 		 *   Either the given tuple, modified, or a new tuple containing the
 		 *   edit.  This is strengthened to [AvailObject] for convenience.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun staticTupleAtPutting(
 			tuple: A_Tuple, index: Int, newValue: A_BasicObject
 		): AvailObject =
 			tuple.tupleAtPuttingCanDestroy(index, newValue, true) as AvailObject
 
 		/** The [CheckedMethod] for [staticTupleAt].  */
-		@JvmField
 		val tupleAtPuttingMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAtPutting.name,
@@ -1460,12 +1454,11 @@ abstract class TupleDescriptor protected constructor(
 		 * @return
 		 *   The maximum valid 1-based index for this tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun staticTupleSize(tuple: A_Tuple): Int = tuple.tupleSize()
 
 		/** The [CheckedMethod] for [staticTupleSize].  */
-		@JvmField
 		val tupleSizeMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleSize.name,

@@ -128,7 +128,6 @@ open class VariableSharedDescriptor protected constructor(
 			 * making a variable shared.
 			 */
 			@HideFieldInDebugger
-			@JvmField
 			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
 
 			init

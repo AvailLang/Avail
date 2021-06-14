@@ -94,13 +94,11 @@ class CharacterDescriptor private constructor(
 			/**
 			 * This character's Unicode code point, in the range 0..1,411,111.
 			 */
-			@JvmField
 			val CODE_POINT = BitField(CODE_POINT_AND_HASH, 0, 32)
 
 			/**
 			 * This character's hash value, which is eagerly computed.
 			 */
-			@JvmField
 			val HASH = BitField(CODE_POINT_AND_HASH, 32, 32)
 		}
 	}
@@ -235,7 +233,6 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   THe character's hashed [Int].
 		 */
-		@JvmStatic
 		fun computeHashOfCharacterWithCodePoint(codePoint: Int): Int =
 			computeHashOfInt(codePoint xor -0x297166b9)
 
@@ -248,7 +245,6 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   A hash.
 		 */
-		@JvmStatic
 		fun hashOfByteCharacterWithCodePoint(codePoint: Short): Int {
 			assert(codePoint in 0..255)
 			return hashesOfByteCharacters[codePoint.toInt()]
@@ -269,7 +265,6 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		@JvmStatic
 		fun fromCodePoint(codePoint: Int): A_Character {
 			if (codePoint in 0..255) {
 				return byteCharacters[codePoint]
@@ -301,7 +296,6 @@ class CharacterDescriptor private constructor(
 		 * @return
 		 *   An [AvailObject].
 		 */
-		@JvmStatic
 		fun fromByteCodePoint(codePoint: Short): A_Character? {
 			assert(codePoint in 0..255)
 			return byteCharacters[codePoint.toInt()]
@@ -338,7 +332,6 @@ class CharacterDescriptor private constructor(
 			enumerationWith(stringFrom("0123456789").asSet()).makeShared()
 
 		/** The type for non-empty strings of ASCII decimal digits. */
-		@JvmField
 		val nonemptyStringOfDigitsType: A_Type = oneOrMoreOf(digitsType)
 	}
 }

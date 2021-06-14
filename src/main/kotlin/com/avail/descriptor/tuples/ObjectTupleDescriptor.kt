@@ -89,7 +89,6 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -517,7 +516,6 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new object tuple.
 		 */
-		@JvmStatic
 		fun generateObjectTupleFrom(
 			size: Int,
 			generator: (Int) -> A_BasicObject): AvailObject
@@ -572,8 +570,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new mutable tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tupleFromArray(vararg elements: A_BasicObject): A_Tuple
 		{
 			val size = elements.size
@@ -602,8 +600,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new mutable tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tuple(element1: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(1)
@@ -632,8 +630,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new mutable tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tuple(element1: A_BasicObject, element2: A_BasicObject): A_Tuple
 		{
 			val result = createUninitialized(2)
@@ -666,8 +664,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new mutable tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tuple(
 			element1: A_BasicObject,
 			element2: A_BasicObject,
@@ -707,8 +705,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new mutable tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tuple(
 			element1: A_BasicObject,
 			element2: A_BasicObject,
@@ -753,8 +751,8 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new mutable tuple.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun tuple(
 			element1: A_BasicObject,
 			element2: A_BasicObject,
@@ -798,7 +796,6 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 * @param E
 		 *   The specialization of the input [List]'s elements.
 		 */
-		@JvmStatic
 		fun <E : A_BasicObject?> tupleFromList(list: List<E>): A_Tuple
 		{
 			val size = list.size

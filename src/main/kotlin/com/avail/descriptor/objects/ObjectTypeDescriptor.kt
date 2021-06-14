@@ -146,7 +146,6 @@ class ObjectTypeDescriptor internal constructor(
 			 * the very rare case that the hash value actually equals zero, the
 			 * hash value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -672,7 +671,6 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The new `object type`.
 		 */
-		@JvmStatic
 		fun objectTypeFromMap(map: A_Map): AvailObject {
 			val variant: ObjectLayoutVariant = variantForFields(map.keysAsSet())
 			val mutableDescriptor = variant.mutableObjectTypeDescriptor
@@ -926,7 +924,6 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The object type that makes no constraints on its fields.
 		 */
-		@JvmStatic
 		fun mostGeneralObjectType(): A_Type = mostGeneralType
 
 		/**
@@ -943,7 +940,6 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The (meta)type of the most general object type.
 		 */
-		@JvmStatic
 		fun mostGeneralObjectMeta(): A_Type = mostGeneralMeta
 
 		/**
@@ -961,7 +957,6 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The special exception atom.
 		 */
-		@JvmStatic
 		fun exceptionAtom(): A_Atom = exceptionAtom
 
 		/**
@@ -977,7 +972,6 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The special stack dump atom.
 		 */
-		@JvmStatic
 		fun stackDumpAtom(): A_Atom = stackDumpAtom
 
 		/**
@@ -998,7 +992,6 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The most general exception type.
 		 */
-		@JvmStatic
 		fun exceptionType(): A_Type = exceptionType
 	}
 }

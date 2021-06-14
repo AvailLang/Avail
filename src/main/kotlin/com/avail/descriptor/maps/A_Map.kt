@@ -220,8 +220,8 @@ interface A_Map : A_BasicObject
 		 * mapped to [value].  The original may be destroyed or recycled if it's
 		 * mutable.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun mapAtPuttingStatic(
 			self: A_Map,
 			key: A_BasicObject,
@@ -229,7 +229,6 @@ interface A_Map : A_BasicObject
 		): AvailObject = self.mapAtPuttingCanDestroy(key, value, true).cast()
 
 		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
-		@JvmField
 		val mapAtPuttingStaticMethod: CheckedMethod = staticMethod(
 			A_Map::class.java,
 			::mapAtPuttingStatic.name,

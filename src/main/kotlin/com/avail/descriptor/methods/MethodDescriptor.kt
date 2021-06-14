@@ -277,7 +277,6 @@ class MethodDescriptor private constructor(
 			 * The number of arguments expected by this method.  Set at
 			 * construction time.
 			 */
-			@JvmField
 			@EnumField(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
@@ -957,11 +956,9 @@ class MethodDescriptor private constructor(
 		) : this(name, null, *primitives)
 
 		/** The special atom. */
-		@JvmField
 		val atom: A_Atom = createSpecialAtom(name)
 
 		/** The special atom's message bundle. */
-		@JvmField
 		val bundle: A_Bundle =
 			try {
 				atom.bundleOrCreate()
@@ -1034,7 +1031,6 @@ class MethodDescriptor private constructor(
 		 *
 		 * @see methodTestingTree
 		 */
-		@JvmField
 		val runtimeDispatcher =
 			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{

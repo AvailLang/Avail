@@ -259,7 +259,6 @@ class FunctionDescriptor private constructor(
 
 	companion object {
 		/** The [CheckedMethod] for [A_Function.code]. */
-		@JvmField
 		val functionCodeMethod: CheckedMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::code.name,
@@ -374,7 +373,6 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function.
 		 */
-		@JvmStatic
 		fun createFunction(
 			code: A_BasicObject,
 			copiedTuple: A_Tuple
@@ -401,8 +399,8 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function without its outer variables initialized.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createExceptOuters(
 			code: A_RawFunction,
 			outersCount: Int
@@ -412,7 +410,6 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createExceptOuters] method.
 		 */
-		@JvmField
 		val createExceptOutersMethod: CheckedMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createExceptOuters.name,
@@ -430,8 +427,8 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function with its outer variable initialized.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createWithOuters1(
 			code: A_RawFunction,
 			outer1: AvailObject
@@ -442,7 +439,6 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters1] method.
 		 */
-		@JvmField
 		val createWithOuters1Method: CheckedMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters1.name,
@@ -462,8 +458,8 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function with its outer variables initialized.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createWithOuters2(
 			code: A_RawFunction,
 			outer1: AvailObject,
@@ -476,7 +472,6 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters2] method.
 		 */
-		@JvmField
 		val createWithOuters2Method: CheckedMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters2.name,
@@ -499,8 +494,8 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function with its outer variables initialized.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createWithOuters3(
 			code: A_RawFunction,
 			outer1: AvailObject,
@@ -515,7 +510,6 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters3] method.
 		 */
-		@JvmField
 		val createWithOuters3Method: CheckedMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters3.name,
@@ -541,8 +535,8 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function with its outer variables initialized.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createWithOuters4(
 			code: A_RawFunction,
 			outer1: AvailObject,
@@ -559,7 +553,6 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters4] method.
 		 */
-		@JvmField
 		val createWithOuters4Method: CheckedMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters4.name,
@@ -588,8 +581,8 @@ class FunctionDescriptor private constructor(
 		 * @return
 		 *   A function with its outer variables initialized.
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createWithOuters5(
 			code: A_RawFunction,
 			outer1: AvailObject,
@@ -608,7 +601,6 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters5] method.
 		 */
-		@JvmField
 		val createWithOuters5Method: CheckedMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters5.name,
@@ -621,7 +613,6 @@ class FunctionDescriptor private constructor(
 			AvailObject::class.java)
 
 		/** Access the [A_Function.outerVarAt] method. */
-		@JvmField
 		val outerVarAtMethod: CheckedMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::outerVarAt.name,
@@ -629,7 +620,6 @@ class FunctionDescriptor private constructor(
 			Int::class.javaPrimitiveType!!)
 
 		/** Access the [A_Function.outerVarAtPut] method. */
-		@JvmField
 		val outerVarAtPutMethod: CheckedMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::outerVarAtPut.name,
@@ -684,7 +674,6 @@ class FunctionDescriptor private constructor(
 		 *
 		 * @see SpecialMethodAtom.CRASH
 		 */
-		@JvmStatic
 		fun newCrashFunction(
 			messageString: String,
 			paramTypes: A_Tuple

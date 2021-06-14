@@ -116,7 +116,6 @@ class ByteStringDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
 			init
@@ -589,13 +588,12 @@ class ByteStringDescriptor private constructor(
 		 * @return
 		 *   An Avail [A_String].
 		 */
-		@JvmStatic
 		@ReferencedInGeneratedCode
+		@JvmStatic
 		fun createUninitializedByteString(size: Int): AvailObject =
 			descriptorFor(Mutability.MUTABLE, size).create(size + 7 shr 3)
 
 		/** The [CheckedMethod] for [createUninitializedByteString]. */
-		@JvmField
 		val createUninitializedByteStringMethod: CheckedMethod = staticMethod(
 			ByteStringDescriptor::class.java,
 			::createUninitializedByteString.name,

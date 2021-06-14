@@ -114,7 +114,6 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 			/**
 			 * The hash, populated during construction.
 			 */
-			@JvmField
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}

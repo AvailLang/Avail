@@ -108,7 +108,6 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		/**
 		 * The [CheckedMethod] for the default constructor.
 		 */
-		@JvmField
 		val chunkConstructor : CheckedConstructor =
 			CheckedConstructor.constructorMethod(JVMChunk::class.java)
 
@@ -129,7 +128,6 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val noObjects = arrayOf<AvailObject>()
 
 		/** Access to the field [noObjects]  */
-		@JvmField
 		var noObjectsField : CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noObjects",
@@ -153,7 +151,6 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		}
 
 		/** The [CheckedMethod] for [badOffset].  */
-		@JvmField
 		val badOffsetMethod: CheckedMethod = CheckedMethod.staticMethod(
 			JVMChunk::class.java,
 			::badOffset.name,

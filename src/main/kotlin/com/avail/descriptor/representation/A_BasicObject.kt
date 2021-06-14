@@ -1135,7 +1135,6 @@ interface A_BasicObject : JSONFriendly {
 		}
 
 		/** The [CheckedMethod] for [.equals].  */
-		@JvmField
 		val equalsMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::equals.name,
@@ -1143,7 +1142,6 @@ interface A_BasicObject : JSONFriendly {
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [.isInstanceOf].  */
-		@JvmField
 		val isInstanceOfMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInstanceOf.name,
@@ -1151,7 +1149,6 @@ interface A_BasicObject : JSONFriendly {
 			A_Type::class.java)
 
 		/** The [CheckedMethod] for [.makeImmutable].  */
-		@JvmField
 		val makeImmutableMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::makeImmutable.name,
@@ -1159,28 +1156,24 @@ interface A_BasicObject : JSONFriendly {
 
 		/** The [CheckedMethod] for [.makeSubobjectsImmutable].  */
 		@Suppress("unused")
-		@JvmField
 		val makeSubobjectsImmutableMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::makeSubobjectsImmutable.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [.traversed].  */
-		@JvmField
 		val traversedMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::traversed.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [.isInt].  */
-		@JvmField
 		val isIntMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInt.name,
 			Boolean::class.javaPrimitiveType!!)
 
 		/** The [CheckedMethod] for [.isDouble].  */
-		@JvmField
 		val isDoubleMethod: CheckedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isDouble.name,

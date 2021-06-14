@@ -1632,7 +1632,6 @@ class TypeConsistencyTest
 		 */
 		@Suppress("unused")
 		@BeforeAll
-		@JvmStatic
 		fun initializeAllWellKnownObjects()
 		{
 			// Force early initialization of the Avail runtime in order to

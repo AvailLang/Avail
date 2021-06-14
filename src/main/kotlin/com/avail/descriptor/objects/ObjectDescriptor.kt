@@ -150,7 +150,6 @@ class ObjectDescriptor internal constructor(
 			 * the very rare case that the hash value actually equals zero, the
 			 * hash value has to be computed every time it is requested.
 			 */
-			@JvmField
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -603,7 +602,6 @@ class ObjectDescriptor internal constructor(
 		}
 
 		/** Access the [setField] method.  */
-		@JvmField
 		var setFieldMethod: CheckedMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,
@@ -690,7 +688,6 @@ class ObjectDescriptor internal constructor(
 		/**
 		 * Access the [createUninitializedObject] static method.
 		 */
-		@JvmField
 		var createUninitializedObjectMethod: CheckedMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,

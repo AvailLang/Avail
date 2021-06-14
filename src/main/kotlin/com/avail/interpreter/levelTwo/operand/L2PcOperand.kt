@@ -102,7 +102,6 @@ class L2PcOperand constructor (
 	 *
 	 * This is a superset of [sometimesLiveInRegisters].
 	 */
-	@JvmField
 	val alwaysLiveInRegisters = mutableSetOf<L2Register>()
 
 	/**
@@ -113,7 +112,6 @@ class L2PcOperand constructor (
 	 *
 	 * This is a subset of [alwaysLiveInRegisters].
 	 */
-	@JvmField
 	val sometimesLiveInRegisters = mutableSetOf<L2Register>()
 
 	/**
@@ -123,7 +121,6 @@ class L2PcOperand constructor (
 	 * liveness algorithm to be used, instead of iterating (backward) through
 	 * loops until the live set has converged.
 	 */
-	@JvmField
 	var forcedClampedEntities: MutableSet<L2EntityAndKind>? = null
 
 	/**
@@ -138,7 +135,6 @@ class L2PcOperand constructor (
 	 * Most edges don't benefit from having a counter, and a final optimized
 	 * form has no need for any counters, so this field can be `null`.
 	 */
-	@JvmField
 	var counter: LongAdder? = null
 
 	/**

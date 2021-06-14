@@ -450,7 +450,6 @@ class IOSystem
 	companion object
 	{
 		/** The default [file system][FileSystem].  */
-		@JvmStatic
 		val fileSystem: FileSystem = FileSystems.getDefault()
 
 		/**
@@ -474,7 +473,6 @@ class IOSystem
 		 * `false` for an array that forbids symbolic link traversal.
 		 * @return An array of link options.
 		 */
-		@JvmStatic
 		fun followSymlinks(shouldFollow: Boolean): Array<LinkOption> =
 			if (shouldFollow) followSymlinks else doNotFollowSymbolicLinks
 
@@ -482,7 +480,6 @@ class IOSystem
 		 * The [POSIX&#32;file&#32;permissions][PosixFilePermission]. *The order
 		 * of these elements should not be changed!*
 		 */
-		@JvmStatic
 		val posixPermissions = arrayOf(
 			OWNER_READ,
 			OWNER_WRITE,

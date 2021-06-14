@@ -190,7 +190,6 @@ abstract class StringDescriptor protected constructor(
 		 * @return
 		 *   A corresponding Avail `StringDescriptor string`.
 		 */
-		@JvmStatic
 		fun stringFrom(aNativeString: String): A_String
 		{
 			val charCount = aNativeString.length

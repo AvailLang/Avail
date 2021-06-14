@@ -72,12 +72,10 @@ abstract class PropertiesFileGenerator protected constructor(
 	protected val baseName: String,
 	protected val locale: Locale)
 {
-
 	/**
 	 * The [resource bundle][ResourceBundle] that contains file preamble
 	 * information.
 	 */
-	@JvmField
 	protected val preambleBundle: ResourceBundle = ResourceBundle.getBundle(
 		preambleBaseName,
 		locale,

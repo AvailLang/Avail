@@ -383,7 +383,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The requested map type.
 		 */
-		@JvmStatic
 		fun mapTypeForSizesKeyTypeValueType(
 			sizeRange: A_Type,
 			keyType: A_Type,
@@ -478,7 +477,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The most general map type.
 		 */
-		@JvmStatic
 		fun mostGeneralMapType(): A_Type = mostGeneralType
 
 		/**
@@ -492,7 +490,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		@JvmStatic
 		fun mapMeta(): A_Type =  meta
 	}
 }

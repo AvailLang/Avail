@@ -210,7 +210,6 @@ class BottomPojoTypeDescriptor constructor(mutability: Mutability)
 		 * @return
 		 *   The most specific pojo type.
 		 */
-		@JvmStatic
 		fun pojoBottom(): A_Type = pojoBottom
 	}
 }
