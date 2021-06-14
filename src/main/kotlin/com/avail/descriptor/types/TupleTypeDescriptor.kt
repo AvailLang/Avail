@@ -72,6 +72,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
@@ -383,22 +384,41 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
+		if (!self.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			self.makeImmutable()
+			return tupleTypeForSizesTypesDefaultType(
+					self.sizeRange().typeIntersection(int32),
+					self.typeTuple(),
+					self.defaultType()
+				).trimType(typeToRemove)
+		}
 		if (self.isSubtypeOf(typeToRemove)) return bottom
 		if (!typeToRemove.isTupleType) return self
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
+		if (!typeToRemove.sizeRange().isSubtypeOf(int32))
+		{
+			// Trim the type to only those that are physically possible.
+			return self.trimType(
+				tupleTypeForSizesTypesDefaultType(
+					typeToRemove.sizeRange().typeIntersection(int32),
+					typeToRemove.typeTuple(),
+					typeToRemove.defaultType()))
+		}
+		val sizeRange = self.sizeRange()
 		val leadingTypes = self.typeTuple()
 		val defaultType = self.defaultType()
 		val removedLeadingTypes = typeToRemove.typeTuple()
 		val variationLimit =
 			max(leadingTypes.tupleSize(), removedLeadingTypes.tupleSize()) + 1
 		val firstVariation = (1..variationLimit).indexOfFirst { i ->
-			// Test whether the element that position would always be excluded
-			// by the removed type.
+			// Test whether the element at that position would always be
+			// excluded by the removed type.
 			!self.typeAtIndex(i).isSubtypeOf(typeToRemove.typeAtIndex(i))
 		} + 1  // from Kotlin index -> one-based
-		val sizeRange = self.sizeRange()
 		val removedSizeRange = typeToRemove.sizeRange()
 		if (firstVariation == 0)
 		{
