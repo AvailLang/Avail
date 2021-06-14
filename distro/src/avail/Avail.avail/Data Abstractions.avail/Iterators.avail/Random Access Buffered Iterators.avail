@@ -32,7 +32,7 @@
 
 Module "Random Access Buffered Iterators"
 Versions
-	"1.5.0"
+	"1.5.1"
 Uses
 	"Abstract Iterators",
 	"Buffered Iterators",

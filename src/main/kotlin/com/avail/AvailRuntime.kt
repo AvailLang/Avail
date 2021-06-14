@@ -755,7 +755,7 @@ class AvailRuntime constructor(
 		 *   The [A_Function] currently in that hook.
 		 */
 		operator fun get(runtime: AvailRuntime): A_Function =
-			runtime.hooks[this]!!
+			runtime.hooks[this]!!.function
 
 		/**
 		 * Set this hook for the given runtime to the given function.
@@ -769,12 +769,20 @@ class AvailRuntime constructor(
 		{
 			assert(function.isInstanceOf(functionType))
 			function.code().setMethodName(hookName)
-			runtime.hooks[this] = function.makeShared()
+			runtime.hooks[this]!!.function = function.makeShared()
 		}
 	}
 
+	/** A volatile holder, to ensure visibility of writes to readers. */
+	data class VolatileHookEntry(
+		/** The assignable function for some hook. */
+		@Volatile
+		var function: A_Function)
+
 	/** The collection of hooks for this runtime. */
-	val hooks = enumMap { hook: HookType -> hook.defaultFunctionSupplier() }
+	val hooks = enumMap { hook: HookType ->
+		VolatileHookEntry(hook.defaultFunctionSupplier())
+	}
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever the value

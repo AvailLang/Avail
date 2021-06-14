@@ -40,7 +40,7 @@
 
 Module "Primitive Coverage Tests"
 Versions
-	"1.5.0"
+	"1.5.1"
 Uses
 	"Avail",
 	"Atoms Tests",

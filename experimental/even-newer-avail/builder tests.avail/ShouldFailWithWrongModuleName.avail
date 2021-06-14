@@ -32,6 +32,6 @@
 
 Module "TheWrongModuleName"
 Versions
-	"1.5.0"
+	"1.5.1"
 Body
 /* nothing */

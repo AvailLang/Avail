@@ -35,7 +35,7 @@
 
 Module "The Princess"
 Versions
-	"1.5.0"
+	"1.5.1"
 Uses
 	"Avail",
 	"Choosable Path",
@@ -130,68 +130,68 @@ and is described by
 Breaking Out
 is titled by "Passive princesses are the pits!"
 and is described by
-	"The best princesses are the self-rescuing kind, and you're not about to just roll 
-	over and let The King and The Wicked Stepmother claim the role of Narrator for the 
-	next year! 
+	"The best princesses are the self-rescuing kind, and you're not about to just roll
+	over and let The King and The Wicked Stepmother claim the role of Narrator for the
+	next year!
 
 	You have a few different options."
 
-and has transitions 
+and has transitions
 	to Vine Disaster
-	described by 
-		"There's a creeping vine clinging to the stones of the tower right by your 
+	described by
+		"There's a creeping vine clinging to the stones of the tower right by your
 		window. It might be tough enough to hold your weight for a quick descent.",
-		
+
 	to Basement
-	described by 
-		"Thinking about it logically, the basement is being supplied with tasty food 
+	described by
+		"Thinking about it logically, the basement is being supplied with tasty food
 		fairly often. There must be ways in and out. Search for secret passages.",
 
 	to Falala
 	described by
 		"Sing at the window.";
-		
+
 Vine Disaster
 is titled by "Down... the hatch."
 and is described by
-	"You slip out the window, twine your hands in the leafy vines, and start your descent. 
-	When you are about halfway down the tower, the ivy twists in your grasp and transforms 
-	into a giant green snake! The leafy beast rustles ominously, slithers around, and eats 
+	"You slip out the window, twine your hands in the leafy vines, and start your descent.
+	When you are about halfway down the tower, the ivy twists in your grasp and transforms
+	into a giant green snake! The leafy beast rustles ominously, slithers around, and eats
 	you in one bite.
 
-	As you slide down its green gullet, you recall that your Stepmother was the one who 
-	created this tower, just days ago. That wasn't much time for even the most aggressive 
-	invasive flora to take root, was it?"; 
+	As you slide down its green gullet, you recall that your Stepmother was the one who
+	created this tower, just days ago. That wasn't much time for even the most aggressive
+	invasive flora to take root, was it?";
 
 Basement
 is titled by "Careful, you might be eaten by a grue."
 and is described by
-	"You go downstairs into the dark basement with a candle and have a good look around. 
-	There's an echo-y space behind one of the walls. With a little bit of poking and 
-	prodding you discover a loose stone which clicks into place and the wall swings open, 
-	revealing a dark passageway. 
+	"You go downstairs into the dark basement with a candle and have a good look around.
+	There's an echo-y space behind one of the walls. With a little bit of poking and
+	prodding you discover a loose stone which clicks into place and the wall swings open,
+	revealing a dark passageway.
 
-	You head into the dark with your little candle, and walk for what feels like a very 
-	long time. 
+	You head into the dark with your little candle, and walk for what feels like a very
+	long time.
 
 	Eventually, you emerge into the late afternoon light. You are at a crossroads."
 
 and has transitions
 	to Castle Panic
 	described by "Go to the castle. It isn't far from here."
-and	
+and
 	to Haunted Woods
 	described by "Go to The Haunted Wood."
-and	
+and
 	to Oracular Mountain
 	described by "Go to the Oracular Mountain.";
 
 Falala
 is titled by "Falalalala"
 and is described by
-	"You take up a picturesque position at the window, and begin to sing. You sing of 
-	loneliness, of lost opportunities, of power and dreams. You sing with all your heart 
-	and all the art that you can find in yourself. As the last notes of your song fade 
+	"You take up a picturesque position at the window, and begin to sing. You sing of
+	loneliness, of lost opportunities, of power and dreams. You sing with all your heart
+	and all the art that you can find in yourself. As the last notes of your song fade
 	away you open your eyes, and discover that you have an audience.
 
 	A butterfly, a bird, and a squirrel are perched on your windowsill."
@@ -199,163 +199,163 @@ and is described by
 and has transitions
 	to Butterfly Brainblast
 	described by "Talk to the butterfly."
-and	
+and
 	to Bird Negotiation
 	described by "Talk to the bird."
-and	
+and
 	to Squirrel Schemes
 	described by "Talk to the squirrel.";
-	
+
 Butterfly Brainblast
 is titled by "But it looked so innocuous..."
 and is described by
-	"You implore the insect for help. \"Sweet butterfly, is there anything you can do to 
-	help me escape from this dreadful tower?\" 
+	"You implore the insect for help. \"Sweet butterfly, is there anything you can do to
+	help me escape from this dreadful tower?\"
 
-	The butterfly responds, and you understand it! Unfortunately, its mode of 
-	communication is so completely alien to your (admittedly sheltered) experience that 
+	The butterfly responds, and you understand it! Unfortunately, its mode of
+	communication is so completely alien to your (admittedly sheltered) experience that
 	your mind breaks under the strain. Ow.
 
-	You spend the rest of the story gibbering on the floor of the tower and dreading the 
-	time when the butterfly will fulfill its promise to you and return with sufficient 
-	numbers of its brethren to topple the tower with the force of their wingbeats. 
+	You spend the rest of the story gibbering on the floor of the tower and dreading the
+	time when the butterfly will fulfill its promise to you and return with sufficient
+	numbers of its brethren to topple the tower with the force of their wingbeats.
 
 	Bummer.";
-	
+
 Bird Negotiation
 is titled by "Tweet tweet"
 and is described by
-	"You implore the bird for help. \"Oh sweet feathered friend, is there anything you 
+	"You implore the bird for help. \"Oh sweet feathered friend, is there anything you
 	can do to help me escape from this dreadful tower?\"
 
-	The bird cocks its head to one side, and then chirrups a perfectly intelligible 
-	answer! \"Well, now that you mention it, I do have a big brother. A very big brother. 
+	The bird cocks its head to one side, and then chirrups a perfectly intelligible
+	answer! \"Well, now that you mention it, I do have a big brother. A very big brother.
 	I could ask him to give you a lift. But what will you do for me?\""
 
 and has transitions
 	to Bird Baby
 	described by "Offer to give the bird your firstborn child."
-and	
+and
 	to Bird Candy
 	described by "Offer to give the bird a piece of chocolate."
-and	
+and
 	to Big Bird
 	described by "Offer to give the bird all the fine thread it could possibly want.";
-	
+
 Bird Baby
 is titled by "Oh baby..."
-and is described by 
-	"\"If you aid in my escape from this tower, I pledge that I shall give to you my 
+and is described by
+	"\"If you aid in my escape from this tower, I pledge that I shall give to you my
 	firstborn child!\"
 
-	The bird looks pretty miserable at this declaration. \"What kind of a promise is 
-	that?! For one thing, I'm a bird, not a nanny. What on earth would I do with a human 
+	The bird looks pretty miserable at this declaration. \"What kind of a promise is
+	that?! For one thing, I'm a bird, not a nanny. What on earth would I do with a human
 	child?\"
 
-	\"You could, uh... eat it...? Or whatever! Whatever you want! It would be yours, and 
+	\"You could, uh... eat it...? Or whatever! Whatever you want! It would be yours, and
 	not mine. That's how badly I want to get out of here, is all...\"
 
-	The bird screeches with outrage. \"Well, I certainly understand now why you're locked 
-	up in here! Forget it! You may have a pretty singing voice, but I'm not helping you 
-	with anything!\" It flies off in a hurry, chirping out warnings to all and sundry 
-	about your bad character. 
+	The bird screeches with outrage. \"Well, I certainly understand now why you're locked
+	up in here! Forget it! You may have a pretty singing voice, but I'm not helping you
+	with anything!\" It flies off in a hurry, chirping out warnings to all and sundry
+	about your bad character.
 
-	You spend the rest of the story wondering what the hell you were thinking as the 
-	tower is besieged by an angry mob who heard from a little birdie that you were quite 
-	the heartless villain. 
+	You spend the rest of the story wondering what the hell you were thinking as the
+	tower is besieged by an angry mob who heard from a little birdie that you were quite
+	the heartless villain.
 
 	Well, you certainly lost with style.";
 
 Bird Candy
 is titled by "It's the thought that counts?"
 and is described by
-	"You offer the bird a piece of chocolate in exchange for your freedom. 
+	"You offer the bird a piece of chocolate in exchange for your freedom.
 
-	The bird, in as much as it can, looks very dubious. \"That's, uh, sweet and all, but 
+	The bird, in as much as it can, looks very dubious. \"That's, uh, sweet and all, but
 	I don't really want that. Thanks anyway.\"
 
-	It flies off, leaving you stranded in the tower. Perhaps it's time to try something 
+	It flies off, leaving you stranded in the tower. Perhaps it's time to try something
 	different."
-	
+
 and has transitions
 	to Vine Disaster
 	described by "Climb the ivy."
-and	
+and
 	to Basement
 	described by "Search for secret passages."
-and	
+and
 	to Reading
 	described by "Check out the library.";
-	
+
 Big Bird
 is titled by "Flying fancy free"
 and is described by
-	"\"Well, I have this loom here, and more thread than I know what to do with. I'd be 
-	more than happy to give all of it to you. Is that something you might be interested 
+	"\"Well, I have this loom here, and more thread than I know what to do with. I'd be
+	more than happy to give all of it to you. Is that something you might be interested
 	in?\"
 
-	The little bird chirrups happily. \"It most certainly is! You have a deal, miss. I'll 
+	The little bird chirrups happily. \"It most certainly is! You have a deal, miss. I'll
 	be back in just a few hours.\"
 
-	You pack up the few things you want to take with you, and wait at the window. The 
-	little bird returns with his big brother, an enormous sparrow, just as the sun is 
-	setting. 
+	You pack up the few things you want to take with you, and wait at the window. The
+	little bird returns with his big brother, an enormous sparrow, just as the sun is
+	setting.
 
-	You climb astride the big bird's back, and set off. 
+	You climb astride the big bird's back, and set off.
 
 	\"I can drop you off almost anywhere. Do you know where you want to go?\" The bird asks.
 
 	After careful consideration, you:"
 
-and has transitions 
+and has transitions
 	to Haunted Woods
 	described by "Ask to be set down in the Haunted Wood."
-and	
+and
 	to Castle Panic
 	described by "You really just want to go home. Request to be returned to your castle."
-and	
+and
 	to Oracular Mountain
 	described by "Ask for a lift to the Oracular Mountain.";
-	
+
 Squirrel Schemes
 is titled by "Squirrelly"
 and is described by
-	"You implore the squirrel for help. \"Oh sweet creature, is there anything you can do 
+	"You implore the squirrel for help. \"Oh sweet creature, is there anything you can do
 	to help me escape from this dreadful tower?\"
 
-	The squirrel chitters, and answers slyly. \"Well, the rings on your fingers are quite 
-	shiny. I wouldn't mind having one of those. Perhaps if I could tuck one of those away 
+	The squirrel chitters, and answers slyly. \"Well, the rings on your fingers are quite
+	shiny. I wouldn't mind having one of those. Perhaps if I could tuck one of those away
 	for the winter, I'd be able to come up with something to help you.\""
 
 and has transitions
 	to Squirrel Appeasement
 	described by "Give the squirrel one of your rings."
-and	
+and
 	to Squirrel Inquiry
 	described by "Ask why a squirrel wants fine jewelry."
 and
 	to Basement
-	described by "This seems like a fairly pointless diversion. Go look for secret 
+	described by "This seems like a fairly pointless diversion. Go look for secret
 		passages.";
-		
+
 Squirrel Appeasement
 is titled by "Fuzzy Nupkin Practices The High Art"
 and is described by
 	"You hand over one of your mother's rings, passed on to you after her untimely demise.
-	 The squirrel pushes it onto the base of its fluffy tail and preens for a moment 
+	 The squirrel pushes it onto the base of its fluffy tail and preens for a moment
 	 before turning its attention back to you.
 
-	\"Yes, this is very nice indeed. It will do.\" It hops inside. \"Bring me chalk, a 
+	\"Yes, this is very nice indeed. It will do.\" It hops inside. \"Bring me chalk, a
 	feather, and water in a silver basin, and I shall help you escape.\"
 
-	You scurry quickly to do the squirrel's bidding. Soon there is a magic circle drawn 
+	You scurry quickly to do the squirrel's bidding. Soon there is a magic circle drawn
 	on the tower floor. \"Step inside the circle, and I will finish the spell.\""
 
 and has transitions
 	to Squirrel Zap
 	described by
 		"What could possibly go wrong?"
-and		
+and
 	to Squirrel Suspicion
 	described by
 		"Hey wait, a spell-casting squirrel? This seems a little suspicious.";
@@ -363,50 +363,50 @@ and
 Squirrel Zap
 is titled by "Nuts."
 and is described by
-	"You obligingly step into the magic circle cast by the talking squirrel. Immediately, 
+	"You obligingly step into the magic circle cast by the talking squirrel. Immediately,
 	your body is wracked with pain. You feel terrible!
 
-	The squirrel laughs and rubs its paws together fiendishly. \"Foolish girl! You will 
-	never find The Perspex Gem! Now, nothing shall stand in the way of The Wicked 
+	The squirrel laughs and rubs its paws together fiendishly. \"Foolish girl! You will
+	never find The Perspex Gem! Now, nothing shall stand in the way of The Wicked
 	Stepmother's plan. Except for me, of course... heheheheh.\"
 
 	Ouch.";
-	
+
 Squirrel Inquiry
 is titled by "Materialistic rodentia are inherently suspicious."
 and is described by
-	"\"One of my rings? Really? And what would a squirrel - even a very fine and fancy 
+	"\"One of my rings? Really? And what would a squirrel - even a very fine and fancy
 	talking squirrel - do with that?\"
 
-	It stares at you with its beady black eyes and doesn't answer, but one of its leathery 
+	It stares at you with its beady black eyes and doesn't answer, but one of its leathery
 	little paws is outstretched and beckoning now."
 and has transitions
 	to Squirrel Appeasement
-	described by "It's only a priceless family heirloom. No big deal. Give the squirrel 
+	described by "It's only a priceless family heirloom. No big deal. Give the squirrel
 	one of your rings."
 and
 	to Basement
-	described by "Turn your back on this whole flea-ridden affair and go look for secret 
+	described by "Turn your back on this whole flea-ridden affair and go look for secret
 	passages.";
-	
+
 Squirrel Suspicion
 is titled by "Not all mammals are your friends."
 and is described by
 	"You back away slowly from the complex magic circle which is now taking up most of the
 	 floor space of the tower room. \"Where did you learn to use magic, Squirrel?\"
 
-	\"Oh here and there. Now, step into the circle and I'll send you to your final 
+	\"Oh here and there. Now, step into the circle and I'll send you to your final
 	destination.\"
 
 	\"I don't think so, Squirrel. You're making me really nervous.\"
 
 	The squirrel looks a little put out. \"And here you were being so obliging!\" It waves
-	 its paws around as it mutters, and suddenly it grows to thirty times its size! 
+	 its paws around as it mutters, and suddenly it grows to thirty times its size!
 	 \"Your Stepmother sends her regards.\"
- 
+
 	You squeak and take another step back, towards the window.
 
-	\"Have a nice trip\" it bellows, and pushes you out the window. 
+	\"Have a nice trip\" it bellows, and pushes you out the window.
 
 	Ouch.";
 
@@ -422,97 +422,97 @@ and is described by
 
 	Thus armed with information, you feel far more confident about your
 	chances."
-	
+
 and has transitions
 	to Basement
 	described by
 		"Search for secret passages."
-and	
+and
 	to Falala
 	described by
 		"All that reading has stirred your artistic instincts! Go sing at the window.";
-	
+
 Castle Panic
 is titled by "Return to the scene of the crime."
 and is described by
-	"Ah, home sweet home! You return to the castle, a free woman. 
+	"Ah, home sweet home! You return to the castle, a free woman.
 
-	Unfortunately, you are sort of a public figure. As soon as your very recognizable face 
+	Unfortunately, you are sort of a public figure. As soon as your very recognizable face
 	is spotted, The King and Evil Stepmother are informed that you have escaped from the
-	tower. 
+	tower.
 
-	The Evil Stepmother explodes in rage and turns you into a newt. You don't get better. 
+	The Evil Stepmother explodes in rage and turns you into a newt. You don't get better.
 
-	On the plus side, The King gets a divorce right away - turning his daughter into a 
-	newt was, evidently, the last straw. And it doesn't look like he'll be forcing you to 
-	get married anytime soon. 
+	On the plus side, The King gets a divorce right away - turning his daughter into a
+	newt was, evidently, the last straw. And it doesn't look like he'll be forcing you to
+	get married anytime soon.
 
-	Though your terrarium is very nice, you have made no progress in finding The Perspex 
+	Though your terrarium is very nice, you have made no progress in finding The Perspex
 	Gem, and being a newt is really not all it's cracked up to be.";
-	 
+
 Oracular Mountain
 is titled by "From up here you can see so far..."
 and is described by
-	"The Oracular Mountain is fairly barren. A few twisted trees dot the rocky slopes. 
-	Its main feature, of course, is the Oracle's Cave, and the sigils etched into the 
-	rocks clearly point the way there. 
+	"The Oracular Mountain is fairly barren. A few twisted trees dot the rocky slopes.
+	Its main feature, of course, is the Oracle's Cave, and the sigils etched into the
+	rocks clearly point the way there.
 
-	There has always been at least one Oracle in the cave, seeing for pilgrims who make 
-	the hard journey to the mountain. The Oracle is dangerous, but she can be a wonderful 
+	There has always been at least one Oracle in the cave, seeing for pilgrims who make
+	the hard journey to the mountain. The Oracle is dangerous, but she can be a wonderful
 	ally.
 
-	You stand at the mouth of The Oracle's cave, and ring the bell by the entrance. 
+	You stand at the mouth of The Oracle's cave, and ring the bell by the entrance.
 
 	From inside the cave, a decidedly cranky voice calls out, \"you're late!\"
 
-	Confused, you enter the cave. On a small table near the entrance is a plate of cookies 
-	and a cup of tea. Sitting in a rocking chair next to the snacks is an old woman with 
+	Confused, you enter the cave. On a small table near the entrance is a plate of cookies
+	and a cup of tea. Sitting in a rocking chair next to the snacks is an old woman with
 	white hair. She has three eyes, and each of them is closed. She looks very tired.
 
-	\"Excuse me...\" you say quietly. 
+	\"Excuse me...\" you say quietly.
 
-	Without opening her eyes, she says \"Yes, yes. Sit down. Have some tea. It's getting 
+	Without opening her eyes, she says \"Yes, yes. Sit down. Have some tea. It's getting
 	cold.\"
 
 	You sit on the simple wooden stool and sample a cookie. Gingerbread.
 
-	\"I have what you're looking for. There's no need to be in such a hurry, though. Enjoy 
-	yourself. When you're busy telling all those stories, you won't have much of a chance 
+	\"I have what you're looking for. There's no need to be in such a hurry, though. Enjoy
+	yourself. When you're busy telling all those stories, you won't have much of a chance
 	to relax, you know.\"
 
 	\"So you do have the Perspex Gem?\"
 
-	\"Of course. I have always had it.\" She presses her fingertips to the eye in the 
-	middle of her forehead, and something slips out into her palm from beneath her eyelid. 
+	\"Of course. I have always had it.\" She presses her fingertips to the eye in the
+	middle of her forehead, and something slips out into her palm from beneath her eyelid.
 	\"But first, we'll talk.\"
 
-	You share a meal with The Oracle and discuss perspective, narration, and the 
+	You share a meal with The Oracle and discuss perspective, narration, and the
 	things you can see from the heights."
 
-and has transitions 
+and has transitions
 	to Oracle Win
-	described by "Congratulations! You have found The Perspex Gem, and learned how to 
-	steer The Ship of Stories!"; 
-	
+	described by "Congratulations! You have found The Perspex Gem, and learned how to
+	steer The Ship of Stories!";
+
 Oracle Win
 is titled by "Epilogue: Full Circle"
 and is described by
-	"You are a very popular Narrator, having learned many tricks of the trade. You use 
-	perspective to good advantage and favor strong female characters. You retell a lot of 
-	classic tales in new ways, and enjoy yourself greatly. 
+	"You are a very popular Narrator, having learned many tricks of the trade. You use
+	perspective to good advantage and favor strong female characters. You retell a lot of
+	classic tales in new ways, and enjoy yourself greatly.
 
-	When the time comes to hold the games and pass on Narration to another, you wait, 
-	patiently, in your cave with a cup of tea and a plate of cookies. They will come. They 
+	When the time comes to hold the games and pass on Narration to another, you wait,
+	patiently, in your cave with a cup of tea and a plate of cookies. They will come. They
 	always come. You have so much to talk about.
 
 	Congratulations!";
-	
+
 Haunted Woods
 is titled by "Spooooky"
 and is described by
-	"The woods are dark and deep, and any path through the forest is obscured by a faintly 
-	luminous mist. A chill wind rattles the branches above your head as you step beneath 
-	the trees. Off in the distance you see a green glow - might that be a ghost?" 
+	"The woods are dark and deep, and any path through the forest is obscured by a faintly
+	luminous mist. A chill wind rattles the branches above your head as you step beneath
+	the trees. Off in the distance you see a green glow - might that be a ghost?"
 
 and has transitions
 	to Aimless Death
@@ -525,43 +525,43 @@ and
 Aimless Death
 is titled by "Don't leave the path."
 and is described by
-	"Whistling a jaunty tune, you set off in a random direction through the murk and gloom 
-	of The Haunted Wood. 
+	"Whistling a jaunty tune, you set off in a random direction through the murk and gloom
+	of The Haunted Wood.
 
-	Oblivious to the dangers, you never notice the trees closing in around you. You make 
+	Oblivious to the dangers, you never notice the trees closing in around you. You make
 	a fine meal for the forest.
 
 	Well, that was exciting, but a bit anti-climactic.";
-	
+
 Ghost Trail
 is titled by "It's a dead man's party."
-and is described by 
-	"You follow the ghostly light, carefully picking your way through the treacherous 
-	terrain. As you come nearer to the light, you can see that it does seem to be a 
+and is described by
+	"You follow the ghostly light, carefully picking your way through the treacherous
+	terrain. As you come nearer to the light, you can see that it does seem to be a
 	spectral man, floating just above the ground.
 
-	Suddenly, it spins and turns to face you. Its eyes are misty hollows filled with 
+	Suddenly, it spins and turns to face you. Its eyes are misty hollows filled with
 	ethereal light. It seems to be wearing the rotting tatters of a soldier's uniform."
-	
+
 and has transitions
 	to Dumb Ghost Death
 	described by "Eek! Turn and run!"
 and
 	to Ghost Conversation
 	described by "Summon your courage and talk to the ghost.";
-	
+
 Dumb Ghost Death
 is titled by "Never turn your back on a ghost."
 and is described by
-	"The ghost's form fills you with terror, and you turn and run, barely noticing the 
-	branches and brambles scratching at you in your haste to get away. There's a terrible 
-	rushing sound from behind you, and something cold grasps at your neck. You try to 
+	"The ghost's form fills you with terror, and you turn and run, barely noticing the
+	branches and brambles scratching at you in your haste to get away. There's a terrible
+	rushing sound from behind you, and something cold grasps at your neck. You try to
 	scream, but your voice is frozen in your throat, and you can't catch your breath.
 
 	The ghost's wrath fills your mind, and you fall to the forest floor.
 
 	Well, that didn't go so well for you.";
-	
+
 Ghost Conversation
 is titled by "Something rotten in the royal house..."
 and is described by
@@ -573,61 +573,61 @@ and is described by
 
 	\"How did you come to die so far from home?\"
 
-	\"I found a secret room in the castle, where The King's new queen was performing 
-	terrible magic spells. When I told The King, he told me he had an important mission 
+	\"I found a secret room in the castle, where The King's new queen was performing
+	terrible magic spells. When I told The King, he told me he had an important mission
 	for me, and sent me here, where I was ambushed and killed.\"
 
 	\"I'm so sorry.\"
 
 	\"You are of the royal bloodline, are you not?\""
 
-and has transitions 
+and has transitions
 	to Ghost Lies
-	described by "He's not too happy with your family. Now seems like a good time for a 
+	described by "He's not too happy with your family. Now seems like a good time for a
 	well-placed lie."
 and
 	to Ghost Truth
 	described by "Honesty is the best policy.";
-	
+
 Ghost Lies
 is titled by "Yeah, let's lie to the guy who lingers on after death."
 and is described by
-	"\"Who me? Ohhh no. I'm nothing to do with the royal family. I'm a simple peasant 
+	"\"Who me? Ohhh no. I'm nothing to do with the royal family. I'm a simple peasant
 	girl.\"
 
-	The ghost screams in primal fury at your deception. \"You stinking noble pigs are all 
-	the same!\" He tears you to pieces. 
+	The ghost screams in primal fury at your deception. \"You stinking noble pigs are all
+	the same!\" He tears you to pieces.
 
-	On the plus side, you come back as a ghost, and are able to do all kinds of fun spooky 
-	things. 
+	On the plus side, you come back as a ghost, and are able to do all kinds of fun spooky
+	things.
 
 	You have, however, lost the game.";
-	
+
 Ghost Truth
 is titled by "The policy of truth."
 and is described by
-	"You take a deep breath. \"Yes. My father is The King. I don't support his policies, 
+	"You take a deep breath. \"Yes. My father is The King. I don't support his policies,
 	though, and I want you to know how sorry I am for the way my family treated you.\"
 
-	There's a long and chilly silence as the ghost seems to consider and weigh your words. 
-	\"Very well. If you will pledge to bring down the royal house for me, I will share a 
+	There's a long and chilly silence as the ghost seems to consider and weigh your words.
+	\"Very well. If you will pledge to bring down the royal house for me, I will share a
 	secret with you.\"
 
-	You nod, solemnly. 
+	You nod, solemnly.
 
 	\"There is a magic circle through those trees. That is how I was ambushed. You can use
 	 it to go to the queen's secret chamber.\"
 
-	\"Thank you. I won't forget what you've done for me.\" 
+	\"Thank you. I won't forget what you've done for me.\"
 
-	You make your way to the magic circle which is cleverly hidden in the grove, and step 
-	inside. 
+	You make your way to the magic circle which is cleverly hidden in the grove, and step
+	inside.
 
-	A flash of light, the scent of sulphur, and you are now standing in The Wicked 
-	Stepmother's secret chamber! There is a pot boiling with green liquid over a fire, a 
+	A flash of light, the scent of sulphur, and you are now standing in The Wicked
+	Stepmother's secret chamber! There is a pot boiling with green liquid over a fire, a
 	book of spells, and a magic mirror on the wall."
 
-and has transitions 
+and has transitions
 	to Goo
 	described by "Sample the liquid."
 and
@@ -640,62 +640,62 @@ and
 Goo
 is titled by "Mmmm tasty goop."
 and is described by
-	"You eagerly sample a ladleful of goop from the bubbling cauldron. Gosh, it was 
+	"You eagerly sample a ladleful of goop from the bubbling cauldron. Gosh, it was
 	poison. What a surprise!
 
-	You die. 
+	You die.
 
-	On the plus side, you rise from the dead as a horrible twisted mutant undead princess 
-	monster and stalk the castle halls, maiming and killing all who get in your way. But 
+	On the plus side, you rise from the dead as a horrible twisted mutant undead princess
+	monster and stalk the castle halls, maiming and killing all who get in your way. But
 	you didn't win.";
-	
+
 Spells
 is titled by "Abraca...what?"
 and is described by
-	"You flip through the book and try to make sense of the spells. You never had a 
+	"You flip through the book and try to make sense of the spells. You never had a
 	magical education, but how hard can it be if your Stepmother can manage, right?
 
-	You settle on a spell with very colorful drawings and read aloud the words on the 
+	You settle on a spell with very colorful drawings and read aloud the words on the
 	page. There's a glow and a strange smell and...
 
 	BEGAWK!
 
-	Congratulations! You have successfully cast a spell to transform yourself into a 
+	Congratulations! You have successfully cast a spell to transform yourself into a
 	chicken.
 
-	Being a chicken is pretty neat. You scratch around in The Evil Stepmother's secret 
-	chamber for a while, and enjoy a bird's eye view of the world. Given a little time, 
+	Being a chicken is pretty neat. You scratch around in The Evil Stepmother's secret
+	chamber for a while, and enjoy a bird's eye view of the world. Given a little time,
 	you think you could even figure out how to lay an egg.
 
-	Unfortunately, The Evil Stepmother finds you there and decides that princess chicken 
+	Unfortunately, The Evil Stepmother finds you there and decides that princess chicken
 	pot pie sounds like a great idea for dinner.";
-	
+
 Mirror Win
 is titled by "Magic mirror on the wall..."
 and is described by
-	"The mirror shimmers and shines with magic. You reach out and touch the glass, and it 
-	ripples like water. Your fingertips dent the surface a little, and you push toward 
-	your reflection. She smiles, and you feel something warm press into your palm across 
-	the rippling surface of the mirror. 
+	"The mirror shimmers and shines with magic. You reach out and touch the glass, and it
+	ripples like water. Your fingertips dent the surface a little, and you push toward
+	your reflection. She smiles, and you feel something warm press into your palm across
+	the rippling surface of the mirror.
 
-	From across the divide, your reflection whispers, \"retfa reve ylippah eviL. oG.\" 
+	From across the divide, your reflection whispers, \"retfa reve ylippah eviL. oG.\"
 
 	It seems like good advice."
- 
+
 and has a transition
 	to Mirror Epilogue
-	described by "Congratulations! You have escaped the tower, infiltrated the secret 
+	described by "Congratulations! You have escaped the tower, infiltrated the secret
 	room in the castle, and found the Perspex Gem!";
 
 Mirror Epilogue
 is titled by "Epilogue: Magic"
 and is described by
-	"Your time as Narrator is filled with magic. You favor stories with a strong fantastic 
-	element and characters who take the time to look beneath simple reflective surfaces. 
-	You make many friends during your tenure, and when the time comes to pass on The 
-	Perspex Gem and see another Narrator take the helm, you graciously step aside so you 
-	can see things from a new perspective. 
+	"Your time as Narrator is filled with magic. You favor stories with a strong fantastic
+	element and characters who take the time to look beneath simple reflective surfaces.
+	You make many friends during your tenure, and when the time comes to pass on The
+	Perspex Gem and see another Narrator take the helm, you graciously step aside so you
+	can see things from a new perspective.
 
 	Congratulations!";
-	
-	
+
+

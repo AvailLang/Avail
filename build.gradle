@@ -54,7 +54,7 @@ ext.versionToPublish = {
 		.withLocale(Locale.default)
 		.withZone(ZoneId.of("UTC"))
 	def timeString = formatter.format(Instant.now())
-	"1.5.0.$timeString"
+	"1.5.1.$timeString"
 }()
 
 allprojects {

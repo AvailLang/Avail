@@ -40,7 +40,7 @@
 
 Module "Fallible Primitives"
 Versions
-	"1.5.0"
+	"1.5.1"
 Extends
 Uses
 	"Origin",
@@ -526,7 +526,7 @@ Primitive "_→function" is
  * @method "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
  * @param "level" "[1..4]"
  *        The notification level that controls under what circumstances the text
- *        should be presented as a compilation error.  The values are: 
+ *        should be presented as a compilation error.  The values are:
  *            1=silently, which is never displayed,
  *            2=weakly, which is only displayed if there is nothing >2,
  *            3=moderately, which is only displayed if there is nothing >3, and
@@ -1284,7 +1284,7 @@ Primitive "_«[_]»[_.._]→_" is
  *    If an index in the pathTuple attempts to access an index that is greater
  *    than the size of the targeted tuple within aMap.
  * @raises "incorrect-argument-type exception"
- *    If an index in the pathTuple, that is not the final index where the 
+ *    If an index in the pathTuple, that is not the final index where the
  *    replacement is made, attempts to access a value as if it were a
  *    map or a tuple but the value at that location is neither.
  * @raises "key-not-found exception"
@@ -3735,7 +3735,7 @@ Primitive "_[_]→_" is
  *    If an index in the pathTuple attempts to access an index that is greater
  *    than the size of the targeted tuple within aTuple.
  * @raises "incorrect-argument-type exception"
- *    If an index in the pathTuple, that is not the final index where the 
+ *    If an index in the pathTuple, that is not the final index where the
  *    replacement is made, attempts to access a value as if it were a
  *    map or a tuple but the value at that location is neither.
  * @raises "key-not-found exception"
