@@ -46,7 +46,7 @@ Test "BitwiseAnd ok" in primitive integers test suite is
 	Require: 1 bit∧ 1 = 1;
 
 	Require: 0b1001 bit∧ 0b1111 = 0b1001;
-	Require:      9 bit∧     15 =      9;
+	Require: 9 bit∧ 15 = 9;
 
 	Require: -1 bit∧ 0 = 0; /* -1 ~ ...11111111 */
 	Require: -3 bit∧ 3 = 1; /* -3 ~ ...11111101 */

@@ -393,7 +393,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 
 	// Answer approximately how many bits per entry are taken up by this
 	// object.
-	override fun o_BitsPerEntry(self: AvailObject): Int =  8
+	override fun o_BitsPerEntry(self: AvailObject): Int = 8
 
 	override fun o_TupleSize(self: AvailObject): Int =
 		self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>().limit()

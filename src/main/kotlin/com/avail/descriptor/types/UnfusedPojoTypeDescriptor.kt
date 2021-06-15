@@ -220,7 +220,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 
 	override fun o_IsPojoArrayType(self: AvailObject): Boolean = false
 
-	override fun o_IsPojoFusedType(self: AvailObject): Boolean =  false
+	override fun o_IsPojoFusedType(self: AvailObject): Boolean = false
 
 	override fun o_JavaAncestors(self: AvailObject): AvailObject =
 		self.slot(JAVA_ANCESTORS)
@@ -506,7 +506,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		writer.endObject()
 	}
 
-	override fun mutable(): UnfusedPojoTypeDescriptor =  mutable
+	override fun mutable(): UnfusedPojoTypeDescriptor = mutable
 
 	override fun immutable(): UnfusedPojoTypeDescriptor = immutable
 

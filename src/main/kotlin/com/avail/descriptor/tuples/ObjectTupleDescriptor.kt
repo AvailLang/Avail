@@ -403,7 +403,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		var index = 1
 
-		override fun hasNext(): Boolean =  index <= size
+		override fun hasNext(): Boolean = index <= size
 
 		override fun next(): AvailObject
 		{

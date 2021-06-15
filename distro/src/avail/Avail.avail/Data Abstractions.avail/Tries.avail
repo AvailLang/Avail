@@ -131,7 +131,7 @@ Private method "a level__" is
 	lvl : natural number,
 	tType : trie's type
 |
-	keyType ::=  tType's key type's instance;
+	keyType ::= tType's key type's instance;
 	leadingTypes ::= keyType[lvl..|keyType's leading types| max (lvl-1)];
 	defaultType ::= keyType's default type;
 	min ::= (⌊keyType⌋ - lvl) max 0;

@@ -249,7 +249,7 @@ class LexerDescriptor private constructor(
 		val offset = (codePoint ushr 5) + 1
 		val shift = (codePoint and 31) shl 1
 		self.atomicUpdateSlot(LATIN1_BIT_VECTORS_, offset) {
-			it or ((0b10L + if (applicability) 0b01L else 0b00L) shl shift)
+			this or ((0b10L + if (applicability) 0b01L else 0b00L) shl shift)
 		}
 	}
 

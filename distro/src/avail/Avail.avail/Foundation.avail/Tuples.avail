@@ -3731,7 +3731,7 @@ Semantic restriction "∏_" is
 	lowIndex ::= leadingSize min ⌊leading's type⌋;
 	lowBound ::= if leadingSize > 0 then
 	[
-		m ::=  map each i in leading[1..lowIndex] through
+		m ::= map each i in leading[1..lowIndex] through
 		[
 			x::=cast i into [it : integer's type | it];
 Print: "x=";
@@ -4897,7 +4897,7 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 	else if ⌈subtuple⌉ = ⌊replacementTuple⌋ ∧
 		⌈replacementTuple⌉ = ⌊subtuple⌋ then
 	[
-		lower ::=  cast ⌈aTuple⌉ into [w : [0..∞) | w];
+		lower ::= cast ⌈aTuple⌉ into [w : [0..∞) | w];
 		upper ::= cast 0 max (⌈aTuple⌉ + ⌊replacementTuple⌋ - ⌈subtuple⌉)
 			into [w : [0..∞) | w];
 		<defaultType…|lower..upper>

@@ -184,7 +184,7 @@ Test "full encoding reader" in UTF8 converters test suite is
 	testString ::= "⊤⊥↓↑±∅∊∰∡℀Pog?";
 	encodedTestString ::= take at most ∞
 		from a reader over testString converted by a UTF8 encoder;
-	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,226,134,145,194,
+	expectedEncoding ::= <226,138,164,226,138,165,226,134,147,226,134,145,194,
 			177,226,136,133,226,136,138,226,136,176,226,136,161,226,132,128,80,
 			111,103,63>;
 	Require: encodedTestString = expectedEncoding;
@@ -195,6 +195,6 @@ Test "partial encoding reader" in UTF8 converters test suite is
 	testString ::= "⊤⊥↓?↑±∅∊∰∡℀Pog?";
 	encodedTestString ::= take at most 10
 		from a reader over testString converted by a UTF8 encoder;
-	expectedEncoding ::=  <226,138,164,226,138,165,226,134,147,63>;
+	expectedEncoding ::= <226,138,164,226,138,165,226,134,147,63>;
 	Require: encodedTestString = expectedEncoding;
 ];

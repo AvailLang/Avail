@@ -324,6 +324,8 @@ class ArithmeticTest
 		 * @return
 		 *   A [List] of [Float]s.
 		 */
+		@Suppress("unused")
+		@JvmStatic
 		private fun sampleFloats(): List<Float> = sampleFloats
 
 		/**
@@ -332,6 +334,8 @@ class ArithmeticTest
 		 * @return
 		 *   A stream of [Arguments], each containing two sample `float`s.
 		 */
+		@Suppress("unused")
+		@JvmStatic
 		private fun floatPairs(): Stream<Arguments> = sampleFloats.stream()
 			.flatMap { f1: Float? ->
 				sampleFloats.stream()
@@ -412,7 +416,10 @@ class ArithmeticTest
 		 * @return
 		 *   a [List] of hexadecimal [String]s.
 		 */
-		private fun bigIntegerHexConversions(): List<String> = bigIntegerHexConversions
+		@Suppress("unused")
+		@JvmStatic
+		private fun bigIntegerHexConversions(): List<String> =
+			bigIntegerHexConversions
 
 		/**
 		 * Check that the [BigInteger] produced from the provided hex string

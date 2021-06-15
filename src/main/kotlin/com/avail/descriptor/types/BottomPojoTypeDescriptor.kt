@@ -67,7 +67,7 @@ class BottomPojoTypeDescriptor constructor(mutability: Mutability)
 		self: AvailObject,
 		aPojoType: AvailObject): Boolean = aPojoType.equalsPojoBottomType()
 
-	override fun o_Hash(self: AvailObject): Int =  0x496FFE01
+	override fun o_Hash(self: AvailObject): Int = 0x496FFE01
 
 	// Pojo bottom has an instance: null.
 	override fun o_IsAbstract(self: AvailObject): Boolean = false
@@ -187,7 +187,7 @@ class BottomPojoTypeDescriptor constructor(mutability: Mutability)
 	// There is no immutable descriptor, just a shared one.
 	override fun immutable(): BottomPojoTypeDescriptor = shared
 
-	override fun shared(): BottomPojoTypeDescriptor =  shared
+	override fun shared(): BottomPojoTypeDescriptor = shared
 
 	companion object
 	{

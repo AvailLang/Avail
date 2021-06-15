@@ -271,7 +271,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 				self.slot(CONTENT_TYPE)
 					.typeUnion(aSetType.contentType()))
 
-	override fun o_IsSetType(self: AvailObject): Boolean =  true
+	override fun o_IsSetType(self: AvailObject): Boolean = true
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SET_TYPE
@@ -457,6 +457,6 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		fun setMeta(): A_Type =  meta
+		fun setMeta(): A_Type = meta
 	}
 }

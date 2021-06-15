@@ -1,5 +1,5 @@
 /*
- * builder tests.avail
+ * Valid Tests.avail
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,8 +30,10 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "builder tests"
+Module "Valid Tests"
 Versions
 	"1.5.1"
 Uses
+	"LotsOfSlashes",
+	"EmptyTupleDispatch"
 Body

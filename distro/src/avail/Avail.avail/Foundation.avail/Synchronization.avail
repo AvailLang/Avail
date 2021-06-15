@@ -416,7 +416,7 @@ Method "“_”" is
 		typeDesc ::=
 			(a|an) ““mutex's type's names” (as list partitioned by " ∩ ")”,
 		myName ::= mutex's name,
-		owner ::=  mutex's owner's name,
+		owner ::= mutex's owner's name,
 		parked ::= map each f in mutex's parked fibers through [f's name]
 ];
 
@@ -621,7 +621,7 @@ Method "“_”" is
 		typeDesc ::=
 			(a|an) ““mutex's type's names” (as list partitioned by " ∩ ")”,
 		myName ::= mutex's name,
-		owner ::=  mutex's owner's name,
+		owner ::= mutex's owner's name,
 		parked ::= map each f in mutex's parked fibers through [f's name]
 ];
 

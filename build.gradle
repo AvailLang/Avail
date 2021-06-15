@@ -148,7 +148,7 @@ def computeAvailRoots = {
 	def pathRootsSrc = "$projectDir/distro/src"
 	def roots = [
 			["avail", "$pathRootsSrc/avail"],
-			["experimental", "$projectDir/experimental/even-newer-avail"],
+			["builder-tests", "$pathRootsSrc/builder-tests"],
 			["examples", "$pathRootsSrc/examples"],
 			["website", "$pathRootsSrc/website"]
 	]

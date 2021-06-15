@@ -285,7 +285,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		 *   A compiled code type which has no supertypes that are themselves
 		 *   compiled code types.
 		 */
-		fun mostGeneralCompiledCodeType(): A_Type =  mostGeneralType
+		fun mostGeneralCompiledCodeType(): A_Type = mostGeneralType
 
 		/**
 		 * The metatype for all compiled code types. In particular, it's just

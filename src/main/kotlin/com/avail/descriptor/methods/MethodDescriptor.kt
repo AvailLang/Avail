@@ -290,7 +290,8 @@ class MethodDescriptor private constructor(
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
 		 * The [tuple][TupleDescriptor] of [definitions][DefinitionDescriptor]
-		 * that constitute this multimethod.
+		 * that constitute this multimethod.  This field should only be read and
+		 * written with volatile slot semantics.
 		 */
 		DEFINITIONS_TUPLE,
 
@@ -340,7 +341,7 @@ class MethodDescriptor private constructor(
 		if (tree === null) {
 			val numArgs = self.slot(NUM_ARGS)
 			val newTree = runtimeDispatcher.createRoot(
-				toList(self.slot(DEFINITIONS_TUPLE)),
+				toList(self.volatileSlot(DEFINITIONS_TUPLE)),
 				nCopiesOfAnyRestriction(numArgs),
 				Unit)
 			do {
@@ -449,10 +450,8 @@ class MethodDescriptor private constructor(
 			it.bodySignature().couldEverBeInvokedWith(argRestrictions)
 		}
 
-	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple
-	{
-		return synchronized(self) { self.slot(DEFINITIONS_TUPLE) }
-	}
+	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple =
+		self.volatileSlot(DEFINITIONS_TUPLE)
 
 	override fun o_DescribeForDebugger(
 		self: AvailObject
@@ -510,7 +509,7 @@ class MethodDescriptor private constructor(
 	) = self.definitionsTuple().contains(definition)
 
 	override fun o_IsMethodEmpty(self: AvailObject) = synchronized(self) {
-		self.slot(DEFINITIONS_TUPLE).tupleSize() == 0
+		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize() == 0
 			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
 			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
 			&& owningBundles.all { it.macrosTuple().tupleSize() == 0 }
@@ -594,10 +593,8 @@ class MethodDescriptor private constructor(
 				throw SignatureException(E_METHOD_IS_SEALED)
 			}
 		}
-		synchronized(self) {
-			self.updateSlotShared(DEFINITIONS_TUPLE) {
-				appendCanDestroy(definition, true)
-			}
+		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
+			appendCanDestroy(definition, true)
 		}
 		owningBundles.forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
@@ -623,10 +620,8 @@ class MethodDescriptor private constructor(
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
 		assert(!definition.definitionModule().equalsNil())
-		synchronized(self) {
-			self.updateSlotShared(DEFINITIONS_TUPLE) {
-				tupleWithout(this, definition)
-			}
+		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
+			tupleWithout(this, definition)
 		}
 		owningBundles.forEach { bundle ->
 			bundle.removePlanForSendable(definition)
@@ -693,7 +688,7 @@ class MethodDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("method") }
 			at("aliases") { owningBundles.writeTo(writer) }
-			at("definitions") { self.slot(DEFINITIONS_TUPLE).writeTo(writer) }
+			at("definitions") { self.volatileSlot(DEFINITIONS_TUPLE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
@@ -701,7 +696,7 @@ class MethodDescriptor private constructor(
 			at("kind") { write("method") }
 			at("aliases") { owningBundles.writeSummaryTo(writer) }
 			at("definitions") {
-				self.slot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
+				self.volatileSlot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
 			}
 		}
 
@@ -1075,7 +1070,7 @@ class MethodDescriptor private constructor(
 			initialMutableDescriptor.create {
 				setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 				setSlot(NUM_ARGS, numArgs)
-				setSlot(DEFINITIONS_TUPLE, emptyTuple)
+				setVolatileSlot(DEFINITIONS_TUPLE, emptyTuple)
 				setSlot(SEMANTIC_RESTRICTIONS_SET, emptySet)
 				setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, emptyTuple)
 				setSlot(LEXER_OR_NIL, nil)

@@ -166,7 +166,7 @@ class CallbackTest
 	@Throws(UnresolvedDependencyException::class)
 	fun testDivisionCallback()
 	{
-		val harnessModuleName = "/experimental/Callback Test Harness"
+		val harnessModuleName = "/builder-tests/Callback Test Harness"
 		val loaded = helper().loadModule(harnessModuleName)
 		Assertions.assertTrue(
 			loaded,
