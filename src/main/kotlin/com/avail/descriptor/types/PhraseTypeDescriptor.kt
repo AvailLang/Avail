@@ -99,7 +99,7 @@ import java.util.IdentityHashMap
 @Suppress("LeakingThis")
 open class PhraseTypeDescriptor protected constructor(
 	mutability: Mutability,
-	/** The `PhraseKind` of instances that use this descriptor.  */
+	/** The `PhraseKind` of instances that use this descriptor. */
 	protected val kind: PhraseKind,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
@@ -373,7 +373,7 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   My parent phrase kind.
 		 */
-		fun parentKind(): PhraseKind? =  parentKind
+		fun parentKind(): PhraseKind? = parentKind
 
 		/**
 		 * The most general inner type for this kind of phrase.
@@ -712,7 +712,7 @@ open class PhraseTypeDescriptor protected constructor(
 	 * @return
 	 *   The [kind][PhraseKind] of phrase that the object is.
 	 */
-	override fun o_PhraseKind(self: AvailObject): PhraseKind =  kind
+	override fun o_PhraseKind(self: AvailObject): PhraseKind = kind
 
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,

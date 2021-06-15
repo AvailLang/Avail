@@ -86,7 +86,7 @@ internal class FileOpenedMessage constructor(
 		buffer.flip()
 		val content = ByteArray(bufferSize)
 		buffer.get(content)
-		this.message =  Message( content, AvailServerChannel.ProtocolState.BINARY)
+		this.message = Message( content, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)

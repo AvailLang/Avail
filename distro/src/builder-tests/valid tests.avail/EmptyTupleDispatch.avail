@@ -1,0 +1,21 @@
+Module "EmptyTupleDispatch"
+Versions "DEV"
+Uses
+	"Avail"
+Names
+Body
+
+/*
+ * Test that dispatching on two implementations of method, one for tuple, and
+ * one for non-empty string, correctly dispatches to the former for the empty
+ * string/tuple.
+ *
+ * This is a regression test for a fixed bug in
+ * TupleTypeDescriptor.o_TrimType().
+ */
+
+Method "_foo" is [a : any | "default"] : string;
+Method "_foo" is [x : tuple | "[]"] : string;
+Method "_foo" is [x : character+ | x] : string;
+
+Assert: <> foo = "[]";

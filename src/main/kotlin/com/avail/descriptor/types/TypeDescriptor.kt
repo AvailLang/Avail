@@ -557,7 +557,7 @@ abstract class TypeDescriptor protected constructor(
 
 	override fun o_IsSupertypeOfFunctionType(
 		self: AvailObject,
-		aFunctionType: A_Type): Boolean =  false
+		aFunctionType: A_Type): Boolean = false
 
 	// By default, nothing is a supertype of a variable type unless it
 	// states otherwise.

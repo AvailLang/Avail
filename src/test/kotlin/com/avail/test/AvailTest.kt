@@ -46,7 +46,9 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestInstance.Lifecycle
 import org.junit.jupiter.params.ParameterizedTest
+import org.junit.jupiter.params.provider.MethodSource
 import org.junit.jupiter.params.provider.ValueSource
+import java.io.File
 import java.io.FileNotFoundException
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
@@ -60,7 +62,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class AvailTest
 {
 	/** Setup for the test.  */
-	var helper: AvailRuntimeTestHelper? = null
+	private var helper: AvailRuntimeTestHelper? = null
 
 	/**
 	 * Answer the [AvailRuntimeTestHelper], ensuring it's not `null`.
@@ -68,7 +70,7 @@ class AvailTest
 	 * @return
 	 *   The [AvailRuntimeTestHelper].
 	 */
-	fun helper(): AvailRuntimeTestHelper =  helper!!
+	private fun helper(): AvailRuntimeTestHelper = helper!!
 
 	/**
 	 * Clear all repositories iff the `clearAllRepositories` system
@@ -136,8 +138,8 @@ class AvailTest
 	}
 
 	/**
-	 * Check that we can compile or load the builder test modules.  Each of
-	 * these should fail, writing some message to the error channel.
+	 * Check that we can compile or load the *invalid* builder test modules,
+	 * each failing for some reason, writing some message to the error channel.
 	 *
 	 * @param moduleName
 	 *   Each module or package name.
@@ -146,20 +148,7 @@ class AvailTest
 	 */
 	@DisplayName("Invalid modules")
 	@ParameterizedTest(name = "{displayName}: {0}")
-	@ValueSource(strings = [
-		"/experimental/builder tests/MutuallyRecursive1",
-		"/experimental/builder tests/MutuallyRecursive2",
-		"/experimental/builder tests/MutuallyRecursive3",
-		"/experimental/builder tests/UsesMutuallyRecursive1",
-		"/experimental/builder tests/UsesUsesMutuallyRecursive1",
-		"/experimental/builder tests/ShouldFailCompilation",
-		"/experimental/builder tests/ShouldFailDuplicateImportVersion",
-		"/experimental/builder tests/ShouldFailDuplicateName",
-		"/experimental/builder tests/ShouldFailDuplicateVersion",
-		"/experimental/builder tests/ShouldFailPragmas",
-		"/experimental/builder tests/ShouldFailScanner",
-		"/experimental/builder tests/ShouldFailTrace",
-		"/experimental/builder tests/ShouldFailWithWrongModuleName"])
+	@MethodSource("eachShouldFailTest")
 	@Throws(UnresolvedDependencyException::class)
 	fun testBuildInvalidModules(moduleName: String)
 	{
@@ -169,6 +158,26 @@ class AvailTest
 			"Should not have successfully loaded module: $moduleName"
 		)
 		Assertions.assertTrue(helper().errorDetected())
+	}
+
+	/**
+	 * Check that we can compile or load the *valid* builder test modules, none
+	 * of which should fail.
+	 *
+	 * @param moduleName
+	 *   Each module or package name.
+	 */
+	@DisplayName("Valid builder modules")
+	@ParameterizedTest(name = "{displayName}: {0}")
+	@MethodSource("eachShouldPassTest")
+	fun testBuildValidModules(moduleName: String)
+	{
+		val loaded = helper().loadModule(moduleName)
+		Assertions.assertTrue(
+			loaded,
+			"Should have successfully loaded module: $moduleName"
+		)
+		Assertions.assertFalse(helper().errorDetected())
 	}
 
 	/**
@@ -206,5 +215,54 @@ class AvailTest
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,
 		// otherwise this test isn't nearly as useful as it could be.
+	}
+
+	companion object
+	{
+		/**
+		 * Answer the fully qualified name of each module that should fail to
+		 * load.
+		 */
+		@Suppress("unused")
+		@JvmStatic
+		fun eachShouldFailTest(): List<String>
+		{
+			val dir = File(
+				System.getProperty("user.dir"),
+				"distro/src/builder-tests/Invalid Tests.avail")
+			return dir.list()!!.mapNotNull {
+				if (it == "Invalid Tests.avail" || !it.endsWith(".avail"))
+				{
+					null
+				}
+				else
+				{
+					"/builder-tests/Invalid Tests/" + it.split('.')[0]
+				}
+			}
+		}
+
+		/**
+		 * Answer the fully qualified name of each module that should load
+		 * successfully.
+		 */
+		@Suppress("unused")
+		@JvmStatic
+		fun eachShouldPassTest(): List<String>
+		{
+			val dir = File(
+				System.getProperty("user.dir"),
+				"distro/src/builder-tests/Valid Tests.avail")
+			return dir.list()!!.mapNotNull {
+				if (it == "Valid Tests.avail" || !it.endsWith(".avail"))
+				{
+					null
+				}
+				else
+				{
+					"/builder-tests/Valid Tests/" + it.split('.')[0]
+				}
+			}
+		}
 	}
 }

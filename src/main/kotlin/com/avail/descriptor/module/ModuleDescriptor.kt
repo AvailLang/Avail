@@ -1065,9 +1065,9 @@ class ModuleDescriptor private constructor(
 		blockPhrase: A_Phrase
 	): A_Number = lock.safeWrite {
 		assertState(Loading)
-		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES, 1) {
-			assert(it.isTuple)
-			it.appendCanDestroy(blockPhrase, false).makeShared()
+		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES) {
+			assert(isTuple)
+			appendCanDestroy(blockPhrase, false)
 		}
 		fromInt(newTuple.tupleSize())
 	}

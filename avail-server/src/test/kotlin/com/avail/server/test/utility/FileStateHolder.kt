@@ -49,7 +49,7 @@ class FileStateHolder
 	private val errorWrapper : Mutable<Throwable?> = Mutable(null)
 
 	/** The currently wrapped [Throwable]. */
-	val error get() =  errorWrapper.value
+	val error get() = errorWrapper.value
 
 	/** Mutable holder for any [ServerErrorCode]s that have been reported. */
 	private val errorCodeWrapper: Mutable<ErrorCode?> = Mutable(null)

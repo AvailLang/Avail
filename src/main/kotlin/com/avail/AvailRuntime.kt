@@ -380,7 +380,7 @@ class AvailRuntime constructor(
 	 * one to significantly decrease the countdown for whatever raw function is
 	 * running (being careful not to cross zero).
 	 */
-	val timer =  fixedRateTimer("timer for Avail runtime", true, period = 10) {
+	val timer = fixedRateTimer("timer for Avail runtime", true, period = 10) {
 		clock.increment()
 		interpreterHolders.forEach { holder ->
 			holder.get()

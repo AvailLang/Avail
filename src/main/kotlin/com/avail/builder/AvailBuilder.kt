@@ -446,7 +446,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		 * The list of children of this package or module (in which case it must
 		 * be empty.
 		 */
-		val children=  mutableListOf<ModuleTree>()
+		val children = mutableListOf<ModuleTree>()
 
 		/**
 		 * Add a child to this node.

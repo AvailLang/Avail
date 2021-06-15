@@ -1,5 +1,5 @@
 /*
- * BitwiseXor Tests.avail
+ * Invalid Tests.avail
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,27 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "BitwiseXor Tests"
+Module "Invalid Tests"
 Versions
 	"1.5.1"
 Uses
-	"Primitive Test Common"
 Body
 
-Test "BitwiseXor ok" in primitive integers test suite is
-[
-	    /* Bitwise with 1 bit */
-    	Require: 0 bit⊕ 0 = 0;
-    	Require: 0 bit⊕ 1 = 1;
-    	Require: 1 bit⊕ 0 = 1;
-    	Require: 1 bit⊕ 1 = 0;
-
-    	Require: 0b1011 bit⊕ 0b1010 = 0b1;
-    	Require: 21 bit⊕ 20 = 1;
-
-    	Require: -1 bit⊕ 0 = -1; /* -1 ~ ...11111111 */
-    	Require: -3 bit⊕ 3 = -2; /* -3 ~ ...11111101 */
-
-    	Require: 0xDEADBEEF bit⊕ 0xCAFEBABE = 0x14530451;
-];
-
+/*
+ * This does not import any of the submodules, as they're each expected to be
+ * non-loadable.
+ */

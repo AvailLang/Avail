@@ -345,7 +345,7 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		writer.endObject()
 	}
 
-	override fun mutable(): MapTypeDescriptor =  mutable
+	override fun mutable(): MapTypeDescriptor = mutable
 
 	// There is no immutable descriptor.
 	override fun immutable(): MapTypeDescriptor = shared
@@ -510,6 +510,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		fun mapMeta(): A_Type =  meta
+		fun mapMeta(): A_Type = meta
 	}
 }

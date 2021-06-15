@@ -689,8 +689,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	 */
 	fun atomicUpdateSlot(
 		field: ObjectSlotsEnum,
-		subscript: Int,
-		updater: (AvailObject)->A_BasicObject): AvailObject
+		subscript: Int = 1,
+		updater: AvailObject.()->A_BasicObject): AvailObject
 	{
 		checkSlot(field)
 		checkWriteForField(field)
@@ -705,8 +705,13 @@ abstract class AvailObjectRepresentation protected constructor(
 					val oldValue = objectSlots[arrayIndex]!!
 					val newValue = updater(oldValue) as AvailObject
 					if (VolatileSlotHelper.compareAndSet(
-							objectSlots, arrayIndex, oldValue, newValue)
-					) return newValue
+							objectSlots,
+							arrayIndex,
+							oldValue,
+							newValue.makeShared()))
+					{
+						return newValue
+					}
 				}
 			}
 			else ->
@@ -726,7 +731,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param field
 	 *   The indexable [Long] slot to access.
 	 * @param subscript
-	 *   The one-based subscript within the given indexable field.
+	 *   The optional one-based subscript within the given indexable field.
+	 *   Should be 1 for a non-repeating field.
 	 * @param updater
 	 *   The transformation to perform on the [Long] in the slot to produce a
 	 *   replacement [Long].  Note that this may run multiple times if the
@@ -734,8 +740,8 @@ abstract class AvailObjectRepresentation protected constructor(
 	 */
 	fun atomicUpdateSlot(
 		field: IntegerSlotsEnum,
-		subscript: Int,
-		updater: (Long)->Long): Long
+		subscript: Int = 1,
+		updater: Long.()->Long): Long
 	{
 		checkSlot(field)
 		checkWriteForField(field)

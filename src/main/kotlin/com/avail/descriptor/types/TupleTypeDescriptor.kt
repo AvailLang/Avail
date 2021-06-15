@@ -35,6 +35,7 @@ import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.numbers.A_Number.Companion.extractLong
 import com.avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
 import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
 import com.avail.descriptor.numbers.A_Number.Companion.lessThan
@@ -433,7 +434,9 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		// type, so all tuples of size 1..firstVariation that match self would
 		// also match typeToRemove.
 		val permittedSizes = sizeRange.trimType(
-			inclusive(0, (firstVariation - 1).toLong()))
+			inclusive(
+				removedSizeRange.lowerBound().extractLong(),
+				(firstVariation - 1).toLong()))
 		if (!permittedSizes.equals(sizeRange))
 		{
 			// Some of the sizes were excluded.  Good enough – use this

@@ -314,6 +314,6 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The statically referenced metatype.
 		 */
-		fun continuationMeta(): A_Type =  meta
+		fun continuationMeta(): A_Type = meta
 	}
 }

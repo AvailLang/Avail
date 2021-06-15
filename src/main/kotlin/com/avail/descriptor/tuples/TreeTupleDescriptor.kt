@@ -164,7 +164,7 @@ class TreeTupleDescriptor internal constructor(
 	 *
 	 * Make this always seem a little worse than flat representations.
 	 */
-	override fun o_BitsPerEntry(self: AvailObject): Int =  65
+	override fun o_BitsPerEntry(self: AvailObject): Int = 65
 
 	override fun o_ChildAt(self: AvailObject, childIndex: Int): A_Tuple =
 		self.slot(SUBTUPLE_AT_, childIndex)
