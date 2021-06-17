@@ -65,13 +65,14 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
+import com.avail.server.io.SocketAdapter
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
 import com.avail.server.messages.LoadModuleCommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.RunEntryPointCommandMessage
 import com.avail.server.messages.SimpleCommandMessage
-import com.avail.server.messages.TextCommand
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
@@ -1282,6 +1283,7 @@ class AvailServer constructor(
 			if (supportedProtocolVersions.contains(version))
 			{
 				message = newSuccessMessage(channel, command) { write(version) }
+				channel.state = ELIGIBLE_FOR_UPGRADE
 			}
 			else
 			{
@@ -1404,10 +1406,23 @@ class AvailServer constructor(
 			val server = AvailServer(configuration, runtime, fileManager)
 			try
 			{
-				WebSocketAdapter(
-					server,
-					InetSocketAddress(configuration.serverPort),
-					configuration.serverAuthority)
+				if (configuration.startWebSocketAdapter)
+				{
+					WebSocketAdapter(
+						server,
+						InetSocketAddress(
+							configuration.serverAuthority,
+							configuration.serverPort),
+						configuration.serverAuthority)
+				}
+				else
+				{
+					SocketAdapter(
+						server,
+						InetSocketAddress(
+							configuration.serverAuthority,
+							configuration.serverPort))
+				}
 
 				// Prevent the Avail server from exiting.
 				Semaphore(0).acquire()
