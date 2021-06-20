@@ -86,6 +86,8 @@ internal typealias FailedReading = (Throwable, ByteBuffer) -> Unit
  *   How to keep writing if the target buffer fills up prematurely.
  * @param done
  *   What to do with the final buffer after encoding completes fully.
+ * @see <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">
+ *   Variable-length quantity</a>
  */
 internal fun Int.vlq (
 	bytes: ByteBuffer,
@@ -121,6 +123,8 @@ internal fun Int.vlq (
  *   How to keep writing if the target buffer fills up prematurely.
  * @param done
  *   What to do with the final buffer after encoding completes fully.
+ * @see <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">
+ *   Variable-length quantity</a>
  */
 internal fun Long.vlq (
 	bytes: ByteBuffer,
@@ -159,6 +163,8 @@ internal fun Long.vlq (
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
  *   What to do with the fully decoded integer.
+ * @see <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">
+ *   Variable-length quantity</a>
  */
 internal fun unvlqInt (
 	bytes: ByteBuffer,
@@ -205,6 +211,8 @@ internal fun unvlqInt (
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
  *   What to do with the fully decoded integer.
+ * @see <a href="https://en.wikipedia.org/wiki/Variable-length_quantity">
+ *   Variable-length quantity</a>
  */
 internal fun unvlqLong (
 	bytes: ByteBuffer,
@@ -251,6 +259,8 @@ internal fun unvlqLong (
  *   How to keep writing if the target buffer fills up prematurely.
  * @param done
  *   What to do with the final buffer after encoding completes fully.
+ * @see <a href="https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba">
+ *   Zigzag</a>
  */
 internal fun Int.zigzag (
 	bytes: ByteBuffer,
@@ -269,6 +279,8 @@ internal fun Int.zigzag (
  *   How to keep writing if the target buffer fills up prematurely.
  * @param done
  *   What to do with the final buffer after encoding completes fully.
+ * @see <a href="https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba">
+ *   Zigzag</a>
  */
 internal fun Long.zigzag (
 	bytes: ByteBuffer,
@@ -287,6 +299,8 @@ internal fun Long.zigzag (
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
  *   What to do with the fully decoded integer.
+ * @see <a href="https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba">
+ *   Zigzag</a>
  */
 internal fun unzigzagInt (
 	bytes: ByteBuffer,
@@ -311,6 +325,8 @@ internal fun unzigzagInt (
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
  *   What to do with the fully decoded integer.
+ * @see <a href="https://gist.github.com/mfuerstenau/ba870a29e16536fdbaba">
+ *   Zigzag</a>
  */
 internal fun unzigzagLong (
 	bytes: ByteBuffer,
