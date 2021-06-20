@@ -37,8 +37,10 @@ import com.avail.anvil.BadAcknowledgmentCodeException
 import com.avail.anvil.BadMessageException
 import com.avail.anvil.Conversation
 import com.avail.anvil.Message
+import com.avail.anvil.MessageOrigin
 import com.avail.anvil.MessageTag
 import com.avail.anvil.NegotiateVersionMessage
+import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import com.avail.utility.IO
@@ -56,8 +58,10 @@ import javax.annotation.concurrent.GuardedBy
 
 /**
  * An `AnvilServerChannel` represents a connection between an [AnvilServer] and
- * a client (represented by a [SocketAdapter]). It provides mechanisms for
- * sending and receiving [messages][Message].
+ * a client. It provides mechanisms for sending and receiving
+ * [messages][Message]. Though many messages may be queued for delivery or
+ * receipt, the channel separately serializes the transmission and reception of
+ * messages, such that only one of each may experience I/O at any given time.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -93,11 +97,10 @@ class AnvilServerChannel constructor (
 	/** The channel identifier. */
 	val id = UUID.randomUUID()!!
 
-	/**
-	 * The time, in milliseconds since the Unix Epoch, when the receiver was
-	 * first created.
-	 */
-	val creationTime = System.currentTimeMillis()
+	init
+	{
+		logger.log(Level.INFO, "channel created ${transport.remoteAddress}")
+	}
 
 	/** The [AnvilServer]. */
 	private val server get () = adapter.server
@@ -108,8 +111,11 @@ class AnvilServerChannel constructor (
 	/** The next conversation identifier to issue. */
 	private val conversationId = AtomicLong(-1)
 
-	/** The next conversation identifier. */
-	private val nextConversationId get () = conversationId.getAndDecrement()
+	/**
+	 * The next conversation identifier, for [server][AnvilServer]
+	 * [originated][MessageOrigin] [conversations][Conversation].
+	 */
+	val nextConversationId get () = conversationId.getAndDecrement()
 
 	/**
 	 * `ProtocolState` represents the communication state of a
@@ -145,7 +151,8 @@ class AnvilServerChannel constructor (
 	}
 
 	/** The current [protocol&#32;state][ProtocolState].  */
-	internal var state = ProtocolState.VERSION_NEGOTIATION
+	@Volatile
+	internal var state: ProtocolState = VERSION_NEGOTIATION
 		set (nextState)
 		{
 			assert(field.allowedSuccessorStates.contains(nextState))
@@ -157,7 +164,8 @@ class AnvilServerChannel constructor (
 	 * version, [NegotiateVersionMessage] must specially treat this invalid
 	 * version as though it were permitted.
 	 */
-	internal var negotiatedVersion: Int = -1
+	@Volatile
+	internal var negotiatedVersion = AnvilServer.invalidProtocolVersion
 
 	/** The ongoing conversations. */
 	@GuardedBy("itself")
@@ -284,6 +292,7 @@ class AnvilServerChannel constructor (
 	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
 	 * [adapter][SocketAdapter].
 	 */
+	@GuardedBy("itself")
 	private val sendQueue: Deque<Message> = LinkedList()
 
 	/**
@@ -292,6 +301,7 @@ class AnvilServerChannel constructor (
 	 * [enqueueMessageThen][enqueueMessage]. The maximum depth of this queue
 	 * is proportional to the size of the I/O thread pool.
 	 */
+	@GuardedBy("sendQueue")
 	private val senders: Deque<Pair<Message, ()->Unit>> = LinkedList()
 
 	/**
@@ -424,7 +434,15 @@ class AnvilServerChannel constructor (
 	/**
 	 * The write buffer. Every write goes through this buffer, using an
 	 * asynchronous buffer chaining strategy.
+	 *
+	 * Concurrent access to the write buffer is forbidden by construction, by
+	 * careful management of flow control. A channel can only transmit one
+	 * [message][Message] at a time, and only the transmitter is permitted to
+	 * access the buffer. The write buffer is never accessed inside a lock, but
+	 * concurrent access is effectively ensured by the monitor on the
+	 * [sendQueue], and flow control around its usage.
 	 */
+	@GuardedBy("sendQueue")
 	private val writeBuffer = ByteBuffer.allocateDirect(WRITE_BUFFER_SIZE)
 
 	/**
@@ -499,7 +517,15 @@ class AnvilServerChannel constructor (
 	/**
 	 * The read buffer. Every read goes through this buffer, using an
 	 * asynchronous buffer chaining strategy.
+	 *
+	 * Concurrent access to the read buffer is forbidden by construction, by
+	 * careful management of flow control. A channel can only receive one
+	 * [message][Message] at a time, and only the receiver is permitted to
+	 * access the buffer. The read buffer is never accessed inside a lock, but
+	 * concurrent access is effectively ensured by the monitor on the
+	 * [receiveQueue], and flow control around its usage.
 	 */
+	@GuardedBy("receiveQueue")
 	private val readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE)
 
 	/**
@@ -566,6 +592,7 @@ class AnvilServerChannel constructor (
 	 * A [queue][Deque] of [messages][Message] awaiting processing by the
 	 * [server][AnvilServer].
 	 */
+	@GuardedBy("itself")
 	private val receiveQueue: Deque<Message> = LinkedList()
 
 	/**

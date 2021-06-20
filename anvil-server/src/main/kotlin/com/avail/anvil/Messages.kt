@@ -53,7 +53,6 @@ import com.avail.anvil.io.WriteMore
 import com.avail.anvil.io.decodeList
 import com.avail.anvil.io.encode
 import com.avail.anvil.io.unvlqInt
-import com.avail.anvil.io.unzigzagInt
 import com.avail.anvil.io.unzigzagLong
 import com.avail.anvil.io.vlq
 import com.avail.anvil.io.zigzag

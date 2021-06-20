@@ -299,6 +299,12 @@ class AnvilServer constructor (
 		private val supportedProtocolVersions = setOf(1)
 
 		/**
+		 * A protocol version guaranteed to be invalid, as a safe starting
+		 * sentinel for [AnvilServerChannel] to use during initialization.
+		 */
+		internal const val invalidProtocolVersion = -1
+
+		/**
 		 * Obtain the [configuration][AnvilServerConfiguration] of the
 		 * `AnvilServer`.
 		 *
