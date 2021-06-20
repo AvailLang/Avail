@@ -308,7 +308,7 @@ abstract class AbstractStacksScanner internal constructor(
 		}
 		val c = Character.codePointAt(tokenString, position)
 		position += Character.charCount(c)
-		if (c == '\n'.toInt())
+		if (c == '\n'.code)
 		{
 			lineNumber++
 			startOfTokenLinePosition = 0
@@ -580,17 +580,17 @@ abstract class AbstractStacksScanner internal constructor(
 						{
 							in '0'..'9' ->
 							{
-								value = (value shl 4) + c.toInt() - '0'.toInt()
+								value = (value shl 4) + c.code - '0'.code
 								digitCount++
 							}
 							in 'A'..'F' ->
 							{
-								value = (value shl 4) + c.toInt() - 'A'.toInt() + 10
+								value = (value shl 4) + c.code - 'A'.code + 10
 								digitCount++
 							}
 							in 'a'..'f' ->
 							{
-								value = (value shl 4) + c.toInt() - 'a'.toInt() + 10
+								value = (value shl 4) + c.code - 'a'.code + 10
 								digitCount++
 							}
 							else -> throw StacksScannerException(
@@ -870,7 +870,7 @@ abstract class AbstractStacksScanner internal constructor(
 			 */
 			fun forCodePoint(cp: Char): ScannerAction
 			{
-				val c = cp.toInt()
+				val c = cp.code
 				return if (c < 65536)
 				{
 					values()[dispatchTable[c].toInt()]
@@ -916,18 +916,18 @@ abstract class AbstractStacksScanner internal constructor(
 					}
 				dispatchTable[i] = action.ordinal.toByte()
 			}
-			dispatchTable['\n'.toInt()] = ScannerAction
+			dispatchTable['\n'.code] = ScannerAction
 				.NEWLINE.ordinal.toByte()
-			dispatchTable['{'.toInt()] = ScannerAction
+			dispatchTable['{'.code] = ScannerAction
 				.BRACKET.ordinal.toByte()
-			dispatchTable['"'.toInt()] =
+			dispatchTable['"'.code] =
 				ScannerAction
 					.DOUBLE_QUOTE.ordinal.toByte()
-			dispatchTable['/'.toInt()] = ScannerAction.SLASH.ordinal.toByte()
-			dispatchTable['\uFEFF'.toInt()] =
+			dispatchTable['/'.code] = ScannerAction.SLASH.ordinal.toByte()
+			dispatchTable['\uFEFF'.code] =
 				ScannerAction
 					.ZERO_WIDTH_WHITESPACE.ordinal.toByte()
-			dispatchTable['@'.toInt()] =
+			dispatchTable['@'.code] =
 				ScannerAction
 					.KEYWORD_START.ordinal.toByte()
 		}

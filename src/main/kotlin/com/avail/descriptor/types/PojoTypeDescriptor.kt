@@ -862,7 +862,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					java.lang.Float::class.java -> fromFloat(self as Float)
 					java.lang.Double::class.java -> fromDouble(self as Double)
 					java.lang.Character::class.java ->
-						fromInt((self as Char).toInt())
+						fromInt((self as Char).code)
 					java.lang.String::class.java -> stringFrom(self as String)
 					BigInteger::class.java -> fromBigInteger(self as BigInteger)
 					else -> newPojo(equalityPojo(self), type)

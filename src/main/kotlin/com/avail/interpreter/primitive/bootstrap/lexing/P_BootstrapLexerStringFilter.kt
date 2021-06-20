@@ -64,7 +64,7 @@ object P_BootstrapLexerStringFilter
 
 		val codePoint = character.codePoint()
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(codePoint == '\"'.toInt()))
+			objectFromBoolean(codePoint == '\"'.code))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

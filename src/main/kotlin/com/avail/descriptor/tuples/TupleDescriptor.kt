@@ -196,19 +196,24 @@ abstract class TupleDescriptor protected constructor(
 			{
 				when (val c = self.tupleCodePointAt(i))
 				{
-					'\"'.toInt(), '\\'.toInt() ->
+					'\"'.code, '\\'.code ->
 					{
-						builder.appendCodePoint('\\'.toInt())
+						builder.appendCodePoint('\\'.code)
 						builder.appendCodePoint(c)
 					}
-					'\n'.toInt() -> builder.append("\\n")
-					'\r'.toInt() -> builder.append("\\r")
-					'\t'.toInt() -> builder.append("\\t")
-					in 0 .. 31, 127 -> builder.append(String.format("\\(%x)", c))
+					'\n'.code -> builder.append("\\n")
+					'\r'.code -> builder.append("\\r")
+					'\t'.code -> builder.append("\\t")
+					in 0 .. 31, 127 -> builder.append(
+						String.format(
+							"\\(%x)",
+							c
+						)
+					)
 					else -> builder.appendCodePoint(c)
 				}
 			}
-			builder.appendCodePoint('"'.toInt())
+			builder.appendCodePoint('"'.code)
 			return
 		}
 		val strings = mutableListOf<String>()
@@ -1300,10 +1305,10 @@ abstract class TupleDescriptor protected constructor(
 				return emptyTuple
 			}
 
-			val minValue = list.min()!!
+			val minValue = list.minOrNull()!!
 			if (minValue >= 0)
 			{
-				val maxValue = list.max()!!
+				val maxValue = list.maxOrNull()!!
 				if (maxValue <= 15)
 				{
 					return NybbleTupleDescriptor
@@ -1312,7 +1317,7 @@ abstract class TupleDescriptor protected constructor(
 				if (maxValue <= 255)
 				{
 					return ByteTupleDescriptor.generateByteTupleFrom(list.size)
-						{ list[it - 1] }
+					{ list[it - 1] }
 				}
 			}
 			return generateIntTupleFrom(list.size) { list[it - 1] }

@@ -151,7 +151,7 @@ class MessageSplitterTokenizer
 		buildString {
 			for (i in range) {
 				val cp = messageName.tupleCodePointAt(i)
-				if (cp != '`'.toInt()) appendCodePoint(cp)
+				if (cp != '`'.code) appendCodePoint(cp)
 			}
 		})
 

@@ -260,7 +260,7 @@ class DotWriter constructor(
 			while (i < lineLimit)
 			{
 				var cp = s.codePointAt(i)
-				if (cp == '\n'.toInt())
+				if (cp == '\n'.code)
 				{
 					// Upon discovery of a linefeed, compute the next line and
 					// the residue.
@@ -279,7 +279,7 @@ class DotWriter constructor(
 						i += sz
 						whiteRun += sz
 						cp =
-							if (i < s.length) s.codePointAt(i) else 'x'.toInt()
+							if (i < s.length) s.codePointAt(i) else 'x'.code
 					}
 					while (Character.isWhitespace(cp))
 				}
@@ -314,7 +314,7 @@ class DotWriter constructor(
 						i += sz
 						whiteRun += sz
 						cp =
-							if (i < wideLimit) s.codePointAt(i) else 'x'.toInt()
+							if (i < wideLimit) s.codePointAt(i) else 'x'.code
 					}
 					while (Character.isWhitespace(cp))
 					break
@@ -406,8 +406,8 @@ class DotWriter constructor(
 						.mapToObj { cp ->
 							val s = when (cp)
 							{
-								'\"'.toInt() -> "\\\""
-								'\n'.toInt() -> "\\n"
+								'\"'.code -> "\\\""
+								'\n'.code -> "\\n"
 								else -> String(Character.toChars(cp))
 							}
 							s

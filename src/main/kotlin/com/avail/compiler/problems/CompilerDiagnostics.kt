@@ -284,7 +284,7 @@ class CompilerDiagnostics(
 	private inner class ExpectationsList
 	{
 		/** Guards access to [expectations] and expectationsIndexHeap]. */
-		internal val expectationsLock = ReentrantReadWriteLock()
+		val expectationsLock = ReentrantReadWriteLock()
 
 		/**
 		 * The rightmost few positions at which potential problems have been
@@ -309,7 +309,7 @@ class CompilerDiagnostics(
 		private val expectationsIndexHeap = PriorityQueue<Int>()
 
 		/** `true` iff there are no expectations recorded herein. */
-		internal val isEmpty: Boolean
+		val isEmpty: Boolean
 			get() = expectationsLock.read { expectations.isEmpty() }
 
 		/**
@@ -397,12 +397,12 @@ class CompilerDiagnostics(
 			// the content before the line on which startOfStatement resides.
 			val startOfFirstLine = 1 + lastIndexOf(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				startOfStatement!!.position - 1,
 				1)
 			val initialLineNumber = 1 + occurrencesInRange(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				1,
 				min(source.tupleSize(), startOfFirstLine))
 			// Now figure out the last line to show, which if possible should be
@@ -411,7 +411,7 @@ class CompilerDiagnostics(
 			val finalLineNumber = lastProblem.lineNumber
 			var startOfNextLine = 1 + firstIndexOf(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				lastProblem.lexingStateAfterToken.position,
 				source.tupleSize())
 			startOfNextLine =
@@ -421,7 +421,7 @@ class CompilerDiagnostics(
 					source.tupleSize() + 1
 			var startOfSecondNextLine = 1 + firstIndexOf(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				startOfNextLine,
 				source.tupleSize())
 			startOfSecondNextLine =
@@ -450,10 +450,10 @@ class CompilerDiagnostics(
 				tupleFromList(parts).concatenateTuplesCanDestroy(true)
 			if (unnumbered.tupleSize() == 0
 				|| unnumbered.tupleCodePointAt(unnumbered.tupleSize())
-					!= '\n'.toInt())
+					!= '\n'.code)
 			{
 				unnumbered = unnumbered.appendCanDestroy(
-					fromCodePoint('\n'.toInt()), true)
+					fromCodePoint('\n'.code), true)
 			}
 
 			// Insert line numbers...
@@ -545,7 +545,7 @@ class CompilerDiagnostics(
 		 *   first argument is where the indicator string goes, and the second
 		 *   is for the line number.
 		 */
-		internal fun reportError(headerMessagePattern: String)
+		fun reportError(headerMessagePattern: String)
 		{
 			assert(!isEmpty)
 			val descendingIndices =
@@ -926,7 +926,7 @@ class CompilerDiagnostics(
 				continuation(emptyToken.makeShared())
 				return
 			}
-			continuation(candidates.maxBy { it.string().tupleSize() }!!)
+			continuation(candidates.maxByOrNull { it.string().tupleSize() }!!)
 		}
 
 		/**

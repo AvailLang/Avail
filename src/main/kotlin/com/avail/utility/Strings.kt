@@ -61,12 +61,12 @@ object Strings {
 			val codePoint = s.codePointAt(i)
 			when (codePoint)
 			{
-				'\\'.toInt() -> append("\\\\")
-				'"'.toInt() -> append("\\\"")
-				'\b'.toInt() -> append("\\b")
-				'\n'.toInt() -> append("\\n")
-				'\r'.toInt() -> append("\\r")
-				'\t'.toInt() -> append("\\t")
+				'\\'.code -> append("\\\\")
+				'"'.code -> append("\\\"")
+				'\b'.code -> append("\\b")
+				'\n'.code -> append("\\n")
+				'\r'.code -> append("\\r")
+				'\t'.code -> append("\\t")
 				else -> appendCodePoint(codePoint)
 			}
 			i += Character.charCount(codePoint)

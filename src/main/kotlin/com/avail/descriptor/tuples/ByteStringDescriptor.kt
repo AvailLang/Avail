@@ -576,7 +576,7 @@ class ByteStringDescriptor private constructor(
 			aNativeByteString: String
 		): AvailObject =
 			generateByteString(aNativeByteString.length) {
-				aNativeByteString[it - 1].toInt()
+				aNativeByteString[it - 1].code
 			}
 
 		/**

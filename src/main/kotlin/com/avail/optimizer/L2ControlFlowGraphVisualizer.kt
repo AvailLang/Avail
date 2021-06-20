@@ -890,18 +890,18 @@ class L2ControlFlowGraphVisualizer constructor(
 				val cp = s.codePointAt(i)
 				when
 				{
-					cp > 127 || cp == '"'.toInt() || cp == '<'.toInt()
-					|| cp == '>'.toInt() || cp == '&'.toInt() ->
+					cp > 127 || cp == '"'.code || cp == '<'.code
+						|| cp == '>'.code || cp == '&'.code ->
 					{
 						append("&#")
 						append(cp)
 						append(';')
 					}
-					cp == '\n'.toInt() ->
+					cp == '\n'.code ->
 					{
 						append("<br/>")
 					}
-					cp == '\t'.toInt() ->
+					cp == '\t'.code ->
 					{
 						append(repeated("&nbsp;", 4))
 					}

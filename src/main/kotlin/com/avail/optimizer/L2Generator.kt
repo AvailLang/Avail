@@ -835,8 +835,8 @@ class L2Generator internal constructor(
 		if (sourceWritesInBlock.isNotEmpty())
 		{
 			// Find the latest equivalent write in this block.
-			val latestWrite = sourceWritesInBlock.maxBy {
-				it.instruction().basicBlock().instructions()
+			val latestWrite = sourceWritesInBlock.maxByOrNull {
+				it!!.instruction().basicBlock().instructions()
 					.indexOf(it.instruction())
 			}!!
 			if (!latestWrite.instruction().operation().isPhi)
@@ -954,7 +954,7 @@ class L2Generator internal constructor(
 				// necessary parts.
 				generateStringFromCodePoints(size) { oneBasedIndex ->
 					elements[oneBasedIndex - 1].constantOrNull().let {
-						if (it === null) '?'.toInt() else it.codePoint()
+						if (it === null) '?'.code else it.codePoint()
 					}
 				}
 			}

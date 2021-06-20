@@ -170,6 +170,8 @@
       <w>nilled</w>
       <w>nonalphanumeric</w>
       <w>noncontradiction</w>
+      <w>nonfinal</w>
+      <w>nonnegative</w>
       <w>nullary</w>
       <w>nulling</w>
       <w>nullprimitiveholder</w>
@@ -244,6 +246,7 @@
       <w>serializable</w>
       <w>serializer</w>
       <w>significand</w>
+      <w>situationally</w>
       <w>skatje</w>
       <w>slowdown</w>
       <w>smalltalk</w>
@@ -314,6 +317,8 @@
       <w>unprefixed</w>
       <w>unproductive</w>
       <w>unstarted</w>
+      <w>unvlq</w>
+      <w>unzigzag</w>
       <w>upgrader</w>
       <w>uppercased</w>
       <w>varargs</w>

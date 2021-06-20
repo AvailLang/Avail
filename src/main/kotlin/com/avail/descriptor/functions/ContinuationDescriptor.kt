@@ -315,7 +315,7 @@ class ContinuationDescriptor private constructor(
 
 		// Figure out the pc of the instruction before the current one, since
 		// (1) calls leave the pc at the next instruction after the call, and
-		// (2) other instructions are likewidse advanced past before running
+		// (2) other instructions are likewise advanced past before running
 		// them.
 		val currentPc = self.pc()
 		var pcBefore = -1
@@ -375,7 +375,7 @@ class ContinuationDescriptor private constructor(
 		// rare case that we do need it.
 		var hash = self.slot(HASH_OR_ZERO)
 		if (hash == 0) {
-			val caller = self.caller().traversed().cast()
+			val caller = self.caller().traversed().cast()!!
 			var callerHash = 0
 			if (caller.notNil
 				&& caller.slot(HASH_OR_ZERO) == 0) {

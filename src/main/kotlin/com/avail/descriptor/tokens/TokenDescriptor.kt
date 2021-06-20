@@ -317,7 +317,7 @@ open class TokenDescriptor protected constructor(
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)
 		line += (1..stringSize).count {
-			string.tupleCodePointAt(it) == '\n'.toInt()
+			string.tupleCodePointAt(it) == '\n'.code
 		}
 		// Now lookup/capture the next state.
 		val allTokens = priorLexingState.allTokens.append(self)

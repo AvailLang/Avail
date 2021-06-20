@@ -160,28 +160,28 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		START
 		{
 			override fun nextState(c: Int) =
-				if (c == '\r'.toInt()) FIRST_CARRIAGE_RETURN else START
+				if (c == '\r'.code) FIRST_CARRIAGE_RETURN else START
 		},
 
 		/** Just read the first carriage return.  */
 		FIRST_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
-				if (c == '\n'.toInt()) FIRST_LINE_FEED else START
+				if (c == '\n'.code) FIRST_LINE_FEED else START
 		},
 
 		/** Just read the first carriage return + line feed.  */
 		FIRST_LINE_FEED
 		{
 			override fun nextState(c: Int) =
-				if (c == '\r'.toInt()) SECOND_CARRIAGE_RETURN else START
+				if (c == '\r'.code) SECOND_CARRIAGE_RETURN else START
 		},
 
 		/** Just read the second carriage return.  */
 		SECOND_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
-				if (c == '\n'.toInt()) SECOND_LINE_FEED else START
+				if (c == '\n'.code) SECOND_LINE_FEED else START
 		},
 
 		/** Just read the second carriage return + line feed. */

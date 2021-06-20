@@ -65,8 +65,9 @@ object P_BootstrapLexerWhitespaceFilter
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(
 				Character.isWhitespace(c)
-				|| Character.isSpaceChar(c)
-				|| c == '\uFEFF'.toInt()))
+					|| Character.isSpaceChar(c)
+					|| c == '\uFEFF'.code
+			))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
