@@ -40,6 +40,7 @@ import com.avail.anvil.Message
 import com.avail.anvil.MessageOrigin
 import com.avail.anvil.MessageTag
 import com.avail.anvil.NegotiateVersionMessage
+import com.avail.anvil.io.AnvilServerChannel.ProtocolState.TERMINATED
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.io.SimpleCompletionHandler
 import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
@@ -129,18 +130,25 @@ class AnvilServerChannel constructor (
 		VERSION_NEGOTIATION
 		{
 			override val allowedSuccessorStates
-				get () = setOf(VERSION_REBUTTED, READY)
+				get () = setOf(VERSION_REBUTTED, READY, TERMINATED)
 		},
 		
 		/** Protocol version has been rebutted. */
 		VERSION_REBUTTED
 		{
 			override val allowedSuccessorStates
-				get () = setOf(VERSION_REBUTTED, READY)
+				get () = setOf(READY, TERMINATED)
 		},
 
 		/** Ready for general use. */
 		READY
+		{
+			override val allowedSuccessorStates
+				get () = setOf(TERMINATED)
+		},
+
+		/** Terminated. */
+		TERMINATED
 		{
 			override val allowedSuccessorStates
 				get () = emptySet<ProtocolState>()
@@ -702,6 +710,7 @@ class AnvilServerChannel constructor (
 	{
 		if (!closeHandled.getAndSet(true))
 		{
+			state = TERMINATED
 			synchronized(sendQueue) {
 				reason.log(logger, Level.INFO)
 				if (isOpen)
