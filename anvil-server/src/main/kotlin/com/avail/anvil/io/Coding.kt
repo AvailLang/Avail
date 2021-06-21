@@ -362,7 +362,7 @@ internal fun ByteArray.encode (
 ) = this.size.vlq(bytes, writeMore) { bytes1 ->
 	if (bytes1.remaining() < size)
 	{
-		// There isn't enough room to transfer the entire string.
+		// There isn't enough room to transfer the entire byte array.
 		var i = 0
 		var count = size
 		return@vlq recurse(bytes1) { bytes2, again ->
@@ -378,7 +378,7 @@ internal fun ByteArray.encode (
 			writeMore(bytes2) { bytes3 -> again(bytes3) }
 		}
 	}
-	// There is enough room to accommodate the entire string.
+	// There is enough room to accommodate the entire byte array.
 	bytes1.put(this)
 	done(bytes1)
 }
@@ -393,7 +393,7 @@ internal fun ByteArray.encode (
  * @param readMore
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
- *   What to do with the fully decoded list.
+ *   What to do with the fully decoded byte array.
  */
 internal fun decodeByteArray (
 	bytes: ByteBuffer,
@@ -457,7 +457,7 @@ internal fun String.encode (
  * @param readMore
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
- *   What to do with the fully decoded list.
+ *   What to do with the fully decoded string.
  */
 internal fun decodeString (
 	bytes: ByteBuffer,
