@@ -480,7 +480,7 @@ internal fun decodeString (
  * @param bytes
  *   The target buffer.
  * @param encodeOne
- *   How to encode a single item of the list.
+ *   How to encode a single item from the list.
  * @param writeMore
  *   How to keep writing if the target buffer fills up prematurely.
  * @param done
@@ -512,7 +512,7 @@ internal fun <T> List<T>.encode (
  * @param bytes
  *   The source buffer.
  * @param decodeOne
- *   How to decode a single item of the list.
+ *   How to decode a single item from the list.
  * @param readMore
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param failed
@@ -534,14 +534,7 @@ internal fun <T> decodeList (
 	}
 	val result = mutableListOf<T>()
 	var remaining = size
-	var abort: Throwable? = null
 	recurse(bytes1) { bytes2, again ->
-		val aborted = abort
-		if (aborted !== null)
-		{
-			// Decoding an item failed, so abort immediately.
-			return@recurse failed(aborted, bytes2)
-		}
 		if (remaining == 0)
 		{
 			// All items have been read, so the list is fully decoded.
@@ -551,10 +544,7 @@ internal fun <T> decodeList (
 		decodeOne(
 			bytes2,
 			readMore,
-			{ e, bytes3 ->
-				abort = e
-				again(bytes3)
-			}
+			{ e, bytes3 -> failed(e, bytes3) }
 		) { item, bytes3 ->
 			result.add(item)
 			remaining--
