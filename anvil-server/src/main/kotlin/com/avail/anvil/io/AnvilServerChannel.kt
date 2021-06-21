@@ -266,16 +266,10 @@ class AnvilServerChannel constructor (
 				throw IllegalArgumentException()
 			}
 			val predecessor = lookupConversation(message.id)
-			if (!message.allowedConversationStart && predecessor === null)
+			if (message.startsConversation != (predecessor === null))
 			{
-				// The originator attempted to start a conversation with an
-				// inappropriate message.
-				throw IllegalArgumentException()
-			}
-			if (message.startsConversation && predecessor !== null)
-			{
-				// The originator attempted to continue a conversation with
-				// a mandatory starter message.
+				// The originator attempted to initiate or continue a
+				// conversation with an inappropriate message.
 				throw IllegalArgumentException()
 			}
 			if (predecessor?.allowedSuccessors?.contains(message.tag) == false)

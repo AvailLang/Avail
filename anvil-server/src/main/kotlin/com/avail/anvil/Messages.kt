@@ -97,12 +97,6 @@ private interface BasicMessage
 	val startsConversation get () = false
 
 	/**
-	 * Are [tagged][MessageTag] [messages][Message] permitted to start
-	 * conversations (but not necessarily required to)?
-	 */
-	val allowedConversationStart get () = startsConversation
-
-	/**
 	 * The allowed [origins][MessageOrigin] of [tagged][MessageTag]
 	 * [messages][Message].
 	 */
@@ -150,7 +144,7 @@ enum class MessageTag : BasicMessage
 	/** 0: Perform an orderly shutdown of the connection. */
 	DISCONNECT
 	{
-		override val allowedConversationStart = true
+		override val startsConversation = true
 		override val allowedOrigins = setOf(CLIENT, SERVER)
 		override val allowedStates =
 			setOf(READY, VERSION_NEGOTIATION, VERSION_REBUTTED)
