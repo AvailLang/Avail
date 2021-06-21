@@ -152,7 +152,8 @@ enum class MessageTag : BasicMessage
 	{
 		override val allowedConversationStart = true
 		override val allowedOrigins = setOf(CLIENT, SERVER)
-		override val allowedStates = ProtocolState.values().toSet()
+		override val allowedStates =
+			setOf(READY, VERSION_NEGOTIATION, VERSION_REBUTTED)
 		override val closeAfterSending = true
 
 		override fun encodeContent(
