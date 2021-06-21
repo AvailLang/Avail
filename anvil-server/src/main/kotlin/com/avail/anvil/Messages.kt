@@ -180,7 +180,7 @@ enum class MessageTag : BasicMessage
 		override val allowedStates =
 			setOf(VERSION_NEGOTIATION, VERSION_REBUTTED)
 		override val allowedSuccessors get () =
-			setOf(DISCONNECT, ACCEPTED_VERSION, REBUTTED_VERSIONS)
+			setOf(ACCEPTED_VERSION, REBUTTED_VERSIONS)
 
 		override fun encodeContent(
 			message: Message,
@@ -255,8 +255,7 @@ enum class MessageTag : BasicMessage
 	{
 		override val allowedOrigins = setOf(SERVER)
 		override val allowedStates = setOf(VERSION_REBUTTED)
-		override val allowedSuccessors get () =
-			setOf(DISCONNECT, NEGOTIATE_VERSION)
+		override val allowedSuccessors get () = setOf(NEGOTIATE_VERSION)
 
 		override fun encodeContent(
 			message: Message,
