@@ -443,9 +443,10 @@ enum class MessageTag : BasicMessage
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * An [AnvilServer] sends and receives messages. A [Message] received by the
- * server represents a command from the client, whereas a [Message] sent by the
- * server represents a response to a command or a notification of an event.
+ * An [AnvilServer] sends and receives messages. In general, a [Message]
+ * received by the server represents a command from the client, whereas a
+ * [Message] sent by the server represents a response to a command or a
+ * notification of an event.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
@@ -454,7 +455,8 @@ enum class MessageTag : BasicMessage
  * @property origin
  *   The origin of the message.
  * @property id
- *   The conversation id of the message.
+ *   The conversation id of the message: negative for server-originated
+ *   conversations, positive for client-originated conversations.
  *
  * @constructor
  * Construct a new [Message].
@@ -464,7 +466,8 @@ enum class MessageTag : BasicMessage
  * @param origin
  *   The origin of the message.
  * @param id
- *   The conversation id of the message.
+ *   The conversation id of the message: negative for server-originated
+ *   conversations, positive for client-originated conversations.
  */
 sealed class Message constructor (
 	val tag: MessageTag,
@@ -473,7 +476,7 @@ sealed class Message constructor (
 ) : BasicMessage by tag
 {
 	/**
-	 * Visit the argument upon the receiver.
+	 * Visit the visitor upon the receiver.
 	 *
 	 * @param visitor
 	 *   The visitor.
@@ -630,7 +633,7 @@ enum class AcknowledgmentCode
 	 * @param writeMore
 	 *   How to write more if the target buffer is fills up prematurely.
 	 * @param done
-	 *   What to do when the message is fully encoded.
+	 *   What to do when the code is fully encoded.
 	 */
 	fun encode (bytes: ByteBuffer, writeMore: WriteMore, done: DoneWriting)
 	{
@@ -766,6 +769,10 @@ abstract class AbstractMessageVisitor : MessageVisitor
 	): Unit = throw UnsupportedOperationException()
 }
 
+////////////////////////////////////////////////////////////////////////////////
+//                               Conversations.                               //
+////////////////////////////////////////////////////////////////////////////////
+
 /**
  * An ongoing conversation between a client and an [AnvilServer], recording the
  * expected successor [message][Message] [kinds][MessageTag] and providing
@@ -808,6 +815,14 @@ abstract class Conversation (
  * [BadMessageException] when it encounters an unrecognized tag.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property badTag
+ *   The unrecognized tag.
+ *
+ * @constructor
+ * Construct a new [BadMessageException].
+ *
+ * @param badTag
+ *   The unrecognized tag.
  */
 internal data class BadMessageException constructor (
 	val badTag: Int): Exception()
@@ -817,6 +832,14 @@ internal data class BadMessageException constructor (
  * [BadAcknowledgmentCodeException] when it encounters an unrecognized code.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property badCode
+ *   The unrecognized code.
+ *
+ * @constructor
+ * Construct a new [BadAcknowledgmentCodeException].
+ *
+ * @param badCode
+ *   The unrecognized code.
  */
 internal data class BadAcknowledgmentCodeException constructor (
 	val badCode: Int): Exception()
