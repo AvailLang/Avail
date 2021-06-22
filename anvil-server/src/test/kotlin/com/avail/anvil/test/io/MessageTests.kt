@@ -48,21 +48,22 @@ import java.nio.ByteBuffer
 import java.util.stream.Stream
 
 /**
- * Test coding of [messages][Message].
+ * Test features of [messages][Message].
  *
  * @author Todd L Smith &lt;anarakul@gmail.com&gt;
  */
 class MessageTests
 {
 	/**
-	 * Test [DisconnectMessage].
+	 * Test [encode][Message.encode] and [decode][MessageTag.decode] for various
+	 * [messages][Message].
 	 */
 	@ParameterizedTest(name = "round-trip: {0}")
 	@MethodSource("messages")
 	fun testMessageCodec (message: Message)
 	{
 		val buffer = ByteBuffer.allocate(BUFFER_SIZE)
-		message.encode(buffer, writeMore = { _, _ -> fail()}) {
+		message.encode(buffer, writeMore = { _, _ -> fail() }) {
 			// Do nothing.
 		}
 		buffer.flip()

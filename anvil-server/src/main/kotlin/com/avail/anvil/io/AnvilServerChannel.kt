@@ -38,6 +38,7 @@ import com.avail.anvil.BadMessageException
 import com.avail.anvil.Conversation
 import com.avail.anvil.Message
 import com.avail.anvil.MessageOrigin
+import com.avail.anvil.MessageOrigin.SERVER
 import com.avail.anvil.MessageTag
 import com.avail.anvil.NegotiateVersionMessage
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.TERMINATED
@@ -46,6 +47,7 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import com.avail.utility.IO
 import com.avail.utility.evaluation.Combinator.recurse
+import org.jetbrains.annotations.Contract
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.Deque
@@ -184,12 +186,19 @@ class AnvilServerChannel constructor (
 	 *
 	 * @param id
 	 *   The conversation identifier.
+	 * @param conversation
+	 *   How to install a conversation for a start, if no ongoing conversation
+	 *   is found, or `null` if no conversation should be installed.
 	 * @return
 	 *   The requested conversation, or `null` if the conversation wasn't found.
 	 */
-	internal fun lookupConversation (id: Long) =
+	@Contract("_, !null -> !null")
+	internal fun lookupConversation (
+			id: Long,
+			conversation: (()->Conversation)? = null) =
 		synchronized(conversations) {
-			conversations[id]
+			conversation?.let { conversations.getOrPut(id, it) }
+				?: conversations[id]
 		}
 
 	/**
@@ -222,10 +231,12 @@ class AnvilServerChannel constructor (
 	 * @param message
 	 *   The message to check.
 	 * @param conversation
-	 *   The associated [conversation][Conversation], or `null` if the message
-	 *   ends a conversation.
+	 *   The associated [conversation][Conversation], or `null` if either
+	 *   (1) the message ends a conversation or (2) the message has just
+	 *   arrived on the socket.
 	 * @param buildCloseReason
 	 *   How to build a [CloseReason] if necessary.
+	 * @return `true` iff the message is deemed appropriate.
 	 */
 	@Throws(IllegalArgumentException::class)
 	private fun checkMessage (
@@ -254,9 +265,10 @@ class AnvilServerChannel constructor (
 				// disallowed protocol state.
 				throw IllegalArgumentException()
 			}
-			if (message.endsConversation != (conversation === null))
+			if (message.origin == SERVER
+				&& message.endsConversation != (conversation === null))
 			{
-				// The originator attempted to continue a defunct conversation.
+				// The server attempted to continue a defunct conversation.
 				throw IllegalArgumentException()
 			}
 			if (conversation !== null && message.id != conversation.id)
@@ -493,8 +505,8 @@ class AnvilServerChannel constructor (
 					// We've filled the buffer, so write it to the transport.
 					// Save the argument continuation, so that we can resume
 					// encoding when the completion handler finishes.
-					writeBuffer.rewind()
 					afterWriting = proceed
+					writeBuffer.clear()
 					transport.write(writeBuffer, dummy, handler)
 				}
 			) {
@@ -511,6 +523,7 @@ class AnvilServerChannel constructor (
 					}
 					success()
 				}
+				writeBuffer.flip()
 				transport.write(writeBuffer, dummy, handler)
 			}
 		}
@@ -528,7 +541,13 @@ class AnvilServerChannel constructor (
 	 * [receiveQueue], and flow control around its usage.
 	 */
 	@GuardedBy("receiveQueue")
-	private val readBuffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE)
+	private val readBuffer = run {
+		val buffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE)
+		// Force the buffer to appear empty, so that the first attempt to read
+		// will force a fetch from the socket.
+		buffer.flip()
+		buffer
+	}
 
 	/**
 	 * Read a complete [message][Message] from the

@@ -1,0 +1,13 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="Anvil Server" type="JarApplication">
+    <option name="JAR_PATH" value="$PROJECT_DIR$/distro/lib/anvil-server.jar" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties" />
+    <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
+    <option name="ALTERNATIVE_JRE_PATH" />
+    <module name="avail.anvil-server.main" />
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks="assemble" externalProjectPath="$PROJECT_DIR$/anvil-server" vmOptions="" scriptParameters="" />
+    </method>
+  </configuration>
+</component>

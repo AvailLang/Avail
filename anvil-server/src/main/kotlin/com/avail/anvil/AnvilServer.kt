@@ -148,8 +148,9 @@ class AnvilServer constructor (
 		channel: AnvilServerChannel,
 		after: () -> Unit)
 	{
-		val conversation = channel.lookupConversation(message.id)
-			?: StartConversationVisitor(message, channel)
+		val conversation = channel.lookupConversation(message.id) {
+			StartConversationVisitor(message, channel)
+		}!!
 		if (message.endsConversation)
 		{
 			if (conversation !is StartConversationVisitor)

@@ -222,6 +222,7 @@ enum class MessageTag : BasicMessage
 	/** 2: Accept an offered protocol version. */
 	ACCEPTED_VERSION
 	{
+		override fun availableInVersion (version: Int) = true
 		override val allowedOrigins = setOf(SERVER)
 
 		override fun encodeContent(
@@ -253,6 +254,7 @@ enum class MessageTag : BasicMessage
 	 */
 	REBUTTED_VERSIONS
 	{
+		override fun availableInVersion (version: Int) = true
 		override val allowedOrigins = setOf(SERVER)
 		override val allowedStates = setOf(VERSION_REBUTTED)
 		override val allowedSuccessors get () = setOf(NEGOTIATE_VERSION)
