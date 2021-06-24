@@ -1832,7 +1832,7 @@ class IntegerDescriptor private constructor(
 		 * and then the number of unused ints in the last long.  This is mostly
 		 * a vestigial effect of having used 32-bit integer slots in the past.
 		 * There is still some merit to the technique, since for example integer
-		 * multiplication has to use u32xu32->u64 for speed.
+		 * multiplication has to use u32 x u32 -> u64 for speed.
 		 */
 		private val descriptors = EnumMap.enumMap { mut: Mutability ->
 			Array(2) { unusedInts ->

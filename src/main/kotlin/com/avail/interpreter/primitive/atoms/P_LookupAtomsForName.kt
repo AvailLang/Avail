@@ -68,7 +68,7 @@ object P_LookupAtomsForName : Primitive(
 		val name = interpreter.argument(0)
 		val currentFiber = interpreter.fiber()
 		val loader = currentFiber.availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		return interpreter.primitiveSuccess(loader.lookupAtomsForName(name))
 	}
 

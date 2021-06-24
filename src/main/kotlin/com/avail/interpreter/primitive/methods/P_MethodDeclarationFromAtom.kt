@@ -72,7 +72,7 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 		val function = interpreter.argument(1)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
-		if (loader === null || loader.module().equalsNil())
+		if (loader === null || loader.module().isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}

@@ -81,7 +81,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		val handle = interpreter.argument(0)
 		val options = interpreter.argument(1)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial()) E_SPECIAL_ATOM

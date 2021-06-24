@@ -338,7 +338,7 @@ class LexerDescriptor private constructor(
 				setSlot(HASH, hash)
 			}
 			lexerMethod.setLexer(lexer)
-			if (!definitionModule.equalsNil()) {
+			if (definitionModule.notNil) {
 				definitionModule.addLexer(lexer)
 			}
 			return lexer

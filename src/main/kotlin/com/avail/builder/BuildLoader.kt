@@ -511,8 +511,9 @@ internal class BuildLoader constructor(
 					availBuilder.pollForAbort,
 					{ moduleName2, moduleSize, position, line ->
 						assert(moduleName == moduleName2)
-						// Don't reach the full module size yet.  A separate update at
-						// 100% will be sent after post-loading actions are complete.
+						// Don't reach the full module size yet.  A separate
+						// update at 100% will be sent after post-loading
+						// actions are complete.
 						localTracker(
 							moduleName,
 							moduleSize,
@@ -532,18 +533,23 @@ internal class BuildLoader constructor(
 					compiler.parseModule(
 						{ module ->
 							val old = ranOnce.getAndSet(true)
-							assert(!old) { "Completed module compilation twice!" }
-							val stream =
-								compiler.compilationContext.serializerOutputStream
+							assert(!old) {
+								"Completed module compilation twice!"
+							}
+							val stream = compiler.compilationContext
+								.serializerOutputStream
 							appendCRC(stream)
 
 							// Also produce the serialization of the module's
 							// tuple of block phrases.
 							val blockPhrasesOutputStream =
 								IndexedFile.ByteArrayOutputStream(5000)
-							val bodyObjectsMap = compiler.compilationContext.serializer
-								.serializedObjectsMap()
-							val delta = bodyObjectsMap.mapSize()
+							val bodyObjectsMap =
+								compiler.compilationContext.serializer
+									.serializedObjectsMap()
+							// Ensure the primed objects are always at strictly
+							// negative indices.
+							val delta = bodyObjectsMap.mapSize() + 1
 							val blockPhraseSerializer = Serializer(
 								blockPhrasesOutputStream,
 								module
@@ -579,7 +585,8 @@ internal class BuildLoader constructor(
 							val serializer = Serializer(out, module)
 							serializer.serialize(comments)
 							module.getAndSetTupleOfBlockPhrases(
-								fromLong(compilation.recordNumberOfBlockPhrases))
+								fromLong(
+									compilation.recordNumberOfBlockPhrases))
 							appendCRC(out)
 
 							val version = archive.getVersion(versionKey)!!
@@ -588,7 +595,8 @@ internal class BuildLoader constructor(
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)
 							postLoad(moduleName, lastPosition)
-							module.serializedObjects(serializer.serializedObjects())
+							module.serializedObjects(
+								serializer.serializedObjects())
 							module.serializedObjectsMap(
 								serializer.serializedObjectsMap())
 							availBuilder.putLoadedModule(

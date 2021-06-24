@@ -145,7 +145,6 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailException
-import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.AvailUnsupportedOperationException
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.MethodDefinitionException
@@ -182,6 +181,12 @@ import java.util.stream.Stream
 import kotlin.concurrent.read
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.valueParameters
 
 /**
  * [AbstractDescriptor] is the base descriptor type.  An [AvailObject] contains
@@ -4131,22 +4136,24 @@ abstract class AbstractDescriptor protected constructor (
 				bitFieldsCache[slot]?.let { return it }
 				val slotAsEnum = slot as Enum<*>
 				val bitFields = mutableListOf<BitField>()
-				for (field in slotAsEnum::class.java.declaredFields)
+				val companionObject = slotAsEnum::class.companionObject
+				val fields = companionObject?.memberProperties
+				for (field in fields ?: listOf())
 				{
-					if (Modifier.isStatic(field.modifiers)
-						&& BitField::class.java.isAssignableFrom(field.type))
+					if (field.returnType.isSubtypeOf(
+							BitField::class.starProjectedType))
 					{
 						try
 						{
-							val bitField: BitField = field[null].cast()
+							field.valueParameters
+							val bitField: BitField = field.getter.call(
+								companionObject!!.objectInstance).cast()
 							if (bitField.integerSlot === slot)
 							{
-								if (field.getAnnotation(
-										HideFieldInDebugger::class.java)
+								if (field.findAnnotation<HideFieldInDebugger>()
 									=== null)
 								{
-									bitField.enumField = field.getAnnotation(
-										EnumField::class.java)
+									bitField.enumField = field.findAnnotation()
 									bitField.name = field.name
 									bitFields.add(bitField)
 								}
@@ -4281,7 +4288,7 @@ abstract class AbstractDescriptor protected constructor (
 		 * [AbstractDescriptor] class to the [Statistic] that tracks its
 		 * allocations.
  		 */
-		val allocationStatisticsByClass =
+		private val allocationStatisticsByClass =
 			ConcurrentHashMap<Class<AbstractDescriptor>, Statistic>()
 
 		/**

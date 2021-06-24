@@ -527,7 +527,7 @@ class MessageBundleTreeDescriptor private constructor(
 				// It's not already the source of a cycle.  See if we can
 				// find an equivalent ancestor to cycle back to.
 				var ancestor: A_BundleTree = self.slot(LATEST_BACKWARD_JUMP)
-				while (!ancestor.equalsNil()) {
+				while (ancestor.notNil) {
 					if (ancestor.allParsingPlansInProgress().equals(
 							allPlansInProgress)) {
 						// This ancestor is equivalent to me, so mark me as a
@@ -1129,7 +1129,7 @@ class MessageBundleTreeDescriptor private constructor(
 						// Exclude grammatical restrictions that aren't defined
 						// in an ancestor module.
 						val definitionModule = restriction.definitionModule()
-						if (definitionModule.equalsNil()
+						if (definitionModule.isNil
 							|| module.hasAncestor(definitionModule)
 						) {
 							val bundles: A_Set =

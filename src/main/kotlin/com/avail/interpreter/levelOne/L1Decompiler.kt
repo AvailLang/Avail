@@ -412,7 +412,7 @@ class L1Decompiler constructor(
 			}
 			else
 			{
-				if (value.equalsNil())
+				if (value.isNil)
 				{
 					// The last "statement" may just push nil. Such a statement
 					// will be re-synthesized during code generation, so don't
@@ -504,7 +504,7 @@ class L1Decompiler constructor(
 				// the locals list and the last emitted statement, which are the
 				// only places that could have a reference to the old
 				// declaration.
-				assert(declaration.initializationExpression().equalsNil())
+				assert(declaration.initializationExpression().isNil)
 				val replacementDeclaration = newVariable(
 					declaration.token(),
 					declaration.declaredType(),

@@ -152,7 +152,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * tuples suitable for serialization.
 	 */
 	private val tuplesForSerializingModuleImports: A_Tuple get () =
-		tupleFromList(importedModules.map { it.tupleForSerialization })
+		tupleFromList(importedModules.map(ModuleImport::tupleForSerialization))
 
 	/**
 	 * Convert the information encoded in a tuple into a [List] of

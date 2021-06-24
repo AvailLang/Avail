@@ -882,7 +882,7 @@ class FiberDescriptor private constructor(
 				write(self.executionState().name.toLowerCase())
 			}
 			val result = self.mutableSlot(RESULT)
-			if (!result.equalsNil())
+			if (result.notNil)
 			{
 				at("result") { result.writeSummaryTo(writer) }
 			}
@@ -901,7 +901,7 @@ class FiberDescriptor private constructor(
 		self: AvailObject,
 		suspendingFunction: A_Function
 	) {
-		assert(suspendingFunction.equalsNil()
+		assert(suspendingFunction.isNil
 			|| suspendingFunction.code().primitive()!!.hasFlag(CanSuspend))
 		self.setSlot(SUSPENDING_FUNCTION, suspendingFunction)
 	}

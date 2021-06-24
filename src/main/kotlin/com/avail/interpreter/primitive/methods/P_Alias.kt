@@ -107,7 +107,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(e)
 			}
 
-		if (!newAtom.bundleOrNil().equalsNil())
+		if (newAtom.bundleOrNil().notNil)
 		{
 			return interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
 		}

@@ -411,7 +411,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
 		self.slot(PRIMITIVE_POJO).run {
-			if (equalsNil()) null else javaObject()
+			if (isNil) null else javaObject()
 		}
 
 	override fun o_ResultType(self: AvailObject): A_Type =

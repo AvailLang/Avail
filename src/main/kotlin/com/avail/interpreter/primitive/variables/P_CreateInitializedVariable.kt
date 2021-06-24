@@ -1,5 +1,5 @@
 /*
- * P_ExistsMethodWithName.kt
+ * P_CreateInitializedVariable.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,41 +29,55 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.interpreter.primitive.variables
 
-package com.avail.interpreter.primitive.methods
-
-import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import com.avail.descriptor.atoms.AtomDescriptor
-import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
-import com.avail.descriptor.methods.MethodDescriptor
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import com.avail.descriptor.variables.A_Variable
+import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
+import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
+import com.avail.exceptions.VariableSetException
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.Primitive.Flag.HasSideEffect
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Does a [method][MethodDescriptor] exist with the specified
- * [true&#32;name][AtomDescriptor]?
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * **Primitive:** Create a [variable][A_Variable] with the given inner
+ * [type][A_Type].  Also initialize it with the given value.  Answer the
+ * variable.
  */
 @Suppress("unused")
-object P_ExistsMethodWithName : Primitive(1, CannotFail, CanInline)
+object P_CreateInitializedVariable : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val trueName = interpreter.argument(0)
-		val bundle = trueName.bundleOrNil()
-		return interpreter.primitiveSuccess(
-			objectFromBoolean(bundle.notNil))
+		interpreter.checkArgumentCount(2)
+		val innerType = interpreter.argument(0)
+		val initialValue = interpreter.argument(1)
+
+		val variable = newVariableWithContentType(innerType)
+		return try {
+			variable.setValue(initialValue)
+			interpreter.primitiveSuccess(variable)
+		} catch (e: VariableSetException) {
+			// The variable is new, so this is the only possible way to fail.
+			assert(e.errorCode == E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o), booleanType)
+		functionType(
+			tuple(anyMeta(), ANY.o),
+			mostGeneralVariableType())
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE))
 }

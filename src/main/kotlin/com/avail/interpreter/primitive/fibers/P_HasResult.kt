@@ -60,7 +60,7 @@ object P_HasResult : Primitive(
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(!fiber.fiberResult().equalsNil()))
+			objectFromBoolean(fiber.fiberResult().notNil))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

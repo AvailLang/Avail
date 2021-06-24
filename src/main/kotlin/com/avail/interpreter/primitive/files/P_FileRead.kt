@@ -132,7 +132,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		val priority = interpreter.argument(5)
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)

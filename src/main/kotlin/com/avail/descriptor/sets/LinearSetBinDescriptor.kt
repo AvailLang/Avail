@@ -51,7 +51,6 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.structures.EnumMap.Companion.enumMap
-import java.util.NoSuchElementException
 
 /**
  * A LinearSetBinDescriptor] is a leaf bin in a [set][SetDescriptor]'s hierarchy
@@ -445,21 +444,25 @@ class LinearSetBinDescriptor private constructor(
 			size: Int,
 			generator: (Int)->A_BasicObject
 		): AvailObject {
+			val hashes = IntArray(size)
 			var written = 0
 			val bin = descriptorFor(Mutability.MUTABLE, level).create(size) {
 				var hash = 0
 				outer@ for (i in 1 .. size)
 				{
 					val element = generator(i)
+					val elementHash = element.hash()
 					for (j in 1 .. written)
 					{
-						if (element.equals(slot(BIN_ELEMENT_AT_, j)))
+						if (hashes[j - 1] == elementHash
+							&& element.equals(slot(BIN_ELEMENT_AT_, j)))
 						{
 							continue@outer
 						}
 					}
+					hashes[written] = elementHash  //zero-based.
 					setSlot(BIN_ELEMENT_AT_, ++written, element)
-					hash += element.hash()
+					hash += elementHash
 				}
 				setSlot(BIN_HASH, hash)
 			}

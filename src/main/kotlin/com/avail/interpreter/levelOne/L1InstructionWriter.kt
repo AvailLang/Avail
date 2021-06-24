@@ -388,7 +388,7 @@ class L1InstructionWriter constructor(
 		}
 
 		val declarations = mutableListOf<A_Phrase>()
-		if (!phrase.equalsNil())
+		if (phrase.notNil)
 		{
 			declarations.addAll(phrase.argumentsTuple())
 			declarations.addAll(locals(phrase))

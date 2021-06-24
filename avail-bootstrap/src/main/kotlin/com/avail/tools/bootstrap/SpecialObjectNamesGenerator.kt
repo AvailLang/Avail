@@ -76,7 +76,7 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 	) = with(writer) {
 		val keys = mutableSetOf<String>()
 		specialObjects.indices.forEach { i ->
-			if (!specialObjects[i].equalsNil())
+			if (specialObjects[i].notNil)
 			{
 				val specialObject: A_BasicObject = specialObjects[i]
 				// Write a primitive descriptive of the special object as a

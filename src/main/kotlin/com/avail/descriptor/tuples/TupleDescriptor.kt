@@ -84,7 +84,6 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import java.util.IdentityHashMap
-import java.util.NoSuchElementException
 import java.util.Spliterator
 import java.util.function.Consumer
 import java.util.stream.Stream
@@ -414,10 +413,9 @@ abstract class TupleDescriptor protected constructor(
 			return true
 		}
 		val defaultTypeObject = aType.defaultType()
-		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(
-				Types.ANY)
+		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.ANY)
 			|| self.tupleElementsInRangeAreInstancesOf(
-		breakIndex + 1, tupleSize, defaultTypeObject))
+				breakIndex + 1, tupleSize, defaultTypeObject))
 	}
 
 	// We could synchronize if the object isShared(), but why bother?  The

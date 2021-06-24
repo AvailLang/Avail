@@ -52,7 +52,6 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Lookup or create a new [atom][AtomDescriptor] with the given
  * name.
  *
- *
  * If this method is executed outside the scope of compiling or loading, a
  * new atom will always be created.
  */

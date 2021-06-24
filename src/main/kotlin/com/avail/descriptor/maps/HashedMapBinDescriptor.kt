@@ -77,7 +77,6 @@ import com.avail.utility.cast
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Deque
-import java.util.NoSuchElementException
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -265,7 +264,7 @@ class HashedMapBinDescriptor private constructor(
 	 */
 	private fun mapBinKeyUnionKind(self: AvailObject): AvailObject {
 		val keyType = self.slot(BIN_KEY_UNION_KIND_OR_NIL)
-		if (!keyType.equalsNil()) return keyType
+		if (keyType.notNil) return keyType
 		computeKeyAndValueKinds(self)
 		return self.slot(BIN_KEY_UNION_KIND_OR_NIL)
 	}
@@ -284,7 +283,7 @@ class HashedMapBinDescriptor private constructor(
 	 */
 	private fun mapBinValueUnionKind(self: AvailObject): AvailObject {
 		val valueType = self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
-		if (!valueType.equalsNil()) return valueType
+		if (valueType.notNil) return valueType
 		computeKeyAndValueKinds(self)
 		return self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
 	}

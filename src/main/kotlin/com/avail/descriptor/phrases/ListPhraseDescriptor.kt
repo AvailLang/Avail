@@ -327,7 +327,7 @@ class ListPhraseDescriptor private constructor(
 		 */
 		private fun expressionType(self: AvailObject): A_Type {
 			var tupleType: A_Type = self.mutableSlot(TUPLE_TYPE)
-			if (!tupleType.equalsNil()) return tupleType
+			if (tupleType.notNil) return tupleType
 			val types = self.expressionsTuple().map {
 				val expressionType = it.phraseExpressionType()
 				if (expressionType.isBottom) return bottom

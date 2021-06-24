@@ -123,7 +123,7 @@ object P_DelayedForkOrphan : Primitive(
 			formatString(
 				"Delayed fork orphan, %s, %s:%d",
 				code.methodName(),
-				if (code.module().equalsNil())
+				if (code.module().isNil)
 					emptyTuple
 				else
 					code.module().moduleName(),

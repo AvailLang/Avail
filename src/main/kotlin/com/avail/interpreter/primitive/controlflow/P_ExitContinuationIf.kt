@@ -81,7 +81,7 @@ object P_ExitContinuationIf : Primitive(
 
 		val caller = continuation.caller()
 		val result = nil
-		if (caller.equalsNil())
+		if (caller.isNil)
 		{
 			interpreter.setReifiedContinuation(caller)
 			interpreter.function = null

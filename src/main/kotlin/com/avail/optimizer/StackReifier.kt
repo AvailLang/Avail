@@ -152,7 +152,7 @@ class StackReifier(
 	@ReferencedInGeneratedCode
 	fun pushContinuationAction(dummyContinuation: AvailObject): StackReifier
 	{
-		assert(dummyContinuation.caller().equalsNil())
+		assert(dummyContinuation.caller().isNil)
 		actionStack.addLast { interpreter: Interpreter ->
 			if (Interpreter.debugL2)
 			{

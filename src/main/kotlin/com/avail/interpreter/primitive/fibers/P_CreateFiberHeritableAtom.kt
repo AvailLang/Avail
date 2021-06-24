@@ -75,7 +75,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		val module = interpreter.module()
 		val trueName = Mutable<A_Atom?>(null)
 		val errorCode = Mutable<AvailErrorCode?>(null)
-		if (!module.equalsNil())
+		if (module.notNil)
 		{
 			module.lock {
 				val trueNames = module.trueNamesForStringName(name)

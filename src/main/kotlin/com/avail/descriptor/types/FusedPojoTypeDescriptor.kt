@@ -72,7 +72,6 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.lang.reflect.TypeVariable
-import java.util.Comparator
 import java.util.IdentityHashMap
 
 /**
@@ -155,7 +154,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		{
 			return self.pojoSelfType().equalsPojoType(aPojoType)
 		}
-		if (!aPojoType.javaClass().equalsNil())
+		if (aPojoType.javaClass().notNil)
 		{
 			return false
 		}
@@ -235,7 +234,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	private fun pojoSelfType(self: AvailObject): AvailObject
 	{
 		var selfType = self.slot(SELF_TYPE)
-		if (selfType.equalsNil())
+		if (selfType.isNil)
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
 				nil, self.slot(
@@ -364,7 +363,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor
 				.createUnfusedPojoType(javaClass, intersectionAncestors)
@@ -384,7 +383,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor
 				.createUnfusedPojoType(javaClass, intersectionAncestors)
@@ -407,7 +406,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	private fun typeVariables(self: AvailObject): A_Map
 	{
 		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
-		if (typeVars.equalsNil())
+		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
 			self.slot(JAVA_ANCESTORS).forEach { key, value ->

@@ -43,6 +43,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.bundles.A_Bundle
@@ -293,7 +294,7 @@ class AvailLoader(
 			assert(!frozen)
 			lexer.lexerMethod().setLexer(lexer)
 			val module: A_Module = lexer.definitionModule()
-			if (!module.equalsNil()) {
+			if (module.notNil) {
 				if (module.moduleState() == Loading)
 				{
 					module.addLexer(lexer)
@@ -1346,8 +1347,7 @@ class AvailLoader(
 					val trueName = createAtom(stringName, module)
 					if (isExplicitSubclassAtom) {
 						trueName.setAtomProperty(
-							EXPLICIT_SUBCLASSING_KEY.atom,
-							EXPLICIT_SUBCLASSING_KEY.atom)
+							EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 					}
 					trueName.makeShared()
 					module.addPrivateName(trueName)

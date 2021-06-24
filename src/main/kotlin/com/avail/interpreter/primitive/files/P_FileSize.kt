@@ -66,7 +66,7 @@ object P_FileSize : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(E_INVALID_HANDLE)
 		}

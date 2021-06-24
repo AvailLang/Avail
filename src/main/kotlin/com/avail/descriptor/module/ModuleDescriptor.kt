@@ -95,6 +95,7 @@ import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.versions
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_BLOCK_PHRASES
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_TOP_PHRASE_STYLES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.BUNDLES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CACHED_EXPORTED_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.CONSTANT_BINDINGS
@@ -302,6 +303,26 @@ class ModuleDescriptor private constructor(
 		 * block phrases to be fetched only if needed.
 		 */
 		ALL_BLOCK_PHRASES,
+
+		/**
+		 * An [A_Tuple] of all phrase styles produced during compilation, which
+		 * is when styling is produced.  Each entry indicates the starting line,
+		 * starting column, ending line, and ending column that is to be styled.
+		 * This is necessary because multiple top-level statements may occur on
+		 * the same line.
+		 *
+		 * The phrase style information *does not* include a way to get to the
+		 * corresponding phrases in [ALL_BLOCK_PHRASES] (which includes an entry
+		 * for each raw function, not just top-level ones).
+		 *
+		 * This field is populated during module compilation, and is written to
+		 * the repository immediately after, at which time the field is set to
+		 * an [A_Number] containing the [Long] index into the repository where
+		 * this tuple of styles is written.  It is expected that a development
+		 * environment will request this style tuple at the same time that the
+		 * source code is requested and displayed.
+		 */
+		ALL_TOP_PHRASE_STYLES
 	}
 
 	/**
@@ -597,15 +618,14 @@ class ModuleDescriptor private constructor(
 					self.introduceNewName(newAtom)
 				}
 				// Now tie the bundles together.
-				assert(newAtom.bundleOrNil().equalsNil())
+				assert(newAtom.bundleOrNil().isNil)
 				val newBundle: A_Bundle
 				try
 				{
 					val oldBundle = oldAtom.bundleOrCreate()
 					val method = oldBundle.bundleMethod()
 					newBundle =
-						newBundle(
-							newAtom, method, MessageSplitter(newString))
+						newBundle(newAtom, method, MessageSplitter(newString))
 					newAtom.setAtomBundle(newBundle)
 					atomsToImport =
 						atomsToImport.setWithElementCanDestroy(newAtom, true)
@@ -728,12 +748,12 @@ class ModuleDescriptor private constructor(
 	{
 		lock.read {
 			self.slot(CACHED_EXPORTED_NAMES).let {
-				if (!it.equalsNil()) return it
+				if (it.notNil) return it
 			}
 		}
 		return lock.safeWrite {
 			var exportedNames: A_Set = self.slot(CACHED_EXPORTED_NAMES)
-			if (exportedNames.equalsNil())
+			if (exportedNames.isNil)
 			{
 				// Compute it.
 				exportedNames = emptySet
@@ -1176,6 +1196,7 @@ class ModuleDescriptor private constructor(
 		self.setSlot(UNLOAD_FUNCTIONS, nil)
 		self.setSlot(LEXERS, nil)
 		self.setSlot(ALL_BLOCK_PHRASES, nil)
+		self.setSlot(ALL_TOP_PHRASE_STYLES, nil)
 	}
 
 	/**
@@ -1275,7 +1296,7 @@ class ModuleDescriptor private constructor(
 		lock.safeWrite {
 			self.visibleNames().forEach { visibleName ->
 				val bundle: A_Bundle = visibleName.bundleOrNil()
-				if (!bundle.equalsNil())
+				if (bundle.notNil)
 				{
 					bundle.definitionParsingPlans().forEach { key, plan ->
 						val definitionModule = key.definitionModule()
@@ -1310,11 +1331,11 @@ class ModuleDescriptor private constructor(
 			for (visibleName in self.visibleNames())
 			{
 				val bundle: A_Bundle = visibleName.bundleOrNil()
-				if (!bundle.equalsNil())
+				if (bundle.notNil)
 				{
 					val method: A_Method = bundle.bundleMethod()
 					val lexer = method.lexer()
-					if (!lexer.equalsNil())
+					if (lexer.notNil)
 					{
 						lexers.add(lexer)
 					}
@@ -1407,6 +1428,7 @@ class ModuleDescriptor private constructor(
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(LEXERS, emptySet)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
+				setSlot(ALL_TOP_PHRASE_STYLES, emptyTuple)
 				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))
 			}
 

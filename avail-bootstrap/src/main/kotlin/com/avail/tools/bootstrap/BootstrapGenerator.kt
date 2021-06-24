@@ -131,7 +131,6 @@ import java.io.IOException
 import java.io.PrintWriter
 import java.nio.charset.StandardCharsets.UTF_8
 import java.text.MessageFormat
-import java.util.Comparator
 import java.util.Date
 import java.util.Locale
 import java.util.ResourceBundle
@@ -294,7 +293,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			for (i in specialObjects.indices)
 			{
 				val specialObject = specialObjects[i]
-				if (!specialObject.equalsNil())
+				if (specialObject.notNil)
 				{
 					specialObjectIndexMap[specialObject] = i
 				}
@@ -499,7 +498,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		// Emit the special object methods.
 		specialObjects.indices.forEach { i ->
-			if (!specialObjects[i].equalsNil())
+			if (specialObjects[i].notNil)
 			{
 				val notAlphaKey = specialObjectKey(i)
 				if (!specialObjectBundle.containsKey(notAlphaKey)
@@ -1982,7 +1981,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		// Map localized names to the special objects.
 		specialObjects.indices.forEach { i ->
 			val specialObject = specialObjects[i]
-			if (!specialObject.equalsNil())
+			if (specialObject.notNil)
 			{
 				val key = specialObjectKey(i)
 				val value = specialObjectBundle.getString(key)

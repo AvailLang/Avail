@@ -73,7 +73,7 @@ object P_GetContinuationOfOtherFiber : Primitive(
 		return interpreter.suspendThen {
 			otherFiber.whenContinuationIsAvailableDo { theContinuation ->
 				when {
-					!theContinuation.equalsNil() -> succeed(theContinuation)
+					theContinuation.notNil -> succeed(theContinuation)
 					else -> fail(E_FIBER_IS_TERMINATED)
 				}
 			}

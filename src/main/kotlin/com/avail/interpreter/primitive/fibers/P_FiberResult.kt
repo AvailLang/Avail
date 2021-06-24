@@ -64,7 +64,7 @@ object P_FiberResult : Primitive(
 			lock {
 				when {
 					!executionState().indicatesTermination
-						|| fiberResult().equalsNil() ->
+						|| fiberResult().isNil ->
 						interpreter.primitiveFailure(
 							E_FIBER_RESULT_UNAVAILABLE)
 					!fiberResult().isInstanceOf(kind().resultType()) ->

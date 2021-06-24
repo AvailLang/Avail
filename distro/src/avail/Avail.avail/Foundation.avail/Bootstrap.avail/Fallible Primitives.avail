@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/12/21 11:44 PM
+ * * Last Generated: 6/23/21 9:44 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -133,6 +133,7 @@ Uses
 		"method_._,⁇parameterized by_",
 		"new atom named_",
 		"new explicit subclass atom named_",
+		"new`↑_initialized to_",
 		"new⁇heritable«fiber-local»⁇atom named_",
 		"next character",
 		"restricted report and send_with_:_",
@@ -3965,6 +3966,31 @@ Primitive "_-=_" is
 		cannot-store-incorrectly-typed-value code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
+
+/**
+ * Construct and answer a new variable with the specified containment type,
+ * after initializing it to the given value.
+ *
+ * @category "Primitives" "Variables" "Constructors"
+ * @method "new`↑_initialized to_"
+ * @param "containmentType" "(any)'s type"
+ *        The containment type.
+ * @param "initialValue" "any"
+ *        The initial value to write into the new variable.
+ * @returns "read ⊤/write ⊥"
+ *    A new variable capable of retrieving and storing values of the specified
+ *    containment type.
+ * @raises "cannot-store-incorrectly-typed-value exception"
+ */
+Primitive "new`↑_initialized to_" is
+[
+	containmentType : any meta,
+	initialValue : any
+|
+	Primitive CreateInitializedVariable (failureCode : {
+		cannot-store-incorrectly-typed-value code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : write-only variable;
 
 /**
  * Answer the value contained within the specified variable.

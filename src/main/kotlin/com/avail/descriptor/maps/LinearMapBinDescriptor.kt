@@ -62,7 +62,6 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.cast
 import com.avail.utility.structures.EnumMap
-import java.util.NoSuchElementException
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s
@@ -488,7 +487,7 @@ internal class LinearMapBinDescriptor private constructor(
 	 */
 	private fun mapBinKeyUnionKind(self: AvailObject): A_Type {
 		var keyType: A_Type = self.slot(BIN_KEY_UNION_KIND_OR_NIL)
-		if (keyType.equalsNil()) {
+		if (keyType.isNil) {
 			keyType = computeKeyKind(self)
 			self.setSlot(BIN_KEY_UNION_KIND_OR_NIL, keyType)
 		}
@@ -528,7 +527,7 @@ internal class LinearMapBinDescriptor private constructor(
 	 */
 	private fun mapBinValueUnionKind(self: AvailObject): A_Type {
 		var valueType: A_Type = self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
-		if (valueType.equalsNil()) {
+		if (valueType.isNil) {
 			valueType = computeValueKind(self)
 			self.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, valueType)
 		}

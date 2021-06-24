@@ -95,9 +95,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			// The field is not guaranteed to be part of the object.
 			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD)
 		}
-		val explicitSubclassingProperty =
-			fieldAtom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
-		if (!explicitSubclassingProperty.equalsNil())
+		if (fieldAtom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
 			// It's an explicit-subclass field, which has no backing slot, but
 			// is considered to have the fieldAtom itself as its value.  Answer

@@ -72,7 +72,7 @@ object P_AtomRemoveProperty : Primitive(
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
-		if (propertyValue.equalsNil())
+		if (propertyValue.isNil)
 		{
 			return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		}

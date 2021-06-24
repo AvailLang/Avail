@@ -151,7 +151,7 @@ open class VariableDescriptor protected constructor(
 		 * @return
 		 *   `true` if the reactor is invalid, `false` otherwise.
 		 */
-		fun isInvalid(): Boolean = function.get().equalsNil()
+		fun isInvalid(): Boolean = function.get().isNil
 	}
 
 	/**
@@ -244,7 +244,7 @@ open class VariableDescriptor protected constructor(
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
 		val value = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -271,7 +271,7 @@ open class VariableDescriptor protected constructor(
 			// No implementation required.
 		}
 		val value = self.slot(VALUE)
-		return !value.equalsNil()
+		return value.notNil
 	}
 
 	override fun o_SerializerOperation(self: AvailObject)
@@ -291,7 +291,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_SetValueNoCheck(
 		self: AvailObject, newValue: A_BasicObject)
 	{
-		assert(!newValue.equalsNil())
+		assert(newValue.notNil)
 		handleVariableWriteTracing(self)
 		self.setSlot(VALUE, newValue)
 	}
@@ -310,7 +310,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val value = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -337,7 +337,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val value = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -364,7 +364,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val oldValue = self.slot(VALUE)
-		if (oldValue.equalsNil() || !oldValue.equals(reference)) return false
+		if (oldValue.isNil || !oldValue.equals(reference)) return false
 		self.setSlot(VALUE, newValue)
 		if (mutability === Mutability.MUTABLE)
 		{
@@ -386,7 +386,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val value: A_Number = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -413,7 +413,7 @@ open class VariableDescriptor protected constructor(
 		val outerKind: A_Type = self.slot(KIND)
 		val writeType = outerKind.writeType()
 		val oldMap: A_Map = self.slot(VALUE)
-		if (oldMap.equalsNil())
+		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		if (!oldMap.isMap)
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -451,7 +451,7 @@ open class VariableDescriptor protected constructor(
 		val outerKind: A_Type = self.slot(KIND)
 		val writeType = outerKind.writeType()
 		val oldMap: A_Map = self.slot(VALUE)
-		if (oldMap.equalsNil())
+		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		if (!oldMap.isMap)
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -487,7 +487,7 @@ open class VariableDescriptor protected constructor(
 		val readType = outerKind.readType()
 		assert(readType.isMapType)
 		val oldMap: A_Map = self.slot(VALUE)
-		if (oldMap.equalsNil())
+		if (oldMap.isNil)
 		{
 			throw VariableGetException(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -548,7 +548,7 @@ open class VariableDescriptor protected constructor(
 				for ((_, value) in writeReactors)
 				{
 					val function = value.getAndClearFunction()
-					if (!function.equalsNil())
+					if (function.notNil)
 					{
 						set = set.setWithElementCanDestroy(function, true)
 					}
@@ -612,7 +612,7 @@ open class VariableDescriptor protected constructor(
 		writer.writeObject {
 			at("kind") { write("variable") }
 			at("variable type") { self.slot(KIND).writeTo(writer) }
-			if (!self.slot(VALUE).equalsNil())
+			if (self.slot(VALUE).notNil)
 			{
 				at("value") {
 					self.slot(VALUE).writeSummaryTo(writer)
@@ -650,7 +650,7 @@ open class VariableDescriptor protected constructor(
 	{
 		assert(this == self.descriptor())
 		var pojo = self.volatileSlot(WRITE_REACTORS)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			if (!toModify)
 			{

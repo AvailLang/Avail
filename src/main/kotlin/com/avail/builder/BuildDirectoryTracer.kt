@@ -84,20 +84,16 @@ class BuildDirectoryTracer constructor(
 	 * this may be executed in another [Thread] than the one that started the
 	 * trace.
 	 */
-	private val afterTraceCompletes: ()->Unit
-
-	init
+	private val afterTraceCompletes =
 	{
-		this.afterTraceCompletes = {
-			// Force each repository to commit, since we may have changed the
-			// last-access order of some of the caches.
-			val moduleRoots = availBuilder.runtime.moduleRoots()
-			for (root in moduleRoots.roots)
-			{
-				root.repository.commit()
-			}
-			originalAfterTraceCompletes()
+		// Force each repository to commit, since we may have changed the
+		// last-access order of some of the caches.
+		val moduleRoots = availBuilder.runtime.moduleRoots()
+		for (root in moduleRoots.roots)
+		{
+			root.repository.commit()
 		}
+		originalAfterTraceCompletes()
 	}
 
 	/**
@@ -234,57 +230,6 @@ class BuildDirectoryTracer constructor(
 	}
 
 	/**
-	 * While traceCompletions is still less than traceRequests, suspend the
-	 * current [Thread], honoring any [InterruptedException].
-	 *
-	 * @return
-	 *   Whether the thread was interrupted.
-	 */
-	@Deprecated("")
-	@Synchronized
-	private fun waitAndCheckInterrupts(): Boolean
-	{
-		val period: Long = 10000
-		var nextReportMillis = System.currentTimeMillis() + period
-		var interrupted = false
-		while (traceRequests.size != traceCompletions.size)
-		{
-			try
-			{
-				// Wait for notification, interrupt, or timeout.  The
-				// timeout is set a few milliseconds after the target time
-				// to avoid repeated wake-ups from imprecision.
-				@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-				(this as Object).wait(
-					nextReportMillis - System.currentTimeMillis() + 5)
-				if (System.currentTimeMillis() > nextReportMillis)
-				{
-					val outstanding = traceRequests.toSet() - traceCompletions
-					if (outstanding.isNotEmpty())
-					{
-						val sorted = outstanding.sorted()
-						System.err.print(buildString {
-							append("Still tracing files:\n")
-							for (path in sorted)
-							{
-								append('\t')
-								append(path)
-								append('\n')
-							}
-						})
-					}
-				}
-				nextReportMillis = System.currentTimeMillis() + period
-			}
-			catch (e: InterruptedException)
-			{
-				interrupted = true
-			}
-		}
-		return interrupted
-	}
-
-	/**
 	 * Examine the specified file, adding information about its header to its
 	 * associated repository.  If this particular file version has already been
 	 * traced, or if an error is encountered while fetching or parsing the
@@ -301,7 +246,7 @@ class BuildDirectoryTracer constructor(
 	 *   The function to execute exactly once when the examination of this
 	 *   module file has completed.
 	 */
-	fun traceOneModuleHeader(
+	private fun traceOneModuleHeader(
 		resolvedName: ResolvedModuleName,
 		action: (ResolvedModuleName, ModuleVersion, ()->Unit)->Unit,
 		completedAction: ()->Unit)

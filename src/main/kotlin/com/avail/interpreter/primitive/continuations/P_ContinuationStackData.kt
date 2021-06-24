@@ -66,7 +66,7 @@ object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 			generateObjectTupleFrom(con.function().code().numSlots())
 			{ index ->
 				val entry = con.frameAt(index)
-				if (entry.equalsNil()) { nilSubstitute() }
+				if (entry.isNil) { nilSubstitute() }
 				else { entry }
 			}
 		tuple.makeSubobjectsImmutable()

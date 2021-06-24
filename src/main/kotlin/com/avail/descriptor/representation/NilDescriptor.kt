@@ -54,7 +54,7 @@ class NilDescriptor private constructor() : Descriptor(
 	override fun o_Equals(
 		self: AvailObject, another: A_BasicObject
 	): Boolean {
-		return another.equalsNil()
+		return another.isNil
 	}
 
 	@ThreadSafe

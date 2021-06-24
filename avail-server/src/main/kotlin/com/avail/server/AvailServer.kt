@@ -45,6 +45,7 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.module.A_Module
 import com.avail.error.ErrorCodeRangeRegistry
+import com.avail.files.FileManager
 import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.cache.Repository
@@ -52,6 +53,7 @@ import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
 import com.avail.server.error.ServerErrorCode
+import com.avail.server.error.ServerErrorCodeRange
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
@@ -63,15 +65,13 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
-import com.avail.files.FileManager
-import com.avail.server.error.ServerErrorCodeRange
-import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
 import com.avail.server.messages.LoadModuleCommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.RunEntryPointCommandMessage
 import com.avail.server.messages.SimpleCommandMessage
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
@@ -849,7 +849,7 @@ class AvailServer constructor(
 				// TODO: [TLS] Disambiguate.
 			},
 			{ value, cleanup ->
-				if (value.equalsNil())
+				if (value.isNil)
 				{
 					val message = newSuccessMessage(channel, command) {
 						writeObject {

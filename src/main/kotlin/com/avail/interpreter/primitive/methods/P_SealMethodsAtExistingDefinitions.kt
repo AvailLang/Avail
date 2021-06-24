@@ -84,7 +84,7 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 		for (name in methodNames)
 		{
 			val bundle = name.bundleOrNil()
-			if (!bundle.equalsNil())
+			if (bundle.notNil)
 			{
 				// The definition tuple of a method can only be replaced in a
 				// Level One safe zone. Like the vast majority of primitives,

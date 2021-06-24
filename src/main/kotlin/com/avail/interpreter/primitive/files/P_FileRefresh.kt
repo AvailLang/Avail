@@ -70,7 +70,7 @@ object P_FileRefresh : Primitive(1, CanInline, HasSideEffect)
 		val atom = interpreter.argument(0)
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)

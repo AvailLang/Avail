@@ -184,7 +184,7 @@ class ObjectTypeDescriptor internal constructor(
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
 			baseType.fieldTypeMap().forEach { atom, type ->
-				if (!atom.getAtomProperty(explicitSubclassingKey).equalsNil()
+				if (atom.getAtomProperty(explicitSubclassingKey).notNil
 					|| myFieldTypeMap.mapAt(atom).equals(type))
 				{
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(atom, true)
@@ -752,7 +752,7 @@ class ObjectTypeDescriptor internal constructor(
 				for ((atom, _) in anObjectType.fieldTypeMap().mapIterable()) {
 					if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial()) {
 						val namesMap: A_Map = atom.getAtomProperty(propertyKey)
-						if (namesMap.equalsNil()) {
+						if (namesMap.isNil) {
 							keyAtomWithLeastNames = atom
 							keyAtomNamesMap = emptyMap
 							break
@@ -800,7 +800,7 @@ class ObjectTypeDescriptor internal constructor(
 				anObjectType.fieldTypeMap().forEach { atom, _ ->
 					if (!atom.isAtomSpecial()) {
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
-						if (!namesMap.equalsNil()
+						if (namesMap.notNil
 							&& namesMap.hasKey(anObjectType))
 						{
 							// In theory the user can give this type multiple
@@ -847,7 +847,7 @@ class ObjectTypeDescriptor internal constructor(
 			synchronized(propertyKey) {
 				anObjectType.fieldTypeMap().forEach { key, _ ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
-					if (!map.equalsNil()) {
+					if (map.notNil) {
 						map.forEach { namedType, innerValue ->
 							if (anObjectType.isSubtypeOf(namedType)) {
 								var nameSet: A_Set = innerValue
@@ -945,34 +945,62 @@ class ObjectTypeDescriptor internal constructor(
 		/**
 		 * The [A_Atom] that identifies the [exception&#32;type][exceptionType].
 		 */
-		private val exceptionAtom: A_Atom =
+		val exceptionAtom =
 			createSpecialAtom("explicit-exception").apply {
 				setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 			}
 
 		/**
-		 * Answer the [atom][AtomDescriptor] that identifies the
-		 * [exception&#32;type][exceptionType].
-		 *
-		 * @return
-		 *   The special exception atom.
-		 */
-		fun exceptionAtom(): A_Atom = exceptionAtom
-
-		/**
 		 * The [atom][AtomDescriptor] that identifies the stack dump
 		 * [field][AtomDescriptor] of an [exception][exceptionType].
 		 */
-		private val stackDumpAtom: A_Atom = createSpecialAtom("stack dump")
+		val stackDumpAtom = createSpecialAtom("stack dump")
 
 		/**
-		 * Answer the [A_Atom] that identifies the stack dump field of an
-		 * [exception&#32;type][exceptionType].
-		 *
-		 * @return
-		 *   The special stack dump atom.
+		 * The [A_Atom] used to indicate that an object is a *style*.  Style
+		 * objects are normally stored separate from the serialized sequence of
+		 * functions to invoke for fast-loading, and also separate from the
+		 * parse phrases corresponding to those functions.
 		 */
-		fun stackDumpAtom(): A_Atom = stackDumpAtom
+		val styleSubclassAtom =
+			createSpecialAtom("explicit-style").apply {
+				setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
+			}
+
+		/**
+		 * The field of a style object for identifying a semantic style name
+		 * with which to look up a concrete style for rendering a subexpression.
+		 */
+		val styleSemanticClassifierAtom =
+			createSpecialAtom("semanticClassifier")
+
+		/**
+		 * The name of the method being invoked at this call site. This is used
+		 * with the [styleSourceModule] to ensure modular naming.
+		 */
+		val styleMethodName = createSpecialAtom("methodName")
+
+		/**
+		 * The fully qualified module name that defined the atom named in the
+		 * [styleMethodName] field.
+		 */
+		val styleSourceModule = createSpecialAtom("sourceModule")
+
+		/**
+		 * The field of a style object for identifying whether this send is
+		 * generated from a macro (true) or was parsed directly as a method send
+		 * (false).
+		 */
+		val styleGenerated = createSpecialAtom("generated")
+
+		/**
+		 * The line number in the [styleSourceModule] which acts as the target
+		 * of this call site.  If the call site is an ordinary send, this should
+		 * be the most specific applicable method definition.  If it was
+		 * generated from a macro, it should lead to some function that was
+		 * "most responsible" for its definition.
+		 */
+		val styleLineNumber = createSpecialAtom("lineNumber")
 
 		/**
 		 * The most general exception type.

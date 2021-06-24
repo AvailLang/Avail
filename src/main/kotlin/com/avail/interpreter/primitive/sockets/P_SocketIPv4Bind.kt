@@ -86,7 +86,7 @@ object P_SocketIPv4Bind : Primitive(3, CanInline, HasSideEffect)
 		val addressTuple = interpreter.argument(1)
 		val port = interpreter.argument(2)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)

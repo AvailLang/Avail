@@ -109,7 +109,7 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 		val fail = interpreter.argument(4)
 		val priority = interpreter.argument(5)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial())

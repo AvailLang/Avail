@@ -68,7 +68,7 @@ object P_ServerSocketClose : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial())

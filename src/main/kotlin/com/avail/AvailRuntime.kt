@@ -105,6 +105,12 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleGenerated
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleLineNumber
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleMethodName
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleSemanticClassifierAtom
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleSourceModule
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleSubclassAtom
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
@@ -425,7 +431,7 @@ class AvailRuntime constructor(
 			for (atom in atoms)
 			{
 				val bundle: A_Bundle = atom.bundleOrNil()
-				if (!bundle.equalsNil())
+				if (bundle.notNil)
 				{
 					methods.add(bundle.bundleMethod())
 				}
@@ -1006,7 +1012,7 @@ class AvailRuntime constructor(
 			put(Types.METHOD_DEFINITION.o)
 			put(Types.MACRO_DEFINITION.o)
 			put(zeroOrMoreOf(mostGeneralFunctionType()))
-			put(stackDumpAtom())
+			put(stackDumpAtom)
 
 			at(50)
 			put(PhraseKind.PARSE_PHRASE.mostGeneralType())
@@ -1118,15 +1124,11 @@ class AvailRuntime constructor(
 					singleInt(2),
 					tuple(Types.ATOM.o),
 					Types.ANY.o)))
-			put(zeroOrMoreOf(
-				PhraseKind.PARSE_PHRASE.mostGeneralType()))
-			put(zeroOrMoreOf(
-				PhraseKind.ARGUMENT_PHRASE.mostGeneralType()))
-			put(zeroOrMoreOf(
-				PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
+			put(zeroOrMoreOf(PhraseKind.PARSE_PHRASE.mostGeneralType()))
+			put(zeroOrMoreOf(PhraseKind.ARGUMENT_PHRASE.mostGeneralType()))
+			put(zeroOrMoreOf(PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
 			put(variableReadWriteType(Types.TOP.o, bottom))
-			put(zeroOrMoreOf(
-				PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
+			put(zeroOrMoreOf(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
 			put(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o))
 			put(functionType(
 				tuple(pojoTypeForClass(Throwable::class.java)), bottom))
@@ -1139,12 +1141,9 @@ class AvailRuntime constructor(
 			put(variableReadWriteType(extendedIntegers, bottom))
 			put(fiberMeta())
 			put(nonemptyStringType())
-			put(setTypeForSizesContentType(
-				wholeNumbers, exceptionType()))
-			put(setTypeForSizesContentType(
-				naturalNumbers, stringType()))
-			put(setTypeForSizesContentType(
-				naturalNumbers, Types.ATOM.o))
+			put(setTypeForSizesContentType(wholeNumbers, exceptionType()))
+			put(setTypeForSizesContentType(naturalNumbers, stringType()))
+			put(setTypeForSizesContentType(naturalNumbers, Types.ATOM.o))
 			put(oneOrMoreOf(Types.ANY.o))
 			put(zeroOrMoreOf(integers))
 			put(tupleTypeForSizesTypesDefaultType(
@@ -1215,7 +1214,7 @@ class AvailRuntime constructor(
 		fun specialObject(ordinal: Int): AvailObject = specialObjects[ordinal]
 
 		/**
-		 * The [special atoms][AtomDescriptor] known to the
+		 * The special [atoms][AtomDescriptor] known to the
 		 * [runtime][AvailRuntime].
 		 */
 		val specialAtoms = NumericBuilder().apply {
@@ -1260,8 +1259,8 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.SEMANTIC_RESTRICTION.atom)
 			put(SpecialMethodAtom.LEXER_DEFINER.atom)
 			put(SpecialMethodAtom.PUBLISH_NEW_NAME.atom)
-			put(exceptionAtom())
-			put(stackDumpAtom())
+			put(exceptionAtom)
+			put(stackDumpAtom)
 			put(pojoSelfTypeAtom())
 			put(TokenType.END_OF_FILE.atom)
 			put(TokenType.KEYWORD.atom)
@@ -1270,6 +1269,12 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
+			put(styleSubclassAtom)
+			put(styleSemanticClassifierAtom)
+			put(styleMethodName)
+			put(styleSourceModule)
+			put(styleGenerated)
+			put(styleLineNumber)
 		}.list().onEach { assert(it.isAtomSpecial()) }
 	}
 

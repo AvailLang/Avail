@@ -87,7 +87,7 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 		}
 
 		val oldBundle = oldAtom.bundleOrNil()
-		if (oldBundle.equalsNil())
+		if (oldBundle.isNil)
 			return interpreter.primitiveSuccess(nil)
 
 		return interpreter.suspendInLevelOneSafeThen {

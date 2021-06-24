@@ -122,7 +122,7 @@ class FunctionDescriptor private constructor(
 		indent: Int
 	) {
 		var phrase: A_BasicObject = self.code().originatingPhraseOrIndex()
-		if (phrase.equalsNil() || phrase.isInt) {
+		if (phrase.isNil || phrase.isInt) {
 			phrase = decompile(self.code())
 		}
 		phrase.printOnAvoidingIndent(builder, recursionMap, indent + 1)
@@ -331,7 +331,7 @@ class FunctionDescriptor private constructor(
 			atom: A_Atom
 		): A_Function {
 			val bundle: A_Bundle = atom.bundleOrNil()
-			require(!bundle.equalsNil()) { "Atom to invoke has no method" }
+			require(bundle.notNil) { "Atom to invoke has no method" }
 			val method: A_Method = bundle.bundleMethod()
 			val argTypes = functionType.argsTupleType()
 			// Check that there's a definition, even abstract, that will catch all

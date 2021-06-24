@@ -757,7 +757,7 @@ class L2Chunk private constructor(
 			var sourceFileName: String? = null
 			code?.let {
 				val module = it.module()
-				if (!module.equalsNil())
+				if (module.notNil)
 				{
 					try
 					{

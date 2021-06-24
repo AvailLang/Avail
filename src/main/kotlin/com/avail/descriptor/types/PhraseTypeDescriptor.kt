@@ -170,19 +170,22 @@ open class PhraseTypeDescriptor protected constructor(
 
 		/** The abstract parent kind of all expression phrases.  */
 		EXPRESSION_PHRASE(
-			"expression phrase type", PARSE_PHRASE,
+			"expression phrase type",
+			PARSE_PHRASE,
 			TypeTag.EXPRESSION_PHRASE_TAG),
 
 		/**
 		 * The kind of an [assignment&#32;phrase][AssignmentPhraseDescriptor].
 		 */
 		ASSIGNMENT_PHRASE(
-			"assignment phrase type", EXPRESSION_PHRASE,
+			"assignment phrase type",
+			EXPRESSION_PHRASE,
 			TypeTag.ASSIGNMENT_PHRASE_TAG),
 
 		/** The kind of a [block&#32;phrase][BlockPhraseDescriptor].  */
 		BLOCK_PHRASE(
-			"block phrase type", EXPRESSION_PHRASE,
+			"block phrase type",
+			EXPRESSION_PHRASE,
 			TypeTag.BLOCK_PHRASE_TAG)
 		{
 			override fun mostGeneralYieldType(): A_Type =
@@ -193,7 +196,8 @@ open class PhraseTypeDescriptor protected constructor(
 		 * The kind of a [literal&#32;phrase][LiteralPhraseDescriptor].
 		 */
 		LITERAL_PHRASE(
-			"literal phrase type", EXPRESSION_PHRASE,
+			"literal phrase type",
+			EXPRESSION_PHRASE,
 			TypeTag.LITERAL_PHRASE_TAG)
 		{
 			override fun mostGeneralYieldType(): A_Type = ANY.o
@@ -203,7 +207,8 @@ open class PhraseTypeDescriptor protected constructor(
 		 * The kind of a [reference&#32;phrase][ReferencePhraseDescriptor].
 		 */
 		REFERENCE_PHRASE(
-			"variable reference phrase type", EXPRESSION_PHRASE,
+			"variable reference phrase type",
+			EXPRESSION_PHRASE,
 			TypeTag.REFERENCE_PHRASE_TAG)
 		{
 			override fun mostGeneralYieldType(): A_Type =
@@ -214,7 +219,8 @@ open class PhraseTypeDescriptor protected constructor(
 		 * The kind of a [super&#32;cast&#32;phrase][SuperCastPhraseDescriptor].
 		 */
 		SUPER_CAST_PHRASE(
-			"super cast phrase", EXPRESSION_PHRASE,
+			"super cast phrase",
+			EXPRESSION_PHRASE,
 			TypeTag.SUPER_CAST_PHRASE_TAG)
 		{
 			override fun mostGeneralYieldType(): A_Type = ANY.o
@@ -290,14 +296,16 @@ open class PhraseTypeDescriptor protected constructor(
 
 		/** A phrase that does not produce a result.  */
 		STATEMENT_PHRASE(
-			"statement phrase type", PARSE_PHRASE,
+			"statement phrase type",
+			PARSE_PHRASE,
 			TypeTag.STATEMENT_PHRASE_TAG),
 
 		/**
 		 * The kind of a [sequence&#32;phrase][SequencePhraseDescriptor].
 		 */
 		SEQUENCE_PHRASE(
-			"sequence phrase type", STATEMENT_PHRASE,
+			"sequence phrase type",
+			STATEMENT_PHRASE,
 			TypeTag.SEQUENCE_PHRASE_TAG),
 
 		/**
@@ -305,49 +313,58 @@ open class PhraseTypeDescriptor protected constructor(
 		 * [first-of-sequence&#32;phrase][FirstOfSequencePhraseDescriptor].
 		 */
 		FIRST_OF_SEQUENCE_PHRASE(
-			"first-of-sequence phrase type", STATEMENT_PHRASE,
+			"first-of-sequence phrase type",
+			STATEMENT_PHRASE,
 			TypeTag.FIRST_OF_SEQUENCE_PHRASE_TAG),
 
 		/**
 		 * The kind of a [declaration&#32;phrase][DeclarationPhraseDescriptor].
 		 */
 		DECLARATION_PHRASE(
-			"declaration phrase type", STATEMENT_PHRASE,
+			"declaration phrase type",
+			STATEMENT_PHRASE,
 			TypeTag.DECLARATION_PHRASE_TAG),
 
 		/** The kind of an argument declaration phrase.  */
 		ARGUMENT_PHRASE(
-			"argument phrase type", DECLARATION_PHRASE,
+			"argument phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.ARGUMENT_PHRASE_TAG),
 
 		/** The kind of a label declaration phrase.  */
 		LABEL_PHRASE(
-			"label phrase type", DECLARATION_PHRASE,
+			"label phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.LABEL_PHRASE_TAG),
 
 		/** The kind of a local variable declaration phrase.  */
 		LOCAL_VARIABLE_PHRASE(
-			"local variable phrase type", DECLARATION_PHRASE,
+			"local variable phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.LOCAL_VARIABLE_PHRASE_TAG),
 
 		/** The kind of a local constant declaration phrase.  */
 		LOCAL_CONSTANT_PHRASE(
-			"local constant phrase type", DECLARATION_PHRASE,
+			"local constant phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.LOCAL_CONSTANT_PHRASE_TAG),
 
 		/** The kind of a module variable declaration phrase.  */
 		MODULE_VARIABLE_PHRASE(
-			"module variable phrase type", DECLARATION_PHRASE,
+			"module variable phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.MODULE_VARIABLE_PHRASE_TAG),
 
 		/** The kind of a module constant declaration phrase.  */
 		MODULE_CONSTANT_PHRASE(
-			"module constant phrase type", DECLARATION_PHRASE,
+			"module constant phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.MODULE_CONSTANT_PHRASE_TAG),
 
 		/** The kind of a primitive failure reason variable declaration.  */
 		PRIMITIVE_FAILURE_REASON_PHRASE(
-			"primitive failure reason phrase type", DECLARATION_PHRASE,
+			"primitive failure reason phrase type",
+			DECLARATION_PHRASE,
 			TypeTag.PRIMITIVE_FAILURE_REASON_PHRASE_TAG),
 
 		/**
@@ -355,12 +372,14 @@ open class PhraseTypeDescriptor protected constructor(
 		 * assignments and sends can be expression-as-statement phrases.
 		 */
 		EXPRESSION_AS_STATEMENT_PHRASE(
-			"expression as statement phrase type", STATEMENT_PHRASE,
+			"expression as statement phrase type",
+			STATEMENT_PHRASE,
 			TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG),
 
 		/** The result of a macro substitution.  */
 		MACRO_SUBSTITUTION_PHRASE(
-			"macro substitution phrase type", PARSE_PHRASE,
+			"macro substitution phrase type",
+			PARSE_PHRASE,
 			TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG);
 
 		override fun fieldName(): String = name

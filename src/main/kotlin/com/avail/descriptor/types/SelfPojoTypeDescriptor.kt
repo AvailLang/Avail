@@ -60,7 +60,6 @@ import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCEST
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
 import com.avail.serialization.SerializerOperation
 import java.lang.reflect.Modifier
-import java.util.Comparator
 import java.util.IdentityHashMap
 
 /**
@@ -131,7 +130,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
-		return (javaClass.equalsNil()
+		return (javaClass.isNil
 			|| Modifier.isAbstract(
 			javaClass.javaObjectNotNull<Class<*>>().modifiers))
 	}
@@ -141,7 +140,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 			.equals(equalityPojo(PojoArray::class.java))
 
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
-		self.slot(JAVA_CLASS).equalsNil()
+		self.slot(JAVA_CLASS).isNil
 
 	override fun o_IsPojoSelfType(self: AvailObject): Boolean = true
 
@@ -172,7 +171,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
-		return if (javaClass.equalsNil())
+		return if (javaClass.isNil)
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
 			Any::class.java
@@ -261,7 +260,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		indent: Int)
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
-		if (!javaClass.equalsNil())
+		if (javaClass.notNil)
 		{
 			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 		}
@@ -348,7 +347,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 			assert(selfPojo.isPojoSelfType)
 			val pojoClass = selfPojo.javaClass()
 			val mainClassName: A_String
-			mainClassName = if (pojoClass.equalsNil())
+			mainClassName = if (pojoClass.isNil)
 			{
 				NilDescriptor.nil
 			}
@@ -388,7 +387,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		{
 			val className: A_String = selfPojoProxy.tupleAt(1)
 			val mainRawType: AvailObject
-			mainRawType = if (className.equalsNil())
+			mainRawType = if (className.isNil)
 			{
 				NilDescriptor.nil
 			}

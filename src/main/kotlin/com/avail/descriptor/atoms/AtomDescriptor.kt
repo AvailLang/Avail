@@ -196,7 +196,7 @@ open class AtomDescriptor protected constructor (
 			else -> append("\$\"$nativeName\"")
 		}
 		val issuer: A_Module = self.slot(ISSUING_MODULE)
-		if (!issuer.equalsNil()) {
+		if (issuer.notNil) {
 			val issuerName = issuer.moduleName().asNativeString()
 			val localIssuer =
 				issuerName.substring(issuerName.lastIndexOf('/') + 1)
@@ -295,7 +295,7 @@ open class AtomDescriptor protected constructor (
 			at("kind") { write("atom") }
 			at("atom name") { self.slot(NAME).writeTo(writer) }
 			val module = self.slot(ISSUING_MODULE)
-			if (!module.equalsNil()) {
+			if (module.notNil) {
 				at("issuing module") { module.writeSummaryTo(writer) }
 			}
 		}
