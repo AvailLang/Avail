@@ -32,28 +32,13 @@
 
 package com.avail.anvil.io
 
+import com.avail.anvil.AcknowledgmentCode
 import com.avail.anvil.Message
+import com.avail.anvil.MessageOrigin
+import com.avail.anvil.MessageOrigin.CLIENT
+import com.avail.anvil.MessageOrigin.SERVER
 import com.avail.anvil.MessageTag
-import com.avail.anvil.io.CloseOrigin.CLIENT
-import com.avail.anvil.io.CloseOrigin.SERVER
-import java.nio.channels.ClosedChannelException
-import java.util.logging.Level
-import java.util.logging.Logger
-
-/**
- * The originating party of an [AnvilServerChannel] disconnection.
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-enum class CloseOrigin
-{
-	/** The client disconnected. */
-	CLIENT,
-
-	/** The server disconnected. */
-	SERVER
-}
+import com.avail.anvil.io.AnvilServerChannel.ProtocolState
 
 /**
  * `DisconnectReason` encapsulates all information known about the
@@ -62,59 +47,43 @@ enum class CloseOrigin
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-sealed interface CloseReason
+sealed class CloseReason
 {
 	/**
 	 * The party that originated the disconnect.
 	 */
-	val origin: CloseOrigin
+	abstract val origin: MessageOrigin
 
-	/**
-	 * Was the [AnvilServerChannel] closed voluntarily by the originating party?
-	 */
-	val normalDisconnect get () = false
-
-	/**
-	 * An entry suitable for logging the disconnect.
-	 */
-	val logEntry get () = "$origin: ${javaClass.simpleName}"
-
-	/**
-	 * The [Throwable] responsible for the disconnection, if one is available.
-	 */
-	val cause: Throwable? get () = null
-
-	/**
-	 * Log the receiver to the provided [logger][Logger].
-	 *
-	 * @param logger
-	 *   The target logger.
-	 * @param level
-	 *   The logging level.
-	 * @param custom
-	 *   A situationally tailored message, if any.
-	 */
-	fun log (
-		logger: Logger,
-		level: Level,
-		custom: String? = null)
+	override fun toString (): String
 	{
-		val message = custom?.let { "$logEntry [$it]" } ?: logEntry
-		cause?.let { logger.log(level, message, it) }
-			?: logger.log(level, message)
+		val self = this
+		return buildString {
+			append(self.javaClass.simpleName)
+			append('(')
+			append(origin)
+			append(')')
+		}
 	}
 }
 
 /**
- * [InternalErrorCloseReason] indicates that the root cause for a
- * disconnection was an internal server error. Note that server-originated
- * protocol errors should be treated as internal errors.
+ * [OrderlyClientCloseReason] specifies that the client initiated an orderly
+ * shutdown.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class InternalErrorCloseReason (
-	override val cause: Throwable
-) : CloseReason
+object OrderlyClientCloseReason: CloseReason()
+{
+	override val origin = CLIENT
+}
+
+/**
+ * [OrderlyServerCloseReason] specifies that the server initiated an orderly
+ * shutdown.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+object OrderlyServerCloseReason: CloseReason()
 {
 	override val origin = SERVER
 }
@@ -126,44 +95,180 @@ class InternalErrorCloseReason (
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object DisorderlyClientCloseReason: CloseReason
+object DisorderlyClientCloseReason : CloseReason()
 {
 	override val origin = CLIENT
-	override val cause: ClosedChannelException get () =
-		try { throw ClosedChannelException() }
-		catch (e: ClosedChannelException) { e }
 }
 
 /**
- * [OrderlyClientCloseReason] specifies that the client initiated an orderly
- * shutdown.
+ * [UnavailableInVersionCloseReason] specifies that the originator sent a
+ * [message][Message] that is unavailable in the negotiated version.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property message
+ *   The offending message.
+ * @property version
+ *   The negotiated version.
+ *
+ * @constructor
+ * Construct a new [UnavailableInVersionCloseReason].
+ *
+ * @param origin
+ *   The [message&#32;origin][MessageOrigin].
+ * @param message
+ *   The offending message.
+ * @param version
+ *   The negotiated version.
  */
-object OrderlyClientCloseReason: CloseReason
-{
-	override val origin = CLIENT
-	override val normalDisconnect = true
-}
+data class UnavailableInVersionCloseReason constructor (
+	override val origin: MessageOrigin,
+	private val message: Message,
+	private val version: Int
+) : CloseReason()
 
 /**
- * [OrderlyServerCloseReason] specifies that the server initiated an orderly
- * shutdown.
+ * [BadOriginCloseReason] specifies that the originator sent a
+ * [message][Message] that can only originate from the other party.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [BadOriginCloseReason].
+ *
+ * @param origin
+ *   The [message&#32;origin][MessageOrigin].
  */
-object OrderlyServerCloseReason: CloseReason
+data class BadOriginCloseReason constructor (
+	override val origin: MessageOrigin
+) : CloseReason()
+
+/**
+ * [BadStateCloseReason] specifies that the [message][Message] is inappropriate
+ * for the current [protocol&#32;state][ProtocolState].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property message
+ *   The offending message.
+ * @property state
+ *   The protocol state.
+ *
+ * @constructor
+ * Construct a new [BadStateCloseReason].
+ *
+ * @param origin
+ *   The [message&#32;origin][MessageOrigin].
+ * @param message
+ *   The offending message.
+ * @param state
+ *   The protocol state.
+ */
+data class BadStateCloseReason constructor (
+	override val origin: MessageOrigin,
+	private val message: Message,
+	private val state: ProtocolState
+) : CloseReason()
+
+/**
+ * [BadEndFlowCloseReason] specifies that a [message][Message] attempted to
+ * disrupt the flow of conversation, either by ending a conversation prematurely
+ * or by continuing a defunct conversation.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property message
+ *   The offending message.
+ *
+ * @constructor
+ * Construct a new [BadEndFlowCloseReason].
+ *
+ * @param message
+ *   The offending message.
+ */
+data class BadEndFlowCloseReason constructor (
+	private val message: Message
+) : CloseReason()
 {
 	override val origin = SERVER
-	override val normalDisconnect = true
 }
+
+/**
+ * [WrongConversationCloseReason] specifies that the server inserted a
+ * [message][Message] into the wrong conversation.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property message
+ *   The offending message.
+ * @property badId
+ *   The incorrect conversation identifier.
+ *
+ * @constructor
+ * Construct a new [WrongConversationCloseReason].
+ *
+ * @param message
+ *   The offending message.
+ * @param badId
+ *   The incorrect conversation identifier.
+ */
+data class WrongConversationCloseReason constructor (
+	private val message: Message,
+	private val badId: Long
+) : CloseReason()
+{
+	override val origin = SERVER
+}
+
+/**
+ * [BadStartFlowCloseReason] specifies that a [message][Message] attempted to
+ * disrupt the flow of conversation, either by starting a conversation
+ * prematurely or continuing an unknown conversation.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property message
+ *   The offending message.
+ *
+ * @constructor
+ * Construct a new [BadStartFlowCloseReason].
+ *
+ * @param origin
+ *   The [message&#32;origin][MessageOrigin].
+ * @param message
+ *   The offending message.
+ */
+data class BadStartFlowCloseReason constructor (
+	override val origin: MessageOrigin,
+	private val message: Message
+) : CloseReason()
+
+/**
+ * [UnexpectedReplyCloseReason] specifies that a [message][Message] was not
+ * expected at a particular locus of conversation.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property message
+ *   The offending message.
+ * @property expected
+ *   The [tags][MessageTag] of the expected messages.
+ *
+ * @constructor
+ * Construct a new [UnexpectedReplyCloseReason].
+ *
+ * @param origin
+ *   The [message&#32;origin][MessageOrigin].
+ * @param message
+ *   The offending message.
+ * @param expected
+ *   The [tags][MessageTag] of the expected messages.
+ */
+data class UnexpectedReplyCloseReason constructor (
+	override val origin: MessageOrigin,
+	private val message: Message,
+	private val expected: Set<MessageTag>
+) : CloseReason()
 
 /**
  * [SocketIOErrorReason] indicates that the server disconnected due to an
  * unrecoverable I/O error on the [AnvilServerChannel].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- *
  * @property cause
  *   The causal exception.
  *
@@ -173,9 +278,9 @@ object OrderlyServerCloseReason: CloseReason
  * @param cause
  *   The causal exception.
  */
-class SocketIOErrorReason constructor (
-	override val cause: Throwable
-) : CloseReason
+data class SocketIOErrorReason constructor (
+	private val cause: Throwable
+) : CloseReason()
 {
 	override val origin = SERVER
 }
@@ -185,23 +290,39 @@ class SocketIOErrorReason constructor (
  * [message][Message] [tag][MessageTag] or otherwise malformed message.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property badTag
+ *   The invalid tag.
+ *
+ * @constructor
+ * Construct a [BadMessageCloseReason].
+ *
+ * @param badTag
+ *   The invalid tag.
  */
-object BadMessageCloseReason: CloseReason
+data class BadMessageCloseReason constructor (
+	private val badTag: Int
+): CloseReason()
 {
 	override val origin = SERVER
 }
 
 /**
- * [BadProtocolCloseReason] indicates that the server detected a violation of
- * the communication protocol established by the negotiated version. Note that
- * server-originated protocol errors should be treated as
- * [internal&#32;errors][InternalErrorCloseReason] instead.
+ * [BadAcknowledgmentCodeReason] indicates that the server received an
+ * unrecognized [acknowledgment&#32;code][AcknowledgmentCode].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property badCode
+ *   The invalid code.
+ *
+ * @constructor
+ * Construct a [BadMessageCloseReason].
+ *
+ * @param badCode
+ *   The invalid code.
  */
-class BadProtocolCloseReason constructor (
-	override val cause: Throwable
-): CloseReason
+data class BadAcknowledgmentCodeReason constructor (
+	private val badCode: Int
+): CloseReason()
 {
 	override val origin = SERVER
 }
@@ -212,7 +333,28 @@ class BadProtocolCloseReason constructor (
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-object BadProtocolVersion : CloseReason
+object BadProtocolVersion : CloseReason()
+{
+	override val origin = SERVER
+}
+
+/**
+ * [InternalErrorCloseReason] indicates that the root cause for a
+ * disconnection was an internal server error. Note that server-originated
+ * protocol errors should be treated as internal errors.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @property cause
+ *   The causal exception.
+ *
+ *
+ * @constructor
+ * Construct a new [InternalErrorCloseReason].
+ *
+ * @param cause
+ *   The causal exception.
+ */
+class InternalErrorCloseReason (private val cause: Throwable) : CloseReason()
 {
 	override val origin = SERVER
 }

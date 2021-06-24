@@ -42,7 +42,7 @@ import com.avail.anvil.io.AnvilServerChannel.ProtocolState.READY
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_REBUTTED
 import com.avail.anvil.io.BadProtocolVersion
-import com.avail.anvil.io.OrderlyClientCloseReason
+import com.avail.anvil.io.InternalErrorCloseReason
 import com.avail.anvil.io.SocketAdapter
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleNameResolver
@@ -52,9 +52,11 @@ import com.avail.utility.configuration.ConfigurationException
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress
-import java.util.UUID
 import java.util.concurrent.Semaphore
+import java.util.logging.Level.FINE
+import java.util.logging.Level.FINER
 import java.util.logging.Logger
+import javax.annotation.concurrent.GuardedBy
 
 /**
  * An `AnvilServer` manages an Avail environment on behalf of Anvil, the Avail
@@ -104,9 +106,10 @@ class AnvilServer constructor (
 
 	/**
 	 * Every connected [AnvilServerChannel], keyed by
-	 * [identifier][AnvilServerChannel.id]
+	 * [identifier][AnvilServerChannel.channelId]
 	 */
-	private val channels = mutableMapOf<UUID, AnvilServerChannel>()
+	@GuardedBy("itself")
+	private val channels = mutableMapOf<Long, AnvilServerChannel>()
 
 	/**
 	 * Register the specified [channel][AnvilServerChannel].
@@ -116,7 +119,7 @@ class AnvilServer constructor (
 	 */
 	internal fun registerChannel (channel: AnvilServerChannel) =
 		synchronized(channels) {
-			channels[channel.id] = channel
+			channels[channel.channelId] = channel
 		}
 
 	/**
@@ -127,7 +130,7 @@ class AnvilServer constructor (
 	 */
 	internal fun deregisterChannel (channel: AnvilServerChannel) =
 		synchronized(channels) {
-			channels.remove(channel.id)
+			channels.remove(channel.channelId)
 		}
 
 	/**
@@ -148,26 +151,23 @@ class AnvilServer constructor (
 		channel: AnvilServerChannel,
 		after: () -> Unit)
 	{
-		val conversation = channel.lookupConversation(message.id) {
-			StartConversationVisitor(message, channel)
-		}!!
-		if (message.endsConversation)
+		try
 		{
-			if (conversation !is StartConversationVisitor)
-			{
-				// A StartConversationVisitor won't be registered with the
-				// channel, so technically we could skip the type check, but the
-				// type test is cheaper than the useless lock contention.
-				channel.endConversation(conversation)
+			val conversation = channel.continueConversation(message) {
+				StartConversationVisitor(message, channel)
 			}
+			channel.log(FINER, message) { "dispatch: ${this.tag}" }
+			message.visit(conversation, after)
 		}
-		// Invoke the appropriate handler for the message.
-		message.visit(conversation, after)
+		catch (e: Throwable)
+		{
+			channel.close(InternalErrorCloseReason(e))
+		}
 	}
 
 	/**
 	 * All [client][MessageOrigin.CLIENT] [messages][Message] that
-	 * [start&#32;conversations][Message.startsConversation] must override
+	 * [start&#32;conversations][Message.canStartConversation] must override
 	 * handlers here.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
@@ -187,13 +187,6 @@ class AnvilServer constructor (
 		private val channel: AnvilServerChannel
 	) : Conversation(message.id, message.allowedSuccessors)
 	{
-		override fun visit (message: DisconnectMessage, after: AfterMessage)
-		{
-			// Explicitly don't invoke the continuation, since the channel is
-			// going away.
-			channel.close(OrderlyClientCloseReason)
-		}
-
 		override fun visit (
 			message: NegotiateVersionMessage,
 			after: AfterMessage)
@@ -231,8 +224,7 @@ class AnvilServer constructor (
 			// are proactively announcing our supported versions.
 			channel.state = VERSION_REBUTTED
 			val reply = RebuttedVersionsMessage(
-				SERVER, message.id, supportedProtocolVersions
-			)
+				SERVER, message.id, supportedProtocolVersions)
 			return channel.enqueueMessage(
 				reply,
 				object : Conversation(reply)
@@ -249,6 +241,7 @@ class AnvilServer constructor (
 		val newestVersion = commonVersions.maxOrNull()!!
 		channel.state = READY
 		channel.negotiatedVersion = newestVersion
+		channel.log(FINE, message) { "accepted version: $newestVersion" }
 		channel.enqueueMessage(
 			AcceptedVersionMessage(SERVER, message.id, newestVersion),
 			enqueueSucceeded = after
@@ -284,6 +277,7 @@ class AnvilServer constructor (
 		val newestVersion = commonVersions.maxOrNull()!!
 		channel.state = READY
 		channel.negotiatedVersion = newestVersion
+		channel.log(FINE, message) { "accepted version: $newestVersion" }
 		channel.enqueueMessage(
 			AcceptedVersionMessage(SERVER, message.id, newestVersion),
 			enqueueSucceeded = after

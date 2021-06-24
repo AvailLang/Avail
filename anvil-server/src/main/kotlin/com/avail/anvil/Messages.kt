@@ -94,7 +94,12 @@ private interface BasicMessage
 	/**
 	 * Do [tagged][MessageTag] [messages][Message] always start conversations?
 	 */
-	val startsConversation get () = false
+	val mustStartConversation get () = false
+
+	/**
+	 * Can [tagged][MessageTag] [messages][Message] start conversations?
+	 */
+	val canStartConversation get () = mustStartConversation
 
 	/**
 	 * The allowed [origins][MessageOrigin] of [tagged][MessageTag]
@@ -144,7 +149,7 @@ enum class MessageTag : BasicMessage
 	/** 0: Perform an orderly shutdown of the connection. */
 	DISCONNECT
 	{
-		override val startsConversation = true
+		override val mustStartConversation = true
 		override val allowedOrigins = setOf(CLIENT, SERVER)
 		override val allowedStates =
 			setOf(READY, VERSION_NEGOTIATION, VERSION_REBUTTED)
@@ -175,7 +180,7 @@ enum class MessageTag : BasicMessage
 	NEGOTIATE_VERSION
 	{
 		override fun availableInVersion (version: Int) = true
-		override val startsConversation = true
+		override val canStartConversation = true
 		override val allowedOrigins = setOf(CLIENT)
 		override val allowedStates =
 			setOf(VERSION_NEGOTIATION, VERSION_REBUTTED)
@@ -222,7 +227,6 @@ enum class MessageTag : BasicMessage
 	/** 2: Accept an offered protocol version. */
 	ACCEPTED_VERSION
 	{
-		override fun availableInVersion (version: Int) = true
 		override val allowedOrigins = setOf(SERVER)
 
 		override fun encodeContent(
@@ -799,6 +803,11 @@ abstract class Conversation (
 	val allowedSuccessors: Set<MessageTag>
 ) : AbstractMessageVisitor()
 {
+	/**
+	 * Is the conversation just a stub, i.e., a placeholder for flow checking?
+	 */
+	open val isStub = false
+
 	/**
 	 * Construct a new [Conversation] for the supplied message.
 	 *

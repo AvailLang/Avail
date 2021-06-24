@@ -40,6 +40,7 @@ import com.avail.anvil.Message
 import com.avail.anvil.MessageOrigin
 import com.avail.anvil.MessageOrigin.SERVER
 import com.avail.anvil.MessageTag
+import com.avail.anvil.MessageTag.DISCONNECT
 import com.avail.anvil.NegotiateVersionMessage
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.TERMINATED
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_NEGOTIATION
@@ -47,15 +48,16 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import com.avail.utility.IO
 import com.avail.utility.evaluation.Combinator.recurse
-import org.jetbrains.annotations.Contract
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.Deque
 import java.util.LinkedList
-import java.util.UUID
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
+import java.util.logging.Level.FINER
+import java.util.logging.Level.FINEST
+import java.util.logging.Level.INFO
 import java.util.logging.Logger
 import javax.annotation.concurrent.GuardedBy
 
@@ -94,22 +96,59 @@ class AnvilServerChannel constructor (
 	private val transport: AsynchronousSocketChannel,
 	private var onClose: ((CloseReason, AnvilServerChannel)->Unit)? = null)
 {
-	/** `true` if the channel is open, `false` otherwise. */
-	private val isOpen get () = transport.isOpen
-
-	/** The channel identifier. */
-	val id = UUID.randomUUID()!!
-
-	init
-	{
-		logger.log(Level.INFO, "channel created ${transport.remoteAddress}")
-	}
-
 	/** The [AnvilServer]. */
 	private val server get () = adapter.server
 
 	/** The [logger][Logger]. */
 	private val logger get () = server.logger
+
+	/** `true` if the channel is open, `false` otherwise. */
+	private val isOpen get () = transport.isOpen
+
+	/** The channel identifier. */
+	val channelId = nextChannelId.getAndIncrement()
+
+	/**
+	 * Log the specified entry.
+	 *
+	 * @param level
+	 *   The logging level.
+	 * @param entry
+	 *   The log entry, lazily evaluated.
+	 */
+	private fun log (level: Level, entry: () -> String)
+	{
+		if (logger.isLoggable(level))
+		{
+			logger.log(level, "#$channelId: ${entry()}")
+		}
+	}
+
+	/**
+	 * Log the specified entry.
+	 *
+	 * @param level
+	 *   The logging level.
+	 * @param message
+	 *   The message.
+	 * @param entry
+	 *   The log entry, lazily evaluated.
+	 */
+	internal fun log (
+		level: Level,
+		message: Message,
+		entry: Message.() -> String)
+	{
+		if (logger.isLoggable(level))
+		{
+			logger.log(level, "#$channelId: @${message.id}: ${message.entry()}")
+		}
+	}
+
+	init
+	{
+		log(INFO) { "channel created: ${transport.remoteAddress}" }
+	}
 
 	/** The next conversation identifier to issue. */
 	private val conversationId = AtomicLong(-1)
@@ -165,6 +204,7 @@ class AnvilServerChannel constructor (
 	internal var state: ProtocolState = VERSION_NEGOTIATION
 		set (nextState)
 		{
+			log(FINEST) { "transition: $field -> $nextState" }
 			assert(field.allowedSuccessorStates.contains(nextState))
 			field = nextState
 		}
@@ -186,42 +226,92 @@ class AnvilServerChannel constructor (
 	 *
 	 * @param id
 	 *   The conversation identifier.
-	 * @param conversation
-	 *   How to install a conversation for a start, if no ongoing conversation
-	 *   is found, or `null` if no conversation should be installed.
 	 * @return
 	 *   The requested conversation, or `null` if the conversation wasn't found.
 	 */
-	@Contract("_, !null -> !null")
-	internal fun lookupConversation (
-			id: Long,
-			conversation: (()->Conversation)? = null) =
-		synchronized(conversations) {
-			conversation?.let { conversations.getOrPut(id, it) }
-				?: conversations[id]
-		}
+	private fun lookupConversation (id: Long) = synchronized(conversations) {
+		conversations[id]
+	}
 
 	/**
-	 * Update the specified conversation. May be used to start a new
-	 * conversation also.
+	 * A [ConversationStub] represents the message just received. It enables
+	 * validation of correct conversation flow at the time when its reply is
+	 * [enqueued][AnvilServerChannel.enqueueMessage].
+	 *
+	 * @author Todd L Smith &lt;todd@availlang.org&gt;
+	 *
+	 * @constructor
+	 * Construct a new [ConversationStub].
+	 *
+	 * @param message
+	 *   The latest message in the conversation.
+	 */
+	private inner class ConversationStub constructor (message: Message)
+		: Conversation(message.id, message.allowedSuccessors)
+	{
+		override val isStub = true
+	}
+
+	/**
+	 * Look up a [conversation][Conversation] by the specified message,
+	 * replacing the conversation with a [stub][ConversationStub]. If no
+	 * conversation is ongoing, then the specified message must be a
+	 * [conversation&#32;starter][Message.canStartConversation]; in this case,
+	 * apply the specified function to start an appropriate conversation.
+	 *
+	 * @param message
+	 *   The message.
+	 * @param start
+	 *   How to start a new conversation if one is not already ongoing (and
+	 *   `message` is a conversation starter).
+	 * @return
+	 *   The conversation to continue.
+	 */
+	internal fun continueConversation (
+		message: Message,
+		start: () -> Conversation
+	) = synchronized(conversations) {
+		val requested =
+			if (message.endsConversation)
+			{
+				conversations.remove(message.id)
+			}
+			else
+			{
+				val old = conversations[message.id]
+				assert(old != null || message.canStartConversation)
+				conversations[message.id] = ConversationStub(message)
+				old
+			}
+		assert(requested?.isStub != true)
+		requested ?: run {
+			assert(message.canStartConversation)
+			start()
+		}
+	}
+
+	/**
+	 * Update the specified conversation.
 	 *
 	 * @param conversation
-	 *   The conversation to start or continue.
+	 *   The conversation to start or continue. Must be a real conversation, not
+	 *   a [stub][ConversationStub].
 	 */
 	private fun updateConversation (conversation: Conversation) =
 		synchronized(conversations) {
+			assert(!conversation.isStub)
 			conversations[conversation.id] = conversation
 		}
 
 	/**
 	 * End the specified conversation. Behaves idempotently.
 	 *
-	 * @param conversation
-	 *   The conversation to terminate.
+	 * @param id
+	 *   The identifier of the conversation to terminate.
  	 */
-	internal fun endConversation (conversation: Conversation) =
+	private fun endConversation (id: Long) =
 		synchronized(conversations) {
-			conversations.remove(conversation.id)
+			conversations.remove(id)
 		}
 
 	/**
@@ -234,73 +324,81 @@ class AnvilServerChannel constructor (
 	 *   The associated [conversation][Conversation], or `null` if either
 	 *   (1) the message ends a conversation or (2) the message has just
 	 *   arrived on the socket.
-	 * @param buildCloseReason
-	 *   How to build a [CloseReason] if necessary.
 	 * @return `true` iff the message is deemed appropriate.
 	 */
 	@Throws(IllegalArgumentException::class)
 	private fun checkMessage (
 		message: Message,
-		conversation: Conversation? = null,
-		buildCloseReason: (Throwable) -> CloseReason
-	): Boolean
-	{
-		try
+		conversation: Conversation? = null
+	): Boolean =
+		when
 		{
-			if (!message.availableInVersion(negotiatedVersion))
+			!message.availableInVersion(negotiatedVersion) ->
 			{
 				// The originator attempted send a message not supported by the
 				// negotiated protocol version.
-				throw IllegalArgumentException()
+				close(UnavailableInVersionCloseReason(
+					message.origin, message, negotiatedVersion))
+				false
 			}
-			if (!message.allowedOrigins.contains(message.origin))
+			!message.allowedOrigins.contains(message.origin) ->
 			{
 				// The originator attempted to send a message only appropriate
 				// to the other side.
-				throw IllegalArgumentException()
+				close(BadOriginCloseReason(message.origin))
+				false
 			}
-			if (!message.allowedStates.contains(state))
+			!message.allowedStates.contains(state) ->
 			{
 				// The originator attempted to send a message during a
 				// disallowed protocol state.
-				throw IllegalArgumentException()
+				close(BadStateCloseReason(message.origin, message, state))
+				false
 			}
-			if (message.origin == SERVER
-				&& message.endsConversation != (conversation === null))
+			message.origin == SERVER
+				&& message.endsConversation != (conversation === null) ->
 			{
-				// The server attempted to continue a defunct conversation.
-				throw IllegalArgumentException()
+				// The server attempted to disrupt the flow of conversation,
+				// either by ending a conversation prematurely or by continuing
+				// a defunct conversation.
+				close(BadEndFlowCloseReason(message))
+				false
 			}
-			if (conversation !== null && message.id != conversation.id)
+			conversation !== null && message.id != conversation.id ->
 			{
 				// The originator attempted to continue the wrong
 				// conversation.
-				throw IllegalArgumentException()
+				assert(message.origin == SERVER)
+				close(WrongConversationCloseReason(message, conversation.id))
+				false
 			}
-			val predecessor = lookupConversation(message.id)
-			if (message.startsConversation != (predecessor === null))
+			else ->
 			{
-				// The originator attempted to initiate or continue a
-				// conversation with an inappropriate message.
-				throw IllegalArgumentException()
+				val predecessor = lookupConversation(message.id)
+				when
+				{
+					message.mustStartConversation && predecessor !== null ->
+					{
+						// The originator attempted to initiate or continue a
+						// conversation with an inappropriate message.
+						close(BadStartFlowCloseReason(message.origin, message))
+						false
+					}
+					predecessor?.allowedSuccessors?.contains(message.tag)
+						== false ->
+					{
+						// The originator attempted to continue a conversation
+						// with an inappropriate message.
+						close(UnexpectedReplyCloseReason(
+							message.origin,
+							message,
+							predecessor.allowedSuccessors))
+						false
+					}
+					else -> true
+				}
 			}
-			if (predecessor?.allowedSuccessors?.contains(message.tag) == false)
-			{
-				// The originator attempted to continue a conversation
-				// with an inappropriate message.
-				throw IllegalArgumentException()
-			}
-			return true
 		}
-		catch (e: IllegalArgumentException)
-		{
-			// The stack trace is filled in, so close the channel and fail the
-			// check. It's up to the caller to throw another exception if so
-			// desired.
-			close(buildCloseReason(e))
-			return false
-		}
-	}
 
 	/**
 	 * A [queue][Deque] of [messages][Message] awaiting transmission by the
@@ -336,10 +434,8 @@ class AnvilServerChannel constructor (
 	{
 		// Only check the server-side message machinery if assertions are
 		// enabled.
-		assert(
-			checkMessage(message, conversation) {
-				InternalErrorCloseReason(it)
-			})
+		assert(conversation?.isStub != true)
+		assert(checkMessage(message, conversation))
 		val beginTransmitting: Boolean
 		val invokeContinuationNow: Boolean
 		if (conversation !== null)
@@ -347,6 +443,12 @@ class AnvilServerChannel constructor (
 			// A conversation has been provided (and validated if checking is
 			// enabled), so fearlessly install it into the conversation table.
 			updateConversation(conversation)
+		}
+		else if (message.endsConversation)
+		{
+			// The conversation is defunct, so fearlessly uninstall it from the
+			// conversation table.
+			endConversation(message.id)
 		}
 		synchronized(sendQueue) {
 			if (!isOpen)
@@ -405,7 +507,9 @@ class AnvilServerChannel constructor (
 	 * @param message
 	 *   The first message in the message queue (still enqueued).
 	 */
-	private fun beginTransmission (message: Message) =
+	private fun beginTransmission (message: Message)
+	{
+		log(FINER, message) { "sending: $this" }
 		writeMessage(
 			message,
 			success = {
@@ -444,6 +548,7 @@ class AnvilServerChannel constructor (
 				}
 			},
 			failure = {})
+	}
 
 	/**
 	 * The write buffer. Every write goes through this buffer, using an
@@ -458,6 +563,9 @@ class AnvilServerChannel constructor (
 	 */
 	@GuardedBy("sendQueue")
 	private val writeBuffer = ByteBuffer.allocateDirect(WRITE_BUFFER_SIZE)
+
+	/** The total byte of bytes written. */
+	private val totalBytesWritten = AtomicLong(0)
 
 	/**
 	 * Send a [message][Message] over the
@@ -478,6 +586,8 @@ class AnvilServerChannel constructor (
 		var afterWriting: ((ByteBuffer)->Unit)? = null
 		SimpleCompletionHandler<Int>(
 			{
+				val total = totalBytesWritten.addAndGet(value.toLong())
+				log(FINEST) { "sent data: $value (of $total)"}
 				if (writeBuffer.hasRemaining())
 				{
 					// Transmission did not completely exhaust the buffer, so we
@@ -489,7 +599,14 @@ class AnvilServerChannel constructor (
 				// This will continue the encoding process if it's still
 				// incomplete, otherwise it will invoke the success handler.
 				writeBuffer.clear()
-				afterWriting!!(writeBuffer)
+				try
+				{
+					afterWriting!!(writeBuffer)
+				}
+				catch (e: Throwable)
+				{
+					close(InternalErrorCloseReason(e))
+				}
 			},
 			{
 				close(SocketIOErrorReason(throwable))
@@ -505,8 +622,9 @@ class AnvilServerChannel constructor (
 					// We've filled the buffer, so write it to the transport.
 					// Save the argument continuation, so that we can resume
 					// encoding when the completion handler finishes.
+					assert(!writeBuffer.hasRemaining())
 					afterWriting = proceed
-					writeBuffer.clear()
+					writeBuffer.flip()
 					transport.write(writeBuffer, dummy, handler)
 				}
 			) {
@@ -549,6 +667,9 @@ class AnvilServerChannel constructor (
 		buffer
 	}
 
+	/** The total byte of bytes read. */
+	private val totalBytesRead = AtomicLong(0)
+
 	/**
 	 * Read a complete [message][Message] from the
 	 * [transport][AsynchronousSocketChannel].
@@ -564,10 +685,19 @@ class AnvilServerChannel constructor (
 					close(DisorderlyClientCloseReason)
 					return@SimpleCompletionHandler
 				}
+				val total = totalBytesRead.addAndGet(value.toLong())
+				log(FINEST) { "received data: $value (of $total)" }
 				// More data is available, so flip the buffer and continue
 				// decoding.
 				readBuffer.flip()
-				continueDecoding!!(readBuffer)
+				try
+				{
+					continueDecoding!!(readBuffer)
+				}
+				catch (e: Throwable)
+				{
+					close(InternalErrorCloseReason(e))
+				}
 			},
 			{
 				close(SocketIOErrorReason(throwable))
@@ -592,19 +722,31 @@ class AnvilServerChannel constructor (
 						when (e)
 						{
 							is BadMessageException ->
-								BadMessageCloseReason
+								BadMessageCloseReason(e.badTag)
 							is BadAcknowledgmentCodeException ->
-								BadMessageCloseReason
+								BadAcknowledgmentCodeReason(e.badCode)
 							else -> InternalErrorCloseReason(e)
 						})
 				}
 			) { message, _ ->
-				checkMessage(message) { BadProtocolCloseReason(it) }
-					|| return@decode
-				// Deliver the message to the channel. Don't keep processing
-				// data from the buffer; wait until we receive another request
-				// to read a message.
-				receiveMessage(message)
+				log(FINER, message) { "received: $this" }
+				checkMessage(message) || return@decode
+				if (message.closeAfterSending)
+				{
+					// This is the only chance that we have to detect an orderly
+					// shutdown, lest the server's message processor race with
+					// the channel reader.
+					assert(message.tag == DISCONNECT)
+					log(FINER, message) { "short-circuit dispatch: $message" }
+					close(OrderlyClientCloseReason)
+				}
+				else
+				{
+					// Deliver the message to the channel. Don't keep processing
+					// data from the buffer; wait until we receive another
+					// request to read a message.
+					receiveMessage(message)
+				}
 			}
 		}
 	}
@@ -725,7 +867,6 @@ class AnvilServerChannel constructor (
 		{
 			state = TERMINATED
 			synchronized(sendQueue) {
-				reason.log(logger, Level.INFO)
 				if (isOpen)
 				{
 					// Actually close the transport if it's still open, ignoring
@@ -734,6 +875,7 @@ class AnvilServerChannel constructor (
 				}
 				onClose?.invoke(reason, this)
 				onClose = null
+				log(INFO) { "closed channel: $reason" }
 			}
 			server.deregisterChannel(this)
 		}
@@ -758,6 +900,9 @@ class AnvilServerChannel constructor (
 
 		/** The size of the [write&#32;buffer][writeBuffer]. */
 		private const val WRITE_BUFFER_SIZE = 4096
+
+		/** The next channel identifier to allocate. */
+		private val nextChannelId = AtomicLong(1)
 
 		/**
 		 * Answer whether the remote end of some
