@@ -286,7 +286,7 @@ class PermutedListPhraseDescriptor private constructor(
 		 */
 		private fun computeExpressionType(self: AvailObject): A_Type {
 			var expressionType: A_Type = self.mutableSlot(EXPRESSION_TYPE)
-			if (!expressionType.equalsNil()) return expressionType
+			if (expressionType.notNil) return expressionType
 			val originalTupleType = self.slot(LIST).phraseExpressionType()
 			val permutation: A_Tuple = self.slot(PERMUTATION)
 			val size = permutation.tupleSize()

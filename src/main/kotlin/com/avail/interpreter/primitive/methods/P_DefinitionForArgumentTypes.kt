@@ -75,7 +75,7 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 		val bundle = atom.bundleOrNil()
 		try
 		{
-			if (bundle.equalsNil())
+			if (bundle.isNil)
 			{
 				throw MethodDefinitionException.noMethod()
 			}
@@ -86,7 +86,7 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 			}
 			val definition =
 				bundle.bundleMethod().lookupByTypesFromTuple(argTypes)
-			assert(!definition.equalsNil())
+			assert(definition.notNil)
 			return interpreter.primitiveSuccess(definition)
 		}
 		catch (e: MethodDefinitionException)

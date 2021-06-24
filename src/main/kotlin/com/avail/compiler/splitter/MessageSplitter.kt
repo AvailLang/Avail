@@ -1253,10 +1253,8 @@ class MessageSplitter
 	 *   Whether the supplied list is recursively of the right shape to be used
 	 *   as the argument list for a call of this splitter's [A_Bundle].
 	 */
-	fun checkListStructure(list: A_Phrase): Boolean
-	{
-		return rootSequence.checkListStructure(list)
-	}
+	fun checkListStructure(list: A_Phrase): Boolean =
+		rootSequence.checkListStructure(list)
 
 	/**
 	 * Does the message contain any groups?
@@ -1264,17 +1262,20 @@ class MessageSplitter
 	 * @return
 	 *   `true` if the message contains any groups, `false` otherwise.
 	 */
-	val containsGroups
-		get(): Boolean = rootSequence.expressions.any(Expression::isGroup)
+	val containsGroups get() = rootSequence.expressions.any(Expression::isGroup)
 
+	/**
+	 * Answer whether there are any reordered expressions anywhere inside this
+	 * method name.  Reordering is specified by placing circled numbers
+	 * (e.g., ①, ②) after all argument-yielding [Expression]s occurring in some
+	 * [Sequence].  Either none or all must be numbered within any sequence, and
+	 * the numbers must be a non-identity permutation (not simply ①, ②, ③,
+	 * etc.).
+	 */
 	val recursivelyContainsReorders
-		get(): Boolean = rootSequence.recursivelyContainsReorders
+		get() = rootSequence.recursivelyContainsReorders
 
-	override fun toString(): String {
-		val builder = StringBuilder()
-		dumpForDebug(builder)
-		return builder.toString()
-	}
+	override fun toString() = buildString { dumpForDebug(this) }
 
 	companion object {
 		/**

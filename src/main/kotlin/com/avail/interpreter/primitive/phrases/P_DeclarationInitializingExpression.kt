@@ -74,7 +74,7 @@ object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffe
 		val variable = interpreter.argument(0)
 		val decl = interpreter.argument(1)
 		val initializer = decl.initializationExpression()
-		if (initializer.equalsNil()) {
+		if (initializer.isNil) {
 			return interpreter.primitiveSuccess(falseObject)
 		}
 		return try {

@@ -81,9 +81,7 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
-import java.util.ArrayList
 import java.util.Collections.emptyList
-import java.util.NoSuchElementException
 import kotlin.math.min
 
 /**
@@ -123,7 +121,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		val priority = interpreter.argument(5)
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (atom.isAtomSpecial())

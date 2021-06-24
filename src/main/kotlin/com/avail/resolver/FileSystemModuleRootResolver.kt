@@ -241,7 +241,12 @@ class FileSystemModuleRootResolver constructor(
 		val isPackage = file.isDirectory
 		val lastModified = file.lastModified()
 		val size = if (isPackage) 0 else file.length()
-		val mimeType = if (isPackage) "" else tika.detect(path)
+		val mimeType = when
+		{
+			isPackage -> ""
+			file.extension == "avail" -> "text/plain"  // For performance.
+			else -> tika.detect(path)
+		}
 		val qname = qualifiedName.replace(ModuleNameResolver.availExtension, "")
 		return ResolverReference(
 			this,

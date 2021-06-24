@@ -65,7 +65,6 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.structures.EnumMap
 import java.util.ArrayDeque
-import java.util.NoSuchElementException
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -195,7 +194,7 @@ class HashedSetBinDescriptor private constructor(
 	 */
 	private fun binUnionKind(self: AvailObject): A_Type {
 		var union: A_Type = self.slot(BIN_UNION_KIND_OR_NIL)
-		if (union.equalsNil()) {
+		if (union.isNil) {
 			union = self.slot(BIN_ELEMENT_AT_, 1).binUnionKind()
 			for (i in 2..self.variableObjectSlotsCount()) {
 				union = union.typeUnion(
@@ -262,7 +261,7 @@ class HashedSetBinDescriptor private constructor(
 			val hashDelta = entry.setBinHash() - previousEntryHash
 			val newSize = self.slot(BIN_SIZE) + delta
 			typeUnion = self.slot(BIN_UNION_KIND_OR_NIL)
-			if (!typeUnion.equalsNil()) {
+			if (typeUnion.notNil) {
 				typeUnion = typeUnion.typeUnion(entry.binUnionKind())
 			}
 			objectToModify = if (canDestroy && isMutable) {
@@ -286,7 +285,7 @@ class HashedSetBinDescriptor private constructor(
 			self.makeSubobjectsImmutable()
 		}
 		typeUnion = self.mutableSlot(BIN_UNION_KIND_OR_NIL)
-		if (!typeUnion.equalsNil()) {
+		if (typeUnion.notNil) {
 			typeUnion = typeUnion.typeUnion(elementObject.kind())
 		}
 		objectToModify = createUninitializedHashedSetBin(

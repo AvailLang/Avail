@@ -69,7 +69,7 @@ object P_SocketShutdownInput : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial()) E_SPECIAL_ATOM

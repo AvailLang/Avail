@@ -89,7 +89,7 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 		val port = interpreter.argument(2)
 		val backlog = interpreter.argument(3)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial()) E_SPECIAL_ATOM

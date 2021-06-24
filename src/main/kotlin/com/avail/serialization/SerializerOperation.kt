@@ -1155,9 +1155,9 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			serializer.checkAtom(obj)
-			assert(obj.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
+			assert(obj.getAtomProperty(HERITABLE_KEY.atom).isNil)
 			val module = obj.issuingModule()
-			if (module.equalsNil())
+			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
@@ -1195,7 +1195,7 @@ enum class SerializerOperation constructor(
 					trueObject
 				))
 			val module = obj.issuingModule()
-			if (module.equalsNil())
+			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
@@ -1242,11 +1242,11 @@ enum class SerializerOperation constructor(
 			val module = obj.module()
 			val phraseOrIndex = when
 			{
-				module.equalsNil()
+				module.isNil
 					|| module.moduleState() != Loading
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
-					|| originatingPhraseOrIndex.equalsNil()
+					|| originatingPhraseOrIndex.isNil
 					|| originatingPhraseOrIndex.isInt
 				-> originatingPhraseOrIndex
 				else ->
@@ -1273,7 +1273,7 @@ enum class SerializerOperation constructor(
 			val outerTypes =
 				generateObjectTupleFrom(numOuters) { obj.outerTypeAt(it) }
 			val moduleName =
-				if (module.equalsNil()) emptyTuple
+				if (module.isNil) emptyTuple
 				else module.moduleName()
 			val primitive = obj.primitive()
 			val primName =
@@ -1713,7 +1713,7 @@ enum class SerializerOperation constructor(
 			{
 				val atom = bundle.message()
 				val module = atom.issuingModule()
-				if (!module.equalsNil())
+				if (module.notNil)
 				{
 					pairs.add(tuple(module.moduleName(), atom.atomName()))
 				}
@@ -1732,12 +1732,12 @@ enum class SerializerOperation constructor(
 			val pairs = subobjects[0]
 			for ((moduleName, atomName) in pairs)
 			{
-				if (!moduleName.equalsNil() &&
+				if (moduleName.notNil &&
 					deserializer.loadedModules.hasKey(moduleName))
 				{
 					val atom = lookupAtom(atomName, moduleName, deserializer)
 					val bundle = atom.bundleOrNil()
-					if (!bundle.equalsNil())
+					if (bundle.notNil)
 					{
 						return bundle.bundleMethod()
 					}
@@ -1746,13 +1746,13 @@ enum class SerializerOperation constructor(
 			// Look it up as a special atom instead.
 			for ((moduleName, atomName) in pairs)
 			{
-				if (moduleName.equalsNil())
+				if (moduleName.isNil)
 				{
 					val specialAtom = Serializer.specialAtomsByName[atomName]
 					if (specialAtom !== null)
 					{
 						val bundle = specialAtom.bundleOrNil()
-						if (!bundle.equalsNil())
+						if (bundle.notNil)
 						{
 							return bundle.bundleMethod()
 						}
@@ -1975,13 +1975,10 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			serializer.checkAtom(obj)
-			assert(
-				obj.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
-			assert(
-				obj.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
-					.equals(EXPLICIT_SUBCLASSING_KEY.atom))
+			assert(obj.getAtomProperty(HERITABLE_KEY.atom).isNil)
+			assert(obj.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 			val module = obj.issuingModule()
-			if (module.equalsNil())
+			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
@@ -1994,16 +1991,13 @@ enum class SerializerOperation constructor(
 		{
 			val (atomName, moduleName) = subobjects
 			val atom = lookupAtom(atomName, moduleName, deserializer)
-			atom.setAtomProperty(
-				EXPLICIT_SUBCLASSING_KEY.atom,
-				EXPLICIT_SUBCLASSING_KEY.atom)
+			atom.setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 			return atom.makeShared()
 		}
 	},
 
 	/**
-	 * The [raw&#32;pojo][RawPojoDescriptor] for the Java `null`
-	 * value.
+	 * The [raw&#32;pojo][RawPojoDescriptor] for the Java `null` value.
 	 */
 	RAW_POJO_NULL(55)
 	{
@@ -3574,7 +3568,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_Atom
 		{
 			val currentModule = deserializer.currentModule
-			assert(!currentModule.equalsNil())
+			assert(currentModule.notNil)
 			if (moduleName.equals(currentModule.moduleName()))
 			{
 				// An atom in the current module.  Create it if necessary.

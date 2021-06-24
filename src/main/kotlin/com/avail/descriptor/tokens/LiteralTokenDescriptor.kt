@@ -274,7 +274,7 @@ class LiteralTokenDescriptor private constructor(
 				// token will be cleanly disconnected from the
 				// CompilationContext after finishing parsing the current
 				// top-level statement.
-				if (!nextStatePojo.equalsNil())
+				if (nextStatePojo.notNil)
 				{
 					val nextState: LexingState =
 						nextStatePojo.javaObjectNotNull()

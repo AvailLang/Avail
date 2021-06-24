@@ -330,21 +330,21 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val localIndex = instructionDecoder.getOperand()
 					val local = pointerAt(localIndex)
-					assert(!local.equalsNil())
+					assert(local.notNil)
 					pointerAtPut(localIndex, nil)
 					push(local)
 				}
 				L1_doPushLocal.ordinal ->
 				{
 					val local = pointerAt(instructionDecoder.getOperand())
-					assert(!local.equalsNil())
+					assert(local.notNil)
 					push(local.makeImmutable())
 				}
 				L1_doPushLastOuter.ordinal ->
 				{
 					val outerIndex = instructionDecoder.getOperand()
 					val outer: A_BasicObject = function.outerVarAt(outerIndex)
-					assert(!outer.equalsNil())
+					assert(outer.notNil)
 					if (function.optionallyNilOuterVar(outerIndex))
 					{
 						push(outer)
@@ -374,7 +374,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// the outer variables would have to makeImmutable() to
 						// be referenced by an immutable function.
 						val value = pop()
-						assert(!value.equalsNil())
+						assert(value.notNil)
 						newFunction.outerVarAtPut(i, value)
 						i--
 					}
@@ -413,7 +413,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val outer =
 						function.outerVarAt(instructionDecoder.getOperand())
-					assert(!outer.equalsNil())
+					assert(outer.notNil)
 					push(outer.makeImmutable())
 				}
 				L1_doPop.ordinal ->
@@ -491,7 +491,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					assert(code.primitive() === null)
 					val args = (1..numArgs).map {
 						val arg = pointerAt(it)
-						assert(!arg.equalsNil())
+						assert(arg.notNil)
 						arg
 					}
 					assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
@@ -543,7 +543,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// Freeze all fields of the new object, including
 						// its caller, function, and args.
 						newContinuation.makeSubobjectsImmutable()
-						assert(newContinuation.caller().equalsNil()
+						assert(newContinuation.caller().isNil
 							   || !newContinuation.caller().descriptor()
 							.isMutable) {
 							("Caller should freeze because two "

@@ -89,7 +89,7 @@ import java.util.ArrayDeque
 class Serializer constructor (
 	val output: OutputStream,
 	val module: A_Module? = null,
-	val lookupPumpedObject: (A_BasicObject)->Int = { 0 })
+	private val lookupPumpedObject: (A_BasicObject)->Int = { 0 })
 {
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
@@ -163,7 +163,7 @@ class Serializer constructor (
 			return
 		}
 		val atomModule = atom.issuingModule()
-		if (atomModule.equalsNil())
+		if (atomModule.isNil)
 		{
 			return
 		}
@@ -230,19 +230,6 @@ class Serializer constructor (
 			throw RuntimeException(e)
 		}
 	}
-
-	/**
-	 * Look up the object.  If it is already in the [encounteredObjects] list,
-	 * answer the corresponding [SerializerInstruction].
-	 *
-	 * @param obj
-	 *   The object to look up.
-	 * @return
-	 *   The object's zero-based index in `encounteredObjects`.
-	 */
-	internal fun instructionForObject(
-		obj: A_BasicObject
-	): SerializerInstruction = encounteredObjects[obj]!!
 
 	/**
 	 * Look up the object and return the existing instruction that produces it.
@@ -334,7 +321,8 @@ class Serializer constructor (
 				}
 			}
 			if (instruction.operation.isVariableCreation
-				&& !obj.value().equalsNil())
+				&& obj.value().notNil
+			)
 			{
 				variablesToAssign.add(obj)
 				// Output an action to the *start* of the workStack to trace the
@@ -366,7 +354,7 @@ class Serializer constructor (
 		for (variable in variablesToAssign)
 		{
 			ASSIGN_TO_VARIABLE.serializeStat.record {
-				assert(!variable.value().equalsNil())
+				assert(variable.value().notNil)
 				val assignment = SerializerInstruction(
 					ASSIGN_TO_VARIABLE,
 					variable,

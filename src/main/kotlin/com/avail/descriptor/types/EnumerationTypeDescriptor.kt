@@ -177,7 +177,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	private fun rawGetSuperkind(self: AvailObject): A_Type
 	{
 		var cached: A_Type = self.slot(CACHED_SUPERKIND)
-		if (cached.equalsNil())
+		if (cached.isNil)
 		{
 			cached = bottom
 			for (instance in getInstances(self))
@@ -627,7 +627,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
 		anotherObject: A_BasicObject): Boolean =
-			!self.mutableSlot(CACHED_SUPERKIND).equalsNil()
+			self.mutableSlot(CACHED_SUPERKIND).notNil
 
 	override fun o_KeyType(self: AvailObject): A_Type
 	{

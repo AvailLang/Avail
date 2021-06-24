@@ -77,7 +77,7 @@ object P_PublishName : Primitive(
 		val loader = interpreter.fiber().availLoader() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module()
-		if (module.equalsNil())
+		if (module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}

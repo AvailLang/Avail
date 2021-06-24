@@ -683,9 +683,6 @@ class AvailObject private constructor(
 	override fun equalsTwoByteString(aTwoByteString: A_String) =
 		descriptor().o_EqualsTwoByteString(this, aTwoByteString)
 
-	/** Note: [nil] is never the target of an indirection. */
-	override fun equalsNil() = this === nil
-
 	override fun executionState() = descriptor().o_ExecutionState(this)
 
 	override fun setExecutionState(value: ExecutionState) =

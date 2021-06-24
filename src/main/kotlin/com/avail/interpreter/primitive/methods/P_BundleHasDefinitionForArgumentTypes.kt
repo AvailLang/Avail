@@ -74,7 +74,7 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 		val methodName = interpreter.argument(0)
 		val argTypes = interpreter.argument(1)
 		val bundle = methodName.bundleOrNil()
-		if (bundle.equalsNil())
+		if (bundle.isNil)
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD)
 		}
@@ -89,7 +89,7 @@ object P_BundleHasDefinitionForArgumentTypes : Primitive(2, CanInline)
 			{
 				val definition =
 					method.lookupByTypesFromTuple(argTypes)
-				assert(!definition.equalsNil())
+				assert(definition.notNil)
 				trueObject
 			}
 			catch (e: MethodDefinitionException)

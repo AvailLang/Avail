@@ -42,6 +42,7 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
@@ -483,10 +484,20 @@ interface A_BasicObject : JSONFriendly {
 	 */
 	fun equalsTwoByteString(aTwoByteString: A_String): Boolean
 
+
 	/**
-	 * Dispatch to the descriptor.
+	 * Test if the receiver is the [nil][NilDescriptor] value.
+	 *
+	 * Note: [nil] is never the target of an indirection.
 	 */
-	fun equalsNil(): Boolean
+	val isNil get() = this === nil
+
+	/**
+	 * Test if the receiver is *not* the [nil][NilDescriptor] value.
+	 *
+	 * Note: [nil] is never the target of an indirection.
+	 */
+	val notNil get() = this !== nil
 
 	/**
 	 * Dispatch to the descriptor.
@@ -722,13 +733,13 @@ interface A_BasicObject : JSONFriendly {
 	fun declarationKind(): DeclarationKind
 
 	/**
-	 * @return
+	 * Answer whether the receiver is a 32-bit signed integer.
 	 */
 	@get:ReferencedInGeneratedCode
 	val isInt: Boolean
 
 	/**
-	 * @return
+	 * Answer whether the receiver is a 64-bit signed integer.
 	 */
 	val isLong: Boolean
 

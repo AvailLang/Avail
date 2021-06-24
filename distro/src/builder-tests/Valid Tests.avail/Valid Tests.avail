@@ -34,6 +34,7 @@ Module "Valid Tests"
 Versions
 	"1.5.1"
 Uses
+	"Avail",
 	"LotsOfSlashes",
 	"EmptyTupleDispatch"
 Body

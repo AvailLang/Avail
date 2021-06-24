@@ -643,7 +643,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		fun instanceType(instance: A_BasicObject): AvailObject =
 			mutable.create {
 				assert(!instance.isType)
-				assert(!instance.equalsNil())
+				assert(instance.notNil)
 				setSlot(INSTANCE, instance.makeImmutable())
 			}
 

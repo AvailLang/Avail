@@ -167,7 +167,7 @@ class L1Disassembler constructor(
 					builder.append("\n")
 				}
 				if (pc == highlightPc) {
-					builder.append(" ==> ")
+					builder.append(" \uD83D\uDD35==> ")
 				}
 				builder.append("$tabs$pc. [:$line] ")
 				builder.append(operation.name)
@@ -246,7 +246,7 @@ class L1Disassembler constructor(
 				operandValues.clear()
 				nameBuilder.clear()
 				if (pc == highlightPc) {
-					nameBuilder.append(" ==> ")
+					nameBuilder.append(" \uD83D\uDD35==> ")
 				}
 				nameBuilder.append("$pc. [:$line] ${operation.shortName()}")
 				if (operation.operandTypes.isNotEmpty()) {
@@ -296,7 +296,7 @@ class L1Disassembler constructor(
 			private fun simplePrintable(value: AvailObject) =
 				when {
 					// Show some things textually.
-					value.equalsNil() -> value to false
+					value.isNil -> value to false
 					value.isString -> value to false
 					value.isInstanceOf(NUMBER.o) -> value to false
 					value.isInstanceOf(MESSAGE_BUNDLE.o) ->

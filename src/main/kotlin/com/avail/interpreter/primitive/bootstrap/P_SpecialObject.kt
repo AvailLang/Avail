@@ -76,7 +76,7 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
 		}
 
-		if (result.equalsNil())
+		if (result.isNil)
 		{
 			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)
 		}

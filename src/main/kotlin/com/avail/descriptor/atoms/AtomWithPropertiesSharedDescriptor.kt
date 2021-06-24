@@ -194,10 +194,11 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	override fun o_BundleOrCreate (self: AvailObject): A_Bundle
 	{
 		var bundle: A_Bundle = self.volatileSlot(BUNDLE_OR_NIL)
-		if (!bundle.equalsNil()) return bundle
+		if (bundle.notNil) return bundle
 		synchronized(self) {
-			val name: A_String = self.slot(NAME)
-			val splitter = MessageSplitter(name)
+			bundle = self.volatileSlot(BUNDLE_OR_NIL)
+			if (bundle.notNil) return bundle
+			val splitter = MessageSplitter(self.slot(NAME))
 			val method: A_Method = newMethod(splitter.numberOfArguments)
 			bundle = newBundle(self, method, splitter)
 			self.setVolatileSlot(BUNDLE_OR_NIL, bundle)
@@ -213,7 +214,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	): Array<AvailObjectFieldHelper> {
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val bundle = self.bundleOrNil()
-		if (!bundle.equalsNil())
+		if (bundle.notNil)
 		{
 			fields.add(
 				AvailObjectFieldHelper(
@@ -236,7 +237,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		key: A_Atom
 	): AvailObject = when
 	{
-		self.volatileSlot(PROPERTY_MAP_POJO).equalsNil() -> nil
+		self.volatileSlot(PROPERTY_MAP_POJO).isNil -> nil
 		else -> synchronized(self) { super.o_GetAtomProperty(self, key) }
 	}
 
@@ -265,17 +266,20 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 
 	override fun o_SerializerOperation (self: AvailObject) = when {
 		isSpecial -> SerializerOperation.SPECIAL_ATOM
-		!self.getAtomProperty(HERITABLE_KEY.atom).equalsNil() ->
+		self.getAtomProperty(HERITABLE_KEY.atom).notNil ->
 			SerializerOperation.HERITABLE_ATOM
-		!self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).equalsNil() ->
+		self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil ->
 			SerializerOperation.EXPLICIT_SUBCLASS_ATOM
 		else -> SerializerOperation.ATOM
 	}
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle)
 	{
-		synchronized(self) {
-			self.setVolatileSlot(BUNDLE_OR_NIL, bundle)
+		self.atomicUpdateSlot(BUNDLE_OR_NIL) {
+			assert(isNil or bundle.isNil) {
+				"Bundle can be cleared or set, but not changed"
+			}
+			bundle
 		}
 	}
 
@@ -285,13 +289,13 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		value: A_BasicObject)
 	{
 		var map = self.volatileSlot(PROPERTY_MAP_POJO)
-		if (map.equalsNil())
+		if (map.isNil)
 		{
 			synchronized(self)
 			{
 				// Re-check the volatile field.
 				map = self.volatileSlot(PROPERTY_MAP_POJO)
-				if (map.equalsNil())
+				if (map.isNil)
 				{
 					map = identityPojo(WeakHashMap<A_Atom, A_BasicObject>())
 					self.setVolatileSlot(PROPERTY_MAP_POJO, map)

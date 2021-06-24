@@ -107,7 +107,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		val fail = interpreter.argument(3)
 		val priority = interpreter.argument(4)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)

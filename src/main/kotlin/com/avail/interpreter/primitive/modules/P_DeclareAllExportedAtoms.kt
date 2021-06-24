@@ -75,7 +75,7 @@ object P_DeclareAllExportedAtoms : Primitive(
 		val names = interpreter.argument(0)
 		val isPublic = interpreter.argument(1)
 		val module = interpreter.module()
-		assert(!module.equalsNil())
+		assert(module.notNil)
 		if (isPublic.extractBoolean())
 		{
 			module.addImportedNames(names)

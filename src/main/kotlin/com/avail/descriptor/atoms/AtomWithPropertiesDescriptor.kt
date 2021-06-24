@@ -186,7 +186,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	override fun o_MakeShared(self: AvailObject): AvailObject {
 		assert(!isShared)
 		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
-		assert(!propertyMapPojo.equalsNil())
+		assert(propertyMapPojo.notNil)
 		val substituteAtom: AvailObject =
 			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
 				self.slot(NAME),
@@ -207,9 +207,9 @@ open class AtomWithPropertiesDescriptor protected constructor(
 	}
 
 	override fun o_SerializerOperation (self: AvailObject) = when {
-		!self.getAtomProperty(HERITABLE_KEY.atom).equalsNil() ->
+		self.getAtomProperty(HERITABLE_KEY.atom).notNil ->
 			SerializerOperation.HERITABLE_ATOM
-		!self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).equalsNil() ->
+		self.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil ->
 			SerializerOperation.EXPLICIT_SUBCLASS_ATOM
 		else -> SerializerOperation.ATOM
 	}
@@ -228,7 +228,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		val map: MutableMap<A_Atom, A_BasicObject> =
 			propertyMapPojo.javaObjectNotNull()
 		when {
-			value.equalsNil() -> map.remove(key)
+			value.isNil -> map.remove(key)
 			else -> map[key.makeShared()] = value.makeShared()
 		}
 	}

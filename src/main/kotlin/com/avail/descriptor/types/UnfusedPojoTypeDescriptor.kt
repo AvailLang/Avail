@@ -245,7 +245,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 	private fun pojoSelfType(self: AvailObject): A_Type
 	{
 		var selfType = self.slot(SELF_TYPE)
-		if (selfType.equalsNil())
+		if (selfType.isNil)
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
 				self.slot(JAVA_CLASS),
@@ -391,7 +391,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			createUnfusedPojoType(javaClass, intersectionAncestors)
 		}
@@ -411,7 +411,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			createUnfusedPojoType(javaClass, intersectionAncestors)
 		}
@@ -433,7 +433,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 	private fun typeVariables(self: AvailObject): A_Map
 	{
 		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
-		if (typeVars.equalsNil())
+		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
 			for (entry in self.slot(JAVA_ANCESTORS).mapIterable())

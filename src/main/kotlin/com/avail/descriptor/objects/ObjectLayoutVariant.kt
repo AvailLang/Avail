@@ -111,8 +111,7 @@ class ObjectLayoutVariant private constructor(
 		fieldToSlotIndex = mutableMapOf()
 		var slotCount = 0
 		realSlots = sortedFields.filter { field ->
-			val isReal =
-				field.getAtomProperty(explicitSubclassingKey).equalsNil()
+			val isReal = field.getAtomProperty(explicitSubclassingKey).isNil
 			fieldToSlotIndex[field] = if (isReal) ++slotCount else 0
 			isReal
 		}

@@ -77,6 +77,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
+import com.avail.descriptor.types.A_Type.Companion.typeVariables
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.Companion.arrayPojoType
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -1029,7 +1030,7 @@ abstract class PojoTypeDescriptor protected constructor(
 				&& !probablePojoType.equalsPojoBottomType())
 			{
 				val pojoClass = probablePojoType.javaClass()
-				if (!pojoClass.equalsNil())
+				if (pojoClass.notNil)
 				{
 					val javaClass = pojoClass.javaObjectNotNull<Class<*>>()
 					if (javaClass.typeParameters.isEmpty())

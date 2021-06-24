@@ -57,6 +57,7 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSIO
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -94,8 +95,9 @@ import java.util.IdentityHashMap
  */
 class ListPhraseTypeDescriptor internal constructor(
 	mutability: Mutability,
-	kind: PhraseKind) : PhraseTypeDescriptor(
-		mutability, kind, ObjectSlots::class.java, IntegerSlots::class.java)
+	kind: PhraseKind
+) : PhraseTypeDescriptor(
+	mutability, kind, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * My slots of type [int][Integer].
@@ -347,8 +349,9 @@ class ListPhraseTypeDescriptor internal constructor(
 		/** The empty list phrase's type.  */
 		val empty: A_Type = createListNodeTypeNoCheck(
 			PhraseKind.LIST_PHRASE,
-			TupleTypeDescriptor.tupleTypeForTypes(),
-			TupleTypeDescriptor.tupleTypeForTypes()).makeShared()
+			tupleTypeForTypes(),
+			tupleTypeForTypes()
+		).makeShared()
 	}
 
 	companion object
@@ -390,7 +393,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 *   A list phrase type.
 		 */
 		fun list(vararg types: A_Type): A_Type =
-			createListNodeType(TupleTypeDescriptor.tupleTypeForTypes(*types))
+			createListNodeType(tupleTypeForTypes(*types))
 
 		/**
 		 * Given an array of types, create the most general list phrase type

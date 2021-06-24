@@ -667,7 +667,7 @@ protected constructor(
 							val code: A_RawFunction = value.code()
 							var str = code.methodName().asNativeString()
 							val mod = code.module()
-							if (!mod.equalsNil())
+							if (mod.notNil)
 							{
 								val modName = mod.moduleName().asNativeString()
 								val shortName = modName.split("/").last()
@@ -681,7 +681,7 @@ protected constructor(
 							val code: A_RawFunction = value
 							var str = code.methodName().asNativeString()
 							val mod = code.module()
-							if (!mod.equalsNil())
+							if (mod.notNil)
 							{
 								val modName = mod.moduleName().asNativeString()
 								val shortName = modName.split("/").last()

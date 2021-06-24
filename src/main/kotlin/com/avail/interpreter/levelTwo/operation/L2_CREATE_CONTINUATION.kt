@@ -146,7 +146,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 			val constant: A_BasicObject? = regRead.constantOrNull()
 			// Skip if it's always nil, since the continuation was already
 			// initialized with nils.
-			if (constant === null || !constant.equalsNil())
+			if (constant === null || constant.notNil)
 			{
 				// :: continuation.frameAtPut(«i + 1», «slots[i]»)...
 				// [continuation]

@@ -233,7 +233,7 @@ class VariableSharedGlobalDescriptor private constructor(
 			super.o_SetValueNoCheck(self, newValue)
 			return
 		}
-		assert(!newValue.equalsNil())
+		assert(newValue.notNil)
 		try
 		{
 			handleVariableWriteTracing(self)

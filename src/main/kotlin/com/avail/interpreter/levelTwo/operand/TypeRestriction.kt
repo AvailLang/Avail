@@ -1045,7 +1045,7 @@ class TypeRestriction private constructor(
 					// main type constraint and isn't specifically excluded,
 					// otherwise use the bottomRestriction, which is the
 					// impossible restriction.
-					if (givenConstantOrNull.equalsNil())
+					if (givenConstantOrNull.isNil)
 					{
 						nilRestriction
 					}
@@ -1247,7 +1247,7 @@ class TypeRestriction private constructor(
 				// type constraint and isn't specifically excluded, otherwise
 				// use the bottomRestriction, which is the impossible
 				// restriction.
-				if (constantOrNull.equalsNil())
+				if (constantOrNull.isNil)
 				{
 					return nilRestriction
 				}
@@ -1382,7 +1382,7 @@ class TypeRestriction private constructor(
 				   || encoding == UNBOXED_FLOAT_FLAG)
 			constant.makeImmutable()
 			return restriction(
-				if (constant.equalsNil())
+				if (constant.isNil)
 				{
 					TOP.o
 				}

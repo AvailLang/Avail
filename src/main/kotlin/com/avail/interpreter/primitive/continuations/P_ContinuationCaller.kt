@@ -60,7 +60,7 @@ object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 		val caller = con.caller()
 		val callerHolder = newVariableWithContentType(
 			mostGeneralContinuationType())
-		if (!caller.equalsNil())
+		if (caller.notNil)
 		{
 			callerHolder.setValueNoCheck(caller)
 		}

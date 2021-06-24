@@ -309,7 +309,7 @@ class ContinuationDescriptor private constructor(
 					self.frameAt(i)))
 		}
 		val moduleName = code.module().run {
-			if (equalsNil()) "No module"
+			if (isNil) "No module"
 			else moduleName().asNativeString().split("/").last()
 		}
 
@@ -377,7 +377,7 @@ class ContinuationDescriptor private constructor(
 		if (hash == 0) {
 			val caller = self.caller().traversed().cast()
 			var callerHash = 0
-			if (!caller.equalsNil()
+			if (caller.notNil
 				&& caller.slot(HASH_OR_ZERO) == 0) {
 				// The caller isn't hashed yet either.  Iteratively hash the
 				// call chain bottom-up to avoid potentially deep recursion.
@@ -386,7 +386,7 @@ class ContinuationDescriptor private constructor(
 				do {
 					chain.addFirst(ancestor)
 					ancestor = ancestor.caller().traversed()
-				} while (!ancestor.equalsNil()
+				} while (ancestor.notNil
 					&& ancestor.slot(HASH_OR_ZERO) == 0)
 				for (c in chain) {
 					callerHash = c.hashCode()
@@ -456,7 +456,7 @@ class ContinuationDescriptor private constructor(
 			append(code.methodName().asNativeString())
 			append(" (")
 			val module = code.module()
-			if (module.equalsNil())
+			if (module.isNil)
 			{
 				append("?")
 			}
@@ -786,7 +786,7 @@ class ContinuationDescriptor private constructor(
 		) {
 			val frames = mutableListOf<A_Continuation>()
 			var c = availContinuation
-			while (!c.equalsNil()) {
+			while (c.notNil) {
 				frames.add(c)
 				c = c.caller()
 			}
@@ -816,7 +816,7 @@ class ContinuationDescriptor private constructor(
 						lines - frameIndex,
 						code.methodName().asNativeString(),
 						signature,
-						if (module.equalsNil()) "?"
+						if (module.isNil) "?"
 						else module.moduleName().asNativeString(),
 						frame.currentLineNumber())
 				}

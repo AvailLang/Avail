@@ -208,7 +208,7 @@ class DeclarationPhraseDescriptor(
 				builder.append(self.token().string().asNativeString())
 				builder.append(" : ")
 				val typeExpression: A_Phrase = self.typeExpression()
-				if (!typeExpression.equalsNil()) {
+				if (typeExpression.notNil) {
 					typeExpression.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				} else {
@@ -230,7 +230,7 @@ class DeclarationPhraseDescriptor(
 				codeGenerator: AvailCodeGenerator
 			) {
 				val expr: A_Phrase = declarationNode.initializationExpression()
-				if (!expr.equalsNil()) {
+				if (expr.notNil) {
 					expr.emitValueOn(codeGenerator)
 					codeGenerator.emitSetLocalOrOuter(tokens, declarationNode)
 				}
@@ -263,7 +263,7 @@ class DeclarationPhraseDescriptor(
 				builder.append(self.token().string().asNativeString())
 				builder.append(" : ")
 				printTypePartOf(self, builder, recursionMap, indent + 1)
-				if (!self.initializationExpression().equalsNil()) {
+				if (self.initializationExpression().notNil) {
 					builder.append(" := ")
 					self.initializationExpression().printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
@@ -340,7 +340,7 @@ class DeclarationPhraseDescriptor(
 				builder.append(self.token().string().asNativeString())
 				builder.append(" : ")
 				printTypePartOf(self, builder, recursionMap, indent + 1)
-				if (!self.initializationExpression().equalsNil()) {
+				if (self.initializationExpression().notNil) {
 					builder.append(" := ")
 					self.initializationExpression().printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
@@ -620,11 +620,11 @@ class DeclarationPhraseDescriptor(
 		transformer: (A_Phrase) -> A_Phrase
 	) {
 		val typeExpression = self.typeExpression()
-		if (!typeExpression.equalsNil()) {
+		if (typeExpression.notNil) {
 			self.setSlot(TYPE_EXPRESSION, transformer(typeExpression))
 		}
 		val expression: A_Phrase = self.initializationExpression()
-		if (!expression.equalsNil()) {
+		if (expression.notNil) {
 			self.setSlot(INITIALIZATION_EXPRESSION, transformer(expression))
 		}
 	}
@@ -634,7 +634,7 @@ class DeclarationPhraseDescriptor(
 		action: (A_Phrase) -> Unit
 	) {
 		val expression = self.initializationExpression()
-		if (!expression.equalsNil()) {
+		if (expression.notNil) {
 			action(expression)
 		}
 	}
@@ -668,19 +668,19 @@ class DeclarationPhraseDescriptor(
 			at("token") { self.slot(TOKEN).writeTo(writer) }
 			at("declared type") { self.slot(DECLARED_TYPE).writeTo(writer) }
 			val typeExpression = self.slot(TYPE_EXPRESSION)
-			if (!typeExpression.equalsNil())
+			if (typeExpression.notNil)
 			{
 				at("type expression") { typeExpression.writeTo(writer) }
 			}
 			val initializationExpression = self.slot(INITIALIZATION_EXPRESSION)
-			if (!initializationExpression.equalsNil())
+			if (initializationExpression.notNil)
 			{
 				at("initialization expression") {
 					initializationExpression.writeTo(writer)
 				}
 			}
 			val literal = self.slot(LITERAL_OBJECT)
-			if (!literal.equalsNil())
+			if (literal.notNil)
 			{
 				at("literal") { literal.writeTo(writer) }
 			}
@@ -730,10 +730,10 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase {
 			assert(declaredType.isType)
 			assert(token.isInstanceOf(Types.TOKEN.o))
-			assert(initializationExpression.equalsNil()
+			assert(initializationExpression.isNil
 				|| initializationExpression.isInstanceOfKind(
 					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
-			assert(literalObject.equalsNil()
+			assert(literalObject.isNil
 				|| declarationKind === DeclarationKind.MODULE_VARIABLE
 				|| declarationKind === DeclarationKind.MODULE_CONSTANT)
 			return mutables[declarationKind.ordinal].createShared {

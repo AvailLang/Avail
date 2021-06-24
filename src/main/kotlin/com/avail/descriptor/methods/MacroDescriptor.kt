@@ -144,7 +144,7 @@ class MacroDescriptor private constructor(
 	override fun o_DefinitionModuleName(self: AvailObject): A_String
 	{
 		val module: A_Module = self.slot(MODULE)
-		return if (module.equalsNil()) {
+		return if (module.isNil) {
 			builtInNoModuleName
 		} else {
 			module.moduleName()

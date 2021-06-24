@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/12/21 11:44 PM
+ * * Last Generated: 6/23/21 9:44 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -279,6 +279,7 @@ Names
 	"new_[_]",
 	"new_applying_",
 	"new`↑_",
+	"new`↑_initialized to_",
 	"new⁇heritable«fiber-local»⁇atom named_",
 	"next character",
 	"non-canonical problem with_",

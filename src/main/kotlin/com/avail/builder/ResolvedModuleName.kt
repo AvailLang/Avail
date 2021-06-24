@@ -73,7 +73,7 @@ internal constructor(
 	 * `true` iff the [resolved&#32;module&#32;name][ResolvedModuleName]
 	 * represents a package, `false` otherwise.
 	 */
-	val isPackage: Boolean
+	val isPackage: Boolean = resolverReference.isPackage
 
 	/**
 	 * The [ModuleRoot] that this [ResolvedModuleName] belongs to.
@@ -92,11 +92,6 @@ internal constructor(
 	 * otherwise, the size of the compiled module is used.
 	 */
 	val moduleSize = resolverReference.size
-
-	init
-	{
-		this.isPackage = resolverReference.isPackage
-	}
 
 	/**
 	 * Answer the local module name as a sibling of the

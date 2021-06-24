@@ -59,7 +59,7 @@ internal class L2SemanticConstant constructor(value: A_BasicObject) :
 
 	override fun primaryVisualSortKey() = when
 	{
-		value.equalsNil() -> PrimaryVisualSortKey.CONSTANT_NIL
+		value.isNil -> PrimaryVisualSortKey.CONSTANT_NIL
 		else -> PrimaryVisualSortKey.CONSTANT
 	}
 

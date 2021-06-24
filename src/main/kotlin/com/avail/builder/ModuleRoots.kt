@@ -43,7 +43,6 @@ import com.avail.resolver.ResolverReference
 import com.avail.utility.json.JSONWriter
 import java.net.URI
 import java.util.Collections
-import java.util.Collections.unmodifiableSet
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
 
@@ -232,12 +231,6 @@ class ModuleRoots constructor(
 			Repositories.deleteRepository(name)
 		}
 	}
-
-	/**
-	 * The logical root names in the order that they are specified in the Avail
-	 * [module][ModuleDescriptor] path.
-	 */
-	val rootNames: Set<String> get() = unmodifiableSet(rootMap.keys)
 
 	/**
 	 * The [module&#32;roots][ModuleRoot] in the order that they are specified

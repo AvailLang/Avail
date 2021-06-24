@@ -76,7 +76,7 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
 				if (handle.isAtomSpecial())

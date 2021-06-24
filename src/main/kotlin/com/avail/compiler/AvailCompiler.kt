@@ -132,6 +132,7 @@ import com.avail.descriptor.module.A_Module.Companion.importedNames
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.privateNames
 import com.avail.descriptor.module.A_Module.Companion.removeFrom
+import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.Companion.newModule
@@ -291,7 +292,6 @@ import java.lang.String.format
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
-import java.util.ArrayList
 import java.util.Arrays
 import java.util.Collections.emptyList
 import java.util.Formatter
@@ -349,7 +349,7 @@ class AvailCompiler(
 	 * tasks, and handles serialization to a
 	 * [repository][Repository] if necessary.
 	 */
-	val compilationContext: CompilationContext = CompilationContext(
+	val compilationContext = CompilationContext(
 		moduleHeader,
 		module,
 		source,
@@ -760,7 +760,7 @@ class AvailCompiler(
 			formatString(
 				"Semantic restriction %s, in %s:%d",
 				restriction.definitionMethod().bundles().first().message(),
-				if (mod.equalsNil())
+				if (mod.isNil)
 					"no module"
 				else
 					mod.moduleName(),
@@ -816,7 +816,7 @@ class AvailCompiler(
 			formatString(
 				"Macro evaluation %s, in %s:%d",
 				macro.definitionBundle().message(),
-				if (mod.equalsNil()) "no module" else mod.moduleName(),
+				if (mod.isNil) "no module" else mod.moduleName(),
 				code.startingLineNumber())
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
@@ -1040,7 +1040,7 @@ class AvailCompiler(
 				compilationContext.serializeWithoutSummary(creationFunction)
 				val variable = createGlobal(varType, module, name, false)
 				module.addVariableBinding(name, variable)
-				if (!replacement.initializationExpression().equalsNil())
+				if (replacement.initializationExpression().notNil)
 				{
 					val newDeclaration = newModuleVariable(
 						replacement.token(),
@@ -1139,7 +1139,7 @@ class AvailCompiler(
 									val issuingModule =
 										bundle.message().issuingModule()
 									val moduleName =
-										if (issuingModule.equalsNil())
+										if (issuingModule.isNil)
 											"(built-in)"
 										else
 											issuingModule.moduleName()
@@ -1469,7 +1469,7 @@ class AvailCompiler(
 				{
 					val argumentBundle =
 						latestArgument.apparentSendName().bundleOrNil()
-					assert(!argumentBundle.equalsNil())
+					assert(argumentBundle.notNil)
 					if (prefilter.hasKey(argumentBundle))
 					{
 						val successor = prefilter.mapAt(argumentBundle)
@@ -1502,7 +1502,7 @@ class AvailCompiler(
 				}
 			}
 			val typeFilterTreePojo = bundleTree.lazyTypeFilterTreePojo()
-			if (!typeFilterTreePojo.equalsNil())
+			if (typeFilterTreePojo.notNil)
 			{
 				// Use the most recently pushed phrase's type to look up the
 				// successor bundle tree.  This implements aggregated argument
@@ -2131,11 +2131,11 @@ class AvailCompiler(
 		// Only consider definitions that are defined in the current module or
 		// an ancestor.
 		val filteredByTypes =
-			if (macroOrNil.equalsNil()) method.filterByTypes(argTypes)
+			if (macroOrNil.isNil) method.filterByTypes(argTypes)
 			else listOf(macroOrNil)
 		val satisfyingDefinitions = filteredByTypes.filter { definition ->
 			val definitionModule = definition.definitionModule()
-			definitionModule.equalsNil()
+			definitionModule.isNil
 				|| compilationContext.module.hasAncestor(definitionModule)
 		}
 		if (satisfyingDefinitions.isEmpty())
@@ -2145,16 +2145,16 @@ class AvailCompiler(
 				describeWhyDefinitionsAreInapplicable(
 					bundle,
 					argTypes,
-					if (macroOrNil.equalsNil()) methodDefinitions
+					if (macroOrNil.isNil) methodDefinitions
 					else emptyTuple(),
-					if (macroOrNil.equalsNil()) emptyTuple()
+					if (macroOrNil.isNil) emptyTuple()
 					else tuple(macroOrNil),
 					compilationContext.module))
 			return
 		}
 		// Compute the intersection of the return types of the possible callees.
 		// Macro bodies return phrases, but that's not what we want here.
-		var intersection: A_Type = if (macroOrNil.equalsNil())
+		var intersection: A_Type = if (macroOrNil.isNil)
 		{
 			satisfyingDefinitions.fold(TOP.o) { type: A_Type, def ->
 				type.typeIntersection(def.bodySignature().returnType())
@@ -2171,7 +2171,7 @@ class AvailCompiler(
 		val restrictionsToTry = mutableListOf<A_SemanticRestriction>()
 		restrictions.forEach { restriction ->
 			val definitionModule = restriction.definitionModule()
-			if (definitionModule.equalsNil()
+			if (definitionModule.isNil
 				|| compilationContext.module.hasAncestor(definitionModule))
 			{
 				if (restriction.function().kind().acceptsListOfArgValues(
@@ -2314,7 +2314,7 @@ class AvailCompiler(
 			val allVisible = mutableListOf<A_Sendable>()
 			definitionsTuple.forEach { def ->
 				val definingModule = def.definitionModule()
-				if (definingModule.equalsNil()
+				if (definingModule.isNil
 					|| scopeModule.hasAncestor(definingModule))
 				{
 					allVisible.add(def)
@@ -2322,7 +2322,7 @@ class AvailCompiler(
 			}
 			macrosTuple.forEach { def ->
 				val definingModule = def.definitionModule()
-				if (definingModule.equalsNil()
+				if (definingModule.isNil
 					|| scopeModule.hasAncestor(definingModule))
 				{
 					allVisible.add(def)
@@ -2498,7 +2498,7 @@ class AvailCompiler(
 			for (definition in macros)
 			{
 				val definitionModule = definition.definitionModule()
-				if (definitionModule.equalsNil()
+				if (definitionModule.isNil
 					|| compilationContext.module.hasAncestor(definitionModule))
 				{
 					visibleDefinitions.add(definition)
@@ -2572,7 +2572,7 @@ class AvailCompiler(
 				}
 			}
 
-			if (macro.equalsNil())
+			if (macro.isNil)
 			{
 				// Failed lookup.
 				if (errorCode !== E_NO_METHOD_DEFINITION)
@@ -2635,7 +2635,7 @@ class AvailCompiler(
 			macro,
 			stateAfterCall
 		) { expectedYieldType ->
-			if (macro.equalsNil())
+			if (macro.isNil)
 			{
 				val sendNode = newSendNode(
 					tupleFromList(consumedTokens),

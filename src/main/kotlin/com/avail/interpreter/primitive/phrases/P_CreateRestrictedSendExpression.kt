@@ -160,7 +160,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		for (definition in bundle.bundleMethod().filterByTypes(argTypesList))
 		{
 			val definitionModule = definition.definitionModule()
-			if (definitionModule.equalsNil()
+			if (definitionModule.isNil
 				|| module.hasAncestor(definitionModule))
 			{
 				intersection = intersection.typeIntersection(
@@ -195,12 +195,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		return interpreter.suspendThen {
 			val countdown = AtomicInteger(restrictionsSize)
 			val problems = mutableListOf<A_String>()
-			val decrement = decrement@{
+			val decrement = {
 				when
 				{
 					countdown.decrementAndGet() != 0 ->
+					{
 						// We're not last to decrement.
-						return@decrement
+					}
 					problems.isEmpty() ->
 						// We're last to report, and there were no errors.
 						succeed(

@@ -67,7 +67,7 @@ object P_AtomHasProperty : Primitive(
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(!propertyValue.equalsNil()))
+			objectFromBoolean(propertyValue.notNil))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

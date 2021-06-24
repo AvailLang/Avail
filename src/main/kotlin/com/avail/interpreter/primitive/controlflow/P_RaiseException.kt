@@ -75,7 +75,7 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 		// dump can be obtained later.
 		val fieldMap = exception.fieldMap()
 		val newFieldMap = fieldMap.mapAtPuttingCanDestroy(
-			stackDumpAtom(),
+			stackDumpAtom,
 			interpreter.getReifiedContinuation()!!.makeImmutable(),
 			false)
 		val newException = objectFromMap(newFieldMap)

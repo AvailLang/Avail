@@ -661,7 +661,7 @@ open class CompiledCodeDescriptor protected constructor(
 		if (variableIntegerSlotsCount() > 0)
 		{
 			val moduleName = self.module().run {
-				if (equalsNil()) "No module"
+				if (isNil) "No module"
 				else moduleName().asNativeString().split("/").last()
 			}
 			fields.add(
@@ -923,8 +923,7 @@ open class CompiledCodeDescriptor protected constructor(
 
 	override fun o_SetOriginatingPhraseOrIndex(
 		self: AvailObject,
-		phraseOrIndex: AvailObject
-	)
+		phraseOrIndex: AvailObject)
 	{
 		originatingPhraseOrIndex = phraseOrIndex
 	}
@@ -933,8 +932,8 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun o_SetStartingChunkAndReoptimizationCountdown(
 		self: AvailObject,
 		chunk: L2Chunk,
-		countdown: Long
-	) {
+		countdown: Long)
+	{
 		synchronized(self) { startingChunk = chunk }
 		// Must be outside the synchronized section to ensure the write of
 		// the new chunk is committed before the counter reset is visible.
@@ -989,7 +988,7 @@ open class CompiledCodeDescriptor protected constructor(
 		at("nybbles") { self.nybbles().writeTo(writer) }
 		at("function type") { self.slot(FUNCTION_TYPE).writeFunctionType() }
 		at("method") { self.methodName().writeTo(writer) }
-		if (!module.equalsNil())
+		if (module.notNil)
 		{
 			at("module") { self.module().moduleName().writeTo(writer) }
 		}
@@ -1000,7 +999,7 @@ open class CompiledCodeDescriptor protected constructor(
 				for (i in 1..limit)
 				{
 					var literal: A_BasicObject = self.slot(LITERAL_AT_, i)
-					if (literal.equalsNil())
+					if (literal.isNil)
 					{
 						// Value doesn't matter, but it can't be nil.  Use zero.
 						literal = zero
@@ -1097,7 +1096,7 @@ open class CompiledCodeDescriptor protected constructor(
 						val descriptor: CompiledCodeDescriptor =
 							self.descriptor().cast()
 						descriptor.invocationStatistic.hasRun = false
-						if (!descriptor.module.equalsNil()) {
+						if (descriptor.module.notNil) {
 							val chunk = descriptor.startingChunk
 							if (chunk != L2Chunk.unoptimizedChunk)
 							{
@@ -1130,7 +1129,7 @@ open class CompiledCodeDescriptor protected constructor(
 				val descriptor: CompiledCodeDescriptor =
 					self.descriptor().cast()
 				val module = descriptor.module
-				if (!module.equalsNil()) {
+				if (module.notNil) {
 					val report = CodeCoverageReport(
 						descriptor.invocationStatistic.hasRun,
 						descriptor.startingChunk != L2Chunk.unoptimizedChunk,
@@ -1241,7 +1240,7 @@ open class CompiledCodeDescriptor protected constructor(
 			assert(numConstants in 0..0xFFFF)
 			assert(numLiterals in 0..0xFFFF)
 			assert(numOuters in 0..0xFFFF)
-			assert(module.equalsNil() || module.isInstanceOf(MODULE.o))
+			assert(module.isNil || module.isInstanceOf(MODULE.o))
 			assert(lineNumber >= 0)
 			val nybbleCount = nybbles.tupleSize()
 			val code = newObjectIndexedIntegerIndexedDescriptor(

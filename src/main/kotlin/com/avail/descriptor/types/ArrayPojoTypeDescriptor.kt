@@ -287,7 +287,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor.createUnfusedPojoType(
 				javaClass, intersectionAncestors)
@@ -313,7 +313,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			intersectionAncestors.keysAsSet())
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor.createUnfusedPojoType(
 				javaClass, intersectionAncestors)

@@ -67,7 +67,7 @@ object P_AtomGetProperty : Primitive(
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
-		return if (propertyValue.equalsNil())
+		return if (propertyValue.isNil)
 		{
 			interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		}

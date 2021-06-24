@@ -108,7 +108,7 @@ object P_ForkOrphan : Primitive(
 			formatString(
 				"Fork orphan, %s, %s:%d",
 				code.methodName(),
-				if (code.module().equalsNil())
+				if (code.module().isNil)
 					emptyTuple
 				else
 					code.module().moduleName(),

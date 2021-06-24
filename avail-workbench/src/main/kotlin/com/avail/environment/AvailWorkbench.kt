@@ -46,7 +46,6 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.LayoutConfiguration.Companion.basePreferences
-import com.avail.environment.LayoutConfiguration.Companion.initialConfiguration
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
@@ -102,7 +101,6 @@ import com.avail.environment.streams.StreamStyle.BUILD_PROGRESS
 import com.avail.environment.streams.StreamStyle.ERR
 import com.avail.environment.streams.StreamStyle.INFO
 import com.avail.environment.streams.StreamStyle.OUT
-import com.avail.environment.streams.StreamStyle.values
 import com.avail.environment.tasks.BuildTask
 import com.avail.files.FileManager
 import com.avail.io.ConsoleInputChannel
@@ -199,6 +197,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.concurrent.schedule
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -210,6 +209,8 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property runtime
+ *   The [AvailRuntime] for this workbench to use.
  * @property fileManager
  *   The [FileManager] used to manage Avail files.
  * @property resolver
@@ -224,6 +225,7 @@ import kotlin.math.min
  *   The [module&#32;name resolver][ModuleNameResolver].
  */
 class AvailWorkbench internal constructor (
+	private val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver) : JFrame()
 {
@@ -1552,15 +1554,17 @@ class AvailWorkbench internal constructor (
 
 	private val leftPane: JSplitPane
 
+	/**
+	 * Get the existing preferences early for plugging in at the right times
+	 * during construction.
+	 */
+	private val layoutConfiguration = LayoutConfiguration.initialConfiguration
+
 	init
 	{
-		val runtime = AvailRuntime(resolver, fileManager)
 		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
-		// Get the existing preferences early for plugging in at the right
-		// times during construction.
-		val configuration = initialConfiguration
 		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
 		// Set *just* the window title...
@@ -1660,11 +1664,10 @@ class AvailWorkbench internal constructor (
 		moduleTree.addMouseListener(
 			object : MouseAdapter()
 			{
-				override fun mouseClicked(e: MouseEvent?)
+				override fun mouseClicked(e: MouseEvent)
 				{
-					assert(e !== null)
 					if (buildAction.isEnabled
-						&& e!!.clickCount == 2
+						&& e.clickCount == 2
 						&& e.button == MouseEvent.BUTTON1)
 					{
 						e.consume()
@@ -1703,13 +1706,12 @@ class AvailWorkbench internal constructor (
 		entryPointsTree.addMouseListener(
 			object : MouseAdapter()
 			{
-				override fun mouseClicked(e: MouseEvent?)
+				override fun mouseClicked(e: MouseEvent)
 				{
-					assert(e !== null)
 					if (selectedEntryPoint() !== null)
 					{
 						if (insertEntryPointAction.isEnabled
-							&& e!!.clickCount == 2
+							&& e.clickCount == 2
 							&& e.button == MouseEvent.BUTTON1)
 						{
 							e.consume()
@@ -1721,7 +1723,7 @@ class AvailWorkbench internal constructor (
 					else if (selectedEntryPointModule() !== null)
 					{
 						if (buildEntryPointModuleAction.isEnabled
-							&& e!!.clickCount == 2
+							&& e.clickCount == 2
 							&& e.button == MouseEvent.BUTTON1)
 						{
 							e.consume()
@@ -1815,7 +1817,7 @@ class AvailWorkbench internal constructor (
 				.getStyle(StyleContext.DEFAULT_STYLE)
 		defaultStyle.addAttributes(attributes)
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
-		values().forEach { style -> style.defineStyleIn(doc) }
+		StreamStyle.values().forEach { style -> style.defineStyleIn(doc) }
 
 		// Redirect the standard streams.
 		try
@@ -1846,8 +1848,10 @@ class AvailWorkbench internal constructor (
 			true,
 			createScrollPane(moduleTree),
 			createScrollPane(entryPointsTree))
-		leftPane.setDividerLocation(configuration.moduleVerticalProportion())
-		leftPane.resizeWeight = configuration.moduleVerticalProportion()
+		leftPane.setDividerLocation(
+			layoutConfiguration.moduleVerticalProportion())
+		leftPane.resizeWeight =
+			layoutConfiguration.moduleVerticalProportion()
 		leftPane.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
 			saveWindowPosition()
 		}
@@ -1891,15 +1895,16 @@ class AvailWorkbench internal constructor (
 
 		mainSplit = JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane)
-		mainSplit.dividerLocation = configuration.leftSectionWidth()
+		mainSplit.dividerLocation = layoutConfiguration.leftSectionWidth()
 		mainSplit.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
 			saveWindowPosition()
 		}
 		contentPane.add(mainSplit)
 		pack()
-		configuration.placement?.let { bounds = it }
+		layoutConfiguration.placement?.let { bounds = it }
+		extendedState = layoutConfiguration.extendedState
 
-		// Save placement when closing.
+		// Save placement during resizes and moves.
 		addComponentListener(object : ComponentAdapter()
 		{
 			override fun componentResized(e: ComponentEvent?)
@@ -1936,16 +1941,24 @@ class AvailWorkbench internal constructor (
 		// Select an initial module if specified.
 		validate()
 		setEnablements()
-	}// Set module components.
+	}
 
 	private fun saveWindowPosition()
 	{
-		val saveConfiguration = LayoutConfiguration()
-		saveConfiguration.placement = bounds
-		saveConfiguration.leftSectionWidth = mainSplit.dividerLocation
-		saveConfiguration.moduleVerticalProportion =
-			leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
-		saveConfiguration.saveWindowPosition()
+		layoutConfiguration.extendedState = extendedState
+		if (extendedState == NORMAL)
+		{
+			// Only capture the bounds if it's not zoomed or minimized.
+			layoutConfiguration.placement = bounds
+		}
+		if (extendedState != ICONIFIED)
+		{
+			// Capture the divider positions if it's not minimized.
+			layoutConfiguration.leftSectionWidth = mainSplit.dividerLocation
+			layoutConfiguration.moduleVerticalProportion =
+				leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
+		}
+		layoutConfiguration.saveWindowPosition()
 	}
 
 	/**
@@ -2251,7 +2264,7 @@ class AvailWorkbench internal constructor (
 			JScrollPane().apply {
 				horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
 				verticalScrollBarPolicy = VERTICAL_SCROLLBAR_ALWAYS
-				minimumSize = Dimension(100, 0)
+				minimumSize = Dimension(100, 50)
 				setViewportView(innerComponent)
 			}
 
@@ -2294,13 +2307,19 @@ class AvailWorkbench internal constructor (
 		fun main(args: Array<String>)
 		{
 			val fileManager = FileManager()
-			if (runningOnMac)
-			{
-				setUpForMac()
-			}
-			if (darkMode)
-			{
-				LafManager.install(DarculaTheme())
+			// Do the slow Swing setup in parallel with other things...
+			val swingReady = Semaphore(0)
+			val runtimeReady = Semaphore(0)
+			invokeLater {
+				if (runningOnMac)
+				{
+					setUpForMac()
+				}
+				if (darkMode)
+				{
+					LafManager.install(DarculaTheme())
+				}
+				swingReady.release()
 			}
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
@@ -2313,7 +2332,7 @@ class AvailWorkbench internal constructor (
 				else ->
 				{
 					val semaphore = Semaphore(0)
-					val mrs = ModuleRoots(fileManager, rootsString) { fails ->
+					val roots = ModuleRoots(fileManager, rootsString) { fails ->
 						if (fails.isNotEmpty())
 						{
 							failedResolutions.addAll(fails)
@@ -2321,45 +2340,53 @@ class AvailWorkbench internal constructor (
 						semaphore.release()
 					}
 					semaphore.acquireUninterruptibly()
-					mrs
+					roots
 				}
 			}
 			val resolutionTime = currentTimeMillis() - rootResolutionStart
-			val resolver: ModuleNameResolver
-			var reader: Reader? = null
-			try
-			{
-				val renames = System.getProperty("availRenames", null)
-				reader = when (renames)
+			lateinit var resolver: ModuleNameResolver
+			lateinit var runtime: AvailRuntime
+			thread {
+				var reader: Reader? = null
+				try
 				{
-					// Load the renames from preferences further down.
-					null -> StringReader("")
-					// Load renames from file specified on the command line...
-					else -> BufferedReader(
-						InputStreamReader(
-							FileInputStream(
-								File(renames)), StandardCharsets.UTF_8))
+					val renames = System.getProperty("availRenames", null)
+					reader = when (renames)
+					{
+						// Load the renames from preferences further down.
+						null -> StringReader("")
+						// Load renames from file specified on the command line...
+						else -> BufferedReader(
+							InputStreamReader(
+								FileInputStream(
+									File(renames)), StandardCharsets.UTF_8))
+					}
+					val renameParser = RenamesFileParser(reader, roots)
+					resolver = renameParser.parse()
+					if (renames === null)
+					{
+						// Now load the rename rules from preferences.
+						loadRenameRulesInto(resolver)
+					}
 				}
-				val renameParser = RenamesFileParser(reader, roots)
-				resolver = renameParser.parse()
-				if (renames === null)
+				finally
 				{
-					// Now load the rename rules from preferences.
-					loadRenameRulesInto(resolver)
+					IO.closeIfNotNull(reader)
 				}
-			}
-			finally
-			{
-				IO.closeIfNotNull(reader)
+				runtime = AvailRuntime(resolver, fileManager)
+				runtimeReady.release()
 			}
 
 			// The first application argument, if any, says which module to
 			// select.
 			val initial = if (args.isNotEmpty()) args[0] else ""
 
+			runtimeReady.acquire()
+			swingReady.acquire()
+
 			// Display the UI.
 			invokeLater {
-				val bench = AvailWorkbench(fileManager, resolver)
+				val bench = AvailWorkbench(runtime, fileManager, resolver)
 				if (runningOnMac)
 				{
 					bench.setUpInstanceForMac()

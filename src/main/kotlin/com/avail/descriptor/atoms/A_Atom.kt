@@ -111,7 +111,8 @@ interface A_Atom : A_BasicObject {
 		 * @param key
 		 *   The property key to look up, an [atom][AtomDescriptor].
 		 * @return
-		 *   The value associated with that property key within the receiver.
+		 *   The value associated with that property key within the receiver, or
+		 *   nil if there is no such property in this atom.
 		 */
 		fun A_Atom.getAtomProperty(key: A_Atom): AvailObject =
 			dispatch { o_GetAtomProperty(it, key) }
@@ -119,7 +120,10 @@ interface A_Atom : A_BasicObject {
 		/**
 		 * Answer the [message&#32;bundle][MessageBundleDescriptor] associated
 		 * with this atom.  If the atom does not yet have a message bundle
-		 * associated with it, create one for that purpose and install it.
+		 * associated with it, create one for that purpose and install it.  The
+		 * creation of the bundle is atomic, ensuring multiple fibers attempting
+		 * to create the atom's bundle will agree about which bundle was created
+		 * and installed in the atom.
 		 *
 		 * @return
 		 *   The atom's message bundle.

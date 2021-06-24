@@ -65,7 +65,7 @@ object P_SetFiberVariable : Primitive(
 		val key = interpreter.argument(0)
 		val value = interpreter.argument(1)
 		val fiber = interpreter.fiber()
-		if (key.getAtomProperty(HERITABLE_KEY.atom).equalsNil())
+		if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
 		{
 			fiber.setFiberGlobals(
 				fiber.fiberGlobals().mapAtPuttingCanDestroy(

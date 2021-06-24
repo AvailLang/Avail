@@ -668,13 +668,13 @@ class MapDescriptor private constructor(
 	 * [MapIterable] is returned by [A_Map.mapIterable] to
 	 * support use of Java's "foreach" control structure on [maps][A_Map].
 	 *
+	 * @constructor
+	 *   Construct a new `MapIterable`.
+	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	abstract class MapIterable
-	/**
-	 * Construct a new `MapIterable`.
-	 */
-	protected constructor() : MutableIterator<Entry>, Iterable<Entry>
+		protected constructor() : MutableIterator<Entry>, Iterable<Entry>
 	{
 		/**
 		 * The [Entry] to be reused for each <key, value> pair while iterating

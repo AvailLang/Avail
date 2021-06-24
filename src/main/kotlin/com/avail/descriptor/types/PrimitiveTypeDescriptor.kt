@@ -314,6 +314,9 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		throw RuntimeException()
 	}
 
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
+		self.isSupertypeOfPrimitiveTypeEnum(NUMBER)
+
 	// Most of the primitive types are already handled as special objects,
 	// so this only kicks in as a backup.
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =

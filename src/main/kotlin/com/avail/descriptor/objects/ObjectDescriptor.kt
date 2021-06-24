@@ -272,7 +272,7 @@ class ObjectDescriptor internal constructor(
 				!self.slot(FIELD_VALUES_, it)
 					.equals(anObject.slot(FIELD_VALUES_, it))
 			} -> return false
-			!isShared && self.slot(KIND).equalsNil() ->
+			!isShared && self.slot(KIND).isNil ->
 				self.becomeIndirectionTo(anObject)
 			!otherDescriptor.isShared -> anObject.becomeIndirectionTo(self)
 		}
@@ -461,7 +461,7 @@ class ObjectDescriptor internal constructor(
 
 	override fun o_Kind(self: AvailObject): A_Type {
 		val kind = self.slot(KIND)
-		if (!kind.equalsNil()) return kind
+		if (kind.notNil) return kind
 		self.makeImmutable()
 		return variant.mutableObjectTypeDescriptor.createFromObject(self).also {
 			// Make the object shared since it's being written to a mutable slot
@@ -530,7 +530,7 @@ class ObjectDescriptor internal constructor(
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
 			baseType.fieldTypeMap().forEach { k, _ ->
-				if (!k.getAtomProperty(explicitSubclassingKey).equalsNil()) {
+				if (k.getAtomProperty(explicitSubclassingKey).notNil) {
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(k, true)
 				}
 			}
@@ -548,19 +548,10 @@ class ObjectDescriptor internal constructor(
 		}
 	}
 
-	@Deprecated(
-		"ObjectDescriptors are organized by ObjectLayoutVariant",
-		level = DeprecationLevel.HIDDEN)
 	override fun mutable() = variant.mutableObjectDescriptor
 
-	@Deprecated(
-		"ObjectDescriptors are organized by ObjectLayoutVariant",
-		level = DeprecationLevel.HIDDEN)
 	override fun immutable() = variant.immutableObjectDescriptor
 
-	@Deprecated(
-		"ObjectDescriptors are organized by ObjectLayoutVariant",
-		level = DeprecationLevel.HIDDEN)
 	override fun shared() = variant.sharedObjectDescriptor
 
 	companion object {

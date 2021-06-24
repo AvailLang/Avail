@@ -106,7 +106,7 @@ object P_Fork : Primitive(
 			formatString(
 				"Fork, %s, %s:%d",
 				code.methodName(),
-				if (code.module().equalsNil())
+				if (code.module().isNil)
 					emptyTuple
 				else
 					code.module().moduleName(),

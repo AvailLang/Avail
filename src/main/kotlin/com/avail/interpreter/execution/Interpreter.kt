@@ -263,8 +263,9 @@ class Interpreter(
 		return when
 		{
 			f === null || f === nil ->
-				// Don't replace ===nil with .equalsNil(), since that might
-				// have to dispatch on an object whose descriptor is in flux.
+				// Don't replace ===nil with .isNil, since that might have to
+				// dispatch on an object whose descriptor is in flux.  It's not
+				// the case as of 2021-06-17, but this is maintenance-proofing.
 				null
 			else ->
 				// A running A_RawFunction is always shared, so safe to access
@@ -405,7 +406,7 @@ class Interpreter(
 		if (frame !== null)
 		{
 			val frames = mutableListOf<A_Continuation>()
-			while (!frame!!.equalsNil())
+			while (frame!!.notNil)
 			{
 				frames.add(frame)
 				frame = frame.caller()
@@ -1464,7 +1465,7 @@ class Interpreter(
 		if (debugL2) {
 			val text = when {
 				continuation === null -> "null"
-				continuation.equalsNil() -> continuation.toString()
+				continuation.isNil -> continuation.toString()
 				else -> {
 					when (val theChunk = continuation.levelTwoChunk()) {
 						L2Chunk.unoptimizedChunk ->
@@ -1495,7 +1496,7 @@ class Interpreter(
 		{
 			val builder = StringBuilder()
 			var ptr: A_Continuation = theReifiedContinuation!!
-			while (!ptr.equalsNil())
+			while (ptr.notNil)
 			{
 				builder
 					.append("\n\t\toffset ")
@@ -1720,7 +1721,7 @@ class Interpreter(
 		argsBuffer[0] = exceptionValue
 		var continuation = getReifiedContinuation()!!
 		var depth = 0
-		while (!continuation.equalsNil()) {
+		while (continuation.notNil) {
 			val code = continuation.function().code()
 			if (code.primitive() == P_CatchException) {
 				assert(code.numArgs() == 3)
@@ -1822,7 +1823,7 @@ class Interpreter(
 	fun markNearestGuard(marker: A_Number): Result {
 		var continuation: A_Continuation = getReifiedContinuation()!!
 		var depth = 0
-		while (!continuation.equalsNil()) {
+		while (continuation.notNil) {
 			val code = continuation.function().code()
 			if (code.primitive() == P_CatchException) {
 				assert(code.numArgs() == 3)
@@ -2265,7 +2266,7 @@ class Interpreter(
 			assert(returnNow)
 			assert(latestResult !== null)
 			returnNow = false
-			if (getReifiedContinuation()!!.equalsNil()) {
+			if (getReifiedContinuation()!!.isNil) {
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
 				terminateFiber(getLatestResult())
@@ -2330,7 +2331,7 @@ class Interpreter(
 				append(formatString(" [%s]", fiber!!.fiberName()))
 				if (getReifiedContinuation() === null) {
 					append(formatString("%n\t«null stack»"))
-				} else if (getReifiedContinuation()!!.equalsNil()) {
+				} else if (getReifiedContinuation()!!.isNil) {
 					append(formatString("%n\t«empty call stack»"))
 				}
 				append("\n\n")
@@ -2382,7 +2383,7 @@ class Interpreter(
 		val returner = returningFunction!!
 		val caller = function!!
 		val wrappedReturnValue = newVariableWithContentType(Types.ANY.o)
-		if (!returnedValueOrNil.equalsNil())
+		if (returnedValueOrNil.notNil)
 		{
 			wrappedReturnValue.setValueNoCheck(returnedValueOrNil)
 		}
@@ -3105,7 +3106,8 @@ class Interpreter(
 					continuation(interpreter)
 					if (interpreter.exitNow) {
 						assert(interpreter.getReifiedContinuation()!!
-							.equalsNil())
+							.isNil
+						)
 						interpreter.terminateFiber(
 							interpreter.getLatestResult())
 					} else {
@@ -3150,7 +3152,7 @@ class Interpreter(
 				val code = functionToRun.code()
 				formatString("Outermost %s @ %s:%d",
 					code.methodName().asNativeString(),
-					if (code.module().equalsNil()) "«vm»"
+					if (code.module().isNil) "«vm»"
 					else code.module().moduleName().asNativeString(),
 					code.startingLineNumber())
 			}
@@ -3158,7 +3160,7 @@ class Interpreter(
 			{ interpreter: Interpreter ->
 				assert(aFiber === interpreter.fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
-				assert(aFiber.continuation().equalsNil())
+				assert(aFiber.continuation().isNil)
 				// Invoke the base-frame (hook) function with the given function
 				// and its arguments collected as a tuple.
 				val baseFrameFunction = HookType.BASE_FRAME[runtime]
@@ -3193,13 +3195,13 @@ class Interpreter(
 		fun resumeFromInterrupt(aFiber: A_Fiber)
 		{
 			assert(aFiber.executionState() === INTERRUPTED)
-			assert(!aFiber.continuation().equalsNil())
+			assert(aFiber.continuation().notNil)
 			executeFiber(AvailRuntime.currentRuntime(), aFiber)
 			{ interpreter: Interpreter ->
 				assert(aFiber === interpreter.fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				val con = aFiber.continuation()
-				assert(!con.equalsNil())
+				assert(con.notNil)
 				interpreter.exitNow = false
 				interpreter.returnNow = false
 				interpreter.setReifiedContinuation(con)
@@ -3234,7 +3236,7 @@ class Interpreter(
 			resumingPrimitive: Primitive,
 			result: A_BasicObject)
 		{
-			assert(!aFiber.continuation().equalsNil())
+			assert(aFiber.continuation().notNil)
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().code().primitive()
 				=== resumingPrimitive)
@@ -3247,7 +3249,7 @@ class Interpreter(
 				interpreter.setLatestResult(result)
 				interpreter.returningFunction = aFiber.suspendingFunction()
 				interpreter.exitNow = false
-				if (continuation.equalsNil())
+				if (continuation.isNil)
 				{
 					// Return from outer function, which was the
 					// (successful) suspendable primitive itself.
@@ -3293,7 +3295,7 @@ class Interpreter(
 			failureFunction: A_Function,
 			args: List<AvailObject>)
 		{
-			assert(!aFiber.continuation().equalsNil())
+			assert(aFiber.continuation().notNil)
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().equals(failureFunction))
 			executeFiber(runtime, aFiber)

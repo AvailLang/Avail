@@ -123,7 +123,9 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_FUNCTION
 import com.avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
@@ -3452,7 +3454,7 @@ class L1Translator private constructor(
 			val codeName = buildString {
 				append(code.methodName().asNativeString())
 				val module = code.module()
-				if (!module.equalsNil())
+				if (module.notNil)
 				{
 					append("\n")
 					append(module.moduleName())

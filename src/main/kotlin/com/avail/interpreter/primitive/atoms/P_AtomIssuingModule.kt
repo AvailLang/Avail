@@ -67,7 +67,7 @@ object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		val issuer = atom.issuingModule()
-		assert(!issuer.equalsNil())
+		assert(issuer.notNil)
 		return interpreter.primitiveSuccess(issuer)
 	}
 

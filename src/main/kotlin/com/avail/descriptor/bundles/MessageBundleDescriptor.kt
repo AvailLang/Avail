@@ -58,7 +58,6 @@ import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addBundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
-import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
@@ -434,10 +433,9 @@ class MessageBundleDescriptor private constructor(
 				"macroTestingTree")
 
 		/**
-		 * Add a
-		 * [definition&#32;parsing&#32;plan][DefinitionParsingPlanDescriptor] to
-		 * this bundle.  This is performed to make the bundle agree with the
-		 * method's definitions and macro definitions.
+		 * Add an [A_DefinitionParsingPlan] to this bundle.  This is performed
+		 * to make the bundle agree with the method definitions and macro
+		 * definitions.
 		 *
 		 * @param self
 		 *   The affected message bundle.
@@ -523,7 +521,10 @@ class MessageBundleDescriptor private constructor(
 		/**
 		 * Create a new [message&#32;bundle][A_Bundle] for the given message.
 		 * Add the bundle to the method's collection of
-		 * [owning&32;bundles][MethodDescriptor.owningBundles].
+		 * [owning&32;bundles][MethodDescriptor.owningBundles].  Update the
+		 * atom's (methodName's) bundle field to point to the new bundle. Also
+		 * update the current loading module, if any, to be responsible for
+		 * destruction of the bundle upon unloading.
 		 *
 		 * @param methodName
 		 *   The message name, an [atom][AtomDescriptor].
@@ -551,12 +552,11 @@ class MessageBundleDescriptor private constructor(
 				setSlot(MACROS_TUPLE, emptyTuple())
 				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet)
 				setSlot(DEFINITION_PARSING_PLANS, emptyMap)
-				val newDescriptor = MessageBundleDescriptor(
-					Mutability.SHARED, splitter)
-				setDescriptor(newDescriptor)
+				setDescriptor(
+					MessageBundleDescriptor(Mutability.SHARED, splitter))
 				method.methodAddBundle(this)
 				currentModule?.addBundle(this)
-				// Note that there are no macros implementations in this bundle
+				// Note that there are no macro implementations in this bundle
 				// at this time, since this bundle is new.
 				var plans = emptyMap
 				for (definition in method.definitionsTuple())

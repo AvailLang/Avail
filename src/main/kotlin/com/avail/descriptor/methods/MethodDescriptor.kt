@@ -162,6 +162,7 @@ import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
 import kotlin.concurrent.withLock
 
@@ -203,7 +204,7 @@ class MethodDescriptor private constructor(
 	 * on the module scope of the bundles' [atomic&#32;names][AtomDescriptor]).
 	 */
 	@Volatile
-	var owningBundles = emptySet
+	var owningBundles = AtomicReference(emptySet)
 
 	/**
 	 * A [LookupTree] used to determine the most specific method definition that
@@ -233,11 +234,12 @@ class MethodDescriptor private constructor(
 		{
 			// Double-check the volatile field.
 			dynamicLookupStat?.let { return it }
-			val name = when (owningBundles.setSize())
+			val bundles = owningBundles.get()
+			val name = when (bundles.setSize())
 			{
 				0 -> "(no name)"
-				1 -> owningBundles.single().message().toString()
-				else -> owningBundles.first().toString() +
+				1 -> bundles.single().message().toString()
+				else -> bundles.first().toString() +
 					" & aliases"
 			}
 			val stat = Statistic(DYNAMIC_LOOKUP_TIME, name)
@@ -413,13 +415,13 @@ class MethodDescriptor private constructor(
 		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
 	}
 
-	override fun o_Bundles(self: AvailObject): A_Set = owningBundles
+	override fun o_Bundles(self: AvailObject): A_Set = owningBundles.get()
 
 	override fun o_ChooseBundle(
 		self: AvailObject,
 		currentModule: A_Module
 	): A_Bundle {
-		val bundles: A_Set = owningBundles
+		val bundles: A_Set = owningBundles.get()
 		return bundles.find {
 			currentModule.hasAncestor(it.message().issuingModule())
 		} ?: bundles.first() // Fall back to any bundle.
@@ -512,7 +514,7 @@ class MethodDescriptor private constructor(
 		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize() == 0
 			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
 			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
-			&& owningBundles.all { it.macrosTuple().tupleSize() == 0 }
+			&& owningBundles.get().all { it.macrosTuple().tupleSize() == 0 }
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
@@ -555,17 +557,18 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		bundle: A_Bundle)
 	{
-		owningBundles =
-			owningBundles.setWithElementCanDestroy(bundle, false).makeShared()
+		owningBundles.updateAndGet {
+			it.setWithElementCanDestroy(bundle, false).makeShared()
+		}
 	}
 
 	override fun o_MethodRemoveBundle(
 		self: AvailObject,
 		bundle: A_Bundle)
 	{
-		owningBundles =
-			owningBundles.setWithoutElementCanDestroy(bundle, false)
-				.makeShared()
+		owningBundles.updateAndGet {
+			it.setWithoutElementCanDestroy(bundle, false).makeShared()
+		}
 	}
 
 	/**
@@ -596,7 +599,13 @@ class MethodDescriptor private constructor(
 		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
 			appendCanDestroy(definition, true)
 		}
-		owningBundles.forEach {
+		// TODO MvG 2021-06-19:  This might be a race.  I *think* the worst that
+		//  can happen is that dependency-incomparable modules won't have
+		//  parsing plans for definitions that they can't parse invocations of
+		//  anyhow, because they're not dependently related.  However, internal
+		//  accounting might end up not quite right when the definitions or
+		//  bundles need to be removed during unloading.
+		owningBundles.get().forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 		}
 		self.membershipChanged()
@@ -619,11 +628,11 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
-		assert(!definition.definitionModule().equalsNil())
+		assert(definition.definitionModule().notNil)
 		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
 			tupleWithout(this, definition)
 		}
-		owningBundles.forEach { bundle ->
+		owningBundles.get().forEach { bundle ->
 			bundle.removePlanForSendable(definition)
 		}
 		self.membershipChanged()
@@ -687,14 +696,14 @@ class MethodDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { owningBundles.writeTo(writer) }
+			at("aliases") { owningBundles.get().writeTo(writer) }
 			at("definitions") { self.volatileSlot(DEFINITIONS_TUPLE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { owningBundles.writeSummaryTo(writer) }
+			at("aliases") { owningBundles.get().writeSummaryTo(writer) }
 			at("definitions") {
 				self.volatileSlot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
 			}
