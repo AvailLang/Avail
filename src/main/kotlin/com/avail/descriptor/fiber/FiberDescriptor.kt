@@ -84,6 +84,7 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
 import com.avail.utility.json.JSONWriter
+import java.util.Locale
 import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
@@ -879,7 +880,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.toLowerCase())
+				write(self.executionState().name.lowercase(Locale.getDefault()))
 			}
 			val result = self.mutableSlot(RESULT)
 			if (result.notNil)
@@ -893,7 +894,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.toLowerCase())
+				write(self.executionState().name.lowercase(Locale.getDefault()))
 			}
 		}
 

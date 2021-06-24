@@ -72,6 +72,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.PrefixSharingList.Companion.append
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
+import java.util.Locale
 
 /**
  * I represent a token scanned from Avail source code.
@@ -210,7 +211,11 @@ open class TokenDescriptor protected constructor(
 
 		/** The associated special atom.  */
 		val atom: A_Atom =
-			createSpecialAtom(name.toLowerCase().replace('_', ' ')).apply {
+			createSpecialAtom(
+				name
+					.lowercase(Locale.getDefault())
+					.replace('_', ' ')
+			).apply {
 				setAtomProperty(
 					StaticInit.tokenTypeOrdinalKey,
 					fromInt(ordinal))
@@ -259,10 +264,13 @@ open class TokenDescriptor protected constructor(
 	{
 		builder.append(String.format(
 			"%s (%s) @ %d:%d",
-			self.tokenType().name.toLowerCase().replace('_', ' '),
+			self.tokenType().name
+				.lowercase(Locale.getDefault())
+				.replace('_', ' '),
 			self.slot(STRING),
 			self.slot(START),
-			self.slot(LINE_NUMBER)))
+			self.slot(LINE_NUMBER)
+		))
 	}
 
 	override fun o_ClearLexingState(self: AvailObject)
@@ -341,7 +349,11 @@ open class TokenDescriptor protected constructor(
 		writer.writeObject {
 			at("kind") { write("token") }
 			at("token type") {
-				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+				write(
+					self.tokenType().name
+						.lowercase(Locale.getDefault())
+						.replace('_', ' ')
+				)
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }
@@ -370,7 +382,7 @@ open class TokenDescriptor protected constructor(
 		private fun lowerCaseStringFrom(token: AvailObject): A_String
 		{
 			val nativeOriginal = token.slot(STRING).asNativeString()
-			val nativeLowerCase = nativeOriginal.toLowerCase()
+			val nativeLowerCase = nativeOriginal.lowercase(Locale.getDefault())
 			return StringDescriptor.stringFrom(nativeLowerCase)
 		}
 

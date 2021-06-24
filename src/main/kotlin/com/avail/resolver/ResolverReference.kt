@@ -49,6 +49,7 @@ import java.net.URI
 import java.security.MessageDigest
 import java.util.Deque
 import java.util.LinkedList
+import java.util.Locale
 import java.util.UUID
 
 /**
@@ -612,5 +613,5 @@ enum class ResourceType
 	RESOURCE;
 
 	/** A short description of the receiver. */
-	val label get () = name.toLowerCase()
+	val label get() = name.lowercase(Locale.getDefault())
 }

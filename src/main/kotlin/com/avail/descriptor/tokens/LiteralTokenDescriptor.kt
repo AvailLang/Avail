@@ -59,6 +59,7 @@ import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
+import java.util.Locale
 
 /**
  * I represent a token that's a literal representation of some object.
@@ -172,7 +173,10 @@ class LiteralTokenDescriptor private constructor(
 		builder.append(
 			String.format(
 				"%s ",
-				self.tokenType().name.toLowerCase().replace('_', ' ')))
+				self.tokenType().name
+					.lowercase(Locale.getDefault())
+					.replace('_', ' ')
+			))
 		self.slot(LITERAL).printOnAvoidingIndent(
 			builder,
 			recursionMap,
@@ -213,7 +217,11 @@ class LiteralTokenDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("token") }
 			at("token type") {
-				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+				write(
+					self.tokenType().name
+						.lowercase(Locale.getDefault())
+						.replace('_', ' ')
+				)
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }

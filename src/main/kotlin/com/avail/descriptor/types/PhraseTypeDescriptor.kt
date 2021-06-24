@@ -74,6 +74,7 @@ import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVa
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
+import java.util.Locale
 
 /**
  * Define the structure and behavior of phrase types.  The phrase types
@@ -834,7 +835,9 @@ open class PhraseTypeDescriptor protected constructor(
 		}
 		else
 		{
-			val name = kind.name.toLowerCase().replace('_', ' ')
+			val name = kind.name
+				.lowercase(Locale.getDefault())
+				.replace('_', ' ')
 			builder.append(name)
 		}
 		builder.append('⇒')

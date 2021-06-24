@@ -52,6 +52,7 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections
 import java.util.Formatter
+import java.util.Locale
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
@@ -242,7 +243,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			{
 				for (method in values())
 				{
-					methodsByName[method.name.toLowerCase()] = method
+					methodsByName[method.name.lowercase(Locale.getDefault())] = method
 				}
 			}
 
@@ -257,7 +258,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 *   exists.
 			 */
 			internal fun named(name: String): HttpRequestMethod? =
-				methodsByName[name.toLowerCase()]
+				methodsByName[name.lowercase(Locale.getDefault())]
 		}
 	}
 
@@ -436,7 +437,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				for (i in 1 until headers.size - 1)
 				{
 					val pair = headers[i].split(":".toRegex(), 2)
-					map[pair[0].trim { it <= ' ' }.toLowerCase()] =
+					map[pair[0]
+						.trim { it <= ' ' }
+						.lowercase(Locale.getDefault())] =
 						pair[1].trim { it <= ' ' }
 				}
 				// Validate the request.

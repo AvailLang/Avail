@@ -87,6 +87,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
+import java.util.Locale
 import java.util.TimerTask
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -956,7 +957,11 @@ class AvailServer constructor(
 		 */
 		private fun writeCommandOn(command: TextCommand, writer: JSONWriter) =
 			writer.at("command") {
-				write(command.name.toLowerCase().replace('_', ' '))
+				write(
+					command.name
+						.lowercase(Locale.getDefault())
+						.replace('_', ' ')
+				)
 			}
 
 		/**
