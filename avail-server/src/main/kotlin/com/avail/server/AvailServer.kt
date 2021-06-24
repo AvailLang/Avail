@@ -1298,9 +1298,6 @@ class AvailServer constructor(
 					}
 				}
 			}
-			// Transition to the next state. If the client cannot handle any of
-			// the specified versions, then it must disconnect.
-			channel.state = ELIGIBLE_FOR_UPGRADE
 			channel.enqueueMessageThen(message, continuation)
 		}
 
