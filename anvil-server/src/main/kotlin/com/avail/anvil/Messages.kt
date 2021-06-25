@@ -143,11 +143,18 @@ private interface BasicMessage
  * variable-width integer), so _do not change the order of the variants_.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct the enumeration value, checking that the supplied ordinal is
+ * accurate.
+ *
+ * @param ordinalCheck
+ *   The value to check against the Kotlin-supplied ordinal.
  */
-enum class MessageTag : BasicMessage
+enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 {
 	/** 0: Perform an orderly shutdown of the connection. */
-	DISCONNECT
+	DISCONNECT(0)
 	{
 		override val mustStartConversation = true
 		override val allowedOrigins = setOf(CLIENT, SERVER)
@@ -177,7 +184,7 @@ enum class MessageTag : BasicMessage
 	},
 
 	/** 1: Negotiate a protocol version. */
-	NEGOTIATE_VERSION
+	NEGOTIATE_VERSION(1)
 	{
 		override fun availableInVersion (version: Int) = true
 		override val canStartConversation = true
@@ -196,9 +203,7 @@ enum class MessageTag : BasicMessage
 			require(message is NegotiateVersionMessage)
 			message.versions.toList().encode(
 				bytes,
-				encodeOne = { version, bytes1, writeMore1, again ->
-					version.vlq(bytes1, writeMore1, again)
-				},
+				encodeOne = Int::vlq,
 				writeMore = writeMore,
 				done = done)
 		}
@@ -225,7 +230,7 @@ enum class MessageTag : BasicMessage
 	},
 
 	/** 2: Accept an offered protocol version. */
-	ACCEPTED_VERSION
+	ACCEPTED_VERSION(2)
 	{
 		override val allowedOrigins = setOf(SERVER)
 
@@ -256,7 +261,7 @@ enum class MessageTag : BasicMessage
 	 * 3: Reject all offered protocol versions, rebutting with supported
 	 * versions.
 	 */
-	REBUTTED_VERSIONS
+	REBUTTED_VERSIONS(3)
 	{
 		override fun availableInVersion (version: Int) = true
 		override val allowedOrigins = setOf(SERVER)
@@ -272,9 +277,7 @@ enum class MessageTag : BasicMessage
 			require(message is RebuttedVersionsMessage)
 			message.supportedVersions.toList().encode(
 				bytes,
-				encodeOne = { version, bytes1, writeMore1, again ->
-					version.vlq(bytes1, writeMore1, again)
-				},
+				encodeOne = Int::vlq,
 				writeMore = writeMore,
 				done = done)
 		}
@@ -301,7 +304,7 @@ enum class MessageTag : BasicMessage
 	},
 
 	/** 4: Acknowledged. */
-	ACKNOWLEDGED
+	ACKNOWLEDGED(4)
 	{
 		override val allowedOrigins get () = setOf(CLIENT, SERVER)
 
@@ -328,6 +331,11 @@ enum class MessageTag : BasicMessage
 			}
 		}
 	};
+
+	init
+	{
+		assert(ordinalCheck == ordinal)
+	}
 
 	/**
 	 * Encode a tagged [message][Message] onto the specified [ByteBuffer].
@@ -420,14 +428,12 @@ enum class MessageTag : BasicMessage
 			bytes: ByteBuffer,
 			readMore: ReadMore,
 			failed: FailedReading,
-			done: DoneReading<Message>)
-		{
-			unvlqInt(bytes, readMore = readMore) { ordinal, bytes1 ->
-				val tag = values().getOrNull(ordinal)
-					?: return@unvlqInt failed(badMessage(ordinal), bytes1)
-				unzigzagLong(bytes1, readMore = readMore) { id, bytes2 ->
-					tag.decodeContent(id, bytes2, readMore, failed, done)
-				}
+			done: DoneReading<Message>
+		) = unvlqInt(bytes, readMore = readMore) { ordinal, bytes1 ->
+			val tag = values().getOrNull(ordinal)
+				?: return@unvlqInt failed(badMessage(ordinal), bytes1)
+			unzigzagLong(bytes1, readMore = readMore) { id, bytes2 ->
+				tag.decodeContent(id, bytes2, readMore, failed, done)
 			}
 		}
 
@@ -625,11 +631,23 @@ data class RebuttedVersionsMessage constructor (
 
 /**
  * A simple acknowledgment code.
+ *
+ * @constructor
+ * Construct the enumeration value, checking that the supplied ordinal is
+ * accurate.
+ *
+ * @param ordinalCheck
+ *   The value to check against the Kotlin-supplied ordinal.
  */
-enum class AcknowledgmentCode
+enum class AcknowledgmentCode constructor (ordinalCheck: Int)
 {
 	/** The request was accomplished without exception or fanfare. */
-	OK;
+	OK(0);
+
+	init
+	{
+		assert(ordinalCheck == ordinal)
+	}
 
 	/**
 	 * Encode the receiver to the specified buffer.
@@ -665,13 +683,10 @@ enum class AcknowledgmentCode
 			readMore: ReadMore,
 			failed: FailedReading,
 			done: DoneReading<AcknowledgmentCode>
-		)
-		{
-			unvlqInt(bytes, readMore = readMore) { ordinal, bytes1 ->
-				val code = values().getOrNull(ordinal)
-					?: return@unvlqInt failed(badCode(ordinal), bytes1)
-				done(code, bytes1)
-			}
+		) = unvlqInt(bytes, readMore = readMore) { ordinal, bytes1 ->
+			val code = values().getOrNull(ordinal)
+				?: return@unvlqInt failed(badCode(ordinal), bytes1)
+			done(code, bytes1)
 		}
 
 		/**

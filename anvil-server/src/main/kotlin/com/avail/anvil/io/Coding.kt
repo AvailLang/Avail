@@ -92,24 +92,8 @@ internal typealias FailedReading = (Throwable, ByteBuffer) -> Unit
 internal fun Int.vlq (
 	bytes: ByteBuffer,
 	writeMore: WriteMore,
-	done: DoneWriting)
-{
-	var residue = this
-	while (bytes.hasRemaining())
-	{
-		// Write 7 LSB bits at a time, setting the MSB for nonfinal bytes.
-		val b = residue and 0x7F
-		residue = residue ushr 7
-		if (residue == 0)
-		{
-			bytes.put(b.toByte())
-			return done(bytes)
-		}
-		bytes.put((b or 0x80).toByte())
-	}
-	// There wasn't enough room to fully encode the value.
-	writeMore(bytes) { bytes1 -> residue.vlq(bytes1, writeMore, done)}
-}
+	done: DoneWriting
+) = toLong().vlq(bytes, writeMore, done)
 
 /**
  * Apply a variable-length universal coding strategy to the receiver, encoding
@@ -155,10 +139,6 @@ internal fun Long.vlq (
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param bytes
  *   The source buffer.
- * @param partial
- *   A partially decoded integer. Defaults to `0`.
- * @param shift
- *   The shift factor so far. Defaults to `0`.
  * @param readMore
  *   How to keep reading if the source buffer exhausts prematurely.
  * @param done
@@ -168,32 +148,10 @@ internal fun Long.vlq (
  */
 internal fun unvlqInt (
 	bytes: ByteBuffer,
-	partial: Int = 0,
-	shift: Int = 0,
 	readMore: ReadMore,
-	done: DoneReading<Int>)
-{
-	var n = partial
-	var k = shift
-	while (bytes.hasRemaining())
-	{
-		val b = bytes.get().toInt()
-		when
-		{
-			b and 0x80 == 0x80 ->
-			{
-				n = n or ((b and 0x7F) shl k)
-				k += 7
-			}
-			else ->
-			{
-				// The MSB is clear, so we're done decoding.
-				return done(n or (b shl k), bytes)
-			}
-		}
-	}
-	// There weren't enough bytes to fully decode the value.
-	readMore { bytes1 -> unvlqInt(bytes1, n, k, readMore, done) }
+	done: DoneReading<Int>
+) = unvlqLong(bytes, readMore = readMore) {
+	l, bytes1 -> done(l.toInt(), bytes1)
 }
 
 /**

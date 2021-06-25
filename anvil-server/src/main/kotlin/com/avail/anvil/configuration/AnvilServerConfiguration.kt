@@ -60,8 +60,8 @@ import kotlin.text.Charsets.UTF_8
  *   The [FileManager] that will manage the Avail files.
  */
 class AnvilServerConfiguration constructor (
-	private val fileManager: FileManager)
-: Configuration
+	private val fileManager: FileManager
+) : Configuration
 {
 	/** The [Avail roots][ModuleRoots] path. */
 	@Suppress("MemberVisibilityCanBePrivate")
@@ -91,7 +91,7 @@ class AnvilServerConfiguration constructor (
 			return roots
 		}
 
-	/** The path to the [renames file][RenamesFileParser]. */
+	/** The path to the [renames][RenamesFileParser] file. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var renamesFilePath: String? = null
 		set (value)
@@ -100,7 +100,7 @@ class AnvilServerConfiguration constructor (
 			moduleNameResolver = null
 		}
 
-	/** The [module name resolver][ModuleNameResolver]. */
+	/** The module name [resolver][ModuleNameResolver]. */
 	private var moduleNameResolver: ModuleNameResolver? = null
 
 	/** The server authority.  */
@@ -112,6 +112,9 @@ class AnvilServerConfiguration constructor (
 	/**
 	 * Answer the [module&#32;name&#32;resolver][ModuleNameResolver] correct for
 	 * the current configuration.
+	 *
+	 * Note: This can't be a lazy property, because the [moduleNameResolver] has
+	 * to be cleared if the [renamesFilePath] changes.
 	 *
 	 * @return
 	 *   A module name resolver.

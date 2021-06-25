@@ -52,15 +52,15 @@ import com.avail.utility.configuration.ConfigurationException
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Semaphore
 import java.util.logging.Level.FINE
 import java.util.logging.Level.FINER
 import java.util.logging.Logger
-import javax.annotation.concurrent.GuardedBy
 
 /**
  * An `AnvilServer` manages an Avail environment on behalf of Anvil, the Avail
- * IDE.
+ * Integrated Development Environment (IDE).
  *
  * @property configuration
  *   The [configuration][AnvilServerConfiguration].
@@ -106,10 +106,9 @@ class AnvilServer constructor (
 
 	/**
 	 * Every connected [AnvilServerChannel], keyed by
-	 * [identifier][AnvilServerChannel.channelId]
+	 * [identifier][AnvilServerChannel.channelId].
 	 */
-	@GuardedBy("itself")
-	private val channels = mutableMapOf<Long, AnvilServerChannel>()
+	private val channels = ConcurrentHashMap<Long, AnvilServerChannel>()
 
 	/**
 	 * Register the specified [channel][AnvilServerChannel].
@@ -117,10 +116,10 @@ class AnvilServer constructor (
 	 * @param channel
 	 *   The new channel to register.
 	 */
-	internal fun registerChannel (channel: AnvilServerChannel) =
-		synchronized(channels) {
-			channels[channel.channelId] = channel
-		}
+	internal fun registerChannel (channel: AnvilServerChannel)
+	{
+		channels[channel.channelId] = channel
+	}
 
 	/**
 	 * Deregister the specified [channel][AnvilServerChannel].
@@ -129,9 +128,7 @@ class AnvilServer constructor (
 	 *   The defunct channel to deregister.
 	 */
 	internal fun deregisterChannel (channel: AnvilServerChannel) =
-		synchronized(channels) {
-			channels.remove(channel.channelId)
-		}
+		channels.remove(channel.channelId)
 
 	/**
 	 * Receive a [message][Message] from the specified
@@ -149,7 +146,7 @@ class AnvilServer constructor (
 	internal fun receiveMessage (
 		message: Message,
 		channel: AnvilServerChannel,
-		after: () -> Unit)
+		after: AfterMessage)
 	{
 		try
 		{
@@ -194,7 +191,7 @@ class AnvilServer constructor (
 			when (channel.state)
 			{
 				VERSION_NEGOTIATION -> negotiateVersion(message, channel, after)
-				else -> check(false)
+				else -> assert(false)
 			}
 		}
 	}
@@ -214,7 +211,7 @@ class AnvilServer constructor (
 	private fun negotiateVersion (
 		message: NegotiateVersionMessage,
 		channel: AnvilServerChannel,
-		after: () -> Unit)
+		after: AfterMessage)
 	{
 		val commonVersions =
 			supportedProtocolVersions.intersect(message.versions)
@@ -263,7 +260,7 @@ class AnvilServer constructor (
 	private fun renegotiateVersion (
 		message: NegotiateVersionMessage,
 		channel: AnvilServerChannel,
-		after: () -> Unit)
+		after: AfterMessage)
 	{
 		val commonVersions =
 			supportedProtocolVersions.intersect(message.versions)
@@ -289,7 +286,8 @@ class AnvilServer constructor (
 		/**
 		 * The supported client protocol versions:
 		 *
-		 * 1. Initial protocol version, featuring all original capabilities.
+		 * 1. Initial protocol version, featuring all original capabilities
+		 *    (2021.06.23).
 		 */
 		private val supportedProtocolVersions = setOf(1)
 

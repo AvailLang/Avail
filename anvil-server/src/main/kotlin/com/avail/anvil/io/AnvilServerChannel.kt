@@ -51,7 +51,6 @@ import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.Deque
-import java.util.LinkedList
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
 import java.util.logging.Level
@@ -173,7 +172,7 @@ class AnvilServerChannel constructor (
 			override val allowedSuccessorStates
 				get () = setOf(VERSION_REBUTTED, READY, TERMINATED)
 		},
-		
+
 		/** Protocol version has been rebutted. */
 		VERSION_REBUTTED
 		{
@@ -405,16 +404,15 @@ class AnvilServerChannel constructor (
 	 * [adapter][SocketAdapter].
 	 */
 	@GuardedBy("itself")
-	private val sendQueue: Deque<Message> = LinkedList()
+	private val sendQueue = ArrayDeque<Message>()
 
 	/**
 	 * A [queue][Deque] of [pairs][Pair] of [messages][Message] and
-	 * continuations, as supplied to calls of
-	 * [enqueueMessageThen][enqueueMessage]. The maximum depth of this queue
-	 * is proportional to the size of the I/O thread pool.
+	 * continuations, as supplied to calls of [enqueueMessage]. The maximum
+	 * depth of this queue is proportional to the size of the I/O thread pool.
 	 */
 	@GuardedBy("sendQueue")
-	private val senders: Deque<Pair<Message, ()->Unit>> = LinkedList()
+	private val senders = ArrayDeque<Pair<Message, ()->Unit>>()
 
 	/**
 	 * Enqueue the given [message][Message]. When the message has been enqueued,
@@ -464,8 +462,6 @@ class AnvilServerChannel constructor (
 			{
 				size == 0 ->
 				{
-					// If there is no room available on the message queue, then
-					// pause the client until room becomes available.
 					sendQueue.addLast(message)
 					beginTransmitting = true
 					invokeContinuationNow = true
@@ -480,6 +476,8 @@ class AnvilServerChannel constructor (
 				}
 				else ->
 				{
+					// If there is no room available on the message queue, then
+					// pause the client until room becomes available.
 					assert(size == MAX_SEND_QUEUE_DEPTH)
 					senders.addLast(message to enqueueSucceeded)
 					beginTransmitting = false
@@ -529,12 +527,12 @@ class AnvilServerChannel constructor (
 						sendQueue.removeFirst()
 						// Remove the oldest sender, but release the monitor
 						// before evaluating it.
-						pair = senders.pollFirst()
+						pair = senders.removeFirstOrNull()
 						if (pair !== null)
 						{
 							sendQueue.addLast(pair.first)
 						}
-						nextMessage = sendQueue.peekFirst()
+						nextMessage = sendQueue.firstOrNull()
 						assert(sendQueue.size <= MAX_SEND_QUEUE_DEPTH)
 					}
 					// Begin transmission of the next message.
@@ -564,7 +562,7 @@ class AnvilServerChannel constructor (
 	@GuardedBy("sendQueue")
 	private val writeBuffer = ByteBuffer.allocateDirect(WRITE_BUFFER_SIZE)
 
-	/** The total byte of bytes written. */
+	/** The total number of bytes written. */
 	private val totalBytesWritten = AtomicLong(0)
 
 	/**
@@ -657,17 +655,15 @@ class AnvilServerChannel constructor (
 	 * access the buffer. The read buffer is never accessed inside a lock, but
 	 * concurrent access is effectively ensured by the monitor on the
 	 * [receiveQueue], and flow control around its usage.
+	 *
+	 * Force the initial buffer to appear empty, so that the first attempt to
+	 * read will force a fetch from the socket.
 	 */
 	@GuardedBy("receiveQueue")
-	private val readBuffer = run {
-		val buffer = ByteBuffer.allocateDirect(READ_BUFFER_SIZE)
-		// Force the buffer to appear empty, so that the first attempt to read
-		// will force a fetch from the socket.
-		buffer.flip()
-		buffer
-	}
+	private val readBuffer =
+		ByteBuffer.allocateDirect(READ_BUFFER_SIZE).apply { flip() }
 
-	/** The total byte of bytes read. */
+	/** The total number of bytes read. */
 	private val totalBytesRead = AtomicLong(0)
 
 	/**
@@ -756,7 +752,7 @@ class AnvilServerChannel constructor (
 	 * [server][AnvilServer].
 	 */
 	@GuardedBy("itself")
-	private val receiveQueue: Deque<Message> = LinkedList()
+	private val receiveQueue = ArrayDeque<Message>()
 
 	/**
 	 * Receive an incoming [message][Message].
@@ -776,8 +772,6 @@ class AnvilServerChannel constructor (
 			{
 				size == 0 ->
 				{
-					// If there is no room available on the message queue, then
-					// pause the transport until room becomes available.
 					receiveQueue.addLast(message)
 					beginReceiving = true
 					resumeReading = true
@@ -792,6 +786,8 @@ class AnvilServerChannel constructor (
 				}
 				else ->
 				{
+					// If there is no room available on the message queue, then
+					// pause the transport until room becomes available.
 					assert(size == MAX_RECV_QUEUE_DEPTH)
 					beginReceiving = false
 					resumeReading = false
@@ -829,7 +825,7 @@ class AnvilServerChannel constructor (
 					// order to simplify the execution model). Remove it *after*
 					// reception completes.
 					receiveQueue.removeFirst()
-					nextMessage = receiveQueue.peekFirst()
+					nextMessage = receiveQueue.firstOrNull()
 					assert(receiveQueue.size < MAX_RECV_QUEUE_DEPTH)
 					// If the queue transitioned from full to non-full, then
 					// resume reading from the transport.

@@ -262,9 +262,7 @@ class CodingTests
 		val list = List(20) { Random.nextInt() }
 		list.encode(
 			buffer,
-			encodeOne = { i, bytes1, writeMore, next ->
-				i.zigzag(bytes1, writeMore, next)
-			},
+			encodeOne = Int::zigzag,
 			writeMore = { full, proceed ->
 				assertTrue(!full.hasRemaining())
 				buffer = ByteBuffer.allocate(BUFFER_SIZE)
@@ -313,9 +311,7 @@ class CodingTests
 		)
 		list.encode(
 			buffer,
-			encodeOne = { s, bytes1, writeMore, next ->
-				s.encode(bytes1, writeMore, next)
-			},
+			encodeOne = String::encode,
 			writeMore = { full, proceed ->
 				assertTrue(!full.hasRemaining())
 				buffer = ByteBuffer.allocate(SMALL_BUFFER_SIZE)
