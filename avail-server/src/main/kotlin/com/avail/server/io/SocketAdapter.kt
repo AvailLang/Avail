@@ -45,9 +45,7 @@ import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ScheduledThreadPoolExecutor
-import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
-
 
 /**
  * A `SocketAdapter` provides a low-level [socket][AsynchronousSocketChannel]
@@ -100,14 +98,12 @@ class SocketAdapter @Throws(IOException::class) constructor(
 	}
 
 	override val timer =
-		ScheduledThreadPoolExecutor(
-			1,
-			ThreadFactory { r ->
-				val thread = Thread(r)
-				thread.isDaemon = true
-				thread.name = "SocketAdapterTimer ${thread.id}"
-				thread
-			})
+		ScheduledThreadPoolExecutor(1) { r ->
+			val thread = Thread(r)
+			thread.isDaemon = true
+			thread.name = "SocketAdapterTimer ${thread.id}"
+			thread
+		}
 
 	/**
 	 * Asynchronously accept incoming connections.
@@ -211,7 +207,12 @@ class SocketAdapter @Throws(IOException::class) constructor(
 		failure: (Throwable)->Unit)
 	{
 		val strongChannel = channel as SocketChannel
-		val buffer = StandardCharsets.UTF_8.encode(payload.stringContent)
+		val content = StandardCharsets.UTF_8.encode(payload.stringContent)
+		// Append the size prefix onto the output buffer.
+		val buffer = ByteBuffer.allocateDirect(content.limit() + 4)
+		buffer.putInt(content.limit())
+		buffer.put(content)
+		buffer.rewind()
 		val transport = strongChannel.transport
 		SimpleCompletionHandler<Int>(
 			{

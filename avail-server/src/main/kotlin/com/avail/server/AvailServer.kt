@@ -65,13 +65,14 @@ import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
 import com.avail.server.io.WebSocketAdapter
+import com.avail.server.io.SocketAdapter
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
 import com.avail.server.messages.LoadModuleCommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.RunEntryPointCommandMessage
 import com.avail.server.messages.SimpleCommandMessage
-import com.avail.server.messages.TextCommand
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
@@ -86,6 +87,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
+import java.util.Locale
 import java.util.TimerTask
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -131,6 +133,7 @@ class AvailServer constructor(
 	{
 		fileManager.associateRuntime(runtime)
 	}
+
 	/**
 	 * The [Avail builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
@@ -954,7 +957,11 @@ class AvailServer constructor(
 		 */
 		private fun writeCommandOn(command: TextCommand, writer: JSONWriter) =
 			writer.at("command") {
-				write(command.name.toLowerCase().replace('_', ' '))
+				write(
+					command.name
+						.lowercase(Locale.getDefault())
+						.replace('_', ' ')
+				)
 			}
 
 		/**
@@ -1282,6 +1289,7 @@ class AvailServer constructor(
 			if (supportedProtocolVersions.contains(version))
 			{
 				message = newSuccessMessage(channel, command) { write(version) }
+				channel.state = ELIGIBLE_FOR_UPGRADE
 			}
 			else
 			{
@@ -1295,9 +1303,6 @@ class AvailServer constructor(
 					}
 				}
 			}
-			// Transition to the next state. If the client cannot handle any of
-			// the specified versions, then it must disconnect.
-			channel.state = ELIGIBLE_FOR_UPGRADE
 			channel.enqueueMessageThen(message, continuation)
 		}
 
@@ -1404,10 +1409,23 @@ class AvailServer constructor(
 			val server = AvailServer(configuration, runtime, fileManager)
 			try
 			{
-				WebSocketAdapter(
-					server,
-					InetSocketAddress(configuration.serverPort),
-					configuration.serverAuthority)
+				if (configuration.startWebSocketAdapter)
+				{
+					WebSocketAdapter(
+						server,
+						InetSocketAddress(
+							configuration.serverAuthority,
+							configuration.serverPort),
+						configuration.serverAuthority)
+				}
+				else
+				{
+					SocketAdapter(
+						server,
+						InetSocketAddress(
+							configuration.serverAuthority,
+							configuration.serverPort))
+				}
 
 				// Prevent the Avail server from exiting.
 				Semaphore(0).acquire()

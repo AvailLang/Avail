@@ -197,7 +197,7 @@ class RenamesFileParser @ThreadSafe constructor(
 			}
 			return Character.toCodePoint(high, low)
 		}
-		return high.toInt()
+		return high.code
 	}
 
 	/**
@@ -251,7 +251,7 @@ class RenamesFileParser @ThreadSafe constructor(
 					"Expected close quote to correspond with open quote "
 					+ "but found end-of-file")
 			}
-			if (peekFor('"'.toInt()))
+			if (peekFor('"'.code))
 			{
 				return Token(TokenType.PATH, builder.toString())
 			}
@@ -271,7 +271,7 @@ class RenamesFileParser @ThreadSafe constructor(
 	@Throws(IOException::class)
 	internal fun scanSlash(): Token?
 	{
-		if (!peekFor('*'.toInt()))
+		if (!peekFor('*'.code))
 		{
 			return Token(TokenType.UNKNOWN, "/")
 		}
@@ -286,11 +286,11 @@ class RenamesFileParser @ThreadSafe constructor(
 					+ "but found end-of-file")
 			}
 
-			if (peekFor('/'.toInt()) && peekFor('*'.toInt()))
+			if (peekFor('/'.code) && peekFor('*'.code))
 			{
 				depth++
 			}
-			else if (peekFor('*'.toInt()) && peekFor('/'.toInt()))
+			else if (peekFor('*'.code) && peekFor('/'.code))
 			{
 				depth--
 			}
@@ -606,7 +606,7 @@ class RenamesFileParser @ThreadSafe constructor(
 		private fun actionFor(c: Int) =
 			when
 			{
-				c == '→'.toInt() -> ScannerAction.RIGHT_ARROW
+				c == '→'.code -> ScannerAction.RIGHT_ARROW
 				c >= scannerTable.size -> ScannerAction.UNKNOWN
 				else -> ScannerAction.all[scannerTable[c].toInt()]
 			}

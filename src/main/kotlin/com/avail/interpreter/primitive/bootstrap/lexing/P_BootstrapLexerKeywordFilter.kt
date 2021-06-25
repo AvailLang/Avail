@@ -64,7 +64,7 @@ object P_BootstrapLexerKeywordFilter
 
 		val codePoint = character.codePoint()
 		val isIdentifierStart = Character.isUnicodeIdentifierStart(codePoint)
-			|| codePoint == '_'.toInt()
+			|| codePoint == '_'.code
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(isIdentifierStart))
 	}

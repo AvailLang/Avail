@@ -666,23 +666,25 @@ class JSONWriter : AutoCloseable
 						when (codePoint)
 						{
 							// Backspace.
-							'\b'.toInt() -> privateWrite("\\b")
+							'\b'.code -> privateWrite("\\b")
 							// Character tabulation.
-							'\t'.toInt() -> privateWrite("\\t")
+							'\t'.code -> privateWrite("\\t")
 							// Line feed.
-							'\n'.toInt() -> privateWrite("\\n")
+							'\n'.code -> privateWrite("\\n")
 							// Form feed.
 							"\\f".toInt() -> privateWrite("\\f")
 							// Carriage return.
-							'\r'.toInt() -> privateWrite("\\r")
+							'\r'.code -> privateWrite("\\r")
 							else -> privateWrite(
 								String.format(
 									"\\u%04X",
-									codePoint))
+									codePoint
+								)
+							)
 						}
 					}
-					codePoint == '\\'.toInt() -> privateWrite("\\\\")
-					codePoint == '"'.toInt() -> privateWrite("\\\"")
+					codePoint == '\\'.code -> privateWrite("\\\\")
+					codePoint == '"'.code -> privateWrite("\\\"")
 					codePoint < 128 ->
 						// Even though Writer doesn't work on general code
 						// points, we have just proven that the code point is
@@ -694,8 +696,9 @@ class JSONWriter : AutoCloseable
 						privateWrite(
 							String.format(
 								"\\u%04X\\u%04X",
-								Character.highSurrogate(codePoint).toInt(),
-								Character.lowSurrogate(codePoint).toInt()))
+								Character.highSurrogate(codePoint).code,
+								Character.lowSurrogate(codePoint).code
+							))
 					else ->
 						// Force all non-ASCII characters to Unicode escape
 						// sequences.

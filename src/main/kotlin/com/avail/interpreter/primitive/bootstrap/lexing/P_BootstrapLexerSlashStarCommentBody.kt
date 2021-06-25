@@ -72,7 +72,7 @@ object P_BootstrapLexerSlashStarCommentBody
 		var position = startPosition + 1
 
 		if (position > sourceSize
-		    || source.tupleCodePointAt(position) != '*'.toInt())
+			|| source.tupleCodePointAt(position) != '*'.code)
 		{
 			// It didn't start with "/*", so it's not a comment.
 			return interpreter.primitiveSuccess(emptySet)
@@ -94,8 +94,8 @@ object P_BootstrapLexerSlashStarCommentBody
 
 			// At least two characters are available to examine.
 			val c = source.tupleCodePointAt(position)
-			if (c == '*'.toInt()
-			    && source.tupleCodePointAt(position + 1) == '/'.toInt())
+			if (c == '*'.code
+				&& source.tupleCodePointAt(position + 1) == '/'.code)
 			{
 				// Close a nesting level.
 				position += 2
@@ -105,8 +105,8 @@ object P_BootstrapLexerSlashStarCommentBody
 					break
 				}
 			}
-			else if (c == '/'.toInt()
-			         && source.tupleCodePointAt(position + 1) == '*'.toInt())
+			else if (c == '/'.code
+				&& source.tupleCodePointAt(position + 1) == '*'.code)
 			{
 				// Open a new nesting level.
 				position += 2

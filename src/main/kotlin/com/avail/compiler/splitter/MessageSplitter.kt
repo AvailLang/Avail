@@ -1556,11 +1556,11 @@ class MessageSplitter
 		 *   underscore, or ellipsis; or `false` otherwise.
 		 */
 		fun isUnderscoreOrSpaceOrOperator(cp: Int) =
-			cp == '_'.toInt()
-				|| cp == '…'.toInt()
-				|| cp == ' '.toInt()
-				|| cp == '/'.toInt()
-				|| cp == '$'.toInt()
+			cp == '_'.code
+				|| cp == '…'.code
+				|| cp == ' '.code
+				|| cp == '/'.code
+				|| cp == '$'.code
 				|| isOperator(cp)
 
 		/**
@@ -1578,10 +1578,10 @@ class MessageSplitter
 				|| Character.isSpaceChar(cp)
 				|| Character.isWhitespace(cp)
 				|| cp < 32
-				|| cp in 127..159
+				|| cp in 127 .. 159
 				|| !Character.isDefined(cp)
-				|| cp == '_'.toInt()
-				|| cp == '"'.toInt()
-				|| cp == '\uFEFF'.toInt())
+				|| cp == '_'.code
+				|| cp == '"'.code
+				|| cp == '\uFEFF'.code)
 	}
 }

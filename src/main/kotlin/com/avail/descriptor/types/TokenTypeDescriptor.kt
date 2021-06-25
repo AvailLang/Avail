@@ -49,6 +49,7 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import jdk.nashorn.internal.parser.TokenType
 import java.util.IdentityHashMap
+import java.util.Locale
 
 /**
  * I represent the type of some [tokens][TokenDescriptor]. Like any object, a
@@ -90,7 +91,10 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	{
 		builder.append(String.format(
 			"%s token",
-			self.tokenType().name.toLowerCase().replace('_', ' ')))
+			self.tokenType().name
+				.lowercase(Locale.getDefault())
+				.replace('_', ' ')
+		))
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -176,8 +180,11 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("token type")
 		writer.write("token type")
-		writer.write(self.tokenType().name.toLowerCase().replace(
-			'_', ' '))
+		writer.write(
+			self.tokenType().name.lowercase(Locale.getDefault()).replace(
+				'_', ' '
+			)
+		)
 		writer.endObject()
 	}
 

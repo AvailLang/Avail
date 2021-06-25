@@ -150,6 +150,7 @@ import java.util.Arrays.sort
 import java.util.Collections
 import java.util.Collections.synchronizedMap
 import java.util.Enumeration
+import java.util.Locale
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -1991,13 +1992,18 @@ class AvailWorkbench internal constructor (
 
 		/** Determine at startup whether we're on a Mac.  */
 		val runningOnMac =
-			System.getProperty("os.name").toLowerCase().matches(
-				"mac os x.*".toRegex())
+			System
+				.getProperty("os.name")
+				.lowercase(Locale.getDefault())
+				.matches(
+					"mac os x.*".toRegex()
+				)
 
 		/** Determine at startup whether we should show developer commands.  */
 		val showDeveloperTools =
 			"true".equals(
-				System.getProperty("availDeveloper"), ignoreCase = true)
+				System.getProperty("availDeveloper"), ignoreCase = true
+			)
 
 		/**
 		 * An indicator of whether to show the user interface in dark (Darcula)
@@ -2011,14 +2017,16 @@ class AvailWorkbench internal constructor (
 		 */
 		val inputBackgroundWhenRunning = AdaptiveColor(
 			light = Color(192, 255, 192),
-			dark = Color(55, 156, 26))
+			dark = Color(55, 156, 26)
+		)
 
 		/**
 		 * The foreground color of the input field when a command is running.
 		 */
 		val inputForegroundWhenRunning = AdaptiveColor(
 			light = Color.black,
-			dark = Color.white)
+			dark = Color.white
+		)
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current
@@ -2053,7 +2061,8 @@ class AvailWorkbench internal constructor (
 				catch (e: SecurityException)
 				{
 					userDir
-				})
+				}
+			)
 		}
 
 		/** Truncate the start of the document any time it exceeds this.  */
@@ -2089,12 +2098,14 @@ class AvailWorkbench internal constructor (
 				childNames.forEach { childName ->
 					val childNode = node.node(childName)
 					val sourceName = childNode.get(
-						moduleRootsSourceSubkeyString, "")
+						moduleRootsSourceSubkeyString, ""
+					)
 					val resolver =
 						if (sourceName.isEmpty())
 						{
 							RuntimeException(
-								"ModuleRoot, $childName, is missing a source URI")
+								"ModuleRoot, $childName, is missing a source URI"
+							)
 								.printStackTrace()
 							return@forEach
 						}
@@ -2104,7 +2115,8 @@ class AvailWorkbench internal constructor (
 							ModuleRootResolverRegistry.createResolver(
 								childName,
 								uri,
-								fileManager)
+								fileManager
+							)
 						}
 					roots.addRoot(ModuleRoot(childName, resolver))
 				}
@@ -2112,7 +2124,8 @@ class AvailWorkbench internal constructor (
 			catch (e: BackingStoreException)
 			{
 				System.err.println(
-					"Unable to read Avail roots preferences.")
+					"Unable to read Avail roots preferences."
+				)
 			}
 			return roots
 		}
@@ -2133,9 +2146,11 @@ class AvailWorkbench internal constructor (
 				childNames.forEach { childName ->
 					val childNode = node.node(childName)
 					val source = childNode.get(
-						moduleRenameSourceSubkeyString, "")
+						moduleRenameSourceSubkeyString, ""
+					)
 					val target = childNode.get(
-						moduleRenameTargetSubkeyString, "")
+						moduleRenameTargetSubkeyString, ""
+					)
 					// Ignore empty sources and targets, although they shouldn't
 					// occur.
 					if (source.isNotEmpty() && target.isNotEmpty())
@@ -2147,19 +2162,22 @@ class AvailWorkbench internal constructor (
 			catch (e: BackingStoreException)
 			{
 				System.err.println(
-					"Unable to read Avail rename rule preferences.")
+					"Unable to read Avail rename rule preferences."
+				)
 			}
 		}
 
 		/** Statistic for waiting for updateQueue's monitor.  */
 		internal val waitForDequeLockStat = Statistic(
 			WORKBENCH_TRANSCRIPT,
-			"Wait for lock to trim old entries")
+			"Wait for lock to trim old entries"
+		)
 
 		/** Statistic for trimming excess leading entries.  */
 		internal val discardExcessLeadingStat = Statistic(
 			WORKBENCH_TRANSCRIPT,
-			"Trim old entries (not counting lock)")
+			"Trim old entries (not counting lock)"
+		)
 
 		/**
 		 * Statistic for invoking writeText, including waiting for the monitor.
@@ -2194,10 +2212,12 @@ class AvailWorkbench internal constructor (
 						var html = value.htmlText(selected)
 						html = "<html>$html</html>"
 						super.getTreeCellRendererComponent(
-							tree, html, selected, expanded, leaf, row, hasFocus)
+							tree, html, selected, expanded, leaf, row, hasFocus
+						)
 					}
 					else -> return super.getTreeCellRendererComponent(
-						tree, value, selected, expanded, leaf, row, hasFocus)
+						tree, value, selected, expanded, leaf, row, hasFocus
+					)
 				}.apply {
 					if (darkMode)
 					{
@@ -2279,14 +2299,17 @@ class AvailWorkbench internal constructor (
 				System.setProperty("apple.laf.useScreenMenuBar", "true")
 				System.setProperty(
 					"com.apple.mrj.application.apple.menu.about.name",
-					"Avail Workbench")
+					"Avail Workbench"
+				)
 				System.setProperty(
 					"com.apple.awt.graphics.UseQuartz",
-					"true")
+					"true"
+				)
 
 				val application = OSXUtility.macOSXApplication
 				OSXUtility.setDockIconBadgeMethod(
-					application, activeVersionSummary)
+					application, activeVersionSummary
+				)
 			}
 			catch (e: Exception)
 			{
@@ -2359,7 +2382,10 @@ class AvailWorkbench internal constructor (
 						else -> BufferedReader(
 							InputStreamReader(
 								FileInputStream(
-									File(renames)), StandardCharsets.UTF_8))
+									File(renames)
+								), StandardCharsets.UTF_8
+							)
+						)
 					}
 					val renameParser = RenamesFileParser(reader, roots)
 					resolver = renameParser.parse()
@@ -2401,8 +2427,10 @@ class AvailWorkbench internal constructor (
 								workbench.writeText(
 									format(
 										"Resolved all module roots in %,3dms\n",
-										resolutionTime),
-									INFO)
+										resolutionTime
+									),
+									INFO
+								)
 							}
 							else
 							{
@@ -2410,27 +2438,32 @@ class AvailWorkbench internal constructor (
 									format(
 										"Resolved module roots in %,3dms " +
 											"with failures:\n",
-										resolutionTime),
-									INFO)
+										resolutionTime
+									),
+									INFO
+								)
 								failedResolutions.forEach {
 									workbench.writeText(
 										format("%s\n", it),
-										INFO)
+										INFO
+									)
 								}
 							}
 							// First refresh the module and entry point trees.
 							workbench.writeText(
 								"Scanning all module headers...\n",
-								INFO)
+								INFO
+							)
 							val before = currentTimeMillis()
-							workbench.calculateRefreshedTreesThen {
-								modules, entryPoints ->
+							workbench.calculateRefreshedTreesThen { modules, entryPoints ->
 								val after = currentTimeMillis()
 								workbench.writeText(
 									format(
 										"...done (%,3dms)\n",
-										after - before),
-									INFO)
+										after - before
+									),
+									INFO
+								)
 								// Now select an initial module, if specified.
 								invokeLater {
 									workbench.refreshFor(modules, entryPoints)
@@ -2442,14 +2475,16 @@ class AvailWorkbench internal constructor (
 											workbench.moduleTree.selectionPath = path
 											workbench.moduleTree.scrollRowToVisible(
 												workbench.moduleTree
-													.getRowForPath(path))
+													.getRowForPath(path)
+											)
 										}
 										else
 										{
 											workbench.writeText(
 												"Command line argument '$initial' was "
 													+ "not a valid module path",
-												ERR)
+												ERR
+											)
 										}
 									}
 									workbench.backgroundTask = null

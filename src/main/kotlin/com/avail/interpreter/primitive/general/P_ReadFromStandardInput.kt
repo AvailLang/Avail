@@ -63,7 +63,7 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 		return interpreter.suspendThen {
 			val buffer = CharBuffer.allocate(1)
 			SimpleCompletionHandler<Int>(
-				{ succeed(fromCodePoint(buffer.get(0).toInt())) },
+				{ succeed(fromCodePoint(buffer.get(0).code)) },
 				{ fail(E_IO_ERROR) }
 			).guardedDo {
 				fiber.textInterface().inputChannel.read(

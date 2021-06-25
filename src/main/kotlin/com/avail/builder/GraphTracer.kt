@@ -139,14 +139,14 @@ internal class GraphTracer constructor(
 			while (i < input.length)
 			{
 				c = input.codePointAt(i)
-				if (('a'.toInt() <= c && c <= 'z'.toInt())
-					|| ('A'.toInt() <= c && c <= 'Z'.toInt())
-					|| (i > startPosition && '0'.toInt() <= c
-						&& c <= '9'.toInt()))
+				if (('a'.code <= c && c <= 'z'.code)
+					|| ('A'.code <= c && c <= 'Z'.code)
+					|| (i > startPosition && '0'.code <= c
+						&& c <= '9'.code))
 				{
 					output.appendCodePoint(c)
 				}
-				else if (c == '/'.toInt())
+				else if (c == '/'.code)
 				{
 					output.append("__")
 				}

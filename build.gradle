@@ -39,7 +39,7 @@ import java.time.format.DateTimeFormatter
 
 plugins {
 	id 'java'
-	id 'org.jetbrains.kotlin.jvm' version '1.3.72' // $kotlin_version
+	id 'org.jetbrains.kotlin.jvm' version '1.5.10' // $kotlin_version
 	id 'com.github.johnrengelman.shadow' version '6.0.0' // $shadow_version
 	id 'org.jetbrains.dokka' version '0.10.1'
 	id 'maven-publish'
@@ -76,6 +76,7 @@ compileKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
 	}
 }
 
@@ -83,6 +84,7 @@ compileTestKotlin {
 	kotlinOptions {
 		jvmTarget = '1.8'
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
 	}
 }
 
@@ -119,10 +121,10 @@ dependencies {
 	// Java's file-watcher mechanism is garbage, so use this instead.
 	api group: 'io.methvin',
 		name: 'directory-watcher',
-		version: "${directoryWatcherVersion}"
+		version: "$directoryWatcherVersion"
 
 	// https://tika.apache.org for file MIME type detection
-	implementation 'org.apache.tika:tika-core:1.22'
+	implementation "org.apache.tika:tika-core:$tika_version"
 
 	// JUnit 5.
 	testRuntimeOnly group: 'org.junit.jupiter',
@@ -134,7 +136,7 @@ dependencies {
 	testImplementation group: 'org.junit.jupiter',
 		name: 'junit-jupiter-params',
 		version: "$junit_version"
-    implementation "org.jetbrains.kotlin:kotlin-reflect:1.3.72"
+    implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
 def repositoriesPath = {

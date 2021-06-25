@@ -232,8 +232,7 @@ class MapDescriptor private constructor(
 							name?.run { return this }
 							// Truncate large key strings.
 							val keyStringSize = key.tupleSize()
-							val keyString: A_Tuple
-							keyString = if (keyStringSize > 50) {
+							val keyString = if (keyStringSize > 50) {
 								tuple(
 									key.copyTupleFromToCanDestroy(1, 25, false),
 									stringFrom(" … "),
@@ -263,7 +262,7 @@ class MapDescriptor private constructor(
 			fields[arrayIndex++] = AvailObjectFieldHelper(
 				self, FakeMapSlots.VALUE_, entryCount + 1, value)
 		}
-		return fields.cast()
+		return fields.cast()!!
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =

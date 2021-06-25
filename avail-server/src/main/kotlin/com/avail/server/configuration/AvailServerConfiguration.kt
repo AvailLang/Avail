@@ -38,6 +38,8 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.files.FileManager
 import com.avail.server.AvailServer
+import com.avail.server.io.SocketAdapter
+import com.avail.server.io.WebSocketAdapter
 import com.avail.utility.configuration.Configuration
 import java.io.File
 import java.io.FileNotFoundException
@@ -111,6 +113,12 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var documentPath: String? = null
+
+	/**
+	 * Whether to start a [WebSocketAdapter] instead of a normal
+	 * [SocketAdapter].
+	 */
+	var startWebSocketAdapter = false
 
 	/** The server authority.  */
 	var serverAuthority = "localhost"

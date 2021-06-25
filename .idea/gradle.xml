@@ -9,6 +9,7 @@
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
+            <option value="$PROJECT_DIR$/anvil-server" />
             <option value="$PROJECT_DIR$/avail-bootstrap" />
             <option value="$PROJECT_DIR$/avail-cli" />
             <option value="$PROJECT_DIR$/avail-server" />
@@ -17,7 +18,6 @@
             <option value="$PROJECT_DIR$/unicode-catalog" />
           </set>
         </option>
-        <option name="useQualifiedModuleNames" value="true" />
       </GradleProjectSettings>
     </option>
   </component>

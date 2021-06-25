@@ -42,6 +42,9 @@ import com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.WEB_SOCKET_ADAPTER
+import com.avail.server.io.SocketAdapter
+import com.avail.server.io.WebSocketAdapter
 import com.avail.tools.options.OptionProcessingException
 import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
@@ -98,6 +101,12 @@ class CommandLineConfigurator constructor(
 		AVAIL_ROOTS,
 
 		/**
+		 * Specification that a [WebSocketAdapter] should be started instead of
+		 * an ordinary [SocketAdapter].
+		 */
+		WEB_SOCKET_ADAPTER,
+
+		/**
 		 * Specification of the server authority.
 		 */
 		SERVER_AUTHORITY,
@@ -147,6 +156,14 @@ class CommandLineConfigurator constructor(
 				+ "environment variables.")
 				{
 					configuration.availRootsPath = argument
+				}
+			option(
+				WEB_SOCKET_ADAPTER,
+				listOf("webSocketAdapter"),
+				"Start a WebSocket adapter instead of an ordinary socket " +
+					"adapter.")
+				{
+					configuration.startWebSocketAdapter = true
 				}
 			optionWithArgument(
 				SERVER_AUTHORITY,

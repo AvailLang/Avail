@@ -109,8 +109,9 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				else if (locale.language == "en")
 				{
 					print(
-						code.name.substring(2).toLowerCase()
-							.replace('_', '-'))
+						code.name.substring(2).lowercase(Locale.getDefault())
+							.replace('_', '-')
+					)
 					print(" code")
 				}
 				println()
@@ -126,8 +127,9 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				else if (locale.language == "en")
 				{
 					print(
-						code.name.substring(2).toLowerCase()
-							.replace('_', '-'))
+						code.name.substring(2).lowercase(Locale.getDefault())
+							.replace('_', '-')
+					)
 					print(" exception")
 				}
 				println()

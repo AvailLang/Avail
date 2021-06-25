@@ -457,7 +457,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()
+		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()!!
 		val loader = cls.classLoader
 		var enumClass: Class<Enum<*>>? =
 			try
@@ -664,13 +664,15 @@ abstract class AbstractDescriptor protected constructor (
 		val shortenedName = className.substring(0, className.length - 10)
 		when (shortenedName.codePointAt(0))
 		{
-			'A'.toInt(),
-			'E'.toInt(),
-			'I'.toInt(),
-			'O'.toInt(),
-			'U'.toInt() ->
+			'A'.code,
+			'E'.code,
+			'I'.code,
+			'O'.code,
+			'U'.code ->
 				append('n')
-			else -> {}
+			else ->
+			{
+			}
 		}
 		append(' ')
 		append(shortenedName)
@@ -681,7 +683,7 @@ abstract class AbstractDescriptor protected constructor (
 			// Circled Latin capital letter S.
 			isShared -> append('\u24C8')
 		}
-		val cls = this@AbstractDescriptor.javaClass.cast()
+		val cls = this@AbstractDescriptor.javaClass.cast()!!
 		val loader = cls.classLoader
 		val intSlots: Array<out IntegerSlotsEnum> =
 			try
@@ -4197,13 +4199,13 @@ abstract class AbstractDescriptor protected constructor (
 			if (enumAnnotation !== null)
 			{
 				val describingClass: Class<Enum<*>> =
-					enumAnnotation.describedBy.java.cast()
+					enumAnnotation.describedBy.java.cast()!!
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-						describingClass.enumConstants.cast()
+						describingClass.enumConstants.cast()!!
 					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName())

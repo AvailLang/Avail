@@ -170,7 +170,7 @@ private constructor(
 					if (runEnd != runStart) {
 						// Skip the dash if the start and end are consecutive.
 						if (runEnd != runStart + 1) {
-							appendCodePoint('-'.toInt())
+							appendCodePoint('-'.code)
 						}
 						writeRangeElement(builder, runEnd)
 					}
@@ -546,23 +546,26 @@ private constructor(
 			codePoint: Int
 		) {
 			var escaped = -1
-			when (codePoint) {
-				' '.toInt() -> {
-					builder.appendCodePoint(' '.toInt())
+			when (codePoint)
+			{
+				' '.code ->
+				{
+					builder.appendCodePoint(' '.code)
 					return
 				}
-				'-'.toInt(), '['.toInt(), ']'.toInt() -> {
+				'-'.code, '['.code, ']'.code ->
+				{
 					builder.append(String.format("\\(%x)", codePoint))
 					return
 				}
-				'\n'.toInt() -> escaped = 'n'.toInt()
-				'\r'.toInt() -> escaped = 'r'.toInt()
-				'\t'.toInt() -> escaped = 't'.toInt()
-				'\\'.toInt() -> escaped = '\\'.toInt()
-				'"'.toInt() -> escaped = '"'.toInt()
+				'\n'.code -> escaped = 'n'.code
+				'\r'.code -> escaped = 'r'.code
+				'\t'.code -> escaped = 't'.code
+				'\\'.code -> escaped = '\\'.code
+				'"'.code -> escaped = '"'.code
 			}
 			if (escaped != -1) {
-				builder.appendCodePoint('\\'.toInt())
+				builder.appendCodePoint('\\'.code)
 				builder.appendCodePoint(escaped)
 				return
 			}

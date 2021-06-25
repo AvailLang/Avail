@@ -89,7 +89,7 @@ object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 			size != permutation.asSet().setSize() ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Entries are unique, but don't cover 1..N (pigeonhole principle).
-			permutation.maxBy { it.extractInt() }!!.extractInt() != size ->
+			permutation.maxByOrNull { it.extractInt() }!!.extractInt() != size ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
 			permutation.equals(createInterval(one, fromInt(size), one)) ->

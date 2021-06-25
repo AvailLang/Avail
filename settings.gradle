@@ -32,6 +32,7 @@
 
 rootProject.name = "avail"
 include(
+	"anvil-server",
 	"avail-bootstrap",
 	"avail-cli",
 	"avail-server",

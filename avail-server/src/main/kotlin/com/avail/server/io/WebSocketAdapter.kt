@@ -52,6 +52,7 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections
 import java.util.Formatter
+import java.util.Locale
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
@@ -160,28 +161,28 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		START
 		{
 			override fun nextState(c: Int) =
-				if (c == '\r'.toInt()) FIRST_CARRIAGE_RETURN else START
+				if (c == '\r'.code) FIRST_CARRIAGE_RETURN else START
 		},
 
 		/** Just read the first carriage return.  */
 		FIRST_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
-				if (c == '\n'.toInt()) FIRST_LINE_FEED else START
+				if (c == '\n'.code) FIRST_LINE_FEED else START
 		},
 
 		/** Just read the first carriage return + line feed.  */
 		FIRST_LINE_FEED
 		{
 			override fun nextState(c: Int) =
-				if (c == '\r'.toInt()) SECOND_CARRIAGE_RETURN else START
+				if (c == '\r'.code) SECOND_CARRIAGE_RETURN else START
 		},
 
 		/** Just read the second carriage return.  */
 		SECOND_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
-				if (c == '\n'.toInt()) SECOND_LINE_FEED else START
+				if (c == '\n'.code) SECOND_LINE_FEED else START
 		},
 
 		/** Just read the second carriage return + line feed. */
@@ -242,7 +243,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			{
 				for (method in values())
 				{
-					methodsByName[method.name.toLowerCase()] = method
+					methodsByName[method.name.lowercase(Locale.getDefault())] = method
 				}
 			}
 
@@ -257,7 +258,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 *   exists.
 			 */
 			internal fun named(name: String): HttpRequestMethod? =
-				methodsByName[name.toLowerCase()]
+				methodsByName[name.lowercase(Locale.getDefault())]
 		}
 	}
 
@@ -436,7 +437,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				for (i in 1 until headers.size - 1)
 				{
 					val pair = headers[i].split(":".toRegex(), 2)
-					map[pair[0].trim { it <= ' ' }.toLowerCase()] =
+					map[pair[0]
+						.trim { it <= ' ' }
+						.lowercase(Locale.getDefault())] =
 						pair[1].trim { it <= ' ' }
 				}
 				// Validate the request.

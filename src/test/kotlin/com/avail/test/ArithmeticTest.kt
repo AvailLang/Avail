@@ -62,6 +62,7 @@ import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.MethodSource
 import java.math.BigInteger
+import java.util.Locale
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.math.abs
@@ -326,7 +327,7 @@ class ArithmeticTest
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		private fun sampleFloats(): List<Float> = sampleFloats
+		fun sampleFloats(): List<Float> = sampleFloats
 
 		/**
 		 * Produce all pairs of sample Avail [floats][FloatDescriptor].
@@ -336,7 +337,7 @@ class ArithmeticTest
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		private fun floatPairs(): Stream<Arguments> = sampleFloats.stream()
+		fun floatPairs(): Stream<Arguments> = sampleFloats.stream()
 			.flatMap { f1: Float? ->
 				sampleFloats.stream()
 					.map { f2: Float? -> Arguments.of(f1, f2) }
@@ -418,7 +419,7 @@ class ArithmeticTest
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		private fun bigIntegerHexConversions(): List<String> =
+		fun bigIntegerHexConversions(): List<String> =
 			bigIntegerHexConversions
 
 		/**
@@ -432,12 +433,12 @@ class ArithmeticTest
 		{
 			val bigInt = BigInteger(bigIntHexString, 16)
 			Assertions.assertEquals(
-				bigIntHexString.toUpperCase(),
-				bigInt.toString(16).toUpperCase())
+				bigIntHexString.uppercase(Locale.getDefault()),
+				bigInt.toString(16).uppercase(Locale.getDefault()))
 			val availInt: A_BasicObject = fromBigInteger(bigInt)
 			Assertions.assertEquals(
-				bigInt.toString().toUpperCase(),
-				availInt.toString().toUpperCase())
+				bigInt.toString().uppercase(Locale.getDefault()),
+				availInt.toString().uppercase(Locale.getDefault()))
 		}
 
 		/**

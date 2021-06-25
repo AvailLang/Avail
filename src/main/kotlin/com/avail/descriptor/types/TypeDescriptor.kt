@@ -71,6 +71,7 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.beans.MethodDescriptor
+import java.util.Locale
 
 /**
  * Every object in Avail has a type.  Types are also Avail objects.  The types
@@ -471,7 +472,8 @@ abstract class TypeDescriptor protected constructor(
 			this.parent = parent
 			this.typeTag = typeTag
 			o = PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed(
-				name.toLowerCase().replace('_', ' '))
+				name.lowercase(Locale.getDefault()).replace('_', ' ')
+			)
 		}
 	}
 

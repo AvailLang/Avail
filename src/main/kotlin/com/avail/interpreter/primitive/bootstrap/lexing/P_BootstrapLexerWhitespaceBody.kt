@@ -73,8 +73,8 @@ object P_BootstrapLexerWhitespaceBody
 		{
 			val c = source.tupleCodePointAt(position)
 			if (!Character.isWhitespace(c)
-			    && !Character.isSpaceChar(c)
-			    && c != '\uFEFF'.toInt())
+				&& !Character.isSpaceChar(c)
+				&& c != '\uFEFF'.code)
 			{
 				break
 			}

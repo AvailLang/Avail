@@ -75,10 +75,10 @@ object P_BootstrapLexerOperatorBody
 		val startPosition = sourcePositionInteger.extractInt()
 
 		val c = source.tupleCodePointAt(startPosition)
-		if (c == '/'.toInt())
+		if (c == '/'.code)
 		{
 			if (startPosition < sourceSize
-				&& source.tupleCodePointAt(startPosition + 1) == '*'.toInt())
+				&& source.tupleCodePointAt(startPosition + 1) == '*'.code)
 			{
 				// No solution in this case, but don't complain.
 				return interpreter.primitiveSuccess(emptySet)

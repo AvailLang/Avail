@@ -3545,9 +3545,8 @@ enum class SerializerOperation constructor(
 		internal fun byOrdinal(ordinal: Int) = all[ordinal]
 
 		/** The maximum number of operands of any SerializerOperation. */
-		internal val maxSubobjects = all.maxBy {
-			it.operands.size
-		}!!.operands.size
+		internal val maxSubobjects =
+			all.maxByOrNull { it.operands.size }!!.operands.size
 
 		/**
 		 * Find or create the atom with the given name in the module with the

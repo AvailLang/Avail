@@ -571,12 +571,13 @@ open class CompiledCodeDescriptor protected constructor(
 		while (true)
 		{
 			if (packedDeclarationNames.tupleCodePointAt(position)
-				== '\"'.toInt())
+				== '\"'.code)
 			{
 				val token = try
 				{
 					P_BootstrapLexerStringBody.parseString(
-						packedDeclarationNames, position, 1)
+						packedDeclarationNames, position, 1
+					)
 				}
 				catch (e: AvailRejectedParseException)
 				{
@@ -590,17 +591,20 @@ open class CompiledCodeDescriptor protected constructor(
 				val start = position
 				while (position <= limit
 					&& packedDeclarationNames.tupleCodePointAt(position)
-						!= ','.toInt())
+					!= ','.code)
 				{
 					position++
 				}
-				names.add(packedDeclarationNames.copyStringFromToCanDestroy(
-					start, position - 1, false))
+				names.add(
+					packedDeclarationNames.copyStringFromToCanDestroy(
+						start, position - 1, false
+					)
+				)
 			}
 			if (position == limit + 1)
 				return tupleFromList(names)
 			if (packedDeclarationNames.tupleCodePointAt(position)
-				!= ','.toInt())
+				!= ','.code)
 			{
 				throw RuntimeException("Invalid encoded declaration names")
 			}

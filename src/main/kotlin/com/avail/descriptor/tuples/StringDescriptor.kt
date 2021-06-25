@@ -161,7 +161,7 @@ abstract class StringDescriptor protected constructor(
 			while (index < charCount)
 			{
 				val aChar = aNativeString[index]
-				maxChar = maxChar.coerceAtLeast(aChar.toInt())
+				maxChar = maxChar.coerceAtLeast(aChar.code)
 				index++
 			}
 			return if (maxChar <= 255)
@@ -171,7 +171,7 @@ abstract class StringDescriptor protected constructor(
 			else
 			{
 				generateTwoByteString(aNativeString.length)
-						{ aNativeString[it - 1].toInt() }
+				{ aNativeString[it - 1].code }
 			}
 			// Pack it into a TwoByteString, preserving surrogates.
 		}

@@ -38,6 +38,7 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
+import java.util.Locale
 
 /**
  * A `Simple` is an [expression][Expression] that
@@ -67,7 +68,7 @@ internal class Simple constructor(
 		get()
 		{
 			val nativeString = token.asNativeString()
-			return nativeString.toLowerCase()
+			return nativeString.lowercase(Locale.getDefault())
 				.equals(nativeString, ignoreCase = true)
 		}
 
