@@ -104,6 +104,7 @@ class SocketAdapter @Throws(IOException::class) constructor (
 				val channel = AnvilServerChannel(
 					this@SocketAdapter, value, onChannelClose)
 				server.registerChannel(channel)
+				server.identifyChannel(channel)
 				channel.readMessage()
 			},
 			{
