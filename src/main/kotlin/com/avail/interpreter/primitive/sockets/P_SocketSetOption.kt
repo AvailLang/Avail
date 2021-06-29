@@ -95,7 +95,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		{
 			for ((key, value) in options.mapIterable())
 			{
-				Options.socketOptions[key.extractInt()]?.let { option ->
+				Options.socketOptions[key.extractInt]?.let { option ->
 					val type = option.type()
 					if (type === java.lang.Boolean::class.java
 						&& value.isBoolean)
@@ -107,7 +107,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 						&& value.isInt)
 					{
 						val intOption: SocketOption<Int> = option.cast()
-						socket.setOption(intOption, value.extractInt())
+						socket.setOption(intOption, value.extractInt)
 					}
 					else
 					{

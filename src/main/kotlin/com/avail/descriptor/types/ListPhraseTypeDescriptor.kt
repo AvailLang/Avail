@@ -194,11 +194,11 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): Boolean
 	{
 		assert(aListNodeType.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
-		return (self.phraseKind() === aListNodeType.phraseKind()
-		        && self.slot(EXPRESSION_TYPE).equals(
-			aListNodeType.phraseTypeExpressionType())
-		        && self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
-			aListNodeType.subexpressionsTupleType()))
+		return (self.phraseKind === aListNodeType.phraseKind
+			&& self.slot(EXPRESSION_TYPE).equals(
+				aListNodeType.phraseTypeExpressionType)
+			&& self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
+				aListNodeType.subexpressionsTupleType))
 	}
 
 	override fun o_Hash(self: AvailObject): Int
@@ -226,11 +226,11 @@ class ListPhraseTypeDescriptor internal constructor(
 	override fun o_IsSupertypeOfListNodeType(
 		self: AvailObject,
 		aListNodeType: A_Type): Boolean =
-			(aListNodeType.phraseKindIsUnder(self.phraseKind())
-			        && aListNodeType.phraseTypeExpressionType().isSubtypeOf(
-				self.slot(EXPRESSION_TYPE))
-			        && aListNodeType.subexpressionsTupleType().isSubtypeOf(
-				self.slot(SUBEXPRESSIONS_TUPLE_TYPE)))
+			(aListNodeType.phraseKindIsUnder(self.phraseKind)
+				&& aListNodeType.phraseTypeExpressionType.isSubtypeOf(
+					self.slot(EXPRESSION_TYPE))
+				&& aListNodeType.subexpressionsTupleType.isSubtypeOf(
+					self.slot(SUBEXPRESSIONS_TUPLE_TYPE)))
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
@@ -251,32 +251,32 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): A_Type
 	{
 		// Intersection of two list phrase types.
-		val intersectionKind = self.phraseKind().commonDescendantWith(
-			aListNodeType.phraseKind())
+		val intersectionKind = self.phraseKind.commonDescendantWith(
+			aListNodeType.phraseKind)
 		                       ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
-			self.phraseTypeExpressionType().typeIntersection(
-				aListNodeType.phraseTypeExpressionType()),
-			self.subexpressionsTupleType().typeIntersection(
-				aListNodeType.subexpressionsTupleType()))
+			self.phraseTypeExpressionType.typeIntersection(
+				aListNodeType.phraseTypeExpressionType),
+			self.subexpressionsTupleType.typeIntersection(
+				aListNodeType.subexpressionsTupleType))
 	}
 
 	override fun o_TypeIntersectionOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type): A_Type
 	{
-		val otherKind = aPhraseType.phraseKind()
+		val otherKind = aPhraseType.phraseKind
 		assert(!otherKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		val intersectionKind =
-			otherKind.commonDescendantWith(self.phraseKind()) ?: return bottom
+			otherKind.commonDescendantWith(self.phraseKind) ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
-			self.phraseTypeExpressionType().typeIntersection(
-				aPhraseType.phraseTypeExpressionType()),
-			self.subexpressionsTupleType())
+			self.phraseTypeExpressionType.typeIntersection(
+				aPhraseType.phraseTypeExpressionType),
+			self.subexpressionsTupleType)
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -287,18 +287,18 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): A_Type
 	{
 		// Union of two list phrase types.
-		val objectKind = self.phraseKind()
-		val otherKind = aListNodeType.phraseKind()
+		val objectKind = self.phraseKind
+		val otherKind = aListNodeType.phraseKind
 		assert(otherKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		val unionKind = objectKind.commonAncestorWith(
 			otherKind)
 		assert(unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			unionKind,
-			self.phraseTypeExpressionType().typeUnion(
-				aListNodeType.phraseTypeExpressionType()),
-			self.subexpressionsTupleType().typeUnion(
-				aListNodeType.subexpressionsTupleType()))
+			self.phraseTypeExpressionType.typeUnion(
+				aListNodeType.phraseTypeExpressionType),
+			self.subexpressionsTupleType.typeUnion(
+				aListNodeType.subexpressionsTupleType))
 	}
 
 	override fun o_TypeUnionOfPhraseType(
@@ -307,21 +307,21 @@ class ListPhraseTypeDescriptor internal constructor(
 	{
 		// Union of a list phrase type and a non-list phrase type is a
 		// non-list phrase type.
-		val objectKind = self.phraseKind()
-		val otherKind = aPhraseType.phraseKind()
+		val objectKind = self.phraseKind
+		val otherKind = aPhraseType.phraseKind
 		val unionKind = objectKind.commonAncestorWith(
 			otherKind)
 		assert(!unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return unionKind.create(
-			self.phraseTypeExpressionType().typeUnion(
-				aPhraseType.phraseTypeExpressionType()))
+			self.phraseTypeExpressionType.typeUnion(
+				aPhraseType.phraseTypeExpressionType))
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
-		writer.write(self.phraseKind().jsonName)
+		writer.write(self.phraseKind.jsonName)
 		writer.write("expression type")
 		self.slot(EXPRESSION_TYPE).writeTo(writer)
 		writer.write("subexpressions tuple type")
@@ -338,7 +338,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		super.printObjectOnAvoidingIndent(
 			self, builder, recursionMap, indent)
 		builder.append(" (subexpressions tuple type=")
-		self.subexpressionsTupleType().printOnAvoidingIndent(
+		self.subexpressionsTupleType.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 		builder.append(")")
 	}
@@ -452,7 +452,7 @@ class ListPhraseTypeDescriptor internal constructor(
 					assert(
 						descriptorTraversed is PhraseTypeDescriptor
 							|| descriptorTraversed is BottomTypeDescriptor)
-					it.phraseTypeExpressionType()
+					it.phraseTypeExpressionType
 				}
 			return createListNodeTypeNoCheck(
 				kind,
@@ -479,7 +479,7 @@ class ListPhraseTypeDescriptor internal constructor(
 					assert(
 						descriptorTraversed is PhraseTypeDescriptor
 							|| descriptorTraversed is BottomTypeDescriptor)
-					it.phraseTypeExpressionType()
+					it.phraseTypeExpressionType
 				}
 			return createListNodeTypeNoCheck(
 				PhraseKind.LIST_PHRASE,

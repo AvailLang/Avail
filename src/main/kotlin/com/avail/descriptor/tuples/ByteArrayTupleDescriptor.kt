@@ -142,7 +142,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		val originalSize = self.tupleSize()
 		if (originalSize < maximumCopySize && newElement.isInt)
 		{
-			val intValue = (newElement as A_Number).extractInt()
+			val intValue = (newElement as A_Number).extractInt
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
@@ -377,12 +377,12 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			return false
 		}
 		// See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(self.tupleSize().toLong()))
 		{
 			return false
 		}
 		// tuple's size is in range.
-		val typeTuple = aType.typeTuple()
+		val typeTuple = aType.typeTuple
 		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
 		for (i in 1 .. breakIndex)
 		{
@@ -391,7 +391,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 				return false
 			}
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		if (bytes.isSubtypeOf(defaultTypeObject))
 		{
 			return true
@@ -474,7 +474,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		}
 		// Clobber the object in place...
 		val theByte =
-			(newValueObject as AvailObject).extractUnsignedByte().toByte()
+			(newValueObject as AvailObject).extractUnsignedByte.toByte()
 		val array =
 			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		array[index - 1] = theByte

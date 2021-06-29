@@ -44,6 +44,13 @@ import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLiterals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -483,14 +490,14 @@ class SerializerTest
 		val function = createFunction(code, emptyTuple)
 		val newFunction: A_Function = roundTrip(function)
 		val code2 = newFunction.code()
-		assertEquals(code.numOuters(), code2.numOuters())
-		assertEquals(code.numSlots(), code2.numSlots())
+		assertEquals(code.numOuters, code2.numOuters)
+		assertEquals(code.numSlots, code2.numSlots)
 		assertEquals(code.numArgs(), code2.numArgs())
-		assertEquals(code.numLocals(), code2.numLocals())
-		assertEquals(code.primitive(), code2.primitive())
-		assertEquals(code.nybbles(), code2.nybbles())
+		assertEquals(code.numLocals, code2.numLocals)
+		assertEquals(code.codePrimitive(), code2.codePrimitive())
+		assertEquals(code.nybbles, code2.nybbles)
 		assertEquals(code.functionType(), code2.functionType())
-		for (i in code.numLiterals() downTo 1)
+		for (i in code.numLiterals downTo 1)
 		{
 			assertEquals(code.literalAt(i), code2.literalAt(i))
 		}

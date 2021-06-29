@@ -71,7 +71,7 @@ object L2_JUMP_IF_KIND_OF_OBJECT : L2ConditionalJump(
 		// the ifNotKind branch.
 		ifKind.manifest().intersectType(
 			value.semanticValue(),
-			type.type().instance())
+			type.type().instance)
 	}
 
 	override fun appendToWithWarnings(

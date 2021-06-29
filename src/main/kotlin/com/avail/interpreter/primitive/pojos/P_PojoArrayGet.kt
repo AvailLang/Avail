@@ -74,7 +74,7 @@ object P_PojoArrayGet : Primitive(2, CanInline)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val index = subscript.extractInt()
+		val index = subscript.extractInt
 		if (index > Array.getLength(array))
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
@@ -82,8 +82,10 @@ object P_PojoArrayGet : Primitive(2, CanInline)
 		val element = Array.get(array, index - 1)
 		return try {
 			interpreter.primitiveSuccess(
-				unmarshal(element, pojo.kind().contentType()))
-		} catch (e: MarshalingException) {
+				unmarshal(element, pojo.kind().contentType))
+		}
+		catch (e: MarshalingException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}

@@ -92,29 +92,29 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
-		val tupleSizes = tupleType.sizeRange()
-		val tupleSizeLowerBound = tupleSizes.lowerBound()
-		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+		val tupleSizes = tupleType.sizeRange
+		val tupleSizeLowerBound = tupleSizes.lowerBound
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound)
 		    || !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  Give up.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
-		val tupleSize = tupleSizeLowerBound.extractInt()
+		val tupleSize = tupleSizeLowerBound.extractInt
 		var fieldTypeMap = emptyMap
 		for (i in 1 .. tupleSize)
 		{
 			val pairType = tupleType.typeAtIndex(i)
-			assert(pairType.sizeRange().lowerBound().extractInt() == 2)
-			assert(pairType.sizeRange().upperBound().extractInt() == 2)
+			assert(pairType.sizeRange.lowerBound.extractInt == 2)
+			assert(pairType.sizeRange.upperBound.extractInt == 2)
 			val keyType = pairType.typeAtIndex(1)
-			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
+			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
 				return super.returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
-			val keyValue = keyType.instance()
+			val keyValue = keyType.instance
 			assert(keyValue.isAtom)
 			if (fieldTypeMap.hasKey(keyValue))
 			{
@@ -124,7 +124,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			}
 			val valueMeta = pairType.typeAtIndex(2)
 			assert(valueMeta.isInstanceMeta)
-			val valueType = valueMeta.instance()
+			val valueType = valueMeta.instance
 			fieldTypeMap =
 				fieldTypeMap.mapAtPuttingCanDestroy(keyValue, valueType, true)
 		}

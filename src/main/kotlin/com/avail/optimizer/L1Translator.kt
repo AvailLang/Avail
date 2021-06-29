@@ -42,6 +42,20 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
@@ -239,14 +253,14 @@ class L1Translator private constructor(
 	 * arguments, the locals (including the optional primitive failure result),
 	 * and the stack slots.
 	 */
-	private val numSlots: Int = code.numSlots()
+	private val numSlots: Int = code.numSlots
 
 	/**
 	 * An array of names of arguments, if available, to make it easier to follow
 	 * [L2ControlFlowGraph]s.
 	 */
 	private val slotNames =
-		code.declarationNames().map { it.asNativeString() }.toTypedArray()
+		code.declarationNames.map { it.asNativeString() }.toTypedArray()
 
 	/**
 	 * An array of names of arguments, if available, to make it easier to follow
@@ -254,7 +268,7 @@ class L1Translator private constructor(
 	 *
 	 * TODO: Extend declarationNames() for outers.
 	 */
-	val outerNames = Array(code.numOuters()) { "Outer#${it+1}" }
+	val outerNames = Array(code.numOuters) { "Outer#${it+1}" }
 
 	/**
 	 * The [L2SemanticValue]s corresponding with the slots of the virtual
@@ -493,11 +507,11 @@ class L1Translator private constructor(
 		{
 			return generator.readBoxed(semanticOuter)
 		}
-		if (outerType.instanceCount().equalsInt(1)
+		if (outerType.instanceCount.equalsInt(1)
 			&& !outerType.isInstanceMeta)
 		{
 			// The exact outer is known statically.
-			return generator.boxedConstant(outerType.instance())
+			return generator.boxedConstant(outerType.instance)
 		}
 		val functionRead = currentFunction
 		val restriction = restrictionForType(outerType, BOXED_FLAG)
@@ -1030,7 +1044,7 @@ class L1Translator private constructor(
 				val signature = definition.bodySignature()
 				if (signature.couldEverBeInvokedWith(argumentRestrictions)
 					&& superUnionType.isSubtypeOf(
-						signature.argsTupleType()))
+						signature.argsTupleType))
 				{
 					applicableExpandedLeaves.add(definition)
 				}
@@ -1106,11 +1120,11 @@ class L1Translator private constructor(
 			{
 				val function = definition.bodyBlock()
 				val rawFunction = function.code()
-				val primitive = rawFunction.primitive()
+				val primitive = rawFunction.codePrimitive()
 				val returnType: A_Type = if (primitive !== null)
 				{
 					val signatureTupleType =
-						rawFunction.functionType().argsTupleType()
+						rawFunction.functionType().argsTupleType
 					val intersectedArgumentTypes = mutableListOf<A_Type>()
 					for (i in argumentRestrictions.indices)
 					{
@@ -1124,7 +1138,7 @@ class L1Translator private constructor(
 				}
 				else
 				{
-					rawFunction.functionType().returnType()
+					rawFunction.functionType().returnType
 				}
 				tempUnion = tempUnion.typeUnion(returnType)
 			}
@@ -1719,7 +1733,8 @@ class L1Translator private constructor(
 					L2SemanticUnboxedInt(registerToTest.semanticValue()),
 					trulyUnreachable),
 				generator.unboxedIntConstant(
-					(constantValue as AvailObject).extractInt()),
+					(constantValue as AvailObject).extractInt
+				),
 				edgeTo(innerPass),
 				edgeTo(failBlock))
 			assert(trulyUnreachable.predecessorEdges().isEmpty())
@@ -1776,7 +1791,8 @@ class L1Translator private constructor(
 		functionToCallReg: L2ReadBoxedOperand,
 		arguments: List<L2ReadBoxedOperand>,
 		tryToGenerateSpecialPrimitiveInvocation: Boolean,
-		callSiteHelper: CallSiteHelper)
+		callSiteHelper: CallSiteHelper
+	)
 	{
 		assert(functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType()))
 
@@ -1790,16 +1806,18 @@ class L1Translator private constructor(
 		// as a denormalized uninstantiable type.  For now just treat a spread
 		// of sizes like bottom (i.e., the count is not known).
 		val argumentCount = arguments.size
-		val sizeRange = functionToCallReg.type().argsTupleType().sizeRange()
-		assert(sizeRange.isBottom
-		   || !sizeRange.lowerBound().equals(sizeRange.upperBound())
-		   || sizeRange.rangeIncludesLong(argumentCount.toLong()))
+		val sizeRange = functionToCallReg.type().argsTupleType.sizeRange
+		assert(
+			sizeRange.isBottom
+				|| !sizeRange.lowerBound.equals(sizeRange.upperBound)
+				|| sizeRange.rangeIncludesLong(argumentCount.toLong())
+		)
 		val guaranteedResultType: A_Type
 		val rawFunction = determineRawFunction(functionToCallReg)
-		val primitive = rawFunction?.primitive()
+		val primitive = rawFunction?.codePrimitive()
 		if (primitive !== null)
 		{
-			val argsTupleType = rawFunction.functionType().argsTupleType()
+			val argsTupleType = rawFunction.functionType().argsTupleType
 			val argumentTypes: List<A_Type>
 			val generated: Boolean
 			if (tryToGenerateSpecialPrimitiveInvocation)
@@ -1847,7 +1865,8 @@ class L1Translator private constructor(
 					// register with as strong a type as possible.
 					var resultType = primitive.returnTypeGuaranteedByVM(
 						rawFunction, argumentTypes)
-					if (resultType.isBottom) {
+					if (resultType.isBottom)
+					{
 						// Even though the Invoke primitive can't fail, the
 						// ultimately called function won't return.  In this
 						// case, weaken the resultType to avoid ⊥, just to
@@ -1886,8 +1905,8 @@ class L1Translator private constructor(
 					CallSiteCannotFail -> primitive.returnTypeGuaranteedByVM(
 						rawFunction, argumentTypes)
 					CallSiteMustFail ->
-						rawFunction.returnTypeIfPrimitiveFails()
-					else -> rawFunction.returnTypeIfPrimitiveFails().typeUnion(
+						rawFunction.returnTypeIfPrimitiveFails
+					else -> rawFunction.returnTypeIfPrimitiveFails.typeUnion(
 						primitive.returnTypeGuaranteedByVM(
 							rawFunction, argumentTypes))
 				}
@@ -1895,7 +1914,7 @@ class L1Translator private constructor(
 		else
 		{
 			// Exact function was unknown, or it wasn't a primitive.
-			guaranteedResultType = functionToCallReg.type().returnType()
+			guaranteedResultType = functionToCallReg.type().returnType
 		}
 
 		// The function isn't known to be a particular primitive function, or
@@ -1950,8 +1969,7 @@ class L1Translator private constructor(
 			L2_ENTER_L2_CHUNK,
 			L2IntImmediateOperand(
 				ChunkEntryPoint.TRANSIENT.offsetInDefaultChunk),
-			L2CommentOperand(
-				"Transient - cannot be invalid."))
+			L2CommentOperand("Transient - cannot be invalid."))
 		generator.jumpTo(targetBlock)
 
 		generator.startBlock(successBlock)
@@ -2199,14 +2217,15 @@ class L1Translator private constructor(
 
 		// The primitive can't be folded, so let it generate its own code
 		// equivalent to invocation.
-		val signatureTupleType = rawFunction.functionType().argsTupleType()
+		val signatureTupleType = rawFunction.functionType().argsTupleType
 		val narrowedArgTypes = mutableListOf<A_Type>()
 		val narrowedArguments = mutableListOf<L2ReadBoxedOperand>()
 		for (i in 0 until argumentCount)
 		{
 			val argument = generator.readBoxed(arguments[i].semanticValue())
-			assert(argument.restriction().type.isSubtypeOf(
-				signatureTupleType.typeAtIndex(i + 1)))
+			assert(
+				argument.restriction().type.isSubtypeOf(
+					signatureTupleType.typeAtIndex(i + 1)))
 			narrowedArgTypes.add(argument.restriction().type)
 			narrowedArguments.add(argument)
 		}
@@ -2567,7 +2586,7 @@ class L1Translator private constructor(
 		// Emit the specified get-variable instruction variant.
 		val valueWrite = generator.boxedWrite(
 			targetSemanticValue,
-			restrictionForType(variable.type().readType(), BOXED_FLAG))
+			restrictionForType(variable.type().readType, BOXED_FLAG))
 		addInstruction(
 			getOperation,
 			variable,
@@ -2694,7 +2713,7 @@ class L1Translator private constructor(
 		startBlock.makeIrremovable()
 		generator.specialBlocks[START] = startBlock
 		generator.startBlock(startBlock)
-		val primitive = code.primitive()
+		val primitive = code.codePrimitive()
 		if (primitive !== null)
 		{
 			// Try the primitive, automatically returning if successful.
@@ -2747,7 +2766,7 @@ class L1Translator private constructor(
 		val numArgs = code.numArgs()
 		if (numArgs > 0)
 		{
-			val tupleType = code.functionType().argsTupleType()
+			val tupleType = code.functionType().argsTupleType
 			for (i in 1 .. numArgs)
 			{
 				// Create a new semantic slot at the current pc, representing
@@ -2766,13 +2785,13 @@ class L1Translator private constructor(
 		// to jump to. It's expected to place the replacement arguments into
 		// semantic slots n@1.
 		val loopHead = generator.createLoopHeadBlock(
-			"Loop head for " + code.methodName().asNativeString())
+			"Loop head for " + code.methodName.asNativeString())
 		generator.specialBlocks[RESTART_LOOP_HEAD] = loopHead
 		generator.jumpTo(loopHead)
 		generator.startBlock(loopHead)
 
 		// Create the locals.
-		val numLocals = code.numLocals()
+		val numLocals = code.numLocals
 		for (local in 1 .. numLocals)
 		{
 			val localType = code.localTypeAt(local)
@@ -2797,7 +2816,7 @@ class L1Translator private constructor(
 			addInstruction(
 				L2_SET_VARIABLE_NO_CHECK,
 				readSlot(numArgs + 1),
-				getLatestReturnValue(code.localTypeAt(1).writeType()),
+				getLatestReturnValue(code.localTypeAt(1).writeType),
 				edgeTo(success),
 				edgeTo(unreachable))
 
@@ -2878,7 +2897,7 @@ class L1Translator private constructor(
 		optimizer.optimize(interpreter)
 		val beforeChunkGeneration = AvailRuntimeSupport.captureNanos()
 		generator.createChunk(code)
-		assert(code.startingChunk() == generator.chunk())
+		assert(code.startingChunk == generator.chunk())
 
 		optimizer.postOptimizationCleanup()  // Remove to debug.
 
@@ -3109,7 +3128,7 @@ class L1Translator private constructor(
 		// frame's function and arguments, only those are used by the virtual
 		// instruction.  The label continuation's pc will be 0, and its stack
 		// will be empty.
-		assert(code.primitive() === null)
+		assert(code.codePrimitive() === null)
 		val semanticLabel = topFrame().label()
 		if (generator.currentManifest.hasSemanticValue(semanticLabel))
 		{
@@ -3132,7 +3151,7 @@ class L1Translator private constructor(
 				destinationRegister,
 				currentFunction,
 				L2ReadBoxedVectorOperand(argumentsForLabel),
-				L2IntImmediateOperand(code.numSlots()))
+				L2IntImmediateOperand(code.numSlots))
 		}
 		// Now push the label.
 		stackp--
@@ -3267,17 +3286,17 @@ class L1Translator private constructor(
 		private fun computeExactFunctionOrNullForCode(
 			theCode: A_RawFunction): A_Function?
 		{
-			val numOuters = theCode.numOuters()
+			val numOuters = theCode.numOuters
 			val outerConstants = mutableListOf<AvailObject>()
 			for (i in 1 .. numOuters)
 			{
 				val outerType = theCode.outerTypeAt(i)
-				if (!outerType.instanceCount().equalsInt(1)
+				if (!outerType.instanceCount.equalsInt(1)
 					|| outerType.isInstanceMeta)
 				{
 					return null
 				}
-				outerConstants.add(outerType.instance())
+				outerConstants.add(outerType.instance)
 			}
 			// This includes the case of there being no outers.
 			return createFunction(theCode, tupleFromList(outerConstants))
@@ -3452,13 +3471,13 @@ class L1Translator private constructor(
 			val savedArguments = interpreter.argsBuffer.toList()
 			val savedFailureValue = interpreter.latestResultOrNull()
 			val codeName = buildString {
-				append(code.methodName().asNativeString())
-				val module = code.module()
+				append(code.methodName.asNativeString())
+				val module = code.module
 				if (module.notNil)
 				{
 					append("\n")
 					append(module.moduleName())
-					val line = code.startingLineNumber()
+					val line = code.codeStartingLineNumber
 					if (line != 0)
 					{
 						append(":$line")

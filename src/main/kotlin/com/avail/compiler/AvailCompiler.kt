@@ -92,6 +92,9 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -752,9 +755,9 @@ class AvailCompiler(
 	{
 		val function = restriction.function()
 		val code = function.code()
-		val mod = code.module()
+		val mod = code.module
 		val fiber = newLoaderFiber(
-			function.kind().returnType(),
+			function.kind().returnType,
 			compilationContext.loader
 		) {
 			formatString(
@@ -764,7 +767,7 @@ class AvailCompiler(
 					"no module"
 				else
 					mod.moduleName(),
-				code.startingLineNumber())
+				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		fiber.setTextInterface(compilationContext.textInterface)
@@ -808,16 +811,16 @@ class AvailCompiler(
 	{
 		val function = macro.bodyBlock()
 		val fiber = newLoaderFiber(
-			function.kind().returnType(),
+			function.kind().returnType,
 			compilationContext.loader
 		) {
 			val code = function.code()
-			val mod = code.module()
+			val mod = code.module
 			formatString(
 				"Macro evaluation %s, in %s:%d",
 				macro.definitionBundle().message(),
 				if (mod.isNil) "no module" else mod.moduleName(),
-				code.startingLineNumber())
+				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO)
@@ -1567,7 +1570,7 @@ class AvailCompiler(
 		if (actions.mapSize() > 0)
 		{
 			actions.forEach { operation, value ->
-				val operationInt = operation.extractInt()
+				val operationInt = operation.extractInt
 				val op = decode(operationInt)
 				when
 				{
@@ -1793,7 +1796,7 @@ class AvailCompiler(
 					// TODO(MvG) Present the full phrase type if it can be a
 					// macro argument.
 					val argType =
-						constantForIndex(typeIndex).phraseTypeExpressionType()
+						constantForIndex(typeIndex).phraseTypeExpressionType
 					typeSet.add(argType)
 					// Add the type under the given plan *string*, even if it's
 					// a different underlying message bundle.
@@ -2003,15 +2006,15 @@ class AvailCompiler(
 			return
 		}
 		val fiber = newLoaderFiber(
-			prefixFunction.kind().returnType(),
+			prefixFunction.kind().returnType,
 			compilationContext.loader
 		) {
 			val code = prefixFunction.code()
 			formatString(
 				"Macro prefix %s, in %s:%d",
-				code.methodName(),
-				code.module().moduleName(),
-				code.startingLineNumber())
+				code.methodName,
+				code.module.moduleName(),
+				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		val withTokens = start.clientDataMap
@@ -2157,7 +2160,7 @@ class AvailCompiler(
 		var intersection: A_Type = if (macroOrNil.isNil)
 		{
 			satisfyingDefinitions.fold(TOP.o) { type: A_Type, def ->
-				type.typeIntersection(def.bodySignature().returnType())
+				type.typeIntersection(def.bodySignature().returnType)
 			}
 		}
 		else
@@ -2165,7 +2168,7 @@ class AvailCompiler(
 			// The macro's semantic type (expressionType) is the authoritative
 			// type to check against the macro body's actual return phrase's
 			// semantic type.  Semantic restrictions may still narrow it below.
-			macroOrNil.bodySignature().returnType().phraseTypeExpressionType()
+			macroOrNil.bodySignature().returnType.phraseTypeExpressionType
 		}
 		// Determine which semantic restrictions are relevant.
 		val restrictionsToTry = mutableListOf<A_SemanticRestriction>()
@@ -2338,7 +2341,7 @@ class AvailCompiler(
 					{
 						val sig = definition.bodySignature()
 						if (argTypes[i - 1].isSubtypeOf(
-								sig.argsTupleType().typeAtIndex(i)))
+								sig.argsTupleType.typeAtIndex(i)))
 						{
 							i++
 							continue@each_arg
@@ -2376,7 +2379,7 @@ class AvailCompiler(
 				for (definition in allVisible)
 				{
 					val signatureArgumentsType =
-						definition.bodySignature().argsTupleType()
+						definition.bodySignature().argsTupleType
 					val sigType = signatureArgumentsType.typeAtIndex(i)
 					if (!valuesToStringify.containsKey(sigType))
 					{
@@ -2413,12 +2416,11 @@ class AvailCompiler(
 						"%n\t\tFrom module %s @ line #%s,",
 						definition.definitionModuleName(),
 						if (definition.isMethodDefinition())
-							definition.bodyBlock().code()
-								.startingLineNumber()
+							definition.bodyBlock().code().codeStartingLineNumber
 						else
 							"unknown")
 					val signatureArgumentsType =
-						definition.bodySignature().argsTupleType()
+						definition.bodySignature().argsTupleType
 					for (i in allFailedIndices)
 					{
 						val sigType = signatureArgumentsType.typeAtIndex(i)
@@ -3010,7 +3012,7 @@ class AvailCompiler(
 					tupleFromList(consumedTokens),
 					bundle,
 					argumentsListNode,
-					macroDefinitionToInvoke.bodySignature().returnType())
+					macroDefinitionToInvoke.bodySignature().returnType)
 				val substitution =
 					newMacroSubstitution(original, adjustedReplacement)
 				if (AvailRuntimeConfiguration.debugMacroExpansions)
@@ -3761,7 +3763,7 @@ class AvailCompiler(
 			assert(importKindToken.isInstanceOfKind(TOKEN.o))
 			val importKind = importKindToken.literal()
 			assert(importKind.isInt)
-			val importKindInt = importKind.extractInt()
+			val importKindInt = importKind.extractInt
 			assert(importKindInt in 1 .. 2)
 			val isExtension = importKindInt == 1
 

@@ -89,7 +89,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val (objectType, fieldAtom) = interpreter.argsBuffer
 
-		val map = objectType.fieldTypeMap()
+		val map = objectType.fieldTypeMap
 		if (!map.hasKey(fieldAtom))
 		{
 			// The field is not guaranteed to be part of the object.

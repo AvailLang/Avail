@@ -108,11 +108,11 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		// that the current (2014.06.11) implementation of the file executor
 		// specifies an unbounded queue, so the fiber execution threads will
 		// never be blocked waiting for I/O.
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{
 				StringDescriptor.stringFrom(

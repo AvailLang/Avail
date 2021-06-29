@@ -213,9 +213,9 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 					pragmaString))
 		}
 		val positionInteger = deserializer.deserialize()!!
-		startOfBodyPosition = positionInteger.extractInt()
+		startOfBodyPosition = positionInteger.extractInt
 		val lineNumberInteger = deserializer.deserialize()!!
-		startOfBodyLineNumber = lineNumberInteger.extractInt()
+		startOfBodyLineNumber = lineNumberInteger.extractInt
 	}
 
 	/**

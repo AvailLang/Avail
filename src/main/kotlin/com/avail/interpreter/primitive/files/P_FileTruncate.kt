@@ -105,7 +105,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		val size =
 			if (sizeObject.isLong)
 			{
-				sizeObject.extractLong()
+				sizeObject.extractLong
 			}
 			else
 			{
@@ -115,11 +115,11 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		// Guaranteed non-negative by argument constraint.
 		assert(size >= 0L)
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{
 				StringDescriptor.stringFrom(

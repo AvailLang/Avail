@@ -50,7 +50,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -146,19 +146,17 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		val alignment = handle.alignment
 		val runtime = currentRuntime()
 		val ioSystem = runtime.ioSystem
-		val oneBasedPositionLong = positionObject.extractLong()
+		val oneBasedPositionLong = positionObject.extractLong
 		// Guaranteed positive by argument constraint.
 		assert(oneBasedPositionLong > 0L)
 		// Write the tuple of bytes, possibly split up into manageable sections.
 		// Also update the buffer cache to reflect the modified file content.
 		val current = interpreter.fiber()
-		val newFiber =
-			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-				priority.extractInt())
+		val newFiber = newFiber(
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt)
 		{
-			StringDescriptor.stringFrom(
-				"Asynchronous file write, ${handle.filename}")
+			stringFrom("Asynchronous file write, ${handle.filename}")
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

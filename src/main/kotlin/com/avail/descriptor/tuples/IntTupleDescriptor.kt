@@ -155,7 +155,7 @@ class IntTupleDescriptor private constructor(
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val intValue = (newElement as AvailObject).extractInt()
+		val intValue = (newElement as AvailObject).extractInt
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -503,12 +503,12 @@ class IntTupleDescriptor private constructor(
 			return false
 		}
 		//  See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(self.tupleSize().toLong()))
 		{
 			return false
 		}
 		//  tuple's size is in range.
-		val typeTuple = aType.typeTuple()
+		val typeTuple = aType.typeTuple
 		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
 		for (i in 1 .. breakIndex)
 		{
@@ -517,7 +517,7 @@ class IntTupleDescriptor private constructor(
 				return false
 			}
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		if (int32.isSubtypeOf(defaultTypeObject))
 		{
 			return true
@@ -601,7 +601,7 @@ class IntTupleDescriptor private constructor(
 		result.setIntSlot(
 			RAW_LONG_AT_,
 			index,
-			(newValueObject as A_Number).extractInt())
+			(newValueObject as A_Number).extractInt)
 		result.setHashOrZero(0)
 		return result
 	}
@@ -622,17 +622,17 @@ class IntTupleDescriptor private constructor(
 			// It must be an integer range kind.  Find the bounds.
 			else ->
 			{
-				val lowerObject = type.lowerBound()
+				val lowerObject = type.lowerBound
 				val lower = when
 				{
-					lowerObject.isInt -> lowerObject.extractInt()
+					lowerObject.isInt -> lowerObject.extractInt
 					lowerObject.lessThan(zero) -> Int.MIN_VALUE
 					else -> return false
 				}
-				val upperObject = type.upperBound()
+				val upperObject = type.upperBound
 				val upper = when
 				{
-					upperObject.isInt -> upperObject.extractInt()
+					upperObject.isInt -> upperObject.extractInt
 					upperObject.greaterThan(zero) -> Int.MAX_VALUE
 					else -> return false
 				}

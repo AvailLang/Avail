@@ -78,7 +78,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 		val castFunction = interpreter.argument(1)
 
 		val expectedType =
-			castFunction.code().functionType().argsTupleType().typeAtIndex(1)
+			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		if (value.isInstanceOf(expectedType))
 		{
 			// "Jump" into the castFunction, to keep this frame from showing up.
@@ -111,7 +111,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[1].returnType()
+	): A_Type = argumentTypes[1].returnType
 
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
@@ -121,11 +121,11 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 
 		// Only deal with a constant castFunction for now, otherwise assume it
 		// could either succeed or fail.
-		if (castFunctionType.instanceCount().equalsInt(1))
+		if (castFunctionType.instanceCount.equalsInt(1))
 		{
-			val function = castFunctionType.instance()
+			val function = castFunctionType.instance
 			val code = function.code()
-			val argType = code.functionType().argsTupleType().typeAtIndex(1)
+			val argType = code.functionType().argsTupleType.typeAtIndex(1)
 			if (valueType.isSubtypeOf(argType))
 			{
 				return CallSiteCannotFail

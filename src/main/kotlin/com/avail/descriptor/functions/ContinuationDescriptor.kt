@@ -36,6 +36,13 @@ import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
@@ -258,14 +265,15 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_CurrentLineNumber(
 		self: AvailObject
-	): Int {
+	): Int
+	{
 		val code = self.function().code()
-		val encodedDeltas = code.lineNumberEncodedDeltas()
+		val encodedDeltas = code.lineNumberEncodedDeltas
 		val instructionDecoder = L1InstructionDecoder()
 		code.setUpInstructionDecoder(instructionDecoder)
 		val thisPc = self.pc()
 		instructionDecoder.pc(1)
-		var lineNumber = code.startingLineNumber()
+		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		while (!instructionDecoder.atEnd()
 			&& instructionDecoder.pc() < thisPc)
@@ -288,7 +296,7 @@ class ContinuationDescriptor private constructor(
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
-		val declarationNames = code.declarationNames()
+		val declarationNames = code.declarationNames
 		for (i in 1..self.numSlots())
 		{
 			var name = if (i <= declarationNames.tupleSize())
@@ -308,7 +316,7 @@ class ContinuationDescriptor private constructor(
 					-1,
 					self.frameAt(i)))
 		}
-		val moduleName = code.module().run {
+		val moduleName = code.module.run {
 			if (isNil) "No module"
 			else moduleName().asNativeString().split("/").last()
 		}
@@ -453,14 +461,13 @@ class ContinuationDescriptor private constructor(
 			append(super.o_NameForDebugger(self))
 			append(": ")
 			val code = self.function().code()
-			append(code.methodName().asNativeString())
+			append(code.methodName.asNativeString())
 			append(" (")
-			val module = code.module()
+			val module = code.module
 			if (module.isNil)
 			{
 				append("?")
-			}
-			else
+			} else
 			{
 				val name = module.moduleName().asNativeString()
 				append(name.split("/").last())
@@ -468,8 +475,9 @@ class ContinuationDescriptor private constructor(
 			append(":")
 			append(self.currentLineNumber())
 			append(")")
-			val primitive = code.primitive()
-			if (primitive === P_CatchException) {
+			val primitive = code.codePrimitive()
+			if (primitive === P_CatchException)
+			{
 				append(" CATCH var = ")
 				append(self.frameAt(4).value().value())
 			}
@@ -551,8 +559,8 @@ class ContinuationDescriptor private constructor(
 			args: List<AvailObject>
 		): A_Continuation {
 			val code = function.code()
-			assert(code.primitive() === null)
-			val frameSize = code.numSlots()
+			assert(code.codePrimitive() === null)
+			val frameSize = code.numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
 				setSlot(FUNCTION, function)
@@ -607,7 +615,7 @@ class ContinuationDescriptor private constructor(
 			levelTwoChunk: L2Chunk,
 			levelTwoOffset: Int
 		): AvailObject {
-			val frameSize = function.code().numSlots()
+			val frameSize = function.code().numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
 				setSlot(FUNCTION, function)
@@ -797,8 +805,8 @@ class ContinuationDescriptor private constructor(
 			}
 			val allTypes = frames.flatMap { frame ->
 				val code = frame.function().code()
-				val paramsType = code.functionType().argsTupleType()
-				(1..code.numArgs()).map { paramsType.typeAtIndex(it) }
+				val paramsType = code.functionType().argsTupleType
+				(1 .. code.numArgs()).map { paramsType.typeAtIndex(it) }
 			}
 			val strings = arrayOfNulls<String>(lines)
 			stringifyThen(runtime, textInterface, allTypes) { allTypeNames ->
@@ -810,11 +818,11 @@ class ContinuationDescriptor private constructor(
 					val signature = (1..code.numArgs()).joinToString {
 						allTypeNames[allTypesIndex++]
 					}
-					val module = code.module()
+					val module = code.module
 					strings[frameIndex] = String.format(
 						"#%d: %s [%s] (%s:%d)",
 						lines - frameIndex,
-						code.methodName().asNativeString(),
+						code.methodName.asNativeString(),
 						signature,
 						if (module.isNil) "?"
 						else module.moduleName().asNativeString(),

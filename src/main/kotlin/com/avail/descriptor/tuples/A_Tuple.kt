@@ -55,25 +55,6 @@ import java.util.stream.Stream
  */
 interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 {
-	/**
-	 * Answer an [iterator][Iterator] suitable for traversing the elements of
-	 * the [receiver][AvailObject] with a Java *foreach* construct.
-	 *
-	 * @return
-	 *   An [iterator][Iterator].
-	 */
-	override fun iterator(): Iterator<AvailObject>
-
-	/**
-	 * Returns a Java [Spliterator] over the elements, which are [AvailObject]s.
-	 *  Note that this is an [Override] because `A_Tuple` extends [Iterable].
-	 *
-	 * @return
-	 *   A [Spliterator] of [AvailObject]s.
-	 */
-	@JvmDefault
-	override fun spliterator(): Spliterator<AvailObject>
-
 	companion object
 	{
 		/**

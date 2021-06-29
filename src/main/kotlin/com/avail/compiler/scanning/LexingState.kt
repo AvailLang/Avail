@@ -279,7 +279,7 @@ class LexingState constructor(
 	{
 		val loader = compilationContext.loader
 		val fiber = newLoaderFiber(
-			lexerBodyFunctionType().returnType(),
+			lexerBodyFunctionType().returnType,
 			loader
 		) {
 			formatString(

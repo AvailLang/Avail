@@ -120,7 +120,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 			}
 			else
 			{
-				aCompiledCodeType.functionType().equals(self.functionType())
+				aCompiledCodeType.functionType.equals(self.functionType())
 			}
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -138,7 +138,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aCompiledCodeType: A_Type): Boolean
 	{
-		val subFunctionType = aCompiledCodeType.functionType()
+		val subFunctionType = aCompiledCodeType.functionType
 		val superFunctionType = self.functionType()
 		return subFunctionType.isSubtypeOf(superFunctionType)
 	}
@@ -165,7 +165,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		aCompiledCodeType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType()
-		val functionType2 = aCompiledCodeType.functionType()
+		val functionType2 = aCompiledCodeType.functionType
 		return if (functionType1.equals(functionType2))
 		{
 			self
@@ -198,7 +198,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		aCompiledCodeType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType()
-		val functionType2 = aCompiledCodeType.functionType()
+		val functionType2 = aCompiledCodeType.functionType
 		return if (functionType1.equals(functionType2))
 		{
 			// Optimization only

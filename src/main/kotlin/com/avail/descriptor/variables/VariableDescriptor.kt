@@ -280,7 +280,7 @@ open class VariableDescriptor protected constructor(
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -302,7 +302,7 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -328,7 +328,7 @@ open class VariableDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -379,9 +379,8 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		assert(outerKind.readType().isSubtypeOf(
-			IntegerRangeTypeDescriptor.extendedIntegers
-		))
+		assert(outerKind.readType.isSubtypeOf(
+			IntegerRangeTypeDescriptor.extendedIntegers))
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
@@ -391,7 +390,7 @@ open class VariableDescriptor protected constructor(
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		val newValue = value.plusCanDestroy(addend, false)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -411,7 +410,7 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		val oldMap: A_Map = self.slot(VALUE)
 		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -421,10 +420,10 @@ open class VariableDescriptor protected constructor(
 		if (writeType.isMapType)
 		{
 			// Just check the new size, new key, and new value.
-			if (!writeType.sizeRange().rangeIncludesLong(
+			if (!writeType.sizeRange.rangeIncludesLong(
 					newMap.mapSize().toLong())
-				|| !key.isInstanceOf(writeType.keyType())
-				|| !value.isInstanceOf(writeType.valueType()))
+				|| !key.isInstanceOf(writeType.keyType)
+				|| !value.isInstanceOf(writeType.valueType))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -449,7 +448,7 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		val oldMap: A_Map = self.slot(VALUE)
 		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -459,7 +458,7 @@ open class VariableDescriptor protected constructor(
 		if (writeType.isMapType)
 		{
 			// Just check the new size, new key, and new value.
-			if (!writeType.sizeRange().rangeIncludesLong(
+			if (!writeType.sizeRange.rangeIncludesLong(
 					newMap.mapSize().toLong()))
 			{
 				throw VariableSetException(
@@ -484,7 +483,7 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val readType = outerKind.readType()
+		val readType = outerKind.readType
 		assert(readType.isMapType)
 		val oldMap: A_Map = self.slot(VALUE)
 		if (oldMap.isNil)

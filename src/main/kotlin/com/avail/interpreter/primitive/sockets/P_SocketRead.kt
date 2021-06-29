@@ -113,11 +113,11 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
-		val buffer = ByteBuffer.allocateDirect(size.extractInt())
+		val buffer = ByteBuffer.allocateDirect(size.extractInt)
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt
 		) { formatString("Socket read, %s", handle.atomName()) }
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

@@ -117,7 +117,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		// Create the new fiber that will be connected to the external process.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(TOP.o, priority.extractInt()) {
+		val newFiber = newFiber(TOP.o, priority.extractInt) {
 			stringFrom("External process execution")
 		}
 		newFiber.setAvailLoader(current.availLoader())

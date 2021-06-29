@@ -1125,7 +1125,7 @@ class BinaryAPITests
 	@Order(18)
 	internal fun complexUndoRedoAPITest()
 	{
-		val (origId, old) = open(relativeTestModule)
+		val (origId, _) = open(relativeTestModule)
 
 		// Start w/ baseline expectation
 		channel.runContinuation = true

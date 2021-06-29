@@ -52,7 +52,6 @@ import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
 import java.util.Collections
 import java.util.Formatter
-import java.util.Locale
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
@@ -141,11 +140,11 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	override val timer =
 		ScheduledThreadPoolExecutor(
 			1,
-			ThreadFactory { r ->
-				val thread = Thread(r)
-				thread.isDaemon = true
-				thread.name = "WebSocketAdapterTimer" + thread.id
-				thread
+			ThreadFactory {
+				Thread(it).apply {
+					isDaemon = true
+					name = "WebSocketAdapterTimer$id"
+				}
 			})
 
 	/**
@@ -243,7 +242,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			{
 				for (method in values())
 				{
-					methodsByName[method.name.lowercase(Locale.getDefault())] = method
+					methodsByName[method.name.lowercase()] = method
 				}
 			}
 
@@ -258,7 +257,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 *   exists.
 			 */
 			internal fun named(name: String): HttpRequestMethod? =
-				methodsByName[name.lowercase(Locale.getDefault())]
+				methodsByName[name.lowercase()]
 		}
 	}
 
@@ -313,13 +312,13 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * @param headers
 	 *   The parsed headers.
 	 */
-	private open class ClientRequest internal constructor(
-		internal val method: HttpRequestMethod,
-		internal val uri: String,
+	private open class ClientRequest constructor(
+		val method: HttpRequestMethod,
+		val uri: String,
 		headers: Map<String, String>)
 	{
 		/** The HTTP headers.  */
-		internal val headers = Collections.unmodifiableMap(headers)
+		val headers: Map<String, String> = Collections.unmodifiableMap(headers)
 
 		companion object
 		{
@@ -437,9 +436,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				for (i in 1 until headers.size - 1)
 				{
 					val pair = headers[i].split(":".toRegex(), 2)
-					map[pair[0]
-						.trim { it <= ' ' }
-						.lowercase(Locale.getDefault())] =
+					map[pair[0].trim { it <= ' ' }.lowercase()] =
 						pair[1].trim { it <= ' ' }
 				}
 				// Validate the request.
@@ -589,9 +586,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private class ClientHandshake private constructor(
 		request: ClientRequest,
-		internal val key: ByteArray,
-		internal val protocols: List<String>,
-		internal val extensions: List<String>)
+		val key: ByteArray,
+		val protocols: List<String>,
+		val extensions: List<String>)
 		: ClientRequest(request.method, request.uri, request.headers)
 	{
 		companion object
@@ -766,13 +763,13 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * @param extensions
 	 *   The selected extensions.
 	 */
-	private class ServerHandshake internal constructor(
+	private class ServerHandshake constructor(
 		key: ByteArray,
-		internal val protocols: List<String>,
-		internal val extensions: List<String>)
+		val protocols: List<String>,
+		val extensions: List<String>)
 	{
 		/** The WebSocket accept key. */
-		internal val acceptKey: String
+		val acceptKey: String
 
 		/**
 		 * Compute the WebSocket accept key from the client-supplied key.
@@ -1138,26 +1135,26 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	private class Frame
 	{
 		/** Is this the final fragment of the message? */
-		internal var isFinalFragment: Boolean = false
+		var isFinalFragment: Boolean = false
 
 		/** Is this fragment masked? */
-		internal var isMasked: Boolean = false
+		var isMasked: Boolean = false
 
 		/** The [opcode][Opcode]. */
-		internal var opcode: Opcode? = null
+		var opcode: Opcode? = null
 
 		/** The length of the payload. */
-		internal var payloadLength: Long = 0
+		var payloadLength: Long = 0
 
 		/** The masking key (valid only if [isMasked] is `true`). */
-		internal var maskingKey: ByteBuffer? = null
+		var maskingKey: ByteBuffer? = null
 
 		/**
 		 * The payload. This must not be
 		 * [allocated&#32;directly][ByteBuffer.allocateDirect], as access to the
 		 * [backing&#32;array][ByteBuffer.array] is required.
 		 */
-		internal var payloadData: ByteBuffer? = null
+		var payloadData: ByteBuffer? = null
 
 		/**
 		 * Answer a [buffer][ByteBuffer] that encodes the WebSocket

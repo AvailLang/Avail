@@ -82,7 +82,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 		// label continuation's function's return type.  Any stronger check, as
 		// specified in a semantic restriction, will be tested in the caller.
 		if (!result.isInstanceOf(
-				continuation.function().code().functionType().returnType()))
+				continuation.function().code().functionType().returnType))
 		{
 			return interpreter.primitiveFailure(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)

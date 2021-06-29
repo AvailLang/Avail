@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.hooks
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -118,7 +119,7 @@ object P_SetImplicitObserveFunction : Primitive(
 			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
 			writer.addLiteral(bottom))
 		val code = writer.compiledCode()
-		code.setMethodName(stringFrom("«implicit observe function wrapper»"))
+		code.methodName = stringFrom("«implicit observe function wrapper»")
 		return code
 	}
 

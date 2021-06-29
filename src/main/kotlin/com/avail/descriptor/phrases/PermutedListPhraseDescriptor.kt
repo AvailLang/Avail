@@ -290,7 +290,7 @@ class PermutedListPhraseDescriptor private constructor(
 			val originalTupleType = self.slot(LIST).phraseExpressionType()
 			val permutation: A_Tuple = self.slot(PERMUTATION)
 			val size = permutation.tupleSize()
-			assert(originalTupleType.sizeRange().lowerBound().extractInt()
+			assert(originalTupleType.sizeRange.lowerBound.extractInt
 				== size)
 			val adjustedTypes = Array<A_Type>(size) { nil }
 			for (i in 1..size) {

@@ -55,6 +55,5 @@ interface SimpleProblemHandler : ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	override fun handleGeneric(problem: Problem, decider: (Boolean) -> Unit)
 }

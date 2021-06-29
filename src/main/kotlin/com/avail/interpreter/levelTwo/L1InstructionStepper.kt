@@ -40,6 +40,13 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.returneeCheckStat
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnerCheckStat
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
@@ -318,7 +325,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// the failed return type check.
 						return returnCheckReifier
 					}
-					assert(stackp <= code.numSlots())
+					assert(stackp <= code.numSlots)
 					// Replace the stack slot.
 					pointerAtPut(stackp, result)
 				}
@@ -488,7 +495,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				L1Ext_doPushLabel.ordinal ->
 				{
 					val numArgs = code.numArgs()
-					assert(code.primitive() === null)
+					assert(code.codePrimitive() === null)
 					val args = (1..numArgs).map {
 						val arg = pointerAt(it)
 						assert(arg.notNil)
@@ -674,7 +681,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// the failed return type check.
 						return returnCheckReifier
 					}
-					assert(stackp <= code.numSlots())
+					assert(stackp <= code.numSlots)
 					// Replace the stack slot.
 					pointerAtPut(stackp, result)
 				}
@@ -737,7 +744,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				Level.FINER,
 				logMessage,
 				interpreter.debugModeString,
-				continuation.function().code().methodName())
+				continuation.function().code().methodName)
 		}
 		reifier.pushAction { theInterpreter: Interpreter ->
 			theInterpreter.setReifiedContinuation(
@@ -942,7 +949,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val checkOk = result.isInstanceOf(expectedReturnType)
 		val after = AvailRuntimeSupport.captureNanos()
 		val returner = interpreter.returningFunction!!
-		val calledPrimitive = returner.code().primitive()
+		val calledPrimitive = returner.code().codePrimitive()
 		if (calledPrimitive !== null)
 		{
 			calledPrimitive.addNanosecondsCheckingResultType(
@@ -950,10 +957,12 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		}
 		else
 		{
-			returner.code().returnerCheckStat().record(
-				after - before, interpreter.interpreterIndex)
-			returnee.code().returneeCheckStat().record(
-				after - before, interpreter.interpreterIndex)
+			returner.code().returnerCheckStat.record(
+				after - before, interpreter.interpreterIndex
+			)
+			returnee.code().returneeCheckStat.record(
+				after - before, interpreter.interpreterIndex
+			)
 		}
 		if (!checkOk)
 		{
@@ -971,7 +980,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			argsBuffer.add(expectedReturnType as AvailObject)
 			argsBuffer.add(reportedResult)
 			val reifier = interpreter.invokeFunction(
-				interpreter.runtime.resultDisagreedWithExpectedTypeFunction())!!
+				interpreter.runtime.resultDisagreedWithExpectedTypeFunction()
+			)!!
 			pointers = savedPointers
 			interpreter.chunk = L2Chunk.unoptimizedChunk
 			interpreter.setOffset(savedOffset)

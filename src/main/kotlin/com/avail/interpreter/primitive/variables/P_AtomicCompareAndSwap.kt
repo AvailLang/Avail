@@ -104,7 +104,7 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		val referenceReg = arguments[1]
 		val newValueReg = arguments[2]
 
-		if (!newValueReg.type().isSubtypeOf(variableReg.type().writeType()))
+		if (!newValueReg.type().isSubtypeOf(variableReg.type().writeType))
 		{
 			// We can't guarantee the type being assigned is strong enough.
 			// Fall back.

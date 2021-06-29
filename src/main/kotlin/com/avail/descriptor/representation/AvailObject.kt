@@ -46,6 +46,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.numNybbles
 import com.avail.descriptor.functions.A_RegisterDump
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
@@ -86,9 +87,6 @@ import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
-import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
@@ -100,7 +98,6 @@ import com.avail.exceptions.MethodDefinitionException
 import com.avail.exceptions.SignatureException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
@@ -299,7 +296,7 @@ class AvailObject private constructor(
 		instructionDecoder: L1InstructionDecoder
 	) {
 		super.setUpInstructionDecoder(instructionDecoder)
-		val finalPc = numNybbles() + 1
+		val finalPc = numNybbles + 1
 		instructionDecoder.finalLongIndex =
 			L1InstructionDecoder.baseIndexInArray + (finalPc shr 4)
 		instructionDecoder.finalShift = finalPc and 0xF shl 2
@@ -387,8 +384,6 @@ class AvailObject private constructor(
 	override fun clearValue() = descriptor().o_ClearValue(this)
 
 	override fun function() = descriptor().o_Function(this)
-
-	override fun functionType() = descriptor().o_FunctionType(this)
 
 	override fun code() = descriptor().o_Code(this)
 
@@ -712,16 +707,6 @@ class AvailObject private constructor(
 	override fun setInterruptRequestFlag(flag: InterruptRequestFlag) =
 		descriptor().o_SetInterruptRequestFlag(this, flag)
 
-	override fun decrementCountdownToReoptimize(
-		continuation: (Boolean) -> Unit
-	) = descriptor().o_DecrementCountdownToReoptimize(this, continuation)
-
-	override fun decreaseCountdownToReoptimizeFromPoll(delta: Long) =
-		descriptor().o_DecreaseCountdownToReoptimizeFromPoll(this, delta)
-
-	override fun countdownToReoptimize(value: Long) =
-		descriptor().o_CountdownToReoptimize(this, value)
-
 	override val isAbstract get() = descriptor().o_IsAbstract(this)
 
 	override fun isAbstractDefinition() =
@@ -882,8 +867,6 @@ class AvailObject private constructor(
 
 	override fun literal() = descriptor().o_Literal(this)
 
-	override fun literalAt(index: Int) = descriptor().o_LiteralAt(this, index)
-
 	@ReferencedInGeneratedCode
 	override fun frameAt(index: Int) =
 		descriptor().o_FrameAt(this, index)
@@ -891,9 +874,6 @@ class AvailObject private constructor(
 	@ReferencedInGeneratedCode
 	override fun frameAtPut(index: Int, value: AvailObject): AvailObject =
 		descriptor().o_FrameAtPut(this, index, value)
-
-	override fun localTypeAt(index: Int) =
-		descriptor().o_LocalTypeAt(this, index)
 
 	@Throws(MethodDefinitionException::class)
 	override fun lookupByTypesFromTuple(argumentTypeTuple: A_Tuple) =
@@ -925,29 +905,9 @@ class AvailObject private constructor(
 	override fun makeSubobjectsShared() =
 		descriptor().o_MakeSubobjectsShared(this)
 
-	override fun maxStackDepth() = descriptor().o_MaxStackDepth(this)
-
 	override fun numArgs() = descriptor().o_NumArgs(this)
 
 	override fun numSlots() = descriptor().o_NumSlots(this)
-
-	override fun numLiterals() = descriptor().o_NumLiterals(this)
-
-	override fun numLocals() = descriptor().o_NumLocals(this)
-
-	override fun numConstants() = descriptor().o_NumConstants(this)
-
-	override fun numOuters() = descriptor().o_NumOuters(this)
-
-	override fun numOuterVars() = descriptor().o_NumOuterVars(this)
-
-	override fun nybbles() = descriptor().o_Nybbles(this)
-
-	override fun optionallyNilOuterVar(index: Int) =
-		descriptor().o_OptionallyNilOuterVar(this, index)
-
-	override fun outerTypeAt(index: Int) =
-		descriptor().o_OuterTypeAt(this, index)
 
 	override fun outerVarAt(index: Int) = descriptor().o_OuterVarAt(this, index)
 
@@ -989,13 +949,6 @@ class AvailObject private constructor(
 
 	override fun start() = descriptor().o_Start(this)
 
-	override fun startingChunk() = descriptor().o_StartingChunk(this)
-
-	override fun setStartingChunkAndReoptimizationCountdown(
-		chunk: L2Chunk,
-		countdown: Long
-	) = descriptor().o_SetStartingChunkAndReoptimizationCountdown(this, chunk, countdown)
-
 	override fun string() = descriptor().o_String(this)
 
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
@@ -1007,8 +960,6 @@ class AvailObject private constructor(
 	override fun value() = descriptor().o_Value(this)
 
 	override fun resultType() = descriptor().o_ResultType(this)
-
-	override fun primitive(): Primitive? = descriptor().o_Primitive(this)
 
 	override fun declarationKind() = descriptor().o_DeclarationKind(this)
 
@@ -1120,10 +1071,6 @@ class AvailObject private constructor(
 
 	override fun lowerCaseString() = descriptor().o_LowerCaseString(this)
 
-	override fun totalInvocations() = descriptor().o_TotalInvocations(this)
-
-	override fun tallyInvocation() = descriptor().o_TallyInvocation(this)
-
 	override fun fieldTuple() = descriptor().o_FieldTuple(this)
 
 	override val isTokenType get() = descriptor().o_IsTokenType(this)
@@ -1146,15 +1093,6 @@ class AvailObject private constructor(
 		descriptor().o_EqualsToken(this, aToken)
 
 	override val isInstanceMeta get() = descriptor().o_IsInstanceMeta(this)
-
-	override fun setMethodName(methodName: A_String) =
-		descriptor().o_SetMethodName(this, methodName)
-
-	override fun startingLineNumber() = descriptor().o_StartingLineNumber(this)
-
-	override fun module() = descriptor().o_Module(this)
-
-	override fun methodName() = descriptor().o_MethodName(this)
 
 	override fun equalsPhrase(aPhrase: A_Phrase) =
 		descriptor().o_EqualsPhrase(this, aPhrase)
@@ -1436,11 +1374,6 @@ class AvailObject private constructor(
 
 	override fun setLexer(lexer: A_Lexer) = descriptor().o_SetLexer(this, lexer)
 
-	override fun originatingPhrase() = descriptor().o_OriginatingPhrase(this)
-
-	override fun originatingPhraseOrIndex() =
-		descriptor().o_OriginatingPhraseOrIndex(this)
-
 	override fun isGlobal() = descriptor().o_IsGlobal(this)
 
 	override fun globalModule() = descriptor().o_GlobalModule(this)
@@ -1465,18 +1398,6 @@ class AvailObject private constructor(
 
 	override fun debugLog() = descriptor().o_DebugLog(this)
 
-	override fun constantTypeAt(index: Int) =
-		descriptor().o_ConstantTypeAt(this, index)
-
-	override fun returnerCheckStat() = descriptor().o_ReturnerCheckStat(this)
-
-	override fun returneeCheckStat() = descriptor().o_ReturneeCheckStat(this)
-
-	override fun numNybbles() = descriptor().o_NumNybbles(this)
-
-	override fun lineNumberEncodedDeltas() =
-		descriptor().o_LineNumberEncodedDeltas(this)
-
 	override fun currentLineNumber() = descriptor().o_CurrentLineNumber(this)
 
 	override fun fiberResultType() = descriptor().o_FiberResultType(this)
@@ -1491,20 +1412,11 @@ class AvailObject private constructor(
 
 	override fun membershipChanged() = descriptor().o_MembershipChanged(this)
 
-	override fun returnTypeIfPrimitiveFails(): A_Type =
-		descriptor().o_ReturnTypeIfPrimitiveFails(this)
-
 	override fun extractDumpedObjectAt(index: Int): AvailObject =
 		descriptor().o_ExtractDumpedObjectAt(this, index)
 
 	override fun extractDumpedLongAt(index: Int): Long =
 		descriptor().o_ExtractDumpedLongAt(this, index)
-
-	override fun packedDeclarationNames(): A_String =
-		descriptor().o_PackedDeclarationNames(this)
-
-	override fun setOriginatingPhraseOrIndex(phraseOrIndex: AvailObject) =
-		descriptor().o_SetOriginatingPhraseOrIndex(this, phraseOrIndex)
 
 	override fun fiberHelper(): FiberDescriptor.FiberHelper =
 		descriptor().o_FiberHelper(this)

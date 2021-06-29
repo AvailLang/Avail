@@ -132,9 +132,6 @@ import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
 import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
 import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
 import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
-import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind

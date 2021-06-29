@@ -257,7 +257,7 @@ open class VariableSharedDescriptor protected constructor(
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
 		val outerKind: A_Type = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -284,7 +284,7 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			handleVariableWriteTracing(self)
 			val outerKind = self.slot(KIND)
-			if (!newValue.isInstanceOf(outerKind.writeType()))
+			if (!newValue.isInstanceOf(outerKind.writeType))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -309,7 +309,7 @@ open class VariableSharedDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -377,7 +377,7 @@ open class VariableSharedDescriptor protected constructor(
 	{
 		// Simply read, add, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		do
 		{
 			val oldValue = self.volatileSlot(VALUE)
@@ -390,10 +390,10 @@ open class VariableSharedDescriptor protected constructor(
 			if (writeType.isMapType)
 			{
 				// Just check the new size, new key, and new value.
-				if (!writeType.sizeRange().rangeIncludesLong(
+				if (!writeType.sizeRange.rangeIncludesLong(
 						newMap.mapSize().toLong())
-					|| !key.isInstanceOf(writeType.keyType())
-					|| !value.isInstanceOf(writeType.valueType()))
+					|| !key.isInstanceOf(writeType.keyType)
+					|| !value.isInstanceOf(writeType.valueType))
 				{
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -417,7 +417,7 @@ open class VariableSharedDescriptor protected constructor(
 	{
 		// Simply read, remove, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		while (true) {
 			val oldValue = self.volatileSlot(VALUE)
 			if (oldValue.isNil)
@@ -430,7 +430,7 @@ open class VariableSharedDescriptor protected constructor(
 			{
 				// We only have to check the size, since we didn't add any new
 				// information to the map, other than to potentially shrink it.
-				if (!writeType.sizeRange().rangeIncludesLong(
+				if (!writeType.sizeRange.rangeIncludesLong(
 						newMap.mapSize().toLong()))
 				{
 					throw VariableSetException(

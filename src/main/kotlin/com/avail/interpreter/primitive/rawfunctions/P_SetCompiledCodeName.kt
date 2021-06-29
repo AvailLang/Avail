@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -64,7 +65,7 @@ object P_SetCompiledCodeName : Primitive(
 		interpreter.checkArgumentCount(2)
 		val code = interpreter.argument(0)
 		val name = interpreter.argument(1)
-		code.setMethodName(name)
+		code.methodName = name
 		interpreter.availLoaderOrNull()?.recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SET_COMPILED_CODE_NAME.bundle,

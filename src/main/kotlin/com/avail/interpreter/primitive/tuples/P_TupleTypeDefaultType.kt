@@ -55,7 +55,7 @@ object P_TupleTypeDefaultType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(tupleType.defaultType())
+		return interpreter.primitiveSuccess(tupleType.defaultType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

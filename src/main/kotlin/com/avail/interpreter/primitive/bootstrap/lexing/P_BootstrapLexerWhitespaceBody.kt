@@ -66,7 +66,7 @@ object P_BootstrapLexerWhitespaceBody
 		val lineNumberInteger = interpreter.argument(2)
 
 		val sourceSize = source.tupleSize()
-		val startPosition = sourcePositionInteger.extractInt()
+		val startPosition = sourcePositionInteger.extractInt
 		var position = startPosition
 
 		while (position <= sourceSize)
@@ -84,7 +84,7 @@ object P_BootstrapLexerWhitespaceBody
 			source.copyStringFromToCanDestroy(
 				startPosition, position - 1, false),
 			startPosition,
-			lineNumberInteger.extractInt(),
+			lineNumberInteger.extractInt,
 			WHITESPACE)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}

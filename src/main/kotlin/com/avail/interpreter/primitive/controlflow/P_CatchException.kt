@@ -84,7 +84,7 @@ object P_CatchException : Primitive(
 
 		for (block in handlerBlocks)
 		{
-			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
+			if (!block.kind().argsTupleType.typeAtIndex(1).isSubtypeOf(
 					exceptionType()))
 			{
 				innerVariable.setValueNoCheck(

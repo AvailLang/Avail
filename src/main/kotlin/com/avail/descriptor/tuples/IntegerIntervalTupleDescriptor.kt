@@ -446,7 +446,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		assert(index >= 1 && index <= self.tupleSize())
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
-			== (newValueObject as A_Number).extractInt())
+			== (newValueObject as A_Number).extractInt)
 		{
 			// The element is to be replaced with itself.
 			if (!canDestroy)
@@ -491,10 +491,10 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
-		self.tupleAt(index).extractInt()
+		self.tupleAt(index).extractInt
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
-		self.tupleAt(index).extractLong()
+		self.tupleAt(index).extractLong
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
@@ -579,7 +579,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			// If there are fewer than maximumCopySize members in this interval,
 			// create a normal tuple with them in it instead of an interval tuple.
 			val size = 1 +
-					   difference.divideCanDestroy(delta, false).extractInt()
+					   difference.divideCanDestroy(delta, false).extractInt
 			if (size < maximumCopySize)
 			{
 				val members = mutableListOf<A_Number>()
@@ -598,9 +598,9 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 					start, end, delta))
 			{
 				return SmallIntegerIntervalTupleDescriptor.createSmallInterval(
-					start.extractInt(),
-					end.extractInt(),
-					delta.extractInt().toLong())
+					start.extractInt,
+					end.extractInt,
+					delta.extractInt.toLong())
 			}
 
 			// No other efficiency shortcuts. Normalize end, and create a range.

@@ -33,6 +33,7 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -93,8 +94,7 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 				val atom = loader.lookupName(string)
 				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
-				function.code().setMethodName(
-					stringFrom(string.toString()))
+				function.code().methodName = stringFrom(string.toString())
 				succeed(nil)
 			}
 			catch (e: AvailException)

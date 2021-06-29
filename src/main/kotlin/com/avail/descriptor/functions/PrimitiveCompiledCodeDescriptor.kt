@@ -303,11 +303,11 @@ class PrimitiveCompiledCodeDescriptor constructor(
 			val writer = L1InstructionWriter(module, lineNumber, nil)
 			writer.primitive = primitive
 			val functionType = primitive.blockTypeRestriction()
-			val argsTupleType = functionType.argsTupleType()
-			val numArgs = argsTupleType.sizeRange().upperBound().extractInt()
+			val argsTupleType = functionType.argsTupleType
+			val numArgs = argsTupleType.sizeRange.upperBound.extractInt
 			val argTypes = (1..numArgs).map { argsTupleType.typeAtIndex(it) }
 			writer.argumentTypes(*argTypes.toTypedArray())
-			writer.returnType = functionType.returnType()
+			writer.returnType = functionType.returnType
 			writer.returnTypeIfPrimitiveFails = bottom
 			primitive.writeDefaultFailureCode(lineNumber, writer, numArgs)
 			return writer.compiledCode()

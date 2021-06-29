@@ -57,8 +57,9 @@ object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
-		val prim = code.primitive()
-		val string = when {
+		val prim = code.codePrimitive()
+		val string = when
+		{
 			prim === null -> emptyTuple
 			else -> stringFrom(prim.name)
 		}

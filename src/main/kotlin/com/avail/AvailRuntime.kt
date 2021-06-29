@@ -57,6 +57,8 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.decreaseCountdownToReoptimizeFromPoll
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.newCrashFunction
@@ -232,7 +234,6 @@ import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.PriorityBlockingQueue
-import java.util.concurrent.ThreadFactory
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
@@ -332,7 +333,7 @@ class AvailRuntime constructor(
 		10L,
 		TimeUnit.SECONDS,
 		PriorityBlockingQueue(),
-		ThreadFactory {
+		{
 			val interpreter = Interpreter(this)
 			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
 			AvailThread(it, interpreter)
@@ -655,11 +656,12 @@ class AvailRuntime constructor(
 			functionType(
 				tuple(
 					enumerationWith(
-						set(AvailErrorCode.E_NO_METHOD,
-						    AvailErrorCode.E_NO_METHOD_DEFINITION,
-						    AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION,
-						    AvailErrorCode.E_FORWARD_METHOD_DEFINITION,
-						    AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)),
+						set(
+							AvailErrorCode.E_NO_METHOD,
+							AvailErrorCode.E_NO_METHOD_DEFINITION,
+							AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION,
+							AvailErrorCode.E_FORWARD_METHOD_DEFINITION,
+							AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)),
 					Types.METHOD.o,
 					mostGeneralTupleType()),
 				bottom
@@ -733,12 +735,11 @@ class AvailRuntime constructor(
 			null ->
 			{
 				// Create an invocation of P_EmergencyExit.
-				val argumentsTupleType = functionType.argsTupleType()
+				val argumentsTupleType = functionType.argsTupleType
 				val argumentTypesTuple =
 					argumentsTupleType.tupleOfTypesFromTo(
 						1,
-						argumentsTupleType.sizeRange().upperBound()
-							.extractInt())
+						argumentsTupleType.sizeRange.upperBound.extractInt)
 				OnceSupplier {
 					newCrashFunction(hookName, argumentTypesTuple).makeShared()
 				}
@@ -746,7 +747,7 @@ class AvailRuntime constructor(
 			else ->
 			{
 				val code = newPrimitiveRawFunction(primitive, nil, 0)
-				code.setMethodName(this.hookName)
+				code.methodName = this.hookName
 				OnceSupplier { createFunction(code, emptyTuple).makeShared() }
 			}
 		}
@@ -774,7 +775,7 @@ class AvailRuntime constructor(
 		operator fun set(runtime: AvailRuntime, function: A_Function)
 		{
 			assert(function.isInstanceOf(functionType))
-			function.code().setMethodName(hookName)
+			function.code().methodName = hookName
 			runtime.hooks[this]!!.function = function.makeShared()
 		}
 	}

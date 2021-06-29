@@ -34,7 +34,16 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numConstants
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numNybbles
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -146,7 +155,7 @@ class L1Decompiler constructor(
 	 * The number of nybbles in the nybblecodes of the raw function being
 	 * decompiled.
 	 */
-	internal val numNybbles: Int = code.numNybbles()
+	internal val numNybbles: Int = code.numNybbles
 
 	/**
 	 * [Phrases][PhraseDescriptor] which correspond with the lexically captured
@@ -178,7 +187,7 @@ class L1Decompiler constructor(
 	 * The [local&#32;constants][DeclarationKind.LOCAL_CONSTANT] defined by this
 	 * code.
 	 */
-	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants())
+	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants)
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
@@ -213,7 +222,7 @@ class L1Decompiler constructor(
 	{
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(1)
-		val tupleType = code.functionType().argsTupleType()
+		val tupleType = code.functionType().argsTupleType
 		args = Array(code.numArgs()) {
 			val token = newToken(
 				stringFrom(tempGenerator("arg")),
@@ -222,19 +231,20 @@ class L1Decompiler constructor(
 				KEYWORD)
 			newArgument(token, tupleType.typeAtIndex(it + 1), nil)
 		}
-		mentionedLocals = BooleanArray(code.numLocals())
-		locals = Array(code.numLocals()) {
+		mentionedLocals = BooleanArray(code.numLocals)
+		locals = Array(code.numLocals) {
 			val token = newToken(
 				stringFrom(tempGenerator("local")),
 				0,
 				0,
 				KEYWORD)
 			val declaration = newVariable(
-				token, code.localTypeAt(it + 1).writeType(), nil, nil)
+				token, code.localTypeAt(it + 1).writeType, nil, nil)
 			declaration
 		}
-		code.primitive()?.let { prim ->
-			if (!prim.hasFlag(Primitive.Flag.CannotFail)) {
+		code.codePrimitive()?.let { prim ->
+			if (!prim.hasFlag(Primitive.Flag.CannotFail))
+			{
 				// It's fallible, so we have to declare the failure variable.
 				// Look up the local, but don't do anything with it.
 				argOrLocalOrConstant(args.size + 1)
@@ -267,11 +277,10 @@ class L1Decompiler constructor(
 		}
 		block = newBlockNode(
 			tupleFromArray(*args),
-			code.
-			primitive(),
+			code.codePrimitive(),
 			tupleFromList(statements),
-			code.functionType().returnType(),
-			code.functionType().declaredExceptions(),
+			code.functionType().returnType,
+			code.functionType().declaredExceptions,
 			0,
 			emptyTuple)
 	}
@@ -389,7 +398,7 @@ class L1Decompiler constructor(
 			val value = code.literalAt(instructionDecoder.getOperand())
 			if (value.isInstanceOfKind(mostGeneralFunctionType()))
 			{
-				val functionOuters = Array(value.numOuterVars()) {
+				val functionOuters = Array(value.numOuterVars) {
 					// Due to stub-building primitives, it's possible for a
 					// non-clean function to be a literal, so deal with it here.
 					val i = it + 1
@@ -559,8 +568,7 @@ class L1Decompiler constructor(
 				// extending an existing FirstOfSequence.
 				val lastExpression = popExpression()
 				val penultimateExpression = popExpression()
-				val newStatements: A_Tuple
-				newStatements =
+				val newStatements =
 					if (penultimateExpression.phraseKind()
 						=== FIRST_OF_SEQUENCE_PHRASE)
 					{
@@ -585,8 +593,7 @@ class L1Decompiler constructor(
 		override fun L1_doSetOuter()
 		{
 			val outer = outers[instructionDecoder.getOperand() - 1]
-			val declaration: A_Phrase
-			declaration =
+			val declaration =
 				if (outer.phraseKindIsUnder(LITERAL_PHRASE))
 				{
 					// Writing into a synthetic literal (a byproduct of
@@ -789,7 +796,7 @@ class L1Decompiler constructor(
 			val constSubscript =
 				(instructionDecoder.getOperand()
 					- code.numArgs()
-					- code.numLocals()
+					- code.numLocals
 					- 1)
 			val token = newToken(
 				stringFrom(tempGenerator("const")),
@@ -930,7 +937,7 @@ class L1Decompiler constructor(
 		{
 			val counts = mutableMapOf<String, Int>()
 			// Synthesize fake outers to allow decompilation.
-			val outerCount = code.numOuters()
+			val outerCount = code.numOuters
 			val functionOuters = Array(outerCount) {
 				val i = it + 1
 				outerPhraseForDecompiler(i, code.outerTypeAt(i))

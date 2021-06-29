@@ -62,7 +62,6 @@ import org.junit.jupiter.params.provider.ArgumentsProvider
 import org.junit.jupiter.params.provider.ArgumentsSource
 import org.junit.jupiter.params.provider.MethodSource
 import java.math.BigInteger
-import java.util.Locale
 import java.util.stream.Collectors
 import java.util.stream.Stream
 import kotlin.math.abs
@@ -88,17 +87,17 @@ class ArithmeticTest
 		val availFloat = fromFloat(f)
 		if (!java.lang.Float.isNaN(f))
 		{
-			Assertions.assertEquals(f, availFloat.extractFloat())
+			Assertions.assertEquals(f, availFloat.extractFloat)
 			val availInt = doubleTruncatedToExtendedInteger(f.toDouble())
 			if (Long.MIN_VALUE <= f && f <= Long.MAX_VALUE)
 			{
 				Assertions.assertTrue(availInt.isLong)
-				Assertions.assertEquals(availInt.extractLong(), f.toLong())
+				Assertions.assertEquals(availInt.extractLong, f.toLong())
 			}
 			if (java.lang.Float.isInfinite(f))
 			{
 				Assertions.assertFalse(availInt.isFinite)
-				Assertions.assertEquals(f > 0, availInt.isPositive())
+				Assertions.assertEquals(f > 0, availInt.isPositive)
 			}
 			else
 			{
@@ -127,17 +126,13 @@ class ArithmeticTest
 		val availF1 = fromFloat(f1)
 		val availF2 = fromFloat(f2)
 		assertEqualFloatsOrNan(
-			f1 + f2, availF1.plusCanDestroy(availF2, false)
-			.extractFloat())
+			f1 + f2, availF1.plusCanDestroy(availF2, false).extractFloat)
 		assertEqualFloatsOrNan(
-			f1 - f2, availF1.minusCanDestroy(availF2, false)
-			.extractFloat())
+			f1 - f2, availF1.minusCanDestroy(availF2, false).extractFloat)
 		assertEqualFloatsOrNan(
-			f1 * f2, availF1.timesCanDestroy(availF2, false)
-			.extractFloat())
+			f1 * f2, availF1.timesCanDestroy(availF2, false).extractFloat)
 		assertEqualFloatsOrNan(
-			f1 / f2, availF1.divideCanDestroy(availF2, false)
-			.extractFloat())
+			f1 / f2, availF1.divideCanDestroy(availF2, false).extractFloat)
 	}
 
 	/**
@@ -433,12 +428,12 @@ class ArithmeticTest
 		{
 			val bigInt = BigInteger(bigIntHexString, 16)
 			Assertions.assertEquals(
-				bigIntHexString.uppercase(Locale.getDefault()),
-				bigInt.toString(16).uppercase(Locale.getDefault()))
+				bigIntHexString.uppercase(),
+				bigInt.toString(16).uppercase())
 			val availInt: A_BasicObject = fromBigInteger(bigInt)
 			Assertions.assertEquals(
-				bigInt.toString().uppercase(Locale.getDefault()),
-				availInt.toString().uppercase(Locale.getDefault()))
+				bigInt.toString().uppercase(),
+				availInt.toString().uppercase())
 		}
 
 		/**

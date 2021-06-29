@@ -99,7 +99,7 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 					if (!definition.isForwardDefinition())
 					{
 						val function = definition.bodySignature()
-						val params = function.argsTupleType()
+						val params = function.argsTupleType
 						val signature =
 							params.tupleOfTypesFromTo(1, method.numArgs())
 						try

@@ -126,7 +126,7 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 		// final A_Type argsListNodeType = argumentTypes.get(1);
 		val returnTypeType = argumentTypes[2]
 
-		val returnType = returnTypeType.instance()
+		val returnType = returnTypeType.instance
 		return SEND_PHRASE.create(returnType)
 	}
 

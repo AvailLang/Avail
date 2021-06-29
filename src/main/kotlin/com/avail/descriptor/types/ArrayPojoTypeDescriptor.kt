@@ -172,9 +172,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			aPojoType.equalsPojoBottomType() -> return false
 			aPojoType.isPojoSelfType ->
 				return self.pojoSelfType().equalsPojoType(aPojoType)
-			!self.slot(SIZE_RANGE).equals(aPojoType.sizeRange())
+			!self.slot(SIZE_RANGE).equals(aPojoType.sizeRange)
 				|| !self.slot(CONTENT_TYPE)
-					.equals(aPojoType.contentType()) -> return false
+					.equals(aPojoType.contentType) -> return false
 			// The objects are known to be equal and not reference identical
 			// (checked by a caller), so coalesce them if possible.
 			!isShared ->
@@ -338,9 +338,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		val range = self.slot(SIZE_RANGE)
 		when
 		{
-			range.lowerBound().equals(range.upperBound()) ->
+			range.lowerBound.equals(range.upperBound) ->
 			{
-				range.lowerBound().printOnAvoidingIndent(
+				range.lowerBound.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 			}
 			wholeNumbers.isSubtypeOf(range) ->
@@ -350,10 +350,10 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			}
 			else ->
 			{
-				range.lowerBound().printOnAvoidingIndent(
+				range.lowerBound.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 				builder.append("..")
-				range.upperBound().printOnAvoidingIndent(
+				range.upperBound.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 			}
 		}

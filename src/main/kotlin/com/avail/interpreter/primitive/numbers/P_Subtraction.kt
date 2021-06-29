@@ -111,8 +111,8 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		{
 			if (aType.isEnumeration && bType.isEnumeration)
 			{
-				val aInstances = aType.instances()
-				val bInstances = bType.instances()
+				val aInstances = aType.instances
+				val bInstances = bType.instances
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
 				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
@@ -132,10 +132,10 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 			}
 			if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 			{
-				val low = aType.lowerBound().minusCanDestroy(
-					bType.upperBound(), false)
-				val high = aType.upperBound().minusCanDestroy(
-					bType.lowerBound(), false)
+				val low = aType.lowerBound.minusCanDestroy(
+					bType.upperBound, false)
+				val high = aType.upperBound.minusCanDestroy(
+					bType.lowerBound, false)
 				val includesNegativeInfinity =
 					negativeInfinity.isInstanceOf(aType)
 						|| positiveInfinity.isInstanceOf(bType)

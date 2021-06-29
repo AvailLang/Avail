@@ -134,7 +134,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 
 		val returnType = resolvePojoType(
 			method.genericReturnType,
-			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap)
+			if (pojoType.isPojoType) pojoType.typeVariables else emptyMap)
 		val paramTypesWithReceiver =
 			tuple(pojoType).concatenateWith(paramTypes, false)
 		val functionType = functionType(paramTypesWithReceiver, returnType)

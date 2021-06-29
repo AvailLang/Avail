@@ -100,7 +100,7 @@ object P_SocketIPv6Bind : Primitive(3, CanInline, HasSideEffect)
 		{
 			val inetAddress: Inet6Address = getByAddress(addressBytes).cast()
 			val address =
-				InetSocketAddress(inetAddress, port.extractUnsignedShort())
+				InetSocketAddress(inetAddress, port.extractUnsignedShort)
 			socket.bind(address)
 			interpreter.primitiveSuccess(nil)
 		}

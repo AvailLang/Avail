@@ -173,7 +173,7 @@ class ObjectTypeDescriptor internal constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) = with(builder) {
-		val myFieldTypeMap = self.fieldTypeMap()
+		val myFieldTypeMap = self.fieldTypeMap
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self)
 		when {
 			names.setSize() == 0 -> append("object")
@@ -183,7 +183,7 @@ class ObjectTypeDescriptor internal constructor(
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap().forEach { atom, type ->
+			baseType.fieldTypeMap.forEach { atom, type ->
 				if (atom.getAtomProperty(explicitSubclassingKey).notNil
 					|| myFieldTypeMap.mapAt(atom).equals(type))
 				{
@@ -192,7 +192,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 		}
 		var first = true
-		self.fieldTypeMap().forEach { key, type ->
+		self.fieldTypeMap.forEach { key, type ->
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false
@@ -587,7 +587,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("object type") }
-			self.fieldTypeMap().forEach { key, value ->
+			self.fieldTypeMap.forEach { key, value ->
 				key.atomName().writeTo(writer)
 				value.writeTo(writer)
 			}
@@ -596,7 +596,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("object type") }
-			self.fieldTypeMap().forEach { key, value ->
+			self.fieldTypeMap.forEach { key, value ->
 				key.atomName().writeTo(writer)
 				value.writeSummaryTo(writer)
 			}
@@ -749,7 +749,7 @@ class ObjectTypeDescriptor internal constructor(
 				var leastNames = Int.MAX_VALUE
 				var keyAtomWithLeastNames: A_Atom? = null
 				var keyAtomNamesMap: A_Map? = null
-				for ((atom, _) in anObjectType.fieldTypeMap().mapIterable()) {
+				for ((atom, _) in anObjectType.fieldTypeMap.mapIterable()) {
 					if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial()) {
 						val namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (namesMap.isNil) {
@@ -797,7 +797,7 @@ class ObjectTypeDescriptor internal constructor(
 			assert(aString.isString)
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			synchronized(propertyKey) {
-				anObjectType.fieldTypeMap().forEach { atom, _ ->
+				anObjectType.fieldTypeMap.forEach { atom, _ ->
 					if (!atom.isAtomSpecial()) {
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (namesMap.notNil
@@ -845,7 +845,7 @@ class ObjectTypeDescriptor internal constructor(
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			var applicable = emptyMap
 			synchronized(propertyKey) {
-				anObjectType.fieldTypeMap().forEach { key, _ ->
+				anObjectType.fieldTypeMap.forEach { key, _ ->
 					val map: A_Map = key.getAtomProperty(propertyKey)
 					if (map.notNil) {
 						map.forEach { namedType, innerValue ->

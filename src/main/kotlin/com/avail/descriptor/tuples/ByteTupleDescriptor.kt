@@ -147,7 +147,7 @@ class ByteTupleDescriptor private constructor(
 			// Transition to a tree tuple.
 			return self.concatenateWith(tuple(newElement), canDestroy)
 		}
-		val intValue = (newElement as A_Number).extractInt()
+		val intValue = (newElement as A_Number).extractInt
 		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
@@ -384,13 +384,13 @@ class ByteTupleDescriptor private constructor(
 				return true
 			!aType.isTupleType -> return false
 			//  See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
+			!aType.sizeRange.rangeIncludesLong(self.tupleSize().toLong()) ->
 				return false
 
 			//  tuple's size is in range.
 			else ->
 			{
-				val typeTuple = aType.typeTuple()
+				val typeTuple = aType.typeTuple
 				val breakIndex =
 					self.tupleSize().coerceAtMost(typeTuple.tupleSize())
 				for (i in 1 .. breakIndex)
@@ -400,7 +400,7 @@ class ByteTupleDescriptor private constructor(
 						return false
 					}
 				}
-				val defaultTypeObject = aType.defaultType()
+				val defaultTypeObject = aType.defaultType
 				if (IntegerRangeTypeDescriptor.bytes
 						.isSubtypeOf(defaultTypeObject))
 				{
@@ -489,7 +489,8 @@ class ByteTupleDescriptor private constructor(
 		result.setByteSlot(
 			RAW_LONG_AT_,
 			index,
-			(newValueObject as A_Number).extractUnsignedByte())
+			(newValueObject as A_Number).extractUnsignedByte
+		)
 		result.setHashOrZero(0)
 		return result
 	}

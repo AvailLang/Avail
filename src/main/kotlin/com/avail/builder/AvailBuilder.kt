@@ -1078,7 +1078,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val phrase = command.phrase
 			val function = createFunctionForPhrase(phrase, nil, 1)
 			val fiber = newFiber(
-				function.kind().returnType(),
+				function.kind().returnType,
 				commandPriority
 			) { stringFrom("Running command: $phrase") }
 			var fiberGlobals = fiber.fiberGlobals()

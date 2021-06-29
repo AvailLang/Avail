@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.maxStackDepth
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -56,7 +57,7 @@ object P_CompiledCodeNumStackSlots : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(code.maxStackDepth()))
+		return interpreter.primitiveSuccess(fromInt(code.maxStackDepth))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

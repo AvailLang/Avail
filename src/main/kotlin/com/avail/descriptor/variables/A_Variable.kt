@@ -46,7 +46,6 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor

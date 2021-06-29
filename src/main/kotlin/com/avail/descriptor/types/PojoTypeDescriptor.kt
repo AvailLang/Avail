@@ -77,7 +77,6 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
-import com.avail.descriptor.types.A_Type.Companion.typeVariables
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.Companion.arrayPojoType
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -525,8 +524,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		private val charRange: A_Type =
 			IntegerRangeTypeDescriptor.inclusive(
-				Character.MIN_VALUE.toLong(),
-				Character.MAX_VALUE.toLong()).makeShared()
+				Character.MIN_VALUE.code.toLong(),
+				Character.MAX_VALUE.code.toLong()).makeShared()
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]

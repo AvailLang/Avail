@@ -1058,7 +1058,7 @@ class ModuleDescriptor private constructor(
 		var phrases = self.volatileSlot(ALL_BLOCK_PHRASES)
 		if (phrases.isLong)
 		{
-			val phrasesKey = phrases.extractLong()
+			val phrasesKey = phrases.extractLong
 			val runtime = AvailRuntime.currentRuntime()
 			val moduleName = ModuleName(self.moduleName().asNativeString())
 			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)

@@ -102,7 +102,7 @@ class FloatDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		builder.append(self.extractFloat())
+		builder.append(self.extractFloat)
 	}
 
 	override fun o_AddToInfinityCanDestroy(
@@ -138,7 +138,7 @@ class FloatDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = objectFromFloatRecycling(
-		floatObject.extractFloat() + getFloat(self),
+		floatObject.extractFloat + getFloat(self),
 		self,
 		floatObject,
 		canDestroy)
@@ -186,7 +186,7 @@ class FloatDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = objectFromFloatRecycling(
-		floatObject.extractFloat() / getFloat(self),
+		floatObject.extractFloat / getFloat(self),
 		self,
 		floatObject,
 		canDestroy)
@@ -283,7 +283,7 @@ class FloatDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = objectFromFloatRecycling(
-		floatObject.extractFloat() * getFloat(self),
+		floatObject.extractFloat * getFloat(self),
 		self,
 		floatObject,
 		canDestroy)
@@ -367,7 +367,7 @@ class FloatDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = objectFromFloatRecycling(
-		floatObject.extractFloat() - getFloat(self),
+		floatObject.extractFloat - getFloat(self),
 		self,
 		floatObject,
 		canDestroy)

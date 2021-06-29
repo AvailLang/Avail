@@ -114,8 +114,8 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt
 		) { formatString("Server socket accept, name=%s", name) }
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

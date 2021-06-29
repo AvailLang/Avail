@@ -68,7 +68,7 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 		val tupleType = interpreter.argument(0)
 		val index = interpreter.argument(1)
 		return interpreter.primitiveSuccess(
-			if (index.isInt) tupleType.typeAtIndex(index.extractInt())
+			if (index.isInt) tupleType.typeAtIndex(index.extractInt)
 			else bottom
 		)
 	}
@@ -80,14 +80,14 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 		val tupleMeta = argumentTypes[0]
 		val indexType = argumentTypes[1]
 
-		val tupleType = tupleMeta.instance()
-		val minIndex = indexType.lowerBound()
-		val maxIndex = indexType.upperBound()
+		val tupleType = tupleMeta.instance
+		val minIndex = indexType.lowerBound
+		val maxIndex = indexType.upperBound
 		return if (minIndex.isInt) {
 			instanceMeta(
 				tupleType.unionOfTypesAtThrough(
-					minIndex.extractInt(),
-					if (maxIndex.isInt) maxIndex.extractInt()
+					minIndex.extractInt,
+					if (maxIndex.isInt) maxIndex.extractInt
 					else Integer.MAX_VALUE))
 		} else super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}

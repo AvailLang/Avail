@@ -142,11 +142,10 @@ protected constructor(
 	{
 		// Non-macro definitions have a signature derived from the
 		// bodySignature.  We can safely make it a list phrase type.
-		val argsTupleType = self.bodySignature().argsTupleType()
-		val sizes = argsTupleType.sizeRange()
-		assert(sizes.lowerBound().extractInt()
-			== sizes.upperBound().extractInt())
-		assert(sizes.lowerBound().extractInt()
+		val argsTupleType = self.bodySignature().argsTupleType
+		val sizes = argsTupleType.sizeRange
+		assert(sizes.lowerBound.extractInt == sizes.upperBound.extractInt)
+		assert(sizes.lowerBound.extractInt
 			== self.slot(DEFINITION_METHOD).numArgs())
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,

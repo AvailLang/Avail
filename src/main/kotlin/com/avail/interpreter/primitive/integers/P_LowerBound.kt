@@ -56,7 +56,7 @@ object P_LowerBound : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val range = interpreter.argument(0)
-		return interpreter.primitiveSuccess(range.lowerBound())
+		return interpreter.primitiveSuccess(range.lowerBound)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

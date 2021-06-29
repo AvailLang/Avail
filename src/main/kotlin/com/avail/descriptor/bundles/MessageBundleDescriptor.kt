@@ -258,7 +258,7 @@ class MessageBundleDescriptor private constructor(
 	) = L2Chunk.invalidationLock.withLock {
 		if (!ignoreSeals)
 		{
-			val paramTypes = macro.bodySignature().argsTupleType()
+			val paramTypes = macro.bodySignature().argsTupleType
 			val seals: A_Tuple = self.bundleMethod().sealedArgumentsTypesTuple()
 			seals.forEach { seal: A_Tuple ->
 				val sealType = tupleTypeForSizesTypesDefaultType(

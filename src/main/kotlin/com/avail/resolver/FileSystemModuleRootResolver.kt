@@ -83,6 +83,7 @@ import java.util.Collections
 import java.util.Deque
 import java.util.EnumSet
 import java.util.LinkedList
+import java.util.Locale
 import java.util.UUID
 import kotlin.concurrent.thread
 
@@ -846,7 +847,7 @@ class FileSystemModuleRootResolver constructor(
 				}
 
 				val fileName = file.fileName.toString()
-				if (fileName.toUpperCase() == ".DS_STORE")
+				if (fileName.uppercase() == ".DS_STORE")
 				{
 					// Mac file to be ignored
 					return FileVisitResult.CONTINUE

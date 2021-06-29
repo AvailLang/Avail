@@ -50,6 +50,11 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -533,14 +538,15 @@ class CompilationContext constructor(
 		val code = function.code()
 		assert(code.numArgs() == args.size)
 		val fiber = newLoaderFiber(
-			function.kind().returnType(),
+			function.kind().returnType,
 			loader
 		) {
 			formatString(
 				"Eval fn=%s, in %s:%d",
-				code.methodName(),
-				code.module().moduleName(),
-				code.startingLineNumber())
+				code.methodName,
+				code.module.moduleName(),
+				code.codeStartingLineNumber
+			)
 		}
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
@@ -663,7 +669,7 @@ class CompilationContext constructor(
 	private fun serializeAfterRunning(function: A_Function)
 	{
 		val code = function.code()
-		val startingLineNumber = code.startingLineNumber()
+		val startingLineNumber = code.codeStartingLineNumber
 		if (loader.statementCanBeSummarized())
 		{
 			// Output summarized functions instead of what ran.  Associate the
@@ -676,7 +682,7 @@ class CompilationContext constructor(
 				val writer = L1InstructionWriter(
 					module,
 					startingLineNumber,
-					code.originatingPhrase())
+					code.originatingPhrase)
 				writer.argumentTypes()
 				writer.returnType = TOP.o
 				writer.returnTypeIfPrimitiveFails = TOP.o
@@ -699,23 +705,22 @@ class CompilationContext constructor(
 				{
 					println(
 						module.moduleName().asNativeString()
-						+ ':'.toString() + startingLineNumber
-						+ " Summary -- \n"
-						+ L1Decompiler.decompile(summaryFunction.code())
-						+ "(batch = $batchCount)")
+							+ ':'.toString() + startingLineNumber
+							+ " Summary -- \n"
+							+ L1Decompiler.decompile(summaryFunction.code())
+							+ "(batch = $batchCount)")
 				}
 				serializer.serialize(summaryFunction)
 			}
-		}
-		else
+		} else
 		{
 			// Can't summarize; write the original function.
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				println(
 					module.moduleName().asNativeString()
-					+ ":" + startingLineNumber
-					+ " Unsummarized -- \n" + function)
+						+ ":" + startingLineNumber
+						+ " Unsummarized -- \n" + function)
 			}
 			serializer.serialize(function)
 		}
@@ -736,8 +741,8 @@ class CompilationContext constructor(
 		{
 			println(
 				module.moduleName().asNativeString()
-				+ ":" + function.code().startingLineNumber()
-				+ " Forced -- \n" + function)
+					+ ":" + function.code().codeStartingLineNumber
+					+ " Forced -- \n" + function)
 		}
 		serializer.serialize(function)
 	}

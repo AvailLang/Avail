@@ -74,12 +74,12 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 		val methodArgs = tupleFromList(interpreter.argsBuffer)
 		val primitiveFunction = interpreter.function!!
 		val primitiveRawFunction = primitiveFunction.code()
-		assert(primitiveRawFunction.primitive() === this)
+		assert(primitiveRawFunction.codePrimitive() === this)
 
 		val methodPojo = primitiveFunction.outerVarAt(1)
 		val marshaledTypes = primitiveFunction.outerVarAt(2)
 		// The exact return kind was captured in the function type.
-		val expectedType = primitiveRawFunction.functionType().returnType()
+		val expectedType = primitiveRawFunction.functionType().returnType
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
@@ -118,9 +118,12 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 
 		result ?: return interpreter.primitiveSuccess(nullPojo())
 
-		return try {
+		return try
+		{
 			interpreter.primitiveSuccess(unmarshal(result, expectedType))
-		} catch (e: MarshalingException) {
+		}
+		catch (e: MarshalingException)
+		{
 			interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
@@ -131,7 +134,7 @@ object P_InvokeStaticPojoMethod : Primitive(-1, Private)
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
-		return rawFunction.functionType().returnType()
+		return rawFunction.functionType().returnType
 	}
 
 	/**

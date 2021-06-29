@@ -83,7 +83,7 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val varType = argumentTypes[0]
-		val readType = varType.readType()
+		val readType = varType.readType
 		return if (readType.isTop) ANY.o else readType
 	}
 

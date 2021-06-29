@@ -36,6 +36,10 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseOrIndex
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import com.avail.descriptor.methods.A_Method
@@ -102,12 +106,13 @@ import java.util.IdentityHashMap
 class FunctionDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(
-	mutability, TypeTag.FUNCTION_TAG, ObjectSlots::class.java, null
-) {
+	mutability, TypeTag.FUNCTION_TAG, ObjectSlots::class.java, null)
+{
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/** The [compiled&#32;code][CompiledCodeDescriptor]. */
 		CODE,
 
@@ -119,10 +124,11 @@ class FunctionDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
-		var phrase: A_BasicObject = self.code().originatingPhraseOrIndex()
-		if (phrase.isNil || phrase.isInt) {
+		indent: Int)
+	{
+		var phrase: A_BasicObject = self.code().originatingPhraseOrIndex
+		if (phrase.isNil || phrase.isInt)
+		{
 			phrase = decompile(self.code())
 		}
 		phrase.printOnAvoidingIndent(builder, recursionMap, indent + 1)
@@ -135,11 +141,12 @@ class FunctionDescriptor private constructor(
 
 	override fun o_EqualsFunction(
 		self: AvailObject,
-		aFunction: A_Function
-	): Boolean {
-		when {
+		aFunction: A_Function): Boolean
+	{
+		when
+		{
 			!self.code().equals(aFunction.code()) -> return false
-			(1..self.numOuterVars()).any {
+			(1 .. self.numOuterVars).any {
 				!self.outerVarAt(it).equals(aFunction.outerVarAt(it))
 			} -> return false
 			// They're equal, but occupy disjoint storage. If possible, then
@@ -152,7 +159,8 @@ class FunctionDescriptor private constructor(
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int {
+	override fun o_Hash(self: AvailObject): Int
+	{
 		// Answer a 32-bit hash value. If outer vars of mutable functions can
 		// peel away when executed (last use of an outer var of a mutable
 		// function can clobber that var and replace the OUTER_VAR_AT_ entry
@@ -165,7 +173,7 @@ class FunctionDescriptor private constructor(
 		self.makeImmutable()
 		val code: A_RawFunction = self.slot(CODE)
 		var hash = code.hash() xor 0x1386D4F6
-		for (i in 1..self.numOuterVars())
+		for (i in 1 .. self.numOuterVars)
 		{
 			hash *= multiplier
 			hash += self.outerVarAt(i).hash() xor 0x3921A5F2
@@ -185,7 +193,7 @@ class FunctionDescriptor private constructor(
 
 	override fun o_NameForDebugger(self: AvailObject) =
 		super.o_NameForDebugger(self) +
-			" /* ${self.code().methodName().asNativeString()} */"
+			" /* ${self.code().methodName.asNativeString()} */"
 
 	/**
 	 * Answer how many outer vars I've copied.
@@ -195,9 +203,10 @@ class FunctionDescriptor private constructor(
 
 	override fun o_OptionallyNilOuterVar(
 		self: AvailObject,
-		index: Int
-	): Boolean {
-		if (isMutable) {
+		index: Int): Boolean
+	{
+		if (isMutable)
+		{
 			self.setSlot(OUTER_VAR_AT_, index, nil)
 			return true
 		}
@@ -216,7 +225,8 @@ class FunctionDescriptor private constructor(
 	@ThreadSafe
 	override fun o_SerializerOperation(
 		self: AvailObject
-	) = when(self.numOuterVars()) {
+	) = when (self.numOuterVars)
+	{
 		0 -> SerializerOperation.CLEAN_FUNCTION
 		else -> SerializerOperation.GENERAL_FUNCTION
 	}
@@ -227,7 +237,7 @@ class FunctionDescriptor private constructor(
 			at("function implementation") { self.slot(CODE).writeTo(writer) }
 			at("outers") {
 				writeArray {
-					for (i in 1..self.variableObjectSlotsCount())
+					for (i in 1 .. self.variableObjectSlotsCount())
 					{
 						self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
 					}
@@ -243,7 +253,7 @@ class FunctionDescriptor private constructor(
 			}
 			at("outers") {
 				writeArray {
-					for (i in 1..self.variableObjectSlotsCount())
+					for (i in 1 .. self.variableObjectSlotsCount())
 					{
 						self.slot(OUTER_VAR_AT_, i).writeSummaryTo(writer)
 					}
@@ -257,7 +267,8 @@ class FunctionDescriptor private constructor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		/** The [CheckedMethod] for [A_Function.code]. */
 		val functionCodeMethod: CheckedMethod = instanceMethod(
 			A_Function::class.java,
@@ -280,11 +291,12 @@ class FunctionDescriptor private constructor(
 		fun createStubWithSignature(
 			functionType: A_Type,
 			function: A_Function
-		): A_Function {
-			val argTypes = functionType.argsTupleType()
-			val numArgs = argTypes.sizeRange().lowerBound().extractInt()
-			val argTypesList = (1..numArgs).map { argTypes.typeAtIndex(it) }
-			val functionReturnType = functionType.returnType()
+		): A_Function
+		{
+			val argTypes = functionType.argsTupleType
+			val numArgs = argTypes.sizeRange.lowerBound.extractInt
+			val argTypesList = (1 .. numArgs).map { argTypes.typeAtIndex(it) }
+			val functionReturnType = functionType.returnType
 			val code = with(L1InstructionWriter(nil, 0, nil)) {
 				argumentTypes(*argTypesList.toTypedArray())
 				returnType = functionReturnType
@@ -293,7 +305,8 @@ class FunctionDescriptor private constructor(
 					0,
 					L1Operation.L1_doPushLiteral,
 					addLiteral(function))
-				for (i in 1..numArgs) {
+				for (i in 1 .. numArgs)
+				{
 					write(0, L1Operation.L1_doPushLastLocal, i)
 				}
 				write(0, L1Operation.L1_doMakeTuple, numArgs)
@@ -329,11 +342,12 @@ class FunctionDescriptor private constructor(
 		fun createStubToCallMethod(
 			functionType: A_Type,
 			atom: A_Atom
-		): A_Function {
+		): A_Function
+		{
 			val bundle: A_Bundle = atom.bundleOrNil()
 			require(bundle.notNil) { "Atom to invoke has no method" }
 			val method: A_Method = bundle.bundleMethod()
-			val argTypes = functionType.argsTupleType()
+			val argTypes = functionType.argsTupleType
 			// Check that there's a definition, even abstract, that will catch all
 			// invocations for the given function type's argument types.
 			val ok = method.definitionsTuple().any {
@@ -343,14 +357,15 @@ class FunctionDescriptor private constructor(
 				("Function signature is not strong enough to call method "
 					+ "safely")
 			}
-			val numArgs = argTypes.sizeRange().lowerBound().extractInt()
-			val argTypesList = (1..numArgs).map { argTypes.typeAtIndex(it) }
-			val functionReturnType = functionType.returnType()
+			val numArgs = argTypes.sizeRange.lowerBound.extractInt
+			val argTypesList = (1 .. numArgs).map { argTypes.typeAtIndex(it) }
+			val functionReturnType = functionType.returnType
 			return with(L1InstructionWriter(nil, 0, nil)) {
 				argumentTypes(*argTypesList.toTypedArray())
 				returnType = functionReturnType
 				returnTypeIfPrimitiveFails = functionReturnType
-				for (i in 1..numArgs) {
+				for (i in 1 .. numArgs)
+				{
 					write(0, L1Operation.L1_doPushLastLocal, i)
 				}
 				write(
@@ -376,11 +391,13 @@ class FunctionDescriptor private constructor(
 		fun createFunction(
 			code: A_BasicObject,
 			copiedTuple: A_Tuple
-		): A_Function {
+		): A_Function
+		{
 			val copiedSize = copiedTuple.tupleSize()
 			return mutable.create(copiedSize) {
 				setSlot(CODE, code)
-				if (copiedSize > 0) {
+				if (copiedSize > 0)
+				{
 					setSlotsFromTuple(
 						OUTER_VAR_AT_, 1, copiedTuple, 1, copiedSize)
 				}
@@ -646,7 +663,8 @@ class FunctionDescriptor private constructor(
 			phrase: A_Phrase,
 			module: A_Module,
 			lineNumber: Int
-		): A_Function {
+		): A_Function
+		{
 			val block: A_Phrase = newBlockNode(
 				emptyTuple,
 				null,
@@ -657,7 +675,7 @@ class FunctionDescriptor private constructor(
 				phrase.tokens())
 			recursivelyValidate(block)
 			val compiledBlock = block.generateInModule(module)
-			assert(compiledBlock.numOuters() == 0)
+			assert(compiledBlock.numOuters == 0)
 			return createFunction(compiledBlock, emptyTuple).makeImmutable()
 		}
 
@@ -686,7 +704,8 @@ class FunctionDescriptor private constructor(
 				L1Operation.L1_doPushLiteral,
 				addLiteral(stringFrom(messageString)))
 			val numArgs = paramTypes.tupleSize()
-			for (i in 1..numArgs) {
+			for (i in 1 .. numArgs)
+			{
 				write(0, L1Operation.L1_doPushLastLocal, i)
 			}
 			// Put the error message and arguments into a tuple.
@@ -697,8 +716,7 @@ class FunctionDescriptor private constructor(
 				addLiteral(SpecialMethodAtom.CRASH.bundle),
 				addLiteral(bottom))
 			val code: A_RawFunction = compiledCode()
-			code.setMethodName(
-				stringFrom("VM crash function: $messageString"))
+			code.methodName = stringFrom("VM crash function: $messageString")
 			return createFunction(code, emptyTuple).makeShared()
 		}
 

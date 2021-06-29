@@ -156,7 +156,7 @@ internal class Counter(
 		 * under-pop parse position (remove 2nd from top of stack)
 		 */
 		generator.flushDelayed()
-		val phraseCountRange = phraseType.phraseTypeExpressionType()
+		val phraseCountRange = phraseType.phraseTypeExpressionType
 		val emptyTupleType = instanceType(emptyTuple)
 		val tupleOfEmptyTuplesType = tupleTypeForSizesTypesDefaultType(
 			phraseCountRange, emptyTuple, emptyTupleType)
@@ -182,7 +182,7 @@ internal class Counter(
 		assert(
 			countLiteral.isInstanceOf(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType()))
-		val count = countLiteral.token().literal().extractInt()
+		val count = countLiteral.token().literal().extractInt
 		for (i in 1..count)
 		{
 			if (i > 1)
@@ -210,9 +210,9 @@ internal class Counter(
 
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
 	{
-		val integerRangeType = phraseType.phraseTypeExpressionType()
+		val integerRangeType = phraseType.phraseTypeExpressionType
 		assert(integerRangeType.isIntegerRangeType)
-		return integerRangeType.lowerBound().equalsInt(0)
+		return integerRangeType.lowerBound.equalsInt(0)
 	}
 
 	override fun checkListStructure(phrase: A_Phrase): Boolean = true

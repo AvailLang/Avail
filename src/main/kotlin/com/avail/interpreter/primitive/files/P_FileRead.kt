@@ -149,11 +149,11 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		val runtime = interpreter.runtime
 		val ioSystem = runtime.ioSystem
-		val oneBasedPositionLong = positionObject.extractLong()
+		val oneBasedPositionLong = positionObject.extractLong
 		// Guaranteed positive by argument constraint.
 		assert(oneBasedPositionLong > 0L)
 		var size = min(
-			if (sizeObject.isInt) sizeObject.extractInt() else MAX_READ_SIZE,
+			if (sizeObject.isInt) sizeObject.extractInt else MAX_READ_SIZE,
 			MAX_READ_SIZE)
 		if (size > THRESHOLD_READ_SIZE)
 		{
@@ -236,8 +236,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt())
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt)
 		{
 			formatString("Asynchronous file read, %s", handle.filename)
 		}

@@ -117,7 +117,7 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val targetIndex = targetIndexObject.extractInt()
+		val targetIndex = targetIndexObject.extractInt
 		if (targetIndex > targetTuple.tupleSize())
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)

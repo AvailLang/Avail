@@ -1223,20 +1223,20 @@ class MessageSplitter
 		functionType: A_Type,
 		sectionNumber: Int = Integer.MAX_VALUE
 	) {
-		val argsTupleType = functionType.argsTupleType()
-		val sizes = argsTupleType.sizeRange()
-		val lowerBound = sizes.lowerBound()
-		val upperBound = sizes.upperBound()
+		val argsTupleType = functionType.argsTupleType
+		val sizes = argsTupleType.sizeRange
+		val lowerBound = sizes.lowerBound
+		val upperBound = sizes.upperBound
 		if (!lowerBound.equals(upperBound) || !lowerBound.isInt) {
 			// Method definitions (and other definitions) should take a
 			// definite number of arguments.
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val lowerBoundInt = lowerBound.extractInt()
+		val lowerBoundInt = lowerBound.extractInt
 		if (lowerBoundInt != numberOfArguments) {
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		rootSequence.checkRootType(functionType.argsTupleType(), sectionNumber)
+		rootSequence.checkRootType(functionType.argsTupleType, sectionNumber)
 	}
 
 	/**

@@ -218,7 +218,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
 		val outerKind = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)

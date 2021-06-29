@@ -68,7 +68,7 @@ object P_RejectParsing : Primitive(2, Unknown)
 		val rejectionString = interpreter.argument(1)
 		throw AvailRejectedParseException(
 			ParseNotificationLevel.levelFromInt(
-				oneBasedRejectionLevel.extractInt() - 1),
+				oneBasedRejectionLevel.extractInt - 1),
 			rejectionString)
 	}
 

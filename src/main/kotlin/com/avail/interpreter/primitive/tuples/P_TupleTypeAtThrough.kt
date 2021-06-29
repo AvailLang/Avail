@@ -65,11 +65,11 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(3)
 		val (tupleType, startIndex, endIndex) = interpreter.argsBuffer
 		val startInt = when {
-			startIndex.isInt -> startIndex.extractInt()
+			startIndex.isInt -> startIndex.extractInt
 			else -> Integer.MAX_VALUE
 		}
 		val endInt = when {
-			endIndex.isInt -> endIndex.extractInt()
+			endIndex.isInt -> endIndex.extractInt
 			else -> Integer.MAX_VALUE
 		}
 		return interpreter.primitiveSuccess(

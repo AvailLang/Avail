@@ -122,7 +122,7 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 							fiber.setWakeupTask(task)
 							fiber.setExecutionState(ASLEEP)
 							runtime.timer.schedule(
-								task, sleepMillis.extractLong())
+								task, sleepMillis.extractLong)
 						}
 					}
 				}

@@ -124,7 +124,7 @@ internal constructor(private val finalResult: Result)
 				// Assume for now that it's a tuple of definitions.
 				format(
 					"Success: %s",
-					finalTuple.tupleAt(1).bodySignature().argsTupleType())
+					finalTuple.tupleAt(1).bodySignature().argsTupleType)
 			}
 			else format(
 				"Failure: (%d solutions)",

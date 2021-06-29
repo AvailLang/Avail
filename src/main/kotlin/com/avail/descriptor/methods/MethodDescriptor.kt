@@ -49,6 +49,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import com.avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
@@ -587,7 +588,7 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
-		val paramTypes = definition.bodySignature().argsTupleType()
+		val paramTypes = definition.bodySignature().argsTupleType
 		val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
 		seals.forEach { seal: A_Tuple ->
 			val sealType = tupleTypeForSizesTypesDefaultType(
@@ -612,7 +613,7 @@ class MethodDescriptor private constructor(
 	}
 
 	override fun o_MethodName(self: AvailObject): A_String =
-		self.chooseBundle(self.module()).message().atomName()
+		self.chooseBundle(self.module).message().atomName()
 
 	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
 
@@ -1039,7 +1040,7 @@ class MethodDescriptor private constructor(
 			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
 				override fun extractSignature(element: A_Definition) =
-					element.bodySignature().argsTupleType()
+					element.bodySignature().argsTupleType
 
 				override fun constructResult(
 					elements: List<A_Definition>,

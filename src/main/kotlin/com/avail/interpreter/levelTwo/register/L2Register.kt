@@ -50,7 +50,6 @@ import com.avail.interpreter.levelTwo.operation.L2_MOVE
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2Entity
 import com.avail.optimizer.L2Generator
-import com.avail.optimizer.L2Synonym
 import com.avail.optimizer.reoptimizer.L2Regenerator
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast

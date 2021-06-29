@@ -265,7 +265,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					scopeMap.mapAt(failureDeclarationName)
 				allStatements.add(failureDeclaration)
 			}
-			primitiveReturnType = primitive.blockTypeRestriction().returnType()
+			primitiveReturnType = primitive.blockTypeRestriction().returnType
 		}
 		else
 		{
@@ -295,7 +295,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			{
 				// Label's type was explicitly provided.
 				labelReturnType =
-					label.declaredType().functionType().returnType()
+					label.declaredType().functionType.returnType
 			}
 		}
 
@@ -330,7 +330,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				if (primitive !== null && primitive.hasFlag(CannotFail))
 				{
 					// An infallible primitive must have no statements.
-					primitive.blockTypeRestriction().returnType()
+					primitive.blockTypeRestriction().returnType
 				}
 				else
 				{

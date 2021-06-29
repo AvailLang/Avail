@@ -117,8 +117,8 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 			return true
 		}
 		val same =
-			(aType.readType().equals(self.slot(INNER_TYPE))
-	            && aType.writeType().equals(self.slot(INNER_TYPE)))
+			(aType.readType.equals(self.slot(INNER_TYPE))
+	            && aType.writeType.equals(self.slot(INNER_TYPE)))
 		if (same)
 		{
 			if (!isShared)
@@ -149,8 +149,8 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
-		return (aVariableType.readType().isSubtypeOf(innerType)
-	        && innerType.isSubtypeOf(aVariableType.writeType()))
+		return (aVariableType.readType.isSubtypeOf(innerType)
+	        && innerType.isSubtypeOf(aVariableType.writeType))
 	}
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
@@ -170,8 +170,8 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		// read type is the type intersection of the two incoming read types and
 		// whose write type is the type union of the two incoming write types.
 		return variableReadWriteType(
-			innerType.typeIntersection(aVariableType.readType()),
-			innerType.typeUnion(aVariableType.writeType()))
+			innerType.typeIntersection(aVariableType.readType),
+			innerType.typeUnion(aVariableType.writeType))
 	}
 
 	override fun o_TypeUnion(
@@ -194,8 +194,8 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		// read type is the type union of the two incoming read types and whose
 		// write type is the type intersection of the two incoming write types.
 		return variableReadWriteType(
-			innerType.typeUnion(aVariableType.readType()),
-			innerType.typeIntersection(aVariableType.writeType()))
+			innerType.typeUnion(aVariableType.readType),
+			innerType.typeIntersection(aVariableType.writeType))
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =

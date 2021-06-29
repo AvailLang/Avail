@@ -33,6 +33,9 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -82,7 +85,7 @@ object P_RestartContinuation : Primitive(
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
-		assert(originalCon.stackp() == code.numSlots() + 1)
+		assert(originalCon.stackp() == code.numSlots + 1)
 		{
 			"Continuation should have been a label- rather than " +
 				"call-continuation"
@@ -105,7 +108,7 @@ object P_RestartContinuation : Primitive(
 		// to be the label continuation's *caller*.
 		interpreter.setReifiedContinuation(originalCon.caller())
 		interpreter.function = originalCon.function()
-		interpreter.chunk = code.startingChunk()
+		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0
 		interpreter.returnNow = false
 		interpreter.setLatestResult(null)

@@ -143,7 +143,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		val originalSize = self.tupleSize()
 		if (originalSize < maximumCopySize && newElement.isInt)
 		{
-			val intValue = (newElement as A_Number).extractInt()
+			val intValue = (newElement as A_Number).extractInt
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
@@ -275,12 +275,12 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 				return true
 			!aType.isTupleType -> return false
 			// See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
+			!aType.sizeRange.rangeIncludesLong(self.tupleSize().toLong()) ->
 				return false
 			// tuple's size is in range.
 			else ->
 			{
-				val typeTuple = aType.typeTuple()
+				val typeTuple = aType.typeTuple
 				val breakIndex =
 					self.tupleSize().coerceAtMost(typeTuple.tupleSize())
 				for (i in 1 .. breakIndex)
@@ -290,7 +290,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 						return false
 					}
 				}
-				val defaultTypeObject = aType.defaultType()
+				val defaultTypeObject = aType.defaultType
 				if (IntegerRangeTypeDescriptor.bytes
 						.isSubtypeOf(defaultTypeObject))
 				{
@@ -349,7 +349,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		}
 		// Clobber the object in place...
 		val theByte =
-			(newValueObject as A_Number).extractUnsignedByte().toByte()
+			(newValueObject as A_Number).extractUnsignedByte.toByte()
 		val buffer =
 			self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
 		buffer.put(index - 1, theByte)

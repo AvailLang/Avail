@@ -92,7 +92,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		{
 			for ((key, value) in options.mapIterable())
 			{
-				val option = Options.socketOptions[key.extractInt()]!!
+				val option = Options.socketOptions[key.extractInt]!!
 				if (option.type() == java.lang.Boolean::class.java
 						&& value.isBoolean) {
 					val booleanOption: SocketOption<Boolean> = option.cast()
@@ -101,7 +101,7 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				else if (option.type() == java.lang.Integer::class.java
 						&& value.isInt) {
 					val intOption: SocketOption<Int> = option.cast()
-					socket.setOption(intOption, value.extractInt())
+					socket.setOption(intOption, value.extractInt)
 				}
 				else return interpreter.primitiveFailure(
 					E_INCORRECT_ARGUMENT_TYPE)

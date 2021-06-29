@@ -75,7 +75,7 @@ object P_ObjectTypeToTuple : Primitive(1, CanFold, CanInline)
 		}
 		else
 		{
-			interpreter.primitiveSuccess(objectType.fieldTypeTuple())
+			interpreter.primitiveSuccess(objectType.fieldTypeTuple)
 		}
 	}
 

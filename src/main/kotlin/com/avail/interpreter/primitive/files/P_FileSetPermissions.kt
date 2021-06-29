@@ -150,7 +150,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 		val permissions = EnumSet.noneOf(PosixFilePermission::class.java)
 		for (ordinal in ordinals)
 		{
-			permissions.add(allPermissions[ordinal.extractInt() - 1])
+			permissions.add(allPermissions[ordinal.extractInt - 1])
 		}
 		return permissions
 	}

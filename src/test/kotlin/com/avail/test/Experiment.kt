@@ -168,14 +168,14 @@ constructor(private val instructionClass: Class<Instruction>)
 
 		val name: String = javaField.name
 
-		val getterMethod: Method = run {
+		private val getterMethod: Method = run {
 			instructionClass.getDeclaredMethod(
-				"get" + name.capitalize())
+				"get" + name.replaceFirstChar(Char::titlecase))
 		}
 
-		val setterMethod: Method = run {
+		private val setterMethod: Method = run {
 			instructionClass.getDeclaredMethod(
-				"set" + name.capitalize(), type)
+				"set" + name.replaceFirstChar(Char::titlecase), type)
 		}
 
 		val purpose = javaField.getAnnotation(On::class.java)?.purpose

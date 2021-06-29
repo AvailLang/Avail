@@ -146,7 +146,7 @@ class PojoFieldDescriptor private constructor(
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		val expectedType = self.slot(KIND).readType()
+		val expectedType = self.slot(KIND).readType
 		try
 		{
 			return synchronized(receiver) {
@@ -233,7 +233,7 @@ class PojoFieldDescriptor private constructor(
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		val expectedType = self.slot(KIND).readType()
+		val expectedType = self.slot(KIND).readType
 		try
 		{
 			return synchronized(receiver) {

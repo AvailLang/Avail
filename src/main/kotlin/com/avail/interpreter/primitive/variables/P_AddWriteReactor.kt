@@ -102,8 +102,8 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		//		final A_Type functionType = argumentTypes.get(2);
 		if (keyType.isEnumeration)
 		{
-			val allSpecial = keyType.instance().all { it.isAtomSpecial() }
-			val noneSpecial = keyType.instance().none { it.isAtomSpecial() }
+			val allSpecial = keyType.instance.all { it.isAtomSpecial() }
+			val noneSpecial = keyType.instance.none { it.isAtomSpecial() }
 			// The aggregate booleans can only both be true in the degenerate
 			// case that keyType is ⊥, which should be impossible.
 			when {

@@ -91,7 +91,6 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.defaultType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER

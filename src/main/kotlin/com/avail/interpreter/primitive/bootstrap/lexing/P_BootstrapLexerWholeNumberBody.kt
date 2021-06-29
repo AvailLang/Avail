@@ -71,14 +71,14 @@ object P_BootstrapLexerWholeNumberBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val lineNumberInteger = interpreter.argument(2)
 
-		val startPosition = sourcePositionInteger.extractInt()
+		val startPosition = sourcePositionInteger.extractInt
 		val digitCount = countDigits(source, startPosition)
 
 		val string = source.copyStringFromToCanDestroy(
 			startPosition, startPosition + digitCount - 1, false)
 		val number = readInteger(string, 1, digitCount)
 		val token = literalToken(
-			string, startPosition, lineNumberInteger.extractInt(), number)
+			string, startPosition, lineNumberInteger.extractInt, number)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 

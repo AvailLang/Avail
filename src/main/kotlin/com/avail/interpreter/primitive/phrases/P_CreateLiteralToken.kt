@@ -70,7 +70,7 @@ object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 		val start = interpreter.argument(2)
 		val line = interpreter.argument(3)
 		return interpreter.primitiveSuccess(
-			literalToken(lexeme, start.extractInt(), line.extractInt(), value))
+			literalToken(lexeme, start.extractInt, line.extractInt, value))
 	}
 
 	override fun returnTypeGuaranteedByVM(

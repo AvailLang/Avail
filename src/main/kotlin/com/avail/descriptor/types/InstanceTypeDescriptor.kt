@@ -180,7 +180,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			}
 			// Create a new enumeration containing all elements that are
 			// simultaneously present in object and another.
-			return if (another.instances().hasElement(getInstance(self)))
+			return if (another.instances.hasElement(getInstance(self)))
 			{
 				self
 			}
@@ -218,7 +218,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 				// Create a new enumeration containing all elements from both
 				// enumerations.
 				enumerationWith(
-					another.instances().setWithElementCanDestroy(
+					another.instances.setWithElementCanDestroy(
 						getInstance(self), false))
 			// Another is a kind.
 			getInstance(self).isInstanceOfKind(another) -> another
@@ -285,7 +285,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			// instance meta (the only sort of meta that exists these
 			// days -- 2012.07.17).  See if my instance (a non-type) is an
 			// instance of aType's instance (a type).
-			getInstance(self).isInstanceOf(aType.instance())
+			getInstance(self).isInstanceOf(aType.instance)
 		}
 		else
 		{
@@ -304,10 +304,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		getSuperkind(self).fieldTypeAtOrNull(field)
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map =
-		getSuperkind(self).fieldTypeMap()
+		getSuperkind(self).fieldTypeMap
 
 	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
-		getSuperkind(self).fieldTypeTuple()
+		getSuperkind(self).fieldTypeTuple
 
 	override fun o_LowerBound(self: AvailObject): A_Number
 	{
@@ -415,7 +415,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeTuple(self: AvailObject): A_Tuple
 	{
 		assert(getInstance(self).isTuple)
-		return getSuperkind(self).typeTuple()
+		return getSuperkind(self).typeTuple
 	}
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -473,13 +473,13 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			getSuperkind(self).acceptsTupleOfArguments(arguments)
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		getSuperkind(self).argsTupleType()
+		getSuperkind(self).argsTupleType
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		getSuperkind(self).declaredExceptions()
+		getSuperkind(self).declaredExceptions
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		getSuperkind(self).functionType()
+		getSuperkind(self).functionType
 
 	override fun o_ContentType(self: AvailObject): A_Type
 	{
@@ -511,13 +511,13 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
-		getSuperkind(self).returnType()
+		getSuperkind(self).returnType
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		getSuperkind(self).readType()
+		getSuperkind(self).readType
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		getSuperkind(self).writeType()
+		getSuperkind(self).writeType
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
 		getInstance(self).phraseExpressionType()
@@ -525,7 +525,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
 		val instance = getInstance(self)
-		return instance.isLong && instance.extractLong() == aLong
+		return instance.isLong && instance.extractLong == aLong
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -567,7 +567,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		getSuperkind(self).writeTo(writer)
 		writer.write("instances")
-		self.instances().writeTo(writer)
+		self.instances.writeTo(writer)
 		writer.endObject()
 	}
 
@@ -577,7 +577,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		getSuperkind(self).writeSummaryTo(writer)
 		writer.write("instances")
-		self.instances().writeSummaryTo(writer)
+		self.instances.writeSummaryTo(writer)
 		writer.endObject()
 	}
 

@@ -112,7 +112,7 @@ class InfinityDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(if (self.isPositive()) "\u221E" else "-\u221E")
+		builder.append(if (self.isPositive) "\u221E" else "-\u221E")
 	}
 
 	override fun o_Equals(
@@ -146,8 +146,8 @@ class InfinityDescriptor private constructor(
 		aType.isSupertypeOfPrimitiveTypeEnum(Types.NUMBER) -> true
 		!aType.isIntegerRangeType -> false
 		sign == POSITIVE ->
-			aType.upperBound().equals(self) && aType.upperInclusive()
-		else -> aType.lowerBound().equals(self) && aType.lowerInclusive()
+			aType.upperBound.equals(self) && aType.upperInclusive
+		else -> aType.lowerBound.equals(self) && aType.lowerInclusive
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -224,7 +224,7 @@ class InfinityDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromFloatRecycling(
-		floatObject.extractFloat() + sign.limitFloat(),
+		floatObject.extractFloat + sign.limitFloat(),
 		floatObject,
 		canDestroy)
 
@@ -254,7 +254,7 @@ class InfinityDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromFloatRecycling(
-		floatObject.extractFloat() / sign.limitFloat(),
+		floatObject.extractFloat / sign.limitFloat(),
 		floatObject,
 		canDestroy)
 
@@ -275,7 +275,7 @@ class InfinityDescriptor private constructor(
 	): A_Number = when {
 		anInteger.equalsInt(0) ->
 			throw ArithmeticException(E_CANNOT_MULTIPLY_ZERO_AND_INFINITY)
-		anInteger.greaterThan(zero) xor self.isPositive() ->
+		anInteger.greaterThan(zero) xor self.isPositive ->
 			negativeInfinity
 		else -> positiveInfinity
 	}
@@ -294,7 +294,7 @@ class InfinityDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromFloatRecycling(
-		floatObject.extractFloat() * sign.limitFloat(),
+		floatObject.extractFloat * sign.limitFloat(),
 		floatObject,
 		canDestroy)
 
@@ -333,7 +333,7 @@ class InfinityDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromFloatRecycling(
-		floatObject.extractFloat() - sign.limitFloat(),
+		floatObject.extractFloat - sign.limitFloat(),
 		floatObject,
 		canDestroy)
 

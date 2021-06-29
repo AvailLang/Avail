@@ -170,7 +170,7 @@ class NybbleTupleDescriptor private constructor(
 						else -> tuple(strongNewElement)
 					}
 				strongNewElement.isLong ->
-					return when (val longValue = strongNewElement.extractLong())
+					return when (val longValue = strongNewElement.extractLong)
 					{
 						in 0 .. 0xFF -> generateByteTupleFrom(1) {
 							longValue.toInt()
@@ -183,7 +183,7 @@ class NybbleTupleDescriptor private constructor(
 		}
 		if (originalSize < maximumCopySize && strongNewElement.isInt)
 		{
-			val intValue = strongNewElement.extractInt()
+			val intValue = strongNewElement.extractInt
 			if (intValue and 15.inv() != 0)
 			{
 				// Transition to a tree tuple.
@@ -438,12 +438,12 @@ class NybbleTupleDescriptor private constructor(
 				return true
 			!aType.isTupleType -> return false
 			// See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
+			!aType.sizeRange.rangeIncludesLong(self.tupleSize().toLong()) ->
 				return false
 			// Tuple's size is out of range.
 			else ->
 			{
-				val typeTuple = aType.typeTuple()
+				val typeTuple = aType.typeTuple
 				val breakIndex =
 					self.tupleSize().coerceAtMost(typeTuple.tupleSize())
 				for (i in 1 .. breakIndex)
@@ -453,7 +453,7 @@ class NybbleTupleDescriptor private constructor(
 						return false
 					}
 				}
-				val defaultTypeObject = aType.defaultType()
+				val defaultTypeObject = aType.defaultType
 				if (nybbles.isSubtypeOf(defaultTypeObject))
 					return true
 				return (breakIndex + 1 .. self.tupleSize()).all {
@@ -541,7 +541,7 @@ class NybbleTupleDescriptor private constructor(
 				newLike(mutable(), self, 0, 0)
 			}
 		// All clear.  Clobber the object in place...
-		val newNybble = (newValueObject as A_Number).extractNybble()
+		val newNybble = (newValueObject as A_Number).extractNybble
 		setNybble(result, index, newNybble)
 		result.setHashOrZero(0)
 		//  ...invalidate the hash value. Probably cheaper than computing the

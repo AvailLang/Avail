@@ -174,7 +174,7 @@ object IndexedFileAnalyzer
 					if (i == 8) append(" ")  // River into two groups of 8.
 					append(
 						when (b) {
-							in 0x20..0x7E -> b.toChar()
+							in 0x20..0x7E -> b.toInt().toChar()
 							else -> '.'
 						})
 				}
@@ -270,7 +270,7 @@ object IndexedFileAnalyzer
 				throw Exception(
 					"at position $pos, invalid encoding ($ch).")
 			}
-			targetBuffer.put(ch.toByte())
+			targetBuffer.put(ch.code.toByte())
 		}
 		assert(targetBuffer.position() == string.length)
 		return targetBuffer.array()

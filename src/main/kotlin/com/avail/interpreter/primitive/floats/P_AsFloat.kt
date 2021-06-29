@@ -61,7 +61,7 @@ object P_AsFloat : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		else
 		{
-			interpreter.primitiveSuccess(fromFloat(number.extractFloat()))
+			interpreter.primitiveSuccess(fromFloat(number.extractFloat))
 		}
 	}
 

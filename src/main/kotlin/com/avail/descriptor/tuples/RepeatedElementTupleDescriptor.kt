@@ -405,7 +405,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			{
 				// Make it a numeric tuple.
 				result = tupleFromIntegerList(
-					Collections.nCopies(size, element.extractInt()))
+					Collections.nCopies(size, element.extractInt))
 			}
 			else if (element.isCharacter)
 			{
@@ -460,13 +460,13 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
 		assert(1 <= index && index <= self.slot(SIZE))
-		return self.slot(ELEMENT).extractInt()
+		return self.slot(ELEMENT).extractInt
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
 		assert(1 <= index && index <= self.slot(SIZE))
-		return self.slot(ELEMENT).extractLong()
+		return self.slot(ELEMENT).extractLong
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple = self

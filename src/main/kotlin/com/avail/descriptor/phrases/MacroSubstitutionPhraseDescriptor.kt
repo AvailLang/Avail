@@ -35,6 +35,7 @@ import com.avail.compiler.AvailCodeGenerator
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
@@ -126,12 +127,13 @@ class MacroSubstitutionPhraseDescriptor(
 	mutability,
 	TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	null)
+{
 	/**
 	 * My slots of type [AvailObject].
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * The [send&#32;phrase][SendPhraseDescriptor] prior to its
 		 * transformation into the [OUTPUT_PARSE_NODE].
@@ -171,7 +173,7 @@ class MacroSubstitutionPhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(OUTPUT_PARSE_NODE))
 
 	/**
@@ -179,8 +181,8 @@ class MacroSubstitutionPhraseDescriptor(
 	 */
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) {
+		transformer: (A_Phrase)->A_Phrase)
+	{
 		self.setSlot(
 			OUTPUT_PARSE_NODE,
 			transformer(self.slot(OUTPUT_PARSE_NODE)))
@@ -320,20 +322,20 @@ class MacroSubstitutionPhraseDescriptor(
 		self.slot(OUTPUT_PARSE_NODE).permutation()
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
-		self.slot(OUTPUT_PARSE_NODE).primitive()
+		self.slot(OUTPUT_PARSE_NODE).codePrimitive()
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MACRO_SUBSTITUTION_PHRASE
 
 	override fun o_StartingLineNumber(self: AvailObject): Int =
-		self.slot(OUTPUT_PARSE_NODE).startingLineNumber()
+		self.slot(OUTPUT_PARSE_NODE).codeStartingLineNumber
 
 	override fun o_Statements(self: AvailObject): A_Tuple =
 		self.slot(OUTPUT_PARSE_NODE).statements()
 
 	override fun o_StatementsDo(
 		self: AvailObject,
-		continuation: (A_Phrase) -> Unit
+		continuation: (A_Phrase)->Unit
 	) = self.slot(OUTPUT_PARSE_NODE).statementsDo(continuation)
 
 	override fun o_StatementsTuple(self: AvailObject): A_Tuple =
@@ -373,7 +375,8 @@ class MacroSubstitutionPhraseDescriptor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Construct a new macro substitution phrase.
 		 *

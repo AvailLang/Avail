@@ -45,6 +45,9 @@ import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
@@ -417,15 +420,16 @@ internal class BuildLoader constructor(
 				function !== null ->
 				{
 					val fiber = newLoaderFiber(
-						function.kind().returnType(),
+						function.kind().returnType,
 						availLoader
 					) {
 						val code = function.code()
 						formatString(
 							"Load repo module %s, in %s:%d",
-							code.methodName(),
-							code.module().moduleName(),
-							code.startingLineNumber())
+							code.methodName,
+							code.module.moduleName(),
+							code.codeStartingLineNumber
+						)
 					}
 					fiber.setTextInterface(availBuilder.textInterface)
 					val before = captureNanos()
@@ -442,7 +446,8 @@ internal class BuildLoader constructor(
 					{
 						println(
 							module.toString()
-								+ ":" + function.code().startingLineNumber()
+								+ ":" + function.code()
+								.codeStartingLineNumber
 								+ " Running precompiled -- " + function)
 					}
 					runOutermostFunction(
@@ -559,7 +564,7 @@ internal class BuildLoader constructor(
 									true ->
 										bodyObjectsMap
 											.mapAt(obj)
-											.extractInt() - delta
+											.extractInt - delta
 									else -> 0
 								}
 							}

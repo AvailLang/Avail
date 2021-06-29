@@ -1004,7 +1004,7 @@ class Repository constructor(
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
 
-		val blockPhraseBytes: ByteArray?
+		val blockPhraseBytes: ByteArray
 			get() = lock.withLock { repository!![recordNumberOfBlockPhrases] }
 
 		/**
@@ -1068,8 +1068,8 @@ class Repository constructor(
 			// No need to hold a lock during initialization.
 			this.compilationTime = compilationTime
 			val repo = repository!!
-			var indexOfRecord: Long = -1
-			var indexOfBlockPhrasesRecord: Long = -1
+			var indexOfRecord: Long
+			var indexOfBlockPhrasesRecord: Long
 			lock.withLock {
 				indexOfRecord = repo.size
 				repo.add(serializedBody)

@@ -448,11 +448,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val childless = mutableListOf<AvailObject>()
 		childless.addAll(childlessAmong(ancestors.keysAsSet()))
-		childless.sortWith(Comparator { o1: AvailObject, o2: AvailObject ->
-			val c1 = o1.javaObjectNotNull<Class<*>>()
-			val c2 = o2.javaObjectNotNull<Class<*>>()
-			c1.name.compareTo(c2.name)
-		})
+		childless.sortBy { o1 -> o1.javaObjectNotNull<Class<*>>().name }
 		var firstChildless = true
 		for (javaClass in childless)
 		{

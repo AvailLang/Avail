@@ -112,8 +112,8 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		{
 			if (aType.isEnumeration && bType.isEnumeration)
 			{
-				val aInstances = aType.instances()
-				val bInstances = bType.instances()
+				val aInstances = aType.instances
+				val bInstances = bType.instances
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
 				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
@@ -133,10 +133,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			}
 			if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 			{
-				val low = aType.lowerBound().plusCanDestroy(
-					bType.lowerBound(), false)
-				val high = aType.upperBound().plusCanDestroy(
-					bType.upperBound(), false)
+				val low = aType.lowerBound.plusCanDestroy(
+					bType.lowerBound, false)
+				val high = aType.upperBound.plusCanDestroy(
+					bType.upperBound, false)
 				val includesNegativeInfinity =
 					negativeInfinity.isInstanceOf(aType)
 						|| negativeInfinity.isInstanceOf(bType)
@@ -202,10 +202,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		}
 		// lowest and highest can be at most ±2^32, so there's lots of room in
 		// a long.
-		val lowest = aIntersectInt32.lowerBound().extractLong() +
-			bIntersectInt32.lowerBound().extractLong()
-		val highest = aIntersectInt32.lowerBound().extractLong() +
-			bIntersectInt32.lowerBound().extractLong()
+		val lowest = aIntersectInt32.lowerBound.extractLong +
+			bIntersectInt32.lowerBound.extractLong
+		val highest = aIntersectInt32.lowerBound.extractLong +
+			bIntersectInt32.lowerBound.extractLong
 		if (lowest > Int.MAX_VALUE || highest < Int.MIN_VALUE)
 		{
 			// The sum is definitely out of range, so don't bother switching to

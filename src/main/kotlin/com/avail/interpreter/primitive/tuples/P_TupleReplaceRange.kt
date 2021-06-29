@@ -94,8 +94,8 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val startInt = firstIndex.extractInt()
-		val endInt = lastIndex.extractInt()
+		val startInt = firstIndex.extractInt
+		val endInt = lastIndex.extractInt
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
 		{
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE)
@@ -147,22 +147,24 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		val endType = argumentTypes[2]
 		// val replacementType = argumentTypes[3]
 
-		val tupleSizeRange = tupleType.sizeRange()
+		val tupleSizeRange = tupleType.sizeRange
 		val leftFallibility = P_ExtractSubtuple.checkFallibility(
 			tupleSizeRange,
 			singleInt(1),
 			integerRangeType(
-				startType.lowerBound().noFailMinusCanDestroy(one, false),
-				startType.lowerInclusive(),
-				startType.upperBound().noFailMinusCanDestroy(one, false),
-				startType.upperInclusive()))
+				startType.lowerBound.noFailMinusCanDestroy(one, false),
+				startType.lowerInclusive,
+				startType.upperBound.noFailMinusCanDestroy(one, false),
+				startType.upperInclusive
+			))
 		val rightFallibility = P_ExtractSubtuple.checkFallibility(
 			tupleSizeRange,
 			integerRangeType(
-				endType.lowerBound().noFailPlusCanDestroy(one, false),
-				endType.lowerInclusive(),
-				endType.upperBound().noFailPlusCanDestroy(one, false),
-				endType.upperInclusive()),
+				endType.lowerBound.noFailPlusCanDestroy(one, false),
+				endType.lowerInclusive,
+				endType.upperBound.noFailPlusCanDestroy(one, false),
+				endType.upperInclusive
+			),
 			tupleSizeRange)
 		// It's only the extraction of the left and right parts that can fail,
 		// not the concatenation.  If P_ConcatenateTuples introduces a failure
@@ -185,22 +187,22 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		val endType = argumentTypes[2]
 		val replacementType = argumentTypes[3]
 
-		val tupleSizeRange = tupleType.sizeRange()
+		val tupleSizeRange = tupleType.sizeRange
 		val leftTupleType = P_ExtractSubtuple.computeSliceType(
 			tupleType,
 			singleInt(1),
 			integerRangeType(
-				startType.lowerBound().noFailMinusCanDestroy(one, false),
-				startType.lowerInclusive(),
-				startType.upperBound().noFailMinusCanDestroy(one, false),
-				startType.upperInclusive()))
+				startType.lowerBound.noFailMinusCanDestroy(one, false),
+				startType.lowerInclusive,
+				startType.upperBound.noFailMinusCanDestroy(one, false),
+				startType.upperInclusive))
 		val rightTupleType = P_ExtractSubtuple.computeSliceType(
 			tupleType,
 			integerRangeType(
-				endType.lowerBound().noFailPlusCanDestroy(one, false),
-				endType.lowerInclusive(),
-				endType.upperBound().noFailPlusCanDestroy(one, false),
-				endType.upperInclusive()),
+				endType.lowerBound.noFailPlusCanDestroy(one, false),
+				endType.lowerInclusive,
+				endType.upperBound.noFailPlusCanDestroy(one, false),
+				endType.upperInclusive),
 			tupleSizeRange)
 		return concatenatingAnd(
 			leftTupleType,

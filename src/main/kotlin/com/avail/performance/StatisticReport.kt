@@ -177,12 +177,12 @@ enum class StatisticReport constructor(
 				(_, aggregate) -> aggregate.count() == 0L
 			}
 			val collator = Collator.getInstance()
-			namedSnapshots.sortWith(
-				Comparator { (name1, aggregate1), (name2, aggregate2) ->
-					aggregate1.compareTo(aggregate2).ifZero {
-						collator.compare(name1, name2)
-					}
-				})
+			namedSnapshots.sortWith {
+				(name1, aggregate1), (name2, aggregate2) ->
+				aggregate1.compareTo(aggregate2).ifZero {
+					collator.compare(name1, name2)
+				}
+			}
 			return namedSnapshots
 		}
 

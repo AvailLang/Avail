@@ -121,8 +121,8 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt
 		) { formatString("Socket write, %s", handle.atomName()) }
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.

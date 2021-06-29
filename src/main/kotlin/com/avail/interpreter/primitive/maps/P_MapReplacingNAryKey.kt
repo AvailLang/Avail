@@ -92,7 +92,7 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		pathIndex: Int,
 		newValue: A_BasicObject): A_Tuple
 	{
-		val targetIndex = pathTuple.tupleAt(pathIndex).extractInt()
+		val targetIndex = pathTuple.tupleAt(pathIndex).extractInt
 		if (targetIndex > targetTuple.tupleSize())
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)

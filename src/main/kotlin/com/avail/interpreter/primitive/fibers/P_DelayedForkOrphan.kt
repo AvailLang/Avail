@@ -35,6 +35,10 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -96,7 +100,7 @@ object P_DelayedForkOrphan : Primitive(
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val tupleType = function.kind().argsTupleType()
+		val tupleType = function.kind().argsTupleType
 		val callArgs = (1 .. numArgs).map {
 			val anArg = argTuple.tupleAt(it)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
@@ -117,17 +121,17 @@ object P_DelayedForkOrphan : Primitive(
 		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
 		val orphan = newFiber(
-			function.kind().returnType(),
-			priority.extractInt())
+			function.kind().returnType,
+			priority.extractInt)
 		{
 			formatString(
 				"Delayed fork orphan, %s, %s:%d",
-				code.methodName(),
-				if (code.module().isNil)
+				code.methodName,
+				if (code.module.isNil)
 					emptyTuple
 				else
-					code.module().moduleName(),
-				code.startingLineNumber())
+					code.module.moduleName(),
+				code.codeStartingLineNumber)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -156,7 +160,7 @@ object P_DelayedForkOrphan : Primitive(
 							runtime, orphan, function, callArgs)
 					}
 				},
-				sleepMillis.extractLong())
+				sleepMillis.extractLong)
 		} // Otherwise, schedule the fiber to start later.
 		return interpreter.primitiveSuccess(nil)
 	}

@@ -68,7 +68,7 @@ object P_DoubleTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 		val b = interpreter.argument(2)
 
 		val scale = when {
-			b.isInt -> min(max(b.extractInt(), -10000), 10000)
+			b.isInt -> min(max(b.extractInt, -10000), 10000)
 			b.greaterOrEqual(zero) -> 10000
 			else -> -10000
 		}

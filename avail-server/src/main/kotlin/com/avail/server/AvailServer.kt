@@ -64,15 +64,15 @@ import com.avail.server.io.RunCompletionDisconnect
 import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
-import com.avail.server.io.WebSocketAdapter
 import com.avail.server.io.SocketAdapter
-import com.avail.server.messages.TextCommand
+import com.avail.server.io.WebSocketAdapter
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
 import com.avail.server.messages.LoadModuleCommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.RunEntryPointCommandMessage
 import com.avail.server.messages.SimpleCommandMessage
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
@@ -87,7 +87,6 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.util.Collections.sort
 import java.util.Collections.synchronizedMap
-import java.util.Locale
 import java.util.TimerTask
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
@@ -957,11 +956,7 @@ class AvailServer constructor(
 		 */
 		private fun writeCommandOn(command: TextCommand, writer: JSONWriter) =
 			writer.at("command") {
-				write(
-					command.name
-						.lowercase(Locale.getDefault())
-						.replace('_', ' ')
-				)
+				write(command.name.lowercase().replace('_', ' '))
 			}
 
 		/**

@@ -42,7 +42,6 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
-import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import java.util.IdentityHashMap
 
@@ -108,7 +107,7 @@ internal class ArgumentInModuleScope constructor(
 		// Check that it's any kind of expression with the right yield type,
 		// since it's going to be evaluated and wrapped in a literal phrase.
 		val expressionType = EXPRESSION_PHRASE.create(
-			phraseType.phraseTypeExpressionType())
+			phraseType.phraseTypeExpressionType)
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,

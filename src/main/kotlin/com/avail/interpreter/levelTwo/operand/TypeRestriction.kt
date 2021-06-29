@@ -545,7 +545,7 @@ class TypeRestriction private constructor(
 		return !(excludedValues.isNotEmpty()
 			&& intersectedType.isEnumeration
 			&& !intersectedType.isInstanceMeta
-			&& intersectedType.instances().isSubsetOf(
+			&& intersectedType.instances.isSubsetOf(
 				setFromCollection(excludedValues)))
 	}
 
@@ -688,7 +688,7 @@ class TypeRestriction private constructor(
 	 */
 	fun restrictingKindsTo(kinds: EnumSet<RegisterKind>): TypeRestriction
 	{
-		return restrictingKindsTo(kinds.sumBy { it.restrictionFlag.mask })
+		return restrictingKindsTo(kinds.sumOf { it.restrictionFlag.mask })
 	}
 
 	/**
@@ -708,8 +708,8 @@ class TypeRestriction private constructor(
 			maximumCount >= 0 && this === bottomRestriction -> emptySet
 			maximumCount >= 1 && constantOrNull !== null -> set(constantOrNull)
 			type.isEnumeration && !type.isInstanceMeta
-			   && type.instanceCount().lessOrEqual(fromInt(maximumCount)) ->
-					type.instances()
+			   && type.instanceCount.lessOrEqual(fromInt(maximumCount)) ->
+					type.instances
 			else -> null
 		}
 
@@ -1092,12 +1092,12 @@ class TypeRestriction private constructor(
 							anyRestriction
 						}
 					}
-					else if (type.instanceCount().equalsInt(1)
+					else if (type.instanceCount.equalsInt(1)
 						&& !type.isInstanceMeta)
 					{
 						// This is a non-meta instance type, which should be
 						// treated as a constant restriction.
-						val instance = type.instance()
+						val instance = type.instance
 						if (instance.isBottom)
 						{
 							// Special case: bottom's type has one instance,
@@ -1202,13 +1202,13 @@ class TypeRestriction private constructor(
 			flags: Int): TypeRestriction
 		{
 			if (constantOrNull === null && type.isEnumeration
-				&& (!type.isInstanceMeta || type.instance().isBottom))
+				&& (!type.isInstanceMeta || type.instance.isBottom))
 			{
 				// No constant was specified, but the type is a non-meta
 				// enumeration (or bottom's type, which has only one instance,
 				// bottom).  See if excluding disallowed types and values
 				// happens to leave exactly zero or one possibility.
-				val instances = type.instances().toMutableSet()
+				val instances = type.instances.toMutableSet()
 				instances.removeAll(givenExcludedValues)
 				instances.removeIf { instance ->
 					givenExcludedTypes.any { aType ->
@@ -1299,7 +1299,7 @@ class TypeRestriction private constructor(
 				{
 					// Convert an excluded enumeration into individual excluded
 					// values.
-					for (v in t.instances())
+					for (v in t.instances)
 					{
 						excludedValues.add(v)
 					}

@@ -235,15 +235,15 @@ abstract class PhraseDescriptor protected constructor(
 	) = when {
 		PARSE_PHRASE.mostGeneralType().isSubtypeOf(aType) -> true
 		!aType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()) -> false
-		!self.phraseKindIsUnder(aType.phraseKind()) -> false
+		!self.phraseKindIsUnder(aType.phraseKind) -> false
 		else -> self.phraseExpressionType().isSubtypeOf(
-			aType.phraseTypeExpressionType())
+			aType.phraseTypeExpressionType)
 	}
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean = false
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		self.phraseKind().create(self.phraseExpressionType())
+		self.phraseKind.create(self.phraseExpressionType())
 
 	/**
 	 * None of the subclasses define an immutable descriptor, so make the
@@ -263,7 +263,7 @@ abstract class PhraseDescriptor protected constructor(
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,
 		expectedPhraseKind: PhraseKind
-	): Boolean = self.phraseKind().isSubkindOf(expectedPhraseKind)
+	): Boolean = self.phraseKind.isSubkindOf(expectedPhraseKind)
 
 	abstract override fun o_SerializerOperation(
 		self: AvailObject

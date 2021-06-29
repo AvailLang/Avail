@@ -101,8 +101,8 @@ object P_IsSubtypeOf : Primitive(2, CannotFail, CanFold, CanInline)
 	{
 		val (xTypeReg, yTypeReg) = arguments
 
-		val xType = xTypeReg.type().instance()
-		val yType = yTypeReg.type().instance()
+		val xType = xTypeReg.type().instance
+		val yType = yTypeReg.type().instance
 
 		val constantYType = yTypeReg.constantOrNull()
 		if (constantYType !== null)

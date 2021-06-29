@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.methods
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -103,7 +105,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		{
 			val numArgs = prefixFunction.code().numArgs()
 			val kind = prefixFunction.kind()
-			val argsKind = kind.argsTupleType()
+			val argsKind = kind.argsTupleType
 			for (argIndex in 1 .. numArgs)
 			{
 				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
@@ -113,7 +115,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE)
 				}
 			}
-			if (!kind.returnType().isTop)
+			if (!kind.returnType.isTop)
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP)
@@ -136,7 +138,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 
 		val numArgs = function.code().numArgs()
 		val kind = function.kind()
-		val argsKind = kind.argsTupleType()
+		val argsKind = kind.argsTupleType
 		for (argIndex in 1 .. numArgs)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
@@ -146,7 +148,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE)
 			}
 		}
-		if (!kind.returnType().isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
+		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 		{
 			return interpreter.primitiveFailure(
 				E_MACRO_MUST_RETURN_A_PARSE_NODE)
@@ -163,12 +165,11 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 				var counter = 1
 				for (prefixFunction in prefixFunctions)
 				{
-					prefixFunction.code().setMethodName(
-						stringFrom("Macro prefix #$counter of $string"))
+					prefixFunction.code().methodName =
+						stringFrom("Macro prefix #$counter of $string")
 					counter++
 				}
-				function.code().setMethodName(
-					stringFrom("Macro body of $string"))
+				function.code().methodName = stringFrom("Macro body of $string")
 				succeed(nil)
 			}
 			catch (e: AvailException)

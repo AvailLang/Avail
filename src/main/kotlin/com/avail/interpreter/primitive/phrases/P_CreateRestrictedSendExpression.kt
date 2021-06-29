@@ -164,7 +164,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				|| module.hasAncestor(definitionModule))
 			{
 				intersection = intersection.typeIntersection(
-					definition.bodySignature().returnType())
+					definition.bodySignature().returnType)
 				anyDefinitionsApplicable = true
 			}
 		}
@@ -320,7 +320,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 //		val argsListNodeType: A_Type = argumentTypes[1]
 		val returnTypeType = argumentTypes[2]
 
-		val returnType = returnTypeType.instance()
+		val returnType = returnTypeType.instance
 		return tupleTypeForTypes(
 			zeroOrOneOf(SEND_PHRASE.create(returnType)),
 			stringType())

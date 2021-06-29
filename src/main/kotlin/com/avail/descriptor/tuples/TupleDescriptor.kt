@@ -399,12 +399,12 @@ abstract class TupleDescriptor protected constructor(
 		}
 		// See if it's an acceptable size...
 		val tupleSize = self.tupleSize()
-		if (!aType.sizeRange().rangeIncludesLong(tupleSize.toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(tupleSize.toLong()))
 		{
 			return false
 		}
 		// The tuple's size is in range.
-		val typeTuple = aType.typeTuple()
+		val typeTuple = aType.typeTuple
 		val breakIndex = tupleSize.coerceAtMost(typeTuple.tupleSize())
 		for (i in 1 .. breakIndex)
 		{
@@ -417,7 +417,7 @@ abstract class TupleDescriptor protected constructor(
 		{
 			return true
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.ANY)
 			|| self.tupleElementsInRangeAreInstancesOf(
 				breakIndex + 1, tupleSize, defaultTypeObject))
@@ -707,10 +707,10 @@ abstract class TupleDescriptor protected constructor(
 		self.tupleAt(index).codePoint()
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
-		self.tupleAt(index).extractInt()
+		self.tupleAt(index).extractInt
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
-		self.tupleAt(index).extractLong()
+		self.tupleAt(index).extractLong
 
 	override fun o_AsSet(self: AvailObject): A_Set =
 		generateSetFrom(self.tupleSize(), self.iterator())
@@ -771,7 +771,7 @@ abstract class TupleDescriptor protected constructor(
 		if (firstElement.isInt)
 		{
 			// See if we can use a numeric-tuple representation.
-			var maxInteger = firstElement.extractInt()
+			var maxInteger = firstElement.extractInt
 			if (maxInteger < 0)
 			{
 				return SerializerOperation.GENERAL_TUPLE
@@ -783,7 +783,7 @@ abstract class TupleDescriptor protected constructor(
 				{
 					return SerializerOperation.GENERAL_TUPLE
 				}
-				val intValue = element.extractInt()
+				val intValue = element.extractInt
 				if (intValue < 0)
 				{
 					return SerializerOperation.GENERAL_TUPLE

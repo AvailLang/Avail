@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.functions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
@@ -62,7 +64,7 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val rawFunction = interpreter.argument(0)
 		val outers = interpreter.argument(1)
-		val numOuters = rawFunction.numOuters()
+		val numOuters = rawFunction.numOuters
 		if (outers.tupleSize() != numOuters)
 		{
 			return interpreter.primitiveFailure(E_WRONG_OUTERS)

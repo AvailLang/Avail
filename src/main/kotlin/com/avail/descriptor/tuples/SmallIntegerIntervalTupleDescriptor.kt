@@ -164,7 +164,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		val deltaValue = self.slot(DELTA)
 		if (newElement.isInt)
 		{
-			val newElementValue = (newElement as A_Number).extractInt()
+			val newElementValue = (newElement as A_Number).extractInt
 			if (newElementValue.toLong() ==
 				endValue + deltaValue && originalSize < Int.MAX_VALUE)
 			{
@@ -431,7 +431,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		assert(index >= 1 && index <= self.tupleSize())
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
-				== (newValueObject as A_Number).extractInt())
+				== (newValueObject as A_Number).extractInt)
 		{
 			// The element is to be replaced with itself.
 			if (!canDestroy) self.makeImmutable()
@@ -451,7 +451,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 					if (it == index)
 					{
 						(newValueObject as A_Number)
-							.extractUnsignedByte().toInt()
+							.extractUnsignedByte.toInt()
 					}
 					else
 					{
@@ -596,8 +596,8 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				return false
 			}
 			val size =
-				((newEnd.extractLong() - newStart.extractLong())
-				 	/ delta.extractInt() + 1L)
+				((newEnd.extractLong - newStart.extractLong)
+				 	/ delta.extractInt + 1L)
 			// Watch out for the case that they're all ints, but the size is
 			// bigger than Integer.MAX_VALUE.  (e.g., -2 billion to +2 billion
 			// has a size of 4 billion, which is bigger than a signed int can

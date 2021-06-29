@@ -173,16 +173,16 @@ class MacroDescriptor private constructor(
 		// A macro definition's parsing signature is a list phrase type whose
 		// covariant subexpressions type is the body block's kind's arguments
 		// type.
-		val argsTupleType = self.slot(BODY_BLOCK).kind().argsTupleType()
-		val sizes = argsTupleType.sizeRange()
-		assert(sizes.lowerBound().extractInt()
-			== sizes.upperBound().extractInt())
-		assert(sizes.lowerBound().extractInt() == self.slot(BUNDLE).numArgs())
+		val argsTupleType = self.slot(BODY_BLOCK).kind().argsTupleType
+		val sizes = argsTupleType.sizeRange
+		assert(sizes.lowerBound.extractInt
+			== sizes.upperBound.extractInt)
+		assert(sizes.lowerBound.extractInt == self.slot(BUNDLE).numArgs())
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
 			mappingElementTypes(argsTupleType) {
-				it.phraseTypeExpressionType()
+				it.phraseTypeExpressionType
 			},
 			argsTupleType)
 	}

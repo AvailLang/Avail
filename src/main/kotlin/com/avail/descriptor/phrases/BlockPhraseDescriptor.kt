@@ -190,18 +190,19 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		// Optimize for one-liners...
 		val argumentsTuple = self.argumentsTuple()
 		val argCount = argumentsTuple.tupleSize()
 		val primitive = self.primitive()
 		val statementsTuple = self.statementsTuple()
 		val statementsSize = statementsTuple.tupleSize()
-		var explicitResultType: A_Type?  = self.resultType()
+		var explicitResultType: A_Type? = self.resultType()
 		if (statementsSize >= 1
 			&& statementsTuple.tupleAt(statementsSize).phraseExpressionType()
-				.equals(explicitResultType!!)) {
+				.equals(explicitResultType!!))
+		{
 			explicitResultType = null
 		}
 		val declaredExceptions: A_Set? = self.declaredExceptions().let {
@@ -214,18 +215,20 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			&& primitive === null
 			&& statementsSize == 1
 			&& explicitResultType === null
-			&& declaredExceptions === null
-		) {
+			&& declaredExceptions === null)
+		{
 			// See if the lone statement fits on a line.
 			val tempBuilder = StringBuilder()
 			statementsTuple.tupleAt(1).printOnAvoidingIndent(
 				tempBuilder,
 				recursionMap,
 				indent)
-			if (!tempBuilder.contains('\n') && tempBuilder.length < 100) {
+			if (!tempBuilder.contains('\n') && tempBuilder.length < 100)
+			{
 				builder.append('[')
 				builder.append(tempBuilder)
-				if (endsWithStatement) {
+				if (endsWithStatement)
+				{
 					builder.append(';')
 				}
 				builder.append(']')
@@ -236,10 +239,13 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		// Use multiple lines instead...
 		builder.append('[')
 		var wroteAnything = false
-		if (argCount > 0) {
+		if (argCount > 0)
+		{
 			wroteAnything = true
-			for (argIndex in 1..argCount) {
-				if (argIndex > 1) {
+			for (argIndex in 1 .. argCount)
+			{
+				if (argIndex > 1)
+				{
 					builder.append(',')
 				}
 				newlineTab(builder, indent)
@@ -250,12 +256,14 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			builder.append('|')
 		}
 		var skipFailureDeclaration = false
-		if (primitive !== null && !primitive.hasFlag(Flag.SpecialForm)) {
+		if (primitive !== null && !primitive.hasFlag(Flag.SpecialForm))
+		{
 			wroteAnything = true
 			newlineTab(builder, indent)
 			builder.append("Primitive ")
 			builder.append(primitive.name)
-			if (!primitive.hasFlag(Flag.CannotFail)) {
+			if (!primitive.hasFlag(Flag.CannotFail))
+			{
 				builder.append(" (")
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(
 					builder, recursionMap, indent)
@@ -264,31 +272,40 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			}
 			builder.append(';')
 		}
-		for (index in 1..statementsSize) {
+		for (index in 1 .. statementsSize)
+		{
 			val statement: A_Phrase = statementsTuple.tupleAt(index)
-			if (skipFailureDeclaration) {
-				assert(statement.isInstanceOf(
-					DECLARATION_PHRASE.mostGeneralType()))
+			if (skipFailureDeclaration)
+			{
+				assert(
+					statement.isInstanceOf(
+						DECLARATION_PHRASE.mostGeneralType()))
 				skipFailureDeclaration = false
-			} else {
+			}
+			else
+			{
 				wroteAnything = true
 				newlineTab(builder, indent)
 				statement.printOnAvoidingIndent(
 					builder, recursionMap, indent)
-				if (index < statementsSize || endsWithStatement) {
+				if (index < statementsSize || endsWithStatement)
+				{
 					builder.append(';')
 				}
 			}
 		}
-		if (wroteAnything) {
+		if (wroteAnything)
+		{
 			newlineTab(builder, indent - 1)
 		}
 		builder.append(']')
-		if (explicitResultType !== null) {
+		if (explicitResultType !== null)
+		{
 			builder.append(" : ")
 			builder.append(explicitResultType)
 		}
-		if (declaredExceptions !== null) {
+		if (declaredExceptions !== null)
+		{
 			builder.append(" ^ ")
 			builder.append(declaredExceptions)
 		}

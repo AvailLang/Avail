@@ -74,7 +74,6 @@ import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVa
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
-import java.util.Locale
 
 /**
  * Define the structure and behavior of phrase types.  The phrase types
@@ -685,9 +684,9 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun o_EqualsPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type): Boolean =
-			(kind === aPhraseType.phraseKind()
+			(kind === aPhraseType.phraseKind
 		        && self.slot(EXPRESSION_TYPE).equals(
-					aPhraseType.phraseTypeExpressionType()))
+					aPhraseType.phraseTypeExpressionType))
 
 	/**
 	 * Subclasses of `PhraseTypeDescriptor` must implement [phrases][A_Phrase]
@@ -712,17 +711,17 @@ open class PhraseTypeDescriptor protected constructor(
 		self: AvailObject,
 		aListNodeType: A_Type): Boolean =
 			(PhraseKind.LIST_PHRASE.isSubkindOf(kind)
-		        && aListNodeType.phraseTypeExpressionType().isSubtypeOf(
-					self.phraseTypeExpressionType()))
+		        && aListNodeType.phraseTypeExpressionType.isSubtypeOf(
+					self.phraseTypeExpressionType))
 
 	override fun o_IsSupertypeOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type): Boolean
 	{
-		val otherKind = aPhraseType.phraseKind()
+		val otherKind = aPhraseType.phraseKind
 		return (otherKind.isSubkindOf(kind)
-		        && aPhraseType.phraseTypeExpressionType().isSubtypeOf(
-			self.phraseTypeExpressionType()))
+		        && aPhraseType.phraseTypeExpressionType.isSubtypeOf(
+			self.phraseTypeExpressionType))
 	}
 
 	/**
@@ -760,14 +759,15 @@ open class PhraseTypeDescriptor protected constructor(
 	{
 		// Intersection of two list phrase types.
 		val intersectionKind = kind.commonDescendantWith(
-			aListNodeType.phraseKind())
+			aListNodeType.phraseKind)
 		                       ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListNodeType(
 			intersectionKind,
-			self.phraseTypeExpressionType().typeIntersection(
-				aListNodeType.phraseTypeExpressionType()),
-			aListNodeType.subexpressionsTupleType())
+			self.phraseTypeExpressionType.typeIntersection(
+				aListNodeType.phraseTypeExpressionType),
+			aListNodeType.subexpressionsTupleType
+		)
 	}
 
 	override fun o_TypeIntersectionOfPhraseType(
@@ -775,13 +775,13 @@ open class PhraseTypeDescriptor protected constructor(
 		aPhraseType: A_Type): A_Type
 	{
 		val intersectionKind =
-			kind.commonDescendantWith(aPhraseType.phraseKind()) ?: return bottom
+			kind.commonDescendantWith(aPhraseType.phraseKind) ?: return bottom
 		assert(!intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		// It should be safe to assume the mostGeneralType() of a subkind is
 		// always a subtype of the mostGeneralType() of a superkind.
 		return intersectionKind.createNoCheck(
 			self.slot(EXPRESSION_TYPE).typeIntersection(
-				aPhraseType.phraseTypeExpressionType()))
+				aPhraseType.phraseTypeExpressionType))
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -793,24 +793,23 @@ open class PhraseTypeDescriptor protected constructor(
 	{
 		// Union of a non-list phrase type and a list phrase type is a non-list
 		// phrase type.
-		val otherKind = aListNodeType.phraseKind()
+		val otherKind = aListNodeType.phraseKind
 		assert(otherKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		val unionKind = kind.commonAncestorWith(otherKind)
 		assert(!unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return unionKind.create(
-			self.phraseTypeExpressionType().typeUnion(
-				aListNodeType.phraseTypeExpressionType()))
+			self.phraseTypeExpressionType.typeUnion(
+				aListNodeType.phraseTypeExpressionType))
 	}
 
 	override fun o_TypeUnionOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type): A_Type
 	{
-		val unionKind = kind.commonAncestorWith(
-			aPhraseType.phraseKind())
+		val unionKind = kind.commonAncestorWith(aPhraseType.phraseKind)
 		return unionKind.createNoCheck(
 			self.slot(EXPRESSION_TYPE).typeUnion(
-				aPhraseType.phraseTypeExpressionType()))
+				aPhraseType.phraseTypeExpressionType))
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
@@ -835,13 +834,11 @@ open class PhraseTypeDescriptor protected constructor(
 		}
 		else
 		{
-			val name = kind.name
-				.lowercase(Locale.getDefault())
-				.replace('_', ' ')
+			val name = kind.name.lowercase().replace('_', ' ')
 			builder.append(name)
 		}
 		builder.append('⇒')
-		self.phraseTypeExpressionType().printOnAvoidingIndent(
+		self.phraseTypeExpressionType.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 	}
 

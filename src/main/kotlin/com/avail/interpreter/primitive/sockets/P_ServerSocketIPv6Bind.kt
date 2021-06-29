@@ -100,12 +100,12 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 		val addressBytes = ByteArray(16) {
 			addressTuple.tupleIntAt(it + 1).toByte()
 		}
-		val backlogInt = backlog.extractInt()
+		val backlogInt = backlog.extractInt
 		return try
 		{
 			val inetAddress: Inet6Address = getByAddress(addressBytes).cast()
 			val address =
-				InetSocketAddress(inetAddress, port.extractUnsignedShort())
+				InetSocketAddress(inetAddress, port.extractUnsignedShort)
 			socket.bind(address, backlogInt)
 			interpreter.primitiveSuccess(nil)
 		}

@@ -232,12 +232,12 @@ object PrimitiveHelper
 		vararg outerTypes: A_Type
 	): A_RawFunction
 	{
-		val argTypes = functionType.argsTupleType()
-		val numArgs = argTypes.sizeRange().lowerBound().extractInt()
+		val argTypes = functionType.argsTupleType
+		val numArgs = argTypes.sizeRange.lowerBound.extractInt
 		val argTypesArray = Array(numArgs) {
 			argTypes.typeAtIndex(it + 1)
 		}
-		val returnType = functionType.returnType()
+		val returnType = functionType.returnType
 		val writer = L1InstructionWriter(nil, 0, nil)
 		writer.primitive = primitive
 		writer.argumentTypes(*argTypesArray)

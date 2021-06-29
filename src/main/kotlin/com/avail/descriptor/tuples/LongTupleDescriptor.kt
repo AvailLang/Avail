@@ -145,7 +145,7 @@ class LongTupleDescriptor private constructor(
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val longValue = (newElement as AvailObject).extractLong()
+		val longValue = (newElement as AvailObject).extractLong
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -449,12 +449,12 @@ class LongTupleDescriptor private constructor(
 			return false
 		}
 		//  See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(self.tupleSize().toLong()))
 		{
 			return false
 		}
 		//  tuple's size is in range.
-		val typeTuple = aType.typeTuple()
+		val typeTuple = aType.typeTuple
 		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
 		for (i in 1 .. breakIndex)
 		{
@@ -467,7 +467,7 @@ class LongTupleDescriptor private constructor(
 		{
 			return false
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		if (int64.isSubtypeOf(defaultTypeObject))
 		{
 			return true
@@ -540,7 +540,8 @@ class LongTupleDescriptor private constructor(
 		result.setSlot(
 			LONG_AT_,
 			index,
-			(newValueObject as A_Number).extractLong())
+			(newValueObject as A_Number).extractLong
+		)
 		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}
@@ -561,17 +562,17 @@ class LongTupleDescriptor private constructor(
 			// It must be an integer range kind.  Find the bounds.
 			else ->
 			{
-				val lowerObject = type.lowerBound()
+				val lowerObject = type.lowerBound
 				val lower = when
 				{
-					lowerObject.isLong -> lowerObject.extractLong()
+					lowerObject.isLong -> lowerObject.extractLong
 					lowerObject.lessThan(zero) -> Long.MIN_VALUE
 					else -> return false
 				}
-				val upperObject = type.upperBound()
+				val upperObject = type.upperBound
 				val upper = when
 				{
-					upperObject.isLong -> upperObject.extractLong()
+					upperObject.isLong -> upperObject.extractLong
 					upperObject.greaterThan(zero) -> Long.MAX_VALUE
 					else -> return false
 				}

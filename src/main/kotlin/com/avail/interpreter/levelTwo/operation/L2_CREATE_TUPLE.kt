@@ -140,7 +140,7 @@ object L2_CREATE_TUPLE : L2Operation(
 				if (elements.any { read ->
 						read.type().run {
 							isEnumeration &&
-								instances().any { c -> c.codePoint() > 255 }
+								instances.any { c -> c.codePoint() > 255 }
 						}
 					})
 				{

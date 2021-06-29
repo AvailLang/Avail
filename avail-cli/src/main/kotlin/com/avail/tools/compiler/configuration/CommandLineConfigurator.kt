@@ -56,7 +56,6 @@ import com.avail.utility.configuration.Configurator
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.InvalidPathException
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.EnumSet
 

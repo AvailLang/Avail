@@ -33,6 +33,7 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.MODULE
@@ -144,7 +145,7 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -156,7 +157,7 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)

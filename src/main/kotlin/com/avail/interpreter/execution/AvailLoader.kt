@@ -66,6 +66,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -833,24 +834,24 @@ class AvailLoader(
 		val bundle: A_Bundle = methodName.bundleOrCreate()
 		val splitter: MessageSplitter = bundle.messageSplitter()
 		splitter.checkImplementationSignature(bodySignature)
-		val bodyArgsTupleType = bodySignature.argsTupleType()
+		val bodyArgsTupleType = bodySignature.argsTupleType
 		// Add the stubbed method definition.
 		val method: A_Method = bundle.bundleMethod()
 		method.definitionsTuple().forEach { definition ->
 			val existingType = definition.bodySignature()
-			if (existingType.argsTupleType().equals(bodyArgsTupleType)) {
+			if (existingType.argsTupleType.equals(bodyArgsTupleType)) {
 				throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 			}
 			if (existingType.acceptsArgTypesFromFunctionType(bodySignature)) {
-				if (!bodySignature.returnType().isSubtypeOf(
-						existingType.returnType())) {
+				if (!bodySignature.returnType.isSubtypeOf(
+						existingType.returnType)) {
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
 			}
 			if (bodySignature.acceptsArgTypesFromFunctionType(existingType)) {
-				if (!existingType.returnType().isSubtypeOf(
-						bodySignature.returnType())) {
+				if (!existingType.returnType.isSubtypeOf(
+						bodySignature.returnType)) {
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
@@ -933,13 +934,13 @@ class AvailLoader(
 		val bundle: A_Bundle = methodName.bundleOrCreate()
 		val splitter: MessageSplitter = bundle.messageSplitter()
 		val numArgs = splitter.numberOfArguments
-		val bodyArgsSizes = bodySignature.argsTupleType().sizeRange()
-		if (!bodyArgsSizes.lowerBound().equalsInt(numArgs)
-			|| !bodyArgsSizes.upperBound().equalsInt(numArgs))
+		val bodyArgsSizes = bodySignature.argsTupleType.sizeRange
+		if (!bodyArgsSizes.lowerBound.equalsInt(numArgs)
+			|| !bodyArgsSizes.upperBound.equalsInt(numArgs))
 		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		assert(bodyArgsSizes.upperBound().equalsInt(numArgs)) {
+		assert(bodyArgsSizes.upperBound.equalsInt(numArgs)) {
 			"Wrong number of arguments in abstract method signature"
 		}
 		//  Make it so we can safely hold onto these things in the VM.
@@ -972,31 +973,31 @@ class AvailLoader(
 		var forward: A_Definition? = null
 		method.definitionsTuple().forEach { existingDefinition ->
 			val existingType = existingDefinition.bodySignature()
-			val same = existingType.argsTupleType().equals(
-				bodySignature.argsTupleType())
+			val same = existingType.argsTupleType.equals(
+				bodySignature.argsTupleType)
 			if (same) {
 				when {
 					!existingDefinition.isForwardDefinition() -> {
 						throw SignatureException(
 							E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 					}
-					!existingType.returnType().equals(
-							bodySignature.returnType()) ->
+					!existingType.returnType.equals(
+							bodySignature.returnType) ->
 						throw SignatureException(
 							E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED)
 				}
 				forward = existingDefinition
 			}
 			if (existingType.acceptsArgTypesFromFunctionType(bodySignature)) {
-				if (!bodySignature.returnType().isSubtypeOf(
-						existingType.returnType())) {
+				if (!bodySignature.returnType.isSubtypeOf(
+						existingType.returnType)) {
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
 			}
 			if (bodySignature.acceptsArgTypesFromFunctionType(existingType)) {
-				if (!existingType.returnType().isSubtypeOf(
-						bodySignature.returnType())) {
+				if (!existingType.returnType.isSubtypeOf(
+						bodySignature.returnType)) {
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
@@ -1082,10 +1083,11 @@ class AvailLoader(
 		val bundle = methodName.bundleOrCreate()
 		val splitter = bundle.messageSplitter()
 		val numArgs = splitter.numberOfArguments
+		val macroCode = macroBody.code()
 		when {
-			macroBody.code().numArgs() != numArgs ->
+			macroCode.numArgs() != numArgs ->
 				throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
-			!macroBody.code().functionType().returnType().isSubtypeOf(
+			!macroCode.functionType().returnType.isSubtypeOf(
 					PARSE_PHRASE.mostGeneralType()) ->
 				throw SignatureException(E_MACRO_MUST_RETURN_A_PARSE_NODE)
 		}
@@ -1096,11 +1098,11 @@ class AvailLoader(
 		val macroDefinition = newMacroDefinition(
 			bundle, module, macroBody, prefixFunctions)
 		val macroBodyType = macroBody.kind()
-		val argsType = macroBodyType.argsTupleType()
+		val argsType = macroBodyType.argsTupleType
 		// Note: Macro definitions don't have to satisfy a covariance
 		// relationship with their result types, since they're static.
 		if (bundle.macrosTuple().any { existingDef ->
-			argsType.equals(existingDef.bodySignature().argsTupleType())
+			argsType.equals(existingDef.bodySignature().argsTupleType)
 		}) {
 			throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 		}

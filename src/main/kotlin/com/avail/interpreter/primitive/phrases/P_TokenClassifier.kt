@@ -79,9 +79,9 @@ object P_TokenClassifier : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val tokenType = argumentTypes[0]
-		if (tokenType.instanceCount().equalsInt(1))
+		if (tokenType.instanceCount.equalsInt(1))
 		{
-			return instanceType(tokenType.tokenType().atom)
+			return instanceType(tokenType.tokenType.atom)
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}

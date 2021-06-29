@@ -33,6 +33,7 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
@@ -115,7 +116,7 @@ class MethodDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("method definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -127,7 +128,7 @@ class MethodDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("method definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)

@@ -73,6 +73,6 @@ object P_PhraseExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val phraseType = argumentTypes[0]
-		return instanceMeta(phraseType.phraseTypeExpressionType())
+		return instanceMeta(phraseType.phraseTypeExpressionType)
 	}
 }

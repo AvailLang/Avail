@@ -1541,12 +1541,11 @@ class MessageSplitterTest private constructor ()
 				"Split was not as expected"
 			)
 		}
-		val tupleType = splitCase.listPhraseType.phraseTypeExpressionType()
-		val sizeRange = tupleType.sizeRange()
-		assert(sizeRange.lowerBound().equals(sizeRange.upperBound()))
+		val tupleType = splitCase.listPhraseType.phraseTypeExpressionType
+		val sizeRange = tupleType.sizeRange
+		assert(sizeRange.lowerBound.equals(sizeRange.upperBound))
 		val typeTuple = tupleType.tupleOfTypesFromTo(
-			1, sizeRange.lowerBound().extractInt()
-		)
+			1, sizeRange.lowerBound.extractInt)
 		splitter.checkImplementationSignature(
 			functionType(
 				typeTuple,
@@ -1558,7 +1557,7 @@ class MessageSplitterTest private constructor ()
 		val instructionsList = mutableListOf<Int>()
 		for (instruction in instructionsTuple)
 		{
-			instructionsList.add(instruction.extractInt())
+			instructionsList.add(instruction.extractInt)
 		}
 		if (splitCase.instructions.toString() != instructionsList.toString())
 		{

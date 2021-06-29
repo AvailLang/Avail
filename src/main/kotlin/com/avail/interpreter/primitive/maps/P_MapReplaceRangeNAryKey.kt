@@ -88,8 +88,8 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val startInt = sliceStartIndex.extractInt()
-		val endInt = sliceEndIndex.extractInt()
+		val startInt = sliceStartIndex.extractInt
+		val endInt = sliceEndIndex.extractInt
 
 		if (startInt < 1 || endInt < 0 || startInt > endInt + 1)
 		{
@@ -162,7 +162,7 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 			// Index is non-integral or bigger than an int.
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val targetIndex = targetIndexNumber.extractInt()
+		val targetIndex = targetIndexNumber.extractInt
 		if (targetIndex > targetTuple.tupleSize())
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)

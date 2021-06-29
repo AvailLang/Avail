@@ -108,7 +108,7 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
 	): A_Type =
-		argumentTypes[0].readType()
+		argumentTypes[0].readType
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -41,7 +41,6 @@ import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.EDGE
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.GRAPH
 import com.avail.utility.dot.DotWriter.DefaultAttributeBlockType.NODE
 import java.io.IOException
-import java.util.Locale
 import java.util.regex.Matcher
 import java.util.regex.Pattern
 import java.util.stream.Collectors
@@ -612,7 +611,7 @@ class DotWriter constructor(
 			block: (AttributeWriter) -> Unit)
 		{
 			indent()
-			emit(type.name.lowercase(Locale.getDefault()))
+			emit(type.name.lowercase())
 			linefeed()
 			attributeBlock(block)
 		}
@@ -735,7 +734,7 @@ class DotWriter constructor(
 			if (node.compassPoint !== null)
 			{
 				emit(":")
-				emit(node.compassPoint.name.lowercase(Locale.getDefault()))
+				emit(node.compassPoint.name.lowercase())
 			}
 		}
 
@@ -949,7 +948,7 @@ class DotWriter constructor(
 						if (o.compassPoint !== null)
 						{
 							emit(":")
-							identifier(o.compassPoint.name.lowercase(Locale.getDefault()))
+							identifier(o.compassPoint.name.lowercase())
 						}
 					}
 					else if (o is Function1<*, *>)

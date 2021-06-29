@@ -226,7 +226,7 @@ class ListPhraseDescriptor private constructor(
 		!super.o_IsInstanceOfKind(self, aType) -> false
 		!aType.isSubtypeOf(PhraseKind.LIST_PHRASE.mostGeneralType()) -> true
 		else -> self.slot(EXPRESSIONS_TUPLE).isInstanceOf(
-			aType.subexpressionsTupleType())
+			aType.subexpressionsTupleType)
 	}
 
 	override fun o_LastExpression(self: AvailObject): A_Phrase

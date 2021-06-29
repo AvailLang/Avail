@@ -105,10 +105,10 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		val restriction1 = int1Reg.restriction()
 		val restriction2 = int2Reg.restriction()
 
-		val low1 = restriction1.type.lowerBound().extractLong()
-		val high1 = restriction1.type.upperBound().extractLong()
-		val low2 = restriction2.type.lowerBound().extractLong()
-		val high2 = restriction2.type.upperBound().extractLong()
+		val low1 = restriction1.type.lowerBound.extractLong
+		val high1 = restriction1.type.upperBound.extractLong
+		val low2 = restriction2.type.lowerBound.extractLong
+		val high2 = restriction2.type.upperBound.extractLong
 
 		// Restrict both values along both branches.
 		val (type1, type2, type3, type4) =
@@ -174,7 +174,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 	{
 		private fun A_Type.narrow(): A_Type = when
 		{
-			lowerBound().equals(upperBound()) -> instanceType(lowerBound())
+			lowerBound.equals(upperBound) -> instanceType(lowerBound)
 			else -> this
 		}
 

@@ -150,7 +150,6 @@ import java.util.Arrays.sort
 import java.util.Collections
 import java.util.Collections.synchronizedMap
 import java.util.Enumeration
-import java.util.Locale
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -1994,10 +1993,8 @@ class AvailWorkbench internal constructor (
 		val runningOnMac =
 			System
 				.getProperty("os.name")
-				.lowercase(Locale.getDefault())
-				.matches(
-					"mac os x.*".toRegex()
-				)
+				.lowercase()
+				.matches("mac os x.*".toRegex())
 
 		/** Determine at startup whether we should show developer commands.  */
 		val showDeveloperTools =

@@ -83,10 +83,10 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(
 			newToken(
 				lexeme,
-				start.extractInt(),
-				line.extractInt(),
+				start.extractInt,
+				line.extractInt,
 				TokenType.lookupTokenType(
-					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())))
+					type.getAtomProperty(tokenTypeOrdinalKey).extractInt)))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -98,12 +98,12 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 		// final A_Type startType = argumentTypes.get(2);
 		// final A_Type lineType = argumentTypes.get(3);
 
-		if (atomType.instanceCount().equalsInt(1))
+		if (atomType.instanceCount.equalsInt(1))
 		{
-			val atom = atomType.instance()
+			val atom = atomType.instance
 			return tokenType(
 				TokenType.lookupTokenType(
-					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()))
+					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt))
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}

@@ -214,8 +214,8 @@ class DeclarationPhraseDescriptor(
 				} else {
 					// Output the continuation type's return type, since that's
 					// what get specified syntactically.
-					val functionType = self.declaredType().functionType()
-					functionType.returnType().printOnAvoidingIndent(
+					val functionType = self.declaredType().functionType
+					functionType.returnType.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				}
 			}
@@ -911,7 +911,7 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase = newDeclaration(
 			DeclarationKind.MODULE_VARIABLE,
 			token,
-			literalVariable.kind().readType(),
+			literalVariable.kind().readType,
 			typeExpression,
 			initializationExpression,
 			literalVariable)
@@ -937,7 +937,7 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase = newDeclaration(
 			DeclarationKind.MODULE_CONSTANT,
 			token,
-			literalVariable.kind().readType(),
+			literalVariable.kind().readType,
 			nil,
 			initializationExpression,
 			literalVariable)

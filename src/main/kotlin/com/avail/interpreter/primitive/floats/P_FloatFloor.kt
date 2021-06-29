@@ -57,7 +57,7 @@ object P_FloatFloor : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
-		val f = a.extractFloat()
+		val f = a.extractFloat
 		val floor = floor(f.toDouble()).toFloat()
 		return interpreter.primitiveSuccess(fromFloatRecycling(floor, a, true))
 	}

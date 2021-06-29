@@ -133,11 +133,11 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		if (functionType.isEnumeration)
 		{
 			val numArgs = arguments.size
-			val functions: Set<A_Function> = toSet(functionType.instances())
+			val functions: Set<A_Function> = toSet(functionType.instances)
 			val argumentTupleUnionType =
 				functions.fold(bottom) { union, function ->
 					union.typeUnion(
-						function.code().functionType().argsTupleType())
+						function.code().functionType().argsTupleType)
 				}
 			for (i in 1 .. numArgs)
 			{

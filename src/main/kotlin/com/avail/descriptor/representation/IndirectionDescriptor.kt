@@ -87,7 +87,39 @@ import com.avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
+import com.avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import com.avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.decreaseCountdownToReoptimizeFromPoll
+import com.avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.maxStackDepth
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numConstants
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLiterals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numNybbles
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.nybbles
+import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
+import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseOrIndex
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.packedDeclarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
+import com.avail.descriptor.functions.A_RawFunction.Companion.returneeCheckStat
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnerCheckStat
+import com.avail.descriptor.functions.A_RawFunction.Companion.setOriginatingPhraseOrIndex
+import com.avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
+import com.avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
+import com.avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.forEach
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
@@ -1857,7 +1889,7 @@ class IndirectionDescriptor private constructor(
 		self .. { constantBindings() }
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		self .. { contentType() }
+		self .. { contentType }
 
 	override fun o_Continuation(self: AvailObject): A_Continuation =
 		self .. { continuation() }
@@ -1872,7 +1904,7 @@ class IndirectionDescriptor private constructor(
 		self .. { copyAsMutableObjectTuple() }
 
 	override fun o_DefaultType(self: AvailObject): A_Type =
-		self .. { defaultType() }
+		self .. { defaultType }
 
 	override fun o_EnsureMutable(self: AvailObject): A_Continuation =
 		self .. { ensureMutable() }
@@ -1887,28 +1919,28 @@ class IndirectionDescriptor private constructor(
 		self .. { extractBoolean() }
 
 	override fun o_ExtractUnsignedByte(self: AvailObject): Short =
-		self .. { extractUnsignedByte() }
+		self .. { extractUnsignedByte }
 
 	override fun o_ExtractDouble(self: AvailObject): Double =
 		self .. { extractDouble() }
 
 	override fun o_ExtractFloat(self: AvailObject): Float =
-		self .. { extractFloat() }
+		self .. { extractFloat }
 
 	override fun o_ExtractInt(self: AvailObject): Int =
-		self .. { extractInt() }
+		self .. { extractInt }
 
 	override fun o_ExtractLong(self: AvailObject): Long =
-		self .. { extractLong() }
+		self .. { extractLong }
 
 	override fun o_ExtractNybble(self: AvailObject): Byte =
-		self .. { extractNybble() }
+		self .. { extractNybble }
 
 	override fun o_FieldMap(self: AvailObject): A_Map =
 		self .. { fieldMap() }
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map =
-		self .. { fieldTypeMap() }
+		self .. { fieldTypeMap }
 
 	@Throws(VariableGetException::class)
 	override fun o_GetValue(self: AvailObject): AvailObject =
@@ -1994,7 +2026,7 @@ class IndirectionDescriptor private constructor(
 		self .. { isNybble }
 
 	override fun o_IsPositive(self: AvailObject): Boolean =
-		self .. { isPositive() }
+		self .. { isPositive }
 
 	override fun o_IsSet(self: AvailObject): Boolean =
 		self .. { isSet }
@@ -2018,7 +2050,7 @@ class IndirectionDescriptor private constructor(
 		self .. { keysAsSet() }
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		self .. { keyType() }
+		self .. { keyType }
 
 	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk =
 		self .. { levelTwoChunk() }
@@ -2030,10 +2062,10 @@ class IndirectionDescriptor private constructor(
 		self .. { literal() }
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
-		self .. { lowerBound() }
+		self .. { lowerBound }
 
 	override fun o_LowerInclusive(self: AvailObject): Boolean =
-		self .. { lowerInclusive() }
+		self .. { lowerInclusive }
 
 	override fun o_MakeSubobjectsImmutable(self: AvailObject): AvailObject =
 		self .. { makeSubobjectsImmutable() }
@@ -2045,7 +2077,7 @@ class IndirectionDescriptor private constructor(
 		self .. { mapSize() }
 
 	override fun o_MaxStackDepth(self: AvailObject): Int =
-		self .. { maxStackDepth() }
+		self .. { maxStackDepth }
 
 	override fun o_Message(self: AvailObject): A_Atom =
 		self .. { message() }
@@ -2072,22 +2104,22 @@ class IndirectionDescriptor private constructor(
 		self .. { numSlots() }
 
 	override fun o_NumLiterals(self: AvailObject): Int =
-		self .. { numLiterals() }
+		self .. { numLiterals }
 
 	override fun o_NumLocals(self: AvailObject): Int =
-		self .. { numLocals() }
+		self .. { numLocals }
 
 	override fun o_NumOuters(self: AvailObject): Int =
-		self .. { numOuters() }
+		self .. { numOuters }
 
 	override fun o_NumOuterVars(self: AvailObject): Int =
-		self .. { numOuterVars() }
+		self .. { numOuterVars }
 
 	override fun o_Nybbles(self: AvailObject): A_Tuple =
-		self .. { nybbles() }
+		self .. { nybbles }
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
-		self .. { parent() }
+		self .. { parent }
 
 	override fun o_Pc(self: AvailObject): Int =
 		self .. { pc() }
@@ -2105,7 +2137,7 @@ class IndirectionDescriptor private constructor(
 		self .. { grammaticalRestrictions() }
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
-		self .. { returnType() }
+		self .. { returnType }
 
 	override fun o_SetBinHash(self: AvailObject): Int =
 		self .. { setBinHash() }
@@ -2117,7 +2149,7 @@ class IndirectionDescriptor private constructor(
 		self .. { setSize() }
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		self .. { sizeRange() }
+		self .. { sizeRange }
 
 	override fun o_LazyActions(self: AvailObject): A_Map =
 		self .. { lazyActions() }
@@ -2129,7 +2161,7 @@ class IndirectionDescriptor private constructor(
 		self .. { start() }
 
 	override fun o_StartingChunk(self: AvailObject): L2Chunk =
-		self .. { startingChunk() }
+		self .. { startingChunk }
 
 	override fun o_String(self: AvailObject): A_String =
 		self .. { string() }
@@ -2150,13 +2182,13 @@ class IndirectionDescriptor private constructor(
 		self .. { kind() }
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple =
-		self .. { typeTuple() }
+		self .. { typeTuple }
 
 	override fun o_UpperBound(self: AvailObject): A_Number =
-		self .. { upperBound() }
+		self .. { upperBound }
 
 	override fun o_UpperInclusive(self: AvailObject): Boolean =
-		self .. { upperInclusive() }
+		self .. { upperInclusive }
 
 	override fun o_Value(self: AvailObject): AvailObject =
 		self .. { value() }
@@ -2165,7 +2197,7 @@ class IndirectionDescriptor private constructor(
 		self .. { valuesAsTuple() }
 
 	override fun o_ValueType(self: AvailObject): A_Type =
-		self .. { valueType() }
+		self .. { valueType }
 
 	override fun o_VariableBindings(self: AvailObject): A_Map =
 		self .. { variableBindings() }
@@ -2200,7 +2232,7 @@ class IndirectionDescriptor private constructor(
 		self .. { neededVariables() }
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
-		self .. { primitive() }
+		self .. { codePrimitive() }
 
 	override fun o_DeclaredType(self: AvailObject): A_Type =
 		self .. { declaredType() }
@@ -2239,7 +2271,7 @@ class IndirectionDescriptor private constructor(
 		self .. { phraseExpressionType() }
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
-		self .. { phraseTypeExpressionType() }
+		self .. { phraseTypeExpressionType }
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -2331,7 +2363,7 @@ class IndirectionDescriptor private constructor(
 		self .. { isLong }
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		self .. { argsTupleType() }
+		self .. { argsTupleType }
 
 	override fun o_EqualsInstanceTypeFor(
 		self: AvailObject,
@@ -2339,7 +2371,7 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self .. { equalsInstanceTypeFor(anObject) }
 
 	override fun o_Instances(self: AvailObject): A_Set =
-		self .. { instances() }
+		self .. { instances }
 
 	override fun o_EqualsEnumerationWithSet(
 		self: AvailObject,
@@ -2380,10 +2412,10 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self .. { equalsEnumerationType(another) }
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		self .. { readType() }
+		self .. { readType }
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		self .. { writeType() }
+		self .. { writeType }
 
 	override fun o_Versions(self: AvailObject): A_Set =
 		self .. { versions() }
@@ -2394,7 +2426,7 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self .. { equalsPhraseType(aPhraseType) }
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
-		self .. { phraseKind() }
+		self .. { phraseKind }
 
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,
@@ -2466,7 +2498,7 @@ class IndirectionDescriptor private constructor(
 		self .. { isUnsignedShort }
 
 	override fun o_ExtractUnsignedShort(self: AvailObject): Int =
-		self .. { extractUnsignedShort() }
+		self .. { extractUnsignedShort }
 
 	override fun o_IsFloat(self: AvailObject): Boolean =
 		self .. { isFloat }
@@ -2660,7 +2692,7 @@ class IndirectionDescriptor private constructor(
 	): Any? = self .. { marshalToJava(classHint) }
 
 	override fun o_TypeVariables(self: AvailObject): A_Map =
-		self .. { typeVariables() }
+		self .. { typeVariables }
 
 	override fun o_EqualsPojoField(
 		self: AvailObject,
@@ -2675,10 +2707,10 @@ class IndirectionDescriptor private constructor(
 		self .. { isSignedShort }
 
 	override fun o_ExtractSignedByte(self: AvailObject): Byte =
-		self .. { extractSignedByte() }
+		self .. { extractSignedByte }
 
 	override fun o_ExtractSignedShort(self: AvailObject): Short =
-		self .. { extractSignedShort() }
+		self .. { extractSignedShort }
 
 	override fun o_EqualsEqualityRawPojo(
 		self: AvailObject,
@@ -2707,7 +2739,7 @@ class IndirectionDescriptor private constructor(
 		self .. { lowerCaseString() }
 
 	override fun o_InstanceCount(self: AvailObject): A_Number =
-		self .. { instanceCount() }
+		self .. { instanceCount }
 
 	override fun o_TotalInvocations(self: AvailObject): Long =
 		self .. { totalInvocations() }
@@ -2716,13 +2748,13 @@ class IndirectionDescriptor private constructor(
 		self .. { tallyInvocation() }
 
 	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
-		self .. { fieldTypeTuple() }
+		self .. { fieldTypeTuple }
 
 	override fun o_FieldTuple(self: AvailObject): A_Tuple =
 		self .. { fieldTuple() }
 
 	override fun o_LiteralType(self: AvailObject): A_Type =
-		self .. { literalType() }
+		self .. { literalType }
 
 	override fun o_TypeIntersectionOfTokenType(
 		self: AvailObject,
@@ -2811,22 +2843,22 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_Instance(
 		self: AvailObject
-	): AvailObject = self .. { instance() }
+	): AvailObject = self .. { instance }
 
 	override fun o_SetMethodName(
 		self: AvailObject,
 		methodName: A_String
-	) = self .. { setMethodName(methodName) }
+	) = self .. { this.methodName = methodName }
 
 	override fun o_StartingLineNumber(
 		self: AvailObject
-	): Int = self .. { startingLineNumber() }
+	): Int = self .. { codeStartingLineNumber }
 
 	override fun o_Module(self: AvailObject): A_Module =
-		self .. { module() }
+		self .. { module }
 
 	override fun o_MethodName(self: AvailObject): A_String =
-		self .. { methodName() }
+		self .. { methodName }
 
 	override fun o_NameForDebugger(self: AvailObject): String =
 		"IND→" + (self .. { nameForDebugger() })
@@ -3220,7 +3252,7 @@ class IndirectionDescriptor private constructor(
 	}
 
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean =
-		self .. { isNumericallyIntegral() }
+		self .. { isNumericallyIntegral }
 
 	override fun o_TextInterface(self: AvailObject): TextInterface =
 		self .. { textInterface() }
@@ -3351,7 +3383,7 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self .. { equalsListNodeType(aListNodeType) }
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
-		self .. { subexpressionsTupleType() }
+		self .. { subexpressionsTupleType }
 
 	override fun o_TypeUnionOfListNodeType(
 		self: AvailObject,
@@ -3474,7 +3506,7 @@ class IndirectionDescriptor private constructor(
 		self .. { tupleCodePointAt(index) }
 
 	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase =
-		self .. { originatingPhrase() }
+		self .. { originatingPhrase }
 
 	override fun o_IsGlobal(self: AvailObject): Boolean =
 		self .. { isGlobal() }
@@ -3521,22 +3553,22 @@ class IndirectionDescriptor private constructor(
 		self .. { debugLog() }
 
 	override fun o_NumConstants(self: AvailObject): Int =
-		self .. { numConstants() }
+		self .. { numConstants }
 
 	override fun o_ConstantTypeAt(self: AvailObject, index: Int): A_Type =
 		self .. { constantTypeAt(index) }
 
 	override fun o_ReturnerCheckStat(self: AvailObject): Statistic =
-		self .. { returnerCheckStat() }
+		self .. { returnerCheckStat }
 
 	override fun o_ReturneeCheckStat(self: AvailObject): Statistic =
-		self .. { returneeCheckStat() }
+		self .. { returneeCheckStat }
 
 	override fun o_NumNybbles(self: AvailObject): Int =
-		self .. { numNybbles() }
+		self .. { numNybbles }
 
 	override fun o_LineNumberEncodedDeltas(self: AvailObject): A_Tuple =
-		self .. { lineNumberEncodedDeltas() }
+		self .. { lineNumberEncodedDeltas }
 
 	override fun o_CurrentLineNumber(self: AvailObject): Int =
 		self .. { currentLineNumber() }
@@ -3595,7 +3627,7 @@ class IndirectionDescriptor private constructor(
 		self .. { addBundle(bundle) }
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =
-		self .. { returnTypeIfPrimitiveFails() }
+		self .. { returnTypeIfPrimitiveFails }
 
 	override fun o_ExtractDumpedObjectAt(
 		self: AvailObject,
@@ -3632,13 +3664,13 @@ class IndirectionDescriptor private constructor(
 	): AvailObject = self .. { getAndSetTupleOfBlockPhrases(newValue) }
 
 	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
-		self .. { originatingPhraseOrIndex() }
+		self .. { originatingPhraseOrIndex }
 
 	override fun o_DeclarationNames(self: AvailObject): A_Tuple =
-		self .. { declarationNames() }
+		self .. { declarationNames }
 
 	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
-		self .. { packedDeclarationNames() }
+		self .. { packedDeclarationNames }
 
 	override fun o_SetOriginatingPhraseOrIndex(
 		self: AvailObject,

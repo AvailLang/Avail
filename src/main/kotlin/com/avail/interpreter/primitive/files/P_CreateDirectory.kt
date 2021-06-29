@@ -105,11 +105,11 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{ formatString("Asynchronous create directory, %s", path) }
 		newFiber.setAvailLoader(current.availLoader())
@@ -220,7 +220,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val permissions = EnumSet.noneOf(PosixFilePermission::class.java)
 		for (ordinal in ordinals)
 		{
-			permissions.add(allPermissions[ordinal.extractInt() - 1])
+			permissions.add(allPermissions[ordinal.extractInt - 1])
 		}
 		return permissions
 	}

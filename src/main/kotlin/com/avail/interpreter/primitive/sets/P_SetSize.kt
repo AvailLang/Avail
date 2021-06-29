@@ -73,5 +73,5 @@ object P_SetSize : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
 	): A_Type =
-		argumentTypes[0].sizeRange().typeIntersection(int32)
+		argumentTypes[0].sizeRange.typeIntersection(int32)
 }

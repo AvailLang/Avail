@@ -75,7 +75,7 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 			try { exception.fieldAt(stackDumpAtom) }
 			catch (e: MapException)
 			{
-				assert(e.numericCode.extractInt()
+				assert(e.numericCode.extractInt
 					       == E_KEY_NOT_FOUND.nativeCode())
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}

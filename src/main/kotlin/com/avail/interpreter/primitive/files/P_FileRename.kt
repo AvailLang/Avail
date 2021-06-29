@@ -105,10 +105,10 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			priorityInt)
 		{
 			StringDescriptor.stringFrom(

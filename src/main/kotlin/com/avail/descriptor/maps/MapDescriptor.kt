@@ -309,11 +309,11 @@ class MapDescriptor private constructor(
 		when {
 			aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE) -> return true
 			!aType.isMapType -> return false
-			!aType.sizeRange().rangeIncludesLong(self.mapSize().toLong()) ->
+			!aType.sizeRange.rangeIncludesLong(self.mapSize().toLong()) ->
 				return false
 		}
-		val keyType = aType.keyType()
-		val valueType = aType.valueType()
+		val keyType = aType.keyType
+		val valueType = aType.valueType
 		val rootBin = rootBin(self)
 		val keyTypeIsEnumeration = keyType.isEnumeration
 		val valueTypeIsEnumeration = valueType.isEnumeration
@@ -525,7 +525,7 @@ class MapDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("map") }
-			if (self.kind().keyType().isSubtypeOf(stringType()))
+			if (self.kind().keyType.isSubtypeOf(stringType()))
 			{
 				at("map") {
 					writeObject {
@@ -554,7 +554,7 @@ class MapDescriptor private constructor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("map") }
-			if (self.kind().keyType().isSubtypeOf(stringType()))
+			if (self.kind().keyType.isSubtypeOf(stringType()))
 			{
 				at("map") {
 					writeObject {

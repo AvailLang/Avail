@@ -335,8 +335,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun errorCodeName(numericCode: A_Number): String
 	{
-		val code = byNumericCode(
-			numericCode.extractInt()) ?: error(String.format(
+		val code = byNumericCode(numericCode.extractInt)
+		code ?: error(String.format(
 			"no %s for %s", AvailErrorCode::class.java.simpleName, numericCode))
 		return errorCodeBundle.getString(errorCodeKey(code))
 	}
@@ -352,8 +352,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 */
 	private fun exceptionName(numericCode: A_Number): String
 	{
-		val code = byNumericCode(
-			numericCode.extractInt()) ?: error(String.format(
+		val code = byNumericCode(numericCode.extractInt)
+		code ?: error(String.format(
 			"no %s for %s", AvailErrorCode::class.java.simpleName, numericCode))
 		return errorCodeBundle.getString(errorCodeExceptionKey(code))
 	}
@@ -678,17 +678,16 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		forSemanticRestriction: Boolean): String
 	{
 		val functionType = primitive.blockTypeRestriction()
-		val parameterTypes = functionType.argsTupleType()
-		val parameterCount = parameterTypes.sizeRange()
-		assert(parameterCount.lowerBound().equals(
-			parameterCount.upperBound())) {
+		val parameterTypes = functionType.argsTupleType
+		val parameterCount = parameterTypes.sizeRange
+		assert(parameterCount.lowerBound.equals(parameterCount.upperBound)) {
 			String.format(
 				"Expected %s to have a fixed parameter count",
 				primitive.javaClass.simpleName)
 		}
 		return buildString {
 			var i = 1
-			val end = parameterCount.lowerBound().extractInt()
+			val end = parameterCount.lowerBound.extractInt
 			while (i <= end)
 			{
 				val argNameKey = primitiveParameterNameKey(primitive, i)
@@ -696,8 +695,9 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					if (primitiveBundle.containsKey(argNameKey))
 					{
 						val localized = primitiveBundle.getString(argNameKey)
-						if (localized.isNotEmpty()) localized
-						else preamble.getString(parameterPrefix.name) + i
+						localized.ifEmpty {
+							preamble.getString(parameterPrefix.name) + i
+						}
 					}
 					else
 					{
@@ -746,11 +746,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				if (varType.isSubtypeOf(naturalNumbers))
 				{
 					append("{")
-					val instances = varType.instances()
-					val codes = instances.sortedWith(
-						Comparator { o1: A_Number, o2: A_Number ->
-							o1.extractInt().compareTo(o2.extractInt())
-						})
+					val codes = varType.instances.sortedBy { it.extractInt }
 					for (code in codes)
 					{
 						val errorCodeName = errorCodeName(code)
@@ -784,9 +780,9 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				val argName =
 					if (primitiveBundle.containsKey(argNameKey))
 					{
-						val localized = primitiveBundle.getString(argNameKey)
-						if (localized.isNotEmpty()) localized
-						else preamble.getString(parameterPrefix.name) + 1
+						primitiveBundle.getString(argNameKey).ifEmpty {
+							preamble.getString(parameterPrefix.name) + 1
+						}
 					}
 					else
 					{
@@ -864,8 +860,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
                {
                    primitive.hasFlag(Primitive.Flag.CannotFail) -> 0
                    primitive.failureVariableType.isEnumeration ->
-	                   primitive.failureVariableType
-						   .instanceCount().extractInt()
+	                   primitive.failureVariableType.instanceCount.extractInt
                    else -> 1
                }
 			val formatArgs = arrayOfNulls<Any>(templateArgCount)
@@ -873,12 +868,11 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			formatArgs[0] = primitiveBundle.getString(
 				primitive.javaClass.simpleName)
 			// …then come the parameter names, followed by their types…
-			val paramsType = primitive.blockTypeRestriction().argsTupleType()
+			val paramsType = primitive.blockTypeRestriction().argsTupleType
 			for (i in 1 .. primitiveArgCount)
 			{
 				val argNameKey = primitiveParameterNameKey(primitive, i)
-				val argName: String
-				argName = if (primitiveBundle.containsKey(argNameKey))
+				val argName = if (primitiveBundle.containsKey(argNameKey))
 				{
 					val localized = primitiveBundle.getString(argNameKey)
 					if (localized.isNotEmpty())
@@ -899,7 +893,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			}
 			// …then the return type…
 			formatArgs[(primitiveArgCount shl 1) + 1] =
-				primitive.blockTypeRestriction().returnType()
+				primitive.blockTypeRestriction().returnType
 			// …then the exceptions.
 			if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 			{
@@ -909,11 +903,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				{
 					if (varType.isSubtypeOf(naturalNumbers))
 					{
-						val instances = varType.instances()
-						val codes = instances.sortedWith(
-							Comparator { o1: A_Number, o2: A_Number ->
-								o1.extractInt().compareTo(o2.extractInt())
-							})
+						val instances = varType.instances
+						val codes = instances.sortedBy { it.extractInt }
 						for (code in codes)
 						{
 							formatArgs[raiseIndex++] = exceptionName(code)
@@ -1020,7 +1011,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements,
-			primitive.blockTypeRestriction().returnType())
+			primitive.blockTypeRestriction().returnType)
 		generateMethod("{«_‡,»}", block, writer)
 	}
 
@@ -1044,7 +1035,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements,
-			primitive.blockTypeRestriction().returnType())
+			primitive.blockTypeRestriction().returnType)
 		generateMethod("_ᵀ", block, writer)
 	}
 
@@ -1069,7 +1060,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			statements,
-			primitive.blockTypeRestriction().returnType())
+			primitive.blockTypeRestriction().returnType)
 		generateMethod(
 			preamble.getString(primitiveFailureMethod.name),
 			block,
@@ -1287,7 +1278,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		val block = block(
 			primitiveMethodParameterDeclarations(primitive, false),
 			primitiveMethodStatements(primitive),
-			primitive.blockTypeRestriction().returnType())
+			primitive.blockTypeRestriction().returnType)
 		writer.print(comment)
 		generateMethod(primitiveBundle.getString(name), block, writer)
 	}
@@ -1842,8 +1833,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					{
 						if (varType.isSubtypeOf(naturalNumbers))
 						{
-							varType.instances()
-								.map { i -> byNumericCode(i.extractInt())!! }
+							varType.instances
+								.map { i -> byNumericCode(i.extractInt)!! }
 								.sortedBy { i -> i.code }
 								.forEach { code ->
 									val exceptionKey =
@@ -2129,7 +2120,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			val basePackageName = packagePath[packagePath.size - 1]
 			this.name = MessageFormat.format(
 				preamble.getString(primitiveCoverageTestModuleName.name),
-				basePackageName.capitalize())
+				basePackageName.replaceFirstChar(Char::titlecase)
+			)
 			val packageName = File(String.format(
 				"%s/%s/%s/%s.avail/%s.avail",
 				sourceBaseName,

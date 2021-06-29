@@ -87,7 +87,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val index = indexObject.extractInt()
+		val index = indexObject.extractInt
 		return if (index > tuple.tupleSize())
 		{
 			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
@@ -112,8 +112,8 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		val originalTupleType = argumentTypes[0]
 		val subscripts = argumentTypes[1]
 		val newElementType = argumentTypes[2]
-		val lowerBound = subscripts.lowerBound()
-		val upperBound = subscripts.upperBound()
+		val lowerBound = subscripts.lowerBound
+		val upperBound = subscripts.upperBound
 		val singleSubscript = lowerBound.equals(upperBound)
 		if (lowerBound.greaterThan(maximumComplexity)
 			|| (upperBound.isFinite
@@ -122,14 +122,14 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			// Too expensive.  Fall back on the primitive's basic type.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
-		val originalTypeTuple = originalTupleType.typeTuple()
+		val originalTypeTuple = originalTupleType.typeTuple
 		val originalTypeTupleSize = originalTypeTuple.tupleSize()
 		val minSubscript =
-			if (lowerBound.isInt) max(lowerBound.extractInt(), 1)
+			if (lowerBound.isInt) max(lowerBound.extractInt, 1)
 			else 1
 		val maxSubscript =
 			if (upperBound.isFinite)
-				min(upperBound.extractInt(), originalTypeTupleSize)
+				min(upperBound.extractInt, originalTypeTupleSize)
 			else
 				Integer.MAX_VALUE
 		val typeList = mutableListOf<A_Type>()
@@ -162,11 +162,11 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			typeList.add(originalTupleType.typeAtIndex(i))
 		}
 		val newDefaultType = if (upperBound.isFinite)
-			originalTupleType.defaultType()
+			originalTupleType.defaultType
 		else
-			originalTupleType.defaultType().typeUnion(newElementType)
+			originalTupleType.defaultType.typeUnion(newElementType)
 		return tupleTypeForSizesTypesDefaultType(
-			originalTupleType.sizeRange(),
+			originalTupleType.sizeRange,
 			tupleFromList(typeList),
 			newDefaultType)
 	}

@@ -36,6 +36,7 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
@@ -100,10 +101,10 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			filterFunction, bodyFunction, method, loader.module())
 
 		return interpreter.suspendInLevelOneSafeThen {
-			filterFunction.code().setMethodName(
-				stringFrom("Filter for lexer ${atom.atomName()}"))
-			bodyFunction.code().setMethodName(
-				stringFrom("Body for lexer ${atom.atomName()}"))
+			filterFunction.code().methodName =
+				stringFrom("Filter for lexer ${atom.atomName()}")
+			bodyFunction.code().methodName =
+				stringFrom("Body for lexer ${atom.atomName()}")
 			// Updating the lexical scanner is cheap enough that we do it even
 			// when we're loading, not just compiling.  This allows us to parse
 			// and run entry points in the scope of the module, without having

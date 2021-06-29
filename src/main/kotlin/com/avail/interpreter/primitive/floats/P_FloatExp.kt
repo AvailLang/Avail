@@ -62,7 +62,7 @@ object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline)
 		val a = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
 			fromFloatRecycling(
-				exp(a.extractFloat().toDouble()).toFloat(), a, true))
+				exp(a.extractFloat.toDouble()).toFloat(), a, true))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -73,8 +73,8 @@ object P_BootstrapLexerStringBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val lineNumberInteger = interpreter.argument(2)
 
-		val startPosition = sourcePositionInteger.extractInt()
-		val startLineNumber = lineNumberInteger.extractInt()
+		val startPosition = sourcePositionInteger.extractInt
+		val startLineNumber = lineNumberInteger.extractInt
 
 		val token = parseString(source, startPosition, startLineNumber)
 		return interpreter.primitiveSuccess(set(tuple(token)))

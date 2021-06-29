@@ -74,7 +74,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 		interpreter.argsBuffer.clear()
 		val expectedType =
-			castFunction.code().functionType().argsTupleType().typeAtIndex(1)
+			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		// "Jump" into the castFunction or elseFunction, to keep this frame from
 		// showing up.
 		interpreter.function = when {
@@ -94,8 +94,8 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// Keep it simple.
 		val castFunctionType = argumentTypes[1]
 		val elseFunctionType = argumentTypes[2]
-		return castFunctionType.returnType().typeUnion(
-			elseFunctionType.returnType())
+		return castFunctionType.returnType.typeUnion(
+			elseFunctionType.returnType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

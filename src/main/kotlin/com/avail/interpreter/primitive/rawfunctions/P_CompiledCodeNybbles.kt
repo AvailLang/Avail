@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.TupleDescriptor
@@ -56,7 +57,7 @@ object P_CompiledCodeNybbles : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
-		return interpreter.primitiveSuccess(code.nybbles())
+		return interpreter.primitiveSuccess(code.nybbles)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -104,7 +104,7 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 
 		val varType = varReg.type()
 		val valueType = valueReg.type()
-		val varInnerType = varType.writeType()
+		val varInnerType = varType.writeType
 
 		// These two operations have the same operand layouts.
 		val setOperation = if (valueType.isSubtypeOf(varInnerType))

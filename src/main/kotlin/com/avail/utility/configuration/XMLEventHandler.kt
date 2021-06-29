@@ -90,12 +90,12 @@ where
 	{
 		val builder = StringBuilder(1000)
 		builder.append("found element \"")
-		builder.append(forbidden.toUpperCase())
+		builder.append(forbidden.uppercase())
 		builder.append("\" but expected one of:")
 		for (element in allowed)
 		{
 			builder.append("\n\t\"")
-			builder.append(element.qName.toUpperCase())
+			builder.append(element.qName.uppercase())
 			builder.append('"')
 		}
 		builder.append('\n')

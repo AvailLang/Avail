@@ -33,6 +33,8 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
@@ -159,7 +161,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val newFunctionReg = instruction.operand<L2WriteBoxedOperand>(2)
 		val numOuters = outerRegs.elements().size
 
-		assert(numOuters == code.constant.numOuters())
+		assert(numOuters == code.constant.numOuters)
 		translator.literal(method, code.constant)
 		assert(numOuters != 0)
 		if (numOuters <= 5)

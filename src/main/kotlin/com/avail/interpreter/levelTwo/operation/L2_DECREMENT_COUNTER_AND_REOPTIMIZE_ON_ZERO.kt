@@ -31,7 +31,10 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
@@ -50,7 +53,7 @@ import org.objectweb.asm.Opcodes
 
 /**
  * Explicitly decrement the current compiled code's countdown via
- * [AvailObject.countdownToReoptimize].  If it reaches zero then re-optimize the
+ * [A_RawFunction.countdownToReoptimize].  If it reaches zero then re-optimize the
  * code and jump to its [L2Chunk.offsetAfterInitialTryPrimitive], which expects
  * the arguments to still be set up in the [Interpreter].
  *
@@ -121,7 +124,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 					OptimizationLevel.optimizationLevel(targetOptimizationLevel),
 					interpreter)
 			}
-			val chunk = code.startingChunk()
+			val chunk = code.startingChunk
 			interpreter.chunk = chunk
 			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive())
 			chunkChanged = true

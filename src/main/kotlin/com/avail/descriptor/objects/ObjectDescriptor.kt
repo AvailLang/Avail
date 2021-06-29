@@ -529,7 +529,7 @@ class ObjectDescriptor internal constructor(
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap().forEach { k, _ ->
+			baseType.fieldTypeMap.forEach { k, _ ->
 				if (k.getAtomProperty(explicitSubclassingKey).notNil) {
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(k, true)
 				}

@@ -449,7 +449,7 @@ class DoubleDescriptor private constructor(
 					// Doubles can exactly represent every int (but not every
 					// long).
 					return compareDoubles(
-						aDouble, anInteger.extractInt().toDouble())
+						aDouble, anInteger.extractInt.toDouble())
 				}
 				aDouble == 0.0 -> return zero.numericCompare(anInteger)
 			}

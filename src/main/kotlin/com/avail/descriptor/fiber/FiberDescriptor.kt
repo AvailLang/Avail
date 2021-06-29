@@ -84,7 +84,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
 import com.avail.utility.json.JSONWriter
-import java.util.Locale
 import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
@@ -605,7 +604,7 @@ class FiberDescriptor private constructor(
 		fun mayTransitionTo(newState: ExecutionState): Boolean {
 			if (successors == -1) {
 				// No lock - redundant computation in other threads is stable.
-				successors = privateSuccessors().sumBy { 1 shl it.ordinal }
+				successors = privateSuccessors().sumOf { 1 shl it.ordinal }
 			}
 			return successors ushr newState.ordinal and 1 == 1
 		}
@@ -880,7 +879,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.lowercase(Locale.getDefault()))
+				write(self.executionState().name.lowercase())
 			}
 			val result = self.mutableSlot(RESULT)
 			if (result.notNil)
@@ -894,7 +893,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.lowercase(Locale.getDefault()))
+				write(self.executionState().name.lowercase())
 			}
 		}
 
@@ -902,8 +901,10 @@ class FiberDescriptor private constructor(
 		self: AvailObject,
 		suspendingFunction: A_Function
 	) {
-		assert(suspendingFunction.isNil
-			|| suspendingFunction.code().primitive()!!.hasFlag(CanSuspend))
+		assert(
+			suspendingFunction.isNil
+				|| suspendingFunction.code().codePrimitive()!!
+					.hasFlag(CanSuspend))
 		self.setSlot(SUSPENDING_FUNCTION, suspendingFunction)
 	}
 
