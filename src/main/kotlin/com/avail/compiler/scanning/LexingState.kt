@@ -278,10 +278,7 @@ class LexingState constructor(
 		countdown: AtomicInteger)
 	{
 		val loader = compilationContext.loader
-		val fiber = newLoaderFiber(
-			lexerBodyFunctionType().returnType,
-			loader
-		) {
+		val fiber = newLoaderFiber(lexerBodyFunctionType().returnType, loader) {
 			formatString(
 				"Lexer body on line %d for %s.", lineNumber, lexer)
 		}

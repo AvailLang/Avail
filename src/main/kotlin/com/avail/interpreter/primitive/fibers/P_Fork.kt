@@ -96,24 +96,17 @@ object P_Fork : Primitive(
 			{
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
-			anArg
+			anArg.makeShared()
 		}
-		// Now that we know that the call will really happen, share the function
-		// and the arguments.
 		function.makeShared()
-		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
-		val newFiber = newFiber(
-			function.kind().returnType,
-			priority.extractInt)
+		val newFiber = newFiber(function.kind().returnType, priority.extractInt)
 		{
 			formatString(
 				"Fork, %s, %s:%d",
 				code.methodName,
-				if (code.module.isNil)
-					emptyTuple
-				else
-					code.module.moduleName(),
+				if (code.module.isNil) emptyTuple
+				else code.module.moduleName(),
 				code.codeStartingLineNumber)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
@@ -137,8 +130,7 @@ object P_Fork : Primitive(
 			tuple(
 				functionTypeReturning(TOP.o),
 				mostGeneralTupleType(),
-				bytes
-			),
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

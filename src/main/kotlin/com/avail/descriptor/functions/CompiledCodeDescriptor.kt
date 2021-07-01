@@ -510,7 +510,7 @@ open class CompiledCodeDescriptor protected constructor(
 				assert(baseIndexInArray == NYBBLECODES_.ordinal)
 			}
 
-			/** A reusable array of longs for initializing instances.  */
+			/** A reusable empty array of longs for initializing instances. */
 			private val emptyArray = LongArray(0)
 		}
 	}

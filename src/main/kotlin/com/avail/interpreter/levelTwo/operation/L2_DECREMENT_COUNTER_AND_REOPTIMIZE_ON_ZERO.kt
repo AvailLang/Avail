@@ -43,7 +43,7 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L2Generator.OptimizationLevel
+import com.avail.optimizer.L2Generator.OptimizationLevel.Companion.optimizationLevel
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -81,7 +81,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 		instruction: L2Instruction)
 	{
 		val optimization = instruction.operand<L2IntImmediateOperand>(0)
-		//		final L2IntImmediateOperand isEntryPoint = instruction.operand(1);
+		//val isEntryPoint: L2IntImmediateOperand = instruction.operand(1)
 
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
@@ -121,7 +121,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 				code.countdownToReoptimize(countdownForNewlyOptimizedCode)
 				L1Translator.translateToLevelTwo(
 					code,
-					OptimizationLevel.optimizationLevel(targetOptimizationLevel),
+					optimizationLevel(targetOptimizationLevel),
 					interpreter)
 			}
 			val chunk = code.startingChunk

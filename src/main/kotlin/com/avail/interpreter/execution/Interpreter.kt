@@ -3097,14 +3097,14 @@ class Interpreter(
 		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
-		 * @param continuation
+		 * @param setup
 		 *   How to set up the interpreter prior to running the fiber for a
 		 *   while. Pass in the interpreter to use.
 		 */
 		private fun executeFiber(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
-			continuation: (Interpreter) -> Unit)
+			setup: Interpreter.() -> Unit)
 		{
 			assert(aFiber.executionState().indicatesSuspension)
 			// We cannot simply run the specified function, we must queue a task
@@ -3112,21 +3112,19 @@ class Interpreter(
 			runtime.whenLevelOneUnsafeDo(
 				aFiber.priority(),
 				AvailTask.forFiberResumption(aFiber) {
-					val interpreter = current()
-					assert(aFiber === interpreter.fiberOrNull())
+					assert(aFiber === fiberOrNull())
 					assert(aFiber.executionState() === RUNNING)
-					continuation(interpreter)
-					if (interpreter.exitNow) {
-						assert(interpreter.getReifiedContinuation()!!
-							.isNil
-						)
-						interpreter.terminateFiber(
-							interpreter.getLatestResult())
-					} else {
-						// Run the interpreter for a while.
-						interpreter.run()
+					setup()
+					if (exitNow) {
+						assert(getReifiedContinuation()!!.isNil)
+						terminateFiber(getLatestResult())
 					}
-					assert(interpreter.fiber === null)
+					else
+					{
+						// Run the interpreter for a while.
+						run()
+					}
+					assert(fiber === null)
 				})
 		}
 
@@ -3161,32 +3159,32 @@ class Interpreter(
 		{
 			assert(aFiber.executionState() === UNSTARTED)
 			aFiber.fiberNameSupplier {
-				val code = functionToRun.code()
-				formatString(
-					"Outermost %s @ %s:%d",
-					code.methodName.asNativeString(),
-					if (code.module.isNil) "«vm»"
-					else code.module.moduleName().asNativeString(),
-					code.codeStartingLineNumber)
+				functionToRun.code().run {
+					formatString(
+						"Outermost %s @ %s:%d",
+						methodName.asNativeString(),
+						if (module.isNil) "«vm»"
+						else module.moduleName().asNativeString(),
+						codeStartingLineNumber)
+				}
 			}
 			executeFiber(runtime, aFiber)
-			{ interpreter: Interpreter ->
-				assert(aFiber === interpreter.fiberOrNull())
+			{
+				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				assert(aFiber.continuation().isNil)
 				// Invoke the base-frame (hook) function with the given function
 				// and its arguments collected as a tuple.
 				val baseFrameFunction = HookType.BASE_FRAME[runtime]
-				interpreter.exitNow = false
-				interpreter.returnNow = false
-				interpreter.setReifiedContinuation(nil)
-				interpreter.function = baseFrameFunction
-				interpreter.chunk = baseFrameFunction.code().startingChunk
-				interpreter.offset = 0
-				interpreter.argsBuffer.clear()
-				interpreter.argsBuffer.add(functionToRun as AvailObject)
-				interpreter.argsBuffer.add(
-					tupleFromList(arguments) as AvailObject)
+				exitNow = false
+				returnNow = false
+				setReifiedContinuation(nil)
+				function = baseFrameFunction
+				chunk = baseFrameFunction.code().startingChunk
+				offset = 0
+				argsBuffer.clear()
+				argsBuffer.add(functionToRun as AvailObject)
+				argsBuffer.add(tupleFromList(arguments) as AvailObject)
 			}
 		}
 
@@ -3210,19 +3208,19 @@ class Interpreter(
 			assert(aFiber.executionState() === INTERRUPTED)
 			assert(aFiber.continuation().notNil)
 			executeFiber(AvailRuntime.currentRuntime(), aFiber)
-			{ interpreter: Interpreter ->
-				assert(aFiber === interpreter.fiberOrNull())
+			{
+				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				val con = aFiber.continuation()
 				assert(con.notNil)
-				interpreter.exitNow = false
-				interpreter.returnNow = false
-				interpreter.setReifiedContinuation(con)
-				interpreter.function = con.function()
-				interpreter.setLatestResult(null)
-				interpreter.chunk = con.levelTwoChunk()
-				interpreter.offset = con.levelTwoOffset()
-				interpreter.levelOneStepper.wipeRegisters()
+				exitNow = false
+				returnNow = false
+				setReifiedContinuation(con)
+				function = con.function()
+				setLatestResult(null)
+				chunk = con.levelTwoChunk()
+				offset = con.levelTwoOffset()
+				levelOneStepper.wipeRegisters()
 				aFiber.setContinuation(nil)
 			}
 		}
@@ -3255,29 +3253,29 @@ class Interpreter(
 				aFiber.suspendingFunction().code().codePrimitive()
 					=== resumingPrimitive)
 			executeFiber(runtime, aFiber)
-			{ interpreter: Interpreter ->
-				assert(aFiber === interpreter.fiberOrNull())
+			{
+				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				val continuation = aFiber.continuation()
-				interpreter.setReifiedContinuation(continuation)
-				interpreter.setLatestResult(result)
-				interpreter.returningFunction = aFiber.suspendingFunction()
-				interpreter.exitNow = false
+				setReifiedContinuation(continuation)
+				setLatestResult(result)
+				returningFunction = aFiber.suspendingFunction()
+				exitNow = false
 				if (continuation.isNil)
 				{
 					// Return from outer function, which was the
 					// (successful) suspendable primitive itself.
-					interpreter.returnNow = true
-					interpreter.function = null
-					interpreter.chunk = null
-					interpreter.offset = Int.MAX_VALUE
+					returnNow = true
+					function = null
+					chunk = null
+					offset = Int.MAX_VALUE
 				}
 				else
 				{
-					interpreter.returnNow = false
-					interpreter.function = continuation.function()
-					interpreter.chunk = continuation.levelTwoChunk()
-					interpreter.offset = continuation.levelTwoOffset()
+					returnNow = false
+					function = continuation.function()
+					chunk = continuation.levelTwoChunk()
+					offset = continuation.levelTwoOffset()
 					// Clear the fiber's continuation slot while it's
 					// active.
 					aFiber.setContinuation(nil)
@@ -3313,24 +3311,24 @@ class Interpreter(
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().equals(failureFunction))
 			executeFiber(runtime, aFiber)
-			{ interpreter: Interpreter ->
+			{
 				val code = failureFunction.code()
 				val prim = code.codePrimitive()!!
 				assert(!prim.hasFlag(CannotFail))
 				assert(prim.hasFlag(CanSuspend))
 				assert(args.size == code.numArgs())
-				assert(interpreter.getReifiedContinuation() === null)
-				interpreter.setReifiedContinuation(aFiber.continuation())
+				assert(getReifiedContinuation() === null)
+				setReifiedContinuation(aFiber.continuation())
 				aFiber.setContinuation(nil)
-				interpreter.function = failureFunction
-				interpreter.argsBuffer.clear()
-				interpreter.argsBuffer.addAll(args)
-				interpreter.setLatestResult(failureValue)
-				val chunk = code.startingChunk
-				interpreter.chunk = chunk
-				interpreter.offset = chunk.offsetAfterInitialTryPrimitive()
-				interpreter.exitNow = false
-				interpreter.returnNow = false
+				function = failureFunction
+				argsBuffer.clear()
+				argsBuffer.addAll(args)
+				setLatestResult(failureValue)
+				val startingChunk = code.startingChunk
+				chunk = startingChunk
+				offset = startingChunk.offsetAfterInitialTryPrimitive()
+				exitNow = false
+				returnNow = false
 			}
 		}
 

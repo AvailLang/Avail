@@ -965,8 +965,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private fun parallelCombine(
 		continuations: Collection<(()->Unit)->Unit>): (()->Unit)->Unit
 	{
-		val count = AtomicInteger(continuations.size)
 		return { postAction ->
+			val count = AtomicInteger(continuations.size)
 			val decrement = {
 				if (count.decrementAndGet() == 0)
 				{

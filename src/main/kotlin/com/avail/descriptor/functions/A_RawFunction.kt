@@ -276,7 +276,7 @@ interface A_RawFunction : A_BasicObject {
 		 * function.
 		 *
 		 * @return
-		 *   The [size][A_Tuple.tupleSize] of this raw function's [getNybbles].
+		 *   The [size][A_Tuple.tupleSize] of this raw function's [nybbles].
 		 */
 		val A_RawFunction.numNybbles: Int
 			get() = dispatch { o_NumNybbles(it) }
