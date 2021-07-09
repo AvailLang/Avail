@@ -66,10 +66,13 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(2)
 		val key = interpreter.argument(0)
 		val variable = interpreter.argument(1)
-		return try {
+		return try
+		{
 			interpreter.primitiveSuccess(
 				objectFromBoolean(variable.variableMapHasKey(key)))
-		} catch (e: VariableGetException) {
+		}
+		catch (e: VariableGetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 }
@@ -80,8 +83,7 @@ object P_KeyInVariableMap : Primitive(2, CanInline, HasSideEffect)
 				ANY.o,
 				variableReadWriteType(
 					mostGeneralMapType(),
-					bottom
-				)),
+					bottom)),
 			booleanType)
 
 	override fun privateFailureVariableType(): A_Type =

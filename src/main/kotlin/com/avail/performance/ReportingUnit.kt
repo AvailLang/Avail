@@ -63,8 +63,7 @@ enum class ReportingUnit (private vararg val ranges: Range)
 	NANOSECONDS(
 		Range(999_999_500.0, POSITIVE_INFINITY, 1.0e-9, "%, 8.3f s "),
 		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f ms"),
-		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "%, 8.3f µs")
-	),
+		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "%, 8.3f µs")),
 
 	/** The number of bytes consumed or produced by some activity.  */
 	@Suppress("unused")
@@ -73,14 +72,12 @@ enum class ReportingUnit (private vararg val ranges: Range)
 		Range(999_999_500.0, 999_999_999_500.0, 1.0e-9, "%, 8.3f GB"),
 		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f MB"),
 		Range(999.5, 999_999.5, 1.0e-3, "%, 8.3f KB"),
-		Range(NEGATIVE_INFINITY, 999.5, 1.0e0, "%, 8.0f B ", "%, 8.3f B ")
-	),
+		Range(NEGATIVE_INFINITY, 999.5, 1.0e0, "%, 8.0f B ", "%, 8.3f B ")),
 
 	/** A dimensionless measurement, such as a count of something.  */
 	@Suppress("unused")
 	DIMENSIONLESS_DOUBLE(
-		Range(NEGATIVE_INFINITY, POSITIVE_INFINITY, 1.0, "%, 10.3f")
-	),
+		Range(NEGATIVE_INFINITY, POSITIVE_INFINITY, 1.0, "%, 10.3f")),
 
 	/** A dimensionless measurement, such as a count of something.  */
 	DIMENSIONLESS_INTEGRAL(
@@ -89,8 +86,7 @@ enum class ReportingUnit (private vararg val ranges: Range)
 			POSITIVE_INFINITY,
 			1.0,
 			"%, 8.0f",
-			"%, 8.3f±%,8.3f")
-	);
+			"%, 8.3f±%,8.3f"));
 
 	/**
 	 * An [inclusive, exclusive) span, a scale, and a format string.

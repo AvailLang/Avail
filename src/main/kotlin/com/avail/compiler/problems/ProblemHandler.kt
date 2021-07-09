@@ -57,7 +57,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleInformation(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -73,7 +72,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleWarning(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -87,7 +85,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleTrace(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -103,7 +100,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleParse(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -119,7 +115,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleExecution(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -135,7 +130,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleInternal(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -151,7 +145,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleExternal(problem: Problem, decider: (Boolean) -> Unit) =
 		handleGeneric(problem, decider)
 
@@ -168,7 +161,6 @@ interface ProblemHandler
 	 *   [abort][Problem.abortCompilation] compilation. Accepts a
 	 *   [boolean][Boolean] that is `true` iff compilation should continue.
 	 */
-	@JvmDefault
 	fun handleGeneric(problem: Problem, decider: (Boolean) -> Unit)
 	{
 		throw UnsupportedOperationException(
@@ -185,7 +177,6 @@ interface ProblemHandler
 	 * @param problem
 	 *   A problem.
 	 */
-	@JvmDefault
 	fun handle(problem: Problem) =
 		problem.report(this) { shouldContinue ->
 			if (shouldContinue)

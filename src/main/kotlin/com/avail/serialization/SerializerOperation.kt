@@ -55,6 +55,22 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.character.CharacterDescriptor
 import com.avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
+import com.avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numConstants
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLiterals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.nybbles
+import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseOrIndex
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.packedDeclarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
@@ -68,6 +84,8 @@ import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Macro
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
@@ -719,14 +737,14 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return specialObject(subobjects[0].extractInt())
+			return specialObject(subobjects[0].extractInt)
 		}
 
 		override fun describe(describer: DeserializerDescriber)
 		{
 			describer.append(this.name)
 			val specialNumber = operands[0].read(describer)
-			val specialIndex = specialNumber.extractInt()
+			val specialIndex = specialNumber.extractInt
 			describer.append(" (")
 			describer.append(specialIndex.toString())
 			describer.append(") = ")
@@ -751,14 +769,14 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return Deserializer.specialAtom(subobjects[0].extractInt())
+			return Deserializer.specialAtom(subobjects[0].extractInt)
 		}
 
 		override fun describe(describer: DeserializerDescriber)
 		{
 			describer.append(this.name)
 			val specialNumber = operands[0].read(describer)
-			val specialIndex = specialNumber.extractInt()
+			val specialIndex = specialNumber.extractInt
 			describer.append(" (")
 			describer.append(specialIndex.toString())
 			describer.append(") = ")
@@ -776,14 +794,14 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(fromInt(obj.codePoint()))
+			return array(fromInt(obj.codePoint))
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return fromCodePoint(subobjects[0].extractInt())
+			return fromCodePoint(subobjects[0].extractInt)
 		}
 	},
 
@@ -797,14 +815,14 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(fromInt(obj.codePoint()))
+			return array(fromInt(obj.codePoint))
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return fromCodePoint(subobjects[0].extractInt())
+			return fromCodePoint(subobjects[0].extractInt)
 		}
 	},
 
@@ -822,7 +840,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val codePoint = obj.codePoint()
+			val codePoint = obj.codePoint
 			return array(
 				fromInt(codePoint shr 16 and 0xFF),
 				fromInt(codePoint shr 8 and 0xFF),
@@ -835,9 +853,9 @@ enum class SerializerOperation constructor(
 		{
 			val (high, mid, low) = subobjects
 			return fromCodePoint(
-				(high.extractUnsignedByte().toInt() shl 16)
-					+ (mid.extractUnsignedByte().toInt() shl 8)
-					+ low.extractUnsignedByte().toInt())
+				(high.extractUnsignedByte.toInt() shl 16)
+					+ (mid.extractUnsignedByte.toInt() shl 8)
+					+ low.extractUnsignedByte.toInt())
 		}
 	},
 
@@ -850,7 +868,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val floatValue = obj.extractFloat()
+			val floatValue = obj.extractFloat
 			val floatBits = floatToRawIntBits(floatValue)
 			return array(fromInt(floatBits))
 		}
@@ -859,7 +877,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val floatBits = subobjects[0].extractInt()
+			val floatBits = subobjects[0].extractInt
 			val floatValue = intBitsToFloat(floatBits)
 			return fromFloat(floatValue)
 		}
@@ -869,7 +887,7 @@ enum class SerializerOperation constructor(
 			describer.append(this.name)
 			describer.append(" = ")
 			val floatAsIntNumber = operands[0].read(describer)
-			val floatBits = floatAsIntNumber.extractInt()
+			val floatBits = floatAsIntNumber.extractInt
 			describer.append(intBitsToFloat(floatBits).toString())
 		}
 	},
@@ -887,7 +905,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val doubleValue = obj.extractDouble()
+			val doubleValue = obj.extractDouble
 			val doubleBits = doubleToRawLongBits(doubleValue)
 			return array(
 				fromInt((doubleBits shr 32).toInt()),
@@ -899,8 +917,8 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val (high, low) = subobjects
-			val doubleBits = (high.extractInt().toLong() shl 32) +
-				(low.extractInt().toLong() and 0xFFFFFFFFL)
+			val doubleBits = (high.extractInt.toLong() shl 32) +
+				(low.extractInt.toLong() and 0xFFFFFFFFL)
 			return fromDouble(longBitsToDouble(doubleBits))
 		}
 
@@ -910,8 +928,8 @@ enum class SerializerOperation constructor(
 			describer.append(" = ")
 			val highBitsAsNumber = operands[0].read(describer)
 			val lowBitsAsNumber = operands[1].read(describer)
-			val highBits = highBitsAsNumber.extractInt()
-			val lowBits = lowBitsAsNumber.extractInt()
+			val highBits = highBitsAsNumber.extractInt
+			val lowBits = lowBitsAsNumber.extractInt
 			val doubleBits =
 				(highBits.toLong() shl 32) + (lowBits.toLong() and 0xFFFFFFFFL)
 			val theDouble = longBitsToDouble(doubleBits)
@@ -1128,7 +1146,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.fieldTypeMap())
+			return array(obj.fieldTypeMap)
 		}
 
 		override fun compose(
@@ -1156,12 +1174,12 @@ enum class SerializerOperation constructor(
 		{
 			serializer.checkAtom(obj)
 			assert(obj.getAtomProperty(HERITABLE_KEY.atom).isNil)
-			val module = obj.issuingModule()
+			val module = obj.issuingModule
 			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(obj.atomName(), module.moduleName())
+			return array(obj.atomName, module.moduleName)
 		}
 
 		override fun compose(
@@ -1190,16 +1208,13 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			serializer.checkAtom(obj)
-			assert(
-				obj.getAtomProperty(HERITABLE_KEY.atom).equals(
-					trueObject
-				))
-			val module = obj.issuingModule()
+			assert(obj.getAtomProperty(HERITABLE_KEY.atom).equals(trueObject))
+			val module = obj.issuingModule
 			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(obj.atomName(), module.moduleName())
+			return array(obj.atomName, module.moduleName)
 		}
 
 		override fun compose(
@@ -1236,14 +1251,15 @@ enum class SerializerOperation constructor(
 	{
 		override fun decompose(
 			obj: AvailObject,
-			serializer: Serializer): Array<out A_BasicObject>
+			serializer: Serializer
+		): Array<out A_BasicObject>
 		{
-			val originatingPhraseOrIndex = obj.originatingPhraseOrIndex()
-			val module = obj.module()
+			val originatingPhraseOrIndex = obj.originatingPhraseOrIndex
+			val module = obj.module
 			val phraseOrIndex = when
 			{
 				module.isNil
-					|| module.moduleState() != Loading
+					|| module.moduleState != Loading
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
 					|| originatingPhraseOrIndex.isNil
@@ -1253,16 +1269,16 @@ enum class SerializerOperation constructor(
 				{
 					val index = module.recordBlockPhrase(
 						originatingPhraseOrIndex.makeShared())
-					obj.setOriginatingPhraseOrIndex(index as AvailObject)
+					obj.originatingPhraseOrIndex = index as AvailObject
 					index
 				}
 			}
 
-			val numLocals = obj.numLocals()
-			val numConstants = obj.numConstants()
-			val numOuters = obj.numOuters()
+			val numLocals = obj.numLocals
+			val numConstants = obj.numConstants
+			val numOuters = obj.numOuters
 			val numRegularLiterals =
-				obj.numLiterals() - numConstants - numLocals - numOuters
+				obj.numLiterals - numConstants - numLocals - numOuters
 			val regularLiterals = generateObjectTupleFrom(numRegularLiterals) {
 				obj.literalAt(it)
 			}
@@ -1274,33 +1290,33 @@ enum class SerializerOperation constructor(
 				generateObjectTupleFrom(numOuters) { obj.outerTypeAt(it) }
 			val moduleName =
 				if (module.isNil) emptyTuple
-				else module.moduleName()
-			val primitive = obj.primitive()
+				else module.moduleName
+			val primitive = obj.codePrimitive()
 			val primName =
 				if (primitive === null) emptyTuple
 				else stringFrom(primitive.name)
 			return array(
 				fromInt(obj.numSlots()),
 				primName,
-				obj.returnTypeIfPrimitiveFails(),
+				obj.returnTypeIfPrimitiveFails,
 				obj.functionType(),
-				obj.nybbles(),
+				obj.nybbles,
 				regularLiterals,
 				localTypes,
 				constantTypes,
 				outerTypes,
 				moduleName,
-				fromInt(obj.startingLineNumber()),
-				obj.lineNumberEncodedDeltas(),
+				fromInt(obj.codeStartingLineNumber),
+				obj.lineNumberEncodedDeltas,
 				phraseOrIndex,
-				obj.packedDeclarationNames())
+				obj.packedDeclarationNames)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val numSlots = subobjects[0].extractInt()
+			val numSlots = subobjects[0].extractInt
 			val primitive = subobjects[1]
 			val returnTypeIfPrimitiveFails = subobjects[2]
 			val functionType = subobjects[3]
@@ -1315,14 +1331,14 @@ enum class SerializerOperation constructor(
 			val originatingPhrase = subobjects[12]
 			val packedDeclarationNames = subobjects[13]
 
-			val numArgsRange = functionType.argsTupleType().sizeRange()
-			val numArgs = numArgsRange.lowerBound().extractInt()
-			assert(numArgsRange.upperBound().extractInt() == numArgs)
-			val numLocals = localTypes.tupleSize()
-			val numConstants = constantTypes.tupleSize()
+			val numArgsRange = functionType.argsTupleType.sizeRange
+			val numArgs = numArgsRange.lowerBound.extractInt
+			assert(numArgsRange.upperBound.extractInt == numArgs)
+			val numLocals = localTypes.tupleSize
+			val numConstants = constantTypes.tupleSize
 
 			val module =
-				if (moduleName.tupleSize() == 0) nil
+				if (moduleName.tupleSize == 0) nil
 				else deserializer.moduleNamed(moduleName)
 			return newCompiledCode(
 				nybbles,
@@ -1335,7 +1351,7 @@ enum class SerializerOperation constructor(
 				constantTypes,
 				outerTypes,
 				module,
-				lineNumberInteger.extractInt(),
+				lineNumberInteger.extractInt,
 				lineNumberEncodedDeltas,
 				originatingPhrase,
 				packedDeclarationNames)
@@ -1352,7 +1368,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			assert(obj.numOuterVars() == 0)
+			assert(obj.numOuterVars == 0)
 			return array(
 				obj.code())
 		}
@@ -1379,7 +1395,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val outers = generateObjectTupleFrom(obj.numOuterVars()) {
+			val outers = generateObjectTupleFrom(obj.numOuterVars) {
 				obj.outerVarAt(it)
 			}
 			return array(
@@ -1472,14 +1488,12 @@ enum class SerializerOperation constructor(
 		{
 			val (varType, module, varName, flags) = subobjects
 
-			val flagsInt = flags.extractInt()
+			val flagsInt = flags.extractInt
 			val writeOnce = flagsInt and 1 != 0
 			val stablyComputed = flagsInt and 2 != 0
 			val variable =
-				if (writeOnce)
-					module.constantBindings().mapAt(varName)
-				else
-					module.variableBindings().mapAt(varName)
+				if (writeOnce) module.constantBindings.mapAt(varName)
+				else module.variableBindings.mapAt(varName)
 			if (stablyComputed != variable.valueWasStablyComputed())
 			{
 				throw RuntimeException(
@@ -1505,14 +1519,14 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.asTuple())
+			return array(obj.asTuple)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return subobjects[0].asSet()
+			return subobjects[0].asSet
 		}
 	},
 
@@ -1544,9 +1558,9 @@ enum class SerializerOperation constructor(
 			val (string, start, lineNumber, tokenTypeOrdinal) = subobjects
 			return newToken(
 				string,
-				start.extractInt(),
-				lineNumber.extractInt(),
-				lookupTokenType(tokenTypeOrdinal.extractInt()))
+				start.extractInt,
+				lineNumber.extractInt,
+				lookupTokenType(tokenTypeOrdinal.extractInt))
 		}
 	},
 
@@ -1577,7 +1591,7 @@ enum class SerializerOperation constructor(
 		{
 			val (string, literal, start, lineNumber) = subobjects
 			return literalToken(
-				string, start.extractInt(), lineNumber.extractInt(), literal)
+				string, start.extractInt, lineNumber.extractInt, literal)
 		}
 	},
 
@@ -1606,7 +1620,7 @@ enum class SerializerOperation constructor(
 		{
 			val (string, start, lineNumber) = subobjects
 			return newCommentToken(
-				string, start.extractInt(), lineNumber.extractInt())
+				string, start.extractInt, lineNumber.extractInt)
 		}
 	},
 
@@ -1678,8 +1692,8 @@ enum class SerializerOperation constructor(
 				function,
 				caller,
 				nil,
-				pcInteger.extractInt(),
-				stackpInteger.extractInt(),
+				pcInteger.extractInt,
+				stackpInteger.extractInt,
 				unoptimizedChunk,
 				if (pcInteger.equalsInt(0))
 					TO_RESTART.offsetInDefaultChunk
@@ -1709,17 +1723,17 @@ enum class SerializerOperation constructor(
 		{
 			assert(obj.isInstanceOf(Types.METHOD.o))
 			val pairs = mutableListOf<A_Tuple>()
-			for (bundle in obj.bundles())
+			for (bundle in obj.bundles)
 			{
-				val atom = bundle.message()
-				val module = atom.issuingModule()
+				val atom = bundle.message
+				val module = atom.issuingModule
 				if (module.notNil)
 				{
-					pairs.add(tuple(module.moduleName(), atom.atomName()))
+					pairs.add(tuple(module.moduleName, atom.atomName))
 				}
 				else
 				{
-					pairs.add(tuple(nil, atom.atomName()))
+					pairs.add(tuple(nil, atom.atomName))
 				}
 			}
 			return array(tupleFromList(pairs))
@@ -1736,10 +1750,10 @@ enum class SerializerOperation constructor(
 					deserializer.loadedModules.hasKey(moduleName))
 				{
 					val atom = lookupAtom(atomName, moduleName, deserializer)
-					val bundle = atom.bundleOrNil()
+					val bundle = atom.bundleOrNil
 					if (bundle.notNil)
 					{
-						return bundle.bundleMethod()
+						return bundle.bundleMethod
 					}
 				}
 			}
@@ -1751,10 +1765,10 @@ enum class SerializerOperation constructor(
 					val specialAtom = Serializer.specialAtomsByName[atomName]
 					if (specialAtom !== null)
 					{
-						val bundle = specialAtom.bundleOrNil()
+						val bundle = specialAtom.bundleOrNil
 						if (bundle.notNil)
 						{
-							return bundle.bundleMethod()
+							return bundle.bundleMethod
 						}
 					}
 					throw RuntimeException(
@@ -1791,7 +1805,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_Definition
 		{
 			val (definitionMethod, signature) = subobjects
-			val definitions = definitionMethod.definitionsTuple()
+			val definitions = definitionMethod.definitionsTuple
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
@@ -1824,7 +1838,7 @@ enum class SerializerOperation constructor(
 		{
 			val definitionBundle: A_Bundle = subobjects[0]
 			val signature: A_Type = subobjects[1]
-			val definitions = definitionBundle.macrosTuple()
+			val definitions = definitionBundle.macrosTuple
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			return definitions[0]
@@ -1855,7 +1869,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val (definitionMethod, signature) = subobjects
-			val definitions = definitionMethod.definitionsTuple()
+			val definitions = definitionMethod.definitionsTuple
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
@@ -1888,7 +1902,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val (definitionMethod, signature) = subobjects
-			val definitions = definitionMethod.definitionsTuple()
+			val definitions = definitionMethod.definitionsTuple
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)
 			val definition = definitions[0]
@@ -1908,7 +1922,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.message())
+				obj.message)
 		}
 
 		override fun compose(
@@ -1939,7 +1953,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.moduleName())
+			return array(obj.moduleName)
 		}
 
 		override fun compose(
@@ -1948,7 +1962,7 @@ enum class SerializerOperation constructor(
 		{
 			val moduleName = subobjects[0]
 			val currentModule = deserializer.currentModule
-			return if (currentModule.moduleName().equals(moduleName))
+			return if (currentModule.moduleName.equals(moduleName))
 			{
 				currentModule
 			}
@@ -1977,12 +1991,12 @@ enum class SerializerOperation constructor(
 			serializer.checkAtom(obj)
 			assert(obj.getAtomProperty(HERITABLE_KEY.atom).isNil)
 			assert(obj.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
-			val module = obj.issuingModule()
+			val module = obj.issuingModule
 			if (module.isNil)
 			{
 				throw RuntimeException("Atom has no issuing module")
 			}
-			return array(obj.atomName(), module.moduleName())
+			return array(obj.atomName, module.moduleName)
 		}
 
 		override fun compose(
@@ -2201,9 +2215,9 @@ enum class SerializerOperation constructor(
 			val isInline = isInline(obj)
 			return array(
 				fromInt(if (isInline) 1 else 0),
-				obj.variable(),
-				obj.expression(),
-				obj.tokens())
+				obj.variable,
+				obj.expression,
+				obj.tokens)
 		}
 
 		override fun compose(
@@ -2233,19 +2247,19 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val primitiveName = when (val primitive = obj.primitive())
+			val primitiveName = when (val primitive = obj.codePrimitive())
 			{
 				null -> emptyTuple
 				else -> stringFrom(primitive.name)
 			}
 			return array(
-				obj.argumentsTuple(),
+				obj.argumentsTuple,
 				primitiveName,
-				obj.statementsTuple(),
+				obj.statementsTuple,
 				obj.resultType(),
-				obj.declaredExceptions().asTuple(),
-				fromInt(obj.startingLineNumber()),
-				obj.tokens())
+				obj.declaredExceptions.asTuple,
+				fromInt(obj.codeStartingLineNumber),
+				obj.tokens)
 		}
 
 		override fun compose(
@@ -2259,8 +2273,9 @@ enum class SerializerOperation constructor(
 			val declaredExceptionsTuple = subobjects[4]
 			val startingLineNumber = subobjects[5]
 			val tokens = subobjects[6]
-			val primitive = when {
-				primitiveName.tupleSize() == 0 -> null
+			val primitive = when (primitiveName.tupleSize)
+			{
+				0 -> null
 				else -> primitiveByName(primitiveName.asNativeString())!!
 			}
 			return newBlockNode(
@@ -2268,8 +2283,8 @@ enum class SerializerOperation constructor(
 				primitive,
 				statementsTuple,
 				resultType,
-				declaredExceptionsTuple.asSet(),
-				startingLineNumber.extractInt(),
+				declaredExceptionsTuple.asSet,
+				startingLineNumber.extractInt,
 				tokens)
 		}
 	},
@@ -2291,11 +2306,11 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			val kind = obj.declarationKind()
-			val token = obj.token()
-			val declaredType = obj.declaredType()
-			val typeExpression = obj.typeExpression()
-			val initializationExpression = obj.initializationExpression()
-			val literalObject = obj.literalObject()
+			val token = obj.token
+			val declaredType = obj.declaredType
+			val typeExpression = obj.typeExpression
+			val initializationExpression = obj.initializationExpression
+			val literalObject = obj.literalObject
 			return array(
 				fromInt(kind.ordinal),
 				token,
@@ -2317,7 +2332,7 @@ enum class SerializerOperation constructor(
 			val literalObject = subobjects[5]
 
 			val declarationKind =
-				DeclarationKind.lookup(declarationKindNumber.extractInt())
+				DeclarationKind.lookup(declarationKindNumber.extractInt)
 			return newDeclaration(
 				declarationKind,
 				token,
@@ -2337,7 +2352,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.expression())
+			return array(obj.expression)
 		}
 
 		override fun compose(
@@ -2358,7 +2373,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.statements())
+			return array(obj.statements)
 		}
 
 		override fun compose(
@@ -2379,7 +2394,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.expressionsTuple())
+			return array(obj.expressionsTuple)
 		}
 
 		override fun compose(
@@ -2400,7 +2415,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.token())
+			return array(obj.token)
 		}
 
 		override fun compose(
@@ -2425,8 +2440,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.macroOriginalSendNode(),
-				obj.outputPhrase())
+				obj.macroOriginalSendNode,
+				obj.outputPhrase)
 		}
 
 		override fun compose(
@@ -2451,8 +2466,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.list(),
-				obj.permutation())
+				obj.list,
+				obj.permutation)
 		}
 
 		override fun compose(
@@ -2473,7 +2488,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.variable())
+			return array(obj.variable)
 		}
 
 		override fun compose(
@@ -2500,10 +2515,10 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.bundle(),
-				obj.argumentsListNode(),
-				obj.phraseExpressionType(),
-				obj.tokens())
+				obj.bundle,
+				obj.argumentsListNode,
+				obj.phraseExpressionType,
+				obj.tokens)
 		}
 
 		override fun compose(
@@ -2524,7 +2539,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.statements())
+			return array(obj.statements)
 		}
 
 		override fun compose(
@@ -2549,8 +2564,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.expression(),
-				obj.superUnionType())
+				obj.expression,
+				obj.superUnionType)
 		}
 
 		override fun compose(
@@ -2575,8 +2590,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.token(),
-				obj.declaration())
+				obj.token,
+				obj.declaration)
 		}
 
 		override fun compose(
@@ -2609,7 +2624,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return Types.all()[subobjects[0].extractInt()].o
+			return Types.all()[subobjects[0].extractInt].o
 		}
 	},
 
@@ -2780,9 +2795,9 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.argsTupleType(),
-				obj.returnType(),
-				obj.declaredExceptions().asTuple())
+				obj.argsTupleType,
+				obj.returnType,
+				obj.declaredExceptions.asTuple)
 		}
 
 		override fun compose(
@@ -2791,7 +2806,7 @@ enum class SerializerOperation constructor(
 		{
 			val (argsTupleType, returnType, checkedExceptionsTuple) = subobjects
 			return functionTypeFromArgumentTupleType(
-				argsTupleType, returnType, checkedExceptionsTuple.asSet())
+				argsTupleType, returnType, checkedExceptionsTuple.asSet)
 		}
 	},
 
@@ -2809,9 +2824,9 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.sizeRange(),
-				obj.typeTuple(),
-				obj.defaultType())
+				obj.sizeRange,
+				obj.typeTuple,
+				obj.defaultType)
 		}
 
 		override fun compose(
@@ -2838,12 +2853,12 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			val flags =
-				(if (obj.lowerInclusive()) 1 else 0) +
-					if (obj.upperInclusive()) 2 else 0
+				(if (obj.lowerInclusive) 1 else 0) +
+					if (obj.upperInclusive) 2 else 0
 			return array(
 				fromInt(flags),
-				obj.lowerBound(),
-				obj.upperBound())
+				obj.lowerBound,
+				obj.upperBound)
 		}
 
 		override fun compose(
@@ -2851,7 +2866,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val (flags, lowerBound, upperBound) = subobjects
-			val flagsInt = flags.extractUnsignedByte().toInt()
+			val flagsInt = flags.extractUnsignedByte.toInt()
 			val lowerInclusive = flagsInt and 1 != 0
 			val upperInclusive = flagsInt and 2 != 0
 			return integerRangeType(
@@ -3032,8 +3047,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			assert(obj.isPojoArrayType)
-			val contentType = obj.contentType()
-			val sizeRange = obj.sizeRange()
+			val contentType = obj.contentType
+			val sizeRange = obj.sizeRange
 			return array(contentType, sizeRange)
 		}
 
@@ -3151,14 +3166,14 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.instances().asTuple())
+			return array(obj.instances.asTuple)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return enumerationWith(subobjects[0].asSet())
+			return enumerationWith(subobjects[0].asSet)
 		}
 	},
 
@@ -3172,7 +3187,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.instance())
+			return array(obj.instance)
 		}
 
 		override fun compose(
@@ -3194,7 +3209,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.instance())
+			return array(obj.instance)
 		}
 
 		override fun compose(
@@ -3218,8 +3233,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.sizeRange(),
-				obj.contentType())
+				obj.sizeRange,
+				obj.contentType)
 		}
 
 		override fun compose(
@@ -3245,9 +3260,9 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				obj.sizeRange(),
-				obj.keyType(),
-				obj.valueType())
+				obj.sizeRange,
+				obj.keyType,
+				obj.valueType)
 		}
 
 		override fun compose(
@@ -3276,7 +3291,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			return tokenType(lookupTokenType(subobjects[0].extractInt()))
+			return tokenType(lookupTokenType(subobjects[0].extractInt))
 		}
 	},
 
@@ -3289,7 +3304,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			return array(obj.literalType())
+			return array(obj.literalType)
 		}
 
 		override fun compose(
@@ -3313,8 +3328,8 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				fromInt(obj.phraseKind().ordinal),
-				obj.phraseTypeExpressionType())
+				fromInt(obj.phraseKind.ordinal),
+				obj.phraseTypeExpressionType)
 		}
 
 		override fun compose(
@@ -3322,7 +3337,7 @@ enum class SerializerOperation constructor(
 			deserializer: Deserializer): A_BasicObject
 		{
 			val (phraseKindOrdinal, expressionType) = subobjects
-			return PhraseKind.lookup(phraseKindOrdinal.extractInt())
+			return PhraseKind.lookup(phraseKindOrdinal.extractInt)
 				.create(expressionType)
 		}
 	},
@@ -3341,9 +3356,9 @@ enum class SerializerOperation constructor(
 			serializer: Serializer): Array<out A_BasicObject>
 		{
 			return array(
-				fromInt(obj.phraseKind().ordinal),
-				obj.phraseTypeExpressionType(),
-				obj.subexpressionsTupleType())
+				fromInt(obj.phraseKind.ordinal),
+				obj.phraseTypeExpressionType,
+				obj.subexpressionsTupleType)
 		}
 
 		override fun compose(
@@ -3353,7 +3368,7 @@ enum class SerializerOperation constructor(
 			val (phraseKindOrdinal, expressionType, subexpressionsTupleType) =
 				subobjects
 			return createListNodeType(
-				PhraseKind.lookup(phraseKindOrdinal.extractInt()),
+				PhraseKind.lookup(phraseKindOrdinal.extractInt),
 				expressionType,
 				subexpressionsTupleType)
 		}
@@ -3369,8 +3384,8 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val readType = obj.readType()
-			assert(readType.equals(obj.writeType()))
+			val readType = obj.readType
+			assert(readType.equals(obj.writeType))
 			return array(readType)
 		}
 
@@ -3395,8 +3410,8 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val readType = obj.readType()
-			val writeType = obj.writeType()
+			val readType = obj.readType
+			val writeType = obj.writeType
 			assert(!readType.equals(writeType))
 			return array(readType, writeType)
 		}
@@ -3568,14 +3583,14 @@ enum class SerializerOperation constructor(
 		{
 			val currentModule = deserializer.currentModule
 			assert(currentModule.notNil)
-			if (moduleName.equals(currentModule.moduleName()))
+			if (moduleName.equals(currentModule.moduleName))
 			{
 				// An atom in the current module.  Create it if necessary.
 				// Check if it's already defined somewhere...
 				val trueNames = currentModule.trueNamesForStringName(atomName)
-				if (trueNames.setSize() == 1)
+				if (trueNames.setSize == 1)
 				{
-					return trueNames.asTuple().tupleAt(1)
+					return trueNames.asTuple.tupleAt(1)
 				}
 				val atom = AtomWithPropertiesSharedDescriptor.shared
 					.createInitialized(atomName, currentModule, nil, 0)
@@ -3584,17 +3599,17 @@ enum class SerializerOperation constructor(
 			}
 			// An atom in an imported module.
 			val module = deserializer.moduleNamed(moduleName)
-			val newNames = module.newNames()
+			val newNames = module.newNames
 			if (newNames.hasKey(atomName))
 			{
 				return newNames.mapAt(atomName)
 			}
-			val privateNames = module.privateNames()
+			val privateNames = module.privateNames
 			if (privateNames.hasKey(atomName))
 			{
 				val candidates = privateNames.mapAt(atomName)
-				if (candidates.setSize() == 1) return candidates.single()
-				if (candidates.setSize() > 1)
+				if (candidates.setSize == 1) return candidates.single()
+				if (candidates.setSize > 1)
 				{
 					throw RuntimeException(
 						"Ambiguous atom $atomName in module $module")

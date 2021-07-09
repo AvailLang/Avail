@@ -84,7 +84,7 @@ object P_FilePathSplit : Primitive(1, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), oneOrMoreOf(stringType()))
+		functionType(tuple(stringType), oneOrMoreOf(stringType))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))

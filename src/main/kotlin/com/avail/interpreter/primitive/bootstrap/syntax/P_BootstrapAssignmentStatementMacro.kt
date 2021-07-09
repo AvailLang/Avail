@@ -94,7 +94,7 @@ object P_BootstrapAssignmentStatementMacro
 	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(variableNameLiteral.isInstanceOf(
 			LITERAL_PHRASE.mostGeneralType()))
-		val literalToken = variableNameLiteral.token()
+		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
 		assert(actualToken.isInstanceOf(TOKEN.o))
@@ -114,14 +114,14 @@ object P_BootstrapAssignmentStatementMacro
 			scopeMap.hasKey(variableNameString) -> {
 				scopeMap.mapAt(variableNameString)
 			}
-			module.variableBindings().hasKey(variableNameString) -> {
+			module.variableBindings.hasKey(variableNameString) -> {
 				val variableObject =
-					module.variableBindings().mapAt(variableNameString)
+					module.variableBindings.mapAt(variableNameString)
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			}
-			module.constantBindings().hasKey(variableNameString) -> {
+			module.constantBindings.hasKey(variableNameString) -> {
 				val variableObject =
-					module.constantBindings().mapAt(variableNameString)
+					module.constantBindings.mapAt(variableNameString)
 				newModuleConstant(actualToken, variableObject, nil)
 			}
 			else -> throw AvailRejectedParseException(STRONG)
@@ -140,16 +140,16 @@ object P_BootstrapAssignmentStatementMacro
 					declaration.declarationKind().nativeKindName())
 			}
 		}
-		if (!valueExpression.phraseExpressionType().isSubtypeOf(
-				declaration.declaredType()))
+		if (!valueExpression.phraseExpressionType.isSubtypeOf(
+				declaration.declaredType))
 		{
 			throw AvailRejectedParseException(STRONG)
 			{
 				formatString(
 					"assignment expression's type (%s) "
 						+ "to match variable type (%s)",
-					valueExpression.phraseExpressionType(),
-					declaration.declaredType())
+					valueExpression.phraseExpressionType,
+					declaration.declaredType)
 			}
 		}
 		val tokens = clientData.mapAt(staticTokensKey)

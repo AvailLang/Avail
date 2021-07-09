@@ -97,7 +97,7 @@ interface A_Type : A_BasicObject
 	companion object
 	{
 		/**
-		 * Answer whether the [argument&#32;types][A_Type.argsTupleType]
+		 * Answer whether the [argument&#32;types][argsTupleType]
 		 * supported by the specified
 		 * [function&#32;type][FunctionTypeDescriptor] are acceptable argument
 		 * types for invoking a [function][FunctionDescriptor] whose type is the
@@ -184,8 +184,8 @@ interface A_Type : A_BasicObject
 		 * @return
 		 *   The tuple type for a function type's arguments.
 		 */
-		fun A_Type.argsTupleType(): A_Type =
-			dispatch { o_ArgsTupleType(it) }
+		val A_Type.argsTupleType: A_Type
+			get() = dispatch { o_ArgsTupleType(it) }
 
 		/**
 		 * Answer the type of elements that this set type's sets may hold.
@@ -193,7 +193,7 @@ interface A_Type : A_BasicObject
 		 * @return
 		 *   The set type's content type.
 		 */
-		fun A_Type.contentType(): A_Type = dispatch { o_ContentType(it) }
+		val A_Type.contentType: A_Type get() = dispatch { o_ContentType(it) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -213,15 +213,16 @@ interface A_Type : A_BasicObject
 		 * @return
 		 *   The set of declared exception types.
 		 */
-		fun A_Type.declaredExceptions(): A_Set =
-			dispatch { o_DeclaredExceptions(it) }
+		val A_Type.declaredExceptions: A_Set
+			get() = dispatch { o_DeclaredExceptions(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 *
 		 * @return
 		 */
-		fun A_Type.defaultType(): A_Type = dispatch { o_DefaultType(it) }
+		val A_Type.defaultType: A_Type
+			get() = dispatch { o_DefaultType(it) }
 
 		/**
 		 * Return the phrase type's expression type, which is the type of object
@@ -233,8 +234,8 @@ interface A_Type : A_BasicObject
 		 *   The [type][TypeDescriptor] of the [AvailObject] that will be
 		 *   produced by this type of phrase.
 		 */
-		fun A_Type.phraseTypeExpressionType(): A_Type =
-			dispatch { o_PhraseTypeExpressionType(it) }
+		val A_Type.phraseTypeExpressionType: A_Type
+			get() = dispatch { o_PhraseTypeExpressionType(it) }
 
 		/**
 		 * Given an [object&#32;type][ObjectTypeDescriptor], answer its map from
@@ -243,12 +244,12 @@ interface A_Type : A_BasicObject
 		 * @return
 		 *   The map of field types.
 		 */
-		fun A_Type.fieldTypeMap(): A_Map = dispatch { o_FieldTypeMap(it) }
+		val A_Type.fieldTypeMap: A_Map get() = dispatch { o_FieldTypeMap(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.functionType(): A_Type = dispatch { o_FunctionType(it) }
+		val A_Type.functionType: A_Type get() = dispatch { o_FunctionType(it) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -425,25 +426,26 @@ interface A_Type : A_BasicObject
 		 * Dispatch to the descriptor.
 		 * @return
 		 */
-		fun A_Type.keyType(): A_Type = dispatch { o_KeyType(it) }
+		val A_Type.keyType: A_Type get() = dispatch { o_KeyType(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 * @return
 		 */
-		fun A_Type.lowerBound(): A_Number = dispatch { o_LowerBound(it) }
+		val A_Type.lowerBound: A_Number get() = dispatch { o_LowerBound(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 * @return
 		 */
-		fun A_Type.lowerInclusive(): Boolean = dispatch { o_LowerInclusive(it) }
+		val A_Type.lowerInclusive: Boolean
+			get() = dispatch { o_LowerInclusive(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 * @return
 		 */
-		fun A_Type.parent(): A_BasicObject = dispatch { o_Parent(it) }
+		val A_Type.parent: A_BasicObject get() = dispatch { o_Parent(it) }
 
 		/**
 		 * Also declared in [A_Phrase] for [phrases][PhraseDescriptor], not just
@@ -452,12 +454,12 @@ interface A_Type : A_BasicObject
 		 * @return
 		 *   Answer the phrase's PhraseKind.
 		 */
-		fun A_Type.phraseKind(): PhraseKind = dispatch { o_PhraseKind(it) }
+		val A_Type.phraseKind: PhraseKind get() = dispatch { o_PhraseKind(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.readType(): A_Type = dispatch { o_ReadType(it) }
+		val A_Type.readType: A_Type get() = dispatch { o_ReadType(it) }
 
 		/**
 		 * Also declared in [A_Phrase] for
@@ -466,13 +468,13 @@ interface A_Type : A_BasicObject
 		 *
 		 * @return
 		 */
-		fun A_Type.returnType(): A_Type = dispatch { o_ReturnType(it) }
+		val A_Type.returnType: A_Type get() = dispatch { o_ReturnType(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 * @return
 		 */
-		fun A_Type.sizeRange(): A_Type = dispatch { o_SizeRange(it) }
+		val A_Type.sizeRange: A_Type get() = dispatch { o_SizeRange(it) }
 
 		/**
 		 * Answer a type that includes *at least* all values from the receiver
@@ -517,7 +519,7 @@ interface A_Type : A_BasicObject
 		 *
 		 * @return
 		 */
-		fun A_Type.typeTuple(): A_Tuple = dispatch { o_TypeTuple(it) }
+		val A_Type.typeTuple: A_Tuple get() = dispatch { o_TypeTuple(it) }
 
 		/**
 		 * @param aCompiledCodeType
@@ -883,7 +885,7 @@ interface A_Type : A_BasicObject
 		/**
 		 * @return
 		 */
-		fun A_Type.typeVariables(): A_Map = dispatch { o_TypeVariables(it) }
+		val A_Type.typeVariables: A_Map get() = dispatch { o_TypeVariables(it) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -904,19 +906,20 @@ interface A_Type : A_BasicObject
 		 *
 		 * @return
 		 */
-		fun A_Type.upperBound(): A_Number = dispatch { o_UpperBound(it) }
+		val A_Type.upperBound: A_Number get() = dispatch { o_UpperBound(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 *
 		 * @return
 		 */
-		fun A_Type.upperInclusive(): Boolean = dispatch { o_UpperInclusive(it) }
+		val A_Type.upperInclusive: Boolean
+			get() = dispatch { o_UpperInclusive(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.writeType(): A_Type = dispatch { o_WriteType(it) }
+		val A_Type.writeType: A_Type get() = dispatch { o_WriteType(it) }
 
 		/**
 		 * Compute a [type][TypeDescriptor] that is an ancestor of the receiver,
@@ -934,12 +937,13 @@ interface A_Type : A_BasicObject
 		/**
 		 * @return
 		 */
-		fun A_Type.valueType(): A_Type = dispatch { o_ValueType(it) }
+		val A_Type.valueType: A_Type get() = dispatch { o_ValueType(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.fieldTypeTuple(): A_Tuple = dispatch { o_FieldTypeTuple(it) }
+		val A_Type.fieldTypeTuple: A_Tuple
+			get() = dispatch { o_FieldTypeTuple(it) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -953,28 +957,29 @@ interface A_Type : A_BasicObject
 		/**
 		 * @return
 		 */
-		fun A_Type.instance(): AvailObject = dispatch { o_Instance(it) }
+		val A_Type.instance: AvailObject get() = dispatch { o_Instance(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.instanceCount(): A_Number = dispatch { o_InstanceCount(it) }
+		val A_Type.instanceCount: A_Number
+			get() = dispatch { o_InstanceCount(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.instances(): A_Set = dispatch { o_Instances(it) }
+		val A_Type.instances: A_Set get() = dispatch { o_Instances(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.tokenType(): TokenDescriptor.TokenType =
-			dispatch { o_TokenType(it) }
+		val A_Type.tokenType: TokenDescriptor.TokenType
+			get() = dispatch { o_TokenType(it) }
 
 		/**
 		 * @return
 		 */
-		fun A_Type.literalType(): A_Type = dispatch { o_LiteralType(it) }
+		val A_Type.literalType: A_Type get() = dispatch { o_LiteralType(it) }
 
 		/**
 		 * @param aLong
@@ -1003,8 +1008,8 @@ interface A_Type : A_BasicObject
 		 * @return
 		 *   A tuple type of phrases.
 		 */
-		fun A_Type.subexpressionsTupleType(): A_Type =
-			dispatch { o_SubexpressionsTupleType(it) }
+		val A_Type.subexpressionsTupleType: A_Type
+			get() = dispatch { o_SubexpressionsTupleType(it) }
 
 		/**
 		 * Answer whether the receiver, a type, is a supertype of the given

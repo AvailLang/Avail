@@ -33,6 +33,8 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.methods.A_Method.Companion.chooseBundle
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.MODULE
@@ -71,8 +73,7 @@ import java.util.IdentityHashMap
 class ForwardDefinitionDescriptor private constructor(
 	mutability: Mutability
 ) : DefinitionDescriptor(
-	mutability, ObjectSlots::class.java, null
-)
+	mutability, ObjectSlots::class.java, null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -113,12 +114,11 @@ class ForwardDefinitionDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	)
+		indent: Int)
 	{
 		self.slot(DEFINITION_METHOD)
 			.chooseBundle(self.slot(MODULE))
-			.message()
+			.message
 			.printOnAvoidingIndent(builder, recursionMap, indent)
 		builder.append(' ')
 		self.slot(BODY_SIGNATURE).printOnAvoidingIndent(
@@ -144,7 +144,7 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -156,7 +156,7 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)

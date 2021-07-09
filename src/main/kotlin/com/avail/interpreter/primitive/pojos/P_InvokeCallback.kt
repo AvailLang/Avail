@@ -68,7 +68,7 @@ object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
 	{
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 		val primitiveFunction = interpreter.function!!
-		assert(primitiveFunction.code().primitive() === this)
+		assert(primitiveFunction.code().codePrimitive() === this)
 		val callbackPojo = primitiveFunction.outerVarAt(1)
 		val argumentsTuple = tupleFromList(interpreter.argsBuffer)
 		return interpreter.suspendThen {

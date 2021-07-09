@@ -142,8 +142,7 @@ class Graph<Vertex> constructor ()
 		{
 			ensure(
 				!outEdges.containsKey(vertex),
-				"vertex is already in graph"
-			)
+				"vertex is already in graph")
 			outEdges[vertex] = mutableSetOf()
 			inEdges[vertex] = mutableSetOf()
 		}
@@ -248,8 +247,7 @@ class Graph<Vertex> constructor ()
 		notNull(targetInSet, "target vertex is not present")
 		ensure(
 			!sourceOutSet!!.contains(targetVertex),
-			"edge is already present"
-		)
+			"edge is already present")
 		sourceOutSet.add(targetVertex)
 		targetInSet!!.add(sourceVertex)
 	}
@@ -293,8 +291,7 @@ class Graph<Vertex> constructor ()
 		notNull(targetInSet, "target vertex is not in graph")
 		ensure(
 			sourceOutSet!!.contains(targetVertex),
-			"edge is not in graph"
-		)
+			"edge is not in graph")
 		sourceOutSet.remove(targetVertex)
 		targetInSet!!.remove(sourceVertex)
 	}
@@ -404,8 +401,7 @@ class Graph<Vertex> constructor ()
 	{
 		ensure(
 			outEdges.containsKey(vertex),
-			"source vertex is not in graph"
-		)
+			"source vertex is not in graph")
 		return outEdges[vertex]!!.toSet()
 	}
 
@@ -422,8 +418,7 @@ class Graph<Vertex> constructor ()
 	{
 		ensure(
 			inEdges.containsKey(vertex),
-			"target vertex is not in graph"
-		)
+			"target vertex is not in graph")
 		return inEdges[vertex]!!.toSet()
 	}
 
@@ -855,14 +850,14 @@ class Graph<Vertex> constructor ()
 			val stackSet = mutableSetOf<Vertex>()
 			val stackList = mutableListOf<Vertex>()
 			val scanned = mutableListOf<Vertex>()
-			outEdges.entries.stream().sorted(
-				Comparator
-					.comparingInt { e: Map.Entry<Vertex, Set<Vertex>> ->
-						e.value.size
-					}
-					.thenComparing { e -> e.key.toString() }
-			)
-				.map { obj -> obj.key }
+			outEdges.entries.stream()
+				.sorted(
+					Comparator
+						.comparingInt { e: Map.Entry<*, Set<*>> ->
+							e.value.size
+						}
+						.thenComparing { e -> e.key.toString() })
+				.map(MutableMap.MutableEntry<Vertex, MutableSet<Vertex>>::key)
 				.forEach { startVertex ->
 					assert(stackSet.isEmpty() && stackList.isEmpty())
 					recurse(startVertex) { vertex, body ->
@@ -944,8 +939,7 @@ class Graph<Vertex> constructor ()
 					for (destinationPredecessor in destinationPredecessors)
 					{
 						if (ancestorSets[destinationPredecessor]!!.contains(
-								source
-							))
+								source))
 						{
 							isRedundant = true
 							break

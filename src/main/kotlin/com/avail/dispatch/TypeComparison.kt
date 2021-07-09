@@ -166,7 +166,7 @@ enum class TypeComparison
 			assert(argumentRestrictions.size == 1)
 			val restriction = argumentRestrictions[0]
 			val intersection = restriction.intersectionWithType(someType)
-			if (intersection.type.phraseTypeExpressionType().isBottom)
+			if (intersection.type.phraseTypeExpressionType.isBottom)
 			{
 				// For the purpose of parsing, if the intersection of these
 				// phrase types produces a yield type that's ⊥, treat the types

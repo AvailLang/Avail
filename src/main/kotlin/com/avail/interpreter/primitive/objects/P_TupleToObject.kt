@@ -100,29 +100,29 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
-		val tupleSizes = tupleType.sizeRange()
-		val tupleSizeLowerBound = tupleSizes.lowerBound()
-		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+		val tupleSizes = tupleType.sizeRange
+		val tupleSizeLowerBound = tupleSizes.lowerBound
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound)
 		    || !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  Give up.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
-		val tupleSize = tupleSizeLowerBound.extractInt()
+		val tupleSize = tupleSizeLowerBound.extractInt
 		var fieldTypeMap = emptyMap
 		for (i in 1 .. tupleSize)
 		{
 			val pairType = tupleType.typeAtIndex(i)
-			assert(pairType.sizeRange().lowerBound().extractInt() == 2)
-			assert(pairType.sizeRange().upperBound().extractInt() == 2)
+			assert(pairType.sizeRange.lowerBound.extractInt == 2)
+			assert(pairType.sizeRange.upperBound.extractInt == 2)
 			val keyType = pairType.typeAtIndex(1)
-			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
+			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
 				// Can only strengthen if all key atoms are statically known.
 				return super.returnTypeGuaranteedByVM(
 					rawFunction, argumentTypes)
 			}
-			val keyValue = keyType.instance()
+			val keyValue = keyType.instance
 			if (fieldTypeMap.hasKey(keyValue))
 			{
 				// In case the semantics of this situation change.  Give up.
@@ -151,26 +151,26 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 
 		val pairsReg = arguments[0]
 		val pairsType = argumentTypes[0]
-		val sizeRange = pairsType.sizeRange()
+		val sizeRange = pairsType.sizeRange
 
 		val generator = translator.generator
 
-		if (!sizeRange.lowerBound().isInt) return false
-		val size = sizeRange.lowerBound().extractInt()
-		if (!sizeRange.upperBound().equalsInt(size)) return false
+		if (!sizeRange.lowerBound.isInt) return false
+		val size = sizeRange.lowerBound.extractInt
+		if (!sizeRange.upperBound.equalsInt(size)) return false
 		// The tuple size is known.  See if the order of field atoms is known.
 		val atoms = (1..size).map {
 			val keyType = pairsType.typeAtIndex(it).typeAtIndex(1)
-			if (!keyType.isEnumeration || !keyType.instanceCount().equalsInt(1))
+			if (!keyType.isEnumeration || !keyType.instanceCount.equalsInt(1))
 			{
 				return false
 			}
 			// It's at known to be a particular atom, and not instanceMeta.
-			keyType.instance()
+			keyType.instance
 		}
 		// Check that the atoms are unique.
 		val atomsSet = setFromCollection(atoms)
-		if (atomsSet.setSize() != size) return false
+		if (atomsSet.setSize != size) return false
 		// Look up the ObjectLayoutVariant statically.
 		val variant = variantForFields(atomsSet)
 		val fieldMap = variant.fieldToSlotIndex

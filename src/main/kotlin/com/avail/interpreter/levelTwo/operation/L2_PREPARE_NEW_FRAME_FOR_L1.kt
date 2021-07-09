@@ -32,6 +32,10 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.functions.A_Continuation
+import com.avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.NilDescriptor
@@ -113,9 +117,9 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		val function = interpreter.function!!
 		val code = function.code()
 		val numArgs = code.numArgs()
-		val numLocals = code.numLocals()
+		val numLocals = code.numLocals
 		val numArgsAndLocals = numArgs + numLocals
-		val numSlots = code.numSlots()
+		val numSlots = code.numSlots
 		// The L2 instructions that implement L1 don't reserve room for any
 		// fixed registers, but they assume [0] is unused (to simplify
 		// indexing).  I.e., pointers[1] <-> continuation.stackAt(1).
@@ -145,14 +149,16 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		code.setUpInstructionDecoder(stepper.instructionDecoder)
 		stepper.instructionDecoder.pc(1)
 		stepper.stackp = numSlots + 1
-		val primitive = code.primitive()
+		val primitive = code.codePrimitive()
 		if (primitive !== null)
 		{
 			// A failed primitive.  The failure value was captured in the
 			// latestResult().
 			assert(!primitive.hasFlag(Primitive.Flag.CannotFail))
-			val primitiveFailureValue: A_BasicObject = interpreter.getLatestResult()
-			val primitiveFailureVariable: A_Variable = stepper.pointerAt(numArgs + 1)
+			val primitiveFailureValue: A_BasicObject =
+				interpreter.getLatestResult()
+			val primitiveFailureVariable: A_Variable =
+				stepper.pointerAt(numArgs + 1)
 			primitiveFailureVariable.setValue(primitiveFailureValue)
 		}
 		if (interpreter.isInterruptRequested)

@@ -73,24 +73,24 @@ object P_ModuleHeaderPrefixCheckImportVersion
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		val allImportsList = interpreter.argument(2)
-		val lastImport = allImportsList.lastExpression()
-		assert(lastImport.expressionsSize() == 2)  // extends/uses, then content
+		val lastImport = allImportsList.lastExpression
+		assert(lastImport.expressionsSize == 2)  // extends/uses, then content
 		val lastImportNames = lastImport.expressionAt(2)
-		val lastImportNameEntry = lastImportNames.lastExpression()
-		assert(lastImportNameEntry.expressionsSize() == 2)
+		val lastImportNameEntry = lastImportNames.lastExpression
+		assert(lastImportNameEntry.expressionsSize == 2)
 		val importVersionsOptional = lastImportNameEntry.expressionAt(2)
-		assert(importVersionsOptional.expressionsSize() == 1)
+		assert(importVersionsOptional.expressionsSize == 1)
 		val importVersions = importVersionsOptional.expressionAt(1)
-		val importVersionsSize = importVersions.expressionsSize()
-		val lastImportVersion = importVersions.lastExpression()
+		val importVersionsSize = importVersions.expressionsSize
+		val lastImportVersion = importVersions.lastExpression
 		assert(lastImportVersion.phraseKindIsUnder(LITERAL_PHRASE))
 		val lastImportVersionString =
-			lastImportVersion.token().literal().literal()
+			lastImportVersion.token.literal().literal()
 		for (i in 1 until importVersionsSize)
 		{
 			val oldVersionPhrase = importVersions.expressionAt(i)
 			val oldVersion =
-				oldVersionPhrase.token().literal().literal()
+				oldVersionPhrase.token.literal().literal()
 			if (lastImportVersionString.equals(oldVersion))
 			{
 				val importModuleName =
@@ -100,7 +100,7 @@ object P_ModuleHeaderPrefixCheckImportVersion
 					"imported module ($importModuleName) version specification "
 						+ "$lastImportVersionString to be unique, not a "
 						+ "duplicate (of line "
-						+ "${oldVersionPhrase.token().lineNumber()})")
+						+ "${oldVersionPhrase.token.lineNumber()})")
 			}
 		}
 		return interpreter.primitiveSuccess(nil)
@@ -132,6 +132,5 @@ object P_ModuleHeaderPrefixCheckImportVersion
 										// Final ellipsis (import all the rest)
 										LITERAL_PHRASE.create(
 											booleanType)))))))),
-			TOP.o
-		)
+			TOP.o)
 }

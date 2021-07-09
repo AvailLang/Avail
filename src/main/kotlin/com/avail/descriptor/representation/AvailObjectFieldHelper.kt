@@ -164,7 +164,8 @@ class AvailObjectFieldHelper(
 			null -> append(" = Java null")
 			is AvailObject -> append(' ').append(value.nameForDebugger())
 			is AvailIntegerValueHelper -> {
-				try {
+				try
+				{
 					val strongSlot: IntegerSlotsEnum = slot.cast()
 					val bitFields = bitFieldsFor(strongSlot)
 					if (bitFields.isNotEmpty()) {
@@ -177,7 +178,9 @@ class AvailObjectFieldHelper(
 						strongSlot,
 						bitFields,
 						this)
-				} catch (e: Throwable) {
+				}
+				catch (e: Throwable)
+				{
 					append("PROBLEM DESCRIBING INTEGER FIELD:\n")
 					append(StackPrinter.trace(e))
 				}

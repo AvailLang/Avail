@@ -45,7 +45,6 @@ import com.avail.server.messages.TextCommand.TrieNode
 import com.avail.server.messages.TextCommand.TrieNode.Companion.trie
 import java.lang.String.format
 import java.util.Formatter
-import java.util.Locale
 import java.util.UUID
 
 /**
@@ -355,7 +354,7 @@ enum class TextCommand
 				var node = trie
 				for (token in syntax)
 				{
-					val lowercase = token.lowercase(Locale.getDefault())
+					val lowercase = token.lowercase()
 					node = node.nextNodes.computeIfAbsent(lowercase) {
 						TrieNode()
 					}
@@ -404,7 +403,7 @@ enum class TextCommand
 				val tokens = source.split("\\s+".toRegex())
 				for (token in tokens)
 				{
-					val nextNode = node.nextNodes[token.lowercase(Locale.getDefault())]
+					val nextNode = node.nextNodes[token.lowercase()]
 						?: return null
 					node = nextNode
 				}

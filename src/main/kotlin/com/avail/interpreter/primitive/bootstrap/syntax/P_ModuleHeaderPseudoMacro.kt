@@ -98,8 +98,7 @@ object P_ModuleHeaderPseudoMacro
 							optionalNames,
 							optionalEntries,
 							optionalPragmas)),
-					TOP.o
-				)))
+					TOP.o)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

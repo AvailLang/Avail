@@ -92,8 +92,8 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(mostGeneralTupleType())),
-			mostGeneralTupleType())
+			tuple(zeroOrMoreOf(mostGeneralTupleType)),
+			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -101,9 +101,9 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		val tuplesType = argumentTypes[0]
 
-		val tuplesSizes = tuplesType.sizeRange()
-		val lowerBound = tuplesSizes.lowerBound()
-		val upperBound = tuplesSizes.upperBound()
+		val tuplesSizes = tuplesType.sizeRange
+		val lowerBound = tuplesSizes.lowerBound
+		val upperBound = tuplesSizes.upperBound
 		if (lowerBound.equals(upperBound))
 		{
 			// A fixed number of subtuples.  Must be finite, of course.
@@ -115,7 +115,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			}
 			// A (reasonably small) collection of tuple types.
 			assert(lowerBound.isInt)
-			val bound = lowerBound.extractInt()
+			val bound = lowerBound.extractInt
 			if (bound == 0)
 			{
 				return instanceType(emptyTuple)
@@ -129,22 +129,22 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			return concatenatedType
 		}
 		// A variable number of subtuples.  See if it's homogeneous.
-		if (tuplesType.typeTuple().tupleSize() == 0)
+		if (tuplesType.typeTuple.tupleSize == 0)
 		{
 			// The outer tuple type is homogeneous.
-			val innerTupleType = tuplesType.defaultType()
-			if (innerTupleType.typeTuple().tupleSize() == 0)
+			val innerTupleType = tuplesType.defaultType
+			if (innerTupleType.typeTuple.tupleSize == 0)
 			{
 				// The inner tuple type is also homogeneous.
-				val innerSizes = innerTupleType.sizeRange()
-				val minSize = tuplesSizes.lowerBound().timesCanDestroy(
-					innerSizes.lowerBound(), false)
-				val maxSize = tuplesSizes.upperBound().timesCanDestroy(
-					innerSizes.upperBound(), false)
+				val innerSizes = innerTupleType.sizeRange
+				val minSize = tuplesSizes.lowerBound.timesCanDestroy(
+					innerSizes.lowerBound, false)
+				val maxSize = tuplesSizes.upperBound.timesCanDestroy(
+					innerSizes.upperBound, false)
 				val newSizeRange = integerRangeType(
 					minSize, true, maxSize.plusCanDestroy(one, true), false)
 				return tupleTypeForSizesTypesDefaultType(
-					newSizeRange, emptyTuple, innerTupleType.defaultType())
+					newSizeRange, emptyTuple, innerTupleType.defaultType)
 			}
 		}
 		// Too tricky to bother narrowing.
@@ -163,18 +163,18 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		val tupleOfTuplesReg = arguments[0]
 
 		val generator = translator.generator
-		val range = tupleOfTuplesReg.type().sizeRange()
-		val size = range.lowerBound()
-		if (!size.isInt || !range.upperBound().equals(size))
+		val range = tupleOfTuplesReg.type().sizeRange
+		val size = range.lowerBound
+		if (!size.isInt || !range.upperBound.equals(size))
 			return false
-		val sizeInt = size.extractInt()
+		val sizeInt = size.extractInt
 		var elementRegs = generator.explodeTupleIfPossible(
 			tupleOfTuplesReg,
 			tupleOfTuplesReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
 		// Strip out any always-empty tuples.
 		elementRegs = elementRegs.filter {
-			!it.constantOrNull().notNullAnd { tupleSize() == 0 }
+			!it.constantOrNull().notNullAnd { tupleSize == 0 }
 		}
 		// Statically concatenate adjacent constants, since tuple concatenation
 		// associates.
@@ -185,15 +185,17 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		for (source in elementRegs)
 		{
 			val restriction = source.restriction()
-			val sizeRange = restriction.type.sizeRange()
-			if (sizeRange.upperBound().equalsInt(0)) continue
+			val sizeRange = restriction.type.sizeRange
+			if (sizeRange.upperBound.equalsInt(0)) continue
 			val constant = restriction.constantOrNull
-			if (constant !== null) {
+			if (constant !== null)
+			{
 				currentTuple =
 					if (currentTuple === null) constant
 					else currentTuple.concatenateWith(constant, false)
 			}
-			else {
+			else
+			{
 				if (currentTuple !== null) {
 					adjustedSources.add(
 						translator.generator.boxedConstant(currentTuple))

@@ -108,10 +108,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				}
 				else if (locale.language == "en")
 				{
-					print(
-						code.name.substring(2).lowercase(Locale.getDefault())
-							.replace('_', '-')
-					)
+					print(code.name.substring(2).lowercase().replace('_', '-'))
 					print(" code")
 				}
 				println()
@@ -126,10 +123,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				}
 				else if (locale.language == "en")
 				{
-					print(
-						code.name.substring(2).lowercase(Locale.getDefault())
-							.replace('_', '-')
-					)
+					print(code.name.substring(2).lowercase().replace('_', '-'))
 					print(" exception")
 				}
 				println()
@@ -190,7 +184,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 					{
 						reachableErrorCodes =
 							reachableErrorCodes.setUnionCanDestroy(
-								failureType.instances(), true)
+								failureType.instances, true)
 					}
 					else if (failureType.isSubtypeOf(mostGeneralVariableType()))
 					{
@@ -198,17 +192,17 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 						// codes inside a variable type.
 						reachableErrorCodes =
 							reachableErrorCodes.setUnionCanDestroy(
-								failureType.readType().instances(), true)
+								failureType.readType.instances, true)
 					}
 				}
 			}
 			val unreachableErrorCodes =
 				allErrorCodes.setMinusCanDestroy(reachableErrorCodes, true)
-			if (unreachableErrorCodes.setSize() != 0)
+			if (unreachableErrorCodes.setSize != 0)
 			{
 				val unreachable = EnumSet.noneOf(AvailErrorCode::class.java)
 				unreachableErrorCodes.forEach { code ->
-					unreachable.add(byNumericCode(code.extractInt()))
+					unreachable.add(byNumericCode(code.extractInt))
 				}
 				System.err.printf(
 					"some error codes are unreachable: %s%n",

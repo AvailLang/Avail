@@ -33,7 +33,6 @@ package com.avail.descriptor.sets
 
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character.Companion.codePoint
-import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObjectFieldHelper
@@ -67,22 +66,12 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjec
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.contentType
-import com.avail.descriptor.types.A_Type.Companion.defaultType
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
-import com.avail.descriptor.types.A_Type.Companion.trimType
-import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
-import com.avail.descriptor.types.A_Type.Companion.typeTuple
-import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import com.avail.descriptor.types.BottomTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
 import com.avail.descriptor.types.TypeTag
@@ -95,7 +84,6 @@ import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 import java.util.SortedSet
 import java.util.TreeSet
-import kotlin.math.max
 
 /**
  * An Avail [set][SetDescriptor] refers to the root of a Bagwell Ideal Hash
@@ -148,11 +136,11 @@ private constructor(
 		indent: Int
 	): Unit = with(builder) {
 		when {
-			self.setSize() == 0 -> append('∅')
+			self.setSize == 0 -> append('∅')
 			self.setElementsAreAllInstancesOfKind(CHARACTER.o) -> {
 				append("¢[")
 				val codePointsSet: SortedSet<Int> = TreeSet()
-				self.mapTo(codePointsSet) { it.codePoint() }
+				self.mapTo(codePointsSet) { it.codePoint }
 				val iterator: Iterator<Int> = codePointsSet.iterator()
 				var runStart = iterator.next()
 				do {
@@ -179,7 +167,7 @@ private constructor(
 				append("]")
 			}
 			else -> {
-				val tuple = self.asTuple()
+				val tuple = self.asTuple
 				append('{')
 				var first = true
 				for (element in tuple) {
@@ -196,7 +184,7 @@ private constructor(
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		"${super.o_NameForDebugger(self)}: setSize=${self.setSize()}"
+		"${super.o_NameForDebugger(self)}: setSize=${self.setSize}"
 
 	/**
 	 * Synthetic slots to display.
@@ -225,7 +213,7 @@ private constructor(
 	override fun o_EqualsSet(self: AvailObject, aSet: A_Set): Boolean = when {
 		self.sameAddressAs(aSet) -> true
 		rootBin(self).sameAddressAs(rootBin(aSet as AvailObject)) -> true
-		self.setSize() != aSet.setSize() -> false
+		self.setSize != aSet.setSize -> false
 		self.hash() != aSet.hash() -> false
 		!rootBin(self).isBinSubsetOf(aSet) -> false
 		// They're equal.
@@ -259,7 +247,7 @@ private constructor(
 	 * always the sum of its elements' hashes.
 	 */
 	override fun o_Hash(self: AvailObject): Int =
-		rootBin(self).setBinHash() xor 0xCD9EFC6
+		rootBin(self).setBinHash xor 0xCD9EFC6
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -268,9 +256,9 @@ private constructor(
 		aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> true
 		!aType.isSetType -> false
 		// See if it's an acceptable size...
-		!aType.sizeRange().rangeIncludesLong(self.setSize().toLong()) -> false
+		!aType.sizeRange.rangeIncludesLong(self.setSize.toLong()) -> false
 		else -> {
-			val expectedContentType = aType.contentType()
+			val expectedContentType = aType.contentType
 			when {
 				expectedContentType.equals(Types.ANY.o) -> true
 				expectedContentType.isEnumeration ->
@@ -287,12 +275,12 @@ private constructor(
 	override fun o_IsSet(self: AvailObject) = true
 
 	override fun o_IsSubsetOf(self: AvailObject, another: A_Set): Boolean =
-		(self.setSize() <= another.setSize()
+		(self.setSize <= another.setSize
 			&& rootBin(self).isBinSubsetOf(another))
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		setTypeForSizesContentType(
-			singleInt(self.setSize()),
+			singleInt(self.setSize),
 			enumerationWith(self))
 
 	/**
@@ -313,7 +301,7 @@ private constructor(
 		canDestroy: Boolean
 	): A_Set {
 		val (smaller, larger) = when {
-			self.setSize() <= otherSet.setSize() -> self to otherSet.traversed()
+			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
 			else -> otherSet.traversed() to self
 		}
 		var result: A_Set = smaller.makeImmutable()
@@ -333,7 +321,7 @@ private constructor(
 		otherSet: A_Set
 	): Boolean {
 		val (smaller, larger) = when {
-			self.setSize() <= otherSet.setSize() -> self to otherSet.traversed()
+			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
 			else -> otherSet.traversed() to self
 		}
 		return smaller.any { larger.hasElement(it) }
@@ -349,7 +337,7 @@ private constructor(
 		canDestroy: Boolean
 	): A_Set = when
 	{
-		self.setSize() <= otherSet.setSize() ->
+		self.setSize <= otherSet.setSize ->
 		{
 			// Iterate self, keeping only those elements present in otherSet.
 			self.makeImmutable().fold(self as A_Set) { result, element ->
@@ -379,13 +367,13 @@ private constructor(
 		// Compute the union of two sets. May destroy one of them if it's
 		// mutable and canDestroy is true.
 		val (smaller, larger) = when {
-			self.setSize() <= otherSet.setSize() -> self to otherSet.traversed()
+			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
 			else -> otherSet.traversed() to self
 		}
 		if (!canDestroy && larger.descriptor().isMutable) {
 			larger.makeImmutable()
 		}
-		if (smaller.setSize() == 0) {
+		if (smaller.setSize == 0) {
 			return larger
 		}
 		return smaller.fold(larger) { result: A_Set, element ->
@@ -402,13 +390,13 @@ private constructor(
 		// destroy the set if it's mutable and canDestroy is true.
 		val elementHash = newElementObject.hash()
 		val root = rootBin(self)
-		val oldSize = root.setBinSize()
+		val oldSize = root.setBinSize
 		val newRootBin = root.setBinAddingElementHashLevelCanDestroy(
 			newElementObject,
 			elementHash,
 			0,
 			canDestroy && isMutable)
-		if (newRootBin.setBinSize() == oldSize) {
+		if (newRootBin.setBinSize == oldSize) {
 			if (!canDestroy) {
 				self.makeImmutable()
 			}
@@ -428,13 +416,13 @@ private constructor(
 		// necessary. May destroy the set if it's mutable and canDestroy is
 		// true.
 		val root = rootBin(self)
-		val oldSize = root.setBinSize()
+		val oldSize = root.setBinSize
 		val newRootBin = root.binRemoveElementHashLevelCanDestroy(
 			elementObjectToExclude,
 			elementObjectToExclude.hash(),
 			0,
 			canDestroy && isMutable)
-		if (newRootBin.setBinSize() == oldSize) {
+		if (newRootBin.setBinSize == oldSize) {
 			if (!canDestroy) {
 				self.makeImmutable()
 			}
@@ -459,21 +447,21 @@ private constructor(
 	abstract class SetIterator : Iterator<AvailObject>
 
 	override fun o_Iterator(self: AvailObject): SetIterator =
-		rootBin(self).setBinIterator()
+		rootBin(self).setBinIterator
 
 	override fun o_AsTuple(self: AvailObject): A_Tuple
 	{
-		val size = self.setSize()
+		val size = self.setSize
 		if (size == 0) {
 			return emptyTuple
 		}
 		val iterator = self.iterator()
-		return generateObjectTupleFrom(self.setSize()) {
+		return generateObjectTupleFrom(self.setSize) {
 			iterator.next().makeImmutable()
 		}
 	}
 
-	override fun o_SetSize(self: AvailObject): Int = rootBin(self).setBinSize()
+	override fun o_SetSize(self: AvailObject): Int = rootBin(self).setBinSize
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -834,6 +822,6 @@ private constructor(
 			tuple: A_Tuple,
 			transformer: (AvailObject)->A_BasicObject
 		): A_Set = generateSetFrom(
-			tuple.tupleSize(), tuple.iterator(), transformer)
+			tuple.tupleSize, tuple.iterator(), transformer)
 	}
 }

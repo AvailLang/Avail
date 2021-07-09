@@ -68,7 +68,7 @@ object P_CreateFirstOfSequenceOfStatements : Primitive(1, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val statements = interpreter.argument(0)
-		val statementsSize = statements.tupleSize()
+		val statementsSize = statements.tupleSize
 		val flat = mutableListOf<A_Phrase>()
 		for (i in 2 .. statementsSize)
 		{

@@ -55,8 +55,7 @@ import javax.swing.text.StyledDocument
 enum class StreamStyle constructor(
 	private val styleName: String,
 	light: Color,
-	dark: Color
-)
+	dark: Color)
 {
 	/** The stream style used to echo user input.  */
 	IN_ECHO(

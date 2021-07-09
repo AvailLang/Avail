@@ -65,7 +65,7 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 		{
 			return interpreter.primitiveSuccess(baseType)
 		}
-		val kind = baseType.phraseKind()
+		val kind = baseType.phraseKind
 		return if (!expressionType.isSubtypeOf(kind.mostGeneralYieldType()))
 		{
 			interpreter.primitiveFailure(E_BAD_YIELD_TYPE)

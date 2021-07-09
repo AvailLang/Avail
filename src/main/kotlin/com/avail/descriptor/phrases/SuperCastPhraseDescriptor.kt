@@ -96,9 +96,9 @@ class SuperCastPhraseDescriptor private constructor(
 		indent: Int
 	): Unit = with(builder) {
 		append("«(")
-		append(self.expression())
+		append(self.expression)
 		append(" :: ")
-		append(self.superUnionType())
+		append(self.superUnionType)
 		append(")»")
 	}
 
@@ -120,10 +120,10 @@ class SuperCastPhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.expression().equals(aPhrase.expression())
-		&& self.superUnionType().equals(aPhrase.superUnionType()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.expression.equals(aPhrase.expression)
+		&& self.superUnionType.equals(aPhrase.superUnionType))
 
 	/**
 	 * Answer the expression producing the actual value.
@@ -161,7 +161,7 @@ class SuperCastPhraseDescriptor private constructor(
 		self.slot(TYPE_FOR_LOOKUP)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens()
+		self.slot(EXPRESSION).tokens
 
 	override fun o_ValidateLocally(
 		self: AvailObject,

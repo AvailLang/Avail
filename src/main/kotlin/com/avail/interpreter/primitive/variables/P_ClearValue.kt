@@ -63,7 +63,9 @@ object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
 		return try {
 			variable.clearValue()
 			interpreter.primitiveSuccess(nil)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			interpreter.primitiveFailure(e.numericCode)
 		}
 	}
@@ -72,8 +74,7 @@ object P_ClearValue : Primitive(1, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType()),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

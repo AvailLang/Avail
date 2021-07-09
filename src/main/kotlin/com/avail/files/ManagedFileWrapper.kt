@@ -426,10 +426,6 @@ class ManagedFileWrapper constructor(
 		 * Answer a new [AvailFile] that will be associated with the
 		 * [ManagedFileWrapper].
 		 *
-		 * @param path
-		 *   The String path to the target file on disk.
-		 * @param file
-		 *   The [AsynchronousFileChannel] used to access the file.
 		 * @param mimeType
 		 *   The MIME type of the file.
 		 * @param fileWrapper
@@ -437,14 +433,13 @@ class ManagedFileWrapper constructor(
 		 */
 		fun createFile (
 			mimeType: String,
-			fileWrapper: ManagedFileWrapper): AvailFile =
-				when
-				{
-					mimeType == "text/avail" -> AvailModuleFile(fileWrapper)
-					AvailFile.isTextFile(mimeType) ->
-						AvailTextFile(fileWrapper)
-					else -> AvailBinaryFile(fileWrapper)
-				}
+			fileWrapper: ManagedFileWrapper
+		): AvailFile = when
+		{
+			mimeType == "text/avail" -> AvailModuleFile(fileWrapper)
+			AvailFile.isTextFile(mimeType) -> AvailTextFile(fileWrapper)
+			else -> AvailBinaryFile(fileWrapper)
+		}
 	}
 }
 
@@ -540,8 +535,8 @@ class ErrorFileWrapper constructor(
 	override lateinit var file: AvailFile
 
 	override val isError = true
-	override val error: Throwable? = e
-	override val errorCode: ErrorCode? = errorCode
+	override val error: Throwable = e
+	override val errorCode: ErrorCode = errorCode
 
 	override fun delete(
 		success: (UUID?)->Unit,

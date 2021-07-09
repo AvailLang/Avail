@@ -76,20 +76,20 @@ object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 		interpreter.checkArgumentCount(2)
 		val list: A_Phrase = interpreter.argument(0)
 		val permutation: A_Tuple = interpreter.argument(1)
-		val size = permutation.tupleSize()
+		val size = permutation.tupleSize
 		return when
 		{
 			// Permutation is empty, or different size than list.
-			size == 0 || size != list.expressionsTuple().tupleSize() ->
+			size == 0 || size != list.expressionsTuple.tupleSize ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not all int32.
 			permutation.any { !it.isInt } ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not unique.
-			size != permutation.asSet().setSize() ->
+			size != permutation.asSet.setSize ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Entries are unique, but don't cover 1..N (pigeonhole principle).
-			permutation.maxByOrNull { it.extractInt() }!!.extractInt() != size ->
+			permutation.maxByOrNull { it.extractInt }!!.extractInt != size ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation is the forbidden identity.
 			permutation.equals(createInterval(one, fromInt(size), one)) ->

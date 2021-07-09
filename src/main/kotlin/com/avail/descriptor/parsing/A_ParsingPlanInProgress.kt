@@ -68,8 +68,8 @@ interface A_ParsingPlanInProgress : A_BasicObject {
 		 * @return
 		 *   Whether it jumps backward from here.
 		 */
-		fun A_ParsingPlanInProgress.isBackwardJump(): Boolean =
-			dispatch { o_IsBackwardJump(it) }
+		val A_ParsingPlanInProgress.isBackwardJump: Boolean
+			get() = dispatch { o_IsBackwardJump(it) }
 
 		/**
 		 * Answer a Java [String] representing this message name being parsed at
@@ -79,8 +79,8 @@ interface A_ParsingPlanInProgress : A_BasicObject {
 		 *   A string describing the parsing plan with an indicator at the
 		 *   specified parsing instruction.
 		 */
-		fun A_ParsingPlanInProgress.nameHighlightingPc(): String =
-			dispatch { o_NameHighlightingPc(it) }
+		val A_ParsingPlanInProgress.nameHighlightingPc: String
+			get() = dispatch { o_NameHighlightingPc(it) }
 
 		/**
 		 * Answer the program counter that this plan-in-progress represents.
@@ -88,8 +88,8 @@ interface A_ParsingPlanInProgress : A_BasicObject {
 		 * @return
 		 *   The index into the plan's parsing instructions.
 		 */
-		fun A_ParsingPlanInProgress.parsingPc(): Int =
-			dispatch { o_ParsingPc(it) }
+		val A_ParsingPlanInProgress.parsingPc: Int
+			get() = dispatch { o_ParsingPc(it) }
 
 		/**
 		 * Answer this [plan-in-progress][ParsingPlanInProgressDescriptor]'s
@@ -98,7 +98,7 @@ interface A_ParsingPlanInProgress : A_BasicObject {
 		 * @return
 		 *   The parsing plan.
 		 */
-		fun A_ParsingPlanInProgress.parsingPlan(): A_DefinitionParsingPlan =
-			dispatch { o_ParsingPlan(it) }
+		val A_ParsingPlanInProgress.parsingPlan: A_DefinitionParsingPlan
+			get() = dispatch { o_ParsingPlan(it) }
 	}
 }

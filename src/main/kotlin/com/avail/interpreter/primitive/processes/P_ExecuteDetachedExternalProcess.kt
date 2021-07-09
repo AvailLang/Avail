@@ -77,26 +77,26 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		val optEnvironment = interpreter.argument(5)
 		val processArgs = processArgsTuple.map(AvailObject::asNativeString)
 		val builder = ProcessBuilder(processArgs)
-		if (optDir.tupleSize() == 1)
+		if (optDir.tupleSize == 1)
 		{
 			builder.directory(File(optDir.tupleAt(1).asNativeString()))
 		}
-		if (optIn.tupleSize() == 1)
+		if (optIn.tupleSize == 1)
 		{
 			builder.redirectInput(File(optIn.tupleAt(1).asNativeString()))
 		}
-		if (optOut.tupleSize() == 1)
+		if (optOut.tupleSize == 1)
 		{
 			builder.redirectOutput(File(optOut.tupleAt(1).asNativeString()))
 		}
-		if (optError.tupleSize() == 1)
+		if (optError.tupleSize == 1)
 		{
 			builder.redirectError(File(optError.tupleAt(1).asNativeString()))
 		}
-		if (optEnvironment.tupleSize() == 1)
+		if (optEnvironment.tupleSize == 1)
 		{
 			val newEnvironmentMap =
-				optEnvironment.tupleAt(1).mapIterable().associate {
+				optEnvironment.tupleAt(1).mapIterable.associate {
 					(k, v) -> k.asNativeString() to v.asNativeString()
 				}
 			val environmentMap = builder.environment()
@@ -121,18 +121,17 @@ object P_ExecuteDetachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				oneOrMoreOf(stringType()),
-				zeroOrOneOf(stringType()),
-				zeroOrOneOf(stringType()),
-				zeroOrOneOf(stringType()),
-				zeroOrOneOf(stringType()),
+				oneOrMoreOf(stringType),
+				zeroOrOneOf(stringType),
+				zeroOrOneOf(stringType),
+				zeroOrOneOf(stringType),
+				zeroOrOneOf(stringType),
 				zeroOrOneOf(
 					mapTypeForSizesKeyTypeValueType(
 						wholeNumbers,
-						stringType(),
-						stringType()))),
-			TOP.o
-		)
+						stringType,
+						stringType))),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -72,16 +72,20 @@ object P_SocketShutdownInput : Primitive(1, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		return try {
 			socket.shutdownInput()
 			interpreter.primitiveSuccess(nil)
-		} catch (e: IllegalStateException) {
+		}
+		catch (e: IllegalStateException)
+		{
 			interpreter.primitiveFailure(E_INVALID_HANDLE)
-		} catch (e: IOException) {
+		}
+		catch (e: IOException)
+		{
 			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 	}
@@ -89,10 +93,8 @@ object P_SocketShutdownInput : Primitive(1, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ATOM.o
-			),
-			TOP.o
-		)
+				ATOM.o),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

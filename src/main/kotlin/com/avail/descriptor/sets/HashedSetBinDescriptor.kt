@@ -195,10 +195,10 @@ class HashedSetBinDescriptor private constructor(
 	private fun binUnionKind(self: AvailObject): A_Type {
 		var union: A_Type = self.slot(BIN_UNION_KIND_OR_NIL)
 		if (union.isNil) {
-			union = self.slot(BIN_ELEMENT_AT_, 1).binUnionKind()
+			union = self.slot(BIN_ELEMENT_AT_, 1).binUnionKind
 			for (i in 2..self.variableObjectSlotsCount()) {
 				union = union.typeUnion(
-					self.slot(BIN_ELEMENT_AT_, i).binUnionKind())
+					self.slot(BIN_ELEMENT_AT_, i).binUnionKind)
 			}
 			if (isShared) {
 				union = union.makeShared()
@@ -214,7 +214,7 @@ class HashedSetBinDescriptor private constructor(
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
 		kind: A_Type
-	): Boolean = self.binUnionKind().isSubtypeOf(kind)
+	): Boolean = self.binUnionKind.isSubtypeOf(kind)
 
 	/**
 	 * Add the given element to this bin, potentially modifying it if canDestroy
@@ -243,31 +243,33 @@ class HashedSetBinDescriptor private constructor(
 		if (vector and logicalBitValue != 0L) {
 			// The appropriate bil is already present.
 			var entry: A_SetBin = self.slot(BIN_ELEMENT_AT_, physicalIndex)
-			val previousBinSize = entry.setBinSize()
-			val previousEntryHash = entry.setBinHash()
-			val previousTotalHash = self.setBinHash()
+			val previousBinSize = entry.setBinSize
+			val previousEntryHash = entry.setBinHash
+			val previousTotalHash = self.setBinHash
 			entry = entry.setBinAddingElementHashLevelCanDestroy(
 				elementObject,
 				elementObjectHash,
 				level + 1,
 				canDestroy)
-			val delta = entry.setBinSize() - previousBinSize
+			val delta = entry.setBinSize - previousBinSize
 			if (delta == 0) {
 				// The bin was unchanged.
 				if (!canDestroy) self.makeImmutable()
 				return self
 			}
 			//  The element had to be added.
-			val hashDelta = entry.setBinHash() - previousEntryHash
+			val hashDelta = entry.setBinHash - previousEntryHash
 			val newSize = self.slot(BIN_SIZE) + delta
 			typeUnion = self.slot(BIN_UNION_KIND_OR_NIL)
 			if (typeUnion.notNil) {
-				typeUnion = typeUnion.typeUnion(entry.binUnionKind())
+				typeUnion = typeUnion.typeUnion(entry.binUnionKind)
 			}
 			objectToModify = if (canDestroy && isMutable) {
 				// Clobber the object in place.
 				self
-			} else {
+			}
+			else
+			{
 				if (!canDestroy && isMutable) {
 					self.makeSubobjectsImmutable()
 				}
@@ -291,8 +293,8 @@ class HashedSetBinDescriptor private constructor(
 		objectToModify = createUninitializedHashedSetBin(
 			level,
 			objectEntryCount + 1,
-			self.setBinSize() + 1,
-			self.setBinHash() + elementObjectHash,
+			self.setBinSize + 1,
+			self.setBinHash + elementObjectHash,
 			vector or logicalBitValue,
 			typeUnion)
 		objectToModify.setSlotsFromObjectSlots(
@@ -359,19 +361,19 @@ class HashedSetBinDescriptor private constructor(
 		val masked = vector and logicalBitValue - 1
 		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
 		val oldEntry: A_SetBin = self.slot(BIN_ELEMENT_AT_, physicalIndex)
-		val oldEntryHash = oldEntry.setBinHash()
-		val oldEntrySize = oldEntry.setBinSize()
-		val oldTotalHash = self.setBinHash()
-		val oldTotalSize = self.setBinSize()
+		val oldEntryHash = oldEntry.setBinHash
+		val oldEntrySize = oldEntry.setBinSize
+		val oldTotalHash = self.setBinHash
+		val oldTotalSize = self.setBinSize
 		val replacementEntry = oldEntry.binRemoveElementHashLevelCanDestroy(
 			elementObject,
 			elementObjectHash,
 			level + 1,
 			canDestroy)
-		val deltaHash = replacementEntry.setBinHash() - oldEntryHash
-		val deltaSize = replacementEntry.setBinSize() - oldEntrySize
+		val deltaHash = replacementEntry.setBinHash - oldEntryHash
+		val deltaSize = replacementEntry.setBinSize - oldEntrySize
 		val result: AvailObject
-		if (replacementEntry.setBinSize() == 0) {
+		if (replacementEntry.setBinSize == 0) {
 			// Exclude the entire hash entry.
 			if (objectEntryCount == 1) {
 				// That was the last entry that we just removed.
@@ -401,7 +403,9 @@ class HashedSetBinDescriptor private constructor(
 			if (!canDestroy) {
 				result.makeSubobjectsImmutable()
 			}
-		} else {
+		}
+		else
+		{
 			// Replace the hash entry.
 			result = when {
 				canDestroy && isMutable -> self
@@ -543,11 +547,10 @@ class HashedSetBinDescriptor private constructor(
 			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
 				assert(self.descriptor() is HashedSetBinDescriptor)
-				val stored = self.setBinHash()
+				val stored = self.setBinHash
 				var calculated = 0
 				for (i in 1..self.variableObjectSlotsCount()) {
-					calculated +=
-						self.slot(BIN_ELEMENT_AT_, i).setBinHash()
+					calculated += self.slot(BIN_ELEMENT_AT_, i).setBinHash
 				}
 				assert(calculated == stored) { "Failed bin hash cross-check" }
 			}
@@ -645,10 +648,13 @@ class HashedSetBinDescriptor private constructor(
 				val element = generator(i)
 				val groupIndex = element.hash() ushr shift and 63
 				var group = groups[groupIndex]
-				if (group === null) {
+				if (group === null)
+				{
 					group = mutableListOf(element)
 					groups[groupIndex] = group
-				} else {
+				}
+				else
+				{
 					// Check if the new element is the same as the first member
 					// of the group.  This reduces the chance of having to
 					// recurse to the bottom level before discovering massive
@@ -687,13 +693,14 @@ class HashedSetBinDescriptor private constructor(
 						generateSetBinFrom(level + 1, group.size) {
 							group[it - 1]
 						}
-					totalCount += childBin.setBinSize()
-					hash += childBin.setBinHash()
+					totalCount += childBin.setBinSize
+					hash += childBin.setBinHash
 					hashedBin.setSlot(BIN_ELEMENT_AT_, ++written, childBin)
 					groups[binIndex] = null  // Allow GC to clean it up early.
 				}
 			}
-			if (hashedBin.setBinSize() == 1) {
+			if (hashedBin.setBinSize == 1)
+			{
 				// All elements were equal.  Return the element itself to act as
 				// a singleton bin.
 				return hashedBin.slot(BIN_ELEMENT_AT_, 1)

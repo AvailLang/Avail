@@ -60,13 +60,16 @@ object P_IsCanonicalMessage : Primitive(1, CannotFail, CanInline, CanFold)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		return try {
+		return try
+		{
 			// Ignore the return value. We just want to see if the name is
 			// canonical; attempting to create the bundle and its associated
 			// MessageSplitter should suffice.
 			name.bundleOrCreate()
 			interpreter.primitiveSuccess(trueObject)
-		} catch (e: MalformedMessageException) {
+		}
+		catch (e: MalformedMessageException)
+		{
 			interpreter.primitiveSuccess(falseObject)
 		}
 

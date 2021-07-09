@@ -69,7 +69,7 @@ object P_CreateSuperCastExpression : Primitive(2, CanFold, CanInline)
 		val expression = interpreter.argument(0)
 		val lookupType = interpreter.argument(1)
 
-		val expressionType = expression.phraseExpressionType()
+		val expressionType = expression.phraseExpressionType
 		return when {
 			expressionType.isBottom || expressionType.isTop ->
 				interpreter.primitiveFailure(

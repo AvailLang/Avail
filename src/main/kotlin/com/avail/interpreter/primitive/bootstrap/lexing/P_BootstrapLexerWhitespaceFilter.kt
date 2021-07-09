@@ -61,13 +61,12 @@ object P_BootstrapLexerWhitespaceFilter
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
 
-		val c = character.codePoint()
+		val c = character.codePoint
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(
 				Character.isWhitespace(c)
 					|| Character.isSpaceChar(c)
-					|| c == '\uFEFF'.code
-			))
+					|| c == '\uFEFF'.code))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

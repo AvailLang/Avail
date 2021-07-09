@@ -36,6 +36,8 @@ import com.avail.AvailThread
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.representation.A_BasicObject
@@ -205,8 +207,7 @@ import javax.annotation.Nullable
 @Suppress(
 	"PARAMETER_NAME_CHANGED_ON_OVERRIDE",
 	"UNUSED_PARAMETER",
-	"MemberVisibilityCanBePrivate"
-)
+	"MemberVisibilityCanBePrivate")
 class JVMTranslator constructor(
 	val code: A_RawFunction?,
 	private val chunkName: String,
@@ -706,16 +707,16 @@ class JVMTranslator constructor(
 				{
 					value is Primitive -> value.name
 					value !is AvailObject -> value.javaClass.simpleName
-					value.isInstanceOf(stringType()) ->
+					value.isInstanceOf(stringType) ->
 						"STRING_${tidy(value.asNativeString())}"
 					value.isInstanceOfKind(Types.ATOM.o) ->
-						"ATOM_${tidy(value.atomName())}"
+						"ATOM_${tidy(value.atomName)}"
 					value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
-						"BUNDLE_${tidy(value.message().atomName())}"
+						"BUNDLE_${tidy(value.message.atomName)}"
 					value.isInstanceOfKind(mostGeneralFunctionType()) ->
-						"FUNCTION_${tidy(value.code().methodName())}"
+						"FUNCTION_${tidy(value.code().methodName)}"
 					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
-						"CODE_${tidy(value.methodName())}"
+						"CODE_${tidy(value.methodName)}"
 					else ->
 						"literal_" + tagEndPattern
 							.matcher(value.makeShared().typeTag().name)
@@ -1929,7 +1930,7 @@ class JVMTranslator constructor(
 
 	init
 	{
-		val module = code?.module() ?: NilDescriptor.nil
+		val module = code?.module ?: NilDescriptor.nil
 		val moduleName =
 			if (module === NilDescriptor.nil)
 			{
@@ -1937,12 +1938,12 @@ class JVMTranslator constructor(
 			}
 			else
 			{
-				moduleNameStripper.matcher(module.moduleName().asNativeString())
+				moduleNameStripper.matcher(module.moduleName.asNativeString())
 					.replaceAll("$1")
 			}
 
 		val originalFunctionName =
-			if (code === null) "DEFAULT" else code.methodName().asNativeString()
+			if (code === null) "DEFAULT" else code.methodName.asNativeString()
 		var cleanFunctionName =
 			subblockRewriter.matcher(originalFunctionName).replaceAll("#$1")
 		cleanFunctionName =

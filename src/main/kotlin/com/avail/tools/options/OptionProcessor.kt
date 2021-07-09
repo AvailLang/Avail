@@ -146,7 +146,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 				option.action2!!()
 			}
 		}
-		else {
+		else
+		{
 			if (argument !== null)
 			{
 				throw InvalidArgumentException(keyword)

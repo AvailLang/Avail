@@ -61,5 +61,5 @@ object P_FiberName : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFiberType()), stringType())
+		functionType(tuple(mostGeneralFiberType()), stringType)
 }

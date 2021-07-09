@@ -31,6 +31,8 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -59,7 +61,7 @@ object P_CompiledCodeLiterals : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
 
-		val tupleObject = generateObjectTupleFrom(code.numLiterals()) {
+		val tupleObject = generateObjectTupleFrom(code.numLiterals) {
 			val literal = code.literalAt(it)
 			if (literal.isNil) zero else literal
 		}

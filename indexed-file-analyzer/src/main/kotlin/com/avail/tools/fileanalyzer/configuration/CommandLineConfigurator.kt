@@ -217,9 +217,9 @@ class CommandLineConfigurator constructor(
 	}
 
 	/**
-	 * Create an [option&32;processor][OptionProcessor] suitable for
+	 * Create an [option&#32;processor][OptionProcessor] suitable for
 	 * [updating][updateConfiguration] an
-	 * [analyzer&32;configuration][IndexedFileAnalyzerConfiguration].
+	 * [analyzer&#32;configuration][IndexedFileAnalyzerConfiguration].
 	 *
 	 * @return
 	 *   An option processor.

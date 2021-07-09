@@ -150,7 +150,7 @@ class MapDescriptor private constructor(
 		val startPosition = builder.length
 		var first = true
 		var multiline = false
-		for ((key, value) in self.mapIterable()) {
+		for ((key, value) in self.mapIterable) {
 			if (!first) {
 				builder.append(", ")
 			}
@@ -215,12 +215,11 @@ class MapDescriptor private constructor(
 	): Array<AvailObjectFieldHelper> {
 		if (self.isInstanceOfKind(
 				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, stringType(), ANY.o
-				))
+					wholeNumbers, stringType, ANY.o))
 		) {
 			// The keys are all strings.
-			val mapIterable = self.mapIterable()
-			return Array(self.mapSize()) { counter ->
+			val mapIterable = self.mapIterable
+			return Array(self.mapSize) { counter ->
 				val (key, value) = mapIterable.next()
 				AvailObjectFieldHelper(
 					self,
@@ -231,7 +230,7 @@ class MapDescriptor private constructor(
 						override fun fieldName(): String {
 							name?.run { return this }
 							// Truncate large key strings.
-							val keyStringSize = key.tupleSize()
+							val keyStringSize = key.tupleSize
 							val keyString = if (keyStringSize > 50) {
 								tuple(
 									key.copyTupleFromToCanDestroy(1, 25, false),
@@ -241,7 +240,9 @@ class MapDescriptor private constructor(
 										keyStringSize,
 										false)
 								).concatenateTuplesCanDestroy(false)
-							} else {
+							}
+							else
+							{
 								key
 							}
 							name = ("Key#$counter $keyString")
@@ -254,9 +255,9 @@ class MapDescriptor private constructor(
 					value)
 			}
 		}
-		val fields = arrayOfNulls<AvailObjectFieldHelper>(self.mapSize() shl 1)
+		val fields = arrayOfNulls<AvailObjectFieldHelper>(self.mapSize shl 1)
 		var arrayIndex = 0
-		self.mapIterable().forEachIndexed { entryCount, (key, value) ->
+		self.mapIterable.forEachIndexed { entryCount, (key, value) ->
 			fields[arrayIndex++] = AvailObjectFieldHelper(
 				self, FakeMapSlots.KEY_, entryCount + 1, key)
 			fields[arrayIndex++] = AvailObjectFieldHelper(
@@ -266,7 +267,7 @@ class MapDescriptor private constructor(
 	}
 
 	override fun o_NameForDebugger(self: AvailObject) =
-		(super.o_NameForDebugger(self) + ": mapSize=${self.mapSize()}")
+		super.o_NameForDebugger(self) + ": mapSize=${self.mapSize}"
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsMap(self)
@@ -274,10 +275,10 @@ class MapDescriptor private constructor(
 	override fun o_EqualsMap(self: AvailObject, aMap: A_Map): Boolean = when {
 		self.sameAddressAs(aMap) -> true
 		rootBin(self).sameAddressAs(rootBin(aMap)) -> true
-		self.mapSize() != aMap.mapSize() -> false
+		self.mapSize != aMap.mapSize -> false
 		self.hash() != aMap.hash() -> false
 		rootBin(aMap).let { root ->
-			self.mapIterable().any { (k, v, h) ->
+			self.mapIterable.any { (k, v, h) ->
 				root.mapBinAtHash(k, h).let { it === null || !it.equals(v) }
 			}
 		} -> false
@@ -309,11 +310,11 @@ class MapDescriptor private constructor(
 		when {
 			aType.isSupertypeOfPrimitiveTypeEnum(NONTYPE) -> return true
 			!aType.isMapType -> return false
-			!aType.sizeRange().rangeIncludesLong(self.mapSize().toLong()) ->
+			!aType.sizeRange.rangeIncludesLong(self.mapSize.toLong()) ->
 				return false
 		}
-		val keyType = aType.keyType()
-		val valueType = aType.valueType()
+		val keyType = aType.keyType
+		val valueType = aType.valueType
 		val rootBin = rootBin(self)
 		val keyTypeIsEnumeration = keyType.isEnumeration
 		val valueTypeIsEnumeration = valueType.isEnumeration
@@ -323,7 +324,7 @@ class MapDescriptor private constructor(
 			keyType.equals(ANY.o) -> keysMatch = true
 			keyTypeIsEnumeration -> keysMatch = false
 			else -> {
-				keyUnionKind = rootBin.mapBinKeyUnionKind()
+				keyUnionKind = rootBin.mapBinKeyUnionKind
 				keysMatch = keyUnionKind.isSubtypeOf(keyType)
 			}
 		}
@@ -333,7 +334,7 @@ class MapDescriptor private constructor(
 			valueType.equals(ANY.o) -> valuesMatch = true
 			valueTypeIsEnumeration -> valuesMatch = false
 			else -> {
-				valueUnionKind = rootBin.mapBinValueUnionKind()
+				valueUnionKind = rootBin.mapBinValueUnionKind
 				valuesMatch = valueUnionKind.isSubtypeOf(valueType)
 			}
 		}
@@ -347,7 +348,7 @@ class MapDescriptor private constructor(
 					&& valueUnionKind!!.typeIntersection(valueType).isBottom ->
 				false
 			keysMatch ->
-				self.mapIterable().all { (_, v) -> v.isInstanceOf(valueType) }
+				self.mapIterable.all { (_, v) -> v.isInstanceOf(valueType) }
 			// If the keyUnionKind and the expected keyType don't intersect
 			// then the actual map can't comply.  The empty map was already
 			// special-cased.
@@ -355,11 +356,11 @@ class MapDescriptor private constructor(
 					&& keyUnionKind!!.typeIntersection(keyType).isBottom ->
 				false
 			valuesMatch ->
-				self.mapIterable().all { (k) -> k.isInstanceOf(keyType) }
+				self.mapIterable.all { (k) -> k.isInstanceOf(keyType) }
 			!valueTypeIsEnumeration
 					&& valueUnionKind!!.typeIntersection(valueType).isBottom ->
 				false
-			else -> self.mapIterable().none { (k, v) ->
+			else -> self.mapIterable.none { (k, v) ->
 				(!k.isInstanceOf(keyType) || !v.isInstanceOf(valueType))
 			}
 		}
@@ -369,9 +370,9 @@ class MapDescriptor private constructor(
 		// A map's hash is a simple function of its rootBin's keysHash and
 		// valuesHash.
 		val root = rootBin(self)
-		var h = root.mapBinKeysHash()
+		var h = root.mapBinKeysHash
 		h = h xor 0x45F78A7E
-		h += root.mapBinValuesHash()
+		h += root.mapBinValuesHash
 		h = h xor 0x57CE9F5E
 		return h
 	}
@@ -381,9 +382,9 @@ class MapDescriptor private constructor(
 	override fun o_Kind(self: AvailObject): A_Type {
 		val root = rootBin(self)
 		return mapTypeForSizesKeyTypeValueType(
-			instanceType(fromInt(self.mapSize())),
-			root.mapBinKeyUnionKind(),
-			root.mapBinValueUnionKind())
+			instanceType(fromInt(self.mapSize)),
+			root.mapBinKeyUnionKind,
+			root.mapBinValueUnionKind)
 	}
 
 	/**
@@ -469,7 +470,7 @@ class MapDescriptor private constructor(
 	 */
 	override fun o_KeysAsSet(self: AvailObject): A_Set
 	{
-		return generateSetFrom(self.mapSize(), self.mapIterable()) {
+		return generateSetFrom(self.mapSize, self.mapIterable) {
 			(key, _) -> key.makeImmutable()
 		}
 	}
@@ -480,8 +481,8 @@ class MapDescriptor private constructor(
 	 */
 	override fun o_ValuesAsTuple(self: AvailObject): A_Tuple
 	{
-		val mapIterable = self.mapIterable()
-		return generateObjectTupleFrom(self.mapSize()) {
+		val mapIterable = self.mapIterable
+		return generateObjectTupleFrom(self.mapSize) {
 			mapIterable.next().value().makeImmutable() }
 	}
 
@@ -511,10 +512,10 @@ class MapDescriptor private constructor(
 	override fun o_HasKey(self: AvailObject, keyObject: A_BasicObject) =
 		rootBin(self).mapBinAtHash(keyObject, keyObject.hash()) !== null
 
-	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize()
+	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize
 
 	override fun o_MapIterable(self: AvailObject): MapIterable =
-		rootBin(self).mapBinIterable()
+		rootBin(self).mapBinIterable
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
@@ -525,7 +526,7 @@ class MapDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("map") }
-			if (self.kind().keyType().isSubtypeOf(stringType()))
+			if (self.kind().keyType.isSubtypeOf(stringType))
 			{
 				at("map") {
 					writeObject {
@@ -554,7 +555,7 @@ class MapDescriptor private constructor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("map") }
-			if (self.kind().keyType().isSubtypeOf(stringType()))
+			if (self.kind().keyType.isSubtypeOf(stringType))
 			{
 				at("map") {
 					writeObject {
@@ -743,7 +744,7 @@ class MapDescriptor private constructor(
 			assert(tupleOfBindings.isTuple)
 			return tupleOfBindings.fold(emptyMap) { map, binding ->
 				assert(binding.isTuple)
-				assert(binding.tupleSize() == 2)
+				assert(binding.tupleSize == 2)
 				map.mapAtPuttingCanDestroy(
 					binding.tupleAt(1),
 					binding.tupleAt(2),
@@ -802,18 +803,17 @@ class MapDescriptor private constructor(
 		): A_BasicObject {
 			assert(destination.isMap)
 			assert(source.isMap)
-			if (!canDestroy) {
+			if (!canDestroy)
+			{
 				destination.makeImmutable()
 			}
-			if (source.sameAddressAs(destination)) {
-				return destination
-			}
-			if (source.mapSize() == 0) {
-				return destination
-			}
-			return source.mapIterable().fold(destination) {
-				map, (key, value) ->
-				map.mapAtPuttingCanDestroy(key, value, true)
+			return when
+			{
+				source.sameAddressAs(destination) -> destination
+				source.mapSize == 0 -> destination
+				else -> source.mapIterable.fold(destination) { map, (k, v) ->
+					map.mapAtPuttingCanDestroy(k, v, true)
+				}
 			}
 		}
 

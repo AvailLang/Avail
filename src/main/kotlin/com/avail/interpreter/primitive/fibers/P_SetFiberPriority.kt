@@ -55,7 +55,7 @@ object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
 		interpreter.checkArgumentCount(2)
 		val fiber = interpreter.argument(0)
 		val priority = interpreter.argument(0)
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		assert(priorityInt in 0 .. 255)
 		fiber.setPriority(priorityInt)
 		return interpreter.primitiveSuccess(nil)

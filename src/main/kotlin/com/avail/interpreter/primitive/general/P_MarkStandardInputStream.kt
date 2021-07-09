@@ -64,7 +64,7 @@ object P_MarkStandardInputStream : Primitive(1, CanInline, HasSideEffect)
 	{
 		interpreter.checkArgumentCount(1)
 		val readAhead = interpreter.argument(0)
-		val readAheadInt = readAhead.extractInt()
+		val readAheadInt = readAhead.extractInt
 		val channel = interpreter.fiber().textInterface().inputChannel
 		try
 		{

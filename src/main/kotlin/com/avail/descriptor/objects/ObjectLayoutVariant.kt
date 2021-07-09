@@ -107,7 +107,7 @@ class ObjectLayoutVariant private constructor(
 		val explicitSubclassingKey = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
 		// Alphabetize the fields to make debugging nice.  Note that field names
 		// don't have to be lexicographically unique.
-		val sortedFields = allFields.sortedBy { it.atomName().asNativeString() }
+		val sortedFields = allFields.sortedBy { it.atomName.asNativeString() }
 		fieldToSlotIndex = mutableMapOf()
 		var slotCount = 0
 		realSlots = sortedFields.filter { field ->

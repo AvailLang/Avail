@@ -84,25 +84,25 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		// guarantee the bit-wise and can't be greater than or equal to the next
 		// higher power of two of that range's upper bound.
 		val upper: Long =
-			if (aRange.lowerBound().greaterOrEqual(zero)
-			    && aRange.upperBound().isLong)
+			if (aRange.lowerBound.greaterOrEqual(zero)
+			    && aRange.upperBound.isLong)
 			{
-				if (bRange.lowerBound().greaterOrEqual(zero)
-				    && bRange.upperBound().isLong)
+				if (bRange.lowerBound.greaterOrEqual(zero)
+				    && bRange.upperBound.isLong)
 				{
 					min(
-						aRange.upperBound().extractLong(),
-						bRange.upperBound().extractLong())
+						aRange.upperBound.extractLong,
+						bRange.upperBound.extractLong)
 				}
 				else
 				{
-					aRange.upperBound().extractLong()
+					aRange.upperBound.extractLong
 				}
 			}
-			else if (bRange.lowerBound().greaterOrEqual(zero)
-			         && bRange.upperBound().isLong)
+			else if (bRange.lowerBound.greaterOrEqual(zero)
+			         && bRange.upperBound.isLong)
 			{
-				bRange.upperBound().extractLong()
+				bRange.upperBound.extractLong
 			}
 			else
 			{

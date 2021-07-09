@@ -174,13 +174,11 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 						if (failureType.isEnumeration)
 						{
 							buildString {
-								failureType.instances().forEach { _ ->
+								failureType.instances.forEach { _ ->
 									append(
 										MessageFormat.format(
 											raisesTemplate,
-											"{$templateParameters}"
-										)
-									)
+											"{$templateParameters}"))
 									templateParameters++
 								}
 							}

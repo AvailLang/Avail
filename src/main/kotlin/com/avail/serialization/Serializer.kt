@@ -162,7 +162,7 @@ class Serializer constructor (
 		{
 			return
 		}
-		val atomModule = atom.issuingModule()
+		val atomModule = atom.issuingModule
 		if (atomModule.isNil)
 		{
 			return
@@ -321,8 +321,7 @@ class Serializer constructor (
 				}
 			}
 			if (instruction.operation.isVariableCreation
-				&& obj.value().notNil
-			)
+				&& obj.value().notNil)
 			{
 				variablesToAssign.add(obj)
 				// Output an action to the *start* of the workStack to trace the
@@ -418,7 +417,7 @@ class Serializer constructor (
 		 * their [A_String], where the value is the [A_Atom] itself.
 		 */
 		internal val specialAtomsByName =
-			specialAtoms.keys.associateBy { it.atomName() }
+			specialAtoms.keys.associateBy { it.atomName }
 
 		/**
 		 * Look up the object.  If it is a

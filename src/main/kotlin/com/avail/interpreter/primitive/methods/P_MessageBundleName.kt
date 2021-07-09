@@ -58,7 +58,7 @@ object P_MessageBundleName : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
-		return interpreter.primitiveSuccess(bundle.message())
+		return interpreter.primitiveSuccess(bundle.message)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

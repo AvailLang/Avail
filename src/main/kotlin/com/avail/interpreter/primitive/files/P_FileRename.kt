@@ -105,10 +105,10 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			priorityInt)
 		{
 			StringDescriptor.stringFrom(
@@ -122,7 +122,7 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		val replace = replaceExisting.extractBoolean()
+		val replace = replaceExisting.extractBoolean
 		runtime.ioSystem.executeFileTask(
 			Runnable {
                val options = mutableListOf<CopyOption>()
@@ -195,8 +195,8 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				stringType(),
-				stringType(),
+				stringType,
+				stringType,
 				booleanType,
 				functionType(emptyTuple, TOP.o),
 				functionType(
@@ -206,10 +206,8 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 							E_FILE_EXISTS,
 							E_NO_FILE,
 							E_IO_ERROR))),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

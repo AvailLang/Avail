@@ -59,13 +59,12 @@ object P_DeclarationToken : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val decl = interpreter.argument(0)
-		return interpreter.primitiveSuccess(decl.token())
+		return interpreter.primitiveSuccess(decl.token)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				DECLARATION_PHRASE.mostGeneralType()),
-			TOKEN.o
-		)
+			TOKEN.o)
 }

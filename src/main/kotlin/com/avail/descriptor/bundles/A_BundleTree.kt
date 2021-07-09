@@ -50,7 +50,7 @@ import java.util.Deque
 
 /**
  * `A_BundleTree` is an interface that specifies the operations specific to a
- * [message&32;bundle&32;tree][MessageBundleTreeDescriptor] that an
+ * [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor] that an
  * [AvailObject] must implement.  It's a sub-interface of [A_BasicObject], the
  * interface that defines the behavior that all [AvailObject]s are required to
  * support.
@@ -65,8 +65,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   A map of type `{bundle→{definition→plan|0..}|0..}`.
 		 */
-		fun A_BundleTree.allParsingPlansInProgress() =
-			dispatch { o_AllParsingPlansInProgress(it) }
+		val A_BundleTree.allParsingPlansInProgress
+			get() = dispatch { o_AllParsingPlansInProgress(it) }
 
 		/**
 		 * Expand the bundle tree if there's anything currently unclassified in
@@ -111,7 +111,7 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   The bundles for which a send has been parsed at this point.
 		 */
-		fun A_BundleTree.lazyComplete() = dispatch { o_LazyComplete(it) }
+		val A_BundleTree.lazyComplete get() = dispatch { o_LazyComplete(it) }
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific token to be
@@ -126,7 +126,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   A map from strings to bundle trees.
 		 */
-		fun A_BundleTree.lazyIncomplete() = dispatch { o_LazyIncomplete(it) }
+		val A_BundleTree.lazyIncomplete
+			get() = dispatch { o_LazyIncomplete(it) }
 
 		/**
 		 * Answer the bundle trees that are waiting for a specific
@@ -142,8 +143,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   A map from lowercase strings to bundle trees.
 		 */
-		fun A_BundleTree.lazyIncompleteCaseInsensitive() =
-			dispatch { o_LazyIncompleteCaseInsensitive(it) }
+		val A_BundleTree.lazyIncompleteCaseInsensitive
+			get() = dispatch { o_LazyIncompleteCaseInsensitive(it) }
 
 		/**
 		 * Answer the bundle trees that will be reached when specific parse
@@ -166,7 +167,7 @@ interface A_BundleTree : A_BasicObject {
 		 *   An [A_Map] from integer-encoded instructions to [A_Tuple]s of
 		 *   successor [A_BundleTree]s.
 		 */
-		fun A_BundleTree.lazyActions() = dispatch { o_LazyActions(it) }
+		val A_BundleTree.lazyActions get() = dispatch { o_LazyActions(it) }
 
 		/**
 		 * Answer a map used by the [ParsingOperation.CHECK_ARGUMENT]
@@ -192,8 +193,8 @@ interface A_BundleTree : A_BasicObject {
 		 *   [A_BundleTree] that should be visited if an invocation of that
 		 *   bundle has just been parsed as an argument.
 		 */
-		fun A_BundleTree.lazyPrefilterMap(): A_Map =
-			dispatch { o_LazyPrefilterMap(it) }
+		val A_BundleTree.lazyPrefilterMap: A_Map
+			get() = dispatch { o_LazyPrefilterMap(it) }
 
 		/**
 		 * If this message bundle tree has a type filter tree, return the raw
@@ -212,8 +213,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   The type filter tree pojo or [nil].
 		 */
-		fun A_BundleTree.lazyTypeFilterTreePojo() =
-			dispatch { o_LazyTypeFilterTreePojo(it) }
+		val A_BundleTree.lazyTypeFilterTreePojo
+			get() = dispatch { o_LazyTypeFilterTreePojo(it) }
 
 		/**
 		 * Add a
@@ -247,8 +248,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   The nearest ancestor backward-jump-containing bundle tree.
 		 */
-		fun A_BundleTree.latestBackwardJump() =
-			dispatch { o_LatestBackwardJump(it) }
+		val A_BundleTree.latestBackwardJump
+			get() = dispatch { o_LatestBackwardJump(it) }
 
 		/**
 		 * Answer whether there are any parsing-plans-in-progress which are at a
@@ -257,7 +258,8 @@ interface A_BundleTree : A_BasicObject {
 		 * @return
 		 *   Whether there are any backward jumps.
 		 */
-		fun A_BundleTree.hasBackwardJump() = dispatch { o_HasBackwardJump(it) }
+		val A_BundleTree.hasBackwardJump
+			get() = dispatch { o_HasBackwardJump(it) }
 
 		/**
 		 * Answer whether this bundle tree has been marked as the source of a
@@ -268,18 +270,8 @@ interface A_BundleTree : A_BasicObject {
 		 *   Whether the bundle tree is the source of a linkage to an equivalent
 		 *   ancestor bundle tree.
 		 */
-		fun A_BundleTree.isSourceOfCycle() = dispatch { o_IsSourceOfCycle(it) }
-
-		/**
-		 * Set whether this bundle tree is the source of a cycle.  If so, the
-		 * [latestBackwardJump] must be the bundle tree at which to continue
-		 * processing.
-		 *
-		 * @param isSourceOfCycle
-		 *   Whether the bundle tree is the source of a linkage to an equivalent
-		 *   ancestor bundle tree.
-		 */
-		fun A_BundleTree.isSourceOfCycle(isSourceOfCycle: Boolean) =
-			dispatch { o_IsSourceOfCycle(it, isSourceOfCycle) }
+		var A_BundleTree.isSourceOfCycle
+			get() = dispatch { o_IsSourceOfCycle(it) }
+			set(value) = dispatch { o_IsSourceOfCycle(it, value) }
 	}
 }

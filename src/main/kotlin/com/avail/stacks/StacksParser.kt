@@ -463,13 +463,10 @@ class StacksParser private constructor(
 
 		if (sectionStartLocations[0] != 0)
 		{
-			val description =
-				tokens()
-					.subList(
-						0,
-						sectionStartLocations[currentSectionStartLocationsIndex]
-					)
-					.toList()
+			val description = tokens()
+				.subList(
+					0, sectionStartLocations[currentSectionStartLocationsIndex])
+				.toList()
 			builder.addStacksCommentDescription(description)
 		}
 

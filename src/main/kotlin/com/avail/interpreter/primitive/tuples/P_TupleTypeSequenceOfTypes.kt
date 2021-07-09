@@ -71,8 +71,8 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val startInt = startIndex.extractInt()
-		val endInt = endIndex.extractInt()
+		val startInt = startIndex.extractInt
+		val endInt = endIndex.extractInt
 		val tupleSize = endInt - startInt + 1
 		if (tupleSize < 0)
 		{
@@ -87,10 +87,9 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				tupleMeta(),
+				tupleMeta,
 				naturalNumbers,
-				wholeNumbers
-			),
+				wholeNumbers),
 			zeroOrMoreOf(anyMeta()))
 
 	override fun privateFailureVariableType(): A_Type =

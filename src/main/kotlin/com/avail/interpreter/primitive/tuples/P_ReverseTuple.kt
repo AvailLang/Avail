@@ -78,15 +78,15 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
-		if (tupleType.typeTuple().tupleSize() == 0)
+		if (tupleType.typeTuple.tupleSize == 0)
 		{
 			// The tuple type is homogeneous.  Answer the same tuple type, since
 			// it's its own inverse.
 			return tupleType
 		}
-		val tupleSizes = tupleType.sizeRange()
-		val tupleSizeLowerBound = tupleSizes.lowerBound()
-		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound())
+		val tupleSizes = tupleType.sizeRange
+		val tupleSizeLowerBound = tupleSizes.lowerBound
+		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound)
 			|| !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  In theory we could
@@ -97,16 +97,15 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 				emptyTuple,
 				tupleType.unionOfTypesAtThrough(1, MAX_VALUE))
 		}
-		val tupleSize = tupleSizeLowerBound.extractInt()
+		val tupleSize = tupleSizeLowerBound.extractInt
 		val elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize)
 		val reversedElementTypes = elementTypes.tupleReverse()
 		return tupleTypeForSizesTypesDefaultType(
-			tupleSizes, reversedElementTypes, bottom
-		)
+			tupleSizes, reversedElementTypes, bottom)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralTupleType()),
-			mostGeneralTupleType())
+			tuple(mostGeneralTupleType),
+			mostGeneralTupleType)
 }

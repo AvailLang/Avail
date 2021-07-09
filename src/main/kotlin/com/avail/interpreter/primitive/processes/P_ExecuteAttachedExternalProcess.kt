@@ -100,15 +100,15 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		builder.redirectInput(Redirect.PIPE)
 		builder.redirectOutput(Redirect.PIPE)
 		builder.redirectError(Redirect.PIPE)
-		if (optDir.tupleSize() == 1)
+		if (optDir.tupleSize == 1)
 		{
 			val dir = File(optDir.tupleAt(1).asNativeString())
 			builder.directory(dir)
 		}
-		if (optEnvironment.tupleSize() == 1)
+		if (optEnvironment.tupleSize == 1)
 		{
 			val oldEnvironmentMap = optEnvironment.tupleAt(1)
-			val newEnvironmentMap = oldEnvironmentMap.mapIterable().associate {
+			val newEnvironmentMap = oldEnvironmentMap.mapIterable.associate {
 				(k, v) -> k.asNativeString() to v.asNativeString()
 			}
 			val environmentMap = builder.environment()
@@ -117,7 +117,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		// Create the new fiber that will be connected to the external process.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(TOP.o, priority.extractInt()) {
+		val newFiber = newFiber(TOP.o, priority.extractInt) {
 			stringFrom("External process execution")
 		}
 		newFiber.setAvailLoader(current.availLoader())
@@ -160,25 +160,22 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				oneOrMoreOf(stringType()),
-				zeroOrOneOf(stringType()),
+				oneOrMoreOf(stringType),
+				zeroOrOneOf(stringType),
 				zeroOrOneOf(
 					mapTypeForSizesKeyTypeValueType(
-						wholeNumbers, stringType(), stringType())),
+						wholeNumbers, stringType, stringType)),
 				functionType(
 					emptyTuple,
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(
 						enumerationWith(
 							set(
 								E_PERMISSION_DENIED,
 								E_NO_EXTERNAL_PROCESS))),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

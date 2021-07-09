@@ -165,11 +165,11 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		}
 		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val otherAncestors: A_Map = aPojoType.javaAncestors()
-		if (ancestors.mapSize() != otherAncestors.mapSize())
+		if (ancestors.mapSize != otherAncestors.mapSize)
 		{
 			return false
 		}
-		for (ancestor in ancestors.keysAsSet())
+		for (ancestor in ancestors.keysAsSet)
 		{
 			if (!otherAncestors.hasKey(ancestor))
 			{
@@ -177,8 +177,8 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 			}
 			val params: A_Tuple = ancestors.mapAt(ancestor)
 			val otherParams: A_Tuple = otherAncestors.mapAt(ancestor)
-			val limit = params.tupleSize()
-			assert(limit == otherParams.tupleSize())
+			val limit = params.tupleSize
+			assert(limit == otherParams.tupleSize)
 			for (i in 1 .. limit)
 			{
 				if (!params.tupleAt(i).equals(otherParams.tupleAt(i)))
@@ -249,7 +249,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
 				self.slot(JAVA_CLASS),
-				self.slot(JAVA_ANCESTORS).keysAsSet())
+				self.slot(JAVA_ANCESTORS).keysAsSet)
 			if (isShared)
 			{
 				selfType = selfType.traversed().makeShared()
@@ -310,7 +310,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		{
 			// If any of the fused pojo type's ancestors are Java classes, then
 			// the intersection is pojo bottom.
-			for (ancestor in aFusedPojoType.javaAncestors().keysAsSet())
+			for (ancestor in aFusedPojoType.javaAncestors().keysAsSet)
 			{
 				// Ignore java.lang.Object.
 				if (!ancestor.equals(rawObjectClass()))
@@ -388,7 +388,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 	{
 		val intersectionAncestors = computeUnion(self, aFusedPojoType)
 		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+			intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return if (javaClass.notNil)
@@ -408,7 +408,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		val intersectionAncestors = computeUnion(
 			self, anUnfusedPojoType)
 		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+			intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return if (javaClass.notNil)
@@ -436,12 +436,12 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
-			for (entry in self.slot(JAVA_ANCESTORS).mapIterable())
+			for (entry in self.slot(JAVA_ANCESTORS).mapIterable)
 			{
 				val ancestor = entry.key().javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
 				val typeArgs: A_Tuple = entry.value()
-				assert(vars.size == typeArgs.tupleSize())
+				assert(vars.size == typeArgs.tupleSize)
 				for (i in vars.indices)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
@@ -479,7 +479,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val params: A_Tuple = ancestors.mapAt(javaClass)
-		if (params.tupleSize() != 0)
+		if (params.tupleSize != 0)
 		{
 			builder.append('<')
 			var first = true
@@ -532,7 +532,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 				// self type; this is necessary to permit comparison between an
 				// unfused pojo type and its self type.
 				hash =
-					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
+					self.slot(JAVA_ANCESTORS).keysAsSet.hash() xor
 						-0x5fea43bc
 				self.setSlot(HASH_OR_ZERO, hash)
 			}

@@ -112,21 +112,19 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial())
-					E_SPECIAL_ATOM
-				else
-					E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
+				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Build the big-endian address byte array.
 		val addressBytes = ByteArray(4) {
-			addressTuple.tupleAt(it + 1).extractUnsignedByte().toByte()
+			addressTuple.tupleAt(it + 1).extractUnsignedByte.toByte()
 		}
 		val address = try
 		{
 			InetSocketAddress(
 				getByAddress(addressBytes) as Inet4Address,
-				port.extractUnsignedShort())
+				port.extractUnsignedShort)
 		}
 		catch (e: UnknownHostException)
 		{
@@ -138,13 +136,13 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt
 		) {
 			formatString(
 				"Socket IPv4 connect, %s:%d",
 				addressTuple.toString(),
-				port.extractInt())
+				port.extractInt)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -192,19 +190,15 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(4),
 					emptyTuple,
-					bytes
-				),
+					bytes),
 				unsignedShorts,
 				functionType(
 					emptyTuple,
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

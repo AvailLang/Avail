@@ -93,7 +93,7 @@ object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 			}
 
 		val options =
-			if (overwrite.extractBoolean())
+			if (overwrite.extractBoolean)
 			{
 				arrayOf<CopyOption>(StandardCopyOption.REPLACE_EXISTING)
 			}
@@ -133,7 +133,7 @@ object P_FileMove : Primitive(3, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), stringType(), booleanType), TOP.o)
+		functionType(tuple(stringType, stringType, booleanType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

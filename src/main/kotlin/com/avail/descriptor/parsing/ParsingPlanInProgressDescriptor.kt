@@ -126,8 +126,8 @@ class ParsingPlanInProgressDescriptor private constructor(
 			return false
 		}
 		val strongAnother = another as A_ParsingPlanInProgress
-		return (self.slot(PARSING_PLAN).equals(strongAnother.parsingPlan())
-			&& self.slot(PARSING_PC) == strongAnother.parsingPc())
+		return (self.slot(PARSING_PLAN).equals(strongAnother.parsingPlan)
+			&& self.slot(PARSING_PC) == strongAnother.parsingPc)
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -139,9 +139,9 @@ class ParsingPlanInProgressDescriptor private constructor(
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean {
 		val plan: A_DefinitionParsingPlan = self.slot(PARSING_PLAN)
-		val instructions = plan.parsingInstructions()
+		val instructions = plan.parsingInstructions
 		val pc = self.slot(PARSING_PC)
-		if (pc > instructions.tupleSize()) {
+		if (pc > instructions.tupleSize) {
 			return false
 		}
 		val instruction = instructions.tupleIntAt(pc)
@@ -164,8 +164,8 @@ class ParsingPlanInProgressDescriptor private constructor(
 		val pc = self.slot(PARSING_PC)
 		return when {
 			pc <= 1 -> "(any method invocation)"
-			else -> plan.bundle().messageSplitter().highlightedNameFor(
-				plan.definition().parsingSignature(), pc)
+			else -> plan.bundle.messageSplitter.highlightedNameFor(
+				plan.definition.parsingSignature(), pc)
 		}
 	}
 
@@ -176,9 +176,9 @@ class ParsingPlanInProgressDescriptor private constructor(
 		indent: Int
 	) = with(builder) {
 		append("plan @")
-		append(self.parsingPc())
+		append(self.parsingPc)
 		append(" of ")
-		append(self.nameHighlightingPc())
+		append(self.nameHighlightingPc)
 		return@with
 	}
 

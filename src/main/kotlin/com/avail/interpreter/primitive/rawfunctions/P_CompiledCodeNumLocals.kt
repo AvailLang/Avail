@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -55,12 +56,11 @@ object P_CompiledCodeNumLocals : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(code.numLocals()))
+		return interpreter.primitiveSuccess(fromInt(code.numLocals))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
-			wholeNumbers
-		)
+			wholeNumbers)
 }

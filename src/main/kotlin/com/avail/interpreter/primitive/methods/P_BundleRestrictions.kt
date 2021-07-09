@@ -58,7 +58,7 @@ object P_BundleRestrictions : Primitive(1, CanInline, CannotFail)
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			bundle.grammaticalRestrictions().makeImmutable())
+			bundle.grammaticalRestrictions.makeImmutable())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

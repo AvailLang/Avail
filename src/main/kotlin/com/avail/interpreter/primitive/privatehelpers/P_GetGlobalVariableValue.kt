@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.privatehelpers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.readType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -73,7 +74,7 @@ object P_GetGlobalVariableValue : Primitive(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
 	): A_Type =
-		rawFunction.literalAt(1).kind().readType()
+		rawFunction.literalAt(1).kind().readType
 
 	/**
 	 * This primitive is suitable for any function with any as the return type.

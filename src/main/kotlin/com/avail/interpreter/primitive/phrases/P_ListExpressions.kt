@@ -63,7 +63,7 @@ object P_ListExpressions : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val list = interpreter.argument(0)
-		return interpreter.primitiveSuccess(list.expressionsTuple())
+		return interpreter.primitiveSuccess(list.expressionsTuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

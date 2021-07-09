@@ -65,7 +65,7 @@ internal class LoadingEffectToAddDefinition constructor(
 ) : LoadingEffect() {
 	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
-		val atom = bundle.message()
+		val atom = bundle.message
 		with(writer) {
 			when {
 				definition.isAbstractDefinition() -> {

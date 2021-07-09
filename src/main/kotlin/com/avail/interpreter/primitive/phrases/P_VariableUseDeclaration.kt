@@ -60,7 +60,7 @@ object P_VariableUseDeclaration : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val use = interpreter.argument(0)
-		return interpreter.primitiveSuccess(use.declaration())
+		return interpreter.primitiveSuccess(use.declaration)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

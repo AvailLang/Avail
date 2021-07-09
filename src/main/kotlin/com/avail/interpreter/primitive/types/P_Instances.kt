@@ -64,7 +64,7 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 		{
 			interpreter.primitiveFailure(E_NOT_AN_ENUMERATION)
 		}
-		else interpreter.primitiveSuccess(type.instances())
+		else interpreter.primitiveSuccess(type.instances)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -76,8 +76,8 @@ object P_Instances : Primitive(1, CanFold, CanInline)
 		argumentTypes: List<A_Type>): Fallibility
 	{
 		val meta = argumentTypes[0]
-		return if (meta.instance().isEnumeration) CallSiteCannotFail
-		else CallSiteCanFail
+		return if (meta.instance.isEnumeration) CallSiteCannotFail
+			else CallSiteCanFail
 	}
 
 	override fun privateFailureVariableType(): A_Type =

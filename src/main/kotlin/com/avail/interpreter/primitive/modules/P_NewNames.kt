@@ -66,13 +66,12 @@ object P_NewNames : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)
-		return interpreter.primitiveSuccess(module.newNames())
+		return interpreter.primitiveSuccess(module.newNames)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(MODULE.o),
 			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, stringType(), ATOM.o
-			))
+				wholeNumbers, stringType, ATOM.o))
 }

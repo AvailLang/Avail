@@ -69,7 +69,7 @@ object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 
 		val pojoType = pojoArrayType(elementType, singleInteger(length))
 		val array = Array.newInstance(
-			elementType.marshalToJava(null) as Class<*>, length.extractInt())
+			elementType.marshalToJava(null) as Class<*>, length.extractInt)
 		val pojo = newPojo(identityPojo(array), pojoType)
 		return interpreter.primitiveSuccess(pojo)
 	}
@@ -78,7 +78,6 @@ object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 		functionType(
 			tuple(
 				anyMeta(),
-				wholeNumbers
-			),
+				wholeNumbers),
 			mostGeneralPojoArrayType())
 }

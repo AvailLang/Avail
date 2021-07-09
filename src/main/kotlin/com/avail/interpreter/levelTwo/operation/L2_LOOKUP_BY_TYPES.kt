@@ -39,6 +39,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
@@ -141,11 +142,11 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		if (functionType.isEnumeration)
 		{
 			val numArgs = argumentTypeRegs.size
-			val functions: Set<A_Function> = toSet(functionType.instances())
+			val functions: Set<A_Function> = toSet(functionType.instances)
 			val argumentTupleUnionType =
 				functions.fold(bottom) { union, function ->
 					union.typeUnion(
-						function.code().functionType().argsTupleType())
+						function.code().functionType().argsTupleType)
 				}
 			for (i in 1 .. numArgs)
 			{
@@ -236,10 +237,10 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 				Level.FINER,
 				"{0}Lookup-by-types {1}",
 				interpreter.debugModeString,
-				bundle.message().atomName())
+				bundle.message.atomName)
 		}
 		val typesList = mutableListOf(*types)
-		val method: A_Method = bundle.bundleMethod()
+		val method: A_Method = bundle.bundleMethod
 		val before = AvailRuntimeSupport.captureNanos()
 		val definitionToCall: A_Definition = try
 		{

@@ -313,11 +313,8 @@ class FileSystemModuleRootResolver constructor(
 					resolverReference(
 						absolutePath(
 							uri,
-							qualifiedName
-						),
-						qualifiedName
-					)
-				)
+							qualifiedName),
+						qualifiedName))
 			}
 			catch (e: NoSuchFileException)
 			{
@@ -846,7 +843,7 @@ class FileSystemModuleRootResolver constructor(
 				}
 
 				val fileName = file.fileName.toString()
-				if (fileName.toUpperCase() == ".DS_STORE")
+				if (fileName.uppercase() == ".DS_STORE")
 				{
 					// Mac file to be ignored
 					return FileVisitResult.CONTINUE

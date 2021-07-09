@@ -76,7 +76,7 @@ object P_LookupName : Primitive(1, CanInline, ReadsFromHiddenGlobalState)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), ATOM.o)
+		functionType(tuple(stringType), ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER, E_AMBIGUOUS_NAME))

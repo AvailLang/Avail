@@ -57,7 +57,7 @@ object P_DoubleCeiling : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
-		val d = a.extractDouble()
+		val d = a.extractDouble
 		val ceil = ceil(d)
 		return interpreter.primitiveSuccess(fromDoubleRecycling(ceil, a, true))
 	}

@@ -80,9 +80,9 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 		// Here the statements so far are a list phrase, not a sequence.
 		// The section marker is inside the repetition, so this primitive could
 		// only be invoked if there is at least one statement.
-		val latestStatementLiteral = statementsPhrase.lastExpression()
-		val latestStatement = latestStatementLiteral.token().literal()
-		if (!latestStatement.phraseExpressionType().equals(TOP.o))
+		val latestStatementLiteral = statementsPhrase.lastExpression
+		val latestStatement = latestStatementLiteral.token.literal()
+		if (!latestStatement.phraseExpressionType.equals(TOP.o))
 		{
 			throw AvailRejectedParseException(WEAK, "statement to have type ⊤")
 		}
@@ -140,6 +140,5 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// declaration inside a literal phrase, so expect a
 						// phrase here instead of TOP.o.
 						STATEMENT_PHRASE.mostGeneralType()))),
-			TOP.o
-		)
+			TOP.o)
 }

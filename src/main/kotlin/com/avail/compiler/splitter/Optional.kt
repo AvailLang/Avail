@@ -218,7 +218,7 @@ internal class Optional constructor(
 		assert(
 			literal.isInstanceOf(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType()))
-		val flag = literal.token().literal().extractBoolean()
+		val flag = literal.token.literal().extractBoolean
 		if (flag)
 		{
 			builder.append('«')

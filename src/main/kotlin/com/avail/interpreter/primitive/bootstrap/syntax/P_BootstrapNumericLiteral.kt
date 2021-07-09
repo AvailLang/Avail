@@ -60,7 +60,7 @@ object P_BootstrapNumericLiteral :
 		interpreter.checkArgumentCount(1)
 		val numericTokenLiteral = interpreter.argument(0)
 
-		val outerToken = numericTokenLiteral.token()
+		val outerToken = numericTokenLiteral.token
 		val innerToken = outerToken.literal()
 		val numericLiteral = literalNodeFromToken(innerToken)
 		return interpreter.primitiveSuccess(numericLiteral)

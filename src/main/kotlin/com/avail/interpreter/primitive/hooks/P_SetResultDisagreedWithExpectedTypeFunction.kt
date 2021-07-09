@@ -79,8 +79,6 @@ object P_SetResultDisagreedWithExpectedTypeFunction : Primitive(
 						mostGeneralFunctionType(),
 						topMeta(),
 						variableTypeFor(ANY.o)),
-					bottom
-				)),
-			TOP.o
-		)
+					bottom)),
+			TOP.o)
 }

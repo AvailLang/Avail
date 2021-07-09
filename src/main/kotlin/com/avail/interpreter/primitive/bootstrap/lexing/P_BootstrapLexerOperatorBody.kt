@@ -71,8 +71,8 @@ object P_BootstrapLexerOperatorBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val lineNumberInteger = interpreter.argument(2)
 
-		val sourceSize = source.tupleSize()
-		val startPosition = sourcePositionInteger.extractInt()
+		val sourceSize = source.tupleSize
+		val startPosition = sourcePositionInteger.extractInt
 
 		val c = source.tupleCodePointAt(startPosition)
 		if (c == '/'.code)
@@ -88,7 +88,7 @@ object P_BootstrapLexerOperatorBody
 			source.copyStringFromToCanDestroy(
 				startPosition, startPosition, false),
 			startPosition,
-			lineNumberInteger.extractInt(),
+			lineNumberInteger.extractInt,
 			OPERATOR)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}

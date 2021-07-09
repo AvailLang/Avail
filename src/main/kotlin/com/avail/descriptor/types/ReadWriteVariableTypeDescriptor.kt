@@ -120,8 +120,8 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		when
 		{
 			self.sameAddressAs(aType) -> true
-			aType.readType().equals(self.slot(READ_TYPE))
-				&& aType.writeType().equals(self.slot(WRITE_TYPE)) ->
+			aType.readType.equals(self.slot(READ_TYPE))
+				&& aType.writeType.equals(self.slot(WRITE_TYPE)) ->
 			{
 				if (!isShared)
 				{
@@ -151,10 +151,8 @@ class ReadWriteVariableTypeDescriptor private constructor(
 	override fun o_IsSupertypeOfVariableType(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean =
-			(aVariableType.readType().isSubtypeOf(
-					self.slot(READ_TYPE))
-		        && self.slot(WRITE_TYPE)
-				    .isSubtypeOf(aVariableType.writeType()))
+			(aVariableType.readType.isSubtypeOf(self.slot(READ_TYPE))
+		        && self.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType))
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -171,10 +169,8 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type =
 			variableReadWriteType(
-				self.slot(READ_TYPE)
-					.typeIntersection(aVariableType.readType()),
-				self.slot(WRITE_TYPE)
-					.typeUnion(aVariableType.writeType()))
+				self.slot(READ_TYPE).typeIntersection(aVariableType.readType),
+				self.slot(WRITE_TYPE).typeUnion(aVariableType.writeType))
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -191,13 +187,11 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): A_Type =
 			variableReadWriteType(
-				self.slot(READ_TYPE)
-					.typeUnion(aVariableType.readType()),
-				self.slot(WRITE_TYPE)
-					.typeIntersection(aVariableType.writeType()))
+				self.slot(READ_TYPE).typeUnion(aVariableType.readType),
+				self.slot(WRITE_TYPE).typeIntersection(aVariableType.writeType))
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		if (self.readType().equals(self.writeType()))
+		if (self.readType.equals(self.writeType))
 		{
 			SerializerOperation.SIMPLE_VARIABLE_TYPE
 		}

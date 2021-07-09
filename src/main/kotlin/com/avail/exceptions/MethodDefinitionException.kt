@@ -112,7 +112,7 @@ class MethodDefinitionException private constructor(code: AvailErrorCode)
 		@Throws(MethodDefinitionException::class)
 		fun extractUniqueMethod(methodDefinitions: A_Tuple): A_Definition
 		{
-			when (methodDefinitions.tupleSize())
+			when (methodDefinitions.tupleSize)
 			{
 				0 -> throw MethodDefinitionException(E_NO_METHOD_DEFINITION)
 				1 -> return methodDefinitions.tupleAt(1)

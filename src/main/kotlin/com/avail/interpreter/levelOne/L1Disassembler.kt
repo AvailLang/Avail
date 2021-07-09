@@ -36,6 +36,11 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.character.A_Character.Companion.isCharacter
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.representation.A_BasicObject
@@ -103,7 +108,7 @@ class L1Disassembler constructor(
 	 * Extract the names of arg/local/constant declarations from the raw
 	 * function.
 	 */
-	val declarationNames = code.declarationNames().map { it.asNativeString() }
+	val declarationNames = code.declarationNames.map { it.asNativeString() }
 
 	/**
 	 * Visit the given [L1DisassemblyVisitor] with my [L1Operation]s and
@@ -113,12 +118,13 @@ class L1Disassembler constructor(
 	 *   The [L1DisassemblyVisitor] to tell about the operations and operands.
 	 */
 	fun visit(visitor: L1DisassemblyVisitor) = with (L1InstructionDecoder()) {
-		val encodedDeltas = code.lineNumberEncodedDeltas()
-		var lineNumber = code.startingLineNumber()
+		val encodedDeltas = code.lineNumberEncodedDeltas
+		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		code.setUpInstructionDecoder(this@with)
 		pc(1)
-		while (!atEnd()) {
+		while (!atEnd())
+		{
 			// Track the line number change from this operation.
 			val encodedDelta = encodedDeltas.tupleIntAt(instructionCounter++)
 			val decodedDelta =
@@ -300,9 +306,9 @@ class L1Disassembler constructor(
 					value.isString -> value to false
 					value.isInstanceOf(NUMBER.o) -> value to false
 					value.isInstanceOf(MESSAGE_BUNDLE.o) ->
-						value.message().atomName() to true
+						value.message.atomName to true
 					value.isInstanceOf(METHOD.o) -> value to true
-					value.isAtom -> value.atomName() to true
+					value.isAtom -> value.atomName to true
 					value.isCharacter -> value to false
 					!value.isType -> value to true
 					value.isTop -> value to false
@@ -324,7 +330,7 @@ class L1Disassembler constructor(
 				}
 				else if (value.isInstanceMeta)
 				{
-					val instance = value.instance()
+					val instance = value.instance
 					val (print2, _) = simplePrintable(instance)
 					if (print2 !== null)
 					{
@@ -332,7 +338,7 @@ class L1Disassembler constructor(
 					}
 					else if (instance.isInstanceMeta)
 					{
-						val instanceInstance = instance.instance()
+						val instanceInstance = instance.instance
 						val (print3, _) = simplePrintable(instanceInstance)
 						if (print3 !== null)
 						{

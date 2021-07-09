@@ -75,6 +75,8 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.lexer
+import com.avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
@@ -90,7 +92,6 @@ import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
-import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.versions
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
@@ -488,7 +489,7 @@ class ModuleDescriptor private constructor(
 		indent: Int)
 	{
 		builder.append("module ")
-		builder.append(self.moduleName())
+		builder.append(self.moduleName)
 	}
 
 	override fun o_ApplyModuleHeader(
@@ -534,9 +535,9 @@ class ModuleDescriptor private constructor(
 
 			val mod = runtime.moduleAt(availRef)
 			val reqVersions = moduleImport.acceptableVersions
-			if (reqVersions.setSize() > 0)
+			if (reqVersions.setSize > 0)
 			{
-				val modVersions = mod.versions()
+				val modVersions = mod.versions
 				if (!modVersions.setIntersects(reqVersions))
 				{
 					return (
@@ -546,17 +547,17 @@ class ModuleDescriptor private constructor(
 							+ "$reqVersions")
 				}
 			}
-			ancestors = ancestors.setUnionCanDestroy(mod.allAncestors(), true)
+			ancestors = ancestors.setUnionCanDestroy(mod.allAncestors, true)
 			ancestors = ancestors.setWithElementCanDestroy(mod, true)
 
 			// Figure out which strings to make available.
 			var stringsToImport: A_Set
-			val importedNamesMultimap = mod.importedNames()
+			val importedNamesMultimap = mod.importedNames
 			if (moduleImport.wildcard)
 			{
 				val renameSourceNames =
-					moduleImport.renames.valuesAsTuple().asSet()
-				stringsToImport = importedNamesMultimap.keysAsSet()
+					moduleImport.renames.valuesAsTuple.asSet
+				stringsToImport = importedNamesMultimap.keysAsSet
 				stringsToImport = stringsToImport.setMinusCanDestroy(
 					renameSourceNames, true)
 				stringsToImport = stringsToImport.setUnionCanDestroy(
@@ -584,7 +585,7 @@ class ModuleDescriptor private constructor(
 			}
 
 			// Perform renames.
-			for ((newString, oldString) in moduleImport.renames.mapIterable())
+			for ((newString, oldString) in moduleImport.renames.mapIterable)
 			{
 				// Find the old atom.
 				if (!importedNamesMultimap.hasKey(oldString))
@@ -594,7 +595,7 @@ class ModuleDescriptor private constructor(
 							+ "$oldString for renaming to $newString")
 				}
 				val oldCandidates = importedNamesMultimap.mapAt(oldString)
-				if (oldCandidates.setSize() != 1)
+				if (oldCandidates.setSize != 1)
 				{
 					return (
 						"module \"${ref.qualifiedName}\" to export a unique "
@@ -603,12 +604,12 @@ class ModuleDescriptor private constructor(
 				val oldAtom = oldCandidates.single()
 				// Find or create the new atom.
 				val newAtom: A_Atom
-				val newNames = self.newNames()
+				val newNames = self.newNames
 				if (newNames.hasKey(newString))
 				{
 					// Use it.  It must have been declared in the
 					// "Names" clause.
-					newAtom = self.newNames().mapAt(newString)
+					newAtom = self.newNames.mapAt(newString)
 				}
 				else
 				{
@@ -618,25 +619,25 @@ class ModuleDescriptor private constructor(
 					self.introduceNewName(newAtom)
 				}
 				// Now tie the bundles together.
-				assert(newAtom.bundleOrNil().isNil)
+				assert(newAtom.bundleOrNil.isNil)
 				val newBundle: A_Bundle
 				try
 				{
 					val oldBundle = oldAtom.bundleOrCreate()
-					val method = oldBundle.bundleMethod()
+					val method = oldBundle.bundleMethod
 					newBundle =
 						newBundle(newAtom, method, MessageSplitter(newString))
 					newAtom.setAtomBundle(newBundle)
 					atomsToImport =
 						atomsToImport.setWithElementCanDestroy(newAtom, true)
 					val copyMacros =
-						!oldBundle.messageSplitter().recursivelyContainsReorders
-							&& !newBundle.messageSplitter()
-							.recursivelyContainsReorders
+						!oldBundle.messageSplitter.recursivelyContainsReorders
+							&& !newBundle.messageSplitter
+								.recursivelyContainsReorders
 					if (copyMacros)
 					{
 						// Neither bundle uses reordering.  Copy all macros.
-						for (macro in oldBundle.macrosTuple())
+						for (macro in oldBundle.macrosTuple)
 						{
 							loader.addMacroBody(
 								newAtom,
@@ -673,7 +674,7 @@ class ModuleDescriptor private constructor(
 			{
 				val trueNames = self.trueNamesForStringName(name)
 				val trueName: AvailObject
-				when (trueNames.setSize())
+				when (trueNames.setSize)
 				{
 					0 ->
 					{
@@ -723,7 +724,7 @@ class ModuleDescriptor private constructor(
 
 	override fun o_NameForDebugger(self: AvailObject): String =
 		(super.o_NameForDebugger(self) + " = "
-			+ self.moduleName().asNativeString())
+			+ self.moduleName.asNativeString())
 
 	override fun o_ModuleName(self: AvailObject): A_String = moduleName
 
@@ -766,7 +767,7 @@ class ModuleDescriptor private constructor(
 						value.makeShared(), true)
 				}
 				exportedNames = exportedNames.makeShared()
-				if (self.moduleState() != Loading)
+				if (self.moduleState != Loading)
 				{
 					// The module is closed, so cache it for next time.
 					self.setSlot(CACHED_EXPORTED_NAMES, exportedNames)
@@ -861,7 +862,7 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the atom to the current public scope.
 		assertState(Loading)
-		val string: A_String = trueName.atomName()
+		val string: A_String = trueName.atomName
 		self.updateSlotShared(IMPORTED_NAMES) {
 			mapAtReplacingCanDestroy(
 				string,
@@ -878,7 +879,7 @@ class ModuleDescriptor private constructor(
 			// Inclusion has priority over exclusion, even along a
 			// different chain of modules.
 			val set: A_Set = privateNames.mapAt(string)
-			privateNames = if (set.setSize() == 1)
+			privateNames = if (set.setSize == 1)
 			{
 				privateNames.mapWithoutKeyCanDestroy(string, true)
 			}
@@ -906,7 +907,7 @@ class ModuleDescriptor private constructor(
 		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
 		for (trueName in trueNames)
 		{
-			val string: A_String = trueName.atomName()
+			val string: A_String = trueName.atomName
 			importedNames = importedNames.mapAtReplacingCanDestroy(
 				string,
 				emptySet,
@@ -920,7 +921,7 @@ class ModuleDescriptor private constructor(
 				// Inclusion has priority over exclusion, even along a
 				// different chain of modules.
 				val set: A_Set = privateNames.mapAt(string)
-				privateNames = if (set.setSize() == 1)
+				privateNames = if (set.setSize == 1)
 				{
 					privateNames.mapWithoutKeyCanDestroy(string, true)
 				}
@@ -946,7 +947,7 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Set up this true name, which is local to the module.
 		assertState(Loading)
-		val string: A_String = trueName.atomName()
+		val string: A_String = trueName.atomName
 		self.updateSlotShared(NEW_NAMES) {
 			assert(!hasKey(string)) {
 				"Can't define a new true name twice in a module"
@@ -964,7 +965,7 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		// Add the atom to the current private scope.
 		assertState(Loading)
-		val string: A_String = trueName.atomName()
+		val string: A_String = trueName.atomName
 		self.updateSlotShared(PRIVATE_NAMES) {
 			mapAtReplacingCanDestroy(
 				string,
@@ -989,7 +990,7 @@ class ModuleDescriptor private constructor(
 		var visibleNames: A_Set = self.slot(VISIBLE_NAMES)
 		for (trueName in trueNames)
 		{
-			val string: A_String = trueName.atomName()
+			val string: A_String = trueName.atomName
 			privateNames = privateNames.mapAtReplacingCanDestroy(
 				string,
 				emptySet,
@@ -1058,16 +1059,16 @@ class ModuleDescriptor private constructor(
 		var phrases = self.volatileSlot(ALL_BLOCK_PHRASES)
 		if (phrases.isLong)
 		{
-			val phrasesKey = phrases.extractLong()
+			val phrasesKey = phrases.extractLong
 			val runtime = AvailRuntime.currentRuntime()
-			val moduleName = ModuleName(self.moduleName().asNativeString())
+			val moduleName = ModuleName(self.moduleName.asNativeString())
 			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
 				lock.withLock { repository!![phrasesKey] }
 			}
 			val bytes = validatedBytesFrom(record)
-			val delta = serializedObjects.tupleSize() + 1
+			val delta = serializedObjects.tupleSize + 1
 			val deserializer = Deserializer(bytes, runtime) {
 				serializedObjects.tupleAt(it - delta)
 			}
@@ -1089,7 +1090,7 @@ class ModuleDescriptor private constructor(
 			assert(isTuple)
 			appendCanDestroy(blockPhrase, false)
 		}
-		fromInt(newTuple.tupleSize())
+		fromInt(newTuple.tupleSize)
 	}
 
 	override fun o_RemoveFrom(
@@ -1097,7 +1098,7 @@ class ModuleDescriptor private constructor(
 		loader: AvailLoader,
 		afterRemoval: () -> Unit
 	) = lock.safeWrite {
-		self.setModuleState(Unloading)
+		self.moduleState = Unloading
 		val unloadFunctions =
 			self.getAndSetVolatileSlot(UNLOAD_FUNCTIONS, nil).tupleReverse()
 		// Run unload functions, asynchronously but serially, in reverse
@@ -1106,7 +1107,7 @@ class ModuleDescriptor private constructor(
 			finishUnloading(self, loader)
 			// The module may already be closed, but ensure that it is closed
 			// following removal.
-			self.setModuleState(Unloaded)
+			self.moduleState = Unloaded
 			afterRemoval()
 		}
 	}
@@ -1139,7 +1140,7 @@ class ModuleDescriptor private constructor(
 	{
 		val runtime = loader.runtime()
 		// Remove method definitions.
-		self.methodDefinitions().forEach { loader.removeDefinition(it) }
+		self.methodDefinitions.forEach { loader.removeDefinition(it) }
 		macroDefinitions.forEach { loader.removeMacro(it) }
 		// Remove semantic restrictions.
 		semanticRestrictions.forEach { runtime.removeTypeRestriction(it) }
@@ -1163,13 +1164,15 @@ class ModuleDescriptor private constructor(
 		// Remove lexers.  Don't bother adjusting the loader, since it's not
 		// going to parse anything again.  Don't even bother removing it from
 		// the module, since that's being unloaded.
-		self.slot(LEXERS).forEach { it.lexerMethod().setLexer(nil) }
+		self.slot(LEXERS).forEach {
+			it.lexerMethod.lexer = nil
+		}
 		// Remove bundles created by this module.
 		self.slot(BUNDLES).forEach { bundle ->
 			// Remove the bundle from the atom.
-			bundle.message().setAtomBundle(nil)
+			bundle.message.setAtomBundle(nil)
 			// Remove the bundle from the method.
-			bundle.bundleMethod().methodRemoveBundle(bundle)
+			bundle.bundleMethod.methodRemoveBundle(bundle)
 		}
 		// Tidy up the module to make it easier for the garbage collector to
 		// clean things up piecemeal.
@@ -1270,7 +1273,7 @@ class ModuleDescriptor private constructor(
 				if (privateNames.hasKey(stringName))
 				{
 					val privates: A_Set = privateNames.mapAt(stringName)
-					return when (publicNames.setSize())
+					return when (publicNames.setSize)
 					{
 						0 -> privates
 						else -> publicNames.setUnionCanDestroy(privates, false)
@@ -1294,11 +1297,11 @@ class ModuleDescriptor private constructor(
 		val filteredBundleTree = newBundleTree(nil)
 		val ancestors: A_Set = allAncestors.get()
 		lock.safeWrite {
-			self.visibleNames().forEach { visibleName ->
-				val bundle: A_Bundle = visibleName.bundleOrNil()
+			self.visibleNames.forEach { visibleName ->
+				val bundle: A_Bundle = visibleName.bundleOrNil
 				if (bundle.notNil)
 				{
-					bundle.definitionParsingPlans().forEach { key, plan ->
+					bundle.definitionParsingPlans.forEach { key, plan ->
 						val definitionModule = key.definitionModule()
 						if (ancestors.hasElement(definitionModule)
 							|| definitionModule.equals(self))
@@ -1328,13 +1331,13 @@ class ModuleDescriptor private constructor(
 	{
 		val lexers = mutableSetOf<A_Lexer>()
 		lock.read {
-			for (visibleName in self.visibleNames())
+			for (visibleName in self.visibleNames)
 			{
-				val bundle: A_Bundle = visibleName.bundleOrNil()
+				val bundle: A_Bundle = visibleName.bundleOrNil
 				if (bundle.notNil)
 				{
-					val method: A_Method = bundle.bundleMethod()
-					val lexer = method.lexer()
+					val method: A_Method = bundle.bundleMethod
+					val lexer = method.lexer
 					if (lexer.notNil)
 					{
 						lexers.add(lexer)

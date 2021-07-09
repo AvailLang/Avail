@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
@@ -84,9 +84,9 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		// "resultType".
 		val flat = mutableListOf<A_Phrase>()
 		statements.forEach { it.flattenStatementsInto(flat) }
-		val primitive = when
+		val primitive = when (primitiveName.tupleSize)
 		{
-			primitiveName.tupleSize() == 0 -> null
+			0 -> null
 			else -> primitiveByName(primitiveName.asNativeString())
 				?: return interpreter.primitiveFailure(
 					E_INVALID_PRIMITIVE_NUMBER)
@@ -111,10 +111,10 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		functionType(
 			tuple(
 				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()),
-				stringType(),
+				stringType,
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()),
 				topMeta(),
-				setTypeForSizesContentType(wholeNumbers, exceptionType())),
+				setTypeForSizesContentType(wholeNumbers, exceptionType)),
 			BLOCK_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =

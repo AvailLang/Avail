@@ -60,7 +60,7 @@ object P_BundleParametersCount : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
 
-		val splitter = bundle.messageSplitter()
+		val splitter = bundle.messageSplitter
 		return interpreter.primitiveSuccess(
 			fromInt(splitter.numberOfArguments))
 	}

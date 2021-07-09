@@ -332,7 +332,9 @@ internal class GraphTracer constructor(
 						}
 						tab(depth)
 						append("}\n")
-					} else if (node.resolvedModuleName === null) {
+					}
+					else if (node.resolvedModuleName === null)
+					{
 						tab(depth)
 						append("}\n")
 					}
@@ -340,14 +342,17 @@ internal class GraphTracer constructor(
 				0)
 		}
 		val channel: AsynchronousFileChannel
-		try {
+		try
+		{
 			channel = availBuilder.runtime.ioSystem.openFile(
 				outputFile.toPath(),
 				EnumSet.of(
 					StandardOpenOption.WRITE,
 					StandardOpenOption.CREATE,
 					StandardOpenOption.TRUNCATE_EXISTING))
-		} catch (e: IOException) {
+		}
+		catch (e: IOException)
+		{
 			throw RuntimeException(e)
 		}
 

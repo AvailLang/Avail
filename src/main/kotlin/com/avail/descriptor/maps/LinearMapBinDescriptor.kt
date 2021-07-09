@@ -254,7 +254,7 @@ internal class LinearMapBinDescriptor private constructor(
 							"The element should have been added without copying"
 						}
 					}
-					assert(result.mapBinSize() == oldSize + 1)
+					assert(result.mapBinSize == oldSize + 1)
 					checkHashedMapBin(result)
 					return result
 				}
@@ -265,7 +265,7 @@ internal class LinearMapBinDescriptor private constructor(
 					2,
 					// Grow if it had an even number of ints
 					oldSize and 1 xor 1)
-				result.setSlot(KEYS_HASH, self.mapBinKeysHash() + keyHash)
+				result.setSlot(KEYS_HASH, self.mapBinKeysHash + keyHash)
 				result.setSlot(VALUES_HASH_OR_ZERO, 0)
 				result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash)
 				result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 1, key)

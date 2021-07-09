@@ -68,19 +68,18 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(tuple.tupleSize()))
+		return interpreter.primitiveSuccess(fromInt(tuple.tupleSize))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralTupleType()),
-			wholeNumbers
-		)
+			tuple(mostGeneralTupleType),
+			wholeNumbers)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type = argumentTypes[0].sizeRange().typeIntersection(nonnegativeInt32)
+	): A_Type = argumentTypes[0].sizeRange.typeIntersection(nonnegativeInt32)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -94,8 +93,8 @@ object P_TupleSize : Primitive(1, CannotFail, CanFold, CanInline)
 
 		val generator = translator.generator
 		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
-		val lower = returnType.lowerBound()
-		val upper = returnType.upperBound()
+		val lower = returnType.lowerBound
+		val upper = returnType.upperBound
 		when {
 			lower.equals(upper) ->
 				// If the exact size of the tuple is known, then leverage that

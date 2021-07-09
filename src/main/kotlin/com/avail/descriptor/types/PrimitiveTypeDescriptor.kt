@@ -76,7 +76,6 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
-import java.util.Locale
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
@@ -357,10 +356,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		writer.write("kind")
 		writer.write(
 			"${
-				self
-					.slot(NAME)
-					.asNativeString()
-					.lowercase(Locale.getDefault())
+				self.slot(NAME).asNativeString().lowercase()
 			} type")
 		writer.endObject()
 	}

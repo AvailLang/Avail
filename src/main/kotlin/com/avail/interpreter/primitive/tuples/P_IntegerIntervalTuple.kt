@@ -84,8 +84,7 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 			tuple(
 				integers,
 				integers,
-				integers
-			),
+				integers),
 			zeroOrMoreOf(integers))
 
 	override fun fallibilityForArgumentTypes(
@@ -94,8 +93,8 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 		// val start = argumentTypes[0]
 		// val end = argumentTypes[1]
 		val delta = argumentTypes[2]
-		val lowerDelta = delta.lowerBound()
-		val upperDelta = delta.upperBound()
+		val lowerDelta = delta.lowerBound
+		val upperDelta = delta.upperBound
 		return when
 		{
 			lowerDelta.greaterThan(zero) || upperDelta.lessThan(zero) ->

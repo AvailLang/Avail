@@ -146,8 +146,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   Where to add section checkpoints found within this expression.
 	 */
 	internal open fun extractSectionCheckpointsInto(
-		sectionCheckpoints: MutableList<SectionCheckpoint>
-	)
+		sectionCheckpoints: MutableList<SectionCheckpoint>)
 	{
 		// Do nothing by default.
 	}
@@ -240,8 +239,7 @@ internal abstract class Expression constructor(val positionInName: Int)
 	internal abstract fun printWithArguments(
 		arguments: Iterator<A_Phrase>?,
 		builder: StringBuilder,
-		indent: Int
-	)
+		indent: Int)
 
 	/**
 	 * Answer whether the pretty-printed representation of this [Expression]

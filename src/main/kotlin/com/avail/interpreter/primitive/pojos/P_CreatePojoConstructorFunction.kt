@@ -135,8 +135,7 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			// Outer#1 = Constructor to invoke.
 			equalityPojo(constructor),
 			// Outer#2 = Marshaled type parameters.
-			marshaledTypesTuple.cast()
-		)
+			marshaledTypesTuple.cast())
 		return interpreter.primitiveSuccess(function)
 	}
 

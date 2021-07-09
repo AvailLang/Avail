@@ -143,20 +143,20 @@ class VariableUsePhraseDescriptor private constructor(
 	) {
 		val declaration: A_Phrase = self.slot(DECLARATION)
 		declaration.declarationKind().emitVariableValueForOn(
-			self.tokens(), declaration, codeGenerator)
+			self.tokens, declaration, codeGenerator)
 	}
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(USE_TOKEN).equals(aPhrase.token())
-		&& self.slot(DECLARATION).equals(aPhrase.declaration())
-		&& self.isLastUse() == aPhrase.isLastUse())
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(USE_TOKEN).equals(aPhrase.token)
+		&& self.slot(DECLARATION).equals(aPhrase.declaration)
+		&& self.isLastUse == aPhrase.isLastUse)
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(DECLARATION).declaredType()
+		self.slot(DECLARATION).declaredType
 
 	override fun o_Hash(self: AvailObject): Int =
 		(self.slot(USE_TOKEN).hash() * multiplier

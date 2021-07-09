@@ -231,12 +231,10 @@ class MessageSplitterTest private constructor ()
 				tupleFromArray(*expressionPhraseTypes.cast()),
 				if (expressionPhraseTypes.isNotEmpty())
 					expressionPhraseTypes[expressionPhraseTypes.size - 1]
-				else
-					bottom
-			)
+				else bottom)
 			return createListNodeType(
 				PhraseKind.LIST_PHRASE,
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				subexpressionsTupleType)
 		}
 
@@ -347,77 +345,63 @@ class MessageSplitterTest private constructor ()
 					"Foo",
 					List(0, 0),
 					A("Foo"),
-					A(PARSE_PART.encoding(1))
-				),
+					A(PARSE_PART.encoding(1))),
 				/* Backticked underscores */
 				C(
 					"Moo`_Sauce",
 					List(0, 0),
 					A("Moo_Sauce"),
-					A(PARSE_PART.encoding(1))
-				),
+					A(PARSE_PART.encoding(1))),
 				C(
 					"`_Moo`_Saucier",
 					List(0, 0),
 					A("_Moo_Saucier"),
-					A(PARSE_PART.encoding(1))
-				),
+					A(PARSE_PART.encoding(1))),
 				C(
 					"Moo`_`_`_Sauciest",
 					List(0, 0),
 					A("Moo___Sauciest"),
-					A(PARSE_PART.encoding(1))
-				),
+					A(PARSE_PART.encoding(1))),
 				C(
 					"Most`_Saucy`_",
 					List(0, 0),
 					A("Most_Saucy_"),
-					A(PARSE_PART.encoding(1))
-				),
+					A(PARSE_PART.encoding(1))),
 				C(
 					"Most `_Saucy",
 					List(0, 0),
 					A(
 						"Most",
-						"_Saucy"
-					),
+						"_Saucy"),
 					A(
 						PARSE_PART.encoding(1),
-						PARSE_PART.encoding(2)
-					)
-				),
+						PARSE_PART.encoding(2))),
 				/* Simple keywords and underscores. */
 				C(
 					"Print_",
 					List(
 						1,
 						1,
-						Phrase(stringType())
-					),
+						Phrase(stringType)),
 					A(
 						"Print",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_PART.encoding(1),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						typeCheckEncodingForPhrase(stringType),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"_+_",
 					List(
 						2,
 						2,
-						Phrase(NUMBER.o)
-					),
+						Phrase(NUMBER.o)),
 					A(
 						"_",
 						"+",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_ARGUMENT.encoding,
 						// Hoisted before the checks.
@@ -429,23 +413,19 @@ class MessageSplitterTest private constructor ()
 						CHECK_ARGUMENT.encoding(2),
 						typeCheckEncodingForPhrase(NUMBER.o),
 						WRAP_IN_LIST.encoding(2),
-						CONCATENATE.encoding
-					)
-				),
+						CONCATENATE.encoding)),
 				C(
 					"_+_*_",
 					List(
 						3,
 						3,
-						Phrase(NUMBER.o)
-					),
+						Phrase(NUMBER.o)),
 					A(
 						"_",
 						"+",
 						"_",
 						"*",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_ARGUMENT.encoding,
 						// Hoisted before arg 1 checks
@@ -463,16 +443,13 @@ class MessageSplitterTest private constructor ()
 						CHECK_ARGUMENT.encoding(3),
 						typeCheckEncodingForPhrase(NUMBER.o),
 						WRAP_IN_LIST.encoding(3),
-						CONCATENATE.encoding
-					)
-				),
+						CONCATENATE.encoding)),
 				C(
 					"_;",
 					List(
 						1,
 						1,
-						Phrase(Phrase(TOP.o))
-					),
+						Phrase(Phrase(TOP.o))),
 					A("_", ";"),
 					A(
 						PARSE_ARGUMENT.encoding,
@@ -480,29 +457,25 @@ class MessageSplitterTest private constructor ()
 						PARSE_PART.encoding(2),
 						CHECK_ARGUMENT.encoding(1),
 						typeCheckEncodingForPhrase(Phrase(TOP.o)),
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"__",
 					List(
 						2,
 						2,
-						Phrase(stringType())
-					),
+						Phrase(stringType)),
 					A("_", "_"),
 					A(
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						// See wrap/concatenate below
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						// See wrap/concatenate below
 						WRAP_IN_LIST.encoding(2),
-						CONCATENATE.encoding
-					)
+						CONCATENATE.encoding)
 				),  /* Literals */
 				C(
 					"…#",
@@ -511,17 +484,12 @@ class MessageSplitterTest private constructor ()
 						1,
 						Phrase(
 							LiteralToken(
-								wholeNumbers
-							)
-						)
-					),
+								wholeNumbers))),
 					A("…", "#"),
 					A(
 						PARSE_RAW_NUMERIC_LITERAL_TOKEN.encoding,
 						typeCheckEncodingForPhrase(LiteralToken(wholeNumbers)),
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"…$",
 					List(
@@ -529,109 +497,89 @@ class MessageSplitterTest private constructor ()
 						1,
 						Phrase(
 							LiteralToken(
-								stringType()
-							)
-						)
-					),
+								stringType))),
 					A("…", "$"),
 					A(
 						PARSE_RAW_STRING_LITERAL_TOKEN.encoding,
-						typeCheckEncodingForPhrase(LiteralToken(stringType())),
-						APPEND_ARGUMENT.encoding
-					)
+						typeCheckEncodingForPhrase(LiteralToken(stringType)),
+						APPEND_ARGUMENT.encoding)
 				),  /* Backquotes. */
 				C(
 					"`__",
 					List(
 						1,
 						1,
-						Phrase(stringType())
-					),
+						Phrase(stringType)),
 					A(
 						"`",
 						"_",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_PART.encoding(2),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						typeCheckEncodingForPhrase(stringType),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"`\$_",
 					List(
 						1,
 						1,
-						Phrase(stringType())
-					),
+						Phrase(stringType)),
 					A(
 						"`",
 						"$",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_PART.encoding(2),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						typeCheckEncodingForPhrase(stringType),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"_`«_",
 					List(
 						2,
 						2,
-						Phrase(stringType())
-					),
+						Phrase(stringType)),
 					A(
 						"_",
 						"`",
 						"«",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(3), // Hoisted above checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						// See wrap/concatenate below
 						WRAP_IN_LIST.encoding(2),
-						CONCATENATE.encoding
-					)
-				),
+						CONCATENATE.encoding)),
 				C(
 					"_``_",
 					List(
 						2,
 						2,
-						Phrase(stringType())
-					),
+						Phrase(stringType)),
 					A(
 						"_",
 						"`",
 						"`",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(3), // Hoisted above checks
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						// See wrap/concatenate below
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(2),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						WRAP_IN_LIST.encoding(2),
-						CONCATENATE.encoding
-					)
-				),
+						CONCATENATE.encoding)),
 				C(
 					"`#`?`~",
 					List(0, 0),
@@ -641,21 +589,17 @@ class MessageSplitterTest private constructor ()
 						"`",
 						"?",
 						"`",
-						"~"
-					),
+						"~"),
 					A(
 						PARSE_PART.encoding(2),
 						PARSE_PART.encoding(4),
-						PARSE_PART.encoding(6)
-					)
-				),
+						PARSE_PART.encoding(6))),
 				C(
 					"`|`|_`|`|",
 					List(
 						1,
 						1,
-						Phrase(NUMBER.o)
-					),
+						Phrase(NUMBER.o)),
 					A(
 						"`",
 						"|",
@@ -665,8 +609,7 @@ class MessageSplitterTest private constructor ()
 						"`",
 						"|",
 						"`",
-						"|"
-					),
+						"|"),
 					A(
 						PARSE_PART.encoding(2),
 						PARSE_PART.encoding(4),
@@ -675,8 +618,7 @@ class MessageSplitterTest private constructor ()
 						PARSE_PART.encoding(9), // Also hoisted before checks
 						CHECK_ARGUMENT.encoding(1),
 						typeCheckEncodingForPhrase(NUMBER.o),
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  /* Repeated groups. */
 				C(
 					"«_;»",
@@ -684,15 +626,12 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							zeroOrMoreOf(NUMBER.o)
-						)
-					),
+							zeroOrMoreOf(NUMBER.o))),
 					A(
 						"«",
 						"_",
 						";",
-						"»"
-					),
+						"»"),
 					A(
 						EMPTY_LIST.encoding,
 						BRANCH_FORWARD.encoding(16), // First unrolled loop
@@ -711,9 +650,7 @@ class MessageSplitterTest private constructor ()
 						BRANCH_FORWARD.encoding(16), // Maybe that's all
 						JUMP_BACKWARD.encoding(9), // To top of loop
 						// 16: After loop
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"«x»",
 					List(
@@ -722,14 +659,11 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							List(0, 0)
-						)
-					),
+							List(0, 0))),
 					A(
 						"«",
 						"x",
-						"»"
-					),
+						"»"),
 					A(
 						EMPTY_LIST.encoding, // whole expression
 						BRANCH_FORWARD.encoding(13), // allow zero occurrences
@@ -746,9 +680,7 @@ class MessageSplitterTest private constructor ()
 						//12:
 						APPEND_ARGUMENT.encoding, // save last occurrence
 						//13:
-						APPEND_ARGUMENT.encoding // save all occurrences
-					)
-				),
+						APPEND_ARGUMENT.encoding)), // save all occurrences
 				C(
 					"«x y»",
 					List(
@@ -757,15 +689,12 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							List(0, 0)
-						)
-					),
+							List(0, 0))),
 					A(
 						"«",
 						"x",
 						"y",
-						"»"
-					),
+						"»"),
 					A(
 						EMPTY_LIST.encoding, // whole expression
 						BRANCH_FORWARD.encoding(15), // allow zero occurrences
@@ -784,9 +713,7 @@ class MessageSplitterTest private constructor ()
 						//14:
 						APPEND_ARGUMENT.encoding, // save all occurrences
 						//15:
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"«x_y»",
 					List(
@@ -795,16 +722,13 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							Phrase(NUMBER.o)
-						)
-					),
+							Phrase(NUMBER.o))),
 					A(
 						"«",
 						"x",
 						"_",
 						"y",
-						"»"
-					),
+						"»"),
 					A(
 						// NOTE: The group's left half has one argument and the
 						// right half has none (it's elided).  Use
@@ -830,9 +754,7 @@ class MessageSplitterTest private constructor ()
 						BRANCH_FORWARD.encoding(18), // exit loop?
 						JUMP_BACKWARD.encoding(10),
 						//18:
-						APPEND_ARGUMENT.encoding // save all occurrences
-					)
-				),
+						APPEND_ARGUMENT.encoding)), // save all occurrences
 				C(
 					"«_:_»",
 					List(
@@ -844,17 +766,13 @@ class MessageSplitterTest private constructor ()
 							List(
 								2,
 								2,
-								Phrase(NUMBER.o)
-							)
-						)
-					),
+								Phrase(NUMBER.o)))),
 					A(
 						"«",
 						"_",
 						":",
 						"_",
-						"»"
-					),
+						"»"),
 					A(
 						// NOTE: The group's left half has two argument
 						// positions, so we have to double-wrap (i.e., produce a
@@ -886,9 +804,7 @@ class MessageSplitterTest private constructor ()
 						//24:
 						APPEND_ARGUMENT.encoding, // save the last pair
 						//25:
-						APPEND_ARGUMENT.encoding  // save all occurrences
-					)
-				),
+						APPEND_ARGUMENT.encoding)),  // save all occurrences
 				C(
 					"«»",
 					List(
@@ -897,9 +813,7 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							List(0, 0)
-						)
-					),
+							List(0, 0))),
 					A("«", "»"),
 					A(
 						// This is a degenerate case, and can't actually pass
@@ -924,9 +838,7 @@ class MessageSplitterTest private constructor ()
 						ENSURE_PARSE_PROGRESS.encoding, // Must have made progress
 						DISCARD_SAVED_PARSE_POSITION.encoding, // Chuck progress mark
 						//16:
-						APPEND_ARGUMENT.encoding
-					)
-				),  // Save list as sole argument.
+						APPEND_ARGUMENT.encoding)),  // Save list as sole argument.
 				/* Repeated groups with double dagger. */
 				C(
 					"«_‡,»",
@@ -936,16 +848,13 @@ class MessageSplitterTest private constructor ()
 						List(
 							0,
 							-1,
-							Phrase(NUMBER.o)
-						)
-					),
+							Phrase(NUMBER.o))),
 					A(
 						"«",
 						"_",
 						"‡",
 						",",
-						"»"
-					),
+						"»"),
 					A(
 						EMPTY_LIST.encoding, // Zero occurrences.
 						BRANCH_FORWARD.encoding(16), // Try zero occurrences
@@ -967,15 +876,14 @@ class MessageSplitterTest private constructor ()
 						PARSE_PART.encoding(4),
 						JUMP_BACKWARD.encoding(9),
 						//16:
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // Save list as sole argument.
 				C(
 					"new_«with_=_‡,»",
 					List(
 						2,
 						2,
-						Phrase(stringType()),
+						Phrase(stringType),
 						List(
 							1,  // require at least one 'with_=_' entry.
 							-1,
@@ -984,11 +892,7 @@ class MessageSplitterTest private constructor ()
 								2,
 								Phrase(NUMBER.o),
 								Phrase(
-									stringType()
-								)
-							)
-						)
-					),
+									stringType)))),
 					A(
 						"new",
 						"_",
@@ -999,14 +903,13 @@ class MessageSplitterTest private constructor ()
 						"_",
 						"‡",
 						",",
-						"»"
-					),
+						"»"),
 					A(
 						PARSE_PART.encoding(1),  // new
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(4),  // read ahead for required first "with"
 						CHECK_ARGUMENT.encoding(1),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						EMPTY_LIST.encoding,
 						PARSE_ARGUMENT.encoding,
 						PARSE_PART.encoding(6),  // "=" read-ahead
@@ -1014,7 +917,7 @@ class MessageSplitterTest private constructor ()
 						typeCheckEncodingForPhrase(NUMBER.o),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(3),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						WRAP_IN_LIST.encoding(2),
 						BRANCH_FORWARD.encoding(31),  // Try one repetition
 						PARSE_PART.encoding(9),  // ","
@@ -1026,7 +929,7 @@ class MessageSplitterTest private constructor ()
 						typeCheckEncodingForPhrase(NUMBER.o),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(3),
-						typeCheckEncodingForPhrase(stringType()),
+						typeCheckEncodingForPhrase(stringType),
 						WRAP_IN_LIST.encoding(2),
 						BRANCH_FORWARD.encoding(31),  // Try with this repetition
 						PARSE_PART.encoding(9),  // ','
@@ -1034,8 +937,7 @@ class MessageSplitterTest private constructor ()
 						JUMP_BACKWARD.encoding(18),  // 31: Add the latest pair and try it. [],1,[...][2,3]
 						APPEND_ARGUMENT.encoding,  // [],1, [...[2,3]]
 						WRAP_IN_LIST.encoding(2),  // [], [1, [...[2,3]]]
-						CONCATENATE.encoding
-					)
+						CONCATENATE.encoding)
 				),  // [1, [...[2,3]]]
 				/* Counting groups. */
 				C(
@@ -1044,15 +946,12 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							naturalNumbers
-						)
-					),
+							naturalNumbers)),
 					A(
 						"«",
 						"x",
 						"»",
-						"#"
-					),
+						"#"),
 					A(
 						PARSE_PART.encoding(2),  // Hoisted mandatory first unrolled x
 						EMPTY_LIST.encoding,  // The list of occurrences
@@ -1067,8 +966,7 @@ class MessageSplitterTest private constructor ()
 						JUMP_BACKWARD.encoding(6),  //11: Try solution.  [], [...], []
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
 						CONVERT.encoding(LIST_TO_SIZE.number),  // [], N
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [N]
 				C(
 					"«x y»#",
@@ -1076,16 +974,13 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							naturalNumbers
-						)
-					),
+							naturalNumbers)),
 					A(
 						"«",
 						"x",
 						"y",
 						"»",
-						"#"
-					),
+						"#"),
 					A(
 						PARSE_PART.encoding(2),  // Hoisted mandatory first x
 						PARSE_PART.encoding(3),  // Hoisted mandatory first y
@@ -1102,8 +997,7 @@ class MessageSplitterTest private constructor ()
 						JUMP_BACKWARD.encoding(7),  //13: Try solution.  [], [...], []
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
 						CONVERT.encoding(LIST_TO_SIZE.number),  // [], N
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [N]
 				C(
 					"«fish‡face»#",
@@ -1115,18 +1009,14 @@ class MessageSplitterTest private constructor ()
 								fromInt(3),
 								true,
 								positiveInfinity,
-								false
-							)
-						)
-					),
+								false))),
 					A(
 						"«",
 						"fish",
 						"‡",
 						"face",
 						"»",
-						"#"
-					),
+						"#"),
 					A(
 						PARSE_PART.encoding(2),  // Hoisted mandatory 1st fish
 						PARSE_PART.encoding(4),  // Hoisted mandatory 1st face
@@ -1144,8 +1034,7 @@ class MessageSplitterTest private constructor ()
 						JUMP_BACKWARD.encoding(8),  //14: Try solution.  [], [...], []
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
 						CONVERT.encoding(LIST_TO_SIZE.number),  // [], N
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [N]
 				/* Optional groups. */
 				C(
@@ -1154,15 +1043,12 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							booleanType
-						)
-					),
+							booleanType)),
 					A(
 						"«",
 						"x",
 						"»",
-						"?"
-					),
+						"?"),
 					A(
 						BRANCH_FORWARD.encoding(5),
 						PARSE_PART.encoding(2),
@@ -1171,8 +1057,7 @@ class MessageSplitterTest private constructor ()
 						//5:
 						PUSH_LITERAL.encoding(indexForFalse),  // [], F
 						//6:
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [T/F]
 				C(
 					"«x y»?",
@@ -1180,16 +1065,13 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							booleanType
-						)
-					),
+							booleanType)),
 					A(
 						"«",
 						"x",
 						"y",
 						"»",
-						"?"
-					),
+						"?"),
 					A(
 						BRANCH_FORWARD.encoding(6),
 						PARSE_PART.encoding(2),
@@ -1198,8 +1080,7 @@ class MessageSplitterTest private constructor ()
 						JUMP_FORWARD.encoding(7),  //6:
 						PUSH_LITERAL.encoding(indexForFalse),  // [], F
 						//7:
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [T/F]
 				/* Completely optional groups. */
 				C(
@@ -1208,14 +1089,12 @@ class MessageSplitterTest private constructor ()
 					A(
 						"very",
 						"⁇",
-						"good"
-					),
+						"good"),
 					A(
 						BRANCH_FORWARD.encoding(3),
 						PARSE_PART.encoding(1),  // very
 						//3:
-						PARSE_PART.encoding(3)
-					)
+						PARSE_PART.encoding(3))
 				),  // good
 				C(
 					"«very extremely»⁇good",
@@ -1226,15 +1105,13 @@ class MessageSplitterTest private constructor ()
 						"extremely",
 						"»",
 						"⁇",
-						"good"
-					),
+						"good"),
 					A(
 						BRANCH_FORWARD.encoding(4),
 						PARSE_PART.encoding(2),  // very
 						PARSE_PART.encoding(3),  // very
 						//4:
-						PARSE_PART.encoding(6)
-					)
+						PARSE_PART.encoding(6))
 				),  // good
 				/* Case insensitive. */
 				C(
@@ -1242,32 +1119,25 @@ class MessageSplitterTest private constructor ()
 					List(0, 0),
 					A(
 						"fnord",
-						"~"
-					),
+						"~"),
 					A(
-						PARSE_PART_CASE_INSENSITIVELY.encoding(1)
-					)
-				),
+						PARSE_PART_CASE_INSENSITIVELY.encoding(1))),
 				C(
 					"the~_",
 					List(
 						1,
 						1,
-						Phrase(NUMBER.o)
-					),
+						Phrase(NUMBER.o)),
 					A(
 						"the",
 						"~",
-						"_"
-					),
+						"_"),
 					A(
 						PARSE_PART_CASE_INSENSITIVELY.encoding(1),
 						PARSE_ARGUMENT.encoding,
 						CHECK_ARGUMENT.encoding(1),
 						typeCheckEncodingForPhrase(NUMBER.o),
-						APPEND_ARGUMENT.encoding
-					)
-				),
+						APPEND_ARGUMENT.encoding)),
 				C(
 					"«x~»",
 					List(
@@ -1276,15 +1146,12 @@ class MessageSplitterTest private constructor ()
 						List(
 							1,
 							-1,
-							List(0, 0)
-						)
-					),
+							List(0, 0))),
 					A(
 						"«",
 						"x",
 						"~",
-						"»"
-					),
+						"»"),
 					A(
 						PARSE_PART_CASE_INSENSITIVELY.encoding(2),  // Hoisted 1st
 						EMPTY_LIST.encoding,  // [], []
@@ -1298,8 +1165,7 @@ class MessageSplitterTest private constructor ()
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
 						JUMP_BACKWARD.encoding(6),  //11: Attempt. [], [...], []
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [[...[]]]
 				C(
 					"«x»~",  // Should be the same as «x~»
@@ -1309,15 +1175,12 @@ class MessageSplitterTest private constructor ()
 						List(
 							1,
 							-1,
-							List(0, 0)
-						)
-					),
+							List(0, 0))),
 					A(
 						"«",
 						"x",
 						"»",
-						"~"
-					),
+						"~"),
 					A(
 						PARSE_PART_CASE_INSENSITIVELY.encoding(2),  // Hoisted 1st
 						EMPTY_LIST.encoding,  // [], []
@@ -1331,8 +1194,7 @@ class MessageSplitterTest private constructor ()
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
 						JUMP_BACKWARD.encoding(6),  //11: Attempt. [], [...], []
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [[...[]]]
 				C(
 					"«x y»~#",
@@ -1340,17 +1202,14 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							wholeNumbers
-						)
-					),
+							wholeNumbers)),
 					A(
 						"«",
 						"x",
 						"y",
 						"»",
 						"~",
-						"#"
-					),
+						"#"),
 					A(
 						EMPTY_LIST.encoding,  // [], []
 						BRANCH_FORWARD.encoding(15),  // Try zero occurrences
@@ -1369,8 +1228,7 @@ class MessageSplitterTest private constructor ()
 						APPEND_ARGUMENT.encoding,  // [], [...[]]
 						//15: Answer
 						CONVERT.encoding(LIST_TO_SIZE.number),
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  // [[...]]
 				C(
 					"«x y»~?",
@@ -1378,17 +1236,14 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							booleanType
-						)
-					),
+							booleanType)),
 					A(
 						"«",
 						"x",
 						"y",
 						"»",
 						"~",
-						"?"
-					),
+						"?"),
 					A(
 						BRANCH_FORWARD.encoding(6),
 						PARSE_PART_CASE_INSENSITIVELY.encoding(2),
@@ -1396,8 +1251,7 @@ class MessageSplitterTest private constructor ()
 						PUSH_LITERAL.encoding(indexForTrue),
 						JUMP_FORWARD.encoding(7),  //6:
 						PUSH_LITERAL.encoding(indexForFalse),  //7:
-						APPEND_ARGUMENT.encoding
-					)
+						APPEND_ARGUMENT.encoding)
 				),  /* Alternation. */
 				C(
 					"hello|greetings",
@@ -1405,14 +1259,12 @@ class MessageSplitterTest private constructor ()
 					A(
 						"hello",
 						"|",
-						"greetings"
-					),
+						"greetings"),
 					A(
 						BRANCH_FORWARD.encoding(4),
 						PARSE_PART.encoding(1),  // hello
 						JUMP_FORWARD.encoding(5),  //4:
-						PARSE_PART.encoding(3)
-					)
+						PARSE_PART.encoding(3))
 				),  // greetings
 				//5:
 				C(
@@ -1431,8 +1283,7 @@ class MessageSplitterTest private constructor ()
 						"|",
 						"f",
 						"|",
-						"g"
-					),
+						"g"),
 					A(
 						BRANCH_FORWARD.encoding(4),
 						PARSE_PART.encoding(1),  // a
@@ -1452,8 +1303,7 @@ class MessageSplitterTest private constructor ()
 						BRANCH_FORWARD.encoding(19),
 						PARSE_PART.encoding(11),  // f
 						JUMP_FORWARD.encoding(20),  // 19:
-						PARSE_PART.encoding(13)
-					)
+						PARSE_PART.encoding(13))
 				),  // g
 				// 20: (end-if)
 				//		/* NOT YET SUPPORTED (no way to specify groups within alternations) */
@@ -1484,17 +1334,14 @@ class MessageSplitterTest private constructor ()
 						1,
 						1,
 						Phrase(
-							inclusive(1, 2)
-						)
-					),
+							inclusive(1, 2))),
 					A(
 						"«",
 						"x",
 						"|",
 						"y",
 						"»",
-						"!"
-					),
+						"!"),
 					A(
 						BRANCH_FORWARD.encoding(5),
 						PARSE_PART.encoding(2),
@@ -1504,10 +1351,7 @@ class MessageSplitterTest private constructor ()
 						PUSH_LITERAL.encoding(indexForConstant(fromInt(2))),
 						//7:
 						typeCheckEncodingForPhrase(inclusive(1, 2)),
-						APPEND_ARGUMENT.encoding
-					)
-				) // [N]
-			)
+						APPEND_ARGUMENT.encoding))) // [N]
 		}
 	}
 
@@ -1538,27 +1382,23 @@ class MessageSplitterTest private constructor ()
 			Assertions.assertEquals(
 				splitCase.tokens[i],
 				parts[i].asNativeString(),
-				"Split was not as expected"
-			)
+				"Split was not as expected")
 		}
-		val tupleType = splitCase.listPhraseType.phraseTypeExpressionType()
-		val sizeRange = tupleType.sizeRange()
-		assert(sizeRange.lowerBound().equals(sizeRange.upperBound()))
+		val tupleType = splitCase.listPhraseType.phraseTypeExpressionType
+		val sizeRange = tupleType.sizeRange
+		assert(sizeRange.lowerBound.equals(sizeRange.upperBound))
 		val typeTuple = tupleType.tupleOfTypesFromTo(
-			1, sizeRange.lowerBound().extractInt()
-		)
+			1, sizeRange.lowerBound.extractInt)
 		splitter.checkImplementationSignature(
 			functionType(
 				typeTuple,
-				TOP.o
-			)
-		)
+				TOP.o))
 		val instructionsTuple =
 			splitter.instructionsTupleFor(splitCase.listPhraseType)
 		val instructionsList = mutableListOf<Int>()
 		for (instruction in instructionsTuple)
 		{
-			instructionsList.add(instruction.extractInt())
+			instructionsList.add(instruction.extractInt)
 		}
 		if (splitCase.instructions.toString() != instructionsList.toString())
 		{
@@ -1566,18 +1406,14 @@ class MessageSplitterTest private constructor ()
 			println(instructionsList)
 			println(
 				dumpInstructions(
-					instructionsList
-				)
-			)
+					instructionsList))
 			Assertions.fail<Any>(
 				String.format(
 					"Generated parse code for \"%s\" was not as expected:%n%s%n"
 						+ "instead it was:%n%s",
 					msgString,
 					dumpInstructions(splitCase.instructions),
-					dumpInstructions(instructionsList)
-				)
-			)
+					dumpInstructions(instructionsList)))
 		}
 	}
 }

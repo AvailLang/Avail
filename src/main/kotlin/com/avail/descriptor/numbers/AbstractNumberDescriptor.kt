@@ -493,10 +493,12 @@ abstract class AbstractNumberDescriptor protected constructor(
 				maxInclusive.value = true
 				min.value = null
 				max.value = null
-				type.instances().forEach { value: A_Number ->
+				type.instances.forEach { value: A_Number ->
 					if (value.numericCompare(value).isIncomparable()) {
 						possibleResults.add(INCOMPARABLE)
-					} else {
+					}
+					else
+					{
 						comparablesList.add(value)
 						if (max.value === null
 							|| value.greaterThan(max.value!!))
@@ -512,10 +514,10 @@ abstract class AbstractNumberDescriptor protected constructor(
 				false
 			}
 			type.isIntegerRangeType -> {
-				min.value = type.lowerBound()
-				max.value = type.upperBound()
-				minInclusive.value = type.lowerInclusive()
-				maxInclusive.value = type.upperInclusive()
+				min.value = type.lowerBound
+				max.value = type.upperBound
+				minInclusive.value = type.lowerInclusive
+				maxInclusive.value = type.upperInclusive
 				false
 			}
 			else -> {
@@ -644,7 +646,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 							firstValue.numericCompare(secondMax.value!!)
 						if (compareMin.isMoreOrEqual()
 							&& compareMax.isLessOrEqual()
-							&& firstValue.isNumericallyIntegral())
+							&& firstValue.isNumericallyIntegral)
 						{
 							// It's in range and equals an integer, so
 							// numeric equality with a value from the
@@ -652,10 +654,12 @@ abstract class AbstractNumberDescriptor protected constructor(
 							possibleResults.add(EQUAL)
 							return possibleResults
 						}
-					} else {
+					}
+					else
+					{
 						// The value is infinite.
 						val integerInfinity: A_Number =
-							if (firstValue.isPositive()) positiveInfinity
+							if (firstValue.isPositive) positiveInfinity
 							else negativeInfinity
 						if (integerInfinity.isInstanceOf(secondType)) {
 							possibleResults.add(EQUAL)
@@ -676,7 +680,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 							secondValue.numericCompare(firstMax.value!!)
 						if (compareMin.isMoreOrEqual()
 							&& compareMax.isLessOrEqual()
-							&& secondValue.isNumericallyIntegral())
+							&& secondValue.isNumericallyIntegral)
 						{
 							// It's in range and equals an integer, so numeric
 							// equality with a value from the integer range is
@@ -684,10 +688,12 @@ abstract class AbstractNumberDescriptor protected constructor(
 							possibleResults.add(EQUAL)
 							return possibleResults
 						}
-					} else {
+					}
+					else
+					{
 						// The value is infinite.
 						val integerInfinity: A_Number =
-							if (secondValue.isPositive()) positiveInfinity
+							if (secondValue.isPositive) positiveInfinity
 							else negativeInfinity
 						if (integerInfinity.isInstanceOf(firstType)) {
 							possibleResults.add(EQUAL)

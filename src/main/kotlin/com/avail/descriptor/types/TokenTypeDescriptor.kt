@@ -49,7 +49,6 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import jdk.nashorn.internal.parser.TokenType
 import java.util.IdentityHashMap
-import java.util.Locale
 
 /**
  * I represent the type of some [tokens][TokenDescriptor]. Like any object, a
@@ -91,10 +90,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	{
 		builder.append(String.format(
 			"%s token",
-			self.tokenType().name
-				.lowercase(Locale.getDefault())
-				.replace('_', ' ')
-		))
+			self.tokenType().name.lowercase().replace('_', ' ')))
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -103,7 +99,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_EqualsTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): Boolean =
-			self.tokenType() === aTokenType.tokenType()
+			self.tokenType() === aTokenType.tokenType
 
 	override fun o_Hash(self: AvailObject): Int =
 		Integer.hashCode(self.slot(TOKEN_TYPE_CODE).toInt()) xor
@@ -126,7 +122,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsSupertypeOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): Boolean =
-			self.tokenType() === aTokenType.tokenType()
+			self.tokenType() === aTokenType.tokenType
 
 	override fun o_TokenType(self: AvailObject): TokenDescriptor.TokenType =
 		lookupTokenType(self.slot(TOKEN_TYPE_CODE).toInt())
@@ -146,7 +142,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeIntersectionOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
-			if (self.tokenType() === aTokenType.tokenType()) self
+			if (self.tokenType() === aTokenType.tokenType) self
 			else bottom
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
@@ -166,7 +162,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeUnionOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
-			if (self.tokenType() === aTokenType.tokenType()) self
+			if (self.tokenType() === aTokenType.tokenType) self
 			else TOKEN.o
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
@@ -180,11 +176,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("token type")
 		writer.write("token type")
-		writer.write(
-			self.tokenType().name.lowercase(Locale.getDefault()).replace(
-				'_', ' '
-			)
-		)
+		writer.write(self.tokenType().name.lowercase().replace('_', ' '))
 		writer.endObject()
 	}
 

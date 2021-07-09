@@ -84,7 +84,7 @@ object P_PrintToErrorConsole : Primitive(1, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), TOP.o)
+		functionType(tuple(stringType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

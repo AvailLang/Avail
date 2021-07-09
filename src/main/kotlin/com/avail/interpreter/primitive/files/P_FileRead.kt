@@ -135,7 +135,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canRead)
@@ -149,11 +149,11 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		val runtime = interpreter.runtime
 		val ioSystem = runtime.ioSystem
-		val oneBasedPositionLong = positionObject.extractLong()
+		val oneBasedPositionLong = positionObject.extractLong
 		// Guaranteed positive by argument constraint.
 		assert(oneBasedPositionLong > 0L)
 		var size = min(
-			if (sizeObject.isInt) sizeObject.extractInt() else MAX_READ_SIZE,
+			if (sizeObject.isInt) sizeObject.extractInt else MAX_READ_SIZE,
 			MAX_READ_SIZE)
 		if (size > THRESHOLD_READ_SIZE)
 		{
@@ -173,11 +173,14 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				size = THRESHOLD_READ_SIZE
 			}
 
-			size = if (oneBasedPositionLong > actualFileSize) {
+			size = if (oneBasedPositionLong > actualFileSize)
+			{
 				// Don't bother dealing with empty buffers.  Besides, the file
 				// might get more data before we actually read it.
 				1
-			} else {
+			}
+			else
+			{
 				val available = actualFileSize - oneBasedPositionLong + 1
 				min(size, min(available, MAX_READ_SIZE.toLong()).toInt())
 			}
@@ -236,8 +239,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt())
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt)
 		{
 			formatString("Asynchronous file read, %s", handle.filename)
 		}
@@ -285,7 +288,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				{
 					assert(buffer.remaining() == value)
 					bytesTuple = tupleForByteBuffer(buffer).makeShared()
-					assert(bytesTuple.tupleSize() == value)
+					assert(bytesTuple.tupleSize == value)
 					// Seed the file cache, except for the final partial buffer.
 					val lastPosition =
 						oneBasedPositionLong + value - 1
@@ -302,7 +305,7 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 								offsetInBuffer + alignment - 1,
 								false
 							).makeShared()
-						assert(subtuple.tupleSize() == alignment)
+						assert(subtuple.tupleSize == alignment)
 						val key = BufferKey(handle, bufferStart)
 						val bufferHolder = ioSystem.getBuffer(key)
 						// The getBuffer() used a lock, so all writes have now
@@ -342,10 +345,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 				ATOM.o,
 				functionType(tuple(zeroOrMoreOf(bytes)), TOP.o),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o
-				),
-				bytes
-			),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

@@ -124,7 +124,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 
 		val returnType = resolvePojoType(
 			method.genericReturnType,
-			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap)
+			if (pojoType.isPojoType) pojoType.typeVariables else emptyMap)
 		val functionType = functionType(paramTypes, returnType)
 		val rawFunction = synchronized(rawFunctionCache) {
 			rawFunctionCache.computeIfAbsent(functionType) {
@@ -142,8 +142,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 			// Outer#1 = Static method to invoke.
 			equalityPojo(method),
 			// Outer#2 = Marshaled type parameters.
-			marshaledTypesTuple.cast()
-		)
+			marshaledTypesTuple.cast())
 		return interpreter.primitiveSuccess(function)
 	}
 
@@ -151,7 +150,7 @@ object P_CreatePojoStaticMethodFunction : Primitive(3, CanInline, CanFold)
 		functionType(
 			tuple(
 				anyMeta(),
-				stringType(),
+				stringType,
 				zeroOrMoreOf(anyMeta())),
 			functionTypeReturning(TOP.o))
 

@@ -72,7 +72,6 @@ import com.avail.serialization.SerializerOperation
 import com.avail.utility.PrefixSharingList.Companion.append
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
-import java.util.Locale
 
 /**
  * I represent a token scanned from Avail source code.
@@ -212,9 +211,7 @@ open class TokenDescriptor protected constructor(
 		/** The associated special atom.  */
 		val atom: A_Atom =
 			createSpecialAtom(
-				name
-					.lowercase(Locale.getDefault())
-					.replace('_', ' ')
+				name.lowercase().replace('_', ' ')
 			).apply {
 				setAtomProperty(
 					StaticInit.tokenTypeOrdinalKey,
@@ -264,13 +261,10 @@ open class TokenDescriptor protected constructor(
 	{
 		builder.append(String.format(
 			"%s (%s) @ %d:%d",
-			self.tokenType().name
-				.lowercase(Locale.getDefault())
-				.replace('_', ' '),
+			self.tokenType().name.lowercase().replace('_', ' '),
 			self.slot(STRING),
 			self.slot(START),
-			self.slot(LINE_NUMBER)
-		))
+			self.slot(LINE_NUMBER)))
 	}
 
 	override fun o_ClearLexingState(self: AvailObject)
@@ -302,7 +296,7 @@ open class TokenDescriptor protected constructor(
 		aType: A_Type
 	): Boolean =
 		(aType.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
-			|| (aType.isTokenType && self.tokenType() == aType.tokenType()))
+			|| (aType.isTokenType && self.tokenType() == aType.tokenType))
 
 	override fun o_LineNumber(self: AvailObject): Int = self.slot(LINE_NUMBER)
 
@@ -321,7 +315,7 @@ open class TokenDescriptor protected constructor(
 	) {
 		// First, figure out where the token ends.
 		val string: A_String = self.slot(STRING)
-		val stringSize = string.tupleSize()
+		val stringSize = string.tupleSize
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)
 		line += (1..stringSize).count {
@@ -349,11 +343,7 @@ open class TokenDescriptor protected constructor(
 		writer.writeObject {
 			at("kind") { write("token") }
 			at("token type") {
-				write(
-					self.tokenType().name
-						.lowercase(Locale.getDefault())
-						.replace('_', ' ')
-				)
+				write(self.tokenType().name.lowercase().replace('_', ' '))
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }
@@ -382,7 +372,7 @@ open class TokenDescriptor protected constructor(
 		private fun lowerCaseStringFrom(token: AvailObject): A_String
 		{
 			val nativeOriginal = token.slot(STRING).asNativeString()
-			val nativeLowerCase = nativeOriginal.lowercase(Locale.getDefault())
+			val nativeLowerCase = nativeOriginal.lowercase()
 			return StringDescriptor.stringFrom(nativeLowerCase)
 		}
 

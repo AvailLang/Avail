@@ -162,6 +162,6 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 	fun exactSoleArgumentType(): A_Type?
 	{
 		val functionType = exactFunctionType() ?: return null
-		return functionType.argsTupleType().typeAtIndex(1)
+		return functionType.argsTupleType.typeAtIndex(1)
 	}
 }

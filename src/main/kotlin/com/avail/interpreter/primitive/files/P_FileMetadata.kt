@@ -91,8 +91,7 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val options =
-			IOSystem.followSymlinks(followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val attributes: BasicFileAttributes =
 			try
 			{
@@ -126,11 +125,16 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 			}
 			else
 			{
-				raw = try {
+				raw = try
+				{
 					path.toAbsolutePath()
-				} catch (e: SecurityException) {
+				}
+				catch (e: SecurityException)
+				{
 					path
-				} catch (e: IOError) {
+				}
+				catch (e: IOError)
+				{
 					path
 				}
 				Path::class.java
@@ -154,7 +158,7 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(), booleanType),
+			tuple(stringType, booleanType),
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(6),
 				tuple(mostGeneralPojoType(), inclusive(1, 4)),

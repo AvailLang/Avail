@@ -46,6 +46,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.numNybbles
 import com.avail.descriptor.functions.A_RegisterDump
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
@@ -86,24 +87,16 @@ import com.avail.descriptor.tuples.SmallIntegerIntervalTupleDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
-import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
-import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailException
-import com.avail.exceptions.MethodDefinitionException
-import com.avail.exceptions.SignatureException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
-import com.avail.interpreter.Primitive
 import com.avail.interpreter.execution.AvailLoader
 import com.avail.interpreter.levelTwo.L2Chunk
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
@@ -204,24 +197,32 @@ class AvailObject private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	): Unit = with(builder) {
-		try {
+		try
+		{
 			when {
 				isDestroyed -> append("*** A DESTROYED OBJECT ***")
 				indent > descriptor().maximumIndent() -> append("*** DEPTH ***")
 				recursionMap.containsKey(this@AvailObject) ->
 					append("**RECURSION**")
 				else ->
-					try {
+					try
+					{
 						recursionMap[this@AvailObject] = null
 						descriptor().printObjectOnAvoidingIndent(
 							this@AvailObject, builder, recursionMap, indent)
-					} finally {
+					}
+					finally
+					{
 						recursionMap.remove(this@AvailObject)
 					}
 			}
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			append("EXCEPTION while printing.${StackPrinter.trace(e)}")
-		} catch (e: AssertionError) {
+		}
+		catch (e: AssertionError)
+		{
 			append("ASSERTION ERROR while printing.${StackPrinter.trace(e)}")
 		}
 	}
@@ -236,7 +237,8 @@ class AvailObject private constructor(
 	 *   logical structure of the receiver to the debugger.
 	 */
 	override fun describeForDebugger(): Array<AvailObjectFieldHelper> =
-		try {
+		try
+		{
 			descriptor().o_DescribeForDebugger(this)
 		}
 		catch (e: Throwable)
@@ -254,8 +256,7 @@ class AvailObject private constructor(
 							DebuggerObjectSlots("Stack trace"),
 							-1,
 							traceFor(e),
-							forcedName = "Stack trace")
-					)))
+							forcedName = "Stack trace"))))
 		}
 
 	/**
@@ -264,7 +265,8 @@ class AvailObject private constructor(
 	 * @return An Avail [string][StringDescriptor].
 	 */
 	override fun nameForDebugger(): String =
-		try {
+		try
+		{
 			descriptor().o_NameForDebugger(this)
 		}
 		catch (e: Throwable)
@@ -299,7 +301,7 @@ class AvailObject private constructor(
 		instructionDecoder: L1InstructionDecoder
 	) {
 		super.setUpInstructionDecoder(instructionDecoder)
-		val finalPc = numNybbles() + 1
+		val finalPc = numNybbles + 1
 		instructionDecoder.finalLongIndex =
 			L1InstructionDecoder.baseIndexInArray + (finalPc shr 4)
 		instructionDecoder.finalShift = finalPc and 0xF shl 2
@@ -350,21 +352,6 @@ class AvailObject private constructor(
 		descriptor().o_AddDependentChunk(this, chunk)
 
 	/**
-	 * Add the [definition][DefinitionDescriptor] to the receiver, a
-	 * [method][MethodDefinitionDescriptor].  Causes dependent chunks to be
-	 * invalidated.  Answer the [A_DefinitionParsingPlan]s that were created for
-	 * the new definition.
-	 *
-	 * @param definition
-	 *   The definition to be added.
-	 * @throws SignatureException
-	 *   If the definition could not be added.
-	 */
-	@Throws(SignatureException::class)
-	override fun methodAddDefinition(definition: A_Definition) =
-		descriptor().o_MethodAddDefinition(this, definition)
-
-	/**
 	 * Construct a Java [string][String] from the receiver, an Avail
 	 * [string][StringDescriptor].
 	 *
@@ -387,10 +374,6 @@ class AvailObject private constructor(
 	override fun clearValue() = descriptor().o_ClearValue(this)
 
 	override fun function() = descriptor().o_Function(this)
-
-	override fun functionType() = descriptor().o_FunctionType(this)
-
-	override fun code() = descriptor().o_Code(this)
 
 	override fun continuation() = descriptor().o_Continuation(this)
 
@@ -444,10 +427,14 @@ class AvailObject private constructor(
 			if (!traversed2.descriptor().isShared
 				&& traversed1.isBetterRepresentationThan(traversed2)) {
 				traversed2.becomeIndirectionTo(traversed1.makeImmutable())
-			} else {
+			}
+			else
+			{
 				traversed1.becomeIndirectionTo(traversed2.makeImmutable())
 			}
-		} else if (!traversed2.descriptor().isShared) {
+		}
+		else if (!traversed2.descriptor().isShared)
+		{
 			traversed2.becomeIndirectionTo(traversed1.makeImmutable())
 		}
 		return true
@@ -690,9 +677,6 @@ class AvailObject private constructor(
 
 	override fun fieldMap() = descriptor().o_FieldMap(this)
 
-	override fun filterByTypes(argTypes: List<A_Type>) =
-		descriptor().o_FilterByTypes(this, argTypes)
-
 	@Throws(VariableGetException::class)
 	override fun getValue() = descriptor().o_GetValue(this)
 
@@ -701,26 +685,8 @@ class AvailObject private constructor(
 	override fun setHashOrZero(value: Int) =
 		descriptor().o_SetHashOrZero(this, value)
 
-	override fun definitionsAtOrBelow(argRestrictions: List<TypeRestriction>) =
-		descriptor().o_DefinitionsAtOrBelow(this, argRestrictions)
-
-	override fun definitionsTuple() = descriptor().o_DefinitionsTuple(this)
-
-	override fun includesDefinition(imp: A_Definition) =
-		descriptor().o_IncludesDefinition(this, imp)
-
 	override fun setInterruptRequestFlag(flag: InterruptRequestFlag) =
 		descriptor().o_SetInterruptRequestFlag(this, flag)
-
-	override fun decrementCountdownToReoptimize(
-		continuation: (Boolean) -> Unit
-	) = descriptor().o_DecrementCountdownToReoptimize(this, continuation)
-
-	override fun decreaseCountdownToReoptimizeFromPoll(delta: Long) =
-		descriptor().o_DecreaseCountdownToReoptimizeFromPoll(this, delta)
-
-	override fun countdownToReoptimize(value: Long) =
-		descriptor().o_CountdownToReoptimize(this, value)
 
 	override val isAbstract get() = descriptor().o_IsAbstract(this)
 
@@ -882,8 +848,6 @@ class AvailObject private constructor(
 
 	override fun literal() = descriptor().o_Literal(this)
 
-	override fun literalAt(index: Int) = descriptor().o_LiteralAt(this, index)
-
 	@ReferencedInGeneratedCode
 	override fun frameAt(index: Int) =
 		descriptor().o_FrameAt(this, index)
@@ -891,17 +855,6 @@ class AvailObject private constructor(
 	@ReferencedInGeneratedCode
 	override fun frameAtPut(index: Int, value: AvailObject): AvailObject =
 		descriptor().o_FrameAtPut(this, index, value)
-
-	override fun localTypeAt(index: Int) =
-		descriptor().o_LocalTypeAt(this, index)
-
-	@Throws(MethodDefinitionException::class)
-	override fun lookupByTypesFromTuple(argumentTypeTuple: A_Tuple) =
-		descriptor().o_LookupByTypesFromTuple(this, argumentTypeTuple)
-
-	@Throws(MethodDefinitionException::class)
-	override fun lookupByValuesFromList(argumentList: List<A_BasicObject>) =
-		descriptor().o_LookupByValuesFromList(this, argumentList)
 
 	override fun makeImmutable() =
 		descriptor().let {
@@ -925,34 +878,7 @@ class AvailObject private constructor(
 	override fun makeSubobjectsShared() =
 		descriptor().o_MakeSubobjectsShared(this)
 
-	override fun maxStackDepth() = descriptor().o_MaxStackDepth(this)
-
-	override fun numArgs() = descriptor().o_NumArgs(this)
-
 	override fun numSlots() = descriptor().o_NumSlots(this)
-
-	override fun numLiterals() = descriptor().o_NumLiterals(this)
-
-	override fun numLocals() = descriptor().o_NumLocals(this)
-
-	override fun numConstants() = descriptor().o_NumConstants(this)
-
-	override fun numOuters() = descriptor().o_NumOuters(this)
-
-	override fun numOuterVars() = descriptor().o_NumOuterVars(this)
-
-	override fun nybbles() = descriptor().o_Nybbles(this)
-
-	override fun optionallyNilOuterVar(index: Int) =
-		descriptor().o_OptionallyNilOuterVar(this, index)
-
-	override fun outerTypeAt(index: Int) =
-		descriptor().o_OuterTypeAt(this, index)
-
-	override fun outerVarAt(index: Int) = descriptor().o_OuterVarAt(this, index)
-
-	override fun outerVarAtPut(index: Int, value: AvailObject) =
-		descriptor().o_OuterVarAtPut(this, index, value)
 
 	override fun pc() = descriptor().o_Pc(this)
 
@@ -968,9 +894,6 @@ class AvailObject private constructor(
 
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
-
-	override fun removeDefinition(definition: A_Definition) =
-		descriptor().o_RemoveDefinition(this, definition)
 
 	override fun scanSubobjects(visitor: AvailSubobjectVisitor) =
 		descriptor().o_ScanSubobjects(this, visitor)
@@ -989,13 +912,6 @@ class AvailObject private constructor(
 
 	override fun start() = descriptor().o_Start(this)
 
-	override fun startingChunk() = descriptor().o_StartingChunk(this)
-
-	override fun setStartingChunkAndReoptimizationCountdown(
-		chunk: L2Chunk,
-		countdown: Long
-	) = descriptor().o_SetStartingChunkAndReoptimizationCountdown(this, chunk, countdown)
-
 	override fun string() = descriptor().o_String(this)
 
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
@@ -1007,8 +923,6 @@ class AvailObject private constructor(
 	override fun value() = descriptor().o_Value(this)
 
 	override fun resultType() = descriptor().o_ResultType(this)
-
-	override fun primitive(): Primitive? = descriptor().o_Primitive(this)
 
 	override fun declarationKind() = descriptor().o_DeclarationKind(this)
 
@@ -1046,26 +960,6 @@ class AvailObject private constructor(
 		descriptor().o_EqualsEnumerationType(this, anEnumerationType)
 
 	override val isRawPojo get() = descriptor().o_IsRawPojo(this)
-
-	override fun addSemanticRestriction(restriction: A_SemanticRestriction) =
-		descriptor().o_AddSemanticRestriction(this, restriction)
-
-	override fun removeSemanticRestriction(restriction: A_SemanticRestriction) =
-		descriptor().o_RemoveSemanticRestriction(this, restriction)
-
-	override fun semanticRestrictions() =
-		descriptor().o_SemanticRestrictions(this)
-
-	override fun addSealedArgumentsType(typeTuple: A_Tuple) =
-		descriptor().o_AddSealedArgumentsType(this, typeTuple)
-
-	override fun removeSealedArgumentsType(typeTuple: A_Tuple) =
-		descriptor().o_RemoveSealedArgumentsType(this, typeTuple)
-
-	override fun sealedArgumentsTypesTuple() =
-		descriptor().o_SealedArgumentsTypesTuple(this)
-
-	override fun isMethodEmpty() = descriptor().o_IsMethodEmpty(this)
 
 	override val isPojoSelfType get() = descriptor().o_IsPojoSelfType(this)
 
@@ -1120,10 +1014,6 @@ class AvailObject private constructor(
 
 	override fun lowerCaseString() = descriptor().o_LowerCaseString(this)
 
-	override fun totalInvocations() = descriptor().o_TotalInvocations(this)
-
-	override fun tallyInvocation() = descriptor().o_TallyInvocation(this)
-
 	override fun fieldTuple() = descriptor().o_FieldTuple(this)
 
 	override val isTokenType get() = descriptor().o_IsTokenType(this)
@@ -1146,15 +1036,6 @@ class AvailObject private constructor(
 		descriptor().o_EqualsToken(this, aToken)
 
 	override val isInstanceMeta get() = descriptor().o_IsInstanceMeta(this)
-
-	override fun setMethodName(methodName: A_String) =
-		descriptor().o_SetMethodName(this, methodName)
-
-	override fun startingLineNumber() = descriptor().o_StartingLineNumber(this)
-
-	override fun module() = descriptor().o_Module(this)
-
-	override fun methodName() = descriptor().o_MethodName(this)
 
 	override fun equalsPhrase(aPhrase: A_Phrase) =
 		descriptor().o_EqualsPhrase(this, aPhrase)
@@ -1298,14 +1179,6 @@ class AvailObject private constructor(
 	override fun fiberNameSupplier(supplier: () -> A_String) =
 		descriptor().o_FiberNameSupplier(this, supplier)
 
-	override fun bundles() = descriptor().o_Bundles(this)
-
-	override fun methodAddBundle(bundle: A_Bundle) =
-		descriptor().o_MethodAddBundle(this, bundle)
-
-	override fun methodRemoveBundle(bundle: A_Bundle) =
-		descriptor().o_MethodRemoveBundle(this, bundle)
-
 	override fun definitionBundle(): A_Bundle =
 		descriptor().o_DefinitionBundle(this)
 
@@ -1385,12 +1258,6 @@ class AvailObject private constructor(
 	override fun writeSummaryTo(writer: JSONWriter) =
 		descriptor().o_WriteSummaryTo(this, writer)
 
-	override fun macrosTuple() =
-		descriptor().o_MacrosTuple(this)
-
-	override fun chooseBundle(currentModule: A_Module) =
-		descriptor().o_ChooseBundle(this, currentModule)
-
 	override fun valueWasStablyComputed() =
 		descriptor().o_ValueWasStablyComputed(this)
 
@@ -1434,13 +1301,6 @@ class AvailObject private constructor(
 	override fun variableMapHasKey(key: A_BasicObject) =
 		descriptor().o_VariableMapHasKey(this, key)
 
-	override fun setLexer(lexer: A_Lexer) = descriptor().o_SetLexer(this, lexer)
-
-	override fun originatingPhrase() = descriptor().o_OriginatingPhrase(this)
-
-	override fun originatingPhraseOrIndex() =
-		descriptor().o_OriginatingPhraseOrIndex(this)
-
 	override fun isGlobal() = descriptor().o_IsGlobal(this)
 
 	override fun globalModule() = descriptor().o_GlobalModule(this)
@@ -1456,8 +1316,6 @@ class AvailObject private constructor(
 	override fun setNextLexingStateFromPrior(priorLexingState: LexingState) =
 		descriptor().o_SetNextLexingStateFromPrior(this, priorLexingState)
 
-	override fun lexer() = descriptor().o_Lexer(this)
-
 	override fun setSuspendingFunction(suspendingFunction: A_Function) =
 		descriptor().o_SetSuspendingFunction(this, suspendingFunction)
 
@@ -1465,46 +1323,20 @@ class AvailObject private constructor(
 
 	override fun debugLog() = descriptor().o_DebugLog(this)
 
-	override fun constantTypeAt(index: Int) =
-		descriptor().o_ConstantTypeAt(this, index)
-
-	override fun returnerCheckStat() = descriptor().o_ReturnerCheckStat(this)
-
-	override fun returneeCheckStat() = descriptor().o_ReturneeCheckStat(this)
-
-	override fun numNybbles() = descriptor().o_NumNybbles(this)
-
-	override fun lineNumberEncodedDeltas() =
-		descriptor().o_LineNumberEncodedDeltas(this)
-
 	override fun currentLineNumber() = descriptor().o_CurrentLineNumber(this)
 
 	override fun fiberResultType() = descriptor().o_FiberResultType(this)
-
-	override fun testingTree(): LookupTree<A_Definition, A_Tuple> =
-		descriptor().o_TestingTree(this)
 
 	override fun clearLexingState() = descriptor().o_ClearLexingState(this)
 
 	@ReferencedInGeneratedCode
 	override fun registerDump() = descriptor().o_RegisterDump(this)
 
-	override fun membershipChanged() = descriptor().o_MembershipChanged(this)
-
-	override fun returnTypeIfPrimitiveFails(): A_Type =
-		descriptor().o_ReturnTypeIfPrimitiveFails(this)
-
 	override fun extractDumpedObjectAt(index: Int): AvailObject =
 		descriptor().o_ExtractDumpedObjectAt(this, index)
 
 	override fun extractDumpedLongAt(index: Int): Long =
 		descriptor().o_ExtractDumpedLongAt(this, index)
-
-	override fun packedDeclarationNames(): A_String =
-		descriptor().o_PackedDeclarationNames(this)
-
-	override fun setOriginatingPhraseOrIndex(phraseOrIndex: AvailObject) =
-		descriptor().o_SetOriginatingPhraseOrIndex(this, phraseOrIndex)
 
 	override fun fiberHelper(): FiberDescriptor.FiberHelper =
 		descriptor().o_FiberHelper(this)

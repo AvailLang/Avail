@@ -43,7 +43,6 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.LayoutConfiguration.Companion.basePreferences
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
@@ -143,14 +142,13 @@ import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.currentTimeMillis
 import java.net.URI
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.Arrays.sort
 import java.util.Collections
 import java.util.Collections.synchronizedMap
 import java.util.Enumeration
-import java.util.Locale
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -560,8 +558,8 @@ class AvailWorkbench internal constructor (
 	 */
 	abstract class AbstractWorkbenchTask constructor(
 		val workbench: AvailWorkbench,
-			protected val targetModuleName: ResolvedModuleName?)
-		: SwingWorker<Void, Void>()
+		protected val targetModuleName: ResolvedModuleName?
+	) : SwingWorker<Void, Void>()
 	{
 		/** The start time.  */
 		private var startTimeMillis: Long = 0
@@ -1034,8 +1032,7 @@ class AvailWorkbench internal constructor (
 				},
 				{ code, ex ->
 					System.err.println(
-						"Workbench could not walk root: ${root.name}: $code"
-					)
+						"Workbench could not walk root: ${root.name}: $code")
 					ex?.printStackTrace()
 				})
 		}
@@ -1178,7 +1175,7 @@ class AvailWorkbench internal constructor (
 	 * @return A tree path, or `null` if the module name is not present in
 	 *   the tree.
 	 */
-	fun modulePath(moduleName: String): TreePath?
+	private fun modulePath(moduleName: String): TreePath?
 	{
 		val path = moduleName.split('/', '\\')
 		if (path.size < 2 || path[0] != "")
@@ -1462,10 +1459,6 @@ class AvailWorkbench internal constructor (
 			}
 			roots.forEach { root ->
 				val childNode = rootsNode.node(root.name)
-				// TODO delete me
-//				childNode.put(
-//					moduleRootsRepoSubkeyString,
-//					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
 					root.resolver.uri.toString())
@@ -1982,6 +1975,64 @@ class AvailWorkbench internal constructor (
 		}
 	}
 
+	/** Perform the first refresh of the workbench. */
+	private fun initialRefresh(
+		failedResolutions: MutableList<String>,
+		resolutionTime: Long,
+		initial: String,
+		afterExecute: ()->Unit)
+	{
+		if (failedResolutions.isEmpty())
+		{
+			writeText(
+				format("Resolved all module roots in %,3dms\n", resolutionTime),
+				INFO)
+		}
+		else
+		{
+			writeText(
+				format(
+					"Resolved module roots in %,3dms with failures:\n",
+					resolutionTime),
+				INFO)
+			failedResolutions.forEach {
+				writeText(format("%s\n", it), INFO)
+			}
+		}
+		// First refresh the module and entry point trees.
+		writeText("Scanning all module headers...\n", INFO)
+		val before = currentTimeMillis()
+		calculateRefreshedTreesThen { modules, entryPoints ->
+			val after = currentTimeMillis()
+			writeText(format("...done (%,3dms)\n", after - before), INFO)
+			// Now select an initial module, if specified.
+			refreshFor(modules, entryPoints)
+			if (initial.isNotEmpty())
+			{
+				val path = modulePath(initial)
+				if (path !== null)
+				{
+					moduleTree.selectionPath = path
+					moduleTree.scrollRowToVisible(
+						moduleTree.getRowForPath(path))
+				}
+				else
+				{
+					writeText(
+						"Command line argument '$initial' was "
+							+ "not a valid module path",
+						ERR)
+				}
+			}
+			backgroundTask = null
+			setEnablements()
+			afterExecute()
+			ignoreRepaint = false
+			repaint()
+			isVisible = true
+		}
+	}
+
 	companion object
 	{
 		/**
@@ -1994,16 +2045,13 @@ class AvailWorkbench internal constructor (
 		val runningOnMac =
 			System
 				.getProperty("os.name")
-				.lowercase(Locale.getDefault())
-				.matches(
-					"mac os x.*".toRegex()
-				)
+				.lowercase()
+				.matches("mac os x.*".toRegex())
 
 		/** Determine at startup whether we should show developer commands.  */
 		val showDeveloperTools =
 			"true".equals(
-				System.getProperty("availDeveloper"), ignoreCase = true
-			)
+				System.getProperty("availDeveloper"), ignoreCase = true)
 
 		/**
 		 * An indicator of whether to show the user interface in dark (Darcula)
@@ -2017,16 +2065,14 @@ class AvailWorkbench internal constructor (
 		 */
 		val inputBackgroundWhenRunning = AdaptiveColor(
 			light = Color(192, 255, 192),
-			dark = Color(55, 156, 26)
-		)
+			dark = Color(55, 156, 26))
 
 		/**
 		 * The foreground color of the input field when a command is running.
 		 */
 		val inputForegroundWhenRunning = AdaptiveColor(
 			light = Color.black,
-			dark = Color.white
-		)
+			dark = Color.white)
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current
@@ -2061,8 +2107,7 @@ class AvailWorkbench internal constructor (
 				catch (e: SecurityException)
 				{
 					userDir
-				}
-			)
+				})
 		}
 
 		/** Truncate the start of the document any time it exceeds this.  */
@@ -2098,34 +2143,27 @@ class AvailWorkbench internal constructor (
 				childNames.forEach { childName ->
 					val childNode = node.node(childName)
 					val sourceName = childNode.get(
-						moduleRootsSourceSubkeyString, ""
-					)
+						moduleRootsSourceSubkeyString, "")
 					val resolver =
 						if (sourceName.isEmpty())
 						{
 							RuntimeException(
 								"ModuleRoot, $childName, is missing a source URI"
-							)
-								.printStackTrace()
+							).printStackTrace()
 							return@forEach
 						}
 						else
 						{
 							val uri = URI(sourceName)
 							ModuleRootResolverRegistry.createResolver(
-								childName,
-								uri,
-								fileManager
-							)
+								childName, uri, fileManager)
 						}
 					roots.addRoot(ModuleRoot(childName, resolver))
 				}
 			}
 			catch (e: BackingStoreException)
 			{
-				System.err.println(
-					"Unable to read Avail roots preferences."
-				)
+				System.err.println("Unable to read Avail roots preferences.")
 			}
 			return roots
 		}
@@ -2146,11 +2184,9 @@ class AvailWorkbench internal constructor (
 				childNames.forEach { childName ->
 					val childNode = node.node(childName)
 					val source = childNode.get(
-						moduleRenameSourceSubkeyString, ""
-					)
+						moduleRenameSourceSubkeyString, "")
 					val target = childNode.get(
-						moduleRenameTargetSubkeyString, ""
-					)
+						moduleRenameTargetSubkeyString, "")
 					// Ignore empty sources and targets, although they shouldn't
 					// occur.
 					if (source.isNotEmpty() && target.isNotEmpty())
@@ -2162,22 +2198,17 @@ class AvailWorkbench internal constructor (
 			catch (e: BackingStoreException)
 			{
 				System.err.println(
-					"Unable to read Avail rename rule preferences."
-				)
+					"Unable to read Avail rename rule preferences.")
 			}
 		}
 
 		/** Statistic for waiting for updateQueue's monitor.  */
 		internal val waitForDequeLockStat = Statistic(
-			WORKBENCH_TRANSCRIPT,
-			"Wait for lock to trim old entries"
-		)
+			WORKBENCH_TRANSCRIPT, "Wait for lock to trim old entries")
 
 		/** Statistic for trimming excess leading entries.  */
 		internal val discardExcessLeadingStat = Statistic(
-			WORKBENCH_TRANSCRIPT,
-			"Trim old entries (not counting lock)"
-		)
+			WORKBENCH_TRANSCRIPT, "Trim old entries (not counting lock)")
 
 		/**
 		 * Statistic for invoking writeText, including waiting for the monitor.
@@ -2212,12 +2243,10 @@ class AvailWorkbench internal constructor (
 						var html = value.htmlText(selected)
 						html = "<html>$html</html>"
 						super.getTreeCellRendererComponent(
-							tree, html, selected, expanded, leaf, row, hasFocus
-						)
+							tree, html, selected, expanded, leaf, row, hasFocus)
 					}
 					else -> return super.getTreeCellRendererComponent(
-						tree, value, selected, expanded, leaf, row, hasFocus
-					)
+						tree, value, selected, expanded, leaf, row, hasFocus)
 				}.apply {
 					if (darkMode)
 					{
@@ -2299,17 +2328,13 @@ class AvailWorkbench internal constructor (
 				System.setProperty("apple.laf.useScreenMenuBar", "true")
 				System.setProperty(
 					"com.apple.mrj.application.apple.menu.about.name",
-					"Avail Workbench"
-				)
+					"Avail Workbench")
 				System.setProperty(
 					"com.apple.awt.graphics.UseQuartz",
-					"true"
-				)
-
+					"true")
 				val application = OSXUtility.macOSXApplication
 				OSXUtility.setDockIconBadgeMethod(
-					application, activeVersionSummary
-				)
+					application, activeVersionSummary)
 			}
 			catch (e: Exception)
 			{
@@ -2333,7 +2358,7 @@ class AvailWorkbench internal constructor (
 			// Do the slow Swing setup in parallel with other things...
 			val swingReady = Semaphore(0)
 			val runtimeReady = Semaphore(0)
-			invokeLater {
+			thread(name = "Set up LAF") {
 				if (runningOnMac)
 				{
 					setUpForMac()
@@ -2369,7 +2394,7 @@ class AvailWorkbench internal constructor (
 			val resolutionTime = currentTimeMillis() - rootResolutionStart
 			lateinit var resolver: ModuleNameResolver
 			lateinit var runtime: AvailRuntime
-			thread {
+			thread(name = "Parse renames") {
 				var reader: Reader? = null
 				try
 				{
@@ -2381,11 +2406,8 @@ class AvailWorkbench internal constructor (
 						// Load renames from file specified on the command line...
 						else -> BufferedReader(
 							InputStreamReader(
-								FileInputStream(
-									File(renames)
-								), StandardCharsets.UTF_8
-							)
-						)
+								FileInputStream(File(renames)),
+								UTF_8))
 					}
 					val renameParser = RenamesFileParser(reader, roots)
 					resolver = renameParser.parse()
@@ -2403,96 +2425,27 @@ class AvailWorkbench internal constructor (
 				runtimeReady.release()
 			}
 
-			// The first application argument, if any, says which module to
-			// select.
-			val initial = if (args.isNotEmpty()) args[0] else ""
-
 			runtimeReady.acquire()
 			swingReady.acquire()
 
 			// Display the UI.
+			val bench = AvailWorkbench(runtime, fileManager, resolver)
+			bench.createBufferStrategy(2)
+			bench.ignoreRepaint = true
+			if (runningOnMac)
+			{
+				bench.setUpInstanceForMac()
+			}
 			invokeLater {
-				val bench = AvailWorkbench(runtime, fileManager, resolver)
-				if (runningOnMac)
-				{
-					bench.setUpInstanceForMac()
-				}
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
 					{
-						override fun executeTaskThen(afterExecute: ()->Unit)
-						{
-							if (failedResolutions.isEmpty())
-							{
-								workbench.writeText(
-									format(
-										"Resolved all module roots in %,3dms\n",
-										resolutionTime
-									),
-									INFO
-								)
-							}
-							else
-							{
-								workbench.writeText(
-									format(
-										"Resolved module roots in %,3dms " +
-											"with failures:\n",
-										resolutionTime
-									),
-									INFO
-								)
-								failedResolutions.forEach {
-									workbench.writeText(
-										format("%s\n", it),
-										INFO
-									)
-								}
-							}
-							// First refresh the module and entry point trees.
-							workbench.writeText(
-								"Scanning all module headers...\n",
-								INFO
-							)
-							val before = currentTimeMillis()
-							workbench.calculateRefreshedTreesThen { modules, entryPoints ->
-								val after = currentTimeMillis()
-								workbench.writeText(
-									format(
-										"...done (%,3dms)\n",
-										after - before
-									),
-									INFO
-								)
-								// Now select an initial module, if specified.
-								invokeLater {
-									workbench.refreshFor(modules, entryPoints)
-									if (initial.isNotEmpty())
-									{
-										val path = workbench.modulePath(initial)
-										if (path !== null)
-										{
-											workbench.moduleTree.selectionPath = path
-											workbench.moduleTree.scrollRowToVisible(
-												workbench.moduleTree
-													.getRowForPath(path)
-											)
-										}
-										else
-										{
-											workbench.writeText(
-												"Command line argument '$initial' was "
-													+ "not a valid module path",
-												ERR
-											)
-										}
-									}
-									workbench.backgroundTask = null
-									workbench.setEnablements()
-									afterExecute()
-								}
-							}
-						}
+						override fun executeTaskThen(afterExecute: ()->Unit) =
+							bench.initialRefresh(
+								failedResolutions,
+								resolutionTime,
+								if (args.isNotEmpty()) args[0] else "",
+								afterExecute)
 					}
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()
@@ -2508,7 +2461,6 @@ class AvailWorkbench internal constructor (
 					}
 				}
 				initialRefreshTask.execute()
-				bench.isVisible = true
 			}
 		}
 	}

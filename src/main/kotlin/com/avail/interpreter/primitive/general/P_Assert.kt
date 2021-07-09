@@ -73,7 +73,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		val predicate = interpreter.argument(0)
 		val failureMessage = interpreter.argument(1)
 
-		if (predicate.extractBoolean())
+		if (predicate.extractBoolean)
 		{
 			return interpreter.primitiveSuccess(nil)
 		}
@@ -98,7 +98,7 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(booleanType, stringType()), TOP.o)
+		functionType(tuple(booleanType, stringType), TOP.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type

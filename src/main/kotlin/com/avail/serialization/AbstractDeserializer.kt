@@ -150,7 +150,7 @@ abstract class AbstractDeserializer constructor(
 	{
 		assert(moduleName.isString)
 		val current = currentModule
-		if (current.notNil && moduleName.equals(current.moduleName()))
+		if (current.notNil && moduleName.equals(current.moduleName))
 		{
 			return current
 		}

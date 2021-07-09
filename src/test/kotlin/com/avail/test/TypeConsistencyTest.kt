@@ -272,14 +272,14 @@ class TypeConsistencyTest
 			/** The type `tuple`  */
 			private val TUPLE = Node(
 				"TUPLE",
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The type `string`, which is the same as `tuple of
 			 * character`
 			 */
-			private val STRING = Node("STRING", stringType(), TUPLE)
+			private val STRING = Node("STRING", stringType, TUPLE)
 
 			/** The type `tuple [1..1] of character`  */
 			private val UNIT_STRING = Node(
@@ -336,7 +336,7 @@ class TypeConsistencyTest
 			private val MOST_SPECIFIC_FUNCTION = Node(
 				"MOST_SPECIFIC_FUNCTION",
 				functionTypeFromArgumentTupleType(
-					mostGeneralTupleType(),
+					mostGeneralTupleType,
 					bottom,
 					emptySet),
 				NOTHING_TO_INT_FUNCTION,
@@ -391,7 +391,7 @@ class TypeConsistencyTest
 				"NON_ROOT_OBJECT_TYPE",
 				objectTypeFromMap(
 					emptyMap.mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t.instance(),
+						SOME_ATOM_TYPE.t.instance,
 						Types.ANY.o,
 						false)),
 				OBJECT_TYPE)
@@ -403,7 +403,7 @@ class TypeConsistencyTest
 				"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t.instance(),
+						SOME_ATOM_TYPE.t.instance,
 						integers,
 						false)),
 				NON_ROOT_OBJECT_TYPE)
@@ -415,7 +415,7 @@ class TypeConsistencyTest
 				"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
-						ANOTHER_ATOM_TYPE.t.instance(),
+						ANOTHER_ATOM_TYPE.t.instance,
 						Types.ANY.o,
 						false)),
 				OBJECT_TYPE)
@@ -700,7 +700,7 @@ class TypeConsistencyTest
 			 * The metatype for tuple types.
 			 */
 			private val TUPLE_META = Node(
-				"TUPLE_META", tupleMeta(), NONTYPE_META)
+				"TUPLE_META", tupleMeta, NONTYPE_META)
 
 			/**
 			 * The metatype for fiber types.
@@ -795,7 +795,7 @@ class TypeConsistencyTest
 					else -> phraseKind.create(innerType)
 				}
 				assert(
-					newType.phraseTypeExpressionType().equals(innerType)) {
+					newType.phraseTypeExpressionType.equals(innerType)) {
 					"phrase kind was not parameterized as expected"
 				}
 				val newNode = Node(nodeName, newType, *parents.toTypedArray())
@@ -1531,8 +1531,7 @@ class TypeConsistencyTest
 		checkCovariance("pojo type parameters") {
 			pojoTypeForClassWithTypeArguments(
 				Comparable::class.java,
-				tuple(it)
-			)
+				tuple(it))
 		}
 
 	/**
@@ -1546,8 +1545,7 @@ class TypeConsistencyTest
 		checkContravariance("function argument") {
 			functionType(
 				tuple(it),
-				Types.TOP.o
-			)
+				Types.TOP.o)
 		}
 
 	/**

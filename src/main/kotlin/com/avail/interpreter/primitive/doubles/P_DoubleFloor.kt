@@ -57,7 +57,7 @@ object P_DoubleFloor : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
-		val d = a.extractDouble()
+		val d = a.extractDouble
 		val floor = floor(d)
 		return interpreter.primitiveSuccess(
 			fromDoubleRecycling(floor, a, true))

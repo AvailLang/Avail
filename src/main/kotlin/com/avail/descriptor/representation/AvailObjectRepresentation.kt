@@ -235,8 +235,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			else ->
 			{
 				newPermittedFields = Arrays.copyOf(
-					permittedFields, permittedFields.size + 1
-				)
+					permittedFields, permittedFields.size + 1)
 				newPermittedFields[permittedFields.size] = field
 			}
 		}
@@ -553,6 +552,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anInteger
 	 *   An [Int] to store in the indicated slot.
 	 */
+	@Suppress("unused")
 	fun setMutableSlot(bitField: BitField, anInteger: Int)
 	{
 		checkWriteForField(bitField.integerSlot)
@@ -774,6 +774,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Extract the current value of the slot, pass it to the supplied inline
 	 * Kotlin function, and write the result back to the slot.
 	 */
+	@Suppress("unused")
 	fun updateSlot(
 		field: ObjectSlotsEnum,
 		updater: AvailObject.()->A_BasicObject)

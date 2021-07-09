@@ -83,8 +83,8 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val index1 = indexObject1.extractInt()
-		val index2 = indexObject2.extractInt()
+		val index1 = indexObject1.extractInt
+		val index2 = indexObject2.extractInt
 		if (index1 == index2)
 		{
 			return interpreter.primitiveSuccess(tuple)
@@ -99,11 +99,10 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
-				naturalNumbers
-			),
-			mostGeneralTupleType())
+				naturalNumbers),
+			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -113,24 +112,24 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 		val indexRange1 = argumentTypes[1]
 		val indexRange2 = argumentTypes[2]
 
-		val tupleSizeRange = originalTupleType.sizeRange()
-		val lowerBound1 = indexRange1.lowerBound()
-		val lowerBound2 = indexRange2.lowerBound()
+		val tupleSizeRange = originalTupleType.sizeRange
+		val lowerBound1 = indexRange1.lowerBound
+		val lowerBound2 = indexRange2.lowerBound
 		if (!lowerBound1.isInt || !lowerBound2.isInt)
 		{
 			// At least one subscript is always out of range of the primitive.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val maxLowerBound =
-			max(lowerBound1.extractInt(), lowerBound2.extractInt())
-		val maxTupleSize = tupleSizeRange.upperBound()
-		if (maxTupleSize.isInt && maxLowerBound > maxTupleSize.extractInt())
+			max(lowerBound1.extractInt, lowerBound2.extractInt)
+		val maxTupleSize = tupleSizeRange.upperBound
+		if (maxTupleSize.isInt && maxLowerBound > maxTupleSize.extractInt)
 		{
 			// One of the indices is always out of range of the tuple.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val minLowerBound =
-			min(lowerBound1.extractInt(), lowerBound2.extractInt())
+			min(lowerBound1.extractInt, lowerBound2.extractInt)
 		val startOfSmear = min(minLowerBound, maximumComplexity)
 		// Keep the leading N types the same, but smear the rest.
 		val newLeadingTypes = generateObjectTupleFrom(startOfSmear - 1) {

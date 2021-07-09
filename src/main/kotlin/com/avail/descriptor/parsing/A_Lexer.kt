@@ -58,8 +58,8 @@ interface A_Lexer : A_BasicObject {
 		 * @return
 		 *   The lexer's method.
 		 */
-		fun A_Lexer.lexerMethod(): A_Method =
-			dispatch { o_LexerMethod(it) }
+		val A_Lexer.lexerMethod: A_Method
+			get() = dispatch { o_LexerMethod(it) }
 
 		/**
 		 * Answer the function to run (as the base call of a fiber), with the
@@ -69,8 +69,8 @@ interface A_Lexer : A_BasicObject {
 		 * @return
 		 *   The lexer's filter function.
 		 */
-		fun A_Lexer.lexerFilterFunction(): A_Function =
-			dispatch { o_LexerFilterFunction(it) }
+		val A_Lexer.lexerFilterFunction: A_Function
+			get() = dispatch { o_LexerFilterFunction(it) }
 
 		/**
 		 * Answer the function to run (as the base call of a fiber) to generate
@@ -82,8 +82,8 @@ interface A_Lexer : A_BasicObject {
 		 * @return
 		 *   The lexer's body function.
 		 */
-		fun A_Lexer.lexerBodyFunction(): A_Function =
-			dispatch { o_LexerBodyFunction(it) }
+		val A_Lexer.lexerBodyFunction: A_Function
+			get() = dispatch { o_LexerBodyFunction(it) }
 
 		/**
 		 * Answer the module in which this lexer was defined.  This is used for
@@ -111,8 +111,8 @@ interface A_Lexer : A_BasicObject {
 		 * @return
 		 *   The [A_Module] in which this lexer was defined.
 		 */
-		fun A_Lexer.definitionModule(): A_Module =
-			dispatch { o_DefinitionModule(it) }
+		val A_Lexer.definitionModule: A_Module
+			get() = dispatch { o_DefinitionModule(it) }
 
 		/**
 		 * If the filter function cas already run for this single-byte codePoint

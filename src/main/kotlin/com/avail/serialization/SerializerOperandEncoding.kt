@@ -82,7 +82,7 @@ internal enum class SerializerOperandEncoding
 	BYTE
 	{
 		override fun write(obj: AvailObject, serializer: Serializer) =
-			serializer.writeByte(obj.extractUnsignedByte().toInt())
+			serializer.writeByte(obj.extractUnsignedByte.toInt())
 
 		override fun read(deserializer: AbstractDeserializer) =
 			fromInt(deserializer.readByte())
@@ -106,7 +106,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val shortValue = obj.extractInt()
+			val shortValue = obj.extractInt
 			assert(shortValue and 0xFFFF == shortValue)
 			when
 			{
@@ -147,7 +147,7 @@ internal enum class SerializerOperandEncoding
 	UNCOMPRESSED_SHORT
 	{
 		override fun write(obj: AvailObject, serializer: Serializer) =
-			serializer.writeShort(obj.extractUnsignedShort())
+			serializer.writeShort(obj.extractUnsignedShort)
 
 		override fun read(deserializer: AbstractDeserializer): AvailObject =
 			fromInt(deserializer.readShort())
@@ -163,7 +163,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val intValue = obj.extractInt()
+			val intValue = obj.extractInt
 			serializer.writeInt(intValue)
 		}
 
@@ -181,7 +181,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val longValue = obj.extractLong()
+			val longValue = obj.extractLong
 			assert(longValue and 0xFFFFFFFFL == longValue)
 			serializer.writeInt(longValue.toInt())
 		}
@@ -269,7 +269,7 @@ internal enum class SerializerOperandEncoding
 
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (element in obj)
 			{
@@ -317,7 +317,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
@@ -346,7 +346,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
@@ -376,7 +376,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			(1..tupleSize).forEach { i ->
 				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
@@ -403,11 +403,11 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (element in obj)
 			{
-				writeCompressedPositiveInt(element.extractInt(), serializer)
+				writeCompressedPositiveInt(element.extractInt, serializer)
 			}
 		}
 
@@ -430,7 +430,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
@@ -456,7 +456,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			var i = 1
 			while (i < tupleSize)
@@ -510,7 +510,7 @@ internal enum class SerializerOperandEncoding
 
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			writeCompressedPositiveInt(obj.mapSize(), serializer)
+			writeCompressedPositiveInt(obj.mapSize, serializer)
 			obj.forEach { key, value ->
 				writeCompressedPositiveInt(
 					serializer.compressedObjectIndex(key),

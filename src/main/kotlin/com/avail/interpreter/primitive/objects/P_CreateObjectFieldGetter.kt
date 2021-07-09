@@ -89,7 +89,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val (objectType, fieldAtom) = interpreter.argsBuffer
 
-		val map = objectType.fieldTypeMap()
+		val map = objectType.fieldTypeMap
 		if (!map.hasKey(fieldAtom))
 		{
 			// The field is not guaranteed to be part of the object.
@@ -151,13 +151,11 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralObjectMeta(),
-				ATOM.o
-			),
+				ATOM.o),
 			functionType(
 				tuple(
 					mostGeneralObjectType()),
-				ANY.o
-			))
+				ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))

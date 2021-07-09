@@ -67,7 +67,7 @@ object P_VisibleAtoms : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 			interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
 		else interpreter.primitiveSuccess(
-			interpreter.module().visibleNames())
+			interpreter.module().visibleNames)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

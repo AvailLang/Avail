@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.privatehelpers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
@@ -65,7 +66,7 @@ object P_PushConstant : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		val code = interpreter.function!!.code()
-		assert(code.primitive() === this)
+		assert(code.codePrimitive() === this)
 		return interpreter.primitiveSuccess(code.literalAt(1))
 	}
 

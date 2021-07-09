@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.functions
 
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
@@ -58,7 +59,7 @@ object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val aFunction = interpreter.argument(0)
 		val newTupleObject = generateObjectTupleFrom(
-			aFunction.numOuterVars()
+			aFunction.numOuterVars
 		) { index ->
 			val outer = aFunction.outerVarAt(index)
 			if (outer.isNil) zero else outer
@@ -67,5 +68,5 @@ object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFunctionType()), mostGeneralTupleType())
+		functionType(tuple(mostGeneralFunctionType()), mostGeneralTupleType)
 }

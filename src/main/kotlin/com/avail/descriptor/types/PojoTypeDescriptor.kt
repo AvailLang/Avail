@@ -77,12 +77,12 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfPojoType
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPojoType
-import com.avail.descriptor.types.A_Type.Companion.typeVariables
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.Companion.arrayPojoType
 import com.avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.exceptions.MarshalingException
 import com.avail.utility.LRUCache
 import com.avail.utility.Mutable
@@ -300,8 +300,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		// supertype of aPojoType.
 		val ancestors: A_Map = self.javaAncestors()
 		val otherAncestors: A_Map = aPojoType.javaAncestors()
-		val javaClasses = ancestors.keysAsSet()
-		val otherJavaClasses = otherAncestors.keysAsSet()
+		val javaClasses = ancestors.keysAsSet
+		val otherJavaClasses = otherAncestors.keysAsSet
 		val intersection =
 			javaClasses.setIntersectionCanDestroy(otherJavaClasses, false)
 		if (!javaClasses.equals(intersection))
@@ -316,7 +316,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		{
 			val params: A_Tuple = ancestors.mapAt(javaClass)
 			val otherParams: A_Tuple = otherAncestors.mapAt(javaClass)
-			val limit = params.tupleSize()
+			val limit = params.tupleSize
 			for (i in 1 .. limit)
 			{
 				val x: A_Type = params.tupleAt(i)
@@ -525,8 +525,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		private val charRange: A_Type =
 			IntegerRangeTypeDescriptor.inclusive(
-				Character.MIN_VALUE.toLong(),
-				Character.MAX_VALUE.toLong()).makeShared()
+				Character.MIN_VALUE.code.toLong(),
+				Character.MAX_VALUE.code.toLong()).makeShared()
 
 		/**
 		 * Answer the [integer&#32;range&#32;type][IntegerRangeTypeDescriptor]
@@ -590,8 +590,8 @@ abstract class PojoTypeDescriptor protected constructor(
 		{
 			val ancestors: A_Map = self.javaAncestors()
 			val otherAncestors: A_Map = aPojoType.javaAncestors()
-			val javaClasses = ancestors.keysAsSet()
-			val otherJavaClasses = otherAncestors.keysAsSet()
+			val javaClasses = ancestors.keysAsSet
+			val otherJavaClasses = otherAncestors.keysAsSet
 			val union = javaClasses.setUnionCanDestroy(
 				otherJavaClasses, false)
 			var unionAncestors = emptyMap
@@ -615,8 +615,8 @@ abstract class PojoTypeDescriptor protected constructor(
 					{
 						ancestors.mapAt(javaClass)
 					}
-				val limit = params.tupleSize()
-				assert(limit == otherParams.tupleSize())
+				val limit = params.tupleSize
+				assert(limit == otherParams.tupleSize)
 				val intersectionParams = mutableListOf<A_Type>()
 				for (i in 1 .. limit)
 				{
@@ -660,8 +660,8 @@ abstract class PojoTypeDescriptor protected constructor(
 			// parameterizations.
 			val ancestors: A_Map = self.javaAncestors()
 			val otherAncestors: A_Map = aPojoType.javaAncestors()
-			val javaClasses = ancestors.keysAsSet()
-			val otherJavaClasses = otherAncestors.keysAsSet()
+			val javaClasses = ancestors.keysAsSet
+			val otherJavaClasses = otherAncestors.keysAsSet
 			val intersection = javaClasses.setIntersectionCanDestroy(
 				otherJavaClasses, false)
 			var intersectionAncestors = emptyMap
@@ -669,8 +669,8 @@ abstract class PojoTypeDescriptor protected constructor(
 			{
 				val params: A_Tuple = ancestors.mapAt(javaClass)
 				val otherParams: A_Tuple = otherAncestors.mapAt(javaClass)
-				val limit = params.tupleSize()
-				assert(limit == otherParams.tupleSize())
+				val limit = params.tupleSize
+				assert(limit == otherParams.tupleSize)
 				val unionParams = mutableListOf<A_Type>()
 				for (i in 1 .. limit)
 				{
@@ -938,8 +938,7 @@ abstract class PojoTypeDescriptor protected constructor(
 					java.lang.Float::class.java -> return Types.FLOAT.o
 					java.lang.Double::class.java -> return Types.DOUBLE.o
 					java.lang.Character::class.java -> return charRange()
-					String::class.java ->
-						return TupleTypeDescriptor.stringType()
+					String::class.java -> return TupleTypeDescriptor.stringType
 					else ->
 					{
 						return if (type == BigInteger::class.java)
@@ -1294,9 +1293,7 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		fun pojoArrayType(elementType: A_Type, sizeRange: A_Type): AvailObject
 		{
-			assert(sizeRange.isSubtypeOf(
-				IntegerRangeTypeDescriptor.wholeNumbers
-			))
+			assert(sizeRange.isSubtypeOf(wholeNumbers))
 			return arrayPojoType(elementType, sizeRange)
 		}
 

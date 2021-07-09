@@ -46,14 +46,16 @@ import com.avail.interpreter.execution.Interpreter.Companion.current
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
- * @property
- *      The priority of the [task][AvailTask].  It must be a value in the range
- *      0..255. @see [quasiDeadline]
+ * @property priority
+ *   The priority of the [task][AvailTask].  It must be a value in the range
+ *   `[0..255]`.  See [quasiDeadline].
  * @constructor
  *   Construct a new `AvailTask`.
  *
  * @param priority
- *   The desired priority, a long tied to milliseconds since the current epoch.
+ *   The priority, a value in `[0..255]`.  Tasks with higher numerical values
+ *   typically run before those with lower numerical values.  See
+ *   [quasiDeadline].
  * @param body
  *   The action to execute for this task.
  */
@@ -63,7 +65,6 @@ class AvailTask constructor(
 {
 	/** The action to perform for this task.  */
 	private val body: () -> Unit
-
 
 	/**
 	 * The quasi-deadline of the task.  This is the moment that the task can no
@@ -75,14 +76,8 @@ class AvailTask constructor(
 	 */
 	private val quasiDeadline: Long
 
-	// Note that using Long.compare(long) would deal with counter overflow
-	// in a way we don't want.  Instead, assume a task doesn't sit in the
-	// queue for a century or two(!), and use a technically non-transitive
-	// comparison operation, checking if the difference is negative.
-	// noinspection SubtractionInCompareTo
-	// TODO confirm comment still valid
 	override fun compareTo(other: AvailTask): Int =
-		(quasiDeadline - other.quasiDeadline).compareTo(0)
+		quasiDeadline.compareTo(other.quasiDeadline)
 
 	override fun run()
 	{
@@ -123,32 +118,29 @@ class AvailTask constructor(
 		 */
 		fun forFiberResumption(
 			fiber: A_Fiber,
-			body: () -> Unit): () -> Unit
+			body: Interpreter.() -> Unit): () -> Unit
 		{
 			assert(fiber.executionState().indicatesSuspension)
-			val scheduled =
-				fiber.getAndSetSynchronizationFlag(
-					SynchronizationFlag.SCHEDULED, true)
+			val scheduled = fiber.getAndSetSynchronizationFlag(
+				SynchronizationFlag.SCHEDULED, true)
 			assert(!scheduled)
 			return {
 				val interpreter = current()
 				assert(interpreter.fiberOrNull() === null)
 				fiber.lock {
 					assert(fiber.executionState().indicatesSuspension)
-					val bound =
-						fiber.getAndSetSynchronizationFlag(
-							SynchronizationFlag.BOUND, true)
+					val bound = fiber.getAndSetSynchronizationFlag(
+						SynchronizationFlag.BOUND, true)
 					assert(!bound)
-					val wasScheduled =
-						fiber.getAndSetSynchronizationFlag(
-							SynchronizationFlag.SCHEDULED, false)
+					val wasScheduled = fiber.getAndSetSynchronizationFlag(
+						SynchronizationFlag.SCHEDULED, false)
 					assert(wasScheduled)
 					fiber.setExecutionState(ExecutionState.RUNNING)
 					interpreter.fiber(fiber, "forFiberResumption")
 				}
 				try
 				{
-					body()
+					interpreter.body()
 				}
 				catch (e: PrimitiveThrownException)
 				{
@@ -211,7 +203,7 @@ class AvailTask constructor(
 		 *
 		 * @param fiber
 		 *   A fiber.
-		 * @param continuation
+		 * @param action
 		 *   What to do to on behalf of the unbound fiber.
 		 * @return
 		 *   An action that runs the provided continuation and handles any
@@ -219,21 +211,19 @@ class AvailTask constructor(
 		 */
 		fun forUnboundFiber(
 			fiber: A_Fiber,
-			continuation: () -> Unit): () -> Unit
+			action: () -> Unit): () -> Unit
 		{
 			assert(fiber.executionState() === ExecutionState.SUSPENDED)
-			val scheduled =
-				fiber.getAndSetSynchronizationFlag(
-					SynchronizationFlag.SCHEDULED, true)
+			val scheduled = fiber.getAndSetSynchronizationFlag(
+				SynchronizationFlag.SCHEDULED, true)
 			assert(!scheduled)
 			return {
-				val wasScheduled =
-					fiber.getAndSetSynchronizationFlag(
-						SynchronizationFlag.SCHEDULED, false)
+				val wasScheduled = fiber.getAndSetSynchronizationFlag(
+					SynchronizationFlag.SCHEDULED, false)
 				assert(wasScheduled)
 				try
 				{
-					continuation()
+					action()
 				}
 				catch (e: Throwable)
 				{

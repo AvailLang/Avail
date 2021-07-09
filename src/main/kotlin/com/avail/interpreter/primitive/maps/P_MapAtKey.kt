@@ -82,8 +82,8 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		if (mapType.isEnumeration && keyType.isEnumeration)
 		{
 			var values = emptySet
-			val keyTypeInstances = keyType.instances()
-			for (mapInstance in mapType.instances())
+			val keyTypeInstances = keyType.instances
+			for (mapInstance in mapType.instances)
 			{
 				for (keyInstance in keyTypeInstances)
 				{
@@ -98,7 +98,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 			return enumerationWith(values)
 		}
 		// Fall back on the map type's value type.
-		return mapType.valueType()
+		return mapType.valueType
 	}
 
 	override fun privateFailureVariableType(): A_Type =

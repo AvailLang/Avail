@@ -65,5 +65,5 @@ object P_TypeNames : Primitive(1, CanInline, CannotFail)
 		functionType(
 			tuple(
 				mostGeneralObjectMeta()),
-			setTypeForSizesContentType(wholeNumbers, stringType()))
+			setTypeForSizesContentType(wholeNumbers, stringType))
 }

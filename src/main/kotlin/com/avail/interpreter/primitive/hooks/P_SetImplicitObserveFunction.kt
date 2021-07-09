@@ -35,6 +35,7 @@ package com.avail.interpreter.primitive.hooks
 import com.avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
 import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createWithOuters1
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -88,7 +89,7 @@ object P_SetImplicitObserveFunction : Primitive(
 	{
 		val writer = L1InstructionWriter(nil, 0, nil)
 		val outerIndex = writer.createOuter(IMPLICIT_OBSERVE.functionType)
-		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType())
+		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType)
 		writer.returnType = bottom
 		writer.returnTypeIfPrimitiveFails = bottom
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex)
@@ -118,7 +119,7 @@ object P_SetImplicitObserveFunction : Primitive(
 			writer.addLiteral(SpecialMethodAtom.RESUME_CONTINUATION.bundle),
 			writer.addLiteral(bottom))
 		val code = writer.compiledCode()
-		code.setMethodName(stringFrom("«implicit observe function wrapper»"))
+		code.methodName = stringFrom("«implicit observe function wrapper»")
 		return code
 	}
 

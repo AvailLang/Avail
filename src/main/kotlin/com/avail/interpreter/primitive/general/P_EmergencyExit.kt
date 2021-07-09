@@ -92,7 +92,7 @@ object P_EmergencyExit : Primitive(
 			if (errorMessageProducer.isInt)
 			{
 				val errorNumber: A_Number = errorMessageProducer.cast()
-				val intValue = errorNumber.extractInt()
+				val intValue = errorNumber.extractInt
 				val code = AvailErrorCode.byNumericCode(intValue)
 				if (code !== null)
 				{

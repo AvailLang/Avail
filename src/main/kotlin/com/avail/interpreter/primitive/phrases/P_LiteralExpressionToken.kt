@@ -59,7 +59,7 @@ object P_LiteralExpressionToken : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val literal = interpreter.argument(0)
-		return interpreter.primitiveSuccess(literal.token())
+		return interpreter.primitiveSuccess(literal.token)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

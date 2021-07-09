@@ -92,8 +92,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 			}
 
 		val permissions = permissionsFor(ordinals)
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
 	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
@@ -119,13 +118,12 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(),
+			tuple(stringType,
 				  setTypeForSizesContentType(
 					  inclusive(0, 9),
 					  inclusive(1, 9)),
 				  booleanType),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -150,7 +148,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 		val permissions = EnumSet.noneOf(PosixFilePermission::class.java)
 		for (ordinal in ordinals)
 		{
-			permissions.add(allPermissions[ordinal.extractInt() - 1])
+			permissions.add(allPermissions[ordinal.extractInt - 1])
 		}
 		return permissions
 	}

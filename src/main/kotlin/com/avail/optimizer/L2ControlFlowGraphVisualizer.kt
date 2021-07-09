@@ -273,8 +273,7 @@ class L2ControlFlowGraphVisualizer constructor(
 								"balign" to "left",
 								"border" to "1",
 								"port" to (port + 1).toString(),
-								"valign" to "top"
-							)
+								"valign" to "top")
 							if (instruction.isPlaceholder) {
 								cellAttributes.add(
 									"bgcolor" to

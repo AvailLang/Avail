@@ -109,7 +109,7 @@ object P_PublishName : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), TOP.o)
+		functionType(tuple(stringType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

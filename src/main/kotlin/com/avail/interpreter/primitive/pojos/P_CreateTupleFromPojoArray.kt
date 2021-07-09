@@ -68,7 +68,7 @@ object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 			generateObjectTupleFrom(Array.getLength(rawArray)) {
 				unmarshal(
 					Array.get(rawArray, it - 1),
-					array.kind().contentType())
+					array.kind().contentType)
 			}
 		}
 		return interpreter.primitiveSuccess(tuple)
@@ -78,5 +78,5 @@ object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 		functionType(
 			tuple(
 				mostGeneralPojoArrayType()),
-			mostGeneralTupleType())
+			mostGeneralTupleType)
 }

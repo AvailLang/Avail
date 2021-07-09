@@ -404,7 +404,7 @@ class CompilerDiagnostics(
 				source,
 				'\n'.code,
 				1,
-				min(source.tupleSize(), startOfFirstLine))
+				min(source.tupleSize, startOfFirstLine))
 			// Now figure out the last line to show, which if possible should be
 			// the line after the *end* of the last problem token.
 			val lastProblem = ascending[ascending.size - 1]
@@ -413,22 +413,22 @@ class CompilerDiagnostics(
 				source,
 				'\n'.code,
 				lastProblem.lexingStateAfterToken.position,
-				source.tupleSize())
+				source.tupleSize)
 			startOfNextLine =
 				if (startOfNextLine != 1)
 					startOfNextLine
 				else
-					source.tupleSize() + 1
+					source.tupleSize + 1
 			var startOfSecondNextLine = 1 + firstIndexOf(
 				source,
 				'\n'.code,
 				startOfNextLine,
-				source.tupleSize())
+				source.tupleSize)
 			startOfSecondNextLine =
 				if (startOfSecondNextLine != 1)
 					startOfSecondNextLine
 				else
-					source.tupleSize() + 1
+					source.tupleSize + 1
 
 			// Insert the problem location indicators...
 			var sourcePosition = startOfFirstLine
@@ -448,8 +448,8 @@ class CompilerDiagnostics(
 			// Ensure the last character is a newline.
 			var unnumbered =
 				tupleFromList(parts).concatenateTuplesCanDestroy(true)
-			if (unnumbered.tupleSize() == 0
-				|| unnumbered.tupleCodePointAt(unnumbered.tupleSize())
+			if (unnumbered.tupleSize == 0
+				|| unnumbered.tupleCodePointAt(unnumbered.tupleSize)
 					!= '\n'.code)
 			{
 				unnumbered = unnumbered.appendCanDestroy(
@@ -926,7 +926,7 @@ class CompilerDiagnostics(
 				continuation(emptyToken.makeShared())
 				return
 			}
-			continuation(candidates.maxByOrNull { it.string().tupleSize() }!!)
+			continuation(candidates.maxByOrNull { it.string().tupleSize }!!)
 		}
 
 		/**

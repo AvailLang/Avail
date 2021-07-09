@@ -91,11 +91,11 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 		// Note that because the section marker occurs inside the optionality
 		// of the label declaration, this function will only be invoked when
 		// there truly is a label declaration.
-		assert(optionalLabelPhrase.expressionsSize() == 1)
-		val labelPairPhrase = optionalLabelPhrase.lastExpression()
-		assert(labelPairPhrase.expressionsSize() == 2)
+		assert(optionalLabelPhrase.expressionsSize == 1)
+		val labelPairPhrase = optionalLabelPhrase.lastExpression
+		assert(labelPairPhrase.expressionsSize == 2)
 		val labelNamePhrase = labelPairPhrase.expressionAt(1)
-		val labelName = labelNamePhrase.token().literal()
+		val labelName = labelNamePhrase.token.literal()
 		if (labelName.tokenType() != TokenType.KEYWORD)
 		{
 			throw AvailRejectedParseException(
@@ -105,12 +105,12 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 			labelPairPhrase.expressionAt(2)
 		val labelReturnTypePhrase: A_Phrase
 		val labelReturnType: A_Type =
-			if (optionalLabelReturnTypePhrase.expressionsSize() == 1)
+			if (optionalLabelReturnTypePhrase.expressionsSize == 1)
 			{
 				labelReturnTypePhrase =
 					optionalLabelReturnTypePhrase.expressionAt(1)
 				assert(labelReturnTypePhrase.phraseKindIsUnder(LITERAL_PHRASE))
-				labelReturnTypePhrase.token().literal()
+				labelReturnTypePhrase.token.literal()
 			}
 			else
 			{
@@ -124,19 +124,19 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 		// Re-extract all the argument types so we can specify the exact type of
 		// the continuation.
 		val blockArgumentTypes = mutableListOf<A_Type>()
-		if (optionalBlockArgumentsList.expressionsSize() > 0)
+		if (optionalBlockArgumentsList.expressionsSize > 0)
 		{
-			assert(optionalBlockArgumentsList.expressionsSize() == 1)
+			assert(optionalBlockArgumentsList.expressionsSize == 1)
 			val blockArgumentsList =
-				optionalBlockArgumentsList.lastExpression()
-			assert(blockArgumentsList.expressionsSize() >= 1)
-			for (argumentPair in blockArgumentsList.expressionsTuple())
+				optionalBlockArgumentsList.lastExpression
+			assert(blockArgumentsList.expressionsSize >= 1)
+			for (argumentPair in blockArgumentsList.expressionsTuple)
 			{
-				assert(argumentPair.expressionsSize() == 2)
-				val typePhrase = argumentPair.lastExpression()
+				assert(argumentPair.expressionsSize == 2)
+				val typePhrase = argumentPair.lastExpression
 				assert(typePhrase.isInstanceOfKind(
 					LITERAL_PHRASE.create(anyMeta())))
-				val argType = typePhrase.token().literal()
+				val argType = typePhrase.token.literal()
 				assert(argType.isType)
 				blockArgumentTypes.add(argType)
 			}
@@ -151,12 +151,12 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 			FiberDescriptor.addDeclaration(labelDeclaration)
 		if (conflictingDeclaration !== null)
 		{
+			val kind = conflictingDeclaration.declarationKind().nativeKindName()
+			val lineNumber = conflictingDeclaration.token.lineNumber()
 			throw AvailRejectedParseException(
 				STRONG,
-				"label declaration ${labelName.string()} to have a name that "
-					+ "doesn't shadow an existing "
-					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
+				"label declaration ${labelName.string()} to have a name that" +
+					" doesn't shadow an existing $kind (from line $lineNumber)")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
@@ -204,6 +204,5 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 							zeroOrOneOf(
 								/* Label return type. */
 								topMeta()))))),
-			TOP.o
-		)
+			TOP.o)
 }

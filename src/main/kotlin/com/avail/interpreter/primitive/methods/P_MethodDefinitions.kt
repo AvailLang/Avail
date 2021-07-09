@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -58,7 +59,7 @@ object P_MethodDefinitions : Primitive(1, CannotFail, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val method = interpreter.argument(0)
-		return interpreter.primitiveSuccess(method.definitionsTuple())
+		return interpreter.primitiveSuccess(method.definitionsTuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

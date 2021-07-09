@@ -87,7 +87,7 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   A [Boolean] indicating whether this map bin is hashed.
 		 */
-		fun A_MapBin.isHashedMapBin() = dispatch { o_IsHashedMapBin(it) }
+		val A_MapBin.isHashedMapBin get() = dispatch { o_IsHashedMapBin(it) }
 
 		/**
 		 * Answer how many key/value pairs are in this map bin.
@@ -95,7 +95,7 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   The map bin's size.
 		 */
-		fun A_MapBin.mapBinSize() = dispatch { o_MapBinSize(it) }
+		val A_MapBin.mapBinSize get() = dispatch { o_MapBinSize(it) }
 
 		/**
 		 * Create a map bin like the receiver, but with the given [key]
@@ -206,8 +206,8 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   The union of the keys' kinds.
 		 */
-		fun A_MapBin.mapBinKeyUnionKind() =
-			dispatch { o_MapBinKeyUnionKind(it) }
+		val A_MapBin.mapBinKeyUnionKind
+			get() = dispatch { o_MapBinKeyUnionKind(it) }
 
 		/**
 		 * Answer the union of the kinds of each value in this bin.  A value's
@@ -221,8 +221,8 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   The union of the values' kinds.
 		 */
-		fun A_MapBin.mapBinValueUnionKind() =
-			dispatch { o_MapBinValueUnionKind(it) }
+		val A_MapBin.mapBinValueUnionKind
+			get() = dispatch { o_MapBinValueUnionKind(it) }
 
 		/**
 		 * Answer a combined hash of all the keys in this map bin.
@@ -230,7 +230,7 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   A hash of this bin's keys.
 		 */
-		fun A_MapBin.mapBinKeysHash() = dispatch { o_MapBinKeysHash(it) }
+		val A_MapBin.mapBinKeysHash get() = dispatch { o_MapBinKeysHash(it) }
 
 		/**
 		 * Answer a combined hash of all the values in this map bin.
@@ -238,7 +238,7 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   A hash of this bin's values.
 		 */
-		fun A_MapBin.mapBinValuesHash() = dispatch { o_MapBinValuesHash(it) }
+		val A_MapBin.mapBinValuesHash get() = dispatch { o_MapBinValuesHash(it) }
 
 		/**
 		 * Create a [MapIterable] that produces each [Entry] of the [A_Map].
@@ -246,6 +246,6 @@ interface A_MapBin : A_BasicObject {
 		 * @return
 		 *   A [MapIterable] that visits each [Entry] once, in arbitrary order.
 		 */
-		fun A_MapBin.mapBinIterable() = dispatch { o_MapBinIterable(it) }
+		val A_MapBin.mapBinIterable get() = dispatch { o_MapBinIterable(it) }
 	}
 }

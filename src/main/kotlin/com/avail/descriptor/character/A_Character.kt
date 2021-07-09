@@ -53,7 +53,7 @@ interface A_Character : A_BasicObject {
 		 * @return
 		 *   The character's numerical encoding in Unicode.
 		 */
-		fun A_Character.codePoint(): Int = dispatch { o_CodePoint(it) }
+		val A_Character.codePoint: Int get() = dispatch { o_CodePoint(it) }
 
 		/**
 		 * Answer whether the receiver, an [object][AvailObject], is a

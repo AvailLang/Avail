@@ -209,23 +209,6 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
 		self.volatileSlot(BUNDLE_OR_NIL)
 
-	override fun o_DescribeForDebugger(
-		self: AvailObject
-	): Array<AvailObjectFieldHelper> {
-		val fields = super.o_DescribeForDebugger(self).toMutableList()
-		val bundle = self.bundleOrNil()
-		if (bundle.notNil)
-		{
-			fields.add(
-				AvailObjectFieldHelper(
-					self,
-					DebuggerObjectSlots("Message bundle"),
-					-1,
-					bundle))
-		}
-		return fields.toTypedArray()
-	}
-
 	override fun o_ExtractBoolean (self: AvailObject): Boolean = when (this) {
 		sharedForTrue -> true
 		sharedForFalse -> false
@@ -364,15 +347,15 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.ATOM_TAG)
 
 		/**
-		 * The descriptor reserved for the
-		 * [true&#32;atom][AtomDescriptor.trueObject].
+		 * The descriptor reserved for the [true][AtomDescriptor.trueObject]
+		 * atom.
 		 */
 		val sharedForTrue =
 			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.TRUE_TAG)
 
 		/**
-		 * The descriptor reserved for the
-		 * [false&#32;atom][AtomDescriptor.falseObject].
+		 * The descriptor reserved for the [false][AtomDescriptor.falseObject]
+		 * atom.
 		 */
 		val sharedForFalse =
 			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.FALSE_TAG)

@@ -62,7 +62,7 @@ object P_BootstrapLexerKeywordFilter
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
 
-		val codePoint = character.codePoint()
+		val codePoint = character.codePoint
 		val isIdentifierStart = Character.isUnicodeIdentifierStart(codePoint)
 			|| codePoint == '_'.code
 		return interpreter.primitiveSuccess(

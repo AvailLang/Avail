@@ -95,7 +95,10 @@ interface FileAction
 	 *   The [TracedAction], when applied, will reverse this `FileAction`.
 	 */
 	fun execute (
-		file: AvailFile, timestamp: Long, originator: UUID): TracedAction
+		file: AvailFile,
+		timestamp: Long,
+		originator: UUID
+	): TracedAction
 
 	/**
 	 * The [FileActionType] that represents this [FileAction].
@@ -106,7 +109,7 @@ interface FileAction
 	 * `true` indicates this [FileAction] is traced in a [TracedAction]; `false`
 	 * otherwise.
 	 */
-	val isTraced: Boolean  get() = false
+	val isTraced: Boolean get() = false
 }
 
 /**
@@ -181,7 +184,7 @@ class ReplaceContents constructor(val data: ByteArray): FileAction
 
 /**
  * `NoAction` is a [FileAction] indicates no action should/could be taken.
- * 
+ *
  * Some `FileAction`s have an inverse action. `NoAction` is used as the inverse
  * action to `FileAction`s that have no meaningful inverse.
  *

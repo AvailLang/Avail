@@ -47,6 +47,7 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
@@ -146,11 +147,11 @@ class CallbackTest
 		moduleName: A_String, entryPointMethodName: A_String): A_Function
 	{
 		val module: A_Module = helper().runtime.moduleAt(moduleName)
-		val entryPointsNames = module.entryPoints()
+		val entryPointsNames = module.entryPoints
 		val atom: A_Atom = entryPointsNames.mapAt(entryPointMethodName)
 		val definitions: A_Tuple =
-			atom.bundleOrNil().bundleMethod().definitionsTuple()
-		assert(definitions.tupleSize() == 1)
+			atom.bundleOrNil.bundleMethod.definitionsTuple
+		assert(definitions.tupleSize == 1)
 		return definitions.tupleAt(1).bodyBlock()
 	}
 
@@ -250,7 +251,7 @@ class CallbackTest
 					completion: CallbackCompletion,
 					failure: CallbackFailure)
 				{
-					assert(argumentsTuple.tupleSize() == 2)
+					assert(argumentsTuple.tupleSize == 2)
 					val a = argumentsTuple.tupleAt(1)
 					val b = argumentsTuple.tupleAt(2)
 					try
@@ -268,10 +269,8 @@ class CallbackTest
 				functionType(
 					tuple(
 						Types.NUMBER.o,
-						Types.NUMBER.o
-					),
-					Types.NUMBER.o
-				),
+						Types.NUMBER.o),
+					Types.NUMBER.o),
 				callback)
 		}
 	}

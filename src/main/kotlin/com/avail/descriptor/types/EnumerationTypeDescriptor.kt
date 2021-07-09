@@ -222,7 +222,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		getSuperkind(self)
 
 	override fun o_InstanceCount(self: AvailObject): A_Number =
-		fromInt(getInstances(self).setSize())
+		fromInt(getInstances(self).setSize)
 
 	override fun o_Instances(self: AvailObject): A_Set = getInstances(self)
 
@@ -297,7 +297,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			// I'm an enumeration of non-types, and aType is an instance meta
 			// (the only sort of metas that exist these days -- 2012.07.17).
 			// See if my instances comply with aType's instance (a type).
-			val aTypeInstance = aType.instance()
+			val aTypeInstance = aType.instance
 			val instanceSet = getInstances(self)
 			assert(instanceSet.isSet)
 			if (aTypeInstance.isEnumeration)
@@ -344,7 +344,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			// are simultaneously present in object and another, plus the type
 			// intersections of all pairs of types in the product of the sets.
 			// This should even correctly deal with bottom as an element.
-			val otherElements = another.instances()
+			val otherElements = another.instances
 			var myTypes = emptySet
 			for (element in elements)
 			{
@@ -359,7 +359,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			}
 			// We have the non-types now, so add the pair-wise intersection of
 			// the types.
-			if (myTypes.setSize() > 0)
+			if (myTypes.setSize > 0)
 			{
 				for (anotherElement in otherElements)
 				{
@@ -387,7 +387,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 				}
 			}
 		}
-		if (set.setSize() == 0)
+		if (set.setSize == 0)
 		{
 			// Decide whether this should be bottom or bottom's type
 			// based on whether object and another are both metas.  Note that
@@ -426,7 +426,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			// Create a new enumeration containing all elements from both
 			// enumerations.
 			return enumerationWith(getInstances(self).setUnionCanDestroy(
-				another.instances(),
+				another.instances,
 				false))
 		}
 		// Go up to my nearest kind, then compute the union with the given kind.
@@ -447,22 +447,22 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	): A_Type? = getSuperkind(self).fieldTypeAtOrNull(field)
 
 	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
-		getSuperkind(self).fieldTypeTuple()
+		getSuperkind(self).fieldTypeTuple
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map =
-		getSuperkind(self).fieldTypeMap()
+		getSuperkind(self).fieldTypeMap
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
-		getSuperkind(self).lowerBound()
+		getSuperkind(self).lowerBound
 
 	override fun o_LowerInclusive(self: AvailObject): Boolean =
-		getSuperkind(self).lowerInclusive()
+		getSuperkind(self).lowerInclusive
 
 	override fun o_UpperBound(self: AvailObject): A_Number =
-		getSuperkind(self).upperBound()
+		getSuperkind(self).upperBound
 
 	override fun o_UpperInclusive(self: AvailObject): Boolean =
-		getSuperkind(self).upperInclusive()
+		getSuperkind(self).upperInclusive
 
 	override fun o_EnumerationIncludesInstance(
 		self: AvailObject,
@@ -497,14 +497,14 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_DefaultType(self: AvailObject): A_Type
 	{
 		assert(self.isTupleType)
-		return getSuperkind(self).defaultType()
+		return getSuperkind(self).defaultType
 	}
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
-		getSuperkind(self).sizeRange()
+		getSuperkind(self).sizeRange
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple =
-		getSuperkind(self).typeTuple()
+		getSuperkind(self).typeTuple
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean
 	{
@@ -607,16 +607,16 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			getSuperkind(self).acceptsTupleOfArguments(arguments)
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		getSuperkind(self).argsTupleType()
+		getSuperkind(self).argsTupleType
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		getSuperkind(self).declaredExceptions()
+		getSuperkind(self).declaredExceptions
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		getSuperkind(self).functionType()
+		getSuperkind(self).functionType
 
 	override fun o_ContentType(self: AvailObject): A_Type =
-		getSuperkind(self).contentType()
+		getSuperkind(self).contentType
 
 	override fun o_CouldEverBeInvokedWith(
 		self: AvailObject,
@@ -631,27 +631,27 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_KeyType(self: AvailObject): A_Type
 	{
-		val possibleMaps = self.instances()
+		val possibleMaps = self.instances
 		val possibleKeys = possibleMaps.fold(emptySet) { union, instance ->
-			union.setUnionCanDestroy(instance.keysAsSet(), false)
+			union.setUnionCanDestroy(instance.keysAsSet, false)
 		}
 		return enumerationWith(possibleKeys)
 	}
 
 	override fun o_ValueType(self: AvailObject): A_Type
 	{
-		val possibleMaps = self.instances()
+		val possibleMaps = self.instances
 		val possibleKeys = possibleMaps.fold(emptySet) { union, instance ->
-			union.setUnionCanDestroy(instance.valuesAsTuple().asSet(), false)
+			union.setUnionCanDestroy(instance.valuesAsTuple.asSet, false)
 		}
 		return enumerationWith(possibleKeys)
 	}
 
 	override fun o_Parent(self: AvailObject): A_BasicObject =
-		getSuperkind(self).parent()
+		getSuperkind(self).parent
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
-		getSuperkind(self).returnType()
+		getSuperkind(self).returnType
 
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
@@ -663,23 +663,23 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		getSuperkind(self).readType()
+		getSuperkind(self).readType
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		getSuperkind(self).writeType()
+		getSuperkind(self).writeType
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type
 	{
 		var unionType = bottom
 		for (instance in getInstances(self))
 		{
-			unionType = unionType.typeUnion(instance.phraseExpressionType())
+			unionType = unionType.typeUnion(instance.phraseExpressionType)
 		}
 		return unionType
 	}
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
-		getInstances(self).any { it.isLong && it.extractLong() == aLong }
+		getInstances(self).any { it.isLong && it.extractLong == aLong }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.ENUMERATION_TYPE
@@ -754,7 +754,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		fun fromNormalizedSet(normalizedSet: A_Set): A_Type
 		{
-			assert(normalizedSet.setSize() > 1)
+			assert(normalizedSet.setSize > 1)
 			return mutable.create {
 				setSlot(INSTANCES, normalizedSet.makeImmutable())
 				setSlot(CACHED_SUPERKIND, NilDescriptor.nil)

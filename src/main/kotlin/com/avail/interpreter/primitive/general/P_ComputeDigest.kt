@@ -83,7 +83,7 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 			throw RuntimeException(e)
 		}
 
-		val size = bytes.tupleSize()
+		val size = bytes.tupleSize
 		val buffer = ByteBuffer.allocateDirect(size)
 		bytes.transferIntoByteBuffer(1, size, buffer)
 		buffer.flip()
@@ -97,7 +97,7 @@ object P_ComputeDigest : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				enumerationWith(
-					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet()),
+					tupleFromIntegerList(listOf(1, 256, 384, 512)).asSet),
 				zeroOrMoreOf(bytes)),
 			oneOrMoreOf(bytes))
 }

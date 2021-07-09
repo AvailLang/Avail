@@ -68,11 +68,16 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 		val variable = interpreter.argument(0)
 		val key = interpreter.argument(1)
 		val value = interpreter.argument(2)
-		try {
+		try
+		{
 			variable.atomicAddToMap(key, value)
-		} catch (e: VariableGetException) {
+		}
+		catch (e: VariableGetException)
+		{
 			return interpreter.primitiveFailure(e)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			return interpreter.primitiveFailure(e)
 		}
 
@@ -90,13 +95,10 @@ object P_AtomicAddToMap : Primitive(3, CanInline, HasSideEffect) {
 			tuple(
 				variableReadWriteType(
 					mostGeneralMapType(),
-					bottom
-				),
+					bottom),
 				ANY.o,
-				ANY.o
-			),
-			TOP.o
-		)
+				ANY.o),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

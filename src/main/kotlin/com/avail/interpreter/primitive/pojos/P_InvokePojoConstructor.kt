@@ -75,12 +75,12 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 
 		val primitiveFunction = interpreter.function!!
 		val primitiveRawFunction = primitiveFunction.code()
-		assert(primitiveRawFunction.primitive() === this)
+		assert(primitiveRawFunction.codePrimitive() === this)
 
 		val constructorPojo = primitiveFunction.outerVarAt(1)
 		val marshaledTypes = primitiveFunction.outerVarAt(2)
 		// The exact return kind was captured in the function type.
-		val expectedType = primitiveRawFunction.functionType().returnType()
+		val expectedType = primitiveRawFunction.functionType().returnType
 
 		interpreter.availLoaderOrNull()?.statementCanBeSummarized(false)
 
@@ -118,13 +118,15 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
 
-		return try {
+		return try
+		{
 			interpreter.primitiveSuccess(unmarshal(result, expectedType))
-		} catch (e: MarshalingException) {
+		}
+		catch (e: MarshalingException)
+		{
 			interpreter.primitiveFailure(
 				newPojo(identityPojo(e), pojoTypeForClass(e.javaClass)))
 		}
-
 	}
 
 	/**
@@ -138,7 +140,7 @@ object P_InvokePojoConstructor : Primitive(-1, Private)
 		argumentTypes: List<A_Type>
 	): A_Type
 	{
-		return rawFunction.functionType().returnType()
+		return rawFunction.functionType().returnType
 	}
 
 	override fun privateFailureVariableType(): A_Type =

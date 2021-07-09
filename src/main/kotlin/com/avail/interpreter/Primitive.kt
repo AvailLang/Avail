@@ -48,7 +48,6 @@ import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.upperBound
-import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
@@ -580,8 +579,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		assert(rawFunction.primitive() === this)
-		return blockTypeRestriction().returnType()
+		assert(rawFunction.codePrimitive() === this)
+		return blockTypeRestriction().returnType
 	}
 
 	/**
@@ -943,12 +942,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 					arguments.size,
 					expected)
 			}
-			val expectedTypes = primitive.blockTypeRestriction().argsTupleType()
-			assert(expectedTypes.sizeRange().upperBound().extractInt()
+			val expectedTypes = primitive.blockTypeRestriction().argsTupleType
+			assert(expectedTypes.sizeRange.upperBound.extractInt
 				== expected)
 			val string = buildString {
 				for (i in 1..expected) {
-					val declaredType = arguments[i - 1].declaredType()
+					val declaredType = arguments[i - 1].declaredType
 					val expectedType = expectedTypes.typeAtIndex(i)
 					if (!declaredType.isSubtypeOf(expectedType))
 					{
@@ -958,7 +957,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 								"argument #%d (%s) of primitive %s to be a " +
 									"subtype of %s, not %s.",
 								i,
-								arguments[i - 1].token().string(),
+								arguments[i - 1].token.string(),
 								primitive.name,
 								expectedType,
 								declaredType))

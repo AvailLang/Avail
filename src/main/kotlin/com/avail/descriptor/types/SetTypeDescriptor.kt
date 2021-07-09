@@ -131,12 +131,12 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 			builder.append('}')
 			return
 		}
-		sizeRange.lowerBound().printOnAvoidingIndent(
+		sizeRange.lowerBound.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
-		if (!sizeRange.lowerBound().equals(sizeRange.upperBound()))
+		if (!sizeRange.lowerBound.equals(sizeRange.upperBound))
 		{
 			builder.append("..")
-			sizeRange.upperBound().printOnAvoidingIndent(
+			sizeRange.upperBound.printOnAvoidingIndent(
 				builder, recursionMap, indent + 1)
 		}
 		builder.append('}')
@@ -154,14 +154,14 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	// Set types are equal iff both their sizeRange and contentType match.
 	override fun o_EqualsSetType(self: AvailObject, aSetType: A_Type): Boolean =
 		if (self.sameAddressAs(aSetType)) true
-		else self.slot(SIZE_RANGE).equals(aSetType.sizeRange())
+		else self.slot(SIZE_RANGE).equals(aSetType.sizeRange)
 		     && self.slot(CONTENT_TYPE)
-			     .equals(aSetType.contentType())
+			     .equals(aSetType.contentType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
 	override fun o_Hash(self: AvailObject): Int =
-		self.sizeRange().hash() * 11 + self.contentType().hash() * 5
+		self.sizeRange.hash() * 11 + self.contentType.hash() * 5
 
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).
@@ -182,18 +182,18 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
-		(!self.slot(SIZE_RANGE).lowerBound().equalsInt(0)
+		(!self.slot(SIZE_RANGE).lowerBound.equalsInt(0)
 	        && self.slot(CONTENT_TYPE).isVacuousType)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
-		if (!self.sizeRange().isSubtypeOf(int32))
+		if (!self.sizeRange.isSubtypeOf(int32))
 		{
 			// Trim the type to only those that are physically possible.
 			self.makeImmutable()
 			return setTypeForSizesContentType(
-				self.sizeRange().typeIntersection(int32),
-				self.contentType()
+				self.sizeRange.typeIntersection(int32),
+				self.contentType
 			).trimType(typeToRemove)
 		}
 		if (self.isSubtypeOf(typeToRemove)) return bottom
@@ -201,18 +201,18 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		if (typeToRemove.isEnumeration) return self
 		self.makeImmutable()
 		typeToRemove.makeImmutable()
-		if (!typeToRemove.sizeRange().isSubtypeOf(int32))
+		if (!typeToRemove.sizeRange.isSubtypeOf(int32))
 		{
 			// Trim the type to only those that are physically possible.
 			return self.trimType(
 				setTypeForSizesContentType(
-					typeToRemove.sizeRange().typeIntersection(int32),
-					typeToRemove.contentType()))
+					typeToRemove.sizeRange.typeIntersection(int32),
+					typeToRemove.contentType))
 		}
-		val contentType = self.contentType()
-		val removedContentType = typeToRemove.contentType()
-		val sizeRange = self.sizeRange()
-		val removedSizeRange = typeToRemove.sizeRange()
+		val contentType = self.contentType
+		val removedContentType = typeToRemove.contentType
+		val sizeRange = self.sizeRange
+		val removedSizeRange = typeToRemove.sizeRange
 		if (contentType.isSubtypeOf(removedContentType))
 		{
 			// The element types won't be enough to keep sets around, so we can
@@ -247,10 +247,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		aSetType: A_Type): A_Type
 	{
 		return setTypeForSizesContentType(
-			self.slot(SIZE_RANGE)
-				.typeIntersection(aSetType.sizeRange()),
-			self.slot(CONTENT_TYPE)
-				.typeIntersection(aSetType.contentType()))
+			self.slot(SIZE_RANGE).typeIntersection(aSetType.sizeRange),
+			self.slot(CONTENT_TYPE).typeIntersection(aSetType.contentType))
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -266,10 +264,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aSetType: A_Type): A_Type =
 			setTypeForSizesContentType(
-				self.slot(SIZE_RANGE)
-					.typeUnion(aSetType.sizeRange()),
-				self.slot(CONTENT_TYPE)
-					.typeUnion(aSetType.contentType()))
+				self.slot(SIZE_RANGE).typeUnion(aSetType.sizeRange),
+				self.slot(CONTENT_TYPE).typeUnion(aSetType.contentType))
 
 	override fun o_IsSetType(self: AvailObject): Boolean = true
 
@@ -350,10 +346,10 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 			{
 				return bottom
 			}
-			assert(sizeRange.lowerBound().isFinite)
-			assert(zero.lessOrEqual(sizeRange.lowerBound()))
-			assert(sizeRange.upperBound().isFinite
-			       || !sizeRange.upperInclusive())
+			assert(sizeRange.lowerBound.isFinite)
+			assert(zero.lessOrEqual(sizeRange.lowerBound))
+			assert(sizeRange.upperBound.isFinite
+			       || !sizeRange.upperInclusive)
 			val sizeRangeKind =
 				if (sizeRange.isEnumeration) sizeRange.computeSuperkind()
 				else sizeRange
@@ -361,14 +357,14 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 			val newContentType: A_Type
 			when
 			{
-				sizeRangeKind.upperBound().equalsInt(0) ->
+				sizeRangeKind.upperBound.equalsInt(0) ->
 				{
 					newSizeRange = sizeRangeKind
 					newContentType = bottom
 				}
 				contentType.isBottom ->
 				{
-					if (sizeRangeKind.lowerBound().equalsInt(0))
+					if (sizeRangeKind.lowerBound.equalsInt(0))
 					{
 						// sizeRange includes at least 0 and 1, but the content
 						// type is bottom, so no contents exist.
@@ -393,21 +389,21 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 							{
 								// There can't ever be more elements in the set
 								// than there are distinct possible values.
-								inclusive(zero, contentType.instanceCount())
+								inclusive(zero, contentType.instanceCount)
 							}
 							contentType.isIntegerRangeType
-							&& (contentType.lowerBound().isFinite
-							    || contentType.upperBound().isFinite
-							    || contentType.lowerBound().equals(
-								contentType.upperBound())) ->
+							&& (contentType.lowerBound.isFinite
+							    || contentType.upperBound.isFinite
+							    || contentType.lowerBound.equals(
+								contentType.upperBound)) ->
 							{
 								// We had already ruled out ⊥, and the latest
 								// test rules out [-∞..∞], [-∞..∞), (-∞..∞], and
 								// (-∞..∞), allowing safe subtraction.
 								inclusive(
 									zero,
-									contentType.upperBound().minusCanDestroy(
-										contentType.lowerBound(), false)
+									contentType.upperBound.minusCanDestroy(
+										contentType.lowerBound, false)
 										.plusCanDestroy(one, false))
 							}
 							else ->

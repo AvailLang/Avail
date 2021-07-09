@@ -276,7 +276,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		val loadedRuntimeModules = runtime.loadedModules()
 		val moduleGraphSize = moduleGraph.vertexCount
 		val allLoadedModulesSize = allLoadedModules.size
-		val loadedRuntimeModulesSize = loadedRuntimeModules.mapSize()
+		val loadedRuntimeModulesSize = loadedRuntimeModules.mapSize
 		assert(moduleGraphSize == allLoadedModulesSize)
 		assert(moduleGraphSize == loadedRuntimeModulesSize)
 		for (graphModuleName in moduleGraph.vertices.toList())
@@ -865,7 +865,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		{
 			val module = newModule(
 				stringFrom(
-					loadedModule.module.moduleName().asNativeString() +
+					loadedModule.module.moduleName.asNativeString() +
 						" (command)"))
 			val loader = AvailLoader(module, runtime.textInterface())
 			val moduleImport = ModuleImport.extend(loadedModule.module)
@@ -873,7 +873,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			header.importedModules.add(moduleImport)
 			header.applyToModule(loader)
 			module.addImportedNames(
-				loadedModule.module.entryPoints().valuesAsTuple().asSet())
+				loadedModule.module.entryPoints.valuesAsTuple.asSet)
 			val compiler = AvailCompiler(
 				header,
 				module,
@@ -965,8 +965,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private fun parallelCombine(
 		continuations: Collection<(()->Unit)->Unit>): (()->Unit)->Unit
 	{
-		val count = AtomicInteger(continuations.size)
 		return { postAction ->
+			val count = AtomicInteger(continuations.size)
 			val decrement = {
 				if (count.decrementAndGet() == 0)
 				{
@@ -1047,8 +1047,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			{
 				if (solution.isInstanceOfKind(SEND_PHRASE.mostGeneralType()))
 				{
-					val name = solution.apparentSendName()
-					val nameString = name.atomName().asNativeString()
+					val name = solution.apparentSendName
+					val nameString = name.atomName.asNativeString()
 					if (moduleEntryPoints.contains(nameString))
 					{
 						commands.add(CompiledCommand(
@@ -1078,7 +1078,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val phrase = command.phrase
 			val function = createFunctionForPhrase(phrase, nil, 1)
 			val fiber = newFiber(
-				function.kind().returnType(),
+				function.kind().returnType,
 				commandPriority
 			) { stringFrom("Running command: $phrase") }
 			var fiberGlobals = fiber.fiberGlobals()

@@ -32,10 +32,10 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
-
 
 /**
  * Provide a generic mechanism for visiting instructions.  In particular, each
@@ -192,7 +192,7 @@ interface L1OperationDispatcher
 	 * Invoke a method with a supercall.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][AvailObject.literalAt], which specifies a
+	 * [literals][A_RawFunction.literalAt], which specifies a
 	 * [method][MethodDefinitionDescriptor] that contains a collection of
 	 * [method&#32;definition][MethodDefinitionDescriptor] that might be
 	 * invoked.

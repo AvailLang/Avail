@@ -184,10 +184,10 @@ open class AtomDescriptor protected constructor (
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) = with(builder) {
-		val nativeName = self.atomName().asNativeString()
+		val nativeName = self.atomName.asNativeString()
 		// Some atoms print nicer than others.
 		when {
-			self.isAtomSpecial() -> {
+			self.isAtomSpecial -> {
 				append(nativeName)
 				return
 			}
@@ -197,7 +197,7 @@ open class AtomDescriptor protected constructor (
 		}
 		val issuer: A_Module = self.slot(ISSUING_MODULE)
 		if (issuer.notNil) {
-			val issuerName = issuer.moduleName().asNativeString()
+			val issuerName = issuer.moduleName.asNativeString()
 			val localIssuer =
 				issuerName.substring(issuerName.lastIndexOf('/') + 1)
 			append(" (from $localIssuer)")
@@ -412,7 +412,7 @@ open class AtomDescriptor protected constructor (
 
 		/**
 		 * The property key whose presence indicates an atom is for explicit
-		 * subclassing of [object&32;types][ObjectTypeDescriptor].
+		 * subclassing of [object&#32;types][ObjectTypeDescriptor].
 		 */
 		EXPLICIT_SUBCLASSING_KEY("explicit subclassing");
 

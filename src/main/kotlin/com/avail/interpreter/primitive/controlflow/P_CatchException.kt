@@ -32,7 +32,7 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -84,8 +84,8 @@ object P_CatchException : Primitive(
 
 		for (block in handlerBlocks)
 		{
-			if (!block.kind().argsTupleType().typeAtIndex(1).isSubtypeOf(
-					exceptionType()))
+			if (!block.kind().argsTupleType.typeAtIndex(1).isSubtypeOf(
+					exceptionType))
 			{
 				innerVariable.setValueNoCheck(
 					E_INCORRECT_ARGUMENT_TYPE.numericCode())
@@ -102,8 +102,7 @@ object P_CatchException : Primitive(
 				functionType(emptyTuple, TOP.o),
 				zeroOrMoreOf(functionType(tuple(bottom), TOP.o)),
 				functionType(emptyTuple, TOP.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		// Note: The failure value is itself a new variable stuffed into the

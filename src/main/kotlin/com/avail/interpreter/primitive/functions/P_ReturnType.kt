@@ -56,7 +56,7 @@ object P_ReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val functionType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(functionType.returnType())
+		return interpreter.primitiveSuccess(functionType.returnType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -64,5 +64,5 @@ object P_ReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
-			instanceMeta(argumentTypes[0].instance().returnType())
+			instanceMeta(argumentTypes[0].instance.returnType)
 }

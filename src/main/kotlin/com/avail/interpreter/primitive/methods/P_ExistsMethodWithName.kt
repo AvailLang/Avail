@@ -59,7 +59,7 @@ object P_ExistsMethodWithName : Primitive(1, CannotFail, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val trueName = interpreter.argument(0)
-		val bundle = trueName.bundleOrNil()
+		val bundle = trueName.bundleOrNil
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(bundle.notNil))
 	}

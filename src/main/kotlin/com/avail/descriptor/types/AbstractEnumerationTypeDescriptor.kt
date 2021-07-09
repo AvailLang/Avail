@@ -518,7 +518,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 		 */
 		fun enumerationWith(instancesSet: A_Set): A_Type
 		{
-			val setSize = instancesSet.setSize()
+			val setSize = instancesSet.setSize
 			if (setSize == 0)
 			{
 				return bottom

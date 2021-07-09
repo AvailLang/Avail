@@ -239,12 +239,12 @@ object OSXUtility
 				arrayOf(applicationListenerClass))
 			{ thisProxy, method, args ->
 				assert(thisProxy !== null)
-				val success: Boolean =
-					if (method.name == handlerMessage)
-					{
+				val success: Boolean = when (method.name)
+				{
+					handlerMessage ->
 						java.lang.Boolean.TRUE == handler(args[0])
-					}
-					else { false }
+					else -> false
+				}
 				setApplicationEventHandled(args[0], success)
 				success
 			}

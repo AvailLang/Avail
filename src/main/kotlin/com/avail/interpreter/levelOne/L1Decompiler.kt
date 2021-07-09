@@ -34,10 +34,20 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numConstants
+import com.avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import com.avail.descriptor.functions.A_RawFunction.Companion.numNybbles
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaration
 import com.avail.descriptor.phrases.A_Phrase.Companion.declaredType
@@ -146,7 +156,7 @@ class L1Decompiler constructor(
 	 * The number of nybbles in the nybblecodes of the raw function being
 	 * decompiled.
 	 */
-	internal val numNybbles: Int = code.numNybbles()
+	internal val numNybbles: Int = code.numNybbles
 
 	/**
 	 * [Phrases][PhraseDescriptor] which correspond with the lexically captured
@@ -178,7 +188,7 @@ class L1Decompiler constructor(
 	 * The [local&#32;constants][DeclarationKind.LOCAL_CONSTANT] defined by this
 	 * code.
 	 */
-	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants())
+	internal val constants: Array<A_Phrase?> = arrayOfNulls(code.numConstants)
 
 	/**
 	 * The current position in the instruction stream at which decompilation is
@@ -213,7 +223,7 @@ class L1Decompiler constructor(
 	{
 		code.setUpInstructionDecoder(instructionDecoder)
 		instructionDecoder.pc(1)
-		val tupleType = code.functionType().argsTupleType()
+		val tupleType = code.functionType().argsTupleType
 		args = Array(code.numArgs()) {
 			val token = newToken(
 				stringFrom(tempGenerator("arg")),
@@ -222,19 +232,20 @@ class L1Decompiler constructor(
 				KEYWORD)
 			newArgument(token, tupleType.typeAtIndex(it + 1), nil)
 		}
-		mentionedLocals = BooleanArray(code.numLocals())
-		locals = Array(code.numLocals()) {
+		mentionedLocals = BooleanArray(code.numLocals)
+		locals = Array(code.numLocals) {
 			val token = newToken(
 				stringFrom(tempGenerator("local")),
 				0,
 				0,
 				KEYWORD)
 			val declaration = newVariable(
-				token, code.localTypeAt(it + 1).writeType(), nil, nil)
+				token, code.localTypeAt(it + 1).writeType, nil, nil)
 			declaration
 		}
-		code.primitive()?.let { prim ->
-			if (!prim.hasFlag(Primitive.Flag.CannotFail)) {
+		code.codePrimitive()?.let { prim ->
+			if (!prim.hasFlag(Primitive.Flag.CannotFail))
+			{
 				// It's fallible, so we have to declare the failure variable.
 				// Look up the local, but don't do anything with it.
 				argOrLocalOrConstant(args.size + 1)
@@ -267,11 +278,10 @@ class L1Decompiler constructor(
 		}
 		block = newBlockNode(
 			tupleFromArray(*args),
-			code.
-			primitive(),
+			code.codePrimitive(),
 			tupleFromList(statements),
-			code.functionType().returnType(),
-			code.functionType().declaredExceptions(),
+			code.functionType().returnType,
+			code.functionType().declaredExceptions,
 			0,
 			emptyTuple)
 	}
@@ -358,8 +368,8 @@ class L1Decompiler constructor(
 		{
 			val bundle = code.literalAt(instructionDecoder.getOperand())
 			val type = code.literalAt(instructionDecoder.getOperand())
-			val method = bundle.bundleMethod()
-			val nArgs = method.numArgs()
+			val method = bundle.bundleMethod
+			val nArgs = method.numArgs
 			var permutationTuple: A_Tuple? = null
 			if (nArgs > 1 && peekExpression.equals(PERMUTE.marker))
 			{
@@ -372,7 +382,7 @@ class L1Decompiler constructor(
 				popExpression()
 				val permutationLiteral = popExpression()
 				assert(permutationLiteral.phraseKindIsUnder(LITERAL_PHRASE))
-				permutationTuple = permutationLiteral.token().literal()
+				permutationTuple = permutationLiteral.token.literal()
 			}
 			val argsTuple = tupleFromList(popExpressions(nArgs))
 			var listNode: A_Phrase = newListNode(argsTuple)
@@ -389,7 +399,7 @@ class L1Decompiler constructor(
 			val value = code.literalAt(instructionDecoder.getOperand())
 			if (value.isInstanceOfKind(mostGeneralFunctionType()))
 			{
-				val functionOuters = Array(value.numOuterVars()) {
+				val functionOuters = Array(value.numOuterVars) {
 					// Due to stub-building primitives, it's possible for a
 					// non-clean function to be a literal, so deal with it here.
 					val i = it + 1
@@ -397,10 +407,10 @@ class L1Decompiler constructor(
 					val token = literalToken(
 						stringFrom(
 							"OuterOfUncleanConstantFunction#"
-							+ i
-							+ " (with value "
-							+ varObject
-							+ ")"),
+								+ i
+								+ " (with value "
+								+ varObject
+								+ ")"),
 						0,
 						0,
 						varObject)
@@ -419,7 +429,7 @@ class L1Decompiler constructor(
 					// bother reconstructing it now.
 					assert(instructionDecoder.pc() > numNybbles) {
 						"nil can only be (implicitly) pushed at the end of a " +
-						"sequence of statements"
+							"sequence of statements"
 					}
 					endsWithPushNil = true
 				}
@@ -439,8 +449,8 @@ class L1Decompiler constructor(
 		{
 			val declaration =
 				argOrLocalOrConstant(instructionDecoder.getOperand())
-			val use = newUse(declaration.token(), declaration)
-			use.isLastUse(true)
+			val use = newUse(declaration.token, declaration)
+			use.isLastUse = true
 			if (declaration.declarationKind().isVariable)
 			{
 				pushExpression(use)
@@ -455,7 +465,7 @@ class L1Decompiler constructor(
 		{
 			val declaration =
 				argOrLocalOrConstant(instructionDecoder.getOperand())
-			val use = newUse(declaration.token(), declaration)
+			val use = newUse(declaration.token, declaration)
 			if (declaration.declarationKind().isVariable)
 			{
 				pushExpression(use)
@@ -478,10 +488,11 @@ class L1Decompiler constructor(
 			val theOuters = popExpressions(nOuters)
 			for (outer in theOuters)
 			{
-				val kind = outer.phraseKind()
-				assert(kind === VARIABLE_USE_PHRASE
-				   || kind === REFERENCE_PHRASE
-				   || kind === LITERAL_PHRASE)
+				val kind = outer.phraseKind
+				assert(
+					kind === VARIABLE_USE_PHRASE
+						|| kind === REFERENCE_PHRASE
+						|| kind === LITERAL_PHRASE)
 			}
 			val decompiler = L1Decompiler(
 				theCode, theOuters.toTypedArray(), tempGenerator)
@@ -504,11 +515,11 @@ class L1Decompiler constructor(
 				// the locals list and the last emitted statement, which are the
 				// only places that could have a reference to the old
 				// declaration.
-				assert(declaration.initializationExpression().isNil)
+				assert(declaration.initializationExpression.isNil)
 				val replacementDeclaration = newVariable(
-					declaration.token(),
-					declaration.declaredType(),
-					declaration.typeExpression(),
+					declaration.token,
+					declaration.declaredType,
+					declaration.typeExpression,
 					popExpression())
 				locals[indexInFrame - code.numArgs() - 1] =
 					replacementDeclaration
@@ -517,11 +528,11 @@ class L1Decompiler constructor(
 			}
 			// This assignment wasn't the first mention of the variable.
 			val valueNode = popExpression()
-			val variableUse = newUse(declaration.token(), declaration)
+			val variableUse = newUse(declaration.token, declaration)
 			val assignmentNode = newAssignment(
 				variableUse, valueNode, emptyTuple, false)
 			if (expressionStack.isEmpty()
-				|| peekExpression.phraseKind() !== MARKER_PHRASE)
+				|| peekExpression.phraseKind !== MARKER_PHRASE)
 			{
 				statements.add(assignmentNode)
 			}
@@ -559,13 +570,12 @@ class L1Decompiler constructor(
 				// extending an existing FirstOfSequence.
 				val lastExpression = popExpression()
 				val penultimateExpression = popExpression()
-				val newStatements: A_Tuple
-				newStatements =
-					if (penultimateExpression.phraseKind()
+				val newStatements =
+					if (penultimateExpression.phraseKind
 						=== FIRST_OF_SEQUENCE_PHRASE)
 					{
 						// Extend an existing FirstOfSequence phrase.
-						penultimateExpression.statements().appendCanDestroy(
+						penultimateExpression.statements.appendCanDestroy(
 							lastExpression, false)
 					}
 					else
@@ -585,23 +595,22 @@ class L1Decompiler constructor(
 		override fun L1_doSetOuter()
 		{
 			val outer = outers[instructionDecoder.getOperand() - 1]
-			val declaration: A_Phrase
-			declaration =
+			val declaration =
 				if (outer.phraseKindIsUnder(LITERAL_PHRASE))
 				{
 					// Writing into a synthetic literal (a byproduct of
 					// decompiling a block without decompiling its outer
 					// scopes).
-					val token = outer.token()
+					val token = outer.token
 					val variableObject = token.literal()
 					newModuleVariable(token, variableObject, nil, nil)
 				}
 				else
 				{
 					assert(outer.phraseKindIsUnder(VARIABLE_USE_PHRASE))
-					outer.declaration()
+					outer.declaration
 				}
-			val use = newUse(declaration.token(), declaration)
+			val use = newUse(declaration.token, declaration)
 			val valueExpr = popExpression()
 			val assignmentNode = newAssignment(
 				use, valueExpr, emptyTuple, false)
@@ -625,7 +634,7 @@ class L1Decompiler constructor(
 			val localDeclaration = argOrLocalOrConstant(
 				instructionDecoder.getOperand())
 			assert(localDeclaration.declarationKind().isVariable)
-			val useNode = newUse(localDeclaration.token(), localDeclaration)
+			val useNode = newUse(localDeclaration.token, localDeclaration)
 			pushExpression(useNode)
 		}
 
@@ -642,7 +651,7 @@ class L1Decompiler constructor(
 				popExpression()
 				val permutationLiteral = popExpression()
 				assert(permutationLiteral.phraseKindIsUnder(LITERAL_PHRASE))
-				permutationTuple = permutationLiteral.token().literal()
+				permutationTuple = permutationLiteral.token.literal()
 			}
 			val expressions = popExpressions(count)
 			var listNode: A_Phrase = newListNode(tupleFromList(expressions))
@@ -662,8 +671,8 @@ class L1Decompiler constructor(
 				return
 			}
 			assert(outer.phraseKindIsUnder(VARIABLE_USE_PHRASE))
-			val declaration = outer.declaration()
-			val use = newUse(declaration.token(), declaration)
+			val declaration = outer.declaration
+			val use = newUse(declaration.token, declaration)
 			pushExpression(use)
 		}
 
@@ -693,7 +702,7 @@ class L1Decompiler constructor(
 					continuationTypeForFunctionType(code.functionType()))
 				statements.add(0, label)
 			}
-			pushExpression(newUse(label.token(), label))
+			pushExpression(newUse(label.token, label))
 		}
 
 		override fun L1Ext_doGetLiteral()
@@ -771,8 +780,8 @@ class L1Decompiler constructor(
 			val bundle = code.literalAt(instructionDecoder.getOperand())
 			val type = code.literalAt(instructionDecoder.getOperand())
 			val superUnionType = code.literalAt(instructionDecoder.getOperand())
-			val method = bundle.bundleMethod()
-			val nArgs = method.numArgs()
+			val method = bundle.bundleMethod
+			val nArgs = method.numArgs
 			val argsNode =
 				reconstructListWithSuperUnionType(nArgs, superUnionType)
 			val sendNode = newSendNode(emptyTuple, bundle, argsNode, type)
@@ -789,7 +798,7 @@ class L1Decompiler constructor(
 			val constSubscript =
 				(instructionDecoder.getOperand()
 					- code.numArgs()
-					- code.numLocals()
+					- code.numLocals
 					- 1)
 			val token = newToken(
 				stringFrom(tempGenerator("const")),
@@ -834,7 +843,7 @@ class L1Decompiler constructor(
 			popExpression()
 			val permutationLiteral = popExpression()
 			assert(permutationLiteral.phraseKindIsUnder(LITERAL_PHRASE))
-			permutationTuple = permutationLiteral.token().literal()
+			permutationTuple = permutationLiteral.token.literal()
 		}
 		val argsList = popExpressions(nArgs)
 		val listNode = newListNode(tupleFromList(argsList))
@@ -867,9 +876,9 @@ class L1Decompiler constructor(
 				phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE) ->
 				{
 					// Apply the superUnionType's elements to the permuted list.
-					val permutation = phrase.permutation()
-					val list = phrase.list()
-					val size = list.expressionsSize()
+					val permutation = phrase.permutation
+					val list = phrase.list
+					val size = list.expressionsSize
 					val outputArray = Array<A_Phrase>(size) { nil }
 					for (i in 1..size)
 					{
@@ -885,7 +894,7 @@ class L1Decompiler constructor(
 				{
 					// Apply the superUnionType's elements to the list.
 					return newListNode(
-						generateObjectTupleFrom(phrase.expressionsSize()) {
+						generateObjectTupleFrom(phrase.expressionsSize) {
 							adjustSuperCastsIn(
 								phrase.expressionAt(it),
 								superUnionType.typeAtIndex(it))
@@ -930,7 +939,7 @@ class L1Decompiler constructor(
 		{
 			val counts = mutableMapOf<String, Int>()
 			// Synthesize fake outers to allow decompilation.
-			val outerCount = code.numOuters()
+			val outerCount = code.numOuters
 			val functionOuters = Array(outerCount) {
 				val i = it + 1
 				outerPhraseForDecompiler(i, code.outerTypeAt(i))

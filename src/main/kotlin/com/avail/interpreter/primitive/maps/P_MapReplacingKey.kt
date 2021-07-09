@@ -89,12 +89,12 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 		val addedKeyType = argumentTypes[1]
 		val addedValueType = argumentTypes[2]
 
-		val oldMapKeyType = mapType.keyType()
+		val oldMapKeyType = mapType.keyType
 		val newKeyType = oldMapKeyType.typeUnion(addedKeyType)
-		val newValueType = mapType.valueType().typeUnion(addedValueType)
-		val oldSizes = mapType.sizeRange()
+		val newValueType = mapType.valueType.typeUnion(addedValueType)
+		val oldSizes = mapType.sizeRange
 		// Now there's at least one element.
-		var newMin = oldSizes.lowerBound()
+		var newMin = oldSizes.lowerBound
 		if (oldMapKeyType.typeIntersection(newKeyType).isBottom
 		    || newMin.equalsInt(0))
 		{
@@ -102,8 +102,7 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 		}
 		// ...and at most one more element.  We add two and make the bound
 		// exclusive to accommodate positive infinity.
-		val newMaxPlusOne =
-			oldSizes.upperBound().plusCanDestroy(two, false)
+		val newMaxPlusOne = oldSizes.upperBound.plusCanDestroy(two, false)
 		val newSizes = integerRangeType(
 			newMin, true, newMaxPlusOne, false)
 

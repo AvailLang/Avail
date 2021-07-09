@@ -59,13 +59,12 @@ object P_VariableUseToken : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val use = interpreter.argument(0)
-		return interpreter.primitiveSuccess(use.token())
+		return interpreter.primitiveSuccess(use.token)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				VARIABLE_USE_PHRASE.mostGeneralType()),
-			TOKEN.o
-		)
+			TOKEN.o)
 }

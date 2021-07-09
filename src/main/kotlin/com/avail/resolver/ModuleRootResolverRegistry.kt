@@ -34,9 +34,7 @@ package com.avail.resolver
 
 import com.avail.builder.ModuleRoot
 import com.avail.files.FileManager
-import java.lang.UnsupportedOperationException
 import java.net.URI
-import java.util.Locale
 
 /**
  * `ModuleRootResolverRegistry` manages all the active
@@ -68,7 +66,7 @@ object ModuleRootResolverRegistry
 				"Attempted to add a ModuleRootResolverFactory, $factory, " +
 					"but already present")
 		}
-		resolvers[factory.scheme.lowercase(Locale.getDefault())] = factory
+		resolvers[factory.scheme.lowercase()] = factory
 	}
 
 	/**

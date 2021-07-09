@@ -78,7 +78,7 @@ object P_MethodNameParametersCount : Primitive(1, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), wholeNumbers)
+		functionType(tuple(stringType), wholeNumbers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(possibleErrors)

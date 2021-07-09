@@ -58,12 +58,12 @@ object P_MethodFromName : Primitive(1, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val trueName = interpreter.argument(0)
-		val bundle = trueName.bundleOrNil()
+		val bundle = trueName.bundleOrNil
 		if (bundle.isNil)
 		{
 			return interpreter.primitiveFailure(E_NO_METHOD)
 		}
-		val method = bundle.bundleMethod()
+		val method = bundle.bundleMethod
 		return interpreter.primitiveSuccess(method)
 	}
 

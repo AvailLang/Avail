@@ -72,13 +72,12 @@ object P_ShortCircuitHelper : Primitive(2, Invokes, CanInline, CannotFail)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
-			argumentTypes[1].returnType()
+			argumentTypes[1].returnType
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(ANY.o, functionType(emptyTuple, TOP.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

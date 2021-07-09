@@ -141,7 +141,9 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 				val path = renamesFilePath
 				reader = if (path === null) {
 					StringReader("")
-				} else {
+				}
+				else
+				{
 					File(path).inputStream().reader(UTF_8).buffered()
 				}
 				val renameParser = RenamesFileParser(reader, availRoots!!)

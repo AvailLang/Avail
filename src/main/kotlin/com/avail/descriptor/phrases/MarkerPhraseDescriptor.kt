@@ -111,7 +111,7 @@ class MarkerPhraseDescriptor private constructor(
 		indent: Int
 	) {
 		builder.append("Marker(")
-		builder.append(self.markerValue())
+		builder.append(self.markerValue)
 		builder.append(")")
 	}
 
@@ -133,15 +133,15 @@ class MarkerPhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.markerValue().equals(aPhrase.markerValue()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.markerValue.equals(aPhrase.markerValue))
 
 	/** This shouldn't make a difference. */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.markerValue().hash() xor -0x34353534
+		self.markerValue.hash() xor -0x34353534
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
 		self.slot(MARKER_VALUE)

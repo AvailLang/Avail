@@ -72,10 +72,18 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 		val fileSystem = FileSystems.getDefault()
 		val path = fileSystem.getPath(userDir)
 		val realPathString: String =
-			try { path.toRealPath().toString() }
-			catch (e: IOException) { userDir }
-			catch (e: SecurityException) { userDir }
-
+			try
+			{
+				path.toRealPath().toString()
+			}
+			catch (e: IOException)
+			{
+				userDir
+			}
+			catch (e: SecurityException)
+			{
+				userDir
+			}
 		currentWorkingDirectory = stringFrom(realPathString).makeShared()
 	}
 
@@ -87,5 +95,5 @@ object P_CurrentWorkingDirectory : Primitive(0, CannotFail, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(emptyTuple, stringType())
+		functionType(emptyTuple, stringType)
 }

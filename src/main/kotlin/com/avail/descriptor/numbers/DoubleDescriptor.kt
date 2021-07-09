@@ -139,7 +139,7 @@ class DoubleDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		return objectFromDoubleRecycling(
-			getDouble(self) + doubleObject.extractDouble(),
+			getDouble(self) + doubleObject.extractDouble,
 			self,
 			doubleObject,
 			canDestroy)
@@ -151,7 +151,7 @@ class DoubleDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		return fromDoubleRecycling(
-			getDouble(self) + floatObject.extractDouble(),
+			getDouble(self) + floatObject.extractDouble,
 			self,
 			canDestroy)
 	}
@@ -182,7 +182,7 @@ class DoubleDescriptor private constructor(
 	): A_Number
 	{
 		return fromDoubleRecycling(
-			anInteger.extractDouble() / getDouble(self),
+			anInteger.extractDouble / getDouble(self),
 			self,
 			canDestroy)
 	}
@@ -193,7 +193,7 @@ class DoubleDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		return objectFromDoubleRecycling(
-			doubleObject.extractDouble() / getDouble(self),
+			doubleObject.extractDouble / getDouble(self),
 			self,
 			doubleObject,
 			canDestroy)
@@ -205,7 +205,7 @@ class DoubleDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		return fromDoubleRecycling(
-			floatObject.extractDouble() / getDouble(self),
+			floatObject.extractDouble / getDouble(self),
 			self,
 			canDestroy)
 	}
@@ -282,14 +282,14 @@ class DoubleDescriptor private constructor(
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		anInteger.extractDouble() * getDouble(self), self, canDestroy)
+		anInteger.extractDouble * getDouble(self), self, canDestroy)
 
 	override fun o_MultiplyByDoubleCanDestroy(
 		self: AvailObject,
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = objectFromDoubleRecycling(
-		doubleObject.extractDouble() * getDouble(self),
+		doubleObject.extractDouble * getDouble(self),
 		self,
 		doubleObject,
 		canDestroy)
@@ -299,7 +299,7 @@ class DoubleDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		floatObject.extractDouble() * getDouble(self), self, canDestroy)
+		floatObject.extractDouble * getDouble(self), self, canDestroy)
 
 	override fun o_NumericCompare(
 		self: AvailObject,
@@ -363,7 +363,7 @@ class DoubleDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = objectFromDoubleRecycling(
-		doubleObject.extractDouble() - getDouble(self),
+		doubleObject.extractDouble - getDouble(self),
 		self,
 		doubleObject,
 		canDestroy)
@@ -373,7 +373,7 @@ class DoubleDescriptor private constructor(
 		floatObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		floatObject.extractDouble() - getDouble(self), self, canDestroy)
+		floatObject.extractDouble - getDouble(self), self, canDestroy)
 
 	override fun o_TimesCanDestroy(
 		self: AvailObject,
@@ -449,7 +449,7 @@ class DoubleDescriptor private constructor(
 					// Doubles can exactly represent every int (but not every
 					// long).
 					return compareDoubles(
-						aDouble, anInteger.extractInt().toDouble())
+						aDouble, anInteger.extractInt.toDouble())
 				}
 				aDouble == 0.0 -> return zero.numericCompare(anInteger)
 			}
@@ -506,7 +506,7 @@ class DoubleDescriptor private constructor(
 				// The other value is finite, so it doesn't affect the sum.
 				return aDouble
 			}
-			val anIntegerAsDouble = anInteger.extractDouble()
+			val anIntegerAsDouble = anInteger.extractDouble
 			if (!isInfinite(anIntegerAsDouble)) {
 				// Both values are representable as finite doubles.  Easy.
 				return anIntegerAsDouble + aDouble
@@ -519,7 +519,7 @@ class DoubleDescriptor private constructor(
 			val adjustmentAsInteger: A_Number = truncatedFromDouble(adjustment)
 			val adjustedInteger =
 				anInteger.minusCanDestroy(adjustmentAsInteger, canDestroy)
-			val adjustedIntegerAsDouble = adjustedInteger.extractDouble()
+			val adjustedIntegerAsDouble = adjustedInteger.extractDouble
 			return aDouble - adjustment + adjustedIntegerAsDouble
 		}
 
@@ -567,9 +567,12 @@ class DoubleDescriptor private constructor(
 			canDestroy: Boolean
 		): A_Number {
 			val result =
-				if (canDestroy && recyclable1.descriptor().isMutable) {
+				if (canDestroy && recyclable1.descriptor().isMutable)
+				{
 					recyclable1 as AvailObject
-				} else {
+				}
+				else
+				{
 					mutable.create { }
 				}
 			result.setSlot(LONG_BITS, doubleToRawLongBits(aDouble))

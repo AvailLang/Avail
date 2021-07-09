@@ -98,7 +98,7 @@ object P_BindPojoStaticField : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				anyMeta(),
-				stringType()),
+				stringType),
 			mostGeneralVariableType())
 
 	override fun privateFailureVariableType(): A_Type =

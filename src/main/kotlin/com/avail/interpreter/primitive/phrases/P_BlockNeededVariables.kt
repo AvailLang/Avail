@@ -62,7 +62,7 @@ object P_BlockNeededVariables : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
-		return interpreter.primitiveSuccess(block.neededVariables())
+		return interpreter.primitiveSuccess(block.neededVariables)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -61,7 +61,7 @@ object P_SetTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val setType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(setType.sizeRange())
+		return interpreter.primitiveSuccess(setType.sizeRange)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

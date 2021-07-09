@@ -139,10 +139,10 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		if (originalSize < maximumCopySize && newElement.isInt)
 		{
-			val intValue = (newElement as A_Number).extractInt()
+			val intValue = (newElement as A_Number).extractInt
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
@@ -186,8 +186,8 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		{
 			return true
 		}
-		val array1 = self.byteArray()
-		val array2 = aByteArrayTuple.byteArray()
+		val array1 = self.byteArray
+		val array2 = aByteArrayTuple.byteArray
 		var index1 = startIndex1 - 1
 		var index2 = startIndex2 - 1
 		val lastIndex = endIndex1 - 1
@@ -242,7 +242,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		val size1 = self.tupleSize()
+		val size1 = self.tupleSize
 		if (size1 == 0)
 		{
 			if (!canDestroy)
@@ -251,7 +251,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			}
 			return otherTuple
 		}
-		val size2 = otherTuple.tupleSize()
+		val size2 = otherTuple.tupleSize
 		if (size2 == 0)
 		{
 			if (!canDestroy)
@@ -263,8 +263,8 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		if (otherTuple.isByteArrayTuple && size1 + size2 <= 128)
 		{
 			val bytes = ByteArray(size1 + size2)
-			System.arraycopy(self.byteArray(), 0, bytes, 0, size1)
-			System.arraycopy(otherTuple.byteArray(), 0, bytes, size1, size2)
+			System.arraycopy(self.byteArray, 0, bytes, 0, size1)
+			System.arraycopy(otherTuple.byteArray, 0, bytes, size1, size2)
 			return tupleForByteArray(bytes)
 		}
 		if (!canDestroy)
@@ -272,7 +272,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -288,7 +288,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
@@ -297,7 +297,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			// Just copy the applicable bytes out.  In theory we could use
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
-			val originalBytes = self.byteArray()
+			val originalBytes = self.byteArray
 			val result = ByteTupleDescriptor
 				.generateByteTupleFrom(size) {
 					originalBytes[it + start - 2].toInt() and 255
@@ -324,11 +324,11 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		{
 			return true
 		}
-		if (self.byteArray().contentEquals(aByteArrayTuple.byteArray()))
+		if (self.byteArray.contentEquals(aByteArrayTuple.byteArray))
 		{
 			return true
 		}
-		if (self.tupleSize() != aByteArrayTuple.tupleSize())
+		if (self.tupleSize != aByteArrayTuple.tupleSize)
 		{
 			return false
 		}
@@ -337,10 +337,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			return false
 		}
 		if (!self.compareFromToWithByteArrayTupleStartingAt(
-				1,
-				self.tupleSize(),
-				aByteArrayTuple,
-				1))
+				1, self.tupleSize, aByteArrayTuple, 1))
 		{
 			return false
 		}
@@ -377,13 +374,13 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			return false
 		}
 		// See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(self.tupleSize.toLong()))
 		{
 			return false
 		}
 		// tuple's size is in range.
-		val typeTuple = aType.typeTuple()
-		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
+		val typeTuple = aType.typeTuple
+		val breakIndex = min(self.tupleSize, typeTuple.tupleSize)
 		for (i in 1 .. breakIndex)
 		{
 			if (!self.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
@@ -391,12 +388,12 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 				return false
 			}
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		if (bytes.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
-		for (i in breakIndex + 1 .. self.tupleSize())
+		for (i in breakIndex + 1 .. self.tupleSize)
 		{
 			if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
 			{
@@ -432,7 +429,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		endIndex: Int,
 		outputByteBuffer: ByteBuffer)
 	{
-		val byteArray = self.byteArray()
+		val byteArray = self.byteArray
 		outputByteBuffer.put(
 			byteArray,
 			startIndex - 1,
@@ -456,7 +453,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (!newValueObject.isUnsignedByte)
 		{
 			return if (newValueObject.isInt)
@@ -474,7 +471,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		}
 		// Clobber the object in place...
 		val theByte =
-			(newValueObject as AvailObject).extractUnsignedByte().toByte()
+			(newValueObject as AvailObject).extractUnsignedByte.toByte()
 		val array =
 			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		array[index - 1] = theByte
@@ -494,7 +491,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		val array =
 			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		return array[index - 1].toInt() and 0xFF
@@ -502,14 +499,14 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		val array = self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		return array[index - 1].toLong() and 0xFF
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		if (size >= maximumCopySize)
 		{
 			return super.o_TupleReverse(self)
@@ -519,7 +516,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// Just copy the applicable bytes out.  In theory we could use
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
-		val originalBytes = self.byteArray()
+		val originalBytes = self.byteArray
 		val result = ByteTupleDescriptor.generateByteTupleFrom(size) {
 			originalBytes[size - it].toInt() and 255
 		}

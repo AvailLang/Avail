@@ -74,7 +74,7 @@ object P_ExitContinuationIf : Primitive(
 		interpreter.checkArgumentCount(2)
 		val (continuation, condition) = interpreter.argsBuffer
 
-		if (!condition.extractBoolean())
+		if (!condition.extractBoolean)
 		{
 			return interpreter.primitiveSuccess(nil)
 		}
@@ -107,8 +107,7 @@ object P_ExitContinuationIf : Primitive(
 				continuationTypeForFunctionType(
 					functionTypeReturning(TOP.o)),
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

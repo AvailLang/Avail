@@ -120,7 +120,8 @@ class CharacterDescriptor private constructor(
 			append("nrt\\\""[escapeIndex])
 			append('"')
 		}
-		else {
+		else
+		{
 			when (Character.getType(codePoint)) {
 				Character.COMBINING_SPACING_MARK.toInt(),
 				Character.CONTROL.toInt(),
@@ -329,7 +330,7 @@ class CharacterDescriptor private constructor(
 
 		/** A type that contains all ASCII decimal digit characters. */
 		private val digitsType: A_Type =
-			enumerationWith(stringFrom("0123456789").asSet()).makeShared()
+			enumerationWith(stringFrom("0123456789").asSet).makeShared()
 
 		/** The type for non-empty strings of ASCII decimal digits. */
 		val nonemptyStringOfDigitsType: A_Type = oneOrMoreOf(digitsType)

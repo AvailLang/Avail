@@ -678,9 +678,7 @@ class JSONWriter : AutoCloseable
 							else -> privateWrite(
 								String.format(
 									"\\u%04X",
-									codePoint
-								)
-							)
+									codePoint))
 						}
 					}
 					codePoint == '\\'.code -> privateWrite("\\\\")
@@ -697,8 +695,7 @@ class JSONWriter : AutoCloseable
 							String.format(
 								"\\u%04X\\u%04X",
 								Character.highSurrogate(codePoint).code,
-								Character.lowSurrogate(codePoint).code
-							))
+								Character.lowSurrogate(codePoint).code))
 					else ->
 						// Force all non-ASCII characters to Unicode escape
 						// sequences.

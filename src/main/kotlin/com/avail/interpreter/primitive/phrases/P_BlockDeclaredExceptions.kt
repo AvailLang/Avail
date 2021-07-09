@@ -62,7 +62,7 @@ object P_BlockDeclaredExceptions : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
-		return interpreter.primitiveSuccess(block.declaredExceptions())
+		return interpreter.primitiveSuccess(block.declaredExceptions)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -72,6 +72,5 @@ object P_BlockDeclaredExceptions : Primitive(1, CannotFail, CanFold, CanInline)
 			setTypeForSizesContentType(
 				wholeNumbers,
 				// TODO: [MvG] Update with primitive exception type.
-				ANY.o
-			))
+				ANY.o))
 }

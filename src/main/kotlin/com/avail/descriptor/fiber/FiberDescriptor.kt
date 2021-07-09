@@ -84,7 +84,6 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.io.TextInterface
 import com.avail.utility.json.JSONWriter
-import java.util.Locale
 import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
@@ -534,8 +533,7 @@ class FiberDescriptor private constructor(
 	enum class ExecutionState(
 		val indicatesSuspension: Boolean,
 		val indicatesTermination: Boolean,
-		private val privateSuccessors: ()->Set<ExecutionState>
-	)
+		private val privateSuccessors: ()->Set<ExecutionState>)
 	{
 		/**
 		 * The fiber has not been started.
@@ -605,7 +603,7 @@ class FiberDescriptor private constructor(
 		fun mayTransitionTo(newState: ExecutionState): Boolean {
 			if (successors == -1) {
 				// No lock - redundant computation in other threads is stable.
-				successors = privateSuccessors().sumBy { 1 shl it.ordinal }
+				successors = privateSuccessors().sumOf { 1 shl it.ordinal }
 			}
 			return successors ushr newState.ordinal and 1 == 1
 		}
@@ -880,7 +878,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.lowercase(Locale.getDefault()))
+				write(self.executionState().name.lowercase())
 			}
 			val result = self.mutableSlot(RESULT)
 			if (result.notNil)
@@ -894,7 +892,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.lowercase(Locale.getDefault()))
+				write(self.executionState().name.lowercase())
 			}
 		}
 
@@ -902,8 +900,10 @@ class FiberDescriptor private constructor(
 		self: AvailObject,
 		suspendingFunction: A_Function
 	) {
-		assert(suspendingFunction.isNil
-			|| suspendingFunction.code().primitive()!!.hasFlag(CanSuspend))
+		assert(
+			suspendingFunction.isNil
+				|| suspendingFunction.code().codePrimitive()!!
+					.hasFlag(CanSuspend))
 		self.setSlot(SUSPENDING_FUNCTION, suspendingFunction)
 	}
 
@@ -985,7 +985,8 @@ class FiberDescriptor private constructor(
 				clientData.mapAt(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
 			return if (bindings.hasKey(name)) {
 				bindings.mapAt(name)
-			} else null
+			}
+			else null
 		}
 
 		/**
@@ -1009,7 +1010,7 @@ class FiberDescriptor private constructor(
 			var fiberGlobals = fiber.fiberGlobals()
 			var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 			var bindings: A_Map = clientData.mapAt(compilerScopeMapKey)
-			val declarationName = declaration.token().string()
+			val declarationName = declaration.token.string()
 			assert(declarationName.isString)
 			if (bindings.hasKey(declarationName)) {
 				return bindings.mapAt(declarationName)

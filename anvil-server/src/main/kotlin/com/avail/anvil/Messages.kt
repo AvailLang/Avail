@@ -324,8 +324,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 			bytes: ByteBuffer,
 			readMore: ReadMore,
 			failed: FailedReading,
-			done: DoneReading<Message>
-		)
+			done: DoneReading<Message>)
 		{
 			AcknowledgmentCode.decode(bytes, readMore, failed) { code, bytes1 ->
 				done(AcknowledgedMessage(CLIENT, id, code), bytes1)
@@ -480,8 +479,14 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 		 *   The bogus tag ordinal.
 		 */
 		private fun badMessage (badTag: Int) =
-			try { throw BadMessageException(badTag) }
-			catch (e: BadMessageException) { e }
+			try
+			{
+				throw BadMessageException(badTag)
+			}
+			catch (e: BadMessageException)
+			{
+				e
+			}
 	}
 }
 
@@ -732,8 +737,14 @@ enum class AcknowledgmentCode constructor (ordinalCheck: Int)
 		 *   The bogus tag ordinal.
 		 */
 		private fun badCode(badCode: Int) =
-			try { throw BadAcknowledgmentCodeException(badCode) }
-			catch (e: BadAcknowledgmentCodeException) { e }
+			try
+			{
+				throw BadAcknowledgmentCodeException(badCode)
+			}
+			catch (e: BadAcknowledgmentCodeException)
+			{
+				e
+			}
 	}
 }
 

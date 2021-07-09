@@ -72,18 +72,18 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		val functionType = interpreter.argument(0)
 		val indexObject = interpreter.argument(1)
 
-		val parametersType = functionType.argsTupleType()
-		val sizeRange = parametersType.sizeRange()
-		if (sizeRange.upperBound().lessThan(indexObject)) {
+		val parametersType = functionType.argsTupleType
+		val sizeRange = parametersType.sizeRange
+		if (sizeRange.upperBound.lessThan(indexObject)) {
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		if (!indexObject.isInt) {
 			// The function type must accept a very large number of arguments.
-			return interpreter.primitiveSuccess(parametersType.defaultType())
+			return interpreter.primitiveSuccess(parametersType.defaultType)
 		}
-		val index = indexObject.extractInt()
+		val index = indexObject.extractInt
 		return interpreter.primitiveSuccess(
-			functionType.argsTupleType().typeAtIndex(index))
+			functionType.argsTupleType.typeAtIndex(index))
 	}
 
 	override fun privateFailureVariableType(): A_Type =
@@ -93,8 +93,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				functionMeta(),
-				naturalNumbers
-			),
+				naturalNumbers),
 			anyMeta())
 
 	override fun fallibilityForArgumentTypes(
@@ -103,18 +102,18 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		val functionMeta : A_Type = argumentTypes[0]
 		val indexType = argumentTypes[1]
 
-		val functionType = functionMeta.instance()
-		val sizeRange = functionType.argsTupleType().sizeRange()
+		val functionType = functionMeta.instance
+		val sizeRange = functionType.argsTupleType.sizeRange
 		if (sizeRange.isBottom)
 		{
 			// We know nothing about the actual function's parameter count.
 			return CallSiteCanFail
 		}
-		if (indexType.upperBound().lessOrEqual(sizeRange.lowerBound()))
+		if (indexType.upperBound.lessOrEqual(sizeRange.lowerBound))
 		{
 			return CallSiteCannotFail
 		}
-		if (indexType.lowerBound().greaterThan(sizeRange.upperBound()))
+		if (indexType.lowerBound.greaterThan(sizeRange.upperBound))
 		{
 			return CallSiteMustFail
 		}

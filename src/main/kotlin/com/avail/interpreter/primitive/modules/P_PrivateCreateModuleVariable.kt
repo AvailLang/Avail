@@ -65,8 +65,8 @@ object P_PrivateCreateModuleVariable
 		val (module, name, varType, isConstantObject, stablyComputedObject) =
 			interpreter.argsBuffer
 
-		val isConstant = isConstantObject.extractBoolean()
-		val stablyComputed = stablyComputedObject.extractBoolean()
+		val isConstant = isConstantObject.extractBoolean
+		val stablyComputed = stablyComputedObject.extractBoolean
 
 		assert(isConstant || !stablyComputed)
 
@@ -88,10 +88,9 @@ object P_PrivateCreateModuleVariable
 		functionType(
 			tuple(
 				MODULE.o,
-				stringType(),
+				stringType,
 				variableMeta(),
 				booleanType,
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 }

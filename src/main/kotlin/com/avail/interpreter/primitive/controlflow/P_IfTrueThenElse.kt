@@ -75,7 +75,7 @@ object P_IfTrueThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val trueBlockType = argumentTypes[1]
-		return trueBlockType.returnType()
+		return trueBlockType.returnType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

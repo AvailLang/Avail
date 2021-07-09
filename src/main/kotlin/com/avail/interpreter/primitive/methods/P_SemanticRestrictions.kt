@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -66,12 +68,12 @@ object P_SemanticRestrictions : Primitive(2, CanInline)
 		val method = interpreter.argument(0)
 		val argTypes = interpreter.argument(1)
 
-		if (method.numArgs() != argTypes.tupleSize())
+		if (method.numArgs != argTypes.tupleSize)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val restrictions = method.semanticRestrictions()
+		val restrictions = method.semanticRestrictions
 		val applicable = mutableListOf<A_Function>()
 		for (restriction in restrictions)
 		{

@@ -33,7 +33,6 @@ package com.avail.files
 
 import com.avail.builder.ModuleRoot
 import com.avail.io.AvailClient
-import java.nio.charset.Charset
 import java.util.UUID
 
 /**
@@ -48,8 +47,6 @@ import java.util.UUID
  * @constructor
  * Construct an [AvailFile].
  *
- * @param charset
- *   The [Charset] of the file.
  * @param fileWrapper
  *   The [AbstractFileWrapper] that wraps this [AvailFile].
  */
@@ -72,7 +69,7 @@ abstract class AvailFile constructor(
 	 * @return
 	 *   The most recent file content eligible to be saved.
 	 */
-	open fun getSaveableContent (): ByteArray = rawContent
+	open fun getSavableContent (): ByteArray = rawContent
 
 	/**
 	 * Time in milliseconds since the unix epoch UTC when this file was lasted
@@ -177,7 +174,7 @@ abstract class AvailFile constructor(
 		/**
 		 * The mime type of an Avail module file.
 		 */
-		val availMimeType = "text/avail"
+		const val availMimeType = "text/avail"
 
 		/**
 		 * Indicate whether the provided mime type should be treated as an

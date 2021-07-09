@@ -67,8 +67,8 @@ object P_BootstrapLexerSlashStarCommentBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val startingLineNumber = interpreter.argument(2)
 
-		val sourceSize = source.tupleSize()
-		val startPosition = sourcePositionInteger.extractInt()
+		val sourceSize = source.tupleSize
+		val startPosition = sourcePositionInteger.extractInt
 		var position = startPosition + 1
 
 		if (position > sourceSize
@@ -123,7 +123,7 @@ object P_BootstrapLexerSlashStarCommentBody
 			source.copyStringFromToCanDestroy(
 				startPosition, position - 1, false),
 			startPosition,
-			startingLineNumber.extractInt())
+			startingLineNumber.extractInt)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}
 

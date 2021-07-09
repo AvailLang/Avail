@@ -37,6 +37,8 @@ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.module.A_Module.Companion.addSeal
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -83,7 +85,7 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 		val module = interpreter.module()
 		for (name in methodNames)
 		{
-			val bundle = name.bundleOrNil()
+			val bundle = name.bundleOrNil
 			if (bundle.notNil)
 			{
 				// The definition tuple of a method can only be replaced in a
@@ -91,17 +93,17 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 				// this one runs in a Level One *unsafe* zone. Therefore it is
 				// not necessary to lock the method while traversing its
 				// definition tuple.
-				val method = bundle.bundleMethod()
-				val definitions = method.definitionsTuple()
+				val method = bundle.bundleMethod
+				val definitions = method.definitionsTuple
 				// Ignore macros.
 				for (definition in definitions)
 				{
 					if (!definition.isForwardDefinition())
 					{
 						val function = definition.bodySignature()
-						val params = function.argsTupleType()
+						val params = function.argsTupleType
 						val signature =
-							params.tupleOfTypesFromTo(1, method.numArgs())
+							params.tupleOfTypesFromTo(1, method.numArgs)
 						try
 						{
 							runtime.addSeal(name, signature)
@@ -123,8 +125,7 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

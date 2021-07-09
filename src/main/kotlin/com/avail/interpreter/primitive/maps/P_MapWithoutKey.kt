@@ -85,22 +85,22 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 		val mapType = argumentTypes[0]
 		val keyType = argumentTypes[1]
 
-		val mapSizes = mapType.sizeRange()
-		assert(mapSizes.lowerInclusive())
-		if (mapType.keyType().typeIntersection(keyType).isBottom)
+		val mapSizes = mapType.sizeRange
+		assert(mapSizes.lowerInclusive)
+		if (mapType.keyType.typeIntersection(keyType).isBottom)
 		{
 			// That key will not be found.
 			return mapType
 		}
 		// It's possible that the new map will be smaller by one.
-		var minSize = mapSizes.lowerBound()
+		var minSize = mapSizes.lowerBound
 		if (minSize.greaterThan(zero))
 		{
 			minSize = minSize.minusCanDestroy(one, false)
 		}
 		val newSizeRange = integerRangeType(
-			minSize, true, mapSizes.upperBound(), mapSizes.upperInclusive())
+			minSize, true, mapSizes.upperBound, mapSizes.upperInclusive)
 		return mapTypeForSizesKeyTypeValueType(
-			newSizeRange, mapType.keyType(), mapType.valueType())
+			newSizeRange, mapType.keyType, mapType.valueType)
 	}
 }

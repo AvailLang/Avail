@@ -62,7 +62,7 @@ object P_BootstrapLexerWholeNumberFilter
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
 
-		val codePoint = character.codePoint()
+		val codePoint = character.codePoint
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(Character.isDigit(codePoint)))
 	}

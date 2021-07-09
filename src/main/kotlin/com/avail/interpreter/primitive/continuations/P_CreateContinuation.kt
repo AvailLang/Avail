@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.continuations
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -77,13 +78,13 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 		val callerHolder = interpreter.argument(4)
 
 		val rawFunction = function.code()
-		val primitive = rawFunction.primitive()
+		val primitive = rawFunction.codePrimitive()
 		if (primitive !== null && primitive.hasFlag(CannotFail))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION)
 		}
-		if (stack.tupleSize() != rawFunction.numSlots())
+		if (stack.tupleSize != rawFunction.numSlots)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_CONTINUATION_STACK_SIZE)
@@ -92,8 +93,8 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 			function,
 			callerHolder.value(),
 			nil,
-			pc.extractInt(),
-			stackp.extractInt(),
+			pc.extractInt,
+			stackp.extractInt,
 			unoptimizedChunk,
 			TO_RETURN_INTO.offsetInDefaultChunk,
 			toList(stack),
@@ -106,7 +107,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 			tuple(
 				mostGeneralFunctionType(),
 				wholeNumbers,
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
 				variableTypeFor(
 					mostGeneralContinuationType())),

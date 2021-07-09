@@ -71,11 +71,14 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 		val size = interpreter.argument(0)
 		val element = interpreter.argument(1)
 
-		return if (!size.isInt) {
+		return if (!size.isInt)
+		{
 			interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
-		} else {
+		}
+		else
+		{
 			interpreter.primitiveSuccess(
-				createRepeatedElementTuple(size.extractInt(), element))
+				createRepeatedElementTuple(size.extractInt, element))
 		}
 	}
 
@@ -83,9 +86,8 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 		functionType(
 			tuple(
 				wholeNumbers,
-				ANY.o
-			),
-			mostGeneralTupleType())
+				ANY.o),
+			mostGeneralTupleType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_EXCEEDS_VM_LIMIT))
@@ -99,12 +101,12 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 		val sizeType = argumentTypes[0]
 		val elementType = argumentTypes[1]
 
-		return if (sizeType.instanceCount().equalsInt(1)
-			&& elementType.instanceCount().equalsInt(1))
+		return if (sizeType.instanceCount.equalsInt(1)
+			&& elementType.instanceCount.equalsInt(1))
 		{
 			instanceType(
 				createRepeatedElementTuple(
-					sizeType.instance().extractInt(), elementType.instance()))
+					sizeType.instance.extractInt, elementType.instance))
 		}
 		else tupleTypeForSizesTypesDefaultType(
 			sizeType, emptyTuple, elementType)

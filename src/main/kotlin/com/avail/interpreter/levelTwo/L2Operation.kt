@@ -34,6 +34,9 @@ package com.avail.interpreter.levelTwo
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
@@ -665,13 +668,13 @@ protected constructor(
 						value.isFunction ->
 						{
 							val code: A_RawFunction = value.code()
-							var str = code.methodName().asNativeString()
-							val mod = code.module()
+							var str = code.methodName.asNativeString()
+							val mod = code.module
 							if (mod.notNil)
 							{
-								val modName = mod.moduleName().asNativeString()
+								val modName = mod.moduleName.asNativeString()
 								val shortName = modName.split("/").last()
-								val line = code.startingLineNumber()
+								val line = code.codeStartingLineNumber
 								str += "@$shortName:$line"
 							}
 							sources.add(str)
@@ -679,13 +682,13 @@ protected constructor(
 						value.isInstanceOf(mostGeneralCompiledCodeType()) ->
 						{
 							val code: A_RawFunction = value
-							var str = code.methodName().asNativeString()
-							val mod = code.module()
+							var str = code.methodName.asNativeString()
+							val mod = code.module
 							if (mod.notNil)
 							{
-								val modName = mod.moduleName().asNativeString()
+								val modName = mod.moduleName.asNativeString()
 								val shortName = modName.split("/").last()
-								val line = code.startingLineNumber()
+								val line = code.codeStartingLineNumber
 								str += "@$shortName:$line"
 							}
 							sources.add(str)
@@ -710,7 +713,7 @@ protected constructor(
 						it.register().toString()
 					})
 				is L2SelectorOperand ->
-					commands.add(operand.bundle.message().atomName().toString())
+					commands.add(operand.bundle.message.atomName.toString())
 				is L2WriteOperand<*> ->
 					targets.add(operand.register().toString())
 			}

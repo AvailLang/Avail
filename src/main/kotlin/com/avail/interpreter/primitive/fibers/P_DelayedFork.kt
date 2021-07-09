@@ -35,6 +35,10 @@ package com.avail.interpreter.primitive.fibers
 import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -88,13 +92,13 @@ object P_DelayedFork : Primitive(
 		val (sleepMillis, function, argTuple, priority) = interpreter.argsBuffer
 
 		// Ensure that the function is callable with the specified arguments.
-		val numArgs = argTuple.tupleSize()
+		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val tupleType = function.kind().argsTupleType()
+		val tupleType = function.kind().argsTupleType
 		val callArgs = (1 .. numArgs).map {
 			val anArg = argTuple.tupleAt(it)
 			if (!anArg.isInstanceOf(tupleType.typeAtIndex(it)))
@@ -109,17 +113,15 @@ object P_DelayedFork : Primitive(
 		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			function.kind().returnType(),
-			priority.extractInt())
+			function.kind().returnType,
+			priority.extractInt)
 		{
 			formatString(
 				"Delayed fork, %s, %s:%d",
-				code.methodName(),
-				if (code.module().isNil)
-					emptyTuple
-				else
-					code.module().moduleName(),
-				code.startingLineNumber())
+				code.methodName,
+				if (code.module.isNil) emptyTuple
+				else code.module.moduleName,
+				code.codeStartingLineNumber)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -132,24 +134,26 @@ object P_DelayedFork : Primitive(
 		// Share the fiber, since it will be visible in the caller.
 		newFiber.makeShared()
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
-		if (sleepMillis.equalsInt(0))
+		when
 		{
-			runOutermostFunction(currentRuntime(), newFiber, function, callArgs)
-		}
-		else if (sleepMillis.isLong)
-		{
-			val runtime = interpreter.runtime
-			runtime.timer.schedule(
-				object : TimerTask()
-				{
-					override fun run()
+			sleepMillis.equalsInt(0) -> runOutermostFunction(
+				currentRuntime(), newFiber, function, callArgs)
+			sleepMillis.isLong ->
+			{
+				val runtime = interpreter.runtime
+				runtime.timer.schedule(
+					object : TimerTask()
 					{
-						runOutermostFunction(
-							runtime, newFiber, function, callArgs)
-					}
-				},
-				sleepMillis.extractLong())
-		}// Otherwise, if the delay time isn't colossal, then schedule the fiber
+						override fun run()
+						{
+							runOutermostFunction(
+								runtime, newFiber, function, callArgs)
+						}
+					},
+					sleepMillis.extractLong)
+			}
+		}
+		// Otherwise, if the delay time isn't colossal, then schedule the fiber
 		// to start later.
 		return interpreter.primitiveSuccess(newFiber)
 	}
@@ -159,9 +163,8 @@ object P_DelayedFork : Primitive(
 			tuple(
 				inclusive(zero, positiveInfinity),
 				functionTypeReturning(TOP.o),
-				mostGeneralTupleType(),
-				bytes
-			),
+				mostGeneralTupleType,
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

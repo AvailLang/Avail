@@ -151,8 +151,7 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 								AvailBuilder.log(
 									Level.FINEST,
 									"(Module %s is dirty)",
-									moduleName
-								)
+									moduleName)
 							}
 							completionAction()
 						}

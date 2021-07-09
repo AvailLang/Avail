@@ -73,7 +73,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 		interpreter.checkArgumentCount(3)
 		val (continuation, result, condition) = interpreter.argsBuffer
 
-		if (!condition.extractBoolean())
+		if (!condition.extractBoolean)
 		{
 			return interpreter.primitiveSuccess(nil)
 		}
@@ -82,7 +82,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 		// label continuation's function's return type.  Any stronger check, as
 		// specified in a semantic restriction, will be tested in the caller.
 		if (!result.isInstanceOf(
-				continuation.function().code().functionType().returnType()))
+				continuation.function().code().functionType().returnType))
 		{
 			return interpreter.primitiveFailure(
 				E_CONTINUATION_EXPECTED_STRONGER_TYPE)
@@ -115,8 +115,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 				mostGeneralContinuationType(),
 				ANY.o,
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
