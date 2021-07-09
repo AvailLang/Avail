@@ -115,7 +115,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 				val bInstances = bType.instances
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
-				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
+				if (aInstances.setSize * bInstances.setSize.toLong() < 100)
 				{
 					var answers = emptySet
 					for (aInstance in aInstances)

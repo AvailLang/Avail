@@ -112,10 +112,8 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial())
-					E_SPECIAL_ATOM
-				else
-					E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
+				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Build the big-endian address byte array.
@@ -190,19 +188,15 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 			tupleFromArray(
 				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
-					singleInt(16), emptyTuple, bytes
-				),
+					singleInt(16), emptyTuple, bytes),
 				unsignedShorts,
 				functionType(
 					emptyTuple,
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

@@ -144,8 +144,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		Interpreter.preinvoke0Method,
 		Interpreter.preinvoke1Method,
 		Interpreter.preinvoke2Method,
-		Interpreter.preinvoke3Method
-	)
+		Interpreter.preinvoke3Method)
 
 	/**
 	 * Generate code to push the arguments and invoke.  This expects the stack

@@ -71,16 +71,17 @@ object P_ServerSocketClose : Primitive(1, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial())
-					E_SPECIAL_ATOM
-				else
-					E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
+				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
-		return try {
+		return try
+		{
 			socket.close()
 			interpreter.primitiveSuccess(nil)
-		} catch (e: IOException) {
+		}
+		catch (e: IOException)
+		{
 			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 	}

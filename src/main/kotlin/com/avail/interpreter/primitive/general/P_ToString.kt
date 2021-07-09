@@ -65,7 +65,7 @@ object P_ToString : Primitive(1, CanInline, CannotFail)
 	{
 		return functionType(
 			tuple(ANY.o),
-			stringType())
+			stringType)
 	}
 
 }

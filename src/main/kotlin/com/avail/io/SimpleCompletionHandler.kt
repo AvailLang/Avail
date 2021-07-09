@@ -97,8 +97,7 @@ class SimpleCompletionHandler<V> constructor (
 		 */
 		class SuccessHelper<V>(
 			val value: V,
-			val handler: SimpleCompletionHandler<V>
-		)
+			val handler: SimpleCompletionHandler<V>)
 
 		/**
 		 * A helper syntax class for completion failures.

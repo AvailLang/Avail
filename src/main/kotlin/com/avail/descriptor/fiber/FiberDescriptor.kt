@@ -533,8 +533,7 @@ class FiberDescriptor private constructor(
 	enum class ExecutionState(
 		val indicatesSuspension: Boolean,
 		val indicatesTermination: Boolean,
-		private val privateSuccessors: ()->Set<ExecutionState>
-	)
+		private val privateSuccessors: ()->Set<ExecutionState>)
 	{
 		/**
 		 * The fiber has not been started.
@@ -986,7 +985,8 @@ class FiberDescriptor private constructor(
 				clientData.mapAt(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
 			return if (bindings.hasKey(name)) {
 				bindings.mapAt(name)
-			} else null
+			}
+			else null
 		}
 
 		/**
@@ -1010,7 +1010,7 @@ class FiberDescriptor private constructor(
 			var fiberGlobals = fiber.fiberGlobals()
 			var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 			var bindings: A_Map = clientData.mapAt(compilerScopeMapKey)
-			val declarationName = declaration.token().string()
+			val declarationName = declaration.token.string()
 			assert(declarationName.isString)
 			if (bindings.hasKey(declarationName)) {
 				return bindings.mapAt(declarationName)

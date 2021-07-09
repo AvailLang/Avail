@@ -79,7 +79,7 @@ object P_TupleTypeAtThrough : Primitive(3, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				tupleMeta(),
+				tupleMeta,
 				naturalNumbers,
 				inclusive(
 					zero,

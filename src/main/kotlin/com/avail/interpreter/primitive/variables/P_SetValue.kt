@@ -74,10 +74,13 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val value = interpreter.argument(1)
-		return try {
+		return try
+		{
 			variable.setValue(value)
 			interpreter.primitiveSuccess(nil)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -86,10 +89,8 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ANY.o
-			),
-			TOP.o
-		)
+				ANY.o),
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

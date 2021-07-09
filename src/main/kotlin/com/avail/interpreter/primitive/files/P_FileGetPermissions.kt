@@ -124,8 +124,7 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val permissions: Set<PosixFilePermission> =
 			try
 			{
@@ -154,7 +153,7 @@ object P_FileGetPermissions : Primitive(2, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(), booleanType),
+			tuple(stringType, booleanType),
 			setTypeForSizesContentType(
 				wholeNumbers, inclusive(1, 9)))
 

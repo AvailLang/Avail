@@ -299,7 +299,7 @@ internal class Group : Expression
 			val expectedLower = fromInt(argsBeforeDagger)
 			val expectedUpper = fromInt(argsBeforeDagger + argsAfterDagger)
 			val typeTuple = argumentType.typeTuple
-			val limit = typeTuple.tupleSize() + 1
+			val limit = typeTuple.tupleSize + 1
 			for (i in 1..limit)
 			{
 				val solutionType = argumentType.typeAtIndex(i)
@@ -358,7 +358,7 @@ internal class Group : Expression
 			if (maxInteger.isInt) maxInteger.extractInt else Integer.MAX_VALUE
 		val endOfVariation = min(
 			max(
-				subexpressionsTupleType.typeTuple.tupleSize() + 2,
+				subexpressionsTupleType.typeTuple.tupleSize + 2,
 				min(minSize, 3)),
 			maxSize)
 		val needsProgressCheck = beforeDagger.mightBeEmpty(phraseType)
@@ -891,12 +891,12 @@ internal class Group : Expression
 			// its elements.
 			groupArguments = newListNode(
 				tupleFromList(
-					groupArguments.token().literal().map {
+					groupArguments.token.literal().map {
 						syntheticLiteralNodeFor(
 							it, stringFrom(it.toString()))
 					}))
 		}
-		val occurrenceProvider = groupArguments.expressionsTuple().iterator()
+		val occurrenceProvider = groupArguments.expressionsTuple.iterator()
 		while (occurrenceProvider.hasNext())
 		{
 			val occurrence = occurrenceProvider.next()
@@ -908,7 +908,7 @@ internal class Group : Expression
 				assert(
 					occurrence.isInstanceOfKind(
 						LIST_PHRASE.mostGeneralType()))
-				innerIterator = occurrence.expressionsTuple().iterator()
+				innerIterator = occurrence.expressionsTuple.iterator()
 			}
 			else
 			{
@@ -1008,7 +1008,7 @@ internal class Group : Expression
 		// Must not permute the guillemet group repetition itself.
 		if (phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
 		if (!phrase.phraseKindIsUnder(LIST_PHRASE)) return false
-		return phrase.expressionsTuple().all { subphrase ->
+		return phrase.expressionsTuple.all { subphrase ->
 			checkOneRepeatedSublistStructure(subphrase)
 		}
 	}
@@ -1031,8 +1031,8 @@ internal class Group : Expression
 		// It's double-wrapped (i.e., this repetition is itself a list).
 		if (phrase.phraseKindIsUnder(LITERAL_PHRASE)) return true
 		if (!phrase.phraseKindIsUnder(LIST_PHRASE)) return false
-		val subphrases = phrase.expressionsTuple()
-		val subphrasesSize = subphrases.tupleSize()
+		val subphrases = phrase.expressionsTuple
+		val subphrasesSize = subphrases.tupleSize
 		if (subphrasesSize == beforeDagger.yielders.size)
 		{
 			// Only check the left side.  Note - it might require a permutation.
@@ -1050,7 +1050,7 @@ internal class Group : Expression
 		{
 			// It must be permuted.
 			if (!phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
-			val actualPermutation = phrase.permutation()
+			val actualPermutation = phrase.permutation
 			val expectedPermutation = beforeDagger.permutation.toMutableList()
 			afterDagger.permutation.mapTo(expectedPermutation) { it + leftSize }
 			if (!tupleFromIntegerList(expectedPermutation)

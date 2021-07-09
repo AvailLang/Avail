@@ -222,7 +222,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		getSuperkind(self)
 
 	override fun o_InstanceCount(self: AvailObject): A_Number =
-		fromInt(getInstances(self).setSize())
+		fromInt(getInstances(self).setSize)
 
 	override fun o_Instances(self: AvailObject): A_Set = getInstances(self)
 
@@ -359,7 +359,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			}
 			// We have the non-types now, so add the pair-wise intersection of
 			// the types.
-			if (myTypes.setSize() > 0)
+			if (myTypes.setSize > 0)
 			{
 				for (anotherElement in otherElements)
 				{
@@ -387,7 +387,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 				}
 			}
 		}
-		if (set.setSize() == 0)
+		if (set.setSize == 0)
 		{
 			// Decide whether this should be bottom or bottom's type
 			// based on whether object and another are both metas.  Note that
@@ -633,7 +633,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val possibleMaps = self.instances
 		val possibleKeys = possibleMaps.fold(emptySet) { union, instance ->
-			union.setUnionCanDestroy(instance.keysAsSet(), false)
+			union.setUnionCanDestroy(instance.keysAsSet, false)
 		}
 		return enumerationWith(possibleKeys)
 	}
@@ -642,7 +642,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val possibleMaps = self.instances
 		val possibleKeys = possibleMaps.fold(emptySet) { union, instance ->
-			union.setUnionCanDestroy(instance.valuesAsTuple().asSet(), false)
+			union.setUnionCanDestroy(instance.valuesAsTuple.asSet, false)
 		}
 		return enumerationWith(possibleKeys)
 	}
@@ -673,7 +673,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		var unionType = bottom
 		for (instance in getInstances(self))
 		{
-			unionType = unionType.typeUnion(instance.phraseExpressionType())
+			unionType = unionType.typeUnion(instance.phraseExpressionType)
 		}
 		return unionType
 	}
@@ -754,7 +754,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		fun fromNormalizedSet(normalizedSet: A_Set): A_Type
 		{
-			assert(normalizedSet.setSize() > 1)
+			assert(normalizedSet.setSize > 1)
 			return mutable.create {
 				setSlot(INSTANCES, normalizedSet.makeImmutable())
 				setSlot(CACHED_SUPERKIND, NilDescriptor.nil)

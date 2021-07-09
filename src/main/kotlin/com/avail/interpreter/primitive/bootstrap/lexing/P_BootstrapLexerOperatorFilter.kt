@@ -72,7 +72,7 @@ object P_BootstrapLexerOperatorFilter
 		// initial filtering is concerned.  The body will immediately reject it
 		// if it's followed by an asterisk (*), since that sequence is reserved
 		// for comments.
-		val c = character.codePoint()
+		val c = character.codePoint
 		return interpreter.primitiveSuccess(objectFromBoolean(isOperator(c)))
 	}
 

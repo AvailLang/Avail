@@ -121,7 +121,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			val bValues = bType.instances
 			// Compute the Cartesian product as an enumeration if there will
 			// be few enough entries.
-			if (aValues.setSize() * bValues.setSize().toLong() < 100)
+			if (aValues.setSize * bValues.setSize.toLong() < 100)
 			{
 				var answers = emptySet
 				for (aValue in aValues)

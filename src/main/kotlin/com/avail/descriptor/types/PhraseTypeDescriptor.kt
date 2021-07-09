@@ -69,6 +69,9 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListN
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation
@@ -239,8 +242,7 @@ open class PhraseTypeDescriptor protected constructor(
 				mutability: Mutability): PhraseTypeDescriptor =
 					ListPhraseTypeDescriptor(mutability, this)
 
-			override fun mostGeneralYieldType(): A_Type =
-				TupleTypeDescriptor.mostGeneralTupleType()
+			override fun mostGeneralYieldType(): A_Type = mostGeneralTupleType
 
 			override fun createNoCheck(yieldType: A_Type): A_Type
 			{
@@ -267,8 +269,7 @@ open class PhraseTypeDescriptor protected constructor(
 				mutability: Mutability): PhraseTypeDescriptor =
 					ListPhraseTypeDescriptor(mutability, this)
 
-			override fun mostGeneralYieldType(): A_Type =
-				TupleTypeDescriptor.mostGeneralTupleType()
+			override fun mostGeneralYieldType(): A_Type = mostGeneralTupleType
 
 			override fun createNoCheck(
 				yieldType: A_Type): A_Type
@@ -766,8 +767,7 @@ open class PhraseTypeDescriptor protected constructor(
 			intersectionKind,
 			self.phraseTypeExpressionType.typeIntersection(
 				aListNodeType.phraseTypeExpressionType),
-			aListNodeType.subexpressionsTupleType
-		)
+			aListNodeType.subexpressionsTupleType)
 	}
 
 	override fun o_TypeIntersectionOfPhraseType(
@@ -849,8 +849,8 @@ open class PhraseTypeDescriptor protected constructor(
 	object Constants
 	{
 		/** The phrase type for string literals.  */
-		val stringLiteralType: A_Type = PhraseKind.LITERAL_PHRASE.create(
-			literalTokenType(TupleTypeDescriptor.stringType())).makeShared()
+		val stringLiteralType: A_Type = LITERAL_PHRASE.create(
+			literalTokenType(stringType)).makeShared()
 	}
 
 	override fun mutable(): PhraseTypeDescriptor = kind.mutableDescriptor

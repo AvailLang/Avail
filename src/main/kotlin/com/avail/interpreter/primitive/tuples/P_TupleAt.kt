@@ -94,7 +94,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = indexObject.extractInt
-		return if (index > tuple.tupleSize())
+		return if (index > tuple.tupleSize)
 		{
 			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
@@ -104,11 +104,9 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
-				naturalNumbers
-			),
-			ANY.o
-		)
+				mostGeneralTupleType,
+				naturalNumbers),
+			ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

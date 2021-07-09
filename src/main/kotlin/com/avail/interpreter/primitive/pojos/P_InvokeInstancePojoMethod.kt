@@ -96,9 +96,9 @@ object P_InvokeInstancePojoMethod : Primitive(-1, Private)
 			marshaledTypes.tupleAt(1).javaObject())
 		val marshaledArgs = marshalValues(
 			marshaledTypes.copyTupleFromToCanDestroy(
-				2, marshaledTypes.tupleSize(), false),
+				2, marshaledTypes.tupleSize, false),
 			methodArgs.copyTupleFromToCanDestroy(
-				2, methodArgs.tupleSize(), false),
+				2, methodArgs.tupleSize, false),
 			errorOut)
 		if (errorOut.value !== null)
 		{

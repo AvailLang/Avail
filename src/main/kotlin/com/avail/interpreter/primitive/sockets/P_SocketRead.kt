@@ -110,7 +110,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		val buffer = ByteBuffer.allocateDirect(size.extractInt)
@@ -118,7 +118,9 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		val newFiber = newFiber(
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			priority.extractInt
-		) { formatString("Socket read, %s", handle.atomName()) }
+		) {
+			formatString("Socket read, %s", handle.atomName)
+		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.setAvailLoader(current.availLoader())
@@ -173,14 +175,11 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 					tuple(
 						zeroOrMoreOf(bytes),
 						booleanType),
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

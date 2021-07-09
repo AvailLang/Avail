@@ -90,7 +90,7 @@ object P_BootstrapVariableUseMacro
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(variableNameLiteral.isInstanceOf(
 			LITERAL_PHRASE.mostGeneralType()))
-		val literalToken = variableNameLiteral.token()
+		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
 		assert(actualToken.isInstanceOf(TOKEN.o))
@@ -110,11 +110,11 @@ object P_BootstrapVariableUseMacro
 			// If the local constant is initialized by a literal, then treat a
 			// mention of that constant as though it were the literal itself.
 			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
-			    && localDeclaration.initializationExpression()
+			    && localDeclaration.initializationExpression
 					.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				return interpreter.primitiveSuccess(
-					localDeclaration.initializationExpression())
+					localDeclaration.initializationExpression)
 			}
 
 			val variableUse =
@@ -125,27 +125,27 @@ object P_BootstrapVariableUseMacro
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
 		val module = loader.module()
-		if (module.variableBindings().hasKey(variableNameString))
+		if (module.variableBindings.hasKey(variableNameString))
 		{
 			val variableObject =
-				module.variableBindings().mapAt(variableNameString)
+				module.variableBindings.mapAt(variableNameString)
 			val moduleVarDecl =
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)
 			variableUse.makeImmutable()
 			return interpreter.primitiveSuccess(variableUse)
 		}
-		if (!module.constantBindings().hasKey(variableNameString))
+		if (!module.constantBindings.hasKey(variableNameString))
 		{
 			throw AvailRejectedParseException(
 				// Almost any theory is better than guessing that we want the
 				// value of some variable that doesn't exist.
-				if (scopeMap.mapSize() == 0) SILENT else WEAK)
+				if (scopeMap.mapSize == 0) SILENT else WEAK)
 			{
 				stringFrom(
 					buildString {
 						val scope =
-							toList<A_String>(scopeMap.keysAsSet().asTuple())
+							toList<A_String>(scopeMap.keysAsSet.asTuple)
 								.map(A_String::asNativeString)
 						append("potential variable ")
 						append(variableNameString)
@@ -161,7 +161,7 @@ object P_BootstrapVariableUseMacro
 			}
 		}
 		val variableObject =
-			module.constantBindings().mapAt(variableNameString)
+			module.constantBindings.mapAt(variableNameString)
 		val moduleConstDecl =
 			newModuleConstant(actualToken, variableObject, nil)
 		val variableUse =

@@ -78,7 +78,7 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val tupleType = argumentTypes[0]
-		if (tupleType.typeTuple.tupleSize() == 0)
+		if (tupleType.typeTuple.tupleSize == 0)
 		{
 			// The tuple type is homogeneous.  Answer the same tuple type, since
 			// it's its own inverse.
@@ -101,12 +101,11 @@ object P_ReverseTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		val elementTypes = tupleType.tupleOfTypesFromTo(1, tupleSize)
 		val reversedElementTypes = elementTypes.tupleReverse()
 		return tupleTypeForSizesTypesDefaultType(
-			tupleSizes, reversedElementTypes, bottom
-		)
+			tupleSizes, reversedElementTypes, bottom)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralTupleType()),
-			mostGeneralTupleType())
+			tuple(mostGeneralTupleType),
+			mostGeneralTupleType)
 }

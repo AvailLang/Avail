@@ -2337,13 +2337,19 @@ class Interpreter(
 		return buildString {
 			append(this@Interpreter.javaClass.simpleName)
 			append(" #$interpreterIndex")
-			if (fiber === null) {
+			if (fiber === null)
+			{
 				append(" [«unbound»]")
-			} else {
+			}
+			else
+			{
 				append(formatString(" [%s]", fiber!!.fiberName()))
-				if (getReifiedContinuation() === null) {
+				if (getReifiedContinuation() === null)
+				{
 					append(formatString("%n\t«null stack»"))
-				} else if (getReifiedContinuation()!!.isNil) {
+				}
+				else if (getReifiedContinuation()!!.isNil)
+				{
 					append(formatString("%n\t«empty call stack»"))
 				}
 				append("\n\n")
@@ -2499,7 +2505,7 @@ class Interpreter(
 		bundle: A_Bundle,
 		nanos: Double
 	) {
-		val method = bundle.bundleMethod()
+		val method = bundle.bundleMethod
 		val descriptor = method.traversed().descriptor() as MethodDescriptor
 		descriptor.dynamicLookupStat().record(nanos)
 	}
@@ -2520,7 +2526,7 @@ class Interpreter(
 		var statistic: Statistic
 		synchronized(topStatementEvaluationStats) {
 			statistic = topStatementEvaluationStats.computeIfAbsent(
-				module.moduleName()
+				module.moduleName
 			) {
 				Statistic(TOP_LEVEL_STATEMENTS, it.asNativeString())
 			}
@@ -2681,11 +2687,11 @@ class Interpreter(
 								it.typeTag() == TypeTag.OBJECT_TAG ->
 									"(some object)"
 								!it.isTuple -> it
-								it.isString && it.tupleSize() > 200 ->
+								it.isString && it.tupleSize > 200 ->
 									it.copyStringFromToCanDestroy(
 										1, 200, false
 									).asNativeString() + "..."
-								!it.isString && it.tupleSize() > 20 ->
+								!it.isString && it.tupleSize > 20 ->
 									it.copyTupleFromToCanDestroy(
 										1, 20, false
 									) + "..."
@@ -3164,7 +3170,7 @@ class Interpreter(
 						"Outermost %s @ %s:%d",
 						methodName.asNativeString(),
 						if (module.isNil) "«vm»"
-						else module.moduleName().asNativeString(),
+						else module.moduleName.asNativeString(),
 						codeStartingLineNumber)
 				}
 			}
@@ -3360,9 +3366,9 @@ class Interpreter(
 			// If the stringifier function is not defined, then use the basic
 			// mechanism for stringification.
 			// Create the fiber that will execute the function.
-			val fiber =
-				newFiber(stringType(), stringificationPriority)
-				{ stringFrom("Stringification") }
+			val fiber = newFiber(stringType, stringificationPriority) {
+				stringFrom("Stringification")
+			}
 			fiber.setTextInterface(textInterface)
 			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->

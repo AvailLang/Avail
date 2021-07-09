@@ -85,8 +85,14 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 			{
 				// Do nothing.
 			}
-			catch (e: InstantiationException) { }
-			catch (e: IllegalAccessException) { }
+			catch (e: InstantiationException)
+			{
+				// Do nothing.
+			}
+			catch (e: IllegalAccessException)
+			{
+				// Do nothing.
+			}
 		}
 		else if (format == "java.properties")
 		{

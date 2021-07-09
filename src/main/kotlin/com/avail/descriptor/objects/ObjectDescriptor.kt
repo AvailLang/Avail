@@ -225,7 +225,7 @@ class ObjectDescriptor internal constructor(
 				else -> fields.add(
 					AvailObjectFieldHelper(
 						self,
-						DebuggerObjectSlots("FIELD " + fieldKey.atomName()),
+						DebuggerObjectSlots("FIELD " + fieldKey.atomName),
 						-1,
 						self.slot(FIELD_VALUES_, index)))
 			}
@@ -398,7 +398,7 @@ class ObjectDescriptor internal constructor(
 		// search the vettings cache.
 		val answer: Boolean
 		var vettings: A_Tuple = self.slot(TYPE_VETTINGS_CACHE)
-		val tupleSize = vettings.tupleSize()
+		val tupleSize = vettings.tupleSize
 		vettings =
 			if (tupleSize == 0)
 			{
@@ -436,7 +436,7 @@ class ObjectDescriptor internal constructor(
 				val set = if (answer) set1 else set2
 				when
 				{
-					set.setSize() < maximumVettingSetSize ->
+					set.setSize < maximumVettingSetSize ->
 						vettings.tupleAtPuttingCanDestroy(
 							if (answer) 1 else 2,
 							set.setWithElementCanDestroy(typeTraversed, true),
@@ -488,7 +488,7 @@ class ObjectDescriptor internal constructor(
 							0 -> field
 							else -> self.slot(FIELD_VALUES_, slotIndex)
 						}
-						field.atomName().writeTo(writer)
+						field.atomName.writeTo(writer)
 						value.writeTo(writer)
 					}
 				}
@@ -506,7 +506,7 @@ class ObjectDescriptor internal constructor(
 							0 -> field
 							else -> self.slot(FIELD_VALUES_, slotIndex)
 						}
-						field.atomName().writeTo(writer)
+						field.atomName.writeTo(writer)
 						value.writeSummaryTo(writer)
 					}
 				}
@@ -521,8 +521,9 @@ class ObjectDescriptor internal constructor(
 	) = with(builder) {
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self.kind())
 		append("a/an ")
-		when {
-			names.setSize() == 0 -> append("object")
+		when (names.setSize)
+		{
+			0 -> append("object")
 			else -> append(
 				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
 		}
@@ -541,7 +542,7 @@ class ObjectDescriptor internal constructor(
 				append(if (first) " with:" else ",")
 				first = false
 				newlineTab(builder, indent)
-				append(key.atomName().asNativeString())
+				append(key.atomName.asNativeString())
 				append(" = ")
 				value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 			}
@@ -586,9 +587,9 @@ class ObjectDescriptor internal constructor(
 		fun setField(
 			self: AvailObject,
 			slotIndex: Int,
-			value: AvailObject
+			value: A_BasicObject
 		): AvailObject {
-			self.setSlot(FIELD_VALUES_, slotIndex, value)
+			self.setSlot(FIELD_VALUES_, slotIndex, value as AvailObject)
 			return self
 		}
 
@@ -599,7 +600,7 @@ class ObjectDescriptor internal constructor(
 			AvailObject::class.java,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java)
+			A_BasicObject::class.java)
 
 		/**
 		 * Construct an object with attribute [keys][AtomDescriptor] and values
@@ -613,7 +614,7 @@ class ObjectDescriptor internal constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun objectFromMap(map: A_Map): AvailObject {
-			val variant = variantForFields(map.keysAsSet())
+			val variant = variantForFields(map.keysAsSet)
 			val mutableDescriptor = variant.mutableObjectDescriptor
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {

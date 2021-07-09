@@ -75,11 +75,14 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 			fiber.recordVariableAccess(var1, true)
 			fiber.recordVariableAccess(var2, true)
 		}
-		return try {
+		return try
+		{
 			var1.setValue(value2)
 			var2.setValue(value1)
 			interpreter.primitiveSuccess(nil)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 }
@@ -89,8 +92,7 @@ object P_Swap : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				mostGeneralVariableType(),
 				mostGeneralVariableType()),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

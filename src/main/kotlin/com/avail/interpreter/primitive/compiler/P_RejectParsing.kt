@@ -76,9 +76,8 @@ object P_RejectParsing : Primitive(2, Unknown)
 		functionType(
 			tuple(
 				inclusive(1L, 4L),
-				stringType()),
-			bottom
-		)
+				stringType),
+			bottom)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_UNTIMELY_PARSE_REJECTION))

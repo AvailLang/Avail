@@ -151,13 +151,11 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralObjectMeta(),
-				ATOM.o
-			),
+				ATOM.o),
 			functionType(
 				tuple(
 					mostGeneralObjectType()),
-				ANY.o
-			))
+				ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))

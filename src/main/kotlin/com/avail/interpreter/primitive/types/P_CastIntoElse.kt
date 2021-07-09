@@ -104,16 +104,12 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 				ANY.o,
 				functionType(
 					tuple(
-						bottom
-					),
-					TOP.o
-				),
+						bottom),
+					TOP.o),
 				functionType(
 					emptyTuple,
-					TOP.o
-				)),
-			TOP.o
-		)
+					TOP.o)),
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

@@ -59,7 +59,7 @@ object P_DoubleTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val a = interpreter.argument(0)
-		val d = a.extractDouble()
+		val d = a.extractDouble
 		return if (java.lang.Double.isNaN(d))
 		{
 			interpreter.primitiveFailure(

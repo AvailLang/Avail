@@ -391,7 +391,7 @@ open class FileManager
 		val reference = availFile.fileWrapper.reference
 		reference.resolver.saveFile(
 			reference,
-			availFile.getSaveableContent(),
+			availFile.getSavableContent(),
 			{
 				val saveTime = System.currentTimeMillis()
 				availFile.conditionallyClearDirty(saveTime)

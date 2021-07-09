@@ -69,8 +69,6 @@ object P_FloatExp : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				instanceType(fromDouble(E)),
-				FLOAT.o
-			),
-			FLOAT.o
-		)
+				FLOAT.o),
+			FLOAT.o)
 }

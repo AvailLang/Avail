@@ -89,7 +89,7 @@ object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				ANY.o,
-				stringType(),
+				stringType,
 				inclusive(0, (1L shl 31) - 1),
 				inclusive(0, (1L shl 28) - 1)),
 			mostGeneralLiteralTokenType())

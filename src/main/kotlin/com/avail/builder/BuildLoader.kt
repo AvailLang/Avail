@@ -153,8 +153,7 @@ internal class BuildLoader constructor(
 	 */
 	private fun scheduleLoadModule(
 		target: ResolvedModuleName,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		// Avoid scheduling new tasks if an exception has happened.
 		if (availBuilder.shouldStopBuild)
@@ -194,8 +193,7 @@ internal class BuildLoader constructor(
 	 */
 	private fun loadModule(
 		moduleName: ResolvedModuleName,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		globalTracker(bytesCompiled.get(), globalCodeSize)
 		// If the module is already loaded into the runtime, then we must not
@@ -316,8 +314,7 @@ internal class BuildLoader constructor(
 		version: ModuleVersion,
 		compilation: ModuleCompilation,
 		sourceDigest: ByteArray,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
 		val module = newModule(stringFrom(moduleName.qualifiedName))
@@ -427,9 +424,8 @@ internal class BuildLoader constructor(
 						formatString(
 							"Load repo module %s, in %s:%d",
 							code.methodName,
-							code.module.moduleName(),
-							code.codeStartingLineNumber
-						)
+							code.module.moduleName,
+							code.codeStartingLineNumber)
 					}
 					fiber.setTextInterface(availBuilder.textInterface)
 					val before = captureNanos()
@@ -497,8 +493,7 @@ internal class BuildLoader constructor(
 	private fun compileModule(
 		moduleName: ResolvedModuleName,
 		compilationKey: ModuleCompilationKey,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		val repository = moduleName.repository
 		val archive = repository.getArchive(moduleName.rootRelativeName)
@@ -554,7 +549,7 @@ internal class BuildLoader constructor(
 									.serializedObjectsMap()
 							// Ensure the primed objects are always at strictly
 							// negative indices.
-							val delta = bodyObjectsMap.mapSize() + 1
+							val delta = bodyObjectsMap.mapSize + 1
 							val blockPhraseSerializer = Serializer(
 								blockPhrasesOutputStream,
 								module

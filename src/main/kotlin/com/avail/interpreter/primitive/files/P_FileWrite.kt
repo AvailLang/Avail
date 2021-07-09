@@ -124,7 +124,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial())
+				if (atom.isAtomSpecial)
 				{
 					E_SPECIAL_ATOM
 				}
@@ -173,14 +173,14 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 
 		// The iterator produces non-empty ByteBuffers, possibly the same one
 		// multiple times, refilling it each time.
-		val totalBytes = bytes.tupleSize()
+		val totalBytes = bytes.tupleSize
 		val bufferIterator: Iterator<ByteBuffer> = when {
 			bytes.isByteBufferTuple -> {
-				val buffer = bytes.byteBuffer().slice()
+				val buffer = bytes.byteBuffer.slice()
 				listOf(buffer).iterator()
 			}
 			bytes.isByteArrayTuple -> {
-				val buffer = ByteBuffer.wrap(bytes.byteArray())
+				val buffer = ByteBuffer.wrap(bytes.byteArray)
 				listOf(buffer).iterator()
 			}
 			else -> object : MutableIterator<ByteBuffer> {
@@ -204,10 +204,13 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					}
 					buffer.clear()
 					var count = nextSubscript + buffer.limit() - 1
-					if (count >= totalBytes) {
+					if (count >= totalBytes)
+					{
 						// All the rest.
 						count = totalBytes
-					} else {
+					}
+					else
+					{
 						// It's not all the rest, so round down to the nearest
 						// alignment boundary for performance.
 						val zeroBasedSubscriptAfterBuffer =
@@ -311,7 +314,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					else if (tuple !== null)
 					{
 						// Update the cached tuple.
-						assert(tuple.tupleSize() == alignment)
+						assert(tuple.tupleSize == alignment)
 						val parts = mutableListOf<A_Tuple>()
 						if (offsetInBuffer > 1)
 						{
@@ -338,7 +341,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							tuple = tuple!!.concatenateWith(
 								parts.removeAt(0), true)
 						}
-						assert(tuple!!.tupleSize() == alignment)
+						assert(tuple!!.tupleSize == alignment)
 					}
 					// Otherwise we're attempting to update a subregion of
 					// an uncached buffer.  Just drop it in that case and
@@ -369,10 +372,8 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 				ATOM.o,
 				functionType(emptyTuple, TOP.o),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o
-				),
-				bytes
-			),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

@@ -91,7 +91,7 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
@@ -136,12 +136,10 @@ object P_ServerSocketIPv4Bind : Primitive(4, CanInline, HasSideEffect)
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(4),
 					emptyTuple,
-					bytes
-				),
+					bytes),
 				unsignedShorts,
 				intRange()),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

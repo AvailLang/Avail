@@ -70,7 +70,6 @@ class L2SelectorOperand constructor(val bundle: A_Bundle) : L2Operand()
 
 	override fun appendTo(builder: StringBuilder)
 	{
-		builder.append("$").append(bundle.message().atomName())
+		builder.append("$").append(bundle.message.atomName)
 	}
-
 }

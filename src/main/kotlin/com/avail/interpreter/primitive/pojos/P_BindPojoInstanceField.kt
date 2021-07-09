@@ -102,7 +102,7 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralPojoType(),
-				stringType()),
+				stringType),
 			mostGeneralVariableType())
 
 	override fun privateFailureVariableType(): A_Type =

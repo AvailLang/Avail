@@ -155,8 +155,7 @@ class AvailTest
 		val loaded = helper().loadModule(moduleName)
 		Assertions.assertFalse(
 			loaded,
-			"Should not have successfully loaded module: $moduleName"
-		)
+			"Should not have successfully loaded module: $moduleName")
 		Assertions.assertTrue(helper().errorDetected())
 	}
 
@@ -175,8 +174,7 @@ class AvailTest
 		val loaded = helper().loadModule(moduleName)
 		Assertions.assertTrue(
 			loaded,
-			"Should have successfully loaded module: $moduleName"
-		)
+			"Should have successfully loaded module: $moduleName")
 		Assertions.assertFalse(helper().errorDetected())
 	}
 
@@ -204,7 +202,7 @@ class AvailTest
 			},
 			{ result: AvailObject, cleanup: (() -> Unit) -> Unit ->
 				cleanup.invoke {
-					ok.set(result.extractBoolean())
+					ok.set(result.extractBoolean)
 					semaphore.release()
 				}
 			}) { semaphore.release()

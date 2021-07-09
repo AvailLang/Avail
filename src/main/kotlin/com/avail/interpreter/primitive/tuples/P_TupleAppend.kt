@@ -83,8 +83,7 @@ object P_TupleAppend : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
-				ANY.o
-			),
-			mostGeneralTupleType())
+				mostGeneralTupleType,
+				ANY.o),
+			mostGeneralTupleType)
 }

@@ -43,6 +43,7 @@ import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseO
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
@@ -344,13 +345,13 @@ class FunctionDescriptor private constructor(
 			atom: A_Atom
 		): A_Function
 		{
-			val bundle: A_Bundle = atom.bundleOrNil()
+			val bundle: A_Bundle = atom.bundleOrNil
 			require(bundle.notNil) { "Atom to invoke has no method" }
-			val method: A_Method = bundle.bundleMethod()
+			val method: A_Method = bundle.bundleMethod
 			val argTypes = functionType.argsTupleType
 			// Check that there's a definition, even abstract, that will catch all
 			// invocations for the given function type's argument types.
-			val ok = method.definitionsTuple().any {
+			val ok = method.definitionsTuple.any {
 				it.bodySignature().isSubtypeOf(functionType)
 			}
 			require(ok) {
@@ -393,7 +394,7 @@ class FunctionDescriptor private constructor(
 			copiedTuple: A_Tuple
 		): A_Function
 		{
-			val copiedSize = copiedTuple.tupleSize()
+			val copiedSize = copiedTuple.tupleSize
 			return mutable.create(copiedSize) {
 				setSlot(CODE, code)
 				if (copiedSize > 0)
@@ -672,7 +673,7 @@ class FunctionDescriptor private constructor(
 				TOP.o,
 				emptySet,
 				lineNumber,
-				phrase.tokens())
+				phrase.tokens)
 			recursivelyValidate(block)
 			val compiledBlock = block.generateInModule(module)
 			assert(compiledBlock.numOuters == 0)
@@ -703,7 +704,7 @@ class FunctionDescriptor private constructor(
 				0,
 				L1Operation.L1_doPushLiteral,
 				addLiteral(stringFrom(messageString)))
-			val numArgs = paramTypes.tupleSize()
+			val numArgs = paramTypes.tupleSize
 			for (i in 1 .. numArgs)
 			{
 				write(0, L1Operation.L1_doPushLastLocal, i)

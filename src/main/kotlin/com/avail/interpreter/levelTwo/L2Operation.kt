@@ -672,7 +672,7 @@ protected constructor(
 							val mod = code.module
 							if (mod.notNil)
 							{
-								val modName = mod.moduleName().asNativeString()
+								val modName = mod.moduleName.asNativeString()
 								val shortName = modName.split("/").last()
 								val line = code.codeStartingLineNumber
 								str += "@$shortName:$line"
@@ -686,7 +686,7 @@ protected constructor(
 							val mod = code.module
 							if (mod.notNil)
 							{
-								val modName = mod.moduleName().asNativeString()
+								val modName = mod.moduleName.asNativeString()
 								val shortName = modName.split("/").last()
 								val line = code.codeStartingLineNumber
 								str += "@$shortName:$line"
@@ -713,7 +713,7 @@ protected constructor(
 						it.register().toString()
 					})
 				is L2SelectorOperand ->
-					commands.add(operand.bundle.message().atomName().toString())
+					commands.add(operand.bundle.message.atomName.toString())
 				is L2WriteOperand<*> ->
 					targets.add(operand.register().toString())
 			}

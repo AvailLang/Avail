@@ -68,14 +68,13 @@ object P_CurrentMacroName : Primitive(0, CanInline)
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val currentMacroBundle = clientData.mapAt(MACRO_BUNDLE_KEY.atom)
-		return interpreter.primitiveSuccess(currentMacroBundle.message())
+		return interpreter.primitiveSuccess(currentMacroBundle.message)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			emptyTuple,
-			ATOM.o
-		)
+			ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NOT_EVALUATING_MACRO))

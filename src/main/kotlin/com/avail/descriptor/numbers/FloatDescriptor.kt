@@ -129,7 +129,7 @@ class FloatDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() + getFloat(self),
+		doubleObject.extractDouble + getFloat(self),
 		doubleObject,
 		canDestroy)
 
@@ -168,7 +168,7 @@ class FloatDescriptor private constructor(
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number = fromFloatRecycling(
-		(anInteger.extractDouble() / getDouble(self)).toFloat(),
+		(anInteger.extractDouble / getDouble(self)).toFloat(),
 		self,
 		canDestroy)
 
@@ -177,7 +177,7 @@ class FloatDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() / getDouble(self),
+		doubleObject.extractDouble / getDouble(self),
 		doubleObject,
 		canDestroy)
 
@@ -265,7 +265,7 @@ class FloatDescriptor private constructor(
 		anInteger: AvailObject,
 		canDestroy: Boolean
 	): A_Number = fromFloatRecycling(
-		(anInteger.extractDouble() * getDouble(self)).toFloat(),
+		(anInteger.extractDouble * getDouble(self)).toFloat(),
 		self,
 		canDestroy)
 
@@ -274,7 +274,7 @@ class FloatDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() * getDouble(self),
+		doubleObject.extractDouble * getDouble(self),
 		doubleObject,
 		canDestroy)
 
@@ -358,7 +358,7 @@ class FloatDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() - getFloat(self),
+		doubleObject.extractDouble - getFloat(self),
 		doubleObject,
 		canDestroy)
 
@@ -445,9 +445,12 @@ class FloatDescriptor private constructor(
 			canDestroy: Boolean
 		): A_Number {
 			val result =
-				if (canDestroy && recyclable1.descriptor().isMutable) {
+				if (canDestroy && recyclable1.descriptor().isMutable)
+				{
 					recyclable1 as AvailObject
-				} else {
+				}
+				else
+				{
 					mutable.create { }
 				}
 			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))

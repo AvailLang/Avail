@@ -124,7 +124,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		try
 		{
 			val splitter = MessageSplitter(string)
-			if (prefixFunctions.tupleSize() !=
+			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{
 				return interpreter.primitiveFailure(
@@ -162,12 +162,9 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 					function,
 					prefixFunctions,
 					false)
-				var counter = 1
-				for (prefixFunction in prefixFunctions)
-				{
+				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
 					prefixFunction.code().methodName =
-						stringFrom("Macro prefix #$counter of $string")
-					counter++
+						stringFrom("Macro prefix #${zeroIndex + 1} of $string")
 				}
 				function.code().methodName = stringFrom("Macro body of $string")
 				succeed(nil)
@@ -185,11 +182,10 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

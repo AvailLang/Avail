@@ -178,9 +178,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 									append(
 										MessageFormat.format(
 											raisesTemplate,
-											"{$templateParameters}"
-										)
-									)
+											"{$templateParameters}"))
 									templateParameters++
 								}
 							}

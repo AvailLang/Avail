@@ -63,7 +63,7 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   The string within this [atom][AtomDescriptor].
 		 */
-		fun A_Atom.atomName(): A_String = dispatch { o_AtomName(it) }
+		val A_Atom.atomName: A_String get() = dispatch { o_AtomName(it) }
 
 		/**
 		 * Answer the [module][A_Module] within which this atom was created.
@@ -71,7 +71,8 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   The issuing module.
 		 */
-		fun A_Atom.issuingModule(): A_Module = dispatch { o_IssuingModule(it) }
+		val A_Atom.issuingModule: A_Module
+			get() = dispatch { o_IssuingModule(it) }
 
 		/**
 		 * Extract a Java `boolean` from this atom.  The atom must be either
@@ -81,7 +82,8 @@ interface A_Atom : A_BasicObject {
 		 *   `true` if it's the [trueObject], `false` if it's the [falseObject],
 		 *   and otherwise fail.
 		 */
-		fun A_Atom.extractBoolean(): Boolean = dispatch { o_ExtractBoolean(it) }
+		val A_Atom.extractBoolean: Boolean
+			get() = dispatch { o_ExtractBoolean(it) }
 
 		fun A_Atom.setAtomBundle(bundle: A_Bundle) =
 			dispatch { o_SetAtomBundle(it, bundle) }
@@ -142,7 +144,8 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   The atom's message bundle or nil.
 		 */
-		fun A_Atom.bundleOrNil(): A_Bundle = dispatch { o_BundleOrNil(it) }
+		val A_Atom.bundleOrNil: A_Bundle
+			get() = dispatch { o_BundleOrNil(it) }
 
 		/**
 		 * Answer whether this atom is specially known to the Avail virtual
@@ -151,6 +154,7 @@ interface A_Atom : A_BasicObject {
 		 * @return
 		 *   Whether this atom is special to the VM.
 		 */
-		fun A_Atom.isAtomSpecial(): Boolean = dispatch { o_IsAtomSpecial(it) }
+		val A_Atom.isAtomSpecial: Boolean
+			get() = dispatch { o_IsAtomSpecial(it) }
 	}
 }

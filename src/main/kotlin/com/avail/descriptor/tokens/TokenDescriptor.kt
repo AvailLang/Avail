@@ -264,8 +264,7 @@ open class TokenDescriptor protected constructor(
 			self.tokenType().name.lowercase().replace('_', ' '),
 			self.slot(STRING),
 			self.slot(START),
-			self.slot(LINE_NUMBER)
-		))
+			self.slot(LINE_NUMBER)))
 	}
 
 	override fun o_ClearLexingState(self: AvailObject)
@@ -316,7 +315,7 @@ open class TokenDescriptor protected constructor(
 	) {
 		// First, figure out where the token ends.
 		val string: A_String = self.slot(STRING)
-		val stringSize = string.tupleSize()
+		val stringSize = string.tupleSize
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)
 		line += (1..stringSize).count {

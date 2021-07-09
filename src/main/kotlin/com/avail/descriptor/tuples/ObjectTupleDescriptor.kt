@@ -117,7 +117,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple.
@@ -194,7 +194,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		val size1 = self.tupleSize()
+		val size1 = self.tupleSize
 		if (size1 == 0)
 		{
 			if (!canDestroy)
@@ -203,7 +203,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			}
 			return otherTuple
 		}
-		val size2 = otherTuple.tupleSize()
+		val size2 = otherTuple.tupleSize
 		if (size2 == 0)
 		{
 			if (!canDestroy)
@@ -227,7 +227,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -258,7 +258,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
@@ -299,10 +299,10 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		when
 		{
 			self.sameAddressAs(aTuple) -> return true
-			o_TupleSize(self) != aTuple.tupleSize() -> return false
+			o_TupleSize(self) != aTuple.tupleSize -> return false
 			o_Hash(self) != aTuple.hash() -> return false
 			!self.compareFromToWithObjectTupleStartingAt(
-					1, self.tupleSize(), aTuple, 1) ->
+					1, self.tupleSize, aTuple, 1) ->
 				return false
 			aTuple.isBetterRepresentationThan(self) ->
 			{
@@ -330,7 +330,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		// representations smaller and faster when concatenating short, quickly
 		// built object tuples that happen to only contain bytes onto the start
 		// or end of other byte tuples.
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize <= 5)
 		{
 			for (i in 1 .. tupleSize)
@@ -351,7 +351,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		// representations smaller and faster when concatenating short, quickly
 		// built object tuples that happen to only contain ints onto the start
 		// or end of other int tuples.
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize <= 5)
 		{
 			for (i in 1 .. tupleSize)
@@ -372,7 +372,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		// representations smaller and faster when concatenating short, quickly
 		// built object tuples that happen to only contain longs onto the start
 		// or end of other long-tuples.
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		return tupleSize <= 5 &&
 			(1 .. tupleSize).all { self.slot(TUPLE_AT_, it).isLong }
 	}
@@ -396,7 +396,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		/**
 		 * The size of the tuple.
 		 */
-		private val size: Int = tuple.tupleSize()
+		private val size: Int = tuple.tupleSize
 
 		/**
 		 * The index of the next [element][AvailObject].
@@ -438,7 +438,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		val result: AvailObject
 		if (canDestroy && isMutable)
 		{
@@ -460,7 +460,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		return if (size >= maximumCopySize)
 		{
 			super.o_TupleReverse(self)

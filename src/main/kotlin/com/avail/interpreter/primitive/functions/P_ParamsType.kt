@@ -62,5 +62,5 @@ object P_ParamsType : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				functionMeta()),
-			instanceMeta(mostGeneralTupleType()))
+			instanceMeta(mostGeneralTupleType))
 }

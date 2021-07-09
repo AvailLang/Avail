@@ -62,17 +62,19 @@ object P_LookupFiberVariable : Primitive(1, CanInline)
 		val key = interpreter.argument(0)
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
-		val globals =
-			if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
-			{ fiber.fiberGlobals() }
-			else
-			{ fiber.heritableFiberGlobals() }
-		return if (!globals.hasKey(key))
+		val globals = when
 		{
-			interpreter.primitiveFailure(
-				E_NO_SUCH_FIBER_VARIABLE)
+			key.getAtomProperty(HERITABLE_KEY.atom).isNil ->
+				fiber.fiberGlobals()
+			else -> fiber.heritableFiberGlobals()
 		}
-		else { interpreter.primitiveSuccess(globals.mapAt(key).makeImmutable()) }
+		return when
+		{
+			!globals.hasKey(key) ->
+				interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
+			else ->
+				interpreter.primitiveSuccess(globals.mapAt(key).makeImmutable())
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

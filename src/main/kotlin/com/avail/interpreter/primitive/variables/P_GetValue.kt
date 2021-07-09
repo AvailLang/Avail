@@ -64,9 +64,12 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 	{
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
-		return try {
+		return try
+		{
 			interpreter.primitiveSuccess(variable.getValue())
-		} catch (e: VariableGetException) {
+		}
+		catch (e: VariableGetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -75,8 +78,7 @@ object P_GetValue : Primitive(1, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType()),
-			ANY.o
-		)
+			ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

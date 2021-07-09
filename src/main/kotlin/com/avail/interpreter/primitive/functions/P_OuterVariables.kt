@@ -68,5 +68,5 @@ object P_OuterVariables : Primitive(1, CannotFail, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralFunctionType()), mostGeneralTupleType())
+		functionType(tuple(mostGeneralFunctionType()), mostGeneralTupleType)
 }

@@ -53,6 +53,9 @@ import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLab
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -261,7 +264,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						code.literalAt(instructionDecoder.getOperand())
 					val expectedReturnType: A_Type =
 						code.literalAt(instructionDecoder.getOperand())
-					val numArgs: Int = bundle.bundleMethod().numArgs()
+					val numArgs: Int = bundle.bundleMethod.numArgs
 					if (Interpreter.debugL1)
 					{
 						log(
@@ -269,7 +272,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							Level.FINER,
 							"{0}         L1 call ({1})",
 							interpreter.debugModeString,
-							bundle.message().atomName())
+							bundle.message.atomName)
 					}
 					interpreter.argsBuffer.clear()
 					for (i in stackp + numArgs - 1 downTo stackp)
@@ -282,7 +285,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
 					push(expectedReturnType)
-					val method: A_Method = bundle.bundleMethod()
+					val method: A_Method = bundle.bundleMethod
 					val matching: A_Definition
 					val beforeLookup = AvailRuntimeSupport.captureNanos()
 					matching = try
@@ -586,7 +589,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val permutation: A_Tuple =
 						code.literalAt(instructionDecoder.getOperand())
-					val size = permutation.tupleSize()
+					val size = permutation.tupleSize
 					val values = arrayOfNulls<AvailObject>(size)
 					run {
 						var i = 1
@@ -612,7 +615,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						code.literalAt(instructionDecoder.getOperand())
 					val superUnionType: A_Type =
 						code.literalAt(instructionDecoder.getOperand())
-					val numArgs: Int = bundle.bundleMethod().numArgs()
+					val numArgs: Int = bundle.bundleMethod.numArgs
 					if (Interpreter.debugL1)
 					{
 						log(
@@ -620,7 +623,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							Level.FINER,
 							"{0}L1 supercall: {1}",
 							interpreter.debugModeString,
-							bundle.message().atomName())
+							bundle.message.atomName)
 					}
 					interpreter.argsBuffer.clear()
 					var reversedStackp = stackp + numArgs
@@ -637,7 +640,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
 					push(expectedReturnType)
-					val method: A_Method = bundle.bundleMethod()
+					val method: A_Method = bundle.bundleMethod
 					val matching: A_Definition
 					val beforeLookup = AvailRuntimeSupport.captureNanos()
 					matching = try
@@ -958,11 +961,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		else
 		{
 			returner.code().returnerCheckStat.record(
-				after - before, interpreter.interpreterIndex
-			)
+				after - before, interpreter.interpreterIndex)
 			returnee.code().returneeCheckStat.record(
-				after - before, interpreter.interpreterIndex
-			)
+				after - before, interpreter.interpreterIndex)
 		}
 		if (!checkOk)
 		{

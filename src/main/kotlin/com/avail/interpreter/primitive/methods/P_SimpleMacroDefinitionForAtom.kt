@@ -125,8 +125,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		}
 		try
 		{
-			val splitter = atom.bundleOrCreate().messageSplitter()
-			if (prefixFunctions.tupleSize() !=
+			val splitter = atom.bundleOrCreate().messageSplitter
+			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{
 				return interpreter.primitiveFailure(
@@ -164,7 +164,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					function,
 					prefixFunctions,
 					false)
-				val atomName = atom.atomName()
+				val atomName = atom.atomName
 				for ((zeroIndex, prefixFunction) in prefixFunctions.withIndex())
 				{
 					prefixFunction.code().methodName =
@@ -189,8 +189,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				ATOM.o,
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

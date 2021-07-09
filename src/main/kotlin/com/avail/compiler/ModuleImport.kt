@@ -168,7 +168,7 @@ class ModuleImport
 	@Throws(ImportValidationException::class)
 	private fun validate()
 	{
-		val renameOriginals = renames.valuesAsTuple().asSet()
+		val renameOriginals = renames.valuesAsTuple.asSet
 		if (wildcard)
 		{
 			if (!names.isSubsetOf(renameOriginals))
@@ -181,7 +181,7 @@ class ModuleImport
 		}
 		else
 		{
-			if (excludes.setSize() != 0)
+			if (excludes.setSize != 0)
 			{
 				throw ImportValidationException(
 					"wildcard import to be specified or "
@@ -191,13 +191,13 @@ class ModuleImport
 		val redundantExclusions = renameOriginals.setIntersectionCanDestroy(
 			excludes,
 			false)
-		if (redundantExclusions.setSize() != 0)
+		if (redundantExclusions.setSize != 0)
 		{
 			val builder = StringBuilder(100)
 			builder.append(
 				"source names of renames not to overlap explicit "
 				+ "negative imports (the redundant name")
-			if (redundantExclusions.setSize() == 1)
+			if (redundantExclusions.setSize == 1)
 			{
 				builder.append(" is ")
 			}
@@ -268,10 +268,10 @@ class ModuleImport
 		{
 			try
 			{
-				val name = ModuleName(module.moduleName().asNativeString())
+				val name = ModuleName(module.moduleName.asNativeString())
 				return ModuleImport(
 					stringFrom(name.localName),
-					module.versions(),
+					module.versions,
 					true,
 					emptySet,
 					emptyMap,
@@ -300,19 +300,18 @@ class ModuleImport
 		@Throws(MalformedSerialStreamException::class)
 		fun fromSerializedTuple(serializedTuple: A_Tuple): ModuleImport
 		{
-			val tupleSize = serializedTuple.tupleSize()
+			val tupleSize = serializedTuple.tupleSize
 			assert(tupleSize == 7)
 			try
 			{
 				return ModuleImport(
 					serializedTuple.tupleAt(1), // moduleName
 					serializedTuple.tupleAt(2), // acceptableVersions
-					serializedTuple.tupleAt(3).extractBoolean(), // isExtension
+					serializedTuple.tupleAt(3).extractBoolean, // isExtension
 					serializedTuple.tupleAt(4), // names
 					serializedTuple.tupleAt(5), // renames
 					serializedTuple.tupleAt(6), // excludes
-					serializedTuple.tupleAt(7).extractBoolean() // wildcard
-				)
+					serializedTuple.tupleAt(7).extractBoolean) // wildcard
 			}
 			catch (e: ImportValidationException)
 			{

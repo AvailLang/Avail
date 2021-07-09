@@ -127,8 +127,8 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		val statementsCount = statements.tupleSize()
-		assert(statements.tupleSize() > 0)
+		val statementsCount = statements.tupleSize
+		assert(statements.tupleSize > 0)
 		// Leave the first statement's value on the stack while evaluating the
 		// subsequent statements.
 		statements.tupleAt(1).emitValueOn(codeGenerator)
@@ -140,14 +140,14 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(STATEMENTS).equals(aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		assert(statements.tupleSize() > 0)
-		return statements.tupleAt(1).phraseExpressionType()
+		assert(statements.tupleSize > 0)
+		return statements.tupleAt(1).phraseExpressionType
 	}
 
 	override fun o_FlattenStatementsInto(
@@ -161,7 +161,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		val valueProducer = accumulatedStatements.removeAt(
 			accumulatedStatements.size - 1)
 		val myFlatStatements = mutableListOf(valueProducer)
-		(2..statements.tupleSize()).forEach {
+		(2..statements.tupleSize).forEach {
 			statements.tupleAt(it).flattenStatementsInto(myFlatStatements)
 		}
 		when (myFlatStatements.size) {
@@ -229,7 +229,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		 *   The resulting first-of-sequence phrase.
 		 */
 		fun newFirstOfSequenceNode(statements: A_Tuple): A_Phrase {
-			assert(statements.tupleSize() > 1)
+			assert(statements.tupleSize > 1)
 			return mutable.createShared {
 				setSlot(STATEMENTS, statements)
 			}

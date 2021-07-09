@@ -187,7 +187,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				setTypeForSizesContentType(inclusive(0, 9), inclusive(1, 9)),
 				functionType(emptyTuple, TOP.o),
 				functionType(

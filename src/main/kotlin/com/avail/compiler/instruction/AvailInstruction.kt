@@ -114,7 +114,7 @@ abstract class AvailInstruction constructor(var relevantTokens: A_Tuple)
 		get()
 		{
 			return when {
-				relevantTokens.tupleSize() == 0 -> -1
+				relevantTokens.tupleSize == 0 -> -1
 				else -> relevantTokens.tupleAt(1).lineNumber()
 			}
 		}

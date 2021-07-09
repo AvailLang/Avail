@@ -88,7 +88,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val index = indexObject.extractInt
-		return if (index > tuple.tupleSize())
+		return if (index > tuple.tupleSize)
 		{
 			interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
@@ -99,11 +99,10 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
-				ANY.o
-			),
-			mostGeneralTupleType())
+				ANY.o),
+			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -123,7 +122,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 		}
 		val originalTypeTuple = originalTupleType.typeTuple
-		val originalTypeTupleSize = originalTypeTuple.tupleSize()
+		val originalTypeTupleSize = originalTypeTuple.tupleSize
 		val minSubscript =
 			if (lowerBound.isInt) max(lowerBound.extractInt, 1)
 			else 1

@@ -78,8 +78,7 @@ object P_FileRealPath : Primitive(2, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val realPath: Path =
 			try
 			{
@@ -102,7 +101,7 @@ object P_FileRealPath : Primitive(2, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), booleanType), stringType())
+		functionType(tuple(stringType, booleanType), stringType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))

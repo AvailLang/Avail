@@ -172,8 +172,7 @@ class LiteralTokenDescriptor private constructor(
 		builder.append(
 			String.format(
 				"%s ",
-				self.tokenType().name.lowercase().replace('_', ' ')
-			))
+				self.tokenType().name.lowercase().replace('_', ' ')))
 		self.slot(LITERAL).printOnAvoidingIndent(
 			builder,
 			recursionMap,
@@ -199,8 +198,7 @@ class LiteralTokenDescriptor private constructor(
 	override fun o_IsInstanceOfKind(
 		self: AvailObject, aType: A_Type): Boolean =
 		(aType.isSupertypeOfPrimitiveTypeEnum(
-			TOKEN
-		)
+			TOKEN)
 			|| aType.isLiteralTokenType
 			&& self.slot(LITERAL)
 			.isInstanceOf(aType.literalType))
@@ -215,8 +213,7 @@ class LiteralTokenDescriptor private constructor(
 			at("kind") { write("token") }
 			at("token type") {
 				write(
-					self.tokenType().name.lowercase().replace('_', ' ')
-				)
+					self.tokenType().name.lowercase().replace('_', ' '))
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }
@@ -283,7 +280,9 @@ class LiteralTokenDescriptor private constructor(
 						nextStatePojo.javaObjectNotNull()
 					nextState.compilationContext.recordToken(innerToken)
 				}
-			} else {
+			}
+			else
+			{
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
 			}
 		}

@@ -235,8 +235,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			else ->
 			{
 				newPermittedFields = Arrays.copyOf(
-					permittedFields, permittedFields.size + 1
-				)
+					permittedFields, permittedFields.size + 1)
 				newPermittedFields[permittedFields.size] = field
 			}
 		}

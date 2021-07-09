@@ -76,8 +76,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The [A_Atom] apparently sent by this phrase.
 		 */
-		fun A_Phrase.apparentSendName(): A_Atom =
-			dispatch { o_ApparentSendName(it) }
+		val A_Phrase.apparentSendName: A_Atom
+			get() = dispatch { o_ApparentSendName(it) }
 
 		/**
 		 * Answer the [list&#32;phrase][ListPhraseDescriptor] that provides
@@ -92,8 +92,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   This [send][SendPhraseDescriptor] phrase's arguments list.
 		 */
-		fun A_Phrase.argumentsListNode(): A_Phrase =
-			dispatch { o_ArgumentsListNode(it) }
+		val A_Phrase.argumentsListNode: A_Phrase
+			get() = dispatch { o_ArgumentsListNode(it) }
 
 		/**
 		 * Answer the [tuple][A_Tuple] of [argument][PhraseKind.ARGUMENT_PHRASE]
@@ -102,8 +102,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The tuple of argument declarations for this block phrase.
 		 */
-		fun A_Phrase.argumentsTuple(): A_Tuple =
-			dispatch { o_ArgumentsTuple(it) }
+		val A_Phrase.argumentsTuple: A_Tuple
+			get() = dispatch { o_ArgumentsTuple(it) }
 
 		/**
 		 * Answer this send phrase's message [bundle][A_Bundle].  If this is a
@@ -116,8 +116,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The message bundle that will be invoked.
 		 */
-		fun A_Phrase.bundle(): A_Bundle =
-			dispatch { o_Bundle(it) }
+		val A_Phrase.bundle: A_Bundle get() = dispatch { o_Bundle(it) }
 
 		/**
 		 * Perform the given action for each child phrase of this phrase.
@@ -184,8 +183,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The declaration referenced by this variable use.
 		 */
-		fun A_Phrase.declaration(): A_Phrase =
-			dispatch { o_Declaration(it) }
+		val A_Phrase.declaration: A_Phrase
+			get() = dispatch { o_Declaration(it) }
 
 		/**
 		 * Answer the [set][A_Set] of exception types that are declared by this
@@ -196,8 +195,8 @@ interface A_Phrase : A_BasicObject {
 		 *
 		 * @return The set of declared exception types for this block phrase.
 		 */
-		fun A_Phrase.declaredExceptions(): A_Set =
-			dispatch { o_DeclaredExceptions(it) }
+		val A_Phrase.declaredExceptions: A_Set
+			get() = dispatch { o_DeclaredExceptions(it) }
 
 		/**
 		 * Answer the type of the variable, constant, or argument declared by
@@ -206,8 +205,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The declaration phrase's type.
 		 */
-		fun A_Phrase.declaredType(): A_Type =
-			dispatch { o_DeclaredType(it) }
+		val A_Phrase.declaredType: A_Type
+			get() = dispatch { o_DeclaredType(it) }
 
 		/**
 		 * Emit code to push each value produced by the expressions of a
@@ -252,8 +251,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The phrase's 'expression', which varies by phrase kind.
 		 */
-		fun A_Phrase.expression(): A_Phrase =
-			dispatch { o_Expression(it) }
+		val A_Phrase.expression: A_Phrase get() = dispatch { o_Expression(it) }
 
 		/**
 		 * Extract the Nth expression of this [list][ListPhraseDescriptor]. If
@@ -275,8 +273,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The list's size.
 		 */
-		fun A_Phrase.expressionsSize(): Int =
-			dispatch { o_ExpressionsSize(it) }
+		val A_Phrase.expressionsSize: Int
+			get() = dispatch { o_ExpressionsSize(it) }
 
 		/**
 		 * Answer the tuple of expressions in this [list][ListPhraseDescriptor]
@@ -285,8 +283,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The list's expressions, as a [tuple][A_Tuple].
 		 */
-		fun A_Phrase.expressionsTuple(): A_Tuple =
-			dispatch { o_ExpressionsTuple(it) }
+		val A_Phrase.expressionsTuple: A_Tuple
+			get() = dispatch { o_ExpressionsTuple(it) }
 
 		/**
 		 * Return the phrase's expression type, which is the type of object that
@@ -298,8 +296,8 @@ interface A_Phrase : A_BasicObject {
 		 *   The [type][TypeDescriptor] of the [AvailObject] that will be
 		 *   produced by this phrase.
 		 */
-		fun A_Phrase.phraseExpressionType(): A_Type =
-			dispatch { o_PhraseExpressionType(it) }
+		val A_Phrase.phraseExpressionType: A_Type
+			get() = dispatch { o_PhraseExpressionType(it) }
 
 		/**
 		 * If this phrase is a [sequence][SequencePhraseDescriptor], take any
@@ -340,8 +338,8 @@ interface A_Phrase : A_BasicObject {
 		 *   Whether this is a super-cast phrase or a recursive list or permuted
 		 *   list containing one.
 		 */
-		fun A_Phrase.hasSuperCast(): Boolean =
-			dispatch { o_HasSuperCast(it) }
+		val A_Phrase.hasSuperCast: Boolean
+			get() = dispatch { o_HasSuperCast(it) }
 
 		/**
 		 * Answer the [phrase][PhraseDescriptor] producing the value to be
@@ -354,21 +352,8 @@ interface A_Phrase : A_BasicObject {
 		 *   The variable declaration's expression that produces a value for its
 		 *   initializing assignment.
 		 */
-		fun A_Phrase.initializationExpression(): AvailObject =
-			dispatch { o_InitializationExpression(it) }
-
-		/**
-		 * Alter whether this [variable&#32;use][VariableUsePhraseDescriptor] is
-		 * the chronologically last time its variable will be used within this
-		 * block. This may be performed on immutable phrases.  Do not expose
-		 * this function to the Avail language, as it is only intended as a
-		 * convenience for bookkeeping during code generation.
-		 *
-		 * @param isLastUse
-		 *   What to set the variable use's last-use flag to.
-		 */
-		fun A_Phrase.isLastUse(isLastUse: Boolean) =
-			dispatch { o_IsLastUse(it, isLastUse) }
+		val A_Phrase.initializationExpression: AvailObject
+			get() = dispatch { o_InitializationExpression(it) }
 
 		/**
 		 * Answer whether this [variable&#32;use][VariableUsePhraseDescriptor]
@@ -378,8 +363,9 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The value of this variable use's last-use flag.
 		 */
-		fun A_Phrase.isLastUse(): Boolean =
-			dispatch { o_IsLastUse(it) }
+		var A_Phrase.isLastUse: Boolean
+			get() = dispatch { o_IsLastUse(it) }
+			set(value) = dispatch { o_IsLastUse(it, value) }
 
 		/**
 		 * Answer whether this phrase is a
@@ -388,8 +374,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   Whether this is a phrase at which macro substitution took place.
 		 */
-		fun A_Phrase.isMacroSubstitutionNode(): Boolean =
-			dispatch { o_IsMacroSubstitutionNode(it) }
+		val A_Phrase.isMacroSubstitutionNode: Boolean
+			get() = dispatch { o_IsMacroSubstitutionNode(it) }
 
 		/**
 		 * Extract the last expression of this [list[ListPhraseDescriptor]
@@ -399,8 +385,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The last phrase of the list.
 		 */
-		fun A_Phrase.lastExpression(): A_Phrase =
-			dispatch { o_LastExpression(it) }
+		val A_Phrase.lastExpression: A_Phrase
+			get() = dispatch { o_LastExpression(it) }
 
 		/**
 		 * Answer the [list][ListPhraseDescriptor] phrase contained within this
@@ -410,8 +396,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The permuted list phrase's underlying list phrase.
 		 */
-		fun A_Phrase.list(): A_Phrase =
-			dispatch { o_List(it) }
+		val A_Phrase.list: A_Phrase get() = dispatch { o_List(it) }
 
 		/**
 		 * This [module&#32;constant's][PhraseKind.MODULE_CONSTANT_PHRASE]
@@ -422,8 +407,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The module constant's value or module variable's actual variable.
 		 */
-		fun A_Phrase.literalObject(): A_BasicObject =
-			dispatch { o_LiteralObject(it) }
+		val A_Phrase.literalObject: A_BasicObject
+			get() = dispatch { o_LiteralObject(it) }
 
 		/**
 		 * The receiver is a [macro][MacroSubstitutionPhraseDescriptor].  Answer
@@ -433,8 +418,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The original send phrase of this macro substitution.
 		 */
-		fun A_Phrase.macroOriginalSendNode(): A_Phrase =
-			dispatch { o_MacroOriginalSendNode(it) }
+		val A_Phrase.macroOriginalSendNode: A_Phrase
+			get() = dispatch { o_MacroOriginalSendNode(it) }
 
 		/**
 		 * Answer a [marker&#32;phrase's][MarkerPhraseDescriptor] marker value,
@@ -443,8 +428,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The marker phrase's marker value.
 		 */
-		fun A_Phrase.markerValue(): A_BasicObject =
-			dispatch { o_MarkerValue(it) }
+		val A_Phrase.markerValue: A_BasicObject
+			get() = dispatch { o_MarkerValue(it) }
 
 		/**
 		 * The [tuple][A_Tuple] of [declaration][DeclarationPhraseDescriptor]
@@ -457,21 +442,9 @@ interface A_Phrase : A_BasicObject {
 		 *   this block when the resulting raw function is closed into a
 		 *   function.
 		 */
-		fun A_Phrase.neededVariables(): A_Tuple =
-			dispatch { o_NeededVariables(it) }
-
-		/**
-		 * Update the [tuple][A_Tuple] of
-		 * [declaration][DeclarationPhraseDescriptor] phrases accessed by this
-		 * [block][BlockPhraseDescriptor] phrase.  This value is set during code
-		 * generation, even if the block phrase is immutable.  It should not be
-		 * made visible to the Avail language.
-		 *
-		 * @param neededVariables
-		 *   The tuple of outer declarations that this block accesses.
-		 */
-		fun A_Phrase.neededVariables(neededVariables: A_Tuple) =
-			dispatch { o_NeededVariables(it, neededVariables) }
+		var A_Phrase.neededVariables: A_Tuple
+			get() = dispatch { o_NeededVariables(it) }
+			set(value) = dispatch { o_NeededVariables(it, value) }
 
 		/**
 		 * The phrase that this [macro][MacroSubstitutionPhraseDescriptor]
@@ -480,8 +453,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   This macro phrase's output.
 		 */
-		fun A_Phrase.outputPhrase(): A_Phrase =
-			dispatch { o_OutputPhrase(it) }
+		val A_Phrase.outputPhrase: A_Phrase
+			get() = dispatch { o_OutputPhrase(it) }
 
 		/**
 		 * Answer this phrase's [PhraseKind].
@@ -491,8 +464,8 @@ interface A_Phrase : A_BasicObject {
 		 *
 		 * @return The [PhraseKind] of this phrase.
 		 */
-		fun A_Phrase.phraseKind(): PhraseKind =
-			dispatch { o_PhraseKind(it) }
+		val A_Phrase.phraseKind: PhraseKind
+			get() = dispatch { o_PhraseKind(it) }
 
 		/**
 		 * Test whether this phrase has a [PhraseKind] that is equal to or a
@@ -520,7 +493,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The permutation list phrase's permutation.
 		 */
-		fun A_Phrase.permutation(): A_Tuple = dispatch { o_Permutation(it) }
+		val A_Phrase.permutation: A_Tuple get() = dispatch { o_Permutation(it) }
 
 		/**
 		 * Answer either `null` or the [Primitive] from a block phrase.
@@ -528,7 +501,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The block phrase's primitive or `null`.
 		 */
-		fun A_Phrase.primitive(): Primitive? = dispatch { o_Primitive(it) }
+		val A_Phrase.primitive: Primitive? get() = dispatch { o_Primitive(it) }
 
 		/**
 		 * Answer this [block][BlockPhraseDescriptor] phrase's starting line
@@ -540,8 +513,8 @@ interface A_Phrase : A_BasicObject {
 		 *   The source code line number on which this
 		 *   [block][BlockPhraseDescriptor] phrase begins in the source.
 		 */
-		fun A_Phrase.startingLineNumber(): Int =
-			dispatch { o_StartingLineNumber(it) }
+		val A_Phrase.startingLineNumber: Int
+			get() = dispatch { o_StartingLineNumber(it) }
 
 		/**
 		 * Answer the [tuple][A_Tuple] of statement phrases in this
@@ -550,7 +523,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   A tuple of phrases.
 		 */
-		fun A_Phrase.statements(): A_Tuple = dispatch { o_Statements(it) }
+		val A_Phrase.statements: A_Tuple get() = dispatch { o_Statements(it) }
 
 		/**
 		 * Iterate through each [sequence][PhraseKind.SEQUENCE_PHRASE]
@@ -571,8 +544,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The tuple of statements in this block phrase.
 		 */
-		fun A_Phrase.statementsTuple(): A_Tuple =
-			dispatch { o_StatementsTuple(it) }
+		val A_Phrase.statementsTuple: A_Tuple
+			get() = dispatch { o_StatementsTuple(it) }
 
 		/**
 		 * Given a [list][ListPhraseDescriptor] phrase, a
@@ -587,8 +560,7 @@ interface A_Phrase : A_BasicObject {
 		 *   The receiver list structure with its macro phrases replaced by
 		 *   their outputs.
 		 */
-		fun A_Phrase.stripMacro(): A_Phrase =
-			dispatch { o_StripMacro(it) }
+		val A_Phrase.stripMacro: A_Phrase get() = dispatch { o_StripMacro(it) }
 
 		/**
 		 * If this is a [super&#32;cast&#32;phrase][SuperCastPhraseDescriptor],
@@ -604,8 +576,8 @@ interface A_Phrase : A_BasicObject {
 		 *   argument types to use for looking up a method definition at a call
 		 *   site.  May be bottom.
 		 */
-		fun A_Phrase.superUnionType(): A_Type =
-			dispatch { o_SuperUnionType(it) }
+		val A_Phrase.superUnionType: A_Type
+			get() = dispatch { o_SuperUnionType(it) }
 
 		/**
 		 * Answer the [token][A_Token] which was used in the construction of a
@@ -617,8 +589,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The token used in this phrase.
 		 */
-		fun A_Phrase.token(): A_Token =
-			dispatch { o_Token(it) }
+		val A_Phrase.token: A_Token get() = dispatch { o_Token(it) }
 
 		/**
 		 * Answer the [tuple][A_Token] of [tokens][A_Token] that contributed to
@@ -627,8 +598,7 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The requested tuple of [tokens][A_Token].
 		 */
-		fun A_Phrase.tokens(): A_Tuple =
-			dispatch { o_Tokens(it) }
+		val A_Phrase.tokens: A_Tuple get() = dispatch { o_Tokens(it) }
 
 		/**
 		 * Answer the [phrase][A_Phrase] that produced the type of the
@@ -638,8 +608,8 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The requested [phrase][A_Phrase] or [nil].
 		 */
-		fun A_Phrase.typeExpression(): A_Phrase =
-			dispatch { o_TypeExpression(it) }
+		val A_Phrase.typeExpression: A_Phrase
+			get() = dispatch { o_TypeExpression(it) }
 
 		/**
 		 * Validate this phrase, without also validating
@@ -659,7 +629,6 @@ interface A_Phrase : A_BasicObject {
 		 * @return
 		 *   The variable use phrase.
 		 */
-		fun A_Phrase.variable(): A_Phrase =
-			dispatch { o_Variable(it) }
+		val A_Phrase.variable: A_Phrase get() = dispatch { o_Variable(it) }
 	}
 }

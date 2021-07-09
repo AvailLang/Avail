@@ -159,7 +159,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		val endValue = self.slot(END).toLong()
 		val deltaValue = self.slot(DELTA)
 		if (newElement.isInt)
@@ -268,7 +268,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			otherTuple.makeImmutable()
 		}
 
-		if (otherTuple.tupleSize() == 0) return self
+		if (otherTuple.tupleSize == 0) return self
 
 		// Assess the possibility that the concatenation will still be a small
 		// integer interval tuple.
@@ -311,7 +311,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				}
 			}
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -413,7 +413,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		val temp = self.slot(START) + (index - 1) * self.slot(DELTA)
 		assert(temp == temp.toInt().toLong())
 		return fromInt(temp.toInt())
@@ -428,7 +428,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
 				== (newValueObject as A_Number).extractInt)
@@ -503,7 +503,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		var temp = index - 1.toLong()
 		temp *= self.slot(DELTA)
 		temp += self.slot(START).toLong()
@@ -515,7 +515,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		var temp = index - 1.toLong()
 		temp *= self.slot(DELTA)
 		temp += self.slot(START).toLong()

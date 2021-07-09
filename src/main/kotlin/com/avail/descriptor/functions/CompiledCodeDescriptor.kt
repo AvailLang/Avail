@@ -50,6 +50,7 @@ import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import com.avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
 import com.avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.HASH
@@ -556,7 +557,8 @@ open class CompiledCodeDescriptor protected constructor(
 			return if (lineComp != 0)
 			{
 				lineComp
-			} else methodName.compareTo(other.methodName)
+			}
+			else methodName.compareTo(other.methodName)
 		}
 
 		override fun toString(): String = String.format(
@@ -598,7 +600,7 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun o_DeclarationNames(self: AvailObject): A_Tuple
 	{
 		val names = mutableListOf<A_String>()
-		val limit = packedDeclarationNames.tupleSize()
+		val limit = packedDeclarationNames.tupleSize
 		if (limit == 0) return emptyTuple
 		var position = 1
 		while (true)
@@ -615,7 +617,7 @@ open class CompiledCodeDescriptor protected constructor(
 					throw RuntimeException("Invalid encoded declaration names")
 				}
 				names.add(token.literal())
-				position += token.string().tupleSize()
+				position += token.string().tupleSize
 			}
 			else
 			{
@@ -628,9 +630,7 @@ open class CompiledCodeDescriptor protected constructor(
 				}
 				names.add(
 					packedDeclarationNames.copyStringFromToCanDestroy(
-						start, position - 1, false
-					)
-				)
+						start, position - 1, false))
 			}
 			if (position == limit + 1)
 				return tupleFromList(names)
@@ -699,7 +699,7 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			val moduleName = module.run {
 				if (isNil) "No module"
-				else moduleName().asNativeString().split("/").last()
+				else moduleName.asNativeString().split("/").last()
 			}
 			fields.add(
 				AvailObjectFieldHelper(
@@ -1035,7 +1035,7 @@ open class CompiledCodeDescriptor protected constructor(
 		at("method") { self.methodName.writeTo(writer) }
 		if (module.notNil)
 		{
-			at("module") { self.module.moduleName().writeTo(writer) }
+			at("module") { self.module.moduleName.writeTo(writer) }
 		}
 		at("starting line number") { write(self.codeStartingLineNumber) }
 		at("literals") {
@@ -1187,9 +1187,8 @@ open class CompiledCodeDescriptor protected constructor(
 						descriptor.invocationStatistic.hasRun,
 						descriptor.startingChunk != L2Chunk.unoptimizedChunk,
 						descriptor.lineNumber,
-						module.moduleName().asNativeString(),
-						descriptor.methodName.asNativeString()
-					)
+						module.moduleName.asNativeString(),
+						descriptor.methodName.asNativeString())
 					if (!reports.contains(report))
 					{
 						reports.add(report)
@@ -1277,21 +1276,21 @@ open class CompiledCodeDescriptor protected constructor(
 				// Sanity check for primitive blocks.  Use this to hunt incorrectly
 				// specified primitive signatures.
 				val canHaveCode = primitive.canHaveNybblecodes()
-				assert(canHaveCode == nybbles.tupleSize() > 0)
+				assert(canHaveCode == nybbles.tupleSize > 0)
 				val restrictionSignature = primitive.blockTypeRestriction()
 				assert(restrictionSignature.isSubtypeOf(functionType))
 			}
 			else
 			{
-				assert(nybbles.tupleSize() > 0)
+				assert(nybbles.tupleSize > 0)
 			}
 			val argCounts = functionType.argsTupleType.sizeRange
 			val numArgs = argCounts.lowerBound.extractInt
 			assert(argCounts.upperBound.extractInt == numArgs)
-			val numLocals = localVariableTypes.tupleSize()
-			val numConstants = localConstantTypes.tupleSize()
-			val numLiterals = literals.tupleSize()
-			val numOuters = outerTypes.tupleSize()
+			val numLocals = localVariableTypes.tupleSize
+			val numConstants = localConstantTypes.tupleSize
+			val numLiterals = literals.tupleSize
+			val numOuters = outerTypes.tupleSize
 			val numSlots = numArgs + numLocals + numConstants + stackDepth
 			assert(numSlots in 0 .. 0xFFFF)
 			assert(numArgs in 0 .. 0xFFFF)
@@ -1301,7 +1300,7 @@ open class CompiledCodeDescriptor protected constructor(
 			assert(numOuters in 0 .. 0xFFFF)
 			assert(module.isNil || module.isInstanceOf(MODULE.o))
 			assert(lineNumber >= 0)
-			val nybbleCount = nybbles.tupleSize()
+			val nybbleCount = nybbles.tupleSize
 			val code = newObjectIndexedIntegerIndexedDescriptor(
 				numLiterals + numOuters + numLocals + numConstants,
 				if (nybbleCount == 0) 0 else nybbleCount + 16 shr 4,
@@ -1344,8 +1343,8 @@ open class CompiledCodeDescriptor protected constructor(
 					literalIndex,
 					tuple.makeShared(),
 					1,
-					tuple.tupleSize())
-				literalIndex += tuple.tupleSize()
+					tuple.tupleSize)
+				literalIndex += tuple.tupleSize
 			}
 			code.setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 			if (primitive != null)

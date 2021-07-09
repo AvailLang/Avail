@@ -1,5 +1,5 @@
 /*
- * P_CompiledCodePrimitiveName.kt
+ * P_SendStyleTree.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,16 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.rawfunctions
 
-import com.avail.descriptor.functions.CompiledCodeDescriptor
+package com.avail.interpreter.primitive.phrases
+
+import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
+import com.avail.descriptor.phrases.SendPhraseDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -46,28 +47,24 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Answer the name of the primitive for this
- * [compiled&#32;code][CompiledCodeDescriptor].  Answer the empty string if this
- * code is not a primitive.
+* **Primitive:** Produce the default styling tree for the given
+* [send][SendPhraseDescriptor] expression.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CompiledCodePrimitiveName : Primitive(1, CannotFail, CanFold, CanInline)
+object P_SendStyleTree : Primitive(1, CannotFail, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val code = interpreter.argument(0)
-		val prim = code.codePrimitive()
-		val string = when
-		{
-			prim === null -> emptyTuple
-			else -> stringFrom(prim.name)
-		}
-		return interpreter.primitiveSuccess(string)
+		val send = interpreter.argument(0)
+		return interpreter.primitiveSuccess(send.bundle.bundleMethod)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralCompiledCodeType()),
-			stringType)
+			tuple(
+				SEND_PHRASE.mostGeneralType()),
+			METHOD.o)
 }

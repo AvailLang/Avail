@@ -94,10 +94,8 @@ object P_PojoArrayGet : Primitive(2, CanInline)
 		functionType(
 			tuple(
 				mostGeneralPojoArrayType(),
-				naturalNumbers
-			),
-			ANY.o
-		)
+				naturalNumbers),
+			ANY.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

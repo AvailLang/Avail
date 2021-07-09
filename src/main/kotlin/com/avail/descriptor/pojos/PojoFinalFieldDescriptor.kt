@@ -107,8 +107,7 @@ class PojoFinalFieldDescriptor(
 	}
 
 	override fun o_ClearValue(self: AvailObject) = throw VariableSetException(
-		E_CANNOT_MODIFY_FINAL_JAVA_FIELD
-	)
+		E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
@@ -278,8 +277,7 @@ class PojoFinalFieldDescriptor(
 				field,
 				receiver,
 				value,
-				variableReadWriteType(innerType, bottom)
-			)
+				variableReadWriteType(innerType, bottom))
 		}
 	}
 }

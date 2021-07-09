@@ -107,7 +107,6 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
@@ -3886,8 +3885,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_SerializedObjectsMap(
 		self: AvailObject,
-		serializedObjectsMap: A_Map
-	)
+		serializedObjectsMap: A_Map)
 
 	abstract fun o_ApplyModuleHeader(
 		self: AvailObject,

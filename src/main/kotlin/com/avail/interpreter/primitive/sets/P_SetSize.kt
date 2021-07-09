@@ -60,14 +60,13 @@ object P_SetSize : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val set = interpreter.argument(0)
 
-		return interpreter.primitiveSuccess(fromInt(set.setSize()))
+		return interpreter.primitiveSuccess(fromInt(set.setSize))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralSetType()),
-			wholeNumbers
-		)
+			wholeNumbers)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

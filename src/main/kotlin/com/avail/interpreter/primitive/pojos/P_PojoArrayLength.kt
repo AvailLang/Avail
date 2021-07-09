@@ -67,6 +67,5 @@ object P_PojoArrayLength : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralPojoArrayType()),
-			wholeNumbers
-		)
+			wholeNumbers)
 }

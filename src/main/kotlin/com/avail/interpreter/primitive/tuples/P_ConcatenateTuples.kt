@@ -92,8 +92,8 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(zeroOrMoreOf(mostGeneralTupleType())),
-			mostGeneralTupleType())
+			tuple(zeroOrMoreOf(mostGeneralTupleType)),
+			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -129,11 +129,11 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			return concatenatedType
 		}
 		// A variable number of subtuples.  See if it's homogeneous.
-		if (tuplesType.typeTuple.tupleSize() == 0)
+		if (tuplesType.typeTuple.tupleSize == 0)
 		{
 			// The outer tuple type is homogeneous.
 			val innerTupleType = tuplesType.defaultType
-			if (innerTupleType.typeTuple.tupleSize() == 0)
+			if (innerTupleType.typeTuple.tupleSize == 0)
 			{
 				// The inner tuple type is also homogeneous.
 				val innerSizes = innerTupleType.sizeRange
@@ -174,7 +174,7 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 		elementRegs ?: return false
 		// Strip out any always-empty tuples.
 		elementRegs = elementRegs.filter {
-			!it.constantOrNull().notNullAnd { tupleSize() == 0 }
+			!it.constantOrNull().notNullAnd { tupleSize == 0 }
 		}
 		// Statically concatenate adjacent constants, since tuple concatenation
 		// associates.
@@ -188,12 +188,14 @@ object P_ConcatenateTuples : Primitive(1, CannotFail, CanFold, CanInline)
 			val sizeRange = restriction.type.sizeRange
 			if (sizeRange.upperBound.equalsInt(0)) continue
 			val constant = restriction.constantOrNull
-			if (constant !== null) {
+			if (constant !== null)
+			{
 				currentTuple =
 					if (currentTuple === null) constant
 					else currentTuple.concatenateWith(constant, false)
 			}
-			else {
+			else
+			{
 				if (currentTuple !== null) {
 					adjustedSources.add(
 						translator.generator.boxedConstant(currentTuple))

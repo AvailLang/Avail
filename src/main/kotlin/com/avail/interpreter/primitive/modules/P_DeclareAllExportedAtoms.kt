@@ -76,7 +76,7 @@ object P_DeclareAllExportedAtoms : Primitive(
 		val isPublic = interpreter.argument(1)
 		val module = interpreter.module()
 		assert(module.notNil)
-		if (isPublic.extractBoolean())
+		if (isPublic.extractBoolean)
 		{
 			module.addImportedNames(names)
 		}
@@ -92,6 +92,5 @@ object P_DeclareAllExportedAtoms : Primitive(
 			tuple(
 				setTypeForSizesContentType(wholeNumbers, ATOM.o),
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 }

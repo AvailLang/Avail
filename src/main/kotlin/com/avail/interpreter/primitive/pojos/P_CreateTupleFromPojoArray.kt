@@ -78,5 +78,5 @@ object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
 		functionType(
 			tuple(
 				mostGeneralPojoArrayType()),
-			mostGeneralTupleType())
+			mostGeneralTupleType)
 }

@@ -84,7 +84,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 			return interpreter.primitiveFailure(
 				E_CANNOT_CREATE_CONTINUATION_FOR_INFALLIBLE_PRIMITIVE_FUNCTION)
 		}
-		if (stack.tupleSize() != rawFunction.numSlots)
+		if (stack.tupleSize != rawFunction.numSlots)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_CONTINUATION_STACK_SIZE)
@@ -107,7 +107,7 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 			tuple(
 				mostGeneralFunctionType(),
 				wholeNumbers,
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
 				variableTypeFor(
 					mostGeneralContinuationType())),

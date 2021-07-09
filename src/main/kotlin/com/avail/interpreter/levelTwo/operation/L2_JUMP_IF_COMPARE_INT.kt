@@ -79,7 +79,7 @@ import kotlin.math.min
  *   1. the first operand if the condition holds,
  *   2. the second operand if the condition holds,
  *   3. the first operand if the condition fails,
- *   4. the second operand if the condition failse,
+ *   4. the second operand if the condition fails.
  */
 class L2_JUMP_IF_COMPARE_INT private constructor(
 		private val opcode: Int,

@@ -193,24 +193,24 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		indent: Int)
 	{
 		// Optimize for one-liners...
-		val argumentsTuple = self.argumentsTuple()
-		val argCount = argumentsTuple.tupleSize()
-		val primitive = self.primitive()
-		val statementsTuple = self.statementsTuple()
-		val statementsSize = statementsTuple.tupleSize()
+		val argumentsTuple = self.argumentsTuple
+		val argCount = argumentsTuple.tupleSize
+		val primitive = self.primitive
+		val statementsTuple = self.statementsTuple
+		val statementsSize = statementsTuple.tupleSize
 		var explicitResultType: A_Type? = self.resultType()
 		if (statementsSize >= 1
-			&& statementsTuple.tupleAt(statementsSize).phraseExpressionType()
+			&& statementsTuple.tupleAt(statementsSize).phraseExpressionType
 				.equals(explicitResultType!!))
 		{
 			explicitResultType = null
 		}
-		val declaredExceptions: A_Set? = self.declaredExceptions().let {
-			if (it.setSize() == 0) null else it
+		val declaredExceptions: A_Set? = self.declaredExceptions.let {
+			if (it.setSize == 0) null else it
 		}
 		val endsWithStatement = (statementsSize < 1
 			|| statementsTuple.tupleAt(statementsSize)
-				.phraseExpressionType().isTop)
+				.phraseExpressionType.isTop)
 		if (argCount == 0
 			&& primitive === null
 			&& statementsSize == 1
@@ -322,8 +322,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self: AvailObject,
 		action: (A_Phrase) -> Unit
 	) {
-		self.argumentsTuple().forEach(action)
-		self.statementsTuple().forEach(action)
+		self.argumentsTuple.forEach(action)
+		self.statementsTuple.forEach(action)
 	}
 
 	override fun o_ChildrenMap(
@@ -331,12 +331,12 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		transformer: (A_Phrase) -> A_Phrase
 	) {
 		var arguments: A_Tuple = self.slot(ARGUMENTS_TUPLE)
-		arguments = generateObjectTupleFrom(arguments.tupleSize()) {
+		arguments = generateObjectTupleFrom(arguments.tupleSize) {
 			transformer(arguments.tupleAt(it))
 		}
 		self.setSlot(ARGUMENTS_TUPLE, arguments)
 		var statements = self.slot(STATEMENTS_TUPLE)
-		statements = generateObjectTupleFrom(statements.tupleSize()) {
+		statements = generateObjectTupleFrom(statements.tupleSize) {
 			transformer(statements.tupleAt(it))
 		}
 		self.setSlot(STATEMENTS_TUPLE, statements)
@@ -361,14 +361,14 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		val compiledBlock = self.generateInModule(codeGenerator.module)
-		val neededVariables = self.neededVariables()
-		if (neededVariables.tupleSize() == 0) {
-			val function = createFunction(compiledBlock, emptyTuple)
-			codeGenerator.emitPushLiteral(
-				self.tokens(), function.makeImmutable())
-		} else {
-			codeGenerator.emitCloseCode(
-				self.tokens(), compiledBlock, neededVariables)
+		val neededVariables = self.neededVariables
+		when (neededVariables.tupleSize)
+		{
+			0 -> codeGenerator.emitPushLiteral(
+				self.tokens,
+				createFunction(compiledBlock, emptyTuple).makeImmutable())
+			else -> codeGenerator.emitCloseCode(
+				self.tokens, compiledBlock, neededVariables)
 		}
 	}
 
@@ -376,17 +376,17 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	): Boolean {
-		return (!aPhrase.isMacroSubstitutionNode()
-			&& self.phraseKind() == aPhrase.phraseKind()
-			&& self.argumentsTuple().equals(aPhrase.argumentsTuple())
-			&& self.statementsTuple().equals(aPhrase.statementsTuple())
+		return (!aPhrase.isMacroSubstitutionNode
+			&& self.phraseKind == aPhrase.phraseKind
+			&& self.argumentsTuple.equals(aPhrase.argumentsTuple)
+			&& self.statementsTuple.equals(aPhrase.statementsTuple)
 			&& self.resultType().equals(aPhrase.resultType())
-			&& self.primitive() === aPhrase.primitive())
+			&& self.primitive === aPhrase.primitive)
 	}
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		functionType(
-			tupleFromList(self.argumentsTuple().map { it.declaredType() }),
+			tupleFromList(self.argumentsTuple.map { it.declaredType }),
 			self.resultType())
 
 	/**
@@ -407,10 +407,10 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	): A_RawFunction = generateFunction(module, self)
 
 	override fun o_Hash(self: AvailObject): Int {
-		var h = self.argumentsTuple().hash()
-		h = h * multiplier + self.statementsTuple().hash()
+		var h = self.argumentsTuple.hash()
+		h = h * multiplier + self.statementsTuple.hash()
 		h = h * multiplier + self.resultType().hash()
-		h = h * multiplier + (self.primitive()?.name?.hashCode() ?: 0)
+		h = h * multiplier + (self.primitive?.name?.hashCode() ?: 0)
 		h = h * multiplier xor 0x05E6A04A
 		return h
 	}
@@ -463,7 +463,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("block phrase") }
-			at("primitive") { write(self.primitive()?.name ?: "") }
+			at("primitive") { write(self.primitive?.name ?: "") }
 			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
 			at("arguments") { self.slot(ARGUMENTS_TUPLE).writeTo(writer) }
 			at("statements") { self.slot(STATEMENTS_TUPLE).writeTo(writer) }
@@ -480,7 +480,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("block phrase") }
-			at("primitive") { write(self.primitive()?.name ?: "") }
+			at("primitive") { write(self.primitive?.name ?: "") }
 			at("starting line") { write(self.slot(STARTING_LINE_NUMBER)) }
 			at("arguments") {
 				self.slot(ARGUMENTS_TUPLE).writeSummaryTo(writer)
@@ -501,7 +501,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Return a [List] of all [declaration][DeclarationPhraseDescriptor]
 		 * phrases defined by this block. This includes arguments, locals,
@@ -514,9 +515,10 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		private fun allLocallyDefinedVariables(
 			self: A_Phrase
-		): List<A_Phrase> {
+		): List<A_Phrase>
+		{
 			val declarations = mutableListOf<A_Phrase>()
-			declarations.addAll(self.argumentsTuple())
+			declarations.addAll(self.argumentsTuple)
 			declarations.addAll(locals(self))
 			declarations.addAll(constants(self))
 			declarations.addAll(labels(self))
@@ -532,9 +534,12 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @return
 		 *   A list of between zero and one labels.
 		 */
-		fun labels(self: A_Phrase): List<A_Phrase> {
-			for (phrase in self.statementsTuple()) {
-				if (phrase.isInstanceOfKind(LABEL_PHRASE.mostGeneralType())) {
+		fun labels(self: A_Phrase): List<A_Phrase>
+		{
+			for (phrase in self.statementsTuple)
+			{
+				if (phrase.isInstanceOfKind(LABEL_PHRASE.mostGeneralType()))
+				{
 					assert(phrase.declarationKind() === DeclarationKind.LABEL)
 					return listOf(phrase)
 				}
@@ -554,9 +559,11 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @return
 		 *   This block's local variable declarations.
 		 */
-		fun locals(self: A_Phrase): List<A_Phrase> {
+		fun locals(self: A_Phrase): List<A_Phrase>
+		{
 			val locals = mutableListOf<A_Phrase>()
-			for (phrase in self.statementsTuple()) {
+			for (phrase in self.statementsTuple)
+			{
 				if (phrase.isInstanceOfKind(
 						DECLARATION_PHRASE.mostGeneralType()))
 				{
@@ -581,13 +588,16 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @return
 		 *   This block's local constant declarations.
 		 */
-		fun constants(self: A_Phrase): List<A_Phrase> {
+		fun constants(self: A_Phrase): List<A_Phrase>
+		{
 			val constants = mutableListOf<A_Phrase>()
-			for (phrase in self.statementsTuple()) {
+			for (phrase in self.statementsTuple)
+			{
 				if (phrase.isInstanceOfKind(
 						DECLARATION_PHRASE.mostGeneralType())
 					&& phrase.declarationKind()
-						=== DeclarationKind.LOCAL_CONSTANT) {
+					=== DeclarationKind.LOCAL_CONSTANT)
+				{
 					constants.add(phrase)
 				}
 			}
@@ -625,14 +635,16 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			declaredExceptions: A_Set,
 			lineNumber: Int,
 			tokens: A_Tuple
-		): AvailObject {
+		): AvailObject
+		{
 			val flattenedStatements = mutableListOf<A_Phrase>()
 			statements.forEach {
 				it.flattenStatementsInto(flattenedStatements)
 			}
 			// Remove useless statements that are just literals, other than the
 			// final statement.
-			for (index in flattenedStatements.size - 2 downTo 0) {
+			for (index in flattenedStatements.size - 2 downTo 0)
+			{
 				val statement = flattenedStatements[index]
 				if (statement.isInstanceOfKind(
 						LITERAL_PHRASE.mostGeneralType()))
@@ -659,14 +671,16 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @param blockNode
 		 *   The block phrase to validate.
 		 */
-		fun recursivelyValidate(blockNode: A_Phrase) {
+		fun recursivelyValidate(blockNode: A_Phrase)
+		{
 			treeDoWithParent(
 				blockNode,
 				{ obj: A_Phrase, parent: A_Phrase? ->
 					obj.validateLocally(parent)
 				},
 				null)
-			if (blockNode.neededVariables().tupleSize() != 0) {
+			if (blockNode.neededVariables.tupleSize != 0)
+			{
 				throw AvailRuntimeException(E_BLOCK_MUST_NOT_CONTAIN_OUTERS)
 			}
 		}
@@ -678,17 +692,18 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @param self
 		 *   The block phrase to analyze.
 		 */
-		private fun collectNeededVariablesOfOuterBlocks(self: A_Phrase) {
+		private fun collectNeededVariablesOfOuterBlocks(self: A_Phrase)
+		{
 			val providedByMe = allLocallyDefinedVariables(self).toSet()
 			val neededDeclarationsSet = mutableSetOf<A_Phrase>()
 			val neededDeclarations = mutableListOf<A_Phrase>()
-			recurse(self) {
-				parent: A_Phrase, again: (A_Phrase) -> Unit ->
-				parent.childrenDo {
-					child: A_Phrase ->
-					when {
+			recurse(self) { parent: A_Phrase, again: (A_Phrase)->Unit ->
+				parent.childrenDo { child: A_Phrase ->
+					when
+					{
 						child.phraseKindIsUnder(BLOCK_PHRASE) ->
-							for (declaration in child.neededVariables()) {
+							for (declaration in child.neededVariables)
+							{
 								if (!providedByMe.contains(declaration)
 									&& !neededDeclarationsSet.contains(
 										declaration))
@@ -697,13 +712,14 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 									neededDeclarations.add(declaration)
 								}
 							}
-						child.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {
-							val declaration = child.declaration()
+						child.phraseKindIsUnder(VARIABLE_USE_PHRASE) ->
+						{
+							val declaration = child.declaration
 							if (!providedByMe.contains(declaration)
 								&& declaration.declarationKind()
-									!== DeclarationKind.MODULE_VARIABLE
+								!== DeclarationKind.MODULE_VARIABLE
 								&& declaration.declarationKind()
-									!== DeclarationKind.MODULE_CONSTANT
+								!== DeclarationKind.MODULE_CONSTANT
 								&& !neededDeclarationsSet.contains(declaration))
 							{
 								neededDeclarationsSet.add(declaration)
@@ -719,7 +735,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 					}
 				}
 			}
-			self.neededVariables(tupleFromList(neededDeclarations))
+			self.neededVariables = tupleFromList(neededDeclarations)
 		}
 
 		/** The mutable [BlockPhraseDescriptor].  */

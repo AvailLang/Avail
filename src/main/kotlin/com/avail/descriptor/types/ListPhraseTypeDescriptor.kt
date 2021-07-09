@@ -413,8 +413,7 @@ class ListPhraseTypeDescriptor internal constructor(
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					inclusive(fromInt(minimumSize), fromInt(types.size)),
 					tupleFromArray(*types),
-					bottom
-				))
+					bottom))
 
 		/**
 		 * Create a list phrase type with the given yield type and the given

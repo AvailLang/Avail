@@ -421,7 +421,7 @@ open class VariableDescriptor protected constructor(
 		{
 			// Just check the new size, new key, and new value.
 			if (!writeType.sizeRange.rangeIncludesLong(
-					newMap.mapSize().toLong())
+					newMap.mapSize.toLong())
 				|| !key.isInstanceOf(writeType.keyType)
 				|| !value.isInstanceOf(writeType.valueType))
 			{
@@ -459,7 +459,7 @@ open class VariableDescriptor protected constructor(
 		{
 			// Just check the new size, new key, and new value.
 			if (!writeType.sizeRange.rangeIncludesLong(
-					newMap.mapSize().toLong()))
+					newMap.mapSize.toLong()))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)

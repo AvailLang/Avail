@@ -79,8 +79,7 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 				ANY.o,
 				functionType(emptyTuple, TOP.o),
 				functionType(emptyTuple, TOP.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

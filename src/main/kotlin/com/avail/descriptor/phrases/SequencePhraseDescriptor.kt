@@ -110,7 +110,7 @@ class SequencePhraseDescriptor private constructor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		val statementsCount = statements.tupleSize()
+		val statementsCount = statements.tupleSize
 		for (i in 1 until statementsCount) {
 			statements.tupleAt(i).emitEffectOn(codeGenerator)
 		}
@@ -122,16 +122,16 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(STATEMENTS).equals(aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		return when(statements.tupleSize()) {
+		return when(statements.tupleSize) {
 			0 -> TOP.o
-			else -> statements.tupleAt(statements.tupleSize())
-				.phraseExpressionType()
+			else -> statements.tupleAt(statements.tupleSize)
+				.phraseExpressionType
 		}
 	}
 

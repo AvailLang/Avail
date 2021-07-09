@@ -35,6 +35,8 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.lexer
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addLexer
@@ -167,12 +169,12 @@ class LexerDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		self.lexerMethod().bundles().joinTo(
+		self.lexerMethod.bundles.joinTo(
 			buffer = builder,
 			separator = " a.k.a. ",
 			prefix = "Lexer for "
 		) {
-			it.message().toString()
+			it.message.toString()
 		}
 	}
 
@@ -280,7 +282,8 @@ class LexerDescriptor private constructor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		private val lexerFilterFunctionType: A_Type = functionType(
 			tuple(Types.CHARACTER.o),
 			booleanType
@@ -290,7 +293,7 @@ class LexerDescriptor private constructor(
 
 		private val lexerBodyFunctionType: A_Type = functionType(
 			tuple(
-				stringType(),
+				stringType,
 				inclusive(1, (1L shl 31) - 1),
 				inclusive(1, (1L shl 28) - 1)),
 			setTypeForSizesContentType(
@@ -322,7 +325,8 @@ class LexerDescriptor private constructor(
 			lexerBodyFunction: A_Function?,
 			lexerMethod: A_Method,
 			definitionModule: A_Module
-		): A_Lexer {
+		): A_Lexer
+		{
 			val lexer = mutable.createShared(8) {
 				setSlot(LEXER_FILTER_FUNCTION, lexerFilterFunction)
 				setSlot(LEXER_BODY_FUNCTION, lexerBodyFunction!!)
@@ -337,8 +341,9 @@ class LexerDescriptor private constructor(
 				hash = hash xor definitionModule.hash() - -0x463e0e17
 				setSlot(HASH, hash)
 			}
-			lexerMethod.setLexer(lexer)
-			if (definitionModule.notNil) {
+			lexerMethod.lexer = lexer
+			if (definitionModule.notNil)
+			{
 				definitionModule.addLexer(lexer)
 			}
 			return lexer

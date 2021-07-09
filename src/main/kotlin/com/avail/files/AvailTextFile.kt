@@ -52,7 +52,7 @@ internal class AvailTextFile : AbstractAvailTextFile
 
 	override val rawContent: ByteArray get() = content.toByteArray(charset)
 
-	override fun getSaveableContent(): ByteArray = rawContent
+	override fun getSavableContent(): ByteArray = rawContent
 
 	/**
 	 * Construct an [AvailTextFile].

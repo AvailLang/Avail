@@ -181,8 +181,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			self.slot(LOWER_BOUND).hash(),
 			self.slot(UPPER_BOUND).hash(),
 			lowerInclusive,
-			upperInclusive
-		)
+			upperInclusive)
 
 	override fun o_IsIntegerRangeType(self: AvailObject): Boolean = true
 
@@ -212,8 +211,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		}
 		if (subMinObject.equals(superMinObject)
 		    && anIntegerRangeType.lowerInclusive
-		    && !lowerInclusive
-		)
+		    && !lowerInclusive)
 		{
 			return false
 		}

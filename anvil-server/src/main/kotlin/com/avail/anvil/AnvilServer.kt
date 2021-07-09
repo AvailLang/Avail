@@ -231,8 +231,7 @@ class AnvilServer constructor (
 						after: AfterMessage
 					) = renegotiateVersion(message, channel, after)
 				},
-				enqueueSucceeded = after
-			)
+				enqueueSucceeded = after)
 		}
 		// Use the newest common version.
 		val newestVersion = commonVersions.maxOrNull()!!
@@ -241,8 +240,7 @@ class AnvilServer constructor (
 		channel.log(FINE, message) { "accepted version: $newestVersion" }
 		channel.enqueueMessage(
 			AcceptedVersionMessage(SERVER, message.id, newestVersion),
-			enqueueSucceeded = after
-		)
+			enqueueSucceeded = after)
 	}
 
 	/**
@@ -277,8 +275,7 @@ class AnvilServer constructor (
 		channel.log(FINE, message) { "accepted version: $newestVersion" }
 		channel.enqueueMessage(
 			AcceptedVersionMessage(SERVER, message.id, newestVersion),
-			enqueueSucceeded = after
-		)
+			enqueueSucceeded = after)
 	}
 
 	companion object

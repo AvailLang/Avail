@@ -60,7 +60,7 @@ object P_SequenceStatements : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val seq = interpreter.argument(0)
-		return interpreter.primitiveSuccess(seq.statements())
+		return interpreter.primitiveSuccess(seq.statements)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

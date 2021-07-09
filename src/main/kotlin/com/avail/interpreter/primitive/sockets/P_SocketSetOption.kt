@@ -88,12 +88,12 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		return try
 		{
-			for ((key, value) in options.mapIterable())
+			for ((key, value) in options.mapIterable)
 			{
 				Options.socketOptions[key.extractInt]?.let { option ->
 					val type = option.type()
@@ -101,7 +101,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 						&& value.isBoolean)
 					{
 						val booleanOption: SocketOption<Boolean> = option.cast()
-						socket.setOption(booleanOption, value.extractBoolean())
+						socket.setOption(booleanOption, value.extractBoolean)
 					}
 					else if (type === java.lang.Integer::class.java
 						&& value.isInt)
@@ -136,8 +136,7 @@ object P_SocketSetOption : Primitive(2, CanInline, HasSideEffect)
 					inclusive(0, (Options.socketOptions.size - 1).toLong()),
 					inclusive(1, (Options.socketOptions.size - 1).toLong()),
 					ANY.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

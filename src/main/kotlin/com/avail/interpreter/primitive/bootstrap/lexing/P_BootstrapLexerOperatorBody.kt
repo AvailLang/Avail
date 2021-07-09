@@ -71,7 +71,7 @@ object P_BootstrapLexerOperatorBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val lineNumberInteger = interpreter.argument(2)
 
-		val sourceSize = source.tupleSize()
+		val sourceSize = source.tupleSize
 		val startPosition = sourcePositionInteger.extractInt
 
 		val c = source.tupleCodePointAt(startPosition)

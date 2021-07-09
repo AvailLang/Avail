@@ -769,7 +769,7 @@ class L2Chunk private constructor(
 							AvailRuntime.currentRuntime().moduleNameResolver
 								.resolve(
 									ModuleName(
-										module.moduleName().asNativeString()),
+										module.moduleName.asNativeString()),
 									null)
 						sourceFileName =
 							resolved.resolverReference.uri.toString()

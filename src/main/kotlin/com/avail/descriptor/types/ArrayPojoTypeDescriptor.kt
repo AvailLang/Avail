@@ -284,7 +284,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		val intersectionAncestors = computeUnion(
 			self, aFusedPojoType)
 		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+			intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return if (javaClass.notNil)
@@ -310,7 +310,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		val intersectionAncestors = computeUnion(
 			self, anUnfusedPojoType)
 		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+			intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
 		return if (javaClass.notNil)
@@ -398,7 +398,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
 				hash =
-					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
+					self.slot(JAVA_ANCESTORS).keysAsSet.hash() xor
 						-0x5fea43bc
 				self.setSlot(HASH_OR_ZERO, hash)
 			}

@@ -152,7 +152,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		if (self.slot(TYPE_TUPLE).tupleSize() == 0)
+		if (self.slot(TYPE_TUPLE).tupleSize == 0)
 		{
 			if (self.slot(SIZE_RANGE).equals(wholeNumbers))
 			{
@@ -177,7 +177,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		builder.append('<')
-		val end = self.slot(TYPE_TUPLE).tupleSize()
+		val end = self.slot(TYPE_TUPLE).tupleSize
 		for (i in 1 .. end)
 		{
 			self.typeAtIndex(i).printOnAvoidingIndent(
@@ -269,7 +269,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			return bottom
 		}
 		val leading = self.typeTuple
-		val interestingLimit = leading.tupleSize() + 1
+		val interestingLimit = leading.tupleSize + 1
 		val clipStart = max(min(startIndex, interestingLimit), 1)
 		val clipEnd = max(min(endIndex, interestingLimit), 1)
 		var typeUnion = self.typeAtIndex(clipStart)
@@ -305,7 +305,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val subTuple = aTupleType.typeTuple
 		val superTuple: A_Tuple = self.slot(TYPE_TUPLE)
-		var end = max(subTuple.tupleSize(), superTuple.tupleSize()) + 1
+		var end = max(subTuple.tupleSize, superTuple.tupleSize) + 1
 		val smallUpper = aTupleType.sizeRange.upperBound
 		if (smallUpper.isInt)
 		{
@@ -314,7 +314,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		for (i in 1 .. end)
 		{
 			val subType: A_Type =
-				if (i <= subTuple.tupleSize())
+				if (i <= subTuple.tupleSize)
 				{
 					subTuple.tupleAt(i)
 				}
@@ -323,7 +323,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 					aTupleType.defaultType
 				}
 			val superType: A_Type =
-				if (i <= superTuple.tupleSize())
+				if (i <= superTuple.tupleSize)
 				{
 					superTuple.tupleAt(i)
 				}
@@ -353,7 +353,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		// after the variations (i.e., just after the leading typeTuple).
 		val minSize = min(
 			minSizeObject.extractInt,
-			self.slot(TYPE_TUPLE).tupleSize() + 1)
+			self.slot(TYPE_TUPLE).tupleSize + 1)
 		for (i in 1 .. minSize)
 		{
 			if (self.typeAtIndex(i).isVacuousType)
@@ -369,7 +369,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		classHint: Class<*>?
 	): Any? = when
 	{
-		self.isSubtypeOf(stringType()) -> String::class.java
+		self.isSubtypeOf(stringType) -> String::class.java
 		else -> super.o_MarshalToJava(self, classHint)
 	}
 
@@ -411,7 +411,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		val defaultType = self.defaultType
 		val removedLeadingTypes = typeToRemove.typeTuple
 		val variationLimit =
-			max(leadingTypes.tupleSize(), removedLeadingTypes.tupleSize()) + 1
+			max(leadingTypes.tupleSize, removedLeadingTypes.tupleSize) + 1
 		val firstVariation = (1..variationLimit).indexOfFirst { i ->
 			// Test whether the element at that position would always be
 			// excluded by the removed type.
@@ -450,7 +450,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		// "other" elements that could save the tuple from exclusion.
 		if (sizeRange.upperBound.equalsInt(1))
 		{
-			assert (leadingTypes.tupleSize() == 0)
+			assert (leadingTypes.tupleSize == 0)
 			return tupleTypeForSizesTypesDefaultType(
 				if (removedSizeRange.lowerBound.equalsInt(0)) singleInt(1)
 				else sizeRange,
@@ -500,7 +500,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			return bottom
 		}
 		val leading: A_Tuple = self.slot(TYPE_TUPLE)
-		return if (index <= leading.tupleSize())
+		return if (index <= leading.tupleSize)
 		{
 			leading.tupleAt(index)
 		}
@@ -527,11 +527,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		val lead2 = aTupleType.typeTuple
 		var newLeading: A_Tuple
 		newLeading =
-			if (lead1.tupleSize() > lead2.tupleSize()) lead1
+			if (lead1.tupleSize > lead2.tupleSize) lead1
 			else lead2
 		newLeading.makeImmutable()
 		//  Ensure first write attempt will force copying.
-		val newLeadingSize = newLeading.tupleSize()
+		val newLeadingSize = newLeading.tupleSize
 		for (i in 1 .. newLeadingSize)
 		{
 			val intersectionObject = self.typeAtIndex(i).typeIntersection(
@@ -591,11 +591,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		val lead2 = aTupleType.typeTuple
 		var newLeading: A_Tuple
 		newLeading =
-			if (lead1.tupleSize() > lead2.tupleSize()) lead1
+			if (lead1.tupleSize > lead2.tupleSize) lead1
 			else lead2
 		newLeading.makeImmutable()
 		//  Ensure first write attempt will force copying.
-		val newLeadingSize = newLeading.tupleSize()
+		val newLeadingSize = newLeading.tupleSize
 		for (i in 1 .. newLeadingSize)
 		{
 			val unionObject =
@@ -689,7 +689,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				return privateTupleTypeForSizesTypesDefaultType(
 					sizeRange, emptyTuple, bottom)
 			}
-			val typeTupleSize = typeTuple.tupleSize()
+			val typeTupleSize = typeTuple.tupleSize
 			if (fromInt(typeTupleSize).greaterOrEqual(sizeRange.upperBound))
 			{
 				// The (nonempty) tuple hits the end of the range – disregard
@@ -778,8 +778,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
 				tupleFromArray(*types),
-				bottom
-			)
+				bottom)
 
 		/** Access the method [tupleTypeForTypes].  */
 		var tupleTypesForTypesArrayMethod = staticMethod(
@@ -803,8 +802,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			tupleTypeForSizesTypesDefaultType(
 				singleInt(types.size),
 				tupleFromList(types),
-				bottom
-			)
+				bottom)
 
 		/** Access the method [tupleTypeForTypes].  */
 		@Suppress("unused")
@@ -836,7 +834,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			val sizeRange = aTupleType.sizeRange
 			val typeTuple = aTupleType.typeTuple
 			val defaultType = aTupleType.defaultType
-			val limit = typeTuple.tupleSize()
+			val limit = typeTuple.tupleSize
 			val transformedTypeTuple: A_Tuple = generateObjectTupleFrom(limit)
 				{ elementTransformer(typeTuple.tupleAt(it)) }
 			val transformedDefaultType = elementTransformer(defaultType)
@@ -870,7 +868,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				else sizeRange
 			val limit = min(
 				sizeRangeKind.lowerBound.extractInt,
-				typeTuple.tupleSize())
+				typeTuple.tupleSize)
 			for (i in 1 .. limit)
 			{
 				assert(typeTuple.tupleAt(i).isType)
@@ -905,8 +903,8 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		private fun hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
 			sizesHash: Int,
 			typeTupleHash: Int,
-			defaultTypeHash: Int): Int =
-				sizesHash * 13 + defaultTypeHash * 11 + typeTupleHash * 7
+			defaultTypeHash: Int
+		): Int = sizesHash * 13 + defaultTypeHash * 11 + typeTupleHash * 7
 
 		/** The mutable `TupleTypeDescriptor`.  */
 		private val mutable = TupleTypeDescriptor(Mutability.MUTABLE)
@@ -918,53 +916,15 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		private val shared = TupleTypeDescriptor(Mutability.SHARED)
 
 		/** The most general tuple type.  */
-		private val mostGeneralType: A_Type =
-			zeroOrMoreOf(ANY.o).makeShared()
-
-		/**
-		 * Answer the most general tuple type.  This is the supertype of all
-		 * other tuple types.
-		 *
-		 * @return
-		 *   The most general tuple type.
-		 */
-		fun mostGeneralTupleType(): A_Type = mostGeneralType
+		val mostGeneralTupleType: A_Type = zeroOrMoreOf(ANY.o).makeShared()
 
 		/** The most general string type (i.e., tuples of characters).  */
-		private val stringType: A_Type =
-			zeroOrMoreOf(CHARACTER.o).makeShared()
-
-		/**
-		 * Answer the most general string type.  This type subsumes strings of
-		 * any size.
-		 *
-		 * @return
-		 *   The string type.
-		 */
-		fun stringType(): A_Type = stringType
+		val stringType: A_Type = zeroOrMoreOf(CHARACTER.o).makeShared()
 
 		/** The most general string type (i.e., tuples of characters).  */
-		private val nonemptyStringType: A_Type =
-			oneOrMoreOf(CHARACTER.o).makeShared()
-
-		/**
-		 * Answer the non-empty string type.  This type subsumes strings of any
-		 * size ≥ 1.
-		 *
-		 * @return
-		 *   The non-empty string type.
-		 */
-		fun nonemptyStringType(): A_Type = nonemptyStringType
+		val nonemptyStringType: A_Type = oneOrMoreOf(CHARACTER.o).makeShared()
 
 		/** The metatype for all tuple types.  */
-		private val meta: A_Type = instanceMeta(mostGeneralType).makeShared()
-
-		/**
-		 * Answer the metatype for all tuple types.
-		 *
-		 * @return
-		 *   The statically referenced metatype.
-		 */
-		fun tupleMeta(): A_Type = meta
+		val tupleMeta: A_Type = instanceMeta(mostGeneralTupleType).makeShared()
 	}
 }

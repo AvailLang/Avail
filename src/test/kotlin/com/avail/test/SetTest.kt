@@ -62,13 +62,13 @@ class SetTest
 	fun testIntegerIntervalTupleDescriptorReverse()
 	{
 		val set1to20: A_Set = createSmallInterval(1, 20, 1)
-			.asSet()
+			.asSet
 			.makeShared()
-		assertEquals(20, set1to20.setSize())
+		assertEquals(20, set1to20.setSize)
 		val set11to25: A_Set = createSmallInterval(11, 25, 1)
-			.asSet()
+			.asSet
 			.makeShared()
-		assertEquals(15, set11to25.setSize())
+		assertEquals(15, set11to25.setSize)
 
 		// Add new element.
 		assertEquals(
@@ -76,10 +76,8 @@ class SetTest
 			set1to20
 				.setWithElementCanDestroy(
 					fromInt(99),
-					true
-				)
-				.setSize()
-		)
+					true)
+				.setSize)
 
 		// Add existing element.
 		assertEquals(
@@ -87,17 +85,15 @@ class SetTest
 			set1to20
 				.setWithElementCanDestroy(
 					fromInt(10),
-					true
-				)
-				.setSize()
-		)
+					true)
+				.setSize)
 
 		// Union
-		assertEquals(25, set1to20.setUnionCanDestroy(set11to25, true).setSize())
+		assertEquals(25, set1to20.setUnionCanDestroy(set11to25, true).setSize)
 
 		// Intersection
 		assertEquals(
-			10, set1to20.setIntersectionCanDestroy(set11to25, true).setSize())
+			10, set1to20.setIntersectionCanDestroy(set11to25, true).setSize)
 
 		// Intersection test - a,b -> true
 		assertTrue(set1to20.setIntersects(set11to25))
@@ -112,6 +108,6 @@ class SetTest
 		assertFalse(emptySet.setIntersects(emptySet))
 
 		// Asymmetric Difference
-		assertEquals(10, set1to20.setMinusCanDestroy(set11to25, true).setSize())
+		assertEquals(10, set1to20.setMinusCanDestroy(set11to25, true).setSize)
 	}
 }

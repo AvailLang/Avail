@@ -94,7 +94,7 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
@@ -159,10 +159,8 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 				functionType(emptyTuple(), TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

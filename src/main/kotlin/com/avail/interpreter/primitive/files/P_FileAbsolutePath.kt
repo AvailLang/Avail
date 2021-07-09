@@ -93,7 +93,7 @@ object P_FileAbsolutePath : Primitive(1, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), stringType())
+		functionType(tuple(stringType), stringType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH, E_PERMISSION_DENIED, E_IO_ERROR))

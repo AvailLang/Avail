@@ -104,5 +104,5 @@ object P_EnvironmentMap : Primitive(0, CannotFail, CanInline, HasSideEffect)
 		functionType(
 			emptyTuple,
 			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, stringType(), stringType()))
+				wholeNumbers, stringType, stringType))
 }

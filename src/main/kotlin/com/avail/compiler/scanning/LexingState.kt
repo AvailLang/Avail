@@ -187,10 +187,10 @@ class LexingState constructor(
 		nextTokens = mutableListOf()
 		val theTokens = nextTokens!!
 		val source = compilationContext.source
-		if (position > source.tupleSize())
+		if (position > source.tupleSize)
 		{
 			// The end of the source code.  Produce an end-of-file token.
-			assert(position == source.tupleSize() + 1)
+			assert(position == source.tupleSize + 1)
 			val endOfFileToken = newToken(
 				endOfFileLexeme, position, lineNumber, END_OF_FILE)
 			theTokens.add(endOfFileToken)
@@ -222,7 +222,7 @@ class LexingState constructor(
 	private fun evaluateLexers(applicableLexers: A_Tuple)
 	{
 		val theNextTokens = nextTokens!!
-		if (applicableLexers.tupleSize() == 0)
+		if (applicableLexers.tupleSize == 0)
 		{
 			// No applicable lexers.
 			val scanner = compilationContext.loader.lexicalScanner()
@@ -248,7 +248,7 @@ class LexingState constructor(
 		// There's at least one applicable lexer.  Launch fibers which, when the
 		// last one completes, will capture the list of tokens and run the
 		// actions.
-		val countdown = AtomicInteger(applicableLexers.tupleSize())
+		val countdown = AtomicInteger(applicableLexers.tupleSize)
 		val arguments = listOf<A_BasicObject>(
 			compilationContext.source,
 			fromInt(position),
@@ -316,7 +316,7 @@ class LexingState constructor(
 				decrementAndRunActionsWhenZero(countdown)
 			})
 		Interpreter.runOutermostFunction(
-			loader.runtime(), fiber, lexer.lexerBodyFunction(), arguments)
+			loader.runtime(), fiber, lexer.lexerBodyFunction, arguments)
 	}
 
 	/**
@@ -372,7 +372,7 @@ class LexingState constructor(
 		val nextTokens = nextTokens!!
 		for (run in newTokenRuns)
 		{
-			assert(run.tupleSize() > 0)
+			assert(run.tupleSize > 0)
 			for (token in run)
 			{
 				compilationContext.recordToken(token)

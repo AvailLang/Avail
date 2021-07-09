@@ -104,8 +104,7 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 				setTypeForSizesContentType(naturalNumbers, ATOM.o),
 				zeroOrMoreOf(
 					setTypeForSizesContentType(wholeNumbers, ATOM.o))),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

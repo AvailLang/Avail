@@ -34,6 +34,7 @@ package com.avail.interpreter.effects
 
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelOne.L1InstructionWriter
@@ -65,7 +66,7 @@ internal class LoadingEffectToRunPrimitive constructor(
 
 	init
 	{
-		assert(primitiveBundle.bundleMethod().numArgs() == arguments.size)
+		assert(primitiveBundle.bundleMethod.numArgs == arguments.size)
 	}
 
 	override fun writeEffectTo(writer: L1InstructionWriter)

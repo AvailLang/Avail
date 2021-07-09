@@ -121,7 +121,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		}
 
 		val numArgs = code.numArgs()
-		if (numArgs != arguments.tupleSize())
+		if (numArgs != arguments.tupleSize)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
@@ -150,9 +150,8 @@ object P_RestartContinuationWithArguments : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType(), mostGeneralTupleType()),
-			bottom
-		)
+			tuple(mostGeneralContinuationType(), mostGeneralTupleType),
+			bottom)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

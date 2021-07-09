@@ -70,6 +70,5 @@ object P_ObjectToTuple : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(tuple(mostGeneralObjectType()), zeroOrMoreOf(
 			tupleTypeForTypes(
 				ATOM.o,
-				ANY.o
-			)))
+				ANY.o)))
 }

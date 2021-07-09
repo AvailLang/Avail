@@ -420,9 +420,7 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 			}
 			assert(sizeRange.lowerBound.isFinite)
 			assert(zero.lessOrEqual(sizeRange.lowerBound))
-			assert(sizeRange.upperBound.isFinite
-				|| !sizeRange.upperInclusive
-			)
+			assert(sizeRange.upperBound.isFinite || !sizeRange.upperInclusive)
 			val sizeRangeKind =
 				if (sizeRange.isEnumeration) sizeRange.computeSuperkind()
 				else sizeRange

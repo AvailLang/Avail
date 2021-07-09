@@ -80,18 +80,17 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 		interpreter.availLoaderOrNull() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
-		assert(optionalBlockArgumentsList.expressionsSize() == 1)
-		val blockArgumentsList =
-			optionalBlockArgumentsList.lastExpression()
-		assert(blockArgumentsList.expressionsSize() >= 1)
-		val lastPair = blockArgumentsList.lastExpression()
-		assert(lastPair.expressionsSize() == 2)
+		assert(optionalBlockArgumentsList.expressionsSize == 1)
+		val blockArgumentsList = optionalBlockArgumentsList.lastExpression
+		assert(blockArgumentsList.expressionsSize >= 1)
+		val lastPair = blockArgumentsList.lastExpression
+		assert(lastPair.expressionsSize == 2)
 		val namePhrase = lastPair.expressionAt(1)
 		val typePhrase = lastPair.expressionAt(2)
 
 		assert(namePhrase.isInstanceOfKind(LITERAL_PHRASE.create(TOKEN.o)))
 		assert(typePhrase.isInstanceOfKind(LITERAL_PHRASE.create(anyMeta())))
-		val outerArgToken = namePhrase.token()
+		val outerArgToken = namePhrase.token
 		val argToken = outerArgToken.literal()
 		val argName = argToken.string()
 
@@ -101,7 +100,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 				STRONG,
 				"argument name to be alphanumeric, not $argName")
 		}
-		val argType = typePhrase.token().literal()
+		val argType = typePhrase.token.literal()
 		assert(argType.isType)
 		if (argType.isBottom)
 		{
@@ -117,12 +116,12 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 			FiberDescriptor.addDeclaration(argDeclaration)
 		if (conflictingDeclaration !== null)
 		{
+			val kind = conflictingDeclaration.declarationKind().nativeKindName()
+			val lineNumber = conflictingDeclaration.token.lineNumber()
 			throw AvailRejectedParseException(
 				STRONG,
-				"block argument declaration $argName to have a name that doesn't "
-					+ "shadow an existing "
-					+ conflictingDeclaration.declarationKind().nativeKindName()
-					+ " (from line ${conflictingDeclaration.token().lineNumber()})")
+				"block argument declaration $argName to have a name that " +
+					"doesn't shadow an existing $kind (from line $lineNumber)")
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
@@ -142,8 +141,7 @@ object P_BootstrapPrefixBlockArgument : Primitive(1, CanInline, Bootstrap)
 								TOKEN.o,
 								/* Argument type. */
 								anyMeta()))))),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

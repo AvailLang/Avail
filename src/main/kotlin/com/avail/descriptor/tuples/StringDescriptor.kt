@@ -87,7 +87,7 @@ abstract class StringDescriptor protected constructor(
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		for (i in 1 .. size)
 		{
 			val codePoint = self.tupleCodePointAt(i)

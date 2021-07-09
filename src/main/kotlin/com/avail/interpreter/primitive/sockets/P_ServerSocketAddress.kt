@@ -79,7 +79,7 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial())
+				if (handle.isAtomSpecial)
 					E_SPECIAL_ATOM
 				else
 					E_INVALID_HANDLE)
@@ -99,8 +99,7 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 		}
 
 		return interpreter.primitiveSuccess(
-			tuple(tupleForByteArray(peer.address.address), fromInt(peer.port))
-		)
+			tuple(tupleForByteArray(peer.address.address), fromInt(peer.port)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -110,10 +109,8 @@ object P_ServerSocketAddress : Primitive(1, CanInline)
 				tupleTypeForSizesTypesDefaultType(
 					inclusive(4, 16),
 					emptyTuple,
-					bytes
-				),
-				unsignedShorts
-			))
+					bytes),
+				unsignedShorts))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

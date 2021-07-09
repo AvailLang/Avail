@@ -61,7 +61,6 @@ object P_TokenLexeme : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				TOKEN.o
-			),
-			nonemptyStringType())
+				TOKEN.o),
+			nonemptyStringType)
 }

@@ -78,7 +78,6 @@ object P_CreatePojoArray : Primitive(2, CannotFail, CanInline)
 		functionType(
 			tuple(
 				anyMeta(),
-				wholeNumbers
-			),
+				wholeNumbers),
 			mostGeneralPojoArrayType())
 }

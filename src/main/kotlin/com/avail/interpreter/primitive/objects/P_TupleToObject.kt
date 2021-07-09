@@ -170,7 +170,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		// Check that the atoms are unique.
 		val atomsSet = setFromCollection(atoms)
-		if (atomsSet.setSize() != size) return false
+		if (atomsSet.setSize != size) return false
 		// Look up the ObjectLayoutVariant statically.
 		val variant = variantForFields(atomsSet)
 		val fieldMap = variant.fieldToSlotIndex

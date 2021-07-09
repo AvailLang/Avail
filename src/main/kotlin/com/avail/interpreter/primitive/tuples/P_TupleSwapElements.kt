@@ -99,11 +99,10 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
-				naturalNumbers
-			),
-			mostGeneralTupleType())
+				naturalNumbers),
+			mostGeneralTupleType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

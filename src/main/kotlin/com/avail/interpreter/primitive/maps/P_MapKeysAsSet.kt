@@ -60,7 +60,7 @@ object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
-		return interpreter.primitiveSuccess(map.keysAsSet())
+		return interpreter.primitiveSuccess(map.keysAsSet)
 	}
 
 	override fun returnTypeGuaranteedByVM(

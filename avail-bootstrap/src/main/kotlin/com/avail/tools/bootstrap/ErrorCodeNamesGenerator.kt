@@ -198,7 +198,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 			}
 			val unreachableErrorCodes =
 				allErrorCodes.setMinusCanDestroy(reachableErrorCodes, true)
-			if (unreachableErrorCodes.setSize() != 0)
+			if (unreachableErrorCodes.setSize != 0)
 			{
 				val unreachable = EnumSet.noneOf(AvailErrorCode::class.java)
 				unreachableErrorCodes.forEach { code ->

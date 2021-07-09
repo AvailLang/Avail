@@ -43,6 +43,8 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.methods.A_Method.Companion.filterByTypes
+import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -122,13 +124,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val argExpressions = argsListPhrase.expressionsTuple()
-		val argsCount = argExpressions.tupleSize()
+		val argExpressions = argsListPhrase.expressionsTuple
+		val argsCount = argExpressions.tupleSize
 		val bundle: A_Bundle
 		try
 		{
 			bundle = messageName.bundleOrCreate()
-			val splitter = bundle.messageSplitter()
+			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
 				return interpreter.primitiveFailure(
@@ -145,7 +147,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(e)
 		}
 
-		val argsTupleType = argsListPhrase.phraseExpressionType()
+		val argsTupleType = argsListPhrase.phraseExpressionType
 		val argTypesList = (1..argsCount).map { index ->
 			argsTupleType.typeAtIndex(index).makeShared()
 		}
@@ -157,7 +159,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val resultLock = ReentrantReadWriteLock()
 		// Merge in the applicable (and visible) definition return types.
 		var anyDefinitionsApplicable = false
-		for (definition in bundle.bundleMethod().filterByTypes(argTypesList))
+		for (definition in bundle.bundleMethod.filterByTypes(argTypesList))
 		{
 			val definitionModule = definition.definitionModule()
 			if (definitionModule.isNil
@@ -174,7 +176,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		}
 		// Note, the semantic restriction takes the *types* as arguments.
 		val applicableRestrictions =
-			bundle.bundleMethod().semanticRestrictions().filter {
+			bundle.bundleMethod.semanticRestrictions.filter {
 				module.hasAncestor(it.definitionModule())
 					&& it.function().kind().acceptsListOfArgValues(argTypesList)
 			}
@@ -309,7 +311,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				topMeta()),
 			tupleTypeForTypes(
 				zeroOrOneOf(SEND_PHRASE.mostGeneralType()),
-				stringType()))
+				stringType))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -323,7 +325,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val returnType = returnTypeType.instance
 		return tupleTypeForTypes(
 			zeroOrOneOf(SEND_PHRASE.create(returnType)),
-			stringType())
+			stringType)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

@@ -109,9 +109,9 @@ class ExpressionAsStatementPhraseDescriptor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(EXPRESSION).equals(aPhrase.expression()))
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(EXPRESSION).equals(aPhrase.expression))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)
@@ -134,7 +134,7 @@ class ExpressionAsStatementPhraseDescriptor(
 	) = continuation(self)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens()
+		self.slot(EXPRESSION).tokens
 
 	override fun o_ValidateLocally(
 		self: AvailObject,

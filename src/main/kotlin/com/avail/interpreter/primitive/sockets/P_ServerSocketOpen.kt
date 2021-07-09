@@ -66,22 +66,24 @@ object P_ServerSocketOpen : Primitive(1, CanInline, HasSideEffect)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		return try {
+		return try
+		{
 			val handle = createAtom(name, interpreter.module())
 			val channel = currentRuntime().ioSystem.openServerSocket()
 			handle.setAtomProperty(
 				SERVER_SOCKET_KEY.atom, identityPojo(channel))
 			interpreter.primitiveSuccess(handle)
-		} catch (e: IOException) {
+		}
+		catch (e: IOException)
+		{
 			interpreter.primitiveFailure(E_IO_ERROR)
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(nonemptyStringType()),
-			ATOM.o
-		)
+			tuple(nonemptyStringType),
+			ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_IO_ERROR))

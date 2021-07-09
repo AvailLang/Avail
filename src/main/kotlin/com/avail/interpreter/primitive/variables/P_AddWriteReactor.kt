@@ -69,7 +69,7 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		val key = interpreter.argument(1)
 		val reactorFunction = interpreter.argument(2)
 		// Forbid special atoms.
-		if (key.isAtomSpecial())
+		if (key.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
@@ -86,10 +86,8 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 				ATOM.o,
 				functionType(
 					emptyTuple,
-					TOP.o
-				)),
-			TOP.o
-		)
+					TOP.o)),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SPECIAL_ATOM))
@@ -102,8 +100,8 @@ object P_AddWriteReactor : Primitive(3, HasSideEffect)
 		//		final A_Type functionType = argumentTypes.get(2);
 		if (keyType.isEnumeration)
 		{
-			val allSpecial = keyType.instance.all { it.isAtomSpecial() }
-			val noneSpecial = keyType.instance.none { it.isAtomSpecial() }
+			val allSpecial = keyType.instance.all { it.isAtomSpecial }
+			val noneSpecial = keyType.instance.none { it.isAtomSpecial }
 			// The aggregate booleans can only both be true in the degenerate
 			// case that keyType is ⊥, which should be impossible.
 			when {

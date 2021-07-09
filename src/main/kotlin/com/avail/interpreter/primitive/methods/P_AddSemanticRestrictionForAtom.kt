@@ -95,7 +95,7 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 		}
 		try
 		{
-			val method = atom.bundleOrCreate().bundleMethod()
+			val method = atom.bundleOrCreate().bundleMethod
 			val restriction =
 				newSemanticRestriction(function, method, interpreter.module())
 			loader.addSemanticRestriction(restriction)
@@ -110,7 +110,7 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 		}
 
 		function.code().methodName =
-			stringFrom("Semantic restriction of ${atom.atomName()}")
+			stringFrom("Semantic restriction of ${atom.atomName}")
 		return interpreter.primitiveSuccess(nil)
 	}
 

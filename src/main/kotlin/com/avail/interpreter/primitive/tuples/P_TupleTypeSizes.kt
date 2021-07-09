@@ -66,6 +66,6 @@ object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				tupleMeta()),
+				tupleMeta),
 			instanceMeta(wholeNumbers))
 }

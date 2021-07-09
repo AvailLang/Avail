@@ -33,6 +33,7 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.maps.MapBinDescriptor
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
 import com.avail.descriptor.module.A_Module
@@ -120,8 +121,10 @@ protected constructor(
 		val module: A_Module = self.slot(MODULE)
 		return if (module.isNil) {
 			builtInNoModuleName
-		} else {
-			module.moduleName()
+		}
+		else
+		{
+			module.moduleName
 		}
 	}
 
@@ -146,7 +149,7 @@ protected constructor(
 		val sizes = argsTupleType.sizeRange
 		assert(sizes.lowerBound.extractInt == sizes.upperBound.extractInt)
 		assert(sizes.lowerBound.extractInt
-			== self.slot(DEFINITION_METHOD).numArgs())
+			== self.slot(DEFINITION_METHOD).numArgs)
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
 			argsTupleType,

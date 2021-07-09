@@ -139,9 +139,9 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 		pathIndex: Int,
 		newValues: A_Tuple): A_Tuple
 	{
-		if (pathIndex == pathTuple.tupleSize() + 1)
+		if (pathIndex == pathTuple.tupleSize + 1)
 		{
-			if (sliceEndIndex > targetTuple.tupleSize())
+			if (sliceEndIndex > targetTuple.tupleSize)
 			{
 				throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			}
@@ -150,7 +150,7 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 			val leftPart = targetTuple.copyTupleFromToCanDestroy(
 					1, sliceStartIndex - 1, false)
 			val rightPart = targetTuple.copyTupleFromToCanDestroy(
-				sliceEndIndex + 1, targetTuple.tupleSize(), true)
+				sliceEndIndex + 1, targetTuple.tupleSize, true)
 			return leftPart
 				.concatenateWith(newValues, true)
 				.concatenateWith(rightPart, true)
@@ -163,7 +163,7 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
 		val targetIndex = targetIndexNumber.extractInt
-		if (targetIndex > targetTuple.tupleSize())
+		if (targetIndex > targetTuple.tupleSize)
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
@@ -231,7 +231,7 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 		pathIndex: Int,
 		newValues: A_Tuple): A_Map
 	{
-		if (pathIndex == pathTuple.tupleSize() + 1)
+		if (pathIndex == pathTuple.tupleSize + 1)
 		{
 			// The final index to be accessed MUST be a tuple.  If this is the
 			// final location, then the pathTuple was wrong.

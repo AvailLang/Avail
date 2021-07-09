@@ -306,9 +306,9 @@ class L1Disassembler constructor(
 					value.isString -> value to false
 					value.isInstanceOf(NUMBER.o) -> value to false
 					value.isInstanceOf(MESSAGE_BUNDLE.o) ->
-						value.message().atomName() to true
+						value.message.atomName to true
 					value.isInstanceOf(METHOD.o) -> value to true
-					value.isAtom -> value.atomName() to true
+					value.isAtom -> value.atomName to true
 					value.isCharacter -> value to false
 					!value.isType -> value to true
 					value.isTop -> value to false

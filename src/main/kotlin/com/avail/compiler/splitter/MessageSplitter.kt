@@ -481,7 +481,7 @@ class MessageSplitter
 
 		/** The Avail [A_String] denoting this metacharacter.  */
 		val string: A_String = stringFrom(javaString).makeShared().also {
-			assert(it.tupleSize() == 1)
+			assert(it.tupleSize == 1)
 		}
 
 		/** The sole codepoint ([Int]) of this [Metacharacter] instance. */
@@ -521,7 +521,8 @@ class MessageSplitter
 		val tokenizer = MessageSplitterTokenizer(this.messageName)
 		this.messageParts = tokenizer.canonicalMessageParts()
 		this.messagePartPositions = tokenizer.messagePartPositions()
-		try {
+		try
+		{
 			messagePartPosition = 1
 			rootSequence = parseSequence()
 
@@ -541,7 +542,9 @@ class MessageSplitter
 					E_UNBALANCED_GUILLEMETS,
 					"Encountered unexpected character: $currentMessagePart")
 			}
-		} catch (e: MalformedMessageException) {
+		}
+		catch (e: MalformedMessageException)
+		{
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
 			{
@@ -554,12 +557,12 @@ class MessageSplitter
 						if (messagePartPosition > 0)
 							if (!atEnd)
 								messagePartPositions[messagePartPosition - 1]
-							else messageName.tupleSize() + 1
+							else messageName.tupleSize + 1
 						else 0
 					val before = messageName.copyStringFromToCanDestroy(
 						1, characterIndex - 1, false)
 					val after = messageName.copyStringFromToCanDestroy(
-						characterIndex, messageName.tupleSize(), false)
+						characterIndex, messageName.tupleSize, false)
 					append(before.asNativeString())
 					append(CompilerDiagnostics.errorIndicatorSymbol)
 					append(after.asNativeString())
@@ -593,9 +596,8 @@ class MessageSplitter
 	 */
 	private val positionInName
 		get() =
-			if (atEnd) {
-				messageName.tupleSize()
-			} else messagePartPositions[messagePartPosition - 1]
+			if (atEnd) messageName.tupleSize
+			else messagePartPositions[messagePartPosition - 1]
 
 	/**
 	 * Answer whether parsing has reached the end of the message parts.
@@ -646,7 +648,7 @@ class MessageSplitter
 	) {
 		builder.append('«')
 		rootSequence.printWithArguments(
-			sendPhrase.argumentsListNode().expressionsTuple().iterator(),
+			sendPhrase.argumentsListNode.expressionsTuple.iterator(),
 			builder,
 			indent)
 		builder.append('»')
@@ -687,7 +689,7 @@ class MessageSplitter
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
 		val expressions = generator.expressionList()
-		assert(expressions.size == generator.instructionsTuple().tupleSize())
+		assert(expressions.size == generator.instructionsTuple().tupleSize)
 		return expressions
 	}
 
@@ -870,25 +872,20 @@ class MessageSplitter
 	 *   it was malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseElement(): Expression? {
+	private fun parseElement(): Expression? = when
+	{
+		atEnd -> null
 		// Try to parse the kinds of things that deal with their own suffixes.
-		if (atEnd
-			|| peekAheadFor(DOUBLE_DAGGER)
-			|| peekAheadFor(CLOSE_GUILLEMET)) {
-			return null
-		}
-		if (peekFor(UNDERSCORE)) {
-			return parseOptionalExplicitOrdinal(parseUnderscoreElement())
-		}
-		if (peekFor(ELLIPSIS)) {
-			return parseOptionalExplicitOrdinal(parseEllipsisElement())
-		}
-		if (peekFor(OPEN_GUILLEMET)) {
-			return parseOptionalExplicitOrdinal(parseGuillemetElement())
-		}
-		return if (peekFor(SECTION_SIGN)) {
+		peekAheadFor(DOUBLE_DAGGER) || peekAheadFor(CLOSE_GUILLEMET) -> null
+		peekFor(UNDERSCORE) ->
+			parseOptionalExplicitOrdinal(parseUnderscoreElement())
+		peekFor(ELLIPSIS) ->
+			parseOptionalExplicitOrdinal(parseEllipsisElement())
+		peekFor(OPEN_GUILLEMET) ->
+			parseOptionalExplicitOrdinal(parseGuillemetElement())
+		peekFor(SECTION_SIGN) ->
 			SectionCheckpoint(positionInName, ++numberOfSectionCheckpoints)
-		} else parseSimple()
+		else -> parseSimple()
 	}
 
 	/**
@@ -912,12 +909,14 @@ class MessageSplitter
 			val token = currentMessagePart
 			// Expects metacharacter or space or circled number after backquote.
 			throwMalformedIf(
-				token.tupleSize() != 1 || !canBeBackQuoted(
+				token.tupleSize != 1 || !canBeBackQuoted(
 					token.tupleCodePointAt(1)),
 				E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
 				"Backquote (`) must be followed by a special " +
 					"metacharacter, space, or circled number, not ($token)")
-		} else {
+		}
+		else
+		{
 			// Parse a regular keyword or operator.
 			checkSuffixCharactersNotInSuffix()
 		}
@@ -940,7 +939,9 @@ class MessageSplitter
 			expression = Optional(
 				expression.positionInName,
 				sequence)
-		} else if (peekFor(DOUBLE_QUESTION_MARK)) {
+		}
+		else if (peekFor(DOUBLE_QUESTION_MARK))
+		{
 			val sequence = Sequence(expression.positionInName)
 			sequence.addExpression(expression)
 			expression = CompletelyOptional(
@@ -1400,7 +1401,7 @@ class MessageSplitter
 			var checkedLimit = 0
 			while (true) {
 				val before = permutations.get()
-				val newLimit = before.tupleSize()
+				val newLimit = before.tupleSize
 				for (i in checkedLimit + 1..newLimit) {
 					if (before.tupleAt(i).equals(permutation)) {
 						// Already exists.
@@ -1411,7 +1412,7 @@ class MessageSplitter
 					before.appendCanDestroy(permutation, false).makeShared()
 				if (permutations.compareAndSet(before, after)) {
 					// Added it successfully.
-					return after.tupleSize()
+					return after.tupleSize
 				}
 				checkedLimit = newLimit
 			}

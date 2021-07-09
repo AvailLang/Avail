@@ -74,15 +74,6 @@ import java.util.concurrent.TimeUnit
 /**
  * This aggregates socket and file I/O information and behavior specific to an
  * [AvailRuntime].
- *
- * @property runtime
- *   The [AvailRuntime] that this is part of.
- *
- * @constructor
- * Create a new `IOSystem` for the given [AvailRuntime].
- *
- * @param runtime
- *   The [AvailRuntime].
  */
 class IOSystem
 {
@@ -247,7 +238,8 @@ class IOSystem
 		path: Path,
 		runtime: AvailRuntime,
 		options: Set<OpenOption>,
-		vararg attributes: FileAttribute<*>): AsynchronousFileChannel =
+		vararg attributes: FileAttribute<*>
+	): AsynchronousFileChannel =
 		AsynchronousFileChannel.open(
 			path, options, runtime.executor, *attributes)
 

@@ -81,18 +81,18 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 * @return
 		 *   A set containing each element in the tuple.
 		 */
-		fun A_Tuple.asSet(): A_Set = dispatch { o_AsSet(it) }
+		val A_Tuple.asSet: A_Set get() = dispatch { o_AsSet(it) }
 
 		/**
 		 * Answer the approximate memory cost in bets per element of this tuple.
 		 * This is used to decide the direction of
-		 * [indirections][IndirectionDescriptor] after determining two objects are
-		 * equal.
+		 * [indirections][IndirectionDescriptor] after determining two objects
+		 * are equal.
 		 *
 		 * @return
 		 *   The approximate cost in bits per element.
 		 */
-		fun A_Tuple.bitsPerEntry(): Int = dispatch { o_BitsPerEntry(it) }
+		val A_Tuple.bitsPerEntry: Int get() = dispatch { o_BitsPerEntry(it) }
 
 		/**
 		 * Extract the backing `byte[]` from this tuple.  Only applicable if the
@@ -101,7 +101,7 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 * @return
 		 *   This tuple's byte array.  Don't modify it.
 		 */
-		fun A_Tuple.byteArray(): ByteArray = dispatch { o_ByteArray(it) }
+		val A_Tuple.byteArray: ByteArray get() = dispatch { o_ByteArray(it) }
 
 		/**
 		 * The receiver must be a
@@ -111,7 +111,7 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 * @return
 		 *   The receiver's [ByteBuffer].
 		 */
-		fun A_Tuple.byteBuffer(): ByteBuffer = dispatch { o_ByteBuffer(it) }
+		val A_Tuple.byteBuffer: ByteBuffer get() = dispatch { o_ByteBuffer(it) }
 
 		/**
 		 * Answer the N<sup>th</sup> child of this
@@ -126,18 +126,18 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_ChildAt(it, childIndex) }
 
 		/**
-		 * Answer the number of children this [tree&#32;tuple][TreeTupleDescriptor]
-		 * contains.
+		 * Answer the number of children this
+		 * [tree&#32;tuple][TreeTupleDescriptor] contains.
 		 *
 		 * @return
 		 *   The width of this tree tuple node.
 		 */
-		fun A_Tuple.childCount(): Int = dispatch { o_ChildCount(it) }
+		val A_Tuple.childCount: Int get() = dispatch { o_ChildCount(it) }
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [tuple][TupleDescriptor]. The size of the subrange of both objects
-		 * is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [tuple][TupleDescriptor]. The size of the subrange of both
+		 * objects is determined by the index range supplied for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -161,21 +161,24 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 				it, startIndex1, endIndex1, aTuple, startIndex2)
 		}
 
-		/** Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [byte array tuple][ByteArrayTupleDescriptor]. The size of the
-		 * subrange of both objects is determined by the index range supplied for
-		 * the receiver.
+		/**
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [byte array tuple][ByteArrayTupleDescriptor]. The size of
+		 * the subrange of both objects is determined by the index range
+		 * supplied for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange
 		 * @param endIndex1
 		 *   The inclusive upper bound of the receiver's subrange.
 		 * @param aByteArrayTuple
-		 *   The [byte array tuple][ByteArrayTupleDescriptor] used in the comparison
+		 *   The [byte array tuple][ByteArrayTupleDescriptor] used in the
+		 *   comparison
 		 * @param startIndex2
 		 *   The inclusive lower bound of the tuple's subrange.
 		 * @return
-		 * `true` if the contents of the subranges match exactly, `false` otherwise.
+		 *   `true` if the contents of the subranges match exactly, `false`
+		 *   otherwise.
 		 */
 		fun A_Tuple.compareFromToWithByteArrayTupleStartingAt(
 			startIndex1: Int,
@@ -188,9 +191,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Test whether the subtuple of the receiver from startIndex1 to endIndex1
-		 * equals the subtuple of the [byte buffer tuple][ByteBufferTupleDescriptor]
-		 * of the same length starting at startIndex2.
+		 * Test whether the subtuple of the receiver from startIndex1 to
+		 * endIndex1 equals the subtuple of the [byte buffer
+		 * tuple][ByteBufferTupleDescriptor] of the same length starting at
+		 * startIndex2.
 		 *
 		 * @param startIndex1
 		 *   The first index to examine from the receiver.
@@ -199,8 +203,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 * @param aByteBufferTuple
 		 *   The byte buffer tuple to which to compare elements.
 		 * @param startIndex2
-		 *   The first index into the byte buffer tuple at which comparison should
-		 *   take place.
+		 *   The first index into the byte buffer tuple at which comparison
+		 *   should take place.
 		 * @return
 		 *   Whether the two subtuples are equal.
 		 */
@@ -215,9 +219,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [byte string][ByteStringDescriptor]. The size of the subrange of
-		 * both objects is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [byte string][ByteStringDescriptor]. The size of the
+		 * subrange of both objects is determined by the index range supplied
+		 * for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -242,9 +247,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [byte tuple][ByteTupleDescriptor]. The size of the subrange of both
-		 * objects is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [byte tuple][ByteTupleDescriptor]. The size of the subrange
+		 * of both objects is determined by the index range supplied for the
+		 * receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -269,10 +275,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [integer interval tuple][IntegerIntervalTupleDescriptor]. The size
-		 * of the subrange of both objects is determined by the index range supplied
-		 * for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [integer interval tuple][IntegerIntervalTupleDescriptor].
+		 * The size of the subrange of both objects is determined by the index
+		 * range supplied for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -297,9 +303,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [int tuple][IntTupleDescriptor]. The size of the subrange of both
-		 * objects is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [int tuple][IntTupleDescriptor]. The size of the subrange
+		 * of both objects is determined by the index range supplied for the
+		 * receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -324,9 +331,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [nybble tuple][NybbleTupleDescriptor]. The size of the subrange of
-		 * both objects is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [nybble tuple][NybbleTupleDescriptor]. The size of the
+		 * subrange of both objects is determined by the index range supplied
+		 * for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -351,9 +359,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [object tuple][ObjectTupleDescriptor]. The size of the subrange of
-		 * both objects is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [object tuple][ObjectTupleDescriptor]. The size of the
+		 * subrange of both objects is determined by the index range supplied
+		 * for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -378,10 +387,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [repeated element tuple][RepeatedElementTupleDescriptor]. The size
-		 * of the subrange of both objects is determined by the index range supplied
-		 * for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [repeated element tuple][RepeatedElementTupleDescriptor].
+		 * The size of the subrange of both objects is determined by the index
+		 * range supplied for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -406,10 +415,11 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [small integer interval
-		 * tuple][SmallIntegerIntervalTupleDescriptor]. The size of the subrange of
-		 * both objects is determined by the index range supplied for the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given
+		 * [small&#32;integer&#32;interval&#32;tuple][SmallIntegerIntervalTupleDescriptor].
+		 * The size of the subrange of both objects is determined by the index
+		 * range supplied for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -439,8 +449,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 
 		/**
 		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
-		 * another object. The size of the subrange of both objects is determined by
-		 * the index range supplied for the receiver.
+		 * another object. The size of the subrange of both objects is
+		 * determined by the index range supplied for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -465,10 +475,10 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Compare a subrange of the [receiver][AvailObject] with a subrange of the
-		 * given [two-byte string][TwoByteStringDescriptor]. The size of the
-		 * subrange of both objects is determined by the index range supplied for
-		 * the receiver.
+		 * Compare a subrange of the [receiver][AvailObject] with a subrange of
+		 * the given [two-byte string][TwoByteStringDescriptor]. The size of the
+		 * subrange of both objects is determined by the index range supplied
+		 * for the receiver.
 		 *
 		 * @param startIndex1
 		 *   The inclusive lower bound of the receiver's subrange.
@@ -506,8 +516,9 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_ComputeHashFromTo(it, start, end) }
 
 		/**
-		 * Given a tuple of tuples, concatenate all the inner tuples to construct
-		 * one new tuple.  May destroy the original tuple of tuples if so indicated.
+		 * Given a tuple of tuples, concatenate all the inner tuples to
+		 * construct one new tuple.  May destroy the original tuple of tuples if
+		 * so indicated.
 		 *
 		 * @param canDestroy
 		 *   Whether the input may be destroyed or reused.
@@ -518,9 +529,9 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_ConcatenateTuplesCanDestroy(it, canDestroy) }
 
 		/**
-		 * Concatenate the receiver and the argument otherTuple to form a new tuple.
-		 * Assume that the two input tuples may be destroyed or recycled if they're
-		 * mutable.
+		 * Concatenate the receiver and the argument otherTuple to form a new
+		 * tuple. Assume that the two input tuples may be destroyed or recycled
+		 * if they're mutable.
 		 *
 		 * @param otherTuple
 		 *   The tuple to append.
@@ -535,7 +546,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		): A_Tuple = dispatch { o_ConcatenateWith(it, otherTuple, canDestroy) }
 
 		/**
-		 * Make a mutable copy of the tuple but in a form that accepts any objects.
+		 * Make a mutable copy of the tuple but in a form that accepts any
+		 * objects.
 		 *
 		 * @return
 		 *   The new mutable [object tuple][ObjectTupleDescriptor].
@@ -562,9 +574,9 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_CopyAsMutableLongTuple(it) }
 
 		/**
-		 * Make a tuple that only contains the given range of elements of the given
-		 * tuple.  Subclasses have different strategies for how to accomplish this
-		 * efficiently.
+		 * Make a tuple that only contains the given range of elements of the
+		 * given tuple.  Subclasses have different strategies for how to
+		 * accomplish this efficiently.
 		 *
 		 * @param start
 		 *   The start of the range to extract.
@@ -617,8 +629,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 *   An object equal to this, but perhaps in a better or worse
 		 *   representation.
 		 * @return
-		 *   Whether the receiver has a representation that is superior (less space,
-		 *   faster access) to the argument.
+		 *   Whether the receiver has a representation that is superior (less
+		 *   space, faster access) to the argument.
 		 */
 		fun A_Tuple.isBetterRepresentationThan(
 			anotherObject: A_BasicObject
@@ -652,16 +664,16 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 * @param index
 		 *   The index of the character to extract.
 		 * @return
-		 *   The code point of the character at the given index, as a Java `short`
-		 *   in the range [0..255].
+		 *   The code point of the character at the given index, as a Java
+		 *   `short` in the range `[0..255]`.
 		 */
 		fun A_Tuple.rawByteForCharacterAt(index: Int): Short =
 			dispatch { o_RawByteForCharacterAt(it, index) }
 
 		/**
-		 * Replace the first child of this [tree&#32;tuple][TreeTupleDescriptor].
-		 * Make a copy to modify if the receiver is immutable.  Answer the modified
-		 * original or copy.
+		 * Replace the first child of this
+		 * [tree&#32;tuple][TreeTupleDescriptor]. Make a copy to modify if the
+		 * receiver is immutable.  Answer the modified original or copy.
 		 *
 		 * @param newFirst
 		 *   The new child tuple.
@@ -673,8 +685,9 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_ReplaceFirstChild(it, newFirst) }
 
 		/**
-		 * Transfer the specified subrange of this tuple of bytes into the provided
-		 * [ByteBuffer].  There should be sufficient room to write the bytes.
+		 * Transfer the specified subrange of this tuple of bytes into the
+		 * provided [ByteBuffer].  There should be sufficient room to write the
+		 * bytes.
 		 *
 		 * @param startIndex
 		 *   The subscript of the first byte to write.
@@ -693,14 +706,15 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 
 		/**
 		 * Return the height of this [tree&#32;tuple][TreeTupleDescriptor]. Flat
-		 * tuples and subranges have height 0, and tree tuples have heights from 1
-		 * to 10.  All of a tree tuple's children have a height of one less than the
-		 * parent tree tuple.
+		 * tuples and subranges have height 0, and tree tuples have heights from
+		 * 1 to 10.  All of a tree tuple's children have a height of one less
+		 * than the parent tree tuple.
 		 *
 		 * @return
 		 *   The height of the tree tuple.
 		 */
-		fun A_Tuple.treeTupleLevel(): Int = dispatch { o_TreeTupleLevel(it) }
+		val A_Tuple.treeTupleLevel: Int
+			get() = dispatch { o_TreeTupleLevel(it) }
 
 		/**
 		 * Answer the specified element of the tuple.
@@ -714,9 +728,9 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_TupleAt(it, index) }
 
 		/**
-		 * Answer a new tuple like the receiver but with a single element replaced
-		 * at the specified index.  If the receiver is mutable and canDestroy is
-		 * true, then the receiver may be modified or destroyed.
+		 * Answer a new tuple like the receiver but with a single element
+		 * replaced at the specified index.  If the receiver is mutable and
+		 * canDestroy is true, then the receiver may be modified or destroyed.
 		 *
 		 * @param index
 		 *   The index at which to replace an element.
@@ -726,7 +740,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 *   Whether the receiver can be modified if it's mutable.
 		 * @return
 		 *   A tuple containing the elements that were present in the receiver,
-		 *   except that the element at index has been replaced by newValueObject.
+		 *   except that the element at index has been replaced by
+		 *   newValueObject.
 		 */
 		fun A_Tuple.tupleAtPuttingCanDestroy(
 			index: Int,
@@ -737,9 +752,9 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		}
 
 		/**
-		 * Answer the code point of the character at the given one-based index in
-		 * this tuple.  The tuple doesn't have to be a string, but the requested
-		 * element must be a character.
+		 * Answer the code point of the character at the given one-based index
+		 * in this tuple.  The tuple doesn't have to be a string, but the
+		 * requested element must be a character.
 		 *
 		 * @param index
 		 *   The one-based subscript into this tuple.
@@ -750,8 +765,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 			dispatch { o_TupleCodePointAt(it, index) }
 
 		/**
-		 * Determine whether the specified elements of this tuple each conform to
-		 * the specified [type][TypeDescriptor].
+		 * Determine whether the specified elements of this tuple each conform
+		 * to the specified [type][TypeDescriptor].
 		 *
 		 * @param startIndex
 		 *   The first index to check.
@@ -773,8 +788,8 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 
 		/**
 		 * Answer the specified element of the tuple.  It must be an
-		 * [integer][IntegerDescriptor] in the range [-2^31..2^31), and is returned
-		 * as a Java `int`.
+		 * [integer][IntegerDescriptor] in the range `[-2^31..2^31)`, and is
+		 * returned as a Java `int`.
 		 *
 		 * @param index
 		 *   Which 1-based index to use to subscript the tuple.
@@ -810,7 +825,7 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		 * @return
 		 *   The maximum valid 1-based index for this tuple.
 		 */
-		fun A_Tuple.tupleSize(): Int = dispatch { o_TupleSize(it) }
+		val A_Tuple.tupleSize: Int get() = dispatch { o_TupleSize(it) }
 
 		/**
 		 * As a convenience in Kotlin, allow deconstruction of short tuples.

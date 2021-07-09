@@ -166,14 +166,13 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				wholeNumbers,
 				setTypeForSizesContentType(
 					wholeNumbers, inclusive(0, 9)),
 				setTypeForSizesContentType(
 					wholeNumbers, inclusive(1, 9))),
-			ATOM.o
-		)
+			ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -232,5 +231,8 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 			}
 			arrayOf(PosixFilePermissions.asFileAttribute(permissions))
 		}
-		else { arrayOf() }
+		else
+		{
+			arrayOf()
+		}
 }

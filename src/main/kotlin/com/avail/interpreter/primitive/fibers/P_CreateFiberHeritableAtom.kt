@@ -79,12 +79,11 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 		{
 			module.lock {
 				val trueNames = module.trueNamesForStringName(name)
-				when (trueNames.setSize()) {
+				when (trueNames.setSize) {
 					0 -> {
 						val newName = createAtom(name, module)
 						newName.setAtomProperty(
-							HERITABLE_KEY.atom, trueObject
-						)
+							HERITABLE_KEY.atom, trueObject)
 						module.addPrivateName(newName)
 						trueName.value = newName
 					}
@@ -107,7 +106,7 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), ATOM.o)
+		functionType(tuple(stringType), ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_ATOM_ALREADY_EXISTS, E_AMBIGUOUS_NAME))

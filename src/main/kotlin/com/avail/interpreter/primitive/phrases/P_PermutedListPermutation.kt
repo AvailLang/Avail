@@ -60,7 +60,7 @@ object P_PermutedListPermutation : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val permuted = interpreter.argument(0)
-		return interpreter.primitiveSuccess(permuted.permutation())
+		return interpreter.primitiveSuccess(permuted.permutation)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

@@ -59,9 +59,9 @@ object P_ModuleName : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)
-		return interpreter.primitiveSuccess(module.moduleName())
+		return interpreter.primitiveSuccess(module.moduleName)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(MODULE.o), stringType())
+		functionType(tuple(MODULE.o), stringType)
 }

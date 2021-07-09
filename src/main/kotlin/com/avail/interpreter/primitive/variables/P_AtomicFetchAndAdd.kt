@@ -97,12 +97,9 @@ object P_AtomicFetchAndAdd : Primitive(2, CanInline, HasSideEffect)
 			tuple(
 				variableReadWriteType(
 					extendedIntegers,
-					bottom
-				),
-				extendedIntegers
-			),
-			extendedIntegers
-		)
+					bottom),
+				extendedIntegers),
+			extendedIntegers)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

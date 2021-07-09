@@ -84,8 +84,7 @@ object P_IntegerIntervalTuple : Primitive(3, CanFold, CanInline)
 			tuple(
 				integers,
 				integers,
-				integers
-			),
+				integers),
 			zeroOrMoreOf(integers))
 
 	override fun fallibilityForArgumentTypes(

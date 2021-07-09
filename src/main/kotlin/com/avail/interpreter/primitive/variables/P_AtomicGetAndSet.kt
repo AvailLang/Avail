@@ -71,9 +71,13 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		val newValue = interpreter.argument(1)
 		return try {
 			interpreter.primitiveSuccess(variable.getAndSetValue(newValue))
-		} catch (e: VariableGetException) {
+		}
+		catch (e: VariableGetException)
+		{
 			interpreter.primitiveFailure(e)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -82,10 +86,8 @@ object P_AtomicGetAndSet : Primitive(2, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ANY.o
-			),
-			ANY.o
-		)
+				ANY.o),
+			ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

@@ -96,7 +96,7 @@ object P_BootstrapLexerWholeNumberBody
 	 */
 	private fun countDigits(string: A_String, startPosition: Int): Int
 	{
-		val stringSize = string.tupleSize()
+		val stringSize = string.tupleSize
 		var position = startPosition
 		while (position <= stringSize
 		       && Character.isDigit(string.tupleCodePointAt(position)))

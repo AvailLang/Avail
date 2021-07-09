@@ -81,8 +81,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
-				E_CANNOT_DEFINE_DURING_COMPILATION
-			)
+				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		for (i in function.code().numArgs() downTo 1)
 		{
@@ -95,7 +94,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 		try
 		{
 			val atom = loader.lookupName(string)
-			val method = atom.bundleOrCreate().bundleMethod()
+			val method = atom.bundleOrCreate().bundleMethod
 			val restriction =
 				newSemanticRestriction(function, method, interpreter.module())
 			loader.addSemanticRestriction(restriction)
@@ -120,8 +119,7 @@ object P_AddSemanticRestriction : Primitive(2, Unknown)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType(), functionTypeReturning(topMeta())), TOP.o
-		)
+			tuple(stringType, functionTypeReturning(topMeta())), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

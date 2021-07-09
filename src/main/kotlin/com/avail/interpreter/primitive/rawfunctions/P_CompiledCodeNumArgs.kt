@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -61,6 +62,5 @@ object P_CompiledCodeNumArgs : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
-			wholeNumbers
-		)
+			wholeNumbers)
 }

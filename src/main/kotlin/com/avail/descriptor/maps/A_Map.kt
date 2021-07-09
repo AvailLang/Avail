@@ -92,7 +92,7 @@ interface A_Map : A_BasicObject
 		 * @return
 		 *   The set of keys.
 		 */
-		fun A_Map.keysAsSet(): A_Set = dispatch { o_KeysAsSet(it) }
+		val A_Map.keysAsSet: A_Set get() = dispatch { o_KeysAsSet(it) }
 
 		/**
 		 * Find the key/value pair in this map which has the specified key and
@@ -175,7 +175,8 @@ interface A_Map : A_BasicObject
 		 * @return
 		 *   A [MapIterable].
 		 */
-		fun A_Map.mapIterable(): MapIterable = dispatch { o_MapIterable(it) }
+		val A_Map.mapIterable: MapIterable
+			get() = dispatch { o_MapIterable(it) }
 
 		/**
 		 * Answer the number of key/value pairs in the map.
@@ -183,7 +184,7 @@ interface A_Map : A_BasicObject
 		 * @return
 		 *   The size of the map.
 		 */
-		fun A_Map.mapSize(): Int = dispatch { o_MapSize(it) }
+		val A_Map.mapSize: Int get() = dispatch { o_MapSize(it) }
 
 		/**
 		 * Create a new map like this map, but without the key/value pair having
@@ -213,7 +214,8 @@ interface A_Map : A_BasicObject
 		 * @return
 		 *   The map's values in an arbitrarily ordered tuple.
 		 */
-		fun A_Map.valuesAsTuple(): A_Tuple = dispatch { o_ValuesAsTuple(it) }
+		val A_Map.valuesAsTuple: A_Tuple
+			get() = dispatch { o_ValuesAsTuple(it) }
 
 		/**
 		 * Given an [A_Map], [self], produce a similar map, but with [key]

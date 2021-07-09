@@ -182,7 +182,7 @@ internal class Counter(
 		assert(
 			countLiteral.isInstanceOf(
 				PhraseKind.LITERAL_PHRASE.mostGeneralType()))
-		val count = countLiteral.token().literal().extractInt
+		val count = countLiteral.token.literal().extractInt
 		for (i in 1..count)
 		{
 			if (i > 1)

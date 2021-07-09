@@ -43,7 +43,6 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.interpreter.Primitive
@@ -220,7 +219,7 @@ interface A_RawFunction : A_BasicObject {
 		 */
 		var A_RawFunction.methodName: A_String
 			get() = dispatch { o_MethodName(it) }
-			set(methodName) = dispatch { o_SetMethodName(it, methodName) }
+			set(value) = dispatch { o_SetMethodName(it, value) }
 
 		/**
 		 * Answer the [A_Module] that contains the
@@ -325,19 +324,17 @@ interface A_RawFunction : A_BasicObject {
 			get() = dispatch { o_OriginatingPhrase(it) }
 
 		/**
-		 * Answer either
+		 * Answer/set either
 		 *   1. the [block&#32;phrase][BlockPhraseDescriptor] from which this
 		 *      raw function was constructed,
 		 *   2. the index ([A_Number]) that can fetch and reconstruct the phrase
 		 *      from the repository, or
 		 *   3. [nil] if this information is not available for this raw
 		 *      function.
-		 *
-		 * @return
-		 *   The phrase or nil from which this raw function was created.
 		 */
-		val A_RawFunction.originatingPhraseOrIndex: AvailObject
+		var A_RawFunction.originatingPhraseOrIndex: AvailObject
 			get() = dispatch { o_OriginatingPhraseOrIndex(it) }
+			set(value) = dispatch { o_SetOriginatingPhraseOrIndex(it, value) }
 
 		/**
 		 * Answer the [type][A_Type] of the `index`-th outer variable.
@@ -383,15 +380,6 @@ interface A_RawFunction : A_BasicObject {
 			get() = dispatch { o_ReturnTypeIfPrimitiveFails(it) }
 
 		/**
-		 * Update the raw function's originating phrase, or record an external
-		 * key ([A_Number]) that will allow it to be recovered from a repository
-		 * on demand.
-		 */
-		fun A_RawFunction.setOriginatingPhraseOrIndex(
-			phraseOrIndex: AvailObject
-		) = dispatch { o_SetOriginatingPhraseOrIndex(it, phraseOrIndex) }
-
-		/**
 		 * Set the [chunk][L2Chunk] that implements this [A_RawFunction], and
 		 * the countdown to reoptimization by the [L2Generator].
 		 *
@@ -432,8 +420,8 @@ interface A_RawFunction : A_BasicObject {
 		 * @return
 		 *   The total number of invocations of this function implementation.
 		 */
-		fun A_RawFunction.totalInvocations(): Long =
-			dispatch { o_TotalInvocations(it) }
+		val A_RawFunction.totalInvocations: Long
+			get() = dispatch { o_TotalInvocations(it) }
 
 		/** The [CheckedMethod] for [functionType].  */
 		val functionTypeMethod: CheckedMethod = instanceMethod(

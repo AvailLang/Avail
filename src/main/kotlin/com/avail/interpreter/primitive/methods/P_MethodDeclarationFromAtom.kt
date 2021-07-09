@@ -89,7 +89,7 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
 				function.code().methodName =
-					stringFrom(atom.atomName().toString())
+					stringFrom(atom.atomName.toString())
 				succeed(nil)
 			}
 			catch (e: AvailException)

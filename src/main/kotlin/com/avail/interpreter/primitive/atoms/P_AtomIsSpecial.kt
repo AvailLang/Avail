@@ -60,7 +60,7 @@ object P_AtomIsSpecial : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(atom.isAtomSpecial()))
+			objectFromBoolean(atom.isAtomSpecial))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

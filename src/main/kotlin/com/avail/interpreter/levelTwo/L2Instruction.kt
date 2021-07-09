@@ -444,8 +444,7 @@ class L2Instruction constructor(
 		// Start with the intersection of the incoming manifests.
 		val incomingEdges = basicBlock().predecessorEdges()
 		val manifest = L2ValueManifest.intersectionOfManifests(
-			incomingEdges.map(L2PcOperand::manifest)
-		)
+			incomingEdges.map(L2PcOperand::manifest))
 		// Now record all writes until we reach the instruction.
 		for (instruction in basicBlock().instructions())
 		{

@@ -118,9 +118,8 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 						OPERATOR.atom,
 						COMMENT.atom,
 						WHITESPACE.atom)),
-				stringType(),
+				stringType,
 				inclusive(0L, (1L shl 31) - 1),
 				inclusive(0L, (1L shl 28) - 1)),
-			TOKEN.o
-		)
+			TOKEN.o)
 }

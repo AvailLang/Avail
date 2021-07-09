@@ -226,8 +226,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		{
 			// The elements are the same, so the subranges must be as well.
 			// Coalesce equal tuples as a nicety.
-			if (self.slot(SIZE)
-				== aRepeatedElementTuple.tupleSize())
+			if (self.slot(SIZE) == aRepeatedElementTuple.tupleSize)
 			{
 				// Indirect one to the other if it is not shared.
 				if (!isShared)
@@ -260,7 +259,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			otherTuple.makeImmutable()
 		}
 
-		if (otherTuple.tupleSize() == 0) return self
+		if (otherTuple.tupleSize == 0) return self
 
 		// Assess the possibility that the concatenation will still be a
 		// repeated element tuple.
@@ -295,9 +294,9 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 				return createRepeatedElementTuple(newSize, element)
 			}
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
-			if (otherTuple.tupleSize() == 0)
+			if (otherTuple.tupleSize == 0)
 			{
 				// Trees aren't allowed to have empty subtuples.
 				self
@@ -410,7 +409,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			else if (element.isCharacter)
 			{
 				// Make it a string.
-				val codePoint: Int = element.codePoint()
+				val codePoint: Int = element.codePoint
 				if (codePoint <= 255)
 				{
 					result = generateByteString(size) { codePoint }

@@ -208,7 +208,8 @@ class CompilationContext constructor(
 			field =
 				if (newNoMoreWorkUnits === null)
 					null
-				else {
+				else
+				{
 					{
 					assert(!ran.getAndSet(true)) {
 						"Attempting to invoke the same noMoreWorkUnits twice"
@@ -240,7 +241,7 @@ class CompilationContext constructor(
 	 * compilation.
 	 */
 	internal val moduleName get() =
-		ModuleName(module.moduleName().asNativeString())
+		ModuleName(module.moduleName.asNativeString())
 
 	/** The current number of work units that have been queued. */
 	val workUnitsQueued get() = atomicWorkUnitsQueued.get()
@@ -544,9 +545,8 @@ class CompilationContext constructor(
 			formatString(
 				"Eval fn=%s, in %s:%d",
 				code.methodName,
-				code.module.moduleName(),
-				code.codeStartingLineNumber
-			)
+				code.module.moduleName,
+				code.codeStartingLineNumber)
 		}
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
@@ -704,7 +704,7 @@ class CompilationContext constructor(
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					println(
-						module.moduleName().asNativeString()
+						module.moduleName.asNativeString()
 							+ ':'.toString() + startingLineNumber
 							+ " Summary -- \n"
 							+ L1Decompiler.decompile(summaryFunction.code())
@@ -712,13 +712,14 @@ class CompilationContext constructor(
 				}
 				serializer.serialize(summaryFunction)
 			}
-		} else
+		}
+		else
 		{
 			// Can't summarize; write the original function.
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				println(
-					module.moduleName().asNativeString()
+					module.moduleName.asNativeString()
 						+ ":" + startingLineNumber
 						+ " Unsummarized -- \n" + function)
 			}
@@ -740,7 +741,7 @@ class CompilationContext constructor(
 		if (AvailLoader.debugUnsummarizedStatements)
 		{
 			println(
-				module.moduleName().asNativeString()
+				module.moduleName.asNativeString()
 					+ ":" + function.code().codeStartingLineNumber
 					+ " Forced -- \n" + function)
 		}

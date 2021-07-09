@@ -63,13 +63,15 @@ object P_CreateInitializedVariable : Primitive(2, CanInline, HasSideEffect)
 		val initialValue = interpreter.argument(1)
 
 		val variable = newVariableWithContentType(innerType)
-		return try {
+		try {
 			variable.setValue(initialValue)
-			interpreter.primitiveSuccess(variable)
-		} catch (e: VariableSetException) {
+			return interpreter.primitiveSuccess(variable)
+		}
+		catch (e: VariableSetException)
+		{
 			// The variable is new, so this is the only possible way to fail.
 			assert(e.errorCode == E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
-			interpreter.primitiveFailure(e)
+			return interpreter.primitiveFailure(e)
 		}
 	}
 

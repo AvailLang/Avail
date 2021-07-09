@@ -76,7 +76,7 @@ object P_MethodNameContainsGroups : Primitive(1, CanFold, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), booleanType)
+		functionType(tuple(stringType), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(possibleErrors)

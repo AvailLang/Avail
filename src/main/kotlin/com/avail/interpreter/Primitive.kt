@@ -947,7 +947,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 				== expected)
 			val string = buildString {
 				for (i in 1..expected) {
-					val declaredType = arguments[i - 1].declaredType()
+					val declaredType = arguments[i - 1].declaredType
 					val expectedType = expectedTypes.typeAtIndex(i)
 					if (!declaredType.isSubtypeOf(expectedType))
 					{
@@ -957,7 +957,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 								"argument #%d (%s) of primitive %s to be a " +
 									"subtype of %s, not %s.",
 								i,
-								arguments[i - 1].token().string(),
+								arguments[i - 1].token.string(),
 								primitive.name,
 								expectedType,
 								declaredType))

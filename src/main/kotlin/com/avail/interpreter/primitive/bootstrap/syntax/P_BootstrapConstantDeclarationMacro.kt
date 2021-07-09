@@ -73,14 +73,14 @@ object P_BootstrapConstantDeclarationMacro
 		val constantNameLiteral = interpreter.argument(0)
 		val initializationExpression = interpreter.argument(1)
 
-		val nameToken = constantNameLiteral.token().literal()
+		val nameToken = constantNameLiteral.token.literal()
 		val nameString = nameToken.string()
 		if (nameToken.tokenType() != KEYWORD)
 		{
 			throw AvailRejectedParseException(
 				STRONG, "new constant name to be alphanumeric, not $nameString")
 		}
-		val initializationType = initializationExpression.phraseExpressionType()
+		val initializationType = initializationExpression.phraseExpressionType
 		if (initializationType.isTop || initializationType.isBottom)
 		{
 			throw AvailRejectedParseException(
@@ -99,7 +99,7 @@ object P_BootstrapConstantDeclarationMacro
 				"local constant $nameString to have a name that doesn't "
 				 + "shadow an existing "
 				 + "${conflictingDeclaration.declarationKind().nativeKindName()} "
-				 + "(from line ${conflictingDeclaration.token().lineNumber()})")
+				 + "(from line ${conflictingDeclaration.token.lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(constantDeclaration)
 	}

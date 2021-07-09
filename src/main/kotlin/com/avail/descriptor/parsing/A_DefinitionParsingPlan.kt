@@ -59,8 +59,8 @@ interface A_DefinitionParsingPlan : A_BasicObject {
 		 * @return
 		 *   The bundle to be parsed.
 		 */
-		fun A_DefinitionParsingPlan.bundle(): A_Bundle =
-			dispatch { o_Bundle(it) }
+		val A_DefinitionParsingPlan.bundle: A_Bundle
+			get() = dispatch { o_Bundle(it) }
 
 		/**
 		 * Answer the [definition][A_Definition] that this plan has been
@@ -69,8 +69,8 @@ interface A_DefinitionParsingPlan : A_BasicObject {
 		 * @return
 		 *   The definition whose argument types restrict parsing of the bundle.
 		 */
-		fun A_DefinitionParsingPlan.definition(): A_Definition =
-			dispatch { o_Definition(it) }
+		val A_DefinitionParsingPlan.definition: A_Definition
+			get() = dispatch { o_Definition(it) }
 
 		/**
 		 * Answer a [tuple][TupleDescriptor] of [integers][IntegerDescriptor]
@@ -84,7 +84,7 @@ interface A_DefinitionParsingPlan : A_BasicObject {
 		 * @return
 		 *   A tuple of integers encoding this plan's parsing instructions.
 		 */
-		fun A_DefinitionParsingPlan.parsingInstructions(): A_Tuple =
-			dispatch { o_ParsingInstructions(it) }
+		val A_DefinitionParsingPlan.parsingInstructions: A_Tuple
+			get() = dispatch { o_ParsingInstructions(it) }
 	}
 }

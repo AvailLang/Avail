@@ -380,9 +380,12 @@ interface A_Number : A_BasicObject
 			aNumber: A_Number,
 			canDestroy: Boolean
 		): A_Number =
-			try {
+			try
+			{
 				dispatch { o_PlusCanDestroy(it, aNumber, canDestroy) }
-			} catch (e: ArithmeticException) {
+			}
+			catch (e: ArithmeticException)
+			{
 				// This had better not happen, otherwise the caller has violated
 				// the intention of this method.
 				AvailObject.error("noFailPlusCanDestroy failed!")
@@ -408,9 +411,12 @@ interface A_Number : A_BasicObject
 			aNumber: A_Number,
 			canDestroy: Boolean
 		): A_Number =
-			try {
+			try
+			{
 				dispatch { o_MinusCanDestroy(it, aNumber, canDestroy) }
-			} catch (e: ArithmeticException) {
+			}
+			catch (e: ArithmeticException)
+			{
 				// This had better not happen, otherwise the caller has violated
 				// the intention of this method.
 				AvailObject.error("noFailMinusCanDestroy failed!")
@@ -439,7 +445,9 @@ interface A_Number : A_BasicObject
 			try
 			{
 				dispatch { o_DivideCanDestroy(it, aNumber, canDestroy) }
-			} catch (e: ArithmeticException) {
+			}
+			catch (e: ArithmeticException)
+			{
 				// This had better not happen, otherwise the caller has violated
 				// the intention of this method.
 				AvailObject.error("noFailDivideCanDestroy failed!")
@@ -642,7 +650,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A Kotlin [Double].
 		 */
-		fun A_Number.extractDouble(): Double = dispatch { o_ExtractDouble(it) }
+		val A_Number.extractDouble: Double
+			get() = dispatch { o_ExtractDouble(it) }
 
 		/**
 		 * Extract an unsigned short from the [receiver][AvailObject]. Return it

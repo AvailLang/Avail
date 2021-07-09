@@ -642,8 +642,8 @@ internal class Sequence constructor(
 			// check will catch it if not.
 			phrase.phraseKindIsUnder(LITERAL_PHRASE) -> return true
 		}
-		val subphrases = phrase.expressionsTuple()
-		val subphrasesSize = subphrases.tupleSize()
+		val subphrases = phrase.expressionsTuple
+		val subphrasesSize = subphrases.tupleSize
 		when
 		{
 			subphrasesSize != yielders.size -> return false
@@ -654,7 +654,7 @@ internal class Sequence constructor(
 				if (!phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE))
 					return false
 				// Check that the permutation agrees with what's required.
-				if (permutation != phrase.permutation().toList()) return false
+				if (permutation != phrase.permutation.toList()) return false
 			}
 			else ->
 			{

@@ -195,12 +195,17 @@ object Strings {
 		increasedIndentation: Int
 	): String {
 		assert(increasedIndentation >= 0)
-		return if (increasedIndentation == 0) {
+		return if (increasedIndentation == 0)
+		{
 			originalString
-		} else lineBreakPattern
-			.matcher(originalString)
-			.replaceAll(
-				Matcher.quoteReplacement("\n" + tabs(increasedIndentation)))
+		}
+		else
+		{
+			lineBreakPattern
+				.matcher(originalString)
+				.replaceAll(
+					Matcher.quoteReplacement("\n" + tabs(increasedIndentation)))
+		}
 	}
 
 	/**
@@ -211,13 +216,16 @@ object Strings {
 	 * @return The stringification of the stack trace.
 	 */
 	fun traceFor(e: Throwable): String {
-		return try {
+		return try
+		{
 			val traceBytes = ByteArrayOutputStream()
 			val trace = PrintStream(
 				traceBytes, true, StandardCharsets.UTF_8.name())
 			e.printStackTrace(trace)
 			String(traceBytes.toByteArray(), StandardCharsets.UTF_8)
-		} catch (x: UnsupportedEncodingException) {
+		}
+		catch (x: UnsupportedEncodingException)
+		{
 			assert(false) { "This never happens!" }
 			throw RuntimeException(x)
 		}

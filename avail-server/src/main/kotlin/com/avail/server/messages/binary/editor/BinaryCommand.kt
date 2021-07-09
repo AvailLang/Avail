@@ -148,10 +148,9 @@ enum class BinaryCommand constructor(val id: Int)
 				val description =
 					if (remaining > 0)
 					{
-						val remainder = ByteArray(remaining)
-						String(remainder, Charsets.UTF_8)
+						String(ByteArray(remaining), Charsets.UTF_8)
 					}
-					else { null }
+					else null
 				// TODO any special error handling?
 				ErrorBinaryMessage(commandId, errorCode, false, description)
 					.processThen(channel, continuation)

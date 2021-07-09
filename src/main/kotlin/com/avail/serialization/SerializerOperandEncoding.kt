@@ -269,7 +269,7 @@ internal enum class SerializerOperandEncoding
 
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (element in obj)
 			{
@@ -317,7 +317,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
@@ -346,7 +346,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
@@ -376,7 +376,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			(1..tupleSize).forEach { i ->
 				writeCompressedPositiveInt(obj.tupleCodePointAt(i), serializer)
@@ -403,7 +403,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (element in obj)
 			{
@@ -430,7 +430,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			for (i in 1..tupleSize)
 			{
@@ -456,7 +456,7 @@ internal enum class SerializerOperandEncoding
 	{
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			val tupleSize = obj.tupleSize()
+			val tupleSize = obj.tupleSize
 			writeCompressedPositiveInt(tupleSize, serializer)
 			var i = 1
 			while (i < tupleSize)
@@ -510,7 +510,7 @@ internal enum class SerializerOperandEncoding
 
 		override fun write(obj: AvailObject, serializer: Serializer)
 		{
-			writeCompressedPositiveInt(obj.mapSize(), serializer)
+			writeCompressedPositiveInt(obj.mapSize, serializer)
 			obj.forEach { key, value ->
 				writeCompressedPositiveInt(
 					serializer.compressedObjectIndex(key),

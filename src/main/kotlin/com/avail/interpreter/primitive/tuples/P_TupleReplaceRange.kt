@@ -100,7 +100,7 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		{
 			return interpreter.primitiveFailure(E_NEGATIVE_SIZE)
 		}
-		val originalSize = originalTuple.tupleSize()
+		val originalSize = originalTuple.tupleSize
 		if (endInt > originalSize)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
@@ -109,7 +109,7 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		var result: A_Tuple
 		val sizeToReplace = endInt - startInt + 1
 		if (sizeToReplace < 10
-			&& replacementSubtuple.tupleSize() == sizeToReplace)
+			&& replacementSubtuple.tupleSize == sizeToReplace)
 		{
 			// Replacement is small and tuple won't change size, so do a series
 			// of element replacements.
@@ -132,8 +132,8 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 			result = leftPart
 				.concatenateWith(replacementSubtuple, true)
 				.concatenateWith(rightPart, true)
-			assert(result.tupleSize() ==
-				originalSize - sizeToReplace + replacementSubtuple.tupleSize())
+			assert(result.tupleSize ==
+				originalSize - sizeToReplace + replacementSubtuple.tupleSize)
 		}
 		return interpreter.primitiveSuccess(result)
 	}
@@ -155,16 +155,14 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 				startType.lowerBound.noFailMinusCanDestroy(one, false),
 				startType.lowerInclusive,
 				startType.upperBound.noFailMinusCanDestroy(one, false),
-				startType.upperInclusive
-			))
+				startType.upperInclusive))
 		val rightFallibility = P_ExtractSubtuple.checkFallibility(
 			tupleSizeRange,
 			integerRangeType(
 				endType.lowerBound.noFailPlusCanDestroy(one, false),
 				endType.lowerInclusive,
 				endType.upperBound.noFailPlusCanDestroy(one, false),
-				endType.upperInclusive
-			),
+				endType.upperInclusive),
 			tupleSizeRange)
 		// It's only the extraction of the left and right parts that can fail,
 		// not the concatenation.  If P_ConcatenateTuples introduces a failure
@@ -212,11 +210,11 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
 				wholeNumbers,
-				mostGeneralTupleType()),
-			mostGeneralTupleType())
+				mostGeneralTupleType),
+			mostGeneralTupleType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

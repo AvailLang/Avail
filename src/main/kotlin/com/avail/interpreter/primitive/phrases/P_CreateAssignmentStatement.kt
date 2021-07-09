@@ -79,15 +79,15 @@ object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 		val variable = interpreter.argument(0)
 		val expression = interpreter.argument(1)
 
-		val declaration = variable.declaration()
+		val declaration = variable.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{
 			return interpreter.primitiveFailure(
 				E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT)
 		}
-		if (!expression.phraseExpressionType().isSubtypeOf(
-				variable.phraseExpressionType()))
+		if (!expression.phraseExpressionType.isSubtypeOf(
+				variable.phraseExpressionType))
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)

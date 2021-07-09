@@ -62,7 +62,7 @@ object P_BlockArguments : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val block = interpreter.argument(0)
-		return interpreter.primitiveSuccess(block.argumentsTuple())
+		return interpreter.primitiveSuccess(block.argumentsTuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

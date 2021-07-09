@@ -108,7 +108,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
@@ -166,17 +166,14 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				ATOM.o,
-				nonemptyStringType(),
+				nonemptyStringType,
 				functionType(
 					tuple(ATOM.o),
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

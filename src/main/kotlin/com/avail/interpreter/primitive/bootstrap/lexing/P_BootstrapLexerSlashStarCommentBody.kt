@@ -67,7 +67,7 @@ object P_BootstrapLexerSlashStarCommentBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val startingLineNumber = interpreter.argument(2)
 
-		val sourceSize = source.tupleSize()
+		val sourceSize = source.tupleSize
 		val startPosition = sourcePositionInteger.extractInt
 		var position = startPosition + 1
 

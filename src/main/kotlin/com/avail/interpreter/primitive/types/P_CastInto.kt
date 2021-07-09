@@ -99,8 +99,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 					tuple(
 						bottom),
 					TOP.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))

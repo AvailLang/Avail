@@ -361,8 +361,7 @@ class ArithmeticTest
 		{
 			Assertions.assertEquals(
 				java.lang.Float.isNaN(a),
-				java.lang.Float.isNaN(b)
-			)
+				java.lang.Float.isNaN(b))
 			if (!java.lang.Float.isNaN(a))
 			{
 				if (java.lang.Float.floatToRawIntBits(a) != java
@@ -458,8 +457,7 @@ class ArithmeticTest
 		 * Perturbations of bases used for testing shifts.
 		 */
 		val baseOffsetsForShifting = intArrayOf(
-			-2, -1, 0, 1, 2
-		)
+			-2, -1, 0, 1, 2)
 
 		/**
 		 * Shift amounts. Negatives of these are also tested.
@@ -473,8 +471,7 @@ class ArithmeticTest
 			50,
 			60, 61, 62, 63, 64, 65, 66,
 			94, 95, 96, 97, 98, 99,
-			1000
-		)
+			1000)
 
 		/**
 		 * Check that the [bit shift][A_Number.bitShift] operation defined in

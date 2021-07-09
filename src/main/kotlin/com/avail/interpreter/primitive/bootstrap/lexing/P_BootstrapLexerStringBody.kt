@@ -250,7 +250,7 @@ object P_BootstrapLexerStringBody
 		private val source: A_String, var position: Int, var lineNumber: Int)
 	{
 		/** The number of characters in the module source.  */
-		private val sourceSize: Int = source.tupleSize()
+		private val sourceSize: Int = source.tupleSize
 
 		/**
 		 * Whether there are any more codepoints available.
@@ -333,16 +333,14 @@ object P_BootstrapLexerStringBody
 				{
 					throw AvailRejectedParseException(
 						STRONG,
-						"a hex digit or comma or closing parenthesis"
-					)
+						"a hex digit or comma or closing parenthesis")
 				}
 				if (digitCount > 6)
 				{
 					throw AvailRejectedParseException(
 						STRONG,
 						"at most six hex digits per comma-separated Unicode "
-							+ "entry"
-					)
+							+ "entry")
 				}
 				c = scanner.next()
 			}
@@ -352,15 +350,13 @@ object P_BootstrapLexerStringBody
 					STRONG,
 					"a comma-separated list of Unicode code"
 						+ " points, each being one to six (upper case)"
-						+ " hexadecimal digits"
-				)
+						+ " hexadecimal digits")
 			}
 			if (value > CharacterDescriptor.maxCodePointInt)
 			{
 				throw AvailRejectedParseException(
 					STRONG,
-					"A valid Unicode code point, which must be <= U+10FFFF"
-				)
+					"A valid Unicode code point, which must be <= U+10FFFF")
 			}
 			stringBuilder.appendCodePoint(value)
 			if (c == ','.code)

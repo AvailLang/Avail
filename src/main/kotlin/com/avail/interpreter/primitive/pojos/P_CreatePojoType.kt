@@ -65,11 +65,14 @@ object P_CreatePojoType : Primitive(2, CanFold, CanInline)
 		val className = interpreter.argument(0)
 		val classParameters = interpreter.argument(1)
 
-		return try {
+		return try
+		{
 			val pojoType =
 				interpreter.runtime.lookupJavaType(className, classParameters)
 			interpreter.primitiveSuccess(canonicalPojoType(pojoType, true))
-		} catch (e: AvailRuntimeException) {
+		}
+		catch (e: AvailRuntimeException)
+		{
 			interpreter.primitiveFailure(e.numericCode)
 		}
 	}
@@ -77,7 +80,7 @@ object P_CreatePojoType : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				zeroOrMoreOf(anyMeta())),
 			anyMeta())
 

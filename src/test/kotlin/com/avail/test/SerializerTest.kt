@@ -419,8 +419,7 @@ class SerializerTest
 									map = map.mapAtPuttingCanDestroy(
 										members[i],
 										members[i + 1],
-										true
-									)
+										true)
 									i += 2
 								}
 								map

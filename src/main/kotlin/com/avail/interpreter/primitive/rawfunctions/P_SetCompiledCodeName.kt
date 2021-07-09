@@ -78,7 +78,6 @@ object P_SetCompiledCodeName : Primitive(
 		functionType(
 			tuple(
 				mostGeneralCompiledCodeType(),
-				nonemptyStringType()),
-			Types.TOP.o
-		)
+				nonemptyStringType),
+			Types.TOP.o)
 }

@@ -391,7 +391,7 @@ open class VariableSharedDescriptor protected constructor(
 			{
 				// Just check the new size, new key, and new value.
 				if (!writeType.sizeRange.rangeIncludesLong(
-						newMap.mapSize().toLong())
+						newMap.mapSize.toLong())
 					|| !key.isInstanceOf(writeType.keyType)
 					|| !value.isInstanceOf(writeType.valueType))
 				{
@@ -431,7 +431,7 @@ open class VariableSharedDescriptor protected constructor(
 				// We only have to check the size, since we didn't add any new
 				// information to the map, other than to potentially shrink it.
 				if (!writeType.sizeRange.rangeIncludesLong(
-						newMap.mapSize().toLong()))
+						newMap.mapSize.toLong()))
 				{
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)

@@ -66,11 +66,14 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 	{
 		interpreter.checkArgumentCount(1)
 		val variable = interpreter.argument(0)
-		return try {
+		return try
+		{
 			val valueObject = variable.getValue()
 			variable.clearValue()
 			interpreter.primitiveSuccess(valueObject)
-		} catch (e: VariableGetException) {
+		}
+		catch (e: VariableGetException)
+		{
 			interpreter.primitiveFailure(e.numericCode)
 		}
 }
@@ -79,8 +82,7 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType()),
-			ANY.o
-		)
+			ANY.o)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

@@ -215,7 +215,7 @@ class InfinityDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() + sign.limitDouble(),
+		doubleObject.extractDouble + sign.limitDouble(),
 		doubleObject,
 		canDestroy)
 
@@ -245,7 +245,7 @@ class InfinityDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() / sign.limitDouble(),
+		doubleObject.extractDouble / sign.limitDouble(),
 		doubleObject,
 		canDestroy)
 
@@ -285,7 +285,7 @@ class InfinityDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() * sign.limitDouble(),
+		doubleObject.extractDouble * sign.limitDouble(),
 		doubleObject,
 		canDestroy)
 
@@ -324,7 +324,7 @@ class InfinityDescriptor private constructor(
 		doubleObject: A_Number,
 		canDestroy: Boolean
 	): A_Number = fromDoubleRecycling(
-		doubleObject.extractDouble() - sign.limitDouble(),
+		doubleObject.extractDouble - sign.limitDouble(),
 		doubleObject,
 		canDestroy)
 

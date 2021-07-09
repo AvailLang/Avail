@@ -203,7 +203,7 @@ interface A_Module : A_BasicObject
 		 * @return
 		 *   The set of all ancestors of this module, including itself.
 		 */
-		fun A_Module.allAncestors(): A_Set = dispatch { o_AllAncestors(it) }
+		val A_Module.allAncestors: A_Set get() = dispatch { o_AllAncestors(it) }
 
 		/**
 		 * Determine if the given module is equal to or an ancestor of the
@@ -227,8 +227,8 @@ interface A_Module : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.constantBindings(): A_Map =
-			dispatch { o_ConstantBindings(it) }
+		val A_Module.constantBindings: A_Map
+			get() = dispatch { o_ConstantBindings(it) }
 
 		/**
 		 * Create and answer a [LexicalScanner] containing all lexers that are in
@@ -243,8 +243,7 @@ interface A_Module : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.entryPoints(): A_Map =
-			dispatch { o_EntryPoints(it) }
+		val A_Module.entryPoints: A_Map get() = dispatch { o_EntryPoints(it) }
 
 		/**
 		 * Answer the [set][A_Set] of all [names][A_Atom] exported by this module.
@@ -252,12 +251,14 @@ interface A_Module : A_BasicObject
 		 * @return
 		 *   The set of exported names.
 		 */
-		fun A_Module.exportedNames(): A_Set = dispatch { o_ExportedNames(it) }
+		val A_Module.exportedNames: A_Set
+			get() = dispatch { o_ExportedNames(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.importedNames(): A_Map = dispatch { o_ImportedNames(it) }
+		val A_Module.importedNames: A_Map
+			get() = dispatch { o_ImportedNames(it) }
 
 		/**
 		 * Introduce a new atom into this module.
@@ -274,8 +275,8 @@ interface A_Module : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.methodDefinitions(): A_Set =
-			dispatch { o_MethodDefinitions(it) }
+		val A_Module.methodDefinitions: A_Set
+			get() = dispatch { o_MethodDefinitions(it) }
 
 		/**
 		 * Add a [definition][A_Definition] to this module.
@@ -332,7 +333,7 @@ interface A_Module : A_BasicObject
 		 * @return
 		 *   A [string][StringDescriptor] naming this module.
 		 */
-		fun A_Module.moduleName(): A_String = dispatch { o_ModuleName(it) }
+		val A_Module.moduleName: A_String get() = dispatch { o_ModuleName(it) }
 
 		/**
 		 * Answer a [map][A_Map] from [strings][A_String] to [atoms][A_Atom].
@@ -343,12 +344,12 @@ interface A_Module : A_BasicObject
 		 * @return
 		 *   The map of new names.
 		 */
-		fun A_Module.newNames(): A_Map = dispatch { o_NewNames(it) }
+		val A_Module.newNames: A_Map get() = dispatch { o_NewNames(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.privateNames(): A_Map = dispatch { o_PrivateNames(it) }
+		val A_Module.privateNames: A_Map get() = dispatch { o_PrivateNames(it) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -371,8 +372,8 @@ interface A_Module : A_BasicObject
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.variableBindings(): A_Map =
-			dispatch { o_VariableBindings(it) }
+		val A_Module.variableBindings: A_Map
+			get() = dispatch { o_VariableBindings(it) }
 
 		/**
 		 * Answer the [set][SetDescriptor] of acceptable version
@@ -382,12 +383,12 @@ interface A_Module : A_BasicObject
 		 * @return
 		 *   This module's set of acceptable version strings.
 		 */
-		fun A_Module.versions(): A_Set = dispatch { o_Versions(it) }
+		val A_Module.versions: A_Set get() = dispatch { o_Versions(it) }
 
 		/**
 		 * Dispatch to the descriptor.
 		 */
-		fun A_Module.visibleNames(): A_Set = dispatch { o_VisibleNames(it) }
+		val A_Module.visibleNames: A_Set get() = dispatch { o_VisibleNames(it) }
 
 		/**
 		 * Add the given [A_Bundle] to this module.  It will be removed from its
@@ -447,13 +448,8 @@ interface A_Module : A_BasicObject
 		 * indicates whether the module is loading, unloading, or in a stable
 		 * state.
 		 */
-		fun A_Module.moduleState() = dispatch { o_ModuleState(it) }
-
-		/**
-		 * Set the [state][ModuleDescriptor.State] of the module.  State changes
-		 * are restricted by the state enum's directed graph of successors.
-		 */
-		fun A_Module.setModuleState(newState: ModuleDescriptor.State) =
-			dispatch { o_SetModuleState(it, newState) }
+		var A_Module.moduleState
+			get() = dispatch { o_ModuleState(it) }
+			set(value) = dispatch { o_SetModuleState(it, value) }
 	}
 }

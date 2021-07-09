@@ -43,7 +43,6 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.LayoutConfiguration.Companion.basePreferences
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString

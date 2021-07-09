@@ -81,19 +81,19 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		if (oldAtom.isAtomSpecial() || newAtom.isAtomSpecial())
+		if (oldAtom.isAtomSpecial || newAtom.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 
-		val oldBundle = oldAtom.bundleOrNil()
+		val oldBundle = oldAtom.bundleOrNil
 		if (oldBundle.isNil)
 			return interpreter.primitiveSuccess(nil)
 
 		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
-				for (macro in oldBundle.macrosTuple())
+				for (macro in oldBundle.macrosTuple)
 				{
 					loader.addMacroBody(
 						newAtom,

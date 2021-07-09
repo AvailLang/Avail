@@ -364,8 +364,9 @@ class L1InstructionWriter constructor(
 		val size = stream.size()
 		val byteArray = stream.toByteArray()
 		val nybbles = generateNybbleTupleFrom(size) {
-			assert(byteArray[it-1].toInt() < 16)
-			byteArray[it-1].toInt()
+			val nybble = byteArray[it - 1].toInt()
+			assert(nybble < 16)
+			nybble
 		}
 		nybbles.makeImmutable()
 		return nybbles
@@ -390,13 +391,13 @@ class L1InstructionWriter constructor(
 		val declarations = mutableListOf<A_Phrase>()
 		if (phrase.notNil)
 		{
-			declarations.addAll(phrase.argumentsTuple())
+			declarations.addAll(phrase.argumentsTuple)
 			declarations.addAll(locals(phrase))
 			declarations.addAll(constants(phrase))
 		}
 		val packedDeclarationNames = declarations.joinToString(",") {
 			// Quote-escape any name that contains a comma (,) or quote (").
-			val name = it.token().string().asNativeString()
+			val name = it.token.string().asNativeString()
 			if (name.contains(',') || name.contains('\"'))
 				stringFrom(name).toString()
 			else name

@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.primitive.methods
 
+import com.avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
@@ -57,7 +58,7 @@ object P_Seals : Primitive(1, CanInline, CannotFail)
 	{
 		interpreter.checkArgumentCount(1)
 		val method = interpreter.argument(0)
-		return interpreter.primitiveSuccess(method.sealedArgumentsTypesTuple())
+		return interpreter.primitiveSuccess(method.sealedArgumentsTypesTuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

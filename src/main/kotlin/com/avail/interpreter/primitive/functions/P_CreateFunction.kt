@@ -65,7 +65,7 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 		val rawFunction = interpreter.argument(0)
 		val outers = interpreter.argument(1)
 		val numOuters = rawFunction.numOuters
-		if (outers.tupleSize() != numOuters)
+		if (outers.tupleSize != numOuters)
 		{
 			return interpreter.primitiveFailure(E_WRONG_OUTERS)
 		}
@@ -84,7 +84,7 @@ object P_CreateFunction : Primitive(2, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralCompiledCodeType(), mostGeneralTupleType()),
+			tuple(mostGeneralCompiledCodeType(), mostGeneralTupleType),
 			mostGeneralFunctionType())
 
 	override fun privateFailureVariableType(): A_Type =

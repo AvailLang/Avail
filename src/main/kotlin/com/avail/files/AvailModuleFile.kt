@@ -58,7 +58,7 @@ internal class AvailModuleFile : AbstractAvailTextFile
 	override val rawContent: ByteArray get() =
 		content.asNativeString().toByteArray(StandardCharsets.UTF_16BE)
 
-	override fun getSaveableContent(): ByteArray =
+	override fun getSavableContent(): ByteArray =
 		content.asNativeString().toByteArray(StandardCharsets.UTF_8)
 
 	/**
@@ -157,7 +157,7 @@ internal class AvailModuleFile : AbstractAvailTextFile
 
 	override fun replaceFile(
 		data: ByteArray, timestamp: Long, originator: UUID): TracedAction =
-			editRange(data, 0, content.tupleSize(), originator = originator)
+			editRange(data, 0, content.tupleSize, originator = originator)
 
 	/**
 	 * Insert the [ByteArray] data into the file at the specified location. This
@@ -211,7 +211,7 @@ internal class AvailModuleFile : AbstractAvailTextFile
 		// As stated above, must add 1 to end to keep from preserving the last
 		// character marked for removal.
 		val third = content.copyStringFromToCanDestroy(
-			end + 1, content.tupleSize(), false)
+			end + 1, content.tupleSize, false)
 
 		content = A_Tuple.concatenate(
 			A_Tuple.concatenate(first, text, false), third, false)
@@ -224,6 +224,6 @@ internal class AvailModuleFile : AbstractAvailTextFile
 			EditRange(
 				removed.asNativeString().toByteArray(Charsets.UTF_16BE),
 				start,
-				start + text.tupleSize()))
+				start + text.tupleSize))
 	}
 }

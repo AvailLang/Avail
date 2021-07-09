@@ -176,7 +176,7 @@ abstract class PhraseDescriptor protected constructor(
 		codeGenerator: AvailCodeGenerator)
 
 	/**
-	 * [phrases][A_Phrase] compare with [A_Phrase.equalsPhrase].
+	 * [Phrases][A_Phrase] compare with [A_Phrase.equalsPhrase].
 	 *
 	 * @param self
 	 *   The phrase.
@@ -236,14 +236,14 @@ abstract class PhraseDescriptor protected constructor(
 		PARSE_PHRASE.mostGeneralType().isSubtypeOf(aType) -> true
 		!aType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()) -> false
 		!self.phraseKindIsUnder(aType.phraseKind) -> false
-		else -> self.phraseExpressionType().isSubtypeOf(
+		else -> self.phraseExpressionType.isSubtypeOf(
 			aType.phraseTypeExpressionType)
 	}
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean = false
 
 	override fun o_Kind(self: AvailObject): A_Type =
-		self.phraseKind.create(self.phraseExpressionType())
+		self.phraseKind.create(self.phraseExpressionType)
 
 	/**
 	 * None of the subclasses define an immutable descriptor, so make the
@@ -348,17 +348,19 @@ abstract class PhraseDescriptor protected constructor(
 			{
 				val statement = flat[i]
 				assert(!statement.phraseKindIsUnder(SEQUENCE_PHRASE))
-				val valid: Boolean
-				valid = if (i + 1 < statementCount)
+				val valid: Boolean = when
 				{
-					((statement.phraseKindIsUnder(STATEMENT_PHRASE)
-						||statement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
-						|| statement.phraseKindIsUnder(SEND_PHRASE))
-						&& statement.phraseExpressionType().isTop)
-				}
-				else
-				{
-					statement.phraseExpressionType().isSubtypeOf(resultType)
+					i >= statementCount - 1 ->
+					{
+						statement.phraseExpressionType.isSubtypeOf(resultType)
+					}
+					else ->
+					{
+						((statement.phraseKindIsUnder(STATEMENT_PHRASE)
+							||statement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
+							|| statement.phraseKindIsUnder(SEND_PHRASE))
+							&& statement.phraseExpressionType.isTop)
+					}
 				}
 				if (!valid)
 				{

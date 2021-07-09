@@ -65,13 +65,13 @@ object P_HasNewName : Primitive(
 		interpreter.checkArgumentCount(2)
 		val (module, nameString) = interpreter.argsBuffer
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(module.newNames().hasKey(nameString)))
+			objectFromBoolean(module.newNames.hasKey(nameString)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				MODULE.o,
-				stringType()),
+				stringType),
 			booleanType)
 }

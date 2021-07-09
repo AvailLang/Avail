@@ -65,7 +65,7 @@ object P_CreateReferenceExpression : Primitive(1, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val variableUse = interpreter.argument(0)
 
-		val declaration = variableUse.declaration()
+		val declaration = variableUse.declaration
 		if (!declaration.phraseKindIsUnder(MODULE_VARIABLE_PHRASE)
 			&& !declaration.phraseKindIsUnder(LOCAL_VARIABLE_PHRASE))
 		{

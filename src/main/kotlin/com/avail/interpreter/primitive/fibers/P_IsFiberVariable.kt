@@ -64,18 +64,18 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val key = interpreter.argument(0)
-		if (key.isAtomSpecial())
+		if (key.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		val fiber = interpreter.fiber()
 		// Choose the correct map based on the heritability of the key.
-		val globals =
-			if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
-			{
+		val globals = when
+		{
+			key.getAtomProperty(HERITABLE_KEY.atom).isNil ->
 				fiber.fiberGlobals()
-			}
-		else { fiber.heritableFiberGlobals() }
+			else -> fiber.heritableFiberGlobals()
+		}
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(globals.hasKey(key)))
 	}

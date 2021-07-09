@@ -99,8 +99,8 @@ enum class ParsingConversionRule constructor(val number: Int)
 			continuation: (A_Phrase) -> Unit,
 			onProblem: (Throwable) -> Unit)
 		{
-			val expressions = input.expressionsTuple()
-			val count = fromInt(expressions.tupleSize())
+			val expressions = input.expressionsTuple
+			val count = fromInt(expressions.tupleSize)
 			val token = literalToken(
 				stringFrom(count.toString()),
 				lexingState.position,

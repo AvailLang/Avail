@@ -85,7 +85,7 @@ object P_ForkOrphan : Primitive(
 		val (function, argTuple, priority) = interpreter.argsBuffer
 
 		// Ensure that the function is callable with the specified arguments.
-		val numArgs = argTuple.tupleSize()
+		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
@@ -108,7 +108,7 @@ object P_ForkOrphan : Primitive(
 				"Fork orphan, %s, %s:%d",
 				code.methodName,
 				if (code.module.isNil) emptyTuple
-				else code.module.moduleName(),
+				else code.module.moduleName,
 				code.codeStartingLineNumber)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
@@ -128,11 +128,9 @@ object P_ForkOrphan : Primitive(
 		functionType(
 			tuple(
 				functionTypeReturning(TOP.o),
-				mostGeneralTupleType(),
-				bytes
-			),
-			TOP.o
-		)
+				mostGeneralTupleType,
+				bytes),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

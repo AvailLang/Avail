@@ -118,7 +118,7 @@ internal constructor(private val finalResult: Result)
 		if (finalResult.isTuple)
 		{
 			val finalTuple = finalResult as A_Tuple
-			val tupleSize = finalTuple.tupleSize()
+			val tupleSize = finalTuple.tupleSize
 			return if (tupleSize == 1)
 			{
 				// Assume for now that it's a tuple of definitions.

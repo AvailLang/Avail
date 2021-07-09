@@ -88,7 +88,7 @@ object P_SocketIPv6Bind : Primitive(3, CanInline, HasSideEffect)
 		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
@@ -132,12 +132,9 @@ object P_SocketIPv6Bind : Primitive(3, CanInline, HasSideEffect)
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(16),
 					emptyTuple,
-					bytes
-				),
-				unsignedShorts
-			),
-			TOP.o
-		)
+					bytes),
+				unsignedShorts),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -85,7 +85,8 @@ interface A_SetBin : A_BasicObject
 				it, elementObject, elementObjectHash, myLevel, canDestroy)
 		}
 
-		fun A_SetBin.binUnionKind(): A_Type = dispatch { o_BinUnionKind(it) }
+		val A_SetBin.binUnionKind: A_Type
+			get() = dispatch { o_BinUnionKind(it) }
 
 		fun A_SetBin.isBinSubsetOf(potentialSuperset: A_Set): Boolean =
 			dispatch { o_IsBinSubsetOf(it, potentialSuperset) }
@@ -102,11 +103,11 @@ interface A_SetBin : A_BasicObject
 				it, elementObject, elementObjectHash, myLevel, canDestroy)
 		}
 
-		fun A_SetBin.setBinHash(): Int = dispatch { o_SetBinHash(it) }
+		val A_SetBin.setBinHash: Int get() = dispatch { o_SetBinHash(it) }
 
-		fun A_SetBin.setBinIterator(): SetDescriptor.SetIterator =
-			dispatch { o_SetBinIterator(it) }
+		val A_SetBin.setBinIterator: SetDescriptor.SetIterator
+			get() = dispatch { o_SetBinIterator(it) }
 
-		fun A_SetBin.setBinSize(): Int = dispatch { o_SetBinSize(it) }
+		val A_SetBin.setBinSize: Int get() = dispatch { o_SetBinSize(it) }
 	}
 }

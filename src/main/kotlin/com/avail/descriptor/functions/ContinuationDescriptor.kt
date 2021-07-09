@@ -242,8 +242,8 @@ class ContinuationDescriptor private constructor(
 	override fun o_AdjustPcAndStackp(
 		self: AvailObject,
 		pc: Int,
-		stackp: Int
-	) {
+		stackp: Int)
+	{
 		assert(isMutable)
 		self.setSlot(PROGRAM_COUNTER, pc)
 		self.setSlot(STACK_POINTER, stackp)
@@ -256,7 +256,8 @@ class ContinuationDescriptor private constructor(
 		self: AvailObject,
 		index: Int,
 		value: AvailObject
-	): AvailObject {
+	): AvailObject
+	{
 		self.setSlot(FRAME_AT_, index, value)
 		return self
 	}
@@ -299,7 +300,7 @@ class ContinuationDescriptor private constructor(
 		val declarationNames = code.declarationNames
 		for (i in 1..self.numSlots())
 		{
-			var name = if (i <= declarationNames.tupleSize())
+			var name = if (i <= declarationNames.tupleSize)
 			{
 				val declName = declarationNames.tupleAt(i).asNativeString()
 				"FRAME[$i: $declName]"
@@ -318,7 +319,7 @@ class ContinuationDescriptor private constructor(
 		}
 		val moduleName = code.module.run {
 			if (isNil) "No module"
-			else moduleName().asNativeString().split("/").last()
+			else moduleName.asNativeString().split("/").last()
 		}
 
 		// Figure out the pc of the instruction before the current one, since
@@ -430,14 +431,16 @@ class ContinuationDescriptor private constructor(
 	override fun o_LevelTwoChunkOffset(
 		self: AvailObject,
 		chunk: L2Chunk,
-		offset: Int
-	) {
+		offset: Int)
+	{
 		if (isShared) {
 			synchronized(self) {
 				self.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo)
 				self.setSlot(LEVEL_TWO_OFFSET, offset)
 			}
-		} else {
+		}
+		else
+		{
 			self.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo)
 			self.setSlot(LEVEL_TWO_OFFSET, offset)
 		}
@@ -467,9 +470,10 @@ class ContinuationDescriptor private constructor(
 			if (module.isNil)
 			{
 				append("?")
-			} else
+			}
+			else
 			{
-				val name = module.moduleName().asNativeString()
+				val name = module.moduleName.asNativeString()
 				append(name.split("/").last())
 			}
 			append(":")
@@ -497,7 +501,8 @@ class ContinuationDescriptor private constructor(
 	override fun o_ReplacingCaller(
 		self: AvailObject,
 		newCaller: A_Continuation
-	): A_Continuation {
+	): A_Continuation
+	{
 		val mutableVersion =
 			if (isMutable) self
 			else newLike(mutable, self, 0, 0)
@@ -557,7 +562,8 @@ class ContinuationDescriptor private constructor(
 			startingChunk: L2Chunk,
 			startingOffset: Int,
 			args: List<AvailObject>
-		): A_Continuation {
+		): A_Continuation
+		{
 			val code = function.code()
 			assert(code.codePrimitive() === null)
 			val frameSize = code.numSlots
@@ -614,7 +620,8 @@ class ContinuationDescriptor private constructor(
 			stackp: Int,
 			levelTwoChunk: L2Chunk,
 			levelTwoOffset: Int
-		): AvailObject {
+		): AvailObject
+		{
 			val frameSize = function.code().numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
@@ -790,8 +797,8 @@ class ContinuationDescriptor private constructor(
 			runtime: AvailRuntime,
 			textInterface: TextInterface,
 			availContinuation: A_Continuation,
-			action: (List<String>) -> Unit
-		) {
+			action: (List<String>) -> Unit)
+		{
 			val frames = mutableListOf<A_Continuation>()
 			var c = availContinuation
 			while (c.notNil) {
@@ -825,7 +832,7 @@ class ContinuationDescriptor private constructor(
 						code.methodName.asNativeString(),
 						signature,
 						if (module.isNil) "?"
-						else module.moduleName().asNativeString(),
+						else module.moduleName.asNativeString(),
 						frame.currentLineNumber())
 				}
 				assert (allTypesIndex == allTypeNames.size)

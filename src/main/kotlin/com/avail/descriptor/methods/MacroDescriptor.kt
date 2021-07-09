@@ -36,6 +36,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.bundles.A_Bundle.Companion.numArgs
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor.Companion.builtInNoModuleName
@@ -146,8 +147,10 @@ class MacroDescriptor private constructor(
 		val module: A_Module = self.slot(MODULE)
 		return if (module.isNil) {
 			builtInNoModuleName
-		} else {
-			module.moduleName()
+		}
+		else
+		{
+			module.moduleName
 		}
 	}
 
@@ -177,7 +180,7 @@ class MacroDescriptor private constructor(
 		val sizes = argsTupleType.sizeRange
 		assert(sizes.lowerBound.extractInt
 			== sizes.upperBound.extractInt)
-		assert(sizes.lowerBound.extractInt == self.slot(BUNDLE).numArgs())
+		assert(sizes.lowerBound.extractInt == self.slot(BUNDLE).numArgs)
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
 		return ListPhraseTypeDescriptor.createListNodeType(
 			PhraseKind.LIST_PHRASE,
@@ -197,7 +200,7 @@ class MacroDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("macro definition") }
 			at("definition method") {
-				self.definitionBundle().message().atomName().writeTo(writer)
+				self.definitionBundle().message.atomName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -212,7 +215,7 @@ class MacroDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("macro definition") }
 			at("definition method") {
-				self.definitionBundle().message().atomName().writeTo(writer)
+				self.definitionBundle().message.atomName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)

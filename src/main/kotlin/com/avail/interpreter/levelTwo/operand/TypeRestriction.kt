@@ -402,8 +402,7 @@ class TypeRestriction private constructor(
 				constantOrNull ?: other.constantOrNull,
 				excludedTypes + other.excludedTypes,
 				excludedValues + other.excludedValues,
-				flags or other.flags
-			)
+				flags or other.flags)
 		}
 
 	/**

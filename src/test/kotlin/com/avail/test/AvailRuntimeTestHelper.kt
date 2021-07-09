@@ -161,13 +161,11 @@ class AvailRuntimeTestHelper
 	{
 		val b = AvailBuilder(runtime)
 		val errorChannel = TestErrorChannel(
-			b.textInterface.errorChannel
-		)
+			b.textInterface.errorChannel)
 		b.textInterface = TextInterface(
 			b.textInterface.inputChannel,
 			b.textInterface.outputChannel,
-			errorChannel
-		)
+			errorChannel)
 		return b
 	}
 
@@ -177,8 +175,7 @@ class AvailRuntimeTestHelper
 	fun clearAllRepositories()
 	{
 		resolver.moduleRoots.roots.forEach(
-			Consumer { obj: ModuleRoot -> obj.clearRepository() }
-		)
+			Consumer { obj: ModuleRoot -> obj.clearRepository() })
 	}
 
 	/**
@@ -273,15 +270,13 @@ class AvailRuntimeTestHelper
 		if (len > maxModuleNameLength)
 		{
 			modName = "…" + modName.substring(
-				len - maxModuleNameLength + 1, len
-			)
+				len - maxModuleNameLength + 1, len)
 		}
 		val status = String.format(
 			"%s  |  \u001b[34m%-${maxModuleNameLength}s\u001b[0m - %3d%%",
 			globalStatus,
 			modName,
-			percent
-		)
+			percent)
 		if (System.console() !== null)
 		{
 			val statusLength = status.length
@@ -289,8 +284,7 @@ class AvailRuntimeTestHelper
 			else String.format(
 				"%s\u001b[%dD\u001b[K",
 				status,
-				statusLength
-			)
+				statusLength)
 			print(finalStatus)
 		}
 		else
@@ -324,8 +318,7 @@ class AvailRuntimeTestHelper
 			{ moduleBytes: Long, totalBytes: Long ->
 				globalTrack(moduleBytes, totalBytes)
 			},
-			builder.buildProblemHandler
-		)
+			builder.buildProblemHandler)
 		builder.checkStableInvariants()
 		return builder.getLoadedModule(library) !== null
 	}

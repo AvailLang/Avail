@@ -165,8 +165,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		return (superFunctionType.returnType.isSubtypeOf(
 				subFunctionType.returnType)
 			&& superFunctionType.argsTupleType.isSubtypeOf(
-				subFunctionType.argsTupleType
-		))
+				subFunctionType.argsTupleType))
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =

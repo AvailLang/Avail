@@ -190,8 +190,7 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_SetValue(
 		self: AvailObject,
-		newValue: A_BasicObject
-	)
+		newValue: A_BasicObject)
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
@@ -210,8 +209,7 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
-		newValue: A_BasicObject
-	)
+		newValue: A_BasicObject)
 	{
 		// Actually check this write anyhow. Just in case.
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()

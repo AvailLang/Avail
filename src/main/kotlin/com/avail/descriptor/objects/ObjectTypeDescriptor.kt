@@ -39,6 +39,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
@@ -52,6 +53,10 @@ import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
+import com.avail.descriptor.objects.ObjectDescriptor.Companion.setField
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
@@ -81,8 +86,10 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.component2
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -93,9 +100,13 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfObjectType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
@@ -175,8 +186,9 @@ class ObjectTypeDescriptor internal constructor(
 	) = with(builder) {
 		val myFieldTypeMap = self.fieldTypeMap
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self)
-		when {
-			names.setSize() == 0 -> append("object")
+		when (names.setSize)
+		{
+			0 -> append("object")
 			else -> append(
 				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
 		}
@@ -197,7 +209,7 @@ class ObjectTypeDescriptor internal constructor(
 				append(if (first) " with:" else ",")
 				first = false
 				newlineTab(builder, indent)
-				append(key.atomName().asNativeString())
+				append(key.atomName.asNativeString())
 				append(" : ")
 				type.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 			}
@@ -219,7 +231,7 @@ class ObjectTypeDescriptor internal constructor(
 					AvailObjectFieldHelper(
 						self,
 						DebuggerObjectSlots(
-							"FIELD TYPE ${fieldKey.atomName()}"),
+							"FIELD TYPE ${fieldKey.atomName}"),
 						-1,
 						self.slot(FIELD_TYPES_, index)))
 			}
@@ -588,7 +600,7 @@ class ObjectTypeDescriptor internal constructor(
 		writer.writeObject {
 			at("kind") { write("object type") }
 			self.fieldTypeMap.forEach { key, value ->
-				key.atomName().writeTo(writer)
+				key.atomName.writeTo(writer)
 				value.writeTo(writer)
 			}
 		}
@@ -597,7 +609,7 @@ class ObjectTypeDescriptor internal constructor(
 		writer.writeObject {
 			at("kind") { write("object type") }
 			self.fieldTypeMap.forEach { key, value ->
-				key.atomName().writeTo(writer)
+				key.atomName.writeTo(writer)
 				value.writeSummaryTo(writer)
 			}
 		}
@@ -672,7 +684,7 @@ class ObjectTypeDescriptor internal constructor(
 		 *   The new `object type`.
 		 */
 		fun objectTypeFromMap(map: A_Map): AvailObject {
-			val variant: ObjectLayoutVariant = variantForFields(map.keysAsSet())
+			val variant: ObjectLayoutVariant = variantForFields(map.keysAsSet)
 			val mutableDescriptor = variant.mutableObjectTypeDescriptor
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
@@ -726,9 +738,9 @@ class ObjectTypeDescriptor internal constructor(
 		 * [special&#32;atoms][A_Atom.Companion.isAtomSpecial], then the name
 		 * will not be recorded (unless allowSpecialAtomsToHoldName is true,
 		 * which is really only for naming special object types like
-		 * [exceptionType]).  Note that it is technically *legal* for there to
-		 * be multiple names for a particular object type, although this is of
-		 * questionable value.
+		 * [Exceptions.exceptionType]).  Note that it is technically *legal* for
+		 * there to be multiple names for a particular object type, although
+		 * this is of questionable value.
 		 *
 		 * @param anObjectType
 		 *   An `object type`.
@@ -749,24 +761,30 @@ class ObjectTypeDescriptor internal constructor(
 				var leastNames = Int.MAX_VALUE
 				var keyAtomWithLeastNames: A_Atom? = null
 				var keyAtomNamesMap: A_Map? = null
-				for ((atom, _) in anObjectType.fieldTypeMap.mapIterable()) {
-					if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial()) {
+				for ((atom, _) in anObjectType.fieldTypeMap.mapIterable)
+				{
+					if (allowSpecialAtomsToHoldName || !atom.isAtomSpecial)
+					{
 						val namesMap: A_Map = atom.getAtomProperty(propertyKey)
-						if (namesMap.isNil) {
+						if (namesMap.isNil)
+						{
 							keyAtomWithLeastNames = atom
 							keyAtomNamesMap = emptyMap
 							break
 						}
-						val mapSize = namesMap.mapSize()
-						if (mapSize < leastNames) {
+						val mapSize = namesMap.mapSize
+						if (mapSize < leastNames)
+						{
 							keyAtomWithLeastNames = atom
 							keyAtomNamesMap = namesMap
 							leastNames = mapSize
 						}
 					}
 				}
-				if (keyAtomWithLeastNames !== null) {
-					var namesSet = when {
+				if (keyAtomWithLeastNames !== null)
+				{
+					var namesSet = when
+					{
 						keyAtomNamesMap!!.hasKey(anObjectType) ->
 							keyAtomNamesMap.mapAt(anObjectType)
 						else -> emptySet
@@ -798,7 +816,8 @@ class ObjectTypeDescriptor internal constructor(
 			val propertyKey = OBJECT_TYPE_NAME_PROPERTY_KEY.atom
 			synchronized(propertyKey) {
 				anObjectType.fieldTypeMap.forEach { atom, _ ->
-					if (!atom.isAtomSpecial()) {
+					if (!atom.isAtomSpecial)
+					{
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
 						if (namesMap.notNil
 							&& namesMap.hasKey(anObjectType))
@@ -809,13 +828,14 @@ class ObjectTypeDescriptor internal constructor(
 							var namesSet: A_Set = namesMap.mapAt(anObjectType)
 							namesSet = namesSet.setWithoutElementCanDestroy(
 								aString, false)
-							namesMap = when(namesSet.setSize()) {
+							namesMap = when(namesSet.setSize)
+							{
 								0 -> namesMap.mapWithoutKeyCanDestroy(
 									anObjectType, false)
 								else -> namesMap.mapAtPuttingCanDestroy(
 									anObjectType, namesSet, false)
 							}
-							when (namesMap.mapSize())
+							when (namesMap.mapSize)
 							{
 								0 -> atom.setAtomProperty(propertyKey, nil)
 								else -> atom.setAtomProperty(
@@ -943,83 +963,141 @@ class ObjectTypeDescriptor internal constructor(
 		fun mostGeneralObjectMeta(): A_Type = mostGeneralMeta
 
 		/**
-		 * The [A_Atom] that identifies the [exception&#32;type][exceptionType].
+		 * Declarations related to exception objects.
 		 */
-		val exceptionAtom =
-			createSpecialAtom("explicit-exception").apply {
-				setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
+		object Exceptions
+		{
+			/**
+			 * The [A_Atom] that identifies the
+			 * [exception&#32;type][exceptionType].
+			 */
+			val exceptionAtom =
+				createSpecialAtom("explicit-exception").apply {
+					setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
+				}
+
+			/**
+			 * The [atom][AtomDescriptor] that identifies the stack dump
+			 * [field][AtomDescriptor] of an [exception][exceptionType].
+			 */
+			val stackDumpAtom = createSpecialAtom("stack dump")
+
+			/**
+			 * The most general exception type.
+			 */
+			val exceptionType: A_Type = run {
+				val type: A_Type = objectTypeFromTuple(
+					tuple(tuple(exceptionAtom, instanceType(exceptionAtom))))
+				setNameForType(type, stringFrom("exception"), true)
+				type.makeShared()
 			}
-
-		/**
-		 * The [atom][AtomDescriptor] that identifies the stack dump
-		 * [field][AtomDescriptor] of an [exception][exceptionType].
-		 */
-		val stackDumpAtom = createSpecialAtom("stack dump")
-
-		/**
-		 * The [A_Atom] used to indicate that an object is a *style*.  Style
-		 * objects are normally stored separate from the serialized sequence of
-		 * functions to invoke for fast-loading, and also separate from the
-		 * parse phrases corresponding to those functions.
-		 */
-		val styleSubclassAtom =
-			createSpecialAtom("explicit-style").apply {
-				setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
-			}
-
-		/**
-		 * The field of a style object for identifying a semantic style name
-		 * with which to look up a concrete style for rendering a subexpression.
-		 */
-		val styleSemanticClassifierAtom =
-			createSpecialAtom("semanticClassifier")
-
-		/**
-		 * The name of the method being invoked at this call site. This is used
-		 * with the [styleSourceModule] to ensure modular naming.
-		 */
-		val styleMethodName = createSpecialAtom("methodName")
-
-		/**
-		 * The fully qualified module name that defined the atom named in the
-		 * [styleMethodName] field.
-		 */
-		val styleSourceModule = createSpecialAtom("sourceModule")
-
-		/**
-		 * The field of a style object for identifying whether this send is
-		 * generated from a macro (true) or was parsed directly as a method send
-		 * (false).
-		 */
-		val styleGenerated = createSpecialAtom("generated")
-
-		/**
-		 * The line number in the [styleSourceModule] which acts as the target
-		 * of this call site.  If the call site is an ordinary send, this should
-		 * be the most specific applicable method definition.  If it was
-		 * generated from a macro, it should lead to some function that was
-		 * "most responsible" for its definition.
-		 */
-		val styleLineNumber = createSpecialAtom("lineNumber")
-
-		/**
-		 * The most general exception type.
-		 */
-		private var exceptionType: A_Type = run {
-			val type: A_Type = objectTypeFromTuple(
-				tuple(tuple(exceptionAtom, instanceType(exceptionAtom))))
-			setNameForType(type, stringFrom("exception"), true)
-			type.makeShared()
 		}
 
 		/**
-		 * Answer the most general exception type. This is just an
-		 * [object&#32;type][ObjectTypeDescriptor] that contains the well-known
-		 * [exceptionAtom].
-		 *
-		 * @return
-		 *   The most general exception type.
+		 * Declarations related to style objects, for styling phrases.
 		 */
-		fun exceptionType(): A_Type = exceptionType
+		object Styles
+		{
+			/**
+			 * The [A_Atom] used to indicate that an object is a *style*.  Style
+			 * objects are normally stored separate from the serialized sequence
+			 * of functions to invoke for fast-loading, and also separate from
+			 * the parse phrases corresponding to those functions.
+			 */
+			val subclassAtom =
+				createSpecialAtom("explicit-style").apply {
+					setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
+				}
+
+			/**
+			 * The field of a style object for identifying a semantic style name
+			 * with which to look up a concrete style for rendering a
+			 * subexpression.
+			 */
+			val semanticClassifierAtom = createSpecialAtom("semanticClassifier")
+
+			/**
+			 * The name of the method being invoked at this call site. This is
+			 * used with the [sourceModuleAtom] to ensure modular naming.
+			 */
+			val methodNameAtom = createSpecialAtom("methodName")
+
+			/**
+			 * The fully qualified module name that defined the atom named in
+			 * the [methodNameAtom] field.
+			 */
+			val sourceModuleAtom = createSpecialAtom("sourceModule")
+
+			/**
+			 * The field of a style object for identifying whether this send is
+			 * generated from a macro (true) or was parsed directly as a method
+			 * send (false).
+			 */
+			val generatedAtom = createSpecialAtom("generated")
+
+			/**
+			 * The line number in the [sourceModuleAtom] which acts as the
+			 * target of this call site.  If the call site is an ordinary send,
+			 * this should be the most specific applicable method definition.
+			 * If it was generated from a macro, it should lead to some function
+			 * that was "most responsible" for its definition.
+			 */
+			val lineNumberAtom = createSpecialAtom("lineNumber")
+
+			/**
+			 * The type for abstract code styles.
+			 */
+			val styleType: A_Type = run {
+				val type: A_Type = objectTypeFromTuple(
+					tupleFromArray(
+						tuple(subclassAtom, instanceType(subclassAtom)),
+						tuple(semanticClassifierAtom, stringType),
+						tuple(methodNameAtom, stringType),
+						tuple(sourceModuleAtom, zeroOrOneOf(Types.MODULE.o)),
+						tuple(generatedAtom, booleanType),
+						tuple(lineNumberAtom, wholeNumbers)))
+				setNameForType(type, stringFrom("style"), true)
+				type.makeShared()
+			}
+
+			private val variant =
+				(styleType.descriptor() as ObjectTypeDescriptor).variant
+
+			private val semanticClassifierIndex =
+				variant.fieldToSlotIndex[semanticClassifierAtom]!!
+
+			private val methodNameIndex =
+				variant.fieldToSlotIndex[methodNameAtom]!!
+
+			private val sourceModuleIndex =
+				variant.fieldToSlotIndex[sourceModuleAtom]!!
+
+			private val generatedIndex =
+				variant.fieldToSlotIndex[generatedAtom]!!
+
+			private val lineNumberIndex =
+				variant.fieldToSlotIndex[lineNumberAtom]!!
+
+			/**
+			 * Create a style object from the given values.
+			 */
+			fun createStyle(
+				semanticClassifier: A_String,
+				methodName: A_String,
+				sourceModuleOrNil: A_Module,
+				generated: Boolean,
+				lineNumber: Int
+			): AvailObject = createUninitializedObject(variant).also { style ->
+				setField(style, semanticClassifierIndex, semanticClassifier)
+				setField(style, methodNameIndex, methodName as AvailObject)
+				setField(
+					style,
+					sourceModuleIndex,
+					if (sourceModuleOrNil.isNil) emptyTuple
+					else tuple(sourceModuleOrNil))
+				setField(style, generatedIndex, objectFromBoolean(generated))
+				setField(style, lineNumberIndex, fromInt(lineNumber))
+			}
+		}
 	}
 }

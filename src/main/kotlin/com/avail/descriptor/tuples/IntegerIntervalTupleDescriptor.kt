@@ -181,7 +181,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		val endValue: A_Number = self.slot(END)
 		val deltaValue: A_Number = self.slot(DELTA)
 		val nextValue = endValue.plusCanDestroy(deltaValue, false)
@@ -316,7 +316,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			otherTuple.makeImmutable()
 		}
 
-		if (otherTuple.tupleSize() == 0) return self
+		if (otherTuple.tupleSize == 0) return self
 
 		// Assess the possibility that the concatenation will still be an
 		// integer interval tuple.
@@ -362,14 +362,11 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 				}
 			}
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		if (otherTuple.treeTupleLevel == 0)
 		{
-			createTwoPartTreeTuple(self, otherTuple, 1, 0)
+			return createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
-		else
-		{
-			concatenateAtLeastOneTree(self, otherTuple, true)
-		}
+		return concatenateAtLeastOneTree(self, otherTuple, true)
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -427,7 +424,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) * DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		var temp: A_Number = fromInt(index - 1)
 		temp = temp.timesCanDestroy(self.slot(DELTA), false)
 		temp = temp.plusCanDestroy(self.slot(START), false)
@@ -443,7 +440,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
 			== (newValueObject as A_Number).extractInt)
@@ -499,7 +496,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
 		//If tuple is small enough or is immutable, create a new Interval
-		if (self.tupleSize() < maximumCopySize || !isMutable)
+		if (self.tupleSize < maximumCopySize || !isMutable)
 		{
 			val newDelta =
 				self.slot(DELTA).timesCanDestroy(fromInt(-1), true)

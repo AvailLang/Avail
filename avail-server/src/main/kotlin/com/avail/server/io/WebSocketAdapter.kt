@@ -1918,7 +1918,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						handler.guardedDo {
 							transport.read(buffer, dummy, handler)
 						}
-					} else {
+					}
+					else
+					{
 						buffer.flip()
 						if (frame.isMasked) {
 							val mask = frame.maskingKey!!

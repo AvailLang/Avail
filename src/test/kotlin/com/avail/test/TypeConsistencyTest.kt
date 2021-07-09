@@ -272,14 +272,14 @@ class TypeConsistencyTest
 			/** The type `tuple`  */
 			private val TUPLE = Node(
 				"TUPLE",
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The type `string`, which is the same as `tuple of
 			 * character`
 			 */
-			private val STRING = Node("STRING", stringType(), TUPLE)
+			private val STRING = Node("STRING", stringType, TUPLE)
 
 			/** The type `tuple [1..1] of character`  */
 			private val UNIT_STRING = Node(
@@ -336,7 +336,7 @@ class TypeConsistencyTest
 			private val MOST_SPECIFIC_FUNCTION = Node(
 				"MOST_SPECIFIC_FUNCTION",
 				functionTypeFromArgumentTupleType(
-					mostGeneralTupleType(),
+					mostGeneralTupleType,
 					bottom,
 					emptySet),
 				NOTHING_TO_INT_FUNCTION,
@@ -700,7 +700,7 @@ class TypeConsistencyTest
 			 * The metatype for tuple types.
 			 */
 			private val TUPLE_META = Node(
-				"TUPLE_META", tupleMeta(), NONTYPE_META)
+				"TUPLE_META", tupleMeta, NONTYPE_META)
 
 			/**
 			 * The metatype for fiber types.
@@ -1531,8 +1531,7 @@ class TypeConsistencyTest
 		checkCovariance("pojo type parameters") {
 			pojoTypeForClassWithTypeArguments(
 				Comparable::class.java,
-				tuple(it)
-			)
+				tuple(it))
 		}
 
 	/**
@@ -1546,8 +1545,7 @@ class TypeConsistencyTest
 		checkContravariance("function argument") {
 			functionType(
 				tuple(it),
-				Types.TOP.o
-			)
+				Types.TOP.o)
 		}
 
 	/**

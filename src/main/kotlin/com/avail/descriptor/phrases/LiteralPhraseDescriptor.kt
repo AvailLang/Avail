@@ -93,7 +93,7 @@ class LiteralPhraseDescriptor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		builder.append(self.token().string().asNativeString())
+		builder.append(self.token.string().asNativeString())
 	}
 
 	override fun o_ChildrenDo(self: AvailObject, action: (A_Phrase) -> Unit) {
@@ -118,14 +118,14 @@ class LiteralPhraseDescriptor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.emitPushLiteral(
-		tuple(self.token()), self.slot(TOKEN).literal())
+		tuple(self.token), self.slot(TOKEN).literal())
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(TOKEN).equals(aPhrase.token()))
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(TOKEN).equals(aPhrase.token))
 
 	/**
 	 * Simplify decompilation by pretending a literal phrase holding tuple is
@@ -143,7 +143,7 @@ class LiteralPhraseDescriptor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.token().hash() xor -0x6379f3f3
+		self.token.hash() xor -0x6379f3f3
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.LITERAL_PHRASE

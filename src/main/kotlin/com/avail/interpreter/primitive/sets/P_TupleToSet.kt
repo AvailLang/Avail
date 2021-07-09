@@ -76,13 +76,13 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
-		return interpreter.primitiveSuccess(tuple.asSet())
+		return interpreter.primitiveSuccess(tuple.asSet)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType()),
+				mostGeneralTupleType),
 			mostGeneralSetType())
 
 	override fun returnTypeGuaranteedByVM(

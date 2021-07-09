@@ -77,6 +77,15 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.addSealedArgumentsType
+import com.avail.descriptor.methods.A_Method.Companion.addSemanticRestriction
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.macrosTuple
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Method.Companion.removeDefinition
+import com.avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
+import com.avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -90,7 +99,6 @@ import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
 import com.avail.descriptor.module.A_Module.Companion.privateNames
 import com.avail.descriptor.module.A_Module.Companion.removeFrom
-import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.module.ModuleDescriptor.State.Loaded
@@ -102,17 +110,10 @@ import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinit
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionAtom
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleGenerated
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleLineNumber
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleMethodName
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleSemanticClassifierAtom
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleSourceModule
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.styleSubclassAtom
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import com.avail.descriptor.pojos.PojoDescriptor.Companion.nullPojo
@@ -366,7 +367,7 @@ class AvailRuntime constructor(
 	 * @param body
 	 *   The action to execute for this task.
 	 */
-	fun execute(priority: Int,body: () -> Unit)
+	fun execute(priority: Int, body: ()->Unit)
 	{
 		executor.execute(AvailTask(priority, body))
 	}
@@ -410,16 +411,16 @@ class AvailRuntime constructor(
 			val atoms = mutableSetOf<A_Atom>()
 			val definitions = mutableSetOf<A_Definition>()
 			modules.forEach { _, module ->
-				atoms.addAll(module.newNames().valuesAsTuple())
-				atoms.addAll(module.visibleNames())
-				var atomSets = module.importedNames().valuesAsTuple()
+				atoms.addAll(module.newNames.valuesAsTuple)
+				atoms.addAll(module.visibleNames)
+				var atomSets = module.importedNames.valuesAsTuple
 				atomSets = atomSets.concatenateWith(
-					module.privateNames().valuesAsTuple(), true)
+					module.privateNames.valuesAsTuple, true)
 				for (atomSet in atomSets)
 				{
 					atoms.addAll(atomSet)
 				}
-				for (definition in module.methodDefinitions())
+				for (definition in module.methodDefinitions)
 				{
 					if (definitions.contains(definition))
 					{
@@ -431,27 +432,27 @@ class AvailRuntime constructor(
 			val methods = mutableSetOf<A_Method>()
 			for (atom in atoms)
 			{
-				val bundle: A_Bundle = atom.bundleOrNil()
+				val bundle: A_Bundle = atom.bundleOrNil
 				if (bundle.notNil)
 				{
-					methods.add(bundle.bundleMethod())
+					methods.add(bundle.bundleMethod)
 				}
 			}
 			for (method in methods)
 			{
 				val bundleDefinitions: MutableSet<A_Definition> =
-					method.definitionsTuple().toMutableSet()
-				bundleDefinitions.addAll(method.macrosTuple())
-				for (bundle in method.bundles())
+					method.definitionsTuple.toMutableSet()
+				bundleDefinitions.addAll(method.macrosTuple)
+				for (bundle in method.bundles)
 				{
-					val bundlePlans: A_Map = bundle.definitionParsingPlans()
-					if (bundlePlans.mapSize() != bundleDefinitions.size)
+					val bundlePlans: A_Map = bundle.definitionParsingPlans
+					if (bundlePlans.mapSize != bundleDefinitions.size)
 					{
 						println(
 							"Mismatched definitions / plans:\n\t" +
-							"bundle = $bundle\n\t" +
-							"definitions# = ${bundleDefinitions.size}\n\t" +
-							"plans# = ${bundlePlans.mapSize()}")
+								"bundle = $bundle\n\t" +
+								"definitions# = ${bundleDefinitions.size}\n\t" +
+								"plans# = ${bundlePlans.mapSize}")
 					}
 				}
 			}
@@ -496,7 +497,8 @@ class AvailRuntime constructor(
 	@Throws(AvailRuntimeException::class)
 	fun lookupJavaType(
 		className: A_String,
-		classParameters: A_Tuple): A_Type
+		classParameters: A_Tuple
+	): A_Type
 	{
 		val rawClass = lookupRawJavaClass(className)
 		// Check that the correct number of type parameters have been supplied.
@@ -504,7 +506,7 @@ class AvailRuntime constructor(
 		// bounds will cause some method and constructor lookups to fail, but
 		// that's fine.
 		val typeVars = rawClass.typeParameters
-		if (typeVars.size != classParameters.tupleSize())
+		if (typeVars.size != classParameters.tupleSize)
 		{
 			throw AvailRuntimeException(
 				AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS)
@@ -512,7 +514,8 @@ class AvailRuntime constructor(
 		// Replace all occurrences of the pojo self type atom with actual
 		// pojo self types.
 		val realParameters: A_Tuple = generateObjectTupleFrom(
-			classParameters.tupleSize()) {
+			classParameters.tupleSize
+		) {
 			val parameter: A_BasicObject = classParameters.tupleAt(it)
 			if (parameter.equals(pojoSelfType())) selfTypeForClass(rawClass)
 			else parameter
@@ -620,7 +623,7 @@ class AvailRuntime constructor(
 		 */
 		STRINGIFICATION(
 			"«stringification»",
-			functionType(tuple(Types.ANY.o), stringType()),
+			functionType(tuple(Types.ANY.o), stringType),
 			P_ToString),
 
 		/**
@@ -643,8 +646,7 @@ class AvailRuntime constructor(
 					mostGeneralFunctionType(),
 					topMeta(),
 					variableTypeFor(Types.ANY.o)),
-				bottom
-			),
+				bottom),
 			null),
 
 		/**
@@ -663,9 +665,8 @@ class AvailRuntime constructor(
 							AvailErrorCode.E_FORWARD_METHOD_DEFINITION,
 							AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)),
 					Types.METHOD.o,
-					mostGeneralTupleType()),
-				bottom
-			),
+					mostGeneralTupleType),
+				bottom),
 			null),
 
 		/**
@@ -681,9 +682,8 @@ class AvailRuntime constructor(
 			functionType(
 				tuple(
 					mostGeneralFunctionType(),
-					mostGeneralTupleType()),
-				Types.TOP.o
-			),
+					mostGeneralTupleType),
+				Types.TOP.o),
 			null),
 
 		/**
@@ -696,8 +696,7 @@ class AvailRuntime constructor(
 			functionType(
 				tuple(
 					pojoTypeForClass(Throwable::class.java)),
-				bottom
-			),
+				bottom),
 			null),
 
 		/**
@@ -711,9 +710,8 @@ class AvailRuntime constructor(
 			functionType(
 				tuple(
 					mostGeneralFunctionType(),
-					mostGeneralTupleType()),
-				Types.TOP.o
-			),
+					mostGeneralTupleType),
+				Types.TOP.o),
 			P_InvokeWithTuple);
 
 		/** The name to attach to functions plugged into this hook.  */
@@ -937,15 +935,16 @@ class AvailRuntime constructor(
 			A_Function::class.java)
 
 		/** A helper for constructing lists with checked positions. */
-		private class NumericBuilder {
+		private class NumericBuilder
+		{
 			/** The list of [AvailObject]s being built. */
 			private val list = mutableListOf<AvailObject>()
 
 			/** Verify that we're at the expected index. */
-			fun at (position: Int) = assert(list.size == position)
+			fun at(position: Int) = assert(list.size == position)
 
 			/** Add an item to the end. */
-			fun put (value: A_BasicObject) = list.add(value.makeShared())
+			fun put(value: A_BasicObject) = list.add(value.makeShared())
 
 			/** Extract the final immutable list. */
 			fun list(): List<AvailObject> = list
@@ -984,18 +983,18 @@ class AvailRuntime constructor(
 			put(tupleFromIntegerList(allNumericCodes()))
 			put(mostGeneralObjectType())
 			put(mostGeneralObjectMeta())
-			put(exceptionType())
+			put(Exceptions.exceptionType)
 			put(mostGeneralFiberType())
 			put(mostGeneralSetType())
 			put(setMeta())
-			put(stringType())
+			put(stringType)
 			put(bottom)
 
 			at(30)
 			put(bottomMeta)
 			put(Types.NONTYPE.o)
-			put(mostGeneralTupleType())
-			put(tupleMeta())
+			put(mostGeneralTupleType)
+			put(tupleMeta)
 			put(topMeta())
 			put(Types.TOP.o)
 			put(wholeNumbers)
@@ -1013,7 +1012,7 @@ class AvailRuntime constructor(
 			put(Types.METHOD_DEFINITION.o)
 			put(Types.MACRO_DEFINITION.o)
 			put(zeroOrMoreOf(mostGeneralFunctionType()))
-			put(stackDumpAtom)
+			put(Exceptions.stackDumpAtom)
 
 			at(50)
 			put(PhraseKind.PARSE_PHRASE.mostGeneralType())
@@ -1042,11 +1041,12 @@ class AvailRuntime constructor(
 			at(70)
 			put(trueObject)
 			put(falseObject)
-			put(zeroOrMoreOf(stringType()))
+			put(zeroOrMoreOf(stringType))
 			put(zeroOrMoreOf(topMeta()))
-			put(zeroOrMoreOf(
-				setTypeForSizesContentType(wholeNumbers, stringType())))
-			put(setTypeForSizesContentType(wholeNumbers, stringType()))
+			put(
+				zeroOrMoreOf(
+					setTypeForSizesContentType(wholeNumbers, stringType)))
+			put(setTypeForSizesContentType(wholeNumbers, stringType))
 			put(functionType(tuple(naturalNumbers), bottom))
 			put(emptySet)
 			put(negativeInfinity)
@@ -1068,26 +1068,31 @@ class AvailRuntime constructor(
 			put(functionType(emptyTuple(), Types.TOP.o))
 			put(functionType(emptyTuple(), booleanType))
 			put(variableTypeFor(mostGeneralContinuationType()))
-			put(mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, Types.ATOM.o, Types.ANY.o))
-			put(mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, Types.ATOM.o, anyMeta()))
-			put(tupleTypeForSizesTypesDefaultType(
-				wholeNumbers,
-				emptyTuple(),
+			put(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers, Types.ATOM.o, Types.ANY.o))
+			put(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers, Types.ATOM.o, anyMeta()))
+			put(
 				tupleTypeForSizesTypesDefaultType(
-					singleInt(2),
+					wholeNumbers,
 					emptyTuple(),
-					Types.ANY.o)))
+					tupleTypeForSizesTypesDefaultType(
+						singleInt(2),
+						emptyTuple(),
+						Types.ANY.o)))
 			put(emptyMap)
-			put(mapTypeForSizesKeyTypeValueType(
-				naturalNumbers, Types.ANY.o, Types.ANY.o))
+			put(
+				mapTypeForSizesKeyTypeValueType(
+					naturalNumbers, Types.ANY.o, Types.ANY.o))
 			put(instanceMeta(wholeNumbers))
 			put(setTypeForSizesContentType(naturalNumbers, Types.ANY.o))
 
 			at(100)
-			put(tupleTypeForSizesTypesDefaultType(
-				wholeNumbers, emptyTuple, mostGeneralTupleType()))
+			put(
+				tupleTypeForSizesTypesDefaultType(
+					wholeNumbers, emptyTuple, mostGeneralTupleType))
 			put(nybbles)
 			put(zeroOrMoreOf(nybbles))
 			put(unsignedShorts)
@@ -1095,62 +1100,74 @@ class AvailRuntime constructor(
 			put(functionType(tuple(bottom), Types.TOP.o))
 			put(instanceType(zero))
 			put(functionTypeReturning(topMeta()))
-			put(tupleTypeForSizesTypesDefaultType(
-				wholeNumbers,
-				emptyTuple(),
-				functionTypeReturning(topMeta())))
-			put(functionTypeReturning(
-				PhraseKind.PARSE_PHRASE.mostGeneralType()))
+			put(
+				tupleTypeForSizesTypesDefaultType(
+					wholeNumbers,
+					emptyTuple(),
+					functionTypeReturning(topMeta())))
+			put(
+				functionTypeReturning(
+					PhraseKind.PARSE_PHRASE.mostGeneralType()))
 
 			at(110)
 			put(instanceType(two))
 			put(fromDouble(Math.E))
 			put(instanceType(fromDouble(Math.E)))
-			put(instanceMeta(
-				PhraseKind.PARSE_PHRASE.mostGeneralType()))
-			put(setTypeForSizesContentType(
-				wholeNumbers, Types.ATOM.o))
+			put(
+				instanceMeta(
+					PhraseKind.PARSE_PHRASE.mostGeneralType()))
+			put(
+				setTypeForSizesContentType(
+					wholeNumbers, Types.ATOM.o))
 			put(Types.TOKEN.o)
 			put(mostGeneralLiteralTokenType())
 			put(zeroOrMoreOf(anyMeta()))
 			put(inclusive(zero, positiveInfinity))
-			put(zeroOrMoreOf(
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(2),
-					tuple(Types.ATOM.o), anyMeta())))
+			put(
+				zeroOrMoreOf(
+					tupleTypeForSizesTypesDefaultType(
+						singleInt(2),
+						tuple(Types.ATOM.o), anyMeta())))
 
 			at(120)
-			put(zeroOrMoreOf(
-				tupleTypeForSizesTypesDefaultType(
-					singleInt(2),
-					tuple(Types.ATOM.o),
-					Types.ANY.o)))
+			put(
+				zeroOrMoreOf(
+					tupleTypeForSizesTypesDefaultType(
+						singleInt(2),
+						tuple(Types.ATOM.o),
+						Types.ANY.o)))
 			put(zeroOrMoreOf(PhraseKind.PARSE_PHRASE.mostGeneralType()))
 			put(zeroOrMoreOf(PhraseKind.ARGUMENT_PHRASE.mostGeneralType()))
 			put(zeroOrMoreOf(PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
 			put(variableReadWriteType(Types.TOP.o, bottom))
 			put(zeroOrMoreOf(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
 			put(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o))
-			put(functionType(
-				tuple(pojoTypeForClass(Throwable::class.java)), bottom))
-			put(zeroOrMoreOf(
-				setTypeForSizesContentType(wholeNumbers, Types.ATOM.o)))
+			put(
+				functionType(
+					tuple(pojoTypeForClass(Throwable::class.java)), bottom))
+			put(
+				zeroOrMoreOf(
+					setTypeForSizesContentType(wholeNumbers, Types.ATOM.o)))
 			put(bytes)
 
 			at(130)
 			put(zeroOrMoreOf(zeroOrMoreOf(anyMeta())))
 			put(variableReadWriteType(extendedIntegers, bottom))
 			put(fiberMeta())
-			put(nonemptyStringType())
-			put(setTypeForSizesContentType(wholeNumbers, exceptionType()))
-			put(setTypeForSizesContentType(naturalNumbers, stringType()))
+			put(nonemptyStringType)
+			put(
+				setTypeForSizesContentType(
+					wholeNumbers,
+					Exceptions.exceptionType))
+			put(setTypeForSizesContentType(naturalNumbers, stringType))
 			put(setTypeForSizesContentType(naturalNumbers, Types.ATOM.o))
 			put(oneOrMoreOf(Types.ANY.o))
 			put(zeroOrMoreOf(integers))
-			put(tupleTypeForSizesTypesDefaultType(
-				integerRangeType(fromInt(2), true, positiveInfinity, false),
-				emptyTuple(),
-				Types.ANY.o))
+			put(
+				tupleTypeForSizesTypesDefaultType(
+					integerRangeType(fromInt(2), true, positiveInfinity, false),
+					emptyTuple(),
+					Types.ANY.o))
 
 			// Some of these entries may need to be shuffled into earlier
 			// slots to maintain reasonable topical consistency.)
@@ -1171,8 +1188,9 @@ class AvailRuntime constructor(
 			put(PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
 			put(oneOrMoreOf(naturalNumbers))
 			put(zeroOrMoreOf(Types.DEFINITION.o))
-			put(mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, stringType(), Types.ATOM.o))
+			put(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers, stringType, Types.ATOM.o))
 			put(SpecialAtom.MACRO_BUNDLE_KEY.atom)
 			put(SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom)
 			put(variableReadWriteType(mostGeneralMapType(), bottom))
@@ -1193,15 +1211,17 @@ class AvailRuntime constructor(
 			put(inclusive(0L, 31L))
 
 			at(170)
-			put(continuationTypeForFunctionType(
-				functionTypeReturning(Types.TOP.o)))
+			put(
+				continuationTypeForFunctionType(
+					functionTypeReturning(Types.TOP.o)))
 			put(CharacterDescriptor.nonemptyStringOfDigitsType)
-			put(tupleTypeForTypes(
-				zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
-				stringType()))
+			put(
+				tupleTypeForTypes(
+					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
+					stringType))
 
 			at(173)
-		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial()) }
+		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
 		 * Answer the [special object][AvailObject] with the specified ordinal.
@@ -1260,8 +1280,8 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.SEMANTIC_RESTRICTION.atom)
 			put(SpecialMethodAtom.LEXER_DEFINER.atom)
 			put(SpecialMethodAtom.PUBLISH_NEW_NAME.atom)
-			put(exceptionAtom)
-			put(stackDumpAtom)
+			put(Exceptions.exceptionAtom)
+			put(Exceptions.stackDumpAtom)
 			put(pojoSelfTypeAtom())
 			put(TokenType.END_OF_FILE.atom)
 			put(TokenType.KEYWORD.atom)
@@ -1270,13 +1290,13 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
-			put(styleSubclassAtom)
-			put(styleSemanticClassifierAtom)
-			put(styleMethodName)
-			put(styleSourceModule)
-			put(styleGenerated)
-			put(styleLineNumber)
-		}.list().onEach { assert(it.isAtomSpecial()) }
+			put(Styles.subclassAtom)
+			put(Styles.semanticClassifierAtom)
+			put(Styles.methodNameAtom)
+			put(Styles.sourceModuleAtom)
+			put(Styles.generatedAtom)
+			put(Styles.lineNumberAtom)
+		}.list().onEach { assert(it.isAtomSpecial) }
 	}
 
 	/**
@@ -1295,13 +1315,14 @@ class AvailRuntime constructor(
 	fun addModule(module: A_Module)
 	{
 		// Ensure that the module is closed before installing it globally.
-		assert(module.moduleState() == Loading)
-		module.setModuleState(Loaded)
+		assert(module.moduleState == Loading)
+		module.moduleState = Loaded
 
 		runtimeLock.safeWrite {
-			assert(!includesModuleNamed(module.moduleName()))
+			assert(!includesModuleNamed(module.moduleName))
 			modules = modules.mapAtPuttingCanDestroy(
-				module.moduleName(), module, true).makeShared()
+				module.moduleName, module, true
+			).makeShared()
 		}
 	}
 
@@ -1315,9 +1336,10 @@ class AvailRuntime constructor(
 	fun unlinkModule(module: A_Module)
 	{
 		runtimeLock.safeWrite {
-			assert(includesModuleNamed(module.moduleName()))
+			assert(includesModuleNamed(module.moduleName))
 			modules = modules.mapWithoutKeyCanDestroy(
-				module.moduleName(), true).makeShared()
+				module.moduleName, true
+			).makeShared()
 		}
 	}
 
@@ -1467,8 +1489,8 @@ class AvailRuntime constructor(
 		assert(sealSignature.isTuple)
 		runtimeLock.safeWrite {
 			val bundle: A_Bundle = methodName.bundleOrCreate()
-			val method: A_Method = bundle.bundleMethod()
-			assert(method.numArgs() == sealSignature.tupleSize())
+			val method: A_Method = bundle.bundleMethod
+			assert(method.numArgs == sealSignature.tupleSize)
 			method.addSealedArgumentsType(sealSignature)
 		}
 	}
@@ -1489,7 +1511,7 @@ class AvailRuntime constructor(
 	{
 		runtimeLock.safeWrite {
 			val bundle: A_Bundle = methodName.bundleOrCreate()
-			val method: A_Method = bundle.bundleMethod()
+			val method: A_Method = bundle.bundleMethod
 			method.removeSealedArgumentsType(sealSignature)
 		}
 	}
@@ -1521,7 +1543,7 @@ class AvailRuntime constructor(
 	/**
 	 * The [list][List] of Level One-unsafe [tasks][Runnable]. A Level
 	 * One-unsafe task requires that no
-	 * [Level&#32;One-safe&32;tasks][levelOneSafeTasks] are running.
+	 * [Level&#32;One-safe&#32;tasks][levelOneSafeTasks] are running.
 	 */
 	private val levelOneUnsafeTasks = mutableListOf<AvailTask>()
 
@@ -1565,7 +1587,7 @@ class AvailRuntime constructor(
 	 * @param unsafeAction
 	 *   The action to perform when Level One safety is not required.
 	 */
-	fun whenLevelOneUnsafeDo(priority: Int, unsafeAction: () -> Unit)
+	fun whenLevelOneUnsafeDo(priority: Int, unsafeAction: ()->Unit)
 	{
 		val wrapped = AvailTask(priority)
 		{
@@ -1598,7 +1620,7 @@ class AvailRuntime constructor(
 			// postponing this task if there are any Level One-safe tasks
 			// waiting to run.
 			if (incompleteLevelOneSafeTasks == 0
-			    && levelOneSafeTasks.isEmpty())
+				&& levelOneSafeTasks.isEmpty())
 			{
 				assert(!levelOneSafetyRequested)
 				incompleteLevelOneUnsafeTasks++
@@ -1621,7 +1643,7 @@ class AvailRuntime constructor(
 	 * @param safeAction
 	 *   The action to execute when Level One safety is ensured.
 	 */
-	fun whenLevelOneSafeDo(priority: Int, safeAction: () -> Unit)
+	fun whenLevelOneSafeDo(priority: Int, safeAction: ()->Unit)
 	{
 		val task = AvailTask(priority)
 		{

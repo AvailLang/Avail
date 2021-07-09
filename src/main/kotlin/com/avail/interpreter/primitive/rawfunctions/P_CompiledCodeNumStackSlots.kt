@@ -63,6 +63,5 @@ object P_CompiledCodeNumStackSlots : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
-			wholeNumbers
-		)
+			wholeNumbers)
 }

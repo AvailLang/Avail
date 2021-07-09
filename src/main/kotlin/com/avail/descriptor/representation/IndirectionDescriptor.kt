@@ -54,10 +54,12 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
 import com.avail.descriptor.bundles.A_Bundle.Companion.grammaticalRestrictions
 import com.avail.descriptor.bundles.A_Bundle.Companion.hasGrammaticalRestrictions
 import com.avail.descriptor.bundles.A_Bundle.Companion.lookupMacroByPhraseTuple
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.messagePart
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageParts
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+import com.avail.descriptor.bundles.A_Bundle.Companion.numArgs
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeMacro
 import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
@@ -115,7 +117,6 @@ import com.avail.descriptor.functions.A_RawFunction.Companion.packedDeclarationN
 import com.avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
 import com.avail.descriptor.functions.A_RawFunction.Companion.returneeCheckStat
 import com.avail.descriptor.functions.A_RawFunction.Companion.returnerCheckStat
-import com.avail.descriptor.functions.A_RawFunction.Companion.setOriginatingPhraseOrIndex
 import com.avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
@@ -149,6 +150,28 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.addSealedArgumentsType
+import com.avail.descriptor.methods.A_Method.Companion.addSemanticRestriction
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.chooseBundle
+import com.avail.descriptor.methods.A_Method.Companion.definitionsAtOrBelow
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.filterByTypes
+import com.avail.descriptor.methods.A_Method.Companion.includesDefinition
+import com.avail.descriptor.methods.A_Method.Companion.isMethodEmpty
+import com.avail.descriptor.methods.A_Method.Companion.lexer
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
+import com.avail.descriptor.methods.A_Method.Companion.membershipChanged
+import com.avail.descriptor.methods.A_Method.Companion.methodAddBundle
+import com.avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import com.avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
+import com.avail.descriptor.methods.A_Method.Companion.removeDefinition
+import com.avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
+import com.avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
+import com.avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
+import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
+import com.avail.descriptor.methods.A_Method.Companion.testingTree
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.module.A_Module
@@ -188,7 +211,6 @@ import com.avail.descriptor.module.A_Module.Companion.removeFrom
 import com.avail.descriptor.module.A_Module.Companion.resolveForward
 import com.avail.descriptor.module.A_Module.Companion.serializedObjects
 import com.avail.descriptor.module.A_Module.Companion.serializedObjectsMap
-import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.module.A_Module.Companion.versions
@@ -1847,13 +1869,13 @@ class IndirectionDescriptor private constructor(
 		self .. { asNativeString() }
 
 	override fun o_AsSet(self: AvailObject): A_Set =
-		self .. { asSet() }
+		self .. { asSet }
 
 	override fun o_AsTuple(self: AvailObject): A_Tuple =
-		self .. { asTuple() }
+		self .. { asTuple }
 
 	override fun o_BitsPerEntry(self: AvailObject): Int =
-		self .. { bitsPerEntry() }
+		self .. { bitsPerEntry }
 
 	override fun o_BodyBlock(self: AvailObject): A_Function =
 		self .. { bodyBlock() }
@@ -1880,13 +1902,13 @@ class IndirectionDescriptor private constructor(
 		self .. { code() }
 
 	override fun o_CodePoint(self: AvailObject): Int =
-		self .. { codePoint() }
+		self .. { codePoint }
 
 	override fun o_LazyComplete(self: AvailObject): A_Set =
-		self .. { lazyComplete() }
+		self .. { lazyComplete }
 
 	override fun o_ConstantBindings(self: AvailObject): A_Map =
-		self .. { constantBindings() }
+		self .. { constantBindings }
 
 	override fun o_ContentType(self: AvailObject): A_Type =
 		self .. { contentType }
@@ -1916,13 +1938,13 @@ class IndirectionDescriptor private constructor(
 		self .. { expand(module) }
 
 	override fun o_ExtractBoolean(self: AvailObject): Boolean =
-		self .. { extractBoolean() }
+		self .. { extractBoolean }
 
 	override fun o_ExtractUnsignedByte(self: AvailObject): Short =
 		self .. { extractUnsignedByte }
 
 	override fun o_ExtractDouble(self: AvailObject): Double =
-		self .. { extractDouble() }
+		self .. { extractDouble }
 
 	override fun o_ExtractFloat(self: AvailObject): Float =
 		self .. { extractFloat }
@@ -1953,13 +1975,13 @@ class IndirectionDescriptor private constructor(
 		self .. { hashOrZero() }
 
 	override fun o_HasGrammaticalRestrictions(self: AvailObject): Boolean =
-		self .. { hasGrammaticalRestrictions() }
+		self .. { hasGrammaticalRestrictions }
 
 	override fun o_DefinitionsTuple(self: AvailObject): A_Tuple =
-		self .. { definitionsTuple() }
+		self .. { definitionsTuple }
 
 	override fun o_LazyIncomplete(self: AvailObject): A_Map =
-		self .. { lazyIncomplete() }
+		self .. { lazyIncomplete }
 
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
@@ -2047,7 +2069,7 @@ class IndirectionDescriptor private constructor(
 		self .. { isType }
 
 	override fun o_KeysAsSet(self: AvailObject): A_Set =
-		self .. { keysAsSet() }
+		self .. { keysAsSet }
 
 	override fun o_KeyType(self: AvailObject): A_Type =
 		self .. { keyType }
@@ -2074,31 +2096,31 @@ class IndirectionDescriptor private constructor(
 		self .. { makeSubobjectsShared() }
 
 	override fun o_MapSize(self: AvailObject): Int =
-		self .. { mapSize() }
+		self .. { mapSize }
 
 	override fun o_MaxStackDepth(self: AvailObject): Int =
 		self .. { maxStackDepth }
 
 	override fun o_Message(self: AvailObject): A_Atom =
-		self .. { message() }
+		self .. { message }
 
 	override fun o_MessagePart (self: AvailObject, index: Int): A_String =
 		self .. { messagePart(index) }
 
 	override fun o_MessageParts(self: AvailObject): A_Tuple =
-		self .. { messageParts() }
+		self .. { messageParts }
 
 	override fun o_MethodDefinitions(self: AvailObject): A_Set =
-		self .. { methodDefinitions() }
+		self .. { methodDefinitions }
 
 	override fun o_ImportedNames(self: AvailObject): A_Map =
-		self .. { importedNames() }
+		self .. { importedNames }
 
 	override fun o_NewNames(self: AvailObject): A_Map =
-		self .. { newNames() }
+		self .. { newNames }
 
 	override fun o_NumArgs(self: AvailObject): Int =
-		self .. { numArgs() }
+		self .. { numArgs }
 
 	override fun o_NumSlots(self: AvailObject): Int =
 		self .. { numSlots() }
@@ -2128,31 +2150,31 @@ class IndirectionDescriptor private constructor(
 		self .. { priority() }
 
 	override fun o_PrivateNames(self: AvailObject): A_Map =
-		self .. { privateNames() }
+		self .. { privateNames }
 
 	override fun o_FiberGlobals(self: AvailObject): A_Map =
 		self .. { fiberGlobals() }
 
 	override fun o_GrammaticalRestrictions(self: AvailObject): A_Set =
-		self .. { grammaticalRestrictions() }
+		self .. { grammaticalRestrictions }
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
 		self .. { returnType }
 
 	override fun o_SetBinHash(self: AvailObject): Int =
-		self .. { setBinHash() }
+		self .. { setBinHash }
 
 	override fun o_SetBinSize(self: AvailObject): Int =
-		self .. { setBinSize() }
+		self .. { setBinSize }
 
 	override fun o_SetSize(self: AvailObject): Int =
-		self .. { setSize() }
+		self .. { setSize }
 
 	override fun o_SizeRange(self: AvailObject): A_Type =
 		self .. { sizeRange }
 
 	override fun o_LazyActions(self: AvailObject): A_Map =
-		self .. { lazyActions() }
+		self .. { lazyActions }
 
 	override fun o_Stackp(self: AvailObject): Int =
 		self .. { stackp() }
@@ -2176,7 +2198,7 @@ class IndirectionDescriptor private constructor(
 		self .. { tupleReverse() }
 
 	override fun o_TupleSize(self: AvailObject): Int =
-		self .. { tupleSize() }
+		self .. { tupleSize }
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		self .. { kind() }
@@ -2194,31 +2216,31 @@ class IndirectionDescriptor private constructor(
 		self .. { value() }
 
 	override fun o_ValuesAsTuple(self: AvailObject): A_Tuple =
-		self .. { valuesAsTuple() }
+		self .. { valuesAsTuple }
 
 	override fun o_ValueType(self: AvailObject): A_Type =
 		self .. { valueType }
 
 	override fun o_VariableBindings(self: AvailObject): A_Map =
-		self .. { variableBindings() }
+		self .. { variableBindings }
 
 	override fun o_VisibleNames(self: AvailObject): A_Set =
-		self .. { visibleNames() }
+		self .. { visibleNames }
 
 	override fun o_ParsingInstructions(self: AvailObject): A_Tuple =
-		self .. { parsingInstructions() }
+		self .. { parsingInstructions }
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
-		self .. { expression() }
+		self .. { expression }
 
 	override fun o_Variable(self: AvailObject): A_Phrase =
-		self .. { variable() }
+		self .. { variable }
 
 	override fun o_ArgumentsTuple(self: AvailObject): A_Tuple =
-		self .. { argumentsTuple() }
+		self .. { argumentsTuple }
 
 	override fun o_StatementsTuple(self: AvailObject): A_Tuple =
-		self .. { statementsTuple() }
+		self .. { statementsTuple }
 
 	override fun o_ResultType(self: AvailObject): A_Type =
 		self .. { resultType() }
@@ -2226,49 +2248,49 @@ class IndirectionDescriptor private constructor(
 	override fun o_NeededVariables(
 		self: AvailObject,
 		neededVariables: A_Tuple
-	) = self .. { neededVariables(neededVariables) }
+	) = self .. { this.neededVariables = neededVariables }
 
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =
-		self .. { neededVariables() }
+		self .. { neededVariables }
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
 		self .. { codePrimitive() }
 
 	override fun o_DeclaredType(self: AvailObject): A_Type =
-		self .. { declaredType() }
+		self .. { declaredType }
 
 	override fun o_DeclarationKind(self: AvailObject): DeclarationKind =
 		self .. { declarationKind() }
 
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
-		self .. { typeExpression() }
+		self .. { typeExpression }
 
 	override fun o_InitializationExpression(self: AvailObject): AvailObject =
-		self .. { initializationExpression() }
+		self .. { initializationExpression }
 
 	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
-		self .. { literalObject() }
+		self .. { literalObject }
 
 	override fun o_Token(self: AvailObject): A_Token =
-		self .. { token() }
+		self .. { token }
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
-		self .. { markerValue() }
+		self .. { markerValue }
 
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
-		self .. { argumentsListNode() }
+		self .. { argumentsListNode }
 
 	override fun o_Bundle(self: AvailObject): A_Bundle =
-		self .. { bundle() }
+		self .. { bundle }
 
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		self .. { expressionsTuple() }
+		self .. { expressionsTuple }
 
 	override fun o_Declaration(self: AvailObject): A_Phrase =
-		self .. { declaration() }
+		self .. { declaration }
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self .. { phraseExpressionType() }
+		self .. { phraseExpressionType }
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
 		self .. { phraseTypeExpressionType }
@@ -2316,25 +2338,27 @@ class IndirectionDescriptor private constructor(
 	override fun o_IsLastUse(
 		self: AvailObject,
 		isLastUse: Boolean
-	) = self .. { isLastUse(isLastUse) }
+	) = self .. {
+		this.isLastUse = isLastUse
+	}
 
 	override fun o_IsLastUse(self: AvailObject): Boolean =
-		self .. { isLastUse() }
+		self .. { isLastUse }
 
 	override fun o_CopyMutablePhrase(self: AvailObject): A_Phrase =
 		self .. { copyMutablePhrase() }
 
 	override fun o_BinUnionKind(self: AvailObject): A_Type =
-		self .. { binUnionKind() }
+		self .. { binUnionKind }
 
 	override fun o_OutputPhrase(self: AvailObject): A_Phrase =
-		self .. { outputPhrase() }
+		self .. { outputPhrase }
 
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
-		self .. { apparentSendName() }
+		self .. { apparentSendName }
 
 	override fun o_Statements(self: AvailObject): A_Tuple =
-		self .. { statements() }
+		self .. { statements }
 
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
@@ -2345,16 +2369,16 @@ class IndirectionDescriptor private constructor(
 		self .. { lineNumber() }
 
 	override fun o_AllParsingPlansInProgress(self: AvailObject): A_Map =
-		self .. { allParsingPlansInProgress() }
+		self .. { allParsingPlansInProgress }
 
 	override fun o_IsSetBin(self: AvailObject): Boolean =
 		self .. { isSetBin }
 
 	override fun o_MapIterable(self: AvailObject): MapIterable =
-		self .. { mapIterable() }
+		self .. { mapIterable }
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		self .. { declaredExceptions() }
+		self .. { declaredExceptions }
 
 	override fun o_IsInt(self: AvailObject): Boolean =
 		self .. { isInt }
@@ -2418,7 +2442,7 @@ class IndirectionDescriptor private constructor(
 		self .. { writeType }
 
 	override fun o_Versions(self: AvailObject): A_Set =
-		self .. { versions() }
+		self .. { versions }
 
 	override fun o_EqualsPhraseType(
 		self: AvailObject,
@@ -2448,7 +2472,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_SemanticRestrictions(
 		self: AvailObject
-	): A_Set = self .. { semanticRestrictions() }
+	): A_Set = self .. { semanticRestrictions }
 
 	override fun o_AddSealedArgumentsType(
 		self: AvailObject,
@@ -2462,7 +2486,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_SealedArgumentsTypesTuple(
 		self: AvailObject
-	): A_Tuple = self .. { sealedArgumentsTypesTuple() }
+	): A_Tuple = self .. { sealedArgumentsTypesTuple }
 
 	override fun o_ModuleAddSemanticRestriction(
 		self: AvailObject,
@@ -2483,7 +2507,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_IsMethodEmpty(
 		self: AvailObject
-	): Boolean = self .. { isMethodEmpty() }
+	): Boolean = self .. { isMethodEmpty }
 
 	override fun o_IsPojoSelfType(self: AvailObject): Boolean =
 		self .. { isPojoSelfType }
@@ -2582,7 +2606,7 @@ class IndirectionDescriptor private constructor(
 		self .. { divideIntoFloatCanDestroy(floatObject, canDestroy) }
 
 	override fun o_LazyPrefilterMap(self: AvailObject): A_Map =
-		self .. { lazyPrefilterMap() }
+		self .. { lazyPrefilterMap }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		self .. { serializerOperation() }
@@ -2620,16 +2644,16 @@ class IndirectionDescriptor private constructor(
 	}
 
 	override fun o_MapBinSize(self: AvailObject): Int =
-		self .. { mapBinSize() }
+		self .. { mapBinSize }
 
 	override fun o_MapBinKeyUnionKind(self: AvailObject): A_Type =
-		self .. { mapBinKeyUnionKind() }
+		self .. { mapBinKeyUnionKind }
 
 	override fun o_MapBinValueUnionKind(self: AvailObject): A_Type =
-		self .. { mapBinValueUnionKind() }
+		self .. { mapBinValueUnionKind }
 
 	override fun o_IsHashedMapBin(self: AvailObject): Boolean =
-		self .. { isHashedMapBin() }
+		self .. { isHashedMapBin }
 
 	override fun o_MapBinAtHash(
 		self: AvailObject,
@@ -2639,14 +2663,14 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_MapBinKeysHash(
 		self: AvailObject
-	): Int = self .. { mapBinKeysHash() }
+	): Int = self .. { mapBinKeysHash }
 
 	override fun o_MapBinValuesHash(self: AvailObject): Int =
-		self .. { mapBinValuesHash() }
+		self .. { mapBinValuesHash }
 
 	override fun o_IssuingModule(
 		self: AvailObject
-	): A_Module = self .. { issuingModule() }
+	): A_Module = self .. { issuingModule }
 
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
 		self .. { isPojoFusedType }
@@ -2733,7 +2757,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_LazyIncompleteCaseInsensitive(
 		self: AvailObject
-	): A_Map = self .. { lazyIncompleteCaseInsensitive() }
+	): A_Map = self .. { lazyIncompleteCaseInsensitive }
 
 	override fun o_LowerCaseString(self: AvailObject): A_String =
 		self .. { lowerCaseString() }
@@ -2742,7 +2766,7 @@ class IndirectionDescriptor private constructor(
 		self .. { instanceCount }
 
 	override fun o_TotalInvocations(self: AvailObject): Long =
-		self .. { totalInvocations() }
+		self .. { totalInvocations }
 
 	override fun o_TallyInvocation(self: AvailObject) =
 		self .. { tallyInvocation() }
@@ -2875,7 +2899,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_MapBinIterable(
 		self: AvailObject
-	): MapIterable = self .. { mapBinIterable() }
+	): MapIterable = self .. { mapBinIterable }
 
 	override fun o_RangeIncludesLong(
 		self: AvailObject,
@@ -2893,7 +2917,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_SetBinIterator(
 		self: AvailObject
-	): SetIterator = self .. { setBinIterator() }
+	): SetIterator = self .. { setBinIterator }
 
 	override fun o_BitShift(
 		self: AvailObject,
@@ -2908,7 +2932,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_StripMacro(
 		self: AvailObject
-	): A_Phrase = self .. { stripMacro() }
+	): A_Phrase = self .. { stripMacro }
 
 	override fun o_DefinitionMethod(
 		self: AvailObject
@@ -2935,7 +2959,7 @@ class IndirectionDescriptor private constructor(
 	}
 
 	override fun o_ByteArray(self: AvailObject): ByteArray =
-		self .. { byteArray() }
+		self .. { byteArray }
 
 	override fun o_IsByteArrayTuple(self: AvailObject): Boolean =
 		self .. { isByteArrayTuple }
@@ -2952,10 +2976,10 @@ class IndirectionDescriptor private constructor(
 		self .. { lock(body) }
 
 	override fun o_ModuleName(self: AvailObject): A_String =
-		self .. { moduleName() }
+		self .. { moduleName }
 
 	override fun o_BundleMethod(self: AvailObject): A_Method =
-		self .. { bundleMethod() }
+		self .. { bundleMethod }
 
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun o_GetAndSetValue(
@@ -3051,7 +3075,7 @@ class IndirectionDescriptor private constructor(
 		self .. { clearGeneralFlag(flag) }
 
 	override fun o_ByteBuffer(self: AvailObject): ByteBuffer =
-		self .. { byteBuffer() }
+		self .. { byteBuffer }
 
 	override fun o_EqualsByteBufferTuple(
 		self: AvailObject,
@@ -3084,7 +3108,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { fiberNameSupplier(supplier) }
 
 	override fun o_Bundles(self: AvailObject): A_Set =
-		self .. { bundles() }
+		self .. { bundles }
 
 	override fun o_MethodAddBundle(self: AvailObject, bundle: A_Bundle) =
 		self .. { methodAddBundle(bundle) }
@@ -3103,13 +3127,13 @@ class IndirectionDescriptor private constructor(
 		self .. { bundleOrCreate() }
 
 	override fun o_BundleOrNil(self: AvailObject): A_Bundle =
-		self .. { bundleOrNil() }
+		self .. { bundleOrNil }
 
 	override fun o_EntryPoints(self: AvailObject): A_Map =
-		self .. { entryPoints() }
+		self .. { entryPoints }
 
 	override fun o_AllAncestors(self: AvailObject): A_Set =
-		self .. { allAncestors() }
+		self .. { allAncestors }
 
 	override fun o_ArgumentRestrictionSets(self: AvailObject): A_Tuple =
 		self .. { argumentRestrictionSets() }
@@ -3118,16 +3142,16 @@ class IndirectionDescriptor private constructor(
 		self .. { restrictedBundle() }
 
 	override fun o_AtomName(self: AvailObject): A_String =
-		self .. { atomName() }
+		self .. { atomName }
 
 	override fun o_AdjustPcAndStackp(self: AvailObject, pc: Int, stackp: Int) =
 		self .. { adjustPcAndStackp(pc, stackp) }
 
 	override fun o_TreeTupleLevel(self: AvailObject): Int =
-		self .. { treeTupleLevel() }
+		self .. { treeTupleLevel }
 
 	override fun o_ChildCount(self: AvailObject): Int =
-		self .. { childCount() }
+		self .. { childCount }
 
 	override fun o_ChildAt(self: AvailObject, childIndex: Int): A_Tuple =
 		self .. { childAt(childIndex) }
@@ -3217,7 +3241,7 @@ class IndirectionDescriptor private constructor(
 		self .. { isTop }
 
 	override fun o_IsAtomSpecial(self: AvailObject): Boolean =
-		self .. { isAtomSpecial() }
+		self .. { isAtomSpecial }
 
 	override fun o_HasValue(self: AvailObject): Boolean =
 		self .. { hasValue() }
@@ -3228,7 +3252,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { addUnloadFunction(unloadFunction) }
 
 	override fun o_ExportedNames(self: AvailObject): A_Set =
-		self .. { exportedNames() }
+		self .. { exportedNames }
 
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject): Boolean =
 		self .. { isInitializedWriteOnceVariable }
@@ -3289,10 +3313,10 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject
 	): Boolean = self .. { showValueInNameForDebugger() }
 
-	override fun o_List(self: AvailObject): A_Phrase = self .. { list() }
+	override fun o_List(self: AvailObject): A_Phrase = self .. { list }
 
 	override fun o_Permutation(self: AvailObject): A_Tuple =
-		self .. { permutation() }
+		self .. { permutation }
 
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
@@ -3300,13 +3324,13 @@ class IndirectionDescriptor private constructor(
 	) = self .. { emitAllValuesOn(codeGenerator) }
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
-		self .. { superUnionType() }
+		self .. { superUnionType }
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self .. { hasSuperCast() }
+		self .. { hasSuperCast }
 
 	override fun o_MacrosTuple(self: AvailObject): A_Tuple =
-		self .. { macrosTuple() }
+		self .. { macrosTuple }
 
 	override fun o_LookupMacroByPhraseTuple(
 		self: AvailObject,
@@ -3317,16 +3341,16 @@ class IndirectionDescriptor private constructor(
 		self .. { expressionAt(index) }
 
 	override fun o_ExpressionsSize(self: AvailObject): Int =
-		self .. { expressionsSize() }
+		self .. { expressionsSize }
 
 	override fun o_ParsingPc(self: AvailObject): Int =
-		self .. { parsingPc() }
+		self .. { parsingPc }
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean =
-		self .. { isMacroSubstitutionNode() }
+		self .. { isMacroSubstitutionNode }
 
 	override fun o_MessageSplitter(self: AvailObject): MessageSplitter =
-		self .. { messageSplitter() }
+		self .. { messageSplitter }
 
 	override fun o_StatementsDo(
 		self: AvailObject,
@@ -3334,7 +3358,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { statementsDo(continuation) }
 
 	override fun o_MacroOriginalSendNode(self: AvailObject): A_Phrase =
-		self .. { macroOriginalSendNode() }
+		self .. { macroOriginalSendNode }
 
 	override fun o_EqualsInt(
 		self: AvailObject,
@@ -3342,7 +3366,7 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self .. { equalsInt(theInt) }
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self .. { tokens() }
+		self .. { tokens }
 
 	override fun o_ChooseBundle(
 		self: AvailObject,
@@ -3361,10 +3385,10 @@ class IndirectionDescriptor private constructor(
 		self .. { uniqueId() }
 
 	override fun o_Definition(self: AvailObject): A_Definition =
-		self .. { definition() }
+		self .. { definition }
 
 	override fun o_NameHighlightingPc(self: AvailObject): String =
-		self .. { nameHighlightingPc() }
+		self .. { nameHighlightingPc }
 
 	override fun o_SetIntersects(self: AvailObject, otherSet: A_Set): Boolean =
 		self .. { setIntersects(otherSet) }
@@ -3375,7 +3399,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { removePlanForSendable(sendable) }
 
 	override fun o_DefinitionParsingPlans(self: AvailObject): A_Map =
-		self .. { definitionParsingPlans() }
+		self .. { definitionParsingPlans }
 
 	override fun o_EqualsListNodeType(
 		self: AvailObject,
@@ -3391,7 +3415,7 @@ class IndirectionDescriptor private constructor(
 	): A_Type = self .. { typeUnionOfListNodeType(aListNodeType) }
 
 	override fun o_LazyTypeFilterTreePojo(self: AvailObject): A_BasicObject =
-		self .. { lazyTypeFilterTreePojo() }
+		self .. { lazyTypeFilterTreePojo }
 
 	override fun o_AddPlanInProgress(
 		self: AvailObject,
@@ -3431,7 +3455,7 @@ class IndirectionDescriptor private constructor(
 	): A_Type? = self .. { fieldTypeAtOrNull(field) }
 
 	override fun o_ParsingPlan(self: AvailObject): A_DefinitionParsingPlan =
-		self .. { parsingPlan() }
+		self .. { parsingPlan }
 
 	override fun o_CompareFromToWithIntTupleStartingAt(
 		self: AvailObject,
@@ -3477,16 +3501,18 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self .. { variableMapHasKey(key) }
 
 	override fun o_LexerMethod(self: AvailObject): A_Method =
-		self .. { lexerMethod() }
+		self .. { lexerMethod }
 
 	override fun o_LexerFilterFunction(self: AvailObject): A_Function =
-		self .. { lexerFilterFunction() }
+		self .. { lexerFilterFunction }
 
 	override fun o_LexerBodyFunction(self: AvailObject): A_Function =
-		self .. { lexerBodyFunction() }
+		self .. { lexerBodyFunction }
 
 	override fun o_SetLexer(self: AvailObject, lexer: A_Lexer) =
-		self .. { setLexer(lexer) }
+		self .. {
+			this.lexer = lexer
+		}
 
 	override fun o_AddLexer(self: AvailObject, lexer: A_Lexer) =
 		self .. { addLexer(lexer) }
@@ -3521,7 +3547,7 @@ class IndirectionDescriptor private constructor(
 		self .. { createLexicalScanner() }
 
 	override fun o_Lexer(self: AvailObject): A_Lexer =
-		self .. { lexer() }
+		self .. { lexer }
 
 	override fun o_SetSuspendingFunction(
 		self: AvailObject,
@@ -3532,22 +3558,22 @@ class IndirectionDescriptor private constructor(
 		self .. { suspendingFunction() }
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean =
-		self .. { isBackwardJump() }
+		self .. { isBackwardJump }
 
 	override fun o_LatestBackwardJump(
 		self: AvailObject
-	): A_BundleTree = self .. { latestBackwardJump() }
+	): A_BundleTree = self .. { latestBackwardJump }
 
 	override fun o_HasBackwardJump(self: AvailObject): Boolean =
-		self .. { hasBackwardJump() }
+		self .. { hasBackwardJump }
 
 	override fun o_IsSourceOfCycle(self: AvailObject): Boolean =
-		self .. { isSourceOfCycle() }
+		self .. { isSourceOfCycle }
 
 	override fun o_IsSourceOfCycle(
 		self: AvailObject,
 		isSourceOfCycle: Boolean
-	) = self .. { isSourceOfCycle(isSourceOfCycle) }
+	) = self .. { this.isSourceOfCycle = isSourceOfCycle }
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder =
 		self .. { debugLog() }
@@ -3578,7 +3604,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_TestingTree(
 		self: AvailObject): LookupTree<A_Definition, A_Tuple> =
-		self .. { testingTree() }
+		self .. { testingTree }
 
 	override fun o_ForEach(
 		self: AvailObject,
@@ -3600,7 +3626,7 @@ class IndirectionDescriptor private constructor(
 		self .. { clearLexingState() }
 
 	override fun o_LastExpression(self: AvailObject): A_Phrase =
-		self .. { lastExpression() }
+		self .. { lastExpression }
 
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
 		self .. { registerDump() }
@@ -3638,12 +3664,14 @@ class IndirectionDescriptor private constructor(
 		self .. { extractDumpedLongAt(index) }
 
 	override fun o_ModuleState(self: AvailObject): ModuleDescriptor.State =
-		self .. { moduleState() }
+		self .. { moduleState }
 
 	override fun o_SetModuleState(
 		self: AvailObject,
 		newState: ModuleDescriptor.State
-	) = self .. { setModuleState(newState) }
+	) = self .. {
+		moduleState = newState
+	}
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
 		self .. { setAtomBundle(bundle) }
@@ -3675,7 +3703,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetOriginatingPhraseOrIndex(
 		self: AvailObject,
 		phraseOrIndex: AvailObject
-	) = self .. { setOriginatingPhraseOrIndex(phraseOrIndex) }
+	) = self .. { originatingPhraseOrIndex = phraseOrIndex }
 
 	override fun o_LexerApplicability(
 		self: AvailObject,

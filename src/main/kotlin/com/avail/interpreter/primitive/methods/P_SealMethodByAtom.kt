@@ -102,8 +102,7 @@ object P_SealMethodByAtom : Primitive(2, CanInline, HasSideEffect)
 				ATOM.o,
 				tupleTypeForSizesTypesDefaultType(
 					wholeNumbers, emptyTuple, anyMeta())),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

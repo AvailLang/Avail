@@ -207,8 +207,7 @@ import javax.annotation.Nullable
 @Suppress(
 	"PARAMETER_NAME_CHANGED_ON_OVERRIDE",
 	"UNUSED_PARAMETER",
-	"MemberVisibilityCanBePrivate"
-)
+	"MemberVisibilityCanBePrivate")
 class JVMTranslator constructor(
 	val code: A_RawFunction?,
 	private val chunkName: String,
@@ -708,12 +707,12 @@ class JVMTranslator constructor(
 				{
 					value is Primitive -> value.name
 					value !is AvailObject -> value.javaClass.simpleName
-					value.isInstanceOf(stringType()) ->
+					value.isInstanceOf(stringType) ->
 						"STRING_${tidy(value.asNativeString())}"
 					value.isInstanceOfKind(Types.ATOM.o) ->
-						"ATOM_${tidy(value.atomName())}"
+						"ATOM_${tidy(value.atomName)}"
 					value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
-						"BUNDLE_${tidy(value.message().atomName())}"
+						"BUNDLE_${tidy(value.message.atomName)}"
 					value.isInstanceOfKind(mostGeneralFunctionType()) ->
 						"FUNCTION_${tidy(value.code().methodName)}"
 					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
@@ -1939,7 +1938,7 @@ class JVMTranslator constructor(
 			}
 			else
 			{
-				moduleNameStripper.matcher(module.moduleName().asNativeString())
+				moduleNameStripper.matcher(module.moduleName.asNativeString())
 					.replaceAll("$1")
 			}
 

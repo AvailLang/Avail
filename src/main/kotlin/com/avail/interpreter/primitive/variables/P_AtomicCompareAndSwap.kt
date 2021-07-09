@@ -84,9 +84,13 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 			interpreter.primitiveSuccess(
 				objectFromBoolean(
 					variable.compareAndSwapValues(reference, newValue)))
-		} catch (e: VariableGetException) {
+		}
+		catch (e: VariableGetException)
+		{
 			interpreter.primitiveFailure(e)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -146,8 +150,7 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 			tuple(
 				mostGeneralVariableType(),
 				ANY.o,
-				ANY.o
-			),
+				ANY.o),
 			booleanType)
 
 	override fun privateFailureVariableType(): A_Type =

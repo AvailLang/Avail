@@ -158,7 +158,7 @@ object ClientDisconnect: DisconnectReason
 	override val code get () = -3
 	// We don't know that the close was healthy, only that the client closed
 	// the connection. We should presume it can have a negative cascading impact
-	override val error: Throwable? = ClosedChannelException()
+	override val error: Throwable = ClosedChannelException()
 }
 
 /**
@@ -172,7 +172,7 @@ object HeartbeatFailureDisconnect: DisconnectReason
 {
 	override val origin get () = DisconnectOrigin.SERVER_ORIGIN
 	override val code get () = -4
-	override val error: Throwable? = ClosedChannelException()
+	override val error: Throwable = ClosedChannelException()
 }
 
 /**
@@ -221,13 +221,13 @@ object MismatchDisconnect: DisconnectReason
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property e
+ * @property error
  *   The [Throwable] related to the error or `null` if none.
  *
  * @constructor
  * Construct a [CommunicationErrorDisconnect].
  *
- * @param e
+ * @param error
  *   The [Throwable] related to the error or `null` if none.
  */
 class CommunicationErrorDisconnect constructor(override val error: Throwable?)

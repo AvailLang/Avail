@@ -61,7 +61,7 @@ object P_AsDouble : Primitive(1, CannotFail, CanFold, CanInline)
 		}
 		else
 		{
-			interpreter.primitiveSuccess(fromDouble(number.extractDouble()))
+			interpreter.primitiveSuccess(fromDouble(number.extractDouble))
 		}
 	}
 

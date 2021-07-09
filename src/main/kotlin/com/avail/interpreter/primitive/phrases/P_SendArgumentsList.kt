@@ -61,7 +61,7 @@ object P_SendArgumentsList : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val send = interpreter.argument(0)
-		return interpreter.primitiveSuccess(send.argumentsListNode())
+		return interpreter.primitiveSuccess(send.argumentsListNode)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

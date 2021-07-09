@@ -197,7 +197,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 					// Add "..., opt1, opt2" etc. to show the optional
 					// arguments.
 					list.add(null)
-					var max = tupleType.typeTuple.tupleSize() + 1
+					var max = tupleType.typeTuple.tupleSize + 1
 					max = max(max, min + 1)
 					for (i in min + 1 .. max)
 					{
@@ -221,7 +221,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		builder.append("]→")
 		self.returnType.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
-		if (self.declaredExceptions.setSize() > 0)
+		if (self.declaredExceptions.setSize > 0)
 		{
 			builder.append("^")
 			list.clear()
@@ -282,7 +282,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		var i = 1
-		val end = argTypes.tupleSize()
+		val end = argTypes.tupleSize
 		while (i <= end)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))
@@ -660,7 +660,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private fun normalizeExceptionSet(exceptionSet: A_Set): A_Set
 		{
-			val setSize = exceptionSet.setSize()
+			val setSize = exceptionSet.setSize
 			return when
 			{
 				// This is probably the most common case – no checked
@@ -756,8 +756,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			val tupleType =
 				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
 					IntegerRangeTypeDescriptor
-						.singleInt(argTypes.tupleSize()), argTypes, bottom
-				)
+						.singleInt(argTypes.tupleSize), argTypes, bottom)
 			return functionTypeFromArgumentTupleType(
 				tupleType, returnType, exceptionSet)
 		}

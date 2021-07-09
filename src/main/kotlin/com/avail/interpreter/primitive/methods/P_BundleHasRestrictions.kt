@@ -56,7 +56,7 @@ object P_BundleHasRestrictions : Primitive(1, CanInline, CannotFail)
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(bundle.hasGrammaticalRestrictions()))
+			objectFromBoolean(bundle.hasGrammaticalRestrictions))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

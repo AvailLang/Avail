@@ -496,7 +496,9 @@ abstract class AbstractNumberDescriptor protected constructor(
 				type.instances.forEach { value: A_Number ->
 					if (value.numericCompare(value).isIncomparable()) {
 						possibleResults.add(INCOMPARABLE)
-					} else {
+					}
+					else
+					{
 						comparablesList.add(value)
 						if (max.value === null
 							|| value.greaterThan(max.value!!))
@@ -644,8 +646,7 @@ abstract class AbstractNumberDescriptor protected constructor(
 							firstValue.numericCompare(secondMax.value!!)
 						if (compareMin.isMoreOrEqual()
 							&& compareMax.isLessOrEqual()
-							&& firstValue.isNumericallyIntegral
-						)
+							&& firstValue.isNumericallyIntegral)
 						{
 							// It's in range and equals an integer, so
 							// numeric equality with a value from the
@@ -653,7 +654,9 @@ abstract class AbstractNumberDescriptor protected constructor(
 							possibleResults.add(EQUAL)
 							return possibleResults
 						}
-					} else {
+					}
+					else
+					{
 						// The value is infinite.
 						val integerInfinity: A_Number =
 							if (firstValue.isPositive) positiveInfinity
@@ -685,7 +688,9 @@ abstract class AbstractNumberDescriptor protected constructor(
 							possibleResults.add(EQUAL)
 							return possibleResults
 						}
-					} else {
+					}
+					else
+					{
 						// The value is infinite.
 						val integerInfinity: A_Number =
 							if (secondValue.isPositive) positiveInfinity

@@ -59,7 +59,7 @@ object P_BootstrapStringLiteral
 		interpreter.checkArgumentCount(1)
 		val stringTokenLiteral = interpreter.argument(0)
 
-		val outerToken = stringTokenLiteral.token()
+		val outerToken = stringTokenLiteral.token
 		val innerToken = outerToken.literal()
 		assert(innerToken.literal().isString)
 		val stringLiteral = literalNodeFromToken(innerToken)
@@ -70,6 +70,6 @@ object P_BootstrapStringLiteral
 		functionType(
 			tuple(
 				LITERAL_PHRASE.create(
-					literalTokenType(stringType()))),
-			LITERAL_PHRASE.create(stringType()))
+					literalTokenType(stringType))),
+			LITERAL_PHRASE.create(stringType))
 }

@@ -61,7 +61,7 @@ object P_AtomHasProperty : Primitive(
 		interpreter.checkArgumentCount(2)
 		val propertyKey = interpreter.argument(0)
 		val atom = interpreter.argument(1)
-		if (atom.isAtomSpecial())
+		if (atom.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}

@@ -357,17 +357,14 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 							{
 								val bad = peekCodePoint()
 								throw MalformedInputException(
-									Character.charCount(bad)
-								)
+									Character.charCount(bad))
 							}
 						}
 						builder.appendCodePoint(
-							Integer.parseInt(hex.toString(), 16)
-						)
+							Integer.parseInt(hex.toString(), 16))
 					}
 					else -> throw MalformedInputException(
-						Character.charCount(codePoint)
-					)
+						Character.charCount(codePoint))
 				}
 			}
 			else

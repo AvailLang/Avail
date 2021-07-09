@@ -87,10 +87,9 @@ object P_TupleTypeSequenceOfTypes : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				tupleMeta(),
+				tupleMeta,
 				naturalNumbers,
-				wholeNumbers
-			),
+				wholeNumbers),
 			zeroOrMoreOf(anyMeta()))
 
 	override fun privateFailureVariableType(): A_Type =

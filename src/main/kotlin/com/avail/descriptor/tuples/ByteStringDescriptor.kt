@@ -131,7 +131,7 @@ class ByteStringDescriptor private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		if (originalSize >= maximumCopySize
 			|| !(newElement as A_Character).isCharacter)
 		{
@@ -139,7 +139,7 @@ class ByteStringDescriptor private constructor(
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val intValue: Int = newElement.codePoint()
+		val intValue: Int = newElement.codePoint
 		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
@@ -206,8 +206,8 @@ class ByteStringDescriptor private constructor(
 		}
 		if (startIndex1 == 1
 			&& startIndex2 == 1
-			&& endIndex1 == self.tupleSize()
-			&& endIndex1 == aByteString.tupleSize())
+			&& endIndex1 == self.tupleSize
+			&& endIndex1 == aByteString.tupleSize)
 		{
 			// They're *completely* equal (but occupy disjoint storage). If
 			// possible, replace one with an indirection to the other to keep
@@ -238,8 +238,8 @@ class ByteStringDescriptor private constructor(
 		{
 			return true
 		}
-		val tupleSize = self.tupleSize()
-		return tupleSize == aByteString.tupleSize()
+		val tupleSize = self.tupleSize
+		return tupleSize == aByteString.tupleSize
 			   && self.hash() == aByteString.hash()
 			   && self.compareFromToWithByteStringStartingAt(
 				1, tupleSize, aByteString, 1)
@@ -268,7 +268,7 @@ class ByteStringDescriptor private constructor(
 	override fun o_RawByteForCharacterAt(self: AvailObject, index: Int): Short
 	{
 		//  Answer the byte that encodes the character at the given index.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return self.byteSlot(RAW_LONGS_, index)
 	}
 
@@ -276,7 +276,7 @@ class ByteStringDescriptor private constructor(
 	{
 		// Answer the element at the given index in the tuple object.  It's a
 		// one-byte character.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		val codePoint = self.byteSlot(RAW_LONGS_, index)
 		return fromByteCodePoint(codePoint) as AvailObject
 	}
@@ -290,10 +290,10 @@ class ByteStringDescriptor private constructor(
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if ((newValueObject as A_Character).isCharacter)
 		{
-			val codePoint: Int = newValueObject.codePoint()
+			val codePoint: Int = newValueObject.codePoint
 			if (codePoint and 0xFF == codePoint)
 			{
 				val result =
@@ -317,13 +317,13 @@ class ByteStringDescriptor private constructor(
 
 	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return self.byteSlot(RAW_LONGS_, index).toInt()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		return if (size > maximumCopySize)
 		{
 			super.o_TupleReverse(self)
@@ -382,7 +382,7 @@ class ByteStringDescriptor private constructor(
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		return if (size in 1 until tupleSize && size < maximumCopySize)
@@ -406,7 +406,7 @@ class ByteStringDescriptor private constructor(
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		val size1 = self.tupleSize()
+		val size1 = self.tupleSize
 		if (size1 == 0)
 		{
 			if (!canDestroy)
@@ -415,7 +415,7 @@ class ByteStringDescriptor private constructor(
 			}
 			return otherTuple
 		}
-		val size2 = otherTuple.tupleSize()
+		val size2 = otherTuple.tupleSize
 		if (size2 == 0)
 		{
 			if (!canDestroy)
@@ -464,7 +464,7 @@ class ByteStringDescriptor private constructor(
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -556,7 +556,7 @@ class ByteStringDescriptor private constructor(
 		private fun copyAsMutableTwoByteString(
 			self: AvailObject): A_String
 		{
-			val result = generateTwoByteString(self.tupleSize()) {
+			val result = generateTwoByteString(self.tupleSize) {
 				self.byteSlot(RAW_LONGS_, it).toInt()
 			}
 			result.setHashOrZero(self.hashOrZero())

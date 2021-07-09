@@ -93,7 +93,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		if (oldAtom.isAtomSpecial())
+		if (oldAtom.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
@@ -107,14 +107,14 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(e)
 			}
 
-		if (newAtom.bundleOrNil().notNil)
+		if (newAtom.bundleOrNil.notNil)
 		{
 			return interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
 		}
 		val newBundle: A_Bundle = try
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
-			val method = oldBundle.bundleMethod()
+			val method = oldBundle.bundleMethod
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
@@ -130,7 +130,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			val root = loader.rootBundleTree()
 			loader.module().lock {
-				newBundle.definitionParsingPlans().forEach { _, value ->
+				newBundle.definitionParsingPlans.forEach { _, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}
 			}
@@ -141,7 +141,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				ATOM.o),
 			TOP.o)
 

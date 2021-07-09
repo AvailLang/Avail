@@ -760,7 +760,7 @@ class L2Generator internal constructor(
 		{
 			// Make it available as a constant in a float register.
 			return unboxedFloatConstant(
-				restriction.constantOrNull.extractDouble())
+				restriction.constantOrNull.extractDouble)
 		}
 		// Extract it to a new float register.
 		val floatWrite = L2WriteFloatOperand(
@@ -953,7 +953,7 @@ class L2Generator internal constructor(
 				// necessary parts.
 				generateStringFromCodePoints(size) { oneBasedIndex ->
 					elements[oneBasedIndex - 1].constantOrNull().let {
-						if (it === null) '?'.code else it.codePoint()
+						if (it === null) '?'.code else it.codePoint
 					}
 				}
 			}

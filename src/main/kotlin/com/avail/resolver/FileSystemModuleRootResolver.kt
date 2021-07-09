@@ -83,7 +83,6 @@ import java.util.Collections
 import java.util.Deque
 import java.util.EnumSet
 import java.util.LinkedList
-import java.util.Locale
 import java.util.UUID
 import kotlin.concurrent.thread
 
@@ -314,11 +313,8 @@ class FileSystemModuleRootResolver constructor(
 					resolverReference(
 						absolutePath(
 							uri,
-							qualifiedName
-						),
-						qualifiedName
-					)
-				)
+							qualifiedName),
+						qualifiedName))
 			}
 			catch (e: NoSuchFileException)
 			{

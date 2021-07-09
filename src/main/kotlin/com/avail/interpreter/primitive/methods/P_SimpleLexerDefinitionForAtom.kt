@@ -91,20 +91,23 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val bundle = try {
+		val bundle = try
+		{
 			atom.bundleOrCreate()
-		} catch (e: MalformedMessageException) {
+		}
+		catch (e: MalformedMessageException)
+		{
 			return interpreter.primitiveFailure(e.errorCode)
 		}
-		val method = bundle.bundleMethod()
+		val method = bundle.bundleMethod
 		val lexer = newLexer(
 			filterFunction, bodyFunction, method, loader.module())
 
 		return interpreter.suspendInLevelOneSafeThen {
 			filterFunction.code().methodName =
-				stringFrom("Filter for lexer ${atom.atomName()}")
+				stringFrom("Filter for lexer ${atom.atomName}")
 			bodyFunction.code().methodName =
-				stringFrom("Body for lexer ${atom.atomName()}")
+				stringFrom("Body for lexer ${atom.atomName}")
 			// Updating the lexical scanner is cheap enough that we do it even
 			// when we're loading, not just compiling.  This allows us to parse
 			// and run entry points in the scope of the module, without having
@@ -128,8 +131,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		functionType(
 			tuple(
 				ATOM.o, lexerFilterFunctionType(), lexerBodyFunctionType()),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

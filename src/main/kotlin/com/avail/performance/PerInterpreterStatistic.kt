@@ -101,10 +101,12 @@ class PerInterpreterStatistic internal constructor(
 	private inline fun <A> spinLockWhile(body: () -> A): A
 	{
 		while (!lock.compareAndSet(0, 1)) Thread.yield()
-		return try {
+		return try
+		{
 			body()
 		}
-		finally {
+		finally
+		{
 			val ok = lock.compareAndSet(1, 0)
 			assert(ok) { "Invalid spinlock state" }
 		}

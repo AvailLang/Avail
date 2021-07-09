@@ -32,8 +32,7 @@
 
 @file:Suppress(
 	"PLATFORM_CLASS_MAPPED_TO_KOTLIN",
-	"RemoveRedundantQualifierName"
-)
+	"RemoveRedundantQualifierName")
 
 package com.avail.interpreter
 

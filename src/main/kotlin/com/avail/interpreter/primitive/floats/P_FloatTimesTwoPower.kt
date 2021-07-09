@@ -82,8 +82,6 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 			tuple(
 				FLOAT.o,
 				instanceType(two),
-				integers
-			),
-			FLOAT.o
-		)
+				integers),
+			FLOAT.o)
 }

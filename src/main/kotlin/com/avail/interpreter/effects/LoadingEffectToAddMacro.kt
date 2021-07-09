@@ -65,7 +65,7 @@ internal class LoadingEffectToAddMacro constructor(
 ) : LoadingEffect() {
 	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
-		val atom = bundle.message()
+		val atom = bundle.message
 		with(writer) {
 			// NOTE: The prefix functions are dealt with as separate effects.
 			// Push the bundle's atom.

@@ -100,7 +100,7 @@ class ReferencePhraseDescriptor(
 		indent: Int
 	) {
 		builder.append("↑")
-		builder.append(self.slot(VARIABLE).token().string().asNativeString())
+		builder.append(self.slot(VARIABLE).token.string().asNativeString())
 	}
 
 	override fun o_Variable(self: AvailObject): A_Phrase = self.slot(VARIABLE)
@@ -111,10 +111,10 @@ class ReferencePhraseDescriptor(
 	 */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val variable: A_Phrase = self.slot(VARIABLE)
-		val declaration = variable.declaration()
+		val declaration = variable.declaration
 		return when (declaration.declarationKind()) {
-			MODULE_VARIABLE -> instanceType(declaration.literalObject())
-			else -> variableTypeFor(variable.phraseExpressionType())
+			MODULE_VARIABLE -> instanceType(declaration.literalObject)
+			else -> variableTypeFor(variable.phraseExpressionType)
 		}
 	}
 
@@ -122,21 +122,21 @@ class ReferencePhraseDescriptor(
 		self: AvailObject,
 		aPhrase: A_Phrase
 	): Boolean {
-		return (!aPhrase.isMacroSubstitutionNode()
-			&& self.phraseKind() == aPhrase.phraseKind()
-			&& self.slot(VARIABLE).equals(aPhrase.variable()))
+		return (!aPhrase.isMacroSubstitutionNode
+			&& self.phraseKind == aPhrase.phraseKind
+			&& self.slot(VARIABLE).equals(aPhrase.variable))
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.variable().hash() xor -0x180564c1
+		self.variable.hash() xor -0x180564c1
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration = self.slot(VARIABLE).declaration()
+		val declaration = self.slot(VARIABLE).declaration
 		declaration.declarationKind().emitVariableReferenceForOn(
-			self.tokens(), declaration, codeGenerator)
+			self.tokens, declaration, codeGenerator)
 	}
 
 	override fun o_ChildrenMap(
@@ -156,9 +156,9 @@ class ReferencePhraseDescriptor(
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
-		parent: A_Phrase?
-	) {
-		val decl: A_BasicObject = self.slot(VARIABLE).declaration()
+		parent: A_Phrase?)
+	{
+		val decl: A_BasicObject = self.slot(VARIABLE).declaration
 		when (decl.declarationKind()) {
 			ARGUMENT -> error("You can't take the reference of an argument")
 			LABEL -> error("You can't take the reference of a label")
@@ -178,7 +178,7 @@ class ReferencePhraseDescriptor(
 		SerializerOperation.REFERENCE_PHRASE
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(VARIABLE).tokens()
+		self.slot(VARIABLE).tokens
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

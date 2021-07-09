@@ -983,7 +983,8 @@ class IndexedFile internal constructor(
 	fun add(record: ByteArray, start: Int = 0, length: Int = record.size)
 	{
 		lock.safeWrite {
-			try {
+			try
+			{
 				val m = master!!
 				val coordinates = RecordCoordinates(
 					m.fileLimit, m.rawBytes.size())
@@ -991,7 +992,9 @@ class IndexedFile internal constructor(
 				m.uncompressedData.write(record, start, length)
 				compressAndFlushIfFull()
 				addOrphan(coordinates, 0)
-			} catch (e: IOException) {
+			}
+			catch (e: IOException)
+			{
 				throw IndexedFileException(e)
 			}
 		}
@@ -1004,30 +1007,44 @@ class IndexedFile internal constructor(
 	{
 		lock.safeWrite {
 			if (longTermLock !== null) {
-				try {
+				try
+				{
 					longTermLock!!.release()
-				} catch (e: IOException) {
+				}
+				catch (e: IOException)
+				{
 					// Ignore.
-				} finally {
+				}
+				finally
+				{
 					longTermLock = null
 				}
 			}
 
-			try {
+			try
+			{
 				channel.close()
-			} catch (e: IOException) {
+			}
+			catch (e: IOException)
+			{
 				// Ignore.
 			}
 
-			try {
+			try
+			{
 				file.close()
-			} catch (e: IOException) {
+			}
+			catch (e: IOException)
+			{
 				// Ignore.
 			}
 
-			try {
+			try
+			{
 				blockCache.clear()
-			} catch (e: InterruptedException) {
+			}
+			catch (e: InterruptedException)
+			{
 				// Do nothing.
 			}
 		}
@@ -1055,11 +1072,14 @@ class IndexedFile internal constructor(
 			m.writeTo(b)
 			val shortTermLock = c.lock(
 				pageSize.toLong(), masterNodeSize.toLong() shl 1, false)
-			try {
+			try
+			{
 				c.position(masterPosition)
 				c.write(b)
 				c.force(true)
-			} finally {
+			}
+			finally
+			{
 				shortTermLock.release()
 			}
 		}
@@ -1184,7 +1204,8 @@ class IndexedFile internal constructor(
 		lock.safeWrite {
 			val fileLock = channel.lock(
 				pageSize.toLong(), masterNodeSize.toLong() shl 1, false)
-			try {
+			try
+			{
 				// Determine the newest valid master node.
 				val previous = decodeMasterNode(previousMasterPosition)
 				var current = decodeMasterNode(masterPosition)
@@ -1218,13 +1239,19 @@ class IndexedFile internal constructor(
 					}
 				}
 				master = current
-			} catch (e: IOException) {
+			}
+			catch (e: IOException)
+			{
 				close()
 				throw e
-			} catch (e: Throwable) {
+			}
+			catch (e: Throwable)
+			{
 				close()
 				throw IndexedFileException(e)
-			} finally {
+			}
+			finally
+			{
 				fileLock.release()
 			}
 		}

@@ -60,7 +60,7 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 	{
 		interpreter.checkArgumentCount(1)
 		val ordinalLiteral = interpreter.argument(0)
-		val ordinal = ordinalLiteral.token().literal()
+		val ordinal = ordinalLiteral.token.literal()
 		if (!ordinal.isInt)
 		{
 			return interpreter.primitiveFailure(E_NO_SPECIAL_OBJECT)

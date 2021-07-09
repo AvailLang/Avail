@@ -207,15 +207,20 @@ class CommandLineConfigurator constructor(
 				"The Avail server understands the following options: ",
 				helpStream)
 			configuration.rule("Could not resolve specified module") {
-				try {
+				try
+				{
 					// Just try to create a module name resolver. If this fails,
 					// then the configuration is invalid. Otherwise, it should
 					// be okay.
 					moduleNameResolver()
 					true
-				} catch (e: FileNotFoundException) {
+				}
+				catch (e: FileNotFoundException)
+				{
 					false
-				} catch (e: RenamesFileParserException) {
+				}
+				catch (e: RenamesFileParserException)
+				{
 					false
 				}
 			}

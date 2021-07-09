@@ -111,8 +111,8 @@ class ParserState internal constructor(
 				false).asNativeString(),
 			CompilerDiagnostics.errorIndicatorSymbol,
 			source.copyStringFromToCanDestroy(
-				min(lexingState.position, source.tupleSize() + 1),
-				min(lexingState.position + 20, source.tupleSize()),
+				min(lexingState.position, source.tupleSize + 1),
+				min(lexingState.position + 20, source.tupleSize),
 				false).asNativeString(),
 			clientDataMap)
 	}
@@ -130,13 +130,13 @@ class ParserState internal constructor(
 		{
 			return "(start)"
 		}
-		if (lexingState.position == source.tupleSize() + 1)
+		if (lexingState.position == source.tupleSize + 1)
 		{
 			return "(end)"
 		}
 		val nearbyText = source.copyStringFromToCanDestroy(
 			lexingState.position,
-			min(lexingState.position + 20, source.tupleSize()),
+			min(lexingState.position + 20, source.tupleSize),
 			false)
 		return (
 			lexingState.lineNumber.toString() + ":"
@@ -171,7 +171,7 @@ class ParserState internal constructor(
 	 */
 	val atEnd get() =
 		lexingState.position ==
-			lexingState.compilationContext.source.tupleSize() + 1
+			lexingState.compilationContext.source.tupleSize + 1
 
 	/**
 	 * Record an expectation at the current parse position. The expectations

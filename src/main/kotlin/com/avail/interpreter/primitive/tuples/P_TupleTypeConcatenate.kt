@@ -65,7 +65,7 @@ object P_TupleTypeConcatenate : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				tupleMeta(),
-				tupleMeta()),
-			tupleMeta())
+				tupleMeta,
+				tupleMeta),
+			tupleMeta)
 }

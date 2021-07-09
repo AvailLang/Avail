@@ -249,14 +249,14 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			{
 				val subTuple = aTupleType.typeTuple
 				val superTuple = self.typeTuple
-				val limit = max(subTuple.tupleSize(), superTuple.tupleSize())
+				val limit = max(subTuple.tupleSize, superTuple.tupleSize)
 				for (i in 1 .. limit)
 				{
 					val subType =
-						if (i <= subTuple.tupleSize()) subTuple.tupleAt(i)
+						if (i <= subTuple.tupleSize) subTuple.tupleAt(i)
 						else aTupleType.defaultType
 					val superType =
-						if (i <= superTuple.tupleSize()) superTuple.tupleAt(i)
+						if (i <= superTuple.tupleSize) superTuple.tupleAt(i)
 						else self.defaultType
 					if (!subType.isSubtypeOf(superType))
 					{
@@ -337,7 +337,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val lead1 = self.typeTuple
 		val lead2 = aTupleType.typeTuple
 		var newLeading: A_Tuple
-		newLeading = if (lead1.tupleSize() > lead2.tupleSize())
+		newLeading = if (lead1.tupleSize > lead2.tupleSize)
 		{
 			lead1
 		}
@@ -347,7 +347,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		}
 		newLeading.makeImmutable()
 		//  Ensure first write attempt will force copying.
-		val newLeadingSize = newLeading.tupleSize()
+		val newLeadingSize = newLeading.tupleSize
 		for (i in 1 .. newLeadingSize)
 		{
 			val intersectionObject = self.typeAtIndex(i).typeIntersection(
@@ -406,11 +406,11 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		val lead2 = aTupleType.typeTuple
 		var newLeading: A_Tuple
 		newLeading =
-			if (lead1.tupleSize() > lead2.tupleSize()) lead1
+			if (lead1.tupleSize > lead2.tupleSize) lead1
 			else lead2
 		newLeading.makeImmutable()
 		// Ensure first write attempt will force copying.
-		val newLeadingSize = newLeading.tupleSize()
+		val newLeadingSize = newLeading.tupleSize
 		for (i in 1 .. newLeadingSize)
 		{
 			val unionObject = self.typeAtIndex(i).typeUnion(
@@ -641,7 +641,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			highIndexInB = when
 			{
 				bRange.upperBound.isFinite -> bRange.upperBound.extractInt
-				else -> tupleType2.typeTuple.tupleSize() + 1
+				else -> tupleType2.typeTuple.tupleSize + 1
 			}
 			return tupleType1.defaultType.typeUnion(
 				tupleType2.unionOfTypesAtThrough(1, highIndexInB))
@@ -666,13 +666,13 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			val upper1 = sizes1.upperBound
 			val limit1 = if (upper1.isInt) upper1.extractInt
 			else max(
-				part1.typeTuple.tupleSize() + 1,
+				part1.typeTuple.tupleSize + 1,
 				sizes1.lowerBound.extractInt)
 			val sizes2 = part2.sizeRange
 			val upper2 = sizes2.upperBound
 			val limit2 =
 				if (upper2.isInt) upper2.extractInt
-				else part2.typeTuple.tupleSize() + 1
+				else part2.typeTuple.tupleSize + 1
 			val total = limit1 + limit2
 			val section1 = min(sizes1.lowerBound.extractInt, limit1)
 			val typeTuple: A_Tuple = generateObjectTupleFrom(total) {

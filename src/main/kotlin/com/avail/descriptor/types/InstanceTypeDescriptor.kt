@@ -342,7 +342,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		// index is out of bounds.
 		val tuple: A_Tuple = getInstance(self)
 		assert(tuple.isTuple)
-		return if (1 <= index && index <= tuple.tupleSize())
+		return if (1 <= index && index <= tuple.tupleSize)
 		{
 			instanceTypeOrMetaOn(tuple.tupleAt(index))
 		}
@@ -363,7 +363,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			return bottom
 		}
-		val upperIndex = tuple.tupleSize()
+		val upperIndex = tuple.tupleSize
 		if (startIndex > upperIndex)
 		{
 			return bottom
@@ -382,7 +382,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val tuple: A_Tuple = getInstance(self)
 		assert(tuple.isTuple)
-		val tupleSize = tuple.tupleSize()
+		val tupleSize = tuple.tupleSize
 		return if (tupleSize == 0)
 		{
 			bottom
@@ -397,13 +397,13 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			instance.isTuple ->
 				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).tupleSize())
+					getInstance(self).tupleSize)
 			instance.isSet ->
 				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).setSize())
+					getInstance(self).setSize)
 			instance.isMap ->
 				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).mapSize())
+					getInstance(self).mapSize)
 			else ->
 			{
 				assert(false) { "Unexpected instance for sizeRange" }
@@ -500,10 +500,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			getSuperkind(self).couldEverBeInvokedWith(argRestrictions)
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		enumerationWith(getInstance(self).keysAsSet())
+		enumerationWith(getInstance(self).keysAsSet)
 
 	override fun o_ValueType(self: AvailObject): A_Type =
-		enumerationWith(getInstance(self).valuesAsTuple().asSet())
+		enumerationWith(getInstance(self).valuesAsTuple.asSet)
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
@@ -520,7 +520,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		getSuperkind(self).writeType
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
-		getInstance(self).phraseExpressionType()
+		getInstance(self).phraseExpressionType
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
@@ -548,7 +548,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		val size = endIndex - startIndex + 1
 		assert(size >= 0)
 		val tuple: A_Tuple = getInstance(self)
-		val tupleSize = tuple.tupleSize()
+		val tupleSize = tuple.tupleSize
 		return generateObjectTupleFrom(size) {
 			if (it <= tupleSize)
 			{

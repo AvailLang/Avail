@@ -56,7 +56,7 @@ object P_SuperCastExpression : Primitive(1, CanFold, CanInline, CannotFail)
 	{
 		interpreter.checkArgumentCount(1)
 		val supercast = interpreter.argument(0)
-		return interpreter.primitiveSuccess(supercast.expression())
+		return interpreter.primitiveSuccess(supercast.expression)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

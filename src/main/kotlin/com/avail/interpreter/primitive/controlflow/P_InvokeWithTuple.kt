@@ -92,7 +92,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val argTuple = interpreter.argument(1)
 		val functionType = function.kind()
 
-		val numArgs = argTuple.tupleSize()
+		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
@@ -120,9 +120,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		functionType(
 			tuple(
 				mostGeneralFunctionType(),
-				mostGeneralTupleType()),
-			TOP.o
-		)
+				mostGeneralTupleType),
+			TOP.o)
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
@@ -272,7 +271,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val functionArgTypes = functionArgsType.tupleOfTypesFromTo(1, argsSize)
 
 		// Fall back if the count will always be wrong.
-		if (functionArgTypes.tupleSize() != argsSize) return false
+		if (functionArgTypes.tupleSize != argsSize) return false
 		val failurePath = generator.createBasicBlock(
 			"Failed dynamic type check for P_InvokeWithTuple")
 		for (i in 1..argsSize)

@@ -89,7 +89,7 @@ object P_SetImplicitObserveFunction : Primitive(
 	{
 		val writer = L1InstructionWriter(nil, 0, nil)
 		val outerIndex = writer.createOuter(IMPLICIT_OBSERVE.functionType)
-		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType())
+		writer.argumentTypes(mostGeneralFunctionType(), mostGeneralTupleType)
 		writer.returnType = bottom
 		writer.returnTypeIfPrimitiveFails = bottom
 		writer.write(0, L1Operation.L1_doPushOuter, outerIndex)

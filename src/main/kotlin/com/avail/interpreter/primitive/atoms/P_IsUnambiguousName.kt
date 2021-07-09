@@ -65,16 +65,19 @@ object P_IsUnambiguousName : Primitive(
 		val currentFiber = interpreter.fiber()
 		val loader = currentFiber.availLoader()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		return try {
+		return try
+		{
 			loader.lookupName(name)
 			interpreter.primitiveSuccess(trueObject)
-		} catch (e: AmbiguousNameException) {
+		}
+		catch (e: AmbiguousNameException)
+		{
 			interpreter.primitiveSuccess(falseObject)
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), booleanType)
+		functionType(tuple(stringType), booleanType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

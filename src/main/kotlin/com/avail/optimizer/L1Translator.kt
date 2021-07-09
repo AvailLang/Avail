@@ -61,6 +61,11 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecode
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsAtOrBelow
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Method.Companion.testingTree
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.moduleName
@@ -811,7 +816,7 @@ class L1Translator private constructor(
 		val expectedType: A_Type)
 	{
 		/** A Java [String] naming the [A_Bundle].  */
-		val quotedBundleName = bundle.message().atomName().asNativeString()
+		val quotedBundleName = bundle.message.atomName.asNativeString()
 
 		/** A counter for generating unique branch names for this dispatch.  */
 		var branchLabelCounter = 1
@@ -974,9 +979,9 @@ class L1Translator private constructor(
 	{
 		val callSiteHelper = CallSiteHelper(
 			bundle, superUnionType, expectedType)
-		val method: A_Method = bundle.bundleMethod()
+		val method: A_Method = bundle.bundleMethod
 		generator.addContingentValue(method)
-		val nArgs = method.numArgs()
+		val nArgs = method.numArgs
 		val semanticArguments = mutableListOf<L2SemanticValue>()
 		for (i in nArgs - 1 downTo 0)
 		{
@@ -997,7 +1002,7 @@ class L1Translator private constructor(
 
 		// Determine which applicable definitions have already been expanded in
 		// the lookup tree.
-		val tree = method.testingTree()
+		val tree = method.testingTree
 		val argumentRestrictions = semanticArguments
 			.map { currentManifest().restrictionFor(it) }
 
@@ -1005,7 +1010,7 @@ class L1Translator private constructor(
 		// Special case: If there's only one method definition and the type tree
 		// has not yet been expanded, go ahead and do so.  It takes less space
 		// in L2/JVM to store the simple invocation than a full lookup.
-		if (method.definitionsTuple().tupleSize() <= 1)
+		if (method.definitionsTuple.tupleSize <= 1)
 		{
 			val argTypes = argumentRestrictions
 				.map { restriction: TypeRestriction -> restriction.type }
@@ -1013,7 +1018,7 @@ class L1Translator private constructor(
 			{
 				val result =
 					method.lookupByTypesFromTuple(tupleFromList(argTypes))
-				assert(result.equals(method.definitionsTuple().tupleAt(1)))
+				assert(result.equals(method.definitionsTuple.tupleAt(1)))
 			}
 			catch (e: MethodDefinitionException)
 			{
@@ -1031,7 +1036,7 @@ class L1Translator private constructor(
 
 			override fun visitLeafNode(lookupResult: A_Tuple)
 			{
-				if (lookupResult.tupleSize() != 1)
+				if (lookupResult.tupleSize != 1)
 				{
 					return
 				}
@@ -1287,7 +1292,7 @@ class L1Translator private constructor(
 		{
 			return
 		}
-		if (solutions.tupleSize() == 1)
+		if (solutions.tupleSize == 1)
 		{
 			val solution: A_Definition = solutions.tupleAt(1)
 			if (solution.isMethodDefinition())
@@ -1733,8 +1738,7 @@ class L1Translator private constructor(
 					L2SemanticUnboxedInt(registerToTest.semanticValue()),
 					trulyUnreachable),
 				generator.unboxedIntConstant(
-					(constantValue as AvailObject).extractInt
-				),
+					(constantValue as AvailObject).extractInt),
 				edgeTo(innerPass),
 				edgeTo(failBlock))
 			assert(trulyUnreachable.predecessorEdges().isEmpty())
@@ -1791,8 +1795,7 @@ class L1Translator private constructor(
 		functionToCallReg: L2ReadBoxedOperand,
 		arguments: List<L2ReadBoxedOperand>,
 		tryToGenerateSpecialPrimitiveInvocation: Boolean,
-		callSiteHelper: CallSiteHelper
-	)
+		callSiteHelper: CallSiteHelper)
 	{
 		assert(functionToCallReg.type().isSubtypeOf(mostGeneralFunctionType()))
 
@@ -1810,8 +1813,7 @@ class L1Translator private constructor(
 		assert(
 			sizeRange.isBottom
 				|| !sizeRange.lowerBound.equals(sizeRange.upperBound)
-				|| sizeRange.rangeIncludesLong(argumentCount.toLong())
-		)
+				|| sizeRange.rangeIncludesLong(argumentCount.toLong()))
 		val guaranteedResultType: A_Type
 		val rawFunction = determineRawFunction(functionToCallReg)
 		val primitive = rawFunction?.codePrimitive()
@@ -2053,8 +2055,7 @@ class L1Translator private constructor(
 						stackp -> generator.boxedConstant(expectedType)
 						else -> readSlot(it)
 					}
-				}
-			))
+				}))
 		assert(!generator.currentlyReachable())
 
 		// Generate the much more likely passed-check flow.
@@ -2261,8 +2262,8 @@ class L1Translator private constructor(
 		semanticArguments: List<L2SemanticValue>)
 	{
 		val bundle = callSiteHelper.bundle
-		val method: A_Method = bundle.bundleMethod()
-		val nArgs = method.numArgs()
+		val method: A_Method = bundle.bundleMethod
+		val nArgs = method.numArgs
 		val lookupSucceeded = generator.createBasicBlock(
 			"lookup succeeded for " + callSiteHelper.quotedBundleName)
 		val lookupFailed = generator.createBasicBlock(
@@ -2279,8 +2280,8 @@ class L1Translator private constructor(
 			argumentRestrictions.add(unionRestriction)
 		}
 		val possibleFunctions = mutableListOf<A_Function>()
-		for (definition in bundle.bundleMethod().
-			definitionsAtOrBelow(argumentRestrictions))
+		for (definition in
+			bundle.bundleMethod.definitionsAtOrBelow(argumentRestrictions))
 		{
 			if (definition.isMethodDefinition())
 			{
@@ -3224,7 +3225,7 @@ class L1Translator private constructor(
 		// registers) on the optimizer.
 		val permutation: A_Tuple = code.literalAt(
 			instructionDecoder.getOperand())
-		val size = permutation.tupleSize()
+		val size = permutation.tupleSize
 		val temps = arrayOfNulls<L2SemanticValue>(size)
 		for (i in size downTo 1)
 		{
@@ -3476,7 +3477,7 @@ class L1Translator private constructor(
 				if (module.notNil)
 				{
 					append("\n")
-					append(module.moduleName())
+					append(module.moduleName)
 					val line = code.codeStartingLineNumber
 					if (line != 0)
 					{
@@ -3498,7 +3499,7 @@ class L1Translator private constructor(
 			translationSizeStat.record(
 				chunk.instructions.size.toLong(),
 				interpreter.interpreterIndex)
-			val dependencyCount = generator.contingentValues.setSize()
+			val dependencyCount = generator.contingentValues.setSize
 			var array = translationDependenciesStat.get()
 			if (dependencyCount >= array.size)
 			{

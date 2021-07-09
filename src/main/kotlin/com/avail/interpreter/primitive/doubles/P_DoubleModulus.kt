@@ -57,8 +57,8 @@ object P_DoubleModulus : Primitive(2, CannotFail, CanInline, CanFold)
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
-		val da = a.extractDouble()
-		val db = b.extractDouble()
+		val da = a.extractDouble
+		val db = b.extractDouble
 		val div = da / db
 		val mod = da - floor(div) * db
 		return interpreter.primitiveSuccess(
@@ -69,8 +69,6 @@ object P_DoubleModulus : Primitive(2, CannotFail, CanInline, CanFold)
 		functionType(
 			tuple(
 				DOUBLE.o,
-				DOUBLE.o
-			),
-			DOUBLE.o
-		)
+				DOUBLE.o),
+			DOUBLE.o)
 }

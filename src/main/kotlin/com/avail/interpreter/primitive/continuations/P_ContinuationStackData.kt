@@ -63,13 +63,12 @@ object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val con = interpreter.argument(0)
-		val tuple =
-			generateObjectTupleFrom(con.function().code().numSlots)
-			{ index ->
-				val entry = con.frameAt(index)
-				if (entry.isNil) { nilSubstitute() }
-				else { entry }
+		val tuple = generateObjectTupleFrom(con.function().code().numSlots) {
+			con.frameAt(it).let { entry ->
+				if (entry.isNil) nilSubstitute()
+				else entry
 			}
+		}
 		tuple.makeSubobjectsImmutable()
 		return interpreter.primitiveSuccess(tuple)
 	}
@@ -77,5 +76,5 @@ object P_ContinuationStackData : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralContinuationType()),
-			mostGeneralTupleType())
+			mostGeneralTupleType)
 }

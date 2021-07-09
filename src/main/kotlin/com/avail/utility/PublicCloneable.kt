@@ -51,8 +51,7 @@ open class PublicCloneable<X : PublicCloneable<X>> : Cloneable
 		catch (e: CloneNotSupportedException)
 		{
 			throw RuntimeException(
-				"Superclass should not throw this", e
-			)
+				"Superclass should not throw this", e)
 		}
 	}
 }

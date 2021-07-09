@@ -220,8 +220,7 @@ class CodingTests
 			"カタカナ",
 			"職業",
 			"Кожаный пиджак",
-			"\uD83D\uDE31\uD83D\uDC7B\uD83D\uDC7A"
-		)
+			"\uD83D\uDE31\uD83D\uDC7B\uD83D\uDC7A")
 		strings.forEach { s ->
 			s.encode(
 				buffer,
@@ -307,8 +306,7 @@ class CodingTests
 			"カタカナ",
 			"職業",
 			"Кожаный пиджак",
-			"\uD83D\uDE31\uD83D\uDC7B\uD83D\uDC7A"
-		)
+			"\uD83D\uDE31\uD83D\uDC7B\uD83D\uDC7A")
 		list.encode(
 			buffer,
 			encodeOne = String::encode,

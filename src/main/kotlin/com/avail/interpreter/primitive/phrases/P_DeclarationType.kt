@@ -59,7 +59,7 @@ object P_DeclarationType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val decl = interpreter.argument(0)
-		return interpreter.primitiveSuccess(decl.declaredType())
+		return interpreter.primitiveSuccess(decl.declaredType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

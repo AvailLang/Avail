@@ -71,7 +71,5 @@ object P_CreateUUIDByteTuple : Primitive(0, CannotFail, CanInline, HasSideEffect
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			emptyTuple,
-			tupleTypeForSizesTypesDefaultType(
-				singleInt(16), emptyTuple, bytes
-			))
+			tupleTypeForSizesTypesDefaultType(singleInt(16), emptyTuple, bytes))
 }

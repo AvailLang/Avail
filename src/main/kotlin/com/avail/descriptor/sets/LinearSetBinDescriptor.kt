@@ -148,7 +148,7 @@ class LinearSetBinDescriptor private constructor(
 			// as a singleton set bin.
 			return elementObject as A_SetBin
 		}
-		val oldHash = self.setBinHash()
+		val oldHash = self.setBinHash
 		val result: AvailObject
 		if (myLevel >= HashedSetBinDescriptor.numberOfLevels - 1
 			|| oldSize < thresholdToHash)
@@ -187,10 +187,10 @@ class LinearSetBinDescriptor private constructor(
 				"The element should have been added without reallocation"
 			}
 		}
-		assert(result.setBinSize() == oldSize + 1)
-		assert(self.setBinHash() == oldHash)
+		assert(result.setBinSize == oldSize + 1)
+		assert(self.setBinHash == oldHash)
 		val newHash = oldHash + elementObjectHash
-		assert(result.setBinHash() == newHash)
+		assert(result.setBinHash == newHash)
 		HashedSetBinDescriptor.checkHashedSetBin(result)
 		return result
 	}
@@ -333,7 +333,7 @@ class LinearSetBinDescriptor private constructor(
 			@Suppress("ConstantConditionIf")
 			if (checkBinHashes) {
 				assert(self.descriptor() is LinearSetBinDescriptor)
-				val stored = self.setBinHash()
+				val stored = self.setBinHash
 				var calculated = 0
 				for (i in self.variableObjectSlotsCount() downTo 1) {
 					val subBin = self.slot(BIN_ELEMENT_AT_, i)
