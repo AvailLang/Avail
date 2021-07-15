@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/23/21 9:44 PM
+ * * Last Generated: 7/15/21 9:22 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -109,7 +109,7 @@ Names
 	/*  43 */ "incorrect-use-of-double-dagger code",
 	/*  25 */ "invalid-handle code",
 	/* 205 */ "invalid-path code",
-	/*  26 */ "invalid-primitive-number code",
+	/*  26 */ "invalid-primitive-name code",
 	/*  33 */ "invalid-special-object-number code",
 	/*  21 */ "key-not-found code",
 	/*  70 */ "loading-is-over code",
@@ -146,8 +146,8 @@ Names
 	/*  40 */ "result-type-should-covary-with-arguments code",
 	/* 105 */ "sequence-contains-invalid-statements code",
 	/*  96 */ "serialization-failed code",
-	/*  18 */ "shift-and-truncate-requires-non-negative code",
 	/*  41 */ "special-atom code",
+	/*  27 */ "styler-already-set-by-this-module code",
 	/*  10 */ "subscript-out-of-bounds code",
 	/* 107 */ "supercast-expression-must-not-also-be-a-supercast code",
 	/* 106 */ "supercast-expression-type-must-not-be-top-or-bottom code",
@@ -248,11 +248,6 @@ Primitive "not-an-enumeration code" is
 	17
 ];
 
-Primitive "shift-and-truncate-requires-non-negative code" is
-[
-	18
-];
-
 Primitive "no-method code" is
 [
 	19
@@ -288,9 +283,14 @@ Primitive "invalid-handle code" is
 	25
 ];
 
-Primitive "invalid-primitive-number code" is
+Primitive "invalid-primitive-name code" is
 [
 	26
+];
+
+Primitive "styler-already-set-by-this-module code" is
+[
+	27
 ];
 
 Primitive "too-large-to-represent code" is

@@ -228,8 +228,8 @@ open class AtomDescriptor protected constructor (
 	override fun o_Hash (self: AvailObject): Int =
 		self.slot(HASH_OR_ZERO).ifZero {
 			// The shared subclass overrides to use synchronization.
-			AvailRuntimeSupport.nextNonzeroHash().apply {
-				self.setSlot(HASH_OR_ZERO, this)
+			AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+				self.setSlot(HASH_OR_ZERO, hash)
 			}
 		}
 

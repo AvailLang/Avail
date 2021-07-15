@@ -74,6 +74,7 @@ import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
@@ -112,6 +113,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -1219,8 +1221,9 @@ class AvailRuntime constructor(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
 					stringType))
+			put(stylerFunctionType)
 
-			at(173)
+			at(174)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1406,7 +1409,7 @@ class AvailRuntime constructor(
 	fun removeDefinition(definition: A_Definition)
 	{
 		runtimeLock.safeWrite {
-			definition.definitionMethod().removeDefinition(definition)
+			definition.definitionMethod.removeDefinition(definition)
 		}
 	}
 

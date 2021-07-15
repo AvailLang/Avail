@@ -513,7 +513,8 @@ class HashedSetBinDescriptor private constructor(
 				// Exhausted the bin.
 				binStack.removeLast()
 				assert(binStack.size == subscriptStack.size)
-			} while (!binStack.isEmpty())
+			}
+			while (!binStack.isEmpty())
 			currentElement = null
 			return result as AvailObject
 		}

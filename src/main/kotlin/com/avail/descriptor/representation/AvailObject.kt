@@ -57,9 +57,8 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.methods.DefinitionDescriptor
-import com.avail.descriptor.methods.ForwardDefinitionDescriptor
-import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.numbers.A_Number
@@ -170,6 +169,7 @@ class AvailObject private constructor(
 	A_Set,
 	A_SetBin,
 	A_String,
+	A_Styler,
 	A_Token,
 	A_Tuple,
 	A_Type,
@@ -359,10 +359,6 @@ class AvailObject private constructor(
 	 *   The corresponding Java string.
 	 */
 	override fun asNativeString() = descriptor().o_AsNativeString(this)
-
-	override fun bodyBlock() = descriptor().o_BodyBlock(this)
-
-	override fun bodySignature() = descriptor().o_BodySignature(this)
 
 	override fun breakpointBlock() = descriptor().o_BreakpointBlock(this)
 
@@ -690,9 +686,6 @@ class AvailObject private constructor(
 
 	override val isAbstract get() = descriptor().o_IsAbstract(this)
 
-	override fun isAbstractDefinition() =
-		descriptor().o_IsAbstractDefinition(this)
-
 	override fun representationCostOfTupleType() =
 		descriptor().o_RepresentationCostOfTupleType(this)
 
@@ -746,22 +739,6 @@ class AvailObject private constructor(
 		descriptor().o_IsExtendedInteger(this)
 
 	override val isFinite get() = descriptor().o_IsFinite(this)
-
-	/**
-	 * Is the receiver a [forward&#32;declaration][ForwardDefinitionDescriptor]?
-	 *
-	 * @return
-	 *   `true` if the receiver is a forward declaration site.
-	 */
-	override fun isForwardDefinition() =
-		descriptor().o_IsForwardDefinition(this)
-
-	/**
-	 * Is the receiver a [method&#32;definition][MethodDefinitionDescriptor]?
-	 *
-	 * @return `true` if the receiver is a method definition.
-	 */
-	override fun isMethodDefinition() = descriptor().o_IsMethodDefinition(this)
 
 	override fun isInstanceOf(aType: A_Type) =
 		descriptor().o_IsInstanceOf(this, aType)
@@ -1184,9 +1161,6 @@ class AvailObject private constructor(
 
 	override fun definitionModule() = descriptor().o_DefinitionModule(this)
 
-	override fun definitionModuleName() =
-		descriptor().o_DefinitionModuleName(this)
-
 	override fun argumentRestrictionSets() =
 		descriptor().o_ArgumentRestrictionSets(this)
 
@@ -1269,8 +1243,6 @@ class AvailObject private constructor(
 	override fun equalsListNodeType(listNodeType: A_Type) =
 		descriptor().o_EqualsListNodeType(this, listNodeType)
 
-	override fun parsingSignature() = descriptor().o_ParsingSignature(this)
-
 	@ReferencedInGeneratedCode
 	override fun fieldAt(field: A_Atom) = descriptor().o_FieldAt(this, field)
 
@@ -1351,6 +1323,123 @@ class AvailObject private constructor(
 		 * this multiplicative generator is 2^30.
 		 */
 		const val multiplier = 1664525
+
+		private fun stir13(i1: Int): Int = Integer.rotateRight(i1, 13) + i1
+
+		private fun stir7(i1: Int): Int = Integer.rotateRight(i1, 7) + i1
+
+		private fun stir21(i1: Int): Int = Integer.rotateRight(i1, 21) + i1
+
+		/**
+		 * Combine two hash values into one.  If two values are truly being
+		 * combined, to avoid systematic collisions it might be best to use
+		 * combine3() instead, with a usage-specific constant,
+		 */
+		fun combine2(i1: Int, i2: Int): Int
+		{
+			var h = stir13(i1 xor -0x36436f02)
+			h *= multiplier
+			h += stir7(i2 xor 0x5f610978)
+			return stir21(h)
+		}
+
+		/**
+		 * Combine multiple hash values into one.  To avoid systematic
+		 * collisions, one of these should be a usage-specific constant salt.
+		 */
+		fun combine3(i1: Int, i2: Int, i3: Int): Int
+		{
+			var h = stir13(i1 xor 0x2AE0A942)
+			h *= multiplier
+			h += stir7(i2 xor 0x717B4F2A)
+			h *= multiplier
+			h -= stir21(i3 xor -0x7086C805)
+			return h
+		}
+
+		/**
+		 * Combine multiple hash values into one.  To avoid systematic
+		 * collisions, one of these should be a usage-specific constant salt.
+		 */
+		fun combine4(i1: Int, i2: Int, i3: Int, i4: Int): Int
+		{
+			var h = stir13(i1 xor 0x441f144e)
+			h *= multiplier
+			h += stir7(i2 xor -0x583ce1ac)
+			h *= multiplier
+			h -= stir21(i3 xor 0x45f73694)
+			h *= multiplier
+			h -= stir13(i4 xor -0x7ce5d9e4)
+			return h
+		}
+
+		/**
+		 * Combine multiple hash values into one.  To avoid systematic
+		 * collisions, one of these should be a usage-specific constant salt.
+		 */
+		fun combine5(i1: Int, i2: Int, i3: Int, i4: Int, i5: Int): Int
+		{
+			var h = stir7(i1 xor -0x32b495be)
+			h *= multiplier
+			h += stir21(i2 xor 0x7e1ed873)
+			h *= multiplier
+			h -= stir21(i3 xor 0x7b9570ca)
+			h *= multiplier
+			h += stir13(i4 xor 0x13f07f25)
+			h *= multiplier
+			h -= stir7(i5 xor 0x45c8582b)
+			return h
+		}
+
+		/**
+		 * Combine multiple hash values into one.  To avoid systematic
+		 * collisions, one of these should be a usage-specific constant salt.
+		 */
+		fun combine6(i1: Int, i2: Int, i3: Int, i4: Int, i5: Int, i6: Int): Int
+		{
+			var h = stir13(i1 xor 0x4e2152da)
+			h *= multiplier
+			h += stir13(i2 xor 0x21cb94b3)
+			h *= multiplier
+			h -= stir7(i3 xor 0x796c44ab)
+			h *= multiplier
+			h += stir21(i4 xor -0x7fdd4667)
+			h *= multiplier
+			h -= stir7(i5 xor -0x24bc2bbe)
+			h *= multiplier
+			h += stir21(i6 xor -0x35385f57)
+			return h
+		}
+
+		/**
+		 * Combine multiple hash values into one.  To avoid systematic
+		 * collisions, one of these should be a usage-specific constant salt.
+		 */
+		fun combine7(
+			i1: Int,
+			i2: Int,
+			i3: Int,
+			i4: Int,
+			i5: Int,
+			i6: Int,
+			i7: Int
+		): Int
+		{
+			var h = stir7(i1 xor -0x6b1ed68b)
+			h *= multiplier
+			h += stir21(i2 xor -0x78a9cea1)
+			h *= multiplier
+			h -= stir7(i3 xor -0x53358435)
+			h *= multiplier
+			h += stir21(i4 xor 0x00d3f4af)
+			h *= multiplier
+			h -= stir7(i5 xor 0x6de53ff9)
+			h *= multiplier
+			h += stir13(i6 xor 0x5cbd6b80)
+			h *= multiplier
+			h += stir21(i7 xor -0x09dd1b59)
+			return h
+		}
 
 		/**
 		 * Report a virtual machine problem.

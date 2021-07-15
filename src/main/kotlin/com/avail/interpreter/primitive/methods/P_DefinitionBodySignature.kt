@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.methods
 
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type

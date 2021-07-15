@@ -34,7 +34,6 @@ package com.avail.descriptor.atoms
 import com.avail.AvailRuntimeSupport
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.compiler.splitter.MessageSplitter
-import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
@@ -55,7 +54,6 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -224,10 +222,8 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		else -> synchronized(self) { super.o_GetAtomProperty(self, key) }
 	}
 
-	override fun o_Hash(self: AvailObject): Int {
-		// Always set (to non-zero) during construction of a shared atom.
-		return self.slot(HASH_OR_ZERO)
-	}
+	// Always set (to non-zero) during construction of a shared atom.
+	override fun o_Hash(self: AvailObject): Int = self.slot(HASH_OR_ZERO)
 
 	override fun o_IsAtomSpecial(self: AvailObject) = isSpecial
 

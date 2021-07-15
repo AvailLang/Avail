@@ -44,7 +44,6 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.GRAMMATI
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MACROS_TUPLE
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.METHOD
-import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.STYLING_FUNCTION
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
@@ -60,6 +59,7 @@ import com.avail.descriptor.methods.A_Method.Companion.methodAddBundle
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addBundle
@@ -72,6 +72,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
@@ -192,46 +193,7 @@ class MessageBundleDescriptor private constructor(
 		 * keys should always agree with the [A_Method]'s collection of
 		 * definitions and macro definitions.
 		 */
-		DEFINITION_PARSING_PLANS,
-
-		/**
-		 * Either [nil] or a [function][A_Function] which computes
-		 * [style][styleType] information for some phrase.  The phrase will be
-		 * an invocation of this message bundle as a macro or method.  Styling
-		 * only happens when a top-level statement of a module has been
-		 * unambiguously compiled.  Child phrases are processed before their
-		 * parent.
-		 *
-		 * The function accepts three arguments:
-		 *   1. The send phrase, which is possibly the original phrase of a
-		 *      macro substitution.
-		 *   2. An [A_Variable] containing an [A_Map] from [A_Phrase] to a
-		 *      style, and
-		 *   3. Another [A_Variable] containing a map from [A_Token] to style.
-		 *
-		 * The maps will already have been populated by running the styling
-		 * function for each of the children (perhaps running all children in
-		 * parallel).  These variables should be updated to reflect how the
-		 * invocation of this bundle should be presented.
-		 *
-		 * These maps will later be used to produce a linear sequence of styled
-		 * substrings, suitable for passing to an IDE or other technology
-		 * capable of presenting styled text.
-		 *
-		 * The linearization of the fully populated style information proceeds
-		 * by scanning the map from phrase to style, and for each phrase adding
-		 * an entry to the map from token to style for each of the phrase's
-		 * static tokens.  If there is already an entry for some static token,
-		 * the map is not updated for that token.  Afterward, the token map is
-		 * sorted, and used to partition the module text.
-		 *
-		 * The resulting tuple of ranges and styles (perhaps with line numbers)
-		 * might even be accessed with a binary search, to deliver a windowed
-		 * view into the styled text.  This allows enormous files to be
-		 * presented in an IDE without having to transfer and decode all of the
-		 * styling information for the entire file.
-		 */
-		STYLING_FUNCTION
+		DEFINITION_PARSING_PLANS
 	}
 
 	/**
@@ -258,13 +220,15 @@ class MessageBundleDescriptor private constructor(
 					restrictionForType(
 						PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
 				Unit)
-			do {
+			do
+			{
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
 				// winner's tree.
 				macroTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = macroTestingTree
-			} while (tree === null)
+			}
+			while (tree === null)
 		}
 		return tree
 	}
@@ -275,7 +239,6 @@ class MessageBundleDescriptor private constructor(
 		|| e === GRAMMATICAL_RESTRICTIONS
 		|| e === MACROS_TUPLE
 		|| e === DEFINITION_PARSING_PLANS
-		|| e === STYLING_FUNCTION
 
 	override fun o_AddGrammaticalRestriction(
 		self: AvailObject,
@@ -364,7 +327,8 @@ class MessageBundleDescriptor private constructor(
 	override fun o_HasGrammaticalRestrictions(self: AvailObject) =
 		self.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize > 0
 
-	override fun o_Hash(self: AvailObject) = self.message.hash() xor 0x0312CAB9
+	override fun o_Hash(self: AvailObject) =
+		combine2(self.message.hash(), 0x0312CAB9)
 
 	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o
 
@@ -588,20 +552,20 @@ class MessageBundleDescriptor private constructor(
 			methodName: A_Atom,
 			method: A_Method,
 			splitter: MessageSplitter
-		): A_Bundle {
+		): A_Bundle
+		{
 			assert(methodName.isAtom)
 			assert(splitter.numberOfArguments == method.numArgs)
 			assert(splitter.messageName.equals(methodName.atomName))
 			val currentModule = Interpreter.currentOrNull()
 				?.availLoaderOrNull()
-				?.module()
+				?.module
 			return initialMutableDescriptor.create {
 				setSlot(METHOD, method)
 				setSlot(MESSAGE, methodName.makeShared())
 				setSlot(MACROS_TUPLE, emptyTuple())
 				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet)
 				setSlot(DEFINITION_PARSING_PLANS, emptyMap)
-				setSlot(STYLING_FUNCTION, nil)
 				setDescriptor(
 					MessageBundleDescriptor(Mutability.SHARED, splitter))
 				method.methodAddBundle(this)

@@ -129,7 +129,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		if (loader.phase() == EXECUTING_FOR_COMPILE)
 		{
 			val root = loader.rootBundleTree()
-			loader.module().lock {
+			loader.module.lock {
 				newBundle.definitionParsingPlans.forEach { _, value ->
 					root.addPlanInProgress(newPlanInProgress(value, 1))
 				}

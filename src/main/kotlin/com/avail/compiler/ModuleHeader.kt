@@ -205,12 +205,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		// Synthesize fake tokens for the pragma strings.
 		for (pragmaString in thePragmas)
 		{
-			pragmas.add(
-				literalToken(
-					pragmaString,
-					0,
-					0,
-					pragmaString))
+			pragmas.add(literalToken(pragmaString, 0, 0, pragmaString))
 		}
 		val positionInteger = deserializer.deserialize()!!
 		startOfBodyPosition = positionInteger.extractInt
@@ -230,6 +225,6 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 */
 	fun applyToModule(loader: AvailLoader): String?
 	{
-		return loader.module().applyModuleHeader(loader, this)
+		return loader.module.applyModuleHeader(loader, this)
 	}
 }

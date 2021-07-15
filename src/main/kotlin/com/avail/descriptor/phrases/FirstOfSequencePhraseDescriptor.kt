@@ -41,6 +41,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -176,7 +177,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	}
 
 	override fun o_Hash(self: AvailObject) =
-		self.slot(STATEMENTS).hash() xor 0x70EDD231
+		combine2(self.slot(STATEMENTS).hash(), 0x70EDD231)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.FIRST_OF_SEQUENCE_PHRASE

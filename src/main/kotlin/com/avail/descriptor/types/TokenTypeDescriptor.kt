@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tokens.TokenDescriptor
@@ -102,8 +103,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 			self.tokenType() === aTokenType.tokenType
 
 	override fun o_Hash(self: AvailObject): Int =
-		Integer.hashCode(self.slot(TOKEN_TYPE_CODE).toInt()) xor
-			-0x32659c49
+		combine2(self.slot(TOKEN_TYPE_CODE).toInt(), -0x32659c49)
 
 	override fun o_IsTokenType(self: AvailObject): Boolean = true
 

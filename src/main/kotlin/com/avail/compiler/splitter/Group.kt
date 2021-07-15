@@ -79,7 +79,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
@@ -428,7 +428,7 @@ internal class Group : Expression
 			for (index in 1 until endOfVariation)
 			{
 				val innerPhraseType = subexpressionsTupleType.typeAtIndex(index)
-				val singularListType = createListNodeType(
+				val singularListType = createListPhraseType(
 					LIST_PHRASE,
 					tupleTypeForTypes(
 						innerPhraseType.phraseTypeExpressionType),
@@ -469,7 +469,7 @@ internal class Group : Expression
 			val `$loopStart` = Label()
 			generator.emit(`$loopStart`)
 			val innerPhraseType = subexpressionsTupleType.defaultType
-			val singularListType = createListNodeType(
+			val singularListType = createListPhraseType(
 				LIST_PHRASE,
 				tupleTypeForTypes(innerPhraseType.phraseTypeExpressionType),
 				tupleTypeForTypes(innerPhraseType))

@@ -42,6 +42,7 @@ import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.parsing.A_Lexer
 import com.avail.descriptor.phrases.A_Phrase
@@ -273,7 +274,7 @@ interface A_Module : A_BasicObject
 			dispatch { o_IntroduceNewName(it, trueName) }
 
 		/**
-		 * Dispatch to the descriptor.
+		 * The [A_Definition]s defined by this module.
 		 */
 		val A_Module.methodDefinitions: A_Set
 			get() = dispatch { o_MethodDefinitions(it) }
@@ -289,6 +290,21 @@ interface A_Module : A_BasicObject
 		@Throws(AvailRuntimeException::class)
 		fun A_Module.moduleAddDefinition(definition: A_Definition) =
 			dispatch { o_ModuleAddDefinition(it, definition) }
+
+		/**
+		 * Add the given [styler] to the module's [A_Set].
+		 *
+		 * @param styler
+		 *   The [A_Styler] that this module has installed.
+		 */
+		fun A_Module.moduleAddStyler(styler: A_Styler) =
+			dispatch { o_ModuleAddStyler(it, styler) }
+
+		/**
+		 * The [A_Set] of [A_Styler]s defined by this module.
+		 */
+		val A_Module.stylers: A_Set
+			get() = dispatch { o_ModuleStylers(it) }
 
 		/**
 		 * Add a grammatical restriction to this module.

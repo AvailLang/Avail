@@ -45,8 +45,10 @@ import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -202,14 +204,8 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		if (isShared)
-		{
-			synchronized(self) { return hash(self) }
-		}
-		return hash(self)
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.synchronizeIf(isShared) { hash(self) }
 
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
@@ -531,9 +527,8 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 				// Note that this definition produces a value compatible with a pojo
 				// self type; this is necessary to permit comparison between an
 				// unfused pojo type and its self type.
-				hash =
-					self.slot(JAVA_ANCESTORS).keysAsSet.hash() xor
-						-0x5fea43bc
+				hash = combine2(
+					self.slot(JAVA_ANCESTORS).keysAsSet.hash(), -0x5fea43bc)
 				self.setSlot(HASH_OR_ZERO, hash)
 			}
 			return hash

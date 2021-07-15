@@ -103,7 +103,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			val newFunction = functionReturningConstant(objectType, fieldAtom)
 			return interpreter.primitiveSuccess(newFunction)
 		}
-		val module = interpreter.availLoaderOrNull()?.module() ?: nil
+		val module = interpreter.availLoaderOrNull()?.module ?: nil
 		val returnType = objectType.fieldTypeAt(fieldAtom)
 		val rawFunction = newCompiledCode(
 			emptyTuple,

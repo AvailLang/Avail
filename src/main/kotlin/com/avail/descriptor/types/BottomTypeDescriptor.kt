@@ -408,7 +408,7 @@ class BottomTypeDescriptor private constructor()
 		/**
 		 * The unique object that represents the type with no instances.
 		 */
-		val bottom: A_Type = shared.create { }
+		val bottom: A_Type = shared.create()
 
 		/** The meta-type with exactly one instance, [bottom].  */
 		val bottomMeta: A_Type = instanceMeta(bottom).makeShared()

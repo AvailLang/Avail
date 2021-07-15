@@ -39,6 +39,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.computeSuperkind
@@ -171,11 +172,11 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
-	override fun o_Hash(self: AvailObject): Int =
-		computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-			self.slot(SIZE_RANGE).hash(),
-			self.slot(KEY_TYPE).hash(),
-			self.slot(VALUE_TYPE).hash())
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.slot(SIZE_RANGE).hash(),
+		self.slot(KEY_TYPE).hash(),
+		self.slot(VALUE_TYPE).hash(),
+		0x4e53eb41)
 
 	override fun o_IsMapType(self: AvailObject): Boolean = true
 
@@ -360,27 +361,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 
 	companion object
 	{
-		/**
-		 * Compute what the map type's hash would be, given the hashes of its
-		 * constituent parts.
-		 *
-		 * @param sizesHash
-		 *   The hash of the
-		 *   [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
-		 *   constrains the map size.
-		 * @param keyTypeHash
-		 *   The hash of the key type.
-		 * @param valueTypeHash
-		 *   The hash of the value type.
-		 * @return
-		 *  The hash of the resulting map type.
-		 */
-		private fun computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-			sizesHash: Int,
-			keyTypeHash: Int,
-			valueTypeHash: Int): Int =
-				sizesHash * 3 + keyTypeHash * 5 + valueTypeHash * 13
-
 		/**
 		 * Construct a new map type with the specified permitted range of number
 		 * of * elements, the specified types of keys, and the specified types
