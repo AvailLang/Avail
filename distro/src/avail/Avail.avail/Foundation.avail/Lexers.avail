@@ -584,7 +584,6 @@ Private method "read range element from_at_" is
 	i : read natural number / write ⊥
 |
 	$body : character;
-	Print: format "s[i]=“①”\n" with s[↓i];
 	size ::= |s|;
 	If ↓i > size then
 	[
@@ -689,26 +688,22 @@ is
 	position : real source position,
 	line : real source line number
 |
-	Print: "HERE 1\n";
 	result : {character|} := ∅;
 	size ::= |source|;
 	i : natural number := position + 1;
 	If i > size ∨ source[i] ≠ ¢"[" then
 	[
-		Reject parse strongly /*silently*/, expected: "character set literal like ¢[A-Z]"
+		Reject parse silently,
+			expected: "character set literal like ¢[A-Z]"
 	];
 	i++;
-	Print: "HERE 2\n";
 	While i ≤ size ∧ source[i] ≠ ¢"]" do
 	[
-		Print: "HERE Loop A\n";
 		start ::= read range element from source at ↑i;
-		Print: "HERE Loop B\n";
 		range ::= if i ≤ size ∧ source[i] = ¢- then
 		[
 			// Character range.
 			i++;
-			Print: "HERE Loop C\n";
 			end ::= read range element from source at ↑i;
 			If end ≤ start then
 			[
@@ -722,7 +717,6 @@ is
 			// Single character.
 			<start>
 		];
-		Print: "HERE Loop D\n";
 		For each ch in range do
 		[
 			If ch ∈ result then
@@ -733,14 +727,25 @@ is
 			result := result + ch;
 		];
 	];
-	Print: "HERE 3\n";
 	If i > size then
 	[
 		Reject parse strongly, expected:
 			"\"]\" to end character set literal like ¢[A-Z]"
 	];
-	Print: format "HERE result=“①”\n" with result;
-	{<
-		`result` (source[position..i]) @ position:line
-	>}
+	i++;
+	if i ≤ size ∧ source[i] = ¢"ᵀ" then
+	[
+		// It's a type, specifically a subtype of `character`.  Don't also allow
+		// the character set to be a result.
+		{<
+			`enumeration of result` (source[position .. i]) @ position:line
+		>}
+	]
+	else
+	[
+		// It's a character set.
+		{<
+			`result` (source[position .. i - 1]) @ position:line
+		>}
+	]
 ];

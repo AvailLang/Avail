@@ -1009,7 +1009,8 @@ Extends
 		"octal integer lexer",
 		"hexadecimal integer lexer",
 		"floating point number lexer",
-		"raw string lexer"
+		"raw string lexer",
+		"character set lexer"
 	),
 	"Literals" =
 	(
