@@ -70,7 +70,7 @@ Test "is mutable (continuation)" in mutability visitors test suite is
 
 Test "is mutable (definition)" in mutability visitors test suite is
 [
-	atoms ::= <$"_'s⁇definitions", $"method for_", $"`$…$", $"_is mutable">;
+	atoms ::= <$"_'s⁇definitions", $"method for_", $"$…#", $"_is mutable">;
 	For each a of atoms do
 	[
 		m ::= method for a;
@@ -116,7 +116,7 @@ Test "is mutable (map)" in mutability visitors test suite is
 
 Test "is mutable (method)" in mutability visitors test suite is
 [
-	atoms ::= <$"_'s⁇definitions", $"method for_", $"`$…$", $"_is mutable">;
+	atoms ::= <$"_'s⁇definitions", $"method for_", $"$…#", $"_is mutable">;
 	For each a of atoms do
 	[
 		m ::= method for a;

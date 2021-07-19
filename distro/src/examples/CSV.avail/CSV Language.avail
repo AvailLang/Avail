@@ -45,7 +45,7 @@ Names
 	/* Build CSV records. */
 	"CSV whitespace lexer",
 	"CSV end of line lexer",
-	"«…!»«…$‡,»…!",
+	"«…!»«…#‡,»…!",
 
 	/* CSV data module processing. */
 	"Reset CSV processor",
@@ -122,7 +122,7 @@ Private method "Append record_" is
 /**
  * Add the CSV record to {@global "records"}.
  *
- * @method "«…$‡,»"
+ * @method "«…#‡,»"
  * @param "pLeadingEOLs" "list phrase⇒((literal token⇒{end-of-line marker}ᵀ)*)"
  *        The leading {@method "end-of-line marker"}s, corresponding to line
  *        feed characters.
@@ -133,7 +133,7 @@ Private method "Append record_" is
  *        The trailing {@method "end-of-line marker"}.
  * @returns "expression as statement phrase"
  */
-Public macro "«…!»«…$‡,»…!" is
+Public macro "«…!»«…#‡,»…!" is
 [
 	pLeadingEOLs : list phrase ⇒ ((literal token ⇒ {end-of-line marker}ᵀ)*),
 	pRecord : list phrase ⇒ ((literal token ⇒ string)+),

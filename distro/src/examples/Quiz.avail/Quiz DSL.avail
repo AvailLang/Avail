@@ -48,7 +48,6 @@ Extends
 		"operator lexer",
 
 		"_!;",
-		"…$",
 		"…#"
 	),
 	"Dimensional Analysis" = ("__")

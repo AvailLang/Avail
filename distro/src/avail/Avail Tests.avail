@@ -46,8 +46,7 @@ Extends
 		"keyword lexer",
 		"operator lexer",
 		"…#",
-		"…$",
-		"`$…$"
+		"$…#"
 	),
 	"Tests" =
 	(

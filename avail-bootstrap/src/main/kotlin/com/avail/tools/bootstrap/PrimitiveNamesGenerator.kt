@@ -31,15 +31,14 @@
  */
 package com.avail.tools.bootstrap
 
-import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.instances
 import com.avail.interpreter.Primitive
+import com.avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
 import com.avail.tools.bootstrap.Resources.escape
 import com.avail.tools.bootstrap.Resources.primitiveCommentKey
 import com.avail.tools.bootstrap.Resources.primitiveParameterNameKey
 import com.avail.tools.bootstrap.Resources.primitivesBaseName
 import java.io.PrintWriter
-import java.text.MessageFormat
 import java.util.Locale
 import java.util.Properties
 import java.util.PropertyResourceBundle
@@ -140,7 +139,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 						val builder = StringBuilder(500)
 						for (i in 0 until primitive.argCount)
 						{
-							builder.append(MessageFormat.format(
+							builder.append(checkedFormat(
 								parameterTemplate,
 								"{$templateParameters}",
 								"{${templateParameters + argCount}}"))
@@ -157,7 +156,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					// template.
 					val returnsTemplate = preambleBundle.getString(
 						Resources.Key.methodCommentReturnsTemplate.name)
-					val returns = MessageFormat.format(
+					val returns = checkedFormat(
 						returnsTemplate, "{$templateParameters}")
 					templateParameters++
 					// If the primitive failure type is an enumeration, then
@@ -165,35 +164,30 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 					// for each value. Otherwise, it just contributes one
 					// argument. But if the primitive cannot fail, then no
 					// arguments are contributed.
-					val raises: String
-					raises = if (!primitive.hasFlag(Primitive.Flag.CannotFail))
-					{
-						val raisesTemplate = preambleBundle.getString(
-							Resources.Key.methodCommentRaisesTemplate.name)
-						val failureType: A_Type = primitive.failureVariableType
-						if (failureType.isEnumeration)
+					val raises = buildString {
+						if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 						{
-							buildString {
+							val raisesTemplate = preambleBundle.getString(
+								Resources.Key.methodCommentRaisesTemplate.name)
+							val failureType = primitive.failureVariableType
+							if (failureType.isEnumeration)
+							{
 								failureType.instances.forEach { _ ->
 									append(
-										MessageFormat.format(
+										checkedFormat(
 											raisesTemplate,
 											"{$templateParameters}"))
 									templateParameters++
 								}
 							}
-						}
-						else
-						{
-							MessageFormat.format(
-								raisesTemplate, "{$templateParameters}")
+							else
+							{
+								checkedFormat(
+									raisesTemplate, "{$templateParameters}")
+							}
 						}
 					}
-					else
-					{
-						""
-					}
-					print(escape(MessageFormat.format(
+					print(escape(checkedFormat(
 						commentTemplate, parameters, returns, raises)))
 				}
 				println()

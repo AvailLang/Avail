@@ -80,7 +80,6 @@ Body
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  */

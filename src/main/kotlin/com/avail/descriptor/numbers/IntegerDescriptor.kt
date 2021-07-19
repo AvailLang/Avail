@@ -1145,15 +1145,9 @@ class IntegerDescriptor private constructor(
 			throw ArithmeticException(AvailErrorCode.E_TOO_LARGE_TO_REPRESENT)
 		}
 		val truncationInt = truncationBits.extractInt
-		if (truncationInt < 0) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
-		}
+		assert (truncationInt >= 0)
 		val sign = self.numericCompareToInteger(zero)
-		if (sign == Order.LESS) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
-		}
+		assert (sign != Order.LESS)
 		if (sign == Order.EQUAL) {
 			if (!canDestroy || isMutable) {
 				self.makeImmutable()

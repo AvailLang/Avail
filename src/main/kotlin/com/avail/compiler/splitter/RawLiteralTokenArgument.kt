@@ -1,5 +1,5 @@
 /*
- * RawStringLiteralTokenArgument.kt
+ * RawLiteralTokenArgument.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,7 +31,7 @@
  */
 package com.avail.compiler.splitter
 
-import com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN
+import com.avail.compiler.ParsingOperation.PARSE_RAW_LITERAL_TOKEN
 import com.avail.compiler.ParsingOperation.TYPE_CHECK_ARGUMENT
 import com.avail.compiler.splitter.MessageSplitter.Companion.indexForConstant
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
@@ -39,21 +39,21 @@ import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.types.A_Type
 
 /**
- * A `RawStringLiteralTokenArgument` is an occurrence of
- * [ellipsis][Metacharacter.ELLIPSIS] (…) in a message name, followed by a
- * [dollar&#32;sign][Metacharacter.DOLLAR_SIGN] ($). It indicates where a raw
- * string literal token argument is expected. Like its superclass, the
+ * A `RawLiteralTokenArgument` is an occurrence of
+ * [ellipsis][Metacharacter.ELLIPSIS] (…) in a message name, followed by an
+ * [octothorp][Metacharacter.OCTOTHORP] (#). It indicates where a raw
+ * literal token argument is expected. Like its superclass, the
  * [RawTokenArgument], the token is captured after being placed in a literal
- * phrase, but in this case the token is restricted to be a
- * [literal][TokenType.LITERAL] whose value is a string.
+ * phrase, but in this case the token is restricted to be a [TokenType.LITERAL]
+ * (currently positive numbers and strings).
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a `RawStringLiteralTokenArgument`, given the one-based
- * position of the token in the name, and the absolute index of this
- * argument in the entire message name.
+ * Construct a `RawLiteralTokenArgument`, given the one-based
+ * position of the token in the name, and the absolute index of this argument in
+ * the entire message name.
  *
  * @param positionInName
  *   The one-based position of the start of the token in the message name.
@@ -61,7 +61,7 @@ import com.avail.descriptor.types.A_Type
  *   The one-based index of this argument within the entire message name's list
  *   of arguments.
  */
-internal class RawStringLiteralTokenArgument constructor(
+internal class RawLiteralTokenArgument constructor(
 	positionInName: Int,
 	absoluteUnderscoreIndex: Int)
 : RawTokenArgument(positionInName, absoluteUnderscoreIndex)
@@ -72,7 +72,7 @@ internal class RawStringLiteralTokenArgument constructor(
 		wrapState: WrapState): WrapState
 	{
 		generator.flushDelayed()
-		generator.emit(this, PARSE_RAW_STRING_LITERAL_TOKEN)
+		generator.emit(this, PARSE_RAW_LITERAL_TOKEN)
 		generator.emitDelayed(
 			this,
 			TYPE_CHECK_ARGUMENT,

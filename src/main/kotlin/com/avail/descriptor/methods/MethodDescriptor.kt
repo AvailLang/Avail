@@ -934,20 +934,20 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(
-			"Module…$§"
-				+ "«Versions«…$§‡,»»"
+			"Module…#§"
+				+ "«Versions«…#§‡,»»"
 				+ ('«'
 					+ ("«Extends|Uses»!"
 						+ '«'
-						+ "…$"
-						+ "«(«…$§‡,»)»"
-						+ "«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»"
+						+ "…#"
+						+ "«(«…#§‡,»)»"
+						+ "«=(««-»?…#«→…#»?‡,»,⁇«`…»?)»"
 						+ "‡,"
 					+ '»')
 				+ '»')
-				+ "«Names«…$‡,»»"
-				+ "«Entries«…$‡,»»"
-				+ "«Pragma«…$‡,»»"
+				+ "«Names«…#‡,»»"
+				+ "«Entries«…#‡,»»"
+				+ "«Pragma«…#‡,»»"
 				+ "Body",
 			listOf(
 				P_ModuleHeaderPrefixCheckModuleName,

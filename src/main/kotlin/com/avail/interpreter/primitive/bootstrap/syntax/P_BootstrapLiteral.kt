@@ -1,5 +1,5 @@
 /*
- * P_BootstrapNumericLiteral.kt
+ * P_BootstrapLiteral.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -38,7 +38,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
+import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -46,29 +46,28 @@ import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Create a non-negative numeric literal phrase from a
- * non-negative numeric literal constant token (already wrapped as a literal
- * phrase).  This is a bootstrapped macro because not all subsets of the core
- * Avail syntax should allow non-negative numeric literal phrases.
+ * **Primitive:** Create a literal phrase from a literal token (already wrapped
+ * inside a literal phrase).  This is a bootstrap macro, which is initially the
+ * only way that literal phrases get built.
  */
 @Suppress("unused")
-object P_BootstrapNumericLiteral :
+object P_BootstrapLiteral :
 	Primitive(1, CanInline, CannotFail, Bootstrap)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val numericTokenLiteral = interpreter.argument(0)
+		val tokenLiteral = interpreter.argument(0)
 
-		val outerToken = numericTokenLiteral.token
+		val outerToken = tokenLiteral.token
 		val innerToken = outerToken.literal()
-		val numericLiteral = literalNodeFromToken(innerToken)
-		return interpreter.primitiveSuccess(numericLiteral)
+		val literal = literalNodeFromToken(innerToken)
+		return interpreter.primitiveSuccess(literal)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(literalTokenType(NUMBER.o))),
-			LITERAL_PHRASE.create(NUMBER.o))
+				LITERAL_PHRASE.create(literalTokenType(ANY.o))),
+			LITERAL_PHRASE.create(ANY.o))
 }

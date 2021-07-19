@@ -50,8 +50,7 @@ import com.avail.compiler.ParsingOperation.JUMP_FORWARD
 import com.avail.compiler.ParsingOperation.PARSE_ARGUMENT
 import com.avail.compiler.ParsingOperation.PARSE_PART
 import com.avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
-import com.avail.compiler.ParsingOperation.PARSE_RAW_NUMERIC_LITERAL_TOKEN
-import com.avail.compiler.ParsingOperation.PARSE_RAW_STRING_LITERAL_TOKEN
+import com.avail.compiler.ParsingOperation.PARSE_RAW_LITERAL_TOKEN
 import com.avail.compiler.ParsingOperation.PUSH_LITERAL
 import com.avail.compiler.ParsingOperation.SAVE_PARSE_POSITION
 import com.avail.compiler.ParsingOperation.WRAP_IN_LIST
@@ -487,23 +486,10 @@ class MessageSplitterTest private constructor ()
 								wholeNumbers))),
 					A("…", "#"),
 					A(
-						PARSE_RAW_NUMERIC_LITERAL_TOKEN.encoding,
+						PARSE_RAW_LITERAL_TOKEN.encoding,
 						typeCheckEncodingForPhrase(LiteralToken(wholeNumbers)),
 						APPEND_ARGUMENT.encoding)),
-				C(
-					"…$",
-					List(
-						1,
-						1,
-						Phrase(
-							LiteralToken(
-								stringType))),
-					A("…", "$"),
-					A(
-						PARSE_RAW_STRING_LITERAL_TOKEN.encoding,
-						typeCheckEncodingForPhrase(LiteralToken(stringType)),
-						APPEND_ARGUMENT.encoding)
-				),  /* Backquotes. */
+				/* Backquotes. */
 				C(
 					"`__",
 					List(
@@ -521,14 +507,14 @@ class MessageSplitterTest private constructor ()
 						typeCheckEncodingForPhrase(stringType),
 						APPEND_ARGUMENT.encoding)),
 				C(
-					"`\$_",
+					"`#_",
 					List(
 						1,
 						1,
 						Phrase(stringType)),
 					A(
 						"`",
-						"$",
+						"#",
 						"_"),
 					A(
 						PARSE_PART.encoding(2),

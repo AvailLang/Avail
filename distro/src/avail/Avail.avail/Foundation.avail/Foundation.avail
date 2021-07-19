@@ -70,7 +70,7 @@ Extends
 			\|[§\
 				\|««…:_†§‡,»`|»?\
 				\|«Primitive…«(…:_†)»?;§»?\
-				\|«`$…«:_†»?;§»?\
+				\|«$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
 			\|]§\
@@ -83,7 +83,6 @@ Extends
 		"…",
 		"_!;",
 		"(_::_†)",
-		"…$",
 		"…#",
 
 		/* Methods */
@@ -263,8 +262,8 @@ Extends
 		"⊤",
 		"⊥",
 		"-∞",
-		"`$_",
-		"`$_@pc=_stack=_[_]caller=_",
+		"$_",
+		"$_@pc=_stack=_[_]caller=_",
 		"<_,_`…`|_>",
 		"[`…]→_",
 		"``_``(_)@_:_",
@@ -274,7 +273,7 @@ Extends
 		"`|_`|",
 		"`|`|_`|`|",
 		"`|message_'s⁇parameters`|",
-		"`«`$_:_`»",
+		"`«$_:_`»",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
 		"`«supercast(_::_)`»",
@@ -454,7 +453,6 @@ Extends
 		"declaration-kind-does-not-support-assignment code",
 		"declaration-kind-does-not-support-reference code",
 		"directory-not-empty code",
-		"dollar-sign-must-follow-an-ellipsis code",
 		"double-question-mark-must-follow-a-token-or-simple-group code",
 		"exceeds-VM-limit code",
 		"exclamation-mark-must-follow-an-alternation-group code",
@@ -508,7 +506,6 @@ Extends
 		"result-disagreed-with-expected-type code",
 		"result-type-should-covary-with-arguments code",
 		"sequence-contains-invalid-statements code",
-		"shift-and-truncate-requires-non-negative code",
 		"special-atom code",
 		"subscript-out-of-bounds code",
 		"too-large-to-represent code",
@@ -742,7 +739,6 @@ Extends
 		"deserialization-failed exception",
 		"descriptive_",
 		"directory-not-empty exception",
-		"dollar-sign-must-follow-an-ellipsis exception",
 		"double-question-mark-must-follow-a-token-or-simple-group exception",
 		"element-access exception",
 		"empty-format-variable exception",
@@ -829,7 +825,6 @@ Extends
 		"security exception",
 		"sequence-contains-invalid-statements exception",
 		"serialization-failed exception",
-		"shift-and-truncate-requires-non-negative exception",
 		"system exception",
 		"special-atom exception",
 		"subscript-out-of-bounds exception",
@@ -922,8 +917,8 @@ Extends
 		"atom for_where_",
 		"_hails from Foundation",
 		"Foundation atom for_",
-		"Foundation`$…",
-		"Foundation`$…$",
+		"Foundation$…",
+		"Foundation$…#",
 		"_[_]else_"
 	),
 	"Late Definers" =
@@ -1022,8 +1017,8 @@ Extends
 		"<«_‡,»>",
 		"{«_‡,»}",
 		"{«_→_‡,»}",
-		"`$…",
-		"`$…$",
+		"$…",
+		"$…#",
 		"¢…!"
 	),
 	"Logic" =
@@ -1073,8 +1068,8 @@ Extends
 		"integrate_and_with_",
 		"integrate«_‡,and⁇»with_",
 		"map each…→…in|of_§through_",
-		"`${…}«else_»",
-		"`${…$}«else_»"
+		"${…}«else_»",
+		"${…#}«else_»"
 	),
 	"Methods" =
 	(

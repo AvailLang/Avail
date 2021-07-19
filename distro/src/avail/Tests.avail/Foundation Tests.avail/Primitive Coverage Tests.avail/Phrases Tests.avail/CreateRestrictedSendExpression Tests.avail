@@ -150,12 +150,6 @@ Test "CreateRestrictedSendExpression fails with incorrect-type-for-numbered-choi
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "CreateRestrictedSendExpression fails with dollar-sign-must-follow-an-ellipsis exception" in primitive phrases test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
-
 Test "CreateRestrictedSendExpression fails with loading-is-over exception" in primitive phrases test suite if supported is
 [
 	Skip test

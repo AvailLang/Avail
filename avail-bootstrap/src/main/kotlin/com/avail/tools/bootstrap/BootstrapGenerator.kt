@@ -130,9 +130,11 @@ import java.io.File
 import java.io.IOException
 import java.io.PrintWriter
 import java.nio.charset.StandardCharsets.UTF_8
+import java.text.DecimalFormat
 import java.text.MessageFormat
 import java.util.Date
 import java.util.Locale
+import java.util.MissingFormatArgumentException
 import java.util.ResourceBundle
 import java.util.StringTokenizer
 
@@ -155,6 +157,38 @@ class BootstrapGenerator constructor(private val locale: Locale)
 {
 	companion object
 	{
+		/**
+		 * A checked version of MessageFormat, that ensures each supplied argument
+		 * gets plugged into the resulting string at least once.
+		 */
+		@Throws(MissingFormatArgumentException::class)
+		fun checkedFormat(pattern: String, vararg arguments: Any?): String
+		{
+			val format = MessageFormat(pattern)
+			val clone = format.clone() as MessageFormat
+			val fakeFormats = Array(arguments.size) { DecimalFormat() }
+			clone.formatsByArgumentIndex = fakeFormats
+			val captured = clone.formatsByArgumentIndex
+			if (!captured.contentEquals(fakeFormats))
+			{
+				val uncaptured = fakeFormats
+					.indices
+					.filter { i -> i >= captured.size || captured[i] == null }
+					.filter {i -> arguments[i] != null }
+				if (uncaptured.isNotEmpty())
+				{
+					System.err.println(
+						String.format(
+							"Pattern omits reference to arguments: %s. "
+								+ "Pattern =\n\t%s\nArgs = %s",
+							uncaptured,
+							pattern.trim().replace("\n", "\n\t"),
+							arguments.toList()))
+				}
+			}
+			return format.format(arguments)
+		}
+
 		/**
 		 * A [map][Map] from the special objects to their indices.
 		 */
@@ -314,8 +348,8 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private val specialObjectBundle: ResourceBundle
 
 	/**
-	 * The [resource bundle][ResourceBundle] that contains the Avail names of
-	 * the [primitives][Primitive].
+	 * The [resource&#32;bundle][ResourceBundle] that contains the Avail names
+	 * of the [primitives][Primitive].
 	 */
 	private val primitiveBundle: ResourceBundle
 
@@ -390,15 +424,15 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		versions: List<String>,
 		writer: PrintWriter)
 	{
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(availCopyright.name),
 			preamble.getString(originModuleName.name),
 			Date()))
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(originModuleHeader.name),
 			preamble.getString(originModuleName.name),
 			moduleVersionString(versions),
@@ -469,15 +503,15 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		versions: List<String>,
 		writer: PrintWriter)
 	{
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(availCopyright.name),
 			preamble.getString(specialObjectsModuleName.name),
 			Date()))
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(specialObjectsModuleName.name),
 			moduleVersionString(versions), String.format(
@@ -514,17 +548,20 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				{
 					val commentTemplate =
 						specialObjectBundle.getString(commentKey)
-					var type = specialObjectBundle.getString(typeKey)
+					val type = specialObjectBundle.getString(typeKey)
 					if (type.isEmpty())
 					{
-						type = methodName
+						writer.print(checkedFormat(commentTemplate, methodName))
 					}
-					writer.print(MessageFormat.format(
-						commentTemplate, methodName, type))
+					else
+					{
+						writer.print(
+							checkedFormat(commentTemplate, methodName, type))
+					}
 				}
-				val use = MessageFormat.format(
+				val use = checkedFormat(
 					preamble.getString(specialObjectUse.name), i)
-				writer.println(MessageFormat.format(
+				writer.println(checkedFormat(
 					preamble.getString(definingSpecialObjectUse.name),
 					stringify(methodName),
 					use))
@@ -591,12 +628,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				else infalliblePrimitivesModuleName
 			}
 		// Write the copyright.
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(availCopyright.name),
 			preamble.getString(key.name),
 			Date()))
 		// Write the generated module notice.
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
@@ -644,7 +681,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 							primitiveFailureFunctionSetterMethod.name)))
 			}
 		}
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(key.name),
 			moduleVersionString(versions),
@@ -781,7 +818,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					{
 						preamble.getString(parameterPrefix.name) + 1
 					}
-				append(MessageFormat.format(
+				append(checkedFormat(
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name),
 					argName,
@@ -789,7 +826,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			}
 			else
 			{
-				append(MessageFormat.format(
+				append(checkedFormat(
 					preamble.getString(
 						invokePrimitiveFailureFunctionMethodUse.name),
 					preamble.getString(
@@ -867,13 +904,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				val argNameKey = primitiveParameterNameKey(primitive, i)
 				val argName = if (primitiveBundle.containsKey(argNameKey))
 				{
-					val localized = primitiveBundle.getString(argNameKey)
-					if (localized.isNotEmpty())
-					{
-						localized
-					}
-					else
-					{
+					primitiveBundle.getString(argNameKey).ifEmpty {
 						preamble.getString(parameterPrefix.name) + i
 					}
 				}
@@ -897,8 +928,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					if (varType.isSubtypeOf(naturalNumbers))
 					{
 						val instances = varType.instances
-						val codes = instances.sortedBy { it.extractInt }
-						for (code in codes)
+						for (code in instances.sortedBy { it.extractInt })
 						{
 							formatArgs[raiseIndex++] = exceptionName(code)
 						}
@@ -957,7 +987,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 						+ "single-quote character%n",
 					commentKey)
 			}
-			append(MessageFormat.format(messagePattern, *formatArgs))
+			append(checkedFormat(messagePattern, *formatArgs))
 		}
 	}
 
@@ -976,7 +1006,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		block: String,
 		writer: PrintWriter
 	) = with(writer) {
-		print(MessageFormat.format(
+		print(checkedFormat(
 			preamble.getString(definingMethodUse.name),
 			stringify(name),
 			block))
@@ -1082,7 +1112,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			println(specialObjectName(Types.ANY.o))
 			println("\t|")
 			print("\t\t")
-			print(MessageFormat.format(
+			print(checkedFormat(
 				preamble.getString(primitiveFailureMethodUse.name),
 				preamble.getString(parameterPrefix.name) + 1))
 			println("")
@@ -1170,7 +1200,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append(";\n")
 			append('\t')
 			append(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(primitiveFailureMethodUse.name),
 					preamble.getString(primitiveFailureVariableName.name)))
 			append("\n")
@@ -1211,7 +1241,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append(";\n")
 			append('\t')
 			append(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(primitiveFailureMethodUse.name),
 					preamble.getString(primitiveFailureVariableName.name)))
 			append("\n")
@@ -1233,7 +1263,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			primitiveMethodParameterDeclarations(P_InvokeWithTuple, true),
 			statements,
 			null)
-		writer.append(MessageFormat.format(
+		writer.append(checkedFormat(
 			preamble.getString(primitiveSemanticRestrictionUse.name),
 			stringify(preamble.getString(
 				invokePrimitiveFailureFunctionMethod.name)),
@@ -1279,12 +1309,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 *   The [output stream][PrintWriter].
 	 */
 	private fun generatePrimitiveModuleBody(
-		fallible: Boolean?,
+		fallible: Boolean,
 		writer: PrintWriter)
 	{
 		// Generate the module variable that holds the primitive failure
 		// function.
-		if (java.lang.Boolean.TRUE == fallible)
+		if (fallible)
 		{
 			generatePrimitiveToSetMethod(writer)
 			generatePrimitiveEnumMethod(writer)
@@ -1297,16 +1327,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		}
 
 		// Generate the primitive methods.
-		if (fallible !== null)
+		for (primitive in primitives(fallible))
 		{
-			val primitives = primitives(fallible)
-			for (primitive in primitives)
+			if (!primitive.hasFlag(Primitive.Flag.Private)
+				&& !primitive.hasFlag(Primitive.Flag.Bootstrap))
 			{
-				if (!primitive.hasFlag(Primitive.Flag.Private)
-				    && !primitive.hasFlag(Primitive.Flag.Bootstrap))
-				{
-					generatePrimitiveMethod(primitive, writer)
-				}
+				generatePrimitiveMethod(primitive, writer)
 			}
 		}
 	}
@@ -1349,11 +1375,11 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		versions: List<String>,
 		writer: PrintWriter
 	) = with(writer) {
-		println(MessageFormat.format(
+		println(checkedFormat(
 			preamble.getString(availCopyright.name),
 			preamble.getString(errorCodesModuleName.name),
 			Date()))
-		println(MessageFormat.format(
+		println(checkedFormat(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
@@ -1362,7 +1388,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			append(preamble.getString(originModuleName.name))
 			append('"')
 		}
-		println(MessageFormat.format(
+		println(checkedFormat(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(errorCodesModuleName.name),
 			moduleVersionString(versions),
@@ -1393,7 +1419,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			{
 				writer.print(errorCodeBundle.getString(commentKey))
 			}
-			writer.println(MessageFormat.format(
+			writer.println(checkedFormat(
 				preamble.getString(definingMethodUse.name),
 				stringify(
 					errorCodeBundle.getString(key)),
@@ -1413,11 +1439,11 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		versions: List<String>,
 		writer: PrintWriter
 	) = with(writer) {
-		println(MessageFormat.format(
+		println(checkedFormat(
 			preamble.getString(availCopyright.name),
 			preamble.getString(representativeModuleName.name),
 			Date()))
-		println(MessageFormat.format(
+		println(checkedFormat(
 			preamble.getString(generatedModuleNotice.name),
 			BootstrapGenerator::class.java.name,
 			Date()))
@@ -1436,7 +1462,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			}
 			setLength(length - 1)
 		}
-		writer.println(MessageFormat.format(
+		writer.println(checkedFormat(
 			preamble.getString(generalModuleHeader.name),
 			preamble.getString(representativeModuleName.name),
 			moduleVersionString(versions),
@@ -1513,13 +1539,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		assert(fileName.path.endsWith(".avail"))
 		PrintWriter(fileName, UTF_8.name()).use {
 			generatePrimitiveModulePreamble(fallible, versions, it)
-			generatePrimitiveModuleBody(fallible, it)
+			if (fallible != null) generatePrimitiveModuleBody(fallible, it)
 		}
 	}
 
 	/**
-	 * Generate the [module][ModuleDescriptor] that binds the
-	 * [primitive error codes][AvailErrorCode] to Avail names.
+	 * Generate the [module][ModuleDescriptor] that binds the primitive error
+	 * [codes][AvailErrorCode] to Avail names.
 	 *
 	 * @param versions
 	 *   The supported versions.
@@ -1567,7 +1593,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	 *   The module name.
 	 */
 	private fun primitiveCoverageTestModuleName(primitive: Primitive) =
-		MessageFormat.format(
+		checkedFormat(
 			preamble.getString(primitiveCoverageTestModuleName.name),
 			primitive.javaClass.simpleName.substring(2))
 
@@ -1622,17 +1648,17 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			moduleName))
 		PrintWriter(fileName, UTF_8.name()).use { writer ->
 			writer.println(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(availCopyright.name),
 					moduleName,
 					Date()))
 			writer.println(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(generatedModuleNotice.name),
 					BootstrapGenerator::class.java.name,
 					Date()))
 			writer.println(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(
 						primitiveCommonTestPackageRepresentativeHeader.name),
 					moduleName,
@@ -1677,12 +1703,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			testPackageMap
 		) = PrintWriter(fileName, UTF_8.name()).use { writer ->
 			writer.println(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(availCopyright.name),
 					packageName,
 					Date()))
 			writer.println(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(generatedModuleNotice.name),
 					BootstrapGenerator::class.java.name,
 					Date()))
@@ -1725,7 +1751,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 
 			val versionString = moduleVersionString(versions)
 			writer.println(
-				MessageFormat.format(
+				checkedFormat(
 					preamble.getString(
 						primitiveCoverageTestPackageRepresentativeHeader.name),
 					preamble.getString(primitiveCoverageTestPackageName.name),
@@ -1774,12 +1800,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				primitiveCoverageTestModuleFileName(primitive, testPackage)
 			PrintWriter(fileName, UTF_8.name()).use { writer ->
 				writer.println(
-					MessageFormat.format(
+					checkedFormat(
 						preamble.getString(availCopyright.name),
 						moduleName,
 						Date()))
 				writer.println(
-					MessageFormat.format(
+					checkedFormat(
 						preamble.getString(
 							primitiveCoverageTestModuleHeader.name),
 						moduleName,
@@ -1787,7 +1813,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 						preamble.getString(primitiveCommonTestPackageName.name)))
 				writer.println()
 				writer.println(
-					MessageFormat.format(
+					checkedFormat(
 						preamble.getString(primitiveCoverageTestCaseOk.name),
 						primitiveName,
 						testPackage.testSuiteName))
@@ -1807,7 +1833,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 									val exceptionName =
 										errorCodeBundle.getString(exceptionKey)
 									writer.println(
-										MessageFormat.format(
+										checkedFormat(
 											preamble.getString(
 												primitiveCoverageTestCaseFailed
 													.name),
@@ -1819,7 +1845,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 						else
 						{
 							writer.println(
-								MessageFormat.format(
+								checkedFormat(
 									preamble.getString(
 										primitiveCoverageTestCaseFailedSpecial
 											.name),
@@ -1829,7 +1855,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					else
 					{
 						writer.println(
-							MessageFormat.format(
+							checkedFormat(
 								preamble.getString(
 									primitiveCoverageTestCaseFailedSpecial.name),
 								primitiveName))
@@ -2031,12 +2057,12 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				name))
 			PrintWriter(fileName, "UTF-8").use { writer ->
 				writer.println(
-					MessageFormat.format(
+					checkedFormat(
 						preamble.getString(availCopyright.name),
 						name,
 						Date()))
 				writer.println(
-					MessageFormat.format(
+					checkedFormat(
 						preamble.getString(generatedModuleNotice.name),
 						BootstrapGenerator::class.java.name,
 						Date()))
@@ -2052,7 +2078,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 					setLength(length - 1)
 				}
 				writer.println(
-					MessageFormat.format(
+					checkedFormat(
 						preamble.getString(
 							primitiveCoverageTestSubPackageRepresentativeHeader
 								.name),
@@ -2067,7 +2093,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			val packagePath = primitivePackage.split(".")
 			assert(packagePath.size > 2)
 			val basePackageName = packagePath[packagePath.size - 1]
-			this.name = MessageFormat.format(
+			this.name = checkedFormat(
 				preamble.getString(primitiveCoverageTestModuleName.name),
 				basePackageName.replaceFirstChar(Char::titlecase))
 			val packageName = File(String.format(
@@ -2078,10 +2104,10 @@ class BootstrapGenerator constructor(private val locale: Locale)
 				preamble.getString(primitiveCoverageTestPackageName.name),
 				this.name))
 			packageName.mkdir()
-			this.testSuiteName = MessageFormat.format(
+			this.testSuiteName = checkedFormat(
 				preamble.getString(primitiveTestSuiteName.name),
 				basePackageName)
-			this.testSuiteCreationCode = MessageFormat.format(
+			this.testSuiteCreationCode = checkedFormat(
 				preamble.getString(primitiveTestSuiteImplementation.name),
 				basePackageName,
 				this.testSuiteName)

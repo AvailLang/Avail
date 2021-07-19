@@ -168,12 +168,6 @@ Test "SimpleMacroDeclaration fails with incorrect-type-for-numbered-choice excep
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "SimpleMacroDeclaration fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
-
 Test "SimpleMacroDeclaration fails with macro-prefix-functions-must-return-top exception" in primitive methods test suite if supported is
 [
 	Skip test

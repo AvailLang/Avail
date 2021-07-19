@@ -156,12 +156,6 @@ Test "GrammaticalRestriction fails with incorrect-type-for-numbered-choice excep
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "GrammaticalRestriction fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
-
 Test "GrammaticalRestriction fails with cannot-define-during-compilation exception" in primitive methods test suite if supported is
 [
 	Skip test
