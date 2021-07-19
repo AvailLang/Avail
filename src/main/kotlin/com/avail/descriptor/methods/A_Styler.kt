@@ -45,7 +45,8 @@ import com.avail.descriptor.representation.AvailObject
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Styler : A_BasicObject {
+interface A_Styler : A_BasicObject
+{
 	companion object
 	{
 		/**
@@ -54,21 +55,20 @@ interface A_Styler : A_BasicObject {
 		val A_Styler.function: A_Function get() = dispatch { o_Function(it) }
 
 		/**
-		 * Answer the [method][MethodDescriptor] that this
-		 * [definition][DefinitionDescriptor] is for.
+		 * Answer the [definition][A_Definition], whether method-, abstract-, or
+		 * even forward-, that this styler is intended to style invocations of.
 		 *
 		 * @return
-		 *   The definition's method.
+		 *   The definition that this styler is attached to.
 		 */
 		val A_Styler.definition: A_Definition get() =
 			dispatch { o_Definition(it) }
 
 		/**
-		 * Answer the [method][MethodDescriptor] that this
-		 * [definition][DefinitionDescriptor] is for.
+		 * Answer the [module][A_Module] in which this styler was defined.
 		 *
 		 * @return
-		 *   The definition's method.
+		 *   The styler's defining module.
 		 */
 		val A_Styler.module: A_Module get() = dispatch { o_Module(it) }
 	}

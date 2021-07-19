@@ -46,7 +46,8 @@ import com.avail.interpreter.execution.AvailLoader
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Definition : A_Sendable {
+interface A_Definition : A_Sendable
+{
 	companion object
 	{
 		/**
@@ -74,7 +75,7 @@ interface A_Definition : A_Sendable {
 		 * would have been excluded from the lookup tree).  If there is a styler
 		 * from an ancestor module that dominates (i.e., all other applicable
 		 * modules are themselves ancestors of it), then the styler from that
-		 * module is used. Otherwise a special conflict styler will bo used to
+		 * module is used. Otherwise a special conflict styler will be used to
 		 * bring attention to the collision.
 		 */
 		val A_Definition.stylers: A_Set get() = dispatch { o_Stylers(it) }
