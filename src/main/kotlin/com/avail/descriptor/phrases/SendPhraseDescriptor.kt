@@ -55,7 +55,7 @@ import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.A_Token
@@ -181,11 +181,11 @@ class SendPhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(RETURN_TYPE)
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
-			xor self.slot(BUNDLE).hash()) * multiplier
-			- self.slot(RETURN_TYPE).hash()
-			xor -0x6f1c64b3)
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.slot(ARGUMENTS_LIST_NODE).hash(),
+		self.slot(BUNDLE).hash(),
+		self.slot(RETURN_TYPE).hash(),
+		-0x6f1c64b3)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEND_PHRASE

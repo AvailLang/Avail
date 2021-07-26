@@ -91,9 +91,10 @@ object P_BootstrapAssignmentStatementMacro
 
 		val loader =
 			interpreter.fiber().availLoader()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		assert(variableNameLiteral.isInstanceOf(
-			LITERAL_PHRASE.mostGeneralType()))
+				?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		assert(
+			variableNameLiteral.isInstanceOf(
+				LITERAL_PHRASE.mostGeneralType()))
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
@@ -109,17 +110,21 @@ object P_BootstrapAssignmentStatementMacro
 		val clientData =
 			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
-		val module = loader.module()
-		val declaration: A_Phrase = when {
-			scopeMap.hasKey(variableNameString) -> {
+		val module = loader.module
+		val declaration: A_Phrase = when
+		{
+			scopeMap.hasKey(variableNameString) ->
+			{
 				scopeMap.mapAt(variableNameString)
 			}
-			module.variableBindings.hasKey(variableNameString) -> {
+			module.variableBindings.hasKey(variableNameString) ->
+			{
 				val variableObject =
 					module.variableBindings.mapAt(variableNameString)
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			}
-			module.constantBindings.hasKey(variableNameString) -> {
+			module.constantBindings.hasKey(variableNameString) ->
+			{
 				val variableObject =
 					module.constantBindings.mapAt(variableNameString)
 				newModuleConstant(actualToken, variableObject, nil)

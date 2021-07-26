@@ -1249,21 +1249,6 @@ System exception "not-an-enumeration" (17)
 	extends invocation exception;
 
 /**
- * Raised by {@method "_<<_keeping_bits"} when the truncation size is negative.
- *
- * @type "shift-and-truncate-requires-non-negative exception"
- * @supertype "arithmetic exception"
- * @field "error code" "18's type"
- * 		The VM error code.
- * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
- * @category "Exceptions" "Mathematics"
- */
-System exception "shift-and-truncate-requires-non-negative" (18)
-	extends arithmetic exception;
-
-/**
  * Raised when attempting to look up a nonexistent {@type "method"}.
  *
  * @type "no-method exception"
@@ -1304,7 +1289,7 @@ System exception "permission-denied" (24)
 	extends security exception;
 System exception "invalid-handle" (25)
 	extends bad-argument exception;
-System exception "invalid-primitive-number" (26)
+System exception "invalid-primitive-name" (26)
 	extends code-generation exception;
 System exception "function-disagrees-with-primitive-restriction" (27)
 	extends code-generation exception;

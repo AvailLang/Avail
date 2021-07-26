@@ -54,7 +54,8 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseT
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.BitField
@@ -93,6 +94,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 
@@ -372,15 +374,15 @@ class ObjectDescriptor internal constructor(
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
-	override fun o_Hash(self: AvailObject): Int {
-		val hash = self.slot(HASH_OR_ZERO)
-		if (hash != 0) return hash
-		// Don't lock if we're shared.  Multiple simultaneous computations
-		// of *the same* value are benign races.
-		return (1..self.variableObjectSlotsCount()).fold(variant.variantId) {
-			h, i -> (h * multiplier) xor self.slot(FIELD_VALUES_, i).hash()
-		}.also { self.setSlot(HASH_OR_ZERO, it) }
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
+			// Don't lock if we're shared.  Multiple simultaneous computations
+			// of *the same* value are benign races.
+			(1..self.variableObjectSlotsCount())
+				.fold(combine2(variant.variantId, -0x7d4d2f29)) { h, i ->
+					combine3(h, self.slot(FIELD_VALUES_, i).hash(), 0x5cfd93e6)
+				}.also { self.setSlot(HASH_OR_ZERO, it) }
+		}
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,

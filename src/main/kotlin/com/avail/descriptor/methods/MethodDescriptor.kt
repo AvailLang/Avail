@@ -58,6 +58,8 @@ import com.avail.descriptor.methods.A_Method.Companion.chooseBundle
 import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import com.avail.descriptor.methods.A_Method.Companion.membershipChanged
 import com.avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import com.avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor.Companion.initialMutableDescriptor
@@ -154,6 +156,7 @@ import com.avail.interpreter.primitive.modules.P_PublishName
 import com.avail.interpreter.primitive.objects.P_RecordNewTypeName
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken
+import com.avail.interpreter.primitive.phrases.P_SetStyleFunction
 import com.avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap
 import com.avail.interpreter.primitive.variables.P_AtomicRemoveFromMap
@@ -353,13 +356,15 @@ class MethodDescriptor private constructor(
 				toList(self.volatileSlot(DEFINITIONS_TUPLE)),
 				nCopiesOfAnyRestriction(numArgs),
 				Unit)
-			do {
+			do
+			{
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
 				// winner's tree.
 				methodTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = methodTestingTree
-			} while (tree === null)
+			}
+			while (tree === null)
 		}
 		return tree
 	}

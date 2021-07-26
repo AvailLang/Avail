@@ -73,7 +73,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedI
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
@@ -789,7 +789,7 @@ class TypeConsistencyTest
 							mappingElementTypes(innerType) {
 								PhraseKind.PARSE_PHRASE.create(it)
 							}
-						createListNodeType(
+						createListPhraseType(
 							phraseKind, innerType, subexpressionsTupleType)
 					}
 					else -> phraseKind.create(innerType)

@@ -68,7 +68,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine5
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -406,14 +406,12 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		module: A_Module
 	): A_RawFunction = generateFunction(module, self)
 
-	override fun o_Hash(self: AvailObject): Int {
-		var h = self.argumentsTuple.hash()
-		h = h * multiplier + self.statementsTuple.hash()
-		h = h * multiplier + self.resultType().hash()
-		h = h * multiplier + (self.primitive?.name?.hashCode() ?: 0)
-		h = h * multiplier xor 0x05E6A04A
-		return h
-	}
+	override fun o_Hash(self: AvailObject): Int = combine5(
+		self.argumentsTuple.hash(),
+		self.statementsTuple.hash(),
+		self.resultType().hash(),
+		self.primitive?.name?.hashCode() ?: 0,
+		0x05E6A04A)
 
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =
 		self.mutableSlot(NEEDED_VARIABLES)

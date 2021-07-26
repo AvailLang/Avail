@@ -82,10 +82,10 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.validateLocally
 import com.avail.descriptor.phrases.A_Phrase.Companion.variable
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots
 import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.MACRO_ORIGINAL_SEND
-import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PARSE_NODE
+import com.avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.ObjectSlots.OUTPUT_PHRASE
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
@@ -103,7 +103,7 @@ import java.util.IdentityHashMap
  * A [macro&#32;substitution&#32;phrase][MacroSubstitutionPhraseDescriptor]
  * represents the result of applying a [macro][MacroDescriptor] to its
  * argument [expressions][PhraseDescriptor] to produce an output
- * [phrase][ObjectSlots.OUTPUT_PARSE_NODE].
+ * [phrase][ObjectSlots.OUTPUT_PHRASE].
  *
  * It's kept around specifically to allow grammatical restrictions to operate on
  * the actual occurring macro (and method) names, not what they've turned into.
@@ -135,7 +135,7 @@ class MacroSubstitutionPhraseDescriptor(
 	{
 		/**
 		 * The [send&#32;phrase][SendPhraseDescriptor] prior to its
-		 * transformation into the [OUTPUT_PARSE_NODE].
+		 * transformation into the [OUTPUT_PHRASE].
 		 */
 		MACRO_ORIGINAL_SEND,
 
@@ -143,7 +143,7 @@ class MacroSubstitutionPhraseDescriptor(
 		 * The [phrase][PhraseDescriptor] that is the result of transforming the
 		 * input phrase through a macro substitution.
 		 */
-		OUTPUT_PARSE_NODE
+		OUTPUT_PHRASE
 	}
 
 	override fun printObjectOnAvoidingIndent(
@@ -151,29 +151,29 @@ class MacroSubstitutionPhraseDescriptor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) = self.slot(OUTPUT_PARSE_NODE).printOnAvoidingIndent(
+	) = self.slot(OUTPUT_PHRASE).printOnAvoidingIndent(
 		builder, recursionMap, indent)
 
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
 		self.slot(MACRO_ORIGINAL_SEND).apparentSendName
 
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).argumentsListNode
+		self.slot(OUTPUT_PHRASE).argumentsListNode
 
 	override fun o_ArgumentsTuple(self: AvailObject): A_Tuple =
-		self.slot(OUTPUT_PARSE_NODE).argumentsTuple
+		self.slot(OUTPUT_PHRASE).argumentsTuple
 
 	/**
 	 * Reach into the output phrase.  If you want the macro name, use the
 	 * apparentSendName instead.
 	 */
 	override fun o_Bundle(self: AvailObject): A_Bundle =
-		self.slot(OUTPUT_PARSE_NODE).bundle
+		self.slot(OUTPUT_PHRASE).bundle
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit
-	) = action(self.slot(OUTPUT_PARSE_NODE))
+	) = action(self.slot(OUTPUT_PHRASE))
 
 	/**
 	 * Don't transform the original phrase, just the output phrase.
@@ -183,48 +183,48 @@ class MacroSubstitutionPhraseDescriptor(
 		transformer: (A_Phrase)->A_Phrase)
 	{
 		self.setSlot(
-			OUTPUT_PARSE_NODE,
-			transformer(self.slot(OUTPUT_PARSE_NODE)))
+			OUTPUT_PHRASE,
+			transformer(self.slot(OUTPUT_PHRASE)))
 	}
 
 	/** Create a copy of the list, not this macro substitution. */
 	override fun o_CopyWith(self: AvailObject, newPhrase: A_Phrase): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).copyWith(newPhrase)
+		self.slot(OUTPUT_PHRASE).copyWith(newPhrase)
 
 	/** Create a copy of the list, not this macro substitution. */
 	override fun o_CopyConcatenating(
 		self: AvailObject,
 		newListPhrase: A_Phrase
-	): A_Phrase = self.slot(OUTPUT_PARSE_NODE).copyConcatenating(newListPhrase)
+	): A_Phrase = self.slot(OUTPUT_PHRASE).copyConcatenating(newListPhrase)
 
 	override fun o_Declaration(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).declaration
+		self.slot(OUTPUT_PHRASE).declaration
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		self.slot(OUTPUT_PARSE_NODE).declaredExceptions
+		self.slot(OUTPUT_PHRASE).declaredExceptions
 
 	override fun o_DeclaredType(self: AvailObject): A_Type =
-		self.slot(OUTPUT_PARSE_NODE).declaredType
+		self.slot(OUTPUT_PHRASE).declaredType
 
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
-		self.slot(OUTPUT_PARSE_NODE).emitAllValuesOn(codeGenerator)
+		self.slot(OUTPUT_PHRASE).emitAllValuesOn(codeGenerator)
 	}
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
-		self.slot(OUTPUT_PARSE_NODE).emitEffectOn(codeGenerator)
+		self.slot(OUTPUT_PHRASE).emitEffectOn(codeGenerator)
 	}
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.setTokensWhile(self.slot(MACRO_ORIGINAL_SEND).tokens) {
-		self.slot(OUTPUT_PARSE_NODE).emitValueOn(codeGenerator)
+		self.slot(OUTPUT_PHRASE).emitValueOn(codeGenerator)
 	}
 
 	override fun o_EqualsPhrase(
@@ -232,144 +232,145 @@ class MacroSubstitutionPhraseDescriptor(
 		aPhrase: A_Phrase
 	): Boolean = (aPhrase.isMacroSubstitutionNode
 		&& self.slot(MACRO_ORIGINAL_SEND).equals(aPhrase.macroOriginalSendNode)
-		&& self.slot(OUTPUT_PARSE_NODE).equals(aPhrase.outputPhrase))
+		&& self.slot(OUTPUT_PHRASE).equals(aPhrase.outputPhrase))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).expression
+		self.slot(OUTPUT_PHRASE).expression
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).expressionAt(index)
+		self.slot(OUTPUT_PHRASE).expressionAt(index)
 
 	override fun o_ExpressionsSize(self: AvailObject): Int =
-		self.slot(OUTPUT_PARSE_NODE).expressionsSize
+		self.slot(OUTPUT_PHRASE).expressionsSize
 
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		self.slot(OUTPUT_PARSE_NODE).expressionsTuple
+		self.slot(OUTPUT_PHRASE).expressionsTuple
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(OUTPUT_PARSE_NODE).phraseExpressionType
+		self.slot(OUTPUT_PHRASE).phraseExpressionType
 
 	override fun o_FlattenStatementsInto(
 		self: AvailObject,
 		accumulatedStatements: MutableList<A_Phrase>
-	) = self.slot(OUTPUT_PARSE_NODE).flattenStatementsInto(
+	) = self.slot(OUTPUT_PHRASE).flattenStatementsInto(
 		accumulatedStatements)
 
 	override fun o_GenerateInModule(
 		self: AvailObject,
 		module: A_Module
-	): A_RawFunction = self.slot(OUTPUT_PARSE_NODE).generateInModule(module)
+	): A_RawFunction = self.slot(OUTPUT_PHRASE).generateInModule(module)
 
-	override fun o_Hash(self: AvailObject): Int =
-		(self.slot(MACRO_ORIGINAL_SEND).hash() * multiplier
-			+ (self.slot(OUTPUT_PARSE_NODE).hash() xor 0x1d50d7f9))
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(MACRO_ORIGINAL_SEND).hash(),
+		self.slot(OUTPUT_PHRASE).hash(),
+		0x1d50d7f9)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self.slot(OUTPUT_PARSE_NODE).hasSuperCast
+		self.slot(OUTPUT_PHRASE).hasSuperCast
 
 	override fun o_InitializationExpression(self: AvailObject): AvailObject =
-		self.slot(OUTPUT_PARSE_NODE).initializationExpression
+		self.slot(OUTPUT_PHRASE).initializationExpression
 
 	override fun o_IsLastUse(self: AvailObject, isLastUse: Boolean)
 	{
-		self.slot(OUTPUT_PARSE_NODE).isLastUse = isLastUse
+		self.slot(OUTPUT_PHRASE).isLastUse = isLastUse
 	}
 
 	override fun o_IsLastUse(self: AvailObject): Boolean =
-		self.slot(OUTPUT_PARSE_NODE).isLastUse
+		self.slot(OUTPUT_PHRASE).isLastUse
 
 	override fun o_IsMacroSubstitutionNode(self: AvailObject): Boolean = true
 
 	override fun o_LastExpression(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).lastExpression
+		self.slot(OUTPUT_PHRASE).lastExpression
 
 	override fun o_List(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).list
+		self.slot(OUTPUT_PHRASE).list
 
 	override fun o_LiteralObject(self: AvailObject): A_BasicObject =
-		self.slot(OUTPUT_PARSE_NODE).literalObject
+		self.slot(OUTPUT_PHRASE).literalObject
 
 	override fun o_MacroOriginalSendNode(self: AvailObject): A_Phrase =
 		self.slot(MACRO_ORIGINAL_SEND)
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
-		self.slot(OUTPUT_PARSE_NODE).markerValue
+		self.slot(OUTPUT_PHRASE).markerValue
 
 	override fun o_NeededVariables(self: AvailObject): A_Tuple =
-		self.slot(OUTPUT_PARSE_NODE).neededVariables
+		self.slot(OUTPUT_PHRASE).neededVariables
 
 	override fun o_NeededVariables(
 		self: AvailObject,
 		neededVariables: A_Tuple)
 	{
-		self.slot(OUTPUT_PARSE_NODE).neededVariables = neededVariables
+		self.slot(OUTPUT_PHRASE).neededVariables = neededVariables
 	}
 
 	override fun o_OutputPhrase(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE)
+		self.slot(OUTPUT_PHRASE)
 
 	/** Answer the output phrase's kind, not this macro substitution's kind. */
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
-		self.slot(OUTPUT_PARSE_NODE).phraseKind
+		self.slot(OUTPUT_PHRASE).phraseKind
 
 	/** Use the output phrase's kind, not this macro substitution's kind. */
 	override fun o_PhraseKindIsUnder(
 		self: AvailObject,
 		expectedPhraseKind: PhraseKind
-	): Boolean = self.slot(OUTPUT_PARSE_NODE).phraseKindIsUnder(
+	): Boolean = self.slot(OUTPUT_PHRASE).phraseKindIsUnder(
 		expectedPhraseKind)
 
 	override fun o_Permutation(self: AvailObject): A_Tuple =
-		self.slot(OUTPUT_PARSE_NODE).permutation
+		self.slot(OUTPUT_PHRASE).permutation
 
 	override fun o_Primitive(self: AvailObject): Primitive? =
-		self.slot(OUTPUT_PARSE_NODE).codePrimitive()
+		self.slot(OUTPUT_PHRASE).codePrimitive()
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MACRO_SUBSTITUTION_PHRASE
 
 	override fun o_StartingLineNumber(self: AvailObject): Int =
-		self.slot(OUTPUT_PARSE_NODE).codeStartingLineNumber
+		self.slot(OUTPUT_PHRASE).codeStartingLineNumber
 
 	override fun o_Statements(self: AvailObject): A_Tuple =
-		self.slot(OUTPUT_PARSE_NODE).statements
+		self.slot(OUTPUT_PHRASE).statements
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase)->Unit
-	) = self.slot(OUTPUT_PARSE_NODE).statementsDo(continuation)
+	) = self.slot(OUTPUT_PHRASE).statementsDo(continuation)
 
 	override fun o_StatementsTuple(self: AvailObject): A_Tuple =
-		self.slot(OUTPUT_PARSE_NODE).statementsTuple
+		self.slot(OUTPUT_PHRASE).statementsTuple
 
 	override fun o_StripMacro(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE)
+		self.slot(OUTPUT_PHRASE)
 
 	override fun o_SuperUnionType(self: AvailObject): A_Type =
-		self.slot(OUTPUT_PARSE_NODE).superUnionType
+		self.slot(OUTPUT_PHRASE).superUnionType
 
 	override fun o_Token(self: AvailObject): A_Token =
-		self.slot(OUTPUT_PARSE_NODE).token
+		self.slot(OUTPUT_PHRASE).token
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
 		self.slot(MACRO_ORIGINAL_SEND).tokens
 
 	override fun o_TypeExpression(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).typeExpression
+		self.slot(OUTPUT_PHRASE).typeExpression
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
-	) = self.slot(OUTPUT_PARSE_NODE).validateLocally(parent)
+	) = self.slot(OUTPUT_PHRASE).validateLocally(parent)
 
 	override fun o_Variable(self: AvailObject): A_Phrase =
-		self.slot(OUTPUT_PARSE_NODE).variable
+		self.slot(OUTPUT_PHRASE).variable
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("macro substitution phrase") }
 			at("macro send") { self.slot(MACRO_ORIGINAL_SEND).writeTo(writer) }
-			at("output phrase") { self.slot(OUTPUT_PARSE_NODE).writeTo(writer) }
+			at("output phrase") { self.slot(OUTPUT_PHRASE).writeTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -393,7 +394,7 @@ class MacroSubstitutionPhraseDescriptor(
 			outputPhrase: A_Phrase
 		): A_Phrase = mutable.createShared {
 			setSlot(MACRO_ORIGINAL_SEND, macroSend)
-			setSlot(OUTPUT_PARSE_NODE, outputPhrase)
+			setSlot(OUTPUT_PHRASE, outputPhrase)
 		}
 
 		/** The mutable [MacroSubstitutionPhraseDescriptor].  */

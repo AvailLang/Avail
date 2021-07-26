@@ -33,6 +33,7 @@ package com.avail.descriptor.pojos
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
@@ -104,7 +105,7 @@ open class RawPojoDescriptor protected constructor(
 	{
 		// This ensures that mutations of the wrapped pojo do not corrupt hashed
 		// Avail data structures.
-		return System.identityHashCode(javaObject) xor 0x277AB9C3
+		return combine2(System.identityHashCode(javaObject), 0x277AB9C3)
 	}
 
 	override fun o_IsRawPojo(self: AvailObject): Boolean = true
@@ -259,7 +260,7 @@ open class RawPojoDescriptor protected constructor(
 		 *   The new Avail [pojo][PojoDescriptor].
 		 */
 		fun identityPojo(javaObject: Any?): AvailObject =
-			RawPojoDescriptor(Mutability.MUTABLE, javaObject).create { }
+			RawPojoDescriptor(Mutability.MUTABLE, javaObject).create()
 
 		/**
 		 * Create a new [AvailObject] that wraps the specified Java [Object] for
@@ -271,6 +272,6 @@ open class RawPojoDescriptor protected constructor(
 		 *   The new [Avail&#32;pojo][PojoDescriptor].
 		 */
 		fun equalityPojo(javaObject: Any): AvailObject =
-			EqualityRawPojoDescriptor(Mutability.MUTABLE, javaObject).create { }
+			EqualityRawPojoDescriptor(Mutability.MUTABLE, javaObject).create()
 	}
 }

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/23/21 9:44 PM
+ * * Last Generated: 7/15/21 9:22 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -132,7 +132,7 @@ Body
  * @param "primitivePhrase"
  *        "list phrase⇒(<literal token⇒natural number, <token, any meta…|>?>?)"
  *        A {@type "list phrase"} that includes the parts of the primitive
- *        declaration (primitive number, primitive failure reason, primitive
+ *        declaration (primitive name, primitive failure reason, primitive
  *        failure reason type). Zero or one primitive declaration is permitted.
  * @param "labelPhrase" "list phrase⇒(<token, any meta?…|>?)"
  *        A {@type "list phrase"} that includes the parts of the

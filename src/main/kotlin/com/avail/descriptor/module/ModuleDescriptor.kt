@@ -72,12 +72,16 @@ import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.updateStylers
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_Method.Companion.lexer
 import com.avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Styler
+import com.avail.descriptor.methods.A_Styler.Companion.definition
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -92,6 +96,7 @@ import com.avail.descriptor.module.A_Module.Companion.methodDefinitions
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
+import com.avail.descriptor.module.A_Module.Companion.stylers
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.versions
 import com.avail.descriptor.module.A_Module.Companion.visibleNames
@@ -106,6 +111,7 @@ import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.METHOD_DEFINITIO
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.NEW_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.PRIVATE_NAMES
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.SEALS
+import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.STYLERS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.UNLOAD_FUNCTIONS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VARIABLE_BINDINGS
 import com.avail.descriptor.module.ModuleDescriptor.ObjectSlots.VISIBLE_NAMES
@@ -123,7 +129,7 @@ import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
@@ -279,16 +285,17 @@ class ModuleDescriptor private constructor(
 		 */
 		SEALS,
 
+		/** The [A_Set] of [A_Lexer]s defined by this module. */
+		LEXERS,
+
+		/** The [set][A_Set] of [stylers][A_Styler] installed by this module. */
+		STYLERS,
+
 		/**
 		 * A [tuple][TupleDescriptor] of [functions][FunctionDescriptor] that
 		 * should be applied when this [module][ModuleDescriptor] is unloaded.
 		 */
 		UNLOAD_FUNCTIONS,
-
-		/**
-		 * The [A_Set] of [A_Lexer]s defined by this module.
-		 */
-		LEXERS,
 
 		/**
 		 * An [A_Tuple] of all block phrases produced during compilation, in the
@@ -330,7 +337,7 @@ class ModuleDescriptor private constructor(
 	 * The [set][A_Set] of all ancestor modules of this module, but *not*
 	 * including the module itself.  The provided set must always be [SHARED].
 	 */
-	val allAncestors = AtomicReference<A_Set>(emptySet)
+	val allAncestors = AtomicReference(emptySet)
 
 	/**
 	 * The [set][A_Set] of [versions][A_String] that this module alleges to
@@ -1029,7 +1036,7 @@ class ModuleDescriptor private constructor(
 		another.traversed().sameAddressAs(self)
 
 	override fun o_Hash(self: AvailObject): Int =
-		moduleName.hash() * multiplier xor -0x20c7c074
+		combine2(moduleName.hash(), -0x20c7c074)
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o
 
@@ -1139,6 +1146,12 @@ class ModuleDescriptor private constructor(
 	private fun finishUnloading(self: AvailObject, loader: AvailLoader)
 	{
 		val runtime = loader.runtime()
+		// Remove stylers.
+		(self as A_Module).stylers.forEach { styler ->
+			styler.definition.updateStylers {
+				setWithoutElementCanDestroy(styler, true)
+			}
+		}
 		// Remove method definitions.
 		self.methodDefinitions.forEach { loader.removeDefinition(it) }
 		macroDefinitions.forEach { loader.removeMacro(it) }
@@ -1164,8 +1177,8 @@ class ModuleDescriptor private constructor(
 		// Remove lexers.  Don't bother adjusting the loader, since it's not
 		// going to parse anything again.  Don't even bother removing it from
 		// the module, since that's being unloaded.
-		self.slot(LEXERS).forEach {
-			it.lexerMethod.lexer = nil
+		self.slot(LEXERS).forEach { lexer ->
+			lexer.lexerMethod.lexer = nil
 		}
 		// Remove bundles created by this module.
 		self.slot(BUNDLES).forEach { bundle ->
@@ -1198,6 +1211,7 @@ class ModuleDescriptor private constructor(
 		self.setSlot(SEALS, nil)
 		self.setSlot(UNLOAD_FUNCTIONS, nil)
 		self.setSlot(LEXERS, nil)
+		self.setSlot(STYLERS, nil)
 		self.setSlot(ALL_BLOCK_PHRASES, nil)
 		self.setSlot(ALL_TOP_PHRASE_STYLES, nil)
 	}
@@ -1352,6 +1366,16 @@ class ModuleDescriptor private constructor(
 
 	override fun o_AllAncestors(self: AvailObject): A_Set = allAncestors.get()
 
+	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler) =
+		lock.safeWrite {
+			self.updateSlotShared(STYLERS) {
+				setWithElementCanDestroy(styler, true)
+			}
+		}
+
+	override fun o_ModuleStylers(self: AvailObject): A_Set =
+		lock.read { self.slot(STYLERS) }
+
 	override fun o_ModuleState(self: AvailObject): State = stateField.get()
 
 	override fun o_SetModuleState(self: AvailObject, newState: State)
@@ -1430,6 +1454,7 @@ class ModuleDescriptor private constructor(
 				setSlot(SEALS, emptyMap)
 				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(LEXERS, emptySet)
+				setSlot(STYLERS, emptySet)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				setSlot(ALL_TOP_PHRASE_STYLES, emptyTuple)
 				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))

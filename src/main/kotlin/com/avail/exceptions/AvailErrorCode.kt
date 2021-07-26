@@ -43,6 +43,8 @@ import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
@@ -194,8 +196,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_NOT_AN_ENUMERATION(17),
 
-	/** The shift and truncate operation operates on non-negative integers. */
-	E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE(18),
+	// E_?? (18),
 
 	/**
 	 * No [method][MethodDescriptor] exists for the specified
@@ -232,10 +233,16 @@ enum class AvailErrorCode constructor(val code: Int)
 	/** A resource handle was invalid for some particular use. */
 	E_INVALID_HANDLE(25),
 
-	/** A primitive number is invalid. */
-	E_INVALID_PRIMITIVE_NUMBER(26),
+	/** A primitive name is invalid. */
+	E_INVALID_PRIMITIVE_NAME(26),
 
-	// E_?? (27)
+	/**
+	 * An attempt was made to add a [styler][A_Styler] to a
+	 * [definition][A_Definition], but a styler was already added to that
+	 * definition in the current [module][A_Module].
+	 */
+	E_STYLER_ALREADY_SET_BY_THIS_MODULE(27),
+
 	// E_?? (28)
 	// E_?? (29)
 
@@ -263,7 +270,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 * restrict each parameter to be at least as specific as a
 	 * [phrase][PhraseDescriptor].
 	 */
-	E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE(34),
+	E_MACRO_ARGUMENT_MUST_BE_A_PHRASE(34),
 
 	/**
 	 * There are multiple [true&#32;names][AtomDescriptor] associated with the
@@ -461,13 +468,13 @@ enum class AvailErrorCode constructor(val code: Int)
 	 * [prefix&#32;function][FunctionDescriptor] must restrict each parameter to
 	 * be at least as specific as a [phrase][PhraseDescriptor].
 	 */
-	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE(67),
+	E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE(67),
 
 	/**
 	 * A [macro][MacroDescriptor] [body][FunctionDescriptor] must
 	 * produce a [phrase][PhraseDescriptor].
 	 */
-	E_MACRO_MUST_RETURN_A_PARSE_NODE(68),
+	E_MACRO_MUST_RETURN_A_PHRASE(68),
 
 	/**
 	 * An attempt to read a field of an object or object type was unsuccessful

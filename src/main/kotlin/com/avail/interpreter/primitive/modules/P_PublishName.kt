@@ -74,9 +74,9 @@ object P_PublishName : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val module = loader.module()
+		val loader = interpreter.fiber().availLoader()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val module = loader.module
 		if (module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -98,7 +98,6 @@ object P_PublishName : Primitive(
 					LoadingEffectToRunPrimitive(
 						PUBLISH_NEW_NAME.bundle,
 						name))
-
 			}
 			interpreter.primitiveSuccess(nil)
 		}

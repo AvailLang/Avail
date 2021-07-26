@@ -67,6 +67,9 @@ import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.methods.A_Method.Companion.testingTree
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt

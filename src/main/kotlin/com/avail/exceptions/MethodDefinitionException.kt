@@ -114,8 +114,8 @@ class MethodDefinitionException private constructor(code: AvailErrorCode)
 		{
 			when (methodDefinitions.tupleSize)
 			{
-				0 -> throw MethodDefinitionException(E_NO_METHOD_DEFINITION)
 				1 -> return methodDefinitions.tupleAt(1)
+				0 -> throw MethodDefinitionException(E_NO_METHOD_DEFINITION)
 				else -> throw MethodDefinitionException(
 					E_AMBIGUOUS_METHOD_DEFINITION)
 			}

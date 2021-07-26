@@ -41,7 +41,7 @@ import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRES
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -138,11 +138,10 @@ class SuperCastPhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)
 
-	override fun o_Hash(self: AvailObject): Int {
-		var h = self.slot(EXPRESSION).hash()
-		h = h * multiplier xor self.slot(TYPE_FOR_LOOKUP).hash()
-		return h
-	}
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(EXPRESSION).hash(),
+		self.slot(TYPE_FOR_LOOKUP).hash(),
+		0x5035ebe5)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean = true
 

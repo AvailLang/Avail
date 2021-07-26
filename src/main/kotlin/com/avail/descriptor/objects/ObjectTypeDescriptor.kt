@@ -63,7 +63,8 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -101,16 +102,23 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfObjectType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.lang.ref.WeakReference
 import java.util.IdentityHashMap
@@ -322,16 +330,13 @@ class ObjectTypeDescriptor internal constructor(
 	}
 
 	override fun o_Hash(self: AvailObject) =
-		when (val hash = self.slot(HASH_OR_ZERO)) {
-			0 -> {
-				// Don't lock if we're shared.  Multiple simultaneous
-				// computations of *the same* value are benign races.
-				(1..self.variableObjectSlotsCount())
-					.fold(variant.variantId xor -0x1ca9e0ea) { h, i ->
-						(h * multiplier) - self.slot(FIELD_TYPES_, i).hash()
-					}.also { self.setSlot(HASH_OR_ZERO, it) }
-			}
-			else -> hash
+		self.slot(HASH_OR_ZERO).ifZero {
+			// Don't lock if we're shared.  Multiple simultaneous
+			// computations of *the same* value are benign races.
+			(1..self.variableObjectSlotsCount())
+				.fold(combine2(variant.variantId, -0x1ca9e0ea)) { h, i ->
+					combine3(h, self.slot(FIELD_TYPES_, i).hash(), 0x60727dac)
+				}.also { self.setSlot(HASH_OR_ZERO, it) }
 		}
 
 	override fun o_HasObjectInstance(
@@ -1059,6 +1064,24 @@ class ObjectTypeDescriptor internal constructor(
 				setNameForType(type, stringFrom("style"), true)
 				type.makeShared()
 			}
+
+			/**
+			 * The function type for styler functions.
+			 */
+			val stylerFunctionType: A_Type = functionType(
+				tuple(
+					SEND_PHRASE.mostGeneralType(),
+					variableTypeFor(
+						mapTypeForSizesKeyTypeValueType(
+							wholeNumbers,
+							SEND_PHRASE.mostGeneralType(),
+							styleType)),
+					variableTypeFor(
+						mapTypeForSizesKeyTypeValueType(
+							wholeNumbers,
+							TOKEN.o,
+							styleType))),
+				TOP.o)
 
 			private val variant =
 				(styleType.descriptor() as ObjectTypeDescriptor).variant

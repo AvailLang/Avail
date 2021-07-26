@@ -35,7 +35,6 @@ package com.avail.files
 import com.avail.error.ErrorCode
 import com.avail.resolver.ResolverReference
 import com.avail.resolver.ResourceType
-import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*

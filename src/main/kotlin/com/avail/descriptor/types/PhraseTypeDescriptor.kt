@@ -47,7 +47,7 @@ import com.avail.descriptor.phrases.VariableUsePhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -64,7 +64,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPhraseType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
@@ -75,6 +75,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 
@@ -102,7 +103,6 @@ import java.util.IdentityHashMap
 @Suppress("LeakingThis")
 open class PhraseTypeDescriptor protected constructor(
 	mutability: Mutability,
-	/** The `PhraseKind` of instances that use this descriptor. */
 	protected val kind: PhraseKind,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
@@ -693,17 +693,14 @@ open class PhraseTypeDescriptor protected constructor(
 	 * Subclasses of `PhraseTypeDescriptor` must implement [phrases][A_Phrase]
 	 * must implement [A_BasicObject.hash].
 	 */
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0)
-		{
-			hash = (self.slot(EXPRESSION_TYPE).hash()
-				xor kind.ordinal * multiplier)
-			self.setSlot(HASH_OR_ZERO, hash)
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
+			combine3(
+				self.slot(EXPRESSION_TYPE).hash(),
+				kind.ordinal,
+				0x237bc5d2
+			).also { self.setSlot(HASH_OR_ZERO, it) }
 		}
-		return hash
-	}
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfPhraseType(self)
@@ -741,7 +738,7 @@ open class PhraseTypeDescriptor protected constructor(
 
 	override fun o_SerializerOperation(
 		self: AvailObject): SerializerOperation =
-			SerializerOperation.PARSE_NODE_TYPE
+			SerializerOperation.PHRASE_TYPE
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
 		// Only applicable if the expression type is a tuple type.
@@ -763,7 +760,7 @@ open class PhraseTypeDescriptor protected constructor(
 			aListNodeType.phraseKind)
 		                       ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
-		return createListNodeType(
+		return createListPhraseType(
 			intersectionKind,
 			self.phraseTypeExpressionType.typeIntersection(
 				aListNodeType.phraseTypeExpressionType),

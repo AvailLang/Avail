@@ -117,6 +117,11 @@ import com.avail.descriptor.methods.A_Method.Companion.filterByTypes
 import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModule
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor

@@ -65,8 +65,10 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -978,7 +980,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The definition to be added.
 	 * @throws SignatureException
 	 *   If the definition could not be added.
-	 * @see AvailObject.methodAddDefinition
+	 * @see A_Method.methodAddDefinition
 	 */
 	@Throws(SignatureException::class)
 	abstract fun o_MethodAddDefinition (
@@ -1819,6 +1821,12 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		chunk: L2Chunk,
 		countdown: Long)
+
+	abstract fun o_UpdateStylers (
+		self: AvailObject,
+		updater: A_Set.() -> A_Set)
+
+	abstract fun o_Stylers (self: AvailObject): A_Set
 
 	/**
 	 * Difference the [operands][AvailObject] and answer the result.
@@ -3811,6 +3819,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_RegisterDump (self: AvailObject): AvailObject
 
+	abstract fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler)
+
+	abstract fun o_ModuleStylers (self: AvailObject): A_Set
 
 	abstract fun o_ModuleState(self: AvailObject): ModuleDescriptor.State
 

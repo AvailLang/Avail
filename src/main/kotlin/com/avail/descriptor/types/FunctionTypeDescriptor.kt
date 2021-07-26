@@ -38,6 +38,7 @@ import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
@@ -356,14 +357,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		if (isShared)
-		{
-			synchronized(self) { return hash(self) }
-		}
-		return hash(self)
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.synchronizeIf(isShared) { hash(self) }
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfFunctionType(self)

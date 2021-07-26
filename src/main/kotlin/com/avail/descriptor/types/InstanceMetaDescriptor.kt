@@ -37,6 +37,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -216,7 +217,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		anObject: AvailObject): Boolean = false
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstance(self).hash() - 0x361b5d51) * AvailObject.multiplier
+		combine2(getInstance(self).hash(), 0x361b5d51)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		getInstance(self).isInstanceOf(aType)
