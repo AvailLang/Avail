@@ -304,7 +304,7 @@ class AvailCodeGenerator private constructor(
 	{
 		fixFinalUses()
 		// Detect blocks that immediately return something and mark them with a
-		// special primitive number.
+		// special primitive.
 		if (primitive === null && instructions.size == 1)
 		{
 			val onlyInstruction = instructions[0]

@@ -43,6 +43,7 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -276,7 +277,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		getInstance(self).equals(potentialInstance)
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstance(self).hash() xor 0x15d5b163) * AvailObject.multiplier
+		combine2(getInstance(self).hash(), 0x15d5b163)
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
 		if (aType.isInstanceMeta)

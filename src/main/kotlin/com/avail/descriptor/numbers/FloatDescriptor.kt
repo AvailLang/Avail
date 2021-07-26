@@ -50,7 +50,7 @@ import com.avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycli
 import com.avail.descriptor.numbers.FloatDescriptor.IntegerSlots.Companion.RAW_INT
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -220,7 +220,7 @@ class FloatDescriptor private constructor(
 		floatToRawIntBits(getFloat(self)) == floatToRawIntBits(aFloat)
 
 	override fun o_Hash(self: AvailObject): Int =
-		(self.slot(RAW_INT) xor 0x16AE2BFD) * multiplier
+		combine2(self.slot(RAW_INT), 0x16AE2BFD)
 
 	override fun o_IsFloat(self: AvailObject) = true
 
@@ -451,7 +451,7 @@ class FloatDescriptor private constructor(
 				}
 				else
 				{
-					mutable.create { }
+					mutable.create()
 				}
 			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))
 			return result
@@ -484,7 +484,7 @@ class FloatDescriptor private constructor(
 					recyclable1 as AvailObject
 				canDestroy && recyclable2.descriptor().isMutable ->
 					recyclable2 as AvailObject
-				else -> mutable.create { }
+				else -> mutable.create()
 			}
 			result.setSlot(RAW_INT, floatToRawIntBits(aFloat))
 			return result

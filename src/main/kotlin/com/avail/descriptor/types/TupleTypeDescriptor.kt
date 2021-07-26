@@ -42,6 +42,7 @@ import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -235,13 +236,11 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int = 1
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		return hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
-			self.slot(SIZE_RANGE).hash(),
-			self.slot(TYPE_TUPLE).hash(),
-			self.slot(DEFAULT_TYPE).hash())
-	}
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.slot(SIZE_RANGE).hash(),
+		self.slot(TYPE_TUPLE).hash(),
+		self.slot(DEFAULT_TYPE).hash(),
+		-0x749f6826)
 
 	/**
 	 * {@inheritDoc}
@@ -879,32 +878,6 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(DEFAULT_TYPE, defaultType)
 			}
 		}
-
-		/**
-		 * Answer the hash of the tuple type whose canonized parameters have the
-		 * specified hash values.
-		 *
-		 * @param sizesHash
-		 *   The hash of the
-		 *   [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that is
-		 *   the size range for some [tuple&#32;type][TupleTypeDescriptor] being
-		 *   hashed.
-		 * @param typeTupleHash
-		 *   The hash of the tuple of types of the leading arguments of tuples
-		 *   that conform to some `TupleTypeDescriptor tuple&#32;type` being
-		 *   hashed.
-		 * @param defaultTypeHash
-		 *   The hash of the type that remaining elements of conforming types
-		 *   must have.
-		 * @return
-		 *   The hash of the `TupleTypeDescriptor tuple&#32;type` whose
-		 *   component hash values were provided.
-		 */
-		private fun hashOfTupleTypeWithSizesHashTypesHashDefaultTypeHash(
-			sizesHash: Int,
-			typeTupleHash: Int,
-			defaultTypeHash: Int
-		): Int = sizesHash * 13 + defaultTypeHash * 11 + typeTupleHash * 7
 
 		/** The mutable `TupleTypeDescriptor`.  */
 		private val mutable = TupleTypeDescriptor(Mutability.MUTABLE)

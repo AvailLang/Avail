@@ -45,6 +45,8 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.methods.A_Method.Companion.filterByTypes
 import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -148,13 +150,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		}
 
 		val argsTupleType = argsListPhrase.phraseExpressionType
-		val argTypesList = (1..argsCount).map { index ->
+		val argTypesList = (1 .. argsCount).map { index ->
 			argsTupleType.typeAtIndex(index).makeShared()
 		}
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
-		val module = loader.module()
+		val module = loader.module
 		var intersection: A_Type = returnType
 		val resultLock = ReentrantReadWriteLock()
 		// Merge in the applicable (and visible) definition return types.
@@ -223,7 +225,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 								collectProblemReport(problems)))
 				}
 			}
-			val success: (AvailObject) -> Unit = {
+			val success: (AvailObject)->Unit = {
 				resultLock.safeWrite {
 					when
 					{
@@ -239,7 +241,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			}
 			// Now launch the fibers.
 			var fiberCount = 1
-			for (restriction in applicableRestrictions) {
+			for (restriction in applicableRestrictions)
+			{
 				val finalCount = fiberCount++
 				val forkedFiber = newFiber(
 					topMeta(), originalFiber.priority()
@@ -249,7 +252,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							+ finalCount
 							+ ") for primitive "
 							+ this@P_CreateRestrictedSendExpression.javaClass
-								.simpleName)
+							.simpleName)
 				}
 				forkedFiber.setAvailLoader(loader)
 				forkedFiber.setHeritableFiberGlobals(
@@ -258,21 +261,25 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				forkedFiber.setSuccessAndFailure(
 					success,
 					{ throwable ->
-						when (throwable) {
-							is AvailRejectedParseException -> {
+						when (throwable)
+						{
+							is AvailRejectedParseException ->
+							{
 								// Compute rejectionString outside the mutex.
 								val string = throwable.rejectionString
 								resultLock.safeWrite { problems.add(string) }
 							}
-							is AvailAcceptedParseException -> {
+							is AvailAcceptedParseException ->
+							{
 								// Success without type narrowing – do nothing.
 							}
 							else ->
 								resultLock.safeWrite {
-									problems.add(stringFrom(
-										"evaluation of macro body not to " +
-											"raise an unhandled " +
-											"exception:\n\t$throwable"))
+									problems.add(
+										stringFrom(
+											"evaluation of macro body not to " +
+												"raise an unhandled " +
+												"exception:\n\t$throwable"))
 								}
 						}
 					})

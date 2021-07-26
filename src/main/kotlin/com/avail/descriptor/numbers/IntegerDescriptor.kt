@@ -1499,10 +1499,12 @@ class IntegerDescriptor private constructor(
 			var n = 0
 			var nextDivisor = quintillionInteger
 			var previousDivisor: A_Number
-			do {
+			do
+			{
 				previousDivisor = nextDivisor
 				nextDivisor = cachedSquareOfQuintillion(++n)
-			} while (nextDivisor.lessThan(magnitude))
+			}
+			while (nextDivisor.lessThan(magnitude))
 			// We went one too far.  Decrement n and use previousDivisor.
 			// Splitting the number by dividing by previousDivisor assigns the
 			// low 18*(2^n) digits to the remainder, and the rest to the

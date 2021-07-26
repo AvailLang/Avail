@@ -39,6 +39,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -125,7 +126,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	// pojo type; this is necessary to permit comparison between an unfused
 	// pojo type and its self type.
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(JAVA_ANCESTORS).hash() xor -0x5fea43bc
+		combine2(self.slot(JAVA_ANCESTORS).hash(), -0x5fea43bc)
 
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{

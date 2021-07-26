@@ -93,6 +93,6 @@ class NilDescriptor private constructor() : Descriptor(
 		private val shared = NilDescriptor()
 
 		/** The sole instance of `NilDescriptor`, called "nil".  */
-		val nil: AvailObject = shared.create { }
+		val nil: AvailObject = shared.create()
 	}
 }

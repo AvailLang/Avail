@@ -178,6 +178,7 @@ Names
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
+	/* 173 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
 	/*  70 */ "true",
@@ -2269,4 +2270,25 @@ Special object "non-empty string of digits" is special object 171;
  * @alias "optional send phrase and report string"
  */
 Special object "optional send phrase and report string" is special object 172;
+
+/**
+ * The type for styler functions.  These are passed:
+ *   1. a send phrase to be styled,
+ *   2. a variable containing a map from send phrase to style, already populated
+ *      with styles from the current send phrase's descendants.
+ *   3. a variable containing a map from token to style, already populated with
+ *      styles from the current send phrase's descendants.
+ * When subsequently applying the final styles to the source text, the phrase
+ * style map is visited.  Each static token of that phrase is added to the token
+ * style map, if it's not already present.  Static tokens are those tokens which
+ * literally occur in the message name.  After the token style map has been
+ * updated, the tokens are extracted, sorted by file position, and captured in
+ * separate records in the relevant repository file.  These can then be overlaid
+ * efficiently onto the module text.
+ *
+ * @category "Primitives" "Types"
+ * @type "[send phrase, ↑{send phrase→style|}, ↑{token→style|}]→⊤"
+ * @alias "styler function"
+ */
+Special object "styler function" is special object 173;
 

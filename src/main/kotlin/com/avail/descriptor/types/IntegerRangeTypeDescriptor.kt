@@ -55,6 +55,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -473,15 +474,14 @@ class IntegerRangeTypeDescriptor private constructor(
 			lowerInclusive: Boolean,
 			upperInclusive: Boolean): Int
 		{
-			val flagsHash =
-				when
-				{
-					lowerInclusive && upperInclusive -> 0x1503045E
-					lowerInclusive -> 0x753A6C17
-					upperInclusive -> 0x1DB2D751
-					else -> 0x1130427D
-				}
-			return lowerBoundHash * 29 xor flagsHash xor upperBoundHash
+			val flagsHash = when
+			{
+				lowerInclusive && upperInclusive -> 0x1503045E
+				lowerInclusive -> 0x753A6C17
+				upperInclusive -> 0x1DB2D751
+				else -> 0x1130427D
+			}
+			return combine3(lowerBoundHash, upperBoundHash, flagsHash)
 		}
 
 		/**

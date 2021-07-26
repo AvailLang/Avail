@@ -81,7 +81,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRa
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor
@@ -231,7 +231,7 @@ class MessageSplitterTest private constructor ()
 				if (expressionPhraseTypes.isNotEmpty())
 					expressionPhraseTypes[expressionPhraseTypes.size - 1]
 				else bottom)
-			return createListNodeType(
+			return createListPhraseType(
 				PhraseKind.LIST_PHRASE,
 				mostGeneralTupleType,
 				subexpressionsTupleType)

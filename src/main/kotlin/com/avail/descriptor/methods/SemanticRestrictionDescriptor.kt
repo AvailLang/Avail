@@ -40,6 +40,7 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -71,16 +72,12 @@ import com.avail.interpreter.primitive.compiler.P_RejectParsing
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class SemanticRestrictionDescriptor
-/**
- * Construct a new [SemanticRestrictionDescriptor].
- *
- */
 private constructor(mutability: Mutability) : Descriptor(
 	mutability,
 	TypeTag.SEMANTIC_RESTRICTION_TAG,
 	ObjectSlots::class.java,
-	null
-) {
+	null)
+{
 	/**
 	 * The layout of object slots for my instances.
 	 */
@@ -105,9 +102,10 @@ private constructor(mutability: Mutability) : Descriptor(
 		DEFINITION_MODULE
 	}
 
-	override fun o_Hash(self: AvailObject) =
-		((self.slot(FUNCTION).hash() xor 0x0E0D9C10)
-			+ self.slot(DEFINITION_METHOD).hash())
+	override fun o_Hash(self: AvailObject) = combine3(
+		self.slot(FUNCTION).hash(),
+		self.slot(DEFINITION_METHOD).hash(),
+		0x0E0D9C10)
 
 	override fun o_Function(self: AvailObject): A_Function =
 		self.slot(FUNCTION)

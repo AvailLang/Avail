@@ -48,6 +48,7 @@ import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy

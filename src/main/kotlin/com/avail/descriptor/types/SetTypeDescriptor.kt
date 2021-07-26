@@ -39,6 +39,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor
@@ -161,7 +162,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
 	override fun o_Hash(self: AvailObject): Int =
-		self.sizeRange.hash() * 11 + self.contentType.hash() * 5
+		combine3(self.sizeRange.hash(), self.contentType.hash(), -0x0098ef2b)
 
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).

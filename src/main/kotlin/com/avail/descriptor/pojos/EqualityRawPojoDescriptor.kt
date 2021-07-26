@@ -33,6 +33,7 @@ package com.avail.descriptor.pojos
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import java.util.IdentityHashMap
 
@@ -99,7 +100,7 @@ internal class EqualityRawPojoDescriptor(
 		when (javaObject)
 		{
 			null -> -0x3bb1116b
-			else -> javaObject.hashCode() xor 0x59EEE44C
+			else -> combine2(javaObject.hashCode(), 0x59EEE44C)
 		}
 
 	/**

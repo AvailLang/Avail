@@ -1,5 +1,5 @@
 /*
- * P_SendStyleTree.kt
+ * A_Styler.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,42 +29,47 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package com.avail.descriptor.methods
 
-package com.avail.interpreter.primitive.phrases
-
-import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
-import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
-import com.avail.descriptor.phrases.SendPhraseDescriptor
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.execution.Interpreter
+import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.module.A_Module
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
+import com.avail.descriptor.representation.AvailObject
 
 /**
-* **Primitive:** Produce the default styling tree for the given
-* [send][SendPhraseDescriptor] expression.
+ * `A_Styler` is an interface that specifies the operations specific to
+ * [stylers][StylerDescriptor] of a method [definition][A_Definition] in Avail.
+ * It's a sub-interface of [A_BasicObject], the interface that defines the
+ * behavior that all [AvailObject]s are required to support.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused")
-object P_SendStyleTree : Primitive(1, CannotFail, CanFold, CanInline)
+interface A_Styler : A_BasicObject
 {
-	override fun attempt(interpreter: Interpreter): Result
+	companion object
 	{
-		interpreter.checkArgumentCount(1)
-		val send = interpreter.argument(0)
-		return interpreter.primitiveSuccess(send.bundle.bundleMethod)
-	}
+		/**
+		 * Answer the [A_Function] that implements this styler's logic.
+		 */
+		val A_Styler.function: A_Function get() = dispatch { o_Function(it) }
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(
-				SEND_PHRASE.mostGeneralType()),
-			METHOD.o)
+		/**
+		 * Answer the [definition][A_Definition], whether method-, abstract-, or
+		 * even forward-, that this styler is intended to style invocations of.
+		 *
+		 * @return
+		 *   The definition that this styler is attached to.
+		 */
+		val A_Styler.definition: A_Definition get() =
+			dispatch { o_Definition(it) }
+
+		/**
+		 * Answer the [module][A_Module] in which this styler was defined.
+		 *
+		 * @return
+		 *   The styler's defining module.
+		 */
+		val A_Styler.module: A_Module get() = dispatch { o_Module(it) }
+	}
 }

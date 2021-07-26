@@ -1,5 +1,5 @@
 /*
- * P_SealMethodsAtExistingDefinitions.kt
+ * P_SetStyleFunction.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,106 +30,89 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.interpreter.primitive.methods
+package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.atoms.A_Atom
-import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
-import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.compiler.splitter.MessageSplitter
+import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.A_Method
-import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
-import com.avail.descriptor.methods.A_Method.Companion.numArgs
-import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
-import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
-import com.avail.descriptor.module.A_Module.Companion.addSeal
+import com.avail.descriptor.methods.A_Definition.Companion.updateStylers
+import com.avail.descriptor.methods.A_Styler
+import com.avail.descriptor.methods.A_Styler.Companion.module
+import com.avail.descriptor.methods.StylerDescriptor.Companion.newStyler
+import com.avail.descriptor.module.A_Module.Companion.moduleAddStyler
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
+import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
+import com.avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailRuntimeException
-import com.avail.exceptions.MalformedMessageException
+import com.avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
 import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.HasSideEffect
+import com.avail.interpreter.Primitive.Flag.CanSuspend
+import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Seal the [named][A_Atom] [A_Method] at each existing
- * [definition][A_Definition]. Ignore macros and forward definitions.
+ * **Primitive:** Create and install a [styler][A_Styler], from the given
+ * [function][A_Function] and for the given [definition][A_Definition]. Fail if
+ * the definition already has a styling function.
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffect)
+object P_SetStyleFunction : Primitive(2, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val methodNames = interpreter.argument(0)
+		interpreter.checkArgumentCount(2)
+		val definition: A_Definition = interpreter.argument(0)
+		val function: A_Function = interpreter.argument(1)
 		val loader = interpreter.fiber().availLoader()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val module = loader.module
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val runtime = interpreter.runtime
-		val module = interpreter.module()
-		for (name in methodNames)
-		{
-			val bundle = name.bundleOrNil
-			if (bundle.notNil)
+		return interpreter.suspendInLevelOneSafeThen {
+			val styler = newStyler(function, definition, module)
+			var bad = false
+			definition.updateStylers {
+				bad = any { it.module.equals(module) }
+				if (bad) this else setWithElementCanDestroy(styler, true)
+			}
+			when
 			{
-				// The definition tuple of a method can only be replaced in a
-				// Level One safe zone. Like the vast majority of primitives,
-				// this one runs in a Level One *unsafe* zone. Therefore it is
-				// not necessary to lock the method while traversing its
-				// definition tuple.
-				val method = bundle.bundleMethod
-				val definitions = method.definitionsTuple
-				// Ignore macros.
-				for (definition in definitions)
+				bad -> fail(E_STYLER_ALREADY_SET_BY_THIS_MODULE)
+				else ->
 				{
-					if (!definition.isForwardDefinition())
-					{
-						val function = definition.bodySignature()
-						val params = function.argsTupleType
-						val signature =
-							params.tupleOfTypesFromTo(1, method.numArgs)
-						try
-						{
-							runtime.addSeal(name, signature)
-							module.addSeal(name, signature)
-						}
-						catch (e: MalformedMessageException)
-						{
-							assert(false) { "This should not happen!" }
-							throw AvailRuntimeException(e.errorCode)
-						}
-
-					}
+					module.moduleAddStyler(styler)
+					succeed(nil)
 				}
 			}
 		}
-		return interpreter.primitiveSuccess(nil)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
+			tuple(
+				DEFINITION.o,
+				stylerFunctionType),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
-			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION))
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_STYLER_ALREADY_SET_BY_THIS_MODULE
+			).setUnionCanDestroy(MessageSplitter.possibleErrors, true))
 }

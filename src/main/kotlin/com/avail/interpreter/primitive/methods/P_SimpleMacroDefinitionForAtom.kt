@@ -64,10 +64,10 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE
-import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PHRASE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
-import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
 import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import com.avail.exceptions.AvailException
@@ -114,7 +114,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 						.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 				{
 					return interpreter.primitiveFailure(
-						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE)
+						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
 				}
 			}
 			if (!kind.returnType.isTop)
@@ -147,13 +147,12 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					PARSE_PHRASE.mostGeneralType()))
 			{
 				return interpreter.primitiveFailure(
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE)
+					E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
 		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 		{
-			return interpreter.primitiveFailure(
-				E_MACRO_MUST_RETURN_A_PARSE_NODE)
+			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 
 		return interpreter.suspendInLevelOneSafeThen {
@@ -196,10 +195,10 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
-				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-				E_MACRO_MUST_RETURN_A_PARSE_NODE,
+				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
+				E_MACRO_MUST_RETURN_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
             .setUnionCanDestroy(possibleErrors, true))
 }

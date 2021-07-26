@@ -86,10 +86,11 @@ object P_BootstrapVariableUseMacro
 		interpreter.checkArgumentCount(1)
 		val variableNameLiteral = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		assert(variableNameLiteral.isInstanceOf(
-			LITERAL_PHRASE.mostGeneralType()))
+		val loader = interpreter.availLoaderOrNull()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		assert(
+			variableNameLiteral.isInstanceOf(
+				LITERAL_PHRASE.mostGeneralType()))
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
@@ -110,7 +111,7 @@ object P_BootstrapVariableUseMacro
 			// If the local constant is initialized by a literal, then treat a
 			// mention of that constant as though it were the literal itself.
 			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
-			    && localDeclaration.initializationExpression
+				&& localDeclaration.initializationExpression
 					.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				return interpreter.primitiveSuccess(
@@ -124,7 +125,7 @@ object P_BootstrapVariableUseMacro
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		val module = loader.module()
+		val module = loader.module
 		if (module.variableBindings.hasKey(variableNameString))
 		{
 			val variableObject =
@@ -150,7 +151,8 @@ object P_BootstrapVariableUseMacro
 						append("potential variable ")
 						append(variableNameString)
 						append(" to be in scope (local scope is")
-						when {
+						when
+						{
 							scope.isEmpty() -> append(" empty)")
 							else -> append(
 								scope.sorted().joinToString(

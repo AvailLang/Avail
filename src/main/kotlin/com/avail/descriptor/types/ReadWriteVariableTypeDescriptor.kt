@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -138,10 +139,10 @@ class ReadWriteVariableTypeDescriptor private constructor(
 			else -> false
 		}
 
-	override fun o_Hash(self: AvailObject): Int =
-		self.slot(READ_TYPE).hash() xor
-			(0x0F40149E + self.slot(WRITE_TYPE).hash()) xor
-				0x05469E1A
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(READ_TYPE).hash(),
+		self.slot(WRITE_TYPE).hash(),
+		0x05469E1A)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfVariableType(self)

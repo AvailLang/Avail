@@ -1289,7 +1289,7 @@ System exception "permission-denied" (24)
 	extends security exception;
 System exception "invalid-handle" (25)
 	extends bad-argument exception;
-System exception "invalid-primitive-number" (26)
+System exception "invalid-primitive-name" (26)
 	extends code-generation exception;
 System exception "function-disagrees-with-primitive-restriction" (27)
 	extends code-generation exception;

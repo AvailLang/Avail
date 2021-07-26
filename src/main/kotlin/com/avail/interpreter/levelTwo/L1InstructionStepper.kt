@@ -52,10 +52,14 @@ import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createCon
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
 import com.avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -883,13 +887,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		if (matching.isForwardDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(),
+				matching.definitionMethod,
 				AvailErrorCode.E_FORWARD_METHOD_DEFINITION)
 		}
 		if (matching.isAbstractDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(),
+				matching.definitionMethod,
 				AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)
 		}
 		val savedFunction = interpreter.function!!

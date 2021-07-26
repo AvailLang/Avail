@@ -36,6 +36,7 @@ import com.avail.descriptor.pojos.PojoDescriptor.ObjectSlots.RAW_POJO
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -97,13 +98,10 @@ class PojoDescriptor private constructor(
 			}
 		}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var hash = self.slot(RAW_POJO).hash() xor 0x749101DD
-		hash *= AvailObject.multiplier
-		hash += self.slot(KIND).hash()
-		return hash
-	}
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(RAW_POJO).hash(),
+		self.slot(KIND).hash(),
+		0x749101DD)
 
 	override fun o_IsPojo(self: AvailObject): Boolean = true
 

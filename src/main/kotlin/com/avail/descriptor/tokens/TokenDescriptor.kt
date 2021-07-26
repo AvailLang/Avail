@@ -43,6 +43,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
@@ -283,11 +284,11 @@ open class TokenDescriptor protected constructor(
 			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.string().hash() * AvailObject.multiplier
-		         + self.start()) * AvailObject.multiplier
-			+ self.tokenType().ordinal
-			xor 0x62CE7BA2)
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.string().hash(),
+		self.start(),
+		self.tokenType().ordinal,
+		0x62CE7BA2)
 
 	override fun o_Kind(self: AvailObject): A_Type = tokenType(self.tokenType())
 

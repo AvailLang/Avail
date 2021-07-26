@@ -60,7 +60,6 @@ import com.avail.exceptions.SignatureException
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_Bundle : A_BasicObject {
-
 	companion object {
 		/**
 		 * Add a
@@ -249,8 +248,7 @@ interface A_Bundle : A_BasicObject {
 		 * @param macro
 		 *   The [A_Macro] to remove from this bundle.
 		 */
-		fun A_Bundle.removeMacro(
-			macro: A_Macro
-		) = dispatch { o_RemoveMacro(it, macro) }
+		fun A_Bundle.removeMacro(macro: A_Macro) =
+			dispatch { o_RemoveMacro(it, macro) }
 	}
 }

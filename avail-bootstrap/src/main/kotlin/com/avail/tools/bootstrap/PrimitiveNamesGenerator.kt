@@ -78,8 +78,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 			val primitive = holder.primitive
 			if (!primitive.hasFlag(Primitive.Flag.Private))
 			{
-				// Write a comment that gives the primitive number and its
-				// arity.
+				// Write a comment that gives the primitive name and its arity.
 				keys.add(primitive.javaClass.simpleName)
 				format(
 					"# %s : _=%d%n",

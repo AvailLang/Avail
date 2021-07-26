@@ -101,7 +101,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		}
 		val method = bundle.bundleMethod
 		val lexer = newLexer(
-			filterFunction, bodyFunction, method, loader.module())
+			filterFunction, bodyFunction, method, loader.module)
 
 		return interpreter.suspendInLevelOneSafeThen {
 			filterFunction.code().methodName =

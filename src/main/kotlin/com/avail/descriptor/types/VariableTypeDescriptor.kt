@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -136,7 +137,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		(self.slot(INNER_TYPE).hash() xor 0x7613E420) + 0x024E3167
+		combine2(self.slot(INNER_TYPE).hash(), 0x7613E420)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfVariableType(self)

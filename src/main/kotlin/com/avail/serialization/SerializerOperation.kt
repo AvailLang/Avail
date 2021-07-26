@@ -86,6 +86,10 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method.Companion.bundles
 import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
@@ -240,7 +244,7 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.MapTypeDescriptor
@@ -3318,7 +3322,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [parse&#32;phrase&#32;type][PhraseTypeDescriptor].
 	 */
-	PARSE_NODE_TYPE(
+	PHRASE_TYPE(
 		98,
 		BYTE.named("kind"),
 		OBJECT_REFERENCE.named("expression type"))
@@ -3367,7 +3371,7 @@ enum class SerializerOperation constructor(
 		{
 			val (phraseKindOrdinal, expressionType, subexpressionsTupleType) =
 				subobjects
-			return createListNodeType(
+			return createListPhraseType(
 				PhraseKind.lookup(phraseKindOrdinal.extractInt),
 				expressionType,
 				subexpressionsTupleType)
