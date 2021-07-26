@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/15/21 9:22 AM
+ * * Last Generated: 7/17/21 3:01 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -385,7 +385,7 @@ Special object "variable meta" is special object 8;
  *
  * @category "Primitives" "Types"
  * @type "continuation"
- * @alias "`$[…]→⊥"
+ * @alias "$[…]→⊥"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Special object "continuation" is special object 9;
@@ -395,7 +395,7 @@ Special object "continuation" is special object 9;
  *
  * @category "Primitives" "Types"
  * @type "continuation meta"
- * @alias "(`$[…]→⊥)'s type"
+ * @alias "($[…]→⊥)'s type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
@@ -1530,7 +1530,7 @@ Special object "predicate function" is special object 91;
  *
  * @category "Primitives" "Types"
  * @type "continuation variable"
- * @alias "↑`$[…]→⊥"
+ * @alias "↑$[…]→⊥"
  */
 Special object "continuation variable" is special object 92;
 

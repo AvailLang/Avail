@@ -150,12 +150,6 @@ Test "SealMethodByAtom fails with incorrect-type-for-numbered-choice exception" 
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "SealMethodByAtom fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
-
 Test "SealMethodByAtom fails with cannot-define-during-compilation exception" in primitive methods test suite if supported is
 [
 	Skip test

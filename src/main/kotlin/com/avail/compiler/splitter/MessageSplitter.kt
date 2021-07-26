@@ -37,7 +37,6 @@ import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOLLAR_SIGN
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
@@ -97,7 +96,6 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
-import com.avail.exceptions.AvailErrorCode.E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS
 import com.avail.exceptions.AvailErrorCode.E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP
 import com.avail.exceptions.AvailErrorCode.E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
@@ -151,7 +149,8 @@ import kotlin.streams.toList
  *         If the message name is malformed.
  */
 class MessageSplitter
-@Throws(MalformedMessageException::class) constructor(messageName: A_String) {
+@Throws(MalformedMessageException::class)
+constructor(messageName: A_String) {
 	/**
 	 * The Avail string to be parsed.
 	 */
@@ -286,14 +285,6 @@ class MessageSplitter
 		CLOSE_GUILLEMET("»"),
 
 		/**
-		 * A dollar sign ($) after an [ELLIPSIS] (…) indicates that a
-		 * string-valued literal token should be consumed from the Avail source
-		 * code at this position.  This is accomplished through the use of a
-		 * [RawStringLiteralTokenArgument].
-		 */
-		DOLLAR_SIGN("$"),
-
-		/**
 		 * The double-dagger (‡) is used within a [Group] to delimit the
 		 * left part, which repeats, from the right part, which separates
 		 * occurrences of the left part.
@@ -334,12 +325,8 @@ class MessageSplitter
 		 *  * If left unadorned, it creates a [RawKeywordTokenArgument], which
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
 		 *  * If followed by an [OCTOTHORP] (#), it creates a
-		 *    [RawNumericLiteralTokenArgument], which matches a single
-		 *    [A_Token] of kind [TokenType.LITERAL] which yields a positive
-		 *    number.
-		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
-		 *    [RawStringLiteralTokenArgument], which matches a single [A_Token]
-		 *    of kind [TokenType.LITERAL] which yields a string.
+		 *    [RawTokenArgument], which matches a single [A_Token] of kind
+		 *    [TokenType.LITERAL].
 		 *  * If followed by an [EXCLAMATION_MARK] (!), it creates a
 		 *    [RawTokenArgument], which matches a single [A_Token] of any kind
 		 *    except [TokenType.WHITESPACE] or [TokenType.COMMENT].
@@ -379,7 +366,7 @@ class MessageSplitter
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use
-		 * of a [RawNumericLiteralTokenArgument].
+		 * of a [RawLiteralTokenArgument].
 		 */
 		OCTOTHORP("#"),
 
@@ -994,11 +981,6 @@ class MessageSplitter
 			"An octothorp (#) may only follow a simple group («») " +
 				"or an ellipsis (…)")
 		peekFor(
-			DOLLAR_SIGN,
-			true,
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
-			"A dollar sign ($) may only follow an ellipsis(…)")
-		peekFor(
 			QUESTION_MARK,
 			true,
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
@@ -1151,9 +1133,7 @@ class MessageSplitter
 		return when {
 			peekFor(EXCLAMATION_MARK) -> RawTokenArgument(
 				tokenStart, leafArgumentCount)
-			peekFor(OCTOTHORP) -> RawNumericLiteralTokenArgument(
-				tokenStart, leafArgumentCount)
-			peekFor(DOLLAR_SIGN) -> RawStringLiteralTokenArgument(
+			peekFor(OCTOTHORP) -> RawLiteralTokenArgument(
 				tokenStart, leafArgumentCount)
 			else -> RawKeywordTokenArgument(
 				tokenStart, leafArgumentCount)
@@ -1295,7 +1275,6 @@ class MessageSplitter
 			E_METHOD_NAME_IS_NOT_CANONICAL,
 			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
 			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
 			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
@@ -1561,7 +1540,6 @@ class MessageSplitter
 				|| cp == '…'.code
 				|| cp == ' '.code
 				|| cp == '/'.code
-				|| cp == '$'.code
 				|| isOperator(cp)
 
 		/**

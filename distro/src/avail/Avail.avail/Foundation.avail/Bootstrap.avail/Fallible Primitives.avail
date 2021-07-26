@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/15/21 9:22 AM
+ * * Last Generated: 7/17/21 3:01 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -48,6 +48,7 @@ Uses
 	"Special Objects",
 	"Primitives" =
 	(
+		"$_@pc=_stack=_[_]caller=_",
 		"Abstract method_is_",
 		"After the current module is unloaded,⁇do_",
 		"Alias_to_",
@@ -109,7 +110,6 @@ Uses
 		"_⇒_",
 		"_∈_",
 		"_∈current fiber",
-		"`$_@pc=_stack=_[_]caller=_",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
@@ -556,7 +556,7 @@ Primitive "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,e
  * are specified by the arguments.
  *
  * @category "Primitives" "Continuations" "Constructors"
- * @method "`$_@pc=_stack=_[_]caller=_"
+ * @method "$_@pc=_stack=_[_]caller=_"
  * @param "aFunction" "[…]→⊤"
  *        The new continuation's current function.
  * @param "programCounter" "[0..∞)"
@@ -578,7 +578,7 @@ Primitive "Immediately reject parse«silently|weakly|moderately|strongly⁇»!,e
  * @raises "incorrect-continuation-stack-size exception"
  * @raises "cannot-create-continuation-for-infallible-primitive-function exception"
  */
-Primitive "`$_@pc=_stack=_[_]caller=_" is
+Primitive "$_@pc=_stack=_[_]caller=_" is
 [
 	aFunction : function,
 	programCounter : whole number,
@@ -1338,9 +1338,9 @@ Primitive "_«[_]»→_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
+ * @raises "method-is-sealed exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1368,7 +1368,6 @@ Primitive "Abstract method_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		method-is-sealed code,
@@ -1411,9 +1410,9 @@ Primitive "Abstract method_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
+ * @raises "method-is-sealed exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1440,7 +1439,6 @@ Primitive "Abstract method_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		method-is-sealed code,
@@ -1489,7 +1487,7 @@ Primitive "Abstract method_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1517,7 +1515,6 @@ Primitive "Semantic restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -1565,7 +1562,7 @@ Primitive "Semantic restriction_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1592,7 +1589,6 @@ Primitive "Semantic restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -1630,9 +1626,9 @@ Primitive "Semantic restriction_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
+ * @raises "atom-already-exists exception"
  */
 Primitive "Alias_to_" is
 [
@@ -1659,7 +1655,6 @@ Primitive "Alias_to_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		atom-already-exists code,
@@ -1731,7 +1726,6 @@ Primitive "_has definition for_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "atom-already-exists exception"
@@ -1764,7 +1758,6 @@ Primitive "Copy macros from_to_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		atom-already-exists code,
@@ -1840,9 +1833,9 @@ Primitive "method definition of_for_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
+ * @raises "method-is-sealed exception"
  */
 Primitive "Forward method_is_" is
 [
@@ -1870,7 +1863,6 @@ Primitive "Forward method_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		method-is-sealed code,
@@ -1920,7 +1912,7 @@ Primitive "Forward method_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -1947,7 +1939,6 @@ Primitive "Grammatical restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -1996,7 +1987,7 @@ Primitive "Grammatical restriction_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -2022,7 +2013,6 @@ Primitive "Grammatical restriction_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -2100,7 +2090,6 @@ Primitive "message_contains groups" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2156,7 +2145,6 @@ Primitive "`|message_'s⁇parameters`|" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode
@@ -2194,7 +2182,7 @@ Primitive "`|message_'s⁇parameters`|" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Seal method_at_" is
 [
@@ -2221,7 +2209,6 @@ Primitive "Seal method_at_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -2260,7 +2247,7 @@ Primitive "Seal method_at_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
+ * @raises "cannot-define-during-compilation exception"
  */
 Primitive "Seal method_at_" is
 [
@@ -2286,7 +2273,6 @@ Primitive "Seal method_at_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -2371,7 +2357,6 @@ Primitive "semantic restrictions for_given_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
@@ -2401,7 +2386,6 @@ Primitive "Lexer_when_is_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -2457,9 +2441,9 @@ Primitive "Lexer_when_is_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "macro-prefix-function-index-out-of-bounds exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2489,7 +2473,6 @@ Primitive "Macro_is«_,»_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		macro-prefix-functions-must-return-top code,
 		cannot-define-during-compilation code,
 		macro-prefix-function-index-out-of-bounds code,
@@ -2548,13 +2531,13 @@ Primitive "Macro_is«_,»_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "macro-prefix-function-index-out-of-bounds exception"
  * @raises "macro-prefix-function-argument-must-be-a-phrase exception"
  * @raises "macro-must-return-a-phrase exception"
  * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2583,7 +2566,6 @@ Primitive "Macro_is«_,»_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		macro-prefix-functions-must-return-top code,
 		cannot-define-during-compilation code,
 		macro-prefix-function-index-out-of-bounds code,
@@ -3142,8 +3124,8 @@ Primitive "`«`↑_`»" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
  */
 Primitive "restricted report and send_with_:_" is
 [
@@ -3170,7 +3152,6 @@ Primitive "restricted report and send_with_:_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		no-method-definition code,
@@ -3238,7 +3219,6 @@ Primitive "send_with_:_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
 	Private invoke _fail_primitive with failureCode

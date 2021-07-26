@@ -196,7 +196,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_NOT_AN_ENUMERATION(17),
 
-	// E_?? (18),
+	// E_?? (18)
 
 	/**
 	 * No [method][MethodDescriptor] exists for the specified
@@ -410,8 +410,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_INCORRECT_TYPE_FOR_NUMBERED_CHOICE(57),
 
-	/** A dollar sign ($) may only occur after an ellipsis (…). */
-	E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS(58),
+	// E_?? (58)
 
 	/**
 	 * A macro prefix function is invoked when a potential macro site reaches
