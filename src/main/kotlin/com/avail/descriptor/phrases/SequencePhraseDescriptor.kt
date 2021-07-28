@@ -200,10 +200,10 @@ class SequencePhraseDescriptor private constructor(
 				setSlot(STATEMENTS, statements)
 			}
 
-		/** The mutable [SequencePhraseDescriptor].  */
+		/** The mutable [SequencePhraseDescriptor]. */
 		private val mutable = SequencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SequencePhraseDescriptor].  */
+		/** The shared [SequencePhraseDescriptor]. */
 		private val shared = SequencePhraseDescriptor(Mutability.SHARED)
 	}
 }

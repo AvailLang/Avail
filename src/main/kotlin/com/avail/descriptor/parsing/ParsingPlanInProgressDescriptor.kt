@@ -210,11 +210,11 @@ class ParsingPlanInProgressDescriptor private constructor(
 			setSlot(PARSING_PC, pc)
 		}
 
-		/** The mutable [ParsingPlanInProgressDescriptor].  */
+		/** The mutable [ParsingPlanInProgressDescriptor]. */
 		private val mutable =
 			ParsingPlanInProgressDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ParsingPlanInProgressDescriptor].  */
+		/** The shared [ParsingPlanInProgressDescriptor]. */
 		private val shared = ParsingPlanInProgressDescriptor(Mutability.SHARED)
 	}
 }

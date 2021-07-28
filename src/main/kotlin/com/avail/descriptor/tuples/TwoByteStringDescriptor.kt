@@ -120,7 +120,7 @@ class TwoByteStringDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 			}
 		}
 	}
@@ -583,11 +583,11 @@ class TwoByteStringDescriptor private constructor(
 
 	override fun mutable(): TwoByteStringDescriptor =
 		descriptors[(4 - unusedShortsOfLastLong and 3) * 3
-		   + Mutability.MUTABLE.ordinal]!!
+			+ Mutability.MUTABLE.ordinal]!!
 
 	override fun immutable(): TwoByteStringDescriptor =
 		descriptors[(4 - unusedShortsOfLastLong and 3) * 3
-		   + Mutability.IMMUTABLE.ordinal]!!
+			+ Mutability.IMMUTABLE.ordinal]!!
 
 	override fun shared(): TwoByteStringDescriptor =
 		descriptors[(4 - unusedShortsOfLastLong and 3) * 3

@@ -1654,7 +1654,7 @@ class IntegerDescriptor private constructor(
 			}
 		}
 
-		/** The [CheckedMethod] for [IntegerDescriptor.fromInt].  */
+		/** The [CheckedMethod] for [IntegerDescriptor.fromInt]. */
 		val fromIntMethod: CheckedMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
@@ -1743,7 +1743,7 @@ class IntegerDescriptor private constructor(
 		fun hashOfUnsignedByte(anInteger: Short) =
 			hashesOfSmallIntegers[anInteger.toInt()]
 
-		/** The initialization value for computing the hash of an integer.  */
+		/** The initialization value for computing the hash of an integer. */
 		private const val initialHashValue = 0x13592884
 
 		/**
@@ -1914,16 +1914,16 @@ class IntegerDescriptor private constructor(
 			computeHashOfInt(it)
 		}
 
-		/** An Avail integer representing zero (0).  */
+		/** An Avail integer representing zero (0). */
 		val zero: AvailObject = smallIntegers[0]!!
 
-		/** An Avail integer representing one (1).  */
+		/** An Avail integer representing one (1). */
 		val one: AvailObject = smallIntegers[1]!!
 
-		/** An Avail integer representing two (2).  */
+		/** An Avail integer representing two (2). */
 		val two: AvailObject = smallIntegers[2]!!
 
-		/** The Avail integer negative one (-1).  */
+		/** The Avail integer negative one (-1). */
 		var negativeOne: AvailObject =
 			createUninitializedInteger(1).apply {
 				rawSignedIntegerAtPut(1, -1)

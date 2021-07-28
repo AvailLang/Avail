@@ -119,7 +119,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val same =
 			(aType.readType.equals(self.slot(INNER_TYPE))
-	            && aType.writeType.equals(self.slot(INNER_TYPE)))
+				&& aType.writeType.equals(self.slot(INNER_TYPE)))
 		if (same)
 		{
 			if (!isShared)
@@ -151,7 +151,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
 		return (aVariableType.readType.isSubtypeOf(innerType)
-	        && innerType.isSubtypeOf(aVariableType.writeType))
+			&& innerType.isSubtypeOf(aVariableType.writeType))
 	}
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
@@ -280,10 +280,10 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 					readType, writeType)
 			}
 
-		/** The mutable [VariableTypeDescriptor].  */
+		/** The mutable [VariableTypeDescriptor]. */
 		private val mutable = VariableTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [VariableTypeDescriptor].  */
+		/** The shared [VariableTypeDescriptor]. */
 		private val shared = VariableTypeDescriptor(Mutability.SHARED)
 
 		/**

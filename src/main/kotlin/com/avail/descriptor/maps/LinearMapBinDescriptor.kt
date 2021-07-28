@@ -543,7 +543,7 @@ internal class LinearMapBinDescriptor private constructor(
 	override fun o_MapBinIterable(self: AvailObject): MapIterable
 	{
 		return object : MapIterable() {
-			/** A countdown of entry indices.  */
+			/** A countdown of entry indices. */
 			var index = entryCount(self)
 
 			override fun next(): MapDescriptor.Entry {

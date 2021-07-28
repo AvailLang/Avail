@@ -53,7 +53,7 @@ class Statistic constructor(
 	report: StatisticReport,
 	private val nameSupplier: () -> String)
 {
-	/** The array of [PerInterpreterStatistic]s.  */
+	/** The array of [PerInterpreterStatistic]s. */
 	val statistics = Array(maxInterpreters) { PerInterpreterStatistic() }
 
 	/**

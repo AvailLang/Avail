@@ -123,7 +123,7 @@ class L2ValueManifest
 		}
 	}
 
-	/** The synonyms keyed by semantic values.  */
+	/** The synonyms keyed by semantic values. */
 	private val semanticValueToSynonym: MutableMap<L2SemanticValue, L2Synonym>
 
 	/**
@@ -146,7 +146,7 @@ class L2ValueManifest
 			MutableMap<L2SemanticValue, MutableList<L2Instruction>>>? =
 		null
 
-	/** Create a new, empty manifest.  */
+	/** Create a new, empty manifest. */
 	constructor()
 	{
 		semanticValueToSynonym = mutableMapOf()

@@ -104,7 +104,7 @@ class Message constructor(
 
 	companion object
 	{
-		/** The maximum allowed size of a frame.  */
+		/** The maximum allowed size of a frame. */
 		const val MAX_SIZE = 1024000
 	}
 }

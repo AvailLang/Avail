@@ -66,7 +66,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		 */
 		val registers = mutableSetOf<L2Register?>()
 
-		/** This group's final coloring, or -1 during calculation.  */
+		/** This group's final coloring, or -1 during calculation. */
 		var finalIndex = -1
 			set(value)
 			{

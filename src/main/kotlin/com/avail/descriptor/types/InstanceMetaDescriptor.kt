@@ -189,7 +189,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean
 	{
 		val equal = (another.isInstanceMeta
-             && getInstance(self).equals((another as A_Type).instance))
+			 && getInstance(self).equals((another as A_Type).instance))
 		when
 		{
 			!equal -> return false
@@ -234,7 +234,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		potentialInstance: AvailObject): Boolean =
 			(potentialInstance.isType
-		        && potentialInstance.isSubtypeOf(getInstance(self)))
+				&& potentialInstance.isSubtypeOf(getInstance(self)))
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
 		if (aType.isInstanceMeta)
@@ -403,15 +403,15 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		private fun getInstance(self: AvailObject): AvailObject =
 			self.slot(INSTANCE)
 
-		/** The mutable [InstanceMetaDescriptor].  */
+		/** The mutable [InstanceMetaDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [InstanceMetaDescriptor].  */
+		/** The immutable [InstanceMetaDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [InstanceMetaDescriptor].  */
+		/** The shared [InstanceMetaDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.SHARED)
 

@@ -466,7 +466,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	private fun specialObjectName(specialObject: A_BasicObject): String
 	{
 		return namesBySpecialObject[specialObject]
-		       ?: error("no special object for $specialObject")
+				?: error("no special object for $specialObject")
 	}
 
 	/**
@@ -886,13 +886,13 @@ class BootstrapGenerator constructor(private val locale: Locale)
 			// Compute the number of template arguments.
 			val primitiveArgCount = primitive.argCount
 			val templateArgCount = 2 + (primitiveArgCount shl 1) +
-               when
-               {
-                   primitive.hasFlag(Primitive.Flag.CannotFail) -> 0
-                   primitive.failureVariableType.isEnumeration ->
-	                   primitive.failureVariableType.instanceCount.extractInt
-                   else -> 1
-               }
+				when
+				{
+					primitive.hasFlag(Primitive.Flag.CannotFail) -> 0
+					primitive.failureVariableType.isEnumeration ->
+						primitive.failureVariableType.instanceCount.extractInt
+					else -> 1
+				}
 			val formatArgs = arrayOfNulls<Any>(templateArgCount)
 			// The method name goes into the first slot…
 			formatArgs[0] = primitiveBundle.getString(
@@ -1285,7 +1285,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 	{
 		val name = primitive.javaClass.simpleName
 		if (!primitiveBundle.containsKey(name)
-		    || primitiveBundle.getString(name).isEmpty())
+			|| primitiveBundle.getString(name).isEmpty())
 		{
 			System.err.println("missing key/value: $name")
 			return
@@ -1409,7 +1409,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		{
 			val key = errorCodeKey(code)
 			if (!errorCodeBundle.containsKey(key)
-			    || errorCodeBundle.getString(key).isEmpty())
+				|| errorCodeBundle.getString(key).isEmpty())
 			{
 				System.err.println("missing key/value: $key")
 				continue

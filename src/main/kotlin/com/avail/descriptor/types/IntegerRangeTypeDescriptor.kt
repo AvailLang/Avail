@@ -162,9 +162,9 @@ class IntegerRangeTypeDescriptor private constructor(
 		self: AvailObject,
 		another: A_Type): Boolean =
 			(self.slot(LOWER_BOUND).equals(another.lowerBound)
-		        && self.slot(UPPER_BOUND).equals(another.upperBound)
-		        && lowerInclusive == another.lowerInclusive
-			    && upperInclusive == another.upperInclusive)
+				&& self.slot(UPPER_BOUND).equals(another.upperBound)
+				&& lowerInclusive == another.lowerInclusive
+				&& upperInclusive == another.upperInclusive)
 
 	/**
 	 * {@inheritDoc}
@@ -211,8 +211,8 @@ class IntegerRangeTypeDescriptor private constructor(
 			return false
 		}
 		if (subMinObject.equals(superMinObject)
-		    && anIntegerRangeType.lowerInclusive
-		    && !lowerInclusive)
+			&& anIntegerRangeType.lowerInclusive
+			&& !lowerInclusive)
 		{
 			return false
 		}
@@ -223,8 +223,8 @@ class IntegerRangeTypeDescriptor private constructor(
 			false
 		}
 		else !superMaxObject.equals(subMaxObject)
-		     || !anIntegerRangeType.upperInclusive
-		     || upperInclusive
+			 || !anIntegerRangeType.upperInclusive
+			 || upperInclusive
 	}
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
@@ -540,7 +540,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				if (lowerBound.descriptor().isMutable)
 				{
 					error("Don't plug in a mutable object as two distinct " +
-					      "construction parameters")
+						"construction parameters")
 				}
 			}
 			var low = lowerBound
@@ -581,7 +581,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				val lowInt = low.extractInt
 				val highInt = high.extractInt
 				if (lowInt in 0 until smallRangeLimit
-				    && highInt in 0 until smallRangeLimit)
+					&& highInt in 0 until smallRangeLimit)
 				{
 					return smallRanges[highInt][lowInt]
 				}
@@ -664,7 +664,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			return descriptors[subscript]
 		}
 
-		/** One past the maximum lower or upper bound of a pre-built range.  */
+		/** One past the maximum lower or upper bound of a pre-built range. */
 		private const val smallRangeLimit = 20
 
 		/**

@@ -148,10 +148,10 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 	override fun shared() = shared
 
 	companion object {
-		/** The mutable [StylerDescriptor].  */
+		/** The mutable [StylerDescriptor]. */
 		private val mutable = StylerDescriptor(Mutability.MUTABLE)
 
-		/** The shared [StylerDescriptor].  */
+		/** The shared [StylerDescriptor]. */
 		private val shared = StylerDescriptor(Mutability.SHARED)
 
 		/**

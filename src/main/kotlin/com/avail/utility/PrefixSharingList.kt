@@ -55,13 +55,13 @@ import java.util.NoSuchElementException
  */
 class PrefixSharingList<E> : AbstractList<E>
 {
-	/** The size of this list  */
+	/** The size of this list. */
 	override val size: Int
 
-	/** A list containing the first size-1 elements.  Do not modify it.  */
+	/** A list containing the first size-1 elements.  Do not modify it. */
 	private val allButLast: List<E>?
 
-	/** The last element of this list.  */
+	/** The last element of this list. */
 	private val lastElement: E
 
 	/**
@@ -167,7 +167,7 @@ class PrefixSharingList<E> : AbstractList<E>
 		val mySize = size
 		return object : MutableIterator<E>
 		{
-			/** The current position.  */
+			/** The current position. */
 			var position = 0
 			override fun hasNext(): Boolean
 			{

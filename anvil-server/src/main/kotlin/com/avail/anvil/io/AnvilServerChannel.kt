@@ -166,7 +166,7 @@ class AnvilServerChannel constructor (
 	 */
 	enum class ProtocolState
 	{
-		/** Protocol version must be negotiated.  */
+		/** Protocol version must be negotiated. */
 		VERSION_NEGOTIATION
 		{
 			override val allowedSuccessorStates
@@ -198,7 +198,7 @@ class AnvilServerChannel constructor (
 		abstract val allowedSuccessorStates: Set<ProtocolState>
 	}
 
-	/** The current [protocol&#32;state][ProtocolState].  */
+	/** The current [protocol&#32;state][ProtocolState]. */
 	@Volatile
 	internal var state: ProtocolState = VERSION_NEGOTIATION
 		set (nextState)
@@ -307,7 +307,7 @@ class AnvilServerChannel constructor (
 	 *
 	 * @param id
 	 *   The identifier of the conversation to terminate.
- 	 */
+	 */
 	private fun endConversation (id: Long) =
 		synchronized(conversations) {
 			conversations.remove(id)

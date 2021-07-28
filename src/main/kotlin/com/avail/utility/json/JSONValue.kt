@@ -40,7 +40,7 @@ package com.avail.utility.json
  */
 class JSONValue : JSONData
 {
-	/** The [Object].  */
+	/** The [Object]. */
 	private val value: Any
 
 	override val isBoolean: Boolean
@@ -111,10 +111,10 @@ class JSONValue : JSONData
 
 	companion object
 	{
-		/** The sole JSON `false`.  */
+		/** The sole JSON `false`. */
 		val jsonFalse = JSONValue(false)
 
-		/** The sole JSON `true`.  */
+		/** The sole JSON `true`. */
 		val jsonTrue = JSONValue(true)
 	}
 }

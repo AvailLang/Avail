@@ -69,9 +69,9 @@ class ShowCCReportAction constructor(
 				// Announce the beginning of the report dump.
 				val builder = StringBuilder()
 					.append("Code Coverage Report - all functions\n\n")
-	                .append("KEY\n")
-	                .append("r: Function has run\n")
-	                .append("t: Function has been translated\n")
+					.append("KEY\n")
+					.append("r: Function has run\n")
+					.append("t: Function has been translated\n")
 					.append("m: Module name\n")
 					.append("l: Starting line number\n")
 					.append("f: Function name and sub-function ordinals\n\n")

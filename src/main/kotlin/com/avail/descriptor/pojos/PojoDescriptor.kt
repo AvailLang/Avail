@@ -67,7 +67,7 @@ class PojoDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(mutability, TypeTag.POJO_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/** A [raw&#32;pojo][RawPojoDescriptor]. */
@@ -157,13 +157,13 @@ class PojoDescriptor private constructor(
 
 	companion object
 	{
-		/** The mutable [PojoDescriptor].  */
+		/** The mutable [PojoDescriptor]. */
 		private val mutable = PojoDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [PojoDescriptor].  */
+		/** The immutable [PojoDescriptor]. */
 		private val immutable = PojoDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [PojoDescriptor].  */
+		/** The shared [PojoDescriptor]. */
 		private val shared = PojoDescriptor(Mutability.SHARED)
 
 		/**
@@ -186,7 +186,7 @@ class PojoDescriptor private constructor(
 			setSlot(KIND, pojoType)
 		}
 
-		/** The [pojo][PojoDescriptor] that wraps Java's `null`.  */
+		/** The [pojo][PojoDescriptor] that wraps Java's `null`. */
 		private val nullObject =
 			newPojo(rawNullPojo(), pojoBottom()).makeShared()
 

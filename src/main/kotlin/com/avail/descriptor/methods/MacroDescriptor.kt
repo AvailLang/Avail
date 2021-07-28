@@ -266,10 +266,10 @@ class MacroDescriptor private constructor(
 			setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions)
 		}
 
-		/** The mutable [MacroDescriptor].  */
+		/** The mutable [MacroDescriptor]. */
 		private val mutable = MacroDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MacroDescriptor].  */
+		/** The shared [MacroDescriptor]. */
 		private val shared = MacroDescriptor(Mutability.SHARED)
 	}
 }

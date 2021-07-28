@@ -186,10 +186,10 @@ class MethodDefinitionDescriptor private constructor(
 			setSlot(BODY_BLOCK, bodyBlock)
 		}
 
-		/** The mutable [MethodDefinitionDescriptor].  */
+		/** The mutable [MethodDefinitionDescriptor]. */
 		private val mutable = MethodDefinitionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MethodDefinitionDescriptor].  */
+		/** The shared [MethodDefinitionDescriptor]. */
 		private val shared = MethodDefinitionDescriptor(Mutability.SHARED)
 	}
 }

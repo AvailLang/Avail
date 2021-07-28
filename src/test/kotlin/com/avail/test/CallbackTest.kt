@@ -82,7 +82,7 @@ import java.util.concurrent.SynchronousQueue
 @TestInstance(Lifecycle.PER_CLASS)
 class CallbackTest
 {
-	/** Setup for the test.  */
+	/** Setup for the test. */
 	private var helper: AvailRuntimeTestHelper? = null
 
 	/**

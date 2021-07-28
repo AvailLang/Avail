@@ -85,10 +85,10 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		// higher power of two of that range's upper bound.
 		val upper: Long =
 			if (aRange.lowerBound.greaterOrEqual(zero)
-			    && aRange.upperBound.isLong)
+				&& aRange.upperBound.isLong)
 			{
 				if (bRange.lowerBound.greaterOrEqual(zero)
-				    && bRange.upperBound.isLong)
+					&& bRange.upperBound.isLong)
 				{
 					min(
 						aRange.upperBound.extractLong,
@@ -100,7 +100,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 				}
 			}
 			else if (bRange.lowerBound.greaterOrEqual(zero)
-			         && bRange.upperBound.isLong)
+					 && bRange.upperBound.isLong)
 			{
 				bRange.upperBound.extractLong
 			}

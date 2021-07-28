@@ -416,7 +416,7 @@ class AvailCompiler(
 		val bundleTree: A_BundleTree,
 		val parent: PartialSubexpressionList?)
 	{
-		/** How many subexpressions deep that we're parsing.  */
+		/** How many subexpressions deep that we're parsing. */
 		val depth: Int = if (parent === null) 1 else parent.depth + 1
 
 		/**
@@ -4563,22 +4563,22 @@ class AvailCompiler(
 		 */
 		private val initialMarkStack = emptyList<Int>()
 
-		/** Statistic for matching an exact token.  */
+		/** Statistic for matching an exact token. */
 		private val matchTokenStat = Statistic(
 			RUNNING_PARSING_INSTRUCTIONS,
 			"(Match particular token)")
 
-		/** Statistic for matching a token case-insensitively.  */
+		/** Statistic for matching a token case-insensitively. */
 		private val matchTokenInsensitivelyStat = Statistic(
 			RUNNING_PARSING_INSTRUCTIONS,
 			"(Match insensitive token)")
 
-		/** Statistic for type-checking an argument.  */
+		/** Statistic for type-checking an argument. */
 		private val typeCheckArgumentStat = Statistic(
 			RUNNING_PARSING_INSTRUCTIONS,
 			"(type-check argument)")
 
-		/** Marker phrase to signal cleanly reaching the end of the input.  */
+		/** Marker phrase to signal cleanly reaching the end of the input. */
 		private val endOfFileMarkerPhrase =
 			newMarkerNode(stringFrom("End of file marker")).makeShared()
 

@@ -716,7 +716,7 @@ class AvailRuntime constructor(
 				Types.TOP.o),
 			P_InvokeWithTuple);
 
-		/** The name to attach to functions plugged into this hook.  */
+		/** The name to attach to functions plugged into this hook. */
 		private val hookName: A_String = stringFrom(hookName).makeShared()
 
 		/**

@@ -79,7 +79,7 @@ class PojoFieldDescriptor private constructor(
 ) : Descriptor(
 	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -281,13 +281,13 @@ class PojoFieldDescriptor private constructor(
 
 	companion object
 	{
-		/** The mutable [PojoFieldDescriptor].  */
+		/** The mutable [PojoFieldDescriptor]. */
 		private val mutable = PojoFieldDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [PojoFieldDescriptor].  */
+		/** The immutable [PojoFieldDescriptor]. */
 		private val immutable = PojoFieldDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [PojoFieldDescriptor].  */
+		/** The shared [PojoFieldDescriptor]. */
 		private val shared = PojoFieldDescriptor(Mutability.SHARED)
 
 		/**

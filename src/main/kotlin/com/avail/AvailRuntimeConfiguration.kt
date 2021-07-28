@@ -43,7 +43,7 @@ import java.util.Scanner
 @Suppress("unused")
 object AvailRuntimeConfiguration
 {
-	/** The build version, set by the build process.  */
+	/** The build version, set by the build process. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	val buildVersion: String
 
@@ -64,7 +64,7 @@ object AvailRuntimeConfiguration
 		get() = activeVersions[activeVersions.size - 1].split(" ".toRegex(), 2)
 			.toTypedArray()[0]
 
-	/** The number of available processors.  */
+	/** The number of available processors. */
 	val availableProcessors = Runtime.getRuntime().availableProcessors()
 
 	/**

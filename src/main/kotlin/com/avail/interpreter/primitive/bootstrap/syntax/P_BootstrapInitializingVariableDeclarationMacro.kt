@@ -114,7 +114,7 @@ object P_BootstrapInitializingVariableDeclarationMacro
 			throw AvailRejectedParseException(
 				STRONG,
 				"local variable $nameString to have a name that doesn't shadow "
-				    + "an existing "
+					+ "an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
 					+ " (from line " +
 					"${conflictingDeclaration.token.lineNumber()})")

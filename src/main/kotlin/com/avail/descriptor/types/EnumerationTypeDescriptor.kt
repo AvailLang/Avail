@@ -146,7 +146,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	: AbstractEnumerationTypeDescriptor(
 		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of object slots for my instances.  */
+	/** The layout of object slots for my instances. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -762,15 +762,15 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [EnumerationTypeDescriptor].  */
+		/** The mutable [EnumerationTypeDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			EnumerationTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [EnumerationTypeDescriptor].  */
+		/** The immutable [EnumerationTypeDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			EnumerationTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [EnumerationTypeDescriptor].  */
+		/** The shared [EnumerationTypeDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			EnumerationTypeDescriptor(Mutability.SHARED)
 

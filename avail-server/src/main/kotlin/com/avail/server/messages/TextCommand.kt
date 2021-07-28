@@ -469,7 +469,7 @@ enum class TextCommand
 
 	companion object
 	{
-		/** An array of all [TextCommand] enumeration values.  */
+		/** An array of all [TextCommand] enumeration values. */
 		val all = values()
 
 		/**

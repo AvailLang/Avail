@@ -54,7 +54,7 @@ import java.util.LinkedList
 @Suppress("unused")
 class JSONWriter : AutoCloseable
 {
-	/** The [target][Writer] for the raw JSON document.  */
+	/** The [target][Writer] for the raw JSON document. */
 	private val writer: Writer
 
 	/**

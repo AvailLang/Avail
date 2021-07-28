@@ -63,7 +63,7 @@ import java.util.IdentityHashMap
  * Construct a new `CompiledCodeTypeDescriptor`.
  *
  * @param mutability
- * 		The [mutability][Mutability] of the new descriptor.
+ *   The [mutability][Mutability] of the new descriptor.
  */
 class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
@@ -260,11 +260,11 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 			}
 
-		/** The mutable [CompiledCodeTypeDescriptor].  */
+		/** The mutable [CompiledCodeTypeDescriptor]. */
 		private val mutable: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [CompiledCodeTypeDescriptor].  */
+		/** The shared [CompiledCodeTypeDescriptor]. */
 		private val shared: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.SHARED)
 

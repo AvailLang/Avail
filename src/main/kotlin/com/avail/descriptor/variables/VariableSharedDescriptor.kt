@@ -133,9 +133,9 @@ open class VariableSharedDescriptor protected constructor(
 			init
 			{
 				assert(VariableDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-			       == HASH_AND_MORE.ordinal)
+					== HASH_AND_MORE.ordinal)
 				assert(VariableDescriptor.IntegerSlots.HASH_OR_ZERO
-			       .isSamePlaceAs(HASH_ALWAYS_SET))
+					.isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
 	}
@@ -180,11 +180,11 @@ open class VariableSharedDescriptor protected constructor(
 			init
 			{
 				assert(VariableDescriptor.ObjectSlots.VALUE.ordinal
-			       == VALUE.ordinal)
+					== VALUE.ordinal)
 				assert(VariableDescriptor.ObjectSlots.KIND.ordinal
-				   == KIND.ordinal)
+					== KIND.ordinal)
 				assert(VariableDescriptor.ObjectSlots.WRITE_REACTORS.ordinal
-				   == WRITE_REACTORS.ordinal)
+					== WRITE_REACTORS.ordinal)
 			}
 		}
 	}
@@ -604,8 +604,8 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			val loader = Interpreter.current().availLoaderOrNull()
 			if (loader !== null && loader.statementCanBeSummarized()
-			    && self.slot(VALUE).notNil
-			    && !self.valueWasStablyComputed())
+				&& self.slot(VALUE).notNil
+				&& !self.valueWasStablyComputed())
 			{
 				loader.statementCanBeSummarized(false)
 			}
@@ -706,7 +706,7 @@ open class VariableSharedDescriptor protected constructor(
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The shared [VariableSharedDescriptor].  */
+		/** The shared [VariableSharedDescriptor]. */
 		val shared = VariableSharedDescriptor(
 			Mutability.SHARED,
 			TypeTag.VARIABLE_TAG,

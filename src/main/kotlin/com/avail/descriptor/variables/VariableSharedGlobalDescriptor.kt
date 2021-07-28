@@ -129,9 +129,9 @@ class VariableSharedGlobalDescriptor private constructor(
 			init
 			{
 				assert(VariableSharedDescriptor.IntegerSlots
-			       .HASH_AND_MORE.ordinal == HASH_AND_MORE.ordinal)
+					.HASH_AND_MORE.ordinal == HASH_AND_MORE.ordinal)
 				assert(VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET
-			       .isSamePlaceAs(HASH_ALWAYS_SET))
+					.isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
 	}
@@ -194,7 +194,7 @@ class VariableSharedGlobalDescriptor private constructor(
 					.WRITE_REACTORS.ordinal
 						== WRITE_REACTORS.ordinal)
 				assert(VariableSharedDescriptor.ObjectSlots
-			       .DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
+					.DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
 						== DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal)
 			}
 		}
@@ -387,7 +387,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		private val mutableInitial =
 			VariableSharedGlobalDescriptor(Mutability.MUTABLE, false)
 
-		/** The shared [VariableSharedGlobalDescriptor].  */
+		/** The shared [VariableSharedGlobalDescriptor]. */
 		val shared =
 			VariableSharedGlobalDescriptor(Mutability.SHARED, false)
 

@@ -225,7 +225,7 @@ constructor(messageName: A_String) {
 	 */
 	private val messagePartPositions: IntArray
 
-	/** The current one-based parsing position in the list of tokens.  */
+	/** The current one-based parsing position in the list of tokens. */
 	private var messagePartPosition: Int = 0
 
 	/**
@@ -249,7 +249,7 @@ constructor(messageName: A_String) {
 	 */
 	var numberOfSectionCheckpoints: Int = 0
 
-	/** The top-most [sequence][Sequence].  */
+	/** The top-most [sequence][Sequence]. */
 	private val rootSequence: Sequence
 
 	/**
@@ -466,7 +466,7 @@ constructor(messageName: A_String) {
 		 */
 		VERTICAL_BAR("|");
 
-		/** The Avail [A_String] denoting this metacharacter.  */
+		/** The Avail [A_String] denoting this metacharacter. */
 		val string: A_String = stringFrom(javaString).makeShared().also {
 			assert(it.tupleSize == 1)
 		}
@@ -1284,17 +1284,17 @@ constructor(messageName: A_String) {
 			E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
 			E_INCONSISTENT_ARGUMENT_REORDERING).makeShared()
 
-		/** A String containing all 51 circled numbers.  */
+		/** A String containing all 51 circled numbers. */
 		private const val circledNumbersString =
 			"⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯" +
 				"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
 				"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿"
 
-		/** How many circled numbers are in Unicode.  */
+		/** How many circled numbers are in Unicode. */
 		private val circledNumbersCount =
 			circledNumbersString.codePointCount(0, circledNumbersString.length)
 
-		/** An array of the circled number code points.  */
+		/** An array of the circled number code points. */
 		private val circledNumberCodePoints: IntArray =
 			circledNumbersString.codePoints().toList().toIntArray()
 
@@ -1429,10 +1429,10 @@ constructor(messageName: A_String) {
 			}
 		}
 
-		/** The position at which true is stored in the [constantsList].  */
+		/** The position at which true is stored in the [constantsList]. */
 		val indexForTrue = indexForConstant(trueObject)
 
-		/** The position at which false is stored in the [constantsList].  */
+		/** The position at which false is stored in the [constantsList]. */
 		val indexForFalse = indexForConstant(falseObject)
 
 		/**

@@ -75,7 +75,7 @@ class ExpressionAsStatementPhraseDescriptor(
 	 * My slots of type [AvailObject].
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
-		/** The expression being wrapped to be a statement.  */
+		/** The expression being wrapped to be a statement. */
 		EXPRESSION
 	}
 
@@ -176,11 +176,11 @@ class ExpressionAsStatementPhraseDescriptor(
 				setSlot(EXPRESSION, expression)
 			}
 
-		/** The mutable [ExpressionAsStatementPhraseDescriptor].  */
+		/** The mutable [ExpressionAsStatementPhraseDescriptor]. */
 		private val mutable =
 			ExpressionAsStatementPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ExpressionAsStatementPhraseDescriptor].  */
+		/** The shared [ExpressionAsStatementPhraseDescriptor]. */
 		private val shared =
 			ExpressionAsStatementPhraseDescriptor(Mutability.SHARED)
 	}

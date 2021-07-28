@@ -95,7 +95,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			view.setPermissions(permissions)
@@ -118,11 +118,12 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(stringType,
-				  setTypeForSizesContentType(
-					  inclusive(0, 9),
-					  inclusive(1, 9)),
-				  booleanType),
+			tuple(
+				stringType,
+				setTypeForSizesContentType(
+					inclusive(0, 9),
+					inclusive(1, 9)),
+				booleanType),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
@@ -131,7 +132,7 @@ object P_FileSetPermissions : Primitive(3, CanInline, HasSideEffect)
 				E_INVALID_PATH,
 				E_PERMISSION_DENIED,
 				E_IO_ERROR,
-			    E_OPERATION_NOT_SUPPORTED))
+				E_OPERATION_NOT_SUPPORTED))
 
 	/**
 	 * Convert the specified [set][SetDescriptor] of

@@ -82,7 +82,7 @@ interface A_Definition : A_Sendable
 
 		/**
 		 * Atomically update this definition's set of stylers.
- 		 */
+		 */
 		fun A_Definition.updateStylers(updater: A_Set.() -> A_Set) =
 			dispatch { o_UpdateStylers(it, updater) }
 	}

@@ -204,6 +204,6 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_SUBSCRIPT_OUT_OF_BOUNDS,
-			    E_INCORRECT_ARGUMENT_TYPE,
-			    E_KEY_NOT_FOUND))
+				E_INCORRECT_ARGUMENT_TYPE,
+				E_KEY_NOT_FOUND))
 }

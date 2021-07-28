@@ -1513,14 +1513,14 @@ class AvailObject private constructor(
 			AvailObject::iterator.name,
 			Iterator::class.java)
 
-		/** Access the [frameAt] method.  */
+		/** Access the [frameAt] method. */
 		val frameAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::frameAt.name,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
-		/** Access the [frameAtPut] method.  */
+		/** Access the [frameAtPut] method. */
 		val frameAtPutMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::frameAtPut.name,
@@ -1528,13 +1528,13 @@ class AvailObject private constructor(
 			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)
 
-		/** Access the [registerDump] method.  */
+		/** Access the [registerDump] method. */
 		val registerDumpMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::registerDump.name,
 			AvailObject::class.java)
 
-		/** Access the [fieldAt] method.  */
+		/** Access the [fieldAt] method. */
 		val fieldAtMethod: CheckedMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::fieldAt.name,

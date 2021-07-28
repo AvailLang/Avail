@@ -169,7 +169,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val bTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(bType)
 		val bTypeIncludesInfinity = positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesInfinity && bTypeIncludesNegativeInfinity
-           || aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
+			|| aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
 		{
 			CallSiteCanFail
 		}
@@ -196,7 +196,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val aIntersectInt32 = aType.typeIntersection(int32)
 		val bIntersectInt32 = bType.typeIntersection(int32)
 		if (aType.typeIntersection(int32).isBottom
-		    || bType.typeIntersection(int32).isBottom)
+			|| bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}

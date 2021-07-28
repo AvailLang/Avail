@@ -103,10 +103,10 @@ class AnvilServerConfiguration constructor (
 	/** The module name [resolver][ModuleNameResolver]. */
 	private var moduleNameResolver: ModuleNameResolver? = null
 
-	/** The server authority.  */
+	/** The server authority. */
 	var serverAuthority = "localhost"
 
-	/** The server port.  */
+	/** The server port. */
 	var serverPort = 40000
 
 	/**

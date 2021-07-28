@@ -525,13 +525,13 @@ class FloatDescriptor private constructor(
 		@Suppress("unused")
 		fun floatZero(): A_Number = Sign.ZERO.limitFloatObject()
 
-		/** The mutable [FloatDescriptor].  */
+		/** The mutable [FloatDescriptor]. */
 		private val mutable = FloatDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [FloatDescriptor].  */
+		/** The immutable [FloatDescriptor]. */
 		private val immutable = FloatDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [FloatDescriptor].  */
+		/** The shared [FloatDescriptor]. */
 		private val shared = FloatDescriptor(Mutability.SHARED)
 	}
 }

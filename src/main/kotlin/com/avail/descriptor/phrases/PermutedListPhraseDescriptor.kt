@@ -326,10 +326,10 @@ class PermutedListPhraseDescriptor private constructor(
 			setSlot(EXPRESSION_TYPE, nil)
 		}
 
-		/** The mutable [PermutedListPhraseDescriptor].  */
+		/** The mutable [PermutedListPhraseDescriptor]. */
 		private val mutable = PermutedListPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [PermutedListPhraseDescriptor].  */
+		/** The shared [PermutedListPhraseDescriptor]. */
 		private val shared = PermutedListPhraseDescriptor(Mutability.SHARED)
 	}
 }

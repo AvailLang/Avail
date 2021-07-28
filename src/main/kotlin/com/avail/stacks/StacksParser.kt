@@ -413,7 +413,7 @@ class StacksParser private constructor(
 
 		companion object
 		{
-			/** An array of all [StacksTagKeyword] enumeration values.  */
+			/** An array of all [StacksTagKeyword] enumeration values. */
 			private val all = values()
 
 			/**

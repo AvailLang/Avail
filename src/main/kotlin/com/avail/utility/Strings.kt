@@ -177,7 +177,7 @@ object Strings {
 		}
 	}
 
-	/** A regex [Pattern] containing just a line break.  */
+	/** A regex [Pattern] containing just a line break. */
 	val lineBreakPattern: Pattern = Pattern.compile("\n", Pattern.LITERAL)
 
 	/**

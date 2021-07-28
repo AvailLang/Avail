@@ -98,7 +98,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	: PojoTypeDescriptor(
 		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
-	/** The layout of the integer slots.  */
+	/** The layout of the integer slots. */
 	internal enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
@@ -117,7 +117,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		}
 	}
 
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -510,13 +510,13 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 				).also { self.setSlot(HASH_OR_ZERO, it) }
 			}
 
-		/** The mutable [FusedPojoTypeDescriptor].  */
+		/** The mutable [FusedPojoTypeDescriptor]. */
 		private val mutable = FusedPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [FusedPojoTypeDescriptor].  */
+		/** The immutable [FusedPojoTypeDescriptor]. */
 		private val immutable = FusedPojoTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [FusedPojoTypeDescriptor].  */
+		/** The shared [FusedPojoTypeDescriptor]. */
 		private val shared = FusedPojoTypeDescriptor(Mutability.SHARED)
 
 		/**

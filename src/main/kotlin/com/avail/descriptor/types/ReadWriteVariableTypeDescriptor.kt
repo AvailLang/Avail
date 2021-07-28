@@ -83,10 +83,10 @@ class ReadWriteVariableTypeDescriptor private constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The type of values that can be read from my object instances.  */
+		/** The type of values that can be read from my object instances. */
 		READ_TYPE,
 
-		/** The type of values that can be written to my object instances.  */
+		/** The type of values that can be written to my object instances. */
 		WRITE_TYPE
 	}
 
@@ -153,7 +153,7 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean =
 			(aVariableType.readType.isSubtypeOf(self.slot(READ_TYPE))
-		        && self.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType))
+				&& self.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType))
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -243,11 +243,11 @@ class ReadWriteVariableTypeDescriptor private constructor(
 
 	companion object
 	{
-		/** The mutable [ReadWriteVariableTypeDescriptor].  */
+		/** The mutable [ReadWriteVariableTypeDescriptor]. */
 		private val mutable =
 			ReadWriteVariableTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ReadWriteVariableTypeDescriptor].  */
+		/** The shared [ReadWriteVariableTypeDescriptor]. */
 		private val shared =
 			ReadWriteVariableTypeDescriptor(Mutability.SHARED)
 

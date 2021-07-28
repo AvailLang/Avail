@@ -128,10 +128,10 @@ private constructor(mutability: Mutability) : Descriptor(
 	override fun shared() = shared
 
 	companion object {
-		/** The mutable [SemanticRestrictionDescriptor].  */
+		/** The mutable [SemanticRestrictionDescriptor]. */
 		private val mutable = SemanticRestrictionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SemanticRestrictionDescriptor].  */
+		/** The shared [SemanticRestrictionDescriptor]. */
 		private val shared = SemanticRestrictionDescriptor(Mutability.SHARED)
 
 		/**

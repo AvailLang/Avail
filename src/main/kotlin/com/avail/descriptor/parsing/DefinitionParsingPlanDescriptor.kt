@@ -266,11 +266,11 @@ class DefinitionParsingPlanDescriptor private constructor(
 					definition.parsingSignature()))
 		}
 
-		/** The mutable [DefinitionParsingPlanDescriptor].  */
+		/** The mutable [DefinitionParsingPlanDescriptor]. */
 		private val mutable =
 			DefinitionParsingPlanDescriptor(Mutability.MUTABLE)
 
-		/** The shared [DefinitionParsingPlanDescriptor].  */
+		/** The shared [DefinitionParsingPlanDescriptor]. */
 		private val shared = DefinitionParsingPlanDescriptor(Mutability.SHARED)
 	}
 }

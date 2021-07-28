@@ -271,14 +271,14 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			setSlot(HASH_OR_ZERO, originalHashOrZero)
 		}
 
-		/** The mutable [AtomWithPropertiesDescriptor].  */
+		/** The mutable [AtomWithPropertiesDescriptor]. */
 		private val mutable = AtomWithPropertiesDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The immutable [AtomWithPropertiesDescriptor].  */
+		/** The immutable [AtomWithPropertiesDescriptor]. */
 		private val immutable = AtomWithPropertiesDescriptor(
 			Mutability.IMMUTABLE,
 			TypeTag.ATOM_TAG,

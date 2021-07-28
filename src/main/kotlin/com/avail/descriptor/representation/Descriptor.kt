@@ -2051,7 +2051,7 @@ abstract class Descriptor protected constructor (
 		// By default an object acts like a bin of size one.
 		object : SetIterator()
 		{
-			/** Whether there are more elements.  */
+			/** Whether there are more elements. */
 			private var hasNext = true
 
 			override fun next(): AvailObject

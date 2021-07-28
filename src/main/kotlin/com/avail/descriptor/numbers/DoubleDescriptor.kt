@@ -538,7 +538,7 @@ class DoubleDescriptor private constructor(
 				setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
 			}
 
-		/** The [CheckedMethod] for [fromDouble].  */
+		/** The [CheckedMethod] for [fromDouble]. */
 		val fromDoubleMethod: CheckedMethod = staticMethod(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
@@ -693,13 +693,13 @@ class DoubleDescriptor private constructor(
 		@Suppress("unused")
 		fun doubleZero(): A_Number = Sign.ZERO.limitDoubleObject()
 
-		/** The mutable [DoubleDescriptor].  */
+		/** The mutable [DoubleDescriptor]. */
 		private val mutable = DoubleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [DoubleDescriptor].  */
+		/** The immutable [DoubleDescriptor]. */
 		private val immutable = DoubleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [DoubleDescriptor].  */
+		/** The shared [DoubleDescriptor]. */
 		private val shared = DoubleDescriptor(Mutability.SHARED)
 	}
 }

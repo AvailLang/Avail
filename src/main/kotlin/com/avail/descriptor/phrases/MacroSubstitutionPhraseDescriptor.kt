@@ -397,11 +397,11 @@ class MacroSubstitutionPhraseDescriptor(
 			setSlot(OUTPUT_PHRASE, outputPhrase)
 		}
 
-		/** The mutable [MacroSubstitutionPhraseDescriptor].  */
+		/** The mutable [MacroSubstitutionPhraseDescriptor]. */
 		private val mutable =
 			MacroSubstitutionPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [MacroSubstitutionPhraseDescriptor].  */
+		/** The immutable [MacroSubstitutionPhraseDescriptor]. */
 		private val shared =
 			MacroSubstitutionPhraseDescriptor(Mutability.SHARED)
 	}

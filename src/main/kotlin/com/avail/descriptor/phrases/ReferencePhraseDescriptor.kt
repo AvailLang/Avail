@@ -212,10 +212,10 @@ class ReferencePhraseDescriptor(
 				setSlot(VARIABLE, variableUse)
 			}
 
-		/** The mutable [ReferencePhraseDescriptor].  */
+		/** The mutable [ReferencePhraseDescriptor]. */
 		private val mutable = ReferencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ReferencePhraseDescriptor].  */
+		/** The shared [ReferencePhraseDescriptor]. */
 		private val shared = ReferencePhraseDescriptor(Mutability.SHARED)
 	}
 }

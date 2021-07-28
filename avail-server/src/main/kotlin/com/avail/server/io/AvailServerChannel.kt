@@ -117,7 +117,7 @@ abstract class AvailServerChannel constructor(
 	/**
 	 * The [Session] this [AvailServerChannel] belongs to or `null` if not yet
 	 * assigned to a `Session`.
- 	 */
+	 */
 	val session: Session? get() = sessionId?.let {
 		server.sessions[it]
 	}
@@ -134,7 +134,7 @@ abstract class AvailServerChannel constructor(
 	 */
 	private val isIOChannel get() = state.generalTextIO
 
-	/** The current [protocol state][ProtocolState].  */
+	/** The current [protocol state][ProtocolState]. */
 	var state = ProtocolState.VERSION_NEGOTIATION
 		set (newState)
 		{
@@ -229,7 +229,7 @@ abstract class AvailServerChannel constructor(
 	 */
 	enum class ProtocolState
 	{
-		/** Protocol version must be negotiated.  */
+		/** Protocol version must be negotiated. */
 		VERSION_NEGOTIATION
 		{
 			override val allowedSuccessorStates

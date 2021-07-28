@@ -69,7 +69,7 @@ internal class Alternation constructor(
 	override val recursivelyContainsReorders: Boolean
 		get() = alternatives.any { it.recursivelyContainsReorders }
 
-	/** The alternative [expressions][Expression].  */
+	/** The alternative [expressions][Expression]. */
 	internal val alternatives: List<Expression> = alternatives.toList()
 
 	override val isLowerCase: Boolean

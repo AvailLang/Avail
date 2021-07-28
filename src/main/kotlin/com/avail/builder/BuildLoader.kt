@@ -125,10 +125,10 @@ internal class BuildLoader constructor(
 	private val globalTracker: GlobalProgressReporter,
 	private val problemHandler: ProblemHandler)
 {
-	/** The size, in bytes, of all source files that will be built.  */
+	/** The size, in bytes, of all source files that will be built. */
 	private val globalCodeSize: Long
 
-	/** The number of bytes compiled so far.  */
+	/** The number of bytes compiled so far. */
 	private val bytesCompiled = AtomicLong(0L)
 
 	init

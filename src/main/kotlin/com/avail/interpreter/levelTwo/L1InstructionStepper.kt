@@ -139,10 +139,10 @@ import java.util.regex.Pattern
  */
 class L1InstructionStepper constructor(val interpreter: Interpreter)
 {
-	/** The current position in the nybblecodes.  */
+	/** The current position in the nybblecodes. */
 	val instructionDecoder = L1InstructionDecoder()
 
-	/** The current stack position as would be seen in a continuation.  */
+	/** The current stack position as would be seen in a continuation. */
 	var stackp = 0
 
 	/**
@@ -558,7 +558,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// its caller, function, and args.
 						newContinuation.makeSubobjectsImmutable()
 						assert(newContinuation.caller().isNil
-							   || !newContinuation.caller().descriptor()
+								|| !newContinuation.caller().descriptor()
 							.isMutable) {
 							("Caller should freeze because two "
 							 + "continuations can see it")
@@ -1061,11 +1061,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 
 	companion object
 	{
-		/** The [Statistic] for reifications prior to label creation in L1.  */
+		/** The [Statistic] for reifications prior to label creation in L1. */
 		private val reificationBeforeLabelCreationStat = Statistic(
 			REIFICATIONS, "Reification before label creation in L1")
 
-		/** An empty array used for clearing the pointers quickly.  */
+		/** An empty array used for clearing the pointers quickly. */
 		private val emptyPointersArray = arrayOf<AvailObject>()
 
 		/**
@@ -1074,7 +1074,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		 */
 		private val whitespaces = Pattern.compile("\\s+")
 
-		/** The [CheckedMethod] for [run].  */
+		/** The [CheckedMethod] for [run]. */
 		val runMethod: CheckedMethod = instanceMethod(
 			L1InstructionStepper::class.java,
 			L1InstructionStepper::run.name,

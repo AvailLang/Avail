@@ -209,7 +209,7 @@ open class TokenDescriptor protected constructor(
 
 		override fun fieldOrdinal(): Int = ordinal
 
-		/** The associated special atom.  */
+		/** The associated special atom. */
 		val atom: A_Atom =
 			createSpecialAtom(
 				name.lowercase().replace('_', ' ')
@@ -221,7 +221,7 @@ open class TokenDescriptor protected constructor(
 
 		companion object
 		{
-			/** An array of all [TokenType] enumeration values.  */
+			/** An array of all [TokenType] enumeration values. */
 			private val all = values()
 
 			/**
@@ -238,7 +238,7 @@ open class TokenDescriptor protected constructor(
 
 	}
 
-	/** A static class for untangling enum initialization.  */
+	/** A static class for untangling enum initialization. */
 	object StaticInit
 	{
 		/**
@@ -415,14 +415,14 @@ open class TokenDescriptor protected constructor(
 			}
 		}
 
-		/** The mutable [TokenDescriptor].  */
+		/** The mutable [TokenDescriptor]. */
 		private val mutable = TokenDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.TOKEN_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The shared [TokenDescriptor].  */
+		/** The shared [TokenDescriptor]. */
 		private val shared = TokenDescriptor(
 			Mutability.SHARED,
 			TypeTag.TOKEN_TAG,

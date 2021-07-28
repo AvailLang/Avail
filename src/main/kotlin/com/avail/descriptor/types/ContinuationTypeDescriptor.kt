@@ -273,13 +273,13 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 		}
 
-		/** The mutable [ContinuationTypeDescriptor].  */
+		/** The mutable [ContinuationTypeDescriptor]. */
 		private val mutable = ContinuationTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ContinuationTypeDescriptor].  */
+		/** The immutable [ContinuationTypeDescriptor]. */
 		private val immutable = ContinuationTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ContinuationTypeDescriptor].  */
+		/** The shared [ContinuationTypeDescriptor]. */
 		private val shared = ContinuationTypeDescriptor(Mutability.SHARED)
 
 		/**

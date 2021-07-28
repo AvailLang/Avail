@@ -115,23 +115,23 @@ protected constructor(
 	 */
 	abstract class HiddenVariable
 	{
-		/** How the current continuation field is affected.  */
+		/** How the current continuation field is affected. */
 		@HiddenVariableShift(0)
 		class CURRENT_CONTINUATION : HiddenVariable()
 
-		/** How the current function field is affected.  */
+		/** How the current function field is affected. */
 		@HiddenVariableShift(1)
 		class CURRENT_FUNCTION : HiddenVariable()
 
-		/** How the current arguments of this frame are affected.  */
+		/** How the current arguments of this frame are affected. */
 		@HiddenVariableShift(2)
 		class CURRENT_ARGUMENTS : HiddenVariable()
 
-		/** How the latest return value field is affected.  */
+		/** How the latest return value field is affected. */
 		@HiddenVariableShift(3)
 		class LATEST_RETURN_VALUE : HiddenVariable()
 
-		/** How the current stack reifier field is affected.  */
+		/** How the current stack reifier field is affected. */
 		@HiddenVariableShift(4)
 		class STACK_REIFIER : HiddenVariable()
 
@@ -422,7 +422,7 @@ protected constructor(
 	fun instructionWasInserted(instruction: L2Instruction)
 	{
 		assert(!isEntryPoint(instruction)
-			   || instruction.basicBlock().instructions()[0] == instruction)
+				|| instruction.basicBlock().instructions()[0] == instruction)
 		{ "Entry point instruction must be at start of a block" }
 		instruction.operands().forEach {
 			it.instructionWasInserted(instruction)

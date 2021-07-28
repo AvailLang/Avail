@@ -200,5 +200,5 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_MUST_RETURN_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
-            .setUnionCanDestroy(possibleErrors, true))
+			.setUnionCanDestroy(possibleErrors, true))
 }

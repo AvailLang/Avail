@@ -354,13 +354,13 @@ class ListPhraseDescriptor private constructor(
 				setSlot(TUPLE_TYPE, nil)
 			}
 
-		/** The mutable [ListPhraseDescriptor].  */
+		/** The mutable [ListPhraseDescriptor]. */
 		private val mutable = ListPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ListPhraseDescriptor].  */
+		/** The shared [ListPhraseDescriptor]. */
 		private val shared = ListPhraseDescriptor(Mutability.SHARED)
 
-		/** The empty [list phrase][ListPhraseDescriptor].  */
+		/** The empty [list phrase][ListPhraseDescriptor]. */
 		private val empty = newListNode(emptyTuple).makeShared()
 
 		/**

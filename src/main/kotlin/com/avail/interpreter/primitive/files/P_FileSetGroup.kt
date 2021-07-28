@@ -90,7 +90,7 @@ object P_FileSetGroup : Primitive(3, CanInline, HasSideEffect)
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			val lookupService = fileSystem.userPrincipalLookupService

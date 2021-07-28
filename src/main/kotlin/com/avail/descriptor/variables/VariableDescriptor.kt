@@ -134,7 +134,7 @@ open class VariableDescriptor protected constructor(
 	 */
 	class VariableAccessReactor(initialFunction: A_Function)
 	{
-		/** The [reactor function][FunctionDescriptor].  */
+		/** The [reactor function][FunctionDescriptor]. */
 		private val function = AtomicReference(initialFunction)
 
 		/**
@@ -729,7 +729,7 @@ open class VariableDescriptor protected constructor(
 			writeReactors.values.removeIf(VariableAccessReactor::isInvalid)
 		}
 
-		/** The [CheckedMethod] for [A_Variable.clearValue].  */
+		/** The [CheckedMethod] for [A_Variable.clearValue]. */
 		val clearVariableMethod: CheckedMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::clearValue.name,
@@ -791,14 +791,14 @@ open class VariableDescriptor protected constructor(
 			AvailObject::class.java,
 			A_Type::class.java)
 
-		/** The mutable [VariableDescriptor].  */
+		/** The mutable [VariableDescriptor]. */
 		private val mutable = VariableDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.VARIABLE_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The immutable [VariableDescriptor].  */
+		/** The immutable [VariableDescriptor]. */
 		private val immutable = VariableDescriptor(
 			Mutability.IMMUTABLE,
 			TypeTag.VARIABLE_TAG,

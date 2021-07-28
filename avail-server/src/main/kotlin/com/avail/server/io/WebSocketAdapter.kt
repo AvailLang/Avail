@@ -156,28 +156,28 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private enum class HttpHeaderState
 	{
-		/** Beginning to read, or previously read an "ordinary" character.  */
+		/** Beginning to read, or previously read an "ordinary" character. */
 		START
 		{
 			override fun nextState(c: Int) =
 				if (c == '\r'.code) FIRST_CARRIAGE_RETURN else START
 		},
 
-		/** Just read the first carriage return.  */
+		/** Just read the first carriage return. */
 		FIRST_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
 				if (c == '\n'.code) FIRST_LINE_FEED else START
 		},
 
-		/** Just read the first carriage return + line feed.  */
+		/** Just read the first carriage return + line feed. */
 		FIRST_LINE_FEED
 		{
 			override fun nextState(c: Int) =
 				if (c == '\r'.code) SECOND_CARRIAGE_RETURN else START
 		},
 
-		/** Just read the second carriage return.  */
+		/** Just read the second carriage return. */
 		SECOND_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
@@ -279,16 +279,16 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private enum class HttpStatusCode constructor(val statusCode: Int)
 	{
-		/** Switching protocols.  */
+		/** Switching protocols. */
 		SWITCHING_PROTOCOLS(101),
 
-		/** Bad request.  */
+		/** Bad request. */
 		BAD_REQUEST(400),
 
-		/** Not found.  */
+		/** Not found. */
 		NOT_FOUND(404),
 
-		/** Method not allowed.  */
+		/** Method not allowed. */
 		METHOD_NOT_ALLOWED(405)
 	}
 
@@ -317,15 +317,15 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		val uri: String,
 		headers: Map<String, String>)
 	{
-		/** The HTTP headers.  */
+		/** The HTTP headers. */
 		val headers: Map<String, String> = Collections.unmodifiableMap(headers)
 
 		companion object
 		{
-			/** A [Pattern] for splitting HTTP headers.  */
+			/** A [Pattern] for splitting HTTP headers. */
 			private val splitHeaders = Pattern.compile("(?:\r\n)+")
 
-			/** A [Pattern] for identifying one or more spaces.  */
+			/** A [Pattern] for identifying one or more spaces. */
 			private val manySpaces = Pattern.compile(" +")
 
 			/**
@@ -593,7 +593,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	{
 		companion object
 		{
-			/** A [Pattern] to recognize space padded commas.  */
+			/** A [Pattern] to recognize space padded commas. */
 			private val paddedComma = Pattern.compile(" *, *")
 
 			/**
@@ -1064,7 +1064,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 		companion object
 		{
-			/** An array of all [Opcode] enumeration values.  */
+			/** An array of all [Opcode] enumeration values. */
 			val all = values()
 		}
 	}

@@ -117,7 +117,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		indent: Int)
 	{
 		if (self.slot(CONTENT_TYPE).equals(ANY.o)
-		    && self.slot(SIZE_RANGE).equals(wholeNumbers))
+			&& self.slot(SIZE_RANGE).equals(wholeNumbers))
 		{
 			builder.append("set")
 			return
@@ -156,8 +156,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_EqualsSetType(self: AvailObject, aSetType: A_Type): Boolean =
 		if (self.sameAddressAs(aSetType)) true
 		else self.slot(SIZE_RANGE).equals(aSetType.sizeRange)
-		     && self.slot(CONTENT_TYPE)
-			     .equals(aSetType.contentType)
+			 && self.slot(CONTENT_TYPE)
+				 .equals(aSetType.contentType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
@@ -178,13 +178,13 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		val otherType = aSetType as AvailObject
 		return (otherType.slot(SIZE_RANGE).isSubtypeOf(
 			self.slot(SIZE_RANGE))
-		        && otherType.slot(CONTENT_TYPE).isSubtypeOf(
+				&& otherType.slot(CONTENT_TYPE).isSubtypeOf(
 			self.slot(CONTENT_TYPE)))
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
 		(!self.slot(SIZE_RANGE).lowerBound.equalsInt(0)
-	        && self.slot(CONTENT_TYPE).isVacuousType)
+			&& self.slot(CONTENT_TYPE).isVacuousType)
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
@@ -350,7 +350,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 			assert(sizeRange.lowerBound.isFinite)
 			assert(zero.lessOrEqual(sizeRange.lowerBound))
 			assert(sizeRange.upperBound.isFinite
-			       || !sizeRange.upperInclusive)
+					|| !sizeRange.upperInclusive)
 			val sizeRangeKind =
 				if (sizeRange.isEnumeration) sizeRange.computeSuperkind()
 				else sizeRange
@@ -394,8 +394,8 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 							}
 							contentType.isIntegerRangeType
 							&& (contentType.lowerBound.isFinite
-							    || contentType.upperBound.isFinite
-							    || contentType.lowerBound.equals(
+								|| contentType.upperBound.isFinite
+								|| contentType.lowerBound.equals(
 								contentType.upperBound)) ->
 							{
 								// We had already ruled out ⊥, and the latest
@@ -424,13 +424,13 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [SetTypeDescriptor].  */
+		/** The mutable [SetTypeDescriptor]. */
 		private val mutable = SetTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SetTypeDescriptor].  */
+		/** The shared [SetTypeDescriptor]. */
 		private val shared = SetTypeDescriptor(Mutability.SHARED)
 
-		/** The most general set type.  */
+		/** The most general set type. */
 		private val mostGeneralType: A_Type =
 			setTypeForSizesContentType(wholeNumbers, ANY.o)
 				.makeShared()

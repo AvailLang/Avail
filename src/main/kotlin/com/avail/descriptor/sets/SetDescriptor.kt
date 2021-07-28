@@ -654,16 +654,16 @@ private constructor(
 		fun set(vararg errorCodeElements: AvailErrorCode): A_Set =
 			generateSetFrom(errorCodeElements, AvailErrorCode::numericCode)
 
-		/** The mutable [SetDescriptor].  */
+		/** The mutable [SetDescriptor]. */
 		private val mutable = SetDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [SetDescriptor].  */
+		/** The immutable [SetDescriptor]. */
 		private val immutable = SetDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [SetDescriptor].  */
+		/** The shared [SetDescriptor]. */
 		private val shared = SetDescriptor(Mutability.SHARED)
 
-		/** The empty set.  */
+		/** The empty set. */
 		val emptySet: A_Set = mutable.createShared {
 			setRootBin(this, emptyLinearSetBin(0))
 			hash()

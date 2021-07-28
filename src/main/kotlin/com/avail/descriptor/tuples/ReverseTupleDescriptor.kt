@@ -102,13 +102,13 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 			 */
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 
-			/** The number of elements in this tuple.  */
+			/** The number of elements in this tuple. */
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -440,13 +440,13 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		private const val maximumCopySize = 32
 
-		/** The mutable [ReverseTupleDescriptor].  */
+		/** The mutable [ReverseTupleDescriptor]. */
 		val mutable = ReverseTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ReverseTupleDescriptor].  */
+		/** The immutable [ReverseTupleDescriptor]. */
 		private val immutable = ReverseTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ReverseTupleDescriptor].  */
+		/** The shared [ReverseTupleDescriptor]. */
 		private val shared = ReverseTupleDescriptor(Mutability.SHARED)
 
 		/**

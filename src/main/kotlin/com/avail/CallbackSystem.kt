@@ -82,7 +82,7 @@ import kotlin.concurrent.read
 @Suppress("unused")
 class CallbackSystem
 {
-	/** A mechanism for invoking Java lambdas from Avail.  */
+	/** A mechanism for invoking Java lambdas from Avail. */
 	@FunctionalInterface
 	interface Callback
 	{

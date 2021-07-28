@@ -112,7 +112,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	 */
 	internal abstract class PojoArray<T> : Cloneable, Serializable
 
-	/** The layout of the integer slots.  */
+	/** The layout of the integer slots. */
 	internal enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
@@ -131,7 +131,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		}
 	}
 
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -405,13 +405,13 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			return hash
 		}
 
-		/** The mutable [ArrayPojoTypeDescriptor].  */
+		/** The mutable [ArrayPojoTypeDescriptor]. */
 		private val mutable = ArrayPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ArrayPojoTypeDescriptor].  */
+		/** The immutable [ArrayPojoTypeDescriptor]. */
 		private val immutable = ArrayPojoTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ArrayPojoTypeDescriptor].  */
+		/** The shared [ArrayPojoTypeDescriptor]. */
 		private val shared = ArrayPojoTypeDescriptor(Mutability.SHARED)
 
 		/**
@@ -471,7 +471,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			arrayBaseAncestorMap = javaAncestors.makeShared()
 		}
 
-		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor].  */
+		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor]. */
 		val mostGeneralType: A_Type =
 			pojoArrayType(Types.ANY.o, wholeNumbers).makeShared()
 	}

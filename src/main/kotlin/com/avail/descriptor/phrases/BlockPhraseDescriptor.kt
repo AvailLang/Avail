@@ -736,10 +736,10 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			self.neededVariables = tupleFromList(neededDeclarations)
 		}
 
-		/** The mutable [BlockPhraseDescriptor].  */
+		/** The mutable [BlockPhraseDescriptor]. */
 		private val mutable = BlockPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [BlockPhraseDescriptor].  */
+		/** The shared [BlockPhraseDescriptor]. */
 		private val shared = BlockPhraseDescriptor(Mutability.SHARED)
 	}
 }

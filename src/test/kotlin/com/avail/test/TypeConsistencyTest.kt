@@ -256,20 +256,20 @@ class TypeConsistencyTest
 				}
 			}
 
-			/** The most general metatype.  */
+			/** The most general metatype. */
 			private val TOP_META = Node(
 				"TOP_META", topMeta(), primitiveTypes[Types.ANY]!!)
 
-			/** The type of `any`.  */
+			/** The type of `any`. */
 			private val ANY_META = Node("ANY_META", anyMeta(), TOP_META)
 
-			/** The type of `nontype`.  */
+			/** The type of `nontype`. */
 			private val NONTYPE_META = Node(
 				"NONTYPE_META",
 				instanceMeta(Types.NONTYPE.o),
 				ANY_META)
 
-			/** The type `tuple`  */
+			/** The type `tuple`. */
 			private val TUPLE = Node(
 				"TUPLE",
 				mostGeneralTupleType,
@@ -281,25 +281,25 @@ class TypeConsistencyTest
 			 */
 			private val STRING = Node("STRING", stringType, TUPLE)
 
-			/** The type `tuple [1..1] of character`  */
+			/** The type `tuple [1..1] of character`. */
 			private val UNIT_STRING = Node(
 				"UNIT_STRING", stringFrom("x").kind(), STRING)
 
-			/** The type `type of <>`  */
+			/** The type `type of <>`. */
 			private val EMPTY_TUPLE = Node(
 				"EMPTY_TUPLE", emptyTuple.kind(), TUPLE, STRING)
 
-			/** The type `set`  */
+			/** The type `set`. */
 			private val SET = Node(
 				"SET", mostGeneralSetType(), primitiveTypes[Types.NONTYPE]!!)
 
-			/** The most general fiber type.  */
+			/** The most general fiber type. */
 			private val FIBER = Node(
 				"FIBER",
 				mostGeneralFiberType(),
 				primitiveTypes[Types.NONTYPE]!!)
 
-			/** The most general function type.  */
+			/** The most general function type. */
 			private val MOST_GENERAL_FUNCTION = Node(
 				"MOST_GENERAL_FUNCTION",
 				mostGeneralFunctionType(),
@@ -332,7 +332,7 @@ class TypeConsistencyTest
 				functionType(tuple(integers, integers), integers),
 				MOST_GENERAL_FUNCTION)
 
-			/** The most specific function type, other than bottom.  */
+			/** The most specific function type, other than bottom. */
 			private val MOST_SPECIFIC_FUNCTION = Node(
 				"MOST_SPECIFIC_FUNCTION",
 				functionTypeFromArgumentTupleType(

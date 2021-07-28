@@ -236,11 +236,11 @@ class FirstOfSequencePhraseDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [FirstOfSequencePhraseDescriptor].  */
+		/** The mutable [FirstOfSequencePhraseDescriptor]. */
 		private val mutable =
 			FirstOfSequencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [FirstOfSequencePhraseDescriptor].  */
+		/** The shared [FirstOfSequencePhraseDescriptor]. */
 		private val shared =
 			FirstOfSequencePhraseDescriptor(Mutability.SHARED)
 	}

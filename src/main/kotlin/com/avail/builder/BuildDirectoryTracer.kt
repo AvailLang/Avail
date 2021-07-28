@@ -67,15 +67,15 @@ class BuildDirectoryTracer constructor(
 	var availBuilder: AvailBuilder,
 	originalAfterTraceCompletes: ()->Unit)
 {
-	/** The trace requests that have been scheduled.  */
+	/** The trace requests that have been scheduled. */
 	@GuardedBy("this")
 	private val traceRequests = synchronizedSet(mutableSetOf<URI>())
 
-	/** The traces that have been completed.  */
+	/** The traces that have been completed. */
 	@GuardedBy("this")
 	private val traceCompletions = synchronizedSet(mutableSetOf<URI>())
 
-	/** A flag to indicate when all requests have been queued.  */
+	/** A flag to indicate when all requests have been queued. */
 	@GuardedBy("this")
 	private var allQueued = false
 

@@ -114,5 +114,5 @@ object P_PublishName : Primitive(
 		enumerationWith(set(
 			E_LOADING_IS_OVER,
 			E_CANNOT_DEFINE_DURING_COMPILATION,
-		    E_AMBIGUOUS_NAME))
+			E_AMBIGUOUS_NAME))
 }

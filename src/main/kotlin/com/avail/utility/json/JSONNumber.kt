@@ -44,7 +44,7 @@ import java.math.BigInteger
 @Suppress("unused")
 class JSONNumber : JSONData
 {
-	/** The [BigDecimal] that encodes the value.  */
+	/** The [BigDecimal] that encodes the value. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	val bigDecimal: BigDecimal
 

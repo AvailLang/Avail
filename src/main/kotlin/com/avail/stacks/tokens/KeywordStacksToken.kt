@@ -235,7 +235,7 @@ abstract class KeywordStacksToken constructor(
 		companion object
 		{
 
-			/** An array of all [StacksKeyword] enumeration values.  */
+			/** An array of all [StacksKeyword] enumeration values. */
 			private val all = values()
 
 			/**

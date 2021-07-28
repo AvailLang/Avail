@@ -141,7 +141,7 @@ class LiteralTokenDescriptor private constructor(
 		 */
 		NEXT_LEXING_STATE_POJO,
 
-		/** The actual [AvailObject] wrapped by this token.  */
+		/** The actual [AvailObject] wrapped by this token. */
 		LITERAL;
 
 		companion object
@@ -287,10 +287,10 @@ class LiteralTokenDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [LiteralTokenDescriptor].  */
+		/** The mutable [LiteralTokenDescriptor]. */
 		private val mutable = LiteralTokenDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralTokenDescriptor].  */
+		/** The shared [LiteralTokenDescriptor]. */
 		private val shared = LiteralTokenDescriptor(Mutability.SHARED)
 	}
 }

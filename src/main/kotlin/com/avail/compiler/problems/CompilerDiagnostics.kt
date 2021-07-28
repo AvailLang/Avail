@@ -133,7 +133,7 @@ class CompilerDiagnostics(
 	 */
 	private var liveTokens = mutableListOf<A_Token>()
 
-	/** A lock to protect access to [liveTokens].  */
+	/** A lock to protect access to [liveTokens]. */
 	private val liveTokensLock = ReentrantReadWriteLock()
 
 	/**
@@ -193,7 +193,7 @@ class CompilerDiagnostics(
 
 		companion object
 		{
-			/** Capture the values once in an array.  */
+			/** Capture the values once in an array. */
 			private val all = values()
 
 			/**
@@ -858,11 +858,11 @@ class CompilerDiagnostics(
 
 	companion object
 	{
-		/** A bunch of dash characters, wide enough to catch the eye.  */
+		/** A bunch of dash characters, wide enough to catch the eye. */
 		private const val rowOfDashes =
 			"---------------------------------------------------------------------"
 
-		/** The 26 letters of the English alphabet, inside circles.  */
+		/** The 26 letters of the English alphabet, inside circles. */
 		private const val circledLetters =
 			"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
 

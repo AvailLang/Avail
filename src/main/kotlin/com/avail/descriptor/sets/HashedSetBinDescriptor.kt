@@ -535,7 +535,7 @@ class HashedSetBinDescriptor private constructor(
 		descriptorFor(Mutability.SHARED, level)
 
 	companion object {
-		/** Whether to do sanity checks on hashed set bins' hashes.  */
+		/** Whether to do sanity checks on hashed set bins' hashes. */
 		private const val checkBinHashes = false
 
 		/**

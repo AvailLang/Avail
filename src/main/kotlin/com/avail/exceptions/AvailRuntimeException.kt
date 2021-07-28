@@ -43,7 +43,7 @@ import com.avail.descriptor.representation.AvailObject
  */
 open class AvailRuntimeException : RuntimeException
 {
-	/** The [error code][AvailErrorCode].  */
+	/** The [error code][AvailErrorCode]. */
 	val errorCode: AvailErrorCode
 
 	/**

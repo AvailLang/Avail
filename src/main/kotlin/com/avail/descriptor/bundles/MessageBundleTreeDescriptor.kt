@@ -894,7 +894,7 @@ class MessageBundleTreeDescriptor private constructor(
 			return newOuterMap.makeShared()
 		}
 
-		/** A [Statistic] for tracking bundle tree invalidations.  */
+		/** A [Statistic] for tracking bundle tree invalidations. */
 		private val invalidationsStat = Statistic(
 			EXPANDING_PARSING_INSTRUCTIONS, "(invalidations)")
 
@@ -1284,10 +1284,10 @@ class MessageBundleTreeDescriptor private constructor(
 			setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump)
 		}
 
-		/** The mutable [MessageBundleTreeDescriptor].  */
+		/** The mutable [MessageBundleTreeDescriptor]. */
 		private val mutable = MessageBundleTreeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MessageBundleTreeDescriptor].  */
+		/** The shared [MessageBundleTreeDescriptor]. */
 		private val shared = MessageBundleTreeDescriptor(Mutability.SHARED)
 	}
 }

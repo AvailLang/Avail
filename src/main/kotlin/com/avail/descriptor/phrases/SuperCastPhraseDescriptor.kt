@@ -212,10 +212,10 @@ class SuperCastPhraseDescriptor private constructor(
 			setSlot(TYPE_FOR_LOOKUP, superUnionType)
 		}
 
-		/** The mutable [SuperCastPhraseDescriptor].  */
+		/** The mutable [SuperCastPhraseDescriptor]. */
 		private val mutable = SuperCastPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SuperCastPhraseDescriptor].  */
+		/** The shared [SuperCastPhraseDescriptor]. */
 		private val shared = SuperCastPhraseDescriptor(Mutability.SHARED)
 	}
 }

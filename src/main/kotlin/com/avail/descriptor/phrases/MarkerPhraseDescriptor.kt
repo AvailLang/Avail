@@ -187,10 +187,10 @@ class MarkerPhraseDescriptor private constructor(
 				setSlot(MARKER_VALUE, markerValue!!)
 			}
 
-		/** The mutable [MarkerPhraseDescriptor].  */
+		/** The mutable [MarkerPhraseDescriptor]. */
 		private val mutable = MarkerPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MarkerPhraseDescriptor].  */
+		/** The shared [MarkerPhraseDescriptor]. */
 		private val shared = MarkerPhraseDescriptor(Mutability.SHARED)
 	}
 }

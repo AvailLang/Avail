@@ -943,13 +943,13 @@ class DeclarationPhraseDescriptor(
 			initializationExpression,
 			literalVariable)
 
-		/** The mutable [DeclarationPhraseDescriptor]s.  */
+		/** The mutable [DeclarationPhraseDescriptor]s. */
 		private val mutables = DeclarationKind.values().map {
 			DeclarationPhraseDescriptor(Mutability.MUTABLE, it)
 		}.toTypedArray()
 
 
-		/** The shared [DeclarationPhraseDescriptor]s.  */
+		/** The shared [DeclarationPhraseDescriptor]s. */
 		private val shareds = DeclarationKind.values().map {
 			DeclarationPhraseDescriptor(Mutability.SHARED, it)
 		}.toTypedArray()

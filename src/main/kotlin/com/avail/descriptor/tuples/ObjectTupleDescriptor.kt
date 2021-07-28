@@ -94,7 +94,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-					   == HASH_AND_MORE.ordinal)
+						== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -584,7 +584,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			return result
 		}
 
-		/** Access to the [tupleFromArray] method.  */
+		/** Access to the [tupleFromArray] method. */
 		var tupleFromArrayMethod = staticMethod(
 			ObjectTupleDescriptor::class.java,
 			::tupleFromArray.name,
@@ -808,13 +808,13 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			return result
 		}
 
-		/** The mutable `ObjectTupleDescriptor`.  */
+		/** The mutable `ObjectTupleDescriptor`. */
 		val mutable = ObjectTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable `ObjectTupleDescriptor`.  */
+		/** The immutable `ObjectTupleDescriptor`. */
 		private val immutable = ObjectTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared `ObjectTupleDescriptor`.  */
+		/** The shared `ObjectTupleDescriptor`. */
 		private val shared = ObjectTupleDescriptor(Mutability.SHARED)
 	}
 }

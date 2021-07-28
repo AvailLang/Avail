@@ -216,7 +216,7 @@ private constructor(
 		assert(this == instruction.operation())
 		val sources: L2ReadVectorOperand<R, RR> = instruction.operand(0)
 		assert(sources.elements().size
-				   == instruction.basicBlock().predecessorEdges().size)
+					== instruction.basicBlock().predecessorEdges().size)
 		val list = mutableListOf<L2BasicBlock>()
 		var i = 0
 		instruction.basicBlock().predecessorEdges().forEach {

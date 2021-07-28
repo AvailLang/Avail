@@ -1559,7 +1559,7 @@ class Interpreter(
 	@Volatile
 	var function: A_Function? = null
 
-	/** The [L2Chunk] being executed.  */
+	/** The [L2Chunk] being executed. */
 	@ReferencedInGeneratedCode
 	@JvmField
 	var chunk: L2Chunk? = null
@@ -1921,7 +1921,7 @@ class Interpreter(
 		}
 	}
 
-	/** An indication that a reification action is running.  */
+	/** An indication that a reification action is running. */
 	var isReifying = false
 
 	/**
@@ -2587,15 +2587,15 @@ class Interpreter(
 
 	companion object
 	{
-		/** Whether to print detailed Level One debug information.  */
+		/** Whether to print detailed Level One debug information. */
 		@Volatile
 		var debugL1 = false
 
-		/** Whether to print detailed Level Two debug information.  */
+		/** Whether to print detailed Level Two debug information. */
 		@Volatile
 		var debugL2 = false
 
-		/** Whether to print detailed Primitive debug information.  */
+		/** Whether to print detailed Primitive debug information. */
 		@Volatile
 		var debugPrimitives = false
 
@@ -2625,23 +2625,23 @@ class Interpreter(
 		@Volatile
 		var debugCustom = false
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		private val mainLogger = Logger.getLogger(
 			Interpreter::class.java.canonicalName)
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		val loggerDebugL1: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugL1")
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		val loggerDebugL2: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugL2")
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		val loggerDebugJVM: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugJVM")
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		private val loggerDebugPrimitives = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugPrimitives")
 
@@ -2879,51 +2879,51 @@ class Interpreter(
 		fun currentOrNull(): Interpreter? =
 			AvailThread.currentOrNull()?.interpreter
 
-		/** Access the [callerIsReified] method.  */
+		/** Access the [callerIsReified] method. */
 		val callerIsReifiedMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::callerIsReified.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** The [CheckedField] for [runtime].  */
+		/** The [CheckedField] for [runtime]. */
 		val runtimeField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::runtime.name,
 			AvailRuntime::class.java)
 
-		/** Access the [setLatestResult] method.  */
+		/** Access the [setLatestResult] method. */
 		var setLatestResultMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setLatestResult.name,
 			Void.TYPE,
 			A_BasicObject::class.java)
 
-		/** Access the [getLatestResult] method.  */
+		/** Access the [getLatestResult] method. */
 		var getLatestResultMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getLatestResult.name,
 			AvailObject::class.java)
 
-		/** The [CheckedField] for the field argsBuffer.  */
+		/** The [CheckedField] for the field argsBuffer. */
 		val interpreterReturningFunctionField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::returningFunction.name,
 			A_Function::class.java)
 
-		/** Access the [returnNow] field.  */
+		/** Access the [returnNow] field. */
 		val returnNowField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::returnNow.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** The method [beforeAttemptPrimitive].  */
+		/** The method [beforeAttemptPrimitive]. */
 		var beforeAttemptPrimitiveMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::beforeAttemptPrimitive.name,
 			Long::class.javaPrimitiveType!!,
 			Primitive::class.java)
 
-		/** The method [afterAttemptPrimitive].  */
+		/** The method [afterAttemptPrimitive]. */
 		var afterAttemptPrimitiveMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::afterAttemptPrimitive.name,
@@ -2932,20 +2932,20 @@ class Interpreter(
 			Long::class.javaPrimitiveType!!,
 			Result::class.java)
 
-		/** Access the [getReifiedContinuation] method.  */
+		/** Access the [getReifiedContinuation] method. */
 		val getReifiedContinuationMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getReifiedContinuation.name,
 			AvailObject::class.java)
 
-		/** Access the [setReifiedContinuation] method.  */
+		/** Access the [setReifiedContinuation] method. */
 		val setReifiedContinuationMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setReifiedContinuation.name,
 			Void.TYPE,
 			A_Continuation::class.java)
 
-		/** Access the [popContinuation] method.  */
+		/** Access the [popContinuation] method. */
 		var popContinuationMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::popContinuation.name,
@@ -2957,31 +2957,31 @@ class Interpreter(
 		 */
 		private const val maxUnreifiedCallDepth = 50
 
-		/** The [CheckedField] for the field [function].  */
+		/** The [CheckedField] for the field [function]. */
 		val interpreterFunctionField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::function.name,
 			A_Function::class.java)
 
-		/** Access to the field [chunk].  */
+		/** Access to the field [chunk]. */
 		var chunkField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::chunk.name,
 			L2Chunk::class.java)
 
-		/** The [CheckedField] for [offset].  */
+		/** The [CheckedField] for [offset]. */
 		val offsetField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::offset.name,
 			Int::class.javaPrimitiveType!!)
 
-		/** The [CheckedField] for the field [.argsBuffer].  */
+		/** The [CheckedField] for the field [.argsBuffer]. */
 		val argsBufferField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::argsBuffer.name,
 			MutableList::class.java)
 
-		/** The [CheckedField] for [.levelOneStepper].  */
+		/** The [CheckedField] for [.levelOneStepper]. */
 		val levelOneStepperField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::levelOneStepper.name,
@@ -2992,13 +2992,13 @@ class Interpreter(
 		 */
 		private const val timeSliceTicks = 20
 
-		/** Access the [isInterruptRequested] method.  */
+		/** Access the [isInterruptRequested] method. */
 		val isInterruptRequestedMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::isInterruptRequested.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** A method to access [checkValidity].  */
+		/** A method to access [checkValidity]. */
 		val checkValidityMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::checkValidity.name,
@@ -3014,7 +3014,7 @@ class Interpreter(
 			StackReifier::class.java,
 			A_Continuation::class.java)
 
-		/** The [CheckedMethod] for [reify].  */
+		/** The [CheckedMethod] for [reify]. */
 		val reifyMethod: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reify.name,
@@ -3033,14 +3033,14 @@ class Interpreter(
 			A_Continuation::class.java,
 			Array<AvailObject>::class.java)
 
-		/** Access the [preinvoke0] method.  */
+		/** Access the [preinvoke0] method. */
 		var preinvoke0Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke0.name,
 			AvailObject::class.java,
 			A_Function::class.java)
 
-		/** Access the [preinvoke1] method.  */
+		/** Access the [preinvoke1] method. */
 		var preinvoke1Method: CheckedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke1.name,

@@ -618,15 +618,15 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		private fun getSuperkind(self: AvailObject): A_Type =
 			getInstance(self).kind()
 
-		/** The mutable [InstanceTypeDescriptor].  */
+		/** The mutable [InstanceTypeDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [InstanceTypeDescriptor].  */
+		/** The immutable [InstanceTypeDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [InstanceTypeDescriptor].  */
+		/** The shared [InstanceTypeDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.SHARED)
 

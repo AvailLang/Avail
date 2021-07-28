@@ -291,10 +291,10 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 */
 	class ModuleNameResolutionResult
 	{
-		/** The module that was successfully resolved, or null if not found.  */
+		/** The module that was successfully resolved, or null if not found. */
 		internal val resolvedModule: ResolvedModuleName?
 
-		/** An exception if the module was not found, or null if it was.  */
+		/** An exception if the module was not found, or null if it was. */
 		internal val exception: UnresolvedDependencyException?
 
 		/**

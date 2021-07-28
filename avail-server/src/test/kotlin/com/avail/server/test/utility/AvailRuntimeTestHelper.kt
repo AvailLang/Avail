@@ -95,23 +95,23 @@ class AvailRuntimeTestHelper
 
 	val moduleRoots: ModuleRoots = createModuleRoots(fileManager)
 
-	/** The [module name resolver][ModuleNameResolver].  */
+	/** The [module name resolver][ModuleNameResolver]. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	val resolver: ModuleNameResolver by lazy {
 		createModuleNameResolver(moduleRoots)
 	}
 
-	/** The [Avail runtime][AvailRuntime].  */
+	/** The [Avail runtime][AvailRuntime]. */
 	val runtime: AvailRuntime = createAvailRuntime(resolver, fileManager)
 
-	/** The [Avail builder][AvailBuilder].  */
+	/** The [Avail builder][AvailBuilder]. */
 	val builder: AvailBuilder = createAvailBuilder()
 
-	/** The last [System.currentTimeMillis] that an update was shown.  */
+	/** The last [System.currentTimeMillis] that an update was shown. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var lastUpdateMillis: Long = 0
 
-	/** The maximum notification rate for partially-loaded modules.  */
+	/** The maximum notification rate for partially-loaded modules. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var updateRateMillis: Long = 500
 
@@ -139,7 +139,7 @@ class AvailRuntimeTestHelper
 	class TestErrorChannel internal constructor(
 		private val errorChannel: TextOutputChannel) : TextOutputChannel
 	{
-		/** Has an error been detected?  */
+		/** Has an error been detected? */
 		var errorDetected = false
 
 		override fun <A> write(
@@ -228,7 +228,7 @@ class AvailRuntimeTestHelper
 		return channel.errorDetected
 	}
 
-	/** The global status notification text.  */
+	/** The global status notification text. */
 	@Volatile
 	private var globalStatus = ""
 

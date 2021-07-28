@@ -67,7 +67,7 @@ object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 		val blockSignature = interpreter.argument(1)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
-		             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+					 ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
@@ -95,8 +95,8 @@ object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
-			    E_AMBIGUOUS_NAME, E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-			    E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
-			    E_METHOD_IS_SEALED)
+				E_AMBIGUOUS_NAME, E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
+				E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS,
+				E_METHOD_IS_SEALED)
 				.setUnionCanDestroy(possibleErrors, true))
 }

@@ -225,7 +225,7 @@ class MapDescriptor private constructor(
 				AvailObjectFieldHelper(
 					self,
 					object : ObjectSlotsEnum {
-						/** The cached entry name.  */
+						/** The cached entry name. */
 						private var name: String? = null
 
 						override fun fieldName(): String {
@@ -814,7 +814,7 @@ class MapDescriptor private constructor(
 			}
 		}
 
-		/** The empty map.  */
+		/** The empty map. */
 		val emptyMap: A_Map =
 			createFromBin(emptyLinearMapBin(0)).let {
 				it.hash()
@@ -831,7 +831,7 @@ class MapDescriptor private constructor(
 		@JvmStatic
 		fun emptyAvailMap() = emptyMap
 
-		/** The [CheckedMethod] for [emptyMap].  */
+		/** The [CheckedMethod] for [emptyMap]. */
 		val emptyMapMethod: CheckedMethod = staticMethod(
 			MapDescriptor::class.java,
 			::emptyAvailMap.name,

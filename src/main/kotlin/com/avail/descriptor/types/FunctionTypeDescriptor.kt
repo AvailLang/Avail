@@ -604,13 +604,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			return hash
 		}
 
-		/** The mutable [FunctionTypeDescriptor].  */
+		/** The mutable [FunctionTypeDescriptor]. */
 		private val mutable = FunctionTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [FunctionTypeDescriptor].  */
+		/** The immutable [FunctionTypeDescriptor]. */
 		private val immutable = FunctionTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [FunctionTypeDescriptor].  */
+		/** The shared [FunctionTypeDescriptor]. */
 		private val shared = FunctionTypeDescriptor(Mutability.SHARED)
 
 		/**

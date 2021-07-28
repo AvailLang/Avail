@@ -46,7 +46,7 @@ import java.util.Random
  */
 class PrefixSharingListTest
 {
-	/** A pseudo-random generator for the tests.  */
+	/** A pseudo-random generator for the tests. */
 	private val rnd = Random()
 
 	/**

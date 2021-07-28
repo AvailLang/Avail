@@ -95,7 +95,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 	: PojoTypeDescriptor(
 		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
-	/** The layout of the integer slots.  */
+	/** The layout of the integer slots. */
 	internal enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
@@ -114,7 +114,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		}
 	}
 
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -314,7 +314,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 					val otherJavaClass = ancestor.javaObjectNotNull<Class<*>>()
 					val otherModifiers = otherJavaClass.modifiers
 					if (Modifier.isFinal(otherModifiers)
-					    || !Modifier.isInterface(otherModifiers))
+						|| !Modifier.isInterface(otherModifiers))
 					{
 						return pojoBottom()
 					}
@@ -351,7 +351,7 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 		// bottom (because Java doesn't support multiple inheritance of
 		// classes).
 		if (!Modifier.isInterface(modifiers)
-		    && !Modifier.isInterface(otherModifiers))
+			&& !Modifier.isInterface(otherModifiers))
 		{
 			return pojoBottom()
 		}
@@ -534,16 +534,16 @@ internal class UnfusedPojoTypeDescriptor constructor(mutability: Mutability)
 			return hash
 		}
 
-		/** The mutable [UnfusedPojoTypeDescriptor].  */
+		/** The mutable [UnfusedPojoTypeDescriptor]. */
 		private val mutable = UnfusedPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [UnfusedPojoTypeDescriptor].  */
+		/** The immutable [UnfusedPojoTypeDescriptor]. */
 		private val immutable = UnfusedPojoTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [UnfusedPojoTypeDescriptor].  */
+		/** The shared [UnfusedPojoTypeDescriptor]. */
 		private val shared = UnfusedPojoTypeDescriptor(Mutability.SHARED)
 
-		/** The most general [pojo&#32;type][PojoTypeDescriptor].  */
+		/** The most general [pojo&#32;type][PojoTypeDescriptor]. */
 		val mostGeneralType: A_Type =
 			pojoTypeForClass(Any::class.java).makeShared()
 

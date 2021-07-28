@@ -57,37 +57,37 @@ enum class StreamStyle constructor(
 	light: Color,
 	dark: Color)
 {
-	/** The stream style used to echo user input.  */
+	/** The stream style used to echo user input. */
 	IN_ECHO(
 		"input",
 		light = Color(32, 144, 32),
 		dark = Color(55, 156, 26)),
 
-	/** The stream style used to display normal output.  */
+	/** The stream style used to display normal output. */
 	OUT(
 		"output",
 		light = Color.BLACK,
 		dark = Color(238, 238, 238)),
 
-	/** The stream style used to display error output.  */
+	/** The stream style used to display error output. */
 	ERR(
 		"error",
 		light = Color.RED,
 		dark = Color(231, 70, 68)),
 
-	/** The stream style used to display informational text.  */
+	/** The stream style used to display informational text. */
 	INFO(
 		"info",
 		light = Color.BLUE,
 		dark = Color(83, 148, 236)),
 
-	/** The stream style used to echo commands.  */
+	/** The stream style used to echo commands. */
 	COMMAND(
 		"command",
 		light = Color.MAGENTA,
 		dark = Color(174, 138, 190)),
 
-	/** Progress updates produced by a build.  */
+	/** Progress updates produced by a build. */
 	BUILD_PROGRESS(
 		"build",
 		light = Color(128, 96, 0),

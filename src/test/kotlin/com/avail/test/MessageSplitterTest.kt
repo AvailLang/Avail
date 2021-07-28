@@ -272,7 +272,7 @@ class MessageSplitterTest private constructor ()
 		 */
 		@SafeVarargs fun <X> A (vararg x: X): Array<X> = x.cast()
 
-		/** Test cases.  */
+		/** Test cases. */
 		private val splitCases: Array<Case>
 
 		/**

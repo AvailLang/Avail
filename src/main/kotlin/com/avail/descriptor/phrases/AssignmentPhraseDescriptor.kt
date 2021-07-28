@@ -303,10 +303,10 @@ class AssignmentPhraseDescriptor private constructor(
 			setSlot(IS_INLINE, if (isInline) 1 else 0)
 		}
 
-		/** The mutable [AssignmentPhraseDescriptor].  */
+		/** The mutable [AssignmentPhraseDescriptor]. */
 		private val mutable = AssignmentPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [AssignmentPhraseDescriptor].  */
+		/** The shared [AssignmentPhraseDescriptor]. */
 		private val shared = AssignmentPhraseDescriptor(Mutability.SHARED)
 	}
 }

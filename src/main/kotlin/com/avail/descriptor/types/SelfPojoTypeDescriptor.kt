@@ -83,7 +83,7 @@ import java.util.IdentityHashMap
 class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	: PojoTypeDescriptor(mutability, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -119,7 +119,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		// or a self type.
 		val other: A_BasicObject = aPojoType.pojoSelfType()
 		return (self.slot(JAVA_CLASS).equals(other.javaClass())
-		        && self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
+				&& self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
 	}
 
 	// Note that this definition produces a value compatible with an unfused
@@ -296,10 +296,10 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 
 	companion object
 	{
-		/** The mutable [SelfPojoTypeDescriptor].  */
+		/** The mutable [SelfPojoTypeDescriptor]. */
 		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SelfPojoTypeDescriptor].  */
+		/** The shared [SelfPojoTypeDescriptor]. */
 		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)
 
 		/**

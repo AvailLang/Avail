@@ -79,7 +79,7 @@ object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
 				when {
 					exponentSign.extractBoolean -> ""
 					else -> "-"} +
-			    exponentPart.asNativeString()
+				exponentPart.asNativeString()
 		val result: A_Number
 		try
 		{

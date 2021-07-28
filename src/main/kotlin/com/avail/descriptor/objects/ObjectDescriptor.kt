@@ -595,7 +595,7 @@ class ObjectDescriptor internal constructor(
 			return self
 		}
 
-		/** Access the [setField] method.  */
+		/** Access the [setField] method. */
 		var setFieldMethod: CheckedMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,

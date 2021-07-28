@@ -489,13 +489,13 @@ class DotWriter constructor(
 	 */
 	enum class DefaultAttributeBlockType
 	{
-		/** Graph scope.  */
+		/** Graph scope. */
 		GRAPH,
 
-		/** Node scope.  */
+		/** Node scope. */
 		NODE,
 
-		/** Edge scope.  */
+		/** Edge scope. */
 		EDGE
 	}
 
@@ -508,31 +508,31 @@ class DotWriter constructor(
 	 */
 	enum class CompassPoint
 	{
-		/** Northwest.  */
+		/** Northwest. */
 		NW,
 
-		/** North.  */
+		/** North. */
 		N,
 
-		/** Northeast.  */
+		/** Northeast. */
 		NE,
 
-		/** West.  */
+		/** West. */
 		W,
 
-		/** Center.  */
+		/** Center. */
 		C,
 
-		/** East.  */
+		/** East. */
 		E,
 
-		/** Southwest.  */
+		/** Southwest. */
 		SW,
 
-		/** South.  */
+		/** South. */
 		S,
 
-		/** Southeast.  */
+		/** Southeast. */
 		SE
 	}
 
@@ -1017,7 +1017,7 @@ class DotWriter constructor(
 	companion object
 	{
 
-		/** A single tab character as a [Pattern].  */
+		/** A single tab character as a [Pattern]. */
 		private val tab = Pattern.compile("\t", Pattern.LITERAL)
 
 		/**
@@ -1036,7 +1036,7 @@ class DotWriter constructor(
 				Matcher.quoteReplacement("    "))
 		}
 
-		/** A single line-feed character as a [Pattern].  */
+		/** A single line-feed character as a [Pattern]. */
 		private val lineFeed = Pattern.compile("\n", Pattern.LITERAL)
 
 		/**
@@ -1074,7 +1074,7 @@ class DotWriter constructor(
 		internal val keywords = setOf(
 			"strict", "graph", "digraph", "subgraph", "node", "edge")
 
-		/** A pattern for matching tokens.  */
+		/** A pattern for matching tokens. */
 		internal val tokenPattern = Pattern.compile("[A-Za-z0-9]+")
 
 		/**

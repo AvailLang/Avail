@@ -59,13 +59,13 @@ import java.lang.String.format
  */
 enum class ReportingUnit (private vararg val ranges: Range)
 {
-	/** The number of nanoseconds taken by some activity.  */
+	/** The number of nanoseconds taken by some activity. */
 	NANOSECONDS(
 		Range(999_999_500.0, POSITIVE_INFINITY, 1.0e-9, "%, 8.3f s "),
 		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f ms"),
 		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "%, 8.3f µs")),
 
-	/** The number of bytes consumed or produced by some activity.  */
+	/** The number of bytes consumed or produced by some activity. */
 	@Suppress("unused")
 	BYTES(
 		Range(999_999_999_500.0, POSITIVE_INFINITY, 1.0e-12, "%, 8.3f TB"),
@@ -74,12 +74,12 @@ enum class ReportingUnit (private vararg val ranges: Range)
 		Range(999.5, 999_999.5, 1.0e-3, "%, 8.3f KB"),
 		Range(NEGATIVE_INFINITY, 999.5, 1.0e0, "%, 8.0f B ", "%, 8.3f B ")),
 
-	/** A dimensionless measurement, such as a count of something.  */
+	/** A dimensionless measurement, such as a count of something. */
 	@Suppress("unused")
 	DIMENSIONLESS_DOUBLE(
 		Range(NEGATIVE_INFINITY, POSITIVE_INFINITY, 1.0, "%, 10.3f")),
 
-	/** A dimensionless measurement, such as a count of something.  */
+	/** A dimensionless measurement, such as a count of something. */
 	DIMENSIONLESS_INTEGRAL(
 		Range(
 			NEGATIVE_INFINITY,

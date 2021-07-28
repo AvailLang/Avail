@@ -402,7 +402,7 @@ class BottomTypeDescriptor private constructor()
 
 	companion object
 	{
-		/** The shared [BottomTypeDescriptor].  */
+		/** The shared [BottomTypeDescriptor]. */
 		private val shared = BottomTypeDescriptor()
 
 		/**
@@ -410,7 +410,7 @@ class BottomTypeDescriptor private constructor()
 		 */
 		val bottom: A_Type = shared.create()
 
-		/** The meta-type with exactly one instance, [bottom].  */
+		/** The meta-type with exactly one instance, [bottom]. */
 		val bottomMeta: A_Type = instanceMeta(bottom).makeShared()
 	}
 }

@@ -121,9 +121,9 @@ class ListPhraseTypeDescriptor internal constructor(
 			init
 			{
 				assert(PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-					       == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO
-					       .isSamePlaceAs(HASH_OR_ZERO))
+							.isSamePlaceAs(HASH_OR_ZERO))
 			}
 		}
 	}
@@ -151,7 +151,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			init
 			{
 				assert(PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE.ordinal
-				       == EXPRESSION_TYPE.ordinal)
+						== EXPRESSION_TYPE.ordinal)
 			}
 		}
 	}
@@ -250,7 +250,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		// Intersection of two list phrase types.
 		val intersectionKind = self.phraseKind.commonDescendantWith(
 			aListNodeType.phraseKind)
-		                       ?: return bottom
+								?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListPhraseType(
 			intersectionKind,
@@ -340,10 +340,10 @@ class ListPhraseTypeDescriptor internal constructor(
 		builder.append(")")
 	}
 
-	/** A static inner type that delays initialization until first use.  */
+	/** A static inner type that delays initialization until first use. */
 	private object Empty
 	{
-		/** The empty list phrase's type.  */
+		/** The empty list phrase's type. */
 		val empty: A_Type = createListNodeTypeNoCheck(
 			PhraseKind.LIST_PHRASE,
 			tupleTypeForTypes(),

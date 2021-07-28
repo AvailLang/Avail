@@ -126,7 +126,7 @@ class LongTupleDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -680,13 +680,13 @@ class LongTupleDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [LongTupleDescriptor].  */
+		/** The mutable [LongTupleDescriptor]. */
 		private val mutable = LongTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [LongTupleDescriptor].  */
+		/** The immutable [LongTupleDescriptor]. */
 		private val immutable = LongTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [LongTupleDescriptor].  */
+		/** The shared [LongTupleDescriptor]. */
 		private val shared = LongTupleDescriptor(Mutability.SHARED)
 	}
 }

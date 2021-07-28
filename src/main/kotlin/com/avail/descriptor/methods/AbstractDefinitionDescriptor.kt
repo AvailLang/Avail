@@ -185,10 +185,10 @@ class AbstractDefinitionDescriptor private constructor(
 			setSlot(BODY_SIGNATURE, bodySignature)
 		}
 
-		/** The mutable [AbstractDefinitionDescriptor].  */
+		/** The mutable [AbstractDefinitionDescriptor]. */
 		private val mutable = AbstractDefinitionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [AbstractDefinitionDescriptor].  */
+		/** The shared [AbstractDefinitionDescriptor]. */
 		private val shared = AbstractDefinitionDescriptor(Mutability.SHARED)
 	}
 }

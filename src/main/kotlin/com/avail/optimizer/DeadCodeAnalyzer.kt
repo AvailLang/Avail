@@ -69,7 +69,7 @@ internal class DeadCodeAnalyzer constructor(
 	private val edgeNeeds =
 		mutableMapOf<L2PcOperand, MutableSet<L2EntityAndKind>>()
 
-	/** The [L2Instruction]s that have been marked as live so far.  */
+	/** The [L2Instruction]s that have been marked as live so far. */
 	private val liveInstructions = mutableSetOf<L2Instruction>()
 
 	/**
@@ -191,7 +191,7 @@ internal class DeadCodeAnalyzer constructor(
 					nCopies(predecessorCount, neededEntities)
 			}
 			assert(block.predecessorEdges().isNotEmpty()
-			   || neededEntities.isEmpty())
+				|| neededEntities.isEmpty())
 			{
 				("Instruction consumes $neededEntities but a preceding "
 					+ "definition was not found")
@@ -201,7 +201,7 @@ internal class DeadCodeAnalyzer constructor(
 				// No need to copy it, as it won't be modified again.
 				val entities = entitySetIterator.next()
 				assert(edgeNeeds.containsKey(predecessor)
-				   == predecessor.isBackward)
+					== predecessor.isBackward)
 				if (!predecessor.isBackward)
 				{
 					edgeNeeds[predecessor] = entities

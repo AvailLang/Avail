@@ -61,7 +61,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 @TestInstance(Lifecycle.PER_CLASS)
 class AvailTest
 {
-	/** Setup for the test.  */
+	/** Setup for the test. */
 	private var helper: AvailRuntimeTestHelper? = null
 
 	/**

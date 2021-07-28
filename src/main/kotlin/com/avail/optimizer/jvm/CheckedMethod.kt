@@ -97,16 +97,16 @@ class CheckedMethod private constructor(
 	vararg argumentTypes: Class<*>)
 {
 
-	/** Whether the method is defined in an interface.  */
+	/** Whether the method is defined in an interface. */
 	private val isInterface: Boolean
 
-	/** The canonical name of the class in which the method is defined.  */
+	/** The canonical name of the class in which the method is defined. */
 	private val receiverClassInternalName: String
 
-	/** The canonical name of the method arguments.  */
+	/** The canonical name of the method arguments. */
 	private val methodDescriptorString: String
 
-	/** The canonical name of the cast target, or null if no cast is needed.  */
+	/** The canonical name of the cast target, or null if no cast is needed. */
 	private var internalNameToCheckCastOrNull: String? = null
 
 	/**
@@ -285,9 +285,10 @@ class CheckedMethod private constructor(
 			// the wrong method.
 			@Suppress("UNUSED_VARIABLE")
 			val annotation = method.getAnnotation(
-				ReferencedInGeneratedCode::class.java)
-					 ?: error("Method $methodNameString should have had " +
-						  "ReferencedInGeneratedCode annotation")
+				ReferencedInGeneratedCode::class.java) ?:
+					error(
+						"Method $methodNameString should have had " +
+							"ReferencedInGeneratedCode annotation")
 		}
 		val modifiers = method.modifiers
 		assert(modifiers and Modifier.PUBLIC != 0)

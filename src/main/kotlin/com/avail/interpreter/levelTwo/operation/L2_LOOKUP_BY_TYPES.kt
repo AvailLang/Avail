@@ -104,7 +104,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 	PC.named("lookup succeeded", SUCCESS),
 	PC.named("lookup failed", FAILURE))
 {
-	/** The type of failure codes that a failed lookup can produce.  */
+	/** The type of failure codes that a failed lookup can produce. */
 	private val failureCodesType =
 		AbstractEnumerationTypeDescriptor.enumerationWith(set(
 			E_NO_METHOD,

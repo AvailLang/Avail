@@ -265,10 +265,10 @@ class SendPhraseDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [SendPhraseDescriptor].  */
+		/** The mutable [SendPhraseDescriptor]. */
 		private val mutable = SendPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SendPhraseDescriptor].  */
+		/** The shared [SendPhraseDescriptor]. */
 		private val shared = SendPhraseDescriptor(Mutability.SHARED)
 	}
 }

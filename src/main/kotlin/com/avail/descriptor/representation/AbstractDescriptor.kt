@@ -3995,7 +3995,7 @@ abstract class AbstractDescriptor protected constructor (
 		private val emptyDebugObjectSlots: Array<Array<ObjectSlotsEnum>?> =
 			arrayOf()
 
-		/** A reusable empty array for when field checking is disabled.  */
+		/** A reusable empty array for when field checking is disabled. */
 		private val emptyDebugIntegerSlots: Array<Array<IntegerSlotsEnum>?> =
 			arrayOf()
 
@@ -4295,7 +4295,7 @@ abstract class AbstractDescriptor protected constructor (
 		 * A thread-safe, low-contention map from each encountered
 		 * [AbstractDescriptor] class to the [Statistic] that tracks its
 		 * allocations.
- 		 */
+		 */
 		private val allocationStatisticsByClass =
 			ConcurrentHashMap<Class<AbstractDescriptor>, Statistic>()
 

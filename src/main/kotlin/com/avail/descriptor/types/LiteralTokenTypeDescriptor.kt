@@ -224,13 +224,13 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(LITERAL_TYPE, literalType.makeImmutable())
 			}
 
-		/** The mutable [LiteralTokenTypeDescriptor].  */
+		/** The mutable [LiteralTokenTypeDescriptor]. */
 		private val mutable = LiteralTokenTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralTokenTypeDescriptor].  */
+		/** The shared [LiteralTokenTypeDescriptor]. */
 		private val shared = LiteralTokenTypeDescriptor(Mutability.SHARED)
 
-		/** The most general literal token type  */
+		/** The most general literal token type. */
 		private val mostGeneralType: A_Type =
 			literalTokenType(ANY.o).makeShared()
 

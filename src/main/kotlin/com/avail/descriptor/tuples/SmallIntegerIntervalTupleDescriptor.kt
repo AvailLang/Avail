@@ -96,7 +96,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
-		/** [BitField]s containing the extrema of the tuple.  */
+		/** [BitField]s containing the extrema of the tuple. */
 		START_AND_END,
 
 		/**
@@ -107,10 +107,10 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 
 		companion object
 		{
-			/** The number of elements in the tuple.  */
+			/** The number of elements in the tuple. */
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
-			/** The first value in the tuple, inclusive.  */
+			/** The first value in the tuple, inclusive. */
 			val START = BitField(START_AND_END, 32, 32)
 
 			/**
@@ -130,7 +130,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -558,15 +558,15 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		 */
 		private const val maximumCopySize = 32
 
-		/** The mutable [SmallIntegerIntervalTupleDescriptor].  */
+		/** The mutable [SmallIntegerIntervalTupleDescriptor]. */
 		private val mutable =
 			SmallIntegerIntervalTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [IntegerIntervalTupleDescriptor].  */
+		/** The immutable [IntegerIntervalTupleDescriptor]. */
 		private val immutable =
 			SmallIntegerIntervalTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [SmallIntegerIntervalTupleDescriptor].  */
+		/** The shared [SmallIntegerIntervalTupleDescriptor]. */
 		private val shared =
 			SmallIntegerIntervalTupleDescriptor(Mutability.SHARED)
 
@@ -597,7 +597,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			}
 			val size =
 				((newEnd.extractLong - newStart.extractLong)
-				 	/ delta.extractInt + 1L)
+					/ delta.extractInt + 1L)
 			// Watch out for the case that they're all ints, but the size is
 			// bigger than Integer.MAX_VALUE.  (e.g., -2 billion to +2 billion
 			// has a size of 4 billion, which is bigger than a signed int can

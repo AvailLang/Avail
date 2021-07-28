@@ -160,7 +160,7 @@ enum class ParsingConversionRule constructor(val number: Int)
 
 	companion object
 	{
-		/** An array of all [ParsingConversionRule]s.  */
+		/** An array of all [ParsingConversionRule]s. */
 		private val all = values()
 
 		/**

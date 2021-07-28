@@ -61,7 +61,7 @@ internal class LoadingEffectToRunPrimitive constructor(
 	private val primitiveBundle: A_Bundle,
 	vararg arguments: A_BasicObject) : LoadingEffect()
 {
-	/** The array of arguments to pass to the primitive.  */
+	/** The array of arguments to pass to the primitive. */
 	internal val arguments: Array<out A_BasicObject> = arguments.clone()
 
 	init

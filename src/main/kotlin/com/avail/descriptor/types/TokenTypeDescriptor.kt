@@ -203,10 +203,10 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal.toLong())
 			}
 
-		/** The mutable [TokenTypeDescriptor].  */
+		/** The mutable [TokenTypeDescriptor]. */
 		private val mutable = TokenTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [TokenTypeDescriptor].  */
+		/** The shared [TokenTypeDescriptor]. */
 		private val shared = TokenTypeDescriptor(Mutability.SHARED)
 	}
 }

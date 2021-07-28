@@ -224,15 +224,15 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aTupleType: A_Type): Boolean =
 			(self.sameAddressAs(aTupleType)
-		        || (self.slot(SIZE_RANGE).equals(aTupleType.sizeRange)
-	            && self.slot(DEFAULT_TYPE).equals(aTupleType.defaultType)
-	            && self.slot(TYPE_TUPLE).equals(aTupleType.typeTuple)))
+				|| (self.slot(SIZE_RANGE).equals(aTupleType.sizeRange)
+				&& self.slot(DEFAULT_TYPE).equals(aTupleType.defaultType)
+				&& self.slot(TYPE_TUPLE).equals(aTupleType.typeTuple)))
 
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
 		anotherObject: A_BasicObject): Boolean =
 			(self.representationCostOfTupleType()
-		        < anotherObject.representationCostOfTupleType())
+				< anotherObject.representationCostOfTupleType())
 
 	override fun o_RepresentationCostOfTupleType(self: AvailObject): Int = 1
 
@@ -683,7 +683,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			assert(sizeRange.lowerBound.isFinite)
 			assert(sizeRange.upperBound.isFinite || !sizeRange.upperInclusive)
 			if (sizeRange.upperBound.equalsInt(0)
-			    && sizeRange.lowerBound.equalsInt(0))
+				&& sizeRange.lowerBound.equalsInt(0))
 			{
 				return privateTupleTypeForSizesTypesDefaultType(
 					sizeRange, emptyTuple, bottom)
@@ -702,7 +702,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 					typeTuple.tupleAt(upper).makeImmutable())
 			}
 			if (typeTupleSize > 0
-			    && typeTuple.tupleAt(typeTupleSize).equals(defaultType))
+				&& typeTuple.tupleAt(typeTupleSize).equals(defaultType))
 			{
 				//  See how many other redundant entries we can drop.
 				var index = typeTupleSize - 1
@@ -779,7 +779,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				tupleFromArray(*types),
 				bottom)
 
-		/** Access the method [tupleTypeForTypes].  */
+		/** Access the method [tupleTypeForTypes]. */
 		var tupleTypesForTypesArrayMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
 			::tupleTypeForTypes.name,
@@ -803,7 +803,7 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 				tupleFromList(types),
 				bottom)
 
-		/** Access the method [tupleTypeForTypes].  */
+		/** Access the method [tupleTypeForTypes]. */
 		@Suppress("unused")
 		val tupleTypesForTypesListMethod = staticMethod(
 			TupleTypeDescriptor::class.java,
@@ -879,25 +879,25 @@ class TupleTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable `TupleTypeDescriptor`.  */
+		/** The mutable `TupleTypeDescriptor`. */
 		private val mutable = TupleTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable `TupleTypeDescriptor`.  */
+		/** The immutable `TupleTypeDescriptor`. */
 		private val immutable = TupleTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared `TupleTypeDescriptor`.  */
+		/** The shared `TupleTypeDescriptor`. */
 		private val shared = TupleTypeDescriptor(Mutability.SHARED)
 
-		/** The most general tuple type.  */
+		/** The most general tuple type. */
 		val mostGeneralTupleType: A_Type = zeroOrMoreOf(ANY.o).makeShared()
 
-		/** The most general string type (i.e., tuples of characters).  */
+		/** The most general string type (i.e., tuples of characters). */
 		val stringType: A_Type = zeroOrMoreOf(CHARACTER.o).makeShared()
 
-		/** The most general string type (i.e., tuples of characters).  */
+		/** The most general string type (i.e., tuples of characters). */
 		val nonemptyStringType: A_Type = oneOrMoreOf(CHARACTER.o).makeShared()
 
-		/** The metatype for all tuple types.  */
+		/** The metatype for all tuple types. */
 		val tupleMeta: A_Type = instanceMeta(mostGeneralTupleType).makeShared()
 	}
 }

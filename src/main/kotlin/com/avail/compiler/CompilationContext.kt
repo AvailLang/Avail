@@ -169,10 +169,10 @@ class CompilationContext constructor(
 	 */
 	val loader = AvailLoader(module, textInterface)
 
-	/** The number of work units that have been queued.  */
+	/** The number of work units that have been queued. */
 	private val atomicWorkUnitsQueued = AtomicLong(0)
 
-	/** The number of work units that have been completed.  */
+	/** The number of work units that have been completed. */
 	private val atomicWorkUnitsCompleted = AtomicLong(0)
 
 	/**
@@ -183,7 +183,7 @@ class CompilationContext constructor(
 		set(newNoMoreWorkUnits)
 		{
 			assert(newNoMoreWorkUnits === null
-				   != (this.noMoreWorkUnits === null)) {
+					!= (this.noMoreWorkUnits === null)) {
 				"noMoreWorkUnits must transition to or from null"
 			}
 
@@ -223,7 +223,7 @@ class CompilationContext constructor(
 				}
 		}
 
-	/** The output stream on which the serializer writes.  */
+	/** The output stream on which the serializer writes. */
 	val serializerOutputStream = IndexedFile.ByteArrayOutputStream(1000)
 
 	/**
@@ -232,7 +232,7 @@ class CompilationContext constructor(
 	 */
 	internal val serializer = Serializer(serializerOutputStream, module)
 
-	/** The cached module name.  */
+	/** The cached module name. */
 	@Volatile
 	private var debugModuleName: String? = null
 
@@ -900,7 +900,7 @@ class CompilationContext constructor(
 
 	companion object
 	{
-		/** The [logger][Logger].  */
+		/** The [logger][Logger]. */
 		val logger: Logger = Logger.getLogger(
 			CompilationContext::class.java.name)
 	}

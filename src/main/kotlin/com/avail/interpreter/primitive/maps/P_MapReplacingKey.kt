@@ -96,7 +96,7 @@ object P_MapReplacingKey : Primitive(3, CannotFail, CanFold, CanInline)
 		// Now there's at least one element.
 		var newMin = oldSizes.lowerBound
 		if (oldMapKeyType.typeIntersection(newKeyType).isBottom
-		    || newMin.equalsInt(0))
+			|| newMin.equalsInt(0))
 		{
 			newMin = newMin.plusCanDestroy(one, false)
 		}

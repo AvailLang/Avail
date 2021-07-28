@@ -129,7 +129,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -141,7 +141,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The first value in the tuple, inclusive.  */
+		/** The first value in the tuple, inclusive. */
 		START,
 
 		/**
@@ -333,8 +333,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 						.equals(otherDirect.slot(START)))
 				{
 					// then we're adjacent.
-					val newSize = self.slot(SIZE) +
-								  otherDirect.slot(SIZE)
+					val newSize = self.slot(SIZE) + otherDirect.slot(SIZE)
 
 					// If we can do replacement in place,
 					// use me for the return value.
@@ -576,7 +575,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			// If there are fewer than maximumCopySize members in this interval,
 			// create a normal tuple with them in it instead of an interval tuple.
 			val size = 1 +
-					   difference.divideCanDestroy(delta, false).extractInt
+						difference.divideCanDestroy(delta, false).extractInt
 			if (size < maximumCopySize)
 			{
 				val members = mutableListOf<A_Number>()
@@ -638,14 +637,14 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [IntegerIntervalTupleDescriptor].  */
+		/** The mutable [IntegerIntervalTupleDescriptor]. */
 		val mutable = IntegerIntervalTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [IntegerIntervalTupleDescriptor].  */
+		/** The immutable [IntegerIntervalTupleDescriptor]. */
 		private val immutable =
 			IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [IntegerIntervalTupleDescriptor].  */
+		/** The shared [IntegerIntervalTupleDescriptor]. */
 		private val shared = IntegerIntervalTupleDescriptor(Mutability.SHARED)
 	}
 }

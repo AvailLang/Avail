@@ -164,14 +164,14 @@ open class PhraseTypeDescriptor protected constructor(
 		private val parentKind: PhraseKind?,
 		val typeTag: TypeTag) : IntegerEnumSlotDescriptionEnum
 	{
-		/** The root phrase kind.  */
+		/** The root phrase kind. */
 		PARSE_PHRASE("phrase type", null, TypeTag.PHRASE_TAG),
 
-		/** The kind of a parse marker.  */
+		/** The kind of a parse marker. */
 		MARKER_PHRASE(
 			"marker phrase type", PARSE_PHRASE, TypeTag.MARKER_PHRASE_TAG),
 
-		/** The abstract parent kind of all expression phrases.  */
+		/** The abstract parent kind of all expression phrases. */
 		EXPRESSION_PHRASE(
 			"expression phrase type",
 			PARSE_PHRASE,
@@ -185,7 +185,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.ASSIGNMENT_PHRASE_TAG),
 
-		/** The kind of a [block&#32;phrase][BlockPhraseDescriptor].  */
+		/** The kind of a [block&#32;phrase][BlockPhraseDescriptor]. */
 		BLOCK_PHRASE(
 			"block phrase type",
 			EXPRESSION_PHRASE,
@@ -229,15 +229,15 @@ open class PhraseTypeDescriptor protected constructor(
 			override fun mostGeneralYieldType(): A_Type = ANY.o
 		},
 
-		/** The kind of a [send&#32;phrase][SendPhraseDescriptor].  */
+		/** The kind of a [send&#32;phrase][SendPhraseDescriptor]. */
 		SEND_PHRASE(
 			"send phrase type", EXPRESSION_PHRASE, TypeTag.SEND_PHRASE_TAG),
 
-		/** The kind of a [list&#32;phrase][ListPhraseDescriptor].  */
+		/** The kind of a [list&#32;phrase][ListPhraseDescriptor]. */
 		LIST_PHRASE(
 			"list phrase type", EXPRESSION_PHRASE, TypeTag.LIST_PHRASE_TAG)
 		{
-			/** Create a descriptor for this kind.  */
+			/** Create a descriptor for this kind. */
 			override fun createDescriptor(
 				mutability: Mutability): PhraseTypeDescriptor =
 					ListPhraseTypeDescriptor(mutability, this)
@@ -264,7 +264,7 @@ open class PhraseTypeDescriptor protected constructor(
 			LIST_PHRASE,
 			TypeTag.PERMUTED_LIST_PHRASE_TAG)
 		{
-			/** Create a descriptor for this kind.  */
+			/** Create a descriptor for this kind. */
 			override fun createDescriptor(
 				mutability: Mutability): PhraseTypeDescriptor =
 					ListPhraseTypeDescriptor(mutability, this)
@@ -295,7 +295,7 @@ open class PhraseTypeDescriptor protected constructor(
 			override fun mostGeneralYieldType(): A_Type = ANY.o
 		},
 
-		/** A phrase that does not produce a result.  */
+		/** A phrase that does not produce a result. */
 		STATEMENT_PHRASE(
 			"statement phrase type",
 			PARSE_PHRASE,
@@ -326,43 +326,43 @@ open class PhraseTypeDescriptor protected constructor(
 			STATEMENT_PHRASE,
 			TypeTag.DECLARATION_PHRASE_TAG),
 
-		/** The kind of an argument declaration phrase.  */
+		/** The kind of an argument declaration phrase. */
 		ARGUMENT_PHRASE(
 			"argument phrase type",
 			DECLARATION_PHRASE,
 			TypeTag.ARGUMENT_PHRASE_TAG),
 
-		/** The kind of a label declaration phrase.  */
+		/** The kind of a label declaration phrase. */
 		LABEL_PHRASE(
 			"label phrase type",
 			DECLARATION_PHRASE,
 			TypeTag.LABEL_PHRASE_TAG),
 
-		/** The kind of a local variable declaration phrase.  */
+		/** The kind of a local variable declaration phrase. */
 		LOCAL_VARIABLE_PHRASE(
 			"local variable phrase type",
 			DECLARATION_PHRASE,
 			TypeTag.LOCAL_VARIABLE_PHRASE_TAG),
 
-		/** The kind of a local constant declaration phrase.  */
+		/** The kind of a local constant declaration phrase. */
 		LOCAL_CONSTANT_PHRASE(
 			"local constant phrase type",
 			DECLARATION_PHRASE,
 			TypeTag.LOCAL_CONSTANT_PHRASE_TAG),
 
-		/** The kind of a module variable declaration phrase.  */
+		/** The kind of a module variable declaration phrase. */
 		MODULE_VARIABLE_PHRASE(
 			"module variable phrase type",
 			DECLARATION_PHRASE,
 			TypeTag.MODULE_VARIABLE_PHRASE_TAG),
 
-		/** The kind of a module constant declaration phrase.  */
+		/** The kind of a module constant declaration phrase. */
 		MODULE_CONSTANT_PHRASE(
 			"module constant phrase type",
 			DECLARATION_PHRASE,
 			TypeTag.MODULE_CONSTANT_PHRASE_TAG),
 
-		/** The kind of a primitive failure reason variable declaration.  */
+		/** The kind of a primitive failure reason variable declaration. */
 		PRIMITIVE_FAILURE_REASON_PHRASE(
 			"primitive failure reason phrase type",
 			DECLARATION_PHRASE,
@@ -377,7 +377,7 @@ open class PhraseTypeDescriptor protected constructor(
 			STATEMENT_PHRASE,
 			TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG),
 
-		/** The result of a macro substitution.  */
+		/** The result of a macro substitution. */
 		MACRO_SUBSTITUTION_PHRASE(
 			"macro substitution phrase type",
 			PARSE_PHRASE,
@@ -456,10 +456,10 @@ open class PhraseTypeDescriptor protected constructor(
 				setSlot(EXPRESSION_TYPE, yieldType.makeImmutable())
 			}
 
-		/** The descriptor for mutable instances of this kind.  */
+		/** The descriptor for mutable instances of this kind. */
 		val mutableDescriptor: PhraseTypeDescriptor
 
-		/** The descriptor for shared instances of this kind.  */
+		/** The descriptor for shared instances of this kind. */
 		val sharedDescriptor: PhraseTypeDescriptor
 
 		/** The most general type for this kind of phrase. */
@@ -551,7 +551,7 @@ open class PhraseTypeDescriptor protected constructor(
 
 		companion object
 		{
-			/** An array of all `PhraseKind` enumeration values.  */
+			/** An array of all `PhraseKind` enumeration values. */
 			private val all = values()
 
 			/**
@@ -686,7 +686,7 @@ open class PhraseTypeDescriptor protected constructor(
 		self: AvailObject,
 		aPhraseType: A_Type): Boolean =
 			(kind === aPhraseType.phraseKind
-		        && self.slot(EXPRESSION_TYPE).equals(
+				&& self.slot(EXPRESSION_TYPE).equals(
 					aPhraseType.phraseTypeExpressionType))
 
 	/**
@@ -709,7 +709,7 @@ open class PhraseTypeDescriptor protected constructor(
 		self: AvailObject,
 		aListNodeType: A_Type): Boolean =
 			(PhraseKind.LIST_PHRASE.isSubkindOf(kind)
-		        && aListNodeType.phraseTypeExpressionType.isSubtypeOf(
+				&& aListNodeType.phraseTypeExpressionType.isSubtypeOf(
 					self.phraseTypeExpressionType))
 
 	override fun o_IsSupertypeOfPhraseType(
@@ -718,7 +718,7 @@ open class PhraseTypeDescriptor protected constructor(
 	{
 		val otherKind = aPhraseType.phraseKind
 		return (otherKind.isSubkindOf(kind)
-		        && aPhraseType.phraseTypeExpressionType.isSubtypeOf(
+				&& aPhraseType.phraseTypeExpressionType.isSubtypeOf(
 			self.phraseTypeExpressionType))
 	}
 
@@ -758,7 +758,7 @@ open class PhraseTypeDescriptor protected constructor(
 		// Intersection of two list phrase types.
 		val intersectionKind = kind.commonDescendantWith(
 			aListNodeType.phraseKind)
-		                       ?: return bottom
+								?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return createListPhraseType(
 			intersectionKind,
@@ -845,7 +845,7 @@ open class PhraseTypeDescriptor protected constructor(
 	 */
 	object Constants
 	{
-		/** The phrase type for string literals.  */
+		/** The phrase type for string literals. */
 		val stringLiteralType: A_Type = LITERAL_PHRASE.create(
 			literalTokenType(stringType)).makeShared()
 	}

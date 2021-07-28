@@ -235,10 +235,10 @@ class LiteralPhraseDescriptor(
 		): A_Phrase = literalNodeFromToken(
 			literalToken(literalAsString, 0, 0, literalValue))
 
-		/** The mutable [LiteralPhraseDescriptor].  */
+		/** The mutable [LiteralPhraseDescriptor]. */
 		private val mutable = LiteralPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralPhraseDescriptor].  */
+		/** The shared [LiteralPhraseDescriptor]. */
 		private val shared = LiteralPhraseDescriptor(Mutability.SHARED)
 	}
 }

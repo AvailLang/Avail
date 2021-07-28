@@ -81,7 +81,7 @@ class PojoFinalFieldDescriptor(
 ) : Descriptor(
 	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -196,13 +196,13 @@ class PojoFinalFieldDescriptor(
 
 	companion object
 	{
-		/** The mutable [PojoFinalFieldDescriptor].  */
+		/** The mutable [PojoFinalFieldDescriptor]. */
 		private val mutable = PojoFinalFieldDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [PojoFinalFieldDescriptor].  */
+		/** The immutable [PojoFinalFieldDescriptor]. */
 		private val immutable = PojoFinalFieldDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [PojoFinalFieldDescriptor].  */
+		/** The shared [PojoFinalFieldDescriptor]. */
 		private val shared = PojoFinalFieldDescriptor(Mutability.SHARED)
 
 		/**

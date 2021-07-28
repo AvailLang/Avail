@@ -606,7 +606,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 	}
 
-	/** A counter for uniquely naming subgraphs.  */
+	/** A counter for uniquely naming subgraphs. */
 	private var subgraphNumber = 1
 
 	/**
@@ -869,7 +869,7 @@ class L2ControlFlowGraphVisualizer constructor(
 
 		private const val commentTextColor = "#404040/a0a0a0"
 
-		/** Characters that should be removed outright from class names.  */
+		/** Characters that should be removed outright from class names. */
 		private val matchUglies = Pattern.compile("[\"\\\\]")
 
 		/**

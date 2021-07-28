@@ -214,10 +214,10 @@ class ForwardDefinitionDescriptor private constructor(
 			setSlot(BODY_SIGNATURE, bodySignature)
 		}
 
-		/** The mutable [ForwardDefinitionDescriptor].  */
+		/** The mutable [ForwardDefinitionDescriptor]. */
 		private val mutable = ForwardDefinitionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ForwardDefinitionDescriptor].  */
+		/** The shared [ForwardDefinitionDescriptor]. */
 		private val shared = ForwardDefinitionDescriptor(Mutability.SHARED)
 	}
 }

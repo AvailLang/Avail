@@ -181,7 +181,7 @@ open class RawPojoDescriptor protected constructor(
 	 */
 	internal enum class FakeSlots : ObjectSlotsEnum
 	{
-		/** The sole (pseudo-)slot, the java object itself.  */
+		/** The sole (pseudo-)slot, the java object itself. */
 		JAVA_OBJECT
 	}
 
@@ -239,7 +239,7 @@ open class RawPojoDescriptor protected constructor(
 		 */
 		fun rawObjectClass(): AvailObject = rawObjectClass
 
-		/** The `null` [pojo][PojoDescriptor].  */
+		/** The `null` [pojo][PojoDescriptor]. */
 		private val rawNullObject = identityPojo(null).makeShared()
 
 		/**

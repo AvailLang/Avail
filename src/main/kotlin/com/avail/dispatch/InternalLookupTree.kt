@@ -91,16 +91,16 @@ internal constructor(
 	private val knownArgumentRestrictions: List<TypeRestriction>)
 : LookupTree<Element, Result>()
 {
-	/** The type to test against an argument type at this node.  */
+	/** The type to test against an argument type at this node. */
 	@Volatile internal var argumentTypeToTest: A_Type? = null
 
-	/** The 1-based index of the argument to be tested at this node.  */
+	/** The 1-based index of the argument to be tested at this node. */
 	internal var argumentPositionToTest = -1
 
-	/** The tree to visit if the supplied arguments conform.  */
+	/** The tree to visit if the supplied arguments conform. */
 	internal var ifCheckHolds: LookupTree<Element, Result>? = null
 
-	/** The tree to visit if the supplied arguments do not conform.  */
+	/** The tree to visit if the supplied arguments do not conform. */
 	internal var ifCheckFails: LookupTree<Element, Result>? = null
 
 	/** `true` if this node has been expanded, otherwise `false`. */

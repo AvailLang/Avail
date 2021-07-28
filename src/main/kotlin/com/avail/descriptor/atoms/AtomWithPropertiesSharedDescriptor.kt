@@ -334,11 +334,11 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		private val initialPrivateMutable =
 			AtomWithPropertiesSharedDescriptor(MUTABLE, false, TypeTag.ATOM_TAG)
 
-		/** The shared [AtomWithPropertiesDescriptor].  */
+		/** The shared [AtomWithPropertiesDescriptor]. */
 		val shared =
 			AtomWithPropertiesSharedDescriptor(SHARED, false, TypeTag.ATOM_TAG)
 
-		/** The shared [AtomWithPropertiesDescriptor].  */
+		/** The shared [AtomWithPropertiesDescriptor]. */
 		val sharedSpecial =
 			AtomWithPropertiesSharedDescriptor(SHARED, true, TypeTag.ATOM_TAG)
 

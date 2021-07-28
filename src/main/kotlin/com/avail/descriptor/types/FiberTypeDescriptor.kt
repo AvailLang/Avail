@@ -70,7 +70,7 @@ import java.util.IdentityHashMap
  * Construct a new [FiberTypeDescriptor].
  *
  * @param mutability
-   * The [mutability][Mutability] of the new descriptor.
+	* The [mutability][Mutability] of the new descriptor.
  */
 class FiberTypeDescriptor constructor (mutability: Mutability)
 	: TypeDescriptor(
@@ -204,10 +204,10 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 
 	companion object
 	{
-		/** The mutable [FiberTypeDescriptor].  */
+		/** The mutable [FiberTypeDescriptor]. */
 		val mutable = FiberTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [FiberTypeDescriptor].  */
+		/** The shared [FiberTypeDescriptor]. */
 		private val shared = FiberTypeDescriptor(Mutability.SHARED)
 
 		/**

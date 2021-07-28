@@ -267,13 +267,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		// Sanity check certain conditions.
 		assert(!primitiveFlags.contains(CanFold)
-		       || primitiveFlags.contains(CanInline))
+				|| primitiveFlags.contains(CanInline))
 		{
 			("Primitive ${this@Primitive.javaClass.simpleName} has CanFold " +
 				"without CanInline")
 		}
 		assert(!primitiveFlags.contains(Invokes)
-		       || primitiveFlags.contains(CanInline))
+				|| primitiveFlags.contains(CanInline))
 		{
 			("Primitive ${this@Primitive.javaClass.simpleName} has Invokes " +
 				"without CanInline")
@@ -786,7 +786,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// to inline it.
 		if (hasFlag(CanSuspend)
 			|| hasFlag(Invokes)
-		    || fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
+			|| fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			return false
 		}
@@ -839,10 +839,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 	companion object
 	{
-		/** A map of all [PrimitiveHolder]s, by name.  */
+		/** A map of all [PrimitiveHolder]s, by name. */
 		val holdersByName: Map<String, PrimitiveHolder>
 
-		/** A map of all [PrimitiveHolder]s, by class name.  */
+		/** A map of all [PrimitiveHolder]s, by class name. */
 		private val holdersByClassName: Map<String, PrimitiveHolder>
 
 		/**
@@ -858,9 +858,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		private val primitiveNamePattern = Pattern.compile("P_(\\w+)")
 
 		/*
-	     * Read from allPrimitivesFileName to get a complete manifest of
-	     * accessible primitives.  Don't actually load the primitives yet.
-	     */
+		 * Read from allPrimitivesFileName to get a complete manifest of
+		 * accessible primitives.  Don't actually load the primitives yet.
+		 */
 		init
 		{
 			val byNames = mutableMapOf<String, PrimitiveHolder>()
@@ -964,7 +964,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			return string.ifEmpty { null }
 		}
 
-		/** The method [attempt].  */
+		/** The method [attempt]. */
 		val attemptMethod: CheckedMethod = instanceMethod(
 			Primitive::class.java,
 			Primitive::attempt.name,
