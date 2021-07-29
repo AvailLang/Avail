@@ -109,7 +109,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
-import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.resolver.ResolverReference
 import com.avail.resolver.ResourceType
 import com.avail.stacks.StacksGenerator
@@ -141,14 +140,12 @@ import java.io.UnsupportedEncodingException
 import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.currentTimeMillis
-import java.net.URI
 import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.Arrays.sort
 import java.util.Collections
 import java.util.Collections.synchronizedMap
-import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -324,7 +321,7 @@ class AvailWorkbench internal constructor (
 	 * command is added to the end of the list.  Cursor-up retrieves the most
 	 * recent selected line, and subsequent cursors-up retrieve previous lines,
 	 * back to the first entry, then an empty command line, then the last entry
-	 * again an so on.  An initial cursor-down selects the first entry and goes
+	 * again and so on.  An initial cursor-down selects the first entry and goes
 	 * from there.
 	 */
 	val commandHistory = mutableListOf<String>()
@@ -416,7 +413,7 @@ class AvailWorkbench internal constructor (
 	/** The [toggle L2 debug action][ToggleDebugInterpreterL2]. */
 	private val toggleDebugL2 = ToggleDebugInterpreterL2(this)
 
-	/** The [ToggleL2SanityCheck] toggle L2 sanity checks action}. */
+	/** The [ToggleL2SanityCheck] toggle L2 sanity checks action. */
 	private val toggleL2SanityCheck = ToggleL2SanityCheck(this)
 
 	/**
@@ -540,7 +537,7 @@ class AvailWorkbench internal constructor (
 	private var taskGate = AtomicBoolean(false)
 
 	/**
-	 * `AbstractWorkbenchTask` is a foundation for long running [AvailBuilder]
+	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
 	 * operations.
 	 *
 	 * @property workbench
@@ -773,7 +770,7 @@ class AvailWorkbench internal constructor (
 				length - statusSize + lengthToInsert - maxDocumentSize
 			if (amountToRemove > 0)
 			{
-				// We need to trim off some of the document, right after the
+				// We need to trim off part of the document, right after the
 				// module status area.
 				val beforeRemove = System.nanoTime()
 				document.remove(
@@ -997,8 +994,7 @@ class AvailWorkbench internal constructor (
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
 
-		val treeRoot = DefaultMutableTreeNode(
-			"(packages hidden root)")
+		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
 		val rootCount = AtomicInteger(roots.roots.size)
 		// Put the invisible root onto the work stack.
 		roots.roots.forEach { root ->
@@ -1016,16 +1012,12 @@ class AvailWorkbench internal constructor (
 						{
 							sortedRootNodes.sort()
 							sortedRootNodes.forEach { m -> treeRoot.add(m) }
-							val enumeration: Enumeration<DefaultMutableTreeNode> =
-								treeRoot.preorderEnumeration().cast()
-							// Skip the invisible root.
-							enumeration.nextElement()
-							while (enumeration.hasMoreElements())
-							{
-								val subNode: AbstractBuilderFrameTreeNode =
-									enumeration.nextElement().cast()
-								subNode.sortChildren()
-							}
+							val iterator:
+									Iterator<AbstractBuilderFrameTreeNode> =
+								treeRoot.preorderEnumeration().iterator().cast()
+							iterator.next()
+							iterator.forEachRemaining(
+								AbstractBuilderFrameTreeNode::sortChildren)
 							withTreeNode(treeRoot)
 						}
 					}
@@ -1128,42 +1120,42 @@ class AvailWorkbench internal constructor (
 		val mutex = ReentrantReadWriteLock()
 		val moduleNodes = synchronizedMap(
 			mutableMapOf<String, DefaultMutableTreeNode>())
-		availBuilder.traceDirectoriesThen({ resolvedName, moduleVersion, after ->
-			val entryPoints = moduleVersion.getEntryPoints()
-			if (entryPoints.isNotEmpty())
-			{
-				val moduleNode =
-					EntryPointModuleNode(availBuilder, resolvedName)
-				entryPoints.forEach { entryPoint ->
-					val entryPointNode = EntryPointNode(
-						availBuilder, resolvedName, entryPoint)
-					moduleNode.add(entryPointNode)
+		availBuilder.traceDirectoriesThen(
+			action = { resolvedName, moduleVersion, after ->
+				val entryPoints = moduleVersion.getEntryPoints()
+				if (entryPoints.isNotEmpty())
+				{
+					val moduleNode =
+						EntryPointModuleNode(availBuilder, resolvedName)
+					entryPoints.forEach { entryPoint ->
+						val entryPointNode = EntryPointNode(
+							availBuilder, resolvedName, entryPoint)
+						moduleNode.add(entryPointNode)
+					}
+					mutex.safeWrite {
+						moduleNodes[resolvedName.qualifiedName] = moduleNode
+					}
 				}
-				mutex.safeWrite {
-					moduleNodes.put(resolvedName.qualifiedName, moduleNode)
-				}
-			}
-			after()
-		}) {
-			val entryPointsTreeRoot =
-				DefaultMutableTreeNode("(entry points hidden root)")
+				after()
+			},
+			afterAll = {
+				val entryPointsTreeRoot =
+					DefaultMutableTreeNode("(entry points hidden root)")
 
-			val mapKeys = moduleNodes.keys.toTypedArray()
-			sort(mapKeys)
-			mapKeys.forEach { moduleLabel ->
-				entryPointsTreeRoot.add(moduleNodes[moduleLabel])
-			}
-			val enumeration: Enumeration<DefaultMutableTreeNode> =
-				entryPointsTreeRoot.preorderEnumeration().cast()
-			// Skip the invisible root.
-			enumeration.nextElement()
-			for (node in enumeration)
-			{
-				val strongNode: AbstractBuilderFrameTreeNode = node.cast()
-				strongNode.sortChildren()
-			}
-			 withTreeNode(entryPointsTreeRoot)
-		}
+				val mapKeys = moduleNodes.keys.toTypedArray()
+				sort(mapKeys)
+				mapKeys.forEach { moduleLabel ->
+					entryPointsTreeRoot.add(moduleNodes[moduleLabel])
+				}
+				val iterator: Iterator<DefaultMutableTreeNode> =
+					entryPointsTreeRoot.preorderEnumeration().iterator().cast()
+				// Skip the invisible root.
+				iterator.next()
+				iterator.forEachRemaining { node ->
+					(node as AbstractBuilderFrameTreeNode).sortChildren()
+				}
+				withTreeNode(entryPointsTreeRoot)
+			})
 	}
 
 	/**
@@ -1184,24 +1176,15 @@ class AvailWorkbench internal constructor (
 			return null
 		}
 		val model = moduleTree.model
-		val treeRoot = model.root as DefaultMutableTreeNode
-		var nodes: Enumeration<DefaultMutableTreeNode> =
-			treeRoot.children().cast()
-		var index = 1
-		while (nodes.hasMoreElements())
+		var node = model.root as DefaultMutableTreeNode
+		for (index in 1 until path.size)
 		{
-			val node: AbstractBuilderFrameTreeNode = nodes.nextElement().cast()
-			if (node.isSpecifiedByString(path[index]))
-			{
-				index++
-				if (index == path.size)
-				{
-					return TreePath(node.path)
-				}
-				nodes = node.children().cast()
-			}
+			val nodes: Sequence<AbstractBuilderFrameTreeNode> =
+				node.children().asSequence().cast()
+			node = nodes.firstOrNull { it.isSpecifiedByString(path[index]) }
+				?: return null
 		}
-		return null
+		return TreePath(node.path)
 	}
 
 	/**
@@ -2132,39 +2115,39 @@ class AvailWorkbench internal constructor (
 		{
 			val outerSemaphore = Semaphore(0)
 			val roots = ModuleRoots(fileManager, "") {
+				// Ignore the failures during the initial scan.
 				outerSemaphore.release()
 			}
 			outerSemaphore.acquireUninterruptibly()
 			roots.clearRoots()
 			val node = basePreferences.node(moduleRootsKeyString)
+			val pairs = mutableListOf<Pair<String, String>>()
 			try
 			{
-				val childNames = node.childrenNames()
-				childNames.forEach { childName ->
+				node.childrenNames().forEach { childName ->
 					val childNode = node.node(childName)
 					val sourceName = childNode.get(
 						moduleRootsSourceSubkeyString, "")
-					val resolver =
-						if (sourceName.isEmpty())
-						{
-							RuntimeException(
-								"ModuleRoot, $childName, is missing a source URI"
-							).printStackTrace()
-							return@forEach
-						}
-						else
-						{
-							val uri = URI(sourceName)
-							ModuleRootResolverRegistry.createResolver(
-								childName, uri, fileManager)
-						}
-					roots.addRoot(ModuleRoot(childName, resolver))
+					pairs.add(childName to sourceName)
 				}
-			}
-			catch (e: BackingStoreException)
+			} catch (e: BackingStoreException)
 			{
 				System.err.println("Unable to read Avail roots preferences.")
+				return roots
 			}
+			val decrement = AtomicInteger(pairs.size)
+			pairs.forEach { (rootName, uri) ->
+				roots.addRoot(rootName, uri) { failures ->
+					failures.forEach { failure ->
+						System.err.println(failure)
+					}
+					if (decrement.decrementAndGet() == 0)
+					{
+						outerSemaphore.release()
+					}
+				}
+			}
+			outerSemaphore.acquire()
 			return roots
 		}
 

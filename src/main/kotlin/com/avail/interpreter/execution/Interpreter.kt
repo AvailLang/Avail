@@ -58,11 +58,11 @@ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
-import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -139,6 +139,7 @@ import com.avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
 import com.avail.utility.Strings.tab
 import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
+import java.util.concurrent.ForkJoinWorkerThread
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
@@ -2863,8 +2864,18 @@ class Interpreter(
 		 */
 		fun currentIndexOrZero(): Int
 		{
-			val thread = AvailThread.currentOrNull()
-			return thread?.interpreter?.interpreterIndex ?: 0
+			val thread = Thread.currentThread()
+			if (thread is AvailThread)
+			{
+				return thread.interpreter.interpreterIndex
+			}
+			// If we're running a task in the fork/join pool, use its index
+			// mod the number of interpreter threads (to keep it in range).
+			if (thread is ForkJoinWorkerThread)
+			{
+				return thread.poolIndex % maxInterpreters
+			}
+			return 0
 		}
 
 		/**

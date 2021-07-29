@@ -35,6 +35,7 @@
 package com.avail.utility
 
 import com.avail.utility.structures.EnumMap
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Project the receiver onto an {@link EnumMap}, applying the function to each
@@ -136,6 +137,46 @@ inline fun <A: Iterable<B>, B, C, D> A.deepForEach (
  * it's also experimental.  So boo.
  */
 fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
+
+/**
+ * Partition the receiver into [partitions] approximately equal sublists.  Some
+ * may be empty if count is larger than the receiver's size.  Invoke the
+ * supplied [body] for each sublist.  The body must eventually, perhaps in
+ * another [Thread], invoke a function passed to it, to indicate completion, and
+ * to provide a list containing the element-wise transformation of the original
+ * sublist.  These transformed sublists are then concatenated to form a new
+ * list, which is passed to the [after] function, perhaps in another [Thread].
+ *
+ * The original calling thread returns after each body returns, *not* after the
+ * bodies call their completion function, so if they offload the responsibility
+ * to run the completion function to another thread, that may be where the
+ * [after] function is executed as well.  If no offloading happens, the original
+ * thread will run the [after] function.
+ */
+fun<E, R> List<E>.partitionedMap(
+	partitions : Int,
+	body: (List<E>, (List<R>)->Unit)->Unit,
+	after: (List<R>)->Unit)
+{
+	val size = size
+	val sublists = (0L until partitions).map { i ->
+		subList(
+			(i * size / partitions).toInt(),
+			((i + 1) * size / partitions).toInt())
+	}
+	val countdown = AtomicInteger(partitions)
+	val outputLists = MutableList<List<R>?>(partitions) { null }
+	sublists.forEachIndexed { i, sublist ->
+		body(sublist) { transformed ->
+			outputLists[i] = transformed
+			if (countdown.decrementAndGet() == 0)
+			{
+				after(outputLists.flatMap { it!! })
+			}
+		}
+	}
+}
+
 
 /** Tuple of length 1. */
 data class Tuple1<T1> constructor (val t1: T1)

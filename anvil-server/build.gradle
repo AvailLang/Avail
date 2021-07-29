@@ -29,11 +29,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
@@ -66,51 +61,21 @@ dependencies {
 	implementation rootProject
 
 	// Kotlin.
-	implementation group: 'org.jetbrains.kotlin',
-		name: 'kotlin-stdlib-jdk8',
-		version: "$kotlin_version"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	implementation group: 'com.google.code.findbugs',
-		name: 'jsr305',
-		version: "$jsr_version"
+	implementation "com.google.code.findbugs:jsr305:$jsr_version"
 
 	// JUnit 5.
-	testRuntimeOnly group: 'org.junit.jupiter',
-		name: 'junit-jupiter-engine',
-		version: "$junit_version"
-	testImplementation group: 'org.junit.jupiter',
-		name: 'junit-jupiter-api',
-		version: "$junit_version"
-	testImplementation group: 'org.junit.jupiter',
-		name: 'junit-jupiter-params',
-		version: "$junit_version"
-}
-
-// Capture the time at which the build began and record it into a resource file.
-task generateBuildTime {
-	def pathServerBuildResources =
-		"$buildDir/resources/main/resources/server"
-	def pathToBuildTime = "$pathServerBuildResources/build-time.txt"
-	outputs.files pathToBuildTime
-
-	doLast {
-		def formatter = DateTimeFormatter
-			.ofPattern("yyyyMMdd.HHmmss.SSS")
-			.withLocale(Locale.default)
-			.withZone(ZoneId.systemDefault())
-		def now = formatter.format(Instant.now())
-
-		file(pathToBuildTime).text = "$now\n"
-	}
+	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+	testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
 }
 
 // Update the dependencies of "classes".
 classes.dependsOn generateBuildTime
 
 // Generate documentation
-dokka {
-	outputFormat='gfm'
+dokkaGfm {
 	// Outputting to documentation/docs/src-docs directly causes the contents of
 	// the directory to be deleted. Moving the directory post generation is the
 	// work around.
@@ -120,9 +85,8 @@ dokka {
 	}
 }
 
-task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
-	outputFormat = 'html'
-	outputDirectory = "$buildDir/dokka"
+dokkaHtml {
+	outputDirectory = file "$buildDir/dokka"
 }
 
 // Produce a fat JAR for the Avail server.

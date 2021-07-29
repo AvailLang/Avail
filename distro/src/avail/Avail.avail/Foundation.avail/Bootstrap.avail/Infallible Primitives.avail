@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/17/21 3:01 PM
+ * * Last Generated: 7/28/21 4:56 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -472,6 +472,7 @@ Primitive "$_" is
  *        The continuation to exit.
  * @param "condition" "boolean"
  *        Whether to exit.
+ * @raises "⊤"
  */
 Primitive "Exit_if_" is
 [
@@ -965,7 +966,7 @@ Primitive "Terminate current fiber" is
  * @method "Unpark_"
  * @param "aFiber" "fiber→⊤"
  *        A fiber.
- * @returns "aFiber"
+ * @returns "⊤"
  */
 Primitive "Unpark_" is
 [

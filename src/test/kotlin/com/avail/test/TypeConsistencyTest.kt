@@ -780,8 +780,7 @@ class TypeConsistencyTest
 					parents.add(submap[parentInnerNode]!!)
 				}
 				val innerType = innerNode?.t ?: bottom
-				val newType: A_Type
-				newType = when
+				val newType: A_Type = when
 				{
 					phraseKind.isSubkindOf(PhraseKind.LIST_PHRASE) ->
 					{

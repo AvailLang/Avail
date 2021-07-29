@@ -826,14 +826,14 @@ Semantic restriction "Drop from_until_" is
 */
 Public macro "drain_" is
 [
-  target : expression phrase ⇒ reader
+	target : expression phrase ⇒ reader
 |
-  restricted send $"take«at most»?_from_" with
-     «<
-        ‘true’,
-        ‘∞’,
-        target
-     >» : tuple
+	restricted send $"take«at most»?_from_" with
+		«<
+			‘true’,
+			‘∞’,
+			target
+		>» : tuple
 ];
 
 /**

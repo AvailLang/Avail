@@ -38,9 +38,9 @@ import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.error.ServerErrorCode
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.binary.editor.BinaryCommand
-import com.avail.server.test.utility.AvailRuntimeTestHelper
 import com.avail.server.test.utility.BinaryMessageBuilder
 import com.avail.server.test.utility.TestAvailServerChannel
+import com.avail.test.AvailRuntimeTestHelper
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotEquals
@@ -52,8 +52,11 @@ import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.TestInstance
 import org.junit.jupiter.api.TestMethodOrder
 import java.io.File
-import java.lang.RuntimeException
 import java.nio.charset.StandardCharsets
+import kotlin.io.path.createDirectories
+import kotlin.io.path.createFile
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.writeText
 
 /**
  * `BinaryAPITests` test the [AvailServer] [BinaryCommand] API.
@@ -66,21 +69,20 @@ class BinaryAPITests
 {
 	/** The [AvailServer] used for these API tests. */
 	private val server: AvailServer by lazy {
-		val config = AvailServerConfiguration(
-			AvailRuntimeTestHelper.helper.fileManager)
+		val helper = AvailRuntimeTestHelper(true)
 		AvailServer(
-			config,
-			AvailRuntimeTestHelper.helper.runtime,
-			AvailRuntimeTestHelper.helper.fileManager)
+			AvailServerConfiguration(helper.fileManager),
+			helper.runtime,
+			helper.fileManager)
 	}
 
 	/**
-	 * Temp variable to store the sample test session-specific file cache id
+	 * Temp variable to store the sample test session-specific file cache id.
 	 */
 	private var sampleTestFileId = -1
 
 	/**
-	 * Temp variable to store the sample test session-specific file cache id
+	 * Temp variable to store the sample test session-specific file cache id.
 	 */
 	private var sampleOtherTestFileId = -1
 
@@ -131,7 +133,8 @@ class BinaryAPITests
 	companion object
 	{
 		const val relativeTestModule = "/tests/Some Test.avail/Some Test.avail"
-		const val relativeOtherTestModule = "/tests/Some Test.avail/Some Other Test.avail"
+		const val relativeOtherTestModule =
+			"/tests/Some Test.avail/Some Other Test.avail"
 		const val randomTestModule = "/tests/Some Test.avail/Random Module.avail"
 		const val someTestContent =
 			"Module \"Some Test\"\n" +
@@ -177,19 +180,18 @@ class BinaryAPITests
 				"] : boolean;"
 	}
 
-	@BeforeAll
-	@AfterAll
-	fun reset ()
-	{
-		val sample = File(
-			"${System.getProperty("user.dir")}/src/test/resources$relativeTestModule")
-		if (sample.exists()) { sample.delete() }
-		sample.createNewFile()
-		sample.writeText(someTestContent)
+	private val testDirectory = AvailRuntimeTestHelper.testDirectory
 
-		val randomModule = File(
-			"${System.getProperty("user.dir")}/src/test/resources$randomTestModule")
-		if (randomModule.exists()) { randomModule.delete() }
+	@BeforeAll
+	internal fun setup ()
+	{
+		val sample = testDirectory.resolve(relativeTestModule.substring(1))
+		sample.deleteIfExists()
+		sample.parent.createDirectories()
+		sample.createFile()
+		sample.writeText(someTestContent)
+		val randomModule = testDirectory.resolve(randomTestModule.substring(1))
+		randomModule.deleteIfExists()
 	}
 
 	@Test
@@ -199,39 +201,35 @@ class BinaryAPITests
 	{
 		val openMessage = builder.openFile(relativeTestModule)
 		channel.expectedMessageCount.set(2)
+		channel.runContinuation = true
 		channel.receiveMessage(openMessage)
 		channel.semaphore.acquire()
 
-		if (channel.sendQueue.size > 0)
-		{
-			val first = channel.sendQueue[0]
-			assertEquals(builder.transactionId.get() - 1, first.commandId)
-			assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
-			val fileId = first.buffer.int
-			val fileSize = first.buffer.int
-			val mimeSize = first.buffer.int
-			val mimeBytes = ByteArray(mimeSize)
-			first.buffer.get(mimeBytes)
-			val mime = String(mimeBytes, StandardCharsets.UTF_8)
-			assertEquals("text/avail", mime)
-			assertEquals(2, channel.sendQueue.size)
-			val second = channel.sendQueue[1]
-			assertEquals(builder.transactionId.get() - 1, second.commandId)
-			assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
-			val secondFileId = second.buffer.int
-			assertEquals(fileId, secondFileId)
-			assertEquals(fileSize, second.buffer.remaining())
-			val raw = ByteArray(fileSize)
-			second.buffer.get(raw)
-			val fileContents = String(raw, Charsets.UTF_16BE)
-			assertEquals(someTestContent, fileContents)
-			sampleTestFileId = fileId
-		}
-		else
-		{
-			// Shouldn't get here
-			throw RuntimeException("Received no messages!")
-		}
+		assert (channel.sendQueue.size > 0)
+
+		val first = channel.sendQueue[0]
+		assertEquals(builder.transactionId.get() - 1, first.commandId)
+		assertEquals(BinaryCommand.FILE_OPENED, first.binaryCommand)
+		val fileId = first.buffer.int
+		val fileSize = first.buffer.int
+		val mimeSize = first.buffer.int
+		val mimeBytes = ByteArray(mimeSize)
+		first.buffer.get(mimeBytes)
+		val mime = String(mimeBytes, StandardCharsets.UTF_8)
+		assertEquals("text/avail", mime)
+		assertEquals(2, channel.sendQueue.size)
+		val second = channel.sendQueue[1]
+		assertEquals(builder.transactionId.get() - 1, second.commandId)
+		assertEquals(BinaryCommand.FILE_STREAM, second.binaryCommand)
+		val secondFileId = second.buffer.int
+		assertEquals(fileId, secondFileId)
+		assertEquals(fileSize, second.buffer.remaining())
+		val raw = ByteArray(fileSize)
+		second.buffer.get(raw)
+		val fileContents = String(raw, Charsets.UTF_16BE)
+		assertEquals(someTestContent, fileContents)
+		sampleTestFileId = fileId
+
 		channel.reset()
 	}
 
@@ -602,7 +600,7 @@ class BinaryAPITests
 			val fileContents = String(raw, Charsets.UTF_16BE)
 			assert(fileContents.isEmpty())
 			val randomModule = File(
-				"${System.getProperty("user.dir")}/src/test/resources$randomTestModule")
+				testDirectory.resolve(randomTestModule.substring(1)).toString())
 			assert(randomModule.exists())
 		}
 		else
@@ -1425,5 +1423,11 @@ class BinaryAPITests
 
 		val (_, sixteenth) = open(relativeTestModule)
 		assertEquals(eighthContent, sixteenth)
+	}
+
+	@AfterAll
+	fun teardown ()
+	{
+		testDirectory.toFile().deleteRecursively()
 	}
 }

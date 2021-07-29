@@ -298,8 +298,7 @@ open class FileManager
 		successHandler: (UUID, AvailFile) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit): Boolean
 	{
-		val fileId =
-			resolverRefToId[resolverReference]
+		val fileId = resolverRefToId[resolverReference]
 		if (fileId === null)
 		{
 			return false
@@ -311,9 +310,7 @@ open class FileManager
 		}
 
 		val success: (UUID, String, AvailFile) -> Unit =
-			{ uuid, _, file ->
-				successHandler(uuid, file)
-			}
+			{ uuid, _, file -> successHandler(uuid, file) }
 		// This shouldn't need to happen on a separate thread...
 		wrapper.provide(false, success, failureHandler)
 		return true

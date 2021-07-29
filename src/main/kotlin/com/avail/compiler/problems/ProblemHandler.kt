@@ -179,13 +179,10 @@ interface ProblemHandler
 	 */
 	fun handle(problem: Problem) =
 		problem.report(this) { shouldContinue ->
-			if (shouldContinue)
+			when
 			{
-				problem.continueCompilation()
-			}
-			else
-			{
-				problem.abortCompilation()
+				shouldContinue -> problem.continueCompilation()
+				else -> problem.abortCompilation()
 			}
 		}
 }

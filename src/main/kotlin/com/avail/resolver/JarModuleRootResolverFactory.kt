@@ -1,5 +1,5 @@
 /*
- * settings.gradle
+ * JarModuleRootResolverFactory.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,14 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-rootProject.name = "avail"
-include(
-	"anvil-server",
-	"avail-bootstrap",
-	"avail-cli",
-	"avail-server",
-	"avail-stdlib",
-	"avail-test-utility",
-	"avail-workbench",
-	"indexed-file-analyzer",
-	"unicode-catalog")
+package com.avail.resolver
+
+import com.avail.files.FileManager
+import java.net.URI
+
+/**
+ * `JarModuleRootResolverFactory` is a [ModuleRootResolverFactory] used to
+ * create [JarModuleRootResolver]s.
+ *
+ * `JarModuleRootResolverFactory` is always
+ * [registered][ModuleRootResolverRegistry.register] with Avail by default.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+object JarModuleRootResolverFactory: ModuleRootResolverFactory
+{
+	override fun resolver(
+		name: String,
+		uri: URI,
+		fileManager: FileManager
+	): ModuleRootResolver = JarModuleRootResolver(name, uri, fileManager)
+
+	override val scheme: String = "jar"
+}

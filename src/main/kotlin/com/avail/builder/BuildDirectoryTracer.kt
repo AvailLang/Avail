@@ -264,8 +264,8 @@ class BuildDirectoryTracer constructor(
 				val existingVersion = archive.getVersion(versionKey)
 				if (existingVersion !== null)
 				{
-					// This version was already traced and recorded for a subsequent
-					// replay... like right now.  Reuse it.
+					// This version was already traced and recorded for a
+					// subsequent replay... like right now.  Reuse it.
 					action(resolvedName, existingVersion, completedAction)
 					return@digestForFile
 				}

@@ -131,8 +131,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 *   The string.
 	 * @return Whether this is the indicated node.
 	 */
-	fun isSpecifiedByString(string: String): Boolean =
-		text(false) == string
+	fun isSpecifiedByString(string: String): Boolean = text(false) == string
 
 	/**
 	 * Order this node against another.

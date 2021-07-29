@@ -79,27 +79,14 @@ constructor(
 
 	/**
 	 * The lazily-initialized root-relative `ModuleName`. This is the
-	 * [fully-qualified&#32;name][qualifiedName] minus the #rootName() module
-	 * root}.
+	 * [fully-qualified][qualifiedName] name minus the [rootName].
 	 */
-	val rootRelativeName: String by lazy {
-		val components = qualifiedName.split("/")
-		val builder = StringBuilder(50)
-		for (index in 2 until components.size)
-		{
-			if (index > 2)
-			{
-				builder.append('/')
-			}
-			builder.append(components[index])
-		}
-		builder.toString()
-	}
+	val rootRelativeName: String by lazy { qualifiedName.substringAfter("/") }
 
 	init
 	{
 		val components = qualifiedName.split("/")
-		require(!(components.size < 3 || components[0].isNotEmpty())) {
+		require(components.size >= 3 && components[0].isEmpty()) {
 			"invalid fully-qualified module name ($qualifiedName)"
 		}
 
