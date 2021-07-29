@@ -1,5 +1,5 @@
 /*
- * settings.gradle
+ * build.gradle
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,14 +30,18 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-rootProject.name = "avail"
-include(
-	"anvil-server",
-	"avail-bootstrap",
-	"avail-cli",
-	"avail-server",
-	"avail-stdlib",
-	"avail-test-utility",
-	"avail-workbench",
-	"indexed-file-analyzer",
-	"unicode-catalog")
+plugins {
+	id 'java'
+	id 'org.jetbrains.kotlin.jvm'
+	id 'com.github.johnrengelman.shadow'
+	id 'org.jetbrains.dokka'
+}
+
+repositories {
+	mavenCentral()
+}
+
+dependencies {
+	// Avail.
+	implementation rootProject
+}

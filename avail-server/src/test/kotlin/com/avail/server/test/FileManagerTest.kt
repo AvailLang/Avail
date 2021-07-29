@@ -61,9 +61,7 @@ import java.util.concurrent.Semaphore
 class FileManagerTest
 {
 	/** The [FileManagerTestHelper] used in these tests. */
-	private val helper: FileManagerTestHelper by lazy {
-		FileManagerTestHelper("fmt")
-	}
+	private val helper = FileManagerTestHelper("fmt")
 
 	/** The [FileManager] used in this test. */
 	private val fileManager get() = helper.fileManager
@@ -111,8 +109,6 @@ class FileManagerTest
 		if (sampleFile.exists()) { sampleFile.delete() }
 		sampleFile.createNewFile()
 		sampleFile.writeText(sampleContents)
-		helper.helper.availModuleRootResolver
-		helper.helper.testModuleRootResolver
 	}
 
 	/**
@@ -136,7 +132,7 @@ class FileManagerTest
 		val state = FileStateHolder()
 		fileManager.readFile(
 			helper.sampleFileName,
-			helper.helper.testModuleRootResolver,
+			helper.testHelper.testModuleRootResolver,
 			{ id, mime, file ->
 				state.updateFile(id, mime, file.rawContent)
 				semaphore.release()
@@ -156,7 +152,7 @@ class FileManagerTest
 		state.reset()
 		fileManager.readFile(
 			helper.sampleFileName,
-			helper.helper.testModuleRootResolver,
+			helper.testHelper.testModuleRootResolver,
 			{id, mime, file ->
 				state.updateFile(id, mime, file.rawContent)
 				semaphore.release()

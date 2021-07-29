@@ -187,7 +187,8 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 *   resolution.
 	 */
 	private fun privateResolve(
-		qualifiedName: ModuleName): ModuleNameResolutionResult
+		qualifiedName: ModuleName
+	): ModuleNameResolutionResult
 	{
 		// Attempt to look up the fully-qualified name in the map of renaming
 		// rules. Apply the rule if it exists.
@@ -214,8 +215,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		if (reference === null)
 		{
-			val result = rootResolver.find(
-				qualifiedName, canonicalName, this)
+			val result = rootResolver.find(qualifiedName, canonicalName, this)
 			if (result != null)
 			{
 				return result
@@ -387,6 +387,12 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		 * files.
 		 */
 		const val availExtension = ".avail"
+
+		/**
+		 * The Avail module extension, with a slash appended, the way that we
+		 * expect to find directory names in a Jar file containing Avail source.
+		 */
+		const val availExtensionWithSlash = "$availExtension/"
 
 		/**
 		 * Trivially translate the specified package name and local module name

@@ -4353,7 +4353,8 @@ class AvailCompiler(
 			val decoder = StandardCharsets.UTF_8.newDecoder()
 			decoder.onMalformedInput(CodingErrorAction.REPLACE)
 			decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
-			ref.readFile(false,
+			ref.readFile(
+				false,
 				{ content, _ ->
 					try
 					{

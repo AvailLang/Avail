@@ -39,6 +39,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.representation.AvailObject
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
+import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.DisplayName
@@ -62,15 +63,7 @@ import java.util.concurrent.atomic.AtomicBoolean
 class AvailTest
 {
 	/** Setup for the test. */
-	private var helper: AvailRuntimeTestHelper? = null
-
-	/**
-	 * Answer the [AvailRuntimeTestHelper], ensuring it's not `null`.
-	 *
-	 * @return
-	 *   The [AvailRuntimeTestHelper].
-	 */
-	private fun helper(): AvailRuntimeTestHelper = helper!!
+	private val helper = AvailRuntimeTestHelper(false)
 
 	/**
 	 * Clear all repositories iff the `clearAllRepositories` system
@@ -86,10 +79,9 @@ class AvailTest
 	@Throws(FileNotFoundException::class, RenamesFileParserException::class)
 	fun maybeClearAllRepositories()
 	{
-		helper = AvailRuntimeTestHelper()
 		if (System.getProperty("clearAllRepositories", null) !== null)
 		{
-			helper().clearAllRepositories()
+			helper.clearAllRepositories()
 		}
 	}
 
@@ -99,7 +91,7 @@ class AvailTest
 	@BeforeEach
 	fun clearError()
 	{
-		helper().clearError()
+		helper.clearError()
 	}
 
 	/**
@@ -108,7 +100,7 @@ class AvailTest
 	@AfterAll
 	fun tearDownRuntime()
 	{
-		helper().tearDownRuntime()
+		helper.tearDownRuntime()
 	}
 
 	/**
@@ -132,9 +124,9 @@ class AvailTest
 	@Throws(UnresolvedDependencyException::class)
 	fun testLoadStandardLibraries(moduleName: String)
 	{
-		val loaded = helper().loadModule(moduleName)
-		Assertions.assertTrue(loaded, "Failed to load module: $moduleName")
-		Assertions.assertFalse(helper().errorDetected())
+		val loaded = helper.loadModule(moduleName)
+		assertTrue(loaded, "Failed to load module: $moduleName")
+		assertFalse(helper.errorDetected())
 	}
 
 	/**
@@ -152,11 +144,11 @@ class AvailTest
 	@Throws(UnresolvedDependencyException::class)
 	fun testBuildInvalidModules(moduleName: String)
 	{
-		val loaded = helper().loadModule(moduleName)
-		Assertions.assertFalse(
+		val loaded = helper.loadModule(moduleName)
+		assertFalse(
 			loaded,
 			"Should not have successfully loaded module: $moduleName")
-		Assertions.assertTrue(helper().errorDetected())
+		assertTrue(helper.errorDetected())
 	}
 
 	/**
@@ -171,11 +163,11 @@ class AvailTest
 	@MethodSource("eachShouldPassTest")
 	fun testBuildValidModules(moduleName: String)
 	{
-		val loaded = helper().loadModule(moduleName)
-		Assertions.assertTrue(
+		val loaded = helper.loadModule(moduleName)
+		assertTrue(
 			loaded,
 			"Should have successfully loaded module: $moduleName")
-		Assertions.assertFalse(helper().errorDetected())
+		assertFalse(helper.errorDetected())
 	}
 
 	/**
@@ -190,12 +182,12 @@ class AvailTest
 	fun testAvailUnitTests()
 	{
 		val testModuleName = "/avail/Avail Tests"
-		val loaded = helper().loadModule(testModuleName)
-		Assertions.assertTrue(
+		val loaded = helper.loadModule(testModuleName)
+		assertTrue(
 			loaded, "Failed to load module: $testModuleName")
 		val semaphore = Semaphore(0)
 		val ok = AtomicBoolean(false)
-		helper().builder.attemptCommand(
+		helper.builder.attemptCommand(
 			"Run all tests",
 			{ commands: List<CompiledCommand>, proceed: (CompiledCommand) -> Unit ->
 				proceed(commands[0])
@@ -208,8 +200,8 @@ class AvailTest
 			}) { semaphore.release()
 		}
 		semaphore.acquireUninterruptibly()
-		Assertions.assertTrue(ok.get(), "Some Avail tests failed")
-		Assertions.assertFalse(helper().errorDetected())
+		assertTrue(ok.get(), "Some Avail tests failed")
+		assertFalse(helper.errorDetected())
 		// TODO: [TLS] Runners.avail needs to be reworked so that Avail unit
 		// test failures show up on standard error instead of standard output,
 		// otherwise this test isn't nearly as useful as it could be.

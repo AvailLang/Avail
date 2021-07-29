@@ -13,6 +13,8 @@
             <option value="$PROJECT_DIR$/avail-bootstrap" />
             <option value="$PROJECT_DIR$/avail-cli" />
             <option value="$PROJECT_DIR$/avail-server" />
+            <option value="$PROJECT_DIR$/avail-stdlib" />
+            <option value="$PROJECT_DIR$/avail-test-utility" />
             <option value="$PROJECT_DIR$/avail-workbench" />
             <option value="$PROJECT_DIR$/indexed-file-analyzer" />
             <option value="$PROJECT_DIR$/unicode-catalog" />

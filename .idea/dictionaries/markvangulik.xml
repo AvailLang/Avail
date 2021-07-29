@@ -10,6 +10,7 @@
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
+      <w>combinatoric</w>
       <w>comparables</w>
       <w>darcula</w>
       <w>dbff</w>
@@ -36,6 +37,7 @@
       <w>intelli</w>
       <w>irreflexive</w>
       <w>jetbrains</w>
+      <w>johnrengelman</w>
       <w>joinee</w>
       <w>jvm's</w>
       <w>lexes</w>
@@ -46,6 +48,7 @@
       <w>mersenne</w>
       <w>metainvariance</w>
       <w>metametatype</w>
+      <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
       <w>noninline</w>
@@ -106,6 +109,7 @@
       <w>wump</w>
       <w>wumping</w>
       <w>wumpus</w>
+      <w>xjvm</w>
       <w>yielders</w>
     </words>
   </dictionary>

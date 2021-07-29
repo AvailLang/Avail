@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.server.test.utility
+package com.avail.test
 
 import com.avail.AvailRuntime
 import com.avail.builder.AvailBuilder
@@ -40,15 +40,12 @@ import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.builder.RenamesFileParserException
 import com.avail.builder.UnresolvedDependencyException
-import com.avail.error.ErrorCodeRangeRegistry
 import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
 import com.avail.resolver.ModuleRootResolver
-import com.avail.server.error.ServerErrorCodeRange
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
-import org.junit.jupiter.api.Assertions
 import java.io.BufferedReader
 import java.io.File
 import java.io.FileInputStream
@@ -60,44 +57,35 @@ import java.io.StringReader
 import java.nio.CharBuffer
 import java.nio.channels.CompletionHandler
 import java.nio.charset.StandardCharsets
+import java.nio.file.Files
+import java.nio.file.Path
 import java.util.concurrent.Semaphore
-import java.util.function.Consumer
 
 /**
  * Set up the infrastructure for loading Avail modules and running Avail code.
  *
+ * @constructor
+ * Construct the helper that tracks information about a runtime system suitable
+ * for running tests.
+ *
+ * @param includeTemporaryTestsDirectory
+ *   Iff `true`, include an additional module root named "tests" for the
+ *   [testDirectory].
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @constructor
- * Construct an `AvailTest`.
- *
- * @throws FileNotFoundException
- *   If the renames file was specified but not found.
- * @throws RenamesFileParserException
- *   If the renames file exists but could not be interpreted correctly for any
- *   reason.
  */
-class AvailRuntimeTestHelper
-	@Throws(
-		FileNotFoundException::class,
-		RenamesFileParserException::class)
-	constructor()
+class AvailRuntimeTestHelper constructor (
+	private val includeTemporaryTestsDirectory: Boolean)
 {
-	init
-	{
-		ErrorCodeRangeRegistry.register(ServerErrorCodeRange)
-	}
-
 	/** The [FileManager] used in this test. */
 	val fileManager: FileManager = FileManager()
 
-	val moduleRoots: ModuleRoots = createModuleRoots(fileManager)
+	private val moduleRoots: ModuleRoots = createModuleRoots(fileManager)
 
 	/** The [module name resolver][ModuleNameResolver]. */
-	@Suppress("MemberVisibilityCanBePrivate")
-	val resolver: ModuleNameResolver by lazy {
+	private val resolver: ModuleNameResolver by lazy {
 		createModuleNameResolver(moduleRoots)
 	}
 
@@ -117,10 +105,6 @@ class AvailRuntimeTestHelper
 
 	val testModuleRootResolver: ModuleRootResolver by lazy {
 		moduleRoots.moduleRootFor("tests")!!.resolver
-	}
-
-	val availModuleRootResolver: ModuleRootResolver by lazy {
-		moduleRoots.moduleRootFor("avail")!!.resolver
 	}
 
 	/**
@@ -193,8 +177,7 @@ class AvailRuntimeTestHelper
 	 */
 	fun clearAllRepositories()
 	{
-		resolver.moduleRoots.roots.forEach(
-			Consumer { obj: ModuleRoot -> obj.clearRepository() })
+		resolver.moduleRoots.roots.forEach(ModuleRoot::clearRepository)
 	}
 
 	/**
@@ -212,6 +195,11 @@ class AvailRuntimeTestHelper
 	 */
 	fun tearDownRuntime()
 	{
+		// Avoid racing against fibers that are winding down after a test.
+		// Otherwise the tasks they spawn could race against the executor
+		// shutdown, run into the [AbortPolicy] that we set for safety on the
+		// executor, and produce a RejectedExecutionException.
+		runtime.awaitNoFibers()
 		runtime.destroy()
 	}
 
@@ -331,123 +319,118 @@ class AvailRuntimeTestHelper
 			ModuleName(moduleName), null)
 		builder.buildTarget(
 			library,
-			{ name: ModuleName, moduleSize: Long, position: Long, line: Int ->
-				localTrack(name, moduleSize, position, line)
-			},
-			{ moduleBytes: Long, totalBytes: Long ->
-				globalTrack(moduleBytes, totalBytes)
-			},
+			this::localTrack,
+			this::globalTrack,
 			builder.buildProblemHandler)
 		builder.checkStableInvariants()
 		return builder.getLoadedModule(library) !== null
 	}
 
+	/**
+	 * Create [ModuleRoots] from the information supplied in the
+	 * `availRoots` system property.
+	 *
+	 * @param fileManager
+	 *   The [FileManager] used to access files.
+	 * @return
+	 *   The specified Avail roots.
+	 */
+	private fun createModuleRoots(fileManager: FileManager): ModuleRoots
+	{
+		//val repoString =
+		//	Files.createTempDirectory("testing-repos-").toString()
+		//Repositories.setDirectoryLocation(File(repoString))
+		val userDir = System.getProperty("user.dir")
+		val path = userDir.replace("/avail-server", "")
+		val uri = "file://$path"
+		val rootsList = mutableListOf(
+			"avail" to "$uri/distro/src/avail",
+			"examples" to "$uri/distro/src/examples",
+			"builder-tests" to "$uri/distro/src/builder-tests")
+		if (includeTemporaryTestsDirectory)
+		{
+			rootsList.add("tests" to "$testDirectory/tests")
+		}
+		val roots = rootsList.joinToString(";") { (name, path) -> "$name=$path" }
+		val semaphore = Semaphore(0)
+		val moduleRoots = ModuleRoots(fileManager, roots) {
+			if (it.isNotEmpty())
+			{
+				System.err.println("Failed to initialize module roots fully")
+				it.forEach { msg -> System.err.println(msg) }
+			}
+			semaphore.release()
+		}
+		semaphore.acquireUninterruptibly()
+		return moduleRoots
+	}
+
+	/**
+	 * Create a [ModuleNameResolver] using the already created
+	 * [Avail roots][ModuleRoots] and an option renames file supplied in the
+	 * `availRenames` system property.
+	 *
+	 * @param moduleRoots
+	 *   The [ModuleRoots] used to map names to modules and packages on the
+	 *   file system.
+	 * @return
+	 *   The Avail module name resolver.
+	 * @throws FileNotFoundException
+	 *   If the renames file was specified but not found.
+	 * @throws RenamesFileParserException
+	 *   If the renames file exists but could not be interpreted correctly
+	 *   for any reason.
+	 */
+	@Throws(FileNotFoundException::class, RenamesFileParserException::class)
+	fun createModuleNameResolver(
+		moduleRoots: ModuleRoots): ModuleNameResolver
+	{
+		var reader: Reader? = null
+		return try
+		{
+			val renames = System.getProperty("availRenames", null)
+			reader = if (renames == null)
+			{
+				StringReader("")
+			}
+			else
+			{
+				val renamesFile = File(renames)
+				BufferedReader(
+					InputStreamReader(
+						FileInputStream(renamesFile),
+						StandardCharsets.UTF_8))
+			}
+			val renameParser = RenamesFileParser(reader, moduleRoots)
+			renameParser.parse()
+		}
+		finally
+		{
+			closeIfNotNull(reader)
+		}
+	}
+
+	/**
+	 * Create an [AvailRuntime] from the provided
+	 * [Avail module name resolver][ModuleNameResolver].
+	 *
+	 * @param resolver
+	 *   The [ModuleNameResolver] for resolving module names.
+	 * @param fileManager
+	 *   The system [FileManager].
+	 * @return
+	 *   An Avail runtime.
+	 */
+	private fun createAvailRuntime(
+		resolver: ModuleNameResolver,
+		fileManager: FileManager): AvailRuntime =
+		AvailRuntime(resolver, fileManager)
+
 	companion object
 	{
-		/**
-		 * The [AvailRuntimeTestHelper] used for all Avail Server tests. It is
-		 * important that only one of these exists across all tests.
-		 */
-		val helper: AvailRuntimeTestHelper by lazy {
-			AvailRuntimeTestHelper()
+		/** Lazily create a test directory in which to perform the tests. */
+		val testDirectory: Path by lazy {
+			Files.createTempDirectory("for-AvailRuntimeTestHelper-")
 		}
-
-		/**
-		 * Create [ModuleRoots] from the information supplied in the
-		 * `availRoots` system property.
-		 *
-		 * @param fileManager
-		 *   The [FileManager] used to access files.
-		 * @return
-		 *   The specified Avail roots.
-		 */
-		fun createModuleRoots(fileManager: FileManager): ModuleRoots
-		{
-			val repoString = System.getProperty("repositories", null)
-			if (repoString == null)
-			{
-				Assertions.fail<Any>(
-					"system property \"repositories\" is not set")
-			}
-//			Repositories.setDirectoryLocation(File(repoString))
-			val userDir = System.getProperty("user.dir")
-			val path = userDir.replace("/avail-server", "")
-			val uri = "file://$path"
-			val roots = "avail=$uri/distro/src/avail;" +
-				"tests=$userDir/src/test/resources/tests"
-			val semaphore = Semaphore(0)
-			val mrs = ModuleRoots(fileManager, roots) {
-				if (it.isNotEmpty())
-				{
-					System.err.println(
-						"Failed to initialize module roots fully")
-				}
-				it.forEach { msg -> System.err.println(msg) }
-				semaphore.release()
-			}
-			semaphore.acquireUninterruptibly()
-			return mrs
-		}
-
-		/**
-		 * Create a [ModuleNameResolver] using the already created
-		 * [Avail roots][ModuleRoots] and an option renames file supplied in the
-		 * `availRenames` system property.
-		 *
-		 * @param moduleRoots
-		 *   The [ModuleRoots] used to map names to modules and packages on the
-		 *   file system.
-		 * @return
-		 *   The Avail module name resolver.
-		 * @throws FileNotFoundException
-		 *   If the renames file was specified but not found.
-		 * @throws RenamesFileParserException
-		 *   If the renames file exists but could not be interpreted correctly
-		 *   for any reason.
-		 */
-		@Throws(FileNotFoundException::class, RenamesFileParserException::class)
-		fun createModuleNameResolver(
-			moduleRoots: ModuleRoots): ModuleNameResolver
-		{
-			var reader: Reader? = null
-			return try
-			{
-				val renames = System.getProperty("availRenames", null)
-				reader = if (renames == null)
-				{
-					StringReader("")
-				}
-				else
-				{
-					val renamesFile = File(renames)
-					BufferedReader(
-						InputStreamReader(
-							FileInputStream(renamesFile),
-							StandardCharsets.UTF_8))
-				}
-				val renameParser = RenamesFileParser(reader, moduleRoots)
-				renameParser.parse()
-			}
-			finally
-			{
-				closeIfNotNull(reader)
-			}
-		}
-
-		/**
-		 * Create an [AvailRuntime] from the provided
-		 * [Avail module name resolver][ModuleNameResolver].
-		 *
-		 * @param resolver
-		 *   The [ModuleNameResolver] for resolving module names.
-		 * @param fileManager
-		 *   The system [FileManager].
-		 * @return
-		 *   An Avail runtime.
-		 */
-		fun createAvailRuntime(
-			resolver: ModuleNameResolver,
-			fileManager: FileManager): AvailRuntime =
-			AvailRuntime(resolver, fileManager)
 	}
 }

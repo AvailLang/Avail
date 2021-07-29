@@ -908,7 +908,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 *   Which [A_BundleTree] to invalidate.
 		 */
 		private fun invalidate(self: AvailObject) =
-			invalidationsStat.record(Interpreter.currentIndexOrZero()) {
+			invalidationsStat.record {
 				synchronized(self) {
 					self.setSlot(LAZY_COMPLETE, emptySet)
 					self.setSlot(LAZY_INCOMPLETE, emptyMap)

@@ -54,35 +54,40 @@ class BinaryMessageBuilder
 
 	/** Encode the message. */
 	private fun encodeMessage (
-		command: BinaryCommand, content: ByteArray): Message
+		command: BinaryCommand,
+		content: ByteArray
+	): Message
 	{
 		val size = BinaryMessage.PREFIX_SIZE + content.size
 		val raw = ByteArray(size)
-		ByteBuffer.allocate(size).apply {
-			this.putInt(command.id)
-				.putLong(transactionId.getAndIncrement())
-				.put(content)
-				.flip()
-		}.get(raw)
-
-		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+		ByteBuffer.allocate(size).run {
+			putInt(command.id)
+			putLong(transactionId.getAndIncrement())
+			put(content)
+			flip()
+			get(raw)
+		}
+		return Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	/** Encode the message. */
 	private fun encodeFileIdMessage (
-		command: BinaryCommand, fileId: Int, content: ByteArray): Message
+		command: BinaryCommand,
+		fileId: Int,
+		content: ByteArray
+	): Message
 	{
 		val size = BinaryMessage.PREFIX_SIZE + content.size + 4
 		val raw = ByteArray(size)
-		ByteBuffer.allocate(size).apply {
-			this.putInt(command.id)
-				.putLong(transactionId.getAndIncrement())
-				.putInt(fileId)
-				.put(content)
-				.flip()
-		}.get(raw)
-
-		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+		ByteBuffer.allocate(size).run {
+			putInt(command.id)
+			putLong(transactionId.getAndIncrement())
+			putInt(fileId)
+			put(content)
+			flip()
+			get(raw)
+		}
+		return Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	/** Encode the message. */
@@ -92,13 +97,13 @@ class BinaryMessageBuilder
 		val size = BinaryMessage.PREFIX_SIZE + 4
 		val raw = ByteArray(size)
 		ByteBuffer.allocate(size).apply {
-			this.putInt(command.id)
-				.putLong(transactionId.getAndIncrement())
-				.putInt(fileId)
-				.flip()
-		}.get(raw)
-
-		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+			putInt(command.id)
+			putLong(transactionId.getAndIncrement())
+			putInt(fileId)
+			flip()
+			get(raw)
+		}
+		return Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	/**
@@ -159,17 +164,18 @@ class BinaryMessageBuilder
 		val content = edit.toByteArray(Charsets.UTF_16BE)
 		val size = BinaryMessage.PREFIX_SIZE + content.size + 12
 		val raw = ByteArray(size)
-		ByteBuffer.allocate(size).apply {
-			this.putInt(BinaryCommand.EDIT_FILE_RANGE.id)
-				.putLong(transactionId.getAndIncrement())
-				.putInt(fileId)
-				.putInt(start)
-				.putInt(end)
-				.put(content)
-				.flip()
-		}.get(raw)
+		ByteBuffer.allocate(size).run {
+			putInt(BinaryCommand.EDIT_FILE_RANGE.id)
+			putLong(transactionId.getAndIncrement())
+			putInt(fileId)
+			putInt(start)
+			putInt(end)
+			put(content)
+			flip()
+			get(raw)
+		}
 
-		return  Message(raw, AvailServerChannel.ProtocolState.BINARY)
+		return Message(raw, AvailServerChannel.ProtocolState.BINARY)
 	}
 
 	/**

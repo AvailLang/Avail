@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/17/21 3:01 PM
+ * * Last Generated: 7/28/21 4:56 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -347,6 +347,7 @@ Primitive "_[_]:=_" is
  * @returns "atom"
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive.
+ * @raises "ambiguous-name exception"
  */
 Primitive "new atom named_" is
 [
@@ -374,6 +375,7 @@ Primitive "new atom named_" is
  *    A new atom, distinct from every other atom answered by a different
  *    invocation of this primitive, and marked for use as an explicit subclass
  *    field key in a new object type.
+ * @raises "ambiguous-name exception"
  */
 Primitive "new explicit subclass atom named_" is
 [
@@ -605,7 +607,7 @@ Primitive "$_@pc=_stack=_[_]caller=_" is
  * @param "aContinuation" "$[…]→⊥"
  *        The continuation to exit.
  * @param "value" "any"
- *        The value with which to exit {@param "aContinuation"}.
+ *         The value with which to exit {@param "aContinuation"}.
  * @param "condition" "boolean"
  *        Whether to exit.
  * @returns "⊤"
@@ -634,7 +636,7 @@ Primitive "Exit_with_if_" is
  *        The tuple of arguments.
  * @returns "⊤"
  *    The value produced by applying the arguments to the function.
- * @raises "exception"
+ * @raises "exception" ("natural number")
  *         Since the function's implementation is arbitrary, it can raise any
  *         exception.
  */
@@ -1022,6 +1024,7 @@ Primitive "function from_and_" is
  *        The one-based index of the desired parameter type.
  * @returns "(any)'s type"
  *    The {@param "index"}-th parameter type of the argument.
+ * @raises "subscript-out-of-bounds exception"
  */
 Primitive "_[_]" is
 [
@@ -1061,6 +1064,7 @@ Primitive "Mark for_character|characters of read ahead" is
  * @param "text" "string"
  *        A string.
  * @returns "⊤"
+ * @raises "I/O exception"
  */
 Primitive "Print:_" is
 [
@@ -1079,6 +1083,7 @@ Primitive "Print:_" is
  * @param "text" "string"
  *        A string.
  * @returns "⊤"
+ * @raises "I/O exception"
  */
 Primitive "Error:_" is
 [
@@ -1341,6 +1346,8 @@ Primitive "_«[_]»→_" is
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1413,6 +1420,8 @@ Primitive "Abstract method_is_" is
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Abstract method_is_" is
 [
@@ -1488,6 +1497,9 @@ Primitive "Abstract method_is_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1563,6 +1575,9 @@ Primitive "Semantic restriction_is_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Semantic restriction_is_" is
 [
@@ -1629,6 +1644,8 @@ Primitive "Semantic restriction_is_" is
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "atom-already-exists exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Alias_to_" is
 [
@@ -1836,6 +1853,8 @@ Primitive "method definition of_for_" is
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "method-is-sealed exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Forward method_is_" is
 [
@@ -1913,6 +1932,9 @@ Primitive "Forward method_is_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -1988,6 +2010,9 @@ Primitive "Grammatical restriction_is_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Grammatical restriction_is_" is
 [
@@ -2067,6 +2092,8 @@ Primitive "method for_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "message_contains groups" is
 [
@@ -2122,6 +2149,8 @@ Primitive "message_contains groups" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "`|message_'s⁇parameters`|" is
 [
@@ -2183,6 +2212,9 @@ Primitive "`|message_'s⁇parameters`|" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Seal method_at_" is
 [
@@ -2248,6 +2280,9 @@ Primitive "Seal method_at_" is
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Seal method_at_" is
 [
@@ -2290,6 +2325,7 @@ Primitive "Seal method_at_" is
  *        A set of atoms that serve as method names.
  * @returns "⊤"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Seal method|methods_at existing definitions" is
 [
@@ -2314,6 +2350,7 @@ Primitive "Seal method|methods_at existing definitions" is
  *        restrictions.
  * @returns "<[…]→(⊤)'s type…|>"
  *    The requested semantic restrictions.
+ * @raises "incorrect-number-of-arguments exception"
  */
 Primitive "semantic restrictions for_given_" is
 [
@@ -2444,6 +2481,11 @@ Primitive "Lexer_when_is_" is
  * @raises "macro-prefix-functions-must-return-top exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "macro-prefix-function-index-out-of-bounds exception"
+ * @raises "macro-prefix-function-argument-must-be-a-phrase exception"
+ * @raises "macro-must-return-a-phrase exception"
+ * @raises "loading-is-over exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2538,6 +2580,7 @@ Primitive "Macro_is«_,»_" is
  * @raises "macro-must-return-a-phrase exception"
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "Macro_is«_,»_" is
 [
@@ -2690,6 +2733,7 @@ Primitive "atom for_" is
  * @returns "⊤"
  * @raises "ambiguous-name exception"
  * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
  */
 Primitive "Export_as a new name" is
 [
@@ -2869,6 +2913,7 @@ Primitive "_[_]" is
  *        whose values are the corresponding values.
  * @returns "{atom→(any)'s type|}"
  *    The requested map.
+ * @raises "no-such-field exception"
  */
 Primitive "_→map" is
 [
@@ -2891,12 +2936,14 @@ Primitive "_→map" is
  *    are 2-tuples. Each 2-tuple's first element is an atom (i.e., the field
  *    identifier) and its second element is the value type permitted by the
  *    field.
+ * @raises "no-such-field exception"
  */
 Primitive "_→tuple" is
 [
 	anObjectType : object meta
 |
-	Primitive ObjectTypeToTuple (failureCode : natural number);
+	Primitive ObjectTypeToTuple (failureCode : {
+		no-such-field code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : field type tuple;
 
@@ -2974,6 +3021,7 @@ Primitive "`«_:=_`»" is
  * @returns "block phrase⇒[…]→⊤"
  *    The requested block.
  * @raises "invalid-primitive-name exception"
+ * @raises "block-contains-invalid-statements exception"
  */
 Primitive "`«[_`|Primitive__]:_^_`»" is
 [
@@ -3126,6 +3174,8 @@ Primitive "`«`↑_`»" is
  * @raises "incorrect-type-for-numbered-choice exception"
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
+ * @raises "no-method-definition exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "restricted report and send_with_:_" is
 [
@@ -3193,6 +3243,8 @@ Primitive "restricted report and send_with_:_" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "up-arrow-must-follow-argument exception"
+ * @raises "inconsistent-argument-reordering exception"
  */
 Primitive "send_with_:_" is
 [
@@ -3304,11 +3356,11 @@ Primitive "`«supercast(_::_)`»" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  * @raises "up-arrow-must-follow-argument exception"
  * @raises "inconsistent-argument-reordering exception"
+ * @raises "{28}"
  */
 Primitive "Style_with_" is
 [
@@ -3334,7 +3386,6 @@ Primitive "Style_with_" is
 		alternative-must-not-contain-arguments code,
 		vertical-bar-must-separate-tokens-or-simple-groups code,
 		incorrect-type-for-numbered-choice code,
-		dollar-sign-must-follow-an-ellipsis code,
 		cannot-define-during-compilation code,
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
@@ -3435,6 +3486,7 @@ Primitive "_'s⁇_field" is
  *    The requested constructor invocation function.
  * @raises "pojo-type-is-abstract exception"
  * @raises "Java-method-not-available exception"
+ * @raises "Java-marshaling-failed exception"
  */
 Primitive "constructor of_,⁇parameterized by_" is
 [

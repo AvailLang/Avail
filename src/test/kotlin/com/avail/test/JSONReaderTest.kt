@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,22 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.test.utility.json
+package com.avail.test
 
-import com.avail.test.utility.json.TestJSONKeyValue.Companion
-import com.avail.test.utility.json.TestJSONKeyValue.IMACOMPACTARRAY
-import com.avail.test.utility.json.TestJSONKeyValue.IMADOUBLE
-import com.avail.test.utility.json.TestJSONKeyValue.IMAFALSE
-import com.avail.test.utility.json.TestJSONKeyValue.IMAFLOAT
-import com.avail.test.utility.json.TestJSONKeyValue.IMALONG
-import com.avail.test.utility.json.TestJSONKeyValue.IMANARRAY
-import com.avail.test.utility.json.TestJSONKeyValue.IMANINT
-import com.avail.test.utility.json.TestJSONKeyValue.IMANOBJECT
-import com.avail.test.utility.json.TestJSONKeyValue.IMANULL
-import com.avail.test.utility.json.TestJSONKeyValue.IMASTRING
-import com.avail.test.utility.json.TestJSONKeyValue.IMATRUE
-import com.avail.test.utility.json.TestJSONKeyValue.OBJINT
-import com.avail.test.utility.json.TestJSONKeyValue.OBJSTRING
+import com.avail.test.TestJSONKeyValue.Companion
+import com.avail.test.TestJSONKeyValue.IMACOMPACTARRAY
+import com.avail.test.TestJSONKeyValue.IMADOUBLE
+import com.avail.test.TestJSONKeyValue.IMAFALSE
+import com.avail.test.TestJSONKeyValue.IMAFLOAT
+import com.avail.test.TestJSONKeyValue.IMALONG
+import com.avail.test.TestJSONKeyValue.IMANARRAY
+import com.avail.test.TestJSONKeyValue.IMANINT
+import com.avail.test.TestJSONKeyValue.IMANOBJECT
+import com.avail.test.TestJSONKeyValue.IMANULL
+import com.avail.test.TestJSONKeyValue.IMASTRING
+import com.avail.test.TestJSONKeyValue.IMATRUE
+import com.avail.test.TestJSONKeyValue.OBJINT
+import com.avail.test.TestJSONKeyValue.OBJSTRING
 import com.avail.utility.json.JSONException
 import com.avail.utility.json.JSONIOException
 import com.avail.utility.json.JSONObject
