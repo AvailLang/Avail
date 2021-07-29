@@ -337,9 +337,6 @@ class AvailRuntimeTestHelper constructor (
 	 */
 	private fun createModuleRoots(fileManager: FileManager): ModuleRoots
 	{
-		//val repoString =
-		//	Files.createTempDirectory("testing-repos-").toString()
-		//Repositories.setDirectoryLocation(File(repoString))
 		val userDir = System.getProperty("user.dir")
 		val path = userDir.replace("/avail-server", "")
 		val uri = "file://$path"

@@ -41,8 +41,6 @@ plugins {
 	id 'org.jetbrains.dokka' version '1.5.0'
 	id 'maven-publish'
 	id 'publishing'
-
-	id "com.dorongold.task-tree" version "1.5"  // adds 'taskTree' analysis task
 }
 
 ext.versionToPublish = {

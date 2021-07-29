@@ -179,14 +179,8 @@ publishing {
 			name = "GitHub"
 			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
 			credentials {
-				username = System.getenv("GITHUB_USER")
-				password = System.getenv("GITHUB_TOKEN")
-				if (username == null || password == null)
-				{
-					System.err.println("GITHUB_USER = $username")
-					System.err.println("GITHUB_TOKEN = $password")
-					System.err.println(credentialsWarning)
-				}
+				username = github_username
+				password = github_password
 			}
 		}
 	}
