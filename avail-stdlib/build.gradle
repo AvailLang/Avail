@@ -46,37 +46,40 @@ dependencies {
 }
 
 // Produce a JAR with the source of every module in the standard Avail library.
-def standardLibraryJar = buildDir.toString() + "/avail-standard-library.jar"
-sourceJar {
+def standardLibraryName = buildDir.toString() + "/avail-standard-library.jar"
+jar {
 	description = "The Avail standard library"
-	archiveFileName = standardLibraryJar
+	archiveFileName = standardLibraryName
+	exclude "stacks/**"
+	exclude "com/"
+	// Exclude all the java files that Gradle puts in by default.
+	processResources.exclude("**")
+
 	from('../distro/src/avail') {
 		include '**/*.*'
 	}
 	duplicatesStrategy = DuplicatesStrategy.FAIL
-	manifest {
-		attributes(
-				'Implementation-Title': 'Avail standard library',
-				// TODO - Get this version from somewhere else.
-				'Implementation-Version': versionToPublish)
-	}
-	archiveClassifier.set("sources")
+	manifest.attributes.put 'Implementation-Title', 'Avail standard library'
+	manifest.attributes.put 'Implementation-Version', versionToPublish
+	// Even though the jar only includes .avail source files, we need the
+	// content to be available at runtime, so we use "" for the archive
+	// classifier instead of "sources".
+	archiveClassifier.set("")
 }
 
 // Copy the library into the distribution directory.
 task releaseStandardLibrary(type: Copy) {
 	group = 'release'
-	from standardLibraryJar
+	from standardLibraryName
 	into "${rootProject.projectDir}/distro/lib"
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-	dependsOn sourceJar
+	dependsOn jar
 }
 
 // Update the dependencies of "assemble".
 assemble.dependsOn releaseStandardLibrary
 rootProject.assemble.dependsOn releaseStandardLibrary
-
 
 publishing {
 	repositories {
@@ -92,8 +95,7 @@ publishing {
 
 	publications {
 		standardLibrary(MavenPublication) {
-			from components.java
-			artifact sourceJar
+			artifact jar
 		}
 	}
 }

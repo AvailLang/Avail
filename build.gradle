@@ -65,7 +65,7 @@ allprojects {
 	// Capture the time at which the build began, writing it to a resource file.
 	task generateBuildTime {
 		def pathWorkbenchBuildResources =
-				buildDir.toString() + "/resources/main/resources/workbench"
+				buildDir.toString() + "/resources/main/resources"
 		def pathToBuildTime = pathWorkbenchBuildResources + "/build-time.txt"
 		outputs.files pathToBuildTime
 
@@ -311,11 +311,13 @@ extended with custom module roots as you develop your own modules.
 }
 
 allprojects {
-	task sourceJar(type: Jar) {
-		description = 'Creates sources JAR.'
-		archiveClassifier.set("sources")
-		from sourceSets.main.allSource
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	if (project.name != 'avail-stdlib') {
+		task sourceJar(type: Jar) {
+			description = 'Creates sources JAR.'
+			archiveClassifier.set("sources")
+			from sourceSets.main.allSource
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
+		}
 	}
 }
 

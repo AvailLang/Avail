@@ -141,24 +141,33 @@ class ModuleRoots constructor(
 			else modulePath.split(";")
 		val workCount = AtomicInteger(components.size)
 		val failures = mutableListOf<String>()
-		for (component in components)
+		if (components.isEmpty())
 		{
-			// An equals separates the root name from its paths.
-			val binding = component.split("=")
-			require(binding.size == 2) {
-				"Bad module root location setting: $component"
-			}
-			val (rootName, location) = binding
-			addRoot(rootName, location) { newFailures ->
-				if (newFailures.isNotEmpty())
-				{
-					synchronized(failures) {
-						failures.addAll(newFailures)
-					}
+			// We have to deal with the no-roots case specially, since workCount
+			// will never decrement to zero – it starts there.
+			withFailures(emptyList())
+		}
+		else
+		{
+			for (component in components)
+			{
+				// An equals separates the root name from its paths.
+				val binding = component.split("=")
+				require(binding.size == 2) {
+					"Bad module root location setting: $component"
 				}
-				if (workCount.decrementAndGet() == 0)
-				{
-					withFailures(failures)
+				val (rootName, location) = binding
+				addRoot(rootName, location) { newFailures ->
+					if (newFailures.isNotEmpty())
+					{
+						synchronized(failures) {
+							failures.addAll(newFailures)
+						}
+					}
+					if (workCount.decrementAndGet() == 0)
+					{
+						withFailures(failures)
+					}
 				}
 			}
 		}

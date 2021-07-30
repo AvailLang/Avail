@@ -69,9 +69,8 @@ classes.dependsOn generateBuildTime
 
 // Produce a fat JAR for the IndexFileAnalyzer.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.tools.fileanalyzer.IndexedFileAnalyzer'
-	}
+	manifest.attributes.put 'Main-Class',
+			'com.avail.tools.fileanalyzer.IndexedFileAnalyzer'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 

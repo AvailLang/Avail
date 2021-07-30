@@ -69,9 +69,7 @@ classes.dependsOn generateBuildTime
 
 // Produce a fat JAR for the Avail CLI.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.tools.compiler.Compiler'
-	}
+	manifest.attributes.put 'Main-Class', 'com.avail.tools.compiler.Compiler'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
