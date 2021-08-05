@@ -160,7 +160,7 @@ import javax.annotation.CheckReturnValue
  *  * register coloring/allocation.
  *  * inlining.
  *  * common sub-expression elimination.
- *  * side-effect analysis.
+ *  * side effect analysis.
  *  * object escape analysis.
  *  * a variant of keyhole optimization that involves building the loosest
  *    possible Level Two instruction dependency graph, then "pulling" eligible
@@ -235,7 +235,9 @@ import javax.annotation.CheckReturnValue
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Renderer(childrenArray = "describeForDebugger()")
+@Renderer(
+	text = "toString",
+	childrenArray = "nameForDebugger")
 class Interpreter(
 	@ReferencedInGeneratedCode
 	@JvmField
@@ -507,22 +509,22 @@ class Interpreter(
 	{
 		if (debugPrimitives)
 		{
-			val builder = StringBuilder()
-			builder
-				.append("[$interpreterIndex] fiber: ")
-				.append(
+			val string = buildString {
+				append("[$interpreterIndex] fiber: ")
+				append(
 					if (fiber === null) "null"
 					else "${fiber!!.uniqueId()}[${fiber!!.executionState()}]")
-				.append(" -> ")
-				.append(
+				append(" -> ")
+				append(
 					if (newFiber === null) "null"
 					else "${newFiber.uniqueId()}[${newFiber.executionState()}]")
-				.append(" ($tempDebug)")
+				append(" ($tempDebug)")
+			}
 			log(
 				loggerDebugPrimitives,
 				Level.INFO,
 				"{0}",
-				builder.toString())
+				string)
 		}
 		assert((fiber === null) xor (newFiber === null))
 		assert(newFiber === null || newFiber.executionState() === RUNNING)
@@ -734,7 +736,7 @@ class Interpreter(
 	 *
 	 * @property toSucceed
 	 *   The function to call that accepts a value from the [Primitive] if the
-	 *   the `Primitive` is successful.
+	 *   `Primitive` is successful.
 	 * @property toFail
 	 *   The function to call that accepts an [A_BasicObject] that provides the
 	 *   reason for the [Primitive] failure.
@@ -744,7 +746,7 @@ class Interpreter(
 	 *
 	 * @param toSucceed
 	 *   The function to call that accepts a value from the [Primitive] if the
-	 *   the `Primitive` is successful.
+	 *   `Primitive` is successful.
 	 * @param toFail
 	 *   The function to call that accepts an [A_BasicObject] that provides the
 	 *   reason for the [Primitive] failure.
@@ -785,7 +787,7 @@ class Interpreter(
 	 * Suspend the interpreter in the middle of running a primitive (which must
 	 * be marked as [Primitive.Flag.CanSuspend]).  The supplied action can
 	 * invoke [succeed][SuspensionHelper.succeed] or
-	 * [fail][SuspensionHelper.fail] when it has determine its fate.
+	 * [fail][SuspensionHelper.fail] when it has determined its fate.
 	 *
 	 * @param body
 	 *   What to do when the fiber has been suspended.
@@ -1727,7 +1729,7 @@ class Interpreter(
 	 * reified already) until one is found for a function whose code specifies
 	 * [P_CatchException]. Get that continuation's second argument (a handler
 	 * block of one argument), and check if that handler block will accept the
-	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
+	 * exceptionValue. If not, keep looking. If it accepts it, unwind the
 	 * continuation stack so that the primitive catch method is the top entry,
 	 * and invoke the handler block with exceptionValue. If there is no suitable
 	 * handler block, fail the primitive.
@@ -2383,6 +2385,10 @@ class Interpreter(
 		}
 		return reifier
 	}
+
+	/** Present the name in the debugger. */
+	@Suppress("unused")
+	fun nameForDebugger() = toString()
 
 	override fun toString(): String
 	{

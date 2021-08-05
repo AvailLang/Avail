@@ -949,25 +949,32 @@ class AvailWorkbench internal constructor (
 	 */
 	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
 	{
-		val selection = selectedModule()
+		val selection = moduleTree.selectionPath
 		moduleTree.isVisible = false
 		entryPointsTree.isVisible = false
 		try
 		{
-			moduleTree.model = DefaultTreeModel(modules)
-			for (i in moduleTree.rowCount - 1 downTo 0)
-			{
-				moduleTree.expandRow(i)
-			}
-			if (selection !== null)
-			{
-				val path = modulePath(selection.qualifiedName)
-				if (path !== null)
-				{
-					moduleTree.selectionPath = path
+			val root = moduleTree.model.root as DefaultMutableTreeNode
+			val allExpanded = moduleTree
+				.getExpandedDescendants(TreePath(root))
+				?.toList()?.sortedBy(TreePath::getPathCount)
+				?: modules.children().toList().map {
+					// Expand each root on the first refresh.
+					TreePath(arrayOf(root, it))
 				}
+			moduleTree.model = DefaultTreeModel(modules)
+			allExpanded.asSequence()
+				.map(TreePath::getLastPathComponent)
+				.filterIsInstance<AbstractBuilderFrameTreeNode>()
+				.mapNotNull { modulePath(it.modulePathString()) }
+				.forEach { moduleTree.expandPath(it) }
+			selection?.let { path ->
+				val node =
+					path.lastPathComponent as AbstractBuilderFrameTreeNode
+				moduleTree.selectionPath = modulePath(node.modulePathString())
 			}
 
+			// Now process the entry points tree.
 			entryPointsTree.model = DefaultTreeModel(entryPoints)
 			for (i in entryPointsTree.rowCount - 1 downTo 0)
 			{
@@ -1623,8 +1630,7 @@ class AvailWorkbench internal constructor (
 		val transcriptPopup = menu("Transcript", clearTranscriptAction)
 
 		// Create the module tree.
-		moduleTree = JTree(
-			DefaultMutableTreeNode("(packages hidden root)"))
+		moduleTree = JTree(DefaultMutableTreeNode("(packages hidden root)"))
 		moduleTree.background = null
 		moduleTree.toolTipText = "All modules, organized by module root."
 		moduleTree.componentPopupMenu = buildMenu.popupMenu
@@ -1658,11 +1664,6 @@ class AvailWorkbench internal constructor (
 		actionMap = moduleTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
-		// Expand rows bottom-to-top to expand only the root nodes.
-		for (i in moduleTree.rowCount - 1 downTo 0)
-		{
-			moduleTree.expandRow(i)
-		}
 
 		// Create the entry points tree.
 		entryPointsTree =
@@ -1719,10 +1720,6 @@ class AvailWorkbench internal constructor (
 		actionMap = entryPointsTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
-		for (i in 0 until entryPointsTree.rowCount)
-		{
-			entryPointsTree.expandRow(i)
-		}
 
 		// Create the build progress bar.
 		buildProgress = JProgressBar(0, 1000)

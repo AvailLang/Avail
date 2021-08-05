@@ -133,8 +133,8 @@ import java.util.TimerTask
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Renderer(
-	text = "nameForDebugger()",
-	childrenArray = "describeForDebugger()")
+	text = "nameForDebugger",
+	childrenArray = "describeForDebugger")
 class AvailObject private constructor(
 	descriptor: AbstractDescriptor,
 	objectSlotsSize: Int,

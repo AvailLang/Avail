@@ -54,6 +54,8 @@ class ModuleRootNode constructor(
 	builder: AvailBuilder,
 	val moduleRoot: ModuleRoot) : AbstractBuilderFrameTreeNode(builder)
 {
+	override fun modulePathString(): String = "/" + moduleRoot.name
+
 	override fun iconResourceName(): String? = null
 
 	override fun text(selected: Boolean): String = moduleRoot.name

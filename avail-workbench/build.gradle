@@ -56,9 +56,6 @@ compileTestKotlin {
 
 repositories {
 	mavenCentral()
-	maven {
-		url("https://repo.spring.io/plugins-release/")
-	}
 }
 
 dependencies {

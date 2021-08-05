@@ -1341,28 +1341,41 @@ class AvailLoader(
 	{
 		val size = unloadFunctions.tupleSize
 		// The index into the tuple of unload functions.
-		var index = 1
-		recurse { again ->
-			if (index <= size)
-			{
-				val currentIndex = index++
-				val unloadFunction: A_Function =
-					unloadFunctions.tupleAt(currentIndex)
-				val fiber = newFiber(TOP.o, loaderPriority) {
-					formatString(
-						"Unload function #%d/%d for module %s",
-						currentIndex,
-						size,
-						module.moduleName)
+		if (size == 0)
+		{
+			// When there's at least one unload function, the fact that it forks
+			// a fiber ensures the stack doesn't grow arbitrarily deep from
+			// running afterRunning functions with ever deeper recursion, due to
+			// the Thread agnosticism of Graph.ParallelVisitor.  Here we have
+			// no unload functions, so break the direct cyclic call explicitly
+			// by queueing an action.
+			runtime.execute(loaderPriority, afterRunning)
+		}
+		else
+		{
+			var index = 1
+			recurse { again ->
+				if (index <= size)
+				{
+					val currentIndex = index++
+					val unloadFunction: A_Function =
+						unloadFunctions.tupleAt(currentIndex)
+					val fiber = newFiber(TOP.o, loaderPriority) {
+						formatString(
+							"Unload function #%d/%d for module %s",
+							currentIndex,
+							size,
+							module.moduleName)
+					}
+					fiber.setTextInterface(textInterface)
+					fiber.setSuccessAndFailure({ again() }, { again() })
+					runOutermostFunction(
+						runtime(), fiber, unloadFunction, emptyList())
 				}
-				fiber.setTextInterface(textInterface)
-				fiber.setSuccessAndFailure({ again() }, { again() })
-				runOutermostFunction(
-					runtime(), fiber, unloadFunction, emptyList())
-			}
-			else
-			{
-				afterRunning()
+				else
+				{
+					runtime.execute(loaderPriority, afterRunning)
+				}
 			}
 		}
 	}
