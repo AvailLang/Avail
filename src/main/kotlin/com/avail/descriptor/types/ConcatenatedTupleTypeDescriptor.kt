@@ -729,11 +729,11 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [ConcatenatedTupleTypeDescriptor].  */
+		/** The mutable [ConcatenatedTupleTypeDescriptor]. */
 		private val mutable =
 			ConcatenatedTupleTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ConcatenatedTupleTypeDescriptor].  */
+		/** The immutable [ConcatenatedTupleTypeDescriptor]. */
 		private val immutable =
 			ConcatenatedTupleTypeDescriptor(Mutability.IMMUTABLE)
 	}

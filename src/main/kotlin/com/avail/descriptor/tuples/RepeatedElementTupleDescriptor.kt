@@ -117,7 +117,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -129,7 +129,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The element to be repeated.  */
+		/** The element to be repeated. */
 		ELEMENT
 	}
 
@@ -497,14 +497,14 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		private const val minimumRepeatSize = 2
 
-		/** The mutable [RepeatedElementTupleDescriptor].  */
+		/** The mutable [RepeatedElementTupleDescriptor]. */
 		val mutable = RepeatedElementTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [RepeatedElementTupleDescriptor].  */
+		/** The immutable [RepeatedElementTupleDescriptor]. */
 		private val immutable =
 			RepeatedElementTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [RepeatedElementTupleDescriptor].  */
+		/** The shared [RepeatedElementTupleDescriptor]. */
 		private val shared = RepeatedElementTupleDescriptor(Mutability.SHARED)
 
 		/**

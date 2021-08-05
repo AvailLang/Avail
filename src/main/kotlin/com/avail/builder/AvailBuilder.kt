@@ -125,7 +125,7 @@ import kotlin.concurrent.read
 @Suppress("unused")
 class AvailBuilder constructor(val runtime: AvailRuntime)
 {
-	/** A lock for safely manipulating internals of this builder.  */
+	/** A lock for safely manipulating internals of this builder. */
 	private val builderLock = ReentrantReadWriteLock()
 
 	/**
@@ -149,7 +149,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	private val allLoadedModules =
 		synchronizedMap(mutableMapOf<ResolvedModuleName, LoadedModule>())
 
-	/** Whom to notify when modules load and unload.  */
+	/** Whom to notify when modules load and unload. */
 	private val subscriptions = mutableSetOf<(LoadedModule, Boolean)->Unit>()
 
 	/**
@@ -158,14 +158,14 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 */
 	private val privateStopBuildReason = AtomicReference<String>()
 
-	/** A function for polling for abort requests.  */
+	/** A function for polling for abort requests. */
 	val pollForAbort = { this.shouldStopBuild }
 
-	/** How to handle problems during a build.  */
+	/** How to handle problems during a build. */
 	val buildProblemHandler: ProblemHandler = BuilderProblemHandler(
 		this, "[%s]: module \"%s\", line %d:%n%s%n")
 
-	/** How to handle problems during command execution.  */
+	/** How to handle problems during command execution. */
 	private val commandProblemHandler: ProblemHandler = BuilderProblemHandler(
 		this, "[%1\$s]: %4\$s%n")
 
@@ -438,7 +438,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		val label: String,
 		val resolvedModuleName: ResolvedModuleName?)
 	{
-		/** The parent [ModuleTree], or null if this is a root.  */
+		/** The parent [ModuleTree], or null if this is a root. */
 		internal var parent: ModuleTree? = null
 			private set
 
@@ -1136,7 +1136,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 
 	companion object
 	{
-		/** The [logger][Logger].  */
+		/** The [logger][Logger]. */
 		private val logger = Logger.getLogger(
 			AvailBuilder::class.java.name)
 

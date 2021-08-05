@@ -129,26 +129,26 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		val runtime = interpreter.runtime
 		runtime.ioSystem.executeFileTask(
 			Runnable {
-               try
-               {
-                   handle.channel.force(true)
-               }
-               catch (e: IOException)
-               {
-                   runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_IO_ERROR.numericCode()))
-                   return@Runnable
-               }
+				try
+				{
+					handle.channel.force(true)
+				}
+				catch (e: IOException)
+				{
+					runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_IO_ERROR.numericCode()))
+					return@Runnable
+				}
 
-               runOutermostFunction(
-                   runtime,
-                   newFiber,
-                   succeed,
-                   emptyList())
-           })
+				runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					emptyList())
+			})
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

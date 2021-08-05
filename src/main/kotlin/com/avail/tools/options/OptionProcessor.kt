@@ -438,7 +438,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 
 	companion object
 	{
-		/** Continue processing keywords?  */
+		/** Continue processing keywords? */
 		private val continueProcessingKeywords =
 			ThreadLocal.withInitial { true }
 	}

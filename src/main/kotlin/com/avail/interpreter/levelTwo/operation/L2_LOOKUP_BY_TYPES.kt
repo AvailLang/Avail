@@ -40,6 +40,9 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
@@ -101,7 +104,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 	PC.named("lookup succeeded", SUCCESS),
 	PC.named("lookup failed", FAILURE))
 {
-	/** The type of failure codes that a failed lookup can produce.  */
+	/** The type of failure codes that a failed lookup can produce. */
 	private val failureCodesType =
 		AbstractEnumerationTypeDescriptor.enumerationWith(set(
 			E_NO_METHOD,

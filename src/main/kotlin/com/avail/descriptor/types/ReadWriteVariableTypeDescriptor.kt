@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -82,10 +83,10 @@ class ReadWriteVariableTypeDescriptor private constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The type of values that can be read from my object instances.  */
+		/** The type of values that can be read from my object instances. */
 		READ_TYPE,
 
-		/** The type of values that can be written to my object instances.  */
+		/** The type of values that can be written to my object instances. */
 		WRITE_TYPE
 	}
 
@@ -138,10 +139,10 @@ class ReadWriteVariableTypeDescriptor private constructor(
 			else -> false
 		}
 
-	override fun o_Hash(self: AvailObject): Int =
-		self.slot(READ_TYPE).hash() xor
-			(0x0F40149E + self.slot(WRITE_TYPE).hash()) xor
-				0x05469E1A
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(READ_TYPE).hash(),
+		self.slot(WRITE_TYPE).hash(),
+		0x05469E1A)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfVariableType(self)
@@ -152,7 +153,7 @@ class ReadWriteVariableTypeDescriptor private constructor(
 		self: AvailObject,
 		aVariableType: A_Type): Boolean =
 			(aVariableType.readType.isSubtypeOf(self.slot(READ_TYPE))
-		        && self.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType))
+				&& self.slot(WRITE_TYPE).isSubtypeOf(aVariableType.writeType))
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
 		when
@@ -242,11 +243,11 @@ class ReadWriteVariableTypeDescriptor private constructor(
 
 	companion object
 	{
-		/** The mutable [ReadWriteVariableTypeDescriptor].  */
+		/** The mutable [ReadWriteVariableTypeDescriptor]. */
 		private val mutable =
 			ReadWriteVariableTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ReadWriteVariableTypeDescriptor].  */
+		/** The shared [ReadWriteVariableTypeDescriptor]. */
 		private val shared =
 			ReadWriteVariableTypeDescriptor(Mutability.SHARED)
 

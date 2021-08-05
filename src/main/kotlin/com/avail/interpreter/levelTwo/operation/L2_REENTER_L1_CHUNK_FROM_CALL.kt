@@ -122,7 +122,7 @@ object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 		stepper.pointerAtPut(stepper.stackp, returnValue)
 	}
 
-	/** The [CheckedMethod] for [reenter].  */
+	/** The [CheckedMethod] for [reenter]. */
 	private val reenterMethod = CheckedMethod.staticMethod(
 		L2_REENTER_L1_CHUNK_FROM_CALL::class.java,
 		::reenter.name,

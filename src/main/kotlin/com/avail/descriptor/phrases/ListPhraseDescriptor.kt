@@ -46,6 +46,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -214,7 +215,7 @@ class ListPhraseDescriptor private constructor(
 		self.synchronizeIf(isShared) { expressionType(self) }
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.expressionsTuple.hash() xor -0x3ebc1689
+		combine2(self.expressionsTuple.hash(), -0x3ebc1689)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast }
@@ -353,13 +354,13 @@ class ListPhraseDescriptor private constructor(
 				setSlot(TUPLE_TYPE, nil)
 			}
 
-		/** The mutable [ListPhraseDescriptor].  */
+		/** The mutable [ListPhraseDescriptor]. */
 		private val mutable = ListPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ListPhraseDescriptor].  */
+		/** The shared [ListPhraseDescriptor]. */
 		private val shared = ListPhraseDescriptor(Mutability.SHARED)
 
-		/** The empty [list phrase][ListPhraseDescriptor].  */
+		/** The empty [list phrase][ListPhraseDescriptor]. */
 		private val empty = newListNode(emptyTuple).makeShared()
 
 		/**

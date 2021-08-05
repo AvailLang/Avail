@@ -35,14 +35,20 @@ import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.BODY_BLOCK
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.methods.MethodDefinitionDescriptor.ObjectSlots.STYLERS
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.TypeDescriptor.Types.METHOD_DEFINITION
 import com.avail.serialization.SerializerOperation
@@ -79,6 +85,12 @@ class MethodDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
+		 * The [A_Set] of [A_Styler]s that have been added to this definition.
+		 */
+		@HideFieldJustForPrinting
+		STYLERS,
+
+		/**
 		 * The [function][FunctionDescriptor] to invoke when this
 		 * message is sent with applicable arguments.
 		 */
@@ -86,10 +98,15 @@ class MethodDefinitionDescriptor private constructor(
 
 		companion object {
 			init {
-				assert(DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal
-					== DEFINITION_METHOD.ordinal)
-				assert(DefinitionDescriptor.ObjectSlots.MODULE.ordinal
-					== MODULE.ordinal)
+				assert(
+					DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD.ordinal
+						== DEFINITION_METHOD.ordinal)
+				assert(
+					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
+						== MODULE.ordinal)
+				assert(
+					DefinitionDescriptor.ObjectSlots.STYLERS.ordinal
+						== STYLERS.ordinal)
 			}
 		}
 	}
@@ -101,7 +118,7 @@ class MethodDefinitionDescriptor private constructor(
 		self.slot(BODY_BLOCK)
 
 	override fun o_Hash(self: AvailObject) =
-		self.bodyBlock().hash() * 19 xor 0x70B2B1A9
+		combine2(self.bodyBlock().hash(), 0x70B2B1A9)
 
 	override fun o_Kind(self: AvailObject): A_Type {
 		return METHOD_DEFINITION.o
@@ -165,13 +182,14 @@ class MethodDefinitionDescriptor private constructor(
 		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
+			setSlot(STYLERS, emptySet)
 			setSlot(BODY_BLOCK, bodyBlock)
 		}
 
-		/** The mutable [MethodDefinitionDescriptor].  */
+		/** The mutable [MethodDefinitionDescriptor]. */
 		private val mutable = MethodDefinitionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MethodDefinitionDescriptor].  */
+		/** The shared [MethodDefinitionDescriptor]. */
 		private val shared = MethodDefinitionDescriptor(Mutability.SHARED)
 	}
 }

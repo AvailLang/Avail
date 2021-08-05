@@ -99,7 +99,7 @@ object P_BootstrapLexerWholeNumberBody
 		val stringSize = string.tupleSize
 		var position = startPosition
 		while (position <= stringSize
-		       && Character.isDigit(string.tupleCodePointAt(position)))
+				&& Character.isDigit(string.tupleCodePointAt(position)))
 		{
 			position++
 		}

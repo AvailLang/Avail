@@ -53,8 +53,8 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -151,10 +151,10 @@ class AssignmentPhraseDescriptor private constructor(
 			else -> TOP.o
 		}
 
-	override fun o_Hash(self: AvailObject) =
-		(self.variable.hash() * multiplier
-			+ self.expression.hash()
-			xor -0x58e157ac)
+	override fun o_Hash(self: AvailObject) = combine3(
+		self.variable.hash(),
+		self.expression.hash(),
+		-0x58e157ac)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -303,10 +303,10 @@ class AssignmentPhraseDescriptor private constructor(
 			setSlot(IS_INLINE, if (isInline) 1 else 0)
 		}
 
-		/** The mutable [AssignmentPhraseDescriptor].  */
+		/** The mutable [AssignmentPhraseDescriptor]. */
 		private val mutable = AssignmentPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [AssignmentPhraseDescriptor].  */
+		/** The shared [AssignmentPhraseDescriptor]. */
 		private val shared = AssignmentPhraseDescriptor(Mutability.SHARED)
 	}
 }

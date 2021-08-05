@@ -129,16 +129,16 @@ import com.avail.interpreter.execution.Interpreter
 @Suppress("unused")
 object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 {
-	/** The key to the client parsing data in the fiber's environment.  */
+	/** The key to the client parsing data in the fiber's environment. */
 	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
 
-	/** The key to the variable scope map in the client parsing data.  */
+	/** The key to the variable scope map in the client parsing data. */
 	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 
-	/** The key to the tuple of scopes to pop as blocks complete parsing.  */
+	/** The key to the tuple of scopes to pop as blocks complete parsing. */
 	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 
-	/** The key to the all tokens tuple in the fiber's environment.  */
+	/** The key to the all tokens tuple in the fiber's environment. */
 	private val staticTokensKey = STATIC_TOKENS_KEY.atom
 
 	override fun attempt(interpreter: Interpreter): Result
@@ -355,7 +355,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 					STRONG,
 					labelReturnType?.let {
 						"the union ($deducedReturnType) of the final " +
-	                        "expression's type and the label's declared type " +
+							"expression's type and the label's declared type " +
 							"to agree with the declared return type (" +
 							"$declaredReturnType)"
 					} ?: "final expression's type ($deducedReturnType) to " +
@@ -363,7 +363,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						"($declaredReturnType)")
 			}
 			if (primitiveReturnType !== null
-			    && !primitiveReturnType.isSubtypeOf(declaredReturnType))
+				&& !primitiveReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
@@ -374,7 +374,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						+ ")")
 			}
 			if (labelReturnType !== null
-			    && !labelReturnType.isSubtypeOf(declaredReturnType))
+				&& !labelReturnType.isSubtypeOf(declaredReturnType))
 			{
 				throw AvailRejectedParseException(
 					STRONG,

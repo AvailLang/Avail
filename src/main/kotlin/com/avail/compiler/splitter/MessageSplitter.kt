@@ -37,7 +37,6 @@ import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOLLAR_SIGN
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
@@ -97,7 +96,6 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
-import com.avail.exceptions.AvailErrorCode.E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS
 import com.avail.exceptions.AvailErrorCode.E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP
 import com.avail.exceptions.AvailErrorCode.E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
@@ -151,7 +149,8 @@ import kotlin.streams.toList
  *         If the message name is malformed.
  */
 class MessageSplitter
-@Throws(MalformedMessageException::class) constructor(messageName: A_String) {
+@Throws(MalformedMessageException::class)
+constructor(messageName: A_String) {
 	/**
 	 * The Avail string to be parsed.
 	 */
@@ -226,7 +225,7 @@ class MessageSplitter
 	 */
 	private val messagePartPositions: IntArray
 
-	/** The current one-based parsing position in the list of tokens.  */
+	/** The current one-based parsing position in the list of tokens. */
 	private var messagePartPosition: Int = 0
 
 	/**
@@ -250,7 +249,7 @@ class MessageSplitter
 	 */
 	var numberOfSectionCheckpoints: Int = 0
 
-	/** The top-most [sequence][Sequence].  */
+	/** The top-most [sequence][Sequence]. */
 	private val rootSequence: Sequence
 
 	/**
@@ -284,14 +283,6 @@ class MessageSplitter
 		 * that started with an [OPEN_GUILLEMET] open-guillemet («).
 		 */
 		CLOSE_GUILLEMET("»"),
-
-		/**
-		 * A dollar sign ($) after an [ELLIPSIS] (…) indicates that a
-		 * string-valued literal token should be consumed from the Avail source
-		 * code at this position.  This is accomplished through the use of a
-		 * [RawStringLiteralTokenArgument].
-		 */
-		DOLLAR_SIGN("$"),
 
 		/**
 		 * The double-dagger (‡) is used within a [Group] to delimit the
@@ -334,12 +325,8 @@ class MessageSplitter
 		 *  * If left unadorned, it creates a [RawKeywordTokenArgument], which
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
 		 *  * If followed by an [OCTOTHORP] (#), it creates a
-		 *    [RawNumericLiteralTokenArgument], which matches a single
-		 *    [A_Token] of kind [TokenType.LITERAL] which yields a positive
-		 *    number.
-		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
-		 *    [RawStringLiteralTokenArgument], which matches a single [A_Token]
-		 *    of kind [TokenType.LITERAL] which yields a string.
+		 *    [RawTokenArgument], which matches a single [A_Token] of kind
+		 *    [TokenType.LITERAL].
 		 *  * If followed by an [EXCLAMATION_MARK] (!), it creates a
 		 *    [RawTokenArgument], which matches a single [A_Token] of any kind
 		 *    except [TokenType.WHITESPACE] or [TokenType.COMMENT].
@@ -379,7 +366,7 @@ class MessageSplitter
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use
-		 * of a [RawNumericLiteralTokenArgument].
+		 * of a [RawLiteralTokenArgument].
 		 */
 		OCTOTHORP("#"),
 
@@ -479,7 +466,7 @@ class MessageSplitter
 		 */
 		VERTICAL_BAR("|");
 
-		/** The Avail [A_String] denoting this metacharacter.  */
+		/** The Avail [A_String] denoting this metacharacter. */
 		val string: A_String = stringFrom(javaString).makeShared().also {
 			assert(it.tupleSize == 1)
 		}
@@ -994,11 +981,6 @@ class MessageSplitter
 			"An octothorp (#) may only follow a simple group («») " +
 				"or an ellipsis (…)")
 		peekFor(
-			DOLLAR_SIGN,
-			true,
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
-			"A dollar sign ($) may only follow an ellipsis(…)")
-		peekFor(
 			QUESTION_MARK,
 			true,
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
@@ -1151,9 +1133,7 @@ class MessageSplitter
 		return when {
 			peekFor(EXCLAMATION_MARK) -> RawTokenArgument(
 				tokenStart, leafArgumentCount)
-			peekFor(OCTOTHORP) -> RawNumericLiteralTokenArgument(
-				tokenStart, leafArgumentCount)
-			peekFor(DOLLAR_SIGN) -> RawStringLiteralTokenArgument(
+			peekFor(OCTOTHORP) -> RawLiteralTokenArgument(
 				tokenStart, leafArgumentCount)
 			else -> RawKeywordTokenArgument(
 				tokenStart, leafArgumentCount)
@@ -1295,7 +1275,6 @@ class MessageSplitter
 			E_METHOD_NAME_IS_NOT_CANONICAL,
 			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
 			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
 			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
@@ -1305,17 +1284,17 @@ class MessageSplitter
 			E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
 			E_INCONSISTENT_ARGUMENT_REORDERING).makeShared()
 
-		/** A String containing all 51 circled numbers.  */
+		/** A String containing all 51 circled numbers. */
 		private const val circledNumbersString =
 			"⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯" +
 				"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
 				"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿"
 
-		/** How many circled numbers are in Unicode.  */
+		/** How many circled numbers are in Unicode. */
 		private val circledNumbersCount =
 			circledNumbersString.codePointCount(0, circledNumbersString.length)
 
-		/** An array of the circled number code points.  */
+		/** An array of the circled number code points. */
 		private val circledNumberCodePoints: IntArray =
 			circledNumbersString.codePoints().toList().toIntArray()
 
@@ -1450,10 +1429,10 @@ class MessageSplitter
 			}
 		}
 
-		/** The position at which true is stored in the [constantsList].  */
+		/** The position at which true is stored in the [constantsList]. */
 		val indexForTrue = indexForConstant(trueObject)
 
-		/** The position at which false is stored in the [constantsList].  */
+		/** The position at which false is stored in the [constantsList]. */
 		val indexForFalse = indexForConstant(falseObject)
 
 		/**
@@ -1561,7 +1540,6 @@ class MessageSplitter
 				|| cp == '…'.code
 				|| cp == ' '.code
 				|| cp == '/'.code
-				|| cp == '$'.code
 				|| isOperator(cp)
 
 		/**

@@ -91,7 +91,7 @@ class StackReifier(
 	private val actionStack: Deque<(Interpreter) -> Unit> =
 		ArrayDeque()
 
-	/** The [System.nanoTime] when this stack reifier was created.  */
+	/** The [System.nanoTime] when this stack reifier was created. */
 	val startNanos: Long = AvailRuntimeSupport.captureNanos()
 
 	/**
@@ -210,7 +210,7 @@ class StackReifier(
 
 	companion object
 	{
-		/** Access the [pushContinuationAction] method.  */
+		/** Access the [pushContinuationAction] method. */
 		val pushContinuationActionMethod = instanceMethod(
 			StackReifier::class.java,
 			StackReifier::pushContinuationAction.name,

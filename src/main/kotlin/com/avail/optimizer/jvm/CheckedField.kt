@@ -84,16 +84,16 @@ class CheckedField private constructor(
 	fieldClass: Class<*>)
 {
 
-	/** Whether the method is final.  */
+	/** Whether the method is final. */
 	private val isFinal: Boolean
 
-	/** If the field is static and final, this is the value of the field.  */
+	/** If the field is static and final, this is the value of the field. */
 	private var valueIfFinalAndStatic: Any? = null
 
-	/** The canonical name of the class in which the method is defined.  */
+	/** The canonical name of the class in which the method is defined. */
 	private val receiverClassInternalName: String
 
-	/** The canonical name of the method arguments.  */
+	/** The canonical name of the method arguments. */
 	private val fieldTypeDescriptorString: String
 
 	/**
@@ -316,9 +316,10 @@ class CheckedField private constructor(
 			// the wrong method.
 			@Suppress("UNUSED_VARIABLE")
 			val annotation = field.getAnnotation(
-				ReferencedInGeneratedCode::class.java)
-					 ?: error("Field $fieldNameString should have had " +
-						  "ReferencedInGeneratedCode annotation")
+				ReferencedInGeneratedCode::class.java) ?:
+					error(
+						"Field $fieldNameString should have had " +
+							"ReferencedInGeneratedCode annotation")
 		}
 		val modifiers = field.modifiers
 		assert(modifiers and Modifier.PUBLIC != 0)

@@ -92,8 +92,9 @@ constructor(
 	elementClass: Class<ElementType>,
 	private val documentStream: InputStream)
 : Configurator<ConfigurationType>
-	where ElementType : Enum<ElementType>,
-		  ElementType : XMLElement<ConfigurationType, ElementType, StateType>
+	where
+		ElementType : Enum<ElementType>,
+		ElementType : XMLElement<ConfigurationType, ElementType, StateType>
 {
 	/**
 	 * Has the [configurator][XMLConfigurator] been run yet?
@@ -103,7 +104,7 @@ constructor(
 	 */
 	private var isConfigured: Boolean = false
 
-	/** The [document model][XMLDocumentModel].  */
+	/** The [document model][XMLDocumentModel]. */
 	private val model:
 		XMLDocumentModel<ConfigurationType, ElementType, StateType> =
 			XMLDocumentModel(elementClass)

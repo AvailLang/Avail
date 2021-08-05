@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/23/21 9:44 PM
+ * * Last Generated: 7/28/21 4:56 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -45,6 +45,8 @@ Extends
 Uses
 	"Origin"
 Names
+	"$_",
+	"$_@pc=_stack=_[_]caller=_",
 	"<_,_`…`|_>",
 	"Abstract method_is_",
 	"After the current module is unloaded,⁇do_",
@@ -83,6 +85,7 @@ Names
 	"Semantic restriction_is_",
 	"Set name of function implementation_to_",
 	"Sleep for_millisecond|milliseconds",
+	"Style_with_",
 	"Terminate current fiber",
 	"Unname_from_",
 	"Unpark_",
@@ -221,8 +224,6 @@ Names
 	"_≤_",
 	"_⊆_",
 	"_⨉_^_",
-	"`$_",
-	"`$_@pc=_stack=_[_]caller=_",
 	"``_``(_)@_:_",
 	"`|_'s⁇local variables`|",
 	"`|_'s⁇outer variables`|",
@@ -230,13 +231,13 @@ Names
 	"`|_`|",
 	"`|`|_`|`|",
 	"`|message_'s⁇parameters`|",
+	"`«$_:_`»",
 	"`«(_:=_)`»",
 	"`«[_`|Primitive__]:_^_`»",
 	"`«_::=_`»",
 	"`«_:=_`»",
 	"`«_:_:=_`»",
 	"`«_:_`»",
-	"`«`$_:_`»",
 	"`«`↑_`»",
 	"`«module variable_(_)`»",
 	"`«supercast(_::_)`»",

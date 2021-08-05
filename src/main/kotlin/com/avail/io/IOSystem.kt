@@ -441,7 +441,7 @@ class IOSystem
 
 	companion object
 	{
-		/** The default [file system][FileSystem].  */
+		/** The default [file system][FileSystem]. */
 		val fileSystem: FileSystem = FileSystems.getDefault()
 
 		/**

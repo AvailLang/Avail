@@ -147,6 +147,8 @@ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
 import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import com.avail.descriptor.maps.MapDescriptor.MapIterable
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.stylers
+import com.avail.descriptor.methods.A_Definition.Companion.updateStylers
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
@@ -174,6 +176,14 @@ import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import com.avail.descriptor.methods.A_Method.Companion.testingTree
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.parsingSignature
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addBundle
 import com.avail.descriptor.module.A_Module.Companion.addConstantBinding
@@ -201,6 +211,7 @@ import com.avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import com.avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import com.avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import com.avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
+import com.avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.A_Module.Companion.moduleState
 import com.avail.descriptor.module.A_Module.Companion.newNames
@@ -211,6 +222,7 @@ import com.avail.descriptor.module.A_Module.Companion.removeFrom
 import com.avail.descriptor.module.A_Module.Companion.resolveForward
 import com.avail.descriptor.module.A_Module.Companion.serializedObjects
 import com.avail.descriptor.module.A_Module.Companion.serializedObjectsMap
+import com.avail.descriptor.module.A_Module.Companion.stylers
 import com.avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import com.avail.descriptor.module.A_Module.Companion.variableBindings
 import com.avail.descriptor.module.A_Module.Companion.versions
@@ -667,17 +679,17 @@ class IndirectionDescriptor private constructor(
 	}
 
 	companion object {
-		/** The mutable [IndirectionDescriptor].  */
+		/** The mutable [IndirectionDescriptor]. */
 		val mutables = TypeTag.values().map { typeTag ->
 			IndirectionDescriptor(Mutability.MUTABLE, typeTag)
 		}.toTypedArray()
 
-		/** The immutable [IndirectionDescriptor].  */
+		/** The immutable [IndirectionDescriptor]. */
 		val immutables = TypeTag.values().map { typeTag ->
 			IndirectionDescriptor(Mutability.IMMUTABLE, typeTag)
 		}.toTypedArray()
 
-		/** The shared [IndirectionDescriptor].  */
+		/** The shared [IndirectionDescriptor]. */
 		val shareds = TypeTag.values().map { typeTag ->
 			IndirectionDescriptor(Mutability.SHARED, typeTag)
 		}.toTypedArray()
@@ -3663,6 +3675,12 @@ class IndirectionDescriptor private constructor(
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		self .. { extractDumpedLongAt(index) }
 
+	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler) =
+		self .. { moduleAddStyler(styler) }
+
+	override fun o_ModuleStylers (self: AvailObject): A_Set =
+		self .. { (this as A_Module).stylers }
+
 	override fun o_ModuleState(self: AvailObject): ModuleDescriptor.State =
 		self .. { moduleState }
 
@@ -3745,4 +3763,13 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		typeToRemove: A_Type
 	): A_Type = self .. { trimType(typeToRemove) }
+
+	override fun o_UpdateStylers(
+		self: AvailObject,
+		updater: A_Set.() -> A_Set
+	) = self .. { updateStylers(updater) }
+
+	override fun o_Stylers(
+		self: AvailObject
+	): A_Set = self .. { (self as A_Definition).stylers }
 }

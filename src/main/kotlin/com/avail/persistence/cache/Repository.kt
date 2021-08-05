@@ -1314,7 +1314,7 @@ class Repository constructor(
 
 	companion object
 	{
-		/** The [logger][Logger].  */
+		/** The [logger][Logger]. */
 		private val logger = Logger.getLogger(Repository::class.java.name)
 
 		/** The maximum number of versions to keep for each module. */

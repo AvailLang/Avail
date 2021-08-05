@@ -83,7 +83,7 @@ class OptionProcessorFactory<OptionKeyType : Enum<OptionKeyType>>
 			}
 	}
 
-	/** The [set][Set] of all [options][Option].  */
+	/** The [set][Set] of all [options][Option]. */
 	private val allOptions = mutableSetOf<Option<OptionKeyType>>()
 
 	/** The rules to check, in order, for valid options and arguments. */

@@ -70,7 +70,7 @@ Test "has identity (continuation)" in identity visitors test suite is
 
 Test "has identity (definition)" in identity visitors test suite is
 [
-	atoms ::= <$"_'s⁇definitions", $"method for_", $"`$…$", $"_has identity">;
+	atoms ::= <$"_'s⁇definitions", $"method for_", $"$…#", $"_has identity">;
 	For each a of atoms do
 	[
 		m ::= method for a;
@@ -91,7 +91,7 @@ Test "has identity (fiber)" in identity visitors test suite is
 
 Test "has identity (function)" in identity visitors test suite is
 [
-	atoms ::= <$"_'s⁇definitions", $"method for_", $"`$…$", $"_has identity">;
+	atoms ::= <$"_'s⁇definitions", $"method for_", $"$…#", $"_has identity">;
 	For each a of atoms do
 	[
 		m ::= method for a;
@@ -114,7 +114,7 @@ Test "has identity (function)" in identity visitors test suite is
 
 Test "has identity (function implementation)" in identity visitors test suite is
 [
-	atoms ::= <$"_'s⁇definitions", $"method for_", $"`$…$", $"_has identity">;
+	atoms ::= <$"_'s⁇definitions", $"method for_", $"$…#", $"_has identity">;
 	For each a of atoms do
 	[
 		m ::= method for a;
@@ -145,7 +145,7 @@ Test "has identity (map)" in identity visitors test suite is
 
 Test "has identity (method)" in identity visitors test suite is
 [
-	atoms ::= <$"_'s⁇definitions", $"method for_", $"`$…$", $"_has identity">;
+	atoms ::= <$"_'s⁇definitions", $"method for_", $"$…#", $"_has identity">;
 	For each a of atoms do
 	[
 		m ::= method for a;

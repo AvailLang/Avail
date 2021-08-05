@@ -136,6 +136,7 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Collections.sort
 import java.util.Deque
@@ -709,17 +710,15 @@ class MessageBundleTreeDescriptor private constructor(
 
 	override fun o_Hash(self: AvailObject): Int {
 		assert(isShared)
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
+		return self.slot(HASH_OR_ZERO).ifZero {
 			synchronized(self) {
-				hash = self.slot(HASH_OR_ZERO)
-				if (hash == 0) {
-					hash = AvailRuntimeSupport.nextNonzeroHash()
-					self.setSlot(HASH_OR_ZERO, hash)
+				self.slot(HASH_OR_ZERO).ifZero {
+					AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+						self.setSlot(HASH_OR_ZERO, hash)
+					}
 				}
 			}
 		}
-		return hash
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
@@ -895,7 +894,7 @@ class MessageBundleTreeDescriptor private constructor(
 			return newOuterMap.makeShared()
 		}
 
-		/** A [Statistic] for tracking bundle tree invalidations.  */
+		/** A [Statistic] for tracking bundle tree invalidations. */
 		private val invalidationsStat = Statistic(
 			EXPANDING_PARSING_INSTRUCTIONS, "(invalidations)")
 
@@ -909,7 +908,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 *   Which [A_BundleTree] to invalidate.
 		 */
 		private fun invalidate(self: AvailObject) =
-			invalidationsStat.record(Interpreter.currentIndexOrZero()) {
+			invalidationsStat.record {
 				synchronized(self) {
 					self.setSlot(LAZY_COMPLETE, emptySet)
 					self.setSlot(LAZY_INCOMPLETE, emptyMap)
@@ -1285,10 +1284,10 @@ class MessageBundleTreeDescriptor private constructor(
 			setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump)
 		}
 
-		/** The mutable [MessageBundleTreeDescriptor].  */
+		/** The mutable [MessageBundleTreeDescriptor]. */
 		private val mutable = MessageBundleTreeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MessageBundleTreeDescriptor].  */
+		/** The shared [MessageBundleTreeDescriptor]. */
 		private val shared = MessageBundleTreeDescriptor(Mutability.SHARED)
 	}
 }

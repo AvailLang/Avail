@@ -53,6 +53,7 @@ import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
@@ -62,6 +63,7 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
@@ -207,9 +209,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 			&& self.slot(BUNDLE) === strongAnother.bundle)
 	}
 
-	override fun o_Hash(self: AvailObject) =
-		((self.slot(DEFINITION).hash() xor -0x6d5d9ebe)
-			- self.slot(BUNDLE).hash())
+	override fun o_Hash(self: AvailObject) = combine3(
+		self.slot(DEFINITION).hash(),
+		self.slot(BUNDLE).hash(),
+		-0x6d5d9ebe)
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		DEFINITION_PARSING_PLAN.o
@@ -263,11 +266,11 @@ class DefinitionParsingPlanDescriptor private constructor(
 					definition.parsingSignature()))
 		}
 
-		/** The mutable [DefinitionParsingPlanDescriptor].  */
+		/** The mutable [DefinitionParsingPlanDescriptor]. */
 		private val mutable =
 			DefinitionParsingPlanDescriptor(Mutability.MUTABLE)
 
-		/** The shared [DefinitionParsingPlanDescriptor].  */
+		/** The shared [DefinitionParsingPlanDescriptor]. */
 		private val shared = DefinitionParsingPlanDescriptor(Mutability.SHARED)
 	}
 }

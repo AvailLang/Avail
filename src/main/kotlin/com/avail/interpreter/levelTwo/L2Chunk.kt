@@ -212,7 +212,7 @@ class L2Chunk private constructor(
 			@GuardedBy("generationsLock")
 			private val generations: Deque<Generation> = ArrayDeque()
 
-			/** The lock for accessing the [Deque] of [Generation]s.  */
+			/** The lock for accessing the [Deque] of [Generation]s. */
 			private val generationsLock = ReentrantReadWriteLock()
 
 			/**
@@ -870,14 +870,14 @@ class L2Chunk private constructor(
 					emptySet)
 			assert(initialBlock.offset() == 0)
 			assert(reenterFromRestartBlock.offset()
-				   == ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
+					== ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
 			assert(loopBlock.offset() == 3)
 			assert(reenterFromCallBlock.offset()
-				   == ChunkEntryPoint.TO_RETURN_INTO.offsetInDefaultChunk)
+					== ChunkEntryPoint.TO_RETURN_INTO.offsetInDefaultChunk)
 			assert(reenterFromInterruptBlock.offset()
-				   == ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
+					== ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
 			assert(unreachableBlock.offset()
-				   == ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk)
+					== ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk)
 			return defaultChunk
 		}
 	}

@@ -50,7 +50,7 @@ import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine5
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -332,13 +332,12 @@ class LexerDescriptor private constructor(
 				setSlot(LEXER_BODY_FUNCTION, lexerBodyFunction!!)
 				setSlot(LEXER_METHOD, lexerMethod)
 				setSlot(DEFINITION_MODULE, definitionModule)
-				var hash = lexerFilterFunction.hash() + -0x3c395d0d
-				hash *= multiplier
-				hash -= lexerFilterFunction.hash() xor -0x7f7f4065
-				hash *= multiplier
-				hash = hash xor lexerMethod.hash() + 0x520C1078
-				hash *= multiplier
-				hash = hash xor definitionModule.hash() - -0x463e0e17
+				val hash = combine5(
+					lexerFilterFunction.hash(),
+					lexerFilterFunction.hash(),
+					lexerMethod.hash(),
+					definitionModule.hash(),
+					-0x463e0e17)
 				setSlot(HASH, hash)
 			}
 			lexerMethod.lexer = lexer

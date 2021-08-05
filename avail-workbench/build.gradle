@@ -29,11 +29,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
@@ -61,9 +56,6 @@ compileTestKotlin {
 
 repositories {
 	mavenCentral()
-	maven {
-		url("https://repo.spring.io/plugins-release/")
-	}
 }
 
 dependencies {
@@ -71,36 +63,14 @@ dependencies {
 	api rootProject
 
 	// Kotlin.
-	api group: 'org.jetbrains.kotlin',
-		name: 'kotlin-stdlib-jdk8',
-		version: "$kotlin_version"
+	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	api group: 'com.google.code.findbugs',
-		name: 'jsr305',
-		version: "$jsr_version"
+	api "com.google.code.findbugs:jsr305:$jsr_version"
 
 	// Dark mode look & feel.  Embed the jar's contents in the fat shadow jar.
 	// This was based on the Darcula module.
-	implementation("com.github.weisj:darklaf-core:2.5.5")
-}
-
-// Capture the time at which the build began and record it into a resource file.
-task generateBuildTime {
-	def pathWorkbenchBuildResources =
-		"$buildDir/resources/main/resources/workbench"
-	def pathToBuildTime = "$pathWorkbenchBuildResources/build-time.txt"
-	outputs.files pathToBuildTime
-
-	doLast {
-		def formatter = DateTimeFormatter
-			.ofPattern("yyyyMMdd.HHmmss.SSS")
-			.withLocale(Locale.default)
-			.withZone(ZoneId.systemDefault())
-		def now = formatter.format(Instant.now())
-
-		file(pathToBuildTime).text = "$now\n"
-	}
+	implementation "com.github.weisj:darklaf-core:$darklaf_version"
 }
 
 // Update the dependencies of "classes".
@@ -116,9 +86,7 @@ shadowJar {
 // Produce a jar for the Avail workbench.  It should have a Gradle dependency on
 // the core Avail VM module.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.environment.AvailWorkbench'
-	}
+	manifest.attributes.put 'Main-Class', 'com.avail.environment.AvailWorkbench'
 }
 
 // Copy the JAR into the distribution directory.
@@ -137,8 +105,15 @@ assemble.dependsOn releaseAvailWorkbench
 // package a complete JRE, but that's a problem for another day …
 task osx {
 	def appSrc = fileTree("$projectDir/osx")
-	def appDst = "${rootProject.projectDir}/distro/Apps/Avail Workbench.app"
-	inputs.files appSrc
+	def appDst = rootProject.projectDir.toString() +
+			"/distro/Apps/Avail Workbench.app"
+	def resDir = projectDir.toString() +
+			"/src/main/resources/resources/workbench"
+	def resSrc = file("$resDir/AvailHammer.icns")
+	def resDst = file("$appDst/Contents/Resources")
+	def jarSrc = shadowJar.outputs.files
+	def jarDst = file("$appDst/Contents/Java")
+	inputs.files appSrc, resSrc, resDst
 	outputs.dir appDst
 
 	group = 'build'
@@ -146,24 +121,16 @@ task osx {
 
 	doLast {
 		mkdir appDst
-
 		copy {
 			from appSrc
 			into file(appDst)
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
-
-		def resDir = "$projectDir/src/main/resources/resources/workbench"
-		def resSrc = file("$resDir/AvailHammer.icns")
-		def resDst = file("$appDst/Contents/Resources")
 		copy {
 			from resSrc
 			into resDst
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
-
-		def jarSrc = shadowJar.outputs.files
-		def jarDst = file("$appDst/Contents/Java")
 		mkdir jarDst
 		copy {
 			from jarSrc
@@ -171,12 +138,10 @@ task osx {
 			rename '.*', 'avail-workbench.jar'
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
-
 		exec {
-			def launcher = "$appDst/Contents/MacOS/JavaAppLauncher"
+			def launcher = appDst + "/Contents/MacOS/JavaAppLauncher"
 			commandLine 'chmod', '+x', launcher
 		}
-
 		exec {
 			commandLine 'setfile', '-a', 'B', appDst
 		}
@@ -184,8 +149,7 @@ task osx {
 }
 
 // Generate documentation
-dokka {
-	outputFormat='gfm'
+dokkaGfm {
 	// Outputting to documentation/docs/src-docs directly causes the contents of
 	// the directory to be deleted. Moving the directory post generation is the
 	// work around.
@@ -195,9 +159,8 @@ dokka {
 	}
 }
 
-task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
-	outputFormat = 'html'
-	outputDirectory = "$buildDir/dokka"
+dokkaHtml {
+	outputDirectory = file "$buildDir/dokka"
 }
 
 publishing {
@@ -206,14 +169,8 @@ publishing {
 			name = "GitHub"
 			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
 			credentials {
-				username = System.getenv("GITHUB_USER")
-				password = System.getenv("GITHUB_TOKEN")
-				if (username == null || password == null)
-				{
-					System.err.println("GITHUB_USER = $username")
-					System.err.println("GITHUB_TOKEN = $password")
-					System.err.println(credentialsWarning)
-				}
+				username = github_username
+				password = github_password
 			}
 		}
 	}

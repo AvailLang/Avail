@@ -36,13 +36,13 @@ import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import com.avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
@@ -59,6 +59,8 @@ import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
+import com.avail.descriptor.representation.AvailObject.Companion.combine6
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.BitField
@@ -96,6 +98,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.cast
+import com.avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
 
@@ -378,39 +381,40 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_Function(self: AvailObject): A_Function = self.slot(FUNCTION)
 
-	override fun o_Hash(self: AvailObject): Int {
-		// Hashing a continuation isn't expected to be common, but it's
-		// sufficiently expensive that we need to cache the hash value in the
-		// rare case that we do need it.
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
+	// Hashing a continuation isn't expected to be common, but it's
+	// sufficiently expensive that we need to cache the hash value in the
+	// rare case that we do need it.
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
 			val caller = self.caller().traversed().cast()!!
 			var callerHash = 0
-			if (caller.notNil
-				&& caller.slot(HASH_OR_ZERO) == 0) {
+			if (caller.notNil && caller.slot(HASH_OR_ZERO) == 0)
+			{
 				// The caller isn't hashed yet either.  Iteratively hash the
 				// call chain bottom-up to avoid potentially deep recursion.
 				val chain: Deque<AvailObject> = ArrayDeque()
 				var ancestor = caller
-				do {
+				do
+				{
 					chain.addFirst(ancestor)
 					ancestor = ancestor.caller().traversed()
-				} while (ancestor.notNil
-					&& ancestor.slot(HASH_OR_ZERO) == 0)
-				for (c in chain) {
+				}
+				while (ancestor.notNil && ancestor.slot(HASH_OR_ZERO) == 0)
+				// Force the hashes to be computed, starting with the deepest.
+				chain.forEach { c ->
 					callerHash = c.hashCode()
 				}
 			}
-			hash = 0x0593599A xor callerHash
-			hash += self.function().hash()
-			hash *= AvailObject.multiplier
-			hash += self.pc()
-			hash *= AvailObject.multiplier
-			hash = hash xor self.stackp()
-			for (i in self.numSlots() downTo 1) {
-				hash *= AvailObject.multiplier
-				hash += -0x23cb5228 xor self.frameAt(i).hash()
+			val slotsHash = (1..self.numSlots()).fold(0x0593599A) { h, i ->
+				combine3(h, self.frameAt(i).hash(), -0x23cb5228)
 			}
+			var hash = combine6(
+				callerHash,
+				self.function().hash(),
+				self.pc(),
+				self.stackp(),
+				slotsHash,
+				0x75398c87)
 			if (hash == 0) {
 				// Using this substitute for 0 is not strictly necessary, but
 				// there's always a tiny chance that some pattern of components
@@ -418,9 +422,8 @@ class ContinuationDescriptor private constructor(
 				hash = 0x4693F664
 			}
 			self.setSlot(HASH_OR_ZERO, hash)
+			hash
 		}
-		return hash
-	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		continuationTypeForFunctionType(self.function().kind())

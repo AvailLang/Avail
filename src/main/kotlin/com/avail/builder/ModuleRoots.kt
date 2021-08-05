@@ -38,13 +38,16 @@ import com.avail.error.ErrorCode
 import com.avail.files.FileManager
 import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
-import com.avail.resolver.ModuleRootResolverRegistry
+import com.avail.resolver.ModuleRootResolverRegistry.createResolver
 import com.avail.resolver.ResolverReference
 import com.avail.utility.json.JSONWriter
 import java.net.URI
-import java.util.Collections
+import java.util.Collections.singletonList
+import java.util.Collections.synchronizedList
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.locks.ReentrantLock
+import javax.annotation.concurrent.GuardedBy
+import kotlin.concurrent.withLock
 
 /**
  * `ModuleRoots` encapsulates the Avail [module][ModuleDescriptor] path. The
@@ -95,33 +98,24 @@ class ModuleRoots constructor(
 	modulePath: String,
 	withFailures: (List<String>) -> Unit) : Iterable<ModuleRoot>
 {
+	/** A lock for accessing the rootMap. */
+	private val lock = ReentrantLock()
+
 	/**
 	 * A [map][Map] from logical root names to [module&#32;root][ModuleRoot]s.
 	 */
+	@GuardedBy("lock")
 	private val rootMap = LinkedHashMap<String, ModuleRoot>()
 
 	/**
 	 * The Avail [module][ModuleDescriptor] path.
 	 */
-	val modulePath: String by lazy {
-		val builder = StringBuilder(200)
-		var first = true
-		for ((_, root) in rootMap)
-		{
-			if (!first)
-			{
-				builder.append(";")
+	val modulePath: String
+		get() = lock.withLock {
+			rootMap.values.joinToString(";") { root ->
+				"${root.name}=${root.resolver.uri}"
 			}
-			builder.append(root.name)
-			builder.append("=")
-			builder.append(root.repository.fileName.path)
-			val resolver = root.resolver
-			builder.append(",")
-			builder.append(resolver.uri.toString())
-			first = false
 		}
-		builder.toString()
-	}
 
 	/**
 	 * Parse the Avail [module][ModuleDescriptor] path into a [map][Map] of
@@ -130,93 +124,97 @@ class ModuleRoots constructor(
 	 * @param modulePath
 	 *   The module roots path string.
 	 * @param withFailures
-	 *   A lambda that accepts [List] of the string [ModuleRoot] [URI]s that failed
-	 *   to [resolve][ModuleRootResolver.resolve].
+	 *   A lambda that accepts the [List] of [ModuleRoot] string [URI]s that
+	 *   failed to [resolve][ModuleRootResolver.resolve].
 	 * @throws IllegalArgumentException
 	 *   If any component of the Avail [module][ModuleDescriptor] path is
 	 *   invalid.
 	 */
 	private fun parseAvailModulePathThen(
-		modulePath: String, withFailures: (List<String>) -> Unit)
+		modulePath: String,
+		withFailures: (List<String>) -> Unit)
 	{
 		clearRoots()
 		// Root definitions are separated by semicolons.
 		val components =
-			if (modulePath.isEmpty())
-			{
-				listOf()
-			}
-			else
-			{
-				modulePath.split(";")
-			}
+			if (modulePath.isEmpty()) listOf()
+			else modulePath.split(";")
 		val workCount = AtomicInteger(components.size)
 		val failures = mutableListOf<String>()
-		val lock = ReentrantLock()
-		for (component in components)
+		if (components.isEmpty())
 		{
-			// An equals separates the root name from its paths.
-			val binding = component.split("=")
-			require(binding.size == 2) {
-				"Bad module root location setting: $component"
-			}
-
-			// A comma separates the repository path from the source directory
-			// path.
-			val rootName = binding[0]
-			val location = binding[1]
-
-			val rootUri = URI(location)
-			val resolver =
-				ModuleRootResolverRegistry.createResolver(
-					rootName,
-					rootUri,
-					fileManager)
-
-			resolver.resolve(
-				{
-					synchronized(lock)
+			// We have to deal with the no-roots case specially, since workCount
+			// will never decrement to zero – it starts there.
+			withFailures(emptyList())
+		}
+		else
+		{
+			for (component in components)
+			{
+				// An equals separates the root name from its paths.
+				val binding = component.split("=")
+				require(binding.size == 2) {
+					"Bad module root location setting: $component"
+				}
+				val (rootName, location) = binding
+				addRoot(rootName, location) { newFailures ->
+					if (newFailures.isNotEmpty())
 					{
-						addRoot(resolver.moduleRoot)
-						if (workCount.decrementAndGet() == 0)
-						{
-							withFailures(failures)
+						synchronized(failures) {
+							failures.addAll(newFailures)
 						}
 					}
-				}
-			) { code, ex ->
-				val message =
-					"$code: Could not resolve module root, $rootName ($rootUri)"
-				synchronized(lock)
-				{
-					failures.add(message)
-				}
-				System.err.println(message)
-				ex?.printStackTrace()
-				if (workCount.decrementAndGet() == 0)
-				{
-					withFailures(failures)
+					if (workCount.decrementAndGet() == 0)
+					{
+						withFailures(failures)
+					}
 				}
 			}
 		}
 	}
 
 	/**
-	 * Clear the [root&#32;map][rootMap].
-	 */
-	fun clearRoots() = rootMap.clear()
-
-	/**
-	 * Add a [root][ModuleRoot] to the [root&#32;map][rootMap].
+	 * Create and add a [root][ModuleRoot] to the [rootMap].
 	 *
-	 * @param root
-	 *   The root.
+	 * @param rootName
+	 *   The name for the new [ModuleRoot].
+	 * @param location
+	 *   The [String] representation of the [URI] for the base of the new
+	 *   [ModuleRoot]
+	 * @param withFailures
+	 *   What to invoke, with a [List] of new failure report strings, after the
+	 *   root has been added and scanned.
 	 */
-	fun addRoot(root: ModuleRoot)
+	fun addRoot(
+		rootName: String,
+		location: String,
+		withFailures: (List<String>) -> Unit)
 	{
-		rootMap[root.name] = root
-		Repositories.addRepository(root)
-		// TODO: Hm, this mechanism won't scan the ModuleRoot.
+		if (location.isEmpty())
+		{
+			withFailures(
+				singletonList(
+				"Module root \"$rootName\" is missing a source URI"))
+			return
+		}
+		val rootUri = URI(location)
+		val resolver = createResolver(rootName, rootUri, fileManager)
+		resolver.resolve(
+			successHandler = {
+				lock.withLock {
+					rootMap[rootName] = resolver.moduleRoot
+					Repositories.addRepository(resolver.moduleRoot)
+				}
+				withFailures(emptyList())
+			},
+			failureHandler = { code, ex ->
+				val message =
+					"$code: Could not resolve module root $rootName ($rootUri)"
+				System.err.println(message)
+				ex?.printStackTrace()
+				withFailures(singletonList(message))
+			}
+		)
 	}
 
 	/**
@@ -227,18 +225,25 @@ class ModuleRoots constructor(
 	 */
 	fun removeRoot (name: String)
 	{
-		rootMap.remove(name)?.let {
-			Repositories.deleteRepository(name)
+		lock.withLock {
+			rootMap.remove(name)?.let {
+				Repositories.deleteRepository(name)
+			}
 		}
 	}
+
+	/**
+	 * Clear the [root&#32;map][rootMap].
+	 */
+	fun clearRoots() = lock.withLock { rootMap.clear() }
 
 	/**
 	 * The [module&#32;roots][ModuleRoot] in the order that they are specified
 	 * in the Avail [module][ModuleDescriptor] path.
 	 */
-	val roots get () = rootMap.values.toSet()
+	val roots get () = lock.withLock { rootMap.values.toSet() }
 
-	override fun iterator () = roots.toSet().iterator()
+	override fun iterator () = roots.iterator()
 
 	/**
 	 * Answer the [module&#32;root][ModuleRoot] bound to the specified logical
@@ -250,7 +255,8 @@ class ModuleRoots constructor(
 	 * @return
 	 *   The module root, or `null` if no such binding exists.
 	 */
-	fun moduleRootFor(rootName: String): ModuleRoot? = rootMap[rootName]
+	fun moduleRootFor(rootName: String): ModuleRoot? =
+		lock.withLock { rootMap[rootName] }
 
 	/**
 	 * Retrieve all of the root [ResolverReference]s for each [ModuleRoot] in
@@ -268,24 +274,25 @@ class ModuleRoots constructor(
 	{
 		val rootsToAcquire = roots
 		val countdown = AtomicInteger(rootsToAcquire.size)
-		val references =
-			Collections.synchronizedList(mutableListOf<ResolverReference>())
-		val failures = Collections.synchronizedList(
+		val references = synchronizedList(mutableListOf<ResolverReference>())
+		val failures = synchronizedList(
 			mutableListOf<Triple<String, ErrorCode, Throwable?>>())
-		rootsToAcquire.iterator().forEach { mr ->
-			mr.resolver.provideModuleRootTree({
-				references.add(it)
-				if (countdown.decrementAndGet() == 0)
-				{
-					withResults(references, failures)
-				}
-			}) { code, ex ->
-				failures.add(Triple(mr.name, code, ex))
-				if (countdown.decrementAndGet() == 0)
-				{
-					withResults(references, failures)
-				}
-			}
+		rootsToAcquire.forEach { mr ->
+			mr.resolver.provideModuleRootTree(
+				successHandler = {
+					references.add(it)
+					if (countdown.decrementAndGet() == 0)
+					{
+						withResults(references, failures)
+					}
+				},
+				failureHandler = { code, ex ->
+					failures.add(Triple(mr.name, code, ex))
+					if (countdown.decrementAndGet() == 0)
+					{
+						withResults(references, failures)
+					}
+				})
 		}
 	}
 

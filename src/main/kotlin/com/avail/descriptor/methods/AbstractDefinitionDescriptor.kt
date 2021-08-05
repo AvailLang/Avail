@@ -33,14 +33,19 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.STYLERS
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.ABSTRACT_DEFINITION
@@ -78,6 +83,12 @@ class AbstractDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
+		 * The [A_Set] of [A_Styler]s that have been added to this definition.
+		 */
+		@HideFieldJustForPrinting
+		STYLERS,
+
+		/**
 		 * The [function&#32;type][FunctionTypeDescriptor] for which this
 		 * signature is being specified.
 		 */
@@ -93,6 +104,9 @@ class AbstractDefinitionDescriptor private constructor(
 				assert(
 					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
 						== MODULE.ordinal)
+				assert(
+					DefinitionDescriptor.ObjectSlots.STYLERS.ordinal
+						== STYLERS.ordinal)
 			}
 		}
 	}
@@ -101,7 +115,7 @@ class AbstractDefinitionDescriptor private constructor(
 		self.slot(BODY_SIGNATURE)
 
 	override fun o_Hash(self: AvailObject) =
-		self.slot(BODY_SIGNATURE).hash() * 19 xor 0x201FE782
+		combine2(self.slot(BODY_SIGNATURE).hash(), 0x201FE782)
 
 	override fun o_Kind(self: AvailObject): AvailObject =
 		ABSTRACT_DEFINITION.o
@@ -167,13 +181,14 @@ class AbstractDefinitionDescriptor private constructor(
 		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
+			setSlot(STYLERS, emptySet)
 			setSlot(BODY_SIGNATURE, bodySignature)
 		}
 
-		/** The mutable [AbstractDefinitionDescriptor].  */
+		/** The mutable [AbstractDefinitionDescriptor]. */
 		private val mutable = AbstractDefinitionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [AbstractDefinitionDescriptor].  */
+		/** The shared [AbstractDefinitionDescriptor]. */
 		private val shared = AbstractDefinitionDescriptor(Mutability.SHARED)
 	}
 }

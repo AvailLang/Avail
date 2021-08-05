@@ -115,7 +115,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -554,13 +554,13 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		private const val maximumCopySize = 64
 
-		/** The mutable [ByteArrayTupleDescriptor].  */
+		/** The mutable [ByteArrayTupleDescriptor]. */
 		private val mutable = ByteArrayTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ByteArrayTupleDescriptor].  */
+		/** The immutable [ByteArrayTupleDescriptor]. */
 		private val immutable = ByteArrayTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ByteArrayTupleDescriptor].  */
+		/** The shared [ByteArrayTupleDescriptor]. */
 		private val shared = ByteArrayTupleDescriptor(Mutability.SHARED)
 
 		/**

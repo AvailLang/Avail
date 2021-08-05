@@ -49,6 +49,7 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.
 import com.avail.descriptor.phrases.ReferencePhraseDescriptor.ObjectSlots.VARIABLE
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -128,7 +129,7 @@ class ReferencePhraseDescriptor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.variable.hash() xor -0x180564c1
+		combine2(self.variable.hash(), -0x180564c1)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
@@ -211,10 +212,10 @@ class ReferencePhraseDescriptor(
 				setSlot(VARIABLE, variableUse)
 			}
 
-		/** The mutable [ReferencePhraseDescriptor].  */
+		/** The mutable [ReferencePhraseDescriptor]. */
 		private val mutable = ReferencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ReferencePhraseDescriptor].  */
+		/** The shared [ReferencePhraseDescriptor]. */
 		private val shared = ReferencePhraseDescriptor(Mutability.SHARED)
 	}
 }

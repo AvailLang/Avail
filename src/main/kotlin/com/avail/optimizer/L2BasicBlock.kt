@@ -71,7 +71,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	var isLoopHead: Boolean = false,
 	var zone: L2ControlFlowGraph.Zone? = null)
 {
-	/** The sequence of instructions within this basic block.  */
+	/** The sequence of instructions within this basic block. */
 	private val instructions = mutableListOf<L2Instruction>()
 
 	/**
@@ -103,7 +103,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	var isIrremovable = false
 		private set
 
-	/** Whether we've started adding instructions to this basic block.  */
+	/** Whether we've started adding instructions to this basic block. */
 	private var hasStartedCodeGeneration = false
 
 	/**
@@ -438,7 +438,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	 */
 	fun currentlyReachable(): Boolean =
 		((isIrremovable || predecessorEdges.isNotEmpty())
-		 	&& !hasControlFlowAtEnd)
+			&& !hasControlFlowAtEnd)
 
 	/**
 	 * Add this block's instructions to the given instruction list.  Also do a

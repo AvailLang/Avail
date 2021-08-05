@@ -144,12 +144,6 @@ Test "MethodNameParametersCount fails with incorrect-type-for-numbered-choice ex
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "MethodNameParametersCount fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
-
 Test "MethodNameParametersCount fails with up-arrow-must-follow-argument exception" in primitive methods test suite if supported is
 [
 	Skip test

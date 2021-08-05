@@ -423,7 +423,7 @@ interface A_RawFunction : A_BasicObject {
 		val A_RawFunction.totalInvocations: Long
 			get() = dispatch { o_TotalInvocations(it) }
 
-		/** The [CheckedMethod] for [functionType].  */
+		/** The [CheckedMethod] for [functionType]. */
 		val functionTypeMethod: CheckedMethod = instanceMethod(
 			A_RawFunction::class.java,
 			A_RawFunction::functionType.name,

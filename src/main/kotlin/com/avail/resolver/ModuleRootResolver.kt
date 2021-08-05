@@ -35,15 +35,21 @@ package com.avail.resolver
 import com.avail.AvailThread
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
+import com.avail.builder.ModuleNameResolver.Companion.availExtension
+import com.avail.builder.ModuleNameResolver.ModuleNameResolutionResult
 import com.avail.builder.ModuleRoot
+import com.avail.builder.ResolvedModuleName
+import com.avail.builder.UnresolvedModuleException
 import com.avail.error.ErrorCode
 import com.avail.files.AbstractFileWrapper
+import com.avail.files.FileErrorCode
 import com.avail.files.FileManager
 import com.avail.files.ManagedFileWrapper
 import com.avail.persistence.cache.Repository
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets
+import java.util.Collections
 import java.util.UUID
 
 /**
@@ -57,7 +63,7 @@ import java.util.UUID
  *
  * All file actions are conducted via the [ModuleRootResolver.fileManager].
  * Given the files may originate anywhere from the local file system to a remote
- * database accessed via network API, a RESTful webserver, etc., all file
+ * database accessed via network API, a REST-ful webserver, etc., all file
  * requests must be handled asynchronously.
  *
  * A `ModuleRootResolver` establishes access to a `ModuleRoot` based upon the
@@ -71,31 +77,40 @@ import java.util.UUID
  * the factory has not been registered. Only one registered
  * `ModuleRootResolverFactory` is allowed per `URI` scheme.
  *
+ * @constructor
+ * Construct a new ModuleRootResolver for some root.
+ *
+ * @property name
+ *   The name of this root.
+ * @property uri
+ *   The [URI] that identifies the location of the [ModuleRoot].
+ * @property fileManager
+ *   The [FileManager] used for pooling I/O requests for this root.
+ *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-interface ModuleRootResolver
+abstract class ModuleRootResolver
+constructor(
+	val name: String,
+	val uri: URI,
+	val fileManager: FileManager)
 {
-	/**
-	 * The [URI] that identifies the location of the [ModuleRoot].
-	 */
-	val uri: URI
-
 	/**
 	 * The [ModuleRoot] this [ModuleRootResolver] resolves to.
 	 */
-	val moduleRoot: ModuleRoot
-
+	@Suppress("LeakingThis")
+	val moduleRoot: ModuleRoot = ModuleRoot(name, this)
 	/**
-	 * The [FileManager] used to manage the files accessed via this
-	 * [ModuleRootResolver].
+	 * The map from the [ModuleName.qualifiedName] string to the respective
+	 * [ResolverReference].
 	 */
-	val fileManager: FileManager
+	protected val referenceMap = mutableMapOf<String, ResolverReference>()
 
 	/**
 	 * The [exception][Throwable] that prevented most recent attempt at
 	 * accessing the source location of this [ModuleRootResolver].
 	 */
-	var accessException: Throwable?
+	var accessException: Throwable? = null
 
 	/**
 	 * The [Map] from a UUID that represents an interested party to a lambda
@@ -104,7 +119,13 @@ interface ModuleRootResolver
 	 * the event occurred to.
 	 */
 	val watchEventSubscriptions:
-		MutableMap<UUID, (WatchEventType, ResolverReference)->Unit>
+			MutableMap<UUID, (WatchEventType, ResolverReference)->Unit> =
+		Collections.synchronizedMap(mutableMapOf())
+
+	/**
+	 * The full [ModuleRoot] tree if available; or `null` if not yet set.
+	 */
+	protected var moduleRootTree: ResolverReference? = null
 
 	/**
 	 * Provide the non-`null` [ResolverReference] that represents the
@@ -118,15 +139,20 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun provideModuleRootTree(
+	open fun provideModuleRootTree(
 		successHandler: (ResolverReference)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
+	{
+		executeTask {
+			moduleRootTree?.let { successHandler(it) } ?:
+			resolve(successHandler, failureHandler)
+		}
+	}
 
 	/**
-	 * Connect to the source of the [moduleRoot] and populate a
-	 * [ResolverReference] with all the `ResolverReference`s from the module
-	 * root. This is not required nor expected to be executed in the calling
-	 * thread.
+	 * Connect to the source of the [moduleRoot] and populate this resolver with
+	 * all the [ResolverReference]s from the module root. This is not required
+	 * nor expected to be executed in the calling thread.
 	 *
 	 * @param successHandler
 	 *   Accepts the [resolved][resolve] [ResolverReference].
@@ -134,7 +160,7 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun resolve(
+	abstract fun resolve(
 		successHandler: (ResolverReference)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 
@@ -144,13 +170,13 @@ interface ModuleRootResolver
 	 * @param task
 	 *   The lambda to run outside the calling thread of execution.
 	 */
-	fun executeTask(task: ()->Unit)
+	open fun executeTask(task: ()->Unit) = fileManager.executeFileTask(task)
 
 	/**
 	 * Close this [ModuleRootResolver]. Should be called at shutdown to ensure
 	 * proper clean up of any open resources.
 	 */
-	fun close () = Unit
+	open fun close () = Unit
 
 	/**
 	 * Subscribe to receive notifications of [WatchEventType]s occurring to this
@@ -187,7 +213,7 @@ interface ModuleRootResolver
 	 *   `true` indicates the [uri] resolves to a valid Avail [ModuleRoot];
 	 *   `false` otherwise.
 	 */
-	fun resolvesToValidModuleRoot (): Boolean
+	abstract fun resolvesToValidModuleRoot (): Boolean
 
 	/**
 	 * Answer a [ModuleNameResolver.ModuleNameResolutionResult] when attempting
@@ -204,15 +230,72 @@ interface ModuleRootResolver
 	 *   A `ModuleNameResolutionResult` or `null` if could not be located in
 	 *   this root.
 	 */
-	fun find(
+	open fun find(
 		qualifiedName: ModuleName,
 		initialCanonicalName: ModuleName,
-		moduleNameResolver: ModuleNameResolver)
-			: ModuleNameResolver.ModuleNameResolutionResult?
+		moduleNameResolver: ModuleNameResolver
+	): ModuleNameResolutionResult?
+	{
+		val components =
+			initialCanonicalName.qualifiedName.split("/").toMutableList()
+		assert(components.size > 1)
+		assert(components[0].isEmpty())
+
+		while (components.size >= 2)
+		{
+			components.removeAt(components.size - 2)
+			val name = components.joinToString("/")
+			referenceMap[name]?.let { resolved ->
+				when (resolved.type)
+				{
+					ResourceType.PACKAGE ->
+					{
+						// Look for the package representative.
+						val representativeComponents =
+							components.toMutableList()
+						representativeComponents.add(
+							representativeComponents.last())
+						val representativeName =
+							representativeComponents.joinToString("/")
+						return when (val rep = referenceMap[representativeName])
+						{
+							null -> ModuleNameResolutionResult(
+								UnresolvedModuleException(
+									null, representativeName, this
+								)
+							)
+							else -> ModuleNameResolutionResult(
+								ResolvedModuleName(
+									rep.moduleName,
+									moduleNameResolver.moduleRoots,
+									rep,
+									initialCanonicalName.isRename
+								)
+							)
+						}
+					}
+					ResourceType.MODULE ->
+					{
+						return ModuleNameResolutionResult(
+							ResolvedModuleName(
+								resolved.moduleName,
+								moduleNameResolver.moduleRoots,
+								resolved,
+								initialCanonicalName.isRename
+							)
+						)
+					}
+					else -> Unit
+				}
+			}
+		}
+		// Resolution failed within this root.  The caller will try other roots.
+		return null
+	}
 
 	/**
 	 * Provide the [ResolverReference] for the given qualified file name for a
-	 * a file in [moduleRoot].
+	 * file in [moduleRoot].
 	 *
 	 * @param qualifiedName
 	 *   The qualified name of the target file.
@@ -222,10 +305,18 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun provideResolverReference(
+	open fun provideResolverReference(
 		qualifiedName: String,
 		withReference: (ResolverReference)->Unit,
-		failureHandler: (ErrorCode, Throwable?)->Unit)
+		failureHandler: (ErrorCode, Throwable?) -> Unit
+	)
+	{
+		val qname = qualifiedName.replace(availExtension, "")
+		referenceMap[qname]?.let { reference ->
+			return withReference(reference)
+		}
+		failureHandler(FileErrorCode.FILE_NOT_FOUND, null)
+	}
 
 	/**
 	 * Answer the [ResolverReference] for the given qualified file name for a
@@ -239,7 +330,9 @@ interface ModuleRootResolver
 	 * @return
 	 *   The [ResolverReference] or `null` if not presently available.
 	 */
-	fun getResolverReference(qualifiedName: String): ResolverReference?
+	open fun getResolverReference(
+		qualifiedName: String
+	): ResolverReference? = referenceMap[qualifiedName]
 
 	/**
 	 * Specifically refresh the [ResolverReference.digest] in the
@@ -264,7 +357,7 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun refreshResolverReferenceDigest(
+	abstract fun refreshResolverReferenceDigest(
 		reference: ResolverReference,
 		successHandler: (ByteArray, Long)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -284,7 +377,7 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] and a `nullable` [Throwable]
 	 *   to be called in the event of failure.
 	 */
-	fun refreshResolverMetaData(
+	abstract fun refreshResolverMetaData(
 		reference: ResolverReference,
 		successHandler: (Long)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -304,7 +397,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun rootManifest(
+	abstract fun rootManifest(
 		forceRefresh: Boolean,
 		withList: (List<ResolverReference>)->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -321,13 +414,13 @@ interface ModuleRootResolver
 	 *   The [ResolverReference] that identifies the target file to read.
 	 * @param withContents
 	 *   A function that accepts the raw bytes of the file in the [moduleRoot]
-	 *   and optionally a [FileManager] file [UUID] or `null` if `cacheFile`
-	 *   is `false`.
+	 *   and optionally a [FileManager] file [UUID] or `null` if
+	 *   [bypassFileManager] is `true`.
 	 * @param failureHandler
 	 *   A function that accepts a [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun readFile(
+	abstract fun readFile(
 		bypassFileManager: Boolean,
 		reference: ResolverReference,
 		withContents: (ByteArray, UUID?)->Unit,
@@ -346,7 +439,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the failure
 	 *   and a `nullable` [Throwable].
 	 */
-	fun createFile(
+	abstract fun createFile(
 		qualifiedName: String,
 		mimeType: String,
 		completion: ()->Unit,
@@ -363,7 +456,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the failure
 	 *   and a `nullable` [Throwable].
 	 */
-	fun createPackage(
+	abstract fun createPackage(
 		qualifiedName: String,
 		completion: ()->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -379,7 +472,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the failure
 	 *   and a `nullable` [Throwable].
 	 */
-	fun createDirectory(
+	abstract fun createDirectory(
 		qualifiedName: String,
 		completion: ()->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -402,7 +495,7 @@ interface ModuleRootResolver
 	 *   A function that accepts a [ErrorCode] that describes the failure
 	 *   and a `nullable` [Throwable].
 	 */
-	fun deleteResource(
+	abstract fun deleteResource(
 		qualifiedName: String,
 		completion: ()->Unit,
 		failureHandler: (ErrorCode, Throwable?)->Unit)
@@ -418,7 +511,7 @@ interface ModuleRootResolver
 	 *   A function that accepts an [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun saveFile(
+	abstract fun saveFile(
 		reference: ResolverReference,
 		fileContents: ByteArray,
 		successHandler: ()->Unit,
@@ -468,7 +561,7 @@ interface ModuleRootResolver
 			"$targetURI is not in ModuleRoot, $moduleRoot"
 		}
 		val relative = targetURI.split(uri.path)[1]
-		val cleansedRelative = relative.replace(".avail", "")
+		val cleansedRelative = relative.replace(availExtension, "")
 		return "/${moduleRoot.name}" +
 			(if (relative.startsWith("/")) "" else "/") +
 			cleansedRelative

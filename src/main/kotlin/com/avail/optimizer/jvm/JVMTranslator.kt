@@ -216,7 +216,7 @@ class JVMTranslator constructor(
 	instructions: Array<L2Instruction>)
 {
 
-	/** The array of [L2Instruction]s to translate to JVM bytecodes.  */
+	/** The array of [L2Instruction]s to translate to JVM bytecodes. */
 	val instructions: Array<L2Instruction> = instructions.clone()
 
 	/**
@@ -237,7 +237,7 @@ class JVMTranslator constructor(
 	 */
 	val classInternalName: String
 
-	/** The class file bytes that are produced.  */
+	/** The class file bytes that are produced. */
 	private var classBytes: ByteArray? = null
 
 	/**
@@ -1666,7 +1666,7 @@ class JVMTranslator constructor(
 		finishMethod(method)
 	}
 
-	/** The final phase of JVM code generation.  */
+	/** The final phase of JVM code generation. */
 	fun classVisitEnd()
 	{
 		classWriter.visitEnd()
@@ -1763,36 +1763,36 @@ class JVMTranslator constructor(
 	internal enum class GenerationPhase constructor(
 		private val action: (JVMTranslator) -> Unit)
 	{
-		/** Prepare to generate the JVM translation.  */
+		/** Prepare to generate the JVM translation. */
 		PREPARE(JVMTranslator::prepare),
 
-		/** Create the static &lt;clinit&gt; method for capturing constants.  */
+		/** Create the static &lt;clinit&gt; method for capturing constants. */
 		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
 
-		/** Prepare the default constructor, invoked once via reflection.  */
+		/** Prepare the default constructor, invoked once via reflection. */
 		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
 
-		/** Generate the name() method.  */
+		/** Generate the name() method. */
 		GENERATE_NAME(JVMTranslator::generateName),
 
-		/** Generate the runChunk() method.  */
+		/** Generate the runChunk() method. */
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
 
-		/** Indicate code emission has completed.  */
+		/** Indicate code emission has completed. */
 		VISIT_END(JVMTranslator::classVisitEnd),
 
-		/** Create a byte array that would be the content of a class file.  */
+		/** Create a byte array that would be the content of a class file. */
 		CREATE_CLASS_BYTES(JVMTranslator::createClassBytes),
 
-		/** Load the class into the running system.  */
+		/** Load the class into the running system. */
 		LOAD_CLASS(JVMTranslator::loadClass);
 
-		/** Statistic about this L2 -> JVM translation phase.  */
+		/** Statistic about this L2 -> JVM translation phase. */
 		private val statistic = Statistic(FINAL_JVM_TRANSLATION_TIME, name)
 
 		companion object
 		{
-			/** A private array of phases, since Enum.values() makes a copy.  */
+			/** A private array of phases, since Enum.values() makes a copy. */
 			private val all = values()
 
 			/**
@@ -1886,7 +1886,7 @@ class JVMTranslator constructor(
 		private val classNameForbiddenCharacters =
 			Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+")
 
-		/** A regex [Pattern] to strip the prefix of a module name.  */
+		/** A regex [Pattern] to strip the prefix of a module name. */
 		private val moduleNameStripper =
 			Pattern.compile("^.*/([^/]+)$")
 
@@ -1899,7 +1899,7 @@ class JVMTranslator constructor(
 		 */
 		const val callTraceL2AfterEveryInstruction = false
 
-		/** Helper for stripping "_TAG" from end of tag names.  */
+		/** Helper for stripping "_TAG" from end of tag names. */
 		val tagEndPattern: Pattern = Pattern.compile("_TAG$")
 
 		/**

@@ -94,6 +94,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.util.concurrent.atomic.AtomicReference
 
@@ -133,7 +134,7 @@ open class VariableDescriptor protected constructor(
 	 */
 	class VariableAccessReactor(initialFunction: A_Function)
 	{
-		/** The [reactor function][FunctionDescriptor].  */
+		/** The [reactor function][FunctionDescriptor]. */
 		private val function = AtomicReference(initialFunction)
 
 		/**
@@ -207,20 +208,16 @@ open class VariableDescriptor protected constructor(
 				|| e === IntegerSlots.HASH_AND_MORE
 				|| e === WRITE_REACTORS
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
 			synchronized(self) {
-				hash = self.slot(HASH_OR_ZERO)
-				if (hash == 0) {
-					hash = AvailRuntimeSupport.nextNonzeroHash()
-					self.setSlot(HASH_OR_ZERO, hash)
+				self.slot(HASH_OR_ZERO).ifZero {
+					AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+						self.setSlot(HASH_OR_ZERO, hash)
+					}
 				}
 			}
 		}
-		return hash
-	}
 
 	override fun o_Value(self: AvailObject): AvailObject =
 		self.slot(VALUE)
@@ -732,7 +729,7 @@ open class VariableDescriptor protected constructor(
 			writeReactors.values.removeIf(VariableAccessReactor::isInvalid)
 		}
 
-		/** The [CheckedMethod] for [A_Variable.clearValue].  */
+		/** The [CheckedMethod] for [A_Variable.clearValue]. */
 		val clearVariableMethod: CheckedMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::clearValue.name,
@@ -794,14 +791,14 @@ open class VariableDescriptor protected constructor(
 			AvailObject::class.java,
 			A_Type::class.java)
 
-		/** The mutable [VariableDescriptor].  */
+		/** The mutable [VariableDescriptor]. */
 		private val mutable = VariableDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.VARIABLE_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The immutable [VariableDescriptor].  */
+		/** The immutable [VariableDescriptor]. */
 		private val immutable = VariableDescriptor(
 			Mutability.IMMUTABLE,
 			TypeTag.VARIABLE_TAG,

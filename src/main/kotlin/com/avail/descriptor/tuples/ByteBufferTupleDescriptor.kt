@@ -115,7 +115,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -499,7 +499,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		endIndex: Int,
 		type: A_Type): Boolean =
 			(IntegerRangeTypeDescriptor.bytes.isSubtypeOf(type)
-			 	|| super.o_TupleElementsInRangeAreInstancesOf(
+				|| super.o_TupleElementsInRangeAreInstancesOf(
 					self, startIndex, endIndex, type))
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
@@ -529,13 +529,13 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		 */
 		private const val maximumCopySize = 64
 
-		/** The mutable [ByteBufferTupleDescriptor].  */
+		/** The mutable [ByteBufferTupleDescriptor]. */
 		private val mutable = ByteBufferTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ByteBufferTupleDescriptor].  */
+		/** The immutable [ByteBufferTupleDescriptor]. */
 		private val immutable = ByteBufferTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ByteBufferTupleDescriptor].  */
+		/** The shared [ByteBufferTupleDescriptor]. */
 		private val shared = ByteBufferTupleDescriptor(Mutability.SHARED)
 
 		/**

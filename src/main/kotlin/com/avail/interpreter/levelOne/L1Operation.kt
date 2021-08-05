@@ -410,7 +410,7 @@ enum class L1Operation constructor(
 
 	companion object
 	{
-		/** An array of all [L1Operation] enumeration values.  */
+		/** An array of all [L1Operation] enumeration values. */
 		private val all = values()
 
 		/**

@@ -354,10 +354,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 	{
 		writer.startObject()
 		writer.write("kind")
-		writer.write(
-			"${
-				self.slot(NAME).asNativeString().lowercase()
-			} type")
+		writer.write("${self.slot(NAME).asNativeString().lowercase()} type")
 		writer.endObject()
 	}
 

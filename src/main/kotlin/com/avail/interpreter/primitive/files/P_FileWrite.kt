@@ -184,7 +184,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 				listOf(buffer).iterator()
 			}
 			else -> object : MutableIterator<ByteBuffer> {
-				/** The buffer to reuse for writing.  */
+				/** The buffer to reuse for writing. */
 				val buffer = ByteBuffer.allocateDirect(
 					min(totalBytes, MAX_WRITE_BUFFER_SIZE))
 

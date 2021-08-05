@@ -45,9 +45,9 @@ import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.A_RawFunction.Companion.module
-import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
@@ -125,10 +125,10 @@ internal class BuildLoader constructor(
 	private val globalTracker: GlobalProgressReporter,
 	private val problemHandler: ProblemHandler)
 {
-	/** The size, in bytes, of all source files that will be built.  */
+	/** The size, in bytes, of all source files that will be built. */
 	private val globalCodeSize: Long
 
-	/** The number of bytes compiled so far.  */
+	/** The number of bytes compiled so far. */
 	private val bytesCompiled = AtomicLong(0L)
 
 	init
@@ -159,7 +159,7 @@ internal class BuildLoader constructor(
 		if (availBuilder.shouldStopBuild)
 		{
 			postLoad(target, 0L)
-			completionAction()
+			availBuilder.runtime.execute(loaderPriority, completionAction)
 			return
 		}
 		availBuilder.runtime.execute(loaderPriority) {
@@ -167,7 +167,7 @@ internal class BuildLoader constructor(
 			{
 				// An exception has been encountered since the earlier check.
 				// Exit quickly.
-				completionAction()
+				availBuilder.runtime.execute(loaderPriority, completionAction)
 			}
 			else
 			{
@@ -211,7 +211,13 @@ internal class BuildLoader constructor(
 				"Already loaded: %s",
 				moduleName.qualifiedName)
 			postLoad(moduleName, 0L)
-			completionAction()
+			// Since no fiber was created for running the module loading, we
+			// still have the responsibility to run the completionAction.  If
+			// we run it right now in the current thread, it will recurse,
+			// potentially deeply, as the already-loaded part of the module
+			// graph is skipped in this way.  To avoid this deep stack, queue a
+			// task run the completionAction.
+			availBuilder.runtime.execute(loaderPriority, completionAction)
 		}
 		else
 		{

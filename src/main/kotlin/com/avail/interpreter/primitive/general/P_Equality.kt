@@ -84,8 +84,8 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			return falseType
 		}
 		if (type1.isEnumeration
-		    && type1.equals(type2)
-		    && type1.instanceCount.equalsInt(1))
+			&& type1.equals(type2)
+			&& type1.instanceCount.equalsInt(1))
 		{
 			val value = type1.instances.single()
 			// Because of metacovariance, a meta may actually have many
@@ -136,8 +136,8 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		// For instance, tuple's type contains not only tuple, but every subtype
 		// of tuple (e.g., string, <>'s type, etc.).
 		if (type1.equals(type2)
-		    && type1.instanceCount.equalsInt(1)
-		    && !type1.isInstanceMeta)
+			&& type1.instanceCount.equalsInt(1)
+			&& !type1.isInstanceMeta)
 		{
 			callSiteHelper.useAnswer(
 				translator.generator.boxedConstant(trueObject))

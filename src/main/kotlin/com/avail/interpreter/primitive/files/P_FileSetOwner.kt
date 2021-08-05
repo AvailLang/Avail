@@ -89,7 +89,7 @@ object P_FileSetOwner : Primitive(3, CanInline, HasSideEffect)
 		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView::class.java, *options)
-	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			val lookupService =
@@ -126,6 +126,6 @@ object P_FileSetOwner : Primitive(3, CanInline, HasSideEffect)
 			set(
 				E_INVALID_PATH,
 				E_OPERATION_NOT_SUPPORTED,
-		        E_PERMISSION_DENIED,
+				E_PERMISSION_DENIED,
 				E_IO_ERROR))
 }

@@ -30,22 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-
-import org.jetbrains.dokka.gradle.DokkaTask
-
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 
 plugins {
 	id 'java'
-	id 'org.jetbrains.kotlin.jvm' version '1.5.10' // $kotlin_version
+	id 'org.jetbrains.kotlin.jvm' version '1.5.30-M1' // $kotlin_version
 	id 'com.github.johnrengelman.shadow' version '6.0.0' // $shadow_version
-	id 'org.jetbrains.dokka' version '0.10.1'
+	id 'org.jetbrains.dokka' version '1.5.0'
 	id 'maven-publish'
 	id 'publishing'
-
-	id "com.dorongold.task-tree" version "1.5"  // adds 'taskTree' analysis task
 }
 
 ext.versionToPublish = {
@@ -65,6 +60,23 @@ allprojects {
 
 	tasks.withType(JavaCompile) {
 		options.encoding = 'UTF-8'
+	}
+
+	// Capture the time at which the build began, writing it to a resource file.
+	task generateBuildTime {
+		def pathWorkbenchBuildResources =
+				buildDir.toString() + "/resources/main/resources"
+		def pathToBuildTime = pathWorkbenchBuildResources + "/build-time.txt"
+		outputs.files pathToBuildTime
+
+		doLast {
+			def formatter = DateTimeFormatter
+					.ofPattern("yyyyMMdd.HHmmss.SSS")
+					.withLocale(Locale.default)
+					.withZone(ZoneId.systemDefault())
+			def now = formatter.format(Instant.now())
+			file(pathToBuildTime).text = "$now\n"
+		}
 	}
 }
 
@@ -89,65 +101,39 @@ compileTestKotlin {
 }
 
 dependencies {
+	testApi project(":avail-test-utility")
+
 	// Kotlin.
-	api group: 'org.jetbrains.kotlin',
-		name: 'kotlin-stdlib-jdk8',
-		version: "$kotlin_version"
+	api "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	api group: 'com.google.code.findbugs',
-		name: 'jsr305',
-		version: "$jsr_version"
+	api "com.google.code.findbugs:jsr305:$jsr_version"
 
 	// Type renderer annotations, for debugger view.  Doesn't actually work.
-	compileOnly group: 'org.jetbrains',
-		name: 'annotations',
-		version: "$kotlin_annotations"
+	compileOnly("org.jetbrains:annotations:$kotlin_annotations")
 
 	// ObjectWeb JVM code generation/analysis framework.
-	api group: 'org.ow2.asm',
-		name: 'asm',
-		version: "$asm_version"
-	api group: 'org.ow2.asm',
-		name: 'asm-analysis',
-		version: "$asm_version"
-	api group: 'org.ow2.asm',
-		name: 'asm-tree',
-		version: "$asm_version"
-	api group: 'org.ow2.asm',
-		name: 'asm-util',
-		version: "$asm_version"
+	api "org.ow2.asm:asm:$asm_version"
+	api "org.ow2.asm:asm-analysis:$asm_version"
+	api "org.ow2.asm:asm-tree:$asm_version"
+	api "org.ow2.asm:asm-util:$asm_version"
 
 	// Java's file-watcher mechanism is garbage, so use this instead.
-	api group: 'io.methvin',
-		name: 'directory-watcher',
-		version: "$directoryWatcherVersion"
+	api "io.methvin:directory-watcher:$directory_watcher_version"
 
 	// https://tika.apache.org for file MIME type detection
 	implementation "org.apache.tika:tika-core:$tika_version"
 
 	// JUnit 5.
-	testRuntimeOnly group: 'org.junit.jupiter',
-		name: 'junit-jupiter-engine',
-		version: "$junit_version"
-	testImplementation group: 'org.junit.jupiter',
-		name: 'junit-jupiter-api',
-		version: "$junit_version"
-	testImplementation group: 'org.junit.jupiter',
-		name: 'junit-jupiter-params',
-		version: "$junit_version"
+	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
+	testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
+
     implementation "org.jetbrains.kotlin:kotlin-reflect:$kotlin_version"
 }
 
-def repositoriesPath = {
-	def home = System.getProperty("user.home")
-	"$home/.avail/repositories/"
-}()
-
 // Compute the Avail roots. This is needed to properly configure "test".
 def computeAvailRoots = {
-	def pathRepos = repositoriesPath
-	def pathRootsSrc = "$projectDir/distro/src"
+	def pathRootsSrc = projectDir.toString() + "/distro/src"
 	def roots = [
 			["avail", "$pathRootsSrc/avail"],
 			["builder-tests", "$pathRootsSrc/builder-tests"],
@@ -155,7 +141,7 @@ def computeAvailRoots = {
 			["website", "$pathRootsSrc/website"]
 	]
 	return roots.collect {
-		"${it[0]}=$pathRepos/${it[0]}.repo,${it[1]}"
+		"${it[0]}=${it[1]}"
 	}.join(";")
 }()
 
@@ -164,25 +150,7 @@ test {
 	minHeapSize = "4g"
 	maxHeapSize = "6g"
 	enableAssertions = true
-	systemProperty "repositories", repositoriesPath
 	systemProperty "availRoots", computeAvailRoots
-}
-
-// Capture the time at which the build began and record it into a resource file.
-task generateBuildTime {
-	def pathAvailBuildResources = "$buildDir/resources/main/resources"
-	def pathToBuildTime = "$pathAvailBuildResources/build-time.txt"
-	outputs.files pathToBuildTime
-
-	doLast {
-		def formatter = DateTimeFormatter
-			.ofPattern("yyyyMMdd.HHmmss.SSS")
-			.withLocale(Locale.default)
-			.withZone(ZoneId.systemDefault())
-		def now = formatter.format(Instant.now())
-
-		file(pathToBuildTime).text = "$now\n"
-	}
 }
 
 // DOCUMENTATION TASKS
@@ -206,22 +174,12 @@ task copyReadMeToDocs(type: Copy) {
 copyReadMeToDocs.dependsOn cleanDocs
 
 // Generate Kotlin documentation
-dokka {
-	outputFormat='gfm'
-	outputDirectory='documentation/docs/src_docs'
-	subProjects = [
-		"avail-bootstrap",
-		"avail-cli",
-		"avail-server",
-		"avail-workbench",
-		"indexed-file-analyzer",
-		"unicode-catalog"
-	]
+dokkaGfm {
+	outputDirectory = file 'documentation/docs/src_docs'
 }
 
-task dokkaHTML(type: DokkaTask) {
-	outputFormat = 'html'
-	outputDirectory = "$buildDir/dokka"
+dokkaHtml {
+	outputDirectory = file "$buildDir/dokka"
 }
 
 // Install MkDocs and other dependencies
@@ -243,7 +201,7 @@ task generatePrimitivesList {
 		file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
 	allPrimitives.include "**/P_*.class"
 	allPrimitives.exclude '**/*$*.class'
-	allPrimitives.builtBy "compileJava"
+	allPrimitives.builtBy "compileKotlin"
 	inputs.files allPrimitives
 	outputs.files pathToPrimitivesList
 
@@ -353,11 +311,13 @@ extended with custom module roots as you develop your own modules.
 }
 
 allprojects {
-	task sourceJar(type: Jar) {
-		description = 'Creates sources JAR.'
-		archiveClassifier.set("sources")
-		from sourceSets.main.allSource
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	if (project.name != 'avail-stdlib') {
+		task sourceJar(type: Jar) {
+			description = 'Creates sources JAR.'
+			archiveClassifier.set("sources")
+			from sourceSets.main.allSource
+			duplicatesStrategy = DuplicatesStrategy.INCLUDE
+		}
 	}
 }
 

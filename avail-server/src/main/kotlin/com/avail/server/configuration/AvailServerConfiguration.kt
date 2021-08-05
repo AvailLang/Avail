@@ -120,10 +120,10 @@ class AvailServerConfiguration constructor(private val fileManager: FileManager)
 	 */
 	var startWebSocketAdapter = false
 
-	/** The server authority.  */
+	/** The server authority. */
 	var serverAuthority = "localhost"
 
-	/** The server port.  */
+	/** The server port. */
 	var serverPort = 40000
 
 	/**

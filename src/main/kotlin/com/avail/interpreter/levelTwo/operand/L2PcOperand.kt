@@ -293,7 +293,7 @@ class L2PcOperand constructor (
 		// to itself.
 		val newBlock = L2BasicBlock(
 			"edge-split [${source.basicBlock().name()} / "
-			 	+ "${targetBlock.name()}]",
+				+ "${targetBlock.name()}]",
 			false,
 			source.basicBlock().zone)
 		controlFlowGraph.startBlock(newBlock)

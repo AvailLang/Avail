@@ -89,7 +89,7 @@ class AnvilServer constructor (
 	val runtime: AvailRuntime,
 	val fileManager: FileManager)
 {
-	/** The [logger][Logger].  */
+	/** The [logger][Logger]. */
 	val logger = Logger.getLogger(AnvilServer::class.java.name)!!
 
 	init

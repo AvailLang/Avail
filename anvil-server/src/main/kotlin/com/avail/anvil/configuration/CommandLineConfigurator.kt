@@ -74,7 +74,7 @@ class CommandLineConfigurator constructor(
 	commandLineArguments: Array<String>,
 	private val helpStream: Appendable) : Configurator<AnvilServerConfiguration>
 {
-	/** The command line arguments.  */
+	/** The command line arguments. */
 	private val commandLineArguments = commandLineArguments.clone()
 
 	/** Has the [configurator][CommandLineConfigurator] been run yet? */

@@ -73,7 +73,7 @@ import com.avail.utility.cast
 object P_SetImplicitObserveFunction : Primitive(
 	1, CannotFail, HasSideEffect, WritesToHiddenGlobalState)
 {
-	/** The [A_RawFunction] that wraps the supplied observe function.  */
+	/** The [A_RawFunction] that wraps the supplied observe function. */
 	private val rawFunction = createRawFunction()
 
 	/**

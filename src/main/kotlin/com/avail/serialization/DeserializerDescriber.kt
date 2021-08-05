@@ -59,7 +59,7 @@ class DeserializerDescriber constructor(
 		runtime,
 		{ throw Exception("DeserializerDescriber cannot be pumped") })
 {
-	/** The [StringBuilder] on which the description is being written.  */
+	/** The [StringBuilder] on which the description is being written. */
 	private val builder = StringBuilder(1000)
 
 	/**

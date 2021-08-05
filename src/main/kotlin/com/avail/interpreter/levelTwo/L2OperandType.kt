@@ -178,7 +178,7 @@ enum class L2OperandType
 		this.canHavePurpose = canHavePurpose
 	}
 
-	/** Create an instance of the enum, disallowing a [Purpose] for it.  */
+	/** Create an instance of the enum, disallowing a [Purpose] for it. */
 	constructor()
 	{
 		canHavePurpose = false

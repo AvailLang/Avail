@@ -82,9 +82,9 @@ class TopTypeDescriptor internal constructor(
 			init
 			{
 				assert(PrimitiveTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(PrimitiveTypeDescriptor.IntegerSlots.HASH
-						   .isSamePlaceAs(HASH))
+							.isSamePlaceAs(HASH))
 			}
 		}
 	}
@@ -109,9 +109,9 @@ class TopTypeDescriptor internal constructor(
 			init
 			{
 				assert(PrimitiveTypeDescriptor.ObjectSlots.NAME.ordinal
-						   == NAME.ordinal)
+							== NAME.ordinal)
 				assert(PrimitiveTypeDescriptor.ObjectSlots.PARENT.ordinal
-						   == PARENT.ordinal)
+							== PARENT.ordinal)
 			}
 		}
 	}

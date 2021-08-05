@@ -258,7 +258,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		 */
 		private val completionCondition = computationLock.newCondition()
 
-		/** Has the result been computed?  */
+		/** Has the result been computed? */
 		@Volatile
 		private var isDone: Boolean = false
 

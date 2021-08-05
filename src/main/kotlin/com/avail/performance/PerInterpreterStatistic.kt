@@ -112,7 +112,7 @@ class PerInterpreterStatistic internal constructor(
 		}
 	}
 
-	/** Default sort is descending by sum.  */
+	/** Default sort is descending by sum. */
 	override operator fun compareTo(other: PerInterpreterStatistic): Int
 	{
 		// Compare by descending sums.

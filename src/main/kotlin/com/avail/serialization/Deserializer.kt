@@ -78,7 +78,7 @@ class Deserializer constructor(
 	/** The most recent object produced by deserialization. */
 	private var producedObject: AvailObject? = null
 
-	/** A reusable buffer of operand objects.  */
+	/** A reusable buffer of operand objects. */
 	private val subobjectsBuffer =
 		Array(SerializerOperation.maxSubobjects) { nil }
 

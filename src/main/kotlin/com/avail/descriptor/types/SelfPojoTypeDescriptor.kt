@@ -39,6 +39,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -82,7 +83,7 @@ import java.util.IdentityHashMap
 class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	: PojoTypeDescriptor(mutability, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -118,14 +119,14 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		// or a self type.
 		val other: A_BasicObject = aPojoType.pojoSelfType()
 		return (self.slot(JAVA_CLASS).equals(other.javaClass())
-		        && self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
+				&& self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
 	}
 
 	// Note that this definition produces a value compatible with an unfused
 	// pojo type; this is necessary to permit comparison between an unfused
 	// pojo type and its self type.
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(JAVA_ANCESTORS).hash() xor -0x5fea43bc
+		combine2(self.slot(JAVA_ANCESTORS).hash(), -0x5fea43bc)
 
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
@@ -295,10 +296,10 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 
 	companion object
 	{
-		/** The mutable [SelfPojoTypeDescriptor].  */
+		/** The mutable [SelfPojoTypeDescriptor]. */
 		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SelfPojoTypeDescriptor].  */
+		/** The shared [SelfPojoTypeDescriptor]. */
 		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)
 
 		/**

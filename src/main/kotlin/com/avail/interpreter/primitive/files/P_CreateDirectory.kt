@@ -125,62 +125,62 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 			PosixFilePermissions.asFileAttribute(permissions)
 		runtime.ioSystem.executeFileTask(
 			Runnable {
-               try
-               {
-                   try
-                   {
-                       Files.createDirectory(path, attr)
-                   }
-                   catch (e: UnsupportedOperationException)
-                   {
-                       // Retry without setting the permissions.
-                       Files.createDirectory(path)
-                   }
+				try
+				{
+					try
+					{
+						Files.createDirectory(path, attr)
+					}
+					catch (e: UnsupportedOperationException)
+					{
+						// Retry without setting the permissions.
+						Files.createDirectory(path)
+					}
 
-               }
-               catch (e: FileAlreadyExistsException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_FILE_EXISTS.numericCode()))
-                   return@Runnable
-               }
-               catch (e: SecurityException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@Runnable
-               }
-               catch (e: AccessDeniedException)
-               {
-                   Interpreter.runOutermostFunction(
-	                   runtime,
-	                   newFiber,
-	                   fail,
-	                   listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@Runnable
-               }
-               catch (e: IOException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_IO_ERROR.numericCode()))
-                   return@Runnable
-               }
+				}
+				catch (e: FileAlreadyExistsException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_FILE_EXISTS.numericCode()))
+					return@Runnable
+				}
+				catch (e: SecurityException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_PERMISSION_DENIED.numericCode()))
+					return@Runnable
+				}
+				catch (e: AccessDeniedException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_PERMISSION_DENIED.numericCode()))
+					return@Runnable
+				}
+				catch (e: IOException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_IO_ERROR.numericCode()))
+					return@Runnable
+				}
 
-               Interpreter.runOutermostFunction(
-                   runtime,
-                   newFiber,
-                   succeed,
-                   emptyList())
-           })
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					emptyList())
+			})
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

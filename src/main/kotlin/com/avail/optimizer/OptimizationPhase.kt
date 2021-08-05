@@ -153,7 +153,7 @@ internal enum class OptimizationPhase constructor(
 	COALESCE_REGISTERS_IN_NONINTERFERING_MOVES(
 		{ coalesceNoninterferingMoves() }),
 
-	/** Compute and assign final register colors.  */
+	/** Compute and assign final register colors. */
 	ASSIGN_REGISTER_COLORS({ computeColors() }),
 
 	/**
@@ -215,19 +215,19 @@ internal enum class OptimizationPhase constructor(
 	//		-Splitting for int32s.
 	//		-Leverage more inter-primitive identities.
 
-	/** The [Statistic] for tracking this pass's cost.  */
+	/** The [Statistic] for tracking this pass's cost. */
 	val stat: Statistic = Statistic(L2_OPTIMIZATION_TIME, name)
 
-	/** The [StateFlag]s to require to already be set as preconditions.  */
+	/** The [StateFlag]s to require to already be set as preconditions. */
 	private val requiresFlags = mutableListOf<KClass<out StateFlag>>()
 
-	/** The [StateFlag]s that should already be clear as preconditions.  */
+	/** The [StateFlag]s that should already be clear as preconditions. */
 	private val requiresNotFlags= mutableListOf<KClass<out StateFlag>>()
 
-	/** The [StateFlag]s to set after this phase.  */
+	/** The [StateFlag]s to set after this phase. */
 	private val setsFlags = mutableListOf<KClass<out StateFlag>>()
 
-	/** The [StateFlag]s to clear after this phase.  */
+	/** The [StateFlag]s to clear after this phase. */
 	private val clearsFlags = mutableListOf<KClass<out StateFlag>>()
 
 	/**

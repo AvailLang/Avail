@@ -213,6 +213,20 @@ Public stable method "_'s⁇character category" is
 /* Mark some character-related operations as stable. */
 Method "_'s⁇code point" is stable at [character]→code point;
 
+Semantic restriction "_'s⁇code point" is
+[
+	characters : character's type
+|
+	$body : type;
+	Exit body with code point if characters = character;
+	codePoints : {code point|} := ∅;
+	For each c in characters' instances do
+	[
+		codePoints := codePoints ∪ {c's code point};
+	];
+	enumeration of codePoints
+]: type;
+
 /**
  * Return true if the supplied character is ASCII, false otherwise.
  *

@@ -55,7 +55,7 @@ import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesCon
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
-import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -64,7 +64,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
 * **Primitive:** Create a [block&#32;expression][BlockPhraseDescriptor] from
  * the specified [argument&#32;declarations][PhraseKind.ARGUMENT_PHRASE],
- * primitive number, statements, result type, and exception set.
+ * primitive name, statements, result type, and exception set.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -89,7 +89,7 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 			0 -> null
 			else -> primitiveByName(primitiveName.asNativeString())
 				?: return interpreter.primitiveFailure(
-					E_INVALID_PRIMITIVE_NUMBER)
+					E_INVALID_PRIMITIVE_NAME)
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
@@ -121,5 +121,5 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		enumerationWith(
 			set(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS,
-				E_INVALID_PRIMITIVE_NUMBER))
+				E_INVALID_PRIMITIVE_NAME))
 }

@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -118,7 +119,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		}
 		val same =
 			(aType.readType.equals(self.slot(INNER_TYPE))
-	            && aType.writeType.equals(self.slot(INNER_TYPE)))
+				&& aType.writeType.equals(self.slot(INNER_TYPE)))
 		if (same)
 		{
 			if (!isShared)
@@ -136,7 +137,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		(self.slot(INNER_TYPE).hash() xor 0x7613E420) + 0x024E3167
+		combine2(self.slot(INNER_TYPE).hash(), 0x7613E420)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfVariableType(self)
@@ -150,7 +151,7 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		// Variable types are covariant by read capability and contravariant by
 		// write capability.
 		return (aVariableType.readType.isSubtypeOf(innerType)
-	        && innerType.isSubtypeOf(aVariableType.writeType))
+			&& innerType.isSubtypeOf(aVariableType.writeType))
 	}
 
 	override fun o_TypeIntersection(self: AvailObject, another: A_Type): A_Type =
@@ -279,10 +280,10 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 					readType, writeType)
 			}
 
-		/** The mutable [VariableTypeDescriptor].  */
+		/** The mutable [VariableTypeDescriptor]. */
 		private val mutable = VariableTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [VariableTypeDescriptor].  */
+		/** The shared [VariableTypeDescriptor]. */
 		private val shared = VariableTypeDescriptor(Mutability.SHARED)
 
 		/**

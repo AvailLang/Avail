@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/23/21 9:44 PM
+ * * Last Generated: 7/28/21 4:56 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -57,7 +57,7 @@ Names
 		\|[§\
 			\|««…:_†§‡,»`|»?\
 			\|«Primitive…«(…:_†)»?;§»?\
-			\|«`$…«:_†»?;§»?\
+			\|«$…«:_†»?;§»?\
 			\|«_!§»\
 			\|«_!»?\
 		\|]§\
@@ -70,7 +70,6 @@ Names
 	"…",
 	"_!;",
 	"(_::_†)",
-	"…$",
 	"…#"
 Pragma
 	"check=version=1.5.1",
@@ -94,7 +93,7 @@ Pragma
 			\|[§\
 				\|««…:_†§‡,»`|»?\
 				\|«Primitive…«(…:_†)»?;§»?\
-				\|«`$…«:_†»?;§»?\
+				\|«$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
 			\|]§\
@@ -107,8 +106,7 @@ Pragma
 	"macro=BootstrapVariableUseMacro=…",
 	"macro=BootstrapSendAsStatementMacro=_!;",
 	"macro=BootstrapSuperCastMacro=(_::_†)",
-	"macro=BootstrapStringLiteral=…$",
-	"macro=BootstrapNumericLiteral=…#"
+	"macro=BootstrapLiteral=…#"
 Body
 
 /**
@@ -119,7 +117,7 @@ Body
  *          \|[§\
  *              \|««…:_†§‡,»`|»?\
  *              \|«Primitive…«(…:_†)»?;§»?\
- *              \|«`$…«:_†»?;§»?\
+ *              \|«$…«:_†»?;§»?\
  *              \|«_!§»\
  *              \|«_!»?\
  *          \|]§\
@@ -132,7 +130,7 @@ Body
  * @param "primitivePhrase"
  *        "list phrase⇒(<literal token⇒natural number, <token, any meta…|>?>?)"
  *        A {@type "list phrase"} that includes the parts of the primitive
- *        declaration (primitive number, primitive failure reason, primitive
+ *        declaration (primitive name, primitive failure reason, primitive
  *        failure reason type). Zero or one primitive declaration is permitted.
  * @param "labelPhrase" "list phrase⇒(<token, any meta?…|>?)"
  *        A {@type "list phrase"} that includes the parts of the
@@ -301,25 +299,12 @@ Body
  */
 
 /**
- * Construct and answer a literal phrase based on the parsed string literal
- * token.
- *
- * @macro "…$"
- * @param "stringLiteralToken" "literal phrase⇒literal token⇒string"
- *        The {@type "literal phrase"} built by parsing the argument denoted
- *        by the macro metacharacters '…$'.
- * @returns "literal phrase→string"
- * @category "Avail Syntax"
- */
-
-/**
- * Construct and answer a literal phrase based on the parsed non-negative
- * numeric literal token.
+ * Construct and answer a literal phrase based on the literal token.
  *
  * @macro "…#"
- * @param "numericLiteralPhrase" "literal phrase⇒literal token⇒number"
+ * @param "literalPhrase" "literal phrase⇒literal token⇒any"
  *        The {@type "literal phrase"} built by parsing the argument denoted
  *        by the macro metacharacters '…#'.
- * @returns "literal phrase→number"
+ * @returns "literal phrase→any"
  * @category "Avail Syntax"
  */

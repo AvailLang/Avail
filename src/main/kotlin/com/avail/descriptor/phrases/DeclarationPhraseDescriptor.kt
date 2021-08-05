@@ -49,8 +49,8 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKE
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine7
 import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -602,15 +602,14 @@ class DeclarationPhraseDescriptor(
 		codeGenerator.emitPushLiteral(emptyTuple, nil)
 	}
 
-	override fun o_Hash(self: AvailObject): Int {
-		var h = self.token.hash()
-		h = h * multiplier + self.typeExpression.hash()
-		h = h * multiplier + self.declaredType.hash()
-		h = h * multiplier xor self.initializationExpression.hash()
-		h = h * multiplier + self.literalObject.hash()
-		h = h * multiplier - self.declarationKind().ordinal
-		return h xor 0x4C27EB37
-	}
+	override fun o_Hash(self: AvailObject): Int = combine7(
+		self.token.hash(),
+		self.typeExpression.hash(),
+		self.declaredType.hash(),
+		self.initializationExpression.hash(),
+		self.literalObject.hash(),
+		self.declarationKind().ordinal,
+		0x4C27EB37)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -944,13 +943,13 @@ class DeclarationPhraseDescriptor(
 			initializationExpression,
 			literalVariable)
 
-		/** The mutable [DeclarationPhraseDescriptor]s.  */
+		/** The mutable [DeclarationPhraseDescriptor]s. */
 		private val mutables = DeclarationKind.values().map {
 			DeclarationPhraseDescriptor(Mutability.MUTABLE, it)
 		}.toTypedArray()
 
 
-		/** The shared [DeclarationPhraseDescriptor]s.  */
+		/** The shared [DeclarationPhraseDescriptor]s. */
 		private val shareds = DeclarationKind.values().map {
 			DeclarationPhraseDescriptor(Mutability.SHARED, it)
 		}.toTypedArray()

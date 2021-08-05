@@ -37,6 +37,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.A_Token
@@ -143,7 +144,7 @@ class LiteralPhraseDescriptor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.token.hash() xor -0x6379f3f3
+		combine2(self.token.hash(), -0x6379f3f3)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.LITERAL_PHRASE
@@ -234,10 +235,10 @@ class LiteralPhraseDescriptor(
 		): A_Phrase = literalNodeFromToken(
 			literalToken(literalAsString, 0, 0, literalValue))
 
-		/** The mutable [LiteralPhraseDescriptor].  */
+		/** The mutable [LiteralPhraseDescriptor]. */
 		private val mutable = LiteralPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralPhraseDescriptor].  */
+		/** The shared [LiteralPhraseDescriptor]. */
 		private val shared = LiteralPhraseDescriptor(Mutability.SHARED)
 	}
 }

@@ -63,7 +63,7 @@ class AvailTask constructor(
 	val priority: Int,
 	body: () -> Unit) : Comparable<AvailTask>, Runnable
 {
-	/** The action to perform for this task.  */
+	/** The action to perform for this task. */
 	private val body: () -> Unit
 
 	/**

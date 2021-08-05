@@ -249,7 +249,7 @@ object P_BootstrapLexerStringBody
 	internal class Scanner constructor (
 		private val source: A_String, var position: Int, var lineNumber: Int)
 	{
-		/** The number of characters in the module source.  */
+		/** The number of characters in the module source. */
 		private val sourceSize: Int = source.tupleSize
 
 		/**

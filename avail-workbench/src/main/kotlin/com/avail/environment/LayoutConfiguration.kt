@@ -55,7 +55,7 @@ import kotlin.math.min
  */
 class LayoutConfiguration constructor (input: String = "")
 {
-	/** The preferred location and size of the window, if specified.  */
+	/** The preferred location and size of the window, if specified. */
 	internal var placement: Rectangle? = null
 
 	/**
@@ -200,30 +200,30 @@ class LayoutConfiguration constructor (input: String = "")
 		fun resource(localResourceName: String): String =
 			resourcePrefix + localResourceName
 
-		/** The user-specific [Preferences] for this application to use.  */
+		/** The user-specific [Preferences] for this application to use. */
 		val basePreferences =
 			Preferences.userNodeForPackage(AvailWorkbench::class.java)
 
-		/** The key under which to organize all placement information.  */
+		/** The key under which to organize all placement information. */
 		const val placementByMonitorNamesString =
 			"placementByMonitorNames"
 
-		/** The leaf key under which to store a single window placement.  */
+		/** The leaf key under which to store a single window placement. */
 		const val placementLeafKeyString = "placement"
 
-		/** The key under which to store the [ModuleRoots].  */
+		/** The key under which to store the [ModuleRoots]. */
 		const val moduleRootsKeyString = "module roots"
 
-		/** The subkey that holds a root's source directory name.  */
+		/** The subkey that holds a root's source directory name. */
 		const val moduleRootsSourceSubkeyString = "source"
 
-		/** The key under which to store the module rename rules.  */
+		/** The key under which to store the module rename rules. */
 		const val moduleRenamesKeyString = "module renames"
 
-		/** The subkey that holds a rename rule's source module name.  */
+		/** The subkey that holds a rename rule's source module name. */
 		const val moduleRenameSourceSubkeyString = "source"
 
-		/** The subkey that holds a rename rule's replacement module name.  */
+		/** The subkey that holds a rename rule's replacement module name. */
 		const val moduleRenameTargetSubkeyString = "target"
 
 		/**

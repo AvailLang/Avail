@@ -131,7 +131,7 @@ class TreeTupleDescriptor internal constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -474,9 +474,8 @@ class TreeTupleDescriptor internal constructor(
 			{
 				result.setIntSlot(
 					CUMULATIVE_SIZES_AREA_,
-				  	childIndex,
-					result.intSlot(
-						CUMULATIVE_SIZES_AREA_, childIndex) + delta)
+					childIndex,
+					result.intSlot(CUMULATIVE_SIZES_AREA_, childIndex) + delta)
 			}
 		}
 		check(result)
@@ -945,7 +944,7 @@ class TreeTupleDescriptor internal constructor(
 
 			assert(self.descriptor() is TreeTupleDescriptor)
 			assert(self.variableObjectSlotsCount() + 1 shr 1
-					   == self.variableIntegerSlotsCount())
+						== self.variableIntegerSlotsCount())
 			val myLevelMinusOne = self.treeTupleLevel - 1
 			val childCount = self.childCount
 			var cumulativeSize = 0
@@ -955,7 +954,7 @@ class TreeTupleDescriptor internal constructor(
 					self.slot(SUBTUPLE_AT_, childIndex)
 				assert(child.treeTupleLevel == myLevelMinusOne)
 				assert(myLevelMinusOne == 0
-					   || child.childCount >= minWidthOfNonRoot)
+						|| child.childCount >= minWidthOfNonRoot)
 				val childSize = child.tupleSize
 				assert(childSize > 0)
 				cumulativeSize += childSize

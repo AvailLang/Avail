@@ -513,7 +513,8 @@ class HashedSetBinDescriptor private constructor(
 				// Exhausted the bin.
 				binStack.removeLast()
 				assert(binStack.size == subscriptStack.size)
-			} while (!binStack.isEmpty())
+			}
+			while (!binStack.isEmpty())
 			currentElement = null
 			return result as AvailObject
 		}
@@ -534,7 +535,7 @@ class HashedSetBinDescriptor private constructor(
 		descriptorFor(Mutability.SHARED, level)
 
 	companion object {
-		/** Whether to do sanity checks on hashed set bins' hashes.  */
+		/** Whether to do sanity checks on hashed set bins' hashes. */
 		private const val checkBinHashes = false
 
 		/**

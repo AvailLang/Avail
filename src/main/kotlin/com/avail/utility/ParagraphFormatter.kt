@@ -76,13 +76,13 @@ class ParagraphFormatter @JvmOverloads constructor(
 	val firstIndent: Int = 0,
 	val restIndent: Int = 0)
 {
-	/** The left margin, as a string of spaces.  */
+	/** The left margin, as a string of spaces. */
 	private val margin: String
 
-	/** The paragraph-initial indent, as a string of spaces.  */
+	/** The paragraph-initial indent, as a string of spaces. */
 	private val fIndent: String
 
-	/** The non-initial indent of a paragraph, as a string of spaces  */
+	/** The non-initial indent of a paragraph, as a string of spaces. */
 	private val rIndent: String
 
 	/**

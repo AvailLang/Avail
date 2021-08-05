@@ -59,7 +59,7 @@ internal abstract class BinaryMessage
 	/** The encoded [BinaryCommand]. */
 	abstract val command: BinaryCommand
 
-	/** The [Message] that represents this [BinaryMessage].  */
+	/** The [Message] that represents this [BinaryMessage]. */
 	abstract val message: Message
 
 	/**

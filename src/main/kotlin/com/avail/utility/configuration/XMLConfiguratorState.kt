@@ -72,10 +72,10 @@ constructor(private val configuration: ConfigurationType) where
 	/** The [accumulator][StringBuilder] for text. */
 	private val accumulator = StringBuilder(1000)
 
-	/** Should the [accumulator] be collecting text?  */
+	/** Should the [accumulator] be collecting text? */
 	private var shouldAccumulate = false
 
-	/** The parse [stack][Deque].  */
+	/** The parse [stack][Deque]. */
 	private val stack = ArrayDeque<ElementType>(5)
 
 	/**

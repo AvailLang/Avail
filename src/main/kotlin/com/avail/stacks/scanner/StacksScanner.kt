@@ -91,7 +91,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	 */
 	private val commentStartLine: Int
 
-	/** The module file name without the path.  */
+	/** The module file name without the path. */
 	val moduleLeafName: String
 
 	/**

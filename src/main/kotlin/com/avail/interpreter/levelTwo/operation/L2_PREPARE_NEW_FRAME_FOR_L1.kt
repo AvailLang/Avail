@@ -97,7 +97,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		method.visitLabel(noReification)
 	}
 
-	/** [Statistic] for reifying in L1 interrupt-handler preamble.  */
+	/** [Statistic] for reifying in L1 interrupt-handler preamble. */
 	private val reificationForInterruptInL1Stat = Statistic(
 		REIFICATIONS, "Reification for interrupt in L1 preamble")
 
@@ -193,7 +193,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 		return null
 	}
 
-	/** The [CheckedMethod] for [prepare].  */
+	/** The [CheckedMethod] for [prepare]. */
 	private val prepareMethod = CheckedMethod.staticMethod(
 		L2_PREPARE_NEW_FRAME_FOR_L1::class.java,
 		::prepare.name,

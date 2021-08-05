@@ -5151,3 +5151,26 @@ Semantic restriction "insertion index of|for_in_with_" is
 
 	[1 .. ⌈tupleType⌉ + 2)
 ];
+
+/**
+ * Broaden the type for tuple subscripts, so that we can more nicely report the
+ * signature problem for subscripts that are only known to be extended integers.
+ */
+Abstract method "_[_]" is [tuple, number]→any;
+
+Semantic restriction "_[_]" is
+[
+	aTuple : tuple's type,
+	subscript : number's type
+|
+	if subscript ⊆ natural number then
+	[
+		any
+	]
+	else
+	[
+		Immediately reject parse strongly, expected:
+			"a natural number for subscripting a tuple, not "
+			++ “subscript”
+	]
+];

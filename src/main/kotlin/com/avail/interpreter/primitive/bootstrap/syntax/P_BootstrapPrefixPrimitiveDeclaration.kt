@@ -96,9 +96,9 @@ object P_BootstrapPrefixPrimitiveDeclaration
 		}
 		val primName = primNamePhrase.token.string()
 		val prim = primitiveByName(primName.asNativeString())
-		   ?: throw AvailRejectedParseException(
-			   STRONG,
-			   "a supported primitive name, not $primName")
+			?: throw AvailRejectedParseException(
+				STRONG,
+				"a supported primitive name, not $primName")
 
 		// Check that the primitive signature agrees with the arguments.
 		val blockArgumentPhrases = mutableListOf<A_Phrase>()

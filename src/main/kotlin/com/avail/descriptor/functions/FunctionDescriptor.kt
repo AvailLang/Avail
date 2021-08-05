@@ -44,6 +44,7 @@ import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import com.avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
@@ -56,7 +57,8 @@ import com.avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyV
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -160,27 +162,20 @@ class FunctionDescriptor private constructor(
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		// Answer a 32-bit hash value. If outer vars of mutable functions can
-		// peel away when executed (last use of an outer var of a mutable
-		// function can clobber that var and replace the OUTER_VAR_AT_ entry
-		// with 0 or something), it's ok because nobody could know what the hash
-		// value *used to be* for this function.
-
-		// Make it immutable, in case the last reference to the object is being
-		// added to a set, but subsequent execution might nil out a captured
-		// value.
-		self.makeImmutable()
-		val code: A_RawFunction = self.slot(CODE)
-		var hash = code.hash() xor 0x1386D4F6
-		for (i in 1 .. self.numOuterVars)
-		{
-			hash *= multiplier
-			hash += self.outerVarAt(i).hash() xor 0x3921A5F2
-		}
-		return hash
-	}
+	// Answer a 32-bit hash value. If outer vars of mutable functions can peel
+	// away when executed (last use of an outer var of a mutable function can
+	// clobber that var and replace the OUTER_VAR_AT_ entry with 0 or
+	// something), it's ok because nobody could know what the hash value *used
+	// to be* for this function.
+	//
+	// Make it immutable, in case the last reference to the object is being
+	// added to a set, but subsequent execution might otherwise nil out a
+	// captured value.
+	override fun o_Hash(self: AvailObject): Int =
+		(1..self.makeImmutable().numOuterVars)
+			.fold(combine2(self.slot(CODE).hash(), 0x1386D4F6)) { h, i ->
+				combine3(h, self.outerVarAt(i).hash(), 0x3921A5F2)
+			}
 
 	override fun o_IsFunction(self: AvailObject) = true
 

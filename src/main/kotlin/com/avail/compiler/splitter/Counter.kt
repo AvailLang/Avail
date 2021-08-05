@@ -162,7 +162,7 @@ internal class Counter(
 			phraseCountRange, emptyTuple, emptyTupleType)
 		val tupleOfEmptyTuplePhrasesType = tupleTypeForSizesTypesDefaultType(
 			phraseCountRange, emptyTuple, PARSE_PHRASE.create(emptyTupleType))
-		val listPhraseType = ListPhraseTypeDescriptor.createListNodeType(
+		val listPhraseType = ListPhraseTypeDescriptor.createListPhraseType(
 			LIST_PHRASE, tupleOfEmptyTuplesType, tupleOfEmptyTuplePhrasesType)
 		val newWrapState = group.emitOn(listPhraseType, generator, wrapState)
 		assert(newWrapState == SHOULD_NOT_PUSH_LIST)

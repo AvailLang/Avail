@@ -47,7 +47,7 @@ import com.avail.descriptor.representation.A_BasicObject
 internal class L2SemanticConstant constructor(value: A_BasicObject) :
 	L2SemanticValue(value.hashCode())
 {
-	/** The constant Avail value represented by this semantic value.  */
+	/** The constant Avail value represented by this semantic value. */
 	val value: A_BasicObject = value.makeImmutable()
 
 	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =

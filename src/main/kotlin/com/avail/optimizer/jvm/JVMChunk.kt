@@ -111,23 +111,23 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val chunkConstructor : CheckedConstructor =
 			CheckedConstructor.constructorMethod(JVMChunk::class.java)
 
-		/** An empty `long` array.  */
+		/** An empty `long` array. */
 		@ReferencedInGeneratedCode
 		@JvmField
 		val noLongs = LongArray(0)
 
-		/** Access to the field [noLongs]  */
+		/** Access to the field [noLongs]. */
 		var noLongsField : CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noLongs",
 			LongArray::class.java)
 
-		/** An empty [AvailObject] array.  */
+		/** An empty [AvailObject] array. */
 		@ReferencedInGeneratedCode
 		@JvmField
 		val noObjects = arrayOf<AvailObject>()
 
-		/** Access to the field [noObjects]  */
+		/** Access to the field [noObjects]. */
 		var noObjectsField : CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noObjects",
@@ -150,7 +150,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 			throw RuntimeException("bad offset $offset")
 		}
 
-		/** The [CheckedMethod] for [badOffset].  */
+		/** The [CheckedMethod] for [badOffset]. */
 		val badOffsetMethod: CheckedMethod = CheckedMethod.staticMethod(
 			JVMChunk::class.java,
 			::badOffset.name,

@@ -83,7 +83,7 @@ object JavaLibrary
 	val floatBoxed = JavaFloat::class.java
 	val doubleBoxed = JavaDouble::class.java
 
-	/** Static method to cast from `long` to `double`.  */
+	/** Static method to cast from `long` to `double`. */
 	var bitCastLongToDoubleMethod: CheckedMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
@@ -91,7 +91,7 @@ object JavaLibrary
 			double,
 			long)
 
-	/** Static method to cast from `double` to `long`.  */
+	/** Static method to cast from `double` to `long`. */
 	var bitCastDoubleToLongMethod: CheckedMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
@@ -113,20 +113,20 @@ object JavaLibrary
 		intBoxed,
 		int)
 
-	/** The [CheckedMethod] for [java.util.List.get].  */
+	/** The [CheckedMethod] for [java.util.List.get]. */
 	val listGetMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::get.name,
 		Object::class.java,
 		int)
 
-	/** The [CheckedMethod] for [java.util.List.clear].  */
+	/** The [CheckedMethod] for [java.util.List.clear]. */
 	val listClearMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::clear.name,
 		void)
 
-	/** The [CheckedMethod] for [java.util.List.add].  */
+	/** The [CheckedMethod] for [java.util.List.add]. */
 	val listAddMethod: CheckedMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		"add",

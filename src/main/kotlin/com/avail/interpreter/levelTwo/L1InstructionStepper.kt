@@ -52,10 +52,14 @@ import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createCon
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
 import com.avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -135,10 +139,10 @@ import java.util.regex.Pattern
  */
 class L1InstructionStepper constructor(val interpreter: Interpreter)
 {
-	/** The current position in the nybblecodes.  */
+	/** The current position in the nybblecodes. */
 	val instructionDecoder = L1InstructionDecoder()
 
-	/** The current stack position as would be seen in a continuation.  */
+	/** The current stack position as would be seen in a continuation. */
 	var stackp = 0
 
 	/**
@@ -554,7 +558,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// its caller, function, and args.
 						newContinuation.makeSubobjectsImmutable()
 						assert(newContinuation.caller().isNil
-							   || !newContinuation.caller().descriptor()
+								|| !newContinuation.caller().descriptor()
 							.isMutable) {
 							("Caller should freeze because two "
 							 + "continuations can see it")
@@ -883,13 +887,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		if (matching.isForwardDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(),
+				matching.definitionMethod,
 				AvailErrorCode.E_FORWARD_METHOD_DEFINITION)
 		}
 		if (matching.isAbstractDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(),
+				matching.definitionMethod,
 				AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)
 		}
 		val savedFunction = interpreter.function!!
@@ -1057,11 +1061,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 
 	companion object
 	{
-		/** The [Statistic] for reifications prior to label creation in L1.  */
+		/** The [Statistic] for reifications prior to label creation in L1. */
 		private val reificationBeforeLabelCreationStat = Statistic(
 			REIFICATIONS, "Reification before label creation in L1")
 
-		/** An empty array used for clearing the pointers quickly.  */
+		/** An empty array used for clearing the pointers quickly. */
 		private val emptyPointersArray = arrayOf<AvailObject>()
 
 		/**
@@ -1070,7 +1074,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		 */
 		private val whitespaces = Pattern.compile("\\s+")
 
-		/** The [CheckedMethod] for [run].  */
+		/** The [CheckedMethod] for [run]. */
 		val runMethod: CheckedMethod = instanceMethod(
 			L1InstructionStepper::class.java,
 			L1InstructionStepper::run.name,

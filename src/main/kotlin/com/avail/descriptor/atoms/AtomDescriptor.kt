@@ -228,8 +228,8 @@ open class AtomDescriptor protected constructor (
 	override fun o_Hash (self: AvailObject): Int =
 		self.slot(HASH_OR_ZERO).ifZero {
 			// The shared subclass overrides to use synchronization.
-			AvailRuntimeSupport.nextNonzeroHash().apply {
-				self.setSlot(HASH_OR_ZERO, this)
+			AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+				self.setSlot(HASH_OR_ZERO, hash)
 			}
 		}
 
@@ -427,21 +427,21 @@ open class AtomDescriptor protected constructor (
 
 	companion object
 	{
-		/** The mutable [AtomDescriptor].  */
+		/** The mutable [AtomDescriptor]. */
 		private val mutable = AtomDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The immutable [AtomDescriptor].  */
+		/** The immutable [AtomDescriptor]. */
 		private val immutable = AtomDescriptor(
 			Mutability.IMMUTABLE,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** A [Pattern] of one or more word characters.  */
+		/** A [Pattern] of one or more word characters. */
 		private val wordPattern = Pattern.compile("\\w(\\w|\\d|_)*")
 
 		/**

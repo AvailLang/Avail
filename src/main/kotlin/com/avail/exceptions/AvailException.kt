@@ -47,7 +47,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  */
 open class AvailException : Exception
 {
-	/** The [error value][AvailObject].  */
+	/** The [error value][AvailObject]. */
 	val errorCode: AvailErrorCode
 
 	/**

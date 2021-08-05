@@ -129,7 +129,7 @@ class ByteTupleDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -555,7 +555,7 @@ class ByteTupleDescriptor private constructor(
 		 */
 		private const val maximumCopySize = 64
 
-		/** The [ByteTupleDescriptor] instances.  */
+		/** The [ByteTupleDescriptor] instances. */
 		private val descriptors = arrayOfNulls<ByteTupleDescriptor>(8 * 3)
 
 		/**

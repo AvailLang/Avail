@@ -378,13 +378,13 @@ interface A_Variable : A_ChunkDependable
 
 	companion object
 	{
-		/** The [CheckedMethod] for [getValue].  */
+		/** The [CheckedMethod] for [getValue]. */
 		val getValueMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
 			A_Variable::getValue.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [setValue].  */
+		/** The [CheckedMethod] for [setValue]. */
 		val setValueMethod = CheckedMethod.instanceMethod(
 			A_Variable::class.java,
 			A_Variable::setValue.name,

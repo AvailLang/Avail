@@ -210,7 +210,7 @@ abstract class PojoTypeDescriptor protected constructor(
 	 * @property javaClass
 	 *   The [Java&#32;class&#32;or&#32;interface][Class].
 	 * @property typeArgs
-	 *   /** The type arguments.  */
+	 *   /** The type arguments. */
 	 * @constructor
 	 * Construct a new `LRUCacheKey`.
 	 *
@@ -229,7 +229,7 @@ abstract class PojoTypeDescriptor protected constructor(
 			if (other is LRUCacheKey)
 			{
 				return javaClass == other.javaClass
-				   && typeArgs.equals(other.typeArgs)
+					&& typeArgs.equals(other.typeArgs)
 			}
 			return false
 		}

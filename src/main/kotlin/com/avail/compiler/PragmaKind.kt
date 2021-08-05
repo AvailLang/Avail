@@ -301,7 +301,7 @@ enum class PragmaKind constructor(val lexeme: String)
 
 	companion object
 	{
-		/** Key the instances by lexeme.  */
+		/** Key the instances by lexeme. */
 		private val kindsByLexeme = values().associateBy { it.lexeme }
 
 		/**

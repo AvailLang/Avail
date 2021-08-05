@@ -55,6 +55,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -161,9 +162,9 @@ class IntegerRangeTypeDescriptor private constructor(
 		self: AvailObject,
 		another: A_Type): Boolean =
 			(self.slot(LOWER_BOUND).equals(another.lowerBound)
-		        && self.slot(UPPER_BOUND).equals(another.upperBound)
-		        && lowerInclusive == another.lowerInclusive
-			    && upperInclusive == another.upperInclusive)
+				&& self.slot(UPPER_BOUND).equals(another.upperBound)
+				&& lowerInclusive == another.lowerInclusive
+				&& upperInclusive == another.upperInclusive)
 
 	/**
 	 * {@inheritDoc}
@@ -210,8 +211,8 @@ class IntegerRangeTypeDescriptor private constructor(
 			return false
 		}
 		if (subMinObject.equals(superMinObject)
-		    && anIntegerRangeType.lowerInclusive
-		    && !lowerInclusive)
+			&& anIntegerRangeType.lowerInclusive
+			&& !lowerInclusive)
 		{
 			return false
 		}
@@ -222,8 +223,8 @@ class IntegerRangeTypeDescriptor private constructor(
 			false
 		}
 		else !superMaxObject.equals(subMaxObject)
-		     || !anIntegerRangeType.upperInclusive
-		     || upperInclusive
+			 || !anIntegerRangeType.upperInclusive
+			 || upperInclusive
 	}
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
@@ -473,15 +474,14 @@ class IntegerRangeTypeDescriptor private constructor(
 			lowerInclusive: Boolean,
 			upperInclusive: Boolean): Int
 		{
-			val flagsHash =
-				when
-				{
-					lowerInclusive && upperInclusive -> 0x1503045E
-					lowerInclusive -> 0x753A6C17
-					upperInclusive -> 0x1DB2D751
-					else -> 0x1130427D
-				}
-			return lowerBoundHash * 29 xor flagsHash xor upperBoundHash
+			val flagsHash = when
+			{
+				lowerInclusive && upperInclusive -> 0x1503045E
+				lowerInclusive -> 0x753A6C17
+				upperInclusive -> 0x1DB2D751
+				else -> 0x1130427D
+			}
+			return combine3(lowerBoundHash, upperBoundHash, flagsHash)
 		}
 
 		/**
@@ -540,7 +540,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				if (lowerBound.descriptor().isMutable)
 				{
 					error("Don't plug in a mutable object as two distinct " +
-					      "construction parameters")
+						"construction parameters")
 				}
 			}
 			var low = lowerBound
@@ -581,7 +581,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				val lowInt = low.extractInt
 				val highInt = high.extractInt
 				if (lowInt in 0 until smallRangeLimit
-				    && highInt in 0 until smallRangeLimit)
+					&& highInt in 0 until smallRangeLimit)
 				{
 					return smallRanges[highInt][lowInt]
 				}
@@ -664,7 +664,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			return descriptors[subscript]
 		}
 
-		/** One past the maximum lower or upper bound of a pre-built range.  */
+		/** One past the maximum lower or upper bound of a pre-built range. */
 		private const val smallRangeLimit = 20
 
 		/**

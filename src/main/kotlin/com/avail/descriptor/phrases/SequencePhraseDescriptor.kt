@@ -40,6 +40,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -143,7 +144,7 @@ class SequencePhraseDescriptor private constructor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(STATEMENTS).hash() + -0x1c7ebf36
+		combine2(self.slot(STATEMENTS).hash(), -0x1c7ebf36)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_PHRASE
@@ -199,10 +200,10 @@ class SequencePhraseDescriptor private constructor(
 				setSlot(STATEMENTS, statements)
 			}
 
-		/** The mutable [SequencePhraseDescriptor].  */
+		/** The mutable [SequencePhraseDescriptor]. */
 		private val mutable = SequencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SequencePhraseDescriptor].  */
+		/** The shared [SequencePhraseDescriptor]. */
 		private val shared = SequencePhraseDescriptor(Mutability.SHARED)
 	}
 }

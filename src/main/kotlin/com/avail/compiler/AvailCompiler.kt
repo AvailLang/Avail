@@ -117,6 +117,11 @@ import com.avail.descriptor.methods.A_Method.Companion.filterByTypes
 import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModule
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -411,7 +416,7 @@ class AvailCompiler(
 		val bundleTree: A_BundleTree,
 		val parent: PartialSubexpressionList?)
 	{
-		/** How many subexpressions deep that we're parsing.  */
+		/** How many subexpressions deep that we're parsing. */
 		val depth: Int = if (parent === null) 1 else parent.depth + 1
 
 		/**
@@ -4348,7 +4353,8 @@ class AvailCompiler(
 			val decoder = StandardCharsets.UTF_8.newDecoder()
 			decoder.onMalformedInput(CodingErrorAction.REPLACE)
 			decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
-			ref.readFile(false,
+			ref.readFile(
+				false,
 				{ content, _ ->
 					try
 					{
@@ -4558,22 +4564,22 @@ class AvailCompiler(
 		 */
 		private val initialMarkStack = emptyList<Int>()
 
-		/** Statistic for matching an exact token.  */
+		/** Statistic for matching an exact token. */
 		private val matchTokenStat = Statistic(
 			RUNNING_PARSING_INSTRUCTIONS,
 			"(Match particular token)")
 
-		/** Statistic for matching a token case-insensitively.  */
+		/** Statistic for matching a token case-insensitively. */
 		private val matchTokenInsensitivelyStat = Statistic(
 			RUNNING_PARSING_INSTRUCTIONS,
 			"(Match insensitive token)")
 
-		/** Statistic for type-checking an argument.  */
+		/** Statistic for type-checking an argument. */
 		private val typeCheckArgumentStat = Statistic(
 			RUNNING_PARSING_INSTRUCTIONS,
 			"(type-check argument)")
 
-		/** Marker phrase to signal cleanly reaching the end of the input.  */
+		/** Marker phrase to signal cleanly reaching the end of the input. */
 		private val endOfFileMarkerPhrase =
 			newMarkerNode(stringFrom("End of file marker")).makeShared()
 

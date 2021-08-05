@@ -34,6 +34,7 @@ package com.avail.persistence.cache
 
 import com.avail.builder.ModuleRoot
 import java.io.File
+import java.util.Collections.synchronizedMap
 
 /**
  * {@code Repositories} manages all the system repositories. `Repositories`
@@ -52,9 +53,9 @@ object Repositories
 	private const val repositoryExtension = "repo"
 
 	/**
-	 * The [Repository]s directory.
+	 * The directory in which [repositories][Repository] are created/found.
 	 */
-	val directory: File
+	var directory: File
 
 	init
 	{
@@ -71,9 +72,20 @@ object Repositories
 	}
 
 	/**
+	 * Switch to using a different directory for finding/creating repository
+	 * files. This has no effect on existing open repositories, but is useful
+	 * prior to running tests.
+	 */
+	fun setDirectoryLocation(repositoriesPath: File)
+	{
+		directory = repositoriesPath
+	}
+
+	/**
 	 * The map from [Repository.rootName] to the corresponding [Repository].
 	 */
-	private val repositories = mutableMapOf<String, Repository>()
+	private val repositories =
+		synchronizedMap(mutableMapOf<String, Repository>())
 
 	operator fun get(name: String): Repository? = repositories[name]
 
@@ -85,10 +97,9 @@ object Repositories
 	 */
 	fun addRepository (root: ModuleRoot)
 	{
-		repositories[root.name] =
-			Repository(
-				root.name,
-				File("${directory.absolutePath}/${root.name}.${repositoryExtension}"))
+		repositories[root.name] = Repository(
+			root.name,
+			File("${directory.absolutePath}/${root.name}.$repositoryExtension"))
 	}
 
 	/**
@@ -107,7 +118,7 @@ object Repositories
 	 */
 	fun clearAllRepositories ()
 	{
-		repositories.values.forEach { it.clear() }
+		repositories.values.forEach(Repository::clear)
 	}
 
 	/**
@@ -127,7 +138,7 @@ object Repositories
 	 */
 	fun closeAllRepositories ()
 	{
-		repositories.values.forEach { it.close() }
+		repositories.values.forEach(Repository::close)
 	}
 
 	/**
@@ -136,7 +147,7 @@ object Repositories
 	 */
 	fun closeAndRemoveAllRepositories ()
 	{
-		repositories.values.forEach { it.close() }
+		repositories.values.forEach(Repository::close)
 		repositories.clear()
 	}
 }

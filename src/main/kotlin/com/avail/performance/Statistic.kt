@@ -53,7 +53,7 @@ class Statistic constructor(
 	report: StatisticReport,
 	private val nameSupplier: () -> String)
 {
-	/** The array of [PerInterpreterStatistic]s.  */
+	/** The array of [PerInterpreterStatistic]s. */
 	val statistics = Array(maxInterpreters) { PerInterpreterStatistic() }
 
 	/**
@@ -115,8 +115,8 @@ class Statistic constructor(
 	 */
 	fun aggregate(): PerInterpreterStatistic
 	{
-		return PerInterpreterStatistic().apply {
-			statistics.forEach { it.addTo(this@apply) }
+		return PerInterpreterStatistic().also { aggregate ->
+			statistics.forEach { it.addTo(aggregate) }
 		}
 	}
 

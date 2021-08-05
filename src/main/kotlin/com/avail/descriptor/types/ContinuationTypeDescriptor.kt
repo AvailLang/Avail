@@ -34,6 +34,7 @@ package com.avail.descriptor.types
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -141,7 +142,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.functionType().hash() * 11 xor 0x3E20409
+		combine2(self.functionType().hash(), 0x3E20409)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfContinuationType(self)
@@ -272,13 +273,13 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 		}
 
-		/** The mutable [ContinuationTypeDescriptor].  */
+		/** The mutable [ContinuationTypeDescriptor]. */
 		private val mutable = ContinuationTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ContinuationTypeDescriptor].  */
+		/** The immutable [ContinuationTypeDescriptor]. */
 		private val immutable = ContinuationTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ContinuationTypeDescriptor].  */
+		/** The shared [ContinuationTypeDescriptor]. */
 		private val shared = ContinuationTypeDescriptor(Mutability.SHARED)
 
 		/**

@@ -83,13 +83,13 @@ import com.avail.interpreter.execution.Interpreter
 @Suppress("unused")
 object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 {
-	/** The key to the client parsing data in the fiber's environment.  */
+	/** The key to the client parsing data in the fiber's environment. */
 	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
 
-	/** The key to the variable scope map in the client parsing data.  */
+	/** The key to the variable scope map in the client parsing data. */
 	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 
-	/** The key to the tuple of scopes to pop as blocks complete parsing.  */
+	/** The key to the tuple of scopes to pop as blocks complete parsing. */
 	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 
 	override fun attempt(interpreter: Interpreter): Result

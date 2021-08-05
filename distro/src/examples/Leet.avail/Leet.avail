@@ -44,7 +44,7 @@ Extends
 		"operator lexer",
 
 		/* String literal */
-		"…$")
+		"…#")
 Entries
 	"_translated"
 Body

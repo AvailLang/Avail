@@ -33,17 +33,13 @@
 Module "Summation"
 Uses
 	"Avail" = (
-		"whitespace lexer",
 		"comment lexer",
 		"string token lexer",
-		"whole number lexer",
-		"keyword lexer",
-		"operator lexer",
 		"\
 			\|[§\
 				\|««…:_†§‡,»`|»?\
 				\|«Primitive…«(…:_†)»?;§»?\
-				\|«`$…«:_†»?;§»?\
+				\|«$…«:_†»?;§»?\
 				\|«_!§»\
 				\|«_!»?\
 			\|]§\
@@ -51,14 +47,18 @@ Uses
 			\|«^«_†‡,»»?",
 		"_!;",
 		"…",
-		"…$",
-		"…#",
 		"Method_is_",
 		"number",
 		"_+_"
 	),
 	"Dimensional Analysis" = ("dimensioned quantity", "_+_")
 Extends
+	"Avail" = (
+		"whitespace lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+		"…#"),
 	"Dimensional Analysis" = ("__", "m", "s")
 Entries
 	"sum of_and_"

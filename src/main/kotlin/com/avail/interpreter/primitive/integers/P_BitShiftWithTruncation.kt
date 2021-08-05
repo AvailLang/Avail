@@ -72,6 +72,8 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		}
 		catch (e: ArithmeticException)
 		{
+			// Note: The primitive's type signature ensures both baseInteger and
+			// truncationBits are non-negative.
 			interpreter.primitiveFailure(e)
 		}
 	}

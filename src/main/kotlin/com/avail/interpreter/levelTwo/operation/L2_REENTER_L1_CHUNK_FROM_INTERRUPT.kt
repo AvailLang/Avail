@@ -115,7 +115,7 @@ object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 		stepper.stackp = continuation.stackp()
 	}
 
-	/** The [CheckedMethod] for [reenter].  */
+	/** The [CheckedMethod] for [reenter]. */
 	private val reenterMethod = CheckedMethod.staticMethod(
 		L2_REENTER_L1_CHUNK_FROM_INTERRUPT::class.java,
 		::reenter.name,

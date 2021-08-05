@@ -453,7 +453,7 @@ internal class Catalog
 		internal val extensions = setOf(
 			"java", "avail", "properties")
 
-		/** The source paths to search for matching files.  */
+		/** The source paths to search for matching files. */
 		internal val rootPaths = listOf(
 			// The Java search path.
 			Paths.get("src"),

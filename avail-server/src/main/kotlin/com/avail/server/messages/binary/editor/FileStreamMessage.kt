@@ -81,7 +81,9 @@ internal class FileStreamMessage constructor(
 		this.message = Message(content, AvailServerChannel.ProtocolState.BINARY)
 	}
 
-	override fun processThen(channel: AvailServerChannel, continuation: () -> Unit)
+	override fun processThen(
+		channel: AvailServerChannel,
+		continuation: () -> Unit)
 	{
 		channel.enqueueMessageThen(message, continuation)
 	}

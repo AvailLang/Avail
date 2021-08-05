@@ -39,6 +39,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.computeSuperkind
@@ -130,8 +131,8 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		indent: Int)
 	{
 		if (self.slot(KEY_TYPE).equals(ANY.o)
-		    && self.slot(VALUE_TYPE).equals(ANY.o)
-		    && self.slot(SIZE_RANGE).equals(wholeNumbers))
+			&& self.slot(VALUE_TYPE).equals(ANY.o)
+			&& self.slot(SIZE_RANGE).equals(wholeNumbers))
 		{
 			builder.append("map")
 			return
@@ -166,16 +167,16 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_EqualsMapType(self: AvailObject, aMapType: A_Type): Boolean =
 		if (self.sameAddressAs(aMapType)) true
 		else self.slot(SIZE_RANGE).equals(aMapType.sizeRange)
-		     && self.slot(KEY_TYPE).equals(aMapType.keyType)
-		     && self.slot(VALUE_TYPE).equals(aMapType.valueType)
+			 && self.slot(KEY_TYPE).equals(aMapType.keyType)
+			 && self.slot(VALUE_TYPE).equals(aMapType.valueType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.
-	override fun o_Hash(self: AvailObject): Int =
-		computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-			self.slot(SIZE_RANGE).hash(),
-			self.slot(KEY_TYPE).hash(),
-			self.slot(VALUE_TYPE).hash())
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.slot(SIZE_RANGE).hash(),
+		self.slot(KEY_TYPE).hash(),
+		self.slot(VALUE_TYPE).hash(),
+		0x4e53eb41)
 
 	override fun o_IsMapType(self: AvailObject): Boolean = true
 
@@ -191,15 +192,15 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 		aMapType: AvailObject): Boolean =
 			(aMapType.slot(SIZE_RANGE).isSubtypeOf(
 					self.slot(SIZE_RANGE))
-		        && aMapType.slot(KEY_TYPE).isSubtypeOf(
+				&& aMapType.slot(KEY_TYPE).isSubtypeOf(
 					self.slot(KEY_TYPE))
-		        && aMapType.slot(VALUE_TYPE).isSubtypeOf(
+				&& aMapType.slot(VALUE_TYPE).isSubtypeOf(
 					self.slot(VALUE_TYPE)))
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
 		(!self.slot(SIZE_RANGE).lowerBound.equalsInt(0)
 			&& (self.slot(KEY_TYPE).isVacuousType
-		        || self.slot(VALUE_TYPE).isVacuousType))
+				|| self.slot(VALUE_TYPE).isVacuousType))
 
 	override fun o_MakeImmutable(self: AvailObject): AvailObject =
 		if (isMutable)
@@ -361,27 +362,6 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 	companion object
 	{
 		/**
-		 * Compute what the map type's hash would be, given the hashes of its
-		 * constituent parts.
-		 *
-		 * @param sizesHash
-		 *   The hash of the
-		 *   [integer&#32;range&#32;type][IntegerRangeTypeDescriptor] that
-		 *   constrains the map size.
-		 * @param keyTypeHash
-		 *   The hash of the key type.
-		 * @param valueTypeHash
-		 *   The hash of the value type.
-		 * @return
-		 *  The hash of the resulting map type.
-		 */
-		private fun computeHashForSizeRangeHashKeyTypeHashValueTypeHash(
-			sizesHash: Int,
-			keyTypeHash: Int,
-			valueTypeHash: Int): Int =
-				sizesHash * 3 + keyTypeHash * 5 + valueTypeHash * 13
-
-		/**
 		 * Construct a new map type with the specified permitted range of number
 		 * of * elements, the specified types of keys, and the specified types
 		 * of values. Canonicalize the values for singularities: such as the
@@ -452,8 +432,8 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 						}
 						keyType.isIntegerRangeType
 						&& (keyType.lowerBound.isFinite
-						    || keyType.upperBound.isFinite
-						    || keyType.lowerBound.equals(
+							|| keyType.upperBound.isFinite
+							|| keyType.lowerBound.equals(
 							keyType.upperBound)) ->
 						{
 							// We had already ruled out ⊥ for the keys (and also
@@ -484,13 +464,13 @@ class MapTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [MapTypeDescriptor].  */
+		/** The mutable [MapTypeDescriptor]. */
 		private val mutable = MapTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MapTypeDescriptor].  */
+		/** The shared [MapTypeDescriptor]. */
 		private val shared = MapTypeDescriptor(Mutability.SHARED)
 
-		/** The most general map type.  */
+		/** The most general map type. */
 		private val mostGeneralType: A_Type =
 			mapTypeForSizesKeyTypeValueType(
 				wholeNumbers, ANY.o, ANY.o

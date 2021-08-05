@@ -912,7 +912,7 @@ abstract class Conversation (
 	 *
 	 * @param message
 	 *   The message that awaits further conversation.
- 	 */
+	 */
 	constructor (message: Message) : this(message.id, message.allowedSuccessors)
 }
 

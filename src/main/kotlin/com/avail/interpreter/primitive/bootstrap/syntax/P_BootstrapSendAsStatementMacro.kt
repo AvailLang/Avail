@@ -87,8 +87,8 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 			throw AvailRejectedParseException(
 				WEAK,
 				StringDescriptor.stringFrom("statement to yield ⊤, "
-                    + "but it yields ${sendPhrase.phraseExpressionType}.  "
-                    + "Expression is: $sendPhrase"))
+					+ "but it yields ${sendPhrase.phraseExpressionType}.  "
+					+ "Expression is: $sendPhrase"))
 		}
 		val sendAsStatement = newExpressionAsStatement(sendPhrase)
 		return interpreter.primitiveSuccess(sendAsStatement)

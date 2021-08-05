@@ -67,6 +67,9 @@ import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.methods.A_Method.Companion.testingTree
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -815,16 +818,16 @@ class L1Translator private constructor(
 		val superUnionType: A_Type,
 		val expectedType: A_Type)
 	{
-		/** A Java [String] naming the [A_Bundle].  */
+		/** A Java [String] naming the [A_Bundle]. */
 		val quotedBundleName = bundle.message.atomName.asNativeString()
 
-		/** A counter for generating unique branch names for this dispatch.  */
+		/** A counter for generating unique branch names for this dispatch. */
 		var branchLabelCounter = 1
 
-		/** Whether this call site is a super lookup.  */
+		/** Whether this call site is a super lookup. */
 		val isSuper = !superUnionType.isBottom
 
-		/** Where to jump to perform the slow lookup.  */
+		/** Where to jump to perform the slow lookup. */
 		val onFallBackToSlowLookup = generator.createBasicBlock(
 			"fall back to slow lookup during $quotedBundleName")
 
@@ -3330,11 +3333,11 @@ class L1Translator private constructor(
 				functionDefinition)
 		}
 
-		/** Statistic for generating an L2Chunk's preamble.  */
+		/** Statistic for generating an L2Chunk's preamble. */
 		private val preambleGenerationStat = Statistic(
 			L1_NAIVE_TRANSLATION_TIME, "(generate preamble)")
 
-		/** Statistics for timing the translation per L1Operation.  */
+		/** Statistics for timing the translation per L1Operation. */
 		private val levelOneGenerationStats: Array<Statistic> =
 			L1Operation.values().map {
 				Statistic(L1_NAIVE_TRANSLATION_TIME, it.name)
@@ -3427,7 +3430,7 @@ class L1Translator private constructor(
 			return generator.controlFlowGraph
 		}
 
-		/** Statistic for number of instructions in L2 translations.  */
+		/** Statistic for number of instructions in L2 translations. */
 		private val translationSizeStat = Statistic(
 			L2_TRANSLATION_VALUES, "L2 instruction count")
 
@@ -3441,7 +3444,7 @@ class L1Translator private constructor(
 		private val translationDependenciesStat =
 			AtomicReference(arrayOf<Statistic>())
 
-		/** Statistics about the naive L1 to L2 translation.  */
+		/** Statistics about the naive L1 to L2 translation. */
 		private val translateL1Stat = Statistic(
 			L2_OPTIMIZATION_TIME, "L1 naive translation")
 

@@ -46,6 +46,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -145,7 +146,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 	: AbstractEnumerationTypeDescriptor(
 		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of object slots for my instances.  */
+	/** The layout of object slots for my instances. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -288,7 +289,7 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			getInstances(self).hasElement(potentialInstance)
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstances(self).hash() xor 0x15b5b059) * AvailObject.multiplier
+		combine2(getInstances(self).hash(), 0x15b5b059)
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean
 	{
@@ -761,15 +762,15 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [EnumerationTypeDescriptor].  */
+		/** The mutable [EnumerationTypeDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			EnumerationTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [EnumerationTypeDescriptor].  */
+		/** The immutable [EnumerationTypeDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			EnumerationTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [EnumerationTypeDescriptor].  */
+		/** The shared [EnumerationTypeDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			EnumerationTypeDescriptor(Mutability.SHARED)
 

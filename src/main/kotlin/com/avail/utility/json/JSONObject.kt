@@ -171,7 +171,7 @@ class JSONObject internal constructor(
 
 	companion object
 	{
-		/** The sole empty `JSONObject`.  */
+		/** The sole empty `JSONObject`. */
 		val empty = JSONObject(emptyMap())
 	}
 }

@@ -1249,21 +1249,6 @@ System exception "not-an-enumeration" (17)
 	extends invocation exception;
 
 /**
- * Raised by {@method "_<<_keeping_bits"} when the truncation size is negative.
- *
- * @type "shift-and-truncate-requires-non-negative exception"
- * @supertype "arithmetic exception"
- * @field "error code" "18's type"
- * 		The VM error code.
- * @field "error name" "string"
- * 		The full name of the system exception including the word "exception"
- * 		at the end.
- * @category "Exceptions" "Mathematics"
- */
-System exception "shift-and-truncate-requires-non-negative" (18)
-	extends arithmetic exception;
-
-/**
  * Raised when attempting to look up a nonexistent {@type "method"}.
  *
  * @type "no-method exception"
@@ -1304,7 +1289,7 @@ System exception "permission-denied" (24)
 	extends security exception;
 System exception "invalid-handle" (25)
 	extends bad-argument exception;
-System exception "invalid-primitive-number" (26)
+System exception "invalid-primitive-name" (26)
 	extends code-generation exception;
 System exception "function-disagrees-with-primitive-restriction" (27)
 	extends code-generation exception;
@@ -1366,8 +1351,6 @@ System exception "cannot-convert-not-a-number-to-integer" (56)
 	extends bad-argument exception;
 System exception "incorrect-type-for-numbered-choice" (57)
 	extends bad-message exception;
-System exception "dollar-sign-must-follow-an-ellipsis" (58)
-	extends bad-phrase exception;
 System exception "macro-prefix-functions-must-return-top" (59)
 	extends definition exception;
 System exception "primitive-fallibility-disagrees-with-failure-variable" (60)
@@ -2085,7 +2068,7 @@ raise Java exception function :=
  * to fail, we're not <em>quite</em> far enough along in exception support to be
  * able to log it sensibly.  See down a few lines for this phantom misparse.
  */
-Grammatical restriction "`$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅, ∅>;
+Grammatical restriction "$_@pc=_stack=_[_]caller=_" is <∅, ∅, {"_[_]"}, ∅, ∅>;
 
 /* If the unhandled exception handler catches a termination-requested exception,
  * we want the fiber to exit cleanly, so use an uninitialized variable. This is
@@ -2370,7 +2353,6 @@ Public method "Accept parse" is
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  */
 Public method "restricted send_with_:_" is

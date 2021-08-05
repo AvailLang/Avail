@@ -43,6 +43,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
@@ -208,7 +209,7 @@ open class TokenDescriptor protected constructor(
 
 		override fun fieldOrdinal(): Int = ordinal
 
-		/** The associated special atom.  */
+		/** The associated special atom. */
 		val atom: A_Atom =
 			createSpecialAtom(
 				name.lowercase().replace('_', ' ')
@@ -220,7 +221,7 @@ open class TokenDescriptor protected constructor(
 
 		companion object
 		{
-			/** An array of all [TokenType] enumeration values.  */
+			/** An array of all [TokenType] enumeration values. */
 			private val all = values()
 
 			/**
@@ -237,7 +238,7 @@ open class TokenDescriptor protected constructor(
 
 	}
 
-	/** A static class for untangling enum initialization.  */
+	/** A static class for untangling enum initialization. */
 	object StaticInit
 	{
 		/**
@@ -283,11 +284,11 @@ open class TokenDescriptor protected constructor(
 			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.string().hash() * AvailObject.multiplier
-		         + self.start()) * AvailObject.multiplier
-			+ self.tokenType().ordinal
-			xor 0x62CE7BA2)
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.string().hash(),
+		self.start(),
+		self.tokenType().ordinal,
+		0x62CE7BA2)
 
 	override fun o_Kind(self: AvailObject): A_Type = tokenType(self.tokenType())
 
@@ -414,14 +415,14 @@ open class TokenDescriptor protected constructor(
 			}
 		}
 
-		/** The mutable [TokenDescriptor].  */
+		/** The mutable [TokenDescriptor]. */
 		private val mutable = TokenDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.TOKEN_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The shared [TokenDescriptor].  */
+		/** The shared [TokenDescriptor]. */
 		private val shared = TokenDescriptor(
 			Mutability.SHARED,
 			TypeTag.TOKEN_TAG,

@@ -34,6 +34,7 @@ package com.avail.descriptor.types
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.functionType
@@ -62,7 +63,7 @@ import java.util.IdentityHashMap
  * Construct a new `CompiledCodeTypeDescriptor`.
  *
  * @param mutability
- * 		The [mutability][Mutability] of the new descriptor.
+ *   The [mutability][Mutability] of the new descriptor.
  */
 class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
@@ -124,7 +125,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 			}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.functionType().hash() * 71 xor -0x5874fe3d
+		combine2(self.functionType().hash(), -0x5874fe3d)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfCompiledCodeType(self)
@@ -259,11 +260,11 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 			}
 
-		/** The mutable [CompiledCodeTypeDescriptor].  */
+		/** The mutable [CompiledCodeTypeDescriptor]. */
 		private val mutable: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [CompiledCodeTypeDescriptor].  */
+		/** The shared [CompiledCodeTypeDescriptor]. */
 		private val shared: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.SHARED)
 

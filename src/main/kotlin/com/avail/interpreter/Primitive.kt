@@ -131,13 +131,11 @@ import java.util.regex.Pattern
  * terms of other Level One operations.  A conforming Avail implementation must
  * provide these primitives with equivalent semantics and names.
  *
- *
  * The subclasses must define [attempt], which expects its arguments to be
  * accessed via [Interpreter.argument].  Each subclass operates on its arguments
  * to produce a side-effect and/or produce a result.  The primitive's [Flag]s
  * indicate any special preparations that must be made before the invocation,
  * such as reifying the Java stack.
- *
  *
  * Primitives may succeed or fail, or cause some other action like non-local
  * control flow.  This is handled via [Interpreter.primitiveSuccess] and
@@ -145,28 +143,26 @@ import java.util.regex.Pattern
  * the statements in the containing function will be invoked, as though the
  * primitive had never been attempted.
  *
- *
  * In addition, the `Primitive` subclasses collaborate with the [L1Translator]
  * and [L2Generator] to produce appropriate [L2Instruction]s and ultimately JVM
  * bytecode instructions within a calling [ExecutableChunk].  Again, the [Flag]s
  * and some `Primitive` methods indicate general properties of the primitive,
  * like whether it can be applied ahead of time ([Flag.CanFold]) to constant
  * arguments, whether it could fail, given particular types of arguments, and
- * what type it guarantees to provide, given particular argument types.
- *
+ * what return type it guarantees to produce, given particular argument types.
  *
  * The main hook for primitive-specific optimization is
  * [tryToGenerateSpecialPrimitiveInvocation].  Because of the way the L2
- * translation makes use of [L2SemanticValue]s,
- * and [L2SemanticPrimitiveInvocation]s in particular, a primitive can
- * effectively examine the history of its arguments and compose or cancel a
- * chain of actions in the L2 code.  For example, a primitive that extracts an
- * element of a tuple might notice that the tuple was created by a
- * tuple-building primitive, and then choose to directly use one of the inputs
- * to the tuple-building primitive, rather than decompose the tuple. If all such
- * uses of the tuple disappear, the invocation of the tuple-building primitive
- * can be elided entirely, since it has no side-effects.  Arithmetic provides
- * similar rich opportunities for these high-level optimizations.
+ * translation makes use of [L2SemanticValue]s, and
+ * [L2SemanticPrimitiveInvocation]s in particular, a primitive can effectively
+ * examine the history of its arguments and compose or cancel a chain of actions
+ * in the L2 code.  For example, a primitive that extracts an element of a tuple
+ * might notice that the tuple was created by a tuple-building primitive, and
+ * then choose to directly use one of the inputs to the tuple-building
+ * primitive, rather than decompose the tuple. If all such uses of the tuple
+ * disappear, the invocation of the tuple-building primitive can be elided
+ * entirely, since it has no side-effects.  Arithmetic provides similarly rich
+ * opportunities for these high-level optimizations.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -177,9 +173,10 @@ import java.util.regex.Pattern
  *   explicitly in Avail code.
  *
  * @constructor
- * Construct a new [Primitive].  The first argument is a primitive number, the
- * second is the number of arguments with which the primitive expects to be
- * invoked, and the remaining arguments are [flags][Flag].
+ * Construct a new [Primitive].  The first argument is the number of arguments
+ * with which the primitive expects to be invoked, and the remaining arguments
+ * are [flags][Flag].  The name of the primitive is implicit in the name of the
+ * class that it's an instance of, by stripping off the "P_" prefix.
  *
  * Note that it's essential that this method, invoked during static
  * initialization of each Primitive subclass, install this new instance into
@@ -191,8 +188,8 @@ import java.util.regex.Pattern
  *   number of arguments.  However, note that that primitive cannot be used
  *   explicitly in Avail code.
  * @param flags
- *   The flags that describe how the [L2Generator] should deal with this
- *   primitive.
+ *   The flags that describe how the [Interpreter] and [L2Generator] should deal
+ *   with this primitive.
  */
 abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 {
@@ -270,13 +267,13 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		// Sanity check certain conditions.
 		assert(!primitiveFlags.contains(CanFold)
-		       || primitiveFlags.contains(CanInline))
+				|| primitiveFlags.contains(CanInline))
 		{
 			("Primitive ${this@Primitive.javaClass.simpleName} has CanFold " +
 				"without CanInline")
 		}
 		assert(!primitiveFlags.contains(Invokes)
-		       || primitiveFlags.contains(CanInline))
+				|| primitiveFlags.contains(CanInline))
 		{
 			("Primitive ${this@Primitive.javaClass.simpleName} has Invokes " +
 				"without CanInline")
@@ -789,7 +786,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		// to inline it.
 		if (hasFlag(CanSuspend)
 			|| hasFlag(Invokes)
-		    || fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
+			|| fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{
 			return false
 		}
@@ -842,10 +839,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 
 	companion object
 	{
-		/** A map of all [PrimitiveHolder]s, by name.  */
+		/** A map of all [PrimitiveHolder]s, by name. */
 		val holdersByName: Map<String, PrimitiveHolder>
 
-		/** A map of all [PrimitiveHolder]s, by class name.  */
+		/** A map of all [PrimitiveHolder]s, by class name. */
 		private val holdersByClassName: Map<String, PrimitiveHolder>
 
 		/**
@@ -861,9 +858,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		private val primitiveNamePattern = Pattern.compile("P_(\\w+)")
 
 		/*
-	     * Read from allPrimitivesFileName to get a complete manifest of
-	     * accessible primitives.  Don't actually load the primitives yet.
-	     */
+		 * Read from allPrimitivesFileName to get a complete manifest of
+		 * accessible primitives.  Don't actually load the primitives yet.
+		 */
 		init
 		{
 			val byNames = mutableMapOf<String, PrimitiveHolder>()
@@ -871,7 +868,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			try
 			{
 				val resource =
-					Primitive::class.java.getResource(allPrimitivesFileName)
+					Primitive::class.java.getResource(allPrimitivesFileName)!!
 				BufferedReader(
 					InputStreamReader(resource.openStream(), UTF_8)).use {
 					input ->
@@ -964,10 +961,10 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 					}
 				}
 			}
-			return if (string.isNotEmpty()) string else null
+			return string.ifEmpty { null }
 		}
 
-		/** The method [attempt].  */
+		/** The method [attempt]. */
 		val attemptMethod: CheckedMethod = instanceMethod(
 			Primitive::class.java,
 			Primitive::attempt.name,

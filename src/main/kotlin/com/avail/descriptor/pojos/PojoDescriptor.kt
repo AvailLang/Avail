@@ -36,6 +36,7 @@ import com.avail.descriptor.pojos.PojoDescriptor.ObjectSlots.RAW_POJO
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -66,7 +67,7 @@ class PojoDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(mutability, TypeTag.POJO_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/** A [raw&#32;pojo][RawPojoDescriptor]. */
@@ -97,13 +98,10 @@ class PojoDescriptor private constructor(
 			}
 		}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var hash = self.slot(RAW_POJO).hash() xor 0x749101DD
-		hash *= AvailObject.multiplier
-		hash += self.slot(KIND).hash()
-		return hash
-	}
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(RAW_POJO).hash(),
+		self.slot(KIND).hash(),
+		0x749101DD)
 
 	override fun o_IsPojo(self: AvailObject): Boolean = true
 
@@ -159,13 +157,13 @@ class PojoDescriptor private constructor(
 
 	companion object
 	{
-		/** The mutable [PojoDescriptor].  */
+		/** The mutable [PojoDescriptor]. */
 		private val mutable = PojoDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [PojoDescriptor].  */
+		/** The immutable [PojoDescriptor]. */
 		private val immutable = PojoDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [PojoDescriptor].  */
+		/** The shared [PojoDescriptor]. */
 		private val shared = PojoDescriptor(Mutability.SHARED)
 
 		/**
@@ -188,7 +186,7 @@ class PojoDescriptor private constructor(
 			setSlot(KIND, pojoType)
 		}
 
-		/** The [pojo][PojoDescriptor] that wraps Java's `null`.  */
+		/** The [pojo][PojoDescriptor] that wraps Java's `null`. */
 		private val nullObject =
 			newPojo(rawNullPojo(), pojoBottom()).makeShared()
 

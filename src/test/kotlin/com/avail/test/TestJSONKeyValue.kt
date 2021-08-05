@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.test.utility.json
+package com.avail.test
 
 import com.avail.utility.json.JSONNumber
 import com.avail.utility.json.JSONObject
@@ -56,10 +56,10 @@ import org.junit.jupiter.api.Assertions.assertTrue
  */
 enum class TestJSONKeyValue constructor(val key: String)
 {
-	/** For testing a String  */
+	/** For testing a String. */
 	IMASTRING("imastring")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = "foo"
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -78,10 +78,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing an integer  */
+	/** For testing an integer. */
 	IMANINT("imanint")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = 52
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -100,10 +100,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a long  */
+	/** For testing a long. */
 	IMALONG("imalong")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = 34359738368L
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -122,10 +122,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a float  */
+	/** For testing a float. */
 	IMAFLOAT("imafloat")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = 3.2f
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -144,10 +144,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a double  */
+	/** For testing a double. */
 	IMADOUBLE("imadouble")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = 3.12345678910
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -166,10 +166,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a boolean that evaluates to true  */
+	/** For testing a boolean that evaluates to true. */
 	IMATRUE("imatrue")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = true
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -188,10 +188,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a boolean that evaluates to false  */
+	/** For testing a boolean that evaluates to false. */
 	IMAFALSE("imafalse")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = false
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -210,7 +210,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a boolean that evaluates to false  */
+	/** For testing a boolean that evaluates to false. */
 	IMANULL("imanull")
 	{
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -232,10 +232,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing an integer array with no spaces  */
+	/** For testing an integer array with no spaces. */
 	IMACOMPACTARRAY("imacompactarrayKey")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = intArrayOf(1, 2, 3, 4, 5)
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -269,10 +269,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing an array with superfluous spaces  */
+	/** For testing an array with superfluous space. */
 	IMANARRAY("imanarray")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = intArrayOf(1, 2, 3, 4, 5)
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -306,7 +306,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a String in a JSON object.  */
+	/** For testing a String in a JSON object. */
 	OBJSTRING("objstring")
 	{
 		/** The test value. */
@@ -328,10 +328,10 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing an integer in a JSON object.  */
+	/** For testing an integer in a JSON object. */
 	OBJINT("objint")
 	{
-		/** The test value  */
+		/** The test value. */
 		private val value = 10
 
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -350,7 +350,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
-	/** For testing a JSON object.  */
+	/** For testing a JSON object. */
 	IMANOBJECT("imanobject")
 	{
 		override fun addValueToBuilder(sb: StringBuilder)
@@ -434,7 +434,7 @@ enum class TestJSONKeyValue constructor(val key: String)
 	 * @param content
 	 *   The [JSONObject] to explore.
 	 */
-	internal fun checkKeyExists(content: JSONObject)
+	private fun checkKeyExists(content: JSONObject)
 	{
 		assertTrue(content.containsKey(key), "Missing key: $key")
 	}

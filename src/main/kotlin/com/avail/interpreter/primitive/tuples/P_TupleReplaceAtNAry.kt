@@ -222,5 +222,5 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 			set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_INCORRECT_ARGUMENT_TYPE,
-			    E_KEY_NOT_FOUND))
+				E_KEY_NOT_FOUND))
 }

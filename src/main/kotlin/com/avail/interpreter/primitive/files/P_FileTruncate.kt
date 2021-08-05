@@ -140,23 +140,23 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 
 		runtime.ioSystem.executeFileTask(
 			Runnable {
-	           try
-	           {
-	               fileChannel.truncate(size)
-	           }
-	           catch (e: IOException)
-	           {
-	               Interpreter.runOutermostFunction(
-	                   runtime,
-	                   newFiber,
-	                   fail,
-	                   listOf(E_IO_ERROR.numericCode()))
-	               return@Runnable
-	           }
+				try
+				{
+					fileChannel.truncate(size)
+				}
+				catch (e: IOException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_IO_ERROR.numericCode()))
+					return@Runnable
+				}
 
-	           Interpreter.runOutermostFunction(
-	               runtime, newFiber, succeed, emptyList())
-	       })
+				Interpreter.runOutermostFunction(
+					runtime, newFiber, succeed, emptyList())
+			})
 
 		return interpreter.primitiveSuccess(newFiber)
 	}

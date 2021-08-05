@@ -156,12 +156,6 @@ Test "ForwardMethodDeclarationForAtom fails with incorrect-type-for-numbered-cho
 ]
 must raise incorrect-type-for-numbered-choice exception;
 
-Test "ForwardMethodDeclarationForAtom fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
-
 Test "ForwardMethodDeclarationForAtom fails with cannot-define-during-compilation exception" in primitive methods test suite if supported is
 [
 	Skip test

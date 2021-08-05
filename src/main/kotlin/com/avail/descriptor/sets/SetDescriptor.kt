@@ -35,6 +35,7 @@ import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.character.A_Character.Companion.codePoint
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
@@ -114,12 +115,13 @@ class SetDescriptor
 private constructor(
 	mutability: Mutability
 ) : Descriptor(
-	mutability, TypeTag.SET_TAG, ObjectSlots::class.java, null
-) {
+	mutability, TypeTag.SET_TAG, ObjectSlots::class.java, null)
+{
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/**
 		 * The topmost bin of this set.  If it's [nil][NilDescriptor], the set
 		 * is empty.  If it's a [set&#32;bin][SetBinDescriptor] then the bin
@@ -135,7 +137,8 @@ private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	): Unit = with(builder) {
-		when {
+		when
+		{
 			self.setSize == 0 -> append('∅')
 			self.setElementsAreAllInstancesOfKind(CHARACTER.o) -> {
 				append("¢[")
@@ -143,37 +146,43 @@ private constructor(
 				self.mapTo(codePointsSet) { it.codePoint }
 				val iterator: Iterator<Int> = codePointsSet.iterator()
 				var runStart = iterator.next()
-				do {
+				do
+				{
 					var runEnd = runStart
 					var next = -1
-					while (iterator.hasNext()) {
+					while (iterator.hasNext())
+					{
 						next = iterator.next()
-						if (next != runEnd + 1) {
+						if (next != runEnd + 1)
+						{
 							break
 						}
 						runEnd++
 						next = -1
 					}
 					writeRangeElement(builder, runStart)
-					if (runEnd != runStart) {
+					if (runEnd != runStart)
+					{
 						// Skip the dash if the start and end are consecutive.
-						if (runEnd != runStart + 1) {
+						if (runEnd != runStart + 1)
+						{
 							appendCodePoint('-'.code)
 						}
 						writeRangeElement(builder, runEnd)
 					}
 					runStart = next
-				} while (runStart != -1)
+				}
+				while (runStart != -1)
 				append("]")
 			}
-			else -> {
+			else ->
+			{
 				val tuple = self.asTuple
 				append('{')
 				var first = true
-				for (element in tuple) {
-					if (!first) {
-						append(", ")
-					}
+				for (element in tuple)
+				{
+					if (!first) append(", ")
 					element.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 					first = false
@@ -189,7 +198,8 @@ private constructor(
 	/**
 	 * Synthetic slots to display.
 	 */
-	internal enum class FakeSetSlots : ObjectSlotsEnum {
+	internal enum class FakeSetSlots : ObjectSlotsEnum
+	{
 		/**
 		 * A fake slot to present in the debugging view for each of the elements
 		 * of this set.
@@ -210,24 +220,28 @@ private constructor(
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		(another as A_Set).equalsSet(self)
 
-	override fun o_EqualsSet(self: AvailObject, aSet: A_Set): Boolean = when {
+	override fun o_EqualsSet(self: AvailObject, aSet: A_Set): Boolean = when
+	{
 		self.sameAddressAs(aSet) -> true
 		rootBin(self).sameAddressAs(rootBin(aSet as AvailObject)) -> true
 		self.setSize != aSet.setSize -> false
 		self.hash() != aSet.hash() -> false
 		!rootBin(self).isBinSubsetOf(aSet) -> false
 		// They're equal.
-		!isShared -> {
+		!isShared ->
+		{
 			aSet.makeImmutable()
 			self.becomeIndirectionTo(aSet)
 			true
 		}
-		!aSet.descriptor().isShared -> {
+		!aSet.descriptor().isShared ->
+		{
 			self.makeImmutable()
 			aSet.becomeIndirectionTo(self)
 			true
 		}
-		else -> {
+		else ->
+		{
 			// They're both shared, so we can't make one an indirection.
 			// Substitute one of the bins for the other to speed up
 			// subsequent equality checks.
@@ -239,27 +253,30 @@ private constructor(
 	override fun o_HasElement(
 		self: AvailObject,
 		elementObject: A_BasicObject
-	): Boolean = rootBin(self).binHasElementWithHash(
-		elementObject, elementObject.hash())
+	): Boolean =
+		rootBin(self).binHasElementWithHash(elementObject, elementObject.hash())
 
 	/**
 	 * A set's hash is a simple function of its rootBin's setBinHash, which is
 	 * always the sum of its elements' hashes.
 	 */
 	override fun o_Hash(self: AvailObject): Int =
-		rootBin(self).setBinHash xor 0xCD9EFC6
+		combine2(rootBin(self).setBinHash, 0x0CD9EFC6)
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
 		aType: A_Type
-	): Boolean = when {
+	): Boolean = when
+	{
 		aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> true
 		!aType.isSetType -> false
 		// See if it's an acceptable size...
 		!aType.sizeRange.rangeIncludesLong(self.setSize.toLong()) -> false
-		else -> {
+		else ->
+		{
 			val expectedContentType = aType.contentType
-			when {
+			when
+			{
 				expectedContentType.equals(Types.ANY.o) -> true
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
@@ -299,14 +316,17 @@ private constructor(
 		self: AvailObject,
 		otherSet: A_Set,
 		canDestroy: Boolean
-	): A_Set {
-		val (smaller, larger) = when {
+	): A_Set
+	{
+		val (smaller, larger) = when
+		{
 			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
 			else -> otherSet.traversed() to self
 		}
 		var result: A_Set = smaller.makeImmutable()
 		smaller.forEach {
-			if (!larger.hasElement(it)) {
+			if (!larger.hasElement(it))
+			{
 				result = result.setWithoutElementCanDestroy(it, true)
 			}
 		}
@@ -319,8 +339,10 @@ private constructor(
 	override fun o_SetIntersects(
 		self: AvailObject,
 		otherSet: A_Set
-	): Boolean {
-		val (smaller, larger) = when {
+	): Boolean
+	{
+		val (smaller, larger) = when
+		{
 			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
 			else -> otherSet.traversed() to self
 		}
@@ -363,17 +385,21 @@ private constructor(
 		self: AvailObject,
 		otherSet: A_Set,
 		canDestroy: Boolean
-	): A_Set {
+	): A_Set
+	{
 		// Compute the union of two sets. May destroy one of them if it's
 		// mutable and canDestroy is true.
-		val (smaller, larger) = when {
+		val (smaller, larger) = when
+		{
 			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
 			else -> otherSet.traversed() to self
 		}
-		if (!canDestroy && larger.descriptor().isMutable) {
+		if (!canDestroy && larger.descriptor().isMutable)
+		{
 			larger.makeImmutable()
 		}
-		if (smaller.setSize == 0) {
+		if (smaller.setSize == 0)
+		{
 			return larger
 		}
 		return smaller.fold(larger) { result: A_Set, element ->
@@ -385,7 +411,8 @@ private constructor(
 		self: AvailObject,
 		newElementObject: A_BasicObject,
 		canDestroy: Boolean
-	): A_Set {
+	): A_Set
+	{
 		// Ensure newElementObject is in the set, adding it if necessary. May
 		// destroy the set if it's mutable and canDestroy is true.
 		val elementHash = newElementObject.hash()
@@ -396,13 +423,12 @@ private constructor(
 			elementHash,
 			0,
 			canDestroy && isMutable)
-		if (newRootBin.setBinSize == oldSize) {
-			if (!canDestroy) {
-				self.makeImmutable()
-			}
+		if (newRootBin.setBinSize == oldSize)
+		{
+			if (!canDestroy) self.makeImmutable()
 			return self
 		}
-		val result = if (canDestroy && isMutable) self else mutable().create { }
+		val result = if (canDestroy && isMutable) self else mutable().create()
 		setRootBin(result, newRootBin)
 		return result
 	}
@@ -411,7 +437,8 @@ private constructor(
 		self: AvailObject,
 		elementObjectToExclude: A_BasicObject,
 		canDestroy: Boolean
-	): A_Set {
+	): A_Set
+	{
 		// Ensure elementObjectToExclude is not in the set, removing it if
 		// necessary. May destroy the set if it's mutable and canDestroy is
 		// true.
@@ -422,8 +449,10 @@ private constructor(
 			elementObjectToExclude.hash(),
 			0,
 			canDestroy && isMutable)
-		if (newRootBin.setBinSize == oldSize) {
-			if (!canDestroy) {
+		if (newRootBin.setBinSize == oldSize)
+		{
+			if (!canDestroy)
+			{
 				self.makeImmutable()
 			}
 			return self
@@ -431,7 +460,7 @@ private constructor(
 		val result = when
 		{
 			canDestroy && isMutable -> self
-			else -> mutable().create { }
+			else -> mutable().create()
 		}
 		setRootBin(result, newRootBin)
 		return result
@@ -625,16 +654,16 @@ private constructor(
 		fun set(vararg errorCodeElements: AvailErrorCode): A_Set =
 			generateSetFrom(errorCodeElements, AvailErrorCode::numericCode)
 
-		/** The mutable [SetDescriptor].  */
+		/** The mutable [SetDescriptor]. */
 		private val mutable = SetDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [SetDescriptor].  */
+		/** The immutable [SetDescriptor]. */
 		private val immutable = SetDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [SetDescriptor].  */
+		/** The shared [SetDescriptor]. */
 		private val shared = SetDescriptor(Mutability.SHARED)
 
-		/** The empty set.  */
+		/** The empty set. */
 		val emptySet: A_Set = mutable.createShared {
 			setRootBin(this, emptyLinearSetBin(0))
 			hash()

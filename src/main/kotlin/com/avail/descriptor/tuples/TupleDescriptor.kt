@@ -1201,7 +1201,7 @@ abstract class TupleDescriptor protected constructor(
 		private fun computeHashForObject(self: A_Tuple): Int =
 			self.computeHashFromTo(1, self.tupleSize)
 
-		/** The empty tuple.  */
+		/** The empty tuple. */
 		val emptyTuple: AvailObject =
 			mutableObjectOfSize(0).apply { hash() }.makeShared()
 
@@ -1409,7 +1409,7 @@ abstract class TupleDescriptor protected constructor(
 		fun staticTupleAt(tuple: A_Tuple, index: Int): AvailObject =
 			tuple.tupleAt(index)
 
-		/** The [CheckedMethod] for [staticTupleAt].  */
+		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAt.name,
@@ -1439,7 +1439,7 @@ abstract class TupleDescriptor protected constructor(
 		): AvailObject =
 			tuple.tupleAtPuttingCanDestroy(index, newValue, true) as AvailObject
 
-		/** The [CheckedMethod] for [staticTupleAt].  */
+		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtPuttingMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAtPutting.name,
@@ -1458,7 +1458,7 @@ abstract class TupleDescriptor protected constructor(
 		@JvmStatic
 		fun staticTupleSize(tuple: A_Tuple): Int = tuple.tupleSize
 
-		/** The [CheckedMethod] for [staticTupleSize].  */
+		/** The [CheckedMethod] for [staticTupleSize]. */
 		val tupleSizeMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleSize.name,

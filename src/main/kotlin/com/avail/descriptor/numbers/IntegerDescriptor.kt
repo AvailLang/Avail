@@ -1145,15 +1145,9 @@ class IntegerDescriptor private constructor(
 			throw ArithmeticException(AvailErrorCode.E_TOO_LARGE_TO_REPRESENT)
 		}
 		val truncationInt = truncationBits.extractInt
-		if (truncationInt < 0) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
-		}
+		assert (truncationInt >= 0)
 		val sign = self.numericCompareToInteger(zero)
-		if (sign == Order.LESS) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
-		}
+		assert (sign != Order.LESS)
 		if (sign == Order.EQUAL) {
 			if (!canDestroy || isMutable) {
 				self.makeImmutable()
@@ -1505,10 +1499,12 @@ class IntegerDescriptor private constructor(
 			var n = 0
 			var nextDivisor = quintillionInteger
 			var previousDivisor: A_Number
-			do {
+			do
+			{
 				previousDivisor = nextDivisor
 				nextDivisor = cachedSquareOfQuintillion(++n)
-			} while (nextDivisor.lessThan(magnitude))
+			}
+			while (nextDivisor.lessThan(magnitude))
 			// We went one too far.  Decrement n and use previousDivisor.
 			// Splitting the number by dividing by previousDivisor assigns the
 			// low 18*(2^n) digits to the remainder, and the rest to the
@@ -1658,7 +1654,7 @@ class IntegerDescriptor private constructor(
 			}
 		}
 
-		/** The [CheckedMethod] for [IntegerDescriptor.fromInt].  */
+		/** The [CheckedMethod] for [IntegerDescriptor.fromInt]. */
 		val fromIntMethod: CheckedMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
@@ -1747,7 +1743,7 @@ class IntegerDescriptor private constructor(
 		fun hashOfUnsignedByte(anInteger: Short) =
 			hashesOfSmallIntegers[anInteger.toInt()]
 
-		/** The initialization value for computing the hash of an integer.  */
+		/** The initialization value for computing the hash of an integer. */
 		private const val initialHashValue = 0x13592884
 
 		/**
@@ -1918,16 +1914,16 @@ class IntegerDescriptor private constructor(
 			computeHashOfInt(it)
 		}
 
-		/** An Avail integer representing zero (0).  */
+		/** An Avail integer representing zero (0). */
 		val zero: AvailObject = smallIntegers[0]!!
 
-		/** An Avail integer representing one (1).  */
+		/** An Avail integer representing one (1). */
 		val one: AvailObject = smallIntegers[1]!!
 
-		/** An Avail integer representing two (2).  */
+		/** An Avail integer representing two (2). */
 		val two: AvailObject = smallIntegers[2]!!
 
-		/** The Avail integer negative one (-1).  */
+		/** The Avail integer negative one (-1). */
 		var negativeOne: AvailObject =
 			createUninitializedInteger(1).apply {
 				rawSignedIntegerAtPut(1, -1)

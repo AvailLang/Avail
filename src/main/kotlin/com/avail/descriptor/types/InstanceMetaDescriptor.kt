@@ -37,6 +37,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -188,7 +189,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean
 	{
 		val equal = (another.isInstanceMeta
-             && getInstance(self).equals((another as A_Type).instance))
+			 && getInstance(self).equals((another as A_Type).instance))
 		when
 		{
 			!equal -> return false
@@ -216,7 +217,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		anObject: AvailObject): Boolean = false
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstance(self).hash() - 0x361b5d51) * AvailObject.multiplier
+		combine2(getInstance(self).hash(), 0x361b5d51)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		getInstance(self).isInstanceOf(aType)
@@ -233,7 +234,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		potentialInstance: AvailObject): Boolean =
 			(potentialInstance.isType
-		        && potentialInstance.isSubtypeOf(getInstance(self)))
+				&& potentialInstance.isSubtypeOf(getInstance(self)))
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
 		if (aType.isInstanceMeta)
@@ -402,15 +403,15 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		private fun getInstance(self: AvailObject): AvailObject =
 			self.slot(INSTANCE)
 
-		/** The mutable [InstanceMetaDescriptor].  */
+		/** The mutable [InstanceMetaDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [InstanceMetaDescriptor].  */
+		/** The immutable [InstanceMetaDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [InstanceMetaDescriptor].  */
+		/** The shared [InstanceMetaDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.SHARED)
 

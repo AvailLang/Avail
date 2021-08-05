@@ -106,7 +106,7 @@ class ArithmeticTest
 				val upper = doubleTruncatedToExtendedInteger(
 					f + 1.toDouble())
 				assert(lower.lessOrEqual(availInt)
-						   && availInt.lessOrEqual(upper))
+							&& availInt.lessOrEqual(upper))
 			}
 		}
 	}

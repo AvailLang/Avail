@@ -33,6 +33,7 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
@@ -104,7 +105,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 			self.literalType.equals(aLiteralTokenType.literalType)
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(LITERAL_TYPE).hash() xor -0xb800e4f
+		combine2(self.slot(LITERAL_TYPE).hash(), -0xb800e4f)
 
 	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = true
 
@@ -223,13 +224,13 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(LITERAL_TYPE, literalType.makeImmutable())
 			}
 
-		/** The mutable [LiteralTokenTypeDescriptor].  */
+		/** The mutable [LiteralTokenTypeDescriptor]. */
 		private val mutable = LiteralTokenTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralTokenTypeDescriptor].  */
+		/** The shared [LiteralTokenTypeDescriptor]. */
 		private val shared = LiteralTokenTypeDescriptor(Mutability.SHARED)
 
-		/** The most general literal token type  */
+		/** The most general literal token type. */
 		private val mostGeneralType: A_Type =
 			literalTokenType(ANY.o).makeShared()
 

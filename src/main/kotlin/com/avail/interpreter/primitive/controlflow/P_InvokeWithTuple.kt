@@ -150,8 +150,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val argCountRange = argTupleType.sizeRange
 		val argCount = argCountRange.upperBound
 		if (argCount.equals(argCountRange.lowerBound)
-		    && paramsType.sizeRange.equals(argCountRange)
-		    && argTupleType.isSubtypeOf(paramsType))
+			&& paramsType.sizeRange.equals(argCountRange)
+			&& argTupleType.isSubtypeOf(paramsType))
 		{
 			// The argument types are hereby guaranteed to be compatible.
 			// Therefore the invoke itself will succeed, so we can rely on the

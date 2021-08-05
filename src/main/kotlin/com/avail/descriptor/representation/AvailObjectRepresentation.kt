@@ -79,12 +79,12 @@ abstract class AvailObjectRepresentation protected constructor(
 				+ ((objectSlotsSize + integerSlotsCount) shl 3).toLong())
 	}
 
-	/** An array of all my references to other [AvailObject]s.  */
+	/** An array of all my references to other [AvailObject]s. */
 	private var objectSlots: Array<AvailObject?> =
 		if (objectSlotsSize == 0) emptyObjectSlots
 		else arrayOfNulls(objectSlotsSize)
 
-	/** A `LongArray` encoding all of my digital state.  */
+	/** A `LongArray` encoding all of my digital state. */
 	private var longSlots: LongArray =
 		if (integerSlotsCount == 0) emptyIntegerSlots
 		else LongArray(integerSlotsCount)

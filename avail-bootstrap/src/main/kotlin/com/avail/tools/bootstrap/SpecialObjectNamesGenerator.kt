@@ -33,13 +33,13 @@ package com.avail.tools.bootstrap
 
 import com.avail.AvailRuntime.Companion.specialObjects
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
 import com.avail.tools.bootstrap.Resources.escape
 import com.avail.tools.bootstrap.Resources.specialObjectCommentKey
 import com.avail.tools.bootstrap.Resources.specialObjectKey
 import com.avail.tools.bootstrap.Resources.specialObjectTypeKey
 import com.avail.tools.bootstrap.Resources.specialObjectsBaseName
 import java.io.PrintWriter
-import java.text.MessageFormat
 import java.util.Locale
 import java.util.Properties
 import java.util.PropertyResourceBundle
@@ -126,10 +126,11 @@ internal class SpecialObjectNamesGenerator constructor(locale: Locale)
 					{
 						Resources.Key.specialObjectCommentValueTemplate.name
 					}
-					print(escape(
-						MessageFormat.format(
-							commentTemplate,
-							preambleBundle.getString(template))))
+					print(
+						escape(
+							checkedFormat(
+								commentTemplate,
+								preambleBundle.getString(template))))
 				}
 				println()
 			}

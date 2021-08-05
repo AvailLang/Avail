@@ -53,6 +53,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -182,9 +183,10 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { computeExpressionType(self) }
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.slot(LIST).hash() xor -0x3703d84e)
-			+ self.slot(PERMUTATION).hash())
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(LIST).hash(),
+		self.slot(PERMUTATION).hash(),
+		-0x3703d84e)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
 		self.slot(LIST).hasSuperCast
@@ -324,10 +326,10 @@ class PermutedListPhraseDescriptor private constructor(
 			setSlot(EXPRESSION_TYPE, nil)
 		}
 
-		/** The mutable [PermutedListPhraseDescriptor].  */
+		/** The mutable [PermutedListPhraseDescriptor]. */
 		private val mutable = PermutedListPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [PermutedListPhraseDescriptor].  */
+		/** The shared [PermutedListPhraseDescriptor]. */
 		private val shared = PermutedListPhraseDescriptor(Mutability.SHARED)
 	}
 }

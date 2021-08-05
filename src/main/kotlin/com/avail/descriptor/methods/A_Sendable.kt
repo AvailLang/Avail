@@ -37,6 +37,7 @@ import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.A_Type
@@ -51,87 +52,99 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Sendable : A_BasicObject {
-	/**
-	 * If this is a [method&#32;definition][MethodDefinitionDescriptor] then
-	 * answer the actual [function][FunctionDescriptor].  If this is a
-	 * [macro&#32;definition][MacroDescriptor], answer the macro body
-	 * function.  Fail otherwise.
-	 *
-	 * @return
-	 *   The function of the method/macro definition.
-	 */
-	fun bodyBlock(): A_Function
+interface A_Sendable : A_BasicObject
+{
+	companion object
+	{
+		/**
+		 * If this is a [method&#32;definition][MethodDefinitionDescriptor] then
+		 * answer the actual [function][FunctionDescriptor].  If this is a
+		 * [macro&#32;definition][MacroDescriptor], answer the macro body
+		 * function.  Fail otherwise.
+		 *
+		 * @return
+		 *   The function of the method/macro definition.
+		 */
+		fun A_Sendable.bodyBlock(): A_Function = dispatch { o_BodyBlock(it) }
 
-	/**
-	 * Answer a [function&#32;type][FunctionTypeDescriptor] that identifies
-	 * where this definition occurs in the [method][MethodDescriptor]'s directed
-	 * acyclic graph of definitions.
-	 *
-	 * @return
-	 *   The function type for this definition.
-	 */
-	fun bodySignature(): A_Type
+		/**
+		 * Answer a [function&#32;type][FunctionTypeDescriptor] that identifies
+		 * where this definition occurs in the [method][MethodDescriptor]'s
+		 * directed acyclic graph of definitions.
+		 *
+		 * @return
+		 *   The function type for this definition.
+		 */
+		fun A_Sendable.bodySignature(): A_Type =
+			dispatch { o_BodySignature(it) }
 
-	/**
-	 * Answer the [module][ModuleDescriptor] in which this
-	 * [definition][DefinitionDescriptor] occurred.
-	 *
-	 * Also defined in [A_SemanticRestriction] and [A_GrammaticalRestriction].
-	 *
-	 * @return
-	 *   The definition's originating module.
-	 */
-	fun definitionModule(): A_Module
+		/**
+		 * Answer the [module][ModuleDescriptor] in which this
+		 * [definition][DefinitionDescriptor] occurred.
+		 *
+		 * Also defined in [A_SemanticRestriction] and
+		 * [A_GrammaticalRestriction].
+		 *
+		 * @return
+		 *   The definition's originating module.
+		 */
+		fun A_Sendable.definitionModule(): A_Module =
+			dispatch { o_DefinitionModule(it) }
 
-	/**
-	 * Answer the [A_String] that names the [module][ModuleDescriptor] in which
-	 * this [definition][DefinitionDescriptor] occurred.  If the definition is
-	 * built-in (i.e., not created in any module), reply with a suitable string
-	 * to indicate this.
-	 *
-	 * @return
-	 *   The definition's originating module's name.
-	 */
-	fun definitionModuleName(): A_String
+		/**
+		 * Answer the [A_String] that names the [module][ModuleDescriptor] in
+		 * which this [definition][DefinitionDescriptor] occurred.  If the
+		 * definition is built-in (i.e., not created in any module), reply with
+		 * a suitable string to indicate this.
+		 *
+		 * @return
+		 *   The definition's originating module's name.
+		 */
+		fun A_Sendable.definitionModuleName(): A_String =
+			dispatch { o_DefinitionModuleName(it) }
 
-	/**
-	 * Answer whether this is an
-	 * [abstract&#32;definition][AbstractDefinitionDescriptor].
-	 *
-	 * @return
-	 *   Whether it's abstract.
-	 */
-	@ReferencedInGeneratedCode
-	fun isAbstractDefinition(): Boolean
+		/**
+		 * Answer whether this is an
+		 * [abstract&#32;definition][AbstractDefinitionDescriptor].
+		 *
+		 * @return
+		 *   Whether it's abstract.
+		 */
+		@ReferencedInGeneratedCode
+		fun A_Sendable.isAbstractDefinition(): Boolean =
+			dispatch { o_IsAbstractDefinition(it) }
 
-	/**
-	 * Is the [receiver][AvailObject] a
-	 * [forward&#32;declaration&#32;site][ForwardDefinitionDescriptor]?
-	 *
-	 * @return
-	 *   `true` if the receiver is a forward declaration site.
-	 */
-	@ReferencedInGeneratedCode
-	fun isForwardDefinition(): Boolean
+		/**
+		 * Is the [receiver][AvailObject] a
+		 * [forward&#32;declaration&#32;site][ForwardDefinitionDescriptor]?
+		 *
+		 * @return
+		 *   `true` if the receiver is a forward declaration site.
+		 */
+		@ReferencedInGeneratedCode
+		fun A_Sendable.isForwardDefinition(): Boolean =
+			dispatch { o_IsForwardDefinition(it) }
 
-	/**
-	 * Is the [receiver][AvailObject] a
-	 * [method&#32;definition][MethodDefinitionDescriptor]?
-	 *
-	 * @return
-	 *   `true` if the receiver is a method definition.
-	 */
-	fun isMethodDefinition(): Boolean
+		/**
+		 * Is the [receiver][AvailObject] a
+		 * [method&#32;definition][MethodDefinitionDescriptor]?
+		 *
+		 * @return
+		 *   `true` if the receiver is a method definition.
+		 */
+		fun A_Sendable.isMethodDefinition(): Boolean =
+			dispatch { o_IsMethodDefinition(it) }
 
-	/**
-	 * Answer the [list&#32;phrase&#32;type][ListPhraseTypeDescriptor] for this
-	 * definition.  The parser uses this type to produce a customized
-	 * [parsing&#32;plan][A_DefinitionParsingPlan], specialized to a particular
-	 * [A_Sendable].
-	 *
-	 * @return
-	 *   A subtype of `list phrase type`.
-	 */
-	fun parsingSignature(): A_Type
+		/**
+		 * Answer the [list&#32;phrase&#32;type][ListPhraseTypeDescriptor] for
+		 * this definition.  The parser uses this type to produce a customized
+		 * [parsing&#32;plan][A_DefinitionParsingPlan], specialized to a
+		 * particular [A_Sendable].
+		 *
+		 * @return
+		 *   A subtype of `list phrase type`.
+		 */
+		fun A_Sendable.parsingSignature(): A_Type =
+			dispatch { o_ParsingSignature(it) }
+	}
 }

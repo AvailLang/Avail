@@ -121,7 +121,7 @@ class ByteStringDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 			}
 		}
 	}
@@ -240,8 +240,8 @@ class ByteStringDescriptor private constructor(
 		}
 		val tupleSize = self.tupleSize
 		return tupleSize == aByteString.tupleSize
-			   && self.hash() == aByteString.hash()
-			   && self.compareFromToWithByteStringStartingAt(
+				&& self.hash() == aByteString.hash()
+				&& self.compareFromToWithByteStringStartingAt(
 				1, tupleSize, aByteString, 1)
 	}
 
@@ -451,7 +451,7 @@ class ByteStringDescriptor private constructor(
 			{
 				result.setByteSlot(
 					RAW_LONGS_,
-				   	dest,
+						dest,
 					otherTuple.rawByteForCharacterAt(src))
 				src++
 				dest++

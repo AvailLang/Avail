@@ -60,7 +60,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.truncatedFromDou
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
@@ -238,12 +238,10 @@ class DoubleDescriptor private constructor(
 
 	override fun o_ExtractFloat(self: AvailObject) = getDouble(self).toFloat()
 
-	override fun o_Hash(self: AvailObject): Int {
-		val bits = self.slot(LONG_BITS)
-		val low = (bits shr 32).toInt()
-		val high = bits.toInt()
-		return (low xor 0x29F2EAB8) * multiplier - (high xor 0x47C453FD)
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(LONG_BITS).let { bits ->
+			combine3((bits shr 32).toInt(), bits.toInt(), 0x47C453FD)
+		}
 
 	override fun o_IsDouble(self: AvailObject) = true
 
@@ -540,7 +538,7 @@ class DoubleDescriptor private constructor(
 				setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
 			}
 
-		/** The [CheckedMethod] for [fromDouble].  */
+		/** The [CheckedMethod] for [fromDouble]. */
 		val fromDoubleMethod: CheckedMethod = staticMethod(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
@@ -573,7 +571,7 @@ class DoubleDescriptor private constructor(
 				}
 				else
 				{
-					mutable.create { }
+					mutable.create()
 				}
 			result.setSlot(LONG_BITS, doubleToRawLongBits(aDouble))
 			return result
@@ -606,7 +604,7 @@ class DoubleDescriptor private constructor(
 					recyclable1 as AvailObject
 				canDestroy && recyclable2.descriptor().isMutable ->
 					recyclable2 as AvailObject
-				else -> mutable.create { }
+				else -> mutable.create()
 			}
 			val castAsLong = doubleToRawLongBits(aDouble)
 			result.setSlot(LONG_BITS, castAsLong)
@@ -695,13 +693,13 @@ class DoubleDescriptor private constructor(
 		@Suppress("unused")
 		fun doubleZero(): A_Number = Sign.ZERO.limitDoubleObject()
 
-		/** The mutable [DoubleDescriptor].  */
+		/** The mutable [DoubleDescriptor]. */
 		private val mutable = DoubleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [DoubleDescriptor].  */
+		/** The immutable [DoubleDescriptor]. */
 		private val immutable = DoubleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [DoubleDescriptor].  */
+		/** The shared [DoubleDescriptor]. */
 		private val shared = DoubleDescriptor(Mutability.SHARED)
 	}
 }

@@ -58,7 +58,7 @@ import java.util.Collections
  */
 internal class InstructionGenerator
 {
-	/** The instructions generated so far.  */
+	/** The instructions generated so far. */
 	private val instructions = mutableListOf<Int>()
 
 	/** The [Expression] that produced the corresponding [instructions]. */

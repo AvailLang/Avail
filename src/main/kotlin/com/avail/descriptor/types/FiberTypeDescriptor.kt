@@ -37,6 +37,7 @@ import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -69,7 +70,7 @@ import java.util.IdentityHashMap
  * Construct a new [FiberTypeDescriptor].
  *
  * @param mutability
-   * The [mutability][Mutability] of the new descriptor.
+	* The [mutability][Mutability] of the new descriptor.
  */
 class FiberTypeDescriptor constructor (mutability: Mutability)
 	: TypeDescriptor(
@@ -100,7 +101,7 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 					self.slot(RESULT_TYPE)))
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(RESULT_TYPE).hash() * 1307 xor -0x43f7b58f
+		combine2(self.slot(RESULT_TYPE).hash(), -0x43f7b58f)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfFiberType(self)
@@ -203,10 +204,10 @@ class FiberTypeDescriptor constructor (mutability: Mutability)
 
 	companion object
 	{
-		/** The mutable [FiberTypeDescriptor].  */
+		/** The mutable [FiberTypeDescriptor]. */
 		val mutable = FiberTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [FiberTypeDescriptor].  */
+		/** The shared [FiberTypeDescriptor]. */
 		private val shared = FiberTypeDescriptor(Mutability.SHARED)
 
 		/**

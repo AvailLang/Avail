@@ -78,7 +78,7 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 			catch (e: MapException)
 			{
 				assert(e.numericCode.extractInt
-					       == E_KEY_NOT_FOUND.nativeCode())
+							== E_KEY_NOT_FOUND.nativeCode())
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
 

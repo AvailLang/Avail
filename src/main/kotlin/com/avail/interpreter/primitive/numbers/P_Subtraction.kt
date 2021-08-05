@@ -168,7 +168,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		val bTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(bType)
 		val bTypeIncludesInfinity = positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesNegativeInfinity && bTypeIncludesNegativeInfinity
-           || aTypeIncludesInfinity && bTypeIncludesInfinity)
+			|| aTypeIncludesInfinity && bTypeIncludesInfinity)
 		{
 			CallSiteCanFail
 		}
@@ -193,7 +193,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
 		if (aType.typeIntersection(int32).isBottom
-		    || bType.typeIntersection(int32).isBottom)
+			|| bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}

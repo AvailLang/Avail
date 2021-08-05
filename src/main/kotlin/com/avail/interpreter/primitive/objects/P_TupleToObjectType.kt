@@ -95,7 +95,7 @@ object P_TupleToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 		val tupleSizes = tupleType.sizeRange
 		val tupleSizeLowerBound = tupleSizes.lowerBound
 		if (!tupleSizeLowerBound.equals(tupleSizes.upperBound)
-		    || !tupleSizeLowerBound.isInt)
+			|| !tupleSizeLowerBound.isInt)
 		{
 			// Variable number of <key,value> pairs.  Give up.
 			return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)

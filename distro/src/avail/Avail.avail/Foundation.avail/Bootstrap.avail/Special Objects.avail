@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/23/21 9:44 PM
+ * * Last Generated: 7/28/21 4:56 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -178,6 +178,7 @@ Names
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
+	/* 173 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
 	/*  70 */ "true",
@@ -363,6 +364,7 @@ Special object "function implementation" is special object 6;
  *
  * @category "Primitives" "Types"
  * @type "variable"
+ * @alias "read ⊤/write ⊥"
  * @supertype "nontype"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
  */
@@ -373,6 +375,7 @@ Special object "variable" is special object 7;
  *
  * @category "Primitives" "Types"
  * @type "variable meta"
+ * @alias "(read ⊤/write ⊥)'s type"
  * @supertype "nontypes type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
@@ -384,7 +387,7 @@ Special object "variable meta" is special object 8;
  *
  * @category "Primitives" "Types"
  * @type "continuation"
- * @alias "`$[…]→⊥"
+ * @alias "$[…]→⊥"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Special object "continuation" is special object 9;
@@ -394,7 +397,7 @@ Special object "continuation" is special object 9;
  *
  * @category "Primitives" "Types"
  * @type "continuation meta"
- * @alias "(`$[…]→⊥)'s type"
+ * @alias "($[…]→⊥)'s type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
@@ -650,6 +653,7 @@ Special object "module" is special object 20;
  *
  * @category "Primitives" "Constants"
  * @method "VM error codes"
+ * @alias "<natural number…|>"
  * @returns "VM error codes's type"
  */
 Special object "VM error codes" is special object 21;
@@ -1097,6 +1101,7 @@ Special object "tuple of function" is special object 48;
  *
  * @category "Primitives" "Constants"
  * @type "stack dump key"
+ * @alias "atom"
  * @returns "stack dump key's type"
  */
 Special object "stack dump key" is special object 49;
@@ -1430,6 +1435,7 @@ Special object "pojo" is special object 80;
  *
  * @category "Primitives" "Types"
  * @type "pojo⊥"
+ * @alias "pojo ⊥"
  * @supertype "pojo"
  */
 Special object "pojo⊥" is special object 81;
@@ -1439,6 +1445,7 @@ Special object "pojo⊥" is special object 81;
  *
  * @category "Primitives" "Constants"
  * @method "Java null"
+ * @type "⊥"
  * @returns "Java null's type"
  */
 Special object "Java null" is special object 82;
@@ -1448,6 +1455,7 @@ Special object "Java null" is special object 82;
  *
  * @category "Primitives" "Types"
  * @type "pojo self type"
+ * @alias "pojo self type"
  * @supertype "atom"
  */
 Special object "pojo self type" is special object 83;
@@ -1529,7 +1537,7 @@ Special object "predicate function" is special object 91;
  *
  * @category "Primitives" "Types"
  * @type "continuation variable"
- * @alias "↑`$[…]→⊥"
+ * @alias "↑$[…]→⊥"
  */
 Special object "continuation variable" is special object 92;
 
@@ -1745,6 +1753,7 @@ Special object "token" is special object 115;
  *
  * @category "Primitives" "Types"
  * @type "literal token"
+ * @alias "literal token⇒any"
  * @supertype "token"
  */
 Special object "literal token" is special object 116;
@@ -1817,6 +1826,7 @@ Special object "declaration tuple" is special object 123;
  *
  * @category "Primitives" "Types"
  * @type "write-only variable"
+ * @alias "read ⊤/write ⊥"
  * @supertype "variable"
  */
 Special object "write-only variable" is special object 124;
@@ -1989,6 +1999,7 @@ Special object "super cast phrase" is special object 142;
  *
  * @category "Primitives" "Constants"
  * @method "parse map key"
+ * @type "atom"
  * @returns "parse map key's type"
  */
 Special object "parse map key" is special object 143;
@@ -1999,6 +2010,7 @@ Special object "parse map key" is special object 143;
  *
  * @category "Primitives" "Constants"
  * @method "scope map key"
+ * @type "atom"
  * @returns "scope map key's type"
  */
 Special object "scope map key" is special object 144;
@@ -2009,6 +2021,7 @@ Special object "scope map key" is special object 144;
  *
  * @category "Primitives" "Constants"
  * @method "all tokens key"
+ * @type "atom"
  * @returns "all tokens key's type"
  */
 Special object "all tokens key" is special object 145;
@@ -2047,6 +2060,7 @@ Special object "statement phrase" is special object 148;
  *
  * @category "Primitives" "Constants"
  * @method "scope stack key"
+ * @type "atom"
  * @returns "scope stack key's type"
  */
 Special object "scope stack key" is special object 149;
@@ -2094,6 +2108,7 @@ Special object "map from string to atom" is special object 153;
  *
  * @category "Primitives" "Constants"
  * @method "macro bundle key"
+ * @type "atom"
  * @returns "macro bundle key's type"
  */
 Special object "macro bundle key" is special object 154;
@@ -2104,6 +2119,7 @@ Special object "macro bundle key" is special object 154;
  *
  * @category "Primitives" "Constants"
  * @method "explicit subclassing key"
+ * @type "atom"
  * @returns "explicit subclassing key's type"
  */
 Special object "explicit subclassing key" is special object 155;
@@ -2146,6 +2162,7 @@ Special object "lexer body function" is special object 158;
  *
  * @category "Primitives" "Constants"
  * @method "static tokens key"
+ * @type "atom"
  * @returns "static tokens key's type"
  */
 Special object "static tokens key" is special object 159;
@@ -2155,6 +2172,7 @@ Special object "static tokens key" is special object 159;
  *
  * @category "Primitives" "Constants"
  * @method "end of file"
+ * @type "atom"
  * @returns "end of file's type"
  */
 Special object "end of file" is special object 160;
@@ -2164,6 +2182,7 @@ Special object "end of file" is special object 160;
  *
  * @category "Primitives" "Constants"
  * @method "keyword"
+ * @type "atom"
  * @returns "keyword's type"
  */
 Special object "keyword" is special object 161;
@@ -2173,6 +2192,7 @@ Special object "keyword" is special object 161;
  *
  * @category "Primitives" "Constants"
  * @method "literal"
+ * @type "atom"
  * @returns "literal's type"
  */
 Special object "literal" is special object 162;
@@ -2182,6 +2202,7 @@ Special object "literal" is special object 162;
  *
  * @category "Primitives" "Constants"
  * @method "operator"
+ * @type "atom"
  * @returns "operator's type"
  */
 Special object "operator" is special object 163;
@@ -2191,6 +2212,7 @@ Special object "operator" is special object 163;
  *
  * @category "Primitives" "Constants"
  * @method "comment"
+ * @type "atom"
  * @returns "comment's type"
  */
 Special object "comment" is special object 164;
@@ -2200,6 +2222,7 @@ Special object "comment" is special object 164;
  *
  * @category "Primitives" "Constants"
  * @method "whitespace"
+ * @type "atom"
  * @returns "whitespace's type"
  */
 Special object "whitespace" is special object 165;
@@ -2269,4 +2292,25 @@ Special object "non-empty string of digits" is special object 171;
  * @alias "optional send phrase and report string"
  */
 Special object "optional send phrase and report string" is special object 172;
+
+/**
+ * The type for styler functions.  These are passed:
+ *   1. a send phrase to be styled,
+ *   2. a variable containing a map from send phrase to style, already populated
+ *      with styles from the current send phrase's descendants.
+ *   3. a variable containing a map from token to style, already populated with
+ *      styles from the current send phrase's descendants.
+ * When subsequently applying the final styles to the source text, the phrase
+ * style map is visited.  Each static token of that phrase is added to the token
+ * style map, if it's not already present.  Static tokens are those tokens which
+ * literally occur in the message name.  After the token style map has been
+ * updated, the tokens are extracted, sorted by file position, and captured in
+ * separate records in the relevant repository file.  These can then be overlaid
+ * efficiently onto the module text.
+ *
+ * @category "Primitives" "Types"
+ * @type "[send phrase, ↑{send phrase→style|}, ↑{token→style|}]→⊤"
+ * @alias "styler function"
+ */
+Special object "styler function" is special object 173;
 

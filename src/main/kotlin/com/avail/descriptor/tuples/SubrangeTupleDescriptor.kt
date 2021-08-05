@@ -129,7 +129,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 			}
 		}
 	}
@@ -559,13 +559,13 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [SubrangeTupleDescriptor].  */
+		/** The mutable [SubrangeTupleDescriptor]. */
 		val mutable = SubrangeTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [SubrangeTupleDescriptor].  */
+		/** The immutable [SubrangeTupleDescriptor]. */
 		private val immutable = SubrangeTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [SubrangeTupleDescriptor].  */
+		/** The shared [SubrangeTupleDescriptor]. */
 		private val shared = SubrangeTupleDescriptor(Mutability.SHARED)
 	}
 }

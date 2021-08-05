@@ -90,8 +90,8 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 		val canBeTrue = possible.contains(LESS)
 		val canBeFalse =
 			(possible.contains(EQUAL)
-			    || possible.contains(MORE)
-		        || possible.contains(INCOMPARABLE))
+				|| possible.contains(MORE)
+				|| possible.contains(INCOMPARABLE))
 		assert(canBeTrue || canBeFalse)
 		return if (canBeTrue)
 		{

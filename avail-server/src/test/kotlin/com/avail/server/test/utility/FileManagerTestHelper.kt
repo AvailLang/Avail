@@ -33,6 +33,7 @@
 package com.avail.server.test.utility
 
 import com.avail.files.FileManager
+import com.avail.test.AvailRuntimeTestHelper
 
 /**
  * `FileManagerTestHelper` provides reusable test utilities for interacting
@@ -42,22 +43,20 @@ import com.avail.files.FileManager
  */
 class FileManagerTestHelper constructor(val testName: String)
 {
-	/**
-	 * The [AvailRuntimeTestHelper] that provides Avail state needed to conduct
-	 * tests.
-	 */
-	val helper: AvailRuntimeTestHelper by lazy {
-		AvailRuntimeTestHelper.helper
-	}
+	val testHelper = AvailRuntimeTestHelper(true)
 
 	/** The [FileManager] used in this test. */
 	val fileManager: FileManager by lazy {
-		helper.fileManager.apply { associateRuntime(helper.runtime) }
+		testHelper.fileManager.apply {
+			associateRuntime(testHelper.runtime)
+		}
 	}
 
 	/** Directory where all files will go/be. */
 	val resourcesDir: String by lazy {
-		"${System.getProperty("user.dir")}/src/test/resources"
+		AvailRuntimeTestHelper.testDirectory
+			.resolve("test/resources")
+			.toString()
 	}
 
 	/** File path for `created.txt` file. */

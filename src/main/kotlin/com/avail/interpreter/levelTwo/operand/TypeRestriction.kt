@@ -707,7 +707,7 @@ class TypeRestriction private constructor(
 			maximumCount >= 0 && this === bottomRestriction -> emptySet
 			maximumCount >= 1 && constantOrNull !== null -> set(constantOrNull)
 			type.isEnumeration && !type.isInstanceMeta
-			   && type.instanceCount.lessOrEqual(fromInt(maximumCount)) ->
+				&& type.instanceCount.lessOrEqual(fromInt(maximumCount)) ->
 					type.instances
 			else -> null
 		}
@@ -1315,8 +1315,8 @@ class TypeRestriction private constructor(
 				!v.isInstanceOf(type) || excludedTypes.any { v.isInstanceOf(it) }
 			}
 			return if (type.equals(TOP.o)
-					   && excludedTypes.isEmpty()
-					   && excludedValues.isEmpty())
+						&& excludedTypes.isEmpty()
+						&& excludedValues.isEmpty())
 			{
 				topRestriction
 			}
@@ -1377,8 +1377,8 @@ class TypeRestriction private constructor(
 			encoding: RestrictionFlagEncoding): TypeRestriction
 		{
 			assert(encoding == BOXED_FLAG
-				   || encoding == UNBOXED_INT_FLAG
-				   || encoding == UNBOXED_FLOAT_FLAG)
+					|| encoding == UNBOXED_INT_FLAG
+					|| encoding == UNBOXED_FLOAT_FLAG)
 			constant.makeImmutable()
 			return restriction(
 				if (constant.isNil)

@@ -503,7 +503,7 @@ open class CompiledCodeDescriptor protected constructor(
 
 		companion object
 		{
-			/** The offset into the array of the first nybblecode.  */
+			/** The offset into the array of the first nybblecode. */
 			const val baseIndexInArray = 2  // NYBBLECODE_.ordinal
 
 			init
@@ -1200,13 +1200,13 @@ open class CompiledCodeDescriptor protected constructor(
 			) { resume(reports) }
 		}
 
-		/** The [CheckedMethod] for [A_RawFunction.codePrimitive].  */
+		/** The [CheckedMethod] for [A_RawFunction.codePrimitive]. */
 		val codePrimitiveMethod: CheckedMethod = instanceMethod(
 			A_RawFunction::class.java,
 			A_RawFunction::codePrimitive.name,
 			Primitive::class.java)
 
-		/** The Avail string "Unknown function".  */
+		/** The Avail string "Unknown function". */
 		val unknownFunctionName: A_String =
 			stringFrom("Unknown function").makeShared()
 

@@ -70,7 +70,7 @@ import java.util.EnumSet
 enum class StatisticReport constructor(
 	val title: String, val unit: ReportingUnit)
 {
-	/** Statistics for executing parsing instructions.  */
+	/** Statistics for executing parsing instructions. */
 	RUNNING_PARSING_INSTRUCTIONS("Running Parsing Operations", NANOSECONDS),
 
 	/**
@@ -78,29 +78,29 @@ enum class StatisticReport constructor(
 	 */
 	EXPANDING_PARSING_INSTRUCTIONS("Expanding Parsing Operations", NANOSECONDS),
 
-	/** A breakdown of the time spent in L2 optimization phases.  */
+	/** A breakdown of the time spent in L2 optimization phases. */
 	L2_OPTIMIZATION_TIME("L2 Translation time", NANOSECONDS),
 
-	/** A breakdown of the time spent in L2 optimization phases.  */
+	/** A breakdown of the time spent in L2 optimization phases. */
 	L1_NAIVE_TRANSLATION_TIME(
 		"L1 -> L2 Naive translation by nybblecode", NANOSECONDS),
 
-	/** Dimensionless values related to L2Chunk creation.  */
+	/** Dimensionless values related to L2Chunk creation. */
 	L2_TRANSLATION_VALUES("L2 Translation values", DIMENSIONLESS_INTEGRAL),
 
-	/** A breakdown of final generation phases of L2->JVM.  */
+	/** A breakdown of final generation phases of L2->JVM. */
 	FINAL_JVM_TRANSLATION_TIME("Final JVM Translation time", NANOSECONDS),
 
-	/** Reifications of the Java stack.  See [StackReifier].   */
+	/** Reifications of the Java stack.  See [StackReifier]. */
 	REIFICATIONS("Java stack reifications", NANOSECONDS),
 
-	/** The Primitives report.  */
+	/** The Primitives report. */
 	PRIMITIVES("Primitives", NANOSECONDS),
 
-	/** The Dynamic Lookups report.  */
+	/** The Dynamic Lookups report. */
 	DYNAMIC_LOOKUP_TIME("Dynamic Lookup Time", NANOSECONDS),
 
-	/** The Primitive Return Type Checks report.  */
+	/** The Primitive Return Type Checks report. */
 	PRIMITIVE_RETURNER_TYPE_CHECKS("Primitive Return Type Checks", NANOSECONDS),
 
 	/**
@@ -119,10 +119,10 @@ enum class StatisticReport constructor(
 	NON_PRIMITIVE_RETURNEE_TYPE_CHECKS(
 		"Non-primitive Returnee Type Checks", NANOSECONDS),
 
-	/** Outermost statements of modules that are loaded.  */
+	/** Outermost statements of modules that are loaded. */
 	TOP_LEVEL_STATEMENTS("Top Level Statements By Module", NANOSECONDS),
 
-	/** Time spent updating text in workbench transcript.  */
+	/** Time spent updating text in workbench transcript. */
 	WORKBENCH_TRANSCRIPT("Workbench transcript", NANOSECONDS),
 
 	/** Time spent serializing, by SerializerOperation. */

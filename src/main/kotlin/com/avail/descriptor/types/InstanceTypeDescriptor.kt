@@ -43,6 +43,7 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -276,7 +277,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		getInstance(self).equals(potentialInstance)
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstance(self).hash() xor 0x15d5b163) * AvailObject.multiplier
+		combine2(getInstance(self).hash(), 0x15d5b163)
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
 		if (aType.isInstanceMeta)
@@ -617,15 +618,15 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		private fun getSuperkind(self: AvailObject): A_Type =
 			getInstance(self).kind()
 
-		/** The mutable [InstanceTypeDescriptor].  */
+		/** The mutable [InstanceTypeDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [InstanceTypeDescriptor].  */
+		/** The immutable [InstanceTypeDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [InstanceTypeDescriptor].  */
+		/** The shared [InstanceTypeDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.SHARED)
 

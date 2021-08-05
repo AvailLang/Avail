@@ -64,7 +64,7 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 		val moduleNameLiteral = interpreter.argument(0)
 
 		val loader = interpreter.availLoader()
-		val module = loader.module()
+		val module = loader.module
 		val qualifiedName = module.moduleName
 		val moduleNameInstance = ModuleName(qualifiedName.asNativeString())
 		val localName = moduleNameInstance.localName

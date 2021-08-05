@@ -74,6 +74,7 @@ import com.avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
@@ -112,6 +113,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -228,6 +230,8 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.utility.StackPrinter.Companion.trace
 import com.avail.utility.evaluation.OnceSupplier
+import com.avail.utility.javaNotifyAll
+import com.avail.utility.javaWait
 import com.avail.utility.safeWrite
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.Collections
@@ -714,7 +718,7 @@ class AvailRuntime constructor(
 				Types.TOP.o),
 			P_InvokeWithTuple);
 
-		/** The name to attach to functions plugged into this hook.  */
+		/** The name to attach to functions plugged into this hook. */
 		private val hookName: A_String = stringFrom(hookName).makeShared()
 
 		/**
@@ -855,6 +859,12 @@ class AvailRuntime constructor(
 		Collections.newSetFromMap(WeakHashMap<A_Fiber, Boolean>()))
 
 	/**
+	 * An object that gets notified when the last fiber of the runtime has been
+	 * [unregistered][unregisterFiber].
+	 */
+	private val noFibersMonitor = Any()
+
+	/**
 	 * Add the specified [fiber][A_Fiber] to this [runtime][AvailRuntime].
 	 *
 	 * @param fiber
@@ -877,6 +887,47 @@ class AvailRuntime constructor(
 	fun unregisterFiber(fiber: A_Fiber)
 	{
 		allFibers.remove(fiber)
+		// If a race happens between these lines, due to a new fiber starting,
+		// we're already in the realm of unspecified behavior.  Even if waiters
+		// don't get notified because the momentary emptiness isn't detected,
+		// they'll still get notified when the last fiber actually ends.
+		//
+		// HOWEVER, if the last fiber disappears due to garbage collection
+		// instead of fiber completion, there will be no corresponding signal.
+		// This circumstance doesn't appear to be something that would actually
+		// happen in a properly functioning VM, however.  Also, a fiber lost to
+		// garbage collection would have (if not for garbage collection) stuck
+		// around in this set infinitely long anyhow, so this behavior seems
+		// reasonable.
+		if (allFibers.isEmpty())
+		{
+			synchronized(noFibersMonitor)
+			{
+				noFibersMonitor.javaNotifyAll()
+			}
+		}
+	}
+
+	/**
+	 * Block the current [Thread] until there are no fibers that can run.  If
+	 * nothing outside the VM is actively creating and running new fibers, this
+	 * is a permanent state.  After this method returns, there will be no more
+	 * [AvailTask]s added to the executor.
+	 *
+	 * Note (MvG, 2021-07-23): This mechanism will have to be revisited if we
+	 * rework the [L2Chunk] optimizer to queue optimization tasks, which may run
+	 * even after the last fiber has ended.  Wrapping those tasks in their own
+	 * fibers would be a sufficient solution.
+	 */
+	fun awaitNoFibers()
+	{
+		synchronized(noFibersMonitor)
+		{
+			while (allFibers.isNotEmpty())
+			{
+				noFibersMonitor.javaWait()
+			}
+		}
 	}
 
 	/**
@@ -1219,8 +1270,9 @@ class AvailRuntime constructor(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
 					stringType))
+			put(stylerFunctionType)
 
-			at(173)
+			at(174)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1406,7 +1458,7 @@ class AvailRuntime constructor(
 	fun removeDefinition(definition: A_Definition)
 	{
 		runtimeLock.safeWrite {
-			definition.definitionMethod().removeDefinition(definition)
+			definition.definitionMethod.removeDefinition(definition)
 		}
 	}
 

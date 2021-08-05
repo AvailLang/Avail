@@ -75,13 +75,13 @@ class CheckedConstructor private constructor(
 	receiverClass: Class<*>,
 	vararg argumentTypes: Class<*>)
 {
-	/** The simple name of the method.  */
+	/** The simple name of the method. */
 	private val methodNameString = "<init>"
 
-	/** The canonical name of the class in which the method is defined.  */
+	/** The canonical name of the class in which the method is defined. */
 	private val receiverClassInternalName: String
 
-	/** The canonical name of the method arguments.  */
+	/** The canonical name of the method arguments. */
 	private val methodDescriptorString: String
 
 	/**
@@ -167,7 +167,7 @@ class CheckedConstructor private constructor(
 			@Suppress("UNUSED_VARIABLE")
 			val annotation =
 				constructor.getAnnotation(ReferencedInGeneratedCode::class.java)
-				 	?: error(
+					?: error(
 						"Constructor should have had ReferencedInGeneratedCode "
 							+ "annotation")
 		}

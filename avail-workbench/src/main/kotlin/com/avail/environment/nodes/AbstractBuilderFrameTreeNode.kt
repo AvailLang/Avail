@@ -70,6 +70,12 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 ) : DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
 {
 	/**
+	 * Answer a [String] suitable for identifying this node even after
+	 * refreshing the tree.
+	 */
+	abstract fun modulePathString(): String
+
+	/**
 	 * Extract text to display for this node.  Presentation styling will be
 	 * applied separately.
 	 *
@@ -131,8 +137,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 	 *   The string.
 	 * @return Whether this is the indicated node.
 	 */
-	fun isSpecifiedByString(string: String): Boolean =
-		text(false) == string
+	fun isSpecifiedByString(string: String): Boolean = text(false) == string
 
 	/**
 	 * Order this node against another.

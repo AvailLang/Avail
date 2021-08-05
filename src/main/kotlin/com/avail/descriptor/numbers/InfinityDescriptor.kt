@@ -395,13 +395,13 @@ class InfinityDescriptor private constructor(
 		 * representing positive infinity.
 		 */
 		val positiveInfinity: A_Number =
-			InfinityDescriptor(Mutability.SHARED, POSITIVE).create { }
+			InfinityDescriptor(Mutability.SHARED, POSITIVE).create()
 
 		/**
 		 * The Avail [extended&#32;integer][ExtendedIntegerDescriptor]
 		 * representing negative infinity.
 		 */
 		val negativeInfinity: A_Number =
-			InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE).create { }
+			InfinityDescriptor(Mutability.SHARED, Sign.NEGATIVE).create()
 	}
 }
