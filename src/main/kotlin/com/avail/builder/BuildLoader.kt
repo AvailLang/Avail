@@ -434,10 +434,10 @@ internal class BuildLoader constructor(
 							code.codeStartingLineNumber)
 					}
 					fiber.setTextInterface(availBuilder.textInterface)
-					val before = captureNanos()
+					val before = fiber.fiberHelper().fiberTime()
 					fiber.setSuccessAndFailure(
 						{
-							val after = captureNanos()
+							val after = fiber.fiberHelper().fiberTime()
 							Interpreter.current().recordTopStatementEvaluation(
 								(after - before).toDouble(), module)
 							runNext()

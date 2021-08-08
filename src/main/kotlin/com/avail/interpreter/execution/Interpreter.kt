@@ -960,6 +960,7 @@ class Interpreter(
 			aFiber.setContinuation(getReifiedContinuation()!!)
 			setReifiedContinuation(null)
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
+			aFiber.fiberHelper().stopCountingCPU()
 			assert(bound)
 			fiber(null, "primitiveSuspend")
 		}
@@ -1040,6 +1041,7 @@ class Interpreter(
 			aFiber.setContinuation(nil)
 			aFiber.setFiberResult(finalObject)
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
+			aFiber.fiberHelper().stopCountingCPU()
 			assert(bound)
 			fiber(null, "exitFiber")
 		}
@@ -1699,6 +1701,7 @@ class Interpreter(
 					assert(waiters.isNotEmpty())
 				}
 				val bound = fiber().getAndSetSynchronizationFlag(BOUND, false)
+				aFiber.fiberHelper().stopCountingCPU()
 				assert(bound)
 				fiber(null, "processInterrupt")
 			}
