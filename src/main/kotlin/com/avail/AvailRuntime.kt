@@ -1256,23 +1256,29 @@ class AvailRuntime constructor(
 			put(TokenType.OPERATOR.atom)
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
-			put(inclusive(0, (1L shl 31) - 1))
-			put(inclusive(0, (1L shl 28) - 1))
 			put(inclusive(1L, 4L))
 			put(inclusive(0L, 31L))
-
-			at(170)
 			put(
 				continuationTypeForFunctionType(
 					functionTypeReturning(Types.TOP.o)))
 			put(CharacterDescriptor.nonemptyStringOfDigitsType)
+
+			at(170)
 			put(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
 					stringType))
 			put(stylerFunctionType)
+			put(
+				enumerationWith(
+					set(
+						TokenType.WHITESPACE.atom,
+						TokenType.COMMENT.atom,
+						TokenType.OPERATOR.atom,
+						TokenType.KEYWORD.atom,
+						TokenType.END_OF_FILE.atom)))
 
-			at(174)
+			at(173)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**

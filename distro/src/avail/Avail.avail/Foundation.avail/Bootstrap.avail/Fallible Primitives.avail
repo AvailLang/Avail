@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/28/21 4:56 PM
+ * * Last Generated: 8/12/21 3:32 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -81,6 +81,7 @@ Uses
 		"_'s⁇instances",
 		"_'s⁇issuing module",
 		"_'s⁇result",
+		"_(_)@_:_",
 		"_+_",
 		"_-=_",
 		"_-_",
@@ -110,6 +111,7 @@ Uses
 		"_⇒_",
 		"_∈_",
 		"_∈current fiber",
+		"``_``(_)@_:_",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
@@ -2374,7 +2376,7 @@ Primitive "semantic restrictions for_given_" is
  *        The atom that names the lexer.
  * @param "filterFunction" "[character]→boolean"
  *        The filter function of the lexer.
- * @param "bodyFunction" "[string, [1..2147483647], [1..268435455]]→{<token…|1..∞>|}"
+ * @param "bodyFunction" "[string, [1..∞), [1..∞)]→{<token…|1..∞>|}"
  *        The body of the lexer.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -3059,6 +3061,38 @@ Primitive "first-of-seq`«_`»" is
 ] : first of sequence phrase;
 
 /**
+ * Construct and answer a literal token.
+ *
+ * @category "Primitives" "Tokens" "Constructors"
+ * @method "``_``(_)@_:_"
+ * @param "value" "any"
+ *        The value of the literal.
+ * @param "lexeme" "string"
+ *        The source text of the literal.
+ * @param "start" "[0..∞)"
+ *        The one-based starting character position of the literal. A {@code 0}
+ *        indicates that the character position is unknown or meaningless.
+ * @param "line" "[0..∞)"
+ *        The one-based line number of the literal. A {@code 0}
+ *        indicates that the line number is unknown or meaningless.
+ * @returns "literal token⇒any"
+ *          The requested literal token.
+ * @raises "exceeds-VM-limit exception"
+ *         If a numeric parameter is outside the range supported by the VM.
+ */
+Primitive "``_``(_)@_:_" is
+[
+	value : any,
+	lexeme : string,
+	start : whole number,
+	line : whole number
+|
+	Primitive CreateLiteralToken (failureCode : {
+		exceeds-VM-limit code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : literal token;
+
+/**
  * Construct and answer a {@type "permuted list phrase"} given the specified
  * {@type "list phrase"} and permutation {@type "tuple"}.
  *
@@ -3322,6 +3356,41 @@ Primitive "`«supercast(_::_)`»" is
 		supercast-must-be-strict-supertype-of-expression-type code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : super cast phrase;
+
+/**
+ * Answer a {@type "token"} with the specified {@param "classifier"}, {@param
+ * "lexeme"}, {@param "start" one-based source position}, and {@param "line"
+ * one-based source line number}.
+ *
+ * @category "Primitives" "Tokens" "Constructors"
+ * @method "_(_)@_:_"
+ * @param "classifier" "{whitespace, comment, operator, keyword, end of file}ᵀ"
+ *        A {@type "atom" classifier} that specifies the lexical role of the
+ *        {@type "token"}.
+ * @param "lexeme" "string"
+ *        The source text of the {@type "token"}.
+ * @param "start" "[0..∞)"
+ *        The one-based character position within the Avail source module, or
+ *        {@code "0"} if the character position is unknown or meaningless.
+ * @param "line" "[0..∞)"
+ *        The one-based line number within the Avail source module, or {@code
+ *        "0"} if the line number is unknown or meaningless.
+ * @returns "token"
+ *          The requested {@type "token"}.
+ * @raises "exceeds-VM-limit exception"
+ *         If a numeric parameter is outside the range supported by the VM.
+ */
+Primitive "_(_)@_:_" is
+[
+	classifier : token classifiers,
+	lexeme : string,
+	start : whole number,
+	line : whole number
+|
+	Primitive CreateToken (failureCode : {
+		exceeds-VM-limit code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : token;
 
 /**
  * Associate a styler function with this definition. The styling mechanism is

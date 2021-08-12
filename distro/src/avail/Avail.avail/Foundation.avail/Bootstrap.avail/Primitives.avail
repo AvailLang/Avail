@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/28/21 4:56 PM
+ * * Last Generated: 8/12/21 3:32 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -157,6 +157,7 @@ Names
 	"_'s⁇value type",
 	"_'s⁇values",
 	"_'s⁇write type",
+	"_(_)@_:_",
 	"_++_",
 	"_+_",
 	"_+_→_",

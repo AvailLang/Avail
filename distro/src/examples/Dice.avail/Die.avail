@@ -316,9 +316,9 @@ Semantic restriction "_d|D_" is
  * @lexer "xDy lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "countPosition" "real source position"
+ * @param "countPosition" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "countPosition"},
@@ -329,11 +329,11 @@ when [c : character | c is an Arabic numeral]
 is
 [
 	source : string,
-	countPosition : real source position,
-	line : real source line number
+	countPosition : natural number,
+	line : natural number
 |
 	/* Skip the leading digits. */
-	i : real source position := countPosition;
+	i : natural number := countPosition;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
 	If i > size ∨ ¬source[i] ∈ "dD"→set then

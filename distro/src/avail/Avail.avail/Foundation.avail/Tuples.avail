@@ -1902,9 +1902,15 @@ Semantic restriction "left fold_into_through_" is
 		/* The tuple is always empty, so the transformer never runs. */
 		initialValueType
 	]
+	else if ⌊tupleType⌋ = 0 then
+	[
+		/* The tuple may be empty, so the initialValue *might* be returned. */
+		initialValueType ∪ returnType
+	]
 	else
 	[
-		initialValueType ∪ returnType
+		/* The tuple is not empty, so the initialValue cannot be returned. */
+		returnType
 	]
 ];
 

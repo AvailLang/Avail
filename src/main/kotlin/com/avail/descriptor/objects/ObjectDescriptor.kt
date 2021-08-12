@@ -180,8 +180,8 @@ class ObjectDescriptor internal constructor(
 		 * dispatching are always against shared object types, and that's the
 		 * case we're attempting to speed up.
 		 *
-		 * Note that object types cache their hash value once computed.  The
-		 * two sets can be quickly searched because different object types very
+		 * Note that object types cache their hash value once computed.  The two
+		 * sets can be quickly searched because different object types very
 		 * rarely have equal hashes, and equal ones merge via indirections after
 		 * a successful comparison.  Shared object types are placed in a
 		 * canonical weak map to ensure these comparisons are fast.

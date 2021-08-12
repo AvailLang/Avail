@@ -101,7 +101,6 @@ import com.avail.interpreter.execution.Interpreter
  * [block][BlockPhraseDescriptor] syntax for defining
  * [functions][FunctionDescriptor].
  *
- *
  * The strategy is to invoke prefix functions as various checkpoints are reached
  * during block parsing.  The prefix functions are invoked with all arguments
  * that have been parsed up to that point.
@@ -126,7 +125,7 @@ import com.avail.interpreter.execution.Interpreter
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused")
+@Suppress("unused", "GrazieInspection")
 object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 {
 	/** The key to the client parsing data in the fiber's environment. */
@@ -358,9 +357,9 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 							"expression's type and the label's declared type " +
 							"to agree with the declared return type (" +
 							"$declaredReturnType)"
-					} ?: "final expression's type ($deducedReturnType) to " +
+					} ?: ("final expression's type ($deducedReturnType) to " +
 						"agree with the declared return type " +
-						"($declaredReturnType)")
+						"($declaredReturnType)"))
 			}
 			if (primitiveReturnType !== null
 				&& !primitiveReturnType.isSubtypeOf(declaredReturnType))

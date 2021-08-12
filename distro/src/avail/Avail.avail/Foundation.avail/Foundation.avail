@@ -240,8 +240,6 @@ Extends
 		"sequence phrase",
 		"seq`«_`»",
 		"set",
-		"source line number",
-		"source position",
 		"stack dump key",
 		"statement phrase",
 		"static method_._,⁇parameterized by_",
@@ -266,6 +264,7 @@ Extends
 		"$_@pc=_stack=_[_]caller=_",
 		"<_,_`…`|_>",
 		"[`…]→_",
+		"_(_)@_:_",
 		"``_``(_)@_:_",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
@@ -1108,10 +1107,7 @@ Extends
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»",
 		"_token",
-		"_(_)@_:_",
-		"_'s⁇classifier",
-		"real source position",
-		"real source line number"
+		"_'s⁇classifier"
 	),
 	"Pojos" =
 	(

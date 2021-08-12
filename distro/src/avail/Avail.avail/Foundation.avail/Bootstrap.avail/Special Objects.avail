@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/28/21 4:56 PM
+ * * Last Generated: 8/12/21 3:32 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -61,12 +61,12 @@ Names
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
 	/*   3 */ "character",
-	/* 169 */ "character type number",
+	/* 167 */ "character type number",
 	/*  38 */ "code point",
 	/* 164 */ "comment",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
-	/* 170 */ "continuation returning top",
+	/* 168 */ "continuation returning top",
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
@@ -128,7 +128,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
-	/* 171 */ "non-empty string of digits",
+	/* 169 */ "non-empty string of digits",
 	/* 136 */ "nonempty set of atom",
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
@@ -141,9 +141,9 @@ Names
 	/*  22 */ "object",
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
-	/* 172 */ "optional send phrase and report string",
+	/* 170 */ "optional send phrase and report string",
 	/* 143 */ "parse map key",
-	/* 168 */ "parse rejection level",
+	/* 166 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
 	/*  50 */ "phrase",
@@ -172,15 +172,14 @@ Names
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
-	/* 167 */ "source line number",
-	/* 166 */ "source position",
 	/*  49 */ "stack dump key",
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
-	/* 173 */ "styler function",
+	/* 171 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
+	/* 172 */ "token classifiers",
 	/*  70 */ "true",
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
@@ -2228,31 +2227,13 @@ Special object "comment" is special object 164;
 Special object "whitespace" is special object 165;
 
 /**
- * The type of the character position within an Avail source module.
- *
- * @category "Primitives" "Types"
- * @type "[0..2147483647]"
- * @alias "source position"
- */
-Special object "source position" is special object 166;
-
-/**
- * The type of the line number within an Avail source module.
- *
- * @category "Primitives" "Types"
- * @type "[0..268435455]"
- * @alias "source line number"
- */
-Special object "source line number" is special object 167;
-
-/**
  * The type for parse rejection levels, currently [1..4].
  *
  * @category "Primitives" "Types"
  * @type "[1..4]"
  * @alias "parse rejection level"
  */
-Special object "parse rejection level" is special object 168;
+Special object "parse rejection level" is special object 166;
 
 /**
  * An integer indicating the nature of some Unicode code point.  For details,
@@ -2262,7 +2243,7 @@ Special object "parse rejection level" is special object 168;
  * @type "[0..31]"
  * @alias "character type number"
  */
-Special object "character type number" is special object 169;
+Special object "character type number" is special object 167;
 
 /**
  * The continuation type for continuations based on ⊤-valued functions.
@@ -2271,7 +2252,7 @@ Special object "character type number" is special object 169;
  * @type "$[…]→⊤"
  * @alias "continuation returning top"
  */
-Special object "continuation returning top" is special object 170;
+Special object "continuation returning top" is special object 168;
 
 /**
  * The type for non-empty strings composed entirely of digit characters.
@@ -2280,7 +2261,7 @@ Special object "continuation returning top" is special object 170;
  * @type "¢[0-9]ᵀ+"
  * @alias "non-empty string of digits"
  */
-Special object "non-empty string of digits" is special object 171;
+Special object "non-empty string of digits" is special object 169;
 
 /**
  * The 2-element tuple type where the first element is itself a tuple of zero
@@ -2291,7 +2272,7 @@ Special object "non-empty string of digits" is special object 171;
  * @type "<(send phrase→⊤)?, string…|2>"
  * @alias "optional send phrase and report string"
  */
-Special object "optional send phrase and report string" is special object 172;
+Special object "optional send phrase and report string" is special object 170;
 
 /**
  * The type for styler functions.  These are passed:
@@ -2312,5 +2293,13 @@ Special object "optional send phrase and report string" is special object 172;
  * @type "[send phrase, ↑{send phrase→style|}, ↑{token→style|}]→⊤"
  * @alias "styler function"
  */
-Special object "styler function" is special object 173;
+Special object "styler function" is special object 171;
+
+/**
+ * The enumeration of atoms that specify a token's type.
+ *
+ * @category "Primitives" "Types"
+ * @type "token classifiers"
+ */
+Special object "token classifiers" is special object 172;
 

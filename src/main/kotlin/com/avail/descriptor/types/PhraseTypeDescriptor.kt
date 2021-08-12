@@ -80,9 +80,9 @@ import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * Define the structure and behavior of phrase types.  The phrase types
- * are all parameterized by expression type, but they also have a relationship
- * to each other based on a fiat hierarchy.
+ * Define the structure and behavior of phrase types.  The phrase types are all
+ * parameterized by expression type, but they also have a relationship to each
+ * other based on a fiat hierarchy.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -493,9 +493,9 @@ open class PhraseTypeDescriptor protected constructor(
 		fun mostGeneralType(): A_Type = mostGeneralType
 
 		/**
-		 * Answer the `PhraseKind` that is the nearest common ancestor
-		 * to both the receiver and the argument.  Compute it rather than look
-		 * it up, since this is used to populate the lookup table.
+		 * Answer the `PhraseKind` that is the nearest common ancestor to both
+		 * the receiver and the argument.  Compute it rather than look it up,
+		 * since this is used to populate the lookup table.
 		 *
 		 * @param other
 		 *   The other `PhraseKind`.
@@ -523,8 +523,8 @@ open class PhraseTypeDescriptor protected constructor(
 		}
 
 		/**
-		 * Answer the `PhraseKind` that is the nearest common ancestor
-		 * to both the receiver and the argument.  Only use this after static
+		 * Answer the `PhraseKind` that is the nearest common ancestor to both
+		 * the receiver and the argument.  Only use this after static
 		 * initialization has completed.
 		 *
 		 * @param other
@@ -536,8 +536,8 @@ open class PhraseTypeDescriptor protected constructor(
 			commonAncestors[ordinal * all.size + other.ordinal]!!
 
 		/**
-		 * Answer the `PhraseKind` that is the nearest common descendant
-		 * to both the receiver and the argument.  Only use this after static
+		 * Answer the `PhraseKind` that is the nearest common descendant to both
+		 * the receiver and the argument.  Only use this after static
 		 * initialization has completed.
 		 *
 		 * @param other

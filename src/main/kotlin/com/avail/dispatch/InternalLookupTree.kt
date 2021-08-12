@@ -519,11 +519,11 @@ internal constructor(
 		val builder = StringBuilder()
 		builder.append(
 			format(
-				"#%d ∈ %s: (u=%d, p=%d) known=%s%n",
-				argumentPositionToTest,
-				argumentTypeToTest,
+				"(u=%d, p=%d) #%d ∈ %s: known=%s%n",
 				undecidedElements.size,
 				positiveElements.size,
+				argumentPositionToTest,
+				argumentTypeToTest,
 				knownArgumentRestrictions))
 		for (i in 0..indent)
 		{

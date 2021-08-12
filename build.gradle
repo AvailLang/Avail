@@ -66,7 +66,7 @@ allprojects {
 	task generateBuildTime {
 		def pathWorkbenchBuildResources =
 				buildDir.toString() + "/resources/main/resources"
-		def pathToBuildTime = pathWorkbenchBuildResources + "/build-time.txt"
+		String pathToBuildTime = "$pathWorkbenchBuildResources/build-time.txt"
 		outputs.files pathToBuildTime
 
 		doLast {
