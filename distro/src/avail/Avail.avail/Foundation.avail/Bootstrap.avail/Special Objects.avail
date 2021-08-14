@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/12/21 3:32 PM
+ * * Last Generated: 8/13/21 1:27 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -180,6 +180,7 @@ Names
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
 	/* 172 */ "token classifiers",
+	/* 173 */ "token tuple",
 	/*  70 */ "true",
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
@@ -2302,4 +2303,13 @@ Special object "styler function" is special object 171;
  * @type "token classifiers"
  */
 Special object "token classifiers" is special object 172;
+
+/**
+ * The type of a tuple containing zero or more tokens.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "token tuple"
+ */
+Special object "token tuple" is special object 173;
 

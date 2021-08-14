@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/12/21 3:32 PM
+ * * Last Generated: 8/13/21 1:27 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -152,6 +152,7 @@ Names
 	"_'s⁇statements",
 	"_'s⁇target",
 	"_'s⁇token",
+	"_'s⁇tokens",
 	"_'s⁇type",
 	"_'s⁇value",
 	"_'s⁇value type",

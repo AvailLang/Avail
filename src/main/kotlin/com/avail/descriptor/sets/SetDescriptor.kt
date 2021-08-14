@@ -280,9 +280,7 @@ private constructor(
 				expectedContentType.equals(Types.ANY.o) -> true
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
-					self.all {
-						expectedContentType.enumerationIncludesInstance(it)
-					}
+					self.all(expectedContentType::enumerationIncludesInstance)
 				else -> rootBin(self).binElementsAreAllInstancesOfKind(
 					expectedContentType)
 			}

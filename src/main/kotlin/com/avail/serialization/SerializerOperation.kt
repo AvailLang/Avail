@@ -1399,9 +1399,8 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val outers = generateObjectTupleFrom(obj.numOuterVars) {
-				obj.outerVarAt(it)
-			}
+			val outers = generateObjectTupleFrom(
+				obj.numOuterVars, obj::outerVarAt)
 			return array(
 				obj.code(),
 				outers)

@@ -1277,8 +1277,9 @@ class AvailRuntime constructor(
 						TokenType.OPERATOR.atom,
 						TokenType.KEYWORD.atom,
 						TokenType.END_OF_FILE.atom)))
+			put(zeroOrMoreOf(Types.TOKEN.o))
 
-			at(173)
+			at(174)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**

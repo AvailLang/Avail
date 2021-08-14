@@ -967,7 +967,7 @@ class AvailWorkbench internal constructor (
 				.map(TreePath::getLastPathComponent)
 				.filterIsInstance<AbstractBuilderFrameTreeNode>()
 				.mapNotNull { modulePath(it.modulePathString()) }
-				.forEach { moduleTree.expandPath(it) }
+				.forEach(moduleTree::expandPath)
 			selection?.let { path ->
 				val node =
 					path.lastPathComponent as AbstractBuilderFrameTreeNode

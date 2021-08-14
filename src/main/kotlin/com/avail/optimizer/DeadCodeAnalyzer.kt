@@ -115,7 +115,7 @@ internal class DeadCodeAnalyzer constructor(
 		// backward successor edges, collected above.
 		val toVisit = ArrayDeque(controlFlowGraph.basicBlockOrder
 			.filter { block: L2BasicBlock ->
-				block.successorEdges().all { edgeNeeds.containsKey(it) }
+				block.successorEdges().all(edgeNeeds::containsKey)
 			})
 
 		// Visit the blocks in reverse dependency order, ignoring back-edges.

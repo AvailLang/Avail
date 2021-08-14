@@ -311,9 +311,8 @@ class CharacterDescriptor private constructor(
 		}
 
 		/** The hashes of the first 256 Unicode characters. */
-		private val hashesOfByteCharacters = IntArray(256) {
-			computeHashOfCharacterWithCodePoint(it)
-		}
+		private val hashesOfByteCharacters =
+			IntArray(256, ::computeHashOfCharacterWithCodePoint)
 
 		/**
 		 * A cache of non-byte characters that have been encountered so far

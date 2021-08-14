@@ -172,6 +172,12 @@ class MacroDescriptor private constructor(
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(self.bodyBlock().hash(), 0x67f6ec56)
 
+	override fun o_IsAbstractDefinition(self: AvailObject): Boolean = false
+
+	override fun o_IsForwardDefinition(self: AvailObject): Boolean = false
+
+	override fun o_IsMethodDefinition(self: AvailObject): Boolean = false
+
 	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION.o
 
 	override fun o_ParsingSignature(self: AvailObject): A_Type

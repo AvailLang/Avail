@@ -4682,7 +4682,7 @@ Method "first index of_in_" is
 ] : 0's type;
 
 /*
- * Obtain the location of the start of the first occuring subtuple in a
+ * Obtain the location of the start of the first occurring subtuple in a
  * tuple (a substring of a string).  The
  * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm"
  * Knuth-Morris-Pratt algorithm} is used for this implementation.
@@ -4737,7 +4737,7 @@ Method "first index of_in_" is
 ] : whole number;
 
 /**
- * Obtain the location of the start of every instance of subtuple occuring in a
+ * Obtain the location of the start of every instance of subtuple occurring in a
  * tuple.
  *
  * @method "all indices of_in_"
@@ -4782,7 +4782,7 @@ Method "all indices of_in_" is
 ] : <>'s type;
 
 /*
- * Obtain the location of the start of every instance of subtuple occuring in a
+ * Obtain the location of the start of every instance of subtuple occurring in a
  * tuple (a substring of a string).  The
  * {@link "http://en.wikipedia.org/wiki/Knuth-Morris-Pratt_algorithm"
  * "Knuth-Moris-Pratt algorithm"} is used for this implementation.
@@ -4826,7 +4826,7 @@ Method "all indices of_in_" is
 ] : <natural number…|>;
 
 /**
- * Locate of the first instance of a nonempty subtuple occuring in a nonempty
+ * Locate of the first instance of a nonempty subtuple occurring in a nonempty
  * tuple and replace it with the supplied replacement tuple.
  *
  * @method "replace the first occurrence of_in_with_"
@@ -4918,7 +4918,7 @@ Semantic restriction "replace the first occurrence of_in_with_" is
 ];
 
 /**
- * Replace every instance of a nonempty subtuple occuring in a nonempty tuple
+ * Replace every instance of a nonempty subtuple occurring in a nonempty tuple
  * and with the supplied replacement tuple.
  *
  * @method "replace all occurrences of_in_with_"

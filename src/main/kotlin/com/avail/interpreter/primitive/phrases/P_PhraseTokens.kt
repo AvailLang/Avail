@@ -1,5 +1,5 @@
 /*
- * Bootstrap.avail
+ * PhraseTokens.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,25 +30,43 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-/*
- * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/13/21 1:27 PM
+package com.avail.interpreter.primitive.phrases
+
+import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
+import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.interpreter.Primitive
+import com.avail.interpreter.Primitive.Flag.CanFold
+import com.avail.interpreter.Primitive.Flag.CanInline
+import com.avail.interpreter.Primitive.Flag.CannotFail
+import com.avail.interpreter.execution.Interpreter
+
+/**
+ * **Primitive:** Answer the [tokens][TokenDescriptor] that are part of this
+ * phrase.  This generally does not include tokens that are considered tokens of
+ * subphrases of this phrase.
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+@Suppress("unused")
+object P_PhraseTokens : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(1)
+		val decl = interpreter.argument(0)
+		return interpreter.primitiveSuccess(decl.tokens)
+	}
 
-Module "Bootstrap"
-Versions
-	"1.5.1"
-Extends
-	"Origin",
-	"Special Objects",
-	"Error Codes",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
-Uses
-Names
-Body
-
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				PARSE_PHRASE.mostGeneralType()),
+			zeroOrMoreOf(TOKEN.o)
+		)
+}

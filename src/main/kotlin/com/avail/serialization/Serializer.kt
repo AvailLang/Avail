@@ -288,8 +288,8 @@ class Serializer constructor (
 	{
 		val before = System.nanoTime()
 		// Build but don't yet emit the instruction.
-		val instruction =
-			encounteredObjects.computeIfAbsent(obj) { newInstruction(it) }
+		val instruction = encounteredObjects.computeIfAbsent(
+			obj, this::newInstruction)
 		// Do nothing if the object's instruction has already been emitted.
 		if (!instruction.hasBeenWritten)
 		{

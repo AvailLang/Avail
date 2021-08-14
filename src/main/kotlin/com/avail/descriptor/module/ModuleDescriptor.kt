@@ -1153,13 +1153,11 @@ class ModuleDescriptor private constructor(
 			}
 		}
 		// Remove method definitions.
-		self.methodDefinitions.forEach { loader.removeDefinition(it) }
-		macroDefinitions.forEach { loader.removeMacro(it) }
+		self.methodDefinitions.forEach(loader::removeDefinition)
+		macroDefinitions.forEach(loader::removeMacro)
 		// Remove semantic restrictions.
-		semanticRestrictions.forEach { runtime.removeTypeRestriction(it) }
-		grammaticalRestrictions.forEach {
-			runtime.removeGrammaticalRestriction(it)
-		}
+		semanticRestrictions.forEach(runtime::removeTypeRestriction)
+		grammaticalRestrictions.forEach(runtime::removeGrammaticalRestriction)
 		// Remove seals.
 		self.slot(SEALS).forEach { methodName, values ->
 			values.forEach { seal ->
