@@ -50,6 +50,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeMacro
 import com.avail.descriptor.character.CharacterDescriptor
@@ -82,12 +83,12 @@ import com.avail.descriptor.methods.A_Method.Companion.addSealedArgumentsType
 import com.avail.descriptor.methods.A_Method.Companion.addSemanticRestriction
 import com.avail.descriptor.methods.A_Method.Companion.bundles
 import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
-import com.avail.descriptor.methods.A_Method.Companion.macrosTuple
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.methods.A_Method.Companion.removeDefinition
 import com.avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import com.avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -444,18 +445,19 @@ class AvailRuntime constructor(
 			}
 			for (method in methods)
 			{
-				val bundleDefinitions: MutableSet<A_Definition> =
+				val bundleDefinitions: MutableSet<A_Sendable> =
 					method.definitionsTuple.toMutableSet()
-				bundleDefinitions.addAll(method.macrosTuple)
 				for (bundle in method.bundles)
 				{
+					val withMacros = bundleDefinitions.toMutableSet()
+					withMacros.addAll(bundle.macrosTuple)
 					val bundlePlans: A_Map = bundle.definitionParsingPlans
-					if (bundlePlans.mapSize != bundleDefinitions.size)
+					if (bundlePlans.mapSize != withMacros.size)
 					{
 						println(
 							"Mismatched definitions / plans:\n\t" +
 								"bundle = $bundle\n\t" +
-								"definitions# = ${bundleDefinitions.size}\n\t" +
+								"definitions# = ${withMacros.size}\n\t" +
 								"plans# = ${bundlePlans.mapSize}")
 					}
 				}
