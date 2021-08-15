@@ -80,8 +80,7 @@ object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val setType1 = argumentTypes[0]
-		val setType2 = argumentTypes[1]
+		val (setType1, setType2) = argumentTypes
 
 		// Technically we can compute the exact minimum bound by building a
 		// graph where the edges are the mutually disjoint element types, then

@@ -108,9 +108,7 @@ object P_TupleReplaceAt : Primitive(3, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val originalTupleType = argumentTypes[0]
-		val subscripts = argumentTypes[1]
-		val newElementType = argumentTypes[2]
+		val (originalTupleType, subscripts, newElementType) = argumentTypes
 		val lowerBound = subscripts.lowerBound
 		val upperBound = subscripts.upperBound
 		val singleSubscript = lowerBound.equals(upperBound)

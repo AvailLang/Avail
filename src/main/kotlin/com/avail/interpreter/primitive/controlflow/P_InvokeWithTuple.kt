@@ -126,8 +126,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val functionType = argumentTypes[0]
-		val argTupleType = argumentTypes[1]
+		val (functionType, argTupleType) = argumentTypes
 		val paramsType = functionType.argsTupleType
 		val fixedSize = argTupleType.sizeRange.upperBound.equals(
 			argTupleType.sizeRange.lowerBound)
@@ -144,8 +143,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val functionType = argumentTypes[0]
-		val argTupleType = argumentTypes[1]
+		val (functionType, argTupleType) = argumentTypes
 		val paramsType = functionType.argsTupleType
 		val argCountRange = argTupleType.sizeRange
 		val argCount = argCountRange.upperBound

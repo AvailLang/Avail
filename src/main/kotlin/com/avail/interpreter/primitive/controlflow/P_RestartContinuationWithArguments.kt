@@ -165,8 +165,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val continuationReg = arguments[0]
-		val argumentsTupleReg = arguments[1]
+		val (continuationReg, argumentsTupleReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.

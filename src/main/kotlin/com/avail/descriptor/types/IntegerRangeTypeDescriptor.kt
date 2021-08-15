@@ -32,7 +32,7 @@
 package com.avail.descriptor.types
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -107,14 +107,16 @@ import java.util.IdentityHashMap
  * @param upperInclusive
  *   Do my object instances include their upper bound?
  */
-class IntegerRangeTypeDescriptor private constructor(
+class IntegerRangeTypeDescriptor
+private constructor(
 	isMutable: Boolean,
 	private val lowerInclusive: Boolean,
-	private val upperInclusive: Boolean) : TypeDescriptor(
-		if (isMutable) Mutability.MUTABLE else Mutability.SHARED,
-		TypeTag.EXTENDED_INTEGER_TYPE_TAG,
-		ObjectSlots::class.java,
-		null)
+	private val upperInclusive: Boolean
+) : TypeDescriptor(
+	if (isMutable) Mutability.MUTABLE else Mutability.SHARED,
+	TypeTag.EXTENDED_INTEGER_TYPE_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -160,11 +162,11 @@ class IntegerRangeTypeDescriptor private constructor(
 
 	override fun o_EqualsIntegerRangeType(
 		self: AvailObject,
-		another: A_Type): Boolean =
-			(self.slot(LOWER_BOUND).equals(another.lowerBound)
-				&& self.slot(UPPER_BOUND).equals(another.upperBound)
-				&& lowerInclusive == another.lowerInclusive
-				&& upperInclusive == another.upperInclusive)
+		another: A_Type
+	): Boolean = (self.slot(LOWER_BOUND).equals(another.lowerBound)
+		&& self.slot(UPPER_BOUND).equals(another.upperBound)
+		&& lowerInclusive == another.lowerInclusive
+		&& upperInclusive == another.upperInclusive)
 
 	/**
 	 * {@inheritDoc}
@@ -172,7 +174,7 @@ class IntegerRangeTypeDescriptor private constructor(
 	 * Answer the object's hash value.  Be careful, as the range (10..20) is the
 	 * same type as the range [11..19], so they should hash the same.  Actually,
 	 * this is taken care of during instance creation - if an exclusive bound is
-	 * finite, it is converted to its inclusive equivalent.  Otherwise asking
+	 * finite, it is converted to its inclusive equivalent.  Otherwise, asking
 	 * for one of the bounds would yield a value which is either inside or
 	 * outside depending on something that should not be observable (because it
 	 * serves to distinguish two representations of equal objects).
@@ -623,9 +625,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * The array of descriptor instances of this class.  There are three
 		 * boolean decisions to make when selecting a descriptor, namely:
 		 *
-		 * * Whether the descriptor is *[ shared][Mutability.SHARED]*,
-		 * * Whether the descriptor's instances include their lower bound, and
-		 *
+		 * * Whether the descriptor is [shared][Mutability.SHARED],
+		 * * Whether the descriptor's instances include their lower bound,
 		 * * Whether the descriptor's instances include their upper bound.
 		 *
 		 * These occur in bit positions 0x01, 0x02, and 0x04 of the array
@@ -692,23 +693,19 @@ class IntegerRangeTypeDescriptor private constructor(
 
 		/** The range of Unicode code points, [0..1114111]. */
 		val characterCodePoints: A_Type =
-			inclusive(0, CharacterDescriptor.maxCodePointInt.toLong())
-				.makeShared()
+			inclusive(0, maxCodePointInt.toLong()).makeShared()
 
 		/** The range of integers including infinities, [-∞..∞]. */
 		val extendedIntegers: A_Type =
 			inclusive(negativeInfinity, positiveInfinity).makeShared()
 
 		/** The range of integers not including infinities, (∞..∞). */
-		val integers: A_Type =
-			integerRangeType(
-				negativeInfinity, false, positiveInfinity, false)
-					.makeShared()
+		val integers: A_Type = integerRangeType(
+			negativeInfinity, false, positiveInfinity, false).makeShared()
 
 		/** The range of natural numbers, [1..∞). */
 		val naturalNumbers: A_Type =
-			integerRangeType(one, true, positiveInfinity, false)
-				.makeShared()
+			integerRangeType(one, true, positiveInfinity, false).makeShared()
 
 		/** The range [0..15]. */
 		val nybbles: A_Type = inclusive(0, 15).makeShared()

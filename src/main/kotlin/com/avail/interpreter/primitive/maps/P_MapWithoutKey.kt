@@ -82,8 +82,7 @@ object P_MapWithoutKey : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val mapType = argumentTypes[0]
-		val keyType = argumentTypes[1]
+		val (mapType, keyType) = argumentTypes
 
 		val mapSizes = mapType.sizeRange
 		assert(mapSizes.lowerInclusive)

@@ -76,9 +76,7 @@ object P_TupleTypeAt : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val tupleMeta = argumentTypes[0]
-		val indexType = argumentTypes[1]
-
+		val (tupleMeta, indexType) = argumentTypes
 		val tupleType = tupleMeta.instance
 		val minIndex = indexType.lowerBound
 		val maxIndex = indexType.upperBound

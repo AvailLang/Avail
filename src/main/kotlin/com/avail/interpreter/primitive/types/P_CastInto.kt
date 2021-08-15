@@ -115,9 +115,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
 	{
-		val valueType = argumentTypes[0]
-		val castFunctionType = argumentTypes[1]
-
+		val (valueType, castFunctionType) = argumentTypes
 		// Only deal with a constant castFunction for now, otherwise assume it
 		// could either succeed or fail.
 		if (castFunctionType.instanceCount.equalsInt(1))

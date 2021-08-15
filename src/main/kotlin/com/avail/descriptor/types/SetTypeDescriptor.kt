@@ -164,8 +164,7 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_Hash(self: AvailObject): Int =
 		combine3(self.sizeRange.hash(), self.contentType.hash(), -0x0098ef2b)
 
-	// Check if object (a type) is a subtype of aType (should also be a
-	// type).
+	// Check if self (a set type) is a subtype of aType (should also be a type).
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfSetType(self)
 
@@ -176,10 +175,9 @@ class SetTypeDescriptor private constructor(mutability: Mutability)
 		// Set type A is a subtype of B if and only if their size ranges are
 		// covariant and their content types are covariant.
 		val otherType = aSetType as AvailObject
-		return (otherType.slot(SIZE_RANGE).isSubtypeOf(
-			self.slot(SIZE_RANGE))
-				&& otherType.slot(CONTENT_TYPE).isSubtypeOf(
-			self.slot(CONTENT_TYPE)))
+		return (otherType.slot(SIZE_RANGE).isSubtypeOf(self.slot(SIZE_RANGE))
+			&& otherType.slot(CONTENT_TYPE).isSubtypeOf(
+				self.slot(CONTENT_TYPE)))
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
