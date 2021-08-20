@@ -1655,7 +1655,7 @@ class IntegerDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [IntegerDescriptor.fromInt]. */
-		val fromIntMethod: CheckedMethod = staticMethod(
+		val fromIntMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
 			AvailObject::class.java,

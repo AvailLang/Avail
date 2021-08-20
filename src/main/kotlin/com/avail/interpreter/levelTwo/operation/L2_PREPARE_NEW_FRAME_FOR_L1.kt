@@ -49,6 +49,7 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.optimizer.StackReifier
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
@@ -194,7 +195,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 	}
 
 	/** The [CheckedMethod] for [prepare]. */
-	private val prepareMethod = CheckedMethod.staticMethod(
+	private val prepareMethod = staticMethod(
 		L2_PREPARE_NEW_FRAME_FOR_L1::class.java,
 		::prepare.name,
 		StackReifier::class.java,

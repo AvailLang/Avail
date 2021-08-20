@@ -539,7 +539,7 @@ class DoubleDescriptor private constructor(
 			}
 
 		/** The [CheckedMethod] for [fromDouble]. */
-		val fromDoubleMethod: CheckedMethod = staticMethod(
+		val fromDoubleMethod = staticMethod(
 			DoubleDescriptor::class.java,
 			::fromDouble.name,
 			A_Number::class.java,

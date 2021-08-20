@@ -37,6 +37,7 @@ import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfTokenType
@@ -48,7 +49,6 @@ import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CO
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import jdk.nashorn.internal.parser.TokenType
 import java.util.IdentityHashMap
 
 /**
@@ -78,7 +78,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The [type][TokenType] constraint on a token's value.
+		 * The [type][TokenDescriptor.TokenType] constraint on a token's value.
 		 */
 		TOKEN_TYPE_CODE
 	}

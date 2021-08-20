@@ -54,6 +54,7 @@ import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
 import com.avail.exceptions.VariableSetException
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -379,27 +380,27 @@ interface A_Variable : A_ChunkDependable
 	companion object
 	{
 		/** The [CheckedMethod] for [getValue]. */
-		val getValueMethod = CheckedMethod.instanceMethod(
+		val getValueMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::getValue.name,
 			AvailObject::class.java)
 
 		/** The [CheckedMethod] for [setValue]. */
-		val setValueMethod = CheckedMethod.instanceMethod(
+		val setValueMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::setValue.name,
 			Void.TYPE,
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [setValueNoCheck]. */
-		val setValueNoCheckMethod = CheckedMethod.instanceMethod(
+		val setValueNoCheckMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::setValueNoCheck.name,
 			Void.TYPE,
 			A_BasicObject::class.java)
 
 		/** The [CheckedMethod] for [compareAndSwapValuesNoCheck]. */
-		val compareAndSwapValuesNoCheckMethod = CheckedMethod.instanceMethod(
+		val compareAndSwapValuesNoCheckMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::compareAndSwapValuesNoCheck.name,
 			Boolean::class.javaPrimitiveType!!,

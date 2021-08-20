@@ -45,6 +45,7 @@ import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L2Generator.OptimizationLevel.Companion.optimizationLevel
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
@@ -135,7 +136,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 	/**
 	 * The [CheckedMethod] for [decrement].
 	 */
-	private val decrementMethod = CheckedMethod.staticMethod(
+	private val decrementMethod = staticMethod(
 		L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
 		::decrement.name,
 		Boolean::class.javaPrimitiveType!!,

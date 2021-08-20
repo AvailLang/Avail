@@ -156,6 +156,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
@@ -3917,7 +3918,7 @@ abstract class AbstractDescriptor protected constructor (
 		/**
 		 * The [CheckedMethod] for [isMutable].
 		 */
-		val isMutableMethod: CheckedMethod = CheckedMethod.instanceMethod(
+		val isMutableMethod = instanceMethod(
 			AbstractDescriptor::class.java,
 			AbstractDescriptor::isMutable.name,
 			Boolean::class.javaPrimitiveType!!)

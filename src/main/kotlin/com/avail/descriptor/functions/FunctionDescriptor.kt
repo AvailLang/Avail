@@ -266,7 +266,7 @@ class FunctionDescriptor private constructor(
 	companion object
 	{
 		/** The [CheckedMethod] for [A_Function.code]. */
-		val functionCodeMethod: CheckedMethod = instanceMethod(
+		val functionCodeMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::code.name,
 			A_RawFunction::class.java)
@@ -423,7 +423,7 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createExceptOuters] method.
 		 */
-		val createExceptOutersMethod: CheckedMethod = staticMethod(
+		val createExceptOutersMethod = staticMethod(
 			FunctionDescriptor::class.java,
 			::createExceptOuters.name,
 			AvailObject::class.java,
@@ -452,7 +452,7 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters1] method.
 		 */
-		val createWithOuters1Method: CheckedMethod = staticMethod(
+		val createWithOuters1Method = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters1.name,
 			AvailObject::class.java,
@@ -485,7 +485,7 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters2] method.
 		 */
-		val createWithOuters2Method: CheckedMethod = staticMethod(
+		val createWithOuters2Method = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters2.name,
 			AvailObject::class.java,
@@ -523,7 +523,7 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters3] method.
 		 */
-		val createWithOuters3Method: CheckedMethod = staticMethod(
+		val createWithOuters3Method = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters3.name,
 			AvailObject::class.java,
@@ -566,7 +566,7 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters4] method.
 		 */
-		val createWithOuters4Method: CheckedMethod = staticMethod(
+		val createWithOuters4Method = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters4.name,
 			AvailObject::class.java,
@@ -614,7 +614,7 @@ class FunctionDescriptor private constructor(
 		/**
 		 * Access the [createWithOuters5] method.
 		 */
-		val createWithOuters5Method: CheckedMethod = staticMethod(
+		val createWithOuters5Method = staticMethod(
 			FunctionDescriptor::class.java,
 			::createWithOuters5.name,
 			AvailObject::class.java,
@@ -626,14 +626,14 @@ class FunctionDescriptor private constructor(
 			AvailObject::class.java)
 
 		/** Access the [A_Function.outerVarAt] method. */
-		val outerVarAtMethod: CheckedMethod = instanceMethod(
+		val outerVarAtMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::outerVarAt.name,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
 		/** Access the [A_Function.outerVarAtPut] method. */
-		val outerVarAtPutMethod: CheckedMethod = instanceMethod(
+		val outerVarAtPutMethod = instanceMethod(
 			A_Function::class.java,
 			A_Function::outerVarAtPut.name,
 			Void.TYPE,

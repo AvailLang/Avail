@@ -77,6 +77,7 @@ import com.avail.environment.actions.ToggleDebugInterpreterL1
 import com.avail.environment.actions.ToggleDebugInterpreterL2
 import com.avail.environment.actions.ToggleDebugInterpreterPrimitives
 import com.avail.environment.actions.ToggleDebugJVM
+import com.avail.environment.actions.ToggleDebugJVMCodeGeneration
 import com.avail.environment.actions.ToggleDebugWorkUnits
 import com.avail.environment.actions.ToggleFastLoaderAction
 import com.avail.environment.actions.ToggleL2SanityCheck
@@ -430,6 +431,10 @@ class AvailWorkbench internal constructor (
 
 	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
+
+	/** The [toggle JVM code generation][ToggleDebugJVMCodeGeneration]. */
+	private val toggleDebugJVMCodeGeneration =
+		ToggleDebugJVMCodeGeneration(this)
 
 	/**
 	 * The
@@ -1611,6 +1616,7 @@ class AvailWorkbench internal constructor (
 					JCheckBoxMenuItem(toggleDebugWorkUnits),
 					null,
 					JCheckBoxMenuItem(toggleDebugJVM),
+					JCheckBoxMenuItem(toggleDebugJVMCodeGeneration),
 					null,
 					parserIntegrityCheckAction,
 					examineRepositoryAction,
@@ -2058,7 +2064,7 @@ class AvailWorkbench internal constructor (
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform.
 		 */
-		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMask
+		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 
 		/**
 		 * The current working directory of the Avail virtual machine. Because
@@ -2316,9 +2322,11 @@ class AvailWorkbench internal constructor (
 				OSXUtility.setDockIconBadgeMethod(
 					application, activeVersionSummary)
 			}
-			catch (e: Exception)
+			catch (e: Throwable)
 			{
-				throw RuntimeException(e)
+				// Ignore any errors here, to give the best chance of actually
+				// opening the interface.
+				e.printStackTrace()
 			}
 		}
 

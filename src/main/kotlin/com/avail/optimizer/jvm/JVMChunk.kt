@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.optimizer.ExecutableChunk
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L2Generator
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -151,7 +152,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		}
 
 		/** The [CheckedMethod] for [badOffset]. */
-		val badOffsetMethod: CheckedMethod = CheckedMethod.staticMethod(
+		val badOffsetMethod = staticMethod(
 			JVMChunk::class.java,
 			::badOffset.name,
 			RuntimeException::class.java,

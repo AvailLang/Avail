@@ -735,7 +735,7 @@ class IntTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedIntTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedIntTupleMethod = staticMethod(
 			IntTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,

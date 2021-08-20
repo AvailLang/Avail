@@ -535,7 +535,7 @@ class ContinuationDescriptor private constructor(
 
 	companion object {
 		/** The [CheckedMethod] for [A_Continuation.function]. */
-		val continuationFunctionMethod: CheckedMethod = instanceMethod(
+		val continuationFunctionMethod = instanceMethod(
 			A_Continuation::class.java,
 			A_Continuation::function.name,
 			A_Function::class.java)
@@ -639,7 +639,7 @@ class ContinuationDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [createContinuationExceptFrame]. */
-		val createContinuationExceptFrameMethod: CheckedMethod = staticMethod(
+		val createContinuationExceptFrameMethod = staticMethod(
 			ContinuationDescriptor::class.java,
 			::createContinuationExceptFrame.name,
 			AvailObject::class.java,
@@ -744,7 +744,7 @@ class ContinuationDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [createDummyContinuation]. */
-		val createDummyContinuationMethod: CheckedMethod = staticMethod(
+		val createDummyContinuationMethod = staticMethod(
 			ContinuationDescriptor::class.java,
 			::createDummyContinuation.name,
 			AvailObject::class.java,

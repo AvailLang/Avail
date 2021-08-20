@@ -2841,7 +2841,7 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] referring to the static method [traceL2].
 		 */
-		val traceL2Method: CheckedMethod = staticMethod(
+		val traceL2Method = staticMethod(
 			Interpreter::class.java,
 			::traceL2.name,
 			Void.TYPE,
@@ -2897,7 +2897,7 @@ class Interpreter(
 			AvailThread.currentOrNull()?.interpreter
 
 		/** Access the [callerIsReified] method. */
-		val callerIsReifiedMethod: CheckedMethod = instanceMethod(
+		val callerIsReifiedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::callerIsReified.name,
 			Boolean::class.javaPrimitiveType!!)
@@ -2909,14 +2909,14 @@ class Interpreter(
 			AvailRuntime::class.java)
 
 		/** Access the [setLatestResult] method. */
-		var setLatestResultMethod: CheckedMethod = instanceMethod(
+		var setLatestResultMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setLatestResult.name,
 			Void.TYPE,
 			A_BasicObject::class.java)
 
 		/** Access the [getLatestResult] method. */
-		var getLatestResultMethod: CheckedMethod = instanceMethod(
+		var getLatestResultMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getLatestResult.name,
 			AvailObject::class.java)
@@ -2934,14 +2934,14 @@ class Interpreter(
 			Boolean::class.javaPrimitiveType!!)
 
 		/** The method [beforeAttemptPrimitive]. */
-		var beforeAttemptPrimitiveMethod: CheckedMethod = instanceMethod(
+		var beforeAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::beforeAttemptPrimitive.name,
 			Long::class.javaPrimitiveType!!,
 			Primitive::class.java)
 
 		/** The method [afterAttemptPrimitive]. */
-		var afterAttemptPrimitiveMethod: CheckedMethod = instanceMethod(
+		var afterAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::afterAttemptPrimitive.name,
 			Result::class.java,
@@ -2950,20 +2950,20 @@ class Interpreter(
 			Result::class.java)
 
 		/** Access the [getReifiedContinuation] method. */
-		val getReifiedContinuationMethod: CheckedMethod = instanceMethod(
+		val getReifiedContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getReifiedContinuation.name,
 			AvailObject::class.java)
 
 		/** Access the [setReifiedContinuation] method. */
-		val setReifiedContinuationMethod: CheckedMethod = instanceMethod(
+		val setReifiedContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setReifiedContinuation.name,
 			Void.TYPE,
 			A_Continuation::class.java)
 
 		/** Access the [popContinuation] method. */
-		var popContinuationMethod: CheckedMethod = instanceMethod(
+		var popContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::popContinuation.name,
 			Void.TYPE)
@@ -3010,13 +3010,13 @@ class Interpreter(
 		private const val timeSliceTicks = 20
 
 		/** Access the [isInterruptRequested] method. */
-		val isInterruptRequestedMethod: CheckedMethod = instanceMethod(
+		val isInterruptRequestedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::isInterruptRequested.name,
 			Boolean::class.javaPrimitiveType!!)
 
 		/** A method to access [checkValidity]. */
-		val checkValidityMethod: CheckedMethod = instanceMethod(
+		val checkValidityMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::checkValidity.name,
 			Boolean::class.javaPrimitiveType!!,
@@ -3025,14 +3025,14 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] for [reifierToRestart].
 		 */
-		val reifierToRestartMethod: CheckedMethod = instanceMethod(
+		val reifierToRestartMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reifierToRestart.name,
 			StackReifier::class.java,
 			A_Continuation::class.java)
 
 		/** The [CheckedMethod] for [reify]. */
-		val reifyMethod: CheckedMethod = instanceMethod(
+		val reifyMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reify.name,
 			StackReifier::class.java,
@@ -3043,7 +3043,7 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] for [reifierToRestartWithArguments].
 		 */
-		val reifierToRestartWithArgumentsMethod: CheckedMethod = instanceMethod(
+		val reifierToRestartWithArgumentsMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reifierToRestartWithArguments.name,
 			StackReifier::class.java,
@@ -3051,14 +3051,14 @@ class Interpreter(
 			Array<AvailObject>::class.java)
 
 		/** Access the [preinvoke0] method. */
-		var preinvoke0Method: CheckedMethod = instanceMethod(
+		var preinvoke0Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke0.name,
 			AvailObject::class.java,
 			A_Function::class.java)
 
 		/** Access the [preinvoke1] method. */
-		var preinvoke1Method: CheckedMethod = instanceMethod(
+		var preinvoke1Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke1.name,
 			AvailObject::class.java,
@@ -3068,7 +3068,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke2] method.
 		 */
-		var preinvoke2Method: CheckedMethod = instanceMethod(
+		var preinvoke2Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke2.name,
 			AvailObject::class.java,
@@ -3079,7 +3079,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke3] method.
 		 */
-		var preinvoke3Method: CheckedMethod = instanceMethod(
+		var preinvoke3Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke3.name,
 			AvailObject::class.java,
@@ -3091,7 +3091,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke] method.
 		 */
-		var preinvokeMethod: CheckedMethod = instanceMethod(
+		var preinvokeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke.name,
 			AvailObject::class.java,
@@ -3101,7 +3101,7 @@ class Interpreter(
 		/**
 		 * Access the [postinvoke] method.
 		 */
-		var postinvokeMethod: CheckedMethod = instanceMethod(
+		var postinvokeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::postinvoke.name,
 			StackReifier::class.java,
@@ -3112,7 +3112,7 @@ class Interpreter(
 		/**
 		 * Access the [runChunk] method.
 		 */
-		var interpreterRunChunkMethod: CheckedMethod = instanceMethod(
+		var interpreterRunChunkMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::runChunk.name,
 			StackReifier::class.java)
@@ -3150,7 +3150,7 @@ class Interpreter(
 		/**
 		 * Access the [reportWrongReturnType] method.
 		 */
-		var reportWrongReturnTypeMethod: CheckedMethod = instanceMethod(
+		var reportWrongReturnTypeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportWrongReturnType.name,
 			StackReifier::class.java,
@@ -3163,7 +3163,7 @@ class Interpreter(
 		/**
 		 * Access the [reportUnassignedVariableRead] method.
 		 */
-		var reportUnassignedVariableReadMethod: CheckedMethod = instanceMethod(
+		var reportUnassignedVariableReadMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportUnassignedVariableRead.name,
 			StackReifier::class.java,

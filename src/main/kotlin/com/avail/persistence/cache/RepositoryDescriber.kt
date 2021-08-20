@@ -76,7 +76,7 @@ class RepositoryDescriber constructor(
 			val versionMap = archive.allKnownVersions
 			versionMap.forEach { (versionKey, version) ->
 				builder.append('\t')
-				builder.append(versionKey.shortString())
+				builder.append(versionKey.shortString)
 				builder.append('\n')
 				version.allCompilations.forEach { compilation ->
 					builder.append("\t\t")

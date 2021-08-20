@@ -253,7 +253,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			self.descriptor().o_SetSize(self)
 
 		/** The [CheckedMethod] for [setSizeStatic]. */
-		val setSizeMethod: CheckedMethod = staticMethod(
+		val setSizeMethod = staticMethod(
 			A_Set::class.java,
 			::setSizeStatic.name,
 			Int::class.javaPrimitiveType!!,
@@ -272,7 +272,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			self, newElementObject, true) as AvailObject
 
 		/** The [CheckedMethod] for [setWithElementStatic]. */
-		val setWithElementMethod: CheckedMethod = staticMethod(
+		val setWithElementMethod = staticMethod(
 			A_Set::class.java,
 			::setWithElementStatic.name,
 			AvailObject::class.java,

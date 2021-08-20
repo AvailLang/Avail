@@ -73,7 +73,7 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 				bundle =
 					if (ResourceBundle::class.java.isAssignableFrom(bundleClass))
 					{
-						bundleClass.newInstance()
+						bundleClass.getDeclaredConstructor().newInstance()
 					}
 					else
 					{

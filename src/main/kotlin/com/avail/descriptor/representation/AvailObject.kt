@@ -1508,20 +1508,20 @@ class AvailObject private constructor(
 
 		/** The [CheckedMethod] for [iterator]. */
 		@Suppress("unused")
-		val iteratorMethod: CheckedMethod = instanceMethod(
+		val iteratorMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::iterator.name,
 			Iterator::class.java)
 
 		/** Access the [frameAt] method. */
-		val frameAtMethod: CheckedMethod = instanceMethod(
+		val frameAtMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::frameAt.name,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
 		/** Access the [frameAtPut] method. */
-		val frameAtPutMethod: CheckedMethod = instanceMethod(
+		val frameAtPutMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::frameAtPut.name,
 			AvailObject::class.java,
@@ -1529,13 +1529,13 @@ class AvailObject private constructor(
 			AvailObject::class.java)
 
 		/** Access the [registerDump] method. */
-		val registerDumpMethod: CheckedMethod = instanceMethod(
+		val registerDumpMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::registerDump.name,
 			AvailObject::class.java)
 
 		/** Access the [fieldAt] method. */
-		val fieldAtMethod: CheckedMethod = instanceMethod(
+		val fieldAtMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::fieldAt.name,
 			AvailObject::class.java,

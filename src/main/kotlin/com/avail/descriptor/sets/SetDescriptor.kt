@@ -682,7 +682,7 @@ private constructor(
 		/**
 		 * The [CheckedMethod] for [emptySet].
 		 */
-		val emptySetMethod: CheckedMethod = staticMethod(
+		val emptySetMethod = staticMethod(
 			SetDescriptor::class.java,
 			::emptyAvailSet.name,
 			A_Set::class.java)

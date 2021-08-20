@@ -594,7 +594,7 @@ class ByteStringDescriptor private constructor(
 			descriptorFor(Mutability.MUTABLE, size).create(size + 7 shr 3)
 
 		/** The [CheckedMethod] for [createUninitializedByteString]. */
-		val createUninitializedByteStringMethod: CheckedMethod = staticMethod(
+		val createUninitializedByteStringMethod = staticMethod(
 			ByteStringDescriptor::class.java,
 			::createUninitializedByteString.name,
 			AvailObject::class.java,

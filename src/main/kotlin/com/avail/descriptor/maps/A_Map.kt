@@ -231,7 +231,7 @@ interface A_Map : A_BasicObject
 		): AvailObject = self.mapAtPuttingCanDestroy(key, value, true).cast()
 
 		/** The [CheckedMethod] for [mapAtPuttingCanDestroy]. */
-		val mapAtPuttingStaticMethod: CheckedMethod = staticMethod(
+		val mapAtPuttingStaticMethod = staticMethod(
 			A_Map::class.java,
 			::mapAtPuttingStatic.name,
 			A_Map::class.java,

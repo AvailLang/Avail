@@ -79,6 +79,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -1440,7 +1441,7 @@ abstract class TupleDescriptor protected constructor(
 			tuple.tupleAtPuttingCanDestroy(index, newValue, true) as AvailObject
 
 		/** The [CheckedMethod] for [staticTupleAt]. */
-		val tupleAtPuttingMethod = CheckedMethod.staticMethod(
+		val tupleAtPuttingMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAtPutting.name,
 			AvailObject::class.java,
@@ -1459,7 +1460,7 @@ abstract class TupleDescriptor protected constructor(
 		fun staticTupleSize(tuple: A_Tuple): Int = tuple.tupleSize
 
 		/** The [CheckedMethod] for [staticTupleSize]. */
-		val tupleSizeMethod = CheckedMethod.staticMethod(
+		val tupleSizeMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleSize.name,
 			Int::class.javaPrimitiveType!!,

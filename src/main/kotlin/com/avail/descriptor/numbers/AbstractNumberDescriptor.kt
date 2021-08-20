@@ -193,25 +193,25 @@ abstract class AbstractNumberDescriptor protected constructor(
 
 		companion object {
 			/** The [CheckedMethod] for [isLess]. */
-			val isLessMethod: CheckedMethod = instanceMethod(
+			val isLessMethod = instanceMethod(
 				Order::class.java,
 				Order::isLess.name,
 				Boolean::class.javaPrimitiveType!!)
 
 			/** The [CheckedMethod] for [isLessOrEqual]. */
-			val isLessOrEqualMethod: CheckedMethod = instanceMethod(
+			val isLessOrEqualMethod = instanceMethod(
 				Order::class.java,
 				Order::isLessOrEqual.name,
 				Boolean::class.javaPrimitiveType!!)
 
 			/** The [CheckedMethod] for [isMore]. */
-			val isMoreMethod: CheckedMethod = instanceMethod(
+			val isMoreMethod = instanceMethod(
 				Order::class.java,
 				Order::isMore.name,
 				Boolean::class.javaPrimitiveType!!)
 
 			/** The [CheckedMethod] for [isMoreOrEqual]. */
-			val isMoreOrEqualMethod: CheckedMethod = instanceMethod(
+			val isMoreOrEqualMethod = instanceMethod(
 				Order::class.java,
 				Order::isMoreOrEqual.name,
 				Boolean::class.javaPrimitiveType!!)

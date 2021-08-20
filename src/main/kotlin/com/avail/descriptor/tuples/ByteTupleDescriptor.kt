@@ -593,7 +593,7 @@ class ByteTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedByteTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedByteTupleMethod = staticMethod(
 			ByteTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,

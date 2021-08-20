@@ -50,7 +50,6 @@ import java.lang.reflect.Modifier
  * [Opcodes.CHECKCAST] instruction if the result type isn't strong
  * enough.
  *
- *
  * The main power this class brings is the ability to check the type
  * signature prior to code generation, rather than have the JVM verifier be
  * the failure point.  It also fails early if the referenced method isn't
@@ -58,7 +57,6 @@ import java.lang.reflect.Modifier
  * methods from changing or disappearing under maintenance.  It also keeps
  * method names out of the code generator, making it easier to find the real
  * uses of methods in generator code.
- *
  *
  * Factory methods that indicate the method is part of the Java library are
  * not expected to have the [ReferencedInGeneratedCode] annotation.
@@ -118,23 +116,35 @@ class CheckedMethod private constructor(
 	 */
 	fun generateCall(methodVisitor: MethodVisitor)
 	{
-		if (isStatic)
+		when
 		{
-			methodVisitor.visitMethodInsn(
-				INVOKESTATIC,
-				receiverClassInternalName,
-				methodNameString,
-				methodDescriptorString,
-				false)
-		}
-		else
-		{
-			methodVisitor.visitMethodInsn(
-				if (isInterface) INVOKEINTERFACE else INVOKEVIRTUAL,
-				receiverClassInternalName,
-				methodNameString,
-				methodDescriptorString,
-				isInterface)
+			isStatic ->
+			{
+				methodVisitor.visitMethodInsn(
+					INVOKESTATIC,
+					receiverClassInternalName,
+					methodNameString,
+					methodDescriptorString,
+					isInterface)
+			}
+			isInterface ->
+			{
+				methodVisitor.visitMethodInsn(
+					INVOKEINTERFACE,
+					receiverClassInternalName,
+					methodNameString,
+					methodDescriptorString,
+					isInterface)
+			}
+			else ->
+			{
+				methodVisitor.visitMethodInsn(
+					INVOKEVIRTUAL,
+					receiverClassInternalName,
+					methodNameString,
+					methodDescriptorString,
+					isInterface)
+			}
 		}
 		if (internalNameToCheckCastOrNull !== null)
 		{
@@ -165,7 +175,7 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>): CheckedMethod =
+			vararg argumentTypes: Class<*>) =
 				CheckedMethod(
 					true,
 					false,
@@ -194,7 +204,7 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>): CheckedMethod =
+			vararg argumentTypes: Class<*>) =
 				CheckedMethod(
 					true,
 					true,
@@ -223,7 +233,7 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>): CheckedMethod =
+			vararg argumentTypes: Class<*>) =
 				CheckedMethod(
 					false,
 					false,
@@ -252,7 +262,7 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>): CheckedMethod =
+			vararg argumentTypes: Class<*>) =
 				CheckedMethod(
 					false,
 					true,

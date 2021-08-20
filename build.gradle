@@ -56,7 +56,7 @@ allprojects {
 	group 'org.availlang'
 	version versionToPublish
 
-	sourceCompatibility = 1.8
+	sourceCompatibility = 16
 
 	tasks.withType(JavaCompile) {
 		options.encoding = 'UTF-8'
@@ -80,13 +80,9 @@ allprojects {
 	}
 }
 
-repositories {
-	mavenCentral()
-}
-
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = '1.8'
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -94,10 +90,14 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = '1.8'
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
+}
+
+repositories {
+	mavenCentral()
 }
 
 dependencies {

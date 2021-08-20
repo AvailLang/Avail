@@ -241,7 +241,6 @@ javax/swing/tree/DefaultMutableTreeNode
 javax/swing/tree/DefaultTreeCellRenderer
 javax/swing/tree/DefaultTreeModel
 javax/swing/tree/TreePath
-javax/xml/bind/DatatypeConverter
 javax/xml/parsers/SAXParser
 javax/xml/parsers/SAXParserFactory
 kotlin/LazyKt

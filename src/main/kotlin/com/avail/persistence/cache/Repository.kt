@@ -66,9 +66,7 @@ import java.util.TreeMap
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.xml.bind.DatatypeConverter
 import kotlin.concurrent.withLock
-import kotlin.streams.toList
 
 /**
  * An `Repository` manages a persistent [IndexedFile] of compiled
@@ -539,13 +537,8 @@ class Repository constructor(
 			binaryStream.write(sourceDigest)
 		}
 
-		override fun toString(): String
-		{
-			return String.format(
-				"VersionKey(@%s...)",
-				DatatypeConverter.printHexBinary(
-					sourceDigest.copyOf(3)))
-		}
+		override fun toString(): String =
+			String.format("VersionKey(@%s...)", shortString)
 
 		/**
 		 * Reconstruct a `ModuleVersionKey`, having previously been written via
@@ -591,11 +584,12 @@ class Repository constructor(
 		 * @return
 		 *   A short [String] to help identify this module version.
 		 */
-		fun shortString(): String
-		{
-			val prefix = sourceDigest.copyOf(3)
-			return DatatypeConverter.printHexBinary(prefix)
-		}
+		val shortString: String get() =
+			String.format(
+				"%02x%02x%02x",
+				sourceDigest[0],
+				sourceDigest[1],
+				sourceDigest[2])
 
 		override fun compareTo(other: ModuleVersionKey): Int
 		{
@@ -1004,6 +998,7 @@ class Repository constructor(
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
 
+		/** The byte array containing a serialization of this block phrase. */
 		val blockPhraseBytes: ByteArray
 			get() = lock.withLock { repository!![recordNumberOfBlockPhrases] }
 

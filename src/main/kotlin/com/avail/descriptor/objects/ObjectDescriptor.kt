@@ -596,7 +596,7 @@ class ObjectDescriptor internal constructor(
 		}
 
 		/** Access the [setField] method. */
-		var setFieldMethod: CheckedMethod = staticMethod(
+		var setFieldMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,
 			AvailObject::class.java,
@@ -637,7 +637,7 @@ class ObjectDescriptor internal constructor(
 		 * The [CheckedMethod] for [objectFromMap].
 		 */
 		@Suppress("unused")
-		val objectFromMapMethod: CheckedMethod = staticMethod(
+		val objectFromMapMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::objectFromMap.name,
 			AvailObject::class.java,
@@ -682,7 +682,7 @@ class ObjectDescriptor internal constructor(
 		/**
 		 * Access the [createUninitializedObject] static method.
 		 */
-		var createUninitializedObjectMethod: CheckedMethod = staticMethod(
+		var createUninitializedObjectMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,
 			AvailObject::class.java,
