@@ -738,7 +738,7 @@ class Repository constructor(
 		 * The list of entry points declared by this version of the module. Note
 		 * that because the entry point declarations are in the module header
 		 * and in a fixed syntax, all valid compilations of the module would
-		 * produce the same list of entry points.  Therefore the entry points
+		 * produce the same list of entry points.  Therefore, the entry points
 		 * belong here in the module version, not with a compilation.
 		 */
 		private val entryPoints: MutableList<String>
@@ -1087,7 +1087,8 @@ class Repository constructor(
 	 */
 	fun getArchive(rootRelativeName: String): ModuleArchive =
 		lock.withLock {
-			moduleMap.computeIfAbsent(rootRelativeName) { ModuleArchive(it) }
+			moduleMap.computeIfAbsent(
+				rootRelativeName, this::ModuleArchive)
 		}
 
 	/**

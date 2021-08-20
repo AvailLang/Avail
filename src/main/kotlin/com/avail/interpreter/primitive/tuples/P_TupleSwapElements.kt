@@ -108,10 +108,7 @@ object P_TupleSwapElements : Primitive(3, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val originalTupleType = argumentTypes[0]
-		val indexRange1 = argumentTypes[1]
-		val indexRange2 = argumentTypes[2]
-
+		val (originalTupleType, indexRange1, indexRange2) = argumentTypes
 		val tupleSizeRange = originalTupleType.sizeRange
 		val lowerBound1 = indexRange1.lowerBound
 		val lowerBound2 = indexRange2.lowerBound

@@ -124,7 +124,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		aTokenType: A_Type): Boolean =
 			self.tokenType() === aTokenType.tokenType
 
-	override fun o_TokenType(self: AvailObject): TokenDescriptor.TokenType =
+	override fun o_TokenType(self: AvailObject): TokenType =
 		lookupTokenType(self.slot(TOKEN_TYPE_CODE).toInt())
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -198,7 +198,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A [token type][TokenTypeDescriptor].
 		 */
-		fun tokenType(tokenType: TokenDescriptor.TokenType): AvailObject =
+		fun tokenType(tokenType: TokenType): AvailObject =
 			mutable.create {
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal.toLong())
 			}

@@ -97,10 +97,7 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
-
-		val sizeType = argumentTypes[0]
-		val elementType = argumentTypes[1]
-
+		val (sizeType, elementType) = argumentTypes
 		return if (sizeType.instanceCount.equalsInt(1)
 			&& elementType.instanceCount.equalsInt(1))
 		{

@@ -253,8 +253,7 @@ enum class PragmaKind constructor(val lexeme: String)
 					+ "but the comma was not found")
 				return
 			}
-			val filterPrimitiveName = primParts[0]
-			val bodyPrimitiveName = primParts[1]
+			val (filterPrimitiveName, bodyPrimitiveName) = primParts
 			val lexerName = parts[1].trim { it <= ' ' }
 			val availName = stringFrom(lexerName)
 			val module = state.lexingState.compilationContext.module

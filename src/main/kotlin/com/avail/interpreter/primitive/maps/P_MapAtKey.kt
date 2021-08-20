@@ -77,8 +77,7 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val mapType = argumentTypes[0]
-		val keyType = argumentTypes[1]
+		val (mapType, keyType) = argumentTypes
 		if (mapType.isEnumeration && keyType.isEnumeration)
 		{
 			var values = emptySet

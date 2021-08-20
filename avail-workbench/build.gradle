@@ -139,7 +139,7 @@ task osx {
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
 		exec {
-			def launcher = appDst + "/Contents/MacOS/JavaAppLauncher"
+			String launcher = "$appDst/Contents/MacOS/JavaAppLauncher"
 			commandLine 'chmod', '+x', launcher
 		}
 		exec {

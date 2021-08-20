@@ -108,10 +108,9 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		try
 		{
 			val parentAtoms = generateSetFrom(
-				parentStrings.setSize, parentStrings.iterator())
-			{
-				loader.lookupName(it)
-			}
+				parentStrings.setSize,
+				parentStrings.iterator(),
+				loader::lookupName)
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}
 		catch (e: MalformedMessageException)

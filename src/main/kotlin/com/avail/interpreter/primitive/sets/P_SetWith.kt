@@ -89,9 +89,7 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val setType = argumentTypes[0]
-		val newElementType = argumentTypes[1]
-
+		val (setType, newElementType) = argumentTypes
 		val setContentType = setType.contentType
 		val mightBePresent =
 			!setContentType.typeIntersection(newElementType).isBottom

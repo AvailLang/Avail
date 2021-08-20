@@ -34,6 +34,7 @@ package com.avail.compiler
 
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
+import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.applyModuleHeader
@@ -168,7 +169,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	@Throws(MalformedSerialStreamException::class)
 	private fun moduleImportsFromTuple(
 			serializedTuple: A_Tuple): List<ModuleImport> =
-		serializedTuple.map { ModuleImport.fromSerializedTuple(it) }
+		serializedTuple.map(::fromSerializedTuple)
 
 	/**
 	 * Extract the module's header information from the [Deserializer].

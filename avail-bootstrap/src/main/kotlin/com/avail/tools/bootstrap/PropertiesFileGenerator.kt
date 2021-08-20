@@ -145,7 +145,7 @@ abstract class PropertiesFileGenerator protected constructor(
 		{
 			FileInputStream(fileName).use { inputStream ->
 				InputStreamReader(inputStream, StandardCharsets.UTF_8)
-					.use { properties.load(it) }
+					.use(properties::load)
 			}
 		}
 		catch (e: FileNotFoundException)

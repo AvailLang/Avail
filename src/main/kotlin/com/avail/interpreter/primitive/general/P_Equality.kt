@@ -75,8 +75,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
-		val type1 = argumentTypes[0]
-		val type2 = argumentTypes[1]
+		val (type1, type2) = argumentTypes
 
 		if (type1.typeIntersection(type2).isBottom)
 		{
@@ -111,8 +110,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val firstReg = arguments[0]
-		val secondReg = arguments[1]
+		val (firstReg, secondReg) = arguments
 
 		if (firstReg.register() === secondReg.register())
 		{

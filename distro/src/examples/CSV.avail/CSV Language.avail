@@ -315,20 +315,20 @@ Public method "Display CSV(as a table«with headers»?)" is
 	 * @lexer "CSV whitespace lexer"
 	 * @param "source" "string"
 	 *        The complete source text.
-	 * @param "position" "real source position"
+	 * @param "position" "natural number"
 	 *        The position of the leading {@type "character"}.
-	 * @param "line" "real source line number"
+	 * @param "line" "natural number"
 	 *        The line number of the leading {@type "character"}.
 	 * @returns "{token+|}"
 	 *          The possible lexes discovered at {@code "position"}.
 	 */
 	Lexer $"CSV whitespace lexer"
-	when [c : character | c ∈ {¢" ", ¢"\t"}]
+	when [c : character | c ∈ ¢[ \t]ᵀ]
 	is
 	[
 		source : string,
-		position : real source position,
-		line : real source line number
+		position : natural number,
+		line : natural number
 	|
 		{<whitespace (source[position..position]) @ position:line>}
 	];
@@ -341,9 +341,9 @@ Public method "Display CSV(as a table«with headers»?)" is
 	 * @lexer "CSV end of line lexer"
 	 * @param "source" "string"
 	 *        The complete source text.
-	 * @param "position" "real source position"
+	 * @param "position" "natural number"
 	 *        The position of the leading {@type "character"}.
-	 * @param "line" "real source line number"
+	 * @param "line" "natural number"
 	 *        The line number of the leading {@type "character"}.
 	 * @returns "{token+|}"
 	 *          The possible lexes discovered at {@code "position"}.
@@ -353,8 +353,8 @@ Public method "Display CSV(as a table«with headers»?)" is
 	is
 	[
 		source : string,
-		position : real source position,
-		line : real source line number
+		position : natural number,
+		line : natural number
 	|
 		{<`end-of-line marker` (source[position..position]) @ position:line>}
 	];

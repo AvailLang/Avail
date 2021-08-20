@@ -56,14 +56,10 @@ import java.io.InputStream
  * @param runtime
  *   The [AvailRuntime] from which to locate well-known objects during
  *   deserialization.
- * @property lookupPumpedObject
- *   A function that checks if the provided [A_BasicObject] happens to be one of
- *   the objects that this serializer was primed with.  If so, it answers the
- *   object's index, which must be negative.  If not present, it answers 0,
- *   which implies the object will need to be serialized.  Positive indices are
- *   not permitted.  It's up to the caller to decide how to map from objects to
- *   indices, but a [Deserializer] must be provided the inverse of this function
- *   to convert negative indices to objects.
+ * @param lookupPumpedObject
+ *   A function that maps from negative integers to objects that this
+ *   deserializer has been primed with.  This is the inverse function of
+ *   [Serializer.lookupPumpedObject].
  */
 class Deserializer constructor(
 	input: InputStream,

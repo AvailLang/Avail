@@ -271,7 +271,8 @@ class MessageSplitterTokenizer
 						{
 							// If we never saw a regular character, then produce
 							// a token for each backquote and each underscore.
-							(start until positionInName).forEach { accept(it) }
+							(start until positionInName).forEach(
+								this@MessageSplitterTokenizer::accept)
 						}
 					}
 					else -> {

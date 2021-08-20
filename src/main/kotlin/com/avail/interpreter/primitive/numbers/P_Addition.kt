@@ -105,9 +105,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
-
+		val (aType, bType) = argumentTypes
 		try
 		{
 			if (aType.isEnumeration && bType.isEnumeration)
@@ -161,8 +159,7 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		val aTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(aType)
 		val aTypeIncludesInfinity = positiveInfinity.isInstanceOf(aType)

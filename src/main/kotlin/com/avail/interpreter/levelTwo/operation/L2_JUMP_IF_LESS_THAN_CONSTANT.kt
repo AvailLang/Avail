@@ -34,7 +34,7 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.AbstractNumberDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
@@ -52,8 +52,8 @@ import org.objectweb.asm.Opcodes
 object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
 	L2OperandType.READ_BOXED.named("value"),
 	L2OperandType.CONSTANT.named("constant"),
-	L2OperandType.PC.named("if less", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("if greater or equal", L2NamedOperandType.Purpose.FAILURE))
+	L2OperandType.PC.named("if less", Purpose.SUCCESS),
+	L2OperandType.PC.named("if greater or equal", Purpose.FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -91,6 +91,7 @@ object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
 		// :: if (comparison.isLess()) goto ifTrue;
 		// :: else goto ifFalse;
 		AbstractNumberDescriptor.Order.isLessMethod.generateCall(method)
-		emitBranch(translator, method, instruction, Opcodes.IFNE, ifLess, ifNotLess)
+		emitBranch(
+			translator, method, instruction, Opcodes.IFNE, ifLess, ifNotLess)
 	}
 }

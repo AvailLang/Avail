@@ -402,7 +402,7 @@ private constructor(
 			}
 		}
 		val completeRegisters = completeRegistersBySource[0].toMutableList()
-		completeRegistersBySource.forEach { completeRegisters.retainAll(it) }
+		completeRegistersBySource.forEach(completeRegisters::retainAll)
 		when
 		{
 			completeRegisters.isNotEmpty() && !forcePhiCreation ->

@@ -58,7 +58,10 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSIO
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
@@ -363,7 +366,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 *   A list phrase type.
 		 */
 		fun zeroOrMoreList(type: A_Type): A_Type =
-			createListPhraseType(TupleTypeDescriptor.zeroOrMoreOf(type))
+			createListPhraseType(zeroOrMoreOf(type))
 
 		/**
 		 * Create a list phrase type matching zero or one occurrences of
@@ -374,10 +377,8 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A list phrase type.
 		 */
-		fun zeroOrOneList(type: A_Type): A_Type
-		{
-			return createListPhraseType(TupleTypeDescriptor.zeroOrOneOf(type))
-		}
+		fun zeroOrOneList(type: A_Type): A_Type =
+			createListPhraseType(zeroOrOneOf(type))
 
 		/**
 		 * Given an array of types, create the most general list phrase type
@@ -407,7 +408,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 */
 		fun listPrefix(minimumSize: Int, vararg types: A_Type): A_Type =
 			createListPhraseType(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+				tupleTypeForSizesTypesDefaultType(
 					inclusive(fromInt(minimumSize), fromInt(types.size)),
 					tupleFromArray(*types),
 					bottom))
@@ -509,7 +510,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			subexpressionsTupleType: A_Type): A_Type
 		{
 			// Can't verify this, because LIST_NODE might not exist yet.
-			// assert listNodeEnumKind.isSubkindOf(LIST_NODE);
+			// assert(listNodeEnumKind.isSubkindOf(LIST_NODE))
 			assert(yieldType.isTupleType)
 			assert(subexpressionsTupleType.isTupleType)
 			return listNodeEnumKind.mutableDescriptor.create {

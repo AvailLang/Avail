@@ -144,7 +144,7 @@ constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		executeTask {
-			moduleRootTree?.let { successHandler(it) } ?:
+			moduleRootTree?.let(successHandler) ?:
 			resolve(successHandler, failureHandler)
 		}
 	}

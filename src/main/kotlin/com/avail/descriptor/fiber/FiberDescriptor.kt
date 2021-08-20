@@ -298,14 +298,37 @@ class FiberDescriptor private constructor(
 		 *
 		 * Each suspension/resumption pair causes this field to increase.
 		 */
-		private var clockBiasNanos: Long = 0L
+		private var clockBiasNanos = 0L
 
 		/**
 		 * The last system clock time, in nanoseconds, that this fiber was
 		 * suspended, or blocked in any other way.  It must be zero (`0L`) while
 		 * the fiber is running.
 		 */
-		private var suspensionTimeNanos: Long = 0L
+		private var suspensionTimeNanos = AvailRuntimeSupport.captureNanos()
+
+		/**
+		 * The fiber has just started running, so do what must be done for the
+		 * correct accounting of CPU time by the fiber.
+		 */
+		fun startCountingCPU()
+		{
+			val now = AvailRuntimeSupport.captureNanos()
+			clockBiasNanos += (now - suspensionTimeNanos)
+			suspensionTimeNanos = 0L
+		}
+
+		/**
+		 * The fiber has just stopped running, either due to completion, an
+		 * interrupt, or suspension, so do what must be done for the
+		 * correct accounting of CPU time by the fiber.
+		 */
+		fun stopCountingCPU()
+		{
+			val now = AvailRuntimeSupport.captureNanos()
+			assert (suspensionTimeNanos == 0L)
+			suspensionTimeNanos = now
+		}
 
 		/**
 		 * Answer a [Long], representing nanoseconds, which increases

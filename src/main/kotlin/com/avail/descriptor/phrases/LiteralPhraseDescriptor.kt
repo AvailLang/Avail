@@ -135,7 +135,7 @@ class LiteralPhraseDescriptor(
 	 * This only comes into play if the [L1Decompiler] was about to fail anyhow.
 	 */
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		tupleFromList(self.map { syntheticLiteralNodeFor(it) })
+		tupleFromList(self.map(::syntheticLiteralNodeFor))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val token: A_Token = self.slot(TOKEN)

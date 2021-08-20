@@ -81,6 +81,43 @@ Names
 Body
 
 /**
+ * Strengthen "_→character", which is stable.
+ */
+Method "_→character" is stable at [code point]→character;
+
+/**
+ * Restrict the output type of {@method "_→character"}, to attempt to preserve
+ * explicitly enumerated code points, or reasonably short code point numeric
+ * ranges at a call site.
+ *
+ * @method "_→character"
+ * @restricts "code point's type"
+ */
+Semantic restriction "_→character" is
+[
+	codePoints : code point's type
+|
+	count ::= |codePoints|;
+	if count < ∞ then
+	[
+		/* Map an enumeration of code points. */
+		enumeration of
+			map each cp in codePoints' instances through [cp → character]
+	]
+	else if count = ∞ ∧ ⌈codePoints⌉ - ⌊codePoints⌋ + 1 ≤ 256 then
+	[
+		/* Treat a short enough range as an enumeration of code points. */
+		enumeration of
+			map each cp in (⌊codePoints⌋ to ⌈codePoints⌉) → set
+			through [cp → character]
+	]
+	else
+	[
+		character
+	]
+];
+
+/**
  * Character type names.
  */
 characterTypes ::= <

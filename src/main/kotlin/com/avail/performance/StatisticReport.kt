@@ -120,7 +120,8 @@ enum class StatisticReport constructor(
 		"Non-primitive Returnee Type Checks", NANOSECONDS),
 
 	/** Outermost statements of modules that are loaded. */
-	TOP_LEVEL_STATEMENTS("Top Level Statements By Module", NANOSECONDS),
+	TOP_LEVEL_STATEMENTS(
+		"Top Level Statements By Module (CPU time)", NANOSECONDS),
 
 	/** Time spent updating text in workbench transcript. */
 	WORKBENCH_TRANSCRIPT("Workbench transcript", NANOSECONDS),

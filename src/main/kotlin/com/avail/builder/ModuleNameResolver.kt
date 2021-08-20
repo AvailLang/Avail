@@ -67,7 +67,7 @@ import java.util.Collections
  *  9. If the resolution succeeded and _F_ specifies a directory, then replace
  *     the resolution with _F/M'.avail_. Verify that the resolution specifies
  *     an existing regular file.
- *  10. Otherwise resolution failed.
+ *  10. Otherwise, resolution failed.
  *
  * An instance is obtained via [RenamesFileParser.parse].
  *
@@ -97,8 +97,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 * fully-qualified [module][ModuleName].
 	 */
 	private val resolutionCache =
-		LRUCache<ModuleName, ModuleNameResolutionResult>(
-			10000, 100, { privateResolve(it) })
+		LRUCache(10000, 100, this::privateResolve)
 
 	/** An immutable [Map] of all the module path renames. */
 	val renameRules: Map<String, String>

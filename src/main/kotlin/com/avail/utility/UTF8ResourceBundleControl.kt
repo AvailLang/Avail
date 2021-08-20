@@ -129,7 +129,7 @@ class UTF8ResourceBundleControl : ResourceBundle.Control()
 			}
 			if (stream !== null)
 			{
-				bundle = stream.use { PropertyResourceBundle(it) }
+				bundle = stream.use(::PropertyResourceBundle)
 			}
 		}
 		else

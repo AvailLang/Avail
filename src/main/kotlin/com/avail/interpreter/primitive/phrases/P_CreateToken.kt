@@ -52,14 +52,14 @@ import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.A_Type.Companion.instanceCount
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
@@ -71,15 +71,18 @@ import com.avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
 @Suppress("unused")
-object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
+object P_CreateToken : Primitive(4, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
-		val type = interpreter.argument(0)
-		val lexeme = interpreter.argument(1)
-		val start = interpreter.argument(2)
-		val line = interpreter.argument(3)
+		val (type, lexeme, start, line) = interpreter.argsBuffer
+		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
+		{
+			// The low end was already limited by the primitive's argument type
+			// restrictions.
+			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+		}
 		return interpreter.primitiveSuccess(
 			newToken(
 				lexeme,
@@ -119,7 +122,10 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 						COMMENT.atom,
 						WHITESPACE.atom)),
 				stringType,
-				inclusive(0L, (1L shl 31) - 1),
-				inclusive(0L, (1L shl 28) - 1)),
+				wholeNumbers,
+				wholeNumbers),
 			TOKEN.o)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_EXCEEDS_VM_LIMIT))
 }

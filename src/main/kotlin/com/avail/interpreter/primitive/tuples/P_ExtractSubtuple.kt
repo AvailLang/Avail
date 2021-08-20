@@ -104,10 +104,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		argumentTypes: List<A_Type>
 	): Fallibility
 	{
-		val tupleType = argumentTypes[0]
-		val startIndexType = argumentTypes[1]
-		val endIndexType = argumentTypes[2]
-
+		val (tupleType, startIndexType, endIndexType) = argumentTypes
 		return checkFallibility(
 			tupleType.sizeRange, startIndexType, endIndexType)
 	}
@@ -177,10 +174,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val tupleType = argumentTypes[0]
-		val startIndexType = argumentTypes[1]
-		val endIndexType = argumentTypes[2]
-
+		val (tupleType, startIndexType, endIndexType) = argumentTypes
 		return computeSliceType(tupleType, startIndexType, endIndexType)
 	}
 

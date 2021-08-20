@@ -72,9 +72,9 @@ Body
  * @lexer "end of line comment lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -85,14 +85,13 @@ when [c : character | c = ¢/]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	size ::= |source|;
 	if position < size ∧ source[position + 1] = ¢/ then
 	[
-		i : real source position;
-		i ?= position + 2;
+		i : natural number := position + 2;
 		While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
 		commentText ::= source[position..i min size];
 		{<comment (commentText) @ position:line>}
@@ -120,9 +119,9 @@ radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
  * @lexer "explicit radix integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -133,12 +132,11 @@ when [c : character | c ∈ radixIntegerAlphabet]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Scan ahead looking for the radix indicator, ¢r.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] ∈ radixIntegerAlphabetSet do [i++;];
 	if i > size ∨ source[i] ≠ ¢r then [∅]
@@ -195,9 +193,9 @@ binaryAlphabet ::= radixIntegerAlphabet[1..2]→set;
  * @lexer "octal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -208,12 +206,11 @@ when [c : character | c = ¢0]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Look ahead for a subsequent ¢b.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢b then [∅]
 	else
@@ -249,9 +246,9 @@ octalAlphabet ::= radixIntegerAlphabet[1..8]→set;
  * @lexer "octal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -262,12 +259,11 @@ when [c : character | c = ¢0]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Look ahead for a subsequent ¢o.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢o then [∅]
 	else
@@ -303,9 +299,9 @@ hexadecimalAlphabet ::= (radixIntegerAlphabet[1..16] ++ "abcdef")→set;
  * @lexer "hexadecimal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -316,12 +312,11 @@ when [c : character | c = ¢0]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Look ahead for a subsequent ¢x.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢x then [∅]
 	else
@@ -361,9 +356,9 @@ is
  * @lexer "floating point number lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -374,11 +369,11 @@ when [c : character | c is an Arabic numeral]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	$body : {token+|};
-	i : real source position := position;
+	i : natural number := position;
 	size ::= |source|;
 
 	getDigits ::= [
@@ -472,9 +467,9 @@ is
  * @lexer "raw string lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -485,12 +480,11 @@ when [c : character | c = ¢r]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Count subsequent ¢" characters.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size then [∅]
 	else
@@ -672,9 +666,9 @@ Private method "read range element from_at_" is
  * @lexer "character set lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -685,8 +679,8 @@ when [c : character | c = ¢¢]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	result : {character|} := ∅;
 	size ::= |source|;

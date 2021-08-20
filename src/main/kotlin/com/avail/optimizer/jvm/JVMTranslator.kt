@@ -627,17 +627,17 @@ class JVMTranslator constructor(
 
 		override fun doOperand(vector: L2ReadBoxedVectorOperand)
 		{
-			vector.elements().forEach(Consumer { this.doOperand(it) })
+			vector.elements().forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadIntVectorOperand)
 		{
-			vector.elements().forEach(Consumer { this.doOperand(it) })
+			vector.elements().forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadFloatVectorOperand)
 		{
-			vector.elements().forEach(Consumer { this.doOperand(it) })
+			vector.elements().forEach(this::doOperand)
 		}
 
 		override fun doOperand(operand: L2SelectorOperand)

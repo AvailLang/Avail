@@ -100,9 +100,7 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val varReg = arguments[0]
-		val valueReg = arguments[1]
-
+		val (varReg, valueReg) = arguments
 		val varType = varReg.type()
 		val valueType = valueReg.type()
 		val varInnerType = varType.writeType

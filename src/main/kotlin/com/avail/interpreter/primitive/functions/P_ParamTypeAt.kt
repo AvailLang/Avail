@@ -99,8 +99,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
 	{
-		val functionMeta : A_Type = argumentTypes[0]
-		val indexType = argumentTypes[1]
+		val (functionMeta: A_Type, indexType) = argumentTypes
 
 		val functionType = functionMeta.instance
 		val sizeRange = functionType.argsTupleType.sizeRange

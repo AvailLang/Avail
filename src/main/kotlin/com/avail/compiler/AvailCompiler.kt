@@ -633,18 +633,16 @@ class AvailCompiler(
 				listOf(
 					phrase1.value,
 					phrase1.value.macroOriginalSendNode)
-			) { strings ->
-				("unambiguous interpretation.  "
-					 + "At least two parses produced the same "
-					 + "phrase:\n\t"
-					 + strings[0]
-					 + "\n...where the pre-macro expression is:\n\t"
-					 + strings[1])
+			) { (print1, print2) ->
+				("unambiguous interpretation. At least two parses produced " +
+					"the same phrase:\n\t$print1\n...where the pre-macro " +
+					"expression is:\n\t$print2")
 			}
 		}
 		else
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
+			val line = phrase1.value.tokens.tupleAt(1).lineNumber()
 			if (phrase1.value.isMacroSubstitutionNode
 				&& phrase2.value.isMacroSubstitutionNode)
 			{
@@ -655,24 +653,22 @@ class AvailCompiler(
 						phrase2.value,
 						phrase1.value.macroOriginalSendNode,
 						phrase2.value.macroOriginalSendNode)
-				) { strings ->
-					val print1 = strings[0]
-					val print2 = strings[1]
-					val original1 = strings[2]
-					val original2 = strings[3]
+				) { (print1, print2, original1, original2) ->
 					if (print1 == print2)
 					{
-						("unambiguous interpretation.  At least two parses "
-							+ "produced same-looking phrases after macro "
-							+ "substitution.  The post-macro phrase is:\n"
+						("unambiguous interpretation near line $line. At " +
+							"least two parses produced same-looking phrases " +
+							"after macro substitution. The post-macro " +
+							"phrase is:\n"
 							+ "\t$print1\n...and the pre-macro phrases are:\n"
 							+ "\t$original1\n"
 							+ "\t$original2")
 					}
 					else
 					{
-						("unambiguous interpretation.  Here are two possible "
-							+ "parsings...\n\t$print1\n\t$print2")
+						("unambiguous interpretation near line $line. Here " +
+							"are two possible parsings..." +
+							"\n\t$print1\n\t$print2")
 					}
 				}
 			}
@@ -681,19 +677,17 @@ class AvailCompiler(
 				where.expected(
 					STRONG,
 					listOf(phrase1.value, phrase2.value)
-				) { strings ->
-					val print1 = strings[0]
-					val print2 = strings[1]
+				) { (print1, print2) ->
 					if (print1 == print2)
 					{
-						("unambiguous interpretation.  "
+						("unambiguous interpretation near line $line. "
 							+ "At least two parses produced unequal but "
 							+ "same-looking phrases:\n\t"
 							+ print1)
 					}
 					else
 					{
-						("unambiguous interpretation.  "
+						("unambiguous interpretation near line $line. "
 							+ "Here are two possible parsings...\n\t"
 							+ print1
 							+ "\n\t"
@@ -714,7 +708,7 @@ class AvailCompiler(
 	 */
 	private fun startModuleTransaction()
 	{
-		// Currently does nothing.  Eval might need this still.
+		// This currently does nothing.  Eval might need this still.
 	}
 
 	/**
@@ -1386,8 +1380,8 @@ class AvailCompiler(
 		var tempBundleTree = bundleTreeArg
 		// If a bundle tree is marked as a source of a cycle, its latest
 		// backward jump field is always the target.  Just continue processing
-		// there and it'll never have to expand the current node.  However, it's
-		// the expand() that might set up the cycle in the first place...
+		// there, and it'll never have to expand the current node.  However,
+		// it's the expand() that might set up the cycle in the first place...
 		tempBundleTree.expand(compilationContext.module)
 		while (tempBundleTree.isSourceOfCycle)
 		{
@@ -1516,8 +1510,8 @@ class AvailCompiler(
 			if (typeFilterTreePojo.notNil)
 			{
 				// Use the most recently pushed phrase's type to look up the
-				// successor bundle tree.  This implements aggregated argument
-				// type filtering.
+				// successor bundle tree.  This implements type filtering for
+				// aggregated arguments
 				val latestPhrase = argsSoFar.last()
 				val typeFilterTree = typeFilterTreePojo.javaObjectNotNull<
 					LookupTree<A_Tuple, A_BundleTree>>()
@@ -1534,7 +1528,7 @@ class AvailCompiler(
 					println("Type filter: $latestPhrase -> $successor")
 				}
 				// Don't complain if at least one plan was happy with the type
-				// of the argument.  Otherwise list all argument type/plan
+				// of the argument.  Otherwise, list all argument type/plan
 				// expectations as neatly as possible.
 				if (successor.allParsingPlansInProgress.mapSize == 0)
 				{
@@ -2526,8 +2520,8 @@ class AvailCompiler(
 			}
 			else
 			{
-				// Some of the macro definitions are not visible.  Search the
-				// hard (but hopefully infrequent) way.
+				// Some macro definitions are not visible.  Search the hard (but
+				// hopefully infrequent) way.
 				val phraseRestrictions = mutableListOf<TypeRestriction>()
 				for (argPhrase in argumentsListNode.expressionsTuple)
 				{
@@ -2939,14 +2933,14 @@ class AvailCompiler(
 		{
 			argumentsList.add(argument)
 		}
-		// Capture all of the tokens that comprised the entire macro send.
+		// Capture all tokens that comprised the entire macro send.
 		val withTokensAndBundle = stateAfterCall.clientDataMap
 			.mapAtPuttingCanDestroy(
 				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false)
 			.mapAtPuttingCanDestroy(
 				ALL_TOKENS_KEY.atom,
 				tupleFromList(stateAfterCall.lexingState.allTokens),
-				false)
+				true)
 			.mapAtPuttingCanDestroy(MACRO_BUNDLE_KEY.atom, bundle, true)
 			.makeShared()
 		if (AvailRuntimeConfiguration.debugMacroExpansions)
@@ -3085,10 +3079,8 @@ class AvailCompiler(
 			// Put the required versions into a set.
 			val requiredVersions = generateSetFrom(versions, ::stringFrom)
 			// Ask for the guaranteed versions.
-			val activeVersions =
-				generateSetFrom(AvailRuntimeConfiguration.activeVersions) {
-					stringFrom(it)
-				}
+			val activeVersions = generateSetFrom(
+				AvailRuntimeConfiguration.activeVersions, ::stringFrom)
 			// If the intersection of the sets is empty, then the module and
 			// the virtual machine are incompatible.
 			if (!requiredVersions.setIntersects(activeVersions))
@@ -3423,9 +3415,9 @@ class AvailCompiler(
 
 	/**
 	 * Parse a [module&#32;header][ModuleHeader] from the
-	 * [token&#32;list][TokenDescriptor] and apply any side-effects. Then
+	 * [token&#32;list][TokenDescriptor] and apply any side effects. Then
 	 * [parse&#32;the&#32;module&#32;body][parseAndExecuteOutermostStatements]
-	 * and apply any side-effects. Finally, execute the [CompilerDiagnostics]'s
+	 * and apply any side effects. Finally, execute the [CompilerDiagnostics]'s
 	 * [success&#32;reporter][CompilerDiagnostics.successReporter].
 	 */
 	private fun parseModuleCompletely()
@@ -3436,7 +3428,7 @@ class AvailCompiler(
 				source.tupleSize.toLong(),
 				afterHeader.position.toLong(),
 				afterHeader.lineNumber)
-			// Run any side-effects implied by this module header against
+			// Run any side effects implied by this module header against
 			// the module.
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.loader)
@@ -3649,7 +3641,7 @@ class AvailCompiler(
 		assert(compilationContext.workUnitsCompleted == 0L
 			&& compilationContext.workUnitsQueued == 0L)
 		// Start a module transaction, just to complete any necessary
-		// initialization. We are going to rollback this transaction no matter
+		// initialization. We are going to roll back this transaction no matter
 		// what happens.
 		startModuleTransaction()
 		val loader = compilationContext.loader
@@ -3675,7 +3667,7 @@ class AvailCompiler(
 				compilationContext.diagnostics.reportError()
 				return@noMoreWorkUnits
 			}
-			onSuccess(solutions) { this.rollbackModuleTransaction(it) }
+			onSuccess(solutions, this::rollbackModuleTransaction)
 		}
 		recordExpectationsRelativeTo(start)
 		if (loader.lexicalScanner().allVisibleLexers.isEmpty())
@@ -4061,6 +4053,7 @@ class AvailCompiler(
 		// The first time we parse at this position the fragmentCache will have
 		// no knowledge about it.
 		val rendezvous = fragmentCache.getRendezvous(start)
+		@Suppress("GrazieInspection")
 		if (!rendezvous.getAndSetStartedParsing())
 		{
 			// We're the (only) cause of the transition from hasn't-started to
@@ -4476,15 +4469,15 @@ class AvailCompiler(
 				assert(!phrase1.value.equals(phrase2.value))
 				if (phrase1.value.phraseKind != phrase2.value.phraseKind)
 				{
-					// The phrases are different kinds, so present them as what's
-					// different.
+					// The phrases are different kinds, so present them as
+					// what's different.
 					return
 				}
 				if (phrase1.value.isMacroSubstitutionNode
 					&& phrase2.value.isMacroSubstitutionNode)
 				{
-					if (phrase1.value.macroOriginalSendNode.equals(
-							phrase2.value.macroOriginalSendNode))
+					if (phrase1.value.macroOriginalSendNode.bundle.equals(
+							phrase2.value.macroOriginalSendNode.bundle))
 					{
 						// Two occurrences of the same macro.  Drill into the
 						// resulting phrases.
@@ -4492,7 +4485,7 @@ class AvailCompiler(
 						phrase2.value = phrase2.value.outputPhrase
 						continue
 					}
-					// Otherwise the macros are different and we should stop.
+					// Otherwise, the macros are different, and we should stop.
 					return
 				}
 				if (phrase1.value.isMacroSubstitutionNode
@@ -4509,9 +4502,9 @@ class AvailCompiler(
 					return
 				}
 				val parts1 = mutableListOf<A_Phrase>()
-				phrase1.value.childrenDo { parts1.add(it) }
+				phrase1.value.childrenDo(parts1::add)
 				val parts2 = mutableListOf<A_Phrase>()
-				phrase2.value.childrenDo { parts2.add(it) }
+				phrase2.value.childrenDo(parts2::add)
 				val isBlock = phrase1.value.phraseKindIsUnder(BLOCK_PHRASE)
 				if (parts1.size != parts2.size && !isBlock)
 				{

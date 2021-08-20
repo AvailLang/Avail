@@ -767,12 +767,12 @@ class TypeConsistencyTest
 				when (phraseKind.parentKind())
 				{
 					null ->
-						primitiveTypes[Types.NONTYPE]!!.also { parents.add(it) }
+						primitiveTypes[Types.NONTYPE]!!.also(parents::add)
 					else ->
 					{
 						val m: Map<Node?, Node> =
 							phraseTypeMap[phraseKind.parentKind()!!]!!
-						m[innerNode]?.let { parents.add(it) }
+						m[innerNode]?.let(parents::add)
 					}
 				}
 				for (parentInnerNode in parentInnerNodes)
@@ -1499,7 +1499,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testFiberResultCovariance() =
-		checkCovariance("fiber result") { fiberType(it) }
+		checkCovariance("fiber result", ::fiberType)
 
 	/**
 	 * Test that the subtype relation covaries with function return type.
@@ -1518,7 +1518,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testTupleEntryCovariance() =
-		checkCovariance("tuple entries") { zeroOrMoreOf(it) }
+		checkCovariance("tuple entries", ::zeroOrMoreOf)
 
 	/**
 	 * Test that the subtype relation covaries with type parameters.
@@ -1556,7 +1556,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testMetacovariance() =
-		checkCovariance("metacovariance") { instanceMeta(it) }
+		checkCovariance("metacovariance", ::instanceMeta)
 
 	/**
 	 * Check that the type union of two types' types is the same as the type of

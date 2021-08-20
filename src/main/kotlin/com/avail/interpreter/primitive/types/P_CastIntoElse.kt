@@ -123,10 +123,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// does a type test for the type being cast to, then either invokes the
 		// first block with the value being cast or the second block with no
 		// arguments.
-		val valueRead = arguments[0]
-		val castFunctionRead = arguments[1]
-		val elseFunctionRead = arguments[2]
-
+		val (valueRead, castFunctionRead, elseFunctionRead) = arguments
 		val castBlock =
 			translator.generator.createBasicBlock("cast type matched")
 		val elseBlock =

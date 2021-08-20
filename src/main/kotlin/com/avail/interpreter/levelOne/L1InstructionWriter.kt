@@ -347,7 +347,7 @@ class L1InstructionWriter constructor(
 			stream.write(L1_doExtension.ordinal)
 			stream.write(opcode - 16)
 		}
-		operands.forEach { writeOperand(it) }
+		operands.forEach(this::writeOperand)
 	}
 
 	/**

@@ -109,8 +109,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		aType.makeImmutable()
 		bType.makeImmutable()
@@ -268,8 +267,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		val aTypeIncludesZero = zero.isInstanceOf(aType)
 		val aTypeIncludesInfinity =

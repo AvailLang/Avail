@@ -104,10 +104,7 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 		callSiteHelper: L1Translator.CallSiteHelper
 	): Boolean
 	{
-		val variableReg = arguments[0]
-		val referenceReg = arguments[1]
-		val newValueReg = arguments[2]
-
+		val (variableReg, referenceReg, newValueReg) = arguments
 		if (!newValueReg.type().isSubtypeOf(variableReg.type().writeType))
 		{
 			// We can't guarantee the type being assigned is strong enough.

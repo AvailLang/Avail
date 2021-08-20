@@ -76,6 +76,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_
 import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS
 import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
@@ -748,10 +750,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			returnType: A_Type,
 			exceptionSet: A_Set = emptySet): A_Type
 		{
-			val tupleType =
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor
-						.singleInt(argTypes.tupleSize), argTypes, bottom)
+			val tupleType = tupleTypeForSizesTypesDefaultType(
+				singleInt(argTypes.tupleSize), argTypes, bottom)
 			return functionTypeFromArgumentTupleType(
 				tupleType, returnType, exceptionSet)
 		}
