@@ -66,10 +66,6 @@ dependencies {
 
 	// JSR-305 null analysis framework.
 	implementation "com.google.code.findbugs:jsr305:$jsr_version"
-
-	// JUnit 5.
-	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
-	testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
 }
 
 // Update the dependencies of "classes".

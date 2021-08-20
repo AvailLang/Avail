@@ -120,8 +120,10 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.theme.DarculaTheme
 import java.awt.Color
 import java.awt.Component
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.EventQueue
+import java.awt.Taskbar
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
@@ -159,6 +161,7 @@ import java.util.prefs.BackingStoreException
 import javax.swing.Action
 import javax.swing.BorderFactory
 import javax.swing.GroupLayout
+import javax.swing.ImageIcon
 import javax.swing.JCheckBoxMenuItem
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -1563,10 +1566,6 @@ class AvailWorkbench internal constructor (
 
 		// Create the menu bar and its menus.
 		val buildMenu = menu("Build")
-		if (!runningOnMac)
-		{
-			augment(buildMenu, aboutAction, null)
-		}
 		augment(
 			buildMenu,
 			buildAction, cancelAction, null,
@@ -1574,10 +1573,6 @@ class AvailWorkbench internal constructor (
 //			cleanModuleAction,  //TODO MvG Fix implementation and enable.
 			refreshAction)
 		val menuBar = JMenuBar()
-		if (!runningOnMac)
-		{
-			augment(buildMenu, null, preferencesAction)
-		}
 		menuBar.add(buildMenu)
 		menuBar.add(
 			menu(
@@ -1897,26 +1892,32 @@ class AvailWorkbench internal constructor (
 				saveWindowPosition()
 			}
 		})
-		if (runningOnMac)
-		{
-			OSXUtility.setQuitHandler {
-				// Quit was pressed.  Close the workbench, which should
-				// save window position state then exit.
-				// Apple's apple.eawt.quitStrategy has never worked, to
-				// the best of my knowledge.  It's a trick.  We must
-				// close the workbench window explicitly to give it a
-				// chance to save.
-				val closeEvent = WindowEvent(
-					this@AvailWorkbench,
-					WindowEvent.WINDOW_CLOSING)
-				dispatchEvent(closeEvent)
-				true
-			}
-			OSXUtility.setAboutHandler {
-				aboutAction.showDialog()
-				true
-			}
+
+		// Set up desktop and taskbar features.
+		Desktop.getDesktop().setDefaultMenuBar(menuBar)
+		setQuitHandler {
+			// Quit was pressed.  Close the workbench, which should
+			// save window position state then exit.
+			// Apple's apple.eawt.quitStrategy has never worked, to
+			// the best of my knowledge.  It's a trick.  We must
+			// close the workbench window explicitly to give it a
+			// chance to save.
+			val closeEvent = WindowEvent(
+				this@AvailWorkbench,
+				WindowEvent.WINDOW_CLOSING)
+			dispatchEvent(closeEvent)
+			true
 		}
+		setAboutHandler {
+			aboutAction.showDialog()
+		}
+		setPreferencesHandler {
+			preferencesAction.actionPerformed(null)
+		}
+		Taskbar.getTaskbar().iconImage = ImageIcon(
+			AvailWorkbench::class.java.classLoader.getResource(
+				"resources/workbench/AvailHammer.png")).image
+		Taskbar.getTaskbar().setIconBadge(activeVersionSummary)
 
 		// Select an initial module if specified.
 		validate()
@@ -1939,26 +1940,6 @@ class AvailWorkbench internal constructor (
 				leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
 		}
 		layoutConfiguration.saveWindowPosition()
-	}
-
-	/**
-	 * Make the workbench instance behave more like a Mac application.
-	 */
-	private fun setUpInstanceForMac()
-	{
-		assert(runningOnMac)
-		try
-		{
-			// Set up Mac-specific preferences menu handler...
-			OSXUtility.setPreferencesHandler {
-				preferencesAction.actionPerformed(null)
-				true
-			}
-		}
-		catch (e: Exception)
-		{
-			throw RuntimeException(e)
-		}
 	}
 
 	/** Perform the first refresh of the workbench. */
@@ -2026,13 +2007,6 @@ class AvailWorkbench internal constructor (
 		 * individual modules in progress.
 		 */
 		private const val maximumModulesInProgressReport = 20
-
-		/** Determine at startup whether we're on a Mac. */
-		val runningOnMac =
-			System
-				.getProperty("os.name")
-				.lowercase()
-				.matches("mac os x.*".toRegex())
 
 		/** Determine at startup whether we should show developer commands. */
 		val showDeveloperTools =
@@ -2304,30 +2278,45 @@ class AvailWorkbench internal constructor (
 			}
 
 		/**
-		 * Make the workbench behave more like a Mac application.
+		 * Pass this method an Object and Method equipped to perform application
+		 * shutdown logic.  The method passed should return a boolean stating
+		 * whether the quit should occur.
+		 *
+		 * @param quitHandler
 		 */
-		private fun setUpForMac()
+		fun setQuitHandler (quitHandler: () -> Boolean)
 		{
-			assert(runningOnMac)
-			try
-			{
-				System.setProperty("apple.laf.useScreenMenuBar", "true")
-				System.setProperty(
-					"com.apple.mrj.application.apple.menu.about.name",
-					"Avail Workbench")
-				System.setProperty(
-					"com.apple.awt.graphics.UseQuartz",
-					"true")
-				val application = OSXUtility.macOSXApplication
-				OSXUtility.setDockIconBadgeMethod(
-					application, activeVersionSummary)
+			Desktop.getDesktop().setQuitHandler { _, response ->
+				when (quitHandler())
+				{
+					true -> response.performQuit()
+					false -> response.cancelQuit()
+				}
 			}
-			catch (e: Throwable)
-			{
-				// Ignore any errors here, to give the best chance of actually
-				// opening the interface.
-				e.printStackTrace()
-			}
+		}
+
+		/**
+		 * Pass this method an Object and Method equipped to display application
+		 * info.  They will be called when the About menu item is selected from
+		 * the application menu.
+		 *
+		 * @param aboutHandler
+		 */
+		fun setAboutHandler (aboutHandler: () -> Unit)
+		{
+			Desktop.getDesktop().setAboutHandler { aboutHandler() }
+		}
+
+		/**
+		 * Pass this method an Object and a Method equipped to display
+		 * application options. They will be called when the Preferences menu
+		 * item is selected from the application menu.
+		 *
+		 * @param preferences
+		 */
+		fun setPreferencesHandler (preferences: ()-> Unit)
+		{
+			Desktop.getDesktop().setPreferencesHandler { preferences() }
 		}
 
 		/**
@@ -2347,10 +2336,6 @@ class AvailWorkbench internal constructor (
 			val swingReady = Semaphore(0)
 			val runtimeReady = Semaphore(0)
 			thread(name = "Set up LAF") {
-				if (runningOnMac)
-				{
-					setUpForMac()
-				}
 				if (darkMode)
 				{
 					LafManager.install(DarculaTheme())
@@ -2420,10 +2405,6 @@ class AvailWorkbench internal constructor (
 			val bench = AvailWorkbench(runtime, fileManager, resolver)
 			bench.createBufferStrategy(2)
 			bench.ignoreRepaint = true
-			if (runningOnMac)
-			{
-				bench.setUpInstanceForMac()
-			}
 			invokeLater {
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
