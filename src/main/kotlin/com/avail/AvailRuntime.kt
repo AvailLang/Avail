@@ -239,7 +239,6 @@ import java.util.Collections
 import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
-import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
@@ -331,14 +330,15 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * The [thread pool executor][ThreadPoolExecutor] for this [Avail runtime][AvailRuntime].
+	 * The [ThreadPoolExecutor] for running tasks and fibers of this
+	 * [AvailRuntime].
 	 */
 	val executor = ThreadPoolExecutor(
 		min(availableProcessors, maxInterpreters),
 		maxInterpreters,
 		10L,
 		TimeUnit.SECONDS,
-		PriorityBlockingQueue(),
+		WorkStealingQueue(maxInterpreters),
 		{
 			val interpreter = Interpreter(this)
 			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
