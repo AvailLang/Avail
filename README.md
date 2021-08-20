@@ -26,7 +26,7 @@ To see if you have Git installed, try this:
 If Git is installed and available on your path, then it will respond with a
 version string like:
 
-	git version 1.7.10.2 (Apple Git-33)
+	git version 2.31.1
 
 The latest version of Git can be obtained at:
 
@@ -64,28 +64,23 @@ BEFORE INSTALLING
 Before installing Avail, you will need to make sure that you have obtained and
 installed the prerequisite software:
 
-1) Java: You will need version 1.8 of the Java Development Kit (JDK) Standard
-Edition (SE), NOT an earlier or later version. Many modern systems already
-have some version of the JDK, so you should check your JDK version before
-obtaining and installing it from Oracle (or some other vendor). You can do so
-like this:
+1) Java: You will need version 16 of the Java Development Kit (JDK) Standard
+Edition (SE), NOT an earlier version. Many modern systems already have some
+version of the JDK, so you should check your JDK version before obtaining and
+installing it from OpenJDK (or some other vendor). You can do so like this:
 
 	$ javac -version
 
 And hopefully you get back something like this:
 
-	javac 1.8.0_152
+	javac 16.0.2
 
 Otherwise, the latest version of the JDK can be obtained at:
 
-	http://www.oracle.com/technetwork/java/javase/downloads/index.html
+	https://jdk.java.net/16/index.html
 
-Please follow any installation directions provided by the Oracle website or
-included with the JDK. Be warned that the Java installer may offer to install
-sponsored software from third parties (i.e., malware) or change settings on your
-computer to favor their sponsors. You are encouraged to read the install screens
-carefully, and to uncheck any of the sponsor options which are checked by
-default.
+Please follow any installation directions provided by the website or included
+with the JDK.
 
 The commands of interest are "java" and "javac". Please make sure that these are
 on your path.
