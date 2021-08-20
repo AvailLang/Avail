@@ -33,6 +33,7 @@
 package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import kotlin.math.max
@@ -91,7 +92,7 @@ internal abstract class L1StackTracker : L1OperationDispatcher
 	override fun L1_doCall()
 	{
 		val bundle = literalAt(currentOperands!![0])
-		currentDepth += 1 - bundle.bundleMethod().numArgs()
+		currentDepth += 1 - bundle.bundleMethod.numArgs
 	}
 
 	override fun L1_doPushLiteral()
@@ -202,6 +203,6 @@ internal abstract class L1StackTracker : L1OperationDispatcher
 	override fun L1Ext_doSuperCall()
 	{
 		val bundle = literalAt(currentOperands!![0])
-		currentDepth += 1 - bundle.bundleMethod().numArgs()
+		currentDepth += 1 - bundle.bundleMethod.numArgs
 	}
 }

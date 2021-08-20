@@ -45,6 +45,7 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import com.avail.descriptor.module.A_Module
 import com.avail.error.ErrorCodeRangeRegistry
+import com.avail.files.FileManager
 import com.avail.interpreter.execution.Interpreter
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.cache.Repository
@@ -52,6 +53,7 @@ import com.avail.server.configuration.AvailServerConfiguration
 import com.avail.server.configuration.CommandLineConfigurator
 import com.avail.server.configuration.EnvironmentConfigurator
 import com.avail.server.error.ServerErrorCode
+import com.avail.server.error.ServerErrorCodeRange
 import com.avail.server.io.AvailServerChannel
 import com.avail.server.io.AvailServerChannel.ProtocolState.BINARY
 import com.avail.server.io.AvailServerChannel.ProtocolState.COMMAND
@@ -62,16 +64,15 @@ import com.avail.server.io.RunCompletionDisconnect
 import com.avail.server.io.RunFailureDisconnect
 import com.avail.server.io.ServerInputChannel
 import com.avail.server.io.ServerMessageDisconnect
+import com.avail.server.io.SocketAdapter
 import com.avail.server.io.WebSocketAdapter
-import com.avail.files.FileManager
-import com.avail.server.error.ServerErrorCodeRange
-import com.avail.server.messages.TextCommand
 import com.avail.server.messages.CommandMessage
 import com.avail.server.messages.CommandParseException
 import com.avail.server.messages.LoadModuleCommandMessage
 import com.avail.server.messages.Message
 import com.avail.server.messages.RunEntryPointCommandMessage
 import com.avail.server.messages.SimpleCommandMessage
+import com.avail.server.messages.TextCommand
 import com.avail.server.messages.UnloadModuleCommandMessage
 import com.avail.server.messages.UpgradeCommandMessage
 import com.avail.server.messages.VersionCommandMessage
@@ -131,6 +132,7 @@ class AvailServer constructor(
 	{
 		fileManager.associateRuntime(runtime)
 	}
+
 	/**
 	 * The [Avail builder][AvailBuilder] responsible for managing build and
 	 * execution tasks.
@@ -849,7 +851,7 @@ class AvailServer constructor(
 				// TODO: [TLS] Disambiguate.
 			},
 			{ value, cleanup ->
-				if (value.equalsNil())
+				if (value.isNil)
 				{
 					val message = newSuccessMessage(channel, command) {
 						writeObject {
@@ -924,13 +926,13 @@ class AvailServer constructor(
 
 	companion object
 	{
-		/** The [logger][Logger].  */
+		/** The [logger][Logger]. */
 		val logger: Logger = Logger.getLogger(AvailServer::class.java.name)
 
-		/** The current server protocol version.  */
+		/** The current server protocol version. */
 		private const val protocolVersion = 6
 
-		/** The supported client protocol versions.  */
+		/** The supported client protocol versions. */
 		private val supportedProtocolVersions = setOf(protocolVersion)
 
 		/**
@@ -954,7 +956,7 @@ class AvailServer constructor(
 		 */
 		private fun writeCommandOn(command: TextCommand, writer: JSONWriter) =
 			writer.at("command") {
-				write(command.name.toLowerCase().replace('_', ' '))
+				write(command.name.lowercase().replace('_', ' '))
 			}
 
 		/**
@@ -1282,6 +1284,7 @@ class AvailServer constructor(
 			if (supportedProtocolVersions.contains(version))
 			{
 				message = newSuccessMessage(channel, command) { write(version) }
+				channel.state = ELIGIBLE_FOR_UPGRADE
 			}
 			else
 			{
@@ -1295,9 +1298,6 @@ class AvailServer constructor(
 					}
 				}
 			}
-			// Transition to the next state. If the client cannot handle any of
-			// the specified versions, then it must disconnect.
-			channel.state = ELIGIBLE_FOR_UPGRADE
 			channel.enqueueMessageThen(message, continuation)
 		}
 
@@ -1404,10 +1404,23 @@ class AvailServer constructor(
 			val server = AvailServer(configuration, runtime, fileManager)
 			try
 			{
-				WebSocketAdapter(
-					server,
-					InetSocketAddress(configuration.serverPort),
-					configuration.serverAuthority)
+				if (configuration.startWebSocketAdapter)
+				{
+					WebSocketAdapter(
+						server,
+						InetSocketAddress(
+							configuration.serverAuthority,
+							configuration.serverPort),
+						configuration.serverAuthority)
+				}
+				else
+				{
+					SocketAdapter(
+						server,
+						InetSocketAddress(
+							configuration.serverAuthority,
+							configuration.serverPort))
+				}
 
 				// Prevent the Avail server from exiting.
 				Semaphore(0).acquire()

@@ -151,5 +151,6 @@ class L2Synonym constructor(semanticValues: Collection<L2SemanticValue>)
 	}
 
 	override fun compareTo(other: L2Synonym) =
-		semanticValues.min()!!.compareTo(other.semanticValues.min()!!)
+		semanticValues.minOrNull()!!.compareTo(
+			other.semanticValues.minOrNull()!!)
 }

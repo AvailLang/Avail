@@ -39,6 +39,10 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.sets.SetDescriptor.Companion.toSet
@@ -75,6 +79,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
@@ -100,7 +105,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 	PC.named("lookup succeeded", SUCCESS),
 	PC.named("lookup failed", FAILURE))
 {
-	/** The type of failure codes that a failed lookup can produce.  */
+	/** The type of failure codes that a failed lookup can produce. */
 	private val failureCodesType =
 		AbstractEnumerationTypeDescriptor.enumerationWith(set(
 			E_NO_METHOD,
@@ -141,11 +146,11 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 		if (functionType.isEnumeration)
 		{
 			val numArgs = argumentTypeRegs.size
-			val functions: Set<A_Function> = toSet(functionType.instances())
+			val functions: Set<A_Function> = toSet(functionType.instances)
 			val argumentTupleUnionType =
 				functions.fold(bottom) { union, function ->
 					union.typeUnion(
-						function.code().functionType().argsTupleType())
+						function.code().functionType().argsTupleType)
 				}
 			for (i in 1 .. numArgs)
 			{
@@ -236,10 +241,10 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 				Level.FINER,
 				"{0}Lookup-by-types {1}",
 				interpreter.debugModeString,
-				bundle.message().atomName())
+				bundle.message.atomName)
 		}
 		val typesList = mutableListOf(*types)
-		val method: A_Method = bundle.bundleMethod()
+		val method: A_Method = bundle.bundleMethod
 		val before = AvailRuntimeSupport.captureNanos()
 		val definitionToCall: A_Definition = try
 		{
@@ -261,7 +266,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 	/**
 	 * The [CheckedMethod] for [lookup].
 	 */
-	private val lookupMethod = CheckedMethod.staticMethod(
+	private val lookupMethod = staticMethod(
 		L2_LOOKUP_BY_TYPES::class.java,
 		::lookup.name,
 		A_Function::class.java,

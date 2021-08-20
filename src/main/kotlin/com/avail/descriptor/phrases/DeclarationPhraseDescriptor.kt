@@ -49,8 +49,8 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TOKE
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.ObjectSlots.TYPE_EXPRESSION
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine7
 import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -174,7 +174,7 @@ class DeclarationPhraseDescriptor(
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
 			) {
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" : ")
 				printTypePartOf(self, builder, recursionMap, indent + 1)
 			}
@@ -205,17 +205,19 @@ class DeclarationPhraseDescriptor(
 				indent: Int
 			) {
 				builder.append('$')
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" : ")
-				val typeExpression: A_Phrase = self.typeExpression()
-				if (!typeExpression.equalsNil()) {
+				val typeExpression: A_Phrase = self.typeExpression
+				if (typeExpression.notNil) {
 					typeExpression.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
-				} else {
+				}
+				else
+				{
 					// Output the continuation type's return type, since that's
 					// what get specified syntactically.
-					val functionType = self.declaredType().functionType()
-					functionType.returnType().printOnAvoidingIndent(
+					val functionType = self.declaredType.functionType
+					functionType.returnType.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				}
 			}
@@ -229,8 +231,8 @@ class DeclarationPhraseDescriptor(
 				declarationNode: A_Phrase,
 				codeGenerator: AvailCodeGenerator
 			) {
-				val expr: A_Phrase = declarationNode.initializationExpression()
-				if (!expr.equalsNil()) {
+				val expr: A_Phrase = declarationNode.initializationExpression
+				if (expr.notNil) {
 					expr.emitValueOn(codeGenerator)
 					codeGenerator.emitSetLocalOrOuter(tokens, declarationNode)
 				}
@@ -260,12 +262,12 @@ class DeclarationPhraseDescriptor(
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
 			) {
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" : ")
 				printTypePartOf(self, builder, recursionMap, indent + 1)
-				if (!self.initializationExpression().equalsNil()) {
+				if (self.initializationExpression.notNil) {
 					builder.append(" := ")
-					self.initializationExpression().printOnAvoidingIndent(
+					self.initializationExpression.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				}
 			}
@@ -279,7 +281,7 @@ class DeclarationPhraseDescriptor(
 				declarationNode: A_Phrase,
 				codeGenerator: AvailCodeGenerator
 			) {
-				declarationNode.initializationExpression()
+				declarationNode.initializationExpression
 					.emitValueOn(codeGenerator)
 				codeGenerator.emitSetLocalFrameSlot(tokens, declarationNode)
 			}
@@ -296,9 +298,9 @@ class DeclarationPhraseDescriptor(
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
 			) {
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" ::= ")
-				self.initializationExpression().printOnAvoidingIndent(
+				self.initializationExpression.printOnAvoidingIndent(
 					builder, recursionMap, indent + 1)
 			}
 		},
@@ -311,14 +313,14 @@ class DeclarationPhraseDescriptor(
 				declarationNode: A_Phrase,
 				codeGenerator: AvailCodeGenerator
 			) = codeGenerator.emitSetLiteral(
-				tokens, declarationNode.literalObject())
+				tokens, declarationNode.literalObject)
 
 			override fun emitVariableReferenceForOn(
 				tokens: A_Tuple,
 				declarationNode: A_Phrase,
 				codeGenerator: AvailCodeGenerator
 			) = codeGenerator.emitPushLiteral(
-				tokens, declarationNode.literalObject())
+				tokens, declarationNode.literalObject)
 
 			override fun emitVariableValueForOn(
 				tokens: A_Tuple,
@@ -328,7 +330,7 @@ class DeclarationPhraseDescriptor(
 				// Technically, that's the declaration, not the use, but it
 				// should do for now.
 				codeGenerator.emitGetLiteral(
-					declarationNode.tokens(), declarationNode.literalObject())
+					declarationNode.tokens, declarationNode.literalObject)
 			}
 
 			override fun print(
@@ -337,12 +339,12 @@ class DeclarationPhraseDescriptor(
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
 			) {
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" : ")
 				printTypePartOf(self, builder, recursionMap, indent + 1)
-				if (!self.initializationExpression().equalsNil()) {
+				if (self.initializationExpression.notNil) {
 					builder.append(" := ")
-					self.initializationExpression().printOnAvoidingIndent(
+					self.initializationExpression.printOnAvoidingIndent(
 						builder, recursionMap, indent + 1)
 				}
 			}
@@ -356,7 +358,7 @@ class DeclarationPhraseDescriptor(
 				declarationNode: A_Phrase,
 				codeGenerator: AvailCodeGenerator
 			) = codeGenerator.emitGetLiteral(
-				tokens, declarationNode.literalObject())
+				tokens, declarationNode.literalObject)
 
 			override fun print(
 				self: A_Phrase,
@@ -364,9 +366,9 @@ class DeclarationPhraseDescriptor(
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
 			) {
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" ::= ")
-				self.initializationExpression().printOnAvoidingIndent(
+				self.initializationExpression.printOnAvoidingIndent(
 					builder, recursionMap, indent + 1)
 			}
 		},
@@ -389,7 +391,7 @@ class DeclarationPhraseDescriptor(
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
 			) {
-				builder.append(self.token().string().asNativeString())
+				builder.append(self.token.string().asNativeString())
 				builder.append(" : ")
 				printTypePartOf(self, builder, recursionMap, indent + 1)
 			}
@@ -551,8 +553,8 @@ class DeclarationPhraseDescriptor(
 				builder: StringBuilder,
 				recursionMap: IdentityHashMap<A_BasicObject, Void>,
 				indent: Int
-			) = when (val typeExpression = self.typeExpression()) {
-				nil -> self.declaredType()
+			) = when (val typeExpression = self.typeExpression) {
+				nil -> self.declaredType
 				else -> typeExpression
 			}.printOnAvoidingIndent(builder, recursionMap, indent)
 		}
@@ -587,7 +589,7 @@ class DeclarationPhraseDescriptor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = self.declarationKind().emitEffectForOn(
-		self.tokens(), self, codeGenerator)
+		self.tokens, self, codeGenerator)
 
 	/**
 	 * This is a declaration, so it shouldn't generally produce a value.
@@ -600,15 +602,14 @@ class DeclarationPhraseDescriptor(
 		codeGenerator.emitPushLiteral(emptyTuple, nil)
 	}
 
-	override fun o_Hash(self: AvailObject): Int {
-		var h = self.token().hash()
-		h = h * multiplier + self.typeExpression().hash()
-		h = h * multiplier + self.declaredType().hash()
-		h = h * multiplier xor self.initializationExpression().hash()
-		h = h * multiplier + self.literalObject().hash()
-		h = h * multiplier - self.declarationKind().ordinal
-		return h xor 0x4C27EB37
-	}
+	override fun o_Hash(self: AvailObject): Int = combine7(
+		self.token.hash(),
+		self.typeExpression.hash(),
+		self.declaredType.hash(),
+		self.initializationExpression.hash(),
+		self.literalObject.hash(),
+		self.declarationKind().ordinal,
+		0x4C27EB37)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
@@ -619,12 +620,12 @@ class DeclarationPhraseDescriptor(
 		self: AvailObject,
 		transformer: (A_Phrase) -> A_Phrase
 	) {
-		val typeExpression = self.typeExpression()
-		if (!typeExpression.equalsNil()) {
+		val typeExpression = self.typeExpression
+		if (typeExpression.notNil) {
 			self.setSlot(TYPE_EXPRESSION, transformer(typeExpression))
 		}
-		val expression: A_Phrase = self.initializationExpression()
-		if (!expression.equalsNil()) {
+		val expression: A_Phrase = self.initializationExpression
+		if (expression.notNil) {
 			self.setSlot(INITIALIZATION_EXPRESSION, transformer(expression))
 		}
 	}
@@ -633,8 +634,8 @@ class DeclarationPhraseDescriptor(
 		self: AvailObject,
 		action: (A_Phrase) -> Unit
 	) {
-		val expression = self.initializationExpression()
-		if (!expression.equalsNil()) {
+		val expression = self.initializationExpression
+		if (expression.notNil) {
 			action(expression)
 		}
 	}
@@ -668,26 +669,26 @@ class DeclarationPhraseDescriptor(
 			at("token") { self.slot(TOKEN).writeTo(writer) }
 			at("declared type") { self.slot(DECLARED_TYPE).writeTo(writer) }
 			val typeExpression = self.slot(TYPE_EXPRESSION)
-			if (!typeExpression.equalsNil())
+			if (typeExpression.notNil)
 			{
 				at("type expression") { typeExpression.writeTo(writer) }
 			}
 			val initializationExpression = self.slot(INITIALIZATION_EXPRESSION)
-			if (!initializationExpression.equalsNil())
+			if (initializationExpression.notNil)
 			{
 				at("initialization expression") {
 					initializationExpression.writeTo(writer)
 				}
 			}
 			val literal = self.slot(LITERAL_OBJECT)
-			if (!literal.equalsNil())
+			if (literal.notNil)
 			{
 				at("literal") { literal.writeTo(writer) }
 			}
 		}
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		super.o_NameForDebugger(self) + ": " + self.phraseKind()
+		super.o_NameForDebugger(self) + ": " + self.phraseKind
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -730,10 +731,10 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase {
 			assert(declaredType.isType)
 			assert(token.isInstanceOf(Types.TOKEN.o))
-			assert(initializationExpression.equalsNil()
+			assert(initializationExpression.isNil
 				|| initializationExpression.isInstanceOfKind(
 					PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
-			assert(literalObject.equalsNil()
+			assert(literalObject.isNil
 				|| declarationKind === DeclarationKind.MODULE_VARIABLE
 				|| declarationKind === DeclarationKind.MODULE_CONSTANT)
 			return mutables[declarationKind.ordinal].createShared {
@@ -820,7 +821,7 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase = newDeclaration(
 			DeclarationKind.LOCAL_CONSTANT,
 			token,
-			initializationExpression.phraseExpressionType(),
+			initializationExpression.phraseExpressionType,
 			nil,
 			initializationExpression,
 			nil)
@@ -911,7 +912,7 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase = newDeclaration(
 			DeclarationKind.MODULE_VARIABLE,
 			token,
-			literalVariable.kind().readType(),
+			literalVariable.kind().readType,
 			typeExpression,
 			initializationExpression,
 			literalVariable)
@@ -937,18 +938,18 @@ class DeclarationPhraseDescriptor(
 		): A_Phrase = newDeclaration(
 			DeclarationKind.MODULE_CONSTANT,
 			token,
-			literalVariable.kind().readType(),
+			literalVariable.kind().readType,
 			nil,
 			initializationExpression,
 			literalVariable)
 
-		/** The mutable [DeclarationPhraseDescriptor]s.  */
+		/** The mutable [DeclarationPhraseDescriptor]s. */
 		private val mutables = DeclarationKind.values().map {
 			DeclarationPhraseDescriptor(Mutability.MUTABLE, it)
 		}.toTypedArray()
 
 
-		/** The shared [DeclarationPhraseDescriptor]s.  */
+		/** The shared [DeclarationPhraseDescriptor]s. */
 		private val shareds = DeclarationKind.values().map {
 			DeclarationPhraseDescriptor(Mutability.SHARED, it)
 		}.toTypedArray()

@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.optimizer.ExecutableChunk
 import com.avail.optimizer.L1Translator
 import com.avail.optimizer.L2Generator
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
@@ -111,23 +112,23 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val chunkConstructor : CheckedConstructor =
 			CheckedConstructor.constructorMethod(JVMChunk::class.java)
 
-		/** An empty `long` array.  */
+		/** An empty `long` array. */
 		@ReferencedInGeneratedCode
 		@JvmField
 		val noLongs = LongArray(0)
 
-		/** Access to the field [noLongs]  */
+		/** Access to the field [noLongs]. */
 		var noLongsField : CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noLongs",
 			LongArray::class.java)
 
-		/** An empty [AvailObject] array.  */
+		/** An empty [AvailObject] array. */
 		@ReferencedInGeneratedCode
 		@JvmField
 		val noObjects = arrayOf<AvailObject>()
 
-		/** Access to the field [noObjects]  */
+		/** Access to the field [noObjects]. */
 		var noObjectsField : CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noObjects",
@@ -150,8 +151,8 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 			throw RuntimeException("bad offset $offset")
 		}
 
-		/** The [CheckedMethod] for [badOffset].  */
-		val badOffsetMethod: CheckedMethod = CheckedMethod.staticMethod(
+		/** The [CheckedMethod] for [badOffset]. */
+		val badOffsetMethod = staticMethod(
 			JVMChunk::class.java,
 			::badOffset.name,
 			RuntimeException::class.java,

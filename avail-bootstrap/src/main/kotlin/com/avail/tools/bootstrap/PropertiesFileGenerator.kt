@@ -31,6 +31,7 @@
  */
 package com.avail.tools.bootstrap
 
+import com.avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
 import com.avail.tools.bootstrap.Resources.localName
 import com.avail.tools.bootstrap.Resources.preambleBaseName
 import com.avail.tools.bootstrap.Resources.sourceBaseName
@@ -42,7 +43,6 @@ import java.io.IOException
 import java.io.InputStreamReader
 import java.io.PrintWriter
 import java.nio.charset.StandardCharsets
-import java.text.MessageFormat
 import java.util.Date
 import java.util.Locale
 import java.util.Properties
@@ -90,15 +90,19 @@ abstract class PropertiesFileGenerator protected constructor(
 	 *   The [output stream][PrintWriter].
 	 */
 	protected fun generatePreamble(writer: PrintWriter) = with(writer) {
-		println(MessageFormat.format(
-			preambleBundle.getString(Resources.Key.propertiesCopyright.name),
-			localName(baseName) + "_" + locale.language,
-			Date()))
-		println(MessageFormat.format(
-			preambleBundle.getString(
-				Resources.Key.generatedPropertiesNotice.name),
-			javaClass.name,
-			Date()))
+		println(
+			checkedFormat(
+				preambleBundle.getString(
+					Resources.Key.propertiesCopyright.name),
+				localName(baseName) + "_" + locale.language,
+				Date())
+		)
+		println(
+			checkedFormat(
+				preambleBundle.getString(
+					Resources.Key.generatedPropertiesNotice.name),
+				javaClass.name,
+				Date()))
 	}
 
 	/**
@@ -141,7 +145,7 @@ abstract class PropertiesFileGenerator protected constructor(
 		{
 			FileInputStream(fileName).use { inputStream ->
 				InputStreamReader(inputStream, StandardCharsets.UTF_8)
-					.use { properties.load(it) }
+					.use(properties::load)
 			}
 		}
 		catch (e: FileNotFoundException)

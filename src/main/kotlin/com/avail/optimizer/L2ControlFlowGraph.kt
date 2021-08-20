@@ -177,7 +177,7 @@ class L2ControlFlowGraph
 	 */
 	enum class ZoneType constructor(val color: String, val bgcolor: String)
 	{
-		/** A zone used for reifying to handle a fiber interrupt.  */
+		/** A zone used for reifying to handle a fiber interrupt. */
 		BEGIN_REIFICATION_FOR_INTERRUPT("#c0c0ff/505090", "#d8d8ff/282850"),
 
 		/**

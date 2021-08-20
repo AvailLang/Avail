@@ -91,10 +91,10 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		val priority = interpreter.argument(3)
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
@@ -108,11 +108,11 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		// that the current (2014.06.11) implementation of the file executor
 		// specifies an unbounded queue, so the fiber execution threads will
 		// never be blocked waiting for I/O.
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{
 				StringDescriptor.stringFrom(
@@ -129,26 +129,26 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		val runtime = interpreter.runtime
 		runtime.ioSystem.executeFileTask(
 			Runnable {
-               try
-               {
-                   handle.channel.force(true)
-               }
-               catch (e: IOException)
-               {
-                   runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_IO_ERROR.numericCode()))
-                   return@Runnable
-               }
+				try
+				{
+					handle.channel.force(true)
+				}
+				catch (e: IOException)
+				{
+					runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_IO_ERROR.numericCode()))
+					return@Runnable
+				}
 
-               runOutermostFunction(
-                   runtime,
-                   newFiber,
-                   succeed,
-                   emptyList())
-           })
+				runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					emptyList())
+			})
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
@@ -159,10 +159,8 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 				functionType(emptyTuple(), TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

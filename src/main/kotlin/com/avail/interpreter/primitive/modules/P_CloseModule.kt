@@ -34,7 +34,6 @@ package com.avail.interpreter.primitive.modules
 
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.moduleState
-import com.avail.descriptor.module.A_Module.Companion.setModuleState
 import com.avail.descriptor.module.ModuleDescriptor.State.Loaded
 import com.avail.descriptor.module.ModuleDescriptor.State.Loading
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -56,21 +55,21 @@ import com.avail.interpreter.execution.Interpreter
  */
 object P_CloseModule : Primitive(1, CanInline)
 {
-	override fun attempt (interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
 		val module: A_Module = interpreter.argument(0)
 
-		if (module.moduleState() != Loading)
+		if (module.moduleState != Loading)
 		{
 			// TODO Should rename error code.
 			return interpreter.primitiveFailure(E_MODULE_IS_CLOSED)
 		}
-		module.setModuleState(Loaded)
+		module.moduleState = Loaded
 		return interpreter.primitiveSuccess(TOP.o)
 	}
 
-	override fun privateBlockTypeRestriction () =
+	override fun privateBlockTypeRestriction() =
 		functionType(tuple(MODULE.o), TOP.o)
 
 	override fun privateFailureVariableType() =

@@ -79,16 +79,16 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 		interpreter.checkArgumentCount(2)
 		val (importedModuleNames, isPublic) = interpreter.argsBuffer
 		val module = interpreter.module()
-		assert(!module.equalsNil())
+		assert(module.notNil)
 		val runtime = interpreter.runtime
 		val sets = importedModuleNames.map { importedModuleName ->
 			val importedModule = runtime.moduleAt(importedModuleName)
-			importedModule.exportedNames()
-		}.sortedByDescending { it.setSize() }
+			importedModule.exportedNames
+		}.sortedByDescending { it.setSize }
 		val union = sets.fold(emptySet) { union, nextSet ->
 			union.setUnionCanDestroy(nextSet, true)
 		}
-		when (isPublic.extractBoolean()) {
+		when (isPublic.extractBoolean) {
 			true -> module.addImportedNames(union.makeShared())
 			else -> module.addPrivateNames(union.makeShared())
 		}
@@ -100,9 +100,7 @@ object P_DeclareAllAtomsExportedFromAnotherModule : Primitive(
 			tuple(
 				setTypeForSizesContentType(
 					naturalNumbers,
-					Types.ANY.o  /* stringType() - weakened for performance. */
-				),
+					Types.ANY.o  /* stringType - weakened for performance. */),
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 }

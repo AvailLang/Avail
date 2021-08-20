@@ -184,10 +184,10 @@ open class AtomDescriptor protected constructor (
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) = with(builder) {
-		val nativeName = self.atomName().asNativeString()
+		val nativeName = self.atomName.asNativeString()
 		// Some atoms print nicer than others.
 		when {
-			self.isAtomSpecial() -> {
+			self.isAtomSpecial -> {
 				append(nativeName)
 				return
 			}
@@ -196,8 +196,8 @@ open class AtomDescriptor protected constructor (
 			else -> append("\$\"$nativeName\"")
 		}
 		val issuer: A_Module = self.slot(ISSUING_MODULE)
-		if (!issuer.equalsNil()) {
-			val issuerName = issuer.moduleName().asNativeString()
+		if (issuer.notNil) {
+			val issuerName = issuer.moduleName.asNativeString()
 			val localIssuer =
 				issuerName.substring(issuerName.lastIndexOf('/') + 1)
 			append(" (from $localIssuer)")
@@ -228,8 +228,8 @@ open class AtomDescriptor protected constructor (
 	override fun o_Hash (self: AvailObject): Int =
 		self.slot(HASH_OR_ZERO).ifZero {
 			// The shared subclass overrides to use synchronization.
-			AvailRuntimeSupport.nextNonzeroHash().apply {
-				self.setSlot(HASH_OR_ZERO, this)
+			AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+				self.setSlot(HASH_OR_ZERO, hash)
 			}
 		}
 
@@ -295,7 +295,7 @@ open class AtomDescriptor protected constructor (
 			at("kind") { write("atom") }
 			at("atom name") { self.slot(NAME).writeTo(writer) }
 			val module = self.slot(ISSUING_MODULE)
-			if (!module.equalsNil()) {
+			if (module.notNil) {
 				at("issuing module") { module.writeSummaryTo(writer) }
 			}
 		}
@@ -412,7 +412,7 @@ open class AtomDescriptor protected constructor (
 
 		/**
 		 * The property key whose presence indicates an atom is for explicit
-		 * subclassing of [object&32;types][ObjectTypeDescriptor].
+		 * subclassing of [object&#32;types][ObjectTypeDescriptor].
 		 */
 		EXPLICIT_SUBCLASSING_KEY("explicit subclassing");
 
@@ -427,21 +427,21 @@ open class AtomDescriptor protected constructor (
 
 	companion object
 	{
-		/** The mutable [AtomDescriptor].  */
+		/** The mutable [AtomDescriptor]. */
 		private val mutable = AtomDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The immutable [AtomDescriptor].  */
+		/** The immutable [AtomDescriptor]. */
 		private val immutable = AtomDescriptor(
 			Mutability.IMMUTABLE,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** A [Pattern] of one or more word characters.  */
+		/** A [Pattern] of one or more word characters. */
 		private val wordPattern = Pattern.compile("\\w(\\w|\\d|_)*")
 
 		/**

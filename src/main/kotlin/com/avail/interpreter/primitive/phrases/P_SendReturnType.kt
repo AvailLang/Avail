@@ -59,7 +59,7 @@ object P_SendReturnType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val send = interpreter.argument(0)
-		return interpreter.primitiveSuccess(send.phraseExpressionType())
+		return interpreter.primitiveSuccess(send.phraseExpressionType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

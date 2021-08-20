@@ -60,7 +60,7 @@ object P_ExpressionAsStatementExpression : Primitive(1, CannotFail, CanFold, Can
 	{
 		interpreter.checkArgumentCount(1)
 		val stmt = interpreter.argument(0)
-		return interpreter.primitiveSuccess(stmt.expression())
+		return interpreter.primitiveSuccess(stmt.expression)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

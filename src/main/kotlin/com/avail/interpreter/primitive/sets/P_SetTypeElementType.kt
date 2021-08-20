@@ -56,7 +56,7 @@ object P_SetTypeElementType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val setType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(setType.contentType())
+		return interpreter.primitiveSuccess(setType.contentType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

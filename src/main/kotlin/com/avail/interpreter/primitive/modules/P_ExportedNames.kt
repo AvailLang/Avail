@@ -60,8 +60,8 @@ object P_ExportedNames : Primitive(0, CanInline)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val module = loader.module()
-		val exportedNames = module.exportedNames()
+		val module = loader.module
+		val exportedNames = module.exportedNames
 		return interpreter.primitiveSuccess(exportedNames)
 	}
 

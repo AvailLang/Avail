@@ -33,18 +33,20 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/12/21 11:44 PM
+ * * Last Generated: 8/13/21 1:27 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
 Module "Primitives"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 Uses
 	"Origin"
 Names
+	"$_",
+	"$_@pc=_stack=_[_]caller=_",
 	"<_,_`…`|_>",
 	"Abstract method_is_",
 	"After the current module is unloaded,⁇do_",
@@ -83,6 +85,7 @@ Names
 	"Semantic restriction_is_",
 	"Set name of function implementation_to_",
 	"Sleep for_millisecond|milliseconds",
+	"Style_with_",
 	"Terminate current fiber",
 	"Unname_from_",
 	"Unpark_",
@@ -149,11 +152,13 @@ Names
 	"_'s⁇statements",
 	"_'s⁇target",
 	"_'s⁇token",
+	"_'s⁇tokens",
 	"_'s⁇type",
 	"_'s⁇value",
 	"_'s⁇value type",
 	"_'s⁇values",
 	"_'s⁇write type",
+	"_(_)@_:_",
 	"_++_",
 	"_+_",
 	"_+_→_",
@@ -221,8 +226,6 @@ Names
 	"_≤_",
 	"_⊆_",
 	"_⨉_^_",
-	"`$_",
-	"`$_@pc=_stack=_[_]caller=_",
 	"``_``(_)@_:_",
 	"`|_'s⁇local variables`|",
 	"`|_'s⁇outer variables`|",
@@ -230,13 +233,13 @@ Names
 	"`|_`|",
 	"`|`|_`|`|",
 	"`|message_'s⁇parameters`|",
+	"`«$_:_`»",
 	"`«(_:=_)`»",
 	"`«[_`|Primitive__]:_^_`»",
 	"`«_::=_`»",
 	"`«_:=_`»",
 	"`«_:_:=_`»",
 	"`«_:_`»",
-	"`«`$_:_`»",
 	"`«`↑_`»",
 	"`«module variable_(_)`»",
 	"`«supercast(_::_)`»",
@@ -279,6 +282,7 @@ Names
 	"new_[_]",
 	"new_applying_",
 	"new`↑_",
+	"new`↑_initialized to_",
 	"new⁇heritable«fiber-local»⁇atom named_",
 	"next character",
 	"non-canonical problem with_",

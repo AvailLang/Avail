@@ -105,7 +105,7 @@ internal class StateSummary<
 	var exitAction: ((Memento) -> Unit)? = null
 		private set
 
-	/** The transition table.  */
+	/** The transition table. */
 	private val transitionTable:
 		MutableMap<
 			Event,
@@ -113,7 +113,7 @@ internal class StateSummary<
 				State, Event, GuardKey, ActionKey, Memento>>> =
 		EnumMap(eventType)
 
-	/** The automatic transitions list.  */
+	/** The automatic transitions list. */
 	private val automaticTransitionTable:
 		MutableCollection<StateTransitionArc<
 			State, Event, GuardKey, ActionKey, Memento>>

@@ -74,5 +74,5 @@ object P_DescribeNoncanonicalMessage
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()),stringType())
+		functionType(tuple(stringType),stringType)
 }

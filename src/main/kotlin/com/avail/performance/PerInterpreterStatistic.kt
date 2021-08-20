@@ -101,16 +101,18 @@ class PerInterpreterStatistic internal constructor(
 	private inline fun <A> spinLockWhile(body: () -> A): A
 	{
 		while (!lock.compareAndSet(0, 1)) Thread.yield()
-		return try {
+		return try
+		{
 			body()
 		}
-		finally {
+		finally
+		{
 			val ok = lock.compareAndSet(1, 0)
 			assert(ok) { "Invalid spinlock state" }
 		}
 	}
 
-	/** Default sort is descending by sum.  */
+	/** Default sort is descending by sum. */
 	override operator fun compareTo(other: PerInterpreterStatistic): Int
 	{
 		// Compare by descending sums.

@@ -43,7 +43,7 @@ import java.nio.file.Paths
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 internal class UnicodeConfiguration : Configuration {
-	/** The [directory][Path] containing the JSON files.  */
+	/** The [directory][Path] containing the JSON files. */
 	internal var catalogPath = Paths.get(
 		"src", "main", "kotlin", "com", "avail", "tools",
 		"unicode", "generated")

@@ -75,8 +75,8 @@ object P_DeclareStringificationAtom : Primitive(
 		// the specified value.
 		val writer = L1InstructionWriter(nil, 0, nil)
 		writer.argumentTypes(ANY.o)
-		writer.returnType = stringType()
-		writer.returnTypeIfPrimitiveFails = stringType()
+		writer.returnType = stringType
+		writer.returnTypeIfPrimitiveFails = stringType
 		writer.write(0, L1Operation.L1_doPushLocal, 1)
 		try
 		{
@@ -84,7 +84,7 @@ object P_DeclareStringificationAtom : Primitive(
 				0,
 				L1Operation.L1_doCall,
 				writer.addLiteral(atom.bundleOrCreate()),
-				writer.addLiteral(stringType()))
+				writer.addLiteral(stringType))
 		}
 		catch (e: MalformedMessageException)
 		{

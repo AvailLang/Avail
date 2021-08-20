@@ -38,6 +38,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import com.avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -81,19 +82,19 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		if (oldAtom.isAtomSpecial() || newAtom.isAtomSpecial())
+		if (oldAtom.isAtomSpecial || newAtom.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 
-		val oldBundle = oldAtom.bundleOrNil()
-		if (oldBundle.equalsNil())
+		val oldBundle = oldAtom.bundleOrNil
+		if (oldBundle.isNil)
 			return interpreter.primitiveSuccess(nil)
 
 		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
-				for (macro in oldBundle.macrosTuple())
+				for (macro in oldBundle.macrosTuple)
 				{
 					loader.addMacroBody(
 						newAtom,

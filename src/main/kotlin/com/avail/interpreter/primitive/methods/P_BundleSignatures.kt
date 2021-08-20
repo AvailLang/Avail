@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.methods
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.sets.SetDescriptor
 import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
@@ -63,8 +64,8 @@ object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val bundle = interpreter.argument(0)
-		val method = bundle.bundleMethod()
-		val definitions = method.definitionsTuple().asSet()
+		val method = bundle.bundleMethod
+		val definitions = method.definitionsTuple.asSet
 		definitions.makeImmutable()
 		return interpreter.primitiveSuccess(definitions)
 	}
@@ -72,7 +73,6 @@ object P_BundleSignatures : Primitive(1, CannotFail, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				MESSAGE_BUNDLE.o
-			),
+				MESSAGE_BUNDLE.o),
 			setTypeForSizesContentType(wholeNumbers, DEFINITION.o))
 }

@@ -120,7 +120,8 @@ class CharacterDescriptor private constructor(
 			append("nrt\\\""[escapeIndex])
 			append('"')
 		}
-		else {
+		else
+		{
 			when (Character.getType(codePoint)) {
 				Character.COMBINING_SPACING_MARK.toInt(),
 				Character.CONTROL.toInt(),
@@ -310,9 +311,8 @@ class CharacterDescriptor private constructor(
 		}
 
 		/** The hashes of the first 256 Unicode characters. */
-		private val hashesOfByteCharacters = IntArray(256) {
-			computeHashOfCharacterWithCodePoint(it)
-		}
+		private val hashesOfByteCharacters =
+			IntArray(256, ::computeHashOfCharacterWithCodePoint)
 
 		/**
 		 * A cache of non-byte characters that have been encountered so far
@@ -324,12 +324,12 @@ class CharacterDescriptor private constructor(
 		/** Protection for accessing the [characterCache]. */
 		private val characterCacheLock = ReentrantReadWriteLock()
 
-		/** The maximum code point value as an [Int]. */
+		/** The maximum Unicode code point value as an [Int]. */
 		const val maxCodePointInt = Character.MAX_CODE_POINT
 
 		/** A type that contains all ASCII decimal digit characters. */
 		private val digitsType: A_Type =
-			enumerationWith(stringFrom("0123456789").asSet()).makeShared()
+			enumerationWith(stringFrom("0123456789").asSet).makeShared()
 
 		/** The type for non-empty strings of ASCII decimal digits. */
 		val nonemptyStringOfDigitsType: A_Type = oneOrMoreOf(digitsType)

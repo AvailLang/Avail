@@ -58,7 +58,7 @@ object P_VariableReadType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
-		return interpreter.primitiveSuccess(type.readType())
+		return interpreter.primitiveSuccess(type.readType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -71,7 +71,7 @@ object P_VariableReadType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val varMeta = argumentTypes[0]
-		val varType = varMeta.instance()
-		return instanceMeta(varType.readType())
+		val varType = varMeta.instance
+		return instanceMeta(varType.readType)
 	}
 }

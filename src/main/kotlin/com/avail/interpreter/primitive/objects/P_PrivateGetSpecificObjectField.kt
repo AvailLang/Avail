@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.objects
 
 import com.avail.descriptor.atoms.A_Atom
+import com.avail.descriptor.functions.A_Function.Companion.numOuterVars
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.objects.ObjectDescriptor
@@ -73,8 +74,8 @@ object P_PrivateGetSpecificObjectField : Primitive(
 		val obj = interpreter.argument(0)
 		val primitiveFunction = interpreter.function!!
 		//TODO Comment out these assertions.
-		assert(primitiveFunction.code().primitive() === this)
-		assert(primitiveFunction.numOuterVars() == 1)
+		assert(primitiveFunction.code().codePrimitive() === this)
+		assert(primitiveFunction.numOuterVars == 1)
 		val field = primitiveFunction.outerVarAt(1)
 		assert(field.isAtom)
 
@@ -87,10 +88,11 @@ object P_PrivateGetSpecificObjectField : Primitive(
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>
-	): A_Type {
+	): A_Type
+	{
 		// We don't have the function closure, so we don't have the field atom,
 		// so we simply use the raw function's function type's return type.
-		return rawFunction.functionType().returnType()
+		return rawFunction.functionType().returnType
 	}
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
@@ -122,9 +124,9 @@ object P_PrivateGetSpecificObjectField : Primitive(
 
 			fieldType.isEnumeration
 					&& !fieldType.isInstanceMeta
-					&& fieldType.instanceCount().equalsInt(1) ->
+					&& fieldType.instanceCount.equalsInt(1) ->
 				callSiteHelper.useAnswer(
-					translator.generator.boxedConstant(fieldType.instance()))
+					translator.generator.boxedConstant(fieldType.instance))
 
 			else -> {
 				val write = translator.generator.boxedWriteTemp(

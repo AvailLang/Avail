@@ -44,8 +44,10 @@ import com.avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.rawObjectClass
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -69,10 +71,10 @@ import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.JAVA_ANCES
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.lang.reflect.TypeVariable
-import java.util.Comparator
 import java.util.IdentityHashMap
 
 /**
@@ -96,7 +98,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	: PojoTypeDescriptor(
 		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
-	/** The layout of the integer slots.  */
+	/** The layout of the integer slots. */
 	internal enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
@@ -115,7 +117,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		}
 	}
 
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -155,17 +157,17 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		{
 			return self.pojoSelfType().equalsPojoType(aPojoType)
 		}
-		if (!aPojoType.javaClass().equalsNil())
+		if (aPojoType.javaClass().notNil)
 		{
 			return false
 		}
 		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val otherAncestors: A_Map = aPojoType.javaAncestors()
-		if (ancestors.mapSize() != otherAncestors.mapSize())
+		if (ancestors.mapSize != otherAncestors.mapSize)
 		{
 			return false
 		}
-		for (ancestor in ancestors.keysAsSet())
+		for (ancestor in ancestors.keysAsSet)
 		{
 			if (!otherAncestors.hasKey(ancestor))
 			{
@@ -173,8 +175,8 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			}
 			val params: A_Tuple = ancestors.mapAt(ancestor)
 			val otherParams: A_Tuple = otherAncestors.mapAt(ancestor)
-			val limit = params.tupleSize()
-			assert(limit == otherParams.tupleSize())
+			val limit = params.tupleSize
+			assert(limit == otherParams.tupleSize)
 			for (i in 1 .. limit)
 			{
 				if (!params.tupleAt(i).equals(otherParams.tupleAt(i)))
@@ -198,14 +200,8 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		if (isShared)
-		{
-			synchronized(self) { return hash(self) }
-		}
-		return hash(self)
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.synchronizeIf(isShared) { hash(self) }
 
 	override fun o_IsAbstract(self: AvailObject): Boolean = true
 
@@ -235,11 +231,10 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	private fun pojoSelfType(self: AvailObject): AvailObject
 	{
 		var selfType = self.slot(SELF_TYPE)
-		if (selfType.equalsNil())
+		if (selfType.isNil)
 		{
 			selfType = SelfPojoTypeDescriptor.newSelfPojoType(
-				nil, self.slot(
-					JAVA_ANCESTORS).keysAsSet())
+				nil, self.slot(JAVA_ANCESTORS).keysAsSet)
 			if (isShared)
 			{
 				selfType = selfType.traversed().makeShared()
@@ -314,8 +309,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		{
 			// If any of the fused pojo type's ancestors are Java classes, then
 			// the intersection is pojo bottom.
-			for (ancestor in
-				self.slot(JAVA_ANCESTORS).keysAsSet())
+			for (ancestor in self.slot(JAVA_ANCESTORS).keysAsSet)
 			{
 				// Ignore java.lang.Object.
 				if (!ancestor.equals(rawObjectClass()))
@@ -360,11 +354,10 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	{
 		val intersectionAncestors = computeUnion(
 			self, aFusedPojoType)
-		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+		val javaClass = mostSpecificOf(intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor
 				.createUnfusedPojoType(javaClass, intersectionAncestors)
@@ -380,11 +373,10 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		anUnfusedPojoType: A_Type): A_Type
 	{
 		val intersectionAncestors = computeUnion(self, anUnfusedPojoType)
-		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+		val javaClass = mostSpecificOf(intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor
 				.createUnfusedPojoType(javaClass, intersectionAncestors)
@@ -407,14 +399,14 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	private fun typeVariables(self: AvailObject): A_Map
 	{
 		var typeVars: A_Map = self.slot(TYPE_VARIABLES)
-		if (typeVars.equalsNil())
+		if (typeVars.isNil)
 		{
 			typeVars = emptyMap
 			self.slot(JAVA_ANCESTORS).forEach { key, value ->
 				val ancestor = key.javaObjectNotNull<Class<*>>()
 				val vars = ancestor.typeParameters
 				val typeArgs: A_Tuple = value
-				assert(vars.size == typeArgs.tupleSize())
+				assert(vars.size == typeArgs.tupleSize)
 				vars.forEachIndexed { i, eachVar ->
 					typeVars = typeVars.mapAtPuttingCanDestroy(
 						stringFrom(ancestor.name + "." + eachVar.name),
@@ -448,12 +440,8 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 	{
 		val ancestors: A_Map = self.slot(JAVA_ANCESTORS)
 		val childless = mutableListOf<AvailObject>()
-		childless.addAll(childlessAmong(ancestors.keysAsSet()))
-		childless.sortWith(Comparator { o1: AvailObject, o2: AvailObject ->
-			val c1 = o1.javaObjectNotNull<Class<*>>()
-			val c2 = o2.javaObjectNotNull<Class<*>>()
-			c1.name.compareTo(c2.name)
-		})
+		childless.addAll(childlessAmong(ancestors.keysAsSet))
+		childless.sortBy { o1 -> o1.javaObjectNotNull<Class<*>>().name }
 		var firstChildless = true
 		for (javaClass in childless)
 		{
@@ -466,7 +454,7 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 			val params: A_Tuple =
 				if (ancestors.hasKey(javaClass)) ancestors.mapAt(javaClass)
 				else emptyTuple
-			if (params.tupleSize() != 0)
+			if (params.tupleSize != 0)
 			{
 				builder.append('<')
 				var firstParam = true
@@ -511,29 +499,24 @@ internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
 		 * @return
 		 *   The hash.
 		 */
-		private fun hash(self: AvailObject): Int
-		{
-			var hash = self.slot(HASH_OR_ZERO)
-			if (hash == 0)
-			{
+		private fun hash(self: AvailObject): Int =
+			self.slot(HASH_OR_ZERO).ifZero {
 				// Note that this definition produces a value compatible with a
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
-				hash =
-					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
-						-0x5fea43bc
-				self.setSlot(HASH_OR_ZERO, hash)
+				combine2(
+					self.slot(JAVA_ANCESTORS).keysAsSet.hash(),
+					-0x5fea43bc
+				).also { self.setSlot(HASH_OR_ZERO, it) }
 			}
-			return hash
-		}
 
-		/** The mutable [FusedPojoTypeDescriptor].  */
+		/** The mutable [FusedPojoTypeDescriptor]. */
 		private val mutable = FusedPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [FusedPojoTypeDescriptor].  */
+		/** The immutable [FusedPojoTypeDescriptor]. */
 		private val immutable = FusedPojoTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [FusedPojoTypeDescriptor].  */
+		/** The shared [FusedPojoTypeDescriptor]. */
 		private val shared = FusedPojoTypeDescriptor(Mutability.SHARED)
 
 		/**

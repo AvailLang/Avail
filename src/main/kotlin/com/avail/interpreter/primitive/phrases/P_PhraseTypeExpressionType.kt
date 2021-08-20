@@ -59,8 +59,7 @@ object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val phraseType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(
-			phraseType.phraseTypeExpressionType())
+		return interpreter.primitiveSuccess(phraseType.phraseTypeExpressionType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -74,6 +73,6 @@ object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val phraseMeta = argumentTypes[0]
-		return instanceMeta(phraseMeta.instance().phraseTypeExpressionType())
+		return instanceMeta(phraseMeta.instance.phraseTypeExpressionType)
 	}
 }

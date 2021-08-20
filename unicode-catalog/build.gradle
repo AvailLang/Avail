@@ -29,11 +29,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
-import java.time.Instant
-import java.time.ZoneId
-import java.time.format.DateTimeFormatter
-
 plugins {
 	id 'java'
 	id 'org.jetbrains.kotlin.jvm'
@@ -43,15 +38,17 @@ plugins {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
 	}
 }
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
 	}
 }
 
@@ -64,27 +61,7 @@ dependencies {
 	implementation rootProject
 
 	// Kotlin.
-	implementation group: 'org.jetbrains.kotlin',
-		name: 'kotlin-stdlib-jdk8',
-		version: "$kotlin_version"
-}
-
-// Capture the time at which the build began and record it into a resource file.
-task generateBuildTime {
-	def pathWorkbenchBuildResources =
-		"$buildDir/resources/main/resources/unicode"
-	def pathToBuildTime = "$pathWorkbenchBuildResources/build-time.txt"
-	outputs.files pathToBuildTime
-
-	doLast {
-		def formatter = DateTimeFormatter
-			.ofPattern("yyyyMMdd.HHmmss.SSS")
-			.withLocale(Locale.default)
-			.withZone(ZoneId.systemDefault())
-		def now = formatter.format(Instant.now())
-
-		file(pathToBuildTime).text = "$now\n"
-	}
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 }
 
 // Update the dependencies of "classes".
@@ -92,9 +69,8 @@ classes.dependsOn generateBuildTime
 
 // Produce a fat JAR for the Avail CLI.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.tools.unicode.CatalogGenerator'
-	}
+	manifest.attributes.put 'Main-Class',
+			'com.avail.tools.unicode.CatalogGenerator'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 
@@ -111,8 +87,7 @@ task releaseUnicodeGenerator(type: Copy) {
 assemble.dependsOn releaseUnicodeGenerator
 
 // Generate documentation
-dokka {
-	outputFormat='gfm'
+dokkaGfm {
 	// Outputting to documentation/docs/src-docs directly causes the contents of
 	// the directory to be deleted. Moving the directory post generation is the
 	// work around.
@@ -122,7 +97,6 @@ dokka {
 	}
 }
 
-task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
-	outputFormat = 'html'
-	outputDirectory = "$buildDir/dokka"
+dokkaHtml {
+	outputDirectory = file "$buildDir/dokka"
 }

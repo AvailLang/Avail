@@ -34,21 +34,19 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.dispatch.DecisionStep.TestArgumentDecisionStep
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import java.lang.String.format
 import kotlin.math.max
 import kotlin.math.min
 
 /**
- * A `LookupTree` representing an incomplete search.  To further the search, the
- * indicated [type&#32;test][argumentTypeToTest] will be made.  If successful,
- * the [ifCheckHolds] child will be visited, otherwise the [ifCheckFails] child
- * will be visited.
+ * A `LookupTree` representing an incomplete search.  To further the search, its
+ * [decisionStep] performs some sort of dynamic test, producing the next subtree
+ * to visit.
  *
  * @param Element
  *   The kind of elements in the lookup tree, such as method definitions.
@@ -56,87 +54,70 @@ import kotlin.math.min
  *   What we expect to produce from a lookup activity, such as the tuple of
  *   most-specific matching method definitions for some arguments.
  * @property positiveElements
- *   The definitions that are applicable at this tree node.
+ *   The elements which definitely apply to the supplied arguments at this point
+ *   in the decision tree.
  * @property undecidedElements
- *   The definitions whose applicability has not yet been decided at this tree
- *   node.
+ *   The elements for which a decision about whether they apply to the supplied
+ *   arguments has not yet been made at this point in the decision tree.
  * @property knownArgumentRestrictions
- *   The types that the arguments must satisfy to have reached this position in
- *   the decision tree.
+ *   The list of argument [TypeRestriction]s known to hold at this position in
+ *   the decision tree.  Each element corresponds with an argument position for
+ *   the method.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
  *
- * Construct a new `InternalLookupTree`.  It is constructed lazily
- * at first.  An attempt to lookup that reaches this node will cause
- * it to be expanded locally.
- *
- * @param positiveElements
- *   The elements which definitely apply to the supplied arguments at this point
- *   in the decision tree.
- * @param undecidedElements
- *   The elements for which a decision about whether they apply to the supplied
- *   arguments has not yet been made at this point in the decision tree.
- * @param knownArgumentRestrictions
- *   The list of argument [TypeRestriction]s known to hold at this position in
- *   the decision tree.  Each element corresponds with an argument position for
- *   the method.
+ * Construct a new `InternalLookupTree`.  It is constructed lazily at first.  An
+ * attempted lookup that reaches this node will cause it to be expanded locally.
  */
-internal class InternalLookupTree<
+class InternalLookupTree<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 internal constructor(
-	private val positiveElements: List<Element>,
-	private val undecidedElements: List<Element>,
-	private val knownArgumentRestrictions: List<TypeRestriction>)
+	val positiveElements: List<Element>,
+	val undecidedElements: List<Element>,
+	val knownArgumentRestrictions: List<TypeRestriction>)
 : LookupTree<Element, Result>()
 {
-	/** The type to test against an argument type at this node.  */
-	@Volatile internal var argumentTypeToTest: A_Type? = null
-
-	/** The 1-based index of the argument to be tested at this node.  */
-	internal var argumentPositionToTest = -1
-
-	/** The tree to visit if the supplied arguments conform.  */
-	internal var ifCheckHolds: LookupTree<Element, Result>? = null
-
-	/** The tree to visit if the supplied arguments do not conform.  */
-	internal var ifCheckFails: LookupTree<Element, Result>? = null
+	/**
+	 * The [DecisionStep] to use to make progress at this node of the lookup
+	 * tree.  It starts out `null`, to indicate the choice of mechanism is still
+	 * undecided and lazy.  The calculation of the replacement value occurs
+	 * while holding the monitor for this [InternalLookupTree].
+	 */
+	@Volatile
+	var decisionStep: DecisionStep<Element, Result>? = null
 
 	/** `true` if this node has been expanded, otherwise `false`. */
-	internal val isExpanded: Boolean
-		get() = argumentTypeToTest !== null
+	internal val isExpanded: Boolean get() = decisionStep !== null
 
 	/**
-	 * If they have not already been computed, compute and cache information
-	 * about this node's [argumentTypeToTest], [argumentPositionToTest], and
-	 * [ifCheckHolds], and [ifCheckFails].
+	 * If it has not already been computed, compute and cache the [decisionStep]
+	 * to use for making progress at this [InternalLookupTree].
 	 */
 	internal fun <AdaptorMemento> expandIfNecessary(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento)
-	{
-		if (argumentTypeToTest === null)
-		{
-			synchronized(this) {
-				// We have to double-check if another thread has run
-				// chooseCriterion() since our first check.  We're in a
-				// synchronized mutual exclusion, so this is a stable check.
-				// Also, argumentTypeToTest is volatile, ensuring Java's
-				// infamous double-check problem won't bite us.
-				if (argumentTypeToTest === null)
-				{
-					chooseCriterion(adaptor, memento)
-				}
+		memento: AdaptorMemento
+	): DecisionStep<Element, Result> =
+		decisionStep ?: synchronized(this) {
+			// We have to double-check if another thread has run this function
+			// since our first check.  We're in a synchronized mutual exclusion
+			// now, so this is a stable check. Also, decisionStep is volatile,
+			// and its internal fields should be final (val), ensuring Java's
+			// infamous double-check problem won't bite us.
+			decisionStep ?: run {
+				val step = createDecisionStep(adaptor, memento)
+				decisionStep = step
+				step
 			}
 		}
-	}
 
 	/**
-	 * We're doing a method lookup, but [argumentTypeToTest] was `null`,
-	 * indicating a lazy subtree.  Expand it by choosing and recording a
-	 * criterion to test at this node, then populating the two branches of the
-	 * tree with nodes that may themselves need to be expanded in the future.
+	 * We're doing a method lookup or some similar lookup operation, and
+	 * [decisionStep] was `null`, indicating a lazy subtree.  Expand it by
+	 * choosing and recording a criterion to test at this node, then populating
+	 * the branches of the tree with nodes that may themselves need to be
+	 * expanded in the future.
 	 *
 	 * The criterion to choose should be one which serves to eliminate at least
 	 * one of the [undecidedElements], regardless of whether the test happens
@@ -146,8 +127,8 @@ internal constructor(
 	 * is the least effective of the two). We do this, but we also break ties by
 	 * eliminating as much indecision as possible in the *best* case.
 	 *
-	 * We eliminate some of the redundancy of a naïve decision tree by testing a
-	 * single argument at a time, keeping track of the types we have tested that
+	 * We eliminate some redundancy of a naïve decision tree by testing a single
+	 * argument at a time, keeping track of the types we have tested that
 	 * argument against.
 	 *
 	 * Since the negative case is already efficient at eliminating uncertainty,
@@ -161,11 +142,12 @@ internal constructor(
 	 * @param adaptor
 	 *   The [LookupTreeAdaptor] to use for expanding the tree.
 	 */
-	private fun <AdaptorMemento> chooseCriterion(
+	private fun <AdaptorMemento> createDecisionStep(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento)
+		memento: AdaptorMemento
+	): DecisionStep<Element, Result>
 	{
-		assert(argumentTypeToTest === null)
+		assert(decisionStep === null)
 		val numArgs = knownArgumentRestrictions.size
 
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
@@ -210,8 +192,8 @@ internal constructor(
 					// test will be required by every traversal, so rather than
 					// have duplicates near the leaves, test it as early as
 					// possible.
-					buildChildren(adaptor, memento, argNumber, commonType)
-					return
+					return buildTestArgument(
+						adaptor, memento, argNumber, commonType)
 				}
 			}
 		}
@@ -222,7 +204,6 @@ internal constructor(
 		// test) is a tie between two criteria, break it by choosing the
 		// criterion that eliminates the most undecided definitions in the
 		// *best* case.
-		assert(argumentTypeToTest === null)
 		var bestSignature: A_Type? = null
 		var smallestMax = Integer.MAX_VALUE
 		var smallestMin = Integer.MAX_VALUE
@@ -283,14 +264,12 @@ internal constructor(
 					}
 				}
 			}
-			val maxCount =
-				max(undecidedCountIfTrue, undecidedCountIfFalse)
-			val minCount =
-				min(undecidedCountIfTrue, undecidedCountIfFalse)
+			val maxCount = max(undecidedCountIfTrue, undecidedCountIfFalse)
+			val minCount = min(undecidedCountIfTrue, undecidedCountIfFalse)
 			// The criterion should not have been used to evaluate itself.
 			assert(maxCount < undecidedElements.size)
 			if (maxCount < smallestMax
-				|| maxCount == smallestMax && minCount < smallestMin)
+				|| (maxCount == smallestMax && minCount < smallestMin))
 			{
 				smallestMax = maxCount
 				smallestMin = minCount
@@ -309,7 +288,7 @@ internal constructor(
 		var positionToTest: Int
 		if (adaptor.testsArgumentPositions())
 		{
-			positionToTest = -999  // Must be replaced in the loop below.;
+			positionToTest = -999  // Must be replaced in the loop below.
 			for (i in 1..numArgs)
 			{
 				val knownRestriction = knownArgumentRestrictions[i - 1]
@@ -328,12 +307,12 @@ internal constructor(
 			positionToTest = 0
 			selectedTypeToTest = bestSignature
 		}
-
-		buildChildren(adaptor, memento, positionToTest, selectedTypeToTest!!)
+		return buildTestArgument(
+			adaptor, memento, positionToTest, selectedTypeToTest!!)
 	}
 
 	/**
-	 * Build children of this node, and populate any other needed fields.
+	 * Create a [TestArgumentDecisionStep] for the given values.
 	 *
 	 * @param adaptor
 	 *   The [LookupTreeAdaptor] to use for expanding the tree.
@@ -343,14 +322,16 @@ internal constructor(
 	 *   The one-based index of the argument being tested.
 	 * @param typeToTest
 	 *   The [A_Type] that this node should test for.
+	 * @return
+	 *   The resulting [DecisionStep].
 	 */
-	private fun <AdaptorMemento> buildChildren(
+	private fun <AdaptorMemento> buildTestArgument(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento,
 		argumentIndex: Int,
-		typeToTest: A_Type)
+		typeToTest: A_Type
+	): TestArgumentDecisionStep<Element, Result>
 	{
-		argumentPositionToTest = argumentIndex
 		val zeroBasedIndex: Int
 		val oldRestriction: TypeRestriction
 		if (adaptor.testsArgumentPositions())
@@ -403,7 +384,7 @@ internal constructor(
 				positiveIfFalse,
 				undecidedIfFalse)
 		}
-		ifCheckHolds = adaptor.createTree(
+		val ifCheckHolds = adaptor.createTree(
 			positiveIfTrue,
 			undecidedIfTrue,
 			positiveKnownRestrictions,
@@ -412,7 +393,7 @@ internal constructor(
 		// enumerations in which a failed test can actually certify a new
 		// answer.  Merge the newly certified and already certified results.
 		positiveIfFalse.addAll(positiveElements)
-		ifCheckFails = adaptor.createTree(
+		val ifCheckFails = adaptor.createTree(
 			positiveIfFalse,
 			undecidedIfFalse,
 			negativeKnownRestrictions,
@@ -421,94 +402,55 @@ internal constructor(
 		// If another process runs expandIfNecessary(), it will either see null
 		// for this field, or see non-null and be guaranteed that all subsequent
 		// reads will see all the previous writes.
-		argumentTypeToTest = typeToTest.makeShared()
+		return TestArgumentDecisionStep(
+			typeToTest.makeShared(), argumentIndex, ifCheckHolds, ifCheckFails)
 	}
 
-	override val solutionOrNull: Result?
-		get() = null
+	override val solutionOrNull: Result? get() = null
 
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
+		memento: AdaptorMemento
+	): LookupTree<Element, Result> =
 		expandIfNecessary(adaptor, memento)
-		val index = argumentPositionToTest
-		assert(index > 0)
-		val argument = argValues[index - 1]
-		return if (argument.isInstanceOf(argumentTypeToTest!!))
-		{
-			ifCheckHolds!!
-		}
-		else ifCheckFails!!
-	}
+			.lookupStepByValues(argValues, adaptor, memento)
 
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
+		memento: AdaptorMemento
+	): LookupTree<Element, Result> =
 		expandIfNecessary(adaptor, memento)
-		val index = argumentPositionToTest
-		assert(index > 0)
-		val argument = argValues.tupleAt(index)
-		return if (argument.isInstanceOf(argumentTypeToTest!!))
-		{
-			ifCheckHolds!!
-		}
-		else ifCheckFails!!
-	}
+			.lookupStepByValues(argValues, adaptor, memento)
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
+		memento: AdaptorMemento
+	): LookupTree<Element, Result> =
 		expandIfNecessary(adaptor, memento)
-		val index = argumentPositionToTest
-		assert(index > 0)
-		val argumentType = argTypes[index - 1]
-		return if (argumentType.isSubtypeOf(argumentTypeToTest!!))
-		{
-			ifCheckHolds!!
-		}
-		else ifCheckFails!!
-	}
+			.lookupStepByTypes(argTypes, adaptor, memento)
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
+		memento: AdaptorMemento
+	): LookupTree<Element, Result> =
 		expandIfNecessary(adaptor, memento)
-		val index = argumentPositionToTest
-		assert(index > 0)
-		val argumentType = argTypes.tupleAt(index)
-		return if (argumentType.isSubtypeOf(argumentTypeToTest!!))
-		{
-			ifCheckHolds!!
-		}
-		else ifCheckFails!!
-	}
+			.lookupStepByTypes(argTypes, adaptor, memento)
 
 	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
+		memento: AdaptorMemento
+	): LookupTree<Element, Result> =
 		expandIfNecessary(adaptor, memento)
-		val index = argumentPositionToTest
-		assert(index == 0)
-		return if (probeValue.isInstanceOf(argumentTypeToTest!!))
-		{
-			ifCheckHolds!!
-		}
-		else ifCheckFails!!
-	}
+			.lookupStepByValue(probeValue, adaptor, memento)
 
 	override fun toString(indent: Int): String
 	{
-		if (argumentTypeToTest === null)
+		if (decisionStep === null)
 		{
 			return format(
 				"Lazy internal node: (u=%d, p=%d) known=%s",
@@ -517,25 +459,7 @@ internal constructor(
 				knownArgumentRestrictions)
 		}
 		val builder = StringBuilder()
-		builder.append(
-			format(
-				"#%d ∈ %s: (u=%d, p=%d) known=%s%n",
-				argumentPositionToTest,
-				argumentTypeToTest,
-				undecidedElements.size,
-				positiveElements.size,
-				knownArgumentRestrictions))
-		for (i in 0..indent)
-		{
-			builder.append("\t")
-		}
-		builder.append(ifCheckHolds!!.toString(indent + 1))
-		builder.append(format("%n"))
-		for (i in 0..indent)
-		{
-			builder.append("\t")
-		}
-		builder.append(ifCheckFails!!.toString(indent + 1))
+		decisionStep!!.describe(this, indent, builder)
 		return builder.toString()
 	}
 }

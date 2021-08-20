@@ -73,7 +73,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedI
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegersMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
@@ -256,50 +256,50 @@ class TypeConsistencyTest
 				}
 			}
 
-			/** The most general metatype.  */
+			/** The most general metatype. */
 			private val TOP_META = Node(
 				"TOP_META", topMeta(), primitiveTypes[Types.ANY]!!)
 
-			/** The type of `any`.  */
+			/** The type of `any`. */
 			private val ANY_META = Node("ANY_META", anyMeta(), TOP_META)
 
-			/** The type of `nontype`.  */
+			/** The type of `nontype`. */
 			private val NONTYPE_META = Node(
 				"NONTYPE_META",
 				instanceMeta(Types.NONTYPE.o),
 				ANY_META)
 
-			/** The type `tuple`  */
+			/** The type `tuple`. */
 			private val TUPLE = Node(
 				"TUPLE",
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
 			 * The type `string`, which is the same as `tuple of
 			 * character`
 			 */
-			private val STRING = Node("STRING", stringType(), TUPLE)
+			private val STRING = Node("STRING", stringType, TUPLE)
 
-			/** The type `tuple [1..1] of character`  */
+			/** The type `tuple [1..1] of character`. */
 			private val UNIT_STRING = Node(
 				"UNIT_STRING", stringFrom("x").kind(), STRING)
 
-			/** The type `type of <>`  */
+			/** The type `type of <>`. */
 			private val EMPTY_TUPLE = Node(
 				"EMPTY_TUPLE", emptyTuple.kind(), TUPLE, STRING)
 
-			/** The type `set`  */
+			/** The type `set`. */
 			private val SET = Node(
 				"SET", mostGeneralSetType(), primitiveTypes[Types.NONTYPE]!!)
 
-			/** The most general fiber type.  */
+			/** The most general fiber type. */
 			private val FIBER = Node(
 				"FIBER",
 				mostGeneralFiberType(),
 				primitiveTypes[Types.NONTYPE]!!)
 
-			/** The most general function type.  */
+			/** The most general function type. */
 			private val MOST_GENERAL_FUNCTION = Node(
 				"MOST_GENERAL_FUNCTION",
 				mostGeneralFunctionType(),
@@ -332,11 +332,11 @@ class TypeConsistencyTest
 				functionType(tuple(integers, integers), integers),
 				MOST_GENERAL_FUNCTION)
 
-			/** The most specific function type, other than bottom.  */
+			/** The most specific function type, other than bottom. */
 			private val MOST_SPECIFIC_FUNCTION = Node(
 				"MOST_SPECIFIC_FUNCTION",
 				functionTypeFromArgumentTupleType(
-					mostGeneralTupleType(),
+					mostGeneralTupleType,
 					bottom,
 					emptySet),
 				NOTHING_TO_INT_FUNCTION,
@@ -391,7 +391,7 @@ class TypeConsistencyTest
 				"NON_ROOT_OBJECT_TYPE",
 				objectTypeFromMap(
 					emptyMap.mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t.instance(),
+						SOME_ATOM_TYPE.t.instance,
 						Types.ANY.o,
 						false)),
 				OBJECT_TYPE)
@@ -403,7 +403,7 @@ class TypeConsistencyTest
 				"NON_ROOT_OBJECT_TYPE_WITH_INTEGERS",
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
-						SOME_ATOM_TYPE.t.instance(),
+						SOME_ATOM_TYPE.t.instance,
 						integers,
 						false)),
 				NON_ROOT_OBJECT_TYPE)
@@ -415,7 +415,7 @@ class TypeConsistencyTest
 				"NON_ROOT_OBJECT_TYPE_WITH_DIFFERENT_KEY",
 				objectTypeFromMap(emptyMap
 					.mapAtPuttingCanDestroy(
-						ANOTHER_ATOM_TYPE.t.instance(),
+						ANOTHER_ATOM_TYPE.t.instance,
 						Types.ANY.o,
 						false)),
 				OBJECT_TYPE)
@@ -700,7 +700,7 @@ class TypeConsistencyTest
 			 * The metatype for tuple types.
 			 */
 			private val TUPLE_META = Node(
-				"TUPLE_META", tupleMeta(), NONTYPE_META)
+				"TUPLE_META", tupleMeta, NONTYPE_META)
 
 			/**
 			 * The metatype for fiber types.
@@ -767,12 +767,12 @@ class TypeConsistencyTest
 				when (phraseKind.parentKind())
 				{
 					null ->
-						primitiveTypes[Types.NONTYPE]!!.also { parents.add(it) }
+						primitiveTypes[Types.NONTYPE]!!.also(parents::add)
 					else ->
 					{
 						val m: Map<Node?, Node> =
 							phraseTypeMap[phraseKind.parentKind()!!]!!
-						m[innerNode]?.let { parents.add(it) }
+						m[innerNode]?.let(parents::add)
 					}
 				}
 				for (parentInnerNode in parentInnerNodes)
@@ -780,8 +780,7 @@ class TypeConsistencyTest
 					parents.add(submap[parentInnerNode]!!)
 				}
 				val innerType = innerNode?.t ?: bottom
-				val newType: A_Type
-				newType = when
+				val newType: A_Type = when
 				{
 					phraseKind.isSubkindOf(PhraseKind.LIST_PHRASE) ->
 					{
@@ -789,13 +788,13 @@ class TypeConsistencyTest
 							mappingElementTypes(innerType) {
 								PhraseKind.PARSE_PHRASE.create(it)
 							}
-						createListNodeType(
+						createListPhraseType(
 							phraseKind, innerType, subexpressionsTupleType)
 					}
 					else -> phraseKind.create(innerType)
 				}
 				assert(
-					newType.phraseTypeExpressionType().equals(innerType)) {
+					newType.phraseTypeExpressionType.equals(innerType)) {
 					"phrase kind was not parameterized as expected"
 				}
 				val newNode = Node(nodeName, newType, *parents.toTypedArray())
@@ -1500,7 +1499,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testFiberResultCovariance() =
-		checkCovariance("fiber result") { fiberType(it) }
+		checkCovariance("fiber result", ::fiberType)
 
 	/**
 	 * Test that the subtype relation covaries with function return type.
@@ -1519,7 +1518,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testTupleEntryCovariance() =
-		checkCovariance("tuple entries") { zeroOrMoreOf(it) }
+		checkCovariance("tuple entries", ::zeroOrMoreOf)
 
 	/**
 	 * Test that the subtype relation covaries with type parameters.
@@ -1531,8 +1530,7 @@ class TypeConsistencyTest
 		checkCovariance("pojo type parameters") {
 			pojoTypeForClassWithTypeArguments(
 				Comparable::class.java,
-				tuple(it)
-			)
+				tuple(it))
 		}
 
 	/**
@@ -1546,8 +1544,7 @@ class TypeConsistencyTest
 		checkContravariance("function argument") {
 			functionType(
 				tuple(it),
-				Types.TOP.o
-			)
+				Types.TOP.o)
 		}
 
 	/**
@@ -1559,7 +1556,7 @@ class TypeConsistencyTest
 	 */
 	@Test
 	fun testMetacovariance() =
-		checkCovariance("metacovariance") { instanceMeta(it) }
+		checkCovariance("metacovariance", ::instanceMeta)
 
 	/**
 	 * Check that the type union of two types' types is the same as the type of

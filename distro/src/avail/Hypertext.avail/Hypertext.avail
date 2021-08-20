@@ -32,7 +32,7 @@
 
 Module "Hypertext"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Avail"
 Extends
@@ -46,8 +46,8 @@ Body
  * @see {@link "https://www.w3.org/TR/html5/" W3 HTML5}
  */
 
- /**
-  * This category provides methods for building
-  * {@link "https://www.w3.org/TR/html5/" HTML5} markup.
-  * @category "Hypertext"
-  */
+/**
+ * This category provides methods for building
+ * {@link "https://www.w3.org/TR/html5/" HTML5} markup.
+ * @category "Hypertext"
+ */

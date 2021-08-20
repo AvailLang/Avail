@@ -34,6 +34,7 @@ package com.avail.descriptor.types
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
@@ -47,6 +48,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfContinuatio
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfContinuationType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.ContinuationTypeDescriptor.ObjectSlots.FUNCTION_TYPE
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromArgumentTupleType
 import com.avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import com.avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import com.avail.serialization.SerializerOperation
@@ -136,11 +138,11 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			}
 			else
 			{
-				aContinuationType.functionType().equals(self.functionType())
+				aContinuationType.functionType.equals(self.functionType())
 			}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.functionType().hash() * 11 xor 0x3E20409
+		combine2(self.functionType().hash(), 0x3E20409)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfContinuationType(self)
@@ -159,12 +161,12 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aContinuationType: A_Type): Boolean
 	{
-		val subFunctionType = aContinuationType.functionType()
+		val subFunctionType = aContinuationType.functionType
 		val superFunctionType = self.functionType()
-		return (superFunctionType.returnType().isSubtypeOf(
-			subFunctionType.returnType())
-				&& superFunctionType.argsTupleType().isSubtypeOf(
-			subFunctionType.argsTupleType()))
+		return (superFunctionType.returnType.isSubtypeOf(
+				subFunctionType.returnType)
+			&& superFunctionType.argsTupleType.isSubtypeOf(
+				subFunctionType.argsTupleType))
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
@@ -188,18 +190,17 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		aContinuationType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType()
-		val functionType2 = aContinuationType.functionType()
+		val functionType2 = aContinuationType.functionType
 		if (functionType1.equals(functionType2))
 		{
 			return self
 		}
-		val argsTupleType = functionType1.argsTupleType().typeIntersection(
-			functionType2.argsTupleType())
-		val returnType = functionType1.returnType().typeIntersection(
-			functionType2.returnType())
-		val intersection =
-			FunctionTypeDescriptor.functionTypeFromArgumentTupleType(
-				argsTupleType, returnType, emptySet)
+		val argsTupleType = functionType1.argsTupleType.typeIntersection(
+			functionType2.argsTupleType)
+		val returnType = functionType1.returnType.typeIntersection(
+			functionType2.returnType)
+		val intersection = functionTypeFromArgumentTupleType(
+			argsTupleType, returnType, emptySet)
 		return continuationTypeForFunctionType(intersection)
 	}
 
@@ -219,17 +220,17 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		aContinuationType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType()
-		val functionType2 = aContinuationType.functionType()
+		val functionType2 = aContinuationType.functionType
 		if (functionType1.equals(functionType2))
 		{
 			// Optimization only
 			return self
 		}
-		val union = FunctionTypeDescriptor.functionTypeFromArgumentTupleType(
-			functionType1.argsTupleType().typeIntersection(
-				functionType2.argsTupleType()),
-			functionType1.returnType().typeIntersection(
-				functionType2.returnType()),
+		val union = functionTypeFromArgumentTupleType(
+			functionType1.argsTupleType.typeIntersection(
+				functionType2.argsTupleType),
+			functionType1.returnType.typeIntersection(
+				functionType2.returnType),
 			emptySet)
 		return continuationTypeForFunctionType(union)
 	}
@@ -272,13 +273,13 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 			setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 		}
 
-		/** The mutable [ContinuationTypeDescriptor].  */
+		/** The mutable [ContinuationTypeDescriptor]. */
 		private val mutable = ContinuationTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ContinuationTypeDescriptor].  */
+		/** The immutable [ContinuationTypeDescriptor]. */
 		private val immutable = ContinuationTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ContinuationTypeDescriptor].  */
+		/** The shared [ContinuationTypeDescriptor]. */
 		private val shared = ContinuationTypeDescriptor(Mutability.SHARED)
 
 		/**

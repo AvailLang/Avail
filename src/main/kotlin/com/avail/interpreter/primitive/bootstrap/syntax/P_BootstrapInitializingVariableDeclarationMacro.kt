@@ -75,7 +75,7 @@ object P_BootstrapInitializingVariableDeclarationMacro
 		val typeLiteral = interpreter.argument(1)
 		val initializationExpression = interpreter.argument(2)
 
-		val nameToken = variableNameLiteral.token().literal()
+		val nameToken = variableNameLiteral.token.literal()
 		val nameString = nameToken.string()
 		if (nameToken.tokenType() != KEYWORD)
 		{
@@ -83,15 +83,14 @@ object P_BootstrapInitializingVariableDeclarationMacro
 				STRONG,
 				"new variable name to be alphanumeric, not $nameString")
 		}
-		val type = typeLiteral.token().literal()
+		val type = typeLiteral.token.literal()
 		if (type.isTop || type.isBottom)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
 				"variable's declared type to be something other than $type")
 		}
-		val initializationType =
-			initializationExpression.phraseExpressionType()
+		val initializationType = initializationExpression.phraseExpressionType
 		if (initializationType.isTop || initializationType.isBottom)
 		{
 			throw AvailRejectedParseException(
@@ -115,10 +114,10 @@ object P_BootstrapInitializingVariableDeclarationMacro
 			throw AvailRejectedParseException(
 				STRONG,
 				"local variable $nameString to have a name that doesn't shadow "
-				    + "an existing "
+					+ "an existing "
 					+ conflictingDeclaration.declarationKind().nativeKindName()
 					+ " (from line " +
-					"${conflictingDeclaration.token().lineNumber()})")
+					"${conflictingDeclaration.token.lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(variableDeclaration)
 	}

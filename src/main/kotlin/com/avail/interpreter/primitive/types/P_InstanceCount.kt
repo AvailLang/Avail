@@ -57,7 +57,7 @@ object P_InstanceCount : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
-		return interpreter.primitiveSuccess(type.instanceCount())
+		return interpreter.primitiveSuccess(type.instanceCount)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

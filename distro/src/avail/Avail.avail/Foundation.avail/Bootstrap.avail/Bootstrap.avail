@@ -33,14 +33,14 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/12/21 11:44 PM
+ * * Last Generated: 8/13/21 1:27 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
 Module "Bootstrap"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Origin",
 	"Special Objects",

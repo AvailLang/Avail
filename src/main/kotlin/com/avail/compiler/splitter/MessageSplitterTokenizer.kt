@@ -84,7 +84,7 @@ class MessageSplitterTokenizer
 	/**
 	 * The number of codepoints in the [messageName].
 	 */
-	private val messageNameSize: Int = messageName.tupleSize()
+	private val messageNameSize: Int = messageName.tupleSize
 
 	/** The current one-based index into the messageName. */
 	private var positionInName = 1
@@ -151,7 +151,7 @@ class MessageSplitterTokenizer
 		buildString {
 			for (i in range) {
 				val cp = messageName.tupleCodePointAt(i)
-				if (cp != '`'.toInt()) appendCodePoint(cp)
+				if (cp != '`'.code) appendCodePoint(cp)
 			}
 		})
 
@@ -168,7 +168,8 @@ class MessageSplitterTokenizer
 	private fun peek(vararg metacharacters: Metacharacter): Boolean {
 		val save = positionInName
 		return if (metacharacters.all(this::peek)) true
-		else {
+		else
+		{
 			positionInName = save
 			false
 		}
@@ -265,10 +266,13 @@ class MessageSplitterTokenizer
 							// includes the underscores (but not the
 							// backquotes).
 							acceptStripped(start until positionInName)
-						} else {
+						}
+						else
+						{
 							// If we never saw a regular character, then produce
 							// a token for each backquote and each underscore.
-							(start until positionInName).forEach { accept(it) }
+							(start until positionInName).forEach(
+								this@MessageSplitterTokenizer::accept)
 						}
 					}
 					else -> {

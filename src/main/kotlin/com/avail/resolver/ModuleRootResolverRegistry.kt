@@ -34,7 +34,6 @@ package com.avail.resolver
 
 import com.avail.builder.ModuleRoot
 import com.avail.files.FileManager
-import java.lang.UnsupportedOperationException
 import java.net.URI
 
 /**
@@ -67,7 +66,7 @@ object ModuleRootResolverRegistry
 				"Attempted to add a ModuleRootResolverFactory, $factory, " +
 					"but already present")
 		}
-		resolvers[factory.scheme.toLowerCase()] = factory
+		resolvers[factory.scheme.lowercase()] = factory
 	}
 
 	/**
@@ -91,15 +90,11 @@ object ModuleRootResolverRegistry
 		uri: URI,
 		fileManager: FileManager): ModuleRootResolver
 	{
-		val lookup =
-			if (uri.scheme == null)
-			{
-				URI("file://$uri")
-			}
-			else
-			{
-				uri
-			}
+		val lookup = when (uri.scheme)
+		{
+			null -> URI("file://$uri")
+			else -> uri
+		}
 		val factory = resolvers[lookup.scheme]
 		if (factory === null)
 		{
@@ -113,5 +108,6 @@ object ModuleRootResolverRegistry
 	init
 	{
 		register(FileSystemModuleRootResolverFactory)
+		register(JarModuleRootResolverFactory)
 	}
 }

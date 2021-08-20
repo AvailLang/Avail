@@ -37,6 +37,8 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
@@ -72,21 +74,21 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
 		val argTypes = interpreter.argument(1)
-		val bundle = atom.bundleOrNil()
+		val bundle = atom.bundleOrNil
 		try
 		{
-			if (bundle.equalsNil())
+			if (bundle.isNil)
 			{
 				throw MethodDefinitionException.noMethod()
 			}
-			if (bundle.bundleMethod().numArgs() != argTypes.tupleSize())
+			if (bundle.bundleMethod.numArgs != argTypes.tupleSize)
 			{
 				return interpreter.primitiveFailure(
 					E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			val definition =
-				bundle.bundleMethod().lookupByTypesFromTuple(argTypes)
-			assert(!definition.equalsNil())
+				bundle.bundleMethod.lookupByTypesFromTuple(argTypes)
+			assert(definition.notNil)
 			return interpreter.primitiveSuccess(definition)
 		}
 		catch (e: MethodDefinitionException)
@@ -104,5 +106,5 @@ object P_DefinitionForArgumentTypes : Primitive(2, CanInline)
 			E_NO_METHOD,
 			E_NO_METHOD_DEFINITION,
 			E_AMBIGUOUS_METHOD_DEFINITION,
-		    E_INCORRECT_NUMBER_OF_ARGUMENTS))
+			E_INCORRECT_NUMBER_OF_ARGUMENTS))
 }

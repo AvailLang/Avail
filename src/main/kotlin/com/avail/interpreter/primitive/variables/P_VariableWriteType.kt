@@ -55,7 +55,7 @@ object P_VariableWriteType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val type = interpreter.argument(0)
-		return interpreter.primitiveSuccess(type.writeType())
+		return interpreter.primitiveSuccess(type.writeType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

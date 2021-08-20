@@ -105,11 +105,11 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{ formatString("Asynchronous create directory, %s", path) }
 		newFiber.setAvailLoader(current.availLoader())
@@ -125,69 +125,69 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 			PosixFilePermissions.asFileAttribute(permissions)
 		runtime.ioSystem.executeFileTask(
 			Runnable {
-               try
-               {
-                   try
-                   {
-                       Files.createDirectory(path, attr)
-                   }
-                   catch (e: UnsupportedOperationException)
-                   {
-                       // Retry without setting the permissions.
-                       Files.createDirectory(path)
-                   }
+				try
+				{
+					try
+					{
+						Files.createDirectory(path, attr)
+					}
+					catch (e: UnsupportedOperationException)
+					{
+						// Retry without setting the permissions.
+						Files.createDirectory(path)
+					}
 
-               }
-               catch (e: FileAlreadyExistsException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_FILE_EXISTS.numericCode()))
-                   return@Runnable
-               }
-               catch (e: SecurityException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@Runnable
-               }
-               catch (e: AccessDeniedException)
-               {
-                   Interpreter.runOutermostFunction(
-	                   runtime,
-	                   newFiber,
-	                   fail,
-	                   listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@Runnable
-               }
-               catch (e: IOException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_IO_ERROR.numericCode()))
-                   return@Runnable
-               }
+				}
+				catch (e: FileAlreadyExistsException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_FILE_EXISTS.numericCode()))
+					return@Runnable
+				}
+				catch (e: SecurityException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_PERMISSION_DENIED.numericCode()))
+					return@Runnable
+				}
+				catch (e: AccessDeniedException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_PERMISSION_DENIED.numericCode()))
+					return@Runnable
+				}
+				catch (e: IOException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_IO_ERROR.numericCode()))
+					return@Runnable
+				}
 
-               Interpreter.runOutermostFunction(
-                   runtime,
-                   newFiber,
-                   succeed,
-                   emptyList())
-           })
+				Interpreter.runOutermostFunction(
+					runtime,
+					newFiber,
+					succeed,
+					emptyList())
+			})
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				setTypeForSizesContentType(inclusive(0, 9), inclusive(1, 9)),
 				functionType(emptyTuple, TOP.o),
 				functionType(
@@ -220,7 +220,7 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val permissions = EnumSet.noneOf(PosixFilePermission::class.java)
 		for (ordinal in ordinals)
 		{
-			permissions.add(allPermissions[ordinal.extractInt() - 1])
+			permissions.add(allPermissions[ordinal.extractInt - 1])
 		}
 		return permissions
 	}

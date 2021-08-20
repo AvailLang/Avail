@@ -53,6 +53,7 @@ import com.avail.descriptor.bundles.A_BundleTree
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
@@ -62,6 +63,7 @@ import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
@@ -142,9 +144,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 		// Weaken the plan's type to make sure we're not sending something it
 		// won't understand.
 		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
-		try {
-			val instructionsTuple = self.parsingInstructions()
-			val descriptionsList = (1..instructionsTuple.tupleSize()).map { i ->
+		try
+		{
+			val instructionsTuple = self.parsingInstructions
+			val descriptionsList = (1..instructionsTuple.tupleSize).map { i ->
 				val encodedInstruction = instructionsTuple.tupleIntAt(i)
 				val operation = decode(encodedInstruction)
 				val operand = operand(encodedInstruction)
@@ -155,7 +158,7 @@ class DefinitionParsingPlanDescriptor private constructor(
 						append(when (operation) {
 							PARSE_PART,
 							PARSE_PART_CASE_INSENSITIVELY -> {
-								val part = self.bundle().messagePart(operand)
+								val part = self.bundle.messagePart(operand)
 									.asNativeString()
 								" Part = '$part'"
 							}
@@ -177,7 +180,9 @@ class DefinitionParsingPlanDescriptor private constructor(
 					DebuggerObjectSlots("Symbolic instructions"),
 					-1,
 					descriptionsList.toTypedArray()))
-		} catch (e: Exception) {
+		}
+		catch (e: Exception)
+		{
 			val stackStrings = StackPrinter.trace(e).split("\\n").toTypedArray()
 			stackStrings.mapIndexedTo(fields) { lineNumber, line ->
 				AvailObjectFieldHelper(
@@ -200,13 +205,14 @@ class DefinitionParsingPlanDescriptor private constructor(
 			return false
 		}
 		val strongAnother = another as A_DefinitionParsingPlan
-		return (self.slot(DEFINITION) === strongAnother.definition()
-			&& self.slot(BUNDLE) === strongAnother.bundle())
+		return (self.slot(DEFINITION) === strongAnother.definition
+			&& self.slot(BUNDLE) === strongAnother.bundle)
 	}
 
-	override fun o_Hash(self: AvailObject) =
-		((self.slot(DEFINITION).hash() xor -0x6d5d9ebe)
-			- self.slot(BUNDLE).hash())
+	override fun o_Hash(self: AvailObject) = combine3(
+		self.slot(DEFINITION).hash(),
+		self.slot(BUNDLE).hash(),
+		-0x6d5d9ebe)
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		DEFINITION_PARSING_PLAN.o
@@ -224,9 +230,9 @@ class DefinitionParsingPlanDescriptor private constructor(
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
 		append("plan for ")
-		append(self.bundle().message())
+		append(self.bundle.message)
 		append(" at ")
-		append(self.definition().parsingSignature())
+		append(self.definition.parsingSignature())
 	}
 
 	override fun mutable() = mutable
@@ -256,15 +262,15 @@ class DefinitionParsingPlanDescriptor private constructor(
 			setSlot(DEFINITION, definition)
 			setSlot(
 				PARSING_INSTRUCTIONS,
-				bundle.messageSplitter().instructionsTupleFor(
+				bundle.messageSplitter.instructionsTupleFor(
 					definition.parsingSignature()))
 		}
 
-		/** The mutable [DefinitionParsingPlanDescriptor].  */
+		/** The mutable [DefinitionParsingPlanDescriptor]. */
 		private val mutable =
 			DefinitionParsingPlanDescriptor(Mutability.MUTABLE)
 
-		/** The shared [DefinitionParsingPlanDescriptor].  */
+		/** The shared [DefinitionParsingPlanDescriptor]. */
 		private val shared = DefinitionParsingPlanDescriptor(Mutability.SHARED)
 	}
 }

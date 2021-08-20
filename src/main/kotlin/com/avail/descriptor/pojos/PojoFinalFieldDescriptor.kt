@@ -37,7 +37,7 @@ import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.KIND
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.ObjectSlots.RECEIVER
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -81,7 +81,7 @@ class PojoFinalFieldDescriptor(
 ) : Descriptor(
 	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -107,8 +107,7 @@ class PojoFinalFieldDescriptor(
 	}
 
 	override fun o_ClearValue(self: AvailObject) = throw VariableSetException(
-		E_CANNOT_MODIFY_FINAL_JAVA_FIELD
-	)
+		E_CANNOT_MODIFY_FINAL_JAVA_FIELD)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsPojoField(self.slot(FIELD), self.slot(RECEIVER))
@@ -123,13 +122,10 @@ class PojoFinalFieldDescriptor(
 	override fun o_GetValue(self: AvailObject): AvailObject =
 		self.slot(CACHED_VALUE)
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var h = self.slot(FIELD).hash()
-		h *= multiplier
-		h += self.slot(RECEIVER).hash() xor 0x2199C0C3
-		return h
-	}
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(FIELD).hash(),
+		self.slot(RECEIVER).hash(),
+		0x2199C0C3)
 
 	// A pojo final field has a value by definition.
 	override fun o_HasValue(self: AvailObject): Boolean = true
@@ -200,13 +196,13 @@ class PojoFinalFieldDescriptor(
 
 	companion object
 	{
-		/** The mutable [PojoFinalFieldDescriptor].  */
+		/** The mutable [PojoFinalFieldDescriptor]. */
 		private val mutable = PojoFinalFieldDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [PojoFinalFieldDescriptor].  */
+		/** The immutable [PojoFinalFieldDescriptor]. */
 		private val immutable = PojoFinalFieldDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [PojoFinalFieldDescriptor].  */
+		/** The shared [PojoFinalFieldDescriptor]. */
 		private val shared = PojoFinalFieldDescriptor(Mutability.SHARED)
 
 		/**
@@ -278,8 +274,7 @@ class PojoFinalFieldDescriptor(
 				field,
 				receiver,
 				value,
-				variableReadWriteType(innerType, bottom)
-			)
+				variableReadWriteType(innerType, bottom))
 		}
 	}
 }

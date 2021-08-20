@@ -74,6 +74,7 @@ open class FileManager
 	/**
 	 * The [EnumSet] of [StandardOpenOption]s used when creating files.
 	 */
+	@Suppress("unused")
 	protected val fileCreateOptions: EnumSet<StandardOpenOption> =
 		EnumSet.of(
 			StandardOpenOption.READ,
@@ -205,7 +206,7 @@ open class FileManager
 			fileCache.remove(id)
 			resolverRefToId.remove(it.reference)
 			idToResolverRef.remove(id)
-		} ?: idToResolverRef.remove(id)?.let { resolverRefToId.remove(it) }
+		} ?: idToResolverRef.remove(id)?.let(resolverRefToId::remove)
 	}
 
 	/**
@@ -219,7 +220,10 @@ open class FileManager
 	 *   The unique identifier of the party claiming it is no longer interested
 	 *   in the file.
 	 */
-	fun deregisterInterest (id: UUID, interestedPartId: UUID? = null)
+	fun deregisterInterest (
+		id: UUID,
+		@Suppress("UNUSED_PARAMETER")
+		interestedPartId: UUID? = null)
 	{
 		// TODO does interested party id matter?
 		fileCache[id].value.let {
@@ -262,7 +266,7 @@ open class FileManager
 	 * not found in the `fileCache`, this map will be used to retrieve the
 	 * associated file from disk and placed back in the `fileCache`.
 	 */
-	protected val resolverRefToId = mutableMapOf<ResolverReference, UUID>()
+	private val resolverRefToId = mutableMapOf<ResolverReference, UUID>()
 
 	/**
 	 * Answer the [FileManager] file id for the provided [ResolverReference].
@@ -294,8 +298,7 @@ open class FileManager
 		successHandler: (UUID, AvailFile) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit): Boolean
 	{
-		val fileId =
-			resolverRefToId[resolverReference]
+		val fileId = resolverRefToId[resolverReference]
 		if (fileId === null)
 		{
 			return false
@@ -307,9 +310,7 @@ open class FileManager
 		}
 
 		val success: (UUID, String, AvailFile) -> Unit =
-			{ uuid, _, file ->
-				successHandler(uuid, file)
-			}
+			{ uuid, _, file -> successHandler(uuid, file) }
 		// This shouldn't need to happen on a separate thread...
 		wrapper.provide(false, success, failureHandler)
 		return true
@@ -327,7 +328,7 @@ open class FileManager
 	 * not found in the `fileCache`, this map will be used to retrieve the
 	 * associated file from disk and place it back in the `fileCache`.
 	 */
-	protected val idToResolverRef = mutableMapOf<UUID, ResolverReference>()
+	private val idToResolverRef = mutableMapOf<UUID, ResolverReference>()
 
 	/**
 	 * Schedule the specified task for eventual execution
@@ -387,7 +388,7 @@ open class FileManager
 		val reference = availFile.fileWrapper.reference
 		reference.resolver.saveFile(
 			reference,
-			availFile.getSaveableContent(),
+			availFile.getSavableContent(),
 			{
 				val saveTime = System.currentTimeMillis()
 				availFile.conditionallyClearDirty(saveTime)

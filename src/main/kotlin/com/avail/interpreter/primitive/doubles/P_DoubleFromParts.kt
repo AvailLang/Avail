@@ -77,9 +77,9 @@ object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
 				fractionPart.asNativeString() +
 				"e" +
 				when {
-					exponentSign.extractBoolean() -> ""
+					exponentSign.extractBoolean -> ""
 					else -> "-"} +
-			    exponentPart.asNativeString()
+				exponentPart.asNativeString()
 		val result: A_Number
 		try
 		{
@@ -102,6 +102,5 @@ object P_DoubleFromParts : Primitive(4, CannotFail, CanInline, CanFold)
 				nonemptyStringOfDigitsType,
 				booleanType,
 				nonemptyStringOfDigitsType),
-			DOUBLE.o
-		)
+			DOUBLE.o)
 }

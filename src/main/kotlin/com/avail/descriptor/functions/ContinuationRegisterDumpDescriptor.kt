@@ -138,7 +138,7 @@ class ContinuationRegisterDumpDescriptor private constructor(
 			}
 
 		/** Access the method [createRegisterDump]. */
-		var createRegisterDumpMethod: CheckedMethod = staticMethod(
+		var createRegisterDumpMethod = staticMethod(
 			ContinuationRegisterDumpDescriptor::class.java,
 			::createRegisterDump.name,
 			AvailObject::class.java,

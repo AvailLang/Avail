@@ -79,12 +79,12 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import java.util.IdentityHashMap
-import java.util.NoSuchElementException
 import java.util.Spliterator
 import java.util.function.Consumer
 import java.util.stream.Stream
@@ -151,7 +151,7 @@ abstract class TupleDescriptor protected constructor(
 			e === IntegerSlots.HASH_AND_MORE
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		"${super.o_NameForDebugger(self)}: tupleSize=${self.tupleSize()}"
+		"${super.o_NameForDebugger(self)}: tupleSize=${self.tupleSize}"
 
 	override fun o_SetHashOrZero(self: AvailObject, value: Int)
 	{
@@ -184,7 +184,7 @@ abstract class TupleDescriptor protected constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		if (size == 0)
 		{
 			builder.append("<>")
@@ -197,19 +197,22 @@ abstract class TupleDescriptor protected constructor(
 			{
 				when (val c = self.tupleCodePointAt(i))
 				{
-					'\"'.toInt(), '\\'.toInt() ->
+					'\"'.code, '\\'.code ->
 					{
-						builder.appendCodePoint('\\'.toInt())
+						builder.appendCodePoint('\\'.code)
 						builder.appendCodePoint(c)
 					}
-					'\n'.toInt() -> builder.append("\\n")
-					'\r'.toInt() -> builder.append("\\r")
-					'\t'.toInt() -> builder.append("\\t")
-					in 0 .. 31, 127 -> builder.append(String.format("\\(%x)", c))
+					'\n'.code -> builder.append("\\n")
+					'\r'.code -> builder.append("\\r")
+					'\t'.code -> builder.append("\\t")
+					in 0 .. 31, 127 -> builder.append(
+						String.format(
+							"\\(%x)",
+							c))
 					else -> builder.appendCodePoint(c)
 				}
 			}
-			builder.appendCodePoint('"'.toInt())
+			builder.appendCodePoint('"'.code)
 			return
 		}
 		val strings = mutableListOf<String>()
@@ -270,8 +273,8 @@ abstract class TupleDescriptor protected constructor(
 			return true
 		}
 		// Compare sizes...
-		val size = self.tupleSize()
-		if (size != aTuple.tupleSize())
+		val size = self.tupleSize
+		if (size != aTuple.tupleSize)
 		{
 			return false
 		}
@@ -381,7 +384,7 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
 		anotherObject: A_BasicObject): Boolean =
-			self.bitsPerEntry() < (anotherObject as A_Tuple).bitsPerEntry()
+			self.bitsPerEntry < (anotherObject as A_Tuple).bitsPerEntry
 
 	override fun o_IsInstanceOfKind(self: AvailObject, aType: A_Type): Boolean
 	{
@@ -394,14 +397,14 @@ abstract class TupleDescriptor protected constructor(
 			return false
 		}
 		// See if it's an acceptable size...
-		val tupleSize = self.tupleSize()
-		if (!aType.sizeRange().rangeIncludesLong(tupleSize.toLong()))
+		val tupleSize = self.tupleSize
+		if (!aType.sizeRange.rangeIncludesLong(tupleSize.toLong()))
 		{
 			return false
 		}
 		// The tuple's size is in range.
-		val typeTuple = aType.typeTuple()
-		val breakIndex = tupleSize.coerceAtMost(typeTuple.tupleSize())
+		val typeTuple = aType.typeTuple
+		val breakIndex = tupleSize.coerceAtMost(typeTuple.tupleSize)
 		for (i in 1 .. breakIndex)
 		{
 			if (!self.tupleAt(i).isInstanceOf(typeTuple.tupleAt(i)))
@@ -413,11 +416,10 @@ abstract class TupleDescriptor protected constructor(
 		{
 			return true
 		}
-		val defaultTypeObject = aType.defaultType()
-		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(
-				Types.ANY)
+		val defaultTypeObject = aType.defaultType
+		return (defaultTypeObject.isSupertypeOfPrimitiveTypeEnum(Types.ANY)
 			|| self.tupleElementsInRangeAreInstancesOf(
-		breakIndex + 1, tupleSize, defaultTypeObject))
+				breakIndex + 1, tupleSize, defaultTypeObject))
 	}
 
 	// We could synchronize if the object isShared(), but why bother?  The
@@ -429,17 +431,16 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_Kind(self: AvailObject): A_Type
 	{
 		val tupleOfTypes = self.copyAsMutableObjectTuple()
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		for (i in 1 .. tupleSize)
 		{
 			tupleOfTypes.tupleAtPuttingCanDestroy(
 				i, instanceTypeOrMetaOn(self.tupleAt(i)), true)
 		}
 		return TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-			fromInt(self.tupleSize()).kind(),
+			fromInt(self.tupleSize).kind(),
 			tupleOfTypes,
-			BottomTypeDescriptor.bottom
-		)
+			BottomTypeDescriptor.bottom)
 	}
 
 	abstract override fun o_CompareFromToWithStartingAt(
@@ -614,7 +615,7 @@ abstract class TupleDescriptor protected constructor(
 	{
 		// Take a tuple of tuples and answer one big tuple constructed by
 		// concatenating the subtuples together.
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize == 0)
 		{
 			return emptyTuple
@@ -651,7 +652,7 @@ abstract class TupleDescriptor protected constructor(
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size == 0)
@@ -689,7 +690,7 @@ abstract class TupleDescriptor protected constructor(
 		self: AvailObject,
 		startIndex: Int,
 		endIndex: Int): Int =
-			if (startIndex == 1 && endIndex == self.tupleSize()) self.hash()
+			if (startIndex == 1 && endIndex == self.tupleSize) self.hash()
 			else self.computeHashFromTo(startIndex, endIndex)
 
 	abstract override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
@@ -701,22 +702,22 @@ abstract class TupleDescriptor protected constructor(
 		canDestroy: Boolean): A_Tuple
 
 	override fun o_TupleCodePointAt(self: AvailObject, index: Int): Int =
-		self.tupleAt(index).codePoint()
+		self.tupleAt(index).codePoint
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
-		self.tupleAt(index).extractInt()
+		self.tupleAt(index).extractInt
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
-		self.tupleAt(index).extractLong()
+		self.tupleAt(index).extractLong
 
 	override fun o_AsSet(self: AvailObject): A_Set =
-		generateSetFrom(self.tupleSize(), self.iterator())
+		generateSetFrom(self.tupleSize, self.iterator())
 
 	override fun o_IsTuple(self: AvailObject): Boolean = true
 
 	override fun o_IsString(self: AvailObject): Boolean
 	{
-		val limit = self.tupleSize()
+		val limit = self.tupleSize
 		for (i in 1 .. limit)
 		{
 			if (!self.tupleAt(i).isCharacter)
@@ -736,7 +737,7 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_SerializerOperation(
 		self: AvailObject): SerializerOperation
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		if (size == 0)
 		{
 			return SerializerOperation.NYBBLE_TUPLE
@@ -748,7 +749,7 @@ abstract class TupleDescriptor protected constructor(
 		if (firstElement.isCharacter)
 		{
 			// See if we can use a string-like representation.
-			var maxCodePoint: Int = firstElement.codePoint()
+			var maxCodePoint: Int = firstElement.codePoint
 			for (i in 2 .. size)
 			{
 				val element = self.tupleAt(i)
@@ -756,7 +757,7 @@ abstract class TupleDescriptor protected constructor(
 				{
 					return SerializerOperation.GENERAL_TUPLE
 				}
-				maxCodePoint = maxCodePoint.coerceAtLeast(element.codePoint())
+				maxCodePoint = maxCodePoint.coerceAtLeast(element.codePoint)
 			}
 			return when
 			{
@@ -768,7 +769,7 @@ abstract class TupleDescriptor protected constructor(
 		if (firstElement.isInt)
 		{
 			// See if we can use a numeric-tuple representation.
-			var maxInteger = firstElement.extractInt()
+			var maxInteger = firstElement.extractInt
 			if (maxInteger < 0)
 			{
 				return SerializerOperation.GENERAL_TUPLE
@@ -780,7 +781,7 @@ abstract class TupleDescriptor protected constructor(
 				{
 					return SerializerOperation.GENERAL_TUPLE
 				}
-				val intValue = element.extractInt()
+				val intValue = element.extractInt
 				if (intValue < 0)
 				{
 					return SerializerOperation.GENERAL_TUPLE
@@ -896,7 +897,7 @@ abstract class TupleDescriptor protected constructor(
 
 	override fun o_AsNativeString(self: AvailObject): String
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		val builder = StringBuilder(size)
 		for (i in 1 .. size)
 		{
@@ -910,7 +911,7 @@ abstract class TupleDescriptor protected constructor(
 	 */
 	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		val result = generateIntTupleFrom(size) { self.tupleIntAt(it) }
 		result.setHashOrZero(self.hashOrZero())
 		return result
@@ -921,7 +922,7 @@ abstract class TupleDescriptor protected constructor(
 	 */
 	override fun o_CopyAsMutableLongTuple(self: AvailObject): A_Tuple
 	{
-		val result = generateLongTupleFrom(self.tupleSize()) {
+		val result = generateLongTupleFrom(self.tupleSize) {
 			self.tupleLongAt(it)
 		}
 		result.setHashOrZero(self.hashOrZero())
@@ -932,7 +933,7 @@ abstract class TupleDescriptor protected constructor(
 	 * Answer a mutable copy of object that holds arbitrary objects.
 	 */
 	override fun o_CopyAsMutableObjectTuple(self: AvailObject): A_Tuple =
-		generateObjectTupleFrom(self.tupleSize()) { self.tupleAt(it) }.apply {
+		generateObjectTupleFrom(self.tupleSize) { self.tupleAt(it) }.apply {
 			setHashOrZero(self.hashOrZero())
 		}
 
@@ -970,7 +971,7 @@ abstract class TupleDescriptor protected constructor(
 		/**
 		 * The size of the tuple.
 		 */
-		private val size: Int = tuple.tupleSize()
+		private val size: Int = tuple.tupleSize
 
 		/**
 		 * The index of the next [element][AvailObject].
@@ -1067,7 +1068,7 @@ abstract class TupleDescriptor protected constructor(
 	override fun o_Spliterator(self: AvailObject): Spliterator<AvailObject>
 	{
 		self.makeImmutable()
-		return TupleSpliterator(self, 1, self.tupleSize() + 1)
+		return TupleSpliterator(self, 1, self.tupleSize + 1)
 	}
 
 	override fun o_Stream(self: AvailObject): Stream<AvailObject>
@@ -1182,7 +1183,7 @@ abstract class TupleDescriptor protected constructor(
 		private fun hash(self: A_Tuple): Int
 		{
 			var hash = self.hashOrZero()
-			if (hash == 0 && self.tupleSize() > 0)
+			if (hash == 0 && self.tupleSize > 0)
 			{
 				hash = computeHashForObject(self)
 				self.setHashOrZero(hash)
@@ -1199,9 +1200,9 @@ abstract class TupleDescriptor protected constructor(
 		 *   The hash value.
 		 */
 		private fun computeHashForObject(self: A_Tuple): Int =
-			self.computeHashFromTo(1, self.tupleSize())
+			self.computeHashFromTo(1, self.tupleSize)
 
-		/** The empty tuple.  */
+		/** The empty tuple. */
 		val emptyTuple: AvailObject =
 			mutableObjectOfSize(0).apply { hash() }.makeShared()
 
@@ -1240,7 +1241,7 @@ abstract class TupleDescriptor protected constructor(
 		 */
 		@Suppress("unused")
 		fun toArray(tuple: A_Tuple): Array<AvailObject> =
-			Array(tuple.tupleSize()) { tuple.tupleAt(it + 1) }
+			Array(tuple.tupleSize) { tuple.tupleAt(it + 1) }
 
 		/**
 		 * Construct a new tuple of arbitrary [Avail objects][AvailObject] based
@@ -1264,7 +1265,7 @@ abstract class TupleDescriptor protected constructor(
 			originalTuple: A_Tuple,
 			elementToExclude: A_BasicObject): A_Tuple
 		{
-			val originalSize = originalTuple.tupleSize()
+			val originalSize = originalTuple.tupleSize
 			for (seekIndex in 1 .. originalSize)
 			{
 				if (originalTuple.tupleAt(seekIndex).equals(elementToExclude))
@@ -1302,10 +1303,10 @@ abstract class TupleDescriptor protected constructor(
 				return emptyTuple
 			}
 
-			val minValue = list.min()!!
+			val minValue = list.minOrNull()!!
 			if (minValue >= 0)
 			{
-				val maxValue = list.max()!!
+				val maxValue = list.maxOrNull()!!
 				if (maxValue <= 15)
 				{
 					return NybbleTupleDescriptor
@@ -1314,7 +1315,7 @@ abstract class TupleDescriptor protected constructor(
 				if (maxValue <= 255)
 				{
 					return ByteTupleDescriptor.generateByteTupleFrom(list.size)
-						{ list[it - 1] }
+					{ list[it - 1] }
 				}
 			}
 			return generateIntTupleFrom(list.size) { list[it - 1] }
@@ -1409,7 +1410,7 @@ abstract class TupleDescriptor protected constructor(
 		fun staticTupleAt(tuple: A_Tuple, index: Int): AvailObject =
 			tuple.tupleAt(index)
 
-		/** The [CheckedMethod] for [staticTupleAt].  */
+		/** The [CheckedMethod] for [staticTupleAt]. */
 		val tupleAtMethod = CheckedMethod.staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAt.name,
@@ -1439,8 +1440,8 @@ abstract class TupleDescriptor protected constructor(
 		): AvailObject =
 			tuple.tupleAtPuttingCanDestroy(index, newValue, true) as AvailObject
 
-		/** The [CheckedMethod] for [staticTupleAt].  */
-		val tupleAtPuttingMethod = CheckedMethod.staticMethod(
+		/** The [CheckedMethod] for [staticTupleAt]. */
+		val tupleAtPuttingMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAtPutting.name,
 			AvailObject::class.java,
@@ -1456,10 +1457,10 @@ abstract class TupleDescriptor protected constructor(
 		 */
 		@ReferencedInGeneratedCode
 		@JvmStatic
-		fun staticTupleSize(tuple: A_Tuple): Int = tuple.tupleSize()
+		fun staticTupleSize(tuple: A_Tuple): Int = tuple.tupleSize
 
-		/** The [CheckedMethod] for [staticTupleSize].  */
-		val tupleSizeMethod = CheckedMethod.staticMethod(
+		/** The [CheckedMethod] for [staticTupleSize]. */
+		val tupleSizeMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleSize.name,
 			Int::class.javaPrimitiveType!!,

@@ -53,6 +53,7 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
+import com.avail.utility.cast
 
 /**
  * I represent the abstract concept of enumerations. In particular, every object
@@ -517,7 +518,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 		 */
 		fun enumerationWith(instancesSet: A_Set): A_Type
 		{
-			val setSize = instancesSet.setSize()
+			val setSize = instancesSet.setSize
 			if (setSize == 0)
 			{
 				return bottom
@@ -533,7 +534,7 @@ abstract class AbstractEnumerationTypeDescriptor protected constructor(
 				typeCount == setSize ->
 					instanceMeta(
 						instancesSet.reduce { union: A_Type, type ->
-							union.typeUnion(type)
+							union.typeUnion(type).cast()
 						})
 				// It's a mix of types and non-types.
 				else -> Types.ANY.o

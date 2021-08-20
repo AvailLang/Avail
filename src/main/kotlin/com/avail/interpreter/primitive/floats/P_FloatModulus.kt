@@ -58,8 +58,8 @@ object P_FloatModulus : Primitive(2, CannotFail, CanInline, CanFold)
 		interpreter.checkArgumentCount(2)
 		val a = interpreter.argument(0)
 		val b = interpreter.argument(1)
-		val fa = a.extractFloat()
-		val fb = b.extractFloat()
+		val fa = a.extractFloat
+		val fb = b.extractFloat
 		val div = fa / fb
 		val mod = fa - floor(div.toDouble()).toFloat() * fb
 		return interpreter.primitiveSuccess(

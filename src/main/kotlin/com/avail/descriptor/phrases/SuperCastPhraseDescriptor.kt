@@ -41,7 +41,7 @@ import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRES
 import com.avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -96,9 +96,9 @@ class SuperCastPhraseDescriptor private constructor(
 		indent: Int
 	): Unit = with(builder) {
 		append("«(")
-		append(self.expression())
+		append(self.expression)
 		append(" :: ")
-		append(self.superUnionType())
+		append(self.superUnionType)
 		append(")»")
 	}
 
@@ -120,10 +120,10 @@ class SuperCastPhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.expression().equals(aPhrase.expression())
-		&& self.superUnionType().equals(aPhrase.superUnionType()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.expression.equals(aPhrase.expression)
+		&& self.superUnionType.equals(aPhrase.superUnionType))
 
 	/**
 	 * Answer the expression producing the actual value.
@@ -138,11 +138,10 @@ class SuperCastPhraseDescriptor private constructor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(TYPE_FOR_LOOKUP)
 
-	override fun o_Hash(self: AvailObject): Int {
-		var h = self.slot(EXPRESSION).hash()
-		h = h * multiplier xor self.slot(TYPE_FOR_LOOKUP).hash()
-		return h
-	}
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(EXPRESSION).hash(),
+		self.slot(TYPE_FOR_LOOKUP).hash(),
+		0x5035ebe5)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean = true
 
@@ -161,7 +160,7 @@ class SuperCastPhraseDescriptor private constructor(
 		self.slot(TYPE_FOR_LOOKUP)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens()
+		self.slot(EXPRESSION).tokens
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
@@ -213,10 +212,10 @@ class SuperCastPhraseDescriptor private constructor(
 			setSlot(TYPE_FOR_LOOKUP, superUnionType)
 		}
 
-		/** The mutable [SuperCastPhraseDescriptor].  */
+		/** The mutable [SuperCastPhraseDescriptor]. */
 		private val mutable = SuperCastPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SuperCastPhraseDescriptor].  */
+		/** The shared [SuperCastPhraseDescriptor]. */
 		private val shared = SuperCastPhraseDescriptor(Mutability.SHARED)
 	}
 }

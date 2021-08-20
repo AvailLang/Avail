@@ -67,7 +67,7 @@ internal class Simple constructor(
 		get()
 		{
 			val nativeString = token.asNativeString()
-			return nativeString.toLowerCase()
+			return nativeString.lowercase()
 				.equals(nativeString, ignoreCase = true)
 		}
 
@@ -112,7 +112,7 @@ internal class Simple constructor(
 	override val shouldBeSeparatedOnLeft: Boolean
 		get()
 		{
-			assert(token.tupleSize() > 0)
+			assert(token.tupleSize > 0)
 			val firstCharacter = token.tupleCodePointAt(1)
 			return Character.isUnicodeIdentifierPart(firstCharacter)
 				|| charactersThatLikeSpacesBefore.indexOf(
@@ -122,8 +122,8 @@ internal class Simple constructor(
 	override val shouldBeSeparatedOnRight: Boolean
 		get()
 		{
-			assert(token.tupleSize() > 0)
-			val lastCharacter = token.tupleCodePointAt(token.tupleSize())
+			assert(token.tupleSize > 0)
+			val lastCharacter = token.tupleCodePointAt(token.tupleSize)
 			return Character.isUnicodeIdentifierPart(lastCharacter)
 				|| charactersThatLikeSpacesAfter.indexOf(
 					lastCharacter.toChar()) >= 0

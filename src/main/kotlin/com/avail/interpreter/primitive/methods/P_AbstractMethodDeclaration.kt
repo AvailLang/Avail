@@ -72,7 +72,7 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 		val fiber = interpreter.fiber()
 		val loader =
 			fiber.availLoader()
-	             ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+				 ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
@@ -97,7 +97,7 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), functionMeta()), TOP.o)
+		functionType(tuple(stringType, functionMeta()), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

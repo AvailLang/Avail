@@ -54,7 +54,8 @@ import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseT
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.BitField
@@ -93,6 +94,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 
@@ -178,8 +180,8 @@ class ObjectDescriptor internal constructor(
 		 * dispatching are always against shared object types, and that's the
 		 * case we're attempting to speed up.
 		 *
-		 * Note that object types cache their hash value once computed.  The
-		 * two sets can be quickly searched because different object types very
+		 * Note that object types cache their hash value once computed.  The two
+		 * sets can be quickly searched because different object types very
 		 * rarely have equal hashes, and equal ones merge via indirections after
 		 * a successful comparison.  Shared object types are placed in a
 		 * canonical weak map to ensure these comparisons are fast.
@@ -225,7 +227,7 @@ class ObjectDescriptor internal constructor(
 				else -> fields.add(
 					AvailObjectFieldHelper(
 						self,
-						DebuggerObjectSlots("FIELD " + fieldKey.atomName()),
+						DebuggerObjectSlots("FIELD " + fieldKey.atomName),
 						-1,
 						self.slot(FIELD_VALUES_, index)))
 			}
@@ -272,7 +274,7 @@ class ObjectDescriptor internal constructor(
 				!self.slot(FIELD_VALUES_, it)
 					.equals(anObject.slot(FIELD_VALUES_, it))
 			} -> return false
-			!isShared && self.slot(KIND).equalsNil() ->
+			!isShared && self.slot(KIND).isNil ->
 				self.becomeIndirectionTo(anObject)
 			!otherDescriptor.isShared -> anObject.becomeIndirectionTo(self)
 		}
@@ -372,15 +374,15 @@ class ObjectDescriptor internal constructor(
 		}.also { assert(!fieldIterator.hasNext()) }
 	}
 
-	override fun o_Hash(self: AvailObject): Int {
-		val hash = self.slot(HASH_OR_ZERO)
-		if (hash != 0) return hash
-		// Don't lock if we're shared.  Multiple simultaneous computations
-		// of *the same* value are benign races.
-		return (1..self.variableObjectSlotsCount()).fold(variant.variantId) {
-			h, i -> (h * multiplier) xor self.slot(FIELD_VALUES_, i).hash()
-		}.also { self.setSlot(HASH_OR_ZERO, it) }
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
+			// Don't lock if we're shared.  Multiple simultaneous computations
+			// of *the same* value are benign races.
+			(1..self.variableObjectSlotsCount())
+				.fold(combine2(variant.variantId, -0x7d4d2f29)) { h, i ->
+					combine3(h, self.slot(FIELD_VALUES_, i).hash(), 0x5cfd93e6)
+				}.also { self.setSlot(HASH_OR_ZERO, it) }
+		}
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -398,7 +400,7 @@ class ObjectDescriptor internal constructor(
 		// search the vettings cache.
 		val answer: Boolean
 		var vettings: A_Tuple = self.slot(TYPE_VETTINGS_CACHE)
-		val tupleSize = vettings.tupleSize()
+		val tupleSize = vettings.tupleSize
 		vettings =
 			if (tupleSize == 0)
 			{
@@ -436,7 +438,7 @@ class ObjectDescriptor internal constructor(
 				val set = if (answer) set1 else set2
 				when
 				{
-					set.setSize() < maximumVettingSetSize ->
+					set.setSize < maximumVettingSetSize ->
 						vettings.tupleAtPuttingCanDestroy(
 							if (answer) 1 else 2,
 							set.setWithElementCanDestroy(typeTraversed, true),
@@ -461,7 +463,7 @@ class ObjectDescriptor internal constructor(
 
 	override fun o_Kind(self: AvailObject): A_Type {
 		val kind = self.slot(KIND)
-		if (!kind.equalsNil()) return kind
+		if (kind.notNil) return kind
 		self.makeImmutable()
 		return variant.mutableObjectTypeDescriptor.createFromObject(self).also {
 			// Make the object shared since it's being written to a mutable slot
@@ -488,7 +490,7 @@ class ObjectDescriptor internal constructor(
 							0 -> field
 							else -> self.slot(FIELD_VALUES_, slotIndex)
 						}
-						field.atomName().writeTo(writer)
+						field.atomName.writeTo(writer)
 						value.writeTo(writer)
 					}
 				}
@@ -506,7 +508,7 @@ class ObjectDescriptor internal constructor(
 							0 -> field
 							else -> self.slot(FIELD_VALUES_, slotIndex)
 						}
-						field.atomName().writeTo(writer)
+						field.atomName.writeTo(writer)
 						value.writeSummaryTo(writer)
 					}
 				}
@@ -521,16 +523,17 @@ class ObjectDescriptor internal constructor(
 	) = with(builder) {
 		val (names, baseTypes) = namesAndBaseTypesForObjectType(self.kind())
 		append("a/an ")
-		when {
-			names.setSize() == 0 -> append("object")
+		when (names.setSize)
+		{
+			0 -> append("object")
 			else -> append(
 				names.map { it.asNativeString() }.sorted().joinToString(" ∩ "))
 		}
 		val explicitSubclassingKey = EXPLICIT_SUBCLASSING_KEY.atom
 		var ignoreKeys = emptySet
 		baseTypes.forEach { baseType ->
-			baseType.fieldTypeMap().forEach { k, _ ->
-				if (!k.getAtomProperty(explicitSubclassingKey).equalsNil()) {
+			baseType.fieldTypeMap.forEach { k, _ ->
+				if (k.getAtomProperty(explicitSubclassingKey).notNil) {
 					ignoreKeys = ignoreKeys.setWithElementCanDestroy(k, true)
 				}
 			}
@@ -541,26 +544,17 @@ class ObjectDescriptor internal constructor(
 				append(if (first) " with:" else ",")
 				first = false
 				newlineTab(builder, indent)
-				append(key.atomName().asNativeString())
+				append(key.atomName.asNativeString())
 				append(" = ")
 				value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 			}
 		}
 	}
 
-	@Deprecated(
-		"ObjectDescriptors are organized by ObjectLayoutVariant",
-		level = DeprecationLevel.HIDDEN)
 	override fun mutable() = variant.mutableObjectDescriptor
 
-	@Deprecated(
-		"ObjectDescriptors are organized by ObjectLayoutVariant",
-		level = DeprecationLevel.HIDDEN)
 	override fun immutable() = variant.immutableObjectDescriptor
 
-	@Deprecated(
-		"ObjectDescriptors are organized by ObjectLayoutVariant",
-		level = DeprecationLevel.HIDDEN)
 	override fun shared() = variant.sharedObjectDescriptor
 
 	companion object {
@@ -595,20 +589,20 @@ class ObjectDescriptor internal constructor(
 		fun setField(
 			self: AvailObject,
 			slotIndex: Int,
-			value: AvailObject
+			value: A_BasicObject
 		): AvailObject {
-			self.setSlot(FIELD_VALUES_, slotIndex, value)
+			self.setSlot(FIELD_VALUES_, slotIndex, value as AvailObject)
 			return self
 		}
 
-		/** Access the [setField] method.  */
-		var setFieldMethod: CheckedMethod = staticMethod(
+		/** Access the [setField] method. */
+		var setFieldMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java)
+			A_BasicObject::class.java)
 
 		/**
 		 * Construct an object with attribute [keys][AtomDescriptor] and values
@@ -622,7 +616,7 @@ class ObjectDescriptor internal constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun objectFromMap(map: A_Map): AvailObject {
-			val variant = variantForFields(map.keysAsSet())
+			val variant = variantForFields(map.keysAsSet)
 			val mutableDescriptor = variant.mutableObjectDescriptor
 			val slotMap = variant.fieldToSlotIndex
 			return mutableDescriptor.create(variant.realSlotCount) {
@@ -643,7 +637,7 @@ class ObjectDescriptor internal constructor(
 		 * The [CheckedMethod] for [objectFromMap].
 		 */
 		@Suppress("unused")
-		val objectFromMapMethod: CheckedMethod = staticMethod(
+		val objectFromMapMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::objectFromMap.name,
 			AvailObject::class.java,
@@ -688,7 +682,7 @@ class ObjectDescriptor internal constructor(
 		/**
 		 * Access the [createUninitializedObject] static method.
 		 */
-		var createUninitializedObjectMethod: CheckedMethod = staticMethod(
+		var createUninitializedObjectMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,
 			AvailObject::class.java,

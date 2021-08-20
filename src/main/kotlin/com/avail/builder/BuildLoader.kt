@@ -45,6 +45,9 @@ import com.avail.compiler.problems.ProblemType.EXECUTION
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
@@ -122,10 +125,10 @@ internal class BuildLoader constructor(
 	private val globalTracker: GlobalProgressReporter,
 	private val problemHandler: ProblemHandler)
 {
-	/** The size, in bytes, of all source files that will be built.  */
+	/** The size, in bytes, of all source files that will be built. */
 	private val globalCodeSize: Long
 
-	/** The number of bytes compiled so far.  */
+	/** The number of bytes compiled so far. */
 	private val bytesCompiled = AtomicLong(0L)
 
 	init
@@ -150,14 +153,13 @@ internal class BuildLoader constructor(
 	 */
 	private fun scheduleLoadModule(
 		target: ResolvedModuleName,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		// Avoid scheduling new tasks if an exception has happened.
 		if (availBuilder.shouldStopBuild)
 		{
 			postLoad(target, 0L)
-			completionAction()
+			availBuilder.runtime.execute(loaderPriority, completionAction)
 			return
 		}
 		availBuilder.runtime.execute(loaderPriority) {
@@ -165,7 +167,7 @@ internal class BuildLoader constructor(
 			{
 				// An exception has been encountered since the earlier check.
 				// Exit quickly.
-				completionAction()
+				availBuilder.runtime.execute(loaderPriority, completionAction)
 			}
 			else
 			{
@@ -191,8 +193,7 @@ internal class BuildLoader constructor(
 	 */
 	private fun loadModule(
 		moduleName: ResolvedModuleName,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		globalTracker(bytesCompiled.get(), globalCodeSize)
 		// If the module is already loaded into the runtime, then we must not
@@ -210,7 +211,13 @@ internal class BuildLoader constructor(
 				"Already loaded: %s",
 				moduleName.qualifiedName)
 			postLoad(moduleName, 0L)
-			completionAction()
+			// Since no fiber was created for running the module loading, we
+			// still have the responsibility to run the completionAction.  If
+			// we run it right now in the current thread, it will recurse,
+			// potentially deeply, as the already-loaded part of the module
+			// graph is skipped in this way.  To avoid this deep stack, queue a
+			// task run the completionAction.
+			availBuilder.runtime.execute(loaderPriority, completionAction)
 		}
 		else
 		{
@@ -313,8 +320,7 @@ internal class BuildLoader constructor(
 		version: ModuleVersion,
 		compilation: ModuleCompilation,
 		sourceDigest: ByteArray,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
 		val module = newModule(stringFrom(moduleName.qualifiedName))
@@ -417,21 +423,21 @@ internal class BuildLoader constructor(
 				function !== null ->
 				{
 					val fiber = newLoaderFiber(
-						function.kind().returnType(),
+						function.kind().returnType,
 						availLoader
 					) {
 						val code = function.code()
 						formatString(
 							"Load repo module %s, in %s:%d",
-							code.methodName(),
-							code.module().moduleName(),
-							code.startingLineNumber())
+							code.methodName,
+							code.module.moduleName,
+							code.codeStartingLineNumber)
 					}
 					fiber.setTextInterface(availBuilder.textInterface)
-					val before = captureNanos()
+					val before = fiber.fiberHelper().fiberTime()
 					fiber.setSuccessAndFailure(
 						{
-							val after = captureNanos()
+							val after = fiber.fiberHelper().fiberTime()
 							Interpreter.current().recordTopStatementEvaluation(
 								(after - before).toDouble(), module)
 							runNext()
@@ -442,7 +448,8 @@ internal class BuildLoader constructor(
 					{
 						println(
 							module.toString()
-								+ ":" + function.code().startingLineNumber()
+								+ ":" + function.code()
+								.codeStartingLineNumber
 								+ " Running precompiled -- " + function)
 					}
 					runOutermostFunction(
@@ -492,8 +499,7 @@ internal class BuildLoader constructor(
 	private fun compileModule(
 		moduleName: ResolvedModuleName,
 		compilationKey: ModuleCompilationKey,
-		completionAction: ()->Unit
-	)
+		completionAction: ()->Unit)
 	{
 		val repository = moduleName.repository
 		val archive = repository.getArchive(moduleName.rootRelativeName)
@@ -511,8 +517,9 @@ internal class BuildLoader constructor(
 					availBuilder.pollForAbort,
 					{ moduleName2, moduleSize, position, line ->
 						assert(moduleName == moduleName2)
-						// Don't reach the full module size yet.  A separate update at
-						// 100% will be sent after post-loading actions are complete.
+						// Don't reach the full module size yet.  A separate
+						// update at 100% will be sent after post-loading
+						// actions are complete.
 						localTracker(
 							moduleName,
 							moduleSize,
@@ -532,18 +539,23 @@ internal class BuildLoader constructor(
 					compiler.parseModule(
 						{ module ->
 							val old = ranOnce.getAndSet(true)
-							assert(!old) { "Completed module compilation twice!" }
-							val stream =
-								compiler.compilationContext.serializerOutputStream
+							assert(!old) {
+								"Completed module compilation twice!"
+							}
+							val stream = compiler.compilationContext
+								.serializerOutputStream
 							appendCRC(stream)
 
 							// Also produce the serialization of the module's
 							// tuple of block phrases.
 							val blockPhrasesOutputStream =
 								IndexedFile.ByteArrayOutputStream(5000)
-							val bodyObjectsMap = compiler.compilationContext.serializer
-								.serializedObjectsMap()
-							val delta = bodyObjectsMap.mapSize()
+							val bodyObjectsMap =
+								compiler.compilationContext.serializer
+									.serializedObjectsMap()
+							// Ensure the primed objects are always at strictly
+							// negative indices.
+							val delta = bodyObjectsMap.mapSize + 1
 							val blockPhraseSerializer = Serializer(
 								blockPhrasesOutputStream,
 								module
@@ -553,7 +565,7 @@ internal class BuildLoader constructor(
 									true ->
 										bodyObjectsMap
 											.mapAt(obj)
-											.extractInt() - delta
+											.extractInt - delta
 									else -> 0
 								}
 							}
@@ -579,7 +591,8 @@ internal class BuildLoader constructor(
 							val serializer = Serializer(out, module)
 							serializer.serialize(comments)
 							module.getAndSetTupleOfBlockPhrases(
-								fromLong(compilation.recordNumberOfBlockPhrases))
+								fromLong(
+									compilation.recordNumberOfBlockPhrases))
 							appendCRC(out)
 
 							val version = archive.getVersion(versionKey)!!
@@ -588,7 +601,8 @@ internal class BuildLoader constructor(
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)
 							postLoad(moduleName, lastPosition)
-							module.serializedObjects(serializer.serializedObjects())
+							module.serializedObjects(
+								serializer.serializedObjects())
 							module.serializedObjectsMap(
 								serializer.serializedObjectsMap())
 							availBuilder.putLoadedModule(

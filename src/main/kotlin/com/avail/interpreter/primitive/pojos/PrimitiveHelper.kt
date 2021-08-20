@@ -175,9 +175,12 @@ object PrimitiveHelper
 			// The pojoType is not a fused type, so it has an immediate class
 			// that should be used to recursively look up the field.
 			val javaClass = marshalDefiningType(pojoType)
-			return try {
+			return try
+			{
 				javaClass.getField(fieldName.asNativeString())
-			} catch (e: NoSuchFieldException) {
+			}
+			catch (e: NoSuchFieldException)
+			{
 				errorOut.value = E_JAVA_FIELD_NOT_AVAILABLE
 				null
 			}
@@ -232,12 +235,12 @@ object PrimitiveHelper
 		vararg outerTypes: A_Type
 	): A_RawFunction
 	{
-		val argTypes = functionType.argsTupleType()
-		val numArgs = argTypes.sizeRange().lowerBound().extractInt()
+		val argTypes = functionType.argsTupleType
+		val numArgs = argTypes.sizeRange.lowerBound.extractInt
 		val argTypesArray = Array(numArgs) {
 			argTypes.typeAtIndex(it + 1)
 		}
-		val returnType = functionType.returnType()
+		val returnType = functionType.returnType
 		val writer = L1InstructionWriter(nil, 0, nil)
 		writer.primitive = primitive
 		writer.argumentTypes(*argTypesArray)
@@ -261,8 +264,7 @@ object PrimitiveHelper
 			0,
 			L1_doCall,
 			writer.addLiteral(APPLY.bundle),
-			writer.addLiteral(bottom)
-		)
+			writer.addLiteral(bottom))
 		// TODO: [TLS] When functions can be made non-reflective, then make
 		// this raw function non-reflective for safety.
 		return writer.compiledCode()
@@ -288,10 +290,10 @@ object PrimitiveHelper
 		errorOut: Mutable<AvailErrorCode?>
 	): Array<Any?>?
 	{
-		assert(marshaledTypes.tupleSize() == args.tupleSize())
+		assert(marshaledTypes.tupleSize == args.tupleSize)
 		return try
 		{
-			Array(args.tupleSize()) {
+			Array(args.tupleSize) {
 				args.tupleAt(it + 1).marshalToJava(
 					marshaledTypes.tupleAt(it + 1).javaObjectNotNull())
 			}

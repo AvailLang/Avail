@@ -47,7 +47,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -143,25 +143,25 @@ class VariableUsePhraseDescriptor private constructor(
 	) {
 		val declaration: A_Phrase = self.slot(DECLARATION)
 		declaration.declarationKind().emitVariableValueForOn(
-			self.tokens(), declaration, codeGenerator)
+			self.tokens, declaration, codeGenerator)
 	}
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(USE_TOKEN).equals(aPhrase.token())
-		&& self.slot(DECLARATION).equals(aPhrase.declaration())
-		&& self.isLastUse() == aPhrase.isLastUse())
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(USE_TOKEN).equals(aPhrase.token)
+		&& self.slot(DECLARATION).equals(aPhrase.declaration)
+		&& self.isLastUse == aPhrase.isLastUse)
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(DECLARATION).declaredType()
+		self.slot(DECLARATION).declaredType
 
-	override fun o_Hash(self: AvailObject): Int =
-		(self.slot(USE_TOKEN).hash() * multiplier
-			+ self.slot(DECLARATION).hash()
-			xor 0x62CE7BA2)
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(USE_TOKEN).hash(),
+		self.slot(DECLARATION).hash(),
+		-0x16ffabab)
 
 	override fun o_IsLastUse(
 		self: AvailObject,
@@ -250,10 +250,10 @@ class VariableUsePhraseDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [VariableUsePhraseDescriptor].  */
+		/** The mutable [VariableUsePhraseDescriptor]. */
 		private val mutable = VariableUsePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [VariableUsePhraseDescriptor].  */
+		/** The shared [VariableUsePhraseDescriptor]. */
 		private val shared = VariableUsePhraseDescriptor(Mutability.IMMUTABLE)
 	}
 }

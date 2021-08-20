@@ -80,13 +80,13 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	READ_BOXED_VECTOR.named("arguments"),
 	WRITE_BOXED.named("primitive result"))
 {
-	/** The subclass for primitives that have no global dependency.  */
+	/** The subclass for primitives that have no global dependency. */
 	@WritesHiddenVariable(
 		LATEST_RETURN_VALUE::class)
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
-	/** The subclass for primitives that have global read dependency.  */
+	/** The subclass for primitives that have global read dependency. */
 	@ReadsHiddenVariable(
 		GLOBAL_STATE::class)
 	@WritesHiddenVariable(
@@ -96,7 +96,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
-	/** The subclass for primitives that have global write dependency.  */
+	/** The subclass for primitives that have global write dependency. */
 	@WritesHiddenVariable(
 		CURRENT_CONTINUATION::class,
 		CURRENT_FUNCTION::class,
@@ -105,7 +105,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	private class L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency
 		: L2_RUN_INFALLIBLE_PRIMITIVE()
 
-	/** The subclass for primitives that have global read/write dependency.  */
+	/** The subclass for primitives that have global read/write dependency. */
 	@ReadsHiddenVariable(
 		GLOBAL_STATE::class)
 	@WritesHiddenVariable(
@@ -178,19 +178,19 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 
 	companion object
 	{
-		/** An instance for no global dependencies.  */
+		/** An instance for no global dependencies. */
 		private val noDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
 			L2_RUN_INFALLIBLE_PRIMITIVE_no_dependency()
 
-		/** An instance for global read dependencies.  */
+		/** An instance for global read dependencies. */
 		private val readDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
 			L2_RUN_INFALLIBLE_PRIMITIVE_read_dependency()
 
-		/** An instance for global write dependencies.  */
+		/** An instance for global write dependencies. */
 		private val writeDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
 			L2_RUN_INFALLIBLE_PRIMITIVE_write_dependency()
 
-		/** An instance for global read/write dependencies.  */
+		/** An instance for global read/write dependencies. */
 		private val readWriteDependency: L2_RUN_INFALLIBLE_PRIMITIVE =
 			L2_RUN_INFALLIBLE_PRIMITIVE_readwrite_dependency()
 

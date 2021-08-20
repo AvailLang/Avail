@@ -67,12 +67,12 @@ object P_AtomRemoveProperty : Primitive(
 		interpreter.checkArgumentCount(2)
 		val atom = interpreter.argument(0)
 		val propertyKey = interpreter.argument(1)
-		if (atom.isAtomSpecial() || propertyKey.isAtomSpecial())
+		if (atom.isAtomSpecial || propertyKey.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
 		val propertyValue = atom.getAtomProperty(propertyKey)
-		if (propertyValue.equalsNil())
+		if (propertyValue.isNil)
 		{
 			return interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		}

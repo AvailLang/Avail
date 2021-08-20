@@ -69,7 +69,7 @@ class AvailCompilerBipartiteRendezvous
 	 */
 	private val actions = mutableListOf<(ParserState, A_Phrase)->Unit>()
 
-	/** Whether we've started parsing at this position.  */
+	/** Whether we've started parsing at this position. */
 	private val hasStarted = AtomicBoolean(false)
 
 	/**

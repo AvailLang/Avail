@@ -174,7 +174,7 @@ object IndexedFileAnalyzer
 					if (i == 8) append(" ")  // River into two groups of 8.
 					append(
 						when (b) {
-							in 0x20..0x7E -> b.toChar()
+							in 0x20..0x7E -> b.toInt().toChar()
 							else -> '.'
 						})
 				}
@@ -254,7 +254,8 @@ object IndexedFileAnalyzer
 		val string = try {
 			decoder.decode(sourceBuffer)
 		}
-		catch (e: Throwable) {
+		catch (e: Throwable)
+		{
 			throw Exception(
 				"at position ${sourceBuffer.position()}, ${e.message}")
 		}
@@ -270,7 +271,7 @@ object IndexedFileAnalyzer
 				throw Exception(
 					"at position $pos, invalid encoding ($ch).")
 			}
-			targetBuffer.put(ch.toByte())
+			targetBuffer.put(ch.code.toByte())
 		}
 		assert(targetBuffer.position() == string.length)
 		return targetBuffer.array()
@@ -304,7 +305,8 @@ object IndexedFileAnalyzer
 	@JvmStatic
 	fun main(args: Array<String>)
 	{
-		try {
+		try
+		{
 			// Configure the analyzer according to the command-line arguments
 			// and ensure that any supplied paths are syntactically valid.
 			configuration = configure(args)
@@ -328,12 +330,15 @@ object IndexedFileAnalyzer
 						assert(!patchOutputFile!!.exists())
 						val outputFile = builder.openOrCreate(
 							patchOutputFile!!, true)
-						try {
+						try
+						{
 							indices.forEach { recordNumber ->
 								val sourceRecord = indexedFile[recordNumber]
 								val targetRecord = try {
 									stripUTF8(sourceRecord)
-								} catch (e: Exception) {
+								}
+								catch (e: Exception)
+								{
 									throw Exception(
 										"In record $recordNumber, ${e.message}")
 								}
@@ -346,7 +351,9 @@ object IndexedFileAnalyzer
 							outputFile.commit()
 							outputFile.close()
 							// Success!
-						} catch (e: Exception) {
+						}
+						catch (e: Exception)
+						{
 							System.err.println(e.message)
 							outputFile.close()
 							patchOutputFile!!.delete()
@@ -388,13 +395,15 @@ object IndexedFileAnalyzer
 				}
 			}
 		}
-		catch (e: ConfigurationException) {
+		catch (e: ConfigurationException)
+		{
 			// The command-line arguments were malformed, or
 			// The arguments specified a missing file.
 			System.err.println(e.message)
 			exitProcess(CONFIGURATION_ERROR.value)
 		}
-		catch (e: Exception) {
+		catch (e: Exception)
+		{
 			System.err.println(e.message)
 			exitProcess(OTHER_ERROR.value)
 		}

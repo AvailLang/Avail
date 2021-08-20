@@ -87,17 +87,17 @@ class ArithmeticTest
 		val availFloat = fromFloat(f)
 		if (!java.lang.Float.isNaN(f))
 		{
-			Assertions.assertEquals(f, availFloat.extractFloat())
+			Assertions.assertEquals(f, availFloat.extractFloat)
 			val availInt = doubleTruncatedToExtendedInteger(f.toDouble())
 			if (Long.MIN_VALUE <= f && f <= Long.MAX_VALUE)
 			{
 				Assertions.assertTrue(availInt.isLong)
-				Assertions.assertEquals(availInt.extractLong(), f.toLong())
+				Assertions.assertEquals(availInt.extractLong, f.toLong())
 			}
 			if (java.lang.Float.isInfinite(f))
 			{
 				Assertions.assertFalse(availInt.isFinite)
-				Assertions.assertEquals(f > 0, availInt.isPositive())
+				Assertions.assertEquals(f > 0, availInt.isPositive)
 			}
 			else
 			{
@@ -106,7 +106,7 @@ class ArithmeticTest
 				val upper = doubleTruncatedToExtendedInteger(
 					f + 1.toDouble())
 				assert(lower.lessOrEqual(availInt)
-						   && availInt.lessOrEqual(upper))
+							&& availInt.lessOrEqual(upper))
 			}
 		}
 	}
@@ -126,17 +126,13 @@ class ArithmeticTest
 		val availF1 = fromFloat(f1)
 		val availF2 = fromFloat(f2)
 		assertEqualFloatsOrNan(
-			f1 + f2, availF1.plusCanDestroy(availF2, false)
-			.extractFloat())
+			f1 + f2, availF1.plusCanDestroy(availF2, false).extractFloat)
 		assertEqualFloatsOrNan(
-			f1 - f2, availF1.minusCanDestroy(availF2, false)
-			.extractFloat())
+			f1 - f2, availF1.minusCanDestroy(availF2, false).extractFloat)
 		assertEqualFloatsOrNan(
-			f1 * f2, availF1.timesCanDestroy(availF2, false)
-			.extractFloat())
+			f1 * f2, availF1.timesCanDestroy(availF2, false).extractFloat)
 		assertEqualFloatsOrNan(
-			f1 / f2, availF1.divideCanDestroy(availF2, false)
-			.extractFloat())
+			f1 / f2, availF1.divideCanDestroy(availF2, false).extractFloat)
 	}
 
 	/**
@@ -326,7 +322,7 @@ class ArithmeticTest
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		private fun sampleFloats(): List<Float> = sampleFloats
+		fun sampleFloats(): List<Float> = sampleFloats
 
 		/**
 		 * Produce all pairs of sample Avail [floats][FloatDescriptor].
@@ -336,7 +332,7 @@ class ArithmeticTest
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		private fun floatPairs(): Stream<Arguments> = sampleFloats.stream()
+		fun floatPairs(): Stream<Arguments> = sampleFloats.stream()
 			.flatMap { f1: Float? ->
 				sampleFloats.stream()
 					.map { f2: Float? -> Arguments.of(f1, f2) }
@@ -365,8 +361,7 @@ class ArithmeticTest
 		{
 			Assertions.assertEquals(
 				java.lang.Float.isNaN(a),
-				java.lang.Float.isNaN(b)
-			)
+				java.lang.Float.isNaN(b))
 			if (!java.lang.Float.isNaN(a))
 			{
 				if (java.lang.Float.floatToRawIntBits(a) != java
@@ -418,7 +413,7 @@ class ArithmeticTest
 		 */
 		@Suppress("unused")
 		@JvmStatic
-		private fun bigIntegerHexConversions(): List<String> =
+		fun bigIntegerHexConversions(): List<String> =
 			bigIntegerHexConversions
 
 		/**
@@ -432,12 +427,12 @@ class ArithmeticTest
 		{
 			val bigInt = BigInteger(bigIntHexString, 16)
 			Assertions.assertEquals(
-				bigIntHexString.toUpperCase(),
-				bigInt.toString(16).toUpperCase())
+				bigIntHexString.uppercase(),
+				bigInt.toString(16).uppercase())
 			val availInt: A_BasicObject = fromBigInteger(bigInt)
 			Assertions.assertEquals(
-				bigInt.toString().toUpperCase(),
-				availInt.toString().toUpperCase())
+				bigInt.toString().uppercase(),
+				availInt.toString().uppercase())
 		}
 
 		/**
@@ -462,8 +457,7 @@ class ArithmeticTest
 		 * Perturbations of bases used for testing shifts.
 		 */
 		val baseOffsetsForShifting = intArrayOf(
-			-2, -1, 0, 1, 2
-		)
+			-2, -1, 0, 1, 2)
 
 		/**
 		 * Shift amounts. Negatives of these are also tested.
@@ -477,8 +471,7 @@ class ArithmeticTest
 			50,
 			60, 61, 62, 63, 64, 65, 66,
 			94, 95, 96, 97, 98, 99,
-			1000
-		)
+			1000)
 
 		/**
 		 * Check that the [bit shift][A_Number.bitShift] operation defined in

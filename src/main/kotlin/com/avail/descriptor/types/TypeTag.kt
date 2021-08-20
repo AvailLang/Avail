@@ -31,12 +31,31 @@
  */
 package com.avail.descriptor.types
 
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.contentType
+import com.avail.descriptor.types.A_Type.Companion.functionType
+import com.avail.descriptor.types.A_Type.Companion.keyType
+import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import com.avail.descriptor.types.A_Type.Companion.readType
+import com.avail.descriptor.types.A_Type.Companion.returnType
+import com.avail.descriptor.types.A_Type.Companion.sizeRange
+import com.avail.descriptor.types.A_Type.Companion.valueType
+import com.avail.descriptor.types.A_Type.Companion.writeType
+import com.avail.descriptor.types.TypeTag.Variant.Co
+import com.avail.descriptor.types.TypeTag.Variant.Contra
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+
 /**
- * `TypeTag` is an enumeration that corresponds with the basic type
- * structure of Avail's type lattice.  Even though the type lattice contains an
- * infinite collection of infinitely long chains of types, some of which have
- * an infinite number of direct ancestors and direct descendants, we're still
- * able to extract a pragmatic tree of types from the lattice.
+ * `TypeTag` is an enumeration that corresponds with the basic type structure of
+ * Avail's type lattice.  Even though the type lattice contains an infinite
+ * collection of infinitely long chains of types, some of which have an infinite
+ * number of direct ancestors and direct descendants, we're still able to
+ * extract a pragmatic tree of types from the lattice.
  *
  * Since this restricted set of types form a tree, they're defined in such an
  * order that all of a type's descendants follow it.  Since this is recursively
@@ -121,25 +140,59 @@ enum class TypeTag
 	TUPLE_TAG(TOP_TAG),
 	STRING_TAG(TUPLE_TAG),
 	VARIABLE_TAG(TOP_TAG),
+
 	TOP_TYPE_TAG(TOP_TAG, TOP_TAG),
 	ANY_TYPE_TAG(TOP_TYPE_TAG),
 	NONTYPE_TYPE_TAG(ANY_TYPE_TAG),
-	SET_TYPE_TAG(NONTYPE_TYPE_TAG, SET_TAG),
+	SET_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		SET_TAG,
+		Co("size", part = { fromInt(setSize) }) { sizeRange },
+		Co("element") { contentType }),
 	POJO_TYPE_TAG(NONTYPE_TYPE_TAG, POJO_TAG),
 	NUMBER_TYPE_TAG(NONTYPE_TYPE_TAG, NUMBER_TAG),
 	EXTENDED_INTEGER_TYPE_TAG(NUMBER_TYPE_TAG, EXTENDED_INTEGER_TAG),
-	PHRASE_TYPE_TAG(NONTYPE_TYPE_TAG, PHRASE_TAG),
+	PHRASE_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		PHRASE_TAG,
+		Co("yields") { phraseTypeExpressionType }),
 	LIST_PHRASE_TYPE_TAG(PHRASE_TYPE_TAG, LIST_PHRASE_TAG),
-	VARIABLE_TYPE_TAG(NONTYPE_TYPE_TAG, VARIABLE_TAG),
+	VARIABLE_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		VARIABLE_TAG,
+		Co("read") { readType },
+		Contra("write") { writeType }),
 	PRIMITIVE_TYPE_TAG(NONTYPE_TYPE_TAG),
-	FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG, FUNCTION_TAG),
+	FUNCTION_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		FUNCTION_TAG,
+		Contra("arguments") { argsTupleType },
+		Co("return") { returnType }),
 	OBJECT_TYPE_TAG(NONTYPE_TYPE_TAG, OBJECT_TAG),
-	MAP_TYPE_TAG(NONTYPE_TYPE_TAG, MAP_TAG),
-	TUPLE_TYPE_TAG(NONTYPE_TYPE_TAG, TUPLE_TAG),
-	CONTINUATION_TYPE_TAG(NONTYPE_TYPE_TAG, CONTINUATION_TAG),
-	RAW_FUNCTION_TYPE_TAG(NONTYPE_TYPE_TAG, RAW_FUNCTION_TAG),
-	FIBER_TYPE_TAG(NONTYPE_TYPE_TAG, FIBER_TAG),
-	META_TAG(ANY_TYPE_TAG, 	TOP_TYPE_TAG),
+	MAP_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		MAP_TAG,
+		Co("size", part = { fromInt(mapSize) }) { sizeRange },
+		Co("key") { keyType },
+		Co("value") { valueType }),
+	TUPLE_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		TUPLE_TAG,
+		Co("size", part = { fromInt(tupleSize) }) { sizeRange }),
+	CONTINUATION_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		CONTINUATION_TAG,
+		Contra("arguments") { functionType.argsTupleType },
+		Contra("result") { functionType.returnType }),
+	RAW_FUNCTION_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		RAW_FUNCTION_TAG,
+		Co("functionType") { functionType }),
+	FIBER_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		FIBER_TAG,
+		Co("result") { resultType() }),
+	META_TAG(ANY_TYPE_TAG, TOP_TYPE_TAG),
 	BOTTOM_TYPE_TAG(ANY_TYPE_TAG);
 
 	// Special case
@@ -148,6 +201,8 @@ enum class TypeTag
 		depth = 0
 		parent = null
 		highOrdinal = ordinal
+		covariants = emptyArray()
+		contravariants = emptyArray()
 	}
 
 	constructor (parent: TypeTag)
@@ -159,36 +214,129 @@ enum class TypeTag
 		this.parent = parent
 		highOrdinal = ordinal
 		parent.addDescendant(this)
+		covariants = emptyArray()
+		contravariants = emptyArray()
 	}
 
-	constructor (parent: TypeTag, instance: TypeTag)
+	constructor (
+		parent: TypeTag,
+		instance: TypeTag,
+		vararg variants: Variant)
 	{
 		depth = parent.depth + 1
 		this.parent = parent
 		highOrdinal = ordinal
 		parent.addDescendant(this)
 		instance.metaTag = this
+		covariants = parent.covariants +
+			variants.filterIsInstance<Co>().toTypedArray()
+		contravariants = parent.contravariants +
+			variants.filterIsInstance<Contra>().toTypedArray()
 	}
 
-	fun addDescendant (descendant: TypeTag)
+	/**
+	 * The mechanism for expressing covariant and contravariant relationships
+	 * for types.  Each [TypeTag] that represents a region of the [type][A_Type]
+	 * lattice can define [Co]variant and [Contra]variant relations that apply
+	 * to types that have that `TypeTag`.
+	 *
+	 * @property name
+	 *   The symbolic name of the variant, for descriptive purposes.
+	 * @property traverse
+	 *   A function that extracts a co-/contravariant type from the original
+	 *   type, where this [Variant] is applicable.  For example, given something
+	 *   with the tag [SET_TYPE_TAG] (the [TypeTag] for set types), the set
+	 *   type's element type can be extracted by running the [traverse] function
+	 *   of the "element" covariant type parameter.
+	 */
+	sealed class Variant(
+		val name: String,
+		val traverse: A_Type.()->A_Type)
+	{
+		/**
+		 * A Covariant relationship.  When a [TypeTag] declares such a
+		 * relationship, then for all A and B having that `TypeTag`, if A ⊆ B,
+		 * then traverse(A) ⊆ traverse(B), where [traverse] is a function
+		 * provided by the [Co] instance.
+		 *
+		 * @property part
+		 *   An optional function mapping an *instance* of a type into an
+		 *   instance of the type's covariant property.  This doesn't always
+		 *   make sense, as the object doesn't necessarily have some subobject
+		 *   that is homomorphic to the covariant relationship.  In that case,
+		 *   the default `null` is used instead of the function, which indicates
+		 *   a mechanism for producing such a subobject is unavailable.
+		 */
+		class Co(
+			name: String,
+			val part: (AvailObject.()->A_BasicObject)? = null,
+			traverse: A_Type.()->A_Type
+		) : Variant(name, traverse)
+
+		/**
+		 * A Contravariant relationship.  When a [TypeTag] declares such a
+		 * relationship, then for all A and B having that `TypeTag`, if A ⊆ B,
+		 * then traverse(B) ⊆ traverse(A), where [traverse] is a function
+		 * provided by the [Contra] instance.
+		 */
+		class Contra(
+			name: String,
+			traverse: A_Type.()->A_Type
+		) : Variant(name, traverse)
+	}
+
+	/**
+	 * The array of [Co]variant relationships defined during construction.
+	 */
+	val covariants: Array<Co>
+
+	/**
+	 * The array of [Contra]variant relationships defined during construction.
+	 */
+	val contravariants: Array<Contra>
+
+	/**
+	 * The parent of this [TypeTag].
+	 */
+	val parent: TypeTag?
+
+	/**
+	 * If object X has tag T, then X's type has tag T.metaTag.
+	 */
+	var metaTag: TypeTag? = null
+		private set
+
+	/**
+	 * The number of ancestors of this [TypeTag]
+	 */
+	val depth: Int
+
+	/**
+	 * The complete list of descendants of this [TypeTag].
+	 */
+	private val descendants = mutableListOf<TypeTag>()
+
+	/**
+	 * The highest ordinal value of all of this [TypeTag]'s descendants,
+	 * including itself.  The descendants' ordinals must start just after the
+	 * current [TypeTag]'s ordinal, and be contiguously numbered.  Since the
+	 * ordinals are assigned by the [Enum] mechanism, that means a [TypeTag]
+	 * definition must be followed immediately by each of its children and their
+	 * descendants, which is prefix tree order.
+	 */
+	private var highOrdinal: Int
+
+	/**
+	 * Add the argument as a descendant of the receiver in the [TypeTag]
+	 * hierarchy.
+	 */
+	private fun addDescendant (descendant: TypeTag)
 	{
 		assert(descendant.ordinal == highOrdinal + 1)
 		descendants.add(descendant)
 		highOrdinal++
 		parent?.addDescendant(descendant)
 	}
-
-	val parent: TypeTag?
-
-	private var metaTag: TypeTag? = null
-
-	val depth: Int
-
-	private val descendants = mutableListOf<TypeTag>()
-
-	private var highOrdinal: Int
-
-	fun metaTag (): TypeTag = metaTag!!
 
 	@Suppress("unused")
 	fun isSubtagOf (otherTag: TypeTag): Boolean =

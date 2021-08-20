@@ -52,7 +52,6 @@ import com.avail.interpreter.execution.Interpreter
  * **Primitive:** Lookup or create a new [atom][AtomDescriptor] with the given
  * name.
  *
- *
  * If this method is executed outside the scope of compiling or loading, a
  * new atom will always be created.
  */
@@ -85,7 +84,7 @@ object P_CreateAtom : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), ATOM.o)
+		functionType(tuple(stringType), ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_AMBIGUOUS_NAME))

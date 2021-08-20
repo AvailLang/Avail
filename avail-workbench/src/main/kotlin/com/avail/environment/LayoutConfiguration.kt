@@ -55,8 +55,14 @@ import kotlin.math.min
  */
 class LayoutConfiguration constructor (input: String = "")
 {
-	/** The preferred location and size of the window, if specified.  */
+	/** The preferred location and size of the window, if specified. */
 	internal var placement: Rectangle? = null
+
+	/**
+	 * The platform-independent information about whether the window is
+	 * maximized or minimized (iconified).
+	 */
+	internal var extendedState: Int = Frame.NORMAL
 
 	/**
 	 * The width of the left region of the builder frame in pixels, if
@@ -77,8 +83,17 @@ class LayoutConfiguration constructor (input: String = "")
 		{
 			val substrings = input.split(',')
 			kotlin.runCatching {
-				val (x, y, w, h) = substrings.slice(0 .. 3).map(Integer::parseInt)
-				placement = Rectangle(x, y, max(50, w), max(50, h))
+				val (x, y, w, h) =
+					substrings.slice(0 .. 3).map(Integer::parseInt)
+				val rectangle = Rectangle(x, y, max(50, w), max(50, h))
+				// Ignore placement if it's entirely off-screen or
+				// zero-thickness.
+				val intersectsAny = GraphicsEnvironment
+					.getLocalGraphicsEnvironment()
+					.screenDevices.any { device ->
+						device.configurations.any {config ->
+							config.bounds.intersects(rectangle)}}
+				if (intersectsAny) placement = rectangle
 			}
 
 			leftSectionWidth = runCatching {
@@ -88,6 +103,10 @@ class LayoutConfiguration constructor (input: String = "")
 			moduleVerticalProportion = runCatching {
 				java.lang.Double.parseDouble(substrings[5])
 			}.getOrDefault(0.5)
+
+			extendedState = runCatching {
+				Integer.parseInt(substrings[6])
+			}.getOrDefault(Frame.NORMAL)
 		}
 	}
 
@@ -158,6 +177,7 @@ class LayoutConfiguration constructor (input: String = "")
 		}
 		strings[4] = (leftSectionWidth ?: 200).toString()
 		strings[5] = (moduleVerticalProportion ?: 0.5).toString()
+		strings[6] = extendedState.toString()
 
 		return strings.joinToString(",")
 	}
@@ -180,30 +200,30 @@ class LayoutConfiguration constructor (input: String = "")
 		fun resource(localResourceName: String): String =
 			resourcePrefix + localResourceName
 
-		/** The user-specific [Preferences] for this application to use.  */
+		/** The user-specific [Preferences] for this application to use. */
 		val basePreferences =
 			Preferences.userNodeForPackage(AvailWorkbench::class.java)
 
-		/** The key under which to organize all placement information.  */
+		/** The key under which to organize all placement information. */
 		const val placementByMonitorNamesString =
 			"placementByMonitorNames"
 
-		/** The leaf key under which to store a single window placement.  */
+		/** The leaf key under which to store a single window placement. */
 		const val placementLeafKeyString = "placement"
 
-		/** The key under which to store the [ModuleRoots].  */
+		/** The key under which to store the [ModuleRoots]. */
 		const val moduleRootsKeyString = "module roots"
 
-		/** The subkey that holds a root's source directory name.  */
+		/** The subkey that holds a root's source directory name. */
 		const val moduleRootsSourceSubkeyString = "source"
 
-		/** The key under which to store the module rename rules.  */
+		/** The key under which to store the module rename rules. */
 		const val moduleRenamesKeyString = "module renames"
 
-		/** The subkey that holds a rename rule's source module name.  */
+		/** The subkey that holds a rename rule's source module name. */
 		const val moduleRenameSourceSubkeyString = "source"
 
-		/** The subkey that holds a rename rule's replacement module name.  */
+		/** The subkey that holds a rename rule's replacement module name. */
 		const val moduleRenameTargetSubkeyString = "target"
 
 		/**

@@ -80,8 +80,7 @@ object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val setType1 = argumentTypes[0]
-		val setType2 = argumentTypes[1]
+		val (setType1, setType2) = argumentTypes
 
 		// Technically we can compute the exact minimum bound by building a
 		// graph where the edges are the mutually disjoint element types, then
@@ -89,21 +88,21 @@ object P_SetUnion : Primitive(2, CannotFail, CanFold, CanInline)
 		// Even the upper bound can be strengthened beyond the sum of the upper
 		// bounds of the inputs through solution of a set of linear inequalities
 		// and the pigeon-hole principle.  For now, just keep it simple.
-		val sizes1 = setType1.sizeRange()
-		val sizes2 = setType2.sizeRange()
-		val min1 = sizes1.lowerBound()
-		val min2 = sizes2.lowerBound()
+		val sizes1 = setType1.sizeRange
+		val sizes2 = setType2.sizeRange
+		val min1 = sizes1.lowerBound
+		val min2 = sizes2.lowerBound
 		// Use the *max* of the lower bounds as the new min bound.
 		val minSize = if (min1.numericCompare(min2).isMore())
 			min1
 		else
 			min2
-		val maxSize = sizes1.upperBound().plusCanDestroy(
-			sizes2.upperBound(), false)
+		val maxSize = sizes1.upperBound.plusCanDestroy(
+			sizes2.upperBound, false)
 		val unionSize = integerRangeType(
 			minSize, true, maxSize.plusCanDestroy(one, false), false)
 		val unionType = setTypeForSizesContentType(
-			unionSize, setType1.contentType().typeUnion(setType2.contentType()))
+			unionSize, setType1.contentType.typeUnion(setType2.contentType))
 		return unionType.makeImmutable()
 	}
 }

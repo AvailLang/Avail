@@ -78,7 +78,7 @@ enum class Mutability constructor(val suffix: String)
 	 * and shared. An [object][AvailObject] that is shared may have more than
 	 * one reference and may be reachable by multiple [fibers][A_Fiber].
 	 * [Modules][A_Module], [methods][MethodDescriptor],
-	 * [message&32;bundle&#32;trees][A_BundleTree], and
+	 * [message&#32;bundle&#32;trees][A_BundleTree], and
 	 * [special&#32;atoms][A_Atom] begin existence in the *shared* state. A
 	 * fiber begins existence *shared* only if the parent fiber retains a
 	 * reference to the new child. The origin [function][A_Function] of a new

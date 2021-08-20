@@ -146,7 +146,8 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 				option.action2!!()
 			}
 		}
-		else {
+		else
+		{
 			if (argument !== null)
 			{
 				throw InvalidArgumentException(keyword)
@@ -437,7 +438,7 @@ class OptionProcessor<OptionKeyType : Enum<OptionKeyType>> internal constructor(
 
 	companion object
 	{
-		/** Continue processing keywords?  */
+		/** Continue processing keywords? */
 		private val continueProcessingKeywords =
 			ThreadLocal.withInitial { true }
 	}

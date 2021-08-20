@@ -70,10 +70,12 @@ object P_ObjectTypeToMap : Primitive(1, CanFold, CanInline)
 			// The correct answer would be a map with *every* atom as a key,
 			// and ⊥ as every corresponding value.  It's easier to just fail
 			// dynamically for this unrepresentable singularity.
-			interpreter.primitiveFailure(
-				E_NO_SUCH_FIELD)
+			interpreter.primitiveFailure(E_NO_SUCH_FIELD)
 		}
-		else interpreter.primitiveSuccess(objectType.fieldTypeMap())
+		else
+		{
+			interpreter.primitiveSuccess(objectType.fieldTypeMap)
+		}
 	}
 
 	override fun privateFailureVariableType(): A_Type =

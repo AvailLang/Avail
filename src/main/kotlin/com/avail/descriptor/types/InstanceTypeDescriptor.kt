@@ -43,6 +43,7 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -180,7 +181,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			}
 			// Create a new enumeration containing all elements that are
 			// simultaneously present in object and another.
-			return if (another.instances().hasElement(getInstance(self)))
+			return if (another.instances.hasElement(getInstance(self)))
 			{
 				self
 			}
@@ -218,7 +219,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 				// Create a new enumeration containing all elements from both
 				// enumerations.
 				enumerationWith(
-					another.instances().setWithElementCanDestroy(
+					another.instances.setWithElementCanDestroy(
 						getInstance(self), false))
 			// Another is a kind.
 			getInstance(self).isInstanceOfKind(another) -> another
@@ -276,7 +277,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		getInstance(self).equals(potentialInstance)
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstance(self).hash() xor 0x15d5b163) * AvailObject.multiplier
+		combine2(getInstance(self).hash(), 0x15d5b163)
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
 		if (aType.isInstanceMeta)
@@ -285,7 +286,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			// instance meta (the only sort of meta that exists these
 			// days -- 2012.07.17).  See if my instance (a non-type) is an
 			// instance of aType's instance (a type).
-			getInstance(self).isInstanceOf(aType.instance())
+			getInstance(self).isInstanceOf(aType.instance)
 		}
 		else
 		{
@@ -304,10 +305,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		getSuperkind(self).fieldTypeAtOrNull(field)
 
 	override fun o_FieldTypeMap(self: AvailObject): A_Map =
-		getSuperkind(self).fieldTypeMap()
+		getSuperkind(self).fieldTypeMap
 
 	override fun o_FieldTypeTuple(self: AvailObject): A_Tuple =
-		getSuperkind(self).fieldTypeTuple()
+		getSuperkind(self).fieldTypeTuple
 
 	override fun o_LowerBound(self: AvailObject): A_Number
 	{
@@ -342,7 +343,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		// index is out of bounds.
 		val tuple: A_Tuple = getInstance(self)
 		assert(tuple.isTuple)
-		return if (1 <= index && index <= tuple.tupleSize())
+		return if (1 <= index && index <= tuple.tupleSize)
 		{
 			instanceTypeOrMetaOn(tuple.tupleAt(index))
 		}
@@ -363,7 +364,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			return bottom
 		}
-		val upperIndex = tuple.tupleSize()
+		val upperIndex = tuple.tupleSize
 		if (startIndex > upperIndex)
 		{
 			return bottom
@@ -382,7 +383,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val tuple: A_Tuple = getInstance(self)
 		assert(tuple.isTuple)
-		val tupleSize = tuple.tupleSize()
+		val tupleSize = tuple.tupleSize
 		return if (tupleSize == 0)
 		{
 			bottom
@@ -397,13 +398,13 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		{
 			instance.isTuple ->
 				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).tupleSize())
+					getInstance(self).tupleSize)
 			instance.isSet ->
 				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).setSize())
+					getInstance(self).setSize)
 			instance.isMap ->
 				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).mapSize())
+					getInstance(self).mapSize)
 			else ->
 			{
 				assert(false) { "Unexpected instance for sizeRange" }
@@ -415,7 +416,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeTuple(self: AvailObject): A_Tuple
 	{
 		assert(getInstance(self).isTuple)
-		return getSuperkind(self).typeTuple()
+		return getSuperkind(self).typeTuple
 	}
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -473,13 +474,13 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			getSuperkind(self).acceptsTupleOfArguments(arguments)
 
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		getSuperkind(self).argsTupleType()
+		getSuperkind(self).argsTupleType
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
-		getSuperkind(self).declaredExceptions()
+		getSuperkind(self).declaredExceptions
 
 	override fun o_FunctionType(self: AvailObject): A_Type =
-		getSuperkind(self).functionType()
+		getSuperkind(self).functionType
 
 	override fun o_ContentType(self: AvailObject): A_Type
 	{
@@ -500,10 +501,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 			getSuperkind(self).couldEverBeInvokedWith(argRestrictions)
 
 	override fun o_KeyType(self: AvailObject): A_Type =
-		enumerationWith(getInstance(self).keysAsSet())
+		enumerationWith(getInstance(self).keysAsSet)
 
 	override fun o_ValueType(self: AvailObject): A_Type =
-		enumerationWith(getInstance(self).valuesAsTuple().asSet())
+		enumerationWith(getInstance(self).valuesAsTuple.asSet)
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
@@ -511,21 +512,21 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
-		getSuperkind(self).returnType()
+		getSuperkind(self).returnType
 
 	override fun o_ReadType(self: AvailObject): A_Type =
-		getSuperkind(self).readType()
+		getSuperkind(self).readType
 
 	override fun o_WriteType(self: AvailObject): A_Type =
-		getSuperkind(self).writeType()
+		getSuperkind(self).writeType
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
-		getInstance(self).phraseExpressionType()
+		getInstance(self).phraseExpressionType
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 	{
 		val instance = getInstance(self)
-		return instance.isLong && instance.extractLong() == aLong
+		return instance.isLong && instance.extractLong == aLong
 	}
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -548,7 +549,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		val size = endIndex - startIndex + 1
 		assert(size >= 0)
 		val tuple: A_Tuple = getInstance(self)
-		val tupleSize = tuple.tupleSize()
+		val tupleSize = tuple.tupleSize
 		return generateObjectTupleFrom(size) {
 			if (it <= tupleSize)
 			{
@@ -567,7 +568,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		getSuperkind(self).writeTo(writer)
 		writer.write("instances")
-		self.instances().writeTo(writer)
+		self.instances.writeTo(writer)
 		writer.endObject()
 	}
 
@@ -577,12 +578,12 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		getSuperkind(self).writeSummaryTo(writer)
 		writer.write("instances")
-		self.instances().writeSummaryTo(writer)
+		self.instances.writeSummaryTo(writer)
 		writer.endObject()
 	}
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
-		getInstance(self).typeTag().metaTag()
+		getInstance(self).typeTag().metaTag!!
 
 	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
 
@@ -617,15 +618,15 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		private fun getSuperkind(self: AvailObject): A_Type =
 			getInstance(self).kind()
 
-		/** The mutable [InstanceTypeDescriptor].  */
+		/** The mutable [InstanceTypeDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [InstanceTypeDescriptor].  */
+		/** The immutable [InstanceTypeDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [InstanceTypeDescriptor].  */
+		/** The shared [InstanceTypeDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			InstanceTypeDescriptor(Mutability.SHARED)
 
@@ -643,7 +644,7 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		fun instanceType(instance: A_BasicObject): AvailObject =
 			mutable.create {
 				assert(!instance.isType)
-				assert(!instance.equalsNil())
+				assert(instance.notNil)
 				setSlot(INSTANCE, instance.makeImmutable())
 			}
 

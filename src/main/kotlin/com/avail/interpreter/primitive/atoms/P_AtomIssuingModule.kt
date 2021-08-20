@@ -62,12 +62,12 @@ object P_AtomIssuingModule : Primitive(1, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
-		if (atom.isAtomSpecial())
+		if (atom.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
-		val issuer = atom.issuingModule()
-		assert(!issuer.equalsNil())
+		val issuer = atom.issuingModule
+		assert(issuer.notNil)
 		return interpreter.primitiveSuccess(issuer)
 	}
 

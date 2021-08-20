@@ -89,10 +89,10 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		val priority = interpreter.argument(4)
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (atom.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val handle = pojo.javaObjectNotNull<FileHandle>()
 		if (!handle.canWrite)
@@ -105,7 +105,7 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		val size =
 			if (sizeObject.isLong)
 			{
-				sizeObject.extractLong()
+				sizeObject.extractLong
 			}
 			else
 			{
@@ -115,11 +115,11 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		// Guaranteed non-negative by argument constraint.
 		assert(size >= 0L)
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{
 				StringDescriptor.stringFrom(
@@ -140,23 +140,23 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 
 		runtime.ioSystem.executeFileTask(
 			Runnable {
-	           try
-	           {
-	               fileChannel.truncate(size)
-	           }
-	           catch (e: IOException)
-	           {
-	               Interpreter.runOutermostFunction(
-	                   runtime,
-	                   newFiber,
-	                   fail,
-	                   listOf(E_IO_ERROR.numericCode()))
-	               return@Runnable
-	           }
+				try
+				{
+					fileChannel.truncate(size)
+				}
+				catch (e: IOException)
+				{
+					Interpreter.runOutermostFunction(
+						runtime,
+						newFiber,
+						fail,
+						listOf(E_IO_ERROR.numericCode()))
+					return@Runnable
+				}
 
-	           Interpreter.runOutermostFunction(
-	               runtime, newFiber, succeed, emptyList())
-	       })
+				Interpreter.runOutermostFunction(
+					runtime, newFiber, succeed, emptyList())
+			})
 
 		return interpreter.primitiveSuccess(newFiber)
 	}
@@ -168,14 +168,11 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 				wholeNumbers,
 				functionType(
 					emptyTuple,
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

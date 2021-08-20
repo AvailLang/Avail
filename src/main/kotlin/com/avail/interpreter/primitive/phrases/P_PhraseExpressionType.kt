@@ -1,5 +1,5 @@
 /*
- * P_ParseNodeExpressionType.kt
+ * P_PhraseExpressionType.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -59,7 +59,7 @@ object P_PhraseExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val phrase = interpreter.argument(0)
-		return interpreter.primitiveSuccess(phrase.phraseExpressionType())
+		return interpreter.primitiveSuccess(phrase.phraseExpressionType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -73,6 +73,6 @@ object P_PhraseExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val phraseType = argumentTypes[0]
-		return instanceMeta(phraseType.phraseTypeExpressionType())
+		return instanceMeta(phraseType.phraseTypeExpressionType)
 	}
 }

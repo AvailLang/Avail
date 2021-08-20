@@ -139,14 +139,14 @@ internal class GraphTracer constructor(
 			while (i < input.length)
 			{
 				c = input.codePointAt(i)
-				if (('a'.toInt() <= c && c <= 'z'.toInt())
-					|| ('A'.toInt() <= c && c <= 'Z'.toInt())
-					|| (i > startPosition && '0'.toInt() <= c
-						&& c <= '9'.toInt()))
+				if (('a'.code <= c && c <= 'z'.code)
+					|| ('A'.code <= c && c <= 'Z'.code)
+					|| (i > startPosition && '0'.code <= c
+						&& c <= '9'.code))
 				{
 					output.appendCodePoint(c)
 				}
-				else if (c == '/'.toInt())
+				else if (c == '/'.code)
 				{
 					output.append("__")
 				}
@@ -332,7 +332,9 @@ internal class GraphTracer constructor(
 						}
 						tab(depth)
 						append("}\n")
-					} else if (node.resolvedModuleName === null) {
+					}
+					else if (node.resolvedModuleName === null)
+					{
 						tab(depth)
 						append("}\n")
 					}
@@ -340,14 +342,17 @@ internal class GraphTracer constructor(
 				0)
 		}
 		val channel: AsynchronousFileChannel
-		try {
+		try
+		{
 			channel = availBuilder.runtime.ioSystem.openFile(
 				outputFile.toPath(),
 				EnumSet.of(
 					StandardOpenOption.WRITE,
 					StandardOpenOption.CREATE,
 					StandardOpenOption.TRUNCATE_EXISTING))
-		} catch (e: IOException) {
+		}
+		catch (e: IOException)
+		{
 			throw RuntimeException(e)
 		}
 

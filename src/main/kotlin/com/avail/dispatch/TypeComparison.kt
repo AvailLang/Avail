@@ -32,7 +32,9 @@
 
 package com.avail.dispatch
 
-import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
@@ -106,7 +108,7 @@ enum class TypeComparison
 	companion object
 	{
 		/**
-		 * Compare two types extracted from [A_Definition.bodySignature]s.  The
+		 * Compare two types extracted from [A_Sendable.bodySignature]s.  The
 		 * first is the criterion, which will eventually be tested against
 		 * arguments.  The second signature is the one being compared by
 		 * specificity with the criterion.
@@ -146,7 +148,7 @@ enum class TypeComparison
 
 		/**
 		 * Compare two phrase types extracted from
-		 * [A_Definition.parsingSignature]s.  The first is the criterion, which
+		 * [A_Sendable.parsingSignature]s.  The first is the criterion, which
 		 * will eventually be tested against arguments.  The second signature is
 		 * the one being compared by specificity with the criterion.
 		 *
@@ -166,7 +168,7 @@ enum class TypeComparison
 			assert(argumentRestrictions.size == 1)
 			val restriction = argumentRestrictions[0]
 			val intersection = restriction.intersectionWithType(someType)
-			if (intersection.type.phraseTypeExpressionType().isBottom)
+			if (intersection.type.phraseTypeExpressionType.isBottom)
 			{
 				// For the purpose of parsing, if the intersection of these
 				// phrase types produces a yield type that's ⊥, treat the types

@@ -60,11 +60,11 @@ object P_Entries : Primitive(1, CanInline, CannotFail)
 	{
 		interpreter.checkArgumentCount(1)
 		val module = interpreter.argument(0)
-		return interpreter.primitiveSuccess(module.entryPoints().keysAsSet())
+		return interpreter.primitiveSuccess(module.entryPoints.keysAsSet)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(MODULE.o),
-			setTypeForSizesContentType(wholeNumbers, stringType()))
+			setTypeForSizesContentType(wholeNumbers, stringType))
 }

@@ -54,7 +54,7 @@ class NilDescriptor private constructor() : Descriptor(
 	override fun o_Equals(
 		self: AvailObject, another: A_BasicObject
 	): Boolean {
-		return another.equalsNil()
+		return another.isNil
 	}
 
 	@ThreadSafe
@@ -89,10 +89,10 @@ class NilDescriptor private constructor() : Descriptor(
 	override fun shared() = shared
 
 	companion object {
-		/** The shared [NilDescriptor].  */
+		/** The shared [NilDescriptor]. */
 		private val shared = NilDescriptor()
 
-		/** The sole instance of `NilDescriptor`, called "nil".  */
-		val nil: AvailObject = shared.create { }
+		/** The sole instance of `NilDescriptor`, called "nil". */
+		val nil: AvailObject = shared.create()
 	}
 }

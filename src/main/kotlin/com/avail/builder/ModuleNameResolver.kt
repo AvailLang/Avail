@@ -67,7 +67,7 @@ import java.util.Collections
  *  9. If the resolution succeeded and _F_ specifies a directory, then replace
  *     the resolution with _F/M'.avail_. Verify that the resolution specifies
  *     an existing regular file.
- *  10. Otherwise resolution failed.
+ *  10. Otherwise, resolution failed.
  *
  * An instance is obtained via [RenamesFileParser.parse].
  *
@@ -97,8 +97,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 * fully-qualified [module][ModuleName].
 	 */
 	private val resolutionCache =
-		LRUCache<ModuleName, ModuleNameResolutionResult>(
-			10000, 100, { privateResolve(it) })
+		LRUCache(10000, 100, this::privateResolve)
 
 	/** An immutable [Map] of all the module path renames. */
 	val renameRules: Map<String, String>
@@ -187,7 +186,8 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 *   resolution.
 	 */
 	private fun privateResolve(
-		qualifiedName: ModuleName): ModuleNameResolutionResult
+		qualifiedName: ModuleName
+	): ModuleNameResolutionResult
 	{
 		// Attempt to look up the fully-qualified name in the map of renaming
 		// rules. Apply the rule if it exists.
@@ -214,8 +214,7 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 
 		if (reference === null)
 		{
-			val result = rootResolver.find(
-				qualifiedName, canonicalName, this)
+			val result = rootResolver.find(qualifiedName, canonicalName, this)
 			if (result != null)
 			{
 				return result
@@ -291,10 +290,10 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 	 */
 	class ModuleNameResolutionResult
 	{
-		/** The module that was successfully resolved, or null if not found.  */
+		/** The module that was successfully resolved, or null if not found. */
 		internal val resolvedModule: ResolvedModuleName?
 
-		/** An exception if the module was not found, or null if it was.  */
+		/** An exception if the module was not found, or null if it was. */
 		internal val exception: UnresolvedDependencyException?
 
 		/**
@@ -386,7 +385,13 @@ class ModuleNameResolver constructor(val moduleRoots: ModuleRoots)
 		 * The standard extension for Avail [module][ModuleDescriptor] source
 		 * files.
 		 */
-		val availExtension = ".avail"
+		const val availExtension = ".avail"
+
+		/**
+		 * The Avail module extension, with a slash appended, the way that we
+		 * expect to find directory names in a Jar file containing Avail source.
+		 */
+		const val availExtensionWithSlash = "$availExtension/"
 
 		/**
 		 * Trivially translate the specified package name and local module name

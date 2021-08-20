@@ -32,7 +32,7 @@
 
 Module "Primitives"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Address" = ("_'s⁇address"),
 	"Common" = ("Close_"),

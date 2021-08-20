@@ -141,7 +141,7 @@ class LiteralTokenDescriptor private constructor(
 		 */
 		NEXT_LEXING_STATE_POJO,
 
-		/** The actual [AvailObject] wrapped by this token.  */
+		/** The actual [AvailObject] wrapped by this token. */
 		LITERAL;
 
 		companion object
@@ -172,7 +172,7 @@ class LiteralTokenDescriptor private constructor(
 		builder.append(
 			String.format(
 				"%s ",
-				self.tokenType().name.toLowerCase().replace('_', ' ')))
+				self.tokenType().name.lowercase().replace('_', ' ')))
 		self.slot(LITERAL).printOnAvoidingIndent(
 			builder,
 			recursionMap,
@@ -198,11 +198,10 @@ class LiteralTokenDescriptor private constructor(
 	override fun o_IsInstanceOfKind(
 		self: AvailObject, aType: A_Type): Boolean =
 		(aType.isSupertypeOfPrimitiveTypeEnum(
-			TOKEN
-		)
+			TOKEN)
 			|| aType.isLiteralTokenType
 			&& self.slot(LITERAL)
-			.isInstanceOf(aType.literalType()))
+			.isInstanceOf(aType.literalType))
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
 
@@ -213,7 +212,8 @@ class LiteralTokenDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("token") }
 			at("token type") {
-				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+				write(
+					self.tokenType().name.lowercase().replace('_', ' '))
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }
@@ -274,21 +274,23 @@ class LiteralTokenDescriptor private constructor(
 				// token will be cleanly disconnected from the
 				// CompilationContext after finishing parsing the current
 				// top-level statement.
-				if (!nextStatePojo.equalsNil())
+				if (nextStatePojo.notNil)
 				{
 					val nextState: LexingState =
 						nextStatePojo.javaObjectNotNull()
 					nextState.compilationContext.recordToken(innerToken)
 				}
-			} else {
+			}
+			else
+			{
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
 			}
 		}
 
-		/** The mutable [LiteralTokenDescriptor].  */
+		/** The mutable [LiteralTokenDescriptor]. */
 		private val mutable = LiteralTokenDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralTokenDescriptor].  */
+		/** The shared [LiteralTokenDescriptor]. */
 		private val shared = LiteralTokenDescriptor(Mutability.SHARED)
 	}
 }

@@ -94,12 +94,9 @@ object P_AtomicRemoveFromMap : Primitive(2, CanInline, HasSideEffect) {
 			tuple(
 				variableReadWriteType(
 					mostGeneralMapType(),
-					bottom
-				),
-				ANY.o
-			),
-			TOP.o
-		)
+					bottom),
+				ANY.o),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

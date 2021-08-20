@@ -98,7 +98,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			}
 			return Character.toCodePoint(high, low)
 		}
-		return high.toInt()
+		return high.code
 	}
 
 	/**
@@ -132,7 +132,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			reader.mark(2)
 			when (readCodePoint())
 			{
-				' '.toInt(), '\t'.toInt(), '\n'.toInt(), '\r'.toInt() ->
+				' '.code, '\t'.code, '\n'.code, '\r'.code ->
 				{
 				}
 				else ->
@@ -202,9 +202,9 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 		}
 		when (codePoint)
 		{
-			'A'.toInt(), 'B'.toInt(), 'C'.toInt(), 'D'.toInt(), 'E'.toInt(),
-			'F'.toInt(), 'a'.toInt(), 'b'.toInt(), 'c'.toInt(), 'd'.toInt(),
-			'e'.toInt(), 'f'.toInt() ->
+			'A'.code, 'B'.code, 'C'.code, 'D'.code, 'E'.code,
+			'F'.code, 'a'.code, 'b'.code, 'c'.code, 'd'.code,
+			'e'.code, 'f'.code ->
 			{
 				builder?.appendCodePoint(codePoint)
 				return true
@@ -293,12 +293,12 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 	private fun readNumber(): JSONNumber
 	{
 		val builder = StringBuilder()
-		peekFor('-'.toInt(), builder)
+		peekFor('-'.code, builder)
 		while (peekForDigit(builder))
 		{
 			// Do nothing.
 		}
-		if (peekFor('.'.toInt(), builder))
+		if (peekFor('.'.code, builder))
 		{
 			// This is a decimal point, so expect fractional digits.
 			while (peekForDigit(builder))
@@ -307,10 +307,10 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			}
 		}
 		// Optional exponent sign.
-		if (peekFor('e'.toInt(), builder) || peekFor('E'.toInt(), builder))
+		if (peekFor('e'.code, builder) || peekFor('E'.code, builder))
 		{
 			// Engineering notation.
-			peekFor('-'.toInt(), builder) || peekFor('+'.toInt(), builder)
+			peekFor('-'.code, builder) || peekFor('+'.code, builder)
 			while (peekForDigit(builder))
 			{
 				// Do nothing.
@@ -332,26 +332,26 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 	@Throws(IOException::class, MalformedJSONException::class)
 	private fun readString(): String
 	{
-		peekFor('"'.toInt(), null)
+		peekFor('"'.code, null)
 		val builder = StringBuilder()
-		while (!peekFor('"'.toInt(), null))
+		while (!peekFor('"'.code, null))
 		{
-			if (peekFor('\\'.toInt(), null))
+			if (peekFor('\\'.code, null))
 			{
 				when (val codePoint = readCodePoint())
 				{
-					'"'.toInt() -> builder.append('"')
-					'\\'.toInt() -> builder.append('\\')
-					'/'.toInt() -> builder.append('/')
-					'b'.toInt() -> builder.append('\b')
-					'f'.toInt() -> builder.append("\\f")
-					'n'.toInt() -> builder.append('\n')
-					'r'.toInt() -> builder.append('\r')
-					't'.toInt() -> builder.append('\t')
-					'u'.toInt() ->
+					'"'.code -> builder.append('"')
+					'\\'.code -> builder.append('\\')
+					'/'.code -> builder.append('/')
+					'b'.code -> builder.append('\b')
+					'f'.code -> builder.append("\\f")
+					'n'.code -> builder.append('\n')
+					'r'.code -> builder.append('\r')
+					't'.code -> builder.append('\t')
+					'u'.code ->
 					{
 						val hex = StringBuilder(4)
-						for (i in 0..3)
+						for (i in 0 .. 3)
 						{
 							if (!peekForHexDigit(hex))
 							{
@@ -398,8 +398,8 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 	@Throws(IOException::class, MalformedJSONException::class)
 	private fun readArray(): JSONArray
 	{
-		peekFor('['.toInt(), null)
-		if (peekFor(']'.toInt(), null))
+		peekFor('['.code, null)
+		if (peekFor(']'.code, null))
 		{
 			return JSONArray.empty()
 		}
@@ -409,8 +409,8 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			list.add(readData())
 			skipWhitespace()
 		}
-		while (peekFor(','.toInt(), null))
-		if (!peekFor(']'.toInt(), null))
+		while (peekFor(','.code, null))
+		if (!peekFor(']'.code, null))
 		{
 			throw MalformedJSONException()
 		}
@@ -430,9 +430,9 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 	@Throws(IOException::class, MalformedJSONException::class)
 	private fun readObject(): JSONObject
 	{
-		peekFor('{'.toInt(), null)
+		peekFor('{'.code, null)
 		skipWhitespace()
-		if (peekFor('}'.toInt(), null))
+		if (peekFor('}'.code, null))
 		{
 			return JSONObject.empty
 		}
@@ -442,7 +442,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			skipWhitespace()
 			val key = readString()
 			skipWhitespace()
-			if (!peekFor(':'.toInt(), null))
+			if (!peekFor(':'.code, null))
 			{
 				throw MalformedJSONException()
 			}
@@ -450,8 +450,8 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			map[key] = value
 			skipWhitespace()
 		}
-		while (peekFor(','.toInt(), null))
-		if (!peekFor('}'.toInt(), null))
+		while (peekFor(','.code, null))
+		if (!peekFor('}'.code, null))
 		{
 			throw MalformedJSONException()
 		}
@@ -479,21 +479,21 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 			-1 ->
 				// Handle an empty document.
 				data = JSONData.jsonNull
-			'-'.toInt(), '0'.toInt(), '1'.toInt(), '2'.toInt(), '3'.toInt(),
-			'4'.toInt(), '5'.toInt(), '6'.toInt(), '7'.toInt(), '8'.toInt(),
-			'9'.toInt() ->
+			'-'.code, '0'.code, '1'.code, '2'.code, '3'.code,
+			'4'.code, '5'.code, '6'.code, '7'.code, '8'.code,
+			'9'.code ->
 				// Read a JSON number.
 				data = readNumber()
-			'"'.toInt() ->
+			'"'.code ->
 				// Read a JSON string.
 				data = JSONValue(readString())
-			'['.toInt() ->
+			'['.code ->
 				// Read a JSON array.
 				data = readArray()
-			'{'.toInt() ->
+			'{'.code ->
 				// Read a JSON object.
 				data = readObject()
-			'f'.toInt() ->
+			'f'.code ->
 				// Read a JSON false.
 				if (peekForKeyword("false"))
 				{
@@ -503,7 +503,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 				{
 					throw MalformedJSONException()
 				}
-			'n'.toInt() ->
+			'n'.code ->
 				// Read a JSON value (true, false, or null).
 				if (peekForKeyword("null"))
 				{
@@ -513,7 +513,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 				{
 					throw MalformedJSONException()
 				}
-			't'.toInt() ->
+			't'.code ->
 				// Read a JSON true.
 				if (peekForKeyword("true"))
 				{

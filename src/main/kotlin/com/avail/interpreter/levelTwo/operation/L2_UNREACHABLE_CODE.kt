@@ -33,6 +33,7 @@ package com.avail.interpreter.levelTwo.operation
 
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.MethodVisitor
@@ -84,7 +85,7 @@ object L2_UNREACHABLE_CODE : L2ControlFlowOperation()
 	/**
 	 * The [CheckedMethod] for [throwUnreachableCodeException].
 	 */
-	val throwUnreachableCodeExceptionMethod = CheckedMethod.staticMethod(
+	val throwUnreachableCodeExceptionMethod = staticMethod(
 		L2_UNREACHABLE_CODE::class.java,
 		::throwUnreachableCodeException.name,
 		UnreachableCodeException::class.java)

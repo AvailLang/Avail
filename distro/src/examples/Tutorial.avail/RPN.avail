@@ -40,6 +40,7 @@ Extends
 		"comment lexer",
 		"string token lexer",
 		"whole number lexer",
+		"floating point number lexer",
 		"keyword lexer",
 		"operator lexer",
 

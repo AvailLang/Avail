@@ -32,7 +32,7 @@
 
 Module "MethodDeclarationFromAtom Tests"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Primitive Test Common"
 Body
@@ -161,12 +161,6 @@ Test "MethodDeclarationFromAtom fails with incorrect-type-for-numbered-choice ex
 	Skip test
 ]
 must raise incorrect-type-for-numbered-choice exception;
-
-Test "MethodDeclarationFromAtom fails with dollar-sign-must-follow-an-ellipsis exception" in primitive methods test suite if supported is
-[
-	Skip test
-]
-must raise dollar-sign-must-follow-an-ellipsis exception;
 
 Test "MethodDeclarationFromAtom fails with cannot-define-during-compilation exception" in primitive methods test suite if supported is
 [

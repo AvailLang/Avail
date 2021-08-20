@@ -69,11 +69,11 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 		val b = interpreter.argument(2)
 
 		val scale = when {
-			b.isInt -> min(max(b.extractInt(), -10000), 10000)
+			b.isInt -> min(max(b.extractInt, -10000), 10000)
 			b.greaterOrEqual(zero) -> 10000
 			else -> -10000
 		}
-		val f = scalb(a.extractFloat(), scale)
+		val f = scalb(a.extractFloat, scale)
 		return interpreter.primitiveSuccess(fromFloatRecycling(f, a, true))
 	}
 
@@ -82,8 +82,6 @@ object P_FloatTimesTwoPower : Primitive(3, CannotFail, CanFold, CanInline)
 			tuple(
 				FLOAT.o,
 				instanceType(two),
-				integers
-			),
-			FLOAT.o
-		)
+				integers),
+			FLOAT.o)
 }

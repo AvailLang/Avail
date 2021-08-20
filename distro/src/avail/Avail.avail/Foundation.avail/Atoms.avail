@@ -32,7 +32,7 @@
 
 Module "Atoms"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Bootstrap",
 	"Early Conditionals",
@@ -80,7 +80,6 @@ Body
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "cannot-define-during-compilation exception"
  * @raises "loading-is-over exception"
  */
@@ -142,7 +141,7 @@ Public method "«Public»?_is a|an new⁇field⁇atom" is
 	atomName : string
 |
 	theAtom ::= atom for atomName;
-	Method atomName is [theAtom];
+	Macro atomName is [`theAtom`(atomName) → literal phrase];
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤;
 
@@ -206,7 +205,7 @@ Public method "«Public»?_is a new⁇heritable«fiber-local»⁇atom" is
 	atomName : string
 |
 	theAtom ::= new heritable fiber-local atom named atomName;
-	Method atomName is [theAtom];
+	Macro atomName is [`theAtom`(atomName) → literal phrase];
 	Semantic restriction atomName is [theAtom's type];
 ] : ⊤;
 

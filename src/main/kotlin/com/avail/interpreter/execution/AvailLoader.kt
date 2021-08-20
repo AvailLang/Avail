@@ -43,6 +43,7 @@ import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.bundles.A_Bundle
@@ -65,6 +66,7 @@ import com.avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -73,10 +75,21 @@ import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.chooseBundle
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.includesDefinition
+import com.avail.descriptor.methods.A_Method.Companion.lexer
+import com.avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Method.Companion.removeDefinition
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor
 import com.avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
 import com.avail.descriptor.methods.DefinitionDescriptor
@@ -149,13 +162,13 @@ import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.upperBound
-import com.avail.descriptor.types.EnumerationTypeDescriptor
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
-import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
 import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import com.avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
@@ -213,13 +226,14 @@ import kotlin.concurrent.withLock
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class AvailLoader(
-	private val module: A_Module,
-	val textInterface: TextInterface
-) {
+	val module: A_Module,
+	val textInterface: TextInterface)
+{
 	/**
 	 * A class that tracks all visible [A_Lexer]s while compiling a module.
 	 */
-	class LexicalScanner {
+	class LexicalScanner
+	{
 		/**
 		 * The [List] of all [lexers][A_Lexer] which are visible within the
 		 * module being compiled.
@@ -237,7 +251,8 @@ class AvailLoader(
 		 * Ensure new [A_Lexer]s are not added after this point.  This is a
 		 * safety measure.
 		 */
-		fun freezeFromChanges() {
+		fun freezeFromChanges()
+		{
 			assert(!frozen)
 			frozen = true
 		}
@@ -289,12 +304,14 @@ class AvailLoader(
 		 *   The [A_Lexer] to add.
 		 */
 		@Synchronized
-		fun addLexer(lexer: A_Lexer) {
+		fun addLexer(lexer: A_Lexer)
+		{
 			assert(!frozen)
-			lexer.lexerMethod().setLexer(lexer)
-			val module: A_Module = lexer.definitionModule()
-			if (!module.equalsNil()) {
-				if (module.moduleState() == Loading)
+			lexer.lexerMethod.lexer = lexer
+			val module: A_Module = lexer.definitionModule
+			if (module.notNil)
+			{
+				if (module.moduleState == Loading)
 				{
 					module.addLexer(lexer)
 				}
@@ -305,8 +322,9 @@ class AvailLoader(
 			// or non-Latin-1 tables implies there must be at least one
 			// canonical tuple of lexers, we can skip clearing the tables if the
 			// canonical map is empty.
-			if (canonicalLexerTuples.isNotEmpty()) {
-				for (i in 0..255)
+			if (canonicalLexerTuples.isNotEmpty())
+			{
+				for (i in 0 .. 255)
 				{
 					latin1ApplicableLexers[i] = null
 				}
@@ -339,9 +357,10 @@ class AvailLoader(
 			lexingState: LexingState,
 			codePoint: Int,
 			continuation: (A_Tuple)->Unit,
-			onFailure: (Map<A_Lexer, Throwable>)->Unit
-		) {
-			if (codePoint and 255.inv() == 0) {
+			onFailure: (Map<A_Lexer, Throwable>)->Unit)
+		{
+			if (codePoint and 255.inv() == 0)
+			{
 				latin1ApplicableLexers[codePoint]?.let {
 					continuation(it)
 					return
@@ -380,9 +399,10 @@ class AvailLoader(
 			// Run the filters to produce the set of applicable lexers, then use
 			// the canonical map to make it a tuple, then invoke the
 			// continuation with it.
-			selectLexersPassingFilterThen(lexingState, codePoint) {
-				applicable, failures ->
-				if (failures.isNotEmpty()) {
+			selectLexersPassingFilterThen(lexingState, codePoint)
+			{ applicable, failures ->
+				if (failures.isNotEmpty())
+				{
 					onFailure(failures)
 					// Don't cache the successful lexer filter results, because
 					// we shouldn't continue and neither should lexing of any
@@ -404,9 +424,9 @@ class AvailLoader(
 		private fun canonicalTupleOfLexers(applicable: A_Set): A_Tuple =
 			synchronized(canonicalLexerTuples) {
 				canonicalLexerTuples[applicable] ?: run {
-					applicable.asTuple().makeShared().also {
-						canonicalLexerTuples[applicable.makeShared()] = it
-					}
+					val tuple = applicable.asTuple.makeShared()
+					canonicalLexerTuples[applicable.makeShared()] = tuple
+					tuple
 				}
 			}
 
@@ -434,13 +454,13 @@ class AvailLoader(
 		private fun selectLexersPassingFilterThen(
 			lexingState: LexingState,
 			codePoint: Int,
-			continuation: (A_Set, Map<A_Lexer, Throwable>)->Unit
-		) {
+			continuation: (A_Set, Map<A_Lexer, Throwable>)->Unit)
+		{
 			val applicableLexers = mutableListOf<A_Lexer>()
 			val undecidedLexers = mutableListOf<A_Lexer>()
 			when (codePoint)
 			{
-				in 0..255 -> allVisibleLexers.forEach {
+				in 0 .. 255 -> allVisibleLexers.forEach {
 					when (it.lexerApplicability(codePoint))
 					{
 						null -> undecidedLexers.add(it)
@@ -450,7 +470,8 @@ class AvailLoader(
 				else -> undecidedLexers.addAll(allVisibleLexers)
 			}
 			var countdown = undecidedLexers.size
-			if (countdown == 0) {
+			if (countdown == 0)
+			{
 				continuation(setFromCollection(applicableLexers), emptyMap())
 				return
 			}
@@ -462,61 +483,59 @@ class AvailLoader(
 			val joinLock = ReentrantLock()
 			val failureMap = mutableMapOf<A_Lexer, Throwable>()
 			val fibers = undecidedLexers.map { lexer ->
-				newLoaderFiber(
-					EnumerationTypeDescriptor.booleanType,
-					loader
-				) {
+				val fiber = newLoaderFiber(booleanType, loader)
+				{
 					formatString(
 						"Check lexer filter %s for U+%06x",
-						lexer.lexerMethod().chooseBundle(loader.module())
-							.message().atomName(),
+						lexer.lexerMethod.chooseBundle(loader.module)
+							.message.atomName,
 						codePoint)
-				}.apply {
-					setTextInterface(loader.textInterface)
-					lexingState.setFiberContinuationsTrackingWork(
-						this@apply,
-						{ boolObject: AvailObject ->
-							val boolValue = boolObject.extractBoolean()
-							if (codePoint in 0..255) {
-								// Cache the filter result with the lexer
-								// itself, so other modules can reuse it.
-								lexer.setLexerApplicability(
-									codePoint, boolValue)
-							}
-							val countdownHitZero = joinLock.withLock {
-								if (boolValue)
-								{
-									applicableLexers.add(lexer)
-								}
-								countdown--
-								assert(countdown >= 0)
-								countdown == 0
-							}
-							if (countdownHitZero)
-							{
-								// This was the fiber reporting the last result.
-								continuation(
-									setFromCollection(applicableLexers),
-									failureMap)
-							}
-						},
-						{ throwable: Throwable ->
-							val countdownHitZero = joinLock.withLock {
-								failureMap[lexer] = throwable
-								countdown--
-								assert(countdown >= 0)
-								countdown == 0
-							}
-							if (countdownHitZero)
-							{
-								// This was the fiber reporting the last result
-								// (a fiber failure).
-								continuation(
-									setFromCollection(applicableLexers),
-									failureMap)
-							}
-						})
 				}
+				fiber.setTextInterface(loader.textInterface)
+				lexingState.setFiberContinuationsTrackingWork(
+					fiber,
+					{ boolObject: AvailObject ->
+						val boolValue = boolObject.extractBoolean
+						if (codePoint in 0 .. 255)
+						{
+							// Cache the filter result with the lexer
+							// itself, so other modules can reuse it.
+							lexer.setLexerApplicability(codePoint, boolValue)
+						}
+						val countdownHitZero = joinLock.withLock {
+							if (boolValue)
+							{
+								applicableLexers.add(lexer)
+							}
+							countdown--
+							assert(countdown >= 0)
+							countdown == 0
+						}
+						if (countdownHitZero)
+						{
+							// This was the fiber reporting the last result.
+							continuation(
+								setFromCollection(applicableLexers),
+								failureMap)
+						}
+					},
+					{ throwable: Throwable ->
+						val countdownHitZero = joinLock.withLock {
+							failureMap[lexer] = throwable
+							countdown--
+							assert(countdown >= 0)
+							countdown == 0
+						}
+						if (countdownHitZero)
+						{
+							// This was the fiber reporting the last result
+							// (a fiber failure).
+							continuation(
+								setFromCollection(applicableLexers),
+								failureMap)
+						}
+					})
+				fiber
 			}
 			// Launch the fibers only after they've all been created.  That's
 			// because we increment the queued count while setting the fibers'
@@ -529,7 +548,7 @@ class AvailLoader(
 				runOutermostFunction(
 					loader.runtime(),
 					fiber,
-					undecidedLexers[i].lexerFilterFunction(),
+					undecidedLexers[i].lexerFilterFunction,
 					argsList)
 			}
 		}
@@ -547,9 +566,8 @@ class AvailLoader(
 	 * @property isExecuting
 	 *   Whether this phase represents a time when execution is happening.
 	 */
-	enum class Phase(
-		val isExecuting: Boolean = false
-	) {
+	enum class Phase(val isExecuting: Boolean = false)
+	{
 		/** No statements have been loaded or compiled yet. */
 		INITIALIZING,
 
@@ -620,15 +638,6 @@ class AvailLoader(
 	fun runtime(): AvailRuntime = runtime
 
 	/**
-	 * Answer the [module][ModuleDescriptor] undergoing loading by
-	 * this [AvailLoader].
-	 *
-	 * @return
-	 *   A module.
-	 */
-	fun module(): A_Module = module
-
-	/**
 	 * Used for extracting tokens from the source text. Start by using the
 	 * module header lexical scanner, and replace it after the header has been
 	 * fully parsed.
@@ -686,8 +695,10 @@ class AvailLoader(
 	 *   The new value of the flag.
 	 */
 	@Synchronized
-	fun statementCanBeSummarized(summarizable: Boolean) {
-		if (determiningSummarizability) {
+	fun statementCanBeSummarized(summarizable: Boolean)
+	{
+		if (determiningSummarizability)
+		{
 			if (debugUnsummarizedStatements
 				&& !summarizable
 				&& statementCanBeSummarized)
@@ -695,8 +706,7 @@ class AvailLoader(
 				// Here's a good place for a breakpoint, to see why an
 				// expression couldn't be summarized.
 				val e = Throwable().fillInStackTrace()
-				println(
-					"Disabled summary:\n${StackPrinter.trace(e)}")
+				println("Disabled summary:\n${StackPrinter.trace(e)}")
 			}
 			statementCanBeSummarized = summarizable
 		}
@@ -725,8 +735,10 @@ class AvailLoader(
 	 *   The effect to record.
 	 */
 	@Synchronized
-	fun recordEffect(anEffect: LoadingEffect) {
-		if (determiningSummarizability) {
+	fun recordEffect(anEffect: LoadingEffect)
+	{
+		if (determiningSummarizability)
+		{
 			effectsAddedByTopStatement.add(anEffect)
 		}
 	}
@@ -736,7 +748,8 @@ class AvailLoader(
 	 * a function can be summarized, and if so into what [LoadingEffect]s.
 	 */
 	@Synchronized
-	fun startRecordingEffects() {
+	fun startRecordingEffects()
+	{
 		assert(!determiningSummarizability)
 		determiningSummarizability = true
 		statementCanBeSummarized = enableFastLoader
@@ -748,7 +761,8 @@ class AvailLoader(
 	 * of running a function can be summarized into [LoadingEffect]s.
 	 */
 	@Synchronized
-	fun stopRecordingEffects() {
+	fun stopRecordingEffects()
+	{
 		assert(determiningSummarizability)
 		determiningSummarizability = false
 	}
@@ -767,7 +781,8 @@ class AvailLoader(
 	 * Set up the [rootBundleTree] and [lexicalScanner] for compiling the body
 	 * of the module.
 	 */
-	fun prepareForCompilingModuleBody() {
+	fun prepareForCompilingModuleBody()
+	{
 		rootBundleTree = module.buildFilteredBundleTree()
 		lexicalScanner = module.createLexicalScanner()
 	}
@@ -776,7 +791,8 @@ class AvailLoader(
 	 * Clear the [rootBundleTree] and [lexicalScanner] in preparation for
 	 * loading (not compiling) the body of the module.
 	 */
-	fun prepareForLoadingModuleBody() {
+	fun prepareForLoadingModuleBody()
+	{
 		rootBundleTree = nil
 		lexicalScanner = null
 	}
@@ -791,16 +807,19 @@ class AvailLoader(
 	 * @param forwardDefinition
 	 *   A [forward][ForwardDefinitionDescriptor] declaration.
 	 */
-	private fun removeForward(forwardDefinition: A_Definition) {
-		val method = forwardDefinition.definitionMethod()
-		when {
+	private fun removeForward(forwardDefinition: A_Definition)
+	{
+		val method = forwardDefinition.definitionMethod
+		when
+		{
 			!pendingForwards.hasElement(forwardDefinition) ->
 				error("Inconsistent forward declaration handling code")
 			!method.includesDefinition(forwardDefinition) ->
 				error("Inconsistent forward declaration handling code")
 		}
-		pendingForwards = pendingForwards.setWithoutElementCanDestroy(
-			forwardDefinition, true).makeShared()
+		pendingForwards =
+			pendingForwards.setWithoutElementCanDestroy(forwardDefinition, true)
+				.makeShared()
 		method.removeDefinition(forwardDefinition)
 		module.resolveForward(forwardDefinition)
 	}
@@ -825,38 +844,44 @@ class AvailLoader(
 		SignatureException::class)
 	fun addForwardStub(
 		methodName: A_Atom,
-		bodySignature: A_Type
-	) {
+		bodySignature: A_Type)
+	{
 		methodName.makeShared()
 		bodySignature.makeShared()
 		val bundle: A_Bundle = methodName.bundleOrCreate()
-		val splitter: MessageSplitter = bundle.messageSplitter()
+		val splitter: MessageSplitter = bundle.messageSplitter
 		splitter.checkImplementationSignature(bodySignature)
-		val bodyArgsTupleType = bodySignature.argsTupleType()
+		val bodyArgsTupleType = bodySignature.argsTupleType
 		// Add the stubbed method definition.
-		val method: A_Method = bundle.bundleMethod()
-		method.definitionsTuple().forEach { definition ->
+		val method: A_Method = bundle.bundleMethod
+		method.definitionsTuple.forEach { definition ->
 			val existingType = definition.bodySignature()
-			if (existingType.argsTupleType().equals(bodyArgsTupleType)) {
+			if (existingType.argsTupleType.equals(bodyArgsTupleType))
+			{
 				throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 			}
-			if (existingType.acceptsArgTypesFromFunctionType(bodySignature)) {
-				if (!bodySignature.returnType().isSubtypeOf(
-						existingType.returnType())) {
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
+			{
+				if (!bodySignature.returnType.isSubtypeOf(
+						existingType.returnType))
+				{
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
 			}
-			if (bodySignature.acceptsArgTypesFromFunctionType(existingType)) {
-				if (!existingType.returnType().isSubtypeOf(
-						bodySignature.returnType())) {
+			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
+			{
+				if (!existingType.returnType.isSubtypeOf(
+						bodySignature.returnType))
+				{
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
 			}
 		}
 		// Only bother with adding and resolving forwards during compilation.
-		if (phase == EXECUTING_FOR_COMPILE) {
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
 			val newForward: A_Definition = newForwardDefinition(
 				method, module, bodySignature)
 			method.methodAddDefinition(newForward)
@@ -865,9 +890,10 @@ class AvailLoader(
 			val root = rootBundleTree()
 			theModule.lock {
 				theModule.moduleAddDefinition(newForward)
-				pendingForwards = pendingForwards.setWithElementCanDestroy(
-					newForward, true).makeShared()
-				val plan = bundle.definitionParsingPlans().mapAt(newForward)
+				pendingForwards =
+					pendingForwards.setWithElementCanDestroy(newForward, true)
+						.makeShared()
+				val plan = bundle.definitionParsingPlans.mapAt(newForward)
 				val planInProgress = newPlanInProgress(plan, 1)
 				root.addPlanInProgress(planInProgress)
 			}
@@ -891,23 +917,24 @@ class AvailLoader(
 		SignatureException::class)
 	fun addMethodBody(
 		methodName: A_Atom,
-		bodyBlock: A_Function
-	) {
+		bodyBlock: A_Function)
+	{
 		assert(methodName.isAtom)
 		assert(bodyBlock.isFunction)
 		val bundle = methodName.bundleOrCreate()
-		val splitter = bundle.messageSplitter()
+		val splitter = bundle.messageSplitter
 		splitter.checkImplementationSignature(bodyBlock.kind())
 		val numArgs = splitter.numberOfArguments
-		if (bodyBlock.code().numArgs() != numArgs) {
+		if (bodyBlock.code().numArgs() != numArgs)
+		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		// Make it so we can safely hold onto these things in the VM
-		methodName.makeShared()
-		bodyBlock.makeShared()
 		addDefinition(
-			methodName,
-			newMethodDefinition(bundle.bundleMethod(), module, bodyBlock))
+			methodName.makeShared(),
+			newMethodDefinition(
+				bundle.bundleMethod,
+				module,
+				bodyBlock.makeShared()))
 	}
 
 	/**
@@ -927,27 +954,27 @@ class AvailLoader(
 	@Throws(MalformedMessageException::class, SignatureException::class)
 	fun addAbstractSignature(
 		methodName: A_Atom,
-		bodySignature: A_Type
-	) {
+		bodySignature: A_Type)
+	{
 		val bundle: A_Bundle = methodName.bundleOrCreate()
-		val splitter: MessageSplitter = bundle.messageSplitter()
+		val splitter: MessageSplitter = bundle.messageSplitter
 		val numArgs = splitter.numberOfArguments
-		val bodyArgsSizes = bodySignature.argsTupleType().sizeRange()
-		if (!bodyArgsSizes.lowerBound().equalsInt(numArgs)
-			|| !bodyArgsSizes.upperBound().equalsInt(numArgs))
+		val bodyArgsSizes = bodySignature.argsTupleType.sizeRange
+		if (!bodyArgsSizes.lowerBound.equalsInt(numArgs)
+			|| !bodyArgsSizes.upperBound.equalsInt(numArgs))
 		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		assert(bodyArgsSizes.upperBound().equalsInt(numArgs)) {
+		assert(bodyArgsSizes.upperBound.equalsInt(numArgs))
+		{
 			"Wrong number of arguments in abstract method signature"
 		}
-		//  Make it so we can safely hold onto these things in the VM.
-		methodName.makeShared()
-		bodySignature.makeShared()
 		addDefinition(
-			methodName,
+			methodName.makeShared(),
 			newAbstractDefinition(
-				bundle.bundleMethod(), module, bodySignature))
+				bundle.bundleMethod,
+				module,
+				bodySignature.makeShared()))
 	}
 
 	/**
@@ -964,85 +991,97 @@ class AvailLoader(
 	@Throws(SignatureException::class)
 	private fun addDefinition(
 		methodName: A_Atom,
-		newDefinition: A_Definition
-	) {
-		val method = newDefinition.definitionMethod()
+		newDefinition: A_Definition)
+	{
+		val method = newDefinition.definitionMethod
 		val bodySignature = newDefinition.bodySignature()
+		val argsTupleType = bodySignature.argsTupleType
 		var forward: A_Definition? = null
-		method.definitionsTuple().forEach { existingDefinition ->
+		method.definitionsTuple.forEach { existingDefinition ->
 			val existingType = existingDefinition.bodySignature()
-			val same = existingType.argsTupleType().equals(
-				bodySignature.argsTupleType())
-			if (same) {
-				when {
-					!existingDefinition.isForwardDefinition() -> {
+			val same = existingType.argsTupleType.equals(argsTupleType)
+			if (same)
+			{
+				when
+				{
+					!existingDefinition.isForwardDefinition() ->
 						throw SignatureException(
 							E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
-					}
-					!existingType.returnType().equals(
-							bodySignature.returnType()) ->
+					!existingType.returnType.equals(bodySignature.returnType) ->
 						throw SignatureException(
 							E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED)
 				}
 				forward = existingDefinition
 			}
-			if (existingType.acceptsArgTypesFromFunctionType(bodySignature)) {
-				if (!bodySignature.returnType().isSubtypeOf(
-						existingType.returnType())) {
+			if (existingType.acceptsArgTypesFromFunctionType(bodySignature))
+			{
+				if (!bodySignature.returnType.isSubtypeOf(
+						existingType.returnType))
+				{
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
 			}
-			if (bodySignature.acceptsArgTypesFromFunctionType(existingType)) {
-				if (!existingType.returnType().isSubtypeOf(
-						bodySignature.returnType())) {
+			if (bodySignature.acceptsArgTypesFromFunctionType(existingType))
+			{
+				if (!existingType.returnType.isSubtypeOf(
+						bodySignature.returnType))
+				{
 					throw SignatureException(
 						E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS)
 				}
 			}
 		}
-		if (phase == EXECUTING_FOR_COMPILE) {
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
 			module.lock {
 				val root = rootBundleTree()
 				forward?.let { forward ->
-					method.bundles().forEach { bundle ->
-						if (module.hasAncestor(
-								bundle.message().issuingModule()))
+					method.bundles.forEach { bundle ->
+						if (module.hasAncestor(bundle.message.issuingModule))
 						{
 							// Remove the appropriate forwarder plan from the
 							// bundle tree.
 							val plan: A_DefinitionParsingPlan =
-								bundle.definitionParsingPlans().mapAt(forward)
+								bundle.definitionParsingPlans.mapAt(forward)
 							val planInProgress = newPlanInProgress(plan, 1)
 							root.removePlanInProgress(planInProgress)
 						}
 					}
 					removeForward(forward)
 				}
-				try {
+				try
+				{
 					method.methodAddDefinition(newDefinition)
-				} catch (e: SignatureException) {
+				}
+				catch (e: SignatureException)
+				{
 					assert(false) { "Signature was already vetted" }
 					return@lock
 				}
 				recordEffect(
 					LoadingEffectToAddDefinition(
 						methodName.bundleOrCreate(), newDefinition))
-				method.bundles().forEach { bundle ->
-					if (module.hasAncestor(bundle.message().issuingModule()))
+				method.bundles.forEach { bundle ->
+					if (module.hasAncestor(bundle.message.issuingModule))
 					{
 						val plan: A_DefinitionParsingPlan =
-							bundle.definitionParsingPlans().mapAt(newDefinition)
+							bundle.definitionParsingPlans.mapAt(newDefinition)
 						val planInProgress = newPlanInProgress(plan, 1)
 						root.addPlanInProgress(planInProgress)
 					}
 				}
 				module.moduleAddDefinition(newDefinition)
 			}
-		} else {
-			try {
+		}
+		else
+		{
+			try
+			{
 				method.methodAddDefinition(newDefinition)
-			} catch (e: SignatureException) {
+			}
+			catch (e: SignatureException)
+			{
 				assert(false) { "Signature was already vetted" }
 				return
 			}
@@ -1074,19 +1113,21 @@ class AvailLoader(
 		methodName: A_Atom,
 		macroBody: A_Function,
 		prefixFunctions: A_Tuple,
-		ignoreSeals: Boolean
-	) {
+		ignoreSeals: Boolean)
+	{
 		assert(methodName.isAtom)
 		assert(macroBody.isFunction)
 		val bundle = methodName.bundleOrCreate()
-		val splitter = bundle.messageSplitter()
+		val splitter = bundle.messageSplitter
 		val numArgs = splitter.numberOfArguments
-		when {
-			macroBody.code().numArgs() != numArgs ->
+		val macroCode = macroBody.code()
+		when
+		{
+			macroCode.numArgs() != numArgs ->
 				throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
-			!macroBody.code().functionType().returnType().isSubtypeOf(
+			!macroCode.functionType().returnType.isSubtypeOf(
 					PARSE_PHRASE.mostGeneralType()) ->
-				throw SignatureException(E_MACRO_MUST_RETURN_A_PARSE_NODE)
+				throw SignatureException(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 		// Make it so we can safely hold onto these things in the VM.
 		methodName.makeShared()
@@ -1095,21 +1136,23 @@ class AvailLoader(
 		val macroDefinition = newMacroDefinition(
 			bundle, module, macroBody, prefixFunctions)
 		val macroBodyType = macroBody.kind()
-		val argsType = macroBodyType.argsTupleType()
+		val argsType = macroBodyType.argsTupleType
 		// Note: Macro definitions don't have to satisfy a covariance
 		// relationship with their result types, since they're static.
-		if (bundle.macrosTuple().any { existingDef ->
-			argsType.equals(existingDef.bodySignature().argsTupleType())
-		}) {
+		if (bundle.macrosTuple.any { existingDef ->
+			argsType.equals(existingDef.bodySignature().argsTupleType)
+		})
+		{
 			throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 		}
 		bundle.bundleAddMacro(macroDefinition, ignoreSeals)
 		module.moduleAddMacro(macroDefinition)
-		if (phase == EXECUTING_FOR_COMPILE) {
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
 			recordEffect(LoadingEffectToAddMacro(bundle, macroDefinition))
 			module.lock {
 				val plan: A_DefinitionParsingPlan =
-					bundle.definitionParsingPlans().mapAt(macroDefinition)
+					bundle.definitionParsingPlans.mapAt(macroDefinition)
 				val planInProgress = newPlanInProgress(plan, 1)
 				rootBundleTree().addPlanInProgress(planInProgress)
 			}
@@ -1126,16 +1169,18 @@ class AvailLoader(
 	 *   If the signature is invalid.
 	 */
 	@Throws(SignatureException::class)
-	fun addSemanticRestriction(restriction: A_SemanticRestriction) {
+	fun addSemanticRestriction(restriction: A_SemanticRestriction)
+	{
 		val method = restriction.definitionMethod()
-		if (restriction.function().code().numArgs() != method.numArgs()) {
+		if (restriction.function().code().numArgs() != method.numArgs)
+		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		runtime.addSemanticRestriction(restriction)
 		recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
-				method.chooseBundle(module).message(),
+				method.chooseBundle(module).message,
 				restriction.function()))
 		val theModule = module
 		theModule.lock { theModule.moduleAddSemanticRestriction(restriction) }
@@ -1158,13 +1203,14 @@ class AvailLoader(
 		SignatureException::class)
 	fun addSeal(
 		methodName: A_Atom,
-		seal: A_Tuple
-	) {
+		seal: A_Tuple)
+	{
 		assert(methodName.isAtom)
 		assert(seal.isTuple)
 		val bundle = methodName.bundleOrCreate()
-		val splitter = bundle.messageSplitter()
-		if (seal.tupleSize() != splitter.numberOfArguments) {
+		val splitter = bundle.messageSplitter
+		if (seal.tupleSize != splitter.numberOfArguments)
+		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		methodName.makeShared()
@@ -1202,8 +1248,8 @@ class AvailLoader(
 		SignatureException::class)
 	fun addGrammaticalRestrictions(
 		parentAtoms: A_Set,
-		illegalArgumentMessages: A_Tuple
-	) {
+		illegalArgumentMessages: A_Tuple)
+	{
 		parentAtoms.makeShared()
 		illegalArgumentMessages.makeShared()
 		val bundleSetList = illegalArgumentMessages.map { atomsSet ->
@@ -1217,9 +1263,9 @@ class AvailLoader(
 		val bundleSetTuple = tupleFromList(bundleSetList)
 		parentAtoms.forEach { parentAtom ->
 			val bundle: A_Bundle = parentAtom.bundleOrCreate()
-			val splitter: MessageSplitter = bundle.messageSplitter()
+			val splitter: MessageSplitter = bundle.messageSplitter
 			val numArgs = splitter.leafArgumentCount
-			if (illegalArgumentMessages.tupleSize() != numArgs) {
+			if (illegalArgumentMessages.tupleSize != numArgs) {
 				throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			}
 			val grammaticalRestriction =
@@ -1235,7 +1281,7 @@ class AvailLoader(
 				// grammatical restriction.
 				val treesToVisit =
 					ArrayDeque<Pair<A_BundleTree, A_ParsingPlanInProgress>>()
-				bundle.definitionParsingPlans().forEach {
+				bundle.definitionParsingPlans.forEach {
 					_, plan: A_DefinitionParsingPlan ->
 					treesToVisit.addLast(root to newPlanInProgress(plan, 1))
 					while (treesToVisit.isNotEmpty()) {
@@ -1259,10 +1305,12 @@ class AvailLoader(
 	 * @param definition
 	 *   A [definition][DefinitionDescriptor].
 	 */
-	fun removeDefinition(definition: A_Definition) {
-		if (definition.isForwardDefinition()) {
-			pendingForwards = pendingForwards.setWithoutElementCanDestroy(
-				definition, true)
+	fun removeDefinition(definition: A_Definition)
+	{
+		if (definition.isForwardDefinition())
+		{
+			pendingForwards =
+				pendingForwards.setWithoutElementCanDestroy(definition, true)
 		}
 		runtime.removeDefinition(definition)
 	}
@@ -1273,7 +1321,8 @@ class AvailLoader(
 	 * @param macro
 	 *   A [definition][DefinitionDescriptor].
 	 */
-	fun removeMacro(macro: A_Macro) {
+	fun removeMacro(macro: A_Macro)
+	{
 		runtime.removeMacro(macro)
 	}
 
@@ -1288,29 +1337,45 @@ class AvailLoader(
 	 */
 	fun runUnloadFunctions(
 		unloadFunctions: A_Tuple,
-		afterRunning: () -> Unit
-	) {
-		val size = unloadFunctions.tupleSize()
+		afterRunning: () -> Unit)
+	{
+		val size = unloadFunctions.tupleSize
 		// The index into the tuple of unload functions.
-		var index = 1
-		recurse { again ->
-			if (index <= size) {
-				val currentIndex = index++
-				val unloadFunction: A_Function =
-					unloadFunctions.tupleAt(currentIndex)
-				val fiber = newFiber(TOP.o, loaderPriority) {
-					formatString(
-						"Unload function #%d/%d for module %s",
-						currentIndex,
-						size,
-						module().moduleName())
+		if (size == 0)
+		{
+			// When there's at least one unload function, the fact that it forks
+			// a fiber ensures the stack doesn't grow arbitrarily deep from
+			// running afterRunning functions with ever deeper recursion, due to
+			// the Thread agnosticism of Graph.ParallelVisitor.  Here we have
+			// no unload functions, so break the direct cyclic call explicitly
+			// by queueing an action.
+			runtime.execute(loaderPriority, afterRunning)
+		}
+		else
+		{
+			var index = 1
+			recurse { again ->
+				if (index <= size)
+				{
+					val currentIndex = index++
+					val unloadFunction: A_Function =
+						unloadFunctions.tupleAt(currentIndex)
+					val fiber = newFiber(TOP.o, loaderPriority) {
+						formatString(
+							"Unload function #%d/%d for module %s",
+							currentIndex,
+							size,
+							module.moduleName)
+					}
+					fiber.setTextInterface(textInterface)
+					fiber.setSuccessAndFailure({ again() }, { again() })
+					runOutermostFunction(
+						runtime(), fiber, unloadFunction, emptyList())
 				}
-				fiber.setTextInterface(textInterface)
-				fiber.setSuccessAndFailure({ again() }, { again() })
-				runOutermostFunction(
-					runtime(), fiber, unloadFunction, emptyList())
-			} else {
-				afterRunning()
+				else
+				{
+					runtime.execute(loaderPriority, afterRunning)
+				}
 			}
 		}
 	}
@@ -1340,14 +1405,14 @@ class AvailLoader(
 		//  Check if it's already defined somewhere...
 		return module.lock {
 			val who = module.trueNamesForStringName(stringName)
-			return@lock when (who.setSize()) {
-				 0 ->
-				 {
+			return@lock when (who.setSize)
+			{
+				0 ->
+				{
 					val trueName = createAtom(stringName, module)
 					if (isExplicitSubclassAtom) {
 						trueName.setAtomProperty(
-							EXPLICIT_SUBCLASSING_KEY.atom,
-							EXPLICIT_SUBCLASSING_KEY.atom)
+							EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 					}
 					trueName.makeShared()
 					module.addPrivateName(trueName)
@@ -1371,19 +1436,22 @@ class AvailLoader(
 	 *   Every [atom][AtomDescriptor] associated with the name.
 	 */
 	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock {
-		val newNames = when {
-			module.newNames().hasKey(stringName) ->
-				singletonSet(module.newNames().mapAt(stringName))
+		val newNames = when
+		{
+			module.newNames.hasKey(stringName) ->
+				singletonSet(module.newNames.mapAt(stringName))
 			else -> emptySet
 		}
-		val publicNames = when {
-			module.importedNames().hasKey(stringName) ->
-				module.importedNames().mapAt(stringName)
+		val publicNames = when
+		{
+			module.importedNames.hasKey(stringName) ->
+				module.importedNames.mapAt(stringName)
 			else -> emptySet
 		}
-		val privateNames = when {
-			module.privateNames().hasKey(stringName) ->
-				module.privateNames().mapAt(stringName)
+		val privateNames = when
+		{
+			module.privateNames.hasKey(stringName) ->
+				module.privateNames.mapAt(stringName)
 			else -> emptySet
 		}
 		newNames
@@ -1423,7 +1491,8 @@ class AvailLoader(
 		fun forUnloading(
 			module: A_Module,
 			textInterface: TextInterface
-		): AvailLoader {
+		): AvailLoader
+		{
 			val loader = AvailLoader(module, textInterface)
 			// We had better not be removing forward declarations from an
 			// already fully-loaded module.
@@ -1438,14 +1507,17 @@ class AvailLoader(
 		 */
 		private val moduleHeaderBundleRoot = newBundleTree(nil).apply {
 			// Add the method that allows the header to be parsed.
-			val headerMethodBundle = try {
+			val headerMethodBundle = try
+			{
 				SpecialMethodAtom.MODULE_HEADER.atom.bundleOrCreate()
-			} catch (e: MalformedMessageException) {
+			}
+			catch (e: MalformedMessageException)
+			{
 				assert(false) { "Malformed module header method name" }
 				throw RuntimeException(e)
 			}
 			val headerPlan: A_DefinitionParsingPlan =
-				headerMethodBundle.definitionParsingPlans().mapIterable().next()
+				headerMethodBundle.definitionParsingPlans.mapIterable.next()
 				.value()
 			addPlanInProgress(newPlanInProgress(headerPlan, 1))
 		}
@@ -1505,22 +1577,25 @@ class AvailLoader(
 		private fun LexicalScanner.createPrimitiveLexerForHeaderParsing(
 			filterPrimitive: Primitive,
 			bodyPrimitive: Primitive,
-			atomName: String
-		) {
+			atomName: String)
+		{
 			val stringLexerFilter = createFunction(
 				newPrimitiveRawFunction(filterPrimitive, nil, 0),
 				emptyTuple)
 			val stringLexerBody = createFunction(
 				newPrimitiveRawFunction(bodyPrimitive, nil, 0),
 				emptyTuple)
-			val bundle: A_Bundle = try {
+			val bundle: A_Bundle = try
+			{
 				createSpecialAtom(atomName).bundleOrCreate()
-			} catch (e: MalformedMessageException) {
+			}
+			catch (e: MalformedMessageException)
+			{
 				assert(false) { "Invalid special lexer name: $atomName" }
 				throw RuntimeException(e)
 			}
 			val lexer = newLexer(
-				stringLexerFilter, stringLexerBody, bundle.bundleMethod(), nil)
+				stringLexerFilter, stringLexerBody, bundle.bundleMethod, nil)
 			addLexer(lexer)
 		}
 	}

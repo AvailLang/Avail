@@ -288,7 +288,7 @@ class AvailCodeGenerator private constructor(
 		}
 		for (label in labels)
 		{
-			labelInstructions[label] = AvailLabel(label.tokens())
+			labelInstructions[label] = AvailLabel(label.tokens)
 		}
 	}
 
@@ -304,7 +304,7 @@ class AvailCodeGenerator private constructor(
 	{
 		fixFinalUses()
 		// Detect blocks that immediately return something and mark them with a
-		// special primitive number.
+		// special primitive.
 		if (primitive === null && instructions.size == 1)
 		{
 			val onlyInstruction = instructions[0]
@@ -397,26 +397,26 @@ class AvailCodeGenerator private constructor(
 		assert(resultType.isType)
 
 		val argTypes = generateObjectTupleFrom(args.size) {
-			i -> args[i - 1].declaredType()
+			args[it - 1].declaredType
 		}
 		val localTypes = generateObjectTupleFrom(locals.size) {
-			i -> variableTypeFor(locals[i - 1].declaredType())
+			variableTypeFor(locals[it - 1].declaredType)
 		}
 		val constantTypes = generateObjectTupleFrom(constants.size) {
-			i -> constants[i - 1].declaredType()
+			constants[it - 1].declaredType
 		}
 
 		val outerTypes = generateObjectTupleFrom(outers.size) {
-			i -> outerType(outers[i - 1])
+			outerType(outers[it - 1])
 		}
 
 		val declarations = mutableListOf<A_Phrase>()
-		declarations.addAll(originatingBlockPhrase.argumentsTuple())
+		declarations.addAll(originatingBlockPhrase.argumentsTuple)
 		declarations.addAll(locals(originatingBlockPhrase))
 		declarations.addAll(constants(originatingBlockPhrase))
 		val packedDeclarationNames = declarations.joinToString(",") {
 			// Quote-escape any name that contains a comma (,) or quote (").
-			val name = it.token().string().asNativeString()
+			val name = it.token.string().asNativeString()
 			if (name.contains(',') || name.contains('\"'))
 				stringFrom(name).toString()
 			else name
@@ -487,7 +487,7 @@ class AvailCodeGenerator private constructor(
 	 */
 	fun setTokensWhile(tokens: A_Tuple, action: () -> Unit)
 	{
-		if (tokens.tupleSize() == 0)
+		if (tokens.tupleSize == 0)
 		{
 			action()
 			return
@@ -591,10 +591,10 @@ class AvailCodeGenerator private constructor(
 		val codeIndex = indexOfLiteral(compiledCode)
 		addInstruction(AvailCloseCode(
 			tokens,
-			neededVariables.tupleSize(),
+			neededVariables.tupleSize,
 			codeIndex))
 		// Copied variables are popped.
-		decreaseDepth(neededVariables.tupleSize())
+		decreaseDepth(neededVariables.tupleSize)
 		// Function is pushed.
 		increaseDepth()
 	}
@@ -835,7 +835,7 @@ class AvailCodeGenerator private constructor(
 	 */
 	private fun addInstruction(instruction: AvailInstruction)
 	{
-		if (instruction.relevantTokens.tupleSize() == 0)
+		if (instruction.relevantTokens.tupleSize == 0)
 		{
 			// Replace it with the nearest tuple from the stack, which should
 			// relate to the most specific position in the phrase tree for which
@@ -918,32 +918,32 @@ class AvailCodeGenerator private constructor(
 			module: A_Module,
 			blockPhrase: A_Phrase): A_RawFunction
 		{
-			val primitive = blockPhrase.primitive()
+			val primitive = blockPhrase.primitive
 			val resultTypeIfPrimitiveFails =
-				blockPhrase.statementsTuple().run {
+				blockPhrase.statementsTuple.run {
 					when
 					{
 						primitive == null -> blockPhrase.resultType()
 						primitive.hasFlag(Flag.CannotFail) -> bottom
-						tupleSize() == 0 -> Types.TOP.o
-						else -> tupleAt(tupleSize()).phraseExpressionType()
+						tupleSize == 0 -> Types.TOP.o
+						else -> tupleAt(tupleSize).phraseExpressionType
 					}
 				}
 			val generator = AvailCodeGenerator(
 				module,
-				toList(blockPhrase.argumentsTuple()),
+				toList(blockPhrase.argumentsTuple),
 				primitive,
 				locals(blockPhrase),
 				constants(blockPhrase),
 				labels(blockPhrase),
-				toList(blockPhrase.neededVariables()),
+				toList(blockPhrase.neededVariables),
 				blockPhrase.resultType(),
 				resultTypeIfPrimitiveFails,
-				blockPhrase.declaredExceptions(),
-				blockPhrase.startingLineNumber())
+				blockPhrase.declaredExceptions,
+				blockPhrase.startingLineNumber)
 			generator.stackShouldBeEmpty()
-			val statementsTuple = blockPhrase.statementsTuple()
-			val statementsCount = statementsTuple.tupleSize()
+			val statementsTuple = blockPhrase.statementsTuple
+			val statementsCount = statementsTuple.tupleSize
 			if (statementsCount == 0
 				&& (primitive === null || primitive.canHaveNybblecodes()))
 			{
@@ -962,7 +962,7 @@ class AvailCodeGenerator private constructor(
 					val lastStatement = statementsTuple.tupleAt(statementsCount)
 					if (lastStatement.phraseKindIsUnder(LABEL_PHRASE)
 						|| (lastStatement.phraseKindIsUnder(ASSIGNMENT_PHRASE)
-							&& lastStatement.phraseExpressionType().isTop))
+							&& lastStatement.phraseExpressionType.isTop))
 					{
 						// Either the block 1) ends with the label declaration
 						// or 2) is top-valued and ends with an assignment. Push
@@ -994,9 +994,9 @@ class AvailCodeGenerator private constructor(
 		private fun outerType(declaration: A_Phrase): A_Type
 		{
 			return if (declaration.declarationKind().isVariable)
-				variableTypeFor(declaration.declaredType())
+				variableTypeFor(declaration.declaredType)
 			else
-				declaration.declaredType()
+				declaration.declaredType
 		}
 	}
 }

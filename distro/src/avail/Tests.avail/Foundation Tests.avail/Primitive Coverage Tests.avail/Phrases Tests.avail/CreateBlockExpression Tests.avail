@@ -32,7 +32,7 @@
 
 Module "CreateBlockExpression Tests"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Primitive Test Common"
 Body
@@ -42,11 +42,11 @@ Test "CreateBlockExpression ok" in primitive phrases test suite if supported is
 	Skip test
 ];
 
-Test "CreateBlockExpression fails with invalid-primitive-number exception" in primitive phrases test suite if supported is
+Test "CreateBlockExpression fails with invalid-primitive-name exception" in primitive phrases test suite if supported is
 [
 	Skip test
 ]
-must raise invalid-primitive-number exception;
+must raise invalid-primitive-name exception;
 
 Test "CreateBlockExpression fails with block-contains-invalid-statements exception" in primitive phrases test suite if supported is
 [

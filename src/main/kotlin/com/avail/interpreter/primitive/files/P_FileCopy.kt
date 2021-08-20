@@ -98,11 +98,11 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 			}
 
 		val optionList = mutableListOf<CopyOption>()
-		if (replace.extractBoolean())
+		if (replace.extractBoolean)
 		{
 			optionList.add(StandardCopyOption.REPLACE_EXISTING)
 		}
-		if (copyAttributes.extractBoolean())
+		if (copyAttributes.extractBoolean)
 		{
 			optionList.add(StandardCopyOption.COPY_ATTRIBUTES)
 		}
@@ -110,7 +110,7 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 		try
 		{
 			val visitOptions =
-				if (followSymlinks.extractBoolean())
+				if (followSymlinks.extractBoolean)
 				{
 					EnumSet.of(FileVisitOption.FOLLOW_LINKS)
 				}
@@ -205,13 +205,12 @@ object P_FileCopy : Primitive(5, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
-				stringType(),
+				stringType,
+				stringType,
 				booleanType,
 				booleanType,
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

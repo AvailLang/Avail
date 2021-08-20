@@ -92,11 +92,11 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 
 		// Unless the unlink should be recursive, then try unlinking the target
 		// directly.
-		if (!recursive.extractBoolean())
+		if (!recursive.extractBoolean)
 		{
 			try
 			{
-				if (requireExistence.extractBoolean())
+				if (requireExistence.extractBoolean)
 				{
 					Files.delete(path)
 				}
@@ -130,7 +130,7 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 		else
 		{
 			val visitOptions =
-				if (followSymlinks.extractBoolean())
+				if (followSymlinks.extractBoolean)
 				{
 					EnumSet.of(FileVisitOption.FOLLOW_LINKS)
 				}
@@ -209,9 +209,8 @@ object P_FileUnlink : Primitive(4, CanInline, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(booleanType, stringType(), booleanType, booleanType),
-			TOP.o
-		)
+			tuple(booleanType, stringType, booleanType, booleanType),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

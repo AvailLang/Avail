@@ -37,6 +37,8 @@ import com.avail.compiler.splitter.MessageSplitter.Metacharacter
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -62,10 +64,10 @@ import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE
-import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PHRASE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
-import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
 import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import com.avail.exceptions.AvailException
@@ -106,16 +108,16 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		prefixFunctions.forEach { prefixFunction ->
 			val numArgs = prefixFunction.code().numArgs()
 			val kind = prefixFunction.kind()
-			val argsKind = kind.argsTupleType()
+			val argsKind = kind.argsTupleType
 			(1 .. numArgs).forEach { argIndex ->
 				if (!argsKind.typeAtIndex(argIndex)
 						.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 				{
 					return interpreter.primitiveFailure(
-						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE)
+						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
 				}
 			}
-			if (!kind.returnType().isTop)
+			if (!kind.returnType.isTop)
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP)
@@ -123,8 +125,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		}
 		try
 		{
-			val splitter = atom.bundleOrCreate().messageSplitter()
-			if (prefixFunctions.tupleSize() !=
+			val splitter = atom.bundleOrCreate().messageSplitter
+			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{
 				return interpreter.primitiveFailure(
@@ -138,20 +140,19 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 
 		val numArgs = function.code().numArgs()
 		val kind = function.kind()
-		val argsKind = kind.argsTupleType()
+		val argsKind = kind.argsTupleType
 		for (argIndex in 1 .. numArgs)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
 					PARSE_PHRASE.mostGeneralType()))
 			{
 				return interpreter.primitiveFailure(
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE)
+					E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
-		if (!kind.returnType().isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
+		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 		{
-			return interpreter.primitiveFailure(
-				E_MACRO_MUST_RETURN_A_PARSE_NODE)
+			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 
 		return interpreter.suspendInLevelOneSafeThen {
@@ -162,14 +163,14 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 					function,
 					prefixFunctions,
 					false)
-				val atomName = atom.atomName()
+				val atomName = atom.atomName
 				for ((zeroIndex, prefixFunction) in prefixFunctions.withIndex())
 				{
-					prefixFunction.code().setMethodName(
-						stringFrom("Macro prefix #${zeroIndex+1} of $atomName"))
+					prefixFunction.code().methodName =
+						stringFrom("Macro prefix #${zeroIndex + 1} of $atomName")
 				}
-				function.code().setMethodName(
-					stringFrom("Macro body of $atomName"))
+				function.code().methodName =
+					stringFrom("Macro body of $atomName")
 				succeed(nil)
 			}
 			catch (e: AvailException)
@@ -187,18 +188,17 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				ATOM.o,
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(
 				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
-				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-				E_MACRO_MUST_RETURN_A_PARSE_NODE,
+				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
+				E_MACRO_MUST_RETURN_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
-            .setUnionCanDestroy(possibleErrors, true))
+			.setUnionCanDestroy(possibleErrors, true))
 }

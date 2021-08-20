@@ -31,6 +31,7 @@
  */
 package com.avail.interpreter.primitive.rawfunctions
 
+import com.avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -57,12 +58,11 @@ object P_CompiledCodeNumOuters : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val code = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(code.numOuters()))
+		return interpreter.primitiveSuccess(fromInt(code.numOuters))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(mostGeneralCompiledCodeType()),
-			wholeNumbers
-		)
+			wholeNumbers)
 }

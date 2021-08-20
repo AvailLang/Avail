@@ -36,6 +36,8 @@ import com.avail.AvailThread
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.representation.A_BasicObject
@@ -79,7 +81,9 @@ import com.avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 import com.avail.interpreter.levelTwo.register.L2Register
 import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.*
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
+import com.avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import com.avail.optimizer.L2ControlFlowGraph
 import com.avail.optimizer.L2ControlFlowGraphVisualizer
 import com.avail.optimizer.StackReifier
@@ -90,6 +94,7 @@ import com.avail.utility.Strings.traceFor
 import com.avail.utility.structures.EnumMap
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.ClassWriter.COMPUTE_FRAMES
 import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
@@ -104,6 +109,7 @@ import org.objectweb.asm.Opcodes.ACONST_NULL
 import org.objectweb.asm.Opcodes.ALOAD
 import org.objectweb.asm.Opcodes.ANEWARRAY
 import org.objectweb.asm.Opcodes.ARETURN
+import org.objectweb.asm.Opcodes.ASM9
 import org.objectweb.asm.Opcodes.ASTORE
 import org.objectweb.asm.Opcodes.ATHROW
 import org.objectweb.asm.Opcodes.BIPUSH
@@ -148,8 +154,12 @@ import org.objectweb.asm.Opcodes.LCONST_1
 import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
 import org.objectweb.asm.Opcodes.SIPUSH
-import org.objectweb.asm.Opcodes.V1_8
+import org.objectweb.asm.Opcodes.V16
 import org.objectweb.asm.Type
+import org.objectweb.asm.tree.ClassNode
+import org.objectweb.asm.tree.MethodNode
+import org.objectweb.asm.util.CheckClassAdapter
+import sun.misc.Unsafe
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
@@ -205,8 +215,7 @@ import javax.annotation.Nullable
 @Suppress(
 	"PARAMETER_NAME_CHANGED_ON_OVERRIDE",
 	"UNUSED_PARAMETER",
-	"MemberVisibilityCanBePrivate"
-)
+	"MemberVisibilityCanBePrivate")
 class JVMTranslator constructor(
 	val code: A_RawFunction?,
 	private val chunkName: String,
@@ -214,8 +223,7 @@ class JVMTranslator constructor(
 	private val controlFlowGraph: L2ControlFlowGraph,
 	instructions: Array<L2Instruction>)
 {
-
-	/** The array of [L2Instruction]s to translate to JVM bytecodes.  */
+	/** The array of [L2Instruction]s to translate to JVM bytecodes. */
 	val instructions: Array<L2Instruction> = instructions.clone()
 
 	/**
@@ -223,7 +231,7 @@ class JVMTranslator constructor(
 	 * `ClassWriter` is configured to automatically compute stack map frames and
 	 * method limits (e.g., stack depths).
 	 */
-	val classWriter: ClassWriter = ClassWriter(ClassWriter.COMPUTE_FRAMES)
+	val classNode = ClassNode(ASM9)
 
 	/**
 	 * The name of the generated class, formed from a [UUID] to ensure that no
@@ -236,7 +244,7 @@ class JVMTranslator constructor(
 	 */
 	val classInternalName: String
 
-	/** The class file bytes that are produced.  */
+	/** The class file bytes that are produced. */
 	private var classBytes: ByteArray? = null
 
 	/**
@@ -619,17 +627,17 @@ class JVMTranslator constructor(
 
 		override fun doOperand(vector: L2ReadBoxedVectorOperand)
 		{
-			vector.elements().forEach(Consumer { this.doOperand(it) })
+			vector.elements().forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadIntVectorOperand)
 		{
-			vector.elements().forEach(Consumer { this.doOperand(it) })
+			vector.elements().forEach(this::doOperand)
 		}
 
 		override fun doOperand(vector: L2ReadFloatVectorOperand)
 		{
-			vector.elements().forEach(Consumer { this.doOperand(it) })
+			vector.elements().forEach(this::doOperand)
 		}
 
 		override fun doOperand(operand: L2SelectorOperand)
@@ -706,16 +714,16 @@ class JVMTranslator constructor(
 				{
 					value is Primitive -> value.name
 					value !is AvailObject -> value.javaClass.simpleName
-					value.isInstanceOf(stringType()) ->
+					value.isInstanceOf(stringType) ->
 						"STRING_${tidy(value.asNativeString())}"
 					value.isInstanceOfKind(Types.ATOM.o) ->
-						"ATOM_${tidy(value.atomName())}"
+						"ATOM_${tidy(value.atomName)}"
 					value.isInstanceOfKind(Types.MESSAGE_BUNDLE.o) ->
-						"BUNDLE_${tidy(value.message().atomName())}"
+						"BUNDLE_${tidy(value.message.atomName)}"
 					value.isInstanceOfKind(mostGeneralFunctionType()) ->
-						"FUNCTION_${tidy(value.code().methodName())}"
+						"FUNCTION_${tidy(value.code().methodName)}"
 					value.isInstanceOfKind(mostGeneralCompiledCodeType()) ->
-						"CODE_${tidy(value.methodName())}"
+						"CODE_${tidy(value.methodName)}"
 					else ->
 						"literal_" + tagEndPattern
 							.matcher(value.makeShared().typeTag().name)
@@ -724,7 +732,7 @@ class JVMTranslator constructor(
 				name += "_$index"
 				val type: Class<*> = constant.javaClass
 				// Generate a field that will hold the literal at runtime.
-				val field = classWriter.visitField(
+				val field = classNode.visitField(
 					ACC_PRIVATE or ACC_STATIC or ACC_FINAL,
 					name,
 					Type.getDescriptor(type),
@@ -840,23 +848,58 @@ class JVMTranslator constructor(
 	@Suppress("SpellCheckingInspection")
 	private fun finishMethod(method: MethodVisitor)
 	{
+		// These are useless formalisms to close the open method context, which
+		// had no effect at the time of writing (2021.08.20). But they are still
+		// required for canonical correctness, and the library might change.
 		method.visitMaxs(0, 0)
-		try
+		method.visitEnd()
+		if (debugJVMCodeGeneration)
 		{
-			method.visitEnd()
-		}
-		catch (e: Exception)
-		{
-			if (debugJVM)
+			// Now we need to trick ASM into computing the stack map frames and
+			// recording the maximum stack depth and locals so that we can
+			// record them. This is essential for running the debug analyzer
+			// when finishing the whole class.
+			val methodNode = method as MethodNode
+			val classWriter = ClassWriter(COMPUTE_FRAMES)
+			classWriter.visit(
+				classNode.version,
+				classNode.access,
+				classNode.name,
+				classNode.signature,
+				classNode.superName,
+				classNode.interfaces.toTypedArray()
+			)
+			val methodWriter = classWriter.visitMethod(
+				methodNode.access,
+				methodNode.name,
+				methodNode.desc,
+				methodNode.signature,
+				methodNode.exceptions.toTypedArray()
+			)
+			try
 			{
-				log(
-					Interpreter.loggerDebugJVM,
-					Level.SEVERE,
-					"translation failed for {0}",
-					className)
-				dumpTraceToFile(e)
+				// Compute the stack map frames, including the maximum stack
+				// depth and locals.
+				methodNode.accept(methodWriter)
+			} catch (e: Exception)
+			{
+				if (debugJVM)
+				{
+					log(
+						Interpreter.loggerDebugJVM,
+						Level.SEVERE,
+						"stack map frame computation failed for {0}",
+						className
+					)
+					dumpTraceToFile(e)
+				}
+				throw e
 			}
-			throw e
+			// Capture the maximum stack depth and locals, for spoonfeeding into
+			// the checker.
+			method.visitMaxs(
+				unsafe.getInt(methodWriter, maxStackOffset),
+				unsafe.getInt(methodWriter, maxLocalsOffset))
 		}
 	}
 
@@ -868,7 +911,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateStaticInitializer()
 	{
-		val method = classWriter.visitMethod(
+		val method = classNode.visitMethod(
 			ACC_STATIC or ACC_PUBLIC,
 			"<clinit>",
 			Type.getMethodDescriptor(Type.VOID_TYPE),
@@ -1333,7 +1376,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateConstructorV()
 	{
-		val method = classWriter.visitMethod(
+		val method = classNode.visitMethod(
 			ACC_PUBLIC or ACC_MANDATED,
 			"<init>",
 			Type.getMethodDescriptor(Type.VOID_TYPE),
@@ -1343,8 +1386,7 @@ class JVMTranslator constructor(
 		loadReceiver(method)
 		JVMChunk.chunkConstructor.generateCall(method)
 		method.visitInsn(RETURN)
-		method.visitMaxs(0, 0)
-		method.visitEnd()
+		finishMethod(method)
 	}
 
 	/**
@@ -1352,7 +1394,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateName()
 	{
-		val method = classWriter.visitMethod(
+		val method = classNode.visitMethod(
 			ACC_PUBLIC,
 			"name",
 			Type.getMethodDescriptor(Type.getType(String::class.java)),
@@ -1361,8 +1403,7 @@ class JVMTranslator constructor(
 		method.visitCode()
 		method.visitLdcInsn(chunkName)
 		method.visitInsn(ARETURN)
-		method.visitMaxs(0, 0)
-		method.visitEnd()
+		finishMethod(method)
 	}
 
 	/**
@@ -1458,7 +1499,7 @@ class JVMTranslator constructor(
 	 */
 	fun generateRunChunk()
 	{
-		val method = classWriter.visitMethod(
+		val method = classNode.visitMethod(
 			ACC_PUBLIC,
 			"runChunk",
 			Type.getMethodDescriptor(
@@ -1665,10 +1706,10 @@ class JVMTranslator constructor(
 		finishMethod(method)
 	}
 
-	/** The final phase of JVM code generation.  */
+	/** The final phase of JVM code generation. */
 	fun classVisitEnd()
 	{
-		classWriter.visitEnd()
+		classNode.visitEnd()
 	}
 
 	/**
@@ -1716,7 +1757,14 @@ class JVMTranslator constructor(
 	 */
 	fun createClassBytes()
 	{
-		classBytes = classWriter.toByteArray()
+		val writer = ClassWriter(COMPUTE_FRAMES)
+		classNode.accept(writer)
+		if (debugJVMCodeGeneration)
+		{
+			val checker = CheckClassAdapter(writer)
+			classNode.accept(checker)
+		}
+		classBytes = writer.toByteArray()
 		if (debugJVM)
 		{
 			dumpClassBytesToFile()
@@ -1762,36 +1810,36 @@ class JVMTranslator constructor(
 	internal enum class GenerationPhase constructor(
 		private val action: (JVMTranslator) -> Unit)
 	{
-		/** Prepare to generate the JVM translation.  */
+		/** Prepare to generate the JVM translation. */
 		PREPARE(JVMTranslator::prepare),
 
-		/** Create the static &lt;clinit&gt; method for capturing constants.  */
+		/** Create the static &lt;clinit&gt; method for capturing constants. */
 		GENERATE_STATIC_INITIALIZER(JVMTranslator::generateStaticInitializer),
 
-		/** Prepare the default constructor, invoked once via reflection.  */
+		/** Prepare the default constructor, invoked once via reflection. */
 		GENERATE_CONSTRUCTOR_V(JVMTranslator::generateConstructorV),
 
-		/** Generate the name() method.  */
+		/** Generate the name() method. */
 		GENERATE_NAME(JVMTranslator::generateName),
 
-		/** Generate the runChunk() method.  */
+		/** Generate the runChunk() method. */
 		GENERATE_RUN_CHUNK(JVMTranslator::generateRunChunk),
 
-		/** Indicate code emission has completed.  */
+		/** Indicate code emission has completed. */
 		VISIT_END(JVMTranslator::classVisitEnd),
 
-		/** Create a byte array that would be the content of a class file.  */
+		/** Create a byte array that would be the content of a class file. */
 		CREATE_CLASS_BYTES(JVMTranslator::createClassBytes),
 
-		/** Load the class into the running system.  */
+		/** Load the class into the running system. */
 		LOAD_CLASS(JVMTranslator::loadClass);
 
-		/** Statistic about this L2 -> JVM translation phase.  */
+		/** Statistic about this L2 -> JVM translation phase. */
 		private val statistic = Statistic(FINAL_JVM_TRANSLATION_TIME, name)
 
 		companion object
 		{
-			/** A private array of phases, since Enum.values() makes a copy.  */
+			/** A private array of phases, since Enum.values() makes a copy. */
 			private val all = values()
 
 			/**
@@ -1824,14 +1872,14 @@ class JVMTranslator constructor(
 	 */
 	fun translate()
 	{
-		classWriter.visit(
-			V1_8,
+		classNode.visit(
+			V16,
 			ACC_PUBLIC or ACC_FINAL,
 			classInternalName,
 			null,
 			JVMChunk::class.java.name.replace('.', '/'),
 			null)
-		classWriter.visitSource(sourceFileName, null)
+		classNode.visitSource(sourceFileName, null)
 		GenerationPhase.executeAll(this)
 	}
 
@@ -1861,7 +1909,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = true //TODO false
+		const val debugNicerJavaDecompilation = false
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -1885,7 +1933,7 @@ class JVMTranslator constructor(
 		private val classNameForbiddenCharacters =
 			Pattern.compile("[\\[\\]\\\\/.:;\"'\\p{Cntrl}]+")
 
-		/** A regex [Pattern] to strip the prefix of a module name.  */
+		/** A regex [Pattern] to strip the prefix of a module name. */
 		private val moduleNameStripper =
 			Pattern.compile("^.*/([^/]+)$")
 
@@ -1898,7 +1946,7 @@ class JVMTranslator constructor(
 		 */
 		const val callTraceL2AfterEveryInstruction = false
 
-		/** Helper for stripping "_TAG" from end of tag names.  */
+		/** Helper for stripping "_TAG" from end of tag names. */
 		val tagEndPattern: Pattern = Pattern.compile("_TAG$")
 
 		/**
@@ -1920,16 +1968,46 @@ class JVMTranslator constructor(
 		fun interpreterLocal(): Int = 1
 
 		/**
-		 * `true` to enable JVM debugging, `false` otherwise.  When enabled, the
+		 * `true` to enable JVM debugging, `false` otherwise. When enabled, the
 		 * generated JVM code dumps verbose information just prior to each L2
 		 * instruction.
 		 */
 		var debugJVM = false
+
+		/**
+		 * `true` to enable aggressive sanity checking during JVM code
+		 * generation.
+		 */
+		var debugJVMCodeGeneration = false
+
+		/** The unsafe API. */
+		private val unsafe by lazy {
+			with(Unsafe::class.java.getDeclaredField("theUnsafe")) {
+				isAccessible = true
+				get(null) as Unsafe
+			}
+		}
+
+		/**
+		 * The offset of the `maxStack` field with a [MethodNode].
+		 */
+		private val maxStackOffset by lazy {
+			val delegate = Class.forName("org.objectweb.asm.MethodWriter")
+			unsafe.objectFieldOffset(delegate.getDeclaredField("maxStack"))
+		}
+
+		/**
+		 * The offset of the `maxLocals` field with a [MethodNode].
+		 */
+		private val maxLocalsOffset by lazy {
+			val delegate = Class.forName("org.objectweb.asm.MethodWriter")
+			unsafe.objectFieldOffset(delegate.getDeclaredField("maxLocals"))
+		}
 	}
 
 	init
 	{
-		val module = code?.module() ?: NilDescriptor.nil
+		val module = code?.module ?: NilDescriptor.nil
 		val moduleName =
 			if (module === NilDescriptor.nil)
 			{
@@ -1937,12 +2015,12 @@ class JVMTranslator constructor(
 			}
 			else
 			{
-				moduleNameStripper.matcher(module.moduleName().asNativeString())
+				moduleNameStripper.matcher(module.moduleName.asNativeString())
 					.replaceAll("$1")
 			}
 
 		val originalFunctionName =
-			if (code === null) "DEFAULT" else code.methodName().asNativeString()
+			if (code === null) "DEFAULT" else code.methodName.asNativeString()
 		var cleanFunctionName =
 			subblockRewriter.matcher(originalFunctionName).replaceAll("#$1")
 		cleanFunctionName =

@@ -10,7 +10,10 @@
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
+      <w>combinatoric</w>
       <w>comparables</w>
+      <w>contravariants</w>
+      <w>covariants</w>
       <w>darcula</w>
       <w>dbff</w>
       <w>debugger's</w>
@@ -30,21 +33,25 @@
       <w>getenv</w>
       <w>hasher</w>
       <w>hexadecitets</w>
+      <w>hmmss</w>
       <w>incomparables</w>
       <w>inet</w>
       <w>int's</w>
       <w>intelli</w>
       <w>irreflexive</w>
       <w>jetbrains</w>
+      <w>johnrengelman</w>
       <w>joinee</w>
       <w>jvm's</w>
       <w>lexes</w>
+      <w>linearization</w>
       <w>literalizes</w>
       <w>literalizing</w>
       <w>masse</w>
       <w>mersenne</w>
       <w>metainvariance</w>
       <w>metametatype</w>
+      <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
       <w>noninline</w>
@@ -56,6 +63,7 @@
       <w>postinvoke</w>
       <w>precompute</w>
       <w>preinvoke</w>
+      <w>primfail</w>
       <w>printability</w>
       <w>pseudoprimes</w>
       <w>recurses</w>
@@ -69,7 +77,9 @@
       <w>runtime's</w>
       <w>seminumerical</w>
       <w>semistackless</w>
+      <w>send's</w>
       <w>sendable</w>
+      <w>setfile</w>
       <w>situ</w>
       <w>spliterate</w>
       <w>spliterated</w>
@@ -85,11 +95,15 @@
       <w>subregion</w>
       <w>subtable</w>
       <w>subtyped</w>
+      <w>supercast's</w>
       <w>supernode</w>
       <w>superunion</w>
       <w>synchronizer</w>
       <w>tailrec</w>
       <w>unboundedly</w>
+      <w>uncaptured</w>
+      <w>undeclare</w>
+      <w>unname</w>
       <w>unparameterized</w>
       <w>unparking</w>
       <w>unparks</w>
@@ -104,6 +118,7 @@
       <w>wump</w>
       <w>wumping</w>
       <w>wumpus</w>
+      <w>xjvm</w>
       <w>yielders</w>
     </words>
   </dictionary>

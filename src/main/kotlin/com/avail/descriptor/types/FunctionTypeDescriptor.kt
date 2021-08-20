@@ -38,6 +38,7 @@ import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.BitField
@@ -75,6 +76,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.ARGS_TUPLE_
 import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.DECLARED_EXCEPTIONS
 import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOP
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
@@ -176,18 +179,18 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	{
 		builder.append('[')
 		val list = mutableListOf<A_BasicObject?>()
-		val tupleType = self.argsTupleType()
+		val tupleType = self.argsTupleType
 		if (tupleType.isBottom)
 		{
 			builder.append("…")
 		}
 		else
 		{
-			val minObject = tupleType.sizeRange().lowerBound()
-			val maxObject = tupleType.sizeRange().upperBound()
+			val minObject = tupleType.sizeRange.lowerBound
+			val maxObject = tupleType.sizeRange.upperBound
 			if (minObject.isInt)
 			{
-				val min = minObject.extractInt()
+				val min = minObject.extractInt
 				for (i in 1 .. min)
 				{
 					list.add(tupleType.typeAtIndex(i))
@@ -197,7 +200,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 					// Add "..., opt1, opt2" etc. to show the optional
 					// arguments.
 					list.add(null)
-					var max = tupleType.typeTuple().tupleSize() + 1
+					var max = tupleType.typeTuple.tupleSize + 1
 					max = max(max, min + 1)
 					for (i in min + 1 .. max)
 					{
@@ -219,13 +222,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			}
 		}
 		builder.append("]→")
-		self.returnType().printOnAvoidingIndent(
+		self.returnType.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
-		if (self.declaredExceptions().setSize() > 0)
+		if (self.declaredExceptions.setSize > 0)
 		{
 			builder.append("^")
 			list.clear()
-			for (elem in self.declaredExceptions())
+			for (elem in self.declaredExceptions)
 			{
 				list.add(elem)
 			}
@@ -236,7 +239,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
 		functionType: A_Type): Boolean =
-			functionType.argsTupleType().isSubtypeOf(
+			functionType.argsTupleType.isSubtypeOf(
 				self.slot(ARGS_TUPLE_TYPE))
 
 	override fun o_AcceptsListOfArgTypes(
@@ -282,7 +285,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
 		var i = 1
-		val end = argTypes.tupleSize()
+		val end = argTypes.tupleSize
 		while (i <= end)
 		{
 			if (!argTypes.tupleAt(i).isSubtypeOf(tupleType.typeAtIndex(i)))
@@ -336,11 +339,12 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			self.sameAddressAs(aFunctionType) -> return true
 			self.hash() != aFunctionType.hash() -> return false
 			!self.slot(ARGS_TUPLE_TYPE)
-				.equals(aFunctionType.argsTupleType()) -> return false
+				.equals(aFunctionType.argsTupleType) -> return false
 			!self.slot(RETURN_TYPE)
-				.equals(aFunctionType.returnType()) -> return false
+				.equals(aFunctionType.returnType) -> return false
 			!self.slot(DECLARED_EXCEPTIONS).equals(
-				aFunctionType.declaredExceptions()) -> return false
+				aFunctionType.declaredExceptions
+			) -> return false
 			!isShared ->
 			{
 				aFunctionType.makeImmutable()
@@ -355,14 +359,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		return true
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		if (isShared)
-		{
-			synchronized(self) { return hash(self) }
-		}
-		return hash(self)
-	}
+	override fun o_Hash(self: AvailObject): Int =
+		self.synchronizeIf(isShared) { hash(self) }
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfFunctionType(self)
@@ -375,14 +373,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		{
 			return true
 		}
-		if (!aFunctionType.returnType()
-				.isSubtypeOf(self.slot(RETURN_TYPE)))
+		if (!aFunctionType.returnType.isSubtypeOf(self.slot(RETURN_TYPE)))
 		{
 			return false
 		}
 		val inners: A_Set = self.slot(DECLARED_EXCEPTIONS)
 		// A ⊆ B if everything A can throw was declared by B
-		each_outer@ for (outer in aFunctionType.declaredExceptions())
+		each_outer@ for (outer in aFunctionType.declaredExceptions)
 		{
 			for (inner in inners)
 			{
@@ -394,14 +391,14 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			return false
 		}
 		return self.slot(ARGS_TUPLE_TYPE).isSubtypeOf(
-			aFunctionType.argsTupleType())
+			aFunctionType.argsTupleType)
 	}
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean
 	{
 		val argsTupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
-		val sizeRange = argsTupleType.sizeRange()
-		return sizeRange.lowerBound().lessThan(sizeRange.upperBound())
+		val sizeRange = argsTupleType.sizeRange
+		return sizeRange.lowerBound.lessThan(sizeRange.upperBound)
 	}
 
 	override fun o_ReturnType(self: AvailObject): A_Type =
@@ -424,14 +421,14 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	{
 		val tupleTypeUnion =
 			self.slot(ARGS_TUPLE_TYPE).typeUnion(
-				aFunctionType.argsTupleType())
+				aFunctionType.argsTupleType)
 		val returnType =
 			self.slot(RETURN_TYPE).typeIntersection(
-				aFunctionType.returnType())
+				aFunctionType.returnType)
 		var exceptions = emptySet
 		for (outer in self.slot(DECLARED_EXCEPTIONS))
 		{
-			for (inner in aFunctionType.declaredExceptions())
+			for (inner in aFunctionType.declaredExceptions)
 			{
 				exceptions = exceptions.setWithElementCanDestroy(
 					outer.typeIntersection(inner),
@@ -464,13 +461,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		self.makeSubobjectsImmutable()
 		val tupleTypeIntersection =
 			self.slot(ARGS_TUPLE_TYPE).typeIntersection(
-				aFunctionType.argsTupleType())
+				aFunctionType.argsTupleType)
 		val returnType =
 			self.slot(RETURN_TYPE)
-				.typeUnion(aFunctionType.returnType())
+				.typeUnion(aFunctionType.returnType)
 		val exceptions = normalizeExceptionSet(
 			self.slot(DECLARED_EXCEPTIONS).setUnionCanDestroy(
-				aFunctionType.declaredExceptions(), true))
+				aFunctionType.declaredExceptions, true))
 		return functionTypeFromArgumentTupleType(
 			tupleTypeIntersection,
 			returnType,
@@ -609,13 +606,13 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			return hash
 		}
 
-		/** The mutable [FunctionTypeDescriptor].  */
+		/** The mutable [FunctionTypeDescriptor]. */
 		private val mutable = FunctionTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [FunctionTypeDescriptor].  */
+		/** The immutable [FunctionTypeDescriptor]. */
 		private val immutable = FunctionTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [FunctionTypeDescriptor].  */
+		/** The shared [FunctionTypeDescriptor]. */
 		private val shared = FunctionTypeDescriptor(Mutability.SHARED)
 
 		/**
@@ -660,7 +657,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private fun normalizeExceptionSet(exceptionSet: A_Set): A_Set
 		{
-			val setSize = exceptionSet.setSize()
+			val setSize = exceptionSet.setSize
 			return when
 			{
 				// This is probably the most common case – no checked
@@ -753,11 +750,8 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 			returnType: A_Type,
 			exceptionSet: A_Set = emptySet): A_Type
 		{
-			val tupleType =
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
-					IntegerRangeTypeDescriptor
-						.singleInt(argTypes.tupleSize()), argTypes, bottom
-				)
+			val tupleType = tupleTypeForSizesTypesDefaultType(
+				singleInt(argTypes.tupleSize), argTypes, bottom)
 			return functionTypeFromArgumentTupleType(
 				tupleType, returnType, exceptionSet)
 		}

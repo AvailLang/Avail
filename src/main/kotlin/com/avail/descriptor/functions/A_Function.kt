@@ -32,6 +32,7 @@
 package com.avail.descriptor.functions
 
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.interpreter.execution.Interpreter
@@ -44,11 +45,12 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Function : A_BasicObject {
+interface A_Function : A_BasicObject
+{
 	/**
-	 * Answer the [raw&#32;function][CompiledCodeDescriptor] (also known as
-	 * compiled code) on which this function is based.  The raw function holds
-	 * the information that is common to all functions, and each function
+	 * Answer the [raw&#32;function][A_RawFunction] (also known as compiled
+	 * code) on which this function is based.  The raw function holds the
+	 * information that is common to all functions, and each function
 	 * additionally holds zero or more captured variables and values from its
 	 * lexical context.
 	 *
@@ -56,30 +58,7 @@ interface A_Function : A_BasicObject {
 	 *   This function's [A_RawFunction].
 	 */
 	@ReferencedInGeneratedCode
-	fun code(): A_RawFunction
-
-	/**
-	 * Answer the number of lexically captured variables or constants held by
-	 * this function.
-	 *
-	 * @return
-	 *   The number of outer variables captured by this function.
-	 */
-	fun numOuterVars(): Int
-
-	/**
-	 * An outer variable or constant of this function has been used for the last
-	 * time.  Replace it with [nil][NilDescriptor.nil] if the function is
-	 * mutable, and answer true.  If the function is immutable then something
-	 * besides the [Interpreter] or a fiber's chain of [A_Continuation]s might
-	 * be referring to it, so answer false.
-	 *
-	 * @param index
-	 *   Which outer variable or constant is no longer needed.
-	 * @return
-	 *   Whether the outer variable or constant was actually nilled.
-	 */
-	fun optionallyNilOuterVar(index: Int): Boolean
+	fun code(): A_RawFunction = dispatch { o_Code(it) }
 
 	/**
 	 * Answer this function's lexically captured variable or constant value that
@@ -91,7 +70,8 @@ interface A_Function : A_BasicObject {
 	 *   The specified outer variable or constant of this function.
 	 */
 	@ReferencedInGeneratedCode
-	fun outerVarAt(index: Int): AvailObject
+	fun outerVarAt(index: Int): AvailObject =
+		dispatch { o_OuterVarAt(it, index) }
 
 	/**
 	 * Set the specified captured variable/constant slot to the given variable
@@ -103,5 +83,33 @@ interface A_Function : A_BasicObject {
 	 *   The value to write into this function.
 	 */
 	@ReferencedInGeneratedCode
-	fun outerVarAtPut(index: Int, value: AvailObject)
+	fun outerVarAtPut(index: Int, value: AvailObject) =
+		dispatch { o_OuterVarAtPut(it, index, value) }
+
+	companion object
+	{
+		/**
+		 * Answer the number of lexically captured variables or constants held
+		 * by this function.
+		 *
+		 * @return
+		 *   The number of outer variables captured by this function.
+		 */
+		val A_Function.numOuterVars: Int get() = dispatch { o_NumOuterVars(it) }
+
+		/**
+		 * An outer variable or constant of this function has been used for the
+		 * last time.  Replace it with [nil][NilDescriptor.nil] if the function
+		 * is mutable, and answer true.  If the function is immutable then
+		 * something besides the [Interpreter] or a fiber's chain of
+		 * [A_Continuation]s might be referring to it, so answer false.
+		 *
+		 * @param index
+		 *   Which outer variable or constant is no longer needed.
+		 * @return
+		 *   Whether the outer variable or constant was actually nilled.
+		 */
+		fun A_Function.optionallyNilOuterVar(index: Int): Boolean =
+			dispatch { o_OptionallyNilOuterVar(it, index) }
+	}
 }

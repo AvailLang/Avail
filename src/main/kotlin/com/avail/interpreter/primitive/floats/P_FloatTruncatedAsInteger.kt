@@ -61,7 +61,7 @@ object P_FloatTruncatedAsInteger : Primitive(1, CanFold, CanInline)
 		val a = interpreter.argument(0)
 		// Extract the top two 32-bit sections.  That guarantees 33 bits
 		// of mantissa, which is more than a float actually captures.
-		val f = a.extractFloat()
+		val f = a.extractFloat
 		return if (java.lang.Float.isNaN(f))
 		{
 			interpreter.primitiveFailure(

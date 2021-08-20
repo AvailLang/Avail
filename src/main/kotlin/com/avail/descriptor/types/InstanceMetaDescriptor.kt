@@ -37,6 +37,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.IndirectionDescriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -143,7 +144,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		another.isBottom -> another
 		another.isInstanceMeta ->
 			instanceMeta(
-				getInstance(self).typeIntersection(another.instance()))
+				getInstance(self).typeIntersection(another.instance))
 		another.isSupertypeOfPrimitiveTypeEnum(ANY) -> self
 		else -> bottom
 	}
@@ -168,7 +169,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	{
 		another.isBottom -> self
 		another.isInstanceMeta ->
-			instanceMeta(getInstance(self).typeUnion(another.instance()))
+			instanceMeta(getInstance(self).typeUnion(another.instance))
 		// Unless another is top, then the answer will be any.
 		else -> ANY.o.typeUnion(another)
 	}
@@ -188,7 +189,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean
 	{
 		val equal = (another.isInstanceMeta
-             && getInstance(self).equals((another as A_Type).instance()))
+			 && getInstance(self).equals((another as A_Type).instance))
 		when
 		{
 			!equal -> return false
@@ -216,7 +217,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		anObject: AvailObject): Boolean = false
 
 	override fun o_Hash(self: AvailObject): Int =
-		(getInstance(self).hash() - 0x361b5d51) * AvailObject.multiplier
+		combine2(getInstance(self).hash(), 0x361b5d51)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		getInstance(self).isInstanceOf(aType)
@@ -233,7 +234,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		potentialInstance: AvailObject): Boolean =
 			(potentialInstance.isType
-		        && potentialInstance.isSubtypeOf(getInstance(self)))
+				&& potentialInstance.isSubtypeOf(getInstance(self)))
 
 	override fun o_IsInstanceOf(self: AvailObject, aType: A_Type): Boolean =
 		if (aType.isInstanceMeta)
@@ -242,7 +243,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 			// instance meta (the only sort of meta that exists these
 			// days -- 2012.07.17).  See if my instance (a type) is an
 			// instance of aType's instance (also a type, but maybe a meta).
-			getInstance(self).isInstanceOf(aType.instance())
+			getInstance(self).isInstanceOf(aType.instance)
 		}
 		else
 		{
@@ -364,17 +365,17 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { ANY.o.writeTo(writer) }
-			at("instances") { self.instances().writeTo(writer) }
+			at("instances") { self.instances.writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { ANY.o.writeSummaryTo(writer) }
-			at("instances") { self.instances().writeSummaryTo(writer) }
+			at("instances") { self.instances.writeSummaryTo(writer) }
 		}
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
-		getInstance(self).typeTag().metaTag()
+		getInstance(self).typeTag().metaTag!!
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{
@@ -402,15 +403,15 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		private fun getInstance(self: AvailObject): AvailObject =
 			self.slot(INSTANCE)
 
-		/** The mutable [InstanceMetaDescriptor].  */
+		/** The mutable [InstanceMetaDescriptor]. */
 		private val mutable: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [InstanceMetaDescriptor].  */
+		/** The immutable [InstanceMetaDescriptor]. */
 		private val immutable: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [InstanceMetaDescriptor].  */
+		/** The shared [InstanceMetaDescriptor]. */
 		private val shared: AbstractEnumerationTypeDescriptor =
 			InstanceMetaDescriptor(Mutability.SHARED)
 

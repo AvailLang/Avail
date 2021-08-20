@@ -60,7 +60,7 @@ object P_CharacterType : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
 
-		val characterType = Character.getType(character.codePoint())
+		val characterType = Character.getType(character.codePoint)
 		return interpreter.primitiveSuccess(fromInt(characterType))
 	}
 

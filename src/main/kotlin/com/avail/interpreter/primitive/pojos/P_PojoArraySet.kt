@@ -77,12 +77,12 @@ object P_PojoArraySet : Primitive(3, CanInline)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val index = subscript.extractInt()
+		val index = subscript.extractInt
 		if (index > Array.getLength(array))
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val contentType = pojo.kind().contentType()
+		val contentType = pojo.kind().contentType
 		if (!value.isInstanceOf(contentType))
 		{
 			return interpreter.primitiveFailure(
@@ -92,7 +92,9 @@ object P_PojoArraySet : Primitive(3, CanInline)
 			val marshaledType = contentType.marshalToJava(null) as Class<*>?
 			Array.set(array, index - 1, value.marshalToJava(marshaledType))
 			interpreter.primitiveSuccess(nil)
-		} catch (e: MarshalingException) {
+		}
+		catch (e: MarshalingException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -102,10 +104,8 @@ object P_PojoArraySet : Primitive(3, CanInline)
 			tuple(
 				mostGeneralPojoArrayType(),
 				naturalNumbers,
-				ANY.o
-			),
-			TOP.o
-		)
+				ANY.o),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

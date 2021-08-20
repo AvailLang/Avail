@@ -33,23 +33,23 @@
 package com.avail.server.messages.binary.editor
 
 import com.avail.builder.ModuleName
+import com.avail.builder.ModuleNameResolver.Companion.availExtension
 import com.avail.builder.ModuleRoot
-import com.avail.builder.ModuleRootErrorCode.*
+import com.avail.builder.ModuleRootErrorCode.BAD_MODULE_ROOT
 import com.avail.error.ErrorCode
-import com.avail.server.AvailServer.Companion.logger
-import com.avail.files.FileManager
-import com.avail.server.error.ServerErrorCode
-import com.avail.server.error.ServerErrorCode.*
-import com.avail.server.io.AvailServerChannel
 import com.avail.files.EditRange
-import com.avail.files.FileErrorCode.*
+import com.avail.files.FileErrorCode.BAD_FILE_ID
+import com.avail.files.FileManager
 import com.avail.files.RedoAction
 import com.avail.files.ReplaceContents
 import com.avail.files.SaveAction
 import com.avail.files.UndoAction
+import com.avail.server.AvailServer.Companion.logger
+import com.avail.server.error.ServerErrorCode
+import com.avail.server.error.ServerErrorCode.NO_SESSION
+import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import com.avail.server.session.Session
-import java.lang.UnsupportedOperationException
 import java.nio.ByteBuffer
 import java.nio.file.Paths
 import java.util.logging.Level
@@ -148,10 +148,9 @@ enum class BinaryCommand constructor(val id: Int)
 				val description =
 					if (remaining > 0)
 					{
-						val remainder = ByteArray(remaining)
-						String(remainder, Charsets.UTF_8)
+						String(ByteArray(remaining), Charsets.UTF_8)
 					}
-					else { null }
+					else null
 				// TODO any special error handling?
 				ErrorBinaryMessage(commandId, errorCode, false, description)
 					.processThen(channel, continuation)
@@ -196,75 +195,70 @@ enum class BinaryCommand constructor(val id: Int)
 			val qualifiedName = String(raw, Charsets.UTF_8)
 			assert(qualifiedName.isNotEmpty())
 			val target = ModuleName(qualifiedName)
-			channel.server.runtime.moduleRoots()
-				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.resolver.let { resolver ->
-						channel.server.fileManager.createFile(
-							qualifiedName,
-							mimeType, // TODO adjust for MIME type
-							resolver,
-							{
-								channel.server.fileManager.readFile(
-									qualifiedName,
-									resolver,
-									{ uuid, mime, file ->
-										channel.sessionId?.let { sessionId ->
-											channel.server
-												.sessions[sessionId]?.let {
-												val fileId =
-													it.addFileCacheId(uuid)
-												FileOpenedMessage(
-													commandId,
-													fileId,
-													file.rawContent.size.toLong(),
-													mime)
-													.processThen(channel)
-													{
-														FileStreamMessage(
-															commandId,
-															fileId,
-															file.rawContent)
-															.processThen(channel)
-													}
-											}
-										}
-									}) { code, ex ->
-										ex?.let { e ->
-											logger.log(Level.SEVERE, e) {
-												"Could not read file: " +
-													qualifiedName
-											}
-										}
-										channel.enqueueMessageThen(
-											ErrorBinaryMessage(commandId, code)
-												.message) {}
-								}
-								// TODO [RAA] handle session not found
-							}) { code, throwable ->
-								throwable?.let { e ->
-									logger.log(Level.SEVERE, e) {
-										"Could not create file: " +
-											resolver.fullResourceURI(
-												qualifiedName)
+			val moduleRoot = channel.server.runtime.moduleRoots()
+				.moduleRootFor(target.rootName)
+			moduleRoot ?: return channel.enqueueMessageThen(
+				ErrorBinaryMessage(
+					commandId,
+					BAD_MODULE_ROOT,
+					false,
+					"${target.rootName} not found"
+				).message,
+				continuation)
+			// Module root was found.
+			val resolver = moduleRoot.resolver
+			channel.server.fileManager.createFile(
+				qualifiedName,
+				mimeType, // TODO adjust for MIME type
+				resolver,
+				completion = {
+					channel.server.fileManager.readFile(
+						qualifiedName,
+						resolver,
+						withFile = { uuid, mime, file ->
+							channel.sessionId?.let { sessionId ->
+								channel.server.sessions[sessionId]?.let {
+									val fileId = it.addFileCacheId(uuid)
+									FileOpenedMessage(
+										commandId,
+										fileId,
+										file.rawContent.size.toLong(),
+										mime
+									).processThen(channel) {
+										FileStreamMessage(
+											commandId,
+											fileId,
+											file.rawContent
+										).processThen(channel)
 									}
 								}
-								channel.enqueueMessageThen(
-									ErrorBinaryMessage(commandId, code).message) {}
 							}
-						// Request is asynchronous, so continue
-						continuation()
+						},
+						failureHandler = { code, ex ->
+							ex?.let { e ->
+								logger.log(Level.SEVERE, e) {
+									"Could not read file: $qualifiedName"
+								}
+							}
+							channel.enqueueMessageThen(
+								ErrorBinaryMessage(commandId, code).message
+							) {
+								// TODO [RAA] handle session not found
+							}
+						})
+				},
+				failureHandler = { code, throwable ->
+					throwable?.let { e ->
+						logger.log(Level.SEVERE, e) {
+							"Could not create file: " +
+								resolver.fullResourceURI(qualifiedName)
+						}
 					}
-				} ?: {
-				// No module root found
-				channel.enqueueMessageThen(
-					ErrorBinaryMessage(
-						commandId,
-						BAD_MODULE_ROOT,
-						false,
-						"${target.rootName} not found"
-					).message,
-					continuation)
-			}()
+					channel.enqueueMessageThen(
+						ErrorBinaryMessage(commandId, code).message) {}
+				})
+			// Request is asynchronous, so continue
+			continuation()
 		}
 	},
 
@@ -294,71 +288,66 @@ enum class BinaryCommand constructor(val id: Int)
 			buffer.get(raw)
 			val relativePath = String(raw, Charsets.UTF_8)
 			assert(relativePath.isNotEmpty())
-			val target = ModuleName(relativePath)
+			val qname = relativePath.replace(availExtension, "")
+			val target = ModuleName(qname)
 			val fileManager = channel.server.fileManager
-			channel.server.runtime.moduleRoots()
-				.moduleRootFor(target.rootName)?.let { mr ->
-					mr.resolver.let {
-						it.provideResolverReference(target.qualifiedName, { ref ->
-							fileManager.readFile(
-								target.qualifiedName,
-								it,
-								{ uuid, mime, file ->
-									channel.session?.let { session ->
-										val fileId =
-											session.addFileCacheId(uuid)
-										FileOpenedMessage(
-											commandId,
-											fileId,
-											ref.size,
-											ref.mimeType)
-											.processThen(channel)
-											{
-												FileStreamMessage(
-														commandId,
-														fileId,
-														file.rawContent)
-													.processThen(channel)
-											}
-									}
-								}
-							) { code, throwable ->
-								throwable?.let { e ->
-									logger.log(Level.SEVERE, e) {
-										"Could not read file: ${ref.qualifiedName}"
-									}
-									e.printStackTrace()
-								}
-								channel.enqueueMessageThen(
-									ErrorBinaryMessage(
+			val moduleRoot = channel.server.runtime.moduleRoots()
+				.moduleRootFor(target.rootName)
+			moduleRoot ?: return channel.enqueueMessageThen(
+				ErrorBinaryMessage(
+					commandId,
+					BAD_MODULE_ROOT,
+					false,
+					"${target.rootName} not found"
+				).message,
+				continuation)
+			// The module root was found.
+			val moduleRootResolver = moduleRoot.resolver
+			moduleRootResolver.provideResolverReference(
+				target.qualifiedName,
+				withReference = { ref ->
+					fileManager.readFile(
+						target.qualifiedName,
+						moduleRootResolver,
+						withFile = { uuid, _, file ->
+							channel.session?.let { session ->
+								val fileId = session.addFileCacheId(uuid)
+								FileOpenedMessage(
+									commandId, fileId, ref.size, ref.mimeType
+								).processThen(channel) {
+									FileStreamMessage(
 										commandId,
-										code).message) {}
+										fileId,
+										file.rawContent
+									).processThen(channel)
+								}
 							}
-							// Request is asynchronous, so continue
-							continuation()
-						}) { code, ex ->
-							ex?.let { e ->
+						},
+						failureHandler = { code, throwable ->
+							throwable?.let { e ->
 								logger.log(Level.SEVERE, e) {
-									"Could not read file: " +
-										target.qualifiedName
+									"Could not read file: ${ref.qualifiedName}"
 								}
 								e.printStackTrace()
 							}
 							channel.enqueueMessageThen(
-								ErrorBinaryMessage(commandId, code).message) {}
+								ErrorBinaryMessage(
+									commandId,
+									code).message) {}
+						})
+					// Request is asynchronous, so continue
+					continuation()
+				},
+				failureHandler = { code, ex ->
+					ex?.let { e ->
+						logger.log(Level.SEVERE, e) {
+							"Could not read file: " + target.qualifiedName
 						}
+						e.printStackTrace()
 					}
-				} ?: {
-				// No module root found
-				channel.enqueueMessageThen(
-					ErrorBinaryMessage(
-						commandId,
-						BAD_MODULE_ROOT,
-						false,
-						"${target.rootName} not found"
-					).message,
-					continuation)
-			}()
+					channel.enqueueMessageThen(
+						ErrorBinaryMessage(commandId, code).message) {}
+				})
 		}
 	},
 
@@ -374,7 +363,7 @@ enum class BinaryCommand constructor(val id: Int)
 	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
 	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
 	 *    identifies the transaction the message is part of.
-	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 * * `File id` (4-bytes): The `Session` specific cache id of the file to
 	 *    close.
 	 */
 	CLOSE_FILE(4)
@@ -415,7 +404,7 @@ enum class BinaryCommand constructor(val id: Int)
 	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
 	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
 	 *    identifies the transaction the message is part of.
-	 * * `File Id` (4-bytes): The `Session` specific cache id of the file to
+	 * * `File id` (4-bytes): The `Session` specific cache id of the file to
 	 *    save.
 	 */
 	SAVE_FILE(5)
@@ -458,7 +447,7 @@ enum class BinaryCommand constructor(val id: Int)
 	},
 
 	/**
-	 * Response to to the client to [OPEN_FILE] or [CREATE_FILE].
+	 * Response to the client to [OPEN_FILE] or [CREATE_FILE].
 	 *
 	 * The message expects the standard 12-byte header with additional content.
 	 *
@@ -466,7 +455,7 @@ enum class BinaryCommand constructor(val id: Int)
 	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
 	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
 	 *    identifies the transaction the message is part of.
-	 * * `File Id` (4-bytes): The `Session` specific cache id of the file being
+	 * * `File id` (4-bytes): The `Session` specific cache id of the file being
 	 *    opened.
 	 * * `mime size` (4-bytes) - The number of bytes that makes up the string `mime`
 	 * * `file size` (4-bytes) - The total number of bytes that makes up the file.
@@ -487,7 +476,7 @@ enum class BinaryCommand constructor(val id: Int)
 	 * * [BinaryCommand.id] (4-bytes): The int id that identifies the command
 	 * * [BinaryMessage.commandId] (8-bytes): The long transaction id that
 	 *    identifies the transaction the message is part of.
-	 * * `File Id` (4-bytes): The `Session` specific cache id of the file being
+	 * * `File id` (4-bytes): The `Session` specific cache id of the file being
 	 *    streamed.
 	 * * `file` (n-bytes) - The UTF-16BE encoded file contents.
 	 */
@@ -719,9 +708,7 @@ enum class BinaryCommand constructor(val id: Int)
 									continuation)
 						}
 					}
-				} ?: {
-				// No module root found
-				channel.enqueueMessageThen(
+				} ?: channel.enqueueMessageThen(
 					ErrorBinaryMessage(
 						commandId,
 						BAD_MODULE_ROOT,
@@ -729,7 +716,6 @@ enum class BinaryCommand constructor(val id: Int)
 						"${target.rootName} not found"
 					).message,
 					continuation)
-			}()
 		}
 	},
 

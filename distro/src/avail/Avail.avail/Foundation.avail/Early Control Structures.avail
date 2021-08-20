@@ -32,7 +32,7 @@
 
 Module "Early Control Structures"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Bootstrap",
 	"Early Assertions",
@@ -376,7 +376,6 @@ optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
  * @raises "alternative-must-not-contain-arguments exception"
  * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
  * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "dollar-sign-must-follow-an-ellipsis exception"
  * @raises "loading-is-over exception"
  */
 Public method "bootstrap restricted send_with_:_" is

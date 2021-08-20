@@ -84,14 +84,13 @@ object P_LessThan : Primitive(2, CannotFail, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val possible =
-			possibleOrdersWhenComparingInstancesOf(
-			argumentTypes[0], argumentTypes[1])
+		val (type1, type2) = argumentTypes
+		val possible = possibleOrdersWhenComparingInstancesOf(type1, type2)
 		val canBeTrue = possible.contains(LESS)
 		val canBeFalse =
 			(possible.contains(EQUAL)
-			    || possible.contains(MORE)
-		        || possible.contains(INCOMPARABLE))
+				|| possible.contains(MORE)
+				|| possible.contains(INCOMPARABLE))
 		assert(canBeTrue || canBeFalse)
 		return if (canBeTrue)
 		{

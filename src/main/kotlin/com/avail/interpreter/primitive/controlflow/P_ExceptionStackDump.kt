@@ -35,9 +35,8 @@ package com.avail.interpreter.primitive.controlflow
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
-import com.avail.descriptor.objects.ObjectTypeDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.stackDumpAtom
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
@@ -56,8 +55,8 @@ import com.avail.interpreter.Primitive.Flag.Unknown
 import com.avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Get the [ObjectTypeDescriptor.stackDumpAtom] associated with
- * the specified [exception][ObjectTypeDescriptor.exceptionType].
+ * **Primitive:** Get the [stackDumpAtom] associated with
+ * the specified [exception][exceptionType].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -72,11 +71,14 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 		val runtime = interpreter.runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
 		val continuation : A_Continuation =
-			try { exception.fieldAt(stackDumpAtom()) }
+			try
+			{
+				exception.fieldAt(stackDumpAtom)
+			}
 			catch (e: MapException)
 			{
-				assert(e.numericCode.extractInt()
-					       == E_KEY_NOT_FOUND.nativeCode())
+				assert(e.numericCode.extractInt
+							== E_KEY_NOT_FOUND.nativeCode())
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
 
@@ -92,7 +94,7 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(exceptionType()), zeroOrMoreOf(stringType()))
+		functionType(tuple(exceptionType), zeroOrMoreOf(stringType))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))

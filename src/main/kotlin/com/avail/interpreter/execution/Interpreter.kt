@@ -58,6 +58,11 @@ import com.avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import com.avail.descriptor.functions.FunctionDescriptor
@@ -134,6 +139,7 @@ import com.avail.performance.StatisticReport.TOP_LEVEL_STATEMENTS
 import com.avail.utility.Strings.tab
 import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
+import java.util.concurrent.ForkJoinWorkerThread
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
@@ -154,7 +160,7 @@ import javax.annotation.CheckReturnValue
  *  * register coloring/allocation.
  *  * inlining.
  *  * common sub-expression elimination.
- *  * side-effect analysis.
+ *  * side effect analysis.
  *  * object escape analysis.
  *  * a variant of keyhole optimization that involves building the loosest
  *    possible Level Two instruction dependency graph, then "pulling" eligible
@@ -229,7 +235,9 @@ import javax.annotation.CheckReturnValue
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-@Renderer(childrenArray = "describeForDebugger()")
+@Renderer(
+	text = "toString",
+	childrenArray = "nameForDebugger")
 class Interpreter(
 	@ReferencedInGeneratedCode
 	@JvmField
@@ -263,8 +271,9 @@ class Interpreter(
 		return when
 		{
 			f === null || f === nil ->
-				// Don't replace ===nil with .equalsNil(), since that might
-				// have to dispatch on an object whose descriptor is in flux.
+				// Don't replace ===nil with .isNil, since that might have to
+				// dispatch on an object whose descriptor is in flux.  It's not
+				// the case as of 2021-06-17, but this is maintenance-proofing.
 				null
 			else ->
 				// A running A_RawFunction is always shared, so safe to access
@@ -300,8 +309,9 @@ class Interpreter(
 	 */
 	fun <T> lockFiberWhile(
 		aFiber: A_Fiber,
-		supplier: () -> T
-	): T {
+		supplier: ()->T
+	): T
+	{
 		val previousFiber = currentlyLockedFiber
 		assert(previousFiber === null || previousFiber === aFiber)
 		currentlyLockedFiber = aFiber
@@ -405,7 +415,7 @@ class Interpreter(
 		if (frame !== null)
 		{
 			val frames = mutableListOf<A_Continuation>()
-			while (!frame!!.equalsNil())
+			while (frame!!.notNil)
 			{
 				frames.add(frame)
 				frame = frame.caller()
@@ -495,25 +505,26 @@ class Interpreter(
 	 * @param tempDebug
 	 *   A string describing the context of this operation.
 	 */
-	fun fiber(newFiber: A_Fiber?, tempDebug: String?) {
+	fun fiber(newFiber: A_Fiber?, tempDebug: String?)
+	{
 		if (debugPrimitives)
 		{
-			val builder = StringBuilder()
-			builder
-				.append("[$interpreterIndex] fiber: ")
-				.append(
+			val string = buildString {
+				append("[$interpreterIndex] fiber: ")
+				append(
 					if (fiber === null) "null"
 					else "${fiber!!.uniqueId()}[${fiber!!.executionState()}]")
-				.append(" -> ")
-				.append(
+				append(" -> ")
+				append(
 					if (newFiber === null) "null"
 					else "${newFiber.uniqueId()}[${newFiber.executionState()}]")
-				.append(" ($tempDebug)")
+				append(" ($tempDebug)")
+			}
 			log(
 				loggerDebugPrimitives,
 				Level.INFO,
 				"{0}",
-				builder.toString())
+				string)
 		}
 		assert((fiber === null) xor (newFiber === null))
 		assert(newFiber === null || newFiber.executionState() === RUNNING)
@@ -617,7 +628,7 @@ class Interpreter(
 	 *   The current loader's module under definition, or `nil` if loading is
 	 *   not taking place via this interpreter.
 	 */
-	fun module(): A_Module = fiber().availLoader()?.module() ?: nil
+	fun module(): A_Module = fiber().availLoader()?.module ?: nil
 
 	/**
 	 * The latest result produced by a [successful][Result.SUCCESS]
@@ -642,7 +653,8 @@ class Interpreter(
 	{
 		assert(newResult !== null || !returnNow)
 		latestResult = newResult as AvailObject?
-		if (debugL2) {
+		if (debugL2)
+		{
 			log(
 				loggerDebugL2,
 				Level.INFO,
@@ -710,12 +722,10 @@ class Interpreter(
 	 */
 	fun suspendInLevelOneSafeThen(
 		action: SuspensionHelper<A_BasicObject>.()->Unit
-	): Result {
-		val theFiber = fiber!!
-		val priority = theFiber.priority()
-		return suspendThen {
+	): Result = fiber!!.let { theFiber ->
+		suspendThen {
 			runtime.whenLevelOneSafeDo(
-				priority,
+				theFiber.priority(),
 				AvailTask.forUnboundFiber(theFiber) { action() })
 		}
 	}
@@ -726,7 +736,7 @@ class Interpreter(
 	 *
 	 * @property toSucceed
 	 *   The function to call that accepts a value from the [Primitive] if the
-	 *   the `Primitive` is successful.
+	 *   `Primitive` is successful.
 	 * @property toFail
 	 *   The function to call that accepts an [A_BasicObject] that provides the
 	 *   reason for the [Primitive] failure.
@@ -736,7 +746,7 @@ class Interpreter(
 	 *
 	 * @param toSucceed
 	 *   The function to call that accepts a value from the [Primitive] if the
-	 *   the `Primitive` is successful.
+	 *   `Primitive` is successful.
 	 * @param toFail
 	 *   The function to call that accepts an [A_BasicObject] that provides the
 	 *   reason for the [Primitive] failure.
@@ -777,7 +787,7 @@ class Interpreter(
 	 * Suspend the interpreter in the middle of running a primitive (which must
 	 * be marked as [Primitive.Flag.CanSuspend]).  The supplied action can
 	 * invoke [succeed][SuspensionHelper.succeed] or
-	 * [fail][SuspensionHelper.fail] when it has determine its fate.
+	 * [fail][SuspensionHelper.fail] when it has determined its fate.
 	 *
 	 * @param body
 	 *   What to do when the fiber has been suspended.
@@ -787,7 +797,7 @@ class Interpreter(
 	{
 		val copiedArgs = argsBuffer.map { it }
 		val primitiveFunction = function!!
-		val prim = primitiveFunction.code().primitive()!!
+		val prim = primitiveFunction.code().codePrimitive()!!
 		assert(prim.hasFlag(CanSuspend))
 		val currentFiber = fiber()
 		val once = AtomicBoolean(false)
@@ -950,6 +960,7 @@ class Interpreter(
 			aFiber.setContinuation(getReifiedContinuation()!!)
 			setReifiedContinuation(null)
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
+			aFiber.fiberHelper().stopCountingCPU()
 			assert(bound)
 			fiber(null, "primitiveSuspend")
 		}
@@ -982,7 +993,7 @@ class Interpreter(
 	@CheckReturnValue
 	fun primitiveSuspend(suspendingFunction: A_Function): Result
 	{
-		val prim = suspendingFunction.code().primitive()!!
+		val prim = suspendingFunction.code().codePrimitive()!!
 		assert(prim.hasFlag(CanSuspend))
 		fiber().setSuspendingFunction(suspendingFunction)
 		function = null // Safety
@@ -1030,6 +1041,7 @@ class Interpreter(
 			aFiber.setContinuation(nil)
 			aFiber.setFiberResult(finalObject)
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
+			aFiber.fiberHelper().stopCountingCPU()
 			assert(bound)
 			fiber(null, "exitFiber")
 		}
@@ -1068,7 +1080,8 @@ class Interpreter(
 						// to eject the stale joiner from the set.
 						joiner.setExecutionState(SUSPENDED)
 						val suspended =
-							joiner.suspendingFunction().code().primitive()!!
+							joiner.suspendingFunction().code()
+								.codePrimitive()!!
 						assert(suspended === P_AttemptJoinFiber
 							|| suspended === P_ParkCurrentFiber)
 						resumeFromSuccessfulPrimitive(
@@ -1111,14 +1124,14 @@ class Interpreter(
 	fun attemptThePrimitive(
 		primitiveFunction: A_Function,
 		primitive: Primitive): StackReifier? =
-			if (primitive.hasFlag(Primitive.Flag.CanInline))
-			{
-				attemptInlinePrimitive(primitiveFunction, primitive)
-			}
-			else
-			{
-				attemptNonInlinePrimitive(primitiveFunction, primitive)
-			}
+		if (primitive.hasFlag(Primitive.Flag.CanInline))
+		{
+			attemptInlinePrimitive(primitiveFunction, primitive)
+		}
+		else
+		{
+			attemptNonInlinePrimitive(primitiveFunction, primitive)
+		}
 
 	/**
 	 * Attempt the [inlineable][Primitive.Flag.CanInline]
@@ -1312,8 +1325,9 @@ class Interpreter(
 				}
 				CONTINUATION_CHANGED ->
 				{
-					assert(primitive.hasFlag(
-						Primitive.Flag.CanSwitchContinuations))
+					assert(
+						primitive.hasFlag(
+							Primitive.Flag.CanSwitchContinuations))
 				}
 				FIBER_SUSPENDED ->
 				{
@@ -1396,18 +1410,24 @@ class Interpreter(
 		primitive.addNanosecondsRunning(
 			timeAfter - timeBefore, interpreterIndex)
 		assert(success !== FAILURE || !primitive.hasFlag(CannotFail))
-		if (debugPrimitives) {
-			if (loggerDebugPrimitives.isLoggable(Level.FINER)) {
-				val detailPart = when {
-					success === SUCCESS -> {
+		if (debugPrimitives)
+		{
+			if (loggerDebugPrimitives.isLoggable(Level.FINER))
+			{
+				val detailPart = when
+				{
+					success === SUCCESS ->
+					{
 						var result = getLatestResult().toString()
-						if (result.length > 70) {
+						if (result.length > 70)
+						{
 							result = result.substring(0, 70) + "..."
 						}
 						" --> $result"
 					}
-					success === FAILURE && getLatestResult().isInt -> {
-						val errorInt = getLatestResult().extractInt()
+					success === FAILURE && getLatestResult().isInt ->
+					{
+						val errorInt = getLatestResult().extractInt
 						" (${byNumericCode(errorInt)})"
 					}
 					else -> ""
@@ -1420,7 +1440,8 @@ class Interpreter(
 					primitive.name,
 					success.name,
 					detailPart)
-				if (success !== SUCCESS) {
+				if (success !== SUCCESS)
+				{
 					log(
 						loggerDebugPrimitives,
 						Level.FINER,
@@ -1461,14 +1482,18 @@ class Interpreter(
 	fun setReifiedContinuation(continuation: A_Continuation?)
 	{
 		theReifiedContinuation = continuation as AvailObject?
-		if (debugL2) {
-			val text = when {
+		if (debugL2)
+		{
+			val text = when
+			{
 				continuation === null -> "null"
-				continuation.equalsNil() -> continuation.toString()
-				else -> {
-					when (val theChunk = continuation.levelTwoChunk()) {
+				continuation.isNil -> continuation.toString()
+				else ->
+				{
+					when (val theChunk = continuation.levelTwoChunk())
+					{
 						L2Chunk.unoptimizedChunk ->
-							continuation.function().code().methodName()
+							continuation.function().code().methodName
 								.toString() +
 								" (unoptimized)"
 						else -> (theChunk.name() + ", offset= " +
@@ -1495,7 +1520,7 @@ class Interpreter(
 		{
 			val builder = StringBuilder()
 			var ptr: A_Continuation = theReifiedContinuation!!
-			while (!ptr.equalsNil())
+			while (ptr.notNil)
 			{
 				builder
 					.append("\n\t\toffset ")
@@ -1505,7 +1530,7 @@ class Interpreter(
 				if (ch == L2Chunk.unoptimizedChunk)
 				{
 					builder.append("(L1) - ")
-						.append(ptr.function().code().methodName())
+						.append(ptr.function().code().methodName)
 				}
 				else
 				{
@@ -1539,7 +1564,7 @@ class Interpreter(
 	@Volatile
 	var function: A_Function? = null
 
-	/** The [L2Chunk] being executed.  */
+	/** The [L2Chunk] being executed. */
 	@ReferencedInGeneratedCode
 	@JvmField
 	var chunk: L2Chunk? = null
@@ -1558,7 +1583,8 @@ class Interpreter(
 	 * @param newOffset
 	 *   The new position in the L2 instruction stream.
 	 */
-	fun setOffset(newOffset: Int) {
+	fun setOffset(newOffset: Int)
+	{
 		offset = newOffset
 	}
 
@@ -1656,24 +1682,26 @@ class Interpreter(
 	 * @param continuation
 	 *   The reified continuation to save into the current fiber.
 	 */
-	fun processInterrupt(continuation: A_Continuation) {
+	fun processInterrupt(continuation: A_Continuation)
+	{
 		assert(!exitNow)
 		assert(!returnNow)
 		val aFiber = fiber()
-		var waiters: List<(A_Continuation) -> Unit> = emptyList()
+		var waiters: List<(A_Continuation)->Unit> = emptyList()
 		aFiber.lock {
 			synchronized(aFiber) {
 				assert(aFiber.executionState() === RUNNING)
 				aFiber.setExecutionState(INTERRUPTED)
 				aFiber.setContinuation(continuation)
 				if (aFiber.getAndClearInterruptRequestFlag(
-					REIFICATION_REQUESTED))
+						REIFICATION_REQUESTED))
 				{
 					continuation.makeShared()
 					waiters = aFiber.getAndClearReificationWaiters()
 					assert(waiters.isNotEmpty())
 				}
 				val bound = fiber().getAndSetSynchronizationFlag(BOUND, false)
+				aFiber.fiberHelper().stopCountingCPU()
 				assert(bound)
 				fiber(null, "processInterrupt")
 			}
@@ -1682,7 +1710,8 @@ class Interpreter(
 		returnNow = false
 		exitNow = true
 		offset = Int.MAX_VALUE
-		if (debugL2) {
+		if (debugL2)
+		{
 			log(
 				loggerDebugL2,
 				Level.FINER,
@@ -1703,7 +1732,7 @@ class Interpreter(
 	 * reified already) until one is found for a function whose code specifies
 	 * [P_CatchException]. Get that continuation's second argument (a handler
 	 * block of one argument), and check if that handler block will accept the
-	 * exceptionValue. If not, keep looking. If it will accept it, unwind the
+	 * exceptionValue. If not, keep looking. If it accepts it, unwind the
 	 * continuation stack so that the primitive catch method is the top entry,
 	 * and invoke the handler block with exceptionValue. If there is no suitable
 	 * handler block, fail the primitive.
@@ -1713,29 +1742,34 @@ class Interpreter(
 	 * @return
 	 *   The [success&#32;state][Result].
 	 */
-	fun searchForExceptionHandler(exceptionValue: AvailObject): Result {
+	fun searchForExceptionHandler(exceptionValue: AvailObject): Result
+	{
 		// Replace the contents of the argument buffer with "exceptionValue",
 		// an exception augmented with stack information.
 		assert(argsBuffer.size == 1)
 		argsBuffer[0] = exceptionValue
 		var continuation = getReifiedContinuation()!!
 		var depth = 0
-		while (!continuation.equalsNil()) {
+		while (continuation.notNil)
+		{
 			val code = continuation.function().code()
-			if (code.primitive() == P_CatchException) {
+			if (code.codePrimitive() == P_CatchException)
+			{
 				assert(code.numArgs() == 3)
 				val failureVariable: A_Variable = continuation.frameAt(4)
 				// Scan a currently unmarked frame.
-				if (failureVariable.value().value().equalsInt(0)) {
+				if (failureVariable.value().value().equalsInt(0))
+				{
 					val handlerTuple: A_Tuple = continuation.frameAt(2)
 					assert(handlerTuple.isTuple)
 					handlerTuple.forEach { handler ->
 						if (exceptionValue.isInstanceOf(
-								handler.kind().argsTupleType().typeAtIndex(1)))
+								handler.kind().argsTupleType.typeAtIndex(1)))
 						{
 							// Mark this frame: we don't want it to handle an
 							// exception raised from within one of its handlers.
-							if (debugL2) {
+							if (debugL2)
+							{
 								log(
 									loggerDebugPrimitives,
 									Level.FINER,
@@ -1751,7 +1785,7 @@ class Interpreter(
 							// the exceptionValue.
 							setReifiedContinuation(continuation)
 							function = handler
-							chunk = handler.code().startingChunk()
+							chunk = handler.code().startingChunk
 							offset = 0 // Invocation
 							levelOneStepper.wipeRegisters()
 							returnNow = false
@@ -1783,20 +1817,24 @@ class Interpreter(
 	fun markGuardVariable(
 		guardVariable: A_Variable,
 		marker: A_Number
-	): Result {
+	): Result
+	{
 		// Only allow certain state transitions.
-		val oldState = guardVariable.value().extractInt()
+		val oldState = guardVariable.value().extractInt
 		if (marker.equals(E_HANDLER_SENTINEL.numericCode())
-			&& oldState != 0) {
+			&& oldState != 0)
+		{
 			return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
 		}
 		if (marker.equals(E_UNWIND_SENTINEL.numericCode())
-			&& oldState != E_HANDLER_SENTINEL.nativeCode()) {
+			&& oldState != E_HANDLER_SENTINEL.nativeCode())
+		{
 			return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
 		}
 		// Mark this frame.  Depending on the marker, we don't want it to handle
 		// exceptions or unwinds anymore.
-		if (debugL2) {
+		if (debugL2)
+		{
 			log(
 				loggerDebugL2,
 				Level.FINER,
@@ -1819,29 +1857,34 @@ class Interpreter(
 	 * @return
 	 *   The [success&#32;state][Result].
 	 */
-	fun markNearestGuard(marker: A_Number): Result {
+	fun markNearestGuard(marker: A_Number): Result
+	{
 		var continuation: A_Continuation = getReifiedContinuation()!!
 		var depth = 0
-		while (!continuation.equalsNil()) {
+		while (continuation.notNil)
+		{
 			val code = continuation.function().code()
-			if (code.primitive() == P_CatchException) {
+			if (code.codePrimitive() == P_CatchException)
+			{
 				assert(code.numArgs() == 3)
 				val failureVariable: A_Variable = continuation.frameAt(4)
 				val guardVariable: A_Variable = failureVariable.value()
-				val oldState = guardVariable.value().extractInt()
+				val oldState = guardVariable.value().extractInt
 				// Only allow certain state transitions.
-				when {
+				when
+				{
 					marker.equals(E_HANDLER_SENTINEL.numericCode())
-							&& oldState != 0 ->
+						&& oldState != 0 ->
 						return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
 					marker.equals(E_UNWIND_SENTINEL.numericCode())
-							&& oldState != E_HANDLER_SENTINEL.nativeCode() ->
+						&& oldState != E_HANDLER_SENTINEL.nativeCode() ->
 						return primitiveFailure(E_CANNOT_MARK_HANDLER_FRAME)
 				}
 				// Mark this frame: we don't want it to handle exceptions
 				// anymore.
 				guardVariable.setValueNoCheck(marker)
-				if (debugL2) {
+				if (debugL2)
+				{
 					log(
 						loggerDebugL2,
 						Level.FINER,
@@ -1873,16 +1916,18 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun checkValidity(
 		offsetInDefaultChunkIfInvalid: Int
-	): Boolean = when {
+	): Boolean = when
+	{
 		chunk!!.isValid -> true
-		else -> {
+		else ->
+		{
 			chunk = L2Chunk.unoptimizedChunk
 			offset = offsetInDefaultChunkIfInvalid
 			false
 		}
 	}
 
-	/** An indication that a reification action is running.  */
+	/** An indication that a reification action is running. */
 	var isReifying = false
 
 	/**
@@ -1897,7 +1942,8 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun reifierToRestart(
 		continuation: A_Continuation
-	): StackReifier {
+	): StackReifier
+	{
 		isReifying = true
 		return StackReifier(
 			false,
@@ -1906,7 +1952,7 @@ class Interpreter(
 			val whichFunction = continuation.function()
 			val numArgs = whichFunction.code().numArgs()
 			argsBuffer.clear()
-			(1..numArgs).forEach {
+			(1 .. numArgs).forEach {
 				argsBuffer.add(continuation.frameAt(it))
 			}
 			setReifiedContinuation(continuation.caller())
@@ -1941,8 +1987,10 @@ class Interpreter(
 		actuallyReify: Boolean,
 		processInterrupt: Boolean,
 		statisticPojo: AvailObject
-	): StackReifier = when {
-		processInterrupt -> {
+	): StackReifier = when
+	{
+		processInterrupt ->
+		{
 			// Reify-and-interrupt.
 			isReifying = true
 			StackReifier(
@@ -1954,7 +2002,8 @@ class Interpreter(
 				processInterrupt(getReifiedContinuation()!!)
 			}
 		}
-		else -> {
+		else ->
+		{
 			// Capture the interpreter's state, reify the frames, and as an
 			// after-reification action, restore the interpreter's state.
 			val savedFunction = function!!
@@ -1994,7 +2043,8 @@ class Interpreter(
 	fun reifierToRestartWithArguments(
 		continuation: A_Continuation,
 		arguments: Array<AvailObject>
-	): StackReifier {
+	): StackReifier
+	{
 		isReifying = true
 		return StackReifier(
 			false,
@@ -2026,11 +2076,12 @@ class Interpreter(
 	@ReferencedInGeneratedCode
 	fun preinvoke0(
 		calledFunction: A_Function
-	): AvailObject {
+	): AvailObject
+	{
 		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		function = calledFunction
-		chunk = calledFunction.code().startingChunk()
+		chunk = calledFunction.code().startingChunk
 		offset = 0
 		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
@@ -2050,12 +2101,13 @@ class Interpreter(
 	fun preinvoke1(
 		calledFunction: A_Function,
 		arg1: AvailObject
-	): AvailObject {
+	): AvailObject
+	{
 		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		function = calledFunction
-		chunk = calledFunction.code().startingChunk()
+		chunk = calledFunction.code().startingChunk
 		offset = 0
 		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
@@ -2078,13 +2130,14 @@ class Interpreter(
 		calledFunction: A_Function,
 		arg1: AvailObject,
 		arg2: AvailObject
-	): AvailObject {
+	): AvailObject
+	{
 		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
 		function = calledFunction
-		chunk = calledFunction.code().startingChunk()
+		chunk = calledFunction.code().startingChunk
 		offset = 0
 		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
@@ -2110,14 +2163,15 @@ class Interpreter(
 		arg1: AvailObject,
 		arg2: AvailObject,
 		arg3: AvailObject
-	): AvailObject {
+	): AvailObject
+	{
 		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.add(arg1)
 		argsBuffer.add(arg2)
 		argsBuffer.add(arg3)
 		function = calledFunction
-		chunk = calledFunction.code().startingChunk()
+		chunk = calledFunction.code().startingChunk
 		offset = 0
 		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
@@ -2138,12 +2192,13 @@ class Interpreter(
 	fun preinvoke(
 		calledFunction: A_Function,
 		args: Array<AvailObject>
-	): AvailObject {
+	): AvailObject
+	{
 		val savedFunction = function!! as AvailObject
 		argsBuffer.clear()
 		argsBuffer.addAll(args)
 		function = calledFunction
-		chunk = calledFunction.code().startingChunk()
+		chunk = calledFunction.code().startingChunk
 		offset = 0
 		adjustUnreifiedCallDepthBy(1)
 		return savedFunction
@@ -2167,7 +2222,8 @@ class Interpreter(
 		callingChunk: L2Chunk,
 		callingFunction: A_Function,
 		reifier: StackReifier?
-	): StackReifier? {
+	): StackReifier?
+	{
 		chunk = callingChunk
 		function = callingFunction
 		returnNow = false
@@ -2188,12 +2244,13 @@ class Interpreter(
 	 *   used to indicate the stack is being unwound (and the Avail function is
 	 *   *not* returning).
 	 */
-	fun invokeFunction(aFunction: A_Function): StackReifier? {
+	fun invokeFunction(aFunction: A_Function): StackReifier?
+	{
 		assert(!exitNow)
 		function = aFunction
 		val code = aFunction.code()
 		assert(code.numArgs() == argsBuffer.size)
-		chunk = code.startingChunk()
+		chunk = code.startingChunk
 		assert(chunk!!.isValid)
 		offset = 0
 		returnNow = false
@@ -2212,14 +2269,16 @@ class Interpreter(
 	 * Run the interpreter until it completes the fiber, is suspended, or is
 	 * interrupted, perhaps by exceeding its time-slice.
 	 */
-	fun run() {
+	fun run()
+	{
 		assert(unreifiedCallDepth() == 0)
 		assert(fiber !== null)
 		assert(!exitNow)
 		assert(!returnNow)
 		nanosToExclude = 0L
 		startTick = runtime.clock.get()
-		if (debugL2) {
+		if (debugL2)
+		{
 			debugModeString = "Fib=" + fiber!!.uniqueId() + " "
 			log(
 				loggerDebugPrimitives,
@@ -2228,7 +2287,8 @@ class Interpreter(
 				debugModeString,
 				fiber!!.fiberName())
 		}
-		while (true) {
+		while (true)
+		{
 			// Run the chunk to completion (dealing with reification).
 			// The chunk will do its own invalidation checks and off-ramp
 			// to L1 if needed.
@@ -2236,19 +2296,23 @@ class Interpreter(
 			val reifier = runChunk()
 			assert(unreifiedCallDepth() == 0)
 			returningFunction = calledFunction
-			if (reifier !== null) {
+			if (reifier !== null)
+			{
 				// Reification has been requested, and the exception has already
 				// collected all the reification actions.
-				if (reifier.actuallyReify()) {
+				if (reifier.actuallyReify())
+				{
 					reifier.runActions(this)
 				}
 				reifier.recordCompletedReification(interpreterIndex)
 				chunk = null // The postReificationAction should set this up.
 				reifier.postReificationAction()
-				if (exitNow) {
+				if (exitNow)
+				{
 					// The fiber has been dealt with. Exit the interpreter loop.
 					assert(fiber === null)
-					if (debugL2) {
+					if (debugL2)
+					{
 						log(
 							loggerDebugL2,
 							Level.FINER,
@@ -2257,7 +2321,8 @@ class Interpreter(
 					}
 					return
 				}
-				if (!returnNow) {
+				if (!returnNow)
+				{
 					continue
 				}
 				// Fall through to accomplish the return.
@@ -2265,12 +2330,14 @@ class Interpreter(
 			assert(returnNow)
 			assert(latestResult !== null)
 			returnNow = false
-			if (getReifiedContinuation()!!.equalsNil()) {
+			if (getReifiedContinuation()!!.isNil)
+			{
 				// The reified stack is empty, too.  We must have returned from
 				// the outermost frame.  The fiber runner will deal with it.
 				terminateFiber(getLatestResult())
 				exitNow = true
-				if (debugL2) {
+				if (debugL2)
+				{
 					log(
 						loggerDebugL2,
 						Level.FINER,
@@ -2309,10 +2376,12 @@ class Interpreter(
 	 *   reification.
 	 */
 	@ReferencedInGeneratedCode
-	fun runChunk(): StackReifier? {
+	fun runChunk(): StackReifier?
+	{
 		assert(!exitNow)
 		var reifier: StackReifier? = null
-		while (!returnNow && !exitNow && reifier === null) {
+		while (!returnNow && !exitNow && reifier === null)
+		{
 			val currentChunk = chunk!!
 			currentChunk.beforeRunChunk(offset)
 			reifier = currentChunk.executableChunk.runChunk(this, offset)
@@ -2320,17 +2389,28 @@ class Interpreter(
 		return reifier
 	}
 
-	override fun toString(): String {
+	/** Present the name in the debugger. */
+	@Suppress("unused")
+	fun nameForDebugger() = toString()
+
+	override fun toString(): String
+	{
 		return buildString {
 			append(this@Interpreter.javaClass.simpleName)
 			append(" #$interpreterIndex")
-			if (fiber === null) {
+			if (fiber === null)
+			{
 				append(" [«unbound»]")
-			} else {
+			}
+			else
+			{
 				append(formatString(" [%s]", fiber!!.fiberName()))
-				if (getReifiedContinuation() === null) {
+				if (getReifiedContinuation() === null)
+				{
 					append(formatString("%n\t«null stack»"))
-				} else if (getReifiedContinuation()!!.equalsNil()) {
+				}
+				else if (getReifiedContinuation()!!.isNil)
+				{
 					append(formatString("%n\t«empty call stack»"))
 				}
 				append("\n\n")
@@ -2377,12 +2457,12 @@ class Interpreter(
 		pc: Int,
 		stackp: Int,
 		vararg slots: A_BasicObject
-	) : StackReifier
+	): StackReifier
 	{
 		val returner = returningFunction!!
 		val caller = function!!
 		val wrappedReturnValue = newVariableWithContentType(Types.ANY.o)
-		if (!returnedValueOrNil.equalsNil())
+		if (returnedValueOrNil.notNil)
 		{
 			wrappedReturnValue.setValueNoCheck(returnedValueOrNil)
 		}
@@ -2443,7 +2523,7 @@ class Interpreter(
 		pc: Int,
 		stackp: Int,
 		vararg slots: A_BasicObject
-	) : StackReifier
+	): StackReifier
 	{
 		val currentFunction = function!!
 		argsBuffer.clear()
@@ -2484,9 +2564,9 @@ class Interpreter(
 	 */
 	fun recordDynamicLookup(
 		bundle: A_Bundle,
-		nanos: Double
-	) {
-		val method = bundle.bundleMethod()
+		nanos: Double)
+	{
+		val method = bundle.bundleMethod
 		val descriptor = method.traversed().descriptor() as MethodDescriptor
 		descriptor.dynamicLookupStat().record(nanos)
 	}
@@ -2507,7 +2587,7 @@ class Interpreter(
 		var statistic: Statistic
 		synchronized(topStatementEvaluationStats) {
 			statistic = topStatementEvaluationStats.computeIfAbsent(
-				module.moduleName()
+				module.moduleName
 			) {
 				Statistic(TOP_LEVEL_STATEMENTS, it.asNativeString())
 			}
@@ -2515,16 +2595,17 @@ class Interpreter(
 		statistic.record(sample, interpreterIndex)
 	}
 
-	companion object {
-		/** Whether to print detailed Level One debug information.  */
+	companion object
+	{
+		/** Whether to print detailed Level One debug information. */
 		@Volatile
 		var debugL1 = false
 
-		/** Whether to print detailed Level Two debug information.  */
+		/** Whether to print detailed Level Two debug information. */
 		@Volatile
 		var debugL2 = false
 
-		/** Whether to print detailed Primitive debug information.  */
+		/** Whether to print detailed Primitive debug information. */
 		@Volatile
 		var debugPrimitives = false
 
@@ -2554,23 +2635,23 @@ class Interpreter(
 		@Volatile
 		var debugCustom = false
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		private val mainLogger = Logger.getLogger(
 			Interpreter::class.java.canonicalName)
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		val loggerDebugL1: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugL1")
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		val loggerDebugL2: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugL2")
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		val loggerDebugJVM: Logger = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugJVM")
 
-		/** A [logger][Logger].  */
+		/** A [logger][Logger]. */
 		private val loggerDebugPrimitives = Logger.getLogger(
 			Interpreter::class.java.canonicalName + ".debugPrimitives")
 
@@ -2586,7 +2667,8 @@ class Interpreter(
 		 * @param level
 		 *   The new logging [Level].
 		 */
-		fun setLoggerLevel(level: Level) {
+		fun setLoggerLevel(level: Level)
+		{
 			mainLogger.level = level
 			loggerDebugL1.level = level
 			loggerDebugL2.level = level
@@ -2610,9 +2692,10 @@ class Interpreter(
 			logger: Logger,
 			level: Level,
 			message: String,
-			vararg arguments: Any?
-		) {
-			if (logger.isLoggable(level)) {
+			vararg arguments: Any?)
+		{
+			if (logger.isLoggable(level))
+			{
 				log(
 					if (AvailThread.currentOrNull() !== null) current().fiber
 					else null,
@@ -2642,45 +2725,52 @@ class Interpreter(
 			logger: Logger,
 			level: Level?,
 			message: String,
-			vararg arguments: Any?
-		) {
-			if (logger.isLoggable(level)) {
+			vararg arguments: Any?)
+		{
+			if (logger.isLoggable(level))
+			{
 				val interpreter = currentOrNull()
 				val runningFiber = interpreter?.fiberOrNull()
 				@Suppress("ConstantConditionIf")
-				if (debugIntoFiberDebugLog) {
+				if (debugIntoFiberDebugLog)
+				{
 					// Write into a StringBuilder in each fiber's debugLog().
-					if (runningFiber !== null) {
+					if (runningFiber !== null)
+					{
 						// Log to the fiber.
 						val log = runningFiber.debugLog()
-						if (interpreter.isReifying) {
+						if (interpreter.isReifying)
+						{
 							log.append("R! ")
 						}
 						log.tab(interpreter.unreifiedCallDepth)
-						if (log.length > maxFiberLogLength) {
+						if (log.length > maxFiberLogLength)
+						{
 							log.delete(
 								0, log.length - (maxFiberLogLength shr 2) * 3)
 						}
 						// Abbreviate potentially long arguments.
 						val tidyArguments = arguments.map {
-							when {
+							when
+							{
 								it !is AvailObject -> it
 								it.typeTag() == TypeTag.OBJECT_TAG ->
 									"(some object)"
 								!it.isTuple -> it
-								it.isString && it.tupleSize() > 200 ->
+								it.isString && it.tupleSize > 200 ->
 									it.copyStringFromToCanDestroy(
 										1, 200, false
 									).asNativeString() + "..."
-								!it.isString && it.tupleSize() > 20 ->
+								!it.isString && it.tupleSize > 20 ->
 									it.copyTupleFromToCanDestroy(
 										1, 20, false
 									) + "..."
 								else -> it
 							}
 						}
-						log.append(MessageFormat.format(
-							message, *tidyArguments.toTypedArray()))
+						log.append(
+							MessageFormat.format(
+								message, *tidyArguments.toTypedArray()))
 						log.append('\n')
 					}
 					// Ignore the bit of logging not tied to a specific fiber.
@@ -2688,14 +2778,16 @@ class Interpreter(
 				}
 				val builder = StringBuilder()
 				builder.append(
-					when {
+					when
+					{
 						runningFiber !== null ->
 							String.format("%6d ", runningFiber.uniqueId())
 						else -> "?????? "
 					})
 				builder.append("→ ")
 				builder.append(
-					when {
+					when
+					{
 						affectedFiber !== null ->
 							String.format("%6d ", affectedFiber.uniqueId())
 						else -> "?????? "
@@ -2726,8 +2818,10 @@ class Interpreter(
 			description: String,
 			firstReadOperandValue: Any)
 		{
-			if (debugL2) {
-				if (mainLogger.isLoggable(Level.SEVERE)) {
+			if (debugL2)
+			{
+				if (mainLogger.isLoggable(Level.SEVERE))
+				{
 					val str = ("L2 = "
 						+ offset
 						+ " of "
@@ -2750,7 +2844,7 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] referring to the static method [traceL2].
 		 */
-		val traceL2Method: CheckedMethod = staticMethod(
+		val traceL2Method = staticMethod(
 			Interpreter::class.java,
 			::traceL2.name,
 			Void.TYPE,
@@ -2777,9 +2871,20 @@ class Interpreter(
 		 * @return
 		 *   The current Avail `Interpreter`'s unique index, or zero.
 		 */
-		fun currentIndexOrZero(): Int {
-			val thread = AvailThread.currentOrNull()
-			return thread?.interpreter?.interpreterIndex ?: 0
+		fun currentIndexOrZero(): Int
+		{
+			val thread = Thread.currentThread()
+			if (thread is AvailThread)
+			{
+				return thread.interpreter.interpreterIndex
+			}
+			// If we're running a task in the fork/join pool, use its index
+			// mod the number of interpreter threads (to keep it in range).
+			if (thread is ForkJoinWorkerThread)
+			{
+				return thread.poolIndex % maxInterpreters
+			}
+			return 0
 		}
 
 		/**
@@ -2794,53 +2899,52 @@ class Interpreter(
 		fun currentOrNull(): Interpreter? =
 			AvailThread.currentOrNull()?.interpreter
 
-		/** Access the [callerIsReified] method.  */
-		val callerIsReifiedMethod: CheckedMethod = instanceMethod(
+		/** Access the [callerIsReified] method. */
+		val callerIsReifiedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::callerIsReified.name,
 			Boolean::class.javaPrimitiveType!!)
 
-
-		/** The [CheckedField] for [runtime].  */
+		/** The [CheckedField] for [runtime]. */
 		val runtimeField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::runtime.name,
 			AvailRuntime::class.java)
 
-		/** Access the [setLatestResult] method.  */
-		var setLatestResultMethod: CheckedMethod = instanceMethod(
+		/** Access the [setLatestResult] method. */
+		var setLatestResultMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setLatestResult.name,
 			Void.TYPE,
 			A_BasicObject::class.java)
 
-		/** Access the [getLatestResult] method.  */
-		var getLatestResultMethod: CheckedMethod = instanceMethod(
+		/** Access the [getLatestResult] method. */
+		var getLatestResultMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getLatestResult.name,
 			AvailObject::class.java)
 
-		/** The [CheckedField] for the field argsBuffer.  */
+		/** The [CheckedField] for the field argsBuffer. */
 		val interpreterReturningFunctionField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::returningFunction.name,
 			A_Function::class.java)
 
-		/** Access the [returnNow] field.  */
+		/** Access the [returnNow] field. */
 		val returnNowField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::returnNow.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** The method [beforeAttemptPrimitive].  */
-		var beforeAttemptPrimitiveMethod: CheckedMethod = instanceMethod(
+		/** The method [beforeAttemptPrimitive]. */
+		var beforeAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::beforeAttemptPrimitive.name,
 			Long::class.javaPrimitiveType!!,
 			Primitive::class.java)
 
-		/** The method [afterAttemptPrimitive].  */
-		var afterAttemptPrimitiveMethod: CheckedMethod = instanceMethod(
+		/** The method [afterAttemptPrimitive]. */
+		var afterAttemptPrimitiveMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::afterAttemptPrimitive.name,
 			Result::class.java,
@@ -2848,21 +2952,21 @@ class Interpreter(
 			Long::class.javaPrimitiveType!!,
 			Result::class.java)
 
-		/** Access the [getReifiedContinuation] method.  */
-		val getReifiedContinuationMethod: CheckedMethod = instanceMethod(
+		/** Access the [getReifiedContinuation] method. */
+		val getReifiedContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::getReifiedContinuation.name,
 			AvailObject::class.java)
 
-		/** Access the [setReifiedContinuation] method.  */
-		val setReifiedContinuationMethod: CheckedMethod = instanceMethod(
+		/** Access the [setReifiedContinuation] method. */
+		val setReifiedContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::setReifiedContinuation.name,
 			Void.TYPE,
 			A_Continuation::class.java)
 
-		/** Access the [popContinuation] method.  */
-		var popContinuationMethod: CheckedMethod = instanceMethod(
+		/** Access the [popContinuation] method. */
+		var popContinuationMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::popContinuation.name,
 			Void.TYPE)
@@ -2873,31 +2977,31 @@ class Interpreter(
 		 */
 		private const val maxUnreifiedCallDepth = 50
 
-		/** The [CheckedField] for the field [function].  */
+		/** The [CheckedField] for the field [function]. */
 		val interpreterFunctionField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::function.name,
 			A_Function::class.java)
 
-		/** Access to the field [chunk].  */
+		/** Access to the field [chunk]. */
 		var chunkField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::chunk.name,
 			L2Chunk::class.java)
 
-		/** The [CheckedField] for [offset].  */
+		/** The [CheckedField] for [offset]. */
 		val offsetField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::offset.name,
 			Int::class.javaPrimitiveType!!)
 
-		/** The [CheckedField] for the field [.argsBuffer].  */
+		/** The [CheckedField] for the field [.argsBuffer]. */
 		val argsBufferField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::argsBuffer.name,
 			MutableList::class.java)
 
-		/** The [CheckedField] for [.levelOneStepper].  */
+		/** The [CheckedField] for [.levelOneStepper]. */
 		val levelOneStepperField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::levelOneStepper.name,
@@ -2908,14 +3012,14 @@ class Interpreter(
 		 */
 		private const val timeSliceTicks = 20
 
-		/** Access the [isInterruptRequested] method.  */
-		val isInterruptRequestedMethod: CheckedMethod = instanceMethod(
+		/** Access the [isInterruptRequested] method. */
+		val isInterruptRequestedMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::isInterruptRequested.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** A method to access [checkValidity].  */
-		val checkValidityMethod: CheckedMethod = instanceMethod(
+		/** A method to access [checkValidity]. */
+		val checkValidityMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::checkValidity.name,
 			Boolean::class.javaPrimitiveType!!,
@@ -2924,14 +3028,14 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] for [reifierToRestart].
 		 */
-		val reifierToRestartMethod: CheckedMethod = instanceMethod(
+		val reifierToRestartMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reifierToRestart.name,
 			StackReifier::class.java,
 			A_Continuation::class.java)
 
-		/** The [CheckedMethod] for [reify].  */
-		val reifyMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [reify]. */
+		val reifyMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reify.name,
 			StackReifier::class.java,
@@ -2942,22 +3046,22 @@ class Interpreter(
 		/**
 		 * The [CheckedMethod] for [reifierToRestartWithArguments].
 		 */
-		val reifierToRestartWithArgumentsMethod: CheckedMethod = instanceMethod(
+		val reifierToRestartWithArgumentsMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reifierToRestartWithArguments.name,
 			StackReifier::class.java,
 			A_Continuation::class.java,
 			Array<AvailObject>::class.java)
 
-		/** Access the [preinvoke0] method.  */
-		var preinvoke0Method: CheckedMethod = instanceMethod(
+		/** Access the [preinvoke0] method. */
+		var preinvoke0Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke0.name,
 			AvailObject::class.java,
 			A_Function::class.java)
 
-		/** Access the [preinvoke1] method.  */
-		var preinvoke1Method: CheckedMethod = instanceMethod(
+		/** Access the [preinvoke1] method. */
+		var preinvoke1Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke1.name,
 			AvailObject::class.java,
@@ -2967,7 +3071,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke2] method.
 		 */
-		var preinvoke2Method: CheckedMethod = instanceMethod(
+		var preinvoke2Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke2.name,
 			AvailObject::class.java,
@@ -2978,7 +3082,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke3] method.
 		 */
-		var preinvoke3Method: CheckedMethod = instanceMethod(
+		var preinvoke3Method = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke3.name,
 			AvailObject::class.java,
@@ -2990,7 +3094,7 @@ class Interpreter(
 		/**
 		 * Access the [preinvoke] method.
 		 */
-		var preinvokeMethod: CheckedMethod = instanceMethod(
+		var preinvokeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::preinvoke.name,
 			AvailObject::class.java,
@@ -3000,7 +3104,7 @@ class Interpreter(
 		/**
 		 * Access the [postinvoke] method.
 		 */
-		var postinvokeMethod: CheckedMethod = instanceMethod(
+		var postinvokeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::postinvoke.name,
 			StackReifier::class.java,
@@ -3011,7 +3115,7 @@ class Interpreter(
 		/**
 		 * Access the [runChunk] method.
 		 */
-		var interpreterRunChunkMethod: CheckedMethod = instanceMethod(
+		var interpreterRunChunkMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::runChunk.name,
 			StackReifier::class.java)
@@ -3049,7 +3153,7 @@ class Interpreter(
 		/**
 		 * Access the [reportWrongReturnType] method.
 		 */
-		var reportWrongReturnTypeMethod: CheckedMethod = instanceMethod(
+		var reportWrongReturnTypeMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportWrongReturnType.name,
 			StackReifier::class.java,
@@ -3062,7 +3166,7 @@ class Interpreter(
 		/**
 		 * Access the [reportUnassignedVariableRead] method.
 		 */
-		var reportUnassignedVariableReadMethod: CheckedMethod = instanceMethod(
+		var reportUnassignedVariableReadMethod = instanceMethod(
 			Interpreter::class.java,
 			Interpreter::reportUnassignedVariableRead.name,
 			StackReifier::class.java,
@@ -3084,14 +3188,14 @@ class Interpreter(
 		 *   An [Avail&#32;runtime][AvailRuntime].
 		 * @param aFiber
 		 *   The fiber to run.
-		 * @param continuation
+		 * @param setup
 		 *   How to set up the interpreter prior to running the fiber for a
 		 *   while. Pass in the interpreter to use.
 		 */
 		private fun executeFiber(
 			runtime: AvailRuntime,
 			aFiber: A_Fiber,
-			continuation: (Interpreter) -> Unit)
+			setup: Interpreter.()->Unit)
 		{
 			assert(aFiber.executionState().indicatesSuspension)
 			// We cannot simply run the specified function, we must queue a task
@@ -3099,20 +3203,20 @@ class Interpreter(
 			runtime.whenLevelOneUnsafeDo(
 				aFiber.priority(),
 				AvailTask.forFiberResumption(aFiber) {
-					val interpreter = current()
-					assert(aFiber === interpreter.fiberOrNull())
+					assert(aFiber === fiberOrNull())
 					assert(aFiber.executionState() === RUNNING)
-					continuation(interpreter)
-					if (interpreter.exitNow) {
-						assert(interpreter.getReifiedContinuation()!!
-							.equalsNil())
-						interpreter.terminateFiber(
-							interpreter.getLatestResult())
-					} else {
-						// Run the interpreter for a while.
-						interpreter.run()
+					setup()
+					if (exitNow)
+					{
+						assert(getReifiedContinuation()!!.isNil)
+						terminateFiber(getLatestResult())
 					}
-					assert(interpreter.fiber === null)
+					else
+					{
+						// Run the interpreter for a while.
+						run()
+					}
+					assert(fiber === null)
 				})
 		}
 
@@ -3147,31 +3251,32 @@ class Interpreter(
 		{
 			assert(aFiber.executionState() === UNSTARTED)
 			aFiber.fiberNameSupplier {
-				val code = functionToRun.code()
-				formatString("Outermost %s @ %s:%d",
-					code.methodName().asNativeString(),
-					if (code.module().equalsNil()) "«vm»"
-					else code.module().moduleName().asNativeString(),
-					code.startingLineNumber())
+				functionToRun.code().run {
+					formatString(
+						"Outermost %s @ %s:%d",
+						methodName.asNativeString(),
+						if (module.isNil) "«vm»"
+						else module.moduleName.asNativeString(),
+						codeStartingLineNumber)
+				}
 			}
 			executeFiber(runtime, aFiber)
-			{ interpreter: Interpreter ->
-				assert(aFiber === interpreter.fiberOrNull())
+			{
+				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
-				assert(aFiber.continuation().equalsNil())
+				assert(aFiber.continuation().isNil)
 				// Invoke the base-frame (hook) function with the given function
 				// and its arguments collected as a tuple.
 				val baseFrameFunction = HookType.BASE_FRAME[runtime]
-				interpreter.exitNow = false
-				interpreter.returnNow = false
-				interpreter.setReifiedContinuation(nil)
-				interpreter.function = baseFrameFunction
-				interpreter.chunk = baseFrameFunction.code().startingChunk()
-				interpreter.offset = 0
-				interpreter.argsBuffer.clear()
-				interpreter.argsBuffer.add(functionToRun as AvailObject)
-				interpreter.argsBuffer.add(
-					tupleFromList(arguments) as AvailObject)
+				exitNow = false
+				returnNow = false
+				setReifiedContinuation(nil)
+				function = baseFrameFunction
+				chunk = baseFrameFunction.code().startingChunk
+				offset = 0
+				argsBuffer.clear()
+				argsBuffer.add(functionToRun as AvailObject)
+				argsBuffer.add(tupleFromList(arguments) as AvailObject)
 			}
 		}
 
@@ -3193,21 +3298,21 @@ class Interpreter(
 		fun resumeFromInterrupt(aFiber: A_Fiber)
 		{
 			assert(aFiber.executionState() === INTERRUPTED)
-			assert(!aFiber.continuation().equalsNil())
+			assert(aFiber.continuation().notNil)
 			executeFiber(AvailRuntime.currentRuntime(), aFiber)
-			{ interpreter: Interpreter ->
-				assert(aFiber === interpreter.fiberOrNull())
+			{
+				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				val con = aFiber.continuation()
-				assert(!con.equalsNil())
-				interpreter.exitNow = false
-				interpreter.returnNow = false
-				interpreter.setReifiedContinuation(con)
-				interpreter.function = con.function()
-				interpreter.setLatestResult(null)
-				interpreter.chunk = con.levelTwoChunk()
-				interpreter.offset = con.levelTwoOffset()
-				interpreter.levelOneStepper.wipeRegisters()
+				assert(con.notNil)
+				exitNow = false
+				returnNow = false
+				setReifiedContinuation(con)
+				function = con.function()
+				setLatestResult(null)
+				chunk = con.levelTwoChunk()
+				offset = con.levelTwoOffset()
+				levelOneStepper.wipeRegisters()
 				aFiber.setContinuation(nil)
 			}
 		}
@@ -3234,34 +3339,35 @@ class Interpreter(
 			resumingPrimitive: Primitive,
 			result: A_BasicObject)
 		{
-			assert(!aFiber.continuation().equalsNil())
+			assert(aFiber.continuation().notNil)
 			assert(aFiber.executionState() === SUSPENDED)
-			assert(aFiber.suspendingFunction().code().primitive()
-				=== resumingPrimitive)
+			assert(
+				aFiber.suspendingFunction().code().codePrimitive()
+					=== resumingPrimitive)
 			executeFiber(runtime, aFiber)
-			{ interpreter: Interpreter ->
-				assert(aFiber === interpreter.fiberOrNull())
+			{
+				assert(aFiber === fiberOrNull())
 				assert(aFiber.executionState() === RUNNING)
 				val continuation = aFiber.continuation()
-				interpreter.setReifiedContinuation(continuation)
-				interpreter.setLatestResult(result)
-				interpreter.returningFunction = aFiber.suspendingFunction()
-				interpreter.exitNow = false
-				if (continuation.equalsNil())
+				setReifiedContinuation(continuation)
+				setLatestResult(result)
+				returningFunction = aFiber.suspendingFunction()
+				exitNow = false
+				if (continuation.isNil)
 				{
 					// Return from outer function, which was the
 					// (successful) suspendable primitive itself.
-					interpreter.returnNow = true
-					interpreter.function = null
-					interpreter.chunk = null
-					interpreter.offset = Int.MAX_VALUE
+					returnNow = true
+					function = null
+					chunk = null
+					offset = Int.MAX_VALUE
 				}
 				else
 				{
-					interpreter.returnNow = false
-					interpreter.function = continuation.function()
-					interpreter.chunk = continuation.levelTwoChunk()
-					interpreter.offset = continuation.levelTwoOffset()
+					returnNow = false
+					function = continuation.function()
+					chunk = continuation.levelTwoChunk()
+					offset = continuation.levelTwoOffset()
 					// Clear the fiber's continuation slot while it's
 					// active.
 					aFiber.setContinuation(nil)
@@ -3293,28 +3399,28 @@ class Interpreter(
 			failureFunction: A_Function,
 			args: List<AvailObject>)
 		{
-			assert(!aFiber.continuation().equalsNil())
+			assert(aFiber.continuation().notNil)
 			assert(aFiber.executionState() === SUSPENDED)
 			assert(aFiber.suspendingFunction().equals(failureFunction))
 			executeFiber(runtime, aFiber)
-			{ interpreter: Interpreter ->
+			{
 				val code = failureFunction.code()
-				val prim = code.primitive()!!
+				val prim = code.codePrimitive()!!
 				assert(!prim.hasFlag(CannotFail))
 				assert(prim.hasFlag(CanSuspend))
 				assert(args.size == code.numArgs())
-				assert(interpreter.getReifiedContinuation() === null)
-				interpreter.setReifiedContinuation(aFiber.continuation())
+				assert(getReifiedContinuation() === null)
+				setReifiedContinuation(aFiber.continuation())
 				aFiber.setContinuation(nil)
-				interpreter.function = failureFunction
-				interpreter.argsBuffer.clear()
-				interpreter.argsBuffer.addAll(args)
-				interpreter.setLatestResult(failureValue)
-				val chunk = code.startingChunk()
-				interpreter.chunk = chunk
-				interpreter.offset = chunk.offsetAfterInitialTryPrimitive()
-				interpreter.exitNow = false
-				interpreter.returnNow = false
+				function = failureFunction
+				argsBuffer.clear()
+				argsBuffer.addAll(args)
+				setLatestResult(failureValue)
+				val startingChunk = code.startingChunk
+				chunk = startingChunk
+				offset = startingChunk.offsetAfterInitialTryPrimitive()
+				exitNow = false
+				returnNow = false
 			}
 		}
 
@@ -3346,19 +3452,20 @@ class Interpreter(
 			// If the stringifier function is not defined, then use the basic
 			// mechanism for stringification.
 			// Create the fiber that will execute the function.
-			val fiber =
-				newFiber(stringType(), stringificationPriority)
-				{ stringFrom("Stringification") }
+			val fiber = newFiber(stringType, stringificationPriority) {
+				stringFrom("Stringification")
+			}
 			fiber.setTextInterface(textInterface)
 			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->
 					continuation(string.asNativeString())
 				},
 				{ e: Throwable ->
-					continuation(String.format(
-						"(stringification failed [%s]) %s",
-						e.javaClass.simpleName,
-						value))
+					continuation(
+						String.format(
+							"(stringification failed [%s]) %s",
+							e.javaClass.simpleName,
+							value))
 				})
 			runOutermostFunction(
 				runtime, fiber, stringifierFunction, listOf(value))
@@ -3406,7 +3513,8 @@ class Interpreter(
 					indicesToWrite.forEach { indexToWrite ->
 						strings[indexToWrite] = arg
 					}
-					if (outstanding.decrementAndGet() == 0) {
+					if (outstanding.decrementAndGet() == 0)
+					{
 						continuation(strings.map { it!! })
 					}
 				}

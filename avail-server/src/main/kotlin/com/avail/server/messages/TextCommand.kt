@@ -354,7 +354,7 @@ enum class TextCommand
 				var node = trie
 				for (token in syntax)
 				{
-					val lowercase = token.toLowerCase()
+					val lowercase = token.lowercase()
 					node = node.nextNodes.computeIfAbsent(lowercase) {
 						TrieNode()
 					}
@@ -403,7 +403,7 @@ enum class TextCommand
 				val tokens = source.split("\\s+".toRegex())
 				for (token in tokens)
 				{
-					val nextNode = node.nextNodes[token.toLowerCase()]
+					val nextNode = node.nextNodes[token.lowercase()]
 						?: return null
 					node = nextNode
 				}
@@ -469,7 +469,7 @@ enum class TextCommand
 
 	companion object
 	{
-		/** An array of all [TextCommand] enumeration values.  */
+		/** An array of all [TextCommand] enumeration values. */
 		val all = values()
 
 		/**

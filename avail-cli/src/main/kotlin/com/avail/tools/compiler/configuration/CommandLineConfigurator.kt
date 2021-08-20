@@ -56,7 +56,6 @@ import com.avail.utility.configuration.Configurator
 import java.io.File
 import java.io.FileNotFoundException
 import java.nio.file.InvalidPathException
-import java.nio.file.Path
 import java.nio.file.Paths
 import java.util.EnumSet
 
@@ -87,7 +86,7 @@ class CommandLineConfigurator constructor(
 	commandLineArguments: Array<String>,
 	private val helpStream: Appendable) : Configurator<CompilerConfiguration>
 {
-	/** The command line arguments.  */
+	/** The command line arguments. */
 	private val commandLineArguments = commandLineArguments.clone()
 
 	/** Has the [configurator][CommandLineConfigurator] been run yet? */

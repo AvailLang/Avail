@@ -194,30 +194,29 @@ enum class PragmaKind constructor(val lexeme: String)
 			val availName = stringFrom(pragmaValue)
 			val atoms =
 				compilationContext.module.trueNamesForStringName(availName)
-			if (atoms.setSize() == 0)
+			when
 			{
-				state.expected(
-					STRONG,
-					"this module to introduce or import the "
-						+ "stringification atom having this name")
-				return
+				atoms.setSize == 0 ->
+					state.expected(
+						STRONG,
+						"this module to introduce or import the "
+							+ "stringification atom having this name")
+				atoms.setSize > 1 ->
+					state.expected(
+						STRONG,
+						"this stringification atom name to be unambiguous")
+				else ->
+				{
+					val atom = atoms.asTuple.tupleAt(1)
+					val send = newSendNode(
+						emptyTuple,
+						DECLARE_STRINGIFIER.bundle,
+						newListNode(tuple(syntheticLiteralNodeFor(atom))),
+						TOP.o)
+					compiler.evaluateModuleStatementThen(
+						state, state, send, mutableMapOf(), success)
+				}
 			}
-			if (atoms.setSize() > 1)
-			{
-				state.expected(
-					STRONG,
-					"this stringification atom name to be unambiguous")
-				return
-			}
-			val atom = atoms.asTuple().tupleAt(1)
-			val send = newSendNode(
-				emptyTuple,
-				DECLARE_STRINGIFIER.bundle,
-				newListNode(tuple(syntheticLiteralNodeFor(atom))),
-				TOP.o
-			)
-			compiler.evaluateModuleStatementThen(
-				state, state, send, mutableMapOf(), success)
 		}
 	},
 
@@ -254,13 +253,12 @@ enum class PragmaKind constructor(val lexeme: String)
 					+ "but the comma was not found")
 				return
 			}
-			val filterPrimitiveName = primParts[0]
-			val bodyPrimitiveName = primParts[1]
+			val (filterPrimitiveName, bodyPrimitiveName) = primParts
 			val lexerName = parts[1].trim { it <= ' ' }
 			val availName = stringFrom(lexerName)
 			val module = state.lexingState.compilationContext.module
 			val atoms = module.trueNamesForStringName(availName)
-			when (atoms.setSize())
+			when (atoms.setSize)
 			{
 				0 -> state.expected(
 					STRONG,
@@ -302,7 +300,7 @@ enum class PragmaKind constructor(val lexeme: String)
 
 	companion object
 	{
-		/** Key the instances by lexeme.  */
+		/** Key the instances by lexeme. */
 		private val kindsByLexeme = values().associateBy { it.lexeme }
 
 		/**

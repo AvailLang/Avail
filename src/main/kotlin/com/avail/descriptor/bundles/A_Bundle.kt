@@ -60,7 +60,6 @@ import com.avail.exceptions.SignatureException
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 interface A_Bundle : A_BasicObject {
-
 	companion object {
 		/**
 		 * Add a
@@ -110,7 +109,7 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   This bundle's [A_Method].
 		 */
-		fun A_Bundle.bundleMethod() = dispatch { o_BundleMethod(it) }
+		val A_Bundle.bundleMethod get() = dispatch { o_BundleMethod(it) }
 
 		/**
 		 * Answer this bundle's [A_Map] from [A_Definition] to
@@ -124,8 +123,8 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   The map of definition parsing plans.
 		 */
-		fun A_Bundle.definitionParsingPlans() =
-			dispatch { o_DefinitionParsingPlans(it) }
+		val A_Bundle.definitionParsingPlans
+			get() = dispatch { o_DefinitionParsingPlans(it) }
 
 		/**
 		 * Answer the set of
@@ -135,8 +134,8 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   This bundle's grammatical restrictions.
 		 */
-		fun A_Bundle.grammaticalRestrictions() =
-			dispatch { o_GrammaticalRestrictions(it) }
+		val A_Bundle.grammaticalRestrictions
+			get() = dispatch { o_GrammaticalRestrictions(it) }
 
 		/**
 		 * Answer whether this bundle has any
@@ -145,8 +144,8 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   Whether this bundle has grammatical restrictions.
 		 */
-		fun A_Bundle.hasGrammaticalRestrictions() =
-			dispatch { o_HasGrammaticalRestrictions(it) }
+		val A_Bundle.hasGrammaticalRestrictions
+			get() = dispatch { o_HasGrammaticalRestrictions(it) }
 
 		/**
 		 * Look up the macro [A_Definition] to invoke, given an [A_Tuple] of
@@ -177,7 +176,7 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   The current macros of this bundle.
 		 */
-		fun A_Bundle.macrosTuple(): A_Tuple = dispatch { o_MacrosTuple(it) }
+		val A_Bundle.macrosTuple: A_Tuple get() = dispatch { o_MacrosTuple(it) }
 
 		/**
 		 * Answer the name of this bundle.  It must be parsable as a method name
@@ -186,7 +185,7 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   An [A_Atom] naming this bundle.
 		 */
-		fun A_Bundle.message(): A_Atom = dispatch { o_Message(it) }
+		val A_Bundle.message: A_Atom get() = dispatch { o_Message(it) }
 
 		/**
 		 * Answer a [message&#32;part][messageParts] produced by the
@@ -209,8 +208,8 @@ interface A_Bundle : A_BasicObject {
 		 *   A tuple of strings extracted from the bundle's message.
 		 * @see [message]
 		 */
-		fun A_Bundle.messageParts() : A_Tuple =
-			dispatch { o_MessageParts(it) }
+		val A_Bundle.messageParts: A_Tuple
+			get() = dispatch { o_MessageParts(it) }
 
 		/**
 		 * Answer the [MessageSplitter] holding parse planning information for
@@ -219,7 +218,7 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   The bundle's [MessageSplitter].
 		 */
-		fun A_Bundle.messageSplitter() = dispatch { o_MessageSplitter(it) }
+		val A_Bundle.messageSplitter get() = dispatch { o_MessageSplitter(it) }
 
 		/**
 		 * Answer the arity of this [A_Bundle], which must be the same for all
@@ -228,7 +227,7 @@ interface A_Bundle : A_BasicObject {
 		 * @return
 		 *   The arity of this bundle.
 		 */
-		fun A_Bundle.numArgs(): Int = dispatch { o_NumArgs(it) }
+		val A_Bundle.numArgs: Int get() = dispatch { o_NumArgs(it) }
 
 		/**
 		 * Remove a [grammatical][GrammaticalRestrictionDescriptor] from the
@@ -249,8 +248,7 @@ interface A_Bundle : A_BasicObject {
 		 * @param macro
 		 *   The [A_Macro] to remove from this bundle.
 		 */
-		fun A_Bundle.removeMacro(
-			macro: A_Macro
-		) = dispatch { o_RemoveMacro(it, macro) }
+		fun A_Bundle.removeMacro(macro: A_Macro) =
+			dispatch { o_RemoveMacro(it, macro) }
 	}
 }

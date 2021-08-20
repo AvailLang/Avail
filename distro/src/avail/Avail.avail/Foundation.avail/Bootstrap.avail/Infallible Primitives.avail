@@ -33,20 +33,21 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/12/21 11:44 PM
+ * * Last Generated: 8/13/21 1:27 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
 Module "Infallible Primitives"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 Uses
 	"Origin",
 	"Special Objects",
 	"Primitives" =
 	(
+		"$_",
 		"<_,_`…`|_>",
 		"Assert:_(_)",
 		"Breakpoint",
@@ -120,6 +121,7 @@ Uses
 		"_'s⁇statements",
 		"_'s⁇target",
 		"_'s⁇token",
+		"_'s⁇tokens",
 		"_'s⁇type",
 		"_'s⁇value",
 		"_'s⁇value type",
@@ -169,17 +171,15 @@ Uses
 		"_≤_",
 		"_⊆_",
 		"_⨉_^_",
-		"`$_",
-		"``_``(_)@_:_",
 		"`|_'s⁇local variables`|",
 		"`|_'s⁇outer variables`|",
 		"`|_'s⁇parameters`|",
 		"`|_`|",
 		"`|`|_`|`|",
+		"`«$_:_`»",
 		"`«_::=_`»",
 		"`«_:_:=_`»",
 		"`«_:_`»",
-		"`«`$_:_`»",
 		"`«module variable_(_)`»",
 		"`«↓_`»",
 		"`«↓_`»(_)",
@@ -386,7 +386,7 @@ Primitive "_'s⁇program counter" is
 /**
  * Answer the stack of the specified continuation. This tuple contains the
  * arguments, local variables, and temporaries. Any null values, forbidden to
- * leak through into observable Avail macrostate, are replaced with an
+ * leak through into observable Avail macro-state, are replaced with an
  * unassigned variable whose containment type is ⊥. Note that such a variable
  * cannot be constructed either syntactically nor through a variable
  * construction primitive.
@@ -446,13 +446,13 @@ Primitive "_'s⁇function type" is
  * function of the specified type.
  *
  * @category "Primitives" "Types" "Continuations" "Constructors"
- * @method "`$_"
+ * @method "$_"
  * @param "functionType" "([…]→⊤)'s type"
  *        A function type.
  * @returns "($[…]→⊥)'s type"
  *    The requested continuation type.
  */
-Primitive "`$_" is
+Primitive "$_" is
 [
 	functionType : function meta
 |
@@ -472,6 +472,7 @@ Primitive "`$_" is
  *        The continuation to exit.
  * @param "condition" "boolean"
  *        Whether to exit.
+ * @raises "⊤"
  */
 Primitive "Exit_if_" is
 [
@@ -913,7 +914,6 @@ Primitive "_'s⁇priority:=_" is
  * @param "value" "any"
  *        The new value.
  * @returns "⊤"
- * @raises "{6}"
  */
 Primitive "current fiber[_]:=_" is
 [
@@ -966,7 +966,7 @@ Primitive "Terminate current fiber" is
  * @method "Unpark_"
  * @param "aFiber" "fiber→⊤"
  *        A fiber.
- * @returns "aFiber"
+ * @returns "⊤"
  */
 Primitive "Unpark_" is
 [
@@ -2525,7 +2525,7 @@ Primitive "`«_:_:=_`»" is
  * Construct and answer a label declaration.
  *
  * @category "Primitives" "Phrases" "Constructors"
- * @method "`«`$_:_`»"
+ * @method "`«$_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
  * @param "declaredType" "$[…]→⊥"
@@ -2533,7 +2533,7 @@ Primitive "`«_:_:=_`»" is
  * @returns "label phrase⇒⊤"
  *    The requested label declaration.
  */
-Primitive "`«`$_:_`»" is
+Primitive "`«$_:_`»" is
 [
 	name : token,
 	declaredType : continuation
@@ -2574,34 +2574,6 @@ Primitive "_→literal phrase" is
 |
 	Primitive CreateLiteralExpression;
 ] : literal phrase;
-
-/**
- * Construct and answer a literal token.
- *
- * @category "Primitives" "Tokens" "Constructors"
- * @method "``_``(_)@_:_"
- * @param "value" "any"
- *        The value of the literal.
- * @param "lexeme" "string"
- *        The source text of the literal.
- * @param "start" "[0..2147483647]"
- *        The one-based starting character position of the literal. A {@code 0}
- *        indicates that the character position is unknown or meaningless.
- * @param "line" "[0..268435455]"
- *        The one-based line number of the literal. A {@code 0}
- *        indicates that the line number is unknown or meaningless.
- * @returns "literal token⇒any"
- *    The requested literal token.
- */
-Primitive "``_``(_)@_:_" is
-[
-	value : any,
-	lexeme : string,
-	start : source position,
-	line : source line number
-|
-	Primitive CreateLiteralToken;
-] : literal token;
 
 /**
  * Construct a suitably parameterized literal token type.
@@ -2917,6 +2889,24 @@ Primitive "_'s⁇semantic type" is
 |
 	Primitive PhraseExpressionType;
 ] : type;
+
+/**
+ * Answer the supplied phrase's tuple of {@code tokens}.  These are generally
+ * the tokens that are part of the phrase but not part of any subphrase.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇tokens"
+ * @param "phrase" "phrase⇒⊤"
+ *        The phrase to examine.
+ * @returns "<token…|>"
+ *          The supplied phrase's tuple of tokens.
+ */
+Primitive "_'s⁇tokens" is
+[
+	phrase : phrase
+|
+	Primitive PhraseTokens;
+] : token tuple;
 
 /**
  * Answer the semantic type of the specified phrase type.

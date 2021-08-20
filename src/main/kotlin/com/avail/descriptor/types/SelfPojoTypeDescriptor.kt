@@ -39,6 +39,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.equalityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -60,7 +61,6 @@ import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_ANCEST
 import com.avail.descriptor.types.SelfPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
 import com.avail.serialization.SerializerOperation
 import java.lang.reflect.Modifier
-import java.util.Comparator
 import java.util.IdentityHashMap
 
 /**
@@ -83,7 +83,7 @@ import java.util.IdentityHashMap
 class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	: PojoTypeDescriptor(mutability, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -119,19 +119,19 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		// or a self type.
 		val other: A_BasicObject = aPojoType.pojoSelfType()
 		return (self.slot(JAVA_CLASS).equals(other.javaClass())
-		        && self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
+				&& self.slot(JAVA_ANCESTORS).equals(other.javaAncestors()))
 	}
 
 	// Note that this definition produces a value compatible with an unfused
 	// pojo type; this is necessary to permit comparison between an unfused
 	// pojo type and its self type.
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(JAVA_ANCESTORS).hash() xor -0x5fea43bc
+		combine2(self.slot(JAVA_ANCESTORS).hash(), -0x5fea43bc)
 
 	override fun o_IsAbstract(self: AvailObject): Boolean
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
-		return (javaClass.equalsNil()
+		return (javaClass.isNil
 			|| Modifier.isAbstract(
 			javaClass.javaObjectNotNull<Class<*>>().modifiers))
 	}
@@ -141,7 +141,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 			.equals(equalityPojo(PojoArray::class.java))
 
 	override fun o_IsPojoFusedType(self: AvailObject): Boolean =
-		self.slot(JAVA_CLASS).equalsNil()
+		self.slot(JAVA_CLASS).isNil
 
 	override fun o_IsPojoSelfType(self: AvailObject): Boolean = true
 
@@ -172,7 +172,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
-		return if (javaClass.equalsNil())
+		return if (javaClass.isNil)
 		{
 			// TODO: [TLS] Answer the nearest mutual parent of the leaf types.
 			Any::class.java
@@ -261,19 +261,16 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		indent: Int)
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
-		if (!javaClass.equalsNil())
+		if (javaClass.notNil)
 		{
 			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
 		}
 		else
 		{
 			val ancestors: A_Set = self.slot(JAVA_ANCESTORS)
-			val childless = childlessAmong(ancestors).sortedWith(
-				Comparator{ o1: AvailObject, o2: AvailObject ->
-					val c1 = o1.javaObjectNotNull<Class<*>>()
-					val c2 = o2.javaObjectNotNull<Class<*>>()
-					c1.name.compareTo(c2.name)
-				})
+			val childless = childlessAmong(ancestors).sortedBy {
+				it.javaObjectNotNull<Class<*>>().name
+			}
 			builder.append('(')
 			var first = true
 			for (aClass in childless)
@@ -299,10 +296,10 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 
 	companion object
 	{
-		/** The mutable [SelfPojoTypeDescriptor].  */
+		/** The mutable [SelfPojoTypeDescriptor]. */
 		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SelfPojoTypeDescriptor].  */
+		/** The shared [SelfPojoTypeDescriptor]. */
 		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)
 
 		/**
@@ -347,8 +344,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 		{
 			assert(selfPojo.isPojoSelfType)
 			val pojoClass = selfPojo.javaClass()
-			val mainClassName: A_String
-			mainClassName = if (pojoClass.equalsNil())
+			val mainClassName = if (pojoClass.isNil)
 			{
 				NilDescriptor.nil
 			}
@@ -387,8 +383,7 @@ class SelfPojoTypeDescriptor constructor(mutability: Mutability)
 			classLoader: ClassLoader): AvailObject
 		{
 			val className: A_String = selfPojoProxy.tupleAt(1)
-			val mainRawType: AvailObject
-			mainRawType = if (className.equalsNil())
+			val mainRawType = if (className.isNil)
 			{
 				NilDescriptor.nil
 			}

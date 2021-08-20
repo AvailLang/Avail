@@ -94,6 +94,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.util.concurrent.atomic.AtomicReference
 
@@ -133,7 +134,7 @@ open class VariableDescriptor protected constructor(
 	 */
 	class VariableAccessReactor(initialFunction: A_Function)
 	{
-		/** The [reactor function][FunctionDescriptor].  */
+		/** The [reactor function][FunctionDescriptor]. */
 		private val function = AtomicReference(initialFunction)
 
 		/**
@@ -151,7 +152,7 @@ open class VariableDescriptor protected constructor(
 		 * @return
 		 *   `true` if the reactor is invalid, `false` otherwise.
 		 */
-		fun isInvalid(): Boolean = function.get().equalsNil()
+		fun isInvalid(): Boolean = function.get().isNil
 	}
 
 	/**
@@ -207,20 +208,16 @@ open class VariableDescriptor protected constructor(
 				|| e === IntegerSlots.HASH_AND_MORE
 				|| e === WRITE_REACTORS
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
 			synchronized(self) {
-				hash = self.slot(HASH_OR_ZERO)
-				if (hash == 0) {
-					hash = AvailRuntimeSupport.nextNonzeroHash()
-					self.setSlot(HASH_OR_ZERO, hash)
+				self.slot(HASH_OR_ZERO).ifZero {
+					AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+						self.setSlot(HASH_OR_ZERO, hash)
+					}
 				}
 			}
 		}
-		return hash
-	}
 
 	override fun o_Value(self: AvailObject): AvailObject =
 		self.slot(VALUE)
@@ -244,7 +241,7 @@ open class VariableDescriptor protected constructor(
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
 		val value = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -271,7 +268,7 @@ open class VariableDescriptor protected constructor(
 			// No implementation required.
 		}
 		val value = self.slot(VALUE)
-		return !value.equalsNil()
+		return value.notNil
 	}
 
 	override fun o_SerializerOperation(self: AvailObject)
@@ -280,7 +277,7 @@ open class VariableDescriptor protected constructor(
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -291,7 +288,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_SetValueNoCheck(
 		self: AvailObject, newValue: A_BasicObject)
 	{
-		assert(!newValue.equalsNil())
+		assert(newValue.notNil)
 		handleVariableWriteTracing(self)
 		self.setSlot(VALUE, newValue)
 	}
@@ -302,7 +299,7 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -310,7 +307,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val value = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -328,7 +325,7 @@ open class VariableDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -337,7 +334,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val value = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -364,7 +361,7 @@ open class VariableDescriptor protected constructor(
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val oldValue = self.slot(VALUE)
-		if (oldValue.equalsNil() || !oldValue.equals(reference)) return false
+		if (oldValue.isNil || !oldValue.equals(reference)) return false
 		self.setSlot(VALUE, newValue)
 		if (mutability === Mutability.MUTABLE)
 		{
@@ -379,19 +376,18 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		assert(outerKind.readType().isSubtypeOf(
-			IntegerRangeTypeDescriptor.extendedIntegers
-		))
+		assert(outerKind.readType.isSubtypeOf(
+			IntegerRangeTypeDescriptor.extendedIntegers))
 		// The variable is not visible to multiple fibers, and cannot become
 		// visible to any other fiber except by an act of the current fiber,
 		// therefore do not worry about atomicity.
 		val value: A_Number = self.slot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
 		val newValue = value.plusCanDestroy(addend, false)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -411,9 +407,9 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		val oldMap: A_Map = self.slot(VALUE)
-		if (oldMap.equalsNil())
+		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		if (!oldMap.isMap)
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -421,10 +417,10 @@ open class VariableDescriptor protected constructor(
 		if (writeType.isMapType)
 		{
 			// Just check the new size, new key, and new value.
-			if (!writeType.sizeRange().rangeIncludesLong(
-					newMap.mapSize().toLong())
-				|| !key.isInstanceOf(writeType.keyType())
-				|| !value.isInstanceOf(writeType.valueType()))
+			if (!writeType.sizeRange.rangeIncludesLong(
+					newMap.mapSize.toLong())
+				|| !key.isInstanceOf(writeType.keyType)
+				|| !value.isInstanceOf(writeType.valueType))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -449,9 +445,9 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		val oldMap: A_Map = self.slot(VALUE)
-		if (oldMap.equalsNil())
+		if (oldMap.isNil)
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		if (!oldMap.isMap)
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -459,8 +455,8 @@ open class VariableDescriptor protected constructor(
 		if (writeType.isMapType)
 		{
 			// Just check the new size, new key, and new value.
-			if (!writeType.sizeRange().rangeIncludesLong(
-					newMap.mapSize().toLong()))
+			if (!writeType.sizeRange.rangeIncludesLong(
+					newMap.mapSize.toLong()))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -484,10 +480,10 @@ open class VariableDescriptor protected constructor(
 	{
 		handleVariableWriteTracing(self)
 		val outerKind: A_Type = self.slot(KIND)
-		val readType = outerKind.readType()
+		val readType = outerKind.readType
 		assert(readType.isMapType)
 		val oldMap: A_Map = self.slot(VALUE)
-		if (oldMap.equalsNil())
+		if (oldMap.isNil)
 		{
 			throw VariableGetException(
 				E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -548,7 +544,7 @@ open class VariableDescriptor protected constructor(
 				for ((_, value) in writeReactors)
 				{
 					val function = value.getAndClearFunction()
-					if (!function.equalsNil())
+					if (function.notNil)
 					{
 						set = set.setWithElementCanDestroy(function, true)
 					}
@@ -612,7 +608,7 @@ open class VariableDescriptor protected constructor(
 		writer.writeObject {
 			at("kind") { write("variable") }
 			at("variable type") { self.slot(KIND).writeTo(writer) }
-			if (!self.slot(VALUE).equalsNil())
+			if (self.slot(VALUE).notNil)
 			{
 				at("value") {
 					self.slot(VALUE).writeSummaryTo(writer)
@@ -650,7 +646,7 @@ open class VariableDescriptor protected constructor(
 	{
 		assert(this == self.descriptor())
 		var pojo = self.volatileSlot(WRITE_REACTORS)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			if (!toModify)
 			{
@@ -733,8 +729,8 @@ open class VariableDescriptor protected constructor(
 			writeReactors.values.removeIf(VariableAccessReactor::isInvalid)
 		}
 
-		/** The [CheckedMethod] for [A_Variable.clearValue].  */
-		val clearVariableMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [A_Variable.clearValue]. */
+		val clearVariableMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::clearValue.name,
 			Void.TYPE)
@@ -789,20 +785,20 @@ open class VariableDescriptor protected constructor(
 		/**
 		 * The [CheckedMethod] for [newVariableWithOuterType].
 		 */
-		val newVariableWithOuterTypeMethod: CheckedMethod = staticMethod(
+		val newVariableWithOuterTypeMethod = staticMethod(
 			VariableDescriptor::class.java,
 			::newVariableWithOuterType.name,
 			AvailObject::class.java,
 			A_Type::class.java)
 
-		/** The mutable [VariableDescriptor].  */
+		/** The mutable [VariableDescriptor]. */
 		private val mutable = VariableDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.VARIABLE_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The immutable [VariableDescriptor].  */
+		/** The immutable [VariableDescriptor]. */
 		private val immutable = VariableDescriptor(
 			Mutability.IMMUTABLE,
 			TypeTag.VARIABLE_TAG,

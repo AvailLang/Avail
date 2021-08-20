@@ -78,7 +78,7 @@ internal class CompilerSolution constructor(
 	override fun toString(): String
 	{
 		return "Solution(@${endState.position}: ${endState.clientDataMap}) " +
-			   "= $phrase"
+				"= $phrase"
 	}
 
 	/** Support Kotlin deconstructor syntax for (endState, phrase). */

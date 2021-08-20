@@ -136,6 +136,7 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import com.avail.utility.Mutable
 import com.avail.utility.Strings.newlineTab
+import com.avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Collections.sort
 import java.util.Deque
@@ -427,13 +428,13 @@ class MessageBundleTreeDescriptor private constructor(
 	): Unit = with(builder) {
 		append("BundleTree(")
 		val allPlansInProgress: A_Map = self.slot(ALL_PLANS_IN_PROGRESS)
-		val bundleCount = allPlansInProgress.mapSize()
+		val bundleCount = allPlansInProgress.mapSize
 		if (bundleCount <= 15) {
 			val strings = mutableMapOf<String, Int>()
 			allPlansInProgress.forEach { _, value: A_Map ->
 				value.forEach { _, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
-						val string = planInProgress.nameHighlightingPc()
+						val string = planInProgress.nameHighlightingPc
 						strings[string] = strings.getOrDefault(string, 0) + 1
 					}
 				}
@@ -452,7 +453,9 @@ class MessageBundleTreeDescriptor private constructor(
 				val pre = buildString { newlineTab(this, indent) }
 				sorted.joinTo(builder, pre, pre)
 			}
-		} else {
+		}
+		else
+		{
 			append("$bundleCount entries")
 		}
 		append(")")
@@ -474,7 +477,8 @@ class MessageBundleTreeDescriptor private constructor(
 		self.setSlot(
 			UNCLASSIFIED,
 			layeredMapWithPlan(self.slot(UNCLASSIFIED), planInProgress))
-		if (planInProgress.isBackwardJump()) {
+		if (planInProgress.isBackwardJump)
+		{
 			self.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
 		}
 	}
@@ -493,12 +497,14 @@ class MessageBundleTreeDescriptor private constructor(
 		module: A_Module)
 	{
 		var unclassified: A_Map = self.volatileSlot(UNCLASSIFIED)
-		if (unclassified.mapSize() == 0) {
+		if (unclassified.mapSize == 0)
+		{
 			return
 		}
 		synchronized(self) {
 			unclassified = self.volatileSlot(UNCLASSIFIED)
-			if (unclassified.mapSize() == 0) {
+			if (unclassified.mapSize == 0)
+			{
 				// Someone else expanded it since we checked outside the
 				// monitor, above.
 				return
@@ -511,7 +517,7 @@ class MessageBundleTreeDescriptor private constructor(
 			val prefilterMap = Mutable<A_Map>(self.slot(LAZY_PREFILTER_MAP))
 			val typeFilterPairs = Mutable<A_Tuple>(
 				self.slot(LAZY_TYPE_FILTER_PAIRS_TUPLE))
-			val oldTypeFilterSize = typeFilterPairs.value.tupleSize()
+			val oldTypeFilterSize = typeFilterPairs.value.tupleSize
 			val allPlansInProgress: A_Map = self.slot(ALL_PLANS_IN_PROGRESS)
 
 			// Figure out what the latestBackwardJump will be for any successor
@@ -527,9 +533,10 @@ class MessageBundleTreeDescriptor private constructor(
 				// It's not already the source of a cycle.  See if we can
 				// find an equivalent ancestor to cycle back to.
 				var ancestor: A_BundleTree = self.slot(LATEST_BACKWARD_JUMP)
-				while (!ancestor.equalsNil()) {
-					if (ancestor.allParsingPlansInProgress().equals(
-							allPlansInProgress)) {
+				while (ancestor.notNil) {
+					if (ancestor.allParsingPlansInProgress.equals(
+							allPlansInProgress))
+					{
 						// This ancestor is equivalent to me, so mark me as a
 						// backward cyclic link and plug that exact ancestor
 						// into the LATEST_BACKWARD_JUMP slot.
@@ -539,12 +546,14 @@ class MessageBundleTreeDescriptor private constructor(
 						// ancestor.
 						return
 					}
-					ancestor = ancestor.latestBackwardJump()
+					ancestor = ancestor.latestBackwardJump
 				}
 				// We didn't find a usable ancestor to cycle back to. New
 				// successors should link back to me.
 				latestBackwardJump = self
-			} else {
+			}
+			else
+			{
 				// This bundle tree doesn't have a backward jump, so any new
 				// descendants should use the same LATEST_BACKWARD_JUMP as me.
 				latestBackwardJump = self.slot(LATEST_BACKWARD_JUMP)
@@ -555,16 +564,18 @@ class MessageBundleTreeDescriptor private constructor(
 				defToPlansInProgress.forEach {
 					_, plansInProgress: A_Set ->
 					plansInProgress.forEach { planInProgress ->
-						val pc = planInProgress.parsingPc()
-						val plan = planInProgress.parsingPlan()
-						val instructions = plan.parsingInstructions()
-						if (pc == instructions.tupleSize() + 1) {
+						val pc = planInProgress.parsingPc
+						val plan = planInProgress.parsingPlan
+						val instructions = plan.parsingInstructions
+						if (pc == instructions.tupleSize + 1) {
 							// Just reached the end of these instructions.
 							// It's past the end of the parsing instructions.
 							complete.value =
 								complete.value.setWithElementCanDestroy(
 									bundle, true)
-						} else {
+						}
+						else
+						{
 							val timeBefore = AvailRuntimeSupport.captureNanos()
 							val instruction = instructions.tupleIntAt(pc)
 							val op = decode(instruction)
@@ -598,7 +609,8 @@ class MessageBundleTreeDescriptor private constructor(
 			self.setSlot(
 				LAZY_TYPE_FILTER_PAIRS_TUPLE,
 				typeFilterPairs.value.makeShared())
-			if (typeFilterPairs.value.tupleSize() != oldTypeFilterSize) {
+			if (typeFilterPairs.value.tupleSize != oldTypeFilterSize)
+			{
 				// Rebuild the type-checking lookup tree.
 				val tree = parserTypeChecker.createRoot(
 					toList(typeFilterPairs.value),
@@ -624,56 +636,65 @@ class MessageBundleTreeDescriptor private constructor(
 		planInProgress: A_ParsingPlanInProgress,
 		treesToVisit: Deque<Pair<A_BundleTree, A_ParsingPlanInProgress>>
 	) = synchronized(self) {
-		val plan = planInProgress.parsingPlan()
-		if (self.slot(UNCLASSIFIED).hasKey(plan.bundle())) {
+		val plan = planInProgress.parsingPlan
+		if (self.slot(UNCLASSIFIED).hasKey(plan.bundle))
+		{
 			// The plan (or another plan with the same bundle) is still
 			// unclassified, so do nothing.
 			return
 		}
-		val instructions = plan.parsingInstructions()
+		val instructions = plan.parsingInstructions
 		val pcsToVisit: Deque<Int> = ArrayDeque()
-		pcsToVisit.add(planInProgress.parsingPc())
-		while (!pcsToVisit.isEmpty()) {
+		pcsToVisit.add(planInProgress.parsingPc)
+		while (!pcsToVisit.isEmpty())
+		{
 			val pc = pcsToVisit.removeLast()
-			if (pc == instructions.tupleSize() + 1) {
+			if (pc == instructions.tupleSize + 1)
+			{
 				// We've reached an end-point for parsing this plan.  The
 				// grammatical restriction has no remaining effect.
 				return
 			}
 			val instruction = instructions.tupleIntAt(pc)
-			when (val op = decode(instruction)) {
-				JUMP_BACKWARD, JUMP_FORWARD, BRANCH_FORWARD -> {
+			when (val op = decode(instruction))
+			{
+				JUMP_BACKWARD, JUMP_FORWARD, BRANCH_FORWARD ->
+				{
 					// These should have bubbled out of the bundle tree.
 					// Loop to get to the affected successor trees.
 					pcsToVisit.addAll(op.successorPcs(instruction, pc))
 				}
-				CHECK_ARGUMENT, TYPE_CHECK_ARGUMENT -> {
+				CHECK_ARGUMENT, TYPE_CHECK_ARGUMENT ->
+				{
 					// Keep it simple and invalidate this entire bundle
 					// tree.
 					invalidate(self)
 				}
-				PARSE_PART -> {
+				PARSE_PART ->
+				{
 					// Look it up in LAZY_INCOMPLETE.
 					val keywordIndex = op.keywordIndex(instruction)
 					val keyword: A_String =
-						plan.bundle().messagePart(keywordIndex)
+						plan.bundle.messagePart(keywordIndex)
 					val successor: A_BundleTree =
 						self.slot(LAZY_INCOMPLETE).mapAt(keyword)
 					treesToVisit.add(
 						successor to newPlanInProgress(plan, pc + 1))
 				}
-				PARSE_PART_CASE_INSENSITIVELY -> {
+				PARSE_PART_CASE_INSENSITIVELY ->
+				{
 					// Look it up in LAZY_INCOMPLETE_CASE_INSENSITIVE.
 					val keywordIndex = op.keywordIndex(instruction)
 					val keyword: A_String =
-						plan.bundle().messagePart(keywordIndex)
+						plan.bundle.messagePart(keywordIndex)
 					val successor: A_BundleTree =
 						self.slot(LAZY_INCOMPLETE_CASE_INSENSITIVE)
 							.mapAt(keyword)
 					treesToVisit.add(
 						successor to newPlanInProgress(plan, pc + 1))
 				}
-				else -> {
+				else ->
+				{
 					// It's an ordinary action.  Each JUMP and BRANCH was
 					// already dealt with in a previous case.
 					val successors: A_Tuple =
@@ -689,17 +710,15 @@ class MessageBundleTreeDescriptor private constructor(
 
 	override fun o_Hash(self: AvailObject): Int {
 		assert(isShared)
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
+		return self.slot(HASH_OR_ZERO).ifZero {
 			synchronized(self) {
-				hash = self.slot(HASH_OR_ZERO)
-				if (hash == 0) {
-					hash = AvailRuntimeSupport.nextNonzeroHash()
-					self.setSlot(HASH_OR_ZERO, hash)
+				self.slot(HASH_OR_ZERO).ifZero {
+					AvailRuntimeSupport.nextNonzeroHash().also { hash ->
+						self.setSlot(HASH_OR_ZERO, hash)
+					}
 				}
 			}
 		}
-		return hash
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
@@ -744,13 +763,14 @@ class MessageBundleTreeDescriptor private constructor(
 		synchronized(self) { return self.slot(LAZY_TYPE_FILTER_TREE_POJO) }
 	}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		return if (isMutable) {
+	override fun o_MakeImmutable(self: AvailObject): AvailObject =
+		if (isMutable)
+		{
 			// Never actually make a message bundle tree immutable. They are
 			// always shared.
 			self.makeShared()
-		} else self
-	}
+		}
+		else self
 
 	/**
 	 * Remove the plan from this bundle tree.  We don't need to remove the
@@ -854,10 +874,11 @@ class MessageBundleTreeDescriptor private constructor(
 		private fun layeredMapWithPlan(
 			outerMap: A_Map,
 			planInProgress: A_ParsingPlanInProgress
-		): A_Map {
-			val plan = planInProgress.parsingPlan()
-			val bundle = plan.bundle()
-			val definition = plan.definition()
+		): A_Map
+		{
+			val plan = planInProgress.parsingPlan
+			val bundle = plan.bundle
+			val definition = plan.definition
 			var submap =
 				if (outerMap.hasKey(bundle)) outerMap.mapAt(bundle)
 				else emptyMap
@@ -873,7 +894,7 @@ class MessageBundleTreeDescriptor private constructor(
 			return newOuterMap.makeShared()
 		}
 
-		/** A [Statistic] for tracking bundle tree invalidations.  */
+		/** A [Statistic] for tracking bundle tree invalidations. */
 		private val invalidationsStat = Statistic(
 			EXPANDING_PARSING_INSTRUCTIONS, "(invalidations)")
 
@@ -887,7 +908,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 *   Which [A_BundleTree] to invalidate.
 		 */
 		private fun invalidate(self: AvailObject) =
-			invalidationsStat.record(Interpreter.currentIndexOrZero()) {
+			invalidationsStat.record {
 				synchronized(self) {
 					self.setSlot(LAZY_COMPLETE, emptySet)
 					self.setSlot(LAZY_INCOMPLETE, emptyMap)
@@ -916,10 +937,11 @@ class MessageBundleTreeDescriptor private constructor(
 		private fun layeredMapWithoutPlan(
 			outerMap: A_Map,
 			planInProgress: A_ParsingPlanInProgress
-		): A_Map {
-			val plan = planInProgress.parsingPlan()
-			val bundle = plan.bundle()
-			val definition = plan.definition()
+		): A_Map
+		{
+			val plan = planInProgress.parsingPlan
+			val bundle = plan.bundle
+			val definition = plan.definition
 			if (!outerMap.hasKey(bundle)) {
 				return outerMap
 			}
@@ -934,16 +956,21 @@ class MessageBundleTreeDescriptor private constructor(
 			inProgressSet = inProgressSet.setWithoutElementCanDestroy(
 				planInProgress, true)
 			submap =
-				if (inProgressSet.setSize() > 0) {
+				if (inProgressSet.setSize > 0)
+				{
 					submap.mapAtPuttingCanDestroy(
 						definition, inProgressSet, true)
-				} else {
+				}
+				else
+				{
 					submap.mapWithoutKeyCanDestroy(definition, true)
 				}
 			val newOuterMap =
-				if (submap.mapSize() > 0) {
+				if (submap.mapSize > 0)
+				{
 					outerMap.mapAtPuttingCanDestroy(bundle, submap, true)
-				} else outerMap.mapWithoutKeyCanDestroy(bundle, true)
+				}
+				else outerMap.mapWithoutKeyCanDestroy(bundle, true)
 			return newOuterMap.makeShared()
 		}
 
@@ -1015,17 +1042,20 @@ class MessageBundleTreeDescriptor private constructor(
 			val latestBackwardJump: A_BundleTree =
 				if (hasBackwardJump) bundleTree
 				else bundleTree.slot(LATEST_BACKWARD_JUMP)
-			val instructions = plan.parsingInstructions()
-			if (pc == instructions.tupleSize() + 1) {
+			val instructions = plan.parsingInstructions
+			if (pc == instructions.tupleSize + 1)
+			{
 				complete.value =
-					complete.value.setWithElementCanDestroy(plan.bundle(), true)
+					complete.value.setWithElementCanDestroy(plan.bundle, true)
 				return
 			}
-			val instruction = plan.parsingInstructions().tupleIntAt(pc)
+			val instruction = plan.parsingInstructions.tupleIntAt(pc)
 			val op = decode(instruction)
 			when (op) {
-				JUMP_FORWARD, BRANCH_FORWARD, JUMP_BACKWARD -> {
-					if (op == JUMP_BACKWARD && !hasBackwardJump) {
+				JUMP_FORWARD, BRANCH_FORWARD, JUMP_BACKWARD ->
+				{
+					if (op == JUMP_BACKWARD && !hasBackwardJump)
+					{
 						// We just discovered the first backward jump in any
 						// parsing-plan-in-progress at this node.
 						bundleTree.setSlot(HAS_BACKWARD_JUMP_INSTRUCTION, 1)
@@ -1040,7 +1070,8 @@ class MessageBundleTreeDescriptor private constructor(
 					// be undertaken in a single lookup. We can safely recurse
 					// here, because plans cannot have any empty loops due to
 					// progress check instructions.
-					for (nextPc in op.successorPcs(instruction, pc)) {
+					for (nextPc in op.successorPcs(instruction, pc))
+					{
 						updateForPlan(
 							bundleTree,
 							plan,
@@ -1055,18 +1086,21 @@ class MessageBundleTreeDescriptor private constructor(
 					}
 					return
 				}
-				PARSE_PART, PARSE_PART_CASE_INSENSITIVELY -> {
+				PARSE_PART, PARSE_PART_CASE_INSENSITIVELY ->
+				{
 					// Parse a specific keyword, or case-insensitive keyword.
 					val keywordIndex = op.keywordIndex(instruction)
-					val part: A_String =
-						plan.bundle().messagePart(keywordIndex)
+					val part: A_String = plan.bundle.messagePart(keywordIndex)
 					val map =
 						if (op === PARSE_PART) incomplete
 						else caseInsensitive
 					val subtree: A_BundleTree
-					if (map.value.hasKey(part)) {
+					if (map.value.hasKey(part))
+					{
 						subtree = map.value.mapAt(part)
-					} else {
+					}
+					else
+					{
 						subtree = newBundleTree(latestBackwardJump)
 						map.value = map.value.mapAtPuttingCanDestroy(
 							part, subtree, true)
@@ -1074,7 +1108,8 @@ class MessageBundleTreeDescriptor private constructor(
 					subtree.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 					return
 				}
-				PREPARE_TO_RUN_PREFIX_FUNCTION -> {
+				PREPARE_TO_RUN_PREFIX_FUNCTION ->
+				{
 					// Each macro definition has its own prefix functions, so
 					// for each plan create a separate successor message bundle
 					// tree.
@@ -1083,9 +1118,12 @@ class MessageBundleTreeDescriptor private constructor(
 					newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 					val instructionObject: A_Number = fromInt(instruction)
 					var successors: A_Tuple =
-						if (actionMap.value.hasKey(instructionObject)) {
+						if (actionMap.value.hasKey(instructionObject))
+						{
 							actionMap.value.mapAt(instructionObject)
-						} else {
+						}
+						else
+						{
 							emptyTuple
 						}
 					successors = successors.appendCanDestroy(newTarget, true)
@@ -1094,7 +1132,8 @@ class MessageBundleTreeDescriptor private constructor(
 					// We added it to the actions, so don't fall through.
 					return
 				}
-				TYPE_CHECK_ARGUMENT -> {
+				TYPE_CHECK_ARGUMENT ->
+				{
 					// An argument was just parsed and passed its grammatical
 					// restriction check.  Now it needs to do a type check with
 					// a type-dispatch tree.
@@ -1106,32 +1145,36 @@ class MessageBundleTreeDescriptor private constructor(
 						typeFilterTuples.value.appendCanDestroy(pair, true)
 					return
 				}
-				CHECK_ARGUMENT -> {
+				CHECK_ARGUMENT ->
+				{
 					// It's a checkArgument instruction.
 					val checkArgumentIndex = op.checkArgumentIndex(instruction)
 					// Add it to the action map.
 					val successor: A_BundleTree
 					val instructionObject: A_Number = fromInt(instruction)
-					if (actionMap.value.hasKey(instructionObject)) {
+					if (actionMap.value.hasKey(instructionObject))
+					{
 						val successors: A_Tuple =
 							actionMap.value.mapAt(instructionObject)
-						assert(successors.tupleSize() == 1)
+						assert(successors.tupleSize == 1)
 						successor = successors.tupleAt(1)
-					} else {
+					}
+					else
+					{
 						successor = newBundleTree(latestBackwardJump)
 						actionMap.value =
 							actionMap.value.mapAtPuttingCanDestroy(
 								instructionObject, tuple(successor), true)
 					}
 					var forbiddenBundles = emptySet
-					plan.bundle().grammaticalRestrictions().forEach {
+					plan.bundle.grammaticalRestrictions.forEach {
 						restriction ->
 						// Exclude grammatical restrictions that aren't defined
 						// in an ancestor module.
 						val definitionModule = restriction.definitionModule()
-						if (definitionModule.equalsNil()
-							|| module.hasAncestor(definitionModule)
-						) {
+						if (definitionModule.isNil
+							|| module.hasAncestor(definitionModule))
+						{
 							val bundles: A_Set =
 								restriction.argumentRestrictionSets().tupleAt(
 									checkArgumentIndex)
@@ -1144,7 +1187,8 @@ class MessageBundleTreeDescriptor private constructor(
 					// Add it to every existing branch where it's permitted.
 					prefilterMap.value.forEach {
 						bundle, prefilterSuccessor ->
-						if (!forbiddenBundles.hasElement(bundle)) {
+						if (!forbiddenBundles.hasElement(bundle))
+						{
 							prefilterSuccessor.addPlanInProgress(planInProgress)
 						}
 					}
@@ -1160,7 +1204,7 @@ class MessageBundleTreeDescriptor private constructor(
 							// successor found under this instruction, since it
 							// *has* been kept up to date as the bundles have
 							// gotten classified.
-							successor.allParsingPlansInProgress().forEach {
+							successor.allParsingPlansInProgress.forEach {
 								_, defMap ->
 								defMap.forEach { _, plans ->
 									plans.forEach { inProgress ->
@@ -1197,12 +1241,15 @@ class MessageBundleTreeDescriptor private constructor(
 			assert(nextPcs.size == 1 && nextPcs[0] == pc + 1)
 			val successor: A_BundleTree
 			val instructionObject: A_Number = fromInt(instruction)
-			if (actionMap.value.hasKey(instructionObject)) {
+			if (actionMap.value.hasKey(instructionObject))
+			{
 				val successors: A_Tuple =
 					actionMap.value.mapAt(instructionObject)
-				assert(successors.tupleSize() == 1)
+				assert(successors.tupleSize == 1)
 				successor = successors.tupleAt(1)
-			} else {
+			}
+			else
+			{
 				successor = newBundleTree(latestBackwardJump)
 				val successors = tuple(successor)
 				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
@@ -1237,10 +1284,10 @@ class MessageBundleTreeDescriptor private constructor(
 			setSlot(LATEST_BACKWARD_JUMP, latestBackwardJump)
 		}
 
-		/** The mutable [MessageBundleTreeDescriptor].  */
+		/** The mutable [MessageBundleTreeDescriptor]. */
 		private val mutable = MessageBundleTreeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MessageBundleTreeDescriptor].  */
+		/** The shared [MessageBundleTreeDescriptor]. */
 		private val shared = MessageBundleTreeDescriptor(Mutability.SHARED)
 	}
 }

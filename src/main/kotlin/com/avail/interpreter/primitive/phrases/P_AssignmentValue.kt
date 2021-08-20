@@ -61,7 +61,7 @@ object P_AssignmentValue : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val assignment = interpreter.argument(0)
-		return interpreter.primitiveSuccess(assignment.expression())
+		return interpreter.primitiveSuccess(assignment.expression)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

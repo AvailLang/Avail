@@ -195,11 +195,11 @@ class GrammaticalRestrictionDescriptor private constructor(
 			setSlot(DEFINITION_MODULE, module)
 		}
 
-		/** The mutable [GrammaticalRestrictionDescriptor].  */
+		/** The mutable [GrammaticalRestrictionDescriptor]. */
 		private val mutable =
 			GrammaticalRestrictionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [GrammaticalRestrictionDescriptor].  */
+		/** The shared [GrammaticalRestrictionDescriptor]. */
 		private val shared = GrammaticalRestrictionDescriptor(Mutability.SHARED)
 	}
 }

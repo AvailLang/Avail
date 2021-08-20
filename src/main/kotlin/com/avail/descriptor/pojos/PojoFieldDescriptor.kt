@@ -38,7 +38,7 @@ import com.avail.descriptor.pojos.PojoFieldDescriptor.ObjectSlots.RECEIVER
 import com.avail.descriptor.pojos.PojoFinalFieldDescriptor.Companion.pojoFinalFieldForInnerType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -79,7 +79,7 @@ class PojoFieldDescriptor private constructor(
 ) : Descriptor(
 	mutability, TypeTag.VARIABLE_TAG, ObjectSlots::class.java, null)
 {
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -146,7 +146,7 @@ class PojoFieldDescriptor private constructor(
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		val expectedType = self.slot(KIND).readType()
+		val expectedType = self.slot(KIND).readType
 		try
 		{
 			return synchronized(receiver) {
@@ -159,13 +159,10 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var h = self.slot(FIELD).hash() xor 0x2199C0C3
-		h *= multiplier
-		h += self.slot(RECEIVER).hash()
-		return h
-	}
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(FIELD).hash(),
+		self.slot(RECEIVER).hash(),
+		0x2199C0C3)
 
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
@@ -190,8 +187,7 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_SetValue(
 		self: AvailObject,
-		newValue: A_BasicObject
-	)
+		newValue: A_BasicObject)
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
@@ -210,8 +206,7 @@ class PojoFieldDescriptor private constructor(
 
 	override fun o_SetValueNoCheck(
 		self: AvailObject,
-		newValue: A_BasicObject
-	)
+		newValue: A_BasicObject)
 	{
 		// Actually check this write anyhow. Just in case.
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
@@ -233,7 +228,7 @@ class PojoFieldDescriptor private constructor(
 	{
 		val receiver = self.slot(RECEIVER).javaObjectNotNull<Any>()
 		val field = self.slot(FIELD).javaObjectNotNull<Field>()
-		val expectedType = self.slot(KIND).readType()
+		val expectedType = self.slot(KIND).readType
 		try
 		{
 			return synchronized(receiver) {
@@ -286,13 +281,13 @@ class PojoFieldDescriptor private constructor(
 
 	companion object
 	{
-		/** The mutable [PojoFieldDescriptor].  */
+		/** The mutable [PojoFieldDescriptor]. */
 		private val mutable = PojoFieldDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [PojoFieldDescriptor].  */
+		/** The immutable [PojoFieldDescriptor]. */
 		private val immutable = PojoFieldDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [PojoFieldDescriptor].  */
+		/** The shared [PojoFieldDescriptor]. */
 		private val shared = PojoFieldDescriptor(Mutability.SHARED)
 
 		/**

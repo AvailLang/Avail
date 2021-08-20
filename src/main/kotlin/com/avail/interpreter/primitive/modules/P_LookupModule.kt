@@ -81,7 +81,7 @@ object P_LookupModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType()),
+				stringType),
 			MODULE.o)
 
 	override fun privateFailureVariableType(): A_Type =

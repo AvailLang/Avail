@@ -87,11 +87,10 @@ object P_FileSetGroup : Primitive(3, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			val lookupService = fileSystem.userPrincipalLookupService
@@ -120,7 +119,7 @@ object P_FileSetGroup : Primitive(3, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), stringType(), booleanType), TOP.o)
+		functionType(tuple(stringType, stringType, booleanType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -87,7 +87,7 @@ abstract class StringDescriptor protected constructor(
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation
 	{
-		val size = self.tupleSize()
+		val size = self.tupleSize
 		for (i in 1 .. size)
 		{
 			val codePoint = self.tupleCodePointAt(i)
@@ -161,7 +161,7 @@ abstract class StringDescriptor protected constructor(
 			while (index < charCount)
 			{
 				val aChar = aNativeString[index]
-				maxChar = maxChar.coerceAtLeast(aChar.toInt())
+				maxChar = maxChar.coerceAtLeast(aChar.code)
 				index++
 			}
 			return if (maxChar <= 255)
@@ -171,7 +171,7 @@ abstract class StringDescriptor protected constructor(
 			else
 			{
 				generateTwoByteString(aNativeString.length)
-						{ aNativeString[it - 1].toInt() }
+				{ aNativeString[it - 1].code }
 			}
 			// Pack it into a TwoByteString, preserving surrogates.
 		}

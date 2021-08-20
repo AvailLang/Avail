@@ -380,9 +380,12 @@ interface A_Number : A_BasicObject
 			aNumber: A_Number,
 			canDestroy: Boolean
 		): A_Number =
-			try {
+			try
+			{
 				dispatch { o_PlusCanDestroy(it, aNumber, canDestroy) }
-			} catch (e: ArithmeticException) {
+			}
+			catch (e: ArithmeticException)
+			{
 				// This had better not happen, otherwise the caller has violated
 				// the intention of this method.
 				AvailObject.error("noFailPlusCanDestroy failed!")
@@ -408,9 +411,12 @@ interface A_Number : A_BasicObject
 			aNumber: A_Number,
 			canDestroy: Boolean
 		): A_Number =
-			try {
+			try
+			{
 				dispatch { o_MinusCanDestroy(it, aNumber, canDestroy) }
-			} catch (e: ArithmeticException) {
+			}
+			catch (e: ArithmeticException)
+			{
 				// This had better not happen, otherwise the caller has violated
 				// the intention of this method.
 				AvailObject.error("noFailMinusCanDestroy failed!")
@@ -439,7 +445,9 @@ interface A_Number : A_BasicObject
 			try
 			{
 				dispatch { o_DivideCanDestroy(it, aNumber, canDestroy) }
-			} catch (e: ArithmeticException) {
+			}
+			catch (e: ArithmeticException)
+			{
 				// This had better not happen, otherwise the caller has violated
 				// the intention of this method.
 				AvailObject.error("noFailDivideCanDestroy failed!")
@@ -589,7 +597,7 @@ interface A_Number : A_BasicObject
 		 *   the receiver is negative integral infinity. No other values are
 		 *   permitted.
 		 */
-		fun A_Number.isPositive(): Boolean = dispatch { o_IsPositive(it) }
+		val A_Number.isPositive: Boolean get() = dispatch { o_IsPositive(it) }
 
 		/**
 		 * Answer whether this number is numerically equal to some finite
@@ -598,8 +606,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A boolean indicating finiteness and a fractional part of zero.
 		 */
-		fun A_Number.isNumericallyIntegral(): Boolean =
-			dispatch { o_IsNumericallyIntegral(it) }
+		val A_Number.isNumericallyIntegral: Boolean
+			get() = dispatch { o_IsNumericallyIntegral(it) }
 
 		/**
 		 * Extract an unsigned nybble from the [receiver][AvailObject]. Return
@@ -608,7 +616,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A [Byte] in the range `[0..15]`.
 		 */
-		fun A_Number.extractNybble(): Byte = dispatch { o_ExtractNybble(it) }
+		val A_Number.extractNybble: Byte
+			get() = dispatch { o_ExtractNybble(it) }
 
 		/**
 		 * Extract a 64-bit signed Java [Long] from the [receiver][AvailObject].
@@ -616,7 +625,7 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A 64-bit signed Java [Long].
 		 */
-		fun A_Number.extractLong(): Long = dispatch { o_ExtractLong(it) }
+		val A_Number.extractLong: Long get() = dispatch { o_ExtractLong(it) }
 
 		/**
 		 * Extract a 32-bit signed Kotlin [Int] from the
@@ -625,7 +634,7 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A 32-bit signed Kotlin [Int].
 		 */
-		fun A_Number.extractInt(): Int = dispatch { o_ExtractInt(it) }
+		val A_Number.extractInt: Int get() = dispatch { o_ExtractInt(it) }
 
 		/**
 		 * Extract a Java float from the [receiver][AvailObject].
@@ -633,7 +642,7 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A Java `float`.
 		 */
-		fun A_Number.extractFloat(): Float = dispatch { o_ExtractFloat(it) }
+		val A_Number.extractFloat: Float get() = dispatch { o_ExtractFloat(it) }
 
 		/**
 		 * Extract a Kotlin [Double] from the [receiver][AvailObject].
@@ -641,7 +650,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A Kotlin [Double].
 		 */
-		fun A_Number.extractDouble(): Double = dispatch { o_ExtractDouble(it) }
+		val A_Number.extractDouble: Double
+			get() = dispatch { o_ExtractDouble(it) }
 
 		/**
 		 * Extract an unsigned short from the [receiver][AvailObject]. Return it
@@ -650,8 +660,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   An [Int] in the range `[0..65535]`.
 		 */
-		fun A_Number.extractUnsignedShort(): Int =
-			dispatch { o_ExtractUnsignedShort(it) }
+		val A_Number.extractUnsignedShort: Int
+			get() = dispatch { o_ExtractUnsignedShort(it) }
 
 		/**
 		 * Extract an unsigned byte from the [receiver][AvailObject].
@@ -660,8 +670,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A [Short] in the range `[0..255]`.
 		 */
-		fun A_Number.extractUnsignedByte(): Short =
-			dispatch { o_ExtractUnsignedByte(it) }
+		val A_Number.extractUnsignedByte: Short
+			get() = dispatch { o_ExtractUnsignedByte(it) }
 
 		/**
 		 * Extract a signed short from the [receiver][AvailObject].
@@ -669,8 +679,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A [Short], which has the range `[-32768..32767]`.
 		 */
-		fun A_Number.extractSignedShort(): Short =
-			dispatch { o_ExtractSignedShort(it) }
+		val A_Number.extractSignedShort: Short
+			get() = dispatch { o_ExtractSignedShort(it) }
 
 		/**
 		 * Extract a signed byte from the [receiver][AvailObject].
@@ -678,8 +688,8 @@ interface A_Number : A_BasicObject
 		 * @return
 		 *   A Java [Byte], which has the range `[-128..127]`.
 		 */
-		fun A_Number.extractSignedByte(): Byte =
-			dispatch { o_ExtractSignedByte(it) }
+		val A_Number.extractSignedByte: Byte
+			get() = dispatch { o_ExtractSignedByte(it) }
 
 		/**
 		 * Divide the receiver by the argument `aNumber` and answer the
@@ -1074,7 +1084,7 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [divideStatic].
 		 */
-		val divideMethod: CheckedMethod = staticMethod(
+		val divideMethod = staticMethod(
 			A_Number::class.java,
 			::divideStatic.name,
 			AvailObject::class.java,
@@ -1091,12 +1101,11 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [extractDoubleStatic].
 		 */
-		val extractDoubleMethod: CheckedMethod = staticMethod(
+		val extractDoubleMethod = staticMethod(
 			A_Number::class.java,
 			::extractDoubleStatic.name,
 			Double::class.javaPrimitiveType!!,
 			AvailObject::class.java)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1106,12 +1115,11 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [extractInt].
 		 */
-		val extractIntMethod: CheckedMethod = staticMethod(
+		val extractIntStaticMethod = staticMethod(
 			A_Number::class.java,
 			::extractIntStatic.name,
 			Integer::class.javaPrimitiveType!!,
 			AvailObject::class.java)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1127,14 +1135,13 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [minusStatic].
 		 */
-		val minusCanDestroyMethod: CheckedMethod = staticMethod(
+		val minusCanDestroyMethod = staticMethod(
 			A_Number::class.java,
 			::minusStatic.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			Boolean::class.javaPrimitiveType!!)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1146,13 +1153,12 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [numericCompare].
 		 */
-		val numericCompareMethod: CheckedMethod = staticMethod(
+		val numericCompareMethod = staticMethod(
 			A_Number::class.java,
 			::numericCompareStatic.name,
 			Order::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1168,7 +1174,7 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [timesCanDestroy].
 		 */
-		val timesCanDestroyMethod: CheckedMethod = staticMethod(
+		val timesCanDestroyMethod = staticMethod(
 			A_Number::class.java,
 			::timesStatic.name,
 			AvailObject::class.java,

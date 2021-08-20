@@ -82,11 +82,10 @@ object P_FileGetGroup : Primitive(2, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, PosixFileAttributeView::class.java, *options)
-		           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+		view ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		val group: GroupPrincipal =
 			try
 			{
@@ -111,7 +110,7 @@ object P_FileGetGroup : Primitive(2, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), booleanType), stringType())
+		functionType(tuple(stringType, booleanType), stringType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -56,9 +56,9 @@ object P_MapValuesAsTuple : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
-		return interpreter.primitiveSuccess(map.valuesAsTuple())
+		return interpreter.primitiveSuccess(map.valuesAsTuple)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralMapType()), mostGeneralTupleType())
+		functionType(tuple(mostGeneralMapType()), mostGeneralTupleType)
 }

@@ -81,18 +81,17 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val objectType = argumentTypes[0]
-		val fieldType = argumentTypes[1]
+		val (objectType, fieldType) = argumentTypes
 
 		if (objectType.isBottom)
 		{
 			return bottom
 		}
-		val fieldTypeMap = objectType.fieldTypeMap()
+		val fieldTypeMap = objectType.fieldTypeMap
 		if (fieldType.isEnumeration)
 		{
 			var union = bottom
-			for (possibleField in fieldType.instances())
+			for (possibleField in fieldType.instances)
 			{
 				if (!fieldTypeMap.hasKey(possibleField))
 				{
@@ -109,12 +108,11 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val objectType = argumentTypes[0]
-		val fieldType = argumentTypes[1]
-		val fieldTypeMap = objectType.fieldTypeMap()
+		val (objectType, fieldType) = argumentTypes
+		val fieldTypeMap = objectType.fieldTypeMap
 		if (fieldType.isEnumeration)
 		{
-			for (possibleField in fieldType.instances())
+			for (possibleField in fieldType.instances)
 			{
 				if (!fieldTypeMap.hasKey(possibleField))
 				{

@@ -191,10 +191,10 @@ class BottomPojoTypeDescriptor constructor(mutability: Mutability)
 
 	companion object
 	{
-		/** The mutable [BottomPojoTypeDescriptor].  */
+		/** The mutable [BottomPojoTypeDescriptor]. */
 		val mutable = BottomPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [BottomPojoTypeDescriptor].  */
+		/** The shared [BottomPojoTypeDescriptor]. */
 		private val shared = BottomPojoTypeDescriptor(Mutability.SHARED)
 
 		/**

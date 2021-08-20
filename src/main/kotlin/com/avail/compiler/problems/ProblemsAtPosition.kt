@@ -72,7 +72,7 @@ class ProblemsAtPosition internal constructor(
 	internal val indicator: String,
 	describers: List<Describer>) : Comparable<ProblemsAtPosition>
 {
-	/** A list of [Describer]s able to describe the problems.  */
+	/** A list of [Describer]s able to describe the problems. */
 	internal val describers = describers.toList()
 
 	override fun compareTo(other: ProblemsAtPosition): Int =

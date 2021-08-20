@@ -82,33 +82,33 @@ internal class StateTransitionArc<
 		val actionKey: ActionKey?,
 		val newState: State)
 {
-    /**
-     * The actual guard that will be performed to determine if a transition can
+	/**
+	 * The actual guard that will be performed to determine if a transition can
 	 * be taken.
-     */
-    var guard: ((Memento) -> Boolean)? = null
+	 */
+	var guard: ((Memento) -> Boolean)? = null
 		private set
 
-    /**
-     * The actual action that will be performed during transition.
-     */
+	/**
+	 * The actual action that will be performed during transition.
+	 */
 	var action: ((Memento) -> Unit)? = null
 		private set
 
-    /**
-     * Set my guard and action based on the supplied mappings from guard keys
-     * and action keys, respectively.
-     *
-     * @param guardMap
-     *   The mapping from GuardKey to guard.
-     * @param actionMap
-     *   The mapping from ActionKey to action.
-     */
-    fun populateGuardsAndActions(
-            guardMap: Map<GuardKey, (Memento) -> Boolean>,
-            actionMap: Map<ActionKey, ((Memento) -> Unit)>)
+	/**
+	 * Set my guard and action based on the supplied mappings from guard keys
+	 * and action keys, respectively.
+	 *
+	 * @param guardMap
+	 *   The mapping from GuardKey to guard.
+	 * @param actionMap
+	 *   The mapping from ActionKey to action.
+	 */
+	fun populateGuardsAndActions(
+		guardMap: Map<GuardKey, (Memento) -> Boolean>,
+		actionMap: Map<ActionKey, ((Memento) -> Unit)>)
 	{
-        guard = guardMap[guardKey]
-        action = actionMap[actionKey]
-    }
+		guard = guardMap[guardKey]
+		action = actionMap[actionKey]
+	}
 }

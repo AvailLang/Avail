@@ -34,6 +34,8 @@ package com.avail.interpreter.primitive.methods
 import com.avail.compiler.splitter.MessageSplitter
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -60,10 +62,10 @@ import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
-import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE
-import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_ARGUMENT_MUST_BE_A_PHRASE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP
-import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE
+import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE
 import com.avail.exceptions.AvailErrorCode.E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS
 import com.avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import com.avail.exceptions.AvailException
@@ -103,17 +105,17 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		{
 			val numArgs = prefixFunction.code().numArgs()
 			val kind = prefixFunction.kind()
-			val argsKind = kind.argsTupleType()
+			val argsKind = kind.argsTupleType
 			for (argIndex in 1 .. numArgs)
 			{
 				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
 						PARSE_PHRASE.mostGeneralType()))
 				{
 					return interpreter.primitiveFailure(
-						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE)
+						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
 				}
 			}
-			if (!kind.returnType().isTop)
+			if (!kind.returnType.isTop)
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP)
@@ -122,7 +124,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		try
 		{
 			val splitter = MessageSplitter(string)
-			if (prefixFunctions.tupleSize() !=
+			if (prefixFunctions.tupleSize !=
 				splitter.numberOfSectionCheckpoints)
 			{
 				return interpreter.primitiveFailure(
@@ -136,39 +138,30 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 
 		val numArgs = function.code().numArgs()
 		val kind = function.kind()
-		val argsKind = kind.argsTupleType()
+		val argsKind = kind.argsTupleType
 		for (argIndex in 1 .. numArgs)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
 					PARSE_PHRASE.mostGeneralType()))
 			{
 				return interpreter.primitiveFailure(
-					E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE)
+					E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
-		if (!kind.returnType().isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
+		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
 		{
-			return interpreter.primitiveFailure(
-				E_MACRO_MUST_RETURN_A_PARSE_NODE)
+			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
 				val atom = loader.lookupName(string)
-				loader.addMacroBody(
-					atom,
-					function,
-					prefixFunctions,
-					false)
-				var counter = 1
-				for (prefixFunction in prefixFunctions)
-				{
-					prefixFunction.code().setMethodName(
-						stringFrom("Macro prefix #$counter of $string"))
-					counter++
+				loader.addMacroBody(atom, function, prefixFunctions, false)
+				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
+					prefixFunction.code().methodName =
+						stringFrom("Macro prefix #${zeroIndex + 1} of $string")
 				}
-				function.code().setMethodName(
-					stringFrom("Macro body of $string"))
+				function.code().methodName = stringFrom("Macro body of $string")
 				succeed(nil)
 			}
 			catch (e: AvailException)
@@ -184,11 +177,10 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				zeroOrMoreOf(mostGeneralFunctionType()),
 				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(
@@ -197,10 +189,10 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 				E_AMBIGUOUS_NAME,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
-				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PARSE_NODE,
+				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTIONS_MUST_RETURN_TOP,
-				E_MACRO_ARGUMENT_MUST_BE_A_PARSE_NODE,
-				E_MACRO_MUST_RETURN_A_PARSE_NODE,
+				E_MACRO_ARGUMENT_MUST_BE_A_PHRASE,
+				E_MACRO_MUST_RETURN_A_PHRASE,
 				E_MACRO_PREFIX_FUNCTION_INDEX_OUT_OF_BOUNDS)
 			.setUnionCanDestroy(possibleErrors, true))
 }

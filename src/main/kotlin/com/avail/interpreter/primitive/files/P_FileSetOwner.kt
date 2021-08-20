@@ -86,11 +86,10 @@ object P_FileSetOwner : Primitive(3, CanInline, HasSideEffect)
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val options = IOSystem.followSymlinks(
-			followSymlinks.extractBoolean())
+		val options = IOSystem.followSymlinks(followSymlinks.extractBoolean)
 		val view = Files.getFileAttributeView(
 			path, FileOwnerAttributeView::class.java, *options)
-	           ?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
+				?: return interpreter.primitiveFailure(E_OPERATION_NOT_SUPPORTED)
 		try
 		{
 			val lookupService =
@@ -120,13 +119,13 @@ object P_FileSetOwner : Primitive(3, CanInline, HasSideEffect)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType(), stringType(), booleanType), TOP.o)
+		functionType(tuple(stringType, stringType, booleanType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
 				E_INVALID_PATH,
 				E_OPERATION_NOT_SUPPORTED,
-		        E_PERMISSION_DENIED,
+				E_PERMISSION_DENIED,
 				E_IO_ERROR))
 }

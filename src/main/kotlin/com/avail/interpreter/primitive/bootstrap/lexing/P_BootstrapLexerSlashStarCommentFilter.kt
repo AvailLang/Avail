@@ -62,9 +62,9 @@ object P_BootstrapLexerSlashStarCommentFilter
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
 
-		val codePoint = character.codePoint()
+		val codePoint = character.codePoint
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(codePoint == '/'.toInt()))
+			objectFromBoolean(codePoint == '/'.code))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

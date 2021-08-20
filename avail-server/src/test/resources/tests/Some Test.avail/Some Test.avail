@@ -1,4 +1,0 @@
-Module "Some Test"
-Uses "Avail"
-Extends "Some Other Test"
-Body

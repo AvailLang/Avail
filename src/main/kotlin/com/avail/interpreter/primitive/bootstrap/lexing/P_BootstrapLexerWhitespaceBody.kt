@@ -65,16 +65,16 @@ object P_BootstrapLexerWhitespaceBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val lineNumberInteger = interpreter.argument(2)
 
-		val sourceSize = source.tupleSize()
-		val startPosition = sourcePositionInteger.extractInt()
+		val sourceSize = source.tupleSize
+		val startPosition = sourcePositionInteger.extractInt
 		var position = startPosition
 
 		while (position <= sourceSize)
 		{
 			val c = source.tupleCodePointAt(position)
 			if (!Character.isWhitespace(c)
-			    && !Character.isSpaceChar(c)
-			    && c != '\uFEFF'.toInt())
+				&& !Character.isSpaceChar(c)
+				&& c != '\uFEFF'.code)
 			{
 				break
 			}
@@ -84,7 +84,7 @@ object P_BootstrapLexerWhitespaceBody
 			source.copyStringFromToCanDestroy(
 				startPosition, position - 1, false),
 			startPosition,
-			lineNumberInteger.extractInt(),
+			lineNumberInteger.extractInt,
 			WHITESPACE)
 		return interpreter.primitiveSuccess(set(tuple(token)))
 	}

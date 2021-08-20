@@ -96,7 +96,7 @@ abstract class JSONData : JSONFriendly
 
 	companion object
 	{
-		/** The sole JSON `null`.  */
+		/** The sole JSON `null`. */
 		val jsonNull = object : JSONData()
 		{
 			override val isNull: Boolean

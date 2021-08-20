@@ -76,11 +76,11 @@ object P_Deserialize : Primitive(2, CanInline)
 		val byteArray: ByteArray
 		if (bytes.isByteArrayTuple)
 		{
-			byteArray = bytes.byteArray()
+			byteArray = bytes.byteArray
 		}
 		else if (bytes.isByteBufferTuple)
 		{
-			val buffer = bytes.byteBuffer().slice()
+			val buffer = bytes.byteBuffer.slice()
 			if (buffer.hasArray())
 			{
 				byteArray = buffer.array()
@@ -94,7 +94,7 @@ object P_Deserialize : Primitive(2, CanInline)
 		}
 		else
 		{
-			val limit = bytes.tupleSize()
+			val limit = bytes.tupleSize
 			val buffer = ByteBuffer.allocate(limit)
 			bytes.transferIntoByteBuffer(1, limit, buffer)
 			byteArray = buffer.array()

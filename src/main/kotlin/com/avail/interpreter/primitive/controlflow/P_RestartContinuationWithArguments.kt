@@ -32,6 +32,9 @@
 package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -106,7 +109,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 		val code = originalCon.function().code()
 		//TODO MvG - This should be a primitive failure.
-		assert(originalCon.stackp() == code.numSlots() + 1)
+		assert(originalCon.stackp() == code.numSlots + 1)
 		{
 			"Continuation should have been a label- rather than " +
 				"call-continuation"
@@ -118,7 +121,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		}
 
 		val numArgs = code.numArgs()
-		if (numArgs != arguments.tupleSize())
+		if (numArgs != arguments.tupleSize)
 		{
 			return interpreter.primitiveFailure(
 				E_INCORRECT_NUMBER_OF_ARGUMENTS)
@@ -138,7 +141,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		// to be the label continuation's *caller*.
 		interpreter.setReifiedContinuation(originalCon.caller())
 		interpreter.function = originalCon.function()
-		interpreter.chunk = code.startingChunk()
+		interpreter.chunk = code.startingChunk
 		interpreter.offset = 0
 		interpreter.returnNow = false
 		interpreter.setLatestResult(null)
@@ -147,9 +150,8 @@ object P_RestartContinuationWithArguments : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType(), mostGeneralTupleType()),
-			bottom
-		)
+			tuple(mostGeneralContinuationType(), mostGeneralTupleType),
+			bottom)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -163,8 +165,7 @@ object P_RestartContinuationWithArguments : Primitive(
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val continuationReg = arguments[0]
-		val argumentsTupleReg = arguments[1]
+		val (continuationReg, argumentsTupleReg) = arguments
 
 		// Check for the common case that the continuation was created for this
 		// very frame.
@@ -181,10 +182,10 @@ object P_RestartContinuationWithArguments : Primitive(
 			val code: A_RawFunction = translator.code
 			val numArgs = code.numArgs()
 			val argsType = argumentsTupleReg.type()
-			val argsSizeRange = argsType.sizeRange()
+			val argsSizeRange = argsType.sizeRange
 
-			if (!argsSizeRange.lowerBound().equalsInt(numArgs)
-				|| !argsSizeRange.upperBound().equalsInt(numArgs))
+			if (!argsSizeRange.lowerBound.equalsInt(numArgs)
+				|| !argsSizeRange.upperBound.equalsInt(numArgs))
 			{
 				// Couldn't guarantee the argument count matches.
 				return false
@@ -286,17 +287,17 @@ object P_RestartContinuationWithArguments : Primitive(
 
 		// Examine the continuation's function's type.
 		val continuationType = continuationReg.type()
-		val functionType = continuationType.functionType()
-		val functionArgsType = functionType.argsTupleType()
-		val functionTypeSizes = functionArgsType.sizeRange()
-		val upperBound = functionTypeSizes.upperBound()
+		val functionType = continuationType.functionType
+		val functionArgsType = functionType.argsTupleType
+		val functionTypeSizes = functionArgsType.sizeRange
+		val upperBound = functionTypeSizes.upperBound
 		if (!upperBound.isInt
-			|| !functionTypeSizes.lowerBound().equals(upperBound))
+			|| !functionTypeSizes.lowerBound.equals(upperBound))
 		{
 			// The exact function signature is not known.  Give up.
 			return false
 		}
-		val argsSize = upperBound.extractInt()
+		val argsSize = upperBound.extractInt
 		val explodedArgumentRegs = generator.explodeTupleIfPossible(
 			argumentsTupleReg,
 			toList(functionArgsType.tupleOfTypesFromTo(1, argsSize)))

@@ -39,6 +39,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -111,7 +112,7 @@ class MarkerPhraseDescriptor private constructor(
 		indent: Int
 	) {
 		builder.append("Marker(")
-		builder.append(self.markerValue())
+		builder.append(self.markerValue)
 		builder.append(")")
 	}
 
@@ -133,15 +134,15 @@ class MarkerPhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.markerValue().equals(aPhrase.markerValue()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.markerValue.equals(aPhrase.markerValue))
 
 	/** This shouldn't make a difference. */
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.markerValue().hash() xor -0x34353534
+		combine2(self.markerValue.hash(), -0x34353534)
 
 	override fun o_MarkerValue(self: AvailObject): A_BasicObject =
 		self.slot(MARKER_VALUE)
@@ -186,10 +187,10 @@ class MarkerPhraseDescriptor private constructor(
 				setSlot(MARKER_VALUE, markerValue!!)
 			}
 
-		/** The mutable [MarkerPhraseDescriptor].  */
+		/** The mutable [MarkerPhraseDescriptor]. */
 		private val mutable = MarkerPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MarkerPhraseDescriptor].  */
+		/** The shared [MarkerPhraseDescriptor]. */
 		private val shared = MarkerPhraseDescriptor(Mutability.SHARED)
 	}
 }

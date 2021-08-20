@@ -53,8 +53,8 @@ import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObject.Companion.error
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -134,7 +134,7 @@ class AssignmentPhraseDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		builder.append(self.slot(VARIABLE).token().string().asNativeString())
+		builder.append(self.slot(VARIABLE).token.string().asNativeString())
 		builder.append(" := ")
 		self.slot(EXPRESSION).printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
@@ -147,41 +147,41 @@ class AssignmentPhraseDescriptor private constructor(
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		when {
-			isInline(self) -> self.slot(EXPRESSION).phraseExpressionType()
+			isInline(self) -> self.slot(EXPRESSION).phraseExpressionType
 			else -> TOP.o
 		}
 
-	override fun o_Hash(self: AvailObject) =
-		(self.variable().hash() * multiplier
-			+ self.expression().hash()
-			xor -0x58e157ac)
+	override fun o_Hash(self: AvailObject) = combine3(
+		self.variable.hash(),
+		self.expression.hash(),
+		-0x58e157ac)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(VARIABLE).equals(aPhrase.variable())
-		&& self.slot(EXPRESSION).equals(aPhrase.expression())
-		&& self.slot(TOKENS).equals(aPhrase.tokens()))
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(VARIABLE).equals(aPhrase.variable)
+		&& self.slot(EXPRESSION).equals(aPhrase.expression)
+		&& self.slot(TOKENS).equals(aPhrase.tokens))
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration = self.slot(VARIABLE).declaration()
+		val declaration = self.slot(VARIABLE).declaration
 		val declarationKind = declaration.declarationKind()
 		assert(declarationKind.isVariable)
 		self.slot(EXPRESSION).emitValueOn(codeGenerator)
 		declarationKind.emitVariableAssignmentForOn(
-			self.tokens(), declaration, codeGenerator)
+			self.tokens, declaration, codeGenerator)
 	}
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val declaration = self.slot(VARIABLE).declaration()
+		val declaration = self.slot(VARIABLE).declaration
 		val declarationKind = declaration.declarationKind()
 		assert(declarationKind.isVariable)
 		self.slot(EXPRESSION).emitValueOn(codeGenerator)
@@ -189,14 +189,14 @@ class AssignmentPhraseDescriptor private constructor(
 			isInline(self) -> {
 				codeGenerator.emitDuplicate()
 				declarationKind.emitVariableAssignmentForOn(
-					self.tokens(), declaration, codeGenerator)
+					self.tokens, declaration, codeGenerator)
 			}
 			else -> {
 				// This assignment is the last statement in a sequence.  Don't
 				// leak the assigned value, since it's *not* an inlined
 				// assignment.
 				declarationKind.emitVariableAssignmentForOn(
-					self.tokens(), declaration, codeGenerator)
+					self.tokens, declaration, codeGenerator)
 				codeGenerator.emitPushLiteral(emptyTuple, nil)
 			}
 		}
@@ -226,7 +226,7 @@ class AssignmentPhraseDescriptor private constructor(
 	override fun o_ValidateLocally(
 		self: AvailObject,
 		parent: A_Phrase?
-	) = when (self.slot(VARIABLE).declaration().declarationKind()) {
+	) = when (self.slot(VARIABLE).declaration.declarationKind()) {
 		ARGUMENT -> error("Can't assign to argument")
 		LABEL -> error("Can't assign to label")
 		LOCAL_CONSTANT,
@@ -303,10 +303,10 @@ class AssignmentPhraseDescriptor private constructor(
 			setSlot(IS_INLINE, if (isInline) 1 else 0)
 		}
 
-		/** The mutable [AssignmentPhraseDescriptor].  */
+		/** The mutable [AssignmentPhraseDescriptor]. */
 		private val mutable = AssignmentPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [AssignmentPhraseDescriptor].  */
+		/** The shared [AssignmentPhraseDescriptor]. */
 		private val shared = AssignmentPhraseDescriptor(Mutability.SHARED)
 	}
 }

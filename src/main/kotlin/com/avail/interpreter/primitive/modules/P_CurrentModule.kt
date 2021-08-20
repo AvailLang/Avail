@@ -58,7 +58,7 @@ object P_CurrentModule : Primitive(0, CanInline, ReadsFromHiddenGlobalState)
 	{
 		interpreter.checkArgumentCount(0)
 		val module = interpreter.module()
-		if (module.equalsNil())
+		if (module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}

@@ -31,14 +31,13 @@
  */
 package com.avail.interpreter.primitive.files
 
-import com.avail.AvailRuntime.Companion.currentRuntime
 import com.avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.returnType
@@ -91,27 +90,26 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		val fail = interpreter.argument(4)
 		val priority = interpreter.argument(5)
 
-		val runtime = currentRuntime()
-		val sourcePath: Path
-		val destinationPath: Path =
+		val runtime = interpreter.runtime
+		val (sourcePath, destinationPath) =
 			try
 			{
-				sourcePath = IOSystem.fileSystem.getPath(
-					source.asNativeString())
-				IOSystem.fileSystem.getPath(destination.asNativeString())
+				Pair(
+					IOSystem.fileSystem.getPath(source.asNativeString()),
+					IOSystem.fileSystem.getPath(destination.asNativeString()))
 			}
 			catch (e: InvalidPathException)
 			{
 				return interpreter.primitiveFailure(E_INVALID_PATH)
 			}
 
-		val priorityInt = priority.extractInt()
+		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			priorityInt)
 		{
-			StringDescriptor.stringFrom(
+			stringFrom(
 				"Asynchronous file rename, $sourcePath → $destinationPath")
 		}
 		newFiber.setAvailLoader(current.availLoader())
@@ -122,81 +120,47 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		succeed.makeShared()
 		fail.makeShared()
 
-		val replace = replaceExisting.extractBoolean()
-		runtime.ioSystem.executeFileTask(
-			Runnable {
-               val options = mutableListOf<CopyOption>()
-               if (replace)
-               {
-                   options.add(StandardCopyOption.REPLACE_EXISTING)
-               }
-               try
-               {
-                   Files.move(
-                       sourcePath,
-                       destinationPath,
-                       *options.toTypedArray())
-               }
-               catch (e: SecurityException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@Runnable
-               }
-               catch (e: AccessDeniedException)
-               {
-                   Interpreter.runOutermostFunction(
-	                   runtime,
-	                   newFiber,
-	                   fail,
-	                   listOf(E_PERMISSION_DENIED.numericCode()))
-                   return@Runnable
-               }
-               catch (e: NoSuchFileException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_NO_FILE.numericCode()))
-                   return@Runnable
-               }
-               catch (e: FileAlreadyExistsException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_FILE_EXISTS.numericCode()))
-                   return@Runnable
-               }
-               catch (e: IOException)
-               {
-                   Interpreter.runOutermostFunction(
-                       runtime,
-                       newFiber,
-                       fail,
-                       listOf(E_IO_ERROR.numericCode()))
-                   return@Runnable
-               }
+		val replace = replaceExisting.extractBoolean
+		runtime.ioSystem.executeFileTask {
+			val options = mutableListOf<CopyOption>()
+			if (replace)
+			{
+				options.add(StandardCopyOption.REPLACE_EXISTING)
+			}
+			try
+			{
+				Files.move(
+					sourcePath,
+					destinationPath,
+					*options.toTypedArray())
+			}
+			catch (e: Exception)
+			{
+				val errorCode = when (e)
+				{
+					is SecurityException -> E_PERMISSION_DENIED
+					is AccessDeniedException -> E_PERMISSION_DENIED
+					is NoSuchFileException -> E_NO_FILE
+					is FileAlreadyExistsException -> E_FILE_EXISTS
+					is IOException -> E_IO_ERROR
+					else -> throw e
+				}
+				Interpreter.runOutermostFunction(
+					runtime, newFiber, fail, listOf(errorCode.numericCode()))
+				return@executeFileTask
+			}
 
-               Interpreter.runOutermostFunction(
-                   runtime,
-                   newFiber,
-                   succeed,
-                   emptyList())
-           })
+			Interpreter.runOutermostFunction(
+				runtime, newFiber, succeed, emptyList())
+		}
 		return interpreter.primitiveSuccess(newFiber)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				stringType(),
-				stringType(),
+				stringType,
+				stringType,
 				booleanType,
 				functionType(emptyTuple, TOP.o),
 				functionType(
@@ -206,10 +170,8 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 							E_FILE_EXISTS,
 							E_NO_FILE,
 							E_IO_ERROR))),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

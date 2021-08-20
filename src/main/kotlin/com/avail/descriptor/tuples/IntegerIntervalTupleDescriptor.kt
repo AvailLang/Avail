@@ -129,7 +129,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -141,7 +141,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum
 	{
-		/** The first value in the tuple, inclusive.  */
+		/** The first value in the tuple, inclusive. */
 		START,
 
 		/**
@@ -181,7 +181,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		val endValue: A_Number = self.slot(END)
 		val deltaValue: A_Number = self.slot(DELTA)
 		val nextValue = endValue.plusCanDestroy(deltaValue, false)
@@ -316,7 +316,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			otherTuple.makeImmutable()
 		}
 
-		if (otherTuple.tupleSize() == 0) return self
+		if (otherTuple.tupleSize == 0) return self
 
 		// Assess the possibility that the concatenation will still be an
 		// integer interval tuple.
@@ -333,8 +333,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 						.equals(otherDirect.slot(START)))
 				{
 					// then we're adjacent.
-					val newSize = self.slot(SIZE) +
-								  otherDirect.slot(SIZE)
+					val newSize = self.slot(SIZE) + otherDirect.slot(SIZE)
 
 					// If we can do replacement in place,
 					// use me for the return value.
@@ -362,14 +361,11 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 				}
 			}
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		if (otherTuple.treeTupleLevel == 0)
 		{
-			createTwoPartTreeTuple(self, otherTuple, 1, 0)
+			return createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
-		else
-		{
-			concatenateAtLeastOneTree(self, otherTuple, true)
-		}
+		return concatenateAtLeastOneTree(self, otherTuple, true)
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -427,7 +423,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) * DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		var temp: A_Number = fromInt(index - 1)
 		temp = temp.timesCanDestroy(self.slot(DELTA), false)
 		temp = temp.plusCanDestroy(self.slot(START), false)
@@ -443,10 +439,10 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
-			== (newValueObject as A_Number).extractInt())
+			== (newValueObject as A_Number).extractInt)
 		{
 			// The element is to be replaced with itself.
 			if (!canDestroy)
@@ -491,15 +487,15 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int =
-		self.tupleAt(index).extractInt()
+		self.tupleAt(index).extractInt
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long =
-		self.tupleAt(index).extractLong()
+		self.tupleAt(index).extractLong
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
 		//If tuple is small enough or is immutable, create a new Interval
-		if (self.tupleSize() < maximumCopySize || !isMutable)
+		if (self.tupleSize < maximumCopySize || !isMutable)
 		{
 			val newDelta =
 				self.slot(DELTA).timesCanDestroy(fromInt(-1), true)
@@ -579,7 +575,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			// If there are fewer than maximumCopySize members in this interval,
 			// create a normal tuple with them in it instead of an interval tuple.
 			val size = 1 +
-					   difference.divideCanDestroy(delta, false).extractInt()
+						difference.divideCanDestroy(delta, false).extractInt
 			if (size < maximumCopySize)
 			{
 				val members = mutableListOf<A_Number>()
@@ -598,9 +594,9 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 					start, end, delta))
 			{
 				return SmallIntegerIntervalTupleDescriptor.createSmallInterval(
-					start.extractInt(),
-					end.extractInt(),
-					delta.extractInt().toLong())
+					start.extractInt,
+					end.extractInt,
+					delta.extractInt.toLong())
 			}
 
 			// No other efficiency shortcuts. Normalize end, and create a range.
@@ -641,14 +637,14 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [IntegerIntervalTupleDescriptor].  */
+		/** The mutable [IntegerIntervalTupleDescriptor]. */
 		val mutable = IntegerIntervalTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [IntegerIntervalTupleDescriptor].  */
+		/** The immutable [IntegerIntervalTupleDescriptor]. */
 		private val immutable =
 			IntegerIntervalTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [IntegerIntervalTupleDescriptor].  */
+		/** The shared [IntegerIntervalTupleDescriptor]. */
 		private val shared = IntegerIntervalTupleDescriptor(Mutability.SHARED)
 	}
 }

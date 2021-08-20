@@ -129,7 +129,7 @@ class ByteTupleDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -141,13 +141,13 @@ class ByteTupleDescriptor private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		if (originalSize >= maximumCopySize || !newElement.isInt)
 		{
 			// Transition to a tree tuple.
 			return self.concatenateWith(tuple(newElement), canDestroy)
 		}
-		val intValue = (newElement as A_Number).extractInt()
+		val intValue = (newElement as A_Number).extractInt
 		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
@@ -235,7 +235,7 @@ class ByteTupleDescriptor private constructor(
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		val size1 = self.tupleSize()
+		val size1 = self.tupleSize
 		if (size1 == 0)
 		{
 			if (!canDestroy)
@@ -244,7 +244,7 @@ class ByteTupleDescriptor private constructor(
 			}
 			return otherTuple
 		}
-		val size2 = otherTuple.tupleSize()
+		val size2 = otherTuple.tupleSize
 		if (size2 == 0)
 		{
 			if (!canDestroy)
@@ -290,7 +290,7 @@ class ByteTupleDescriptor private constructor(
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			TreeTupleDescriptor.createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -306,7 +306,7 @@ class ByteTupleDescriptor private constructor(
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
@@ -348,11 +348,11 @@ class ByteTupleDescriptor private constructor(
 		when
 		{
 			self.sameAddressAs(aByteTuple) -> return true
-			self.tupleSize() != aByteTuple.tupleSize() -> return false
+			self.tupleSize != aByteTuple.tupleSize -> return false
 			self.hash() != aByteTuple.hash() -> return false
 			!self.compareFromToWithByteTupleStartingAt(
 				1,
-				self.tupleSize(),
+				self.tupleSize,
 				aByteTuple,
 				1) -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
@@ -384,15 +384,15 @@ class ByteTupleDescriptor private constructor(
 				return true
 			!aType.isTupleType -> return false
 			//  See if it's an acceptable size...
-			!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()) ->
+			!aType.sizeRange.rangeIncludesLong(self.tupleSize.toLong()) ->
 				return false
 
 			//  tuple's size is in range.
 			else ->
 			{
-				val typeTuple = aType.typeTuple()
+				val typeTuple = aType.typeTuple
 				val breakIndex =
-					self.tupleSize().coerceAtMost(typeTuple.tupleSize())
+					self.tupleSize.coerceAtMost(typeTuple.tupleSize)
 				for (i in 1 .. breakIndex)
 				{
 					if (!self.tupleAt(i).isInstanceOf(aType.typeAtIndex(i)))
@@ -400,14 +400,14 @@ class ByteTupleDescriptor private constructor(
 						return false
 					}
 				}
-				val defaultTypeObject = aType.defaultType()
+				val defaultTypeObject = aType.defaultType
 				if (IntegerRangeTypeDescriptor.bytes
 						.isSubtypeOf(defaultTypeObject))
 				{
 					return true
 				}
 				var i = breakIndex + 1
-				val end = self.tupleSize()
+				val end = self.tupleSize
 				while (i <= end)
 				{
 					if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
@@ -426,7 +426,7 @@ class ByteTupleDescriptor private constructor(
 		if (isMutable)
 		{
 			self.setDescriptor(
-				descriptorFor(Mutability.IMMUTABLE, self.tupleSize()))
+				descriptorFor(Mutability.IMMUTABLE, self.tupleSize))
 		}
 		return self
 	}
@@ -436,7 +436,7 @@ class ByteTupleDescriptor private constructor(
 		if (!isShared)
 		{
 			self.setDescriptor(
-				descriptorFor(Mutability.SHARED, self.tupleSize()))
+				descriptorFor(Mutability.SHARED, self.tupleSize))
 		}
 		return self
 	}
@@ -459,7 +459,7 @@ class ByteTupleDescriptor private constructor(
 		index: Int): AvailObject
 	{
 		//  Answer the element at the given index in the tuple object.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return fromUnsignedByte(self.byteSlot(RAW_LONG_AT_, index))
 	}
 
@@ -472,7 +472,7 @@ class ByteTupleDescriptor private constructor(
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (!newValueObject.isUnsignedByte)
 		{
 			return if (newValueObject.isInt)
@@ -489,7 +489,7 @@ class ByteTupleDescriptor private constructor(
 		result.setByteSlot(
 			RAW_LONG_AT_,
 			index,
-			(newValueObject as A_Number).extractUnsignedByte())
+			(newValueObject as A_Number).extractUnsignedByte)
 		result.setHashOrZero(0)
 		return result
 	}
@@ -505,19 +505,19 @@ class ByteTupleDescriptor private constructor(
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return self.byteSlot(RAW_LONG_AT_, index).toInt()
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return self.byteSlot(RAW_LONG_AT_, index).toLong()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize in 1 until maximumCopySize)
 		{
 			// It's not empty and it's reasonably small.
@@ -537,7 +537,7 @@ class ByteTupleDescriptor private constructor(
 	{
 		writer.startArray()
 		var i = 1
-		val limit = self.tupleSize()
+		val limit = self.tupleSize
 		while (i <= limit)
 		{
 			writer.write(self.tupleIntAt(i))
@@ -555,7 +555,7 @@ class ByteTupleDescriptor private constructor(
 		 */
 		private const val maximumCopySize = 64
 
-		/** The [ByteTupleDescriptor] instances.  */
+		/** The [ByteTupleDescriptor] instances. */
 		private val descriptors = arrayOfNulls<ByteTupleDescriptor>(8 * 3)
 
 		/**
@@ -593,7 +593,7 @@ class ByteTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedByteTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedByteTupleMethod = staticMethod(
 			ByteTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,

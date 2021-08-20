@@ -32,6 +32,7 @@
 
 package com.avail.dispatch
 
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.tuples.A_Tuple
@@ -68,7 +69,7 @@ internal class LeafLookupTree<
 internal constructor(private val finalResult: Result)
 : LookupTree<Element, Result>()
 {
-	override val solutionOrNull: Result?
+	override val solutionOrNull: Result
 		get() = finalResult
 
 	override fun <AdaptorMemento> lookupStepByTypes(
@@ -118,13 +119,13 @@ internal constructor(private val finalResult: Result)
 		if (finalResult.isTuple)
 		{
 			val finalTuple = finalResult as A_Tuple
-			val tupleSize = finalTuple.tupleSize()
+			val tupleSize = finalTuple.tupleSize
 			return if (tupleSize == 1)
 			{
 				// Assume for now that it's a tuple of definitions.
 				format(
 					"Success: %s",
-					finalTuple.tupleAt(1).bodySignature().argsTupleType())
+					finalTuple.tupleAt(1).bodySignature().argsTupleType)
 			}
 			else format(
 				"Failure: (%d solutions)",

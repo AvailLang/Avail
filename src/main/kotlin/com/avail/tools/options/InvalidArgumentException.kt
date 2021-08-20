@@ -48,6 +48,6 @@ package com.avail.tools.options
  */
 @Suppress("unused")
 class InvalidArgumentException constructor(
-	/** The keyword.  */
+	/** The keyword. */
 	val keyword: String)
 : OptionProcessingException("argument of \"$keyword\" was invalid")

@@ -32,9 +32,10 @@
 package com.avail.interpreter.primitive.maps
 
 import com.avail.descriptor.maps.A_Map.Companion.mapIterable
+import com.avail.descriptor.maps.A_Map.Companion.mapSize
 import com.avail.descriptor.maps.MapDescriptor
+import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
@@ -60,8 +61,11 @@ object P_MapBindings : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
 
-		val bindings = tupleFromList(
-			map.mapIterable().map { (k, v) -> tuple(k, v) })
+		val iterator = map.mapIterable
+		val bindings = generateObjectTupleFrom(map.mapSize) {
+			val (k, v) = iterator.next()
+			tuple(k, v)
+		}
 		return interpreter.primitiveSuccess(bindings)
 	}
 

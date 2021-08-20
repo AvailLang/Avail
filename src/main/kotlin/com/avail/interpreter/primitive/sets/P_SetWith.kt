@@ -80,34 +80,30 @@ object P_SetWith : Primitive(2, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralSetType(),
-				ANY.o
-			),
+				ANY.o),
 			setTypeForSizesContentType(
 				naturalNumbers,
-				ANY.o
-			))
+				ANY.o))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val setType = argumentTypes[0]
-		val newElementType = argumentTypes[1]
-
-		val setContentType = setType.contentType()
+		val (setType, newElementType) = argumentTypes
+		val setContentType = setType.contentType
 		val mightBePresent =
 			!setContentType.typeIntersection(newElementType).isBottom
-		val sizes = setType.sizeRange()
+		val sizes = setType.sizeRange
 		val unionSize = integerRangeType(
 			if (mightBePresent)
-				sizes.lowerBound()
+				sizes.lowerBound
 			else
-				sizes.lowerBound().plusCanDestroy(one, false),
+				sizes.lowerBound.plusCanDestroy(one, false),
 			true,
-			sizes.upperBound().plusCanDestroy(two, false),
+			sizes.upperBound.plusCanDestroy(two, false),
 			false)
 		val unionType = setTypeForSizesContentType(
-			unionSize, setType.contentType().typeUnion(newElementType))
+			unionSize, setType.contentType.typeUnion(newElementType))
 		return unionType.makeImmutable()
 	}
 }

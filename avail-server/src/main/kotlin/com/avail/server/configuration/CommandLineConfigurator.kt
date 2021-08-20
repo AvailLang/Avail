@@ -42,6 +42,9 @@ import com.avail.server.configuration.CommandLineConfigurator.OptionKey.DOCUMENT
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.HELP
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_AUTHORITY
 import com.avail.server.configuration.CommandLineConfigurator.OptionKey.SERVER_PORT
+import com.avail.server.configuration.CommandLineConfigurator.OptionKey.WEB_SOCKET_ADAPTER
+import com.avail.server.io.SocketAdapter
+import com.avail.server.io.WebSocketAdapter
 import com.avail.tools.options.OptionProcessingException
 import com.avail.tools.options.OptionProcessor
 import com.avail.tools.options.OptionProcessorFactory
@@ -75,7 +78,7 @@ class CommandLineConfigurator constructor(
 	commandLineArguments: Array<String>,
 	private val helpStream: Appendable) : Configurator<AvailServerConfiguration>
 {
-	/** The command line arguments.  */
+	/** The command line arguments. */
 	private val commandLineArguments = commandLineArguments.clone()
 
 	/** Has the [configurator][CommandLineConfigurator] been run yet? */
@@ -96,6 +99,12 @@ class CommandLineConfigurator constructor(
 		 * Specification of the [Avail&#32;roots][ModuleRoots].
 		 */
 		AVAIL_ROOTS,
+
+		/**
+		 * Specification that a [WebSocketAdapter] should be started instead of
+		 * an ordinary [SocketAdapter].
+		 */
+		WEB_SOCKET_ADAPTER,
 
 		/**
 		 * Specification of the server authority.
@@ -148,6 +157,14 @@ class CommandLineConfigurator constructor(
 				{
 					configuration.availRootsPath = argument
 				}
+			option(
+				WEB_SOCKET_ADAPTER,
+				listOf("webSocketAdapter"),
+				"Start a WebSocket adapter instead of an ordinary socket " +
+					"adapter.")
+				{
+					configuration.startWebSocketAdapter = true
+				}
 			optionWithArgument(
 				SERVER_AUTHORITY,
 				listOf("serverAuthority"),
@@ -190,15 +207,20 @@ class CommandLineConfigurator constructor(
 				"The Avail server understands the following options: ",
 				helpStream)
 			configuration.rule("Could not resolve specified module") {
-				try {
+				try
+				{
 					// Just try to create a module name resolver. If this fails,
 					// then the configuration is invalid. Otherwise, it should
 					// be okay.
 					moduleNameResolver()
 					true
-				} catch (e: FileNotFoundException) {
+				}
+				catch (e: FileNotFoundException)
+				{
 					false
-				} catch (e: RenamesFileParserException) {
+				}
+				catch (e: RenamesFileParserException)
+				{
 					false
 				}
 			}

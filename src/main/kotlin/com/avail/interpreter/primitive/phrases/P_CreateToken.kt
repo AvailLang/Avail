@@ -52,14 +52,14 @@ import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.A_Type.Companion.instanceCount
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
@@ -71,22 +71,25 @@ import com.avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;tsmith@safetyweb.org&gt;
  */
 @Suppress("unused")
-object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
+object P_CreateToken : Primitive(4, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
-		val type = interpreter.argument(0)
-		val lexeme = interpreter.argument(1)
-		val start = interpreter.argument(2)
-		val line = interpreter.argument(3)
+		val (type, lexeme, start, line) = interpreter.argsBuffer
+		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
+		{
+			// The low end was already limited by the primitive's argument type
+			// restrictions.
+			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+		}
 		return interpreter.primitiveSuccess(
 			newToken(
 				lexeme,
-				start.extractInt(),
-				line.extractInt(),
+				start.extractInt,
+				line.extractInt,
 				TokenType.lookupTokenType(
-					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())))
+					type.getAtomProperty(tokenTypeOrdinalKey).extractInt)))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -98,12 +101,12 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 		// final A_Type startType = argumentTypes.get(2);
 		// final A_Type lineType = argumentTypes.get(3);
 
-		if (atomType.instanceCount().equalsInt(1))
+		if (atomType.instanceCount.equalsInt(1))
 		{
-			val atom = atomType.instance()
+			val atom = atomType.instance
 			return tokenType(
 				TokenType.lookupTokenType(
-					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt()))
+					atom.getAtomProperty(tokenTypeOrdinalKey).extractInt))
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)
 	}
@@ -118,9 +121,11 @@ object P_CreateToken : Primitive(4, CannotFail, CanFold, CanInline)
 						OPERATOR.atom,
 						COMMENT.atom,
 						WHITESPACE.atom)),
-				stringType(),
-				inclusive(0L, (1L shl 31) - 1),
-				inclusive(0L, (1L shl 28) - 1)),
-			TOKEN.o
-		)
+				stringType,
+				wholeNumbers,
+				wholeNumbers),
+			TOKEN.o)
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_EXCEEDS_VM_LIMIT))
 }

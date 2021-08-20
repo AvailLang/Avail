@@ -40,6 +40,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -96,7 +97,7 @@ class SequencePhraseDescriptor private constructor(
 		transformer: (A_Phrase) -> A_Phrase
 	) = self.setSlot(
 		STATEMENTS,
-		tupleFromList(self.slot(STATEMENTS).map { transformer(it) }))
+		tupleFromList(self.slot(STATEMENTS).map(transformer)))
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,
@@ -110,7 +111,7 @@ class SequencePhraseDescriptor private constructor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		val statementsCount = statements.tupleSize()
+		val statementsCount = statements.tupleSize
 		for (i in 1 until statementsCount) {
 			statements.tupleAt(i).emitEffectOn(codeGenerator)
 		}
@@ -122,16 +123,16 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(STATEMENTS).equals(aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		return when(statements.tupleSize()) {
+		return when(statements.tupleSize) {
 			0 -> TOP.o
-			else -> statements.tupleAt(statements.tupleSize())
-				.phraseExpressionType()
+			else -> statements.tupleAt(statements.tupleSize)
+				.phraseExpressionType
 		}
 	}
 
@@ -143,7 +144,7 @@ class SequencePhraseDescriptor private constructor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.slot(STATEMENTS).hash() + -0x1c7ebf36
+		combine2(self.slot(STATEMENTS).hash(), -0x1c7ebf36)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEQUENCE_PHRASE
@@ -199,10 +200,10 @@ class SequencePhraseDescriptor private constructor(
 				setSlot(STATEMENTS, statements)
 			}
 
-		/** The mutable [SequencePhraseDescriptor].  */
+		/** The mutable [SequencePhraseDescriptor]. */
 		private val mutable = SequencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SequencePhraseDescriptor].  */
+		/** The shared [SequencePhraseDescriptor]. */
 		private val shared = SequencePhraseDescriptor(Mutability.SHARED)
 	}
 }

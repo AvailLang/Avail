@@ -260,7 +260,7 @@ class DotWriter constructor(
 			while (i < lineLimit)
 			{
 				var cp = s.codePointAt(i)
-				if (cp == '\n'.toInt())
+				if (cp == '\n'.code)
 				{
 					// Upon discovery of a linefeed, compute the next line and
 					// the residue.
@@ -279,7 +279,7 @@ class DotWriter constructor(
 						i += sz
 						whiteRun += sz
 						cp =
-							if (i < s.length) s.codePointAt(i) else 'x'.toInt()
+							if (i < s.length) s.codePointAt(i) else 'x'.code
 					}
 					while (Character.isWhitespace(cp))
 				}
@@ -314,7 +314,7 @@ class DotWriter constructor(
 						i += sz
 						whiteRun += sz
 						cp =
-							if (i < wideLimit) s.codePointAt(i) else 'x'.toInt()
+							if (i < wideLimit) s.codePointAt(i) else 'x'.code
 					}
 					while (Character.isWhitespace(cp))
 					break
@@ -406,8 +406,8 @@ class DotWriter constructor(
 						.mapToObj { cp ->
 							val s = when (cp)
 							{
-								'\"'.toInt() -> "\\\""
-								'\n'.toInt() -> "\\n"
+								'\"'.code -> "\\\""
+								'\n'.code -> "\\n"
 								else -> String(Character.toChars(cp))
 							}
 							s
@@ -489,13 +489,13 @@ class DotWriter constructor(
 	 */
 	enum class DefaultAttributeBlockType
 	{
-		/** Graph scope.  */
+		/** Graph scope. */
 		GRAPH,
 
-		/** Node scope.  */
+		/** Node scope. */
 		NODE,
 
-		/** Edge scope.  */
+		/** Edge scope. */
 		EDGE
 	}
 
@@ -508,31 +508,31 @@ class DotWriter constructor(
 	 */
 	enum class CompassPoint
 	{
-		/** Northwest.  */
+		/** Northwest. */
 		NW,
 
-		/** North.  */
+		/** North. */
 		N,
 
-		/** Northeast.  */
+		/** Northeast. */
 		NE,
 
-		/** West.  */
+		/** West. */
 		W,
 
-		/** Center.  */
+		/** Center. */
 		C,
 
-		/** East.  */
+		/** East. */
 		E,
 
-		/** Southwest.  */
+		/** Southwest. */
 		SW,
 
-		/** South.  */
+		/** South. */
 		S,
 
-		/** Southeast.  */
+		/** Southeast. */
 		SE
 	}
 
@@ -611,7 +611,7 @@ class DotWriter constructor(
 			block: (AttributeWriter) -> Unit)
 		{
 			indent()
-			emit(type.name.toLowerCase())
+			emit(type.name.lowercase())
 			linefeed()
 			attributeBlock(block)
 		}
@@ -734,7 +734,7 @@ class DotWriter constructor(
 			if (node.compassPoint !== null)
 			{
 				emit(":")
-				emit(node.compassPoint.name.toLowerCase())
+				emit(node.compassPoint.name.lowercase())
 			}
 		}
 
@@ -948,7 +948,7 @@ class DotWriter constructor(
 						if (o.compassPoint !== null)
 						{
 							emit(":")
-							identifier(o.compassPoint.name.toLowerCase())
+							identifier(o.compassPoint.name.lowercase())
 						}
 					}
 					else if (o is Function1<*, *>)
@@ -1017,7 +1017,7 @@ class DotWriter constructor(
 	companion object
 	{
 
-		/** A single tab character as a [Pattern].  */
+		/** A single tab character as a [Pattern]. */
 		private val tab = Pattern.compile("\t", Pattern.LITERAL)
 
 		/**
@@ -1036,7 +1036,7 @@ class DotWriter constructor(
 				Matcher.quoteReplacement("    "))
 		}
 
-		/** A single line-feed character as a [Pattern].  */
+		/** A single line-feed character as a [Pattern]. */
 		private val lineFeed = Pattern.compile("\n", Pattern.LITERAL)
 
 		/**
@@ -1074,7 +1074,7 @@ class DotWriter constructor(
 		internal val keywords = setOf(
 			"strict", "graph", "digraph", "subgraph", "node", "edge")
 
-		/** A pattern for matching tokens.  */
+		/** A pattern for matching tokens. */
 		internal val tokenPattern = Pattern.compile("[A-Za-z0-9]+")
 
 		/**

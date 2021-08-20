@@ -78,7 +78,7 @@ object P_CreateEnumeration : Primitive(1, CannotFail, CanFold, CanInline)
 		// enumeration that the primitive would construct.  Therefore, answer
 		// the set's element type's type.  Note that this works especially well
 		// when the set's element type is an enumeration.
-		val elementType = setType.contentType()
+		val elementType = setType.contentType
 		val metaType = instanceMeta(elementType)
 		return metaType.makeImmutable()
 	}

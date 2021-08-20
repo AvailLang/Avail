@@ -73,7 +73,7 @@ object L2_TRY_PRIMITIVE : L2Operation(
 
 	/**
 	 * It could fail and jump.
- 	 */
+	 */
 	override fun hasSideEffect() = true
 
 	override fun translateToJVM(

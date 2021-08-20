@@ -82,7 +82,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		 * @return
 		 *   A tuple containing each element of the set.
 		 */
-		fun A_Set.asTuple(): A_Tuple = dispatch { o_AsTuple(it) }
+		val A_Set.asTuple: A_Tuple get() = dispatch { o_AsTuple(it) }
 
 		/**
 		 * Dispatch to the descriptor.
@@ -184,7 +184,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 		 * @return
 		 *   The set's size.
 		 */
-		fun A_Set.setSize(): Int = dispatch { o_SetSize(it) }
+		val A_Set.setSize: Int get() = dispatch { o_SetSize(it) }
 
 		/**
 		 * Answer a set containing all the elements of this set and all the
@@ -253,7 +253,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			self.descriptor().o_SetSize(self)
 
 		/** The [CheckedMethod] for [setSizeStatic]. */
-		val setSizeMethod: CheckedMethod = staticMethod(
+		val setSizeMethod = staticMethod(
 			A_Set::class.java,
 			::setSizeStatic.name,
 			Int::class.javaPrimitiveType!!,
@@ -272,7 +272,7 @@ interface A_Set : A_BasicObject, Iterable<AvailObject> {
 			self, newElementObject, true) as AvailObject
 
 		/** The [CheckedMethod] for [setWithElementStatic]. */
-		val setWithElementMethod: CheckedMethod = staticMethod(
+		val setWithElementMethod = staticMethod(
 			A_Set::class.java,
 			::setWithElementStatic.name,
 			AvailObject::class.java,

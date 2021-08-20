@@ -104,18 +104,16 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
-
+		val (aType, bType) = argumentTypes
 		try
 		{
 			if (aType.isEnumeration && bType.isEnumeration)
 			{
-				val aInstances = aType.instances()
-				val bInstances = bType.instances()
+				val aInstances = aType.instances
+				val bInstances = bType.instances
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
-				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
+				if (aInstances.setSize * bInstances.setSize.toLong() < 100)
 				{
 					var answers = emptySet
 					for (aInstance in aInstances)
@@ -132,10 +130,10 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 			}
 			if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 			{
-				val low = aType.lowerBound().minusCanDestroy(
-					bType.upperBound(), false)
-				val high = aType.upperBound().minusCanDestroy(
-					bType.lowerBound(), false)
+				val low = aType.lowerBound.minusCanDestroy(
+					bType.upperBound, false)
+				val high = aType.upperBound.minusCanDestroy(
+					bType.lowerBound, false)
 				val includesNegativeInfinity =
 					negativeInfinity.isInstanceOf(aType)
 						|| positiveInfinity.isInstanceOf(bType)
@@ -160,15 +158,13 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
-
+		val (aType, bType) = argumentTypes
 		val aTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(aType)
 		val aTypeIncludesInfinity = positiveInfinity.isInstanceOf(aType)
 		val bTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(bType)
 		val bTypeIncludesInfinity = positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesNegativeInfinity && bTypeIncludesNegativeInfinity
-           || aTypeIncludesInfinity && bTypeIncludesInfinity)
+			|| aTypeIncludesInfinity && bTypeIncludesInfinity)
 		{
 			CallSiteCanFail
 		}
@@ -193,7 +189,7 @@ object P_Subtraction : Primitive(2, CanFold, CanInline)
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
 		if (aType.typeIntersection(int32).isBottom
-		    || bType.typeIntersection(int32).isBottom)
+			|| bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}

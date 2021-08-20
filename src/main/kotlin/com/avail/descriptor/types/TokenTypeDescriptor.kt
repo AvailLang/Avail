@@ -33,9 +33,11 @@ package com.avail.descriptor.types
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.tokens.TokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor.TokenType
 import com.avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfTokenType
@@ -47,7 +49,6 @@ import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CO
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
-import jdk.nashorn.internal.parser.TokenType
 import java.util.IdentityHashMap
 
 /**
@@ -77,7 +78,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The [type][TokenType] constraint on a token's value.
+		 * The [type][TokenDescriptor.TokenType] constraint on a token's value.
 		 */
 		TOKEN_TYPE_CODE
 	}
@@ -90,7 +91,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	{
 		builder.append(String.format(
 			"%s token",
-			self.tokenType().name.toLowerCase().replace('_', ' ')))
+			self.tokenType().name.lowercase().replace('_', ' ')))
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -99,11 +100,10 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_EqualsTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): Boolean =
-			self.tokenType() === aTokenType.tokenType()
+			self.tokenType() === aTokenType.tokenType
 
 	override fun o_Hash(self: AvailObject): Int =
-		Integer.hashCode(self.slot(TOKEN_TYPE_CODE).toInt()) xor
-			-0x32659c49
+		combine2(self.slot(TOKEN_TYPE_CODE).toInt(), -0x32659c49)
 
 	override fun o_IsTokenType(self: AvailObject): Boolean = true
 
@@ -122,9 +122,9 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_IsSupertypeOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): Boolean =
-			self.tokenType() === aTokenType.tokenType()
+			self.tokenType() === aTokenType.tokenType
 
-	override fun o_TokenType(self: AvailObject): TokenDescriptor.TokenType =
+	override fun o_TokenType(self: AvailObject): TokenType =
 		lookupTokenType(self.slot(TOKEN_TYPE_CODE).toInt())
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
@@ -142,7 +142,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeIntersectionOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
-			if (self.tokenType() === aTokenType.tokenType()) self
+			if (self.tokenType() === aTokenType.tokenType) self
 			else bottom
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
@@ -162,7 +162,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_TypeUnionOfTokenType(
 		self: AvailObject,
 		aTokenType: A_Type): A_Type =
-			if (self.tokenType() === aTokenType.tokenType()) self
+			if (self.tokenType() === aTokenType.tokenType) self
 			else TOKEN.o
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
@@ -176,8 +176,7 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		writer.write("kind")
 		writer.write("token type")
 		writer.write("token type")
-		writer.write(self.tokenType().name.toLowerCase().replace(
-			'_', ' '))
+		writer.write(self.tokenType().name.lowercase().replace('_', ' '))
 		writer.endObject()
 	}
 
@@ -199,15 +198,15 @@ class TokenTypeDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   A [token type][TokenTypeDescriptor].
 		 */
-		fun tokenType(tokenType: TokenDescriptor.TokenType): AvailObject =
+		fun tokenType(tokenType: TokenType): AvailObject =
 			mutable.create {
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal.toLong())
 			}
 
-		/** The mutable [TokenTypeDescriptor].  */
+		/** The mutable [TokenTypeDescriptor]. */
 		private val mutable = TokenTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [TokenTypeDescriptor].  */
+		/** The shared [TokenTypeDescriptor]. */
 		private val shared = TokenTypeDescriptor(Mutability.SHARED)
 	}
 }

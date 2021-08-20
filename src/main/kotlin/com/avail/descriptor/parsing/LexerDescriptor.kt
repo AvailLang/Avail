@@ -35,6 +35,8 @@ import com.avail.compiler.scanning.LexingState
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.lexer
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.addLexer
@@ -48,7 +50,7 @@ import com.avail.descriptor.parsing.LexerDescriptor.ObjectSlots.LEXER_METHOD
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine5
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -60,6 +62,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
@@ -167,12 +170,12 @@ class LexerDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		self.lexerMethod().bundles().joinTo(
+		self.lexerMethod.bundles.joinTo(
 			buffer = builder,
 			separator = " a.k.a. ",
 			prefix = "Lexer for "
 		) {
-			it.message().toString()
+			it.message.toString()
 		}
 	}
 
@@ -280,7 +283,8 @@ class LexerDescriptor private constructor(
 
 	override fun shared() = shared
 
-	companion object {
+	companion object
+	{
 		private val lexerFilterFunctionType: A_Type = functionType(
 			tuple(Types.CHARACTER.o),
 			booleanType
@@ -290,9 +294,9 @@ class LexerDescriptor private constructor(
 
 		private val lexerBodyFunctionType: A_Type = functionType(
 			tuple(
-				stringType(),
-				inclusive(1, (1L shl 31) - 1),
-				inclusive(1, (1L shl 28) - 1)),
+				stringType,
+				naturalNumbers,
+				naturalNumbers),
 			setTypeForSizesContentType(
 				wholeNumbers,
 				oneOrMoreOf(Types.TOKEN.o))
@@ -322,23 +326,24 @@ class LexerDescriptor private constructor(
 			lexerBodyFunction: A_Function?,
 			lexerMethod: A_Method,
 			definitionModule: A_Module
-		): A_Lexer {
+		): A_Lexer
+		{
 			val lexer = mutable.createShared(8) {
 				setSlot(LEXER_FILTER_FUNCTION, lexerFilterFunction)
 				setSlot(LEXER_BODY_FUNCTION, lexerBodyFunction!!)
 				setSlot(LEXER_METHOD, lexerMethod)
 				setSlot(DEFINITION_MODULE, definitionModule)
-				var hash = lexerFilterFunction.hash() + -0x3c395d0d
-				hash *= multiplier
-				hash -= lexerFilterFunction.hash() xor -0x7f7f4065
-				hash *= multiplier
-				hash = hash xor lexerMethod.hash() + 0x520C1078
-				hash *= multiplier
-				hash = hash xor definitionModule.hash() - -0x463e0e17
+				val hash = combine5(
+					lexerFilterFunction.hash(),
+					lexerFilterFunction.hash(),
+					lexerMethod.hash(),
+					definitionModule.hash(),
+					-0x463e0e17)
 				setSlot(HASH, hash)
 			}
-			lexerMethod.setLexer(lexer)
-			if (!definitionModule.equalsNil()) {
+			lexerMethod.lexer = lexer
+			if (definitionModule.notNil)
+			{
 				definitionModule.addLexer(lexer)
 			}
 			return lexer

@@ -39,6 +39,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import com.avail.descriptor.phrases.A_Phrase.Companion.bundle
 import com.avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
@@ -54,7 +55,7 @@ import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.RETURN_TYPE
 import com.avail.descriptor.phrases.SendPhraseDescriptor.ObjectSlots.TOKENS
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.A_Token
@@ -124,12 +125,12 @@ class SendPhraseDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		self.bundle().messageSplitter().printSendNodeOnIndent(
+		self.bundle.messageSplitter.printSendNodeOnIndent(
 			self, builder, indent)
 	}
 
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
-		self.slot(BUNDLE).message()
+		self.slot(BUNDLE).message
 
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
 		self.slot(ARGUMENTS_LIST_NODE)
@@ -152,18 +153,18 @@ class SendPhraseDescriptor private constructor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		val bundle: A_Bundle = self.slot(BUNDLE)
-		val argCount: Int = bundle.bundleMethod().numArgs()
+		val argCount: Int = bundle.bundleMethod.numArgs
 		val arguments: A_Phrase = self.slot(ARGUMENTS_LIST_NODE)
 		arguments.emitAllValuesOn(codeGenerator)
-		val superUnionType = arguments.superUnionType()
+		val superUnionType = arguments.superUnionType
 		when {
 			superUnionType.isBottom -> codeGenerator.emitCall(
-				self.tokens(), argCount, bundle, self.phraseExpressionType())
+				self.tokens, argCount, bundle, self.phraseExpressionType)
 			else -> codeGenerator.emitSuperCall(
-				self.tokens(),
+				self.tokens,
 				argCount,
 				bundle,
-				self.phraseExpressionType(),
+				self.phraseExpressionType,
 				superUnionType)
 		}
 	}
@@ -171,20 +172,20 @@ class SendPhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(BUNDLE).equals(aPhrase.bundle())
-		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode())
-		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(BUNDLE).equals(aPhrase.bundle)
+		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode)
+		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(RETURN_TYPE)
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.slot(ARGUMENTS_LIST_NODE).hash() * multiplier
-			xor self.slot(BUNDLE).hash()) * multiplier
-			- self.slot(RETURN_TYPE).hash()
-			xor -0x6f1c64b3)
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.slot(ARGUMENTS_LIST_NODE).hash(),
+		self.slot(BUNDLE).hash(),
+		self.slot(RETURN_TYPE).hash(),
+		-0x6f1c64b3)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.SEND_PHRASE
@@ -231,8 +232,8 @@ class SendPhraseDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [send#&32;phrase][SendPhraseDescriptor] from the
-		 * specified [A_Bundle], [list#&32;phrase][ListPhraseDescriptor] of
+		 * Create a new [send#&#32;phrase][SendPhraseDescriptor] from the
+		 * specified [A_Bundle], [list#&#32;phrase][ListPhraseDescriptor] of
 		 * argument expressions, and return [type][TypeDescriptor].  Also take
 		 * a [tuple][A_Tuple] of [tokens][A_Token].
 		 *
@@ -264,10 +265,10 @@ class SendPhraseDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [SendPhraseDescriptor].  */
+		/** The mutable [SendPhraseDescriptor]. */
 		private val mutable = SendPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SendPhraseDescriptor].  */
+		/** The shared [SendPhraseDescriptor]. */
 		private val shared = SendPhraseDescriptor(Mutability.SHARED)
 	}
 }

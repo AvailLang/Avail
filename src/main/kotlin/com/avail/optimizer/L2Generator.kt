@@ -225,9 +225,8 @@ class L2Generator internal constructor(
 			 *   The corresponding `OptimizationLevel`, failing if the ordinal
 			 *   was out of range.
 			 */
-			fun optimizationLevel(
-				targetOptimizationLevel: Int): OptimizationLevel =
-					all[targetOptimizationLevel]
+			fun optimizationLevel(targetOptimizationLevel: Int) =
+				all[targetOptimizationLevel]
 		}
 	}
 
@@ -684,7 +683,7 @@ class L2Generator internal constructor(
 		if (restriction.constantOrNull !== null)
 		{
 			// Make it available as a constant in an int register.
-			return unboxedIntConstant(restriction.constantOrNull.extractInt())
+			return unboxedIntConstant(restriction.constantOrNull.extractInt)
 		}
 		// Extract it to a new int register.
 		val intWrite = L2WriteIntOperand(
@@ -761,7 +760,7 @@ class L2Generator internal constructor(
 		{
 			// Make it available as a constant in a float register.
 			return unboxedFloatConstant(
-				restriction.constantOrNull.extractDouble())
+				restriction.constantOrNull.extractDouble)
 		}
 		// Extract it to a new float register.
 		val floatWrite = L2WriteFloatOperand(
@@ -835,8 +834,8 @@ class L2Generator internal constructor(
 		if (sourceWritesInBlock.isNotEmpty())
 		{
 			// Find the latest equivalent write in this block.
-			val latestWrite = sourceWritesInBlock.maxBy {
-				it.instruction().basicBlock().instructions()
+			val latestWrite = sourceWritesInBlock.maxByOrNull {
+				it!!.instruction().basicBlock().instructions()
 					.indexOf(it.instruction())
 			}!!
 			if (!latestWrite.instruction().operation().isPhi)
@@ -954,7 +953,7 @@ class L2Generator internal constructor(
 				// necessary parts.
 				generateStringFromCodePoints(size) { oneBasedIndex ->
 					elements[oneBasedIndex - 1].constantOrNull().let {
-						if (it === null) '?'.toInt() else it.codePoint()
+						if (it === null) '?'.code else it.codePoint
 					}
 				}
 			}
@@ -970,19 +969,19 @@ class L2Generator internal constructor(
 				{
 					unionType.isSubtypeOf(nybbles) ->
 						generateNybbleTupleFrom(size) { oneIndex ->
-							constantsWithZeros[oneIndex - 1].extractInt()
+							constantsWithZeros[oneIndex - 1].extractInt
 						}
 					unionType.isSubtypeOf(bytes) ->
 						generateByteTupleFrom(size) { oneIndex ->
-							constantsWithZeros[oneIndex - 1].extractInt()
+							constantsWithZeros[oneIndex - 1].extractInt
 						}
 					unionType.isSubtypeOf(int32) ->
 						generateIntTupleFrom(size) { oneIndex ->
-							constantsWithZeros[oneIndex - 1].extractInt()
+							constantsWithZeros[oneIndex - 1].extractInt
 						}
 					else ->
 						generateLongTupleFrom(size) { oneIndex ->
-							constantsWithZeros[oneIndex - 1].extractLong()
+							constantsWithZeros[oneIndex - 1].extractLong
 						}
 				}
 			}
@@ -1088,14 +1087,14 @@ class L2Generator internal constructor(
 		// First see if there's enough type information available about the
 		// tuple.
 		val tupleType = tupleReg.type()
-		val tupleTypeSizes = tupleType.sizeRange()
-		if (!tupleTypeSizes.upperBound().isInt
-			|| !tupleTypeSizes.lowerBound().equals(tupleTypeSizes.upperBound()))
+		val tupleTypeSizes = tupleType.sizeRange
+		if (!tupleTypeSizes.upperBound.isInt
+			|| !tupleTypeSizes.lowerBound.equals(tupleTypeSizes.upperBound))
 		{
 			// The exact tuple size is not known.  Give up.
 			return null
 		}
-		val tupleSize = tupleTypeSizes.upperBound().extractInt()
+		val tupleSize = tupleTypeSizes.upperBound.extractInt
 		if (tupleSize != requiredTypes.size)
 		{
 			// The tuple is the wrong size.
@@ -1154,9 +1153,7 @@ class L2Generator internal constructor(
 		if (exactFunctionType !== null)
 		{
 			return boxedConstant(
-				exactFunctionType
-					.argsTupleType()
-					.typeAtIndex(parameterIndex))
+				exactFunctionType.argsTupleType.typeAtIndex(parameterIndex))
 		}
 		// Extract it at runtime instead.
 		val parameterTypeWrite = boxedWriteTemp(

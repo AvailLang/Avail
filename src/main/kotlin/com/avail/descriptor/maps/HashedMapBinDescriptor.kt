@@ -77,7 +77,6 @@ import com.avail.utility.cast
 import com.avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Deque
-import java.util.NoSuchElementException
 
 /**
  * This class implements the internal hashed nodes of a Bagwell Ideal Hash Tree.
@@ -243,8 +242,8 @@ class HashedMapBinDescriptor private constructor(
 		val binCount = self.objectSlotsCount() - numberOfFixedObjectSlots()
 		for (i in 1..binCount) {
 			val subBin = self.slot(SUB_BINS_, i)
-			keyType = keyType.typeUnion(subBin.mapBinKeyUnionKind())
-			valueType = valueType.typeUnion(subBin.mapBinValueUnionKind())
+			keyType = keyType.typeUnion(subBin.mapBinKeyUnionKind)
+			valueType = valueType.typeUnion(subBin.mapBinValueUnionKind)
 		}
 		if (isShared) {
 			keyType = keyType.traversed().makeShared()
@@ -265,7 +264,7 @@ class HashedMapBinDescriptor private constructor(
 	 */
 	private fun mapBinKeyUnionKind(self: AvailObject): AvailObject {
 		val keyType = self.slot(BIN_KEY_UNION_KIND_OR_NIL)
-		if (!keyType.equalsNil()) return keyType
+		if (keyType.notNil) return keyType
 		computeKeyAndValueKinds(self)
 		return self.slot(BIN_KEY_UNION_KIND_OR_NIL)
 	}
@@ -284,7 +283,7 @@ class HashedMapBinDescriptor private constructor(
 	 */
 	private fun mapBinValueUnionKind(self: AvailObject): AvailObject {
 		val valueType = self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
-		if (!valueType.equalsNil()) return valueType
+		if (valueType.notNil) return valueType
 		computeKeyAndValueKinds(self)
 		return self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
 	}
@@ -308,8 +307,8 @@ class HashedMapBinDescriptor private constructor(
 	): A_MapBin {
 		assert(myLevel == level)
 		checkHashedMapBin(self)
-		val oldKeysHash = self.mapBinKeysHash()
-		val oldSize = self.mapBinSize()
+		val oldKeysHash = self.mapBinKeysHash
+		val oldSize = self.mapBinSize
 		val objectEntryCount = self.variableObjectSlotsCount()
 		// Grab the appropriate 6 bits from the hash.
 		val logicalIndex = keyHash ushr shift and 63
@@ -323,15 +322,17 @@ class HashedMapBinDescriptor private constructor(
 		{
 			// Sub-bin already exists for those hash bits.  Update the sub-bin.
 			val oldSubBin = self.slot(SUB_BINS_, physicalIndex)
-			val oldSubBinSize = oldSubBin.mapBinSize()
-			val oldSubBinKeyHash = oldSubBin.mapBinKeysHash()
+			val oldSubBinSize = oldSubBin.mapBinSize
+			val oldSubBinKeyHash = oldSubBin.mapBinKeysHash
 			val newSubBin = oldSubBin.mapBinAtHashPutLevelCanDestroy(
 				key, keyHash, value, myLevel + 1, canDestroy)
-			delta = newSubBin.mapBinSize() - oldSubBinSize
-			hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash
+			delta = newSubBin.mapBinSize - oldSubBinSize
+			hashDelta = newSubBin.mapBinKeysHash - oldSubBinKeyHash
 			objectToModify = if (canDestroy && isMutable) {
 				self
-			} else {
+			}
+			else
+			{
 				if (!canDestroy && isMutable) {
 					self.makeSubobjectsImmutable()
 				}
@@ -423,14 +424,14 @@ class HashedMapBinDescriptor private constructor(
 		val masked = vector and (1L shl logicalIndex) - 1
 		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
 		val oldSubBin = self.slot(SUB_BINS_, physicalIndex)
-		val oldSubBinKeysHash = oldSubBin.mapBinKeysHash()
-		val oldSubBinSize = oldSubBin.mapBinSize()
+		val oldSubBinKeysHash = oldSubBin.mapBinKeysHash
+		val oldSubBinSize = oldSubBin.mapBinSize
 		val newSubBin = oldSubBin.mapBinRemoveKeyHashCanDestroy(
 			key, keyHash, canDestroy)
 		val delta: Int
 		val deltaHash: Int
 		val objectToModify: AvailObject
-		if (newSubBin.mapBinSize() == 0) {
+		if (newSubBin.mapBinSize == 0) {
 			// The entire subBin must be removed.
 			val oldSlotCount: Int = java.lang.Long.bitCount(vector)
 			if (oldSlotCount == 1) {
@@ -453,15 +454,20 @@ class HashedMapBinDescriptor private constructor(
 			objectToModify.setSlot(
 				BIT_VECTOR,
 				self.slot(BIT_VECTOR) and (1L shl logicalIndex).inv())
-		} else {
+		}
+		else
+		{
 			// The subBin has to be replaced...
-			delta = newSubBin.mapBinSize() - oldSubBinSize
-			deltaHash = newSubBin.mapBinKeysHash() - oldSubBinKeysHash
+			delta = newSubBin.mapBinSize - oldSubBinSize
+			deltaHash = newSubBin.mapBinKeysHash - oldSubBinKeysHash
 			assert(canDestroy || !self.descriptor().isMutable)
 			objectToModify =
-				if (self.descriptor().isMutable) {
+				if (self.descriptor().isMutable)
+				{
 					self
-				} else {
+				}
+				else
+				{
 					newLike(descriptorFor(MUTABLE, level), self, 0, 0)
 				}
 			objectToModify.setSlot(SUB_BINS_, physicalIndex, newSubBin)
@@ -507,8 +513,8 @@ class HashedMapBinDescriptor private constructor(
 		val masked = vector and (1L shl logicalIndex) - 1
 		val physicalIndex: Int = java.lang.Long.bitCount(masked) + 1
 		val oldSubBin = self.slot(SUB_BINS_, physicalIndex)
-		val oldSubBinSize = oldSubBin.mapBinSize()
-		val oldSubBinKeyHash = oldSubBin.mapBinKeysHash()
+		val oldSubBinSize = oldSubBin.mapBinSize
+		val oldSubBinKeyHash = oldSubBin.mapBinKeysHash
 		val newSubBin = oldSubBin.mapBinAtHashReplacingLevelCanDestroy(
 			key,
 			keyHash,
@@ -516,8 +522,8 @@ class HashedMapBinDescriptor private constructor(
 			transformer,
 			myLevel + 1,
 			canDestroy)
-		val delta = newSubBin.mapBinSize() - oldSubBinSize
-		val hashDelta = newSubBin.mapBinKeysHash() - oldSubBinKeyHash
+		val delta = newSubBin.mapBinSize - oldSubBinSize
+		val hashDelta = newSubBin.mapBinKeysHash - oldSubBinKeyHash
 		val objectToModify =
 			if (canDestroy && isMutable) self
 			else newLike(descriptorFor(MUTABLE, level), self, 0, 0)
@@ -567,7 +573,8 @@ class HashedMapBinDescriptor private constructor(
 		 *   The bin at which to begin enumerating.
 		 */
 		private fun followRightmost(bin: AvailObject) {
-			if (bin.mapBinSize() == 0) {
+			if (bin.mapBinSize == 0)
+			{
 				// An empty bin may only occur at the top of the bin tree.
 				assert(binStack.isEmpty())
 				assert(subscriptStack.isEmpty())
@@ -575,7 +582,8 @@ class HashedMapBinDescriptor private constructor(
 				return
 			}
 			var currentBin = bin.traversed()
-			while (currentBin.isHashedMapBin()) {
+			while (currentBin.isHashedMapBin)
+			{
 				binStack.addLast(currentBin)
 				val count = currentBin.variableObjectSlotsCount()
 				// Move right-to-left for a simpler limit check.
@@ -661,9 +669,9 @@ class HashedMapBinDescriptor private constructor(
 				var totalCount = 0
 				for (i in 1..size) {
 					val subBin = self.slot(SUB_BINS_, i)
-					keyHashSum += subBin.mapBinKeysHash()
-					valueHashSum += subBin.mapBinValuesHash()
-					totalCount += subBin.mapBinSize()
+					keyHashSum += subBin.mapBinKeysHash
+					valueHashSum += subBin.mapBinValuesHash
+					totalCount += subBin.mapBinSize
 				}
 				assert(self.slot(KEYS_HASH) == keyHashSum)
 				val storedValuesHash = self.mutableSlot(VALUES_HASH_OR_ZERO)
@@ -686,7 +694,7 @@ class HashedMapBinDescriptor private constructor(
 			if (valuesHash == 0) {
 				val size = self.variableIntegerSlotsCount()
 				(1..size).forEach {
-					valuesHash += self.slot(SUB_BINS_, it).mapBinValuesHash()
+					valuesHash += self.slot(SUB_BINS_, it).mapBinValuesHash
 				}
 				self.setSlot(VALUES_HASH_OR_ZERO, valuesHash)
 			}

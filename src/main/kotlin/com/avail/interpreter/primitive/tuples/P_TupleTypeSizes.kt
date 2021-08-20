@@ -60,12 +60,12 @@ object P_TupleTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val tupleType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(tupleType.sizeRange())
+		return interpreter.primitiveSuccess(tupleType.sizeRange)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				tupleMeta()),
+				tupleMeta),
 			instanceMeta(wholeNumbers))
 }

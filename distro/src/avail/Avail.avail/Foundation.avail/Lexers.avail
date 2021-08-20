@@ -32,12 +32,13 @@
 
 Module "Lexers"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Bootstrap",
 	"Characters",
 	"Control Structures",
 	"Early Conditionals",
+	"Early Definers",
 	"Early Functions",
 	"Exceptions",
 	"Format",
@@ -58,7 +59,8 @@ Names
 	"octal integer lexer",
 	"hexadecimal integer lexer",
 	"floating point number lexer",
-	"raw string lexer"
+	"raw string lexer",
+	"character set lexer"
 Body
 
 /**
@@ -70,9 +72,9 @@ Body
  * @lexer "end of line comment lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -83,14 +85,13 @@ when [c : character | c = ¢/]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	size ::= |source|;
 	if position < size ∧ source[position + 1] = ¢/ then
 	[
-		i : real source position;
-		i ?= position + 2;
+		i : natural number := position + 2;
 		While i ≤ size ∧ ¬source[i] is line terminator do [i++;];
 		commentText ::= source[position..i min size];
 		{<comment (commentText) @ position:line>}
@@ -118,9 +119,9 @@ radixIntegerAlphabetSet ::= radixIntegerAlphabet→set;
  * @lexer "explicit radix integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -131,12 +132,11 @@ when [c : character | c ∈ radixIntegerAlphabet]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Scan ahead looking for the radix indicator, ¢r.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] ∈ radixIntegerAlphabetSet do [i++;];
 	if i > size ∨ source[i] ≠ ¢r then [∅]
@@ -193,9 +193,9 @@ binaryAlphabet ::= radixIntegerAlphabet[1..2]→set;
  * @lexer "octal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -206,12 +206,11 @@ when [c : character | c = ¢0]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Look ahead for a subsequent ¢b.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢b then [∅]
 	else
@@ -247,9 +246,9 @@ octalAlphabet ::= radixIntegerAlphabet[1..8]→set;
  * @lexer "octal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -260,12 +259,11 @@ when [c : character | c = ¢0]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Look ahead for a subsequent ¢o.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢o then [∅]
 	else
@@ -301,9 +299,9 @@ hexadecimalAlphabet ::= (radixIntegerAlphabet[1..16] ++ "abcdef")→set;
  * @lexer "hexadecimal integer lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -314,12 +312,11 @@ when [c : character | c = ¢0]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Look ahead for a subsequent ¢x.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size ∨ source[i] ≠ ¢x then [∅]
 	else
@@ -359,9 +356,9 @@ is
  * @lexer "floating point number lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -372,11 +369,11 @@ when [c : character | c is an Arabic numeral]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	$body : {token+|};
-	i : real source position := position;
+	i : natural number := position;
 	size ::= |source|;
 
 	getDigits ::= [
@@ -470,9 +467,9 @@ is
  * @lexer "raw string lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -483,12 +480,11 @@ when [c : character | c = ¢r]
 is
 [
 	source : string,
-	position : real source position,
-	line : real source line number
+	position : natural number,
+	line : natural number
 |
 	// Count subsequent ¢" characters.
-	i : real source position;
-	i ?= position + 1;
+	i : natural number := position + 1;
 	size ::= |source|;
 	if i > size then [∅]
 	else
@@ -538,5 +534,212 @@ is
 				>}
 			]
 		]
+	]
+];
+
+/**
+ * Reject parsing with a stylized message.
+ */
+Private method "Reject in_at_,expected_" is
+[
+	source : string,
+	i : natural number,
+	expected : string
+|
+	Reject parse strongly, expected:
+		expected ++
+		" near: " ++
+		“
+			source[(i - 5) max 1 .. i - 1] ++
+			"⤷" ++
+			source[i .. (i + 5) min |source|]
+		” ++
+		" in character set literal"
+]: ⊥;
+
+/**
+ * A helper for parsing the ¢[A-Z0-9] style of sets of characters.  Reads one
+ * character, possible using a backslash-prefixed form described in the
+ * {@type "character set lexer"}. The character is read from the given string,
+ * starting at the position indicated by the integer variable.  The integer
+ * variable is left positioned after the character description, and that
+ * character is returned.
+ *
+ * If there is a problem with the parsing of the character, reject the parse
+ * with a suitable message.
+ *
+ * @param s The ({@code string}) to parse from.
+ * @param i The ({@code variable}) that tracks the current parse position.
+ * @returns The ({@type character}) extracted at the position.
+ */
+Private method "read range element from_at_" is
+[
+	s : string,
+	i : read natural number / write ⊥
+|
+	$body : character;
+	size ::= |s|;
+	If ↓i > size then
+	[
+		Reject in s at ↓i,
+			expected "the character set close (]) before end-of-file"
+	];
+	c ::= s[↓i];
+	problems ::= {
+		¢"-" → "a character other than a range-indicating dash (-)",
+		¢"[" → "a character other than a suspicious open-bracket ([)",
+		¢"]" → "a character other than a suspicious close-bracket (])",
+		¢"\n" → "the character set close (]) before the end of line (U+000A)",
+		¢"\r" → "the character set close (]) before the end of line (U+000D)",
+		¢"\t" → "a character other than an embedded tab (U+0009)"
+	};
+	If c ∈ problems then
+	[
+		Reject in s at ↓i, expected problems[c]
+	];
+	i++;
+	Exit body with c if c ≠ ¢\;
+	If ↓i > size then
+	[
+		Reject in s at ↓i, expected "character after backslash"
+	];
+	c2 ::= s[↓i];
+	escapes ::= {
+		¢n → ¢"\n",
+		¢r → ¢"\r",
+		¢t → ¢"\t",
+		¢\ → ¢"\\",
+		¢"\"" → ¢"\""
+	};
+	If c2 ∈ escapes then
+	[
+		Exit body with escapes[c2]
+	];
+	If c2 ≠ ¢"(" then
+	[
+		Reject in s at ↓i, expected
+		  "one of {n, r, t, (, \\, or \"} after backslash"
+	];
+	// It's of the form "\(1F2E5)".  Read hex digits and the close parenthesis.
+	i++;
+	hexStart ::= ↓i;
+	While ↓i ≤ size ∧ s[↓i] ∈ "0123456789ABCDEFabcdef" → set do [i++;];
+	If ↓i > size ∨ s[↓i] ≠ ¢")" then
+	[
+		Reject in s at ↓i, expected
+			"close parenthesis for Unicode hexadecimal escape in character set"
+	];
+	hex ::= s[hexStart..↓i-1];
+	If hex = "" then
+	[
+		Reject in s at ↓i, expected "hexadecimal digits for Unicode escape"
+	];
+	cast hex (base 16) into [cp : code point | cp → character]
+	else
+	[
+		Reject in s at ↓i, expected
+			"Unicode escape to be a valid Unicode value [0..10FFFF]"
+	]
+];
+
+/**
+ * A lexer for literal sets of characters.  For example, ¢[0-9] is the set
+ * containing the 10 decimal digits, ¢[0-46-9] is the set with the decimal
+ * digits except 5, ¢[0-9A-Fa-f] is the set of uppercase or lowercase
+ * hexadecimal digits, and ¢[aeiou] is the typical set of English vowels.
+ *
+ * For special characters that are hard to see visually (e.g., unusual
+ * whitespace), or interfere with the lexer's syntax or general clarity (square
+ * brackets, dash, backslash), there are backslash-escaped sequences available:
+ *   * \(xxx) – A hexadecimal Unicode codepoint, including "[", "-", and "]",
+ *   * \n – A newline (U+000A)
+ *   * \r – A carriage return (U+000D)
+ *   * \t – A tab (U+0009)
+ *   * \\ – A backslash (U+005C)
+ *   * \" – A quote (U+0022)
+ *
+ * Normal characters may also be captured with the hexadecimal notation, so that
+ * the code points can be made explicit.
+ *
+ * For safety, none of the range or single characters may overlap.
+ *
+ * @lexer "character set lexer"
+ * @param "source" "string"
+ *        The complete source text.
+ * @param "position" "natural number"
+ *        The position of the leading {@type "character"}.
+ * @param "line" "natural number"
+ *        The line number of the leading {@type "character"}.
+ * @returns "{token+|}"
+ *          The possible lexes discovered at {@code "position"}, potentially
+ *          conforming to a single {@type "string"} {@type "literal token"}.
+ */
+Lexer $"character set lexer"
+when [c : character | c = ¢¢]
+is
+[
+	source : string,
+	position : natural number,
+	line : natural number
+|
+	result : {character|} := ∅;
+	size ::= |source|;
+	i : natural number := position + 1;
+	If i > size ∨ source[i] ≠ ¢"[" then
+	[
+		Reject parse silently,
+			expected: "character set literal like ¢[A-Z]"
+	];
+	i++;
+	While i ≤ size ∧ source[i] ≠ ¢"]" do
+	[
+		start ::= read range element from source at ↑i;
+		range ::= if i ≤ size ∧ source[i] = ¢- then
+		[
+			// Character range.
+			i++;
+			end ::= read range element from source at ↑i;
+			If end ≤ start then
+			[
+				Reject parse strongly, expected:
+					"Range end to be after range start"
+			];
+			start to end
+		]
+		else
+		[
+			// Single character.
+			<start>
+		];
+		For each ch in range do
+		[
+			If ch ∈ result then
+			[
+				Reject parse strongly, expected:
+					"Character set not to contain duplicate element: " ++ “ch”
+			];
+			result := result + ch;
+		];
+	];
+	If i > size then
+	[
+		Reject parse strongly, expected:
+			"\"]\" to end character set literal like ¢[A-Z]"
+	];
+	i++;
+	if i ≤ size ∧ source[i] = ¢"ᵀ" then
+	[
+		// It's a type, specifically a subtype of `character`.  Don't also allow
+		// the character set to be a result.
+		{<
+			`enumeration of result` (source[position .. i]) @ position:line
+		>}
+	]
+	else
+	[
+		// It's a character set.
+		{<
+			`result` (source[position .. i - 1]) @ position:line
+		>}
 	]
 ];

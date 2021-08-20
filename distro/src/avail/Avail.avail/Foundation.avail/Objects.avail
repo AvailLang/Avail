@@ -32,7 +32,7 @@
 
 Module "Objects"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Atoms",
 	"Bootstrap",
@@ -186,7 +186,9 @@ Semantic restriction "_→object" is
 	/* If the enumeration of keys is known and equals the cardinality of the
 	 * map, then answer the nearest object type supertype with these keys.
 	 */
-	if ⌊mapType⌋ = ⌈mapType⌉ ∧ |mapType's key type| = ⌊mapType⌋ then
+	if mapType ≠ ⊥
+		∧ ⌊mapType⌋ = ⌈mapType⌉
+		∧ |mapType's key type| = ⌊mapType⌋ then
 	[
 		atoms ::= mapType's key type's instances;
 		fieldAssignments ::= atoms→tuple zip |atoms| of mapType's value type;
@@ -1204,7 +1206,7 @@ is
 			>
 		] : subtype's type»;
 	classNameFunction ::= classNameBlock → function;
-	Method className is classNameFunction;
+	Stable method className is classNameFunction;
 	For each fieldTuple of immutable do
 	[
 		fieldAtom ::= fieldTuple[3];
@@ -1907,6 +1909,142 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 	];
 	newObject
 ] : object;
+
+/**
+ * Construct and answer an object which is an instance of {@param "objectType"}
+ * and whose field values are determined by {@param "optional"}.
+ *
+ * This macro attempts to statically fold away as much work as possible.
+ *
+ * @macro "a|an_«with«_«:»?:=_‡,»»"
+ * @param "objectType" "literal phrase ⇒ object's type"
+ *        An object type that must be a supertype of the answer.
+ * @param "optional" "list phrase ⇒ <<<atom, boolean, any…|3>…|1..>…|0..1>"
+ *        A tuple of field assignments. The outermost tuple may be empty (but
+ *        only to support the case that {@code "objectType = object"}), but
+ *        usually contains a single tuple of field assignments. A field
+ *        assignment is a 3-tuple that consists of 1) an atom that uniquely
+ *        identifies the field, 2) a boolean that is {@method "false"} if the
+ *        field is mutable and a variable should be created and initialized, and
+ *        3) the field value.
+ * @returns "expression phrase ⇒ object"
+ *          The requested object type.
+ * @category "Objects" "Constructors"
+ */
+Public macro "a|an_«with«_«:»?:=_‡,»»" is
+[
+	objectTypeExpression : literal phrase ⇒ object meta,
+	optionalExpression : list phrase ⇒ (<atom, boolean, any…|3>+?)
+|
+	$body : expression phrase ⇒ object;
+	exit ::= [
+		Exit body with
+			bootstrap restricted send $"a|an_«with«_«:»?:=_‡,»»"
+			with <objectTypeExpression, optionalExpression> → list phrase
+			: object];
+	objectType ::= objectTypeExpression's token's value;
+	objectMap ::= objectType→map;
+	expressions ::= optionalExpression's expressions;
+	weakDefs ::= expressions[1] else [<> → list phrase];
+	defs ::= cast weakDefs
+		into [phrases : list phrase ⇒ (<atom, boolean, any…|3>*) |
+			map each triple in phrases' expressions through [
+				cast triple
+				into [t : list phrase ⇒ <atom, boolean, any…|3> |
+					cast t's expressions
+					into [t2 : <
+						expression phrase ⇒ atom,
+						literal phrase ⇒ boolean,
+						expression phrase ⇒ any…|3> | t2]
+					else exit]
+				else exit]]
+		else exit;
+	/* Process each field definition, ensuring its uniqueness. Create
+	 * appropriately typed variables whenever assignment forms are encountered.
+	 */
+	fieldAtoms : {atom|} := ∅;
+	tuplePhrases : list phrase* := <>;
+	For each def in defs do
+	[
+		atomExpr, isNotVarExpr, valueExpr ::= def;
+		atomType ::= atomExpr's semantic type;
+		If |atomType| ≠ 1 then exit;
+		fieldAtom ::= atomType's instance;
+		If fieldAtom ∈ fieldAtoms then
+		[
+			Immediately reject parse, expected:
+				"field names to be unique, but " ++ “fieldAtom” ++
+				" occurred twice"
+		];
+		fieldAtoms := eject fieldAtoms + fieldAtom;
+		/* If the assignment form (:=) was used, then create a new variable
+		 * and initialize it with the specified value.
+		 */
+		if ¬isNotVarExpr's token's value then
+		[
+			/* The field is a variable.  Create one and initialize it. */
+			varType ::= cast objectMap[fieldAtom] else exit
+				into [t : variable's type | t's read type]
+				else exit;
+			createVar ::= bootstrap restricted send $"new`↑_initialized to_"
+				with <`varType` → literal phrase, valueExpr> → list phrase
+				: read varType / write varType;
+			tuplePhrases ++= <«<atomExpr, createVar>»>;
+		]
+		else
+		[
+			/* Just use the produced value for the object slot. */
+			tuplePhrases ++= <«<atomExpr, valueExpr>»>;
+		];
+	];
+	/* Synthesize assignments whenever appropriate and necessary, taking care
+	 * not to override any user assignments.
+	 */
+	For each fieldAtom → fieldType of objectMap do
+	[
+		/* Don't override the user's assignments. */
+		If fieldAtom ∉ fieldAtoms then
+		[
+			/* Any field whose type is an instance type on a nontype may have
+			 * its value synthesized.
+			 */
+			If fieldType ⊆ nontype ∧ |fieldType| = 1 then
+			[
+				tuplePhrases ++=
+					<«<
+						`fieldAtom`(fieldAtom's name) → literal phrase,
+						`fieldType's instance`("implicit") → literal phrase>»>;
+			]
+			else
+			[
+				Cast fieldType into
+				[
+					varType : variable meta
+				|
+					/* Create variables not explicitly assigned by the user. */
+					readType ::= cast varType's read type
+						into [t : any meta | t];
+					fieldAtomToken ::= `fieldAtom`(fieldAtom's name);
+					createVar ::= bootstrap restricted send
+							$"new`↑_"
+						with <`readType` → literal phrase> → list phrase
+						: varType;
+					tuplePhrases ++= <«<
+						fieldAtomToken → literal phrase,
+						createVar>»>;
+				]
+				else
+				[
+					/* Do nothing. */
+				];
+			];
+		];
+	];
+	/* Instantiate the object and certify its type. */
+	bootstrap restricted send $"_→object"
+		with <tuplePhrases → list phrase> → list phrase
+		: objectType
+] : phrase ⇒ object;
 
 /**
  * Object instantiation statically requires that:

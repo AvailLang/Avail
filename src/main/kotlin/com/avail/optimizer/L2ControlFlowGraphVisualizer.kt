@@ -273,8 +273,7 @@ class L2ControlFlowGraphVisualizer constructor(
 								"balign" to "left",
 								"border" to "1",
 								"port" to (port + 1).toString(),
-								"valign" to "top"
-							)
+								"valign" to "top")
 							if (instruction.isPlaceholder) {
 								cellAttributes.add(
 									"bgcolor" to
@@ -607,7 +606,7 @@ class L2ControlFlowGraphVisualizer constructor(
 		}
 	}
 
-	/** A counter for uniquely naming subgraphs.  */
+	/** A counter for uniquely naming subgraphs. */
 	private var subgraphNumber = 1
 
 	/**
@@ -870,7 +869,7 @@ class L2ControlFlowGraphVisualizer constructor(
 
 		private const val commentTextColor = "#404040/a0a0a0"
 
-		/** Characters that should be removed outright from class names.  */
+		/** Characters that should be removed outright from class names. */
 		private val matchUglies = Pattern.compile("[\"\\\\]")
 
 		/**
@@ -890,18 +889,18 @@ class L2ControlFlowGraphVisualizer constructor(
 				val cp = s.codePointAt(i)
 				when
 				{
-					cp > 127 || cp == '"'.toInt() || cp == '<'.toInt()
-					|| cp == '>'.toInt() || cp == '&'.toInt() ->
+					cp > 127 || cp == '"'.code || cp == '<'.code
+						|| cp == '>'.code || cp == '&'.code ->
 					{
 						append("&#")
 						append(cp)
 						append(';')
 					}
-					cp == '\n'.toInt() ->
+					cp == '\n'.code ->
 					{
 						append("<br/>")
 					}
-					cp == '\t'.toInt() ->
+					cp == '\t'.code ->
 					{
 						append(repeated("&nbsp;", 4))
 					}

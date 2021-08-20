@@ -43,10 +43,8 @@ import com.avail.builder.RenamesFileParser
 import com.avail.builder.ResolvedModuleName
 import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.module.A_Module
-import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.environment.LayoutConfiguration.Companion.basePreferences
-import com.avail.environment.LayoutConfiguration.Companion.initialConfiguration
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
 import com.avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
@@ -79,6 +77,7 @@ import com.avail.environment.actions.ToggleDebugInterpreterL1
 import com.avail.environment.actions.ToggleDebugInterpreterL2
 import com.avail.environment.actions.ToggleDebugInterpreterPrimitives
 import com.avail.environment.actions.ToggleDebugJVM
+import com.avail.environment.actions.ToggleDebugJVMCodeGeneration
 import com.avail.environment.actions.ToggleDebugWorkUnits
 import com.avail.environment.actions.ToggleFastLoaderAction
 import com.avail.environment.actions.ToggleL2SanityCheck
@@ -102,7 +101,6 @@ import com.avail.environment.streams.StreamStyle.BUILD_PROGRESS
 import com.avail.environment.streams.StreamStyle.ERR
 import com.avail.environment.streams.StreamStyle.INFO
 import com.avail.environment.streams.StreamStyle.OUT
-import com.avail.environment.streams.StreamStyle.values
 import com.avail.environment.tasks.BuildTask
 import com.avail.files.FileManager
 import com.avail.io.ConsoleInputChannel
@@ -112,7 +110,6 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import com.avail.persistence.cache.Repositories
 import com.avail.resolver.ModuleRootResolver
-import com.avail.resolver.ModuleRootResolverRegistry
 import com.avail.resolver.ResolverReference
 import com.avail.resolver.ResourceType
 import com.avail.stacks.StacksGenerator
@@ -123,8 +120,10 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.theme.DarculaTheme
 import java.awt.Color
 import java.awt.Component
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.EventQueue
+import java.awt.Taskbar
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
@@ -144,14 +143,12 @@ import java.io.UnsupportedEncodingException
 import java.lang.Integer.parseInt
 import java.lang.String.format
 import java.lang.System.currentTimeMillis
-import java.net.URI
-import java.nio.charset.StandardCharsets
+import java.nio.charset.StandardCharsets.UTF_8
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.Arrays.sort
 import java.util.Collections
 import java.util.Collections.synchronizedMap
-import java.util.Enumeration
 import java.util.Queue
 import java.util.TimerTask
 import java.util.concurrent.ConcurrentLinkedQueue
@@ -164,6 +161,7 @@ import java.util.prefs.BackingStoreException
 import javax.swing.Action
 import javax.swing.BorderFactory
 import javax.swing.GroupLayout
+import javax.swing.ImageIcon
 import javax.swing.JCheckBoxMenuItem
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -199,6 +197,7 @@ import javax.swing.tree.TreeNode
 import javax.swing.tree.TreePath
 import javax.swing.tree.TreeSelectionModel
 import kotlin.concurrent.schedule
+import kotlin.concurrent.thread
 import kotlin.math.max
 import kotlin.math.min
 
@@ -210,6 +209,8 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
+ * @property runtime
+ *   The [AvailRuntime] for this workbench to use.
  * @property fileManager
  *   The [FileManager] used to manage Avail files.
  * @property resolver
@@ -224,6 +225,7 @@ import kotlin.math.min
  *   The [module&#32;name resolver][ModuleNameResolver].
  */
 class AvailWorkbench internal constructor (
+	private val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver) : JFrame()
 {
@@ -233,7 +235,7 @@ class AvailWorkbench internal constructor (
 	 */
 	private val document: StyledDocument by lazy { transcript.styledDocument }
 
-	/** The last moment (ms) that a UI update of the transcript completed.  */
+	/** The last moment (ms) that a UI update of the transcript completed. */
 	private val lastTranscriptUpdateCompleted = AtomicLong(0L)
 
 	/**
@@ -260,7 +262,7 @@ class AvailWorkbench internal constructor (
 	 */
 	private val dequeLock = ReentrantReadWriteLock(false)
 
-	/** The current [background task][AbstractWorkbenchTask].  */
+	/** The current [background task][AbstractWorkbenchTask]. */
 	@Volatile
 	var backgroundTask: AbstractWorkbenchTask? = null
 
@@ -270,18 +272,18 @@ class AvailWorkbench internal constructor (
 	 */
 	var documentationPath: Path = StacksGenerator.defaultDocumentationPath
 
-	/** The [standard input stream][BuildInputStream].  */
+	/** The [standard input stream][BuildInputStream]. */
 	private val inputStream: BuildInputStream?
 
-	/** The [standard error stream][PrintStream].  */
+	/** The [standard error stream][PrintStream]. */
 	private val errorStream: PrintStream?
 
-	/** The [standard output stream][PrintStream].  */
+	/** The [standard output stream][PrintStream]. */
 	val outputStream: PrintStream
 
 	/* UI components. */
 
-	/** The [module][ModuleDescriptor] [tree][JTree].  */
+	/** The [module][ModuleDescriptor] [tree][JTree]. */
 	val moduleTree: JTree
 
 	/**
@@ -306,7 +308,7 @@ class AvailWorkbench internal constructor (
 	 */
 	val transcript: JTextPane
 
-	/** The [scroll bars][JScrollPane] for the [transcript].  */
+	/** The [scroll bars][JScrollPane] for the [transcript]. */
 	private val transcriptScrollArea: JScrollPane
 
 	/**
@@ -315,7 +317,7 @@ class AvailWorkbench internal constructor (
 	 */
 	private val inputLabel: JLabel
 
-	/** The [text field][JTextField] that accepts standard input.  */
+	/** The [text field][JTextField] that accepts standard input. */
 	val inputField: JTextField
 
 	/**
@@ -323,7 +325,7 @@ class AvailWorkbench internal constructor (
 	 * command is added to the end of the list.  Cursor-up retrieves the most
 	 * recent selected line, and subsequent cursors-up retrieve previous lines,
 	 * back to the first entry, then an empty command line, then the last entry
-	 * again an so on.  An initial cursor-down selects the first entry and goes
+	 * again and so on.  An initial cursor-down selects the first entry and goes
 	 * from there.
 	 */
 	val commandHistory = mutableListOf<String>()
@@ -336,42 +338,42 @@ class AvailWorkbench internal constructor (
 	 */
 	var commandHistoryIndex = -1
 
-	/** Cycle one step backward in the command history.  */
+	/** Cycle one step backward in the command history. */
 	private val retrievePreviousAction = RetrievePreviousCommand(this)
 
-	/** Cycle one step forward in the command history.  */
+	/** Cycle one step forward in the command history. */
 	private val retrieveNextAction = RetrieveNextCommand(this)
 
 	/* Actions. */
 
-	/** The [refresh action][RefreshAction].  */
+	/** The [refresh action][RefreshAction]. */
 	private val refreshAction = RefreshAction(this)
 
-	/** The [&quot;about Avail&quot; action][AboutAction].  */
+	/** The [&quot;about Avail&quot; action][AboutAction]. */
 	private val aboutAction = AboutAction(this)
 
-	/** The [&quot;Preferences...&quot; action][PreferencesAction].  */
+	/** The [&quot;Preferences...&quot; action][PreferencesAction]. */
 	private val preferencesAction = PreferencesAction(this)
 
-	/** The [build action][BuildAction].  */
+	/** The [build action][BuildAction]. */
 	internal val buildAction = BuildAction(this, false)
 
-	/** The [unload action][UnloadAction].  */
+	/** The [unload action][UnloadAction]. */
 	private val unloadAction = UnloadAction(this)
 
-	/** The [unload-all action][UnloadAllAction].  */
+	/** The [unload-all action][UnloadAllAction]. */
 	private val unloadAllAction = UnloadAllAction(this)
 
-	/** The [cancel action][CancelAction].  */
+	/** The [cancel action][CancelAction]. */
 	private val cancelAction = CancelAction(this)
 
-	/** The [clean action][CleanAction].  */
+	/** The [clean action][CleanAction]. */
 	private val cleanAction = CleanAction(this)
 
-	/** The [clean module action][CleanModuleAction].  */
+	/** The [clean module action][CleanModuleAction]. */
 	private val cleanModuleAction = CleanModuleAction(this)
 
-	/** The [create program action][CreateProgramAction].  */
+	/** The [create program action][CreateProgramAction]. */
 	private val createProgramAction = CreateProgramAction(this)
 
 	/**
@@ -379,7 +381,7 @@ class AvailWorkbench internal constructor (
 	 */
 	private val documentAction = GenerateDocumentationAction(this)
 
-	/** The [generate graph action][GenerateGraphAction].  */
+	/** The [generate graph action][GenerateGraphAction]. */
 	private val graphAction = GenerateGraphAction(this)
 
 	/**
@@ -388,34 +390,34 @@ class AvailWorkbench internal constructor (
 	 */
 	private val setDocumentationPathAction = SetDocumentationPathAction(this)
 
-	/** The [show VM report action][ShowVMReportAction].  */
+	/** The [show VM report action][ShowVMReportAction]. */
 	private val showVMReportAction = ShowVMReportAction(this)
 
-	/** The [reset VM report data action][ResetVMReportDataAction].  */
+	/** The [reset VM report data action][ResetVMReportDataAction]. */
 	private val resetVMReportDataAction = ResetVMReportDataAction(this)
 
-	/** The [show CC report action][ShowCCReportAction].  */
+	/** The [show CC report action][ShowCCReportAction]. */
 	private val showCCReportAction: ShowCCReportAction
 
-	/** The [reset CC report data action][ResetCCReportDataAction].  */
+	/** The [reset CC report data action][ResetCCReportDataAction]. */
 	private val resetCCReportDataAction: ResetCCReportDataAction
 
-	/** The [toggle trace macros action][TraceMacrosAction].  */
+	/** The [toggle trace macros action][TraceMacrosAction]. */
 	private val debugMacroExpansionsAction = TraceMacrosAction(this)
 
-	/** The [toggle trace compiler action][TraceCompilerAction].  */
+	/** The [toggle trace compiler action][TraceCompilerAction]. */
 	private val debugCompilerAction = TraceCompilerAction(this)
 
-	/** The [toggle fast-loader action][ToggleFastLoaderAction].  */
+	/** The [toggle fast-loader action][ToggleFastLoaderAction]. */
 	private val toggleFastLoaderAction = ToggleFastLoaderAction(this)
 
-	/** The [toggle L1 debug action][ToggleDebugInterpreterL1].  */
+	/** The [toggle L1 debug action][ToggleDebugInterpreterL1]. */
 	private val toggleDebugL1 = ToggleDebugInterpreterL1(this)
 
-	/** The [toggle L2 debug action][ToggleDebugInterpreterL2].  */
+	/** The [toggle L2 debug action][ToggleDebugInterpreterL2]. */
 	private val toggleDebugL2 = ToggleDebugInterpreterL2(this)
 
-	/** The [ToggleL2SanityCheck] toggle L2 sanity checks action}.  */
+	/** The [ToggleL2SanityCheck] toggle L2 sanity checks action. */
 	private val toggleL2SanityCheck = ToggleL2SanityCheck(this)
 
 	/**
@@ -430,8 +432,12 @@ class AvailWorkbench internal constructor (
 	 */
 	private val toggleDebugWorkUnits = ToggleDebugWorkUnits(this)
 
-	/** The [toggle JVM dump debug action][ToggleDebugJVM].  */
+	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
+
+	/** The [toggle JVM code generation][ToggleDebugJVMCodeGeneration]. */
+	private val toggleDebugJVMCodeGeneration =
+		ToggleDebugJVMCodeGeneration(this)
 
 	/**
 	 * The
@@ -446,22 +452,22 @@ class AvailWorkbench internal constructor (
 	private val traceLoadedStatementsAction =
 		TraceLoadedStatementsAction(this)
 
-	/** The [ParserIntegrityCheckAction].  */
+	/** The [ParserIntegrityCheckAction]. */
 	private val parserIntegrityCheckAction: ParserIntegrityCheckAction
 
-	/** The [ExamineRepositoryAction].  */
+	/** The [ExamineRepositoryAction]. */
 	private val examineRepositoryAction: ExamineRepositoryAction
 
-	/** The [ExamineCompilationAction].  */
+	/** The [ExamineCompilationAction]. */
 	private val examineCompilationAction: ExamineCompilationAction
 
-	/** The [clear transcript action][ClearTranscriptAction].  */
+	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
 
-	/** The [insert entry point action][InsertEntryPointAction].  */
+	/** The [insert entry point action][InsertEntryPointAction]. */
 	internal val insertEntryPointAction = InsertEntryPointAction(this)
 
-	/** The [action to build an entry point module][BuildAction].  */
+	/** The [action to build an entry point module][BuildAction]. */
 	internal val buildEntryPointModuleAction = BuildAction(this, true)
 
 //	/**
@@ -476,7 +482,7 @@ class AvailWorkbench internal constructor (
 //	 */
 //	val resetCodeCoverageDataAction = ResetCodeCoverageDataAction(this, true)
 
-	/** Whether an entry point invocation (command line) is executing.  */
+	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
 
 	/**
@@ -505,7 +511,7 @@ class AvailWorkbench internal constructor (
 	//@GuardedBy("buildGlobalUpdateLock")
 	private var hasQueuedGlobalBuildUpdate = false
 
-	/** A monitor to protect updates to the per module progress.  */
+	/** A monitor to protect updates to the per module progress. */
 	private val perModuleProgressLock = ReentrantReadWriteLock()
 
 	/**
@@ -539,7 +545,7 @@ class AvailWorkbench internal constructor (
 	private var taskGate = AtomicBoolean(false)
 
 	/**
-	 * `AbstractWorkbenchTask` is a foundation for long running [AvailBuilder]
+	 * `AbstractWorkbenchTask` is a foundation for long-running [AvailBuilder]
 	 * operations.
 	 *
 	 * @property workbench
@@ -557,16 +563,16 @@ class AvailWorkbench internal constructor (
 	 */
 	abstract class AbstractWorkbenchTask constructor(
 		val workbench: AvailWorkbench,
-			protected val targetModuleName: ResolvedModuleName?)
-		: SwingWorker<Void, Void>()
+		protected val targetModuleName: ResolvedModuleName?
+	) : SwingWorker<Void, Void>()
 	{
-		/** The start time.  */
+		/** The start time. */
 		private var startTimeMillis: Long = 0
 
-		/** The stop time.  */
+		/** The stop time. */
 		private var stopTimeMillis: Long = 0
 
-		/** The [exception][Throwable] that terminated the build.  */
+		/** The [exception][Throwable] that terminated the build. */
 		private var terminator: Throwable? = null
 
 		/** Cancel the current task. */
@@ -772,7 +778,7 @@ class AvailWorkbench internal constructor (
 				length - statusSize + lengthToInsert - maxDocumentSize
 			if (amountToRemove > 0)
 			{
-				// We need to trim off some of the document, right after the
+				// We need to trim off part of the document, right after the
 				// module status area.
 				val beforeRemove = System.nanoTime()
 				document.remove(
@@ -951,25 +957,32 @@ class AvailWorkbench internal constructor (
 	 */
 	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
 	{
-		val selection = selectedModule()
+		val selection = moduleTree.selectionPath
 		moduleTree.isVisible = false
 		entryPointsTree.isVisible = false
 		try
 		{
-			moduleTree.model = DefaultTreeModel(modules)
-			for (i in moduleTree.rowCount - 1 downTo 0)
-			{
-				moduleTree.expandRow(i)
-			}
-			if (selection !== null)
-			{
-				val path = modulePath(selection.qualifiedName)
-				if (path !== null)
-				{
-					moduleTree.selectionPath = path
+			val root = moduleTree.model.root as DefaultMutableTreeNode
+			val allExpanded = moduleTree
+				.getExpandedDescendants(TreePath(root))
+				?.toList()?.sortedBy(TreePath::getPathCount)
+				?: modules.children().toList().map {
+					// Expand each root on the first refresh.
+					TreePath(arrayOf(root, it))
 				}
+			moduleTree.model = DefaultTreeModel(modules)
+			allExpanded.asSequence()
+				.map(TreePath::getLastPathComponent)
+				.filterIsInstance<AbstractBuilderFrameTreeNode>()
+				.mapNotNull { modulePath(it.modulePathString()) }
+				.forEach(moduleTree::expandPath)
+			selection?.let { path ->
+				val node =
+					path.lastPathComponent as AbstractBuilderFrameTreeNode
+				moduleTree.selectionPath = modulePath(node.modulePathString())
 			}
 
+			// Now process the entry points tree.
 			entryPointsTree.model = DefaultTreeModel(entryPoints)
 			for (i in entryPointsTree.rowCount - 1 downTo 0)
 			{
@@ -996,8 +1009,7 @@ class AvailWorkbench internal constructor (
 		val sortedRootNodes = Collections.synchronizedList(
 			mutableListOf<ModuleRootNode>())
 
-		val treeRoot = DefaultMutableTreeNode(
-			"(packages hidden root)")
+		val treeRoot = DefaultMutableTreeNode("(packages hidden root)")
 		val rootCount = AtomicInteger(roots.roots.size)
 		// Put the invisible root onto the work stack.
 		roots.roots.forEach { root ->
@@ -1015,24 +1027,19 @@ class AvailWorkbench internal constructor (
 						{
 							sortedRootNodes.sort()
 							sortedRootNodes.forEach { m -> treeRoot.add(m) }
-							val enumeration: Enumeration<DefaultMutableTreeNode> =
-								treeRoot.preorderEnumeration().cast()
-							// Skip the invisible root.
-							enumeration.nextElement()
-							while (enumeration.hasMoreElements())
-							{
-								val subNode: AbstractBuilderFrameTreeNode =
-									enumeration.nextElement().cast()
-								subNode.sortChildren()
-							}
+							val iterator:
+									Iterator<AbstractBuilderFrameTreeNode> =
+								treeRoot.preorderEnumeration().iterator().cast()
+							iterator.next()
+							iterator.forEachRemaining(
+								AbstractBuilderFrameTreeNode::sortChildren)
 							withTreeNode(treeRoot)
 						}
 					}
 				},
 				{ code, ex ->
 					System.err.println(
-						"Workbench could not walk root: ${root.name}: $code"
-					)
+						"Workbench could not walk root: ${root.name}: $code")
 					ex?.printStackTrace()
 				})
 		}
@@ -1128,42 +1135,42 @@ class AvailWorkbench internal constructor (
 		val mutex = ReentrantReadWriteLock()
 		val moduleNodes = synchronizedMap(
 			mutableMapOf<String, DefaultMutableTreeNode>())
-		availBuilder.traceDirectoriesThen({ resolvedName, moduleVersion, after ->
-			val entryPoints = moduleVersion.getEntryPoints()
-			if (entryPoints.isNotEmpty())
-			{
-				val moduleNode =
-					EntryPointModuleNode(availBuilder, resolvedName)
-				entryPoints.forEach { entryPoint ->
-					val entryPointNode = EntryPointNode(
-						availBuilder, resolvedName, entryPoint)
-					moduleNode.add(entryPointNode)
+		availBuilder.traceDirectoriesThen(
+			action = { resolvedName, moduleVersion, after ->
+				val entryPoints = moduleVersion.getEntryPoints()
+				if (entryPoints.isNotEmpty())
+				{
+					val moduleNode =
+						EntryPointModuleNode(availBuilder, resolvedName)
+					entryPoints.forEach { entryPoint ->
+						val entryPointNode = EntryPointNode(
+							availBuilder, resolvedName, entryPoint)
+						moduleNode.add(entryPointNode)
+					}
+					mutex.safeWrite {
+						moduleNodes[resolvedName.qualifiedName] = moduleNode
+					}
 				}
-				mutex.safeWrite {
-					moduleNodes.put(resolvedName.qualifiedName, moduleNode)
-				}
-			}
-			after()
-		}) {
-			val entryPointsTreeRoot =
-				DefaultMutableTreeNode("(entry points hidden root)")
+				after()
+			},
+			afterAll = {
+				val entryPointsTreeRoot =
+					DefaultMutableTreeNode("(entry points hidden root)")
 
-			val mapKeys = moduleNodes.keys.toTypedArray()
-			sort(mapKeys)
-			mapKeys.forEach { moduleLabel ->
-				entryPointsTreeRoot.add(moduleNodes[moduleLabel])
-			}
-			val enumeration: Enumeration<DefaultMutableTreeNode> =
-				entryPointsTreeRoot.preorderEnumeration().cast()
-			// Skip the invisible root.
-			enumeration.nextElement()
-			for (node in enumeration)
-			{
-				val strongNode: AbstractBuilderFrameTreeNode = node.cast()
-				strongNode.sortChildren()
-			}
-			 withTreeNode(entryPointsTreeRoot)
-		}
+				val mapKeys = moduleNodes.keys.toTypedArray()
+				sort(mapKeys)
+				mapKeys.forEach { moduleLabel ->
+					entryPointsTreeRoot.add(moduleNodes[moduleLabel])
+				}
+				val iterator: Iterator<DefaultMutableTreeNode> =
+					entryPointsTreeRoot.preorderEnumeration().iterator().cast()
+				// Skip the invisible root.
+				iterator.next()
+				iterator.forEachRemaining { node ->
+					(node as AbstractBuilderFrameTreeNode).sortChildren()
+				}
+				withTreeNode(entryPointsTreeRoot)
+			})
 	}
 
 	/**
@@ -1175,7 +1182,7 @@ class AvailWorkbench internal constructor (
 	 * @return A tree path, or `null` if the module name is not present in
 	 *   the tree.
 	 */
-	fun modulePath(moduleName: String): TreePath?
+	private fun modulePath(moduleName: String): TreePath?
 	{
 		val path = moduleName.split('/', '\\')
 		if (path.size < 2 || path[0] != "")
@@ -1184,24 +1191,15 @@ class AvailWorkbench internal constructor (
 			return null
 		}
 		val model = moduleTree.model
-		val treeRoot = model.root as DefaultMutableTreeNode
-		var nodes: Enumeration<DefaultMutableTreeNode> =
-			treeRoot.children().cast()
-		var index = 1
-		while (nodes.hasMoreElements())
+		var node = model.root as DefaultMutableTreeNode
+		for (index in 1 until path.size)
 		{
-			val node: AbstractBuilderFrameTreeNode = nodes.nextElement().cast()
-			if (node.isSpecifiedByString(path[index]))
-			{
-				index++
-				if (index == path.size)
-				{
-					return TreePath(node.path)
-				}
-				nodes = node.children().cast()
-			}
+			val nodes: Sequence<AbstractBuilderFrameTreeNode> =
+				node.children().asSequence().cast()
+			node = nodes.firstOrNull { it.isSpecifiedByString(path[index]) }
+				?: return null
 		}
-		return null
+		return TreePath(node.path)
 	}
 
 	/**
@@ -1459,10 +1457,6 @@ class AvailWorkbench internal constructor (
 			}
 			roots.forEach { root ->
 				val childNode = rootsNode.node(root.name)
-				// TODO delete me
-//				childNode.put(
-//					moduleRootsRepoSubkeyString,
-//					root.repository.fileName.path)
 				childNode.put(
 					moduleRootsSourceSubkeyString,
 					root.resolver.uri.toString())
@@ -1552,15 +1546,17 @@ class AvailWorkbench internal constructor (
 
 	private val leftPane: JSplitPane
 
+	/**
+	 * Get the existing preferences early for plugging in at the right times
+	 * during construction.
+	 */
+	private val layoutConfiguration = LayoutConfiguration.initialConfiguration
+
 	init
 	{
-		val runtime = AvailRuntime(resolver, fileManager)
 		fileManager.associateRuntime(runtime)
 		availBuilder = AvailBuilder(runtime)
 
-		// Get the existing preferences early for plugging in at the right
-		// times during construction.
-		val configuration = initialConfiguration
 		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
 		// Set *just* the window title...
@@ -1570,10 +1566,6 @@ class AvailWorkbench internal constructor (
 
 		// Create the menu bar and its menus.
 		val buildMenu = menu("Build")
-		if (!runningOnMac)
-		{
-			augment(buildMenu, aboutAction, null)
-		}
 		augment(
 			buildMenu,
 			buildAction, cancelAction, null,
@@ -1581,10 +1573,6 @@ class AvailWorkbench internal constructor (
 //			cleanModuleAction,  //TODO MvG Fix implementation and enable.
 			refreshAction)
 		val menuBar = JMenuBar()
-		if (!runningOnMac)
-		{
-			augment(buildMenu, null, preferencesAction)
-		}
 		menuBar.add(buildMenu)
 		menuBar.add(
 			menu(
@@ -1623,6 +1611,7 @@ class AvailWorkbench internal constructor (
 					JCheckBoxMenuItem(toggleDebugWorkUnits),
 					null,
 					JCheckBoxMenuItem(toggleDebugJVM),
+					JCheckBoxMenuItem(toggleDebugJVMCodeGeneration),
 					null,
 					parserIntegrityCheckAction,
 					examineRepositoryAction,
@@ -1642,8 +1631,7 @@ class AvailWorkbench internal constructor (
 		val transcriptPopup = menu("Transcript", clearTranscriptAction)
 
 		// Create the module tree.
-		moduleTree = JTree(
-			DefaultMutableTreeNode("(packages hidden root)"))
+		moduleTree = JTree(DefaultMutableTreeNode("(packages hidden root)"))
 		moduleTree.background = null
 		moduleTree.toolTipText = "All modules, organized by module root."
 		moduleTree.componentPopupMenu = buildMenu.popupMenu
@@ -1660,11 +1648,10 @@ class AvailWorkbench internal constructor (
 		moduleTree.addMouseListener(
 			object : MouseAdapter()
 			{
-				override fun mouseClicked(e: MouseEvent?)
+				override fun mouseClicked(e: MouseEvent)
 				{
-					assert(e !== null)
 					if (buildAction.isEnabled
-						&& e!!.clickCount == 2
+						&& e.clickCount == 2
 						&& e.button == MouseEvent.BUTTON1)
 					{
 						e.consume()
@@ -1678,11 +1665,6 @@ class AvailWorkbench internal constructor (
 		actionMap = moduleTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
-		// Expand rows bottom-to-top to expand only the root nodes.
-		for (i in moduleTree.rowCount - 1 downTo 0)
-		{
-			moduleTree.expandRow(i)
-		}
 
 		// Create the entry points tree.
 		entryPointsTree =
@@ -1703,13 +1685,12 @@ class AvailWorkbench internal constructor (
 		entryPointsTree.addMouseListener(
 			object : MouseAdapter()
 			{
-				override fun mouseClicked(e: MouseEvent?)
+				override fun mouseClicked(e: MouseEvent)
 				{
-					assert(e !== null)
 					if (selectedEntryPoint() !== null)
 					{
 						if (insertEntryPointAction.isEnabled
-							&& e!!.clickCount == 2
+							&& e.clickCount == 2
 							&& e.button == MouseEvent.BUTTON1)
 						{
 							e.consume()
@@ -1721,7 +1702,7 @@ class AvailWorkbench internal constructor (
 					else if (selectedEntryPointModule() !== null)
 					{
 						if (buildEntryPointModuleAction.isEnabled
-							&& e!!.clickCount == 2
+							&& e.clickCount == 2
 							&& e.button == MouseEvent.BUTTON1)
 						{
 							e.consume()
@@ -1740,10 +1721,6 @@ class AvailWorkbench internal constructor (
 		actionMap = entryPointsTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
-		for (i in 0 until entryPointsTree.rowCount)
-		{
-			entryPointsTree.expandRow(i)
-		}
 
 		// Create the build progress bar.
 		buildProgress = JProgressBar(0, 1000)
@@ -1815,7 +1792,7 @@ class AvailWorkbench internal constructor (
 				.getStyle(StyleContext.DEFAULT_STYLE)
 		defaultStyle.addAttributes(attributes)
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
-		values().forEach { style -> style.defineStyleIn(doc) }
+		StreamStyle.values().forEach { style -> style.defineStyleIn(doc) }
 
 		// Redirect the standard streams.
 		try
@@ -1846,8 +1823,10 @@ class AvailWorkbench internal constructor (
 			true,
 			createScrollPane(moduleTree),
 			createScrollPane(entryPointsTree))
-		leftPane.setDividerLocation(configuration.moduleVerticalProportion())
-		leftPane.resizeWeight = configuration.moduleVerticalProportion()
+		leftPane.setDividerLocation(
+			layoutConfiguration.moduleVerticalProportion())
+		leftPane.resizeWeight =
+			layoutConfiguration.moduleVerticalProportion()
 		leftPane.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
 			saveWindowPosition()
 		}
@@ -1891,15 +1870,16 @@ class AvailWorkbench internal constructor (
 
 		mainSplit = JSplitPane(
 			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane)
-		mainSplit.dividerLocation = configuration.leftSectionWidth()
+		mainSplit.dividerLocation = layoutConfiguration.leftSectionWidth()
 		mainSplit.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
 			saveWindowPosition()
 		}
 		contentPane.add(mainSplit)
 		pack()
-		configuration.placement?.let { bounds = it }
+		layoutConfiguration.placement?.let { bounds = it }
+		extendedState = layoutConfiguration.extendedState
 
-		// Save placement when closing.
+		// Save placement during resizes and moves.
 		addComponentListener(object : ComponentAdapter()
 		{
 			override fun componentResized(e: ComponentEvent?)
@@ -1912,59 +1892,111 @@ class AvailWorkbench internal constructor (
 				saveWindowPosition()
 			}
 		})
-		if (runningOnMac)
-		{
-			OSXUtility.setQuitHandler {
-				// Quit was pressed.  Close the workbench, which should
-				// save window position state then exit.
-				// Apple's apple.eawt.quitStrategy has never worked, to
-				// the best of my knowledge.  It's a trick.  We must
-				// close the workbench window explicitly to give it a
-				// chance to save.
-				val closeEvent = WindowEvent(
-					this@AvailWorkbench,
-					WindowEvent.WINDOW_CLOSING)
-				dispatchEvent(closeEvent)
-				true
-			}
-			OSXUtility.setAboutHandler {
-				aboutAction.showDialog()
-				true
-			}
+
+		// Set up desktop and taskbar features.
+		Desktop.getDesktop().setDefaultMenuBar(menuBar)
+		setQuitHandler {
+			// Quit was pressed.  Close the workbench, which should
+			// save window position state then exit.
+			// Apple's apple.eawt.quitStrategy has never worked, to
+			// the best of my knowledge.  It's a trick.  We must
+			// close the workbench window explicitly to give it a
+			// chance to save.
+			val closeEvent = WindowEvent(
+				this@AvailWorkbench,
+				WindowEvent.WINDOW_CLOSING)
+			dispatchEvent(closeEvent)
+			true
 		}
+		setAboutHandler {
+			aboutAction.showDialog()
+		}
+		setPreferencesHandler {
+			preferencesAction.actionPerformed(null)
+		}
+		Taskbar.getTaskbar().iconImage = ImageIcon(
+			AvailWorkbench::class.java.classLoader.getResource(
+				"resources/workbench/AvailHammer.png")).image
+		Taskbar.getTaskbar().setIconBadge(activeVersionSummary)
 
 		// Select an initial module if specified.
 		validate()
 		setEnablements()
-	}// Set module components.
+	}
 
 	private fun saveWindowPosition()
 	{
-		val saveConfiguration = LayoutConfiguration()
-		saveConfiguration.placement = bounds
-		saveConfiguration.leftSectionWidth = mainSplit.dividerLocation
-		saveConfiguration.moduleVerticalProportion =
-			leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
-		saveConfiguration.saveWindowPosition()
+		layoutConfiguration.extendedState = extendedState
+		if (extendedState == NORMAL)
+		{
+			// Only capture the bounds if it's not zoomed or minimized.
+			layoutConfiguration.placement = bounds
+		}
+		if (extendedState != ICONIFIED)
+		{
+			// Capture the divider positions if it's not minimized.
+			layoutConfiguration.leftSectionWidth = mainSplit.dividerLocation
+			layoutConfiguration.moduleVerticalProportion =
+				leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
+		}
+		layoutConfiguration.saveWindowPosition()
 	}
 
-	/**
-	 * Make the workbench instance behave more like a Mac application.
-	 */
-	private fun setUpInstanceForMac()
+	/** Perform the first refresh of the workbench. */
+	private fun initialRefresh(
+		failedResolutions: MutableList<String>,
+		resolutionTime: Long,
+		initial: String,
+		afterExecute: ()->Unit)
 	{
-		assert(runningOnMac)
-		try
+		if (failedResolutions.isEmpty())
 		{
-			// Set up Mac-specific preferences menu handler...
-			OSXUtility.setPreferencesHandler {
-				preferencesAction.actionPerformed(null)
-				true
+			writeText(
+				format("Resolved all module roots in %,3dms\n", resolutionTime),
+				INFO)
+		}
+		else
+		{
+			writeText(
+				format(
+					"Resolved module roots in %,3dms with failures:\n",
+					resolutionTime),
+				INFO)
+			failedResolutions.forEach {
+				writeText(format("%s\n", it), INFO)
 			}
 		}
-		catch (e: Exception)
-		{
-			throw RuntimeException(e)
+		// First refresh the module and entry point trees.
+		writeText("Scanning all module headers...\n", INFO)
+		val before = currentTimeMillis()
+		calculateRefreshedTreesThen { modules, entryPoints ->
+			val after = currentTimeMillis()
+			writeText(format("...done (%,3dms)\n", after - before), INFO)
+			// Now select an initial module, if specified.
+			refreshFor(modules, entryPoints)
+			if (initial.isNotEmpty())
+			{
+				val path = modulePath(initial)
+				if (path !== null)
+				{
+					moduleTree.selectionPath = path
+					moduleTree.scrollRowToVisible(
+						moduleTree.getRowForPath(path))
+				}
+				else
+				{
+					writeText(
+						"Command line argument '$initial' was "
+							+ "not a valid module path",
+						ERR)
+				}
+			}
+			backgroundTask = null
+			setEnablements()
+			afterExecute()
+			ignoreRepaint = false
+			repaint()
+			isVisible = true
 		}
 	}
 
@@ -1976,12 +2008,7 @@ class AvailWorkbench internal constructor (
 		 */
 		private const val maximumModulesInProgressReport = 20
 
-		/** Determine at startup whether we're on a Mac.  */
-		val runningOnMac =
-			System.getProperty("os.name").toLowerCase().matches(
-				"mac os x.*".toRegex())
-
-		/** Determine at startup whether we should show developer commands.  */
+		/** Determine at startup whether we should show developer commands. */
 		val showDeveloperTools =
 			"true".equals(
 				System.getProperty("availDeveloper"), ignoreCase = true)
@@ -2011,7 +2038,7 @@ class AvailWorkbench internal constructor (
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform.
 		 */
-		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMask
+		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 
 		/**
 		 * The current working directory of the Avail virtual machine. Because
@@ -2043,14 +2070,14 @@ class AvailWorkbench internal constructor (
 				})
 		}
 
-		/** Truncate the start of the document any time it exceeds this.  */
+		/** Truncate the start of the document any time it exceeds this. */
 		private const val maxDocumentSize = 10_000_000
 
-		/** The [Statistic] for tracking text insertions.  */
+		/** The [Statistic] for tracking text insertions. */
 		private val insertStringStat =
 			Statistic(WORKBENCH_TRANSCRIPT, "Insert string")
 
-		/** The [Statistic] for tracking text deletions.  */
+		/** The [Statistic] for tracking text deletions. */
 		private val removeStringStat =
 			Statistic(WORKBENCH_TRANSCRIPT, "Remove string")
 
@@ -2065,42 +2092,39 @@ class AvailWorkbench internal constructor (
 		{
 			val outerSemaphore = Semaphore(0)
 			val roots = ModuleRoots(fileManager, "") {
+				// Ignore the failures during the initial scan.
 				outerSemaphore.release()
 			}
 			outerSemaphore.acquireUninterruptibly()
 			roots.clearRoots()
 			val node = basePreferences.node(moduleRootsKeyString)
+			val pairs = mutableListOf<Pair<String, String>>()
 			try
 			{
-				val childNames = node.childrenNames()
-				childNames.forEach { childName ->
+				node.childrenNames().forEach { childName ->
 					val childNode = node.node(childName)
 					val sourceName = childNode.get(
 						moduleRootsSourceSubkeyString, "")
-					val resolver =
-						if (sourceName.isEmpty())
-						{
-							RuntimeException(
-								"ModuleRoot, $childName, is missing a source URI")
-								.printStackTrace()
-							return@forEach
-						}
-						else
-						{
-							val uri = URI(sourceName)
-							ModuleRootResolverRegistry.createResolver(
-								childName,
-								uri,
-								fileManager)
-						}
-					roots.addRoot(ModuleRoot(childName, resolver))
+					pairs.add(childName to sourceName)
+				}
+			} catch (e: BackingStoreException)
+			{
+				System.err.println("Unable to read Avail roots preferences.")
+				return roots
+			}
+			val decrement = AtomicInteger(pairs.size)
+			pairs.forEach { (rootName, uri) ->
+				roots.addRoot(rootName, uri) { failures ->
+					failures.forEach { failure ->
+						System.err.println(failure)
+					}
+					if (decrement.decrementAndGet() == 0)
+					{
+						outerSemaphore.release()
+					}
 				}
 			}
-			catch (e: BackingStoreException)
-			{
-				System.err.println(
-					"Unable to read Avail roots preferences.")
-			}
+			outerSemaphore.acquire()
 			return roots
 		}
 
@@ -2138,15 +2162,13 @@ class AvailWorkbench internal constructor (
 			}
 		}
 
-		/** Statistic for waiting for updateQueue's monitor.  */
+		/** Statistic for waiting for updateQueue's monitor. */
 		internal val waitForDequeLockStat = Statistic(
-			WORKBENCH_TRANSCRIPT,
-			"Wait for lock to trim old entries")
+			WORKBENCH_TRANSCRIPT, "Wait for lock to trim old entries")
 
-		/** Statistic for trimming excess leading entries.  */
+		/** Statistic for trimming excess leading entries. */
 		internal val discardExcessLeadingStat = Statistic(
-			WORKBENCH_TRANSCRIPT,
-			"Trim old entries (not counting lock)")
+			WORKBENCH_TRANSCRIPT, "Trim old entries (not counting lock)")
 
 		/**
 		 * Statistic for invoking writeText, including waiting for the monitor.
@@ -2251,34 +2273,50 @@ class AvailWorkbench internal constructor (
 			JScrollPane().apply {
 				horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
 				verticalScrollBarPolicy = VERTICAL_SCROLLBAR_ALWAYS
-				minimumSize = Dimension(100, 0)
+				minimumSize = Dimension(100, 50)
 				setViewportView(innerComponent)
 			}
 
 		/**
-		 * Make the workbench behave more like a Mac application.
+		 * Pass this method an Object and Method equipped to perform application
+		 * shutdown logic.  The method passed should return a boolean stating
+		 * whether the quit should occur.
+		 *
+		 * @param quitHandler
 		 */
-		private fun setUpForMac()
+		fun setQuitHandler (quitHandler: () -> Boolean)
 		{
-			assert(runningOnMac)
-			try
-			{
-				System.setProperty("apple.laf.useScreenMenuBar", "true")
-				System.setProperty(
-					"com.apple.mrj.application.apple.menu.about.name",
-					"Avail Workbench")
-				System.setProperty(
-					"com.apple.awt.graphics.UseQuartz",
-					"true")
+			Desktop.getDesktop().setQuitHandler { _, response ->
+				when (quitHandler())
+				{
+					true -> response.performQuit()
+					false -> response.cancelQuit()
+				}
+			}
+		}
 
-				val application = OSXUtility.macOSXApplication
-				OSXUtility.setDockIconBadgeMethod(
-					application, activeVersionSummary)
-			}
-			catch (e: Exception)
-			{
-				throw RuntimeException(e)
-			}
+		/**
+		 * Pass this method an Object and Method equipped to display application
+		 * info.  They will be called when the About menu item is selected from
+		 * the application menu.
+		 *
+		 * @param aboutHandler
+		 */
+		fun setAboutHandler (aboutHandler: () -> Unit)
+		{
+			Desktop.getDesktop().setAboutHandler { aboutHandler() }
+		}
+
+		/**
+		 * Pass this method an Object and a Method equipped to display
+		 * application options. They will be called when the Preferences menu
+		 * item is selected from the application menu.
+		 *
+		 * @param preferences
+		 */
+		fun setPreferencesHandler (preferences: ()-> Unit)
+		{
+			Desktop.getDesktop().setPreferencesHandler { preferences() }
 		}
 
 		/**
@@ -2294,13 +2332,15 @@ class AvailWorkbench internal constructor (
 		fun main(args: Array<String>)
 		{
 			val fileManager = FileManager()
-			if (runningOnMac)
-			{
-				setUpForMac()
-			}
-			if (darkMode)
-			{
-				LafManager.install(DarculaTheme())
+			// Do the slow Swing setup in parallel with other things...
+			val swingReady = Semaphore(0)
+			val runtimeReady = Semaphore(0)
+			thread(name = "Set up LAF") {
+				if (darkMode)
+				{
+					LafManager.install(DarculaTheme())
+				}
+				swingReady.release()
 			}
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
@@ -2313,7 +2353,7 @@ class AvailWorkbench internal constructor (
 				else ->
 				{
 					val semaphore = Semaphore(0)
-					val mrs = ModuleRoots(fileManager, rootsString) { fails ->
+					val roots = ModuleRoots(fileManager, rootsString) { fails ->
 						if (fails.isNotEmpty())
 						{
 							failedResolutions.addAll(fails)
@@ -2321,116 +2361,60 @@ class AvailWorkbench internal constructor (
 						semaphore.release()
 					}
 					semaphore.acquireUninterruptibly()
-					mrs
+					roots
 				}
 			}
 			val resolutionTime = currentTimeMillis() - rootResolutionStart
-			val resolver: ModuleNameResolver
-			var reader: Reader? = null
-			try
-			{
-				val renames = System.getProperty("availRenames", null)
-				reader = when (renames)
+			lateinit var resolver: ModuleNameResolver
+			lateinit var runtime: AvailRuntime
+			thread(name = "Parse renames") {
+				var reader: Reader? = null
+				try
 				{
-					// Load the renames from preferences further down.
-					null -> StringReader("")
-					// Load renames from file specified on the command line...
-					else -> BufferedReader(
-						InputStreamReader(
-							FileInputStream(
-								File(renames)), StandardCharsets.UTF_8))
+					val renames = System.getProperty("availRenames", null)
+					reader = when (renames)
+					{
+						// Load the renames from preferences further down.
+						null -> StringReader("")
+						// Load renames from file specified on the command line...
+						else -> BufferedReader(
+							InputStreamReader(
+								FileInputStream(File(renames)),
+								UTF_8))
+					}
+					val renameParser = RenamesFileParser(reader, roots)
+					resolver = renameParser.parse()
+					if (renames === null)
+					{
+						// Now load the rename rules from preferences.
+						loadRenameRulesInto(resolver)
+					}
 				}
-				val renameParser = RenamesFileParser(reader, roots)
-				resolver = renameParser.parse()
-				if (renames === null)
+				finally
 				{
-					// Now load the rename rules from preferences.
-					loadRenameRulesInto(resolver)
+					IO.closeIfNotNull(reader)
 				}
-			}
-			finally
-			{
-				IO.closeIfNotNull(reader)
+				runtime = AvailRuntime(resolver, fileManager)
+				runtimeReady.release()
 			}
 
-			// The first application argument, if any, says which module to
-			// select.
-			val initial = if (args.isNotEmpty()) args[0] else ""
+			runtimeReady.acquire()
+			swingReady.acquire()
 
 			// Display the UI.
+			val bench = AvailWorkbench(runtime, fileManager, resolver)
+			bench.createBufferStrategy(2)
+			bench.ignoreRepaint = true
 			invokeLater {
-				val bench = AvailWorkbench(fileManager, resolver)
-				if (runningOnMac)
-				{
-					bench.setUpInstanceForMac()
-				}
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)
 					{
-						override fun executeTaskThen(afterExecute: ()->Unit)
-						{
-							if (failedResolutions.isEmpty())
-							{
-								workbench.writeText(
-									format(
-										"Resolved all module roots in %,3dms\n",
-										resolutionTime),
-									INFO)
-							}
-							else
-							{
-								workbench.writeText(
-									format(
-										"Resolved module roots in %,3dms " +
-											"with failures:\n",
-										resolutionTime),
-									INFO)
-								failedResolutions.forEach {
-									workbench.writeText(
-										format("%s\n", it),
-										INFO)
-								}
-							}
-							// First refresh the module and entry point trees.
-							workbench.writeText(
-								"Scanning all module headers...\n",
-								INFO)
-							val before = currentTimeMillis()
-							workbench.calculateRefreshedTreesThen {
-								modules, entryPoints ->
-								val after = currentTimeMillis()
-								workbench.writeText(
-									format(
-										"...done (%,3dms)\n",
-										after - before),
-									INFO)
-								// Now select an initial module, if specified.
-								invokeLater {
-									workbench.refreshFor(modules, entryPoints)
-									if (initial.isNotEmpty())
-									{
-										val path = workbench.modulePath(initial)
-										if (path !== null)
-										{
-											workbench.moduleTree.selectionPath = path
-											workbench.moduleTree.scrollRowToVisible(
-												workbench.moduleTree
-													.getRowForPath(path))
-										}
-										else
-										{
-											workbench.writeText(
-												"Command line argument '$initial' was "
-													+ "not a valid module path",
-												ERR)
-										}
-									}
-									workbench.backgroundTask = null
-									workbench.setEnablements()
-									afterExecute()
-								}
-							}
-						}
+						override fun executeTaskThen(afterExecute: ()->Unit) =
+							bench.initialRefresh(
+								failedResolutions,
+								resolutionTime,
+								if (args.isNotEmpty()) args[0] else "",
+								afterExecute)
 					}
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()
@@ -2446,7 +2430,6 @@ class AvailWorkbench internal constructor (
 					}
 				}
 				initialRefreshTask.execute()
-				bench.isVisible = true
 			}
 		}
 	}

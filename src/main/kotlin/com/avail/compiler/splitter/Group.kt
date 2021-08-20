@@ -79,7 +79,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeType
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
@@ -281,7 +281,7 @@ internal class Group : Expression
 			else fromInt(maximumCardinality + 1),
 			false)
 
-		if (!argumentType.sizeRange().isSubtypeOf(requiredRange))
+		if (!argumentType.sizeRange.isSubtypeOf(requiredRange))
 		{
 			// The method's parameter should have a cardinality that's a
 			// subtype of what the message name requires.
@@ -298,8 +298,8 @@ internal class Group : Expression
 			val argsAfterDagger = afterDagger.yielders.size
 			val expectedLower = fromInt(argsBeforeDagger)
 			val expectedUpper = fromInt(argsBeforeDagger + argsAfterDagger)
-			val typeTuple = argumentType.typeTuple()
-			val limit = typeTuple.tupleSize() + 1
+			val typeTuple = argumentType.typeTuple
+			val limit = typeTuple.tupleSize + 1
 			for (i in 1..limit)
 			{
 				val solutionType = argumentType.typeAtIndex(i)
@@ -316,9 +316,9 @@ internal class Group : Expression
 				// Check that the solution that will reside at the current
 				// index accepts either a full group or a group up to the
 				// dagger.
-				val solutionTypeSizes = solutionType.sizeRange()
-				val lower = solutionTypeSizes.lowerBound()
-				val upper = solutionTypeSizes.upperBound()
+				val solutionTypeSizes = solutionType.sizeRange
+				val lower = solutionTypeSizes.lowerBound
+				val upper = solutionTypeSizes.upperBound
 				if (!lower.equals(expectedLower)
 					|| !upper.equals(expectedUpper))
 				{
@@ -348,17 +348,17 @@ internal class Group : Expression
 		generator: InstructionGenerator,
 		wrapState: WrapState): WrapState
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType()
-		val sizeRange = subexpressionsTupleType.sizeRange()
-		val minInteger = sizeRange.lowerBound()
+		val subexpressionsTupleType = phraseType.subexpressionsTupleType
+		val sizeRange = subexpressionsTupleType.sizeRange
+		val minInteger = sizeRange.lowerBound
 		val minSize =
-			if (minInteger.isInt) minInteger.extractInt() else Integer.MAX_VALUE
-		val maxInteger = sizeRange.upperBound()
+			if (minInteger.isInt) minInteger.extractInt else Integer.MAX_VALUE
+		val maxInteger = sizeRange.upperBound
 		val maxSize =
-			if (maxInteger.isInt) maxInteger.extractInt() else Integer.MAX_VALUE
+			if (maxInteger.isInt) maxInteger.extractInt else Integer.MAX_VALUE
 		val endOfVariation = min(
 			max(
-				subexpressionsTupleType.typeTuple().tupleSize() + 2,
+				subexpressionsTupleType.typeTuple.tupleSize + 2,
 				min(minSize, 3)),
 			maxSize)
 		val needsProgressCheck = beforeDagger.mightBeEmpty(phraseType)
@@ -428,10 +428,10 @@ internal class Group : Expression
 			for (index in 1 until endOfVariation)
 			{
 				val innerPhraseType = subexpressionsTupleType.typeAtIndex(index)
-				val singularListType = createListNodeType(
+				val singularListType = createListPhraseType(
 					LIST_PHRASE,
 					tupleTypeForTypes(
-						innerPhraseType.phraseTypeExpressionType()),
+						innerPhraseType.phraseTypeExpressionType),
 					tupleTypeForTypes(innerPhraseType))
 				beforeDagger.emitOn(
 					singularListType,
@@ -468,10 +468,10 @@ internal class Group : Expression
 			}
 			val `$loopStart` = Label()
 			generator.emit(`$loopStart`)
-			val innerPhraseType = subexpressionsTupleType.defaultType()
-			val singularListType = createListNodeType(
+			val innerPhraseType = subexpressionsTupleType.defaultType
+			val singularListType = createListPhraseType(
 				LIST_PHRASE,
-				tupleTypeForTypes(innerPhraseType.phraseTypeExpressionType()),
+				tupleTypeForTypes(innerPhraseType.phraseTypeExpressionType),
 				tupleTypeForTypes(innerPhraseType))
 			beforeDagger.emitOn(singularListType, generator, PUSHED_LIST)
 			if (endOfVariation < maxSize)
@@ -674,7 +674,7 @@ internal class Group : Expression
 		generator: InstructionGenerator,
 		phraseType: A_Type)
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType()
+		val subexpressionsTupleType = phraseType.subexpressionsTupleType
 		generator.partialListsCount += 2
 		var argIndex = 0
 		var ungroupedArgCount = 0
@@ -742,7 +742,7 @@ internal class Group : Expression
 		generator: InstructionGenerator,
 		phraseType: A_Type)
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType()
+		val subexpressionsTupleType = phraseType.subexpressionsTupleType
 		generator.partialListsCount += 2
 		var argIndex = beforeDagger.yielders.size
 		var ungroupedArgCount = 0
@@ -805,7 +805,7 @@ internal class Group : Expression
 		}
 		// Ensure the tuple type was consumed up to its upperBound.
 		assert(
-			subexpressionsTupleType.sizeRange().upperBound().equalsInt(
+			subexpressionsTupleType.sizeRange.upperBound.equalsInt(
 				argIndex))
 	}
 
@@ -891,12 +891,12 @@ internal class Group : Expression
 			// its elements.
 			groupArguments = newListNode(
 				tupleFromList(
-					groupArguments.token().literal().map {
+					groupArguments.token.literal().map {
 						syntheticLiteralNodeFor(
 							it, stringFrom(it.toString()))
 					}))
 		}
-		val occurrenceProvider = groupArguments.expressionsTuple().iterator()
+		val occurrenceProvider = groupArguments.expressionsTuple.iterator()
 		while (occurrenceProvider.hasNext())
 		{
 			val occurrence = occurrenceProvider.next()
@@ -908,7 +908,7 @@ internal class Group : Expression
 				assert(
 					occurrence.isInstanceOfKind(
 						LIST_PHRASE.mostGeneralType()))
-				innerIterator = occurrence.expressionsTuple().iterator()
+				innerIterator = occurrence.expressionsTuple.iterator()
 			}
 			else
 			{
@@ -996,9 +996,9 @@ internal class Group : Expression
 	override fun mightBeEmpty(phraseType: A_Type): Boolean
 	{
 		// This group can consume no tokens iff it can have zero repetitions.
-		val tupleType = phraseType.phraseTypeExpressionType()
+		val tupleType = phraseType.phraseTypeExpressionType
 		assert(tupleType.isTupleType)
-		return tupleType.sizeRange().lowerBound().equalsInt(0)
+		return tupleType.sizeRange.lowerBound.equalsInt(0)
 	}
 
 	override fun checkListStructure(phrase: A_Phrase): Boolean
@@ -1008,7 +1008,7 @@ internal class Group : Expression
 		// Must not permute the guillemet group repetition itself.
 		if (phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
 		if (!phrase.phraseKindIsUnder(LIST_PHRASE)) return false
-		return phrase.expressionsTuple().all { subphrase ->
+		return phrase.expressionsTuple.all { subphrase ->
 			checkOneRepeatedSublistStructure(subphrase)
 		}
 	}
@@ -1031,8 +1031,8 @@ internal class Group : Expression
 		// It's double-wrapped (i.e., this repetition is itself a list).
 		if (phrase.phraseKindIsUnder(LITERAL_PHRASE)) return true
 		if (!phrase.phraseKindIsUnder(LIST_PHRASE)) return false
-		val subphrases = phrase.expressionsTuple()
-		val subphrasesSize = subphrases.tupleSize()
+		val subphrases = phrase.expressionsTuple
+		val subphrasesSize = subphrases.tupleSize
 		if (subphrasesSize == beforeDagger.yielders.size)
 		{
 			// Only check the left side.  Note - it might require a permutation.
@@ -1050,7 +1050,7 @@ internal class Group : Expression
 		{
 			// It must be permuted.
 			if (!phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE)) return false
-			val actualPermutation = phrase.permutation()
+			val actualPermutation = phrase.permutation
 			val expectedPermutation = beforeDagger.permutation.toMutableList()
 			afterDagger.permutation.mapTo(expectedPermutation) { it + leftSize }
 			if (!tupleFromIntegerList(expectedPermutation)

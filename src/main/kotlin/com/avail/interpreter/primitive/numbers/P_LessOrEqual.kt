@@ -104,8 +104,7 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val firstReg = arguments[0]
-		val secondReg = arguments[1]
+		val (firstReg, secondReg) = arguments
 		val firstType = firstReg.type()
 		val secondType = secondReg.type()
 		val possible =

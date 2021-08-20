@@ -34,21 +34,23 @@ package com.avail.interpreter.primitive.phrases
 
 import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.sets.SetDescriptor.Companion.set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.LiteralTokenDescriptor
 import com.avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
 import com.avail.interpreter.execution.Interpreter
 
 /**
@@ -60,17 +62,20 @@ import com.avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
+object P_CreateLiteralToken : Primitive(4, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(4)
-		val value = interpreter.argument(0)
-		val lexeme = interpreter.argument(1)
-		val start = interpreter.argument(2)
-		val line = interpreter.argument(3)
+		val (value, lexeme, start, line) = interpreter.argsBuffer
+		if (!start.isInt || !line.isInt || line.extractInt >= (1L shl 28))
+		{
+			// The low end was already limited by the primitive's argument type
+			// restrictions.
+			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+		}
 		return interpreter.primitiveSuccess(
-			literalToken(lexeme, start.extractInt(), line.extractInt(), value))
+			literalToken(lexeme, start.extractInt, line.extractInt, value))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -89,8 +94,12 @@ object P_CreateLiteralToken : Primitive(4, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				ANY.o,
-				stringType(),
-				inclusive(0, (1L shl 31) - 1),
-				inclusive(0, (1L shl 28) - 1)),
+				stringType,
+				wholeNumbers,
+				wholeNumbers
+			),
 			mostGeneralLiteralTokenType())
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(set(E_EXCEEDS_VM_LIMIT))
 }

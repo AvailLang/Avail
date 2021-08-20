@@ -74,10 +74,13 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(2)
 		val variable = interpreter.argument(0)
 		val value = interpreter.argument(1)
-		return try {
+		return try
+		{
 			variable.setValue(value)
 			interpreter.primitiveSuccess(nil)
-		} catch (e: VariableSetException) {
+		}
+		catch (e: VariableSetException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -86,10 +89,8 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ANY.o
-			),
-			TOP.o
-		)
+				ANY.o),
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -99,12 +100,10 @@ object P_SetValue : Primitive(2, CanInline, HasSideEffect)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val varReg = arguments[0]
-		val valueReg = arguments[1]
-
+		val (varReg, valueReg) = arguments
 		val varType = varReg.type()
 		val valueType = valueReg.type()
-		val varInnerType = varType.writeType()
+		val varInnerType = varType.writeType
 
 		// These two operations have the same operand layouts.
 		val setOperation = if (valueType.isSubtypeOf(varInnerType))

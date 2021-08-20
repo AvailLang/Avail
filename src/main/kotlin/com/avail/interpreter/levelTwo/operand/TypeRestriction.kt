@@ -335,7 +335,7 @@ class TypeRestriction private constructor(
 			return this
 		}
 		// We can only exclude types that were excluded in both restrictions.
-		// Therefore find each intersection of an excluded type from the first
+		// Therefore, find each intersection of an excluded type from the first
 		// restriction and an excluded type from the second restriction.
 		val mutualTypeIntersections = mutableSetOf<A_Type>()
 		for (t1 in excludedTypes)
@@ -355,14 +355,15 @@ class TypeRestriction private constructor(
 		for (value in excludedValues)
 		{
 			if (other.excludedValues.contains(value)
-				|| other.excludedTypes.any { value.isInstanceOf(it) })
+				|| other.excludedTypes.any(value::isInstanceOf)
+			)
 			{
 				newExcludedValues.add(value)
 			}
 		}
 		for (value in other.excludedValues)
 		{
-			if (excludedTypes.any { value.isInstanceOf(it) })
+			if (excludedTypes.any(value::isInstanceOf))
 			{
 				newExcludedValues.add(value)
 			}
@@ -402,8 +403,7 @@ class TypeRestriction private constructor(
 				constantOrNull ?: other.constantOrNull,
 				excludedTypes + other.excludedTypes,
 				excludedValues + other.excludedValues,
-				flags or other.flags
-			)
+				flags or other.flags)
 		}
 
 	/**
@@ -536,7 +536,7 @@ class TypeRestriction private constructor(
 		{
 			return false
 		}
-		if (excludedTypes.any {intersectedType.isSubtypeOf(it) })
+		if (excludedTypes.any { intersectedType.isSubtypeOf(it) })
 		{
 			// Even though the bare types intersect, the intersection was
 			// explicitly excluded by the restriction.
@@ -545,7 +545,7 @@ class TypeRestriction private constructor(
 		return !(excludedValues.isNotEmpty()
 			&& intersectedType.isEnumeration
 			&& !intersectedType.isInstanceMeta
-			&& intersectedType.instances().isSubsetOf(
+			&& intersectedType.instances.isSubsetOf(
 				setFromCollection(excludedValues)))
 	}
 
@@ -688,7 +688,7 @@ class TypeRestriction private constructor(
 	 */
 	fun restrictingKindsTo(kinds: EnumSet<RegisterKind>): TypeRestriction
 	{
-		return restrictingKindsTo(kinds.sumBy { it.restrictionFlag.mask })
+		return restrictingKindsTo(kinds.sumOf { it.restrictionFlag.mask })
 	}
 
 	/**
@@ -708,8 +708,8 @@ class TypeRestriction private constructor(
 			maximumCount >= 0 && this === bottomRestriction -> emptySet
 			maximumCount >= 1 && constantOrNull !== null -> set(constantOrNull)
 			type.isEnumeration && !type.isInstanceMeta
-			   && type.instanceCount().lessOrEqual(fromInt(maximumCount)) ->
-					type.instances()
+				&& type.instanceCount.lessOrEqual(fromInt(maximumCount)) ->
+					type.instances
 			else -> null
 		}
 
@@ -777,13 +777,14 @@ class TypeRestriction private constructor(
 		for (otherExcludedValue in other.excludedValues)
 		{
 			if (!excludedValues.contains(otherExcludedValue)
-				&& excludedTypes.none { otherExcludedValue.isInstanceOf(it) })
+				&& excludedTypes.none(otherExcludedValue::isInstanceOf)
+			)
 			{
 				return false
 			}
 		}
-		// Any additional exclusions that the receiver has are irrelevant, as
-		// they only act to strengthen the restriction.
+		// Any additional receiver exclusions are irrelevant, as they only act
+		// to strengthen the restriction.
 		return true
 	}
 
@@ -1045,7 +1046,7 @@ class TypeRestriction private constructor(
 					// main type constraint and isn't specifically excluded,
 					// otherwise use the bottomRestriction, which is the
 					// impossible restriction.
-					if (givenConstantOrNull.equalsNil())
+					if (givenConstantOrNull.isNil)
 					{
 						nilRestriction
 					}
@@ -1054,8 +1055,8 @@ class TypeRestriction private constructor(
 						assert(givenConstantOrNull.isInstanceOf(type))
 						assert(givenConstantOrNull !in givenExcludedValues)
 						assert(
-							givenExcludedTypes
-								.none { givenConstantOrNull.isInstanceOf(it) })
+							givenExcludedTypes.none(
+								givenConstantOrNull::isInstanceOf))
 						// No reason to exclude it, so use the constant.  We can
 						// safely omit the excluded types and values as part of
 						// canonicalization.
@@ -1092,12 +1093,12 @@ class TypeRestriction private constructor(
 							anyRestriction
 						}
 					}
-					else if (type.instanceCount().equalsInt(1)
+					else if (type.instanceCount.equalsInt(1)
 						&& !type.isInstanceMeta)
 					{
 						// This is a non-meta instance type, which should be
 						// treated as a constant restriction.
-						val instance = type.instance()
+						val instance = type.instance
 						if (instance.isBottom)
 						{
 							// Special case: bottom's type has one instance,
@@ -1202,13 +1203,13 @@ class TypeRestriction private constructor(
 			flags: Int): TypeRestriction
 		{
 			if (constantOrNull === null && type.isEnumeration
-				&& (!type.isInstanceMeta || type.instance().isBottom))
+				&& (!type.isInstanceMeta || type.instance.isBottom))
 			{
 				// No constant was specified, but the type is a non-meta
 				// enumeration (or bottom's type, which has only one instance,
 				// bottom).  See if excluding disallowed types and values
 				// happens to leave exactly zero or one possibility.
-				val instances = type.instances().toMutableSet()
+				val instances = type.instances.toMutableSet()
 				instances.removeAll(givenExcludedValues)
 				instances.removeIf { instance ->
 					givenExcludedTypes.any { aType ->
@@ -1247,7 +1248,7 @@ class TypeRestriction private constructor(
 				// type constraint and isn't specifically excluded, otherwise
 				// use the bottomRestriction, which is the impossible
 				// restriction.
-				if (constantOrNull.equalsNil())
+				if (constantOrNull.isNil)
 				{
 					return nilRestriction
 				}
@@ -1299,7 +1300,7 @@ class TypeRestriction private constructor(
 				{
 					// Convert an excluded enumeration into individual excluded
 					// values.
-					for (v in t.instances())
+					for (v in t.instances)
 					{
 						excludedValues.add(v)
 					}
@@ -1313,11 +1314,11 @@ class TypeRestriction private constructor(
 			// Eliminate excluded values that are already under an excluded type, or
 			// are not under the given type.
 			excludedValues.removeIf { v: A_BasicObject ->
-				!v.isInstanceOf(type) || excludedTypes.any { v.isInstanceOf(it) }
+				!v.isInstanceOf(type) || excludedTypes.any(v::isInstanceOf)
 			}
 			return if (type.equals(TOP.o)
-					   && excludedTypes.isEmpty()
-					   && excludedValues.isEmpty())
+						&& excludedTypes.isEmpty()
+						&& excludedValues.isEmpty())
 			{
 				topRestriction
 			}
@@ -1378,11 +1379,11 @@ class TypeRestriction private constructor(
 			encoding: RestrictionFlagEncoding): TypeRestriction
 		{
 			assert(encoding == BOXED_FLAG
-				   || encoding == UNBOXED_INT_FLAG
-				   || encoding == UNBOXED_FLOAT_FLAG)
+					|| encoding == UNBOXED_INT_FLAG
+					|| encoding == UNBOXED_FLOAT_FLAG)
 			constant.makeImmutable()
 			return restriction(
-				if (constant.equalsNil())
+				if (constant.isNil)
 				{
 					TOP.o
 				}

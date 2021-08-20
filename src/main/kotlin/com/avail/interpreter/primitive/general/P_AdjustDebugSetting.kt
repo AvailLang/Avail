@@ -55,7 +55,7 @@ object P_AdjustDebugSetting : Primitive(1, Unknown, CannotFail)
 		interpreter.checkArgumentCount(1)
 		val levelObject = interpreter.argument(0)
 
-		val level = levelObject.extractInt()
+		val level = levelObject.extractInt
 		Interpreter.debugL1 = level and 1 != 0
 		Interpreter.debugL2 = level and 2 != 0
 		Interpreter.debugPrimitives = level and 4 != 0

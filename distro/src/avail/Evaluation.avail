@@ -32,11 +32,11 @@
 
 Module "Evaluation"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Avail"
 Entries
-	"anonymous module uses«…$«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»‡,»",
+	"anonymous module uses«…#«=(««-»?…#«→…#»?‡,»,⁇«`…»?)»‡,»",
 	"compile_in_",
 	"evaluate_"
 Body

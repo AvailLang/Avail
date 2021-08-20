@@ -109,19 +109,18 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		aType.makeImmutable()
 		bType.makeImmutable()
 
 		if (aType.isEnumeration && bType.isEnumeration)
 		{
-			val aValues = aType.instances()
-			val bValues = bType.instances()
+			val aValues = aType.instances
+			val bValues = bType.instances
 			// Compute the Cartesian product as an enumeration if there will
 			// be few enough entries.
-			if (aValues.setSize() * bValues.setSize().toLong() < 100)
+			if (aValues.setSize * bValues.setSize.toLong() < 100)
 			{
 				var answers = emptySet
 				for (aValue in aValues)
@@ -175,10 +174,10 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	class BoundCalculator internal constructor(
 		private val aType: A_Type, private val bType: A_Type)
 	{
-		/** Accumulate the range.  */
+		/** Accumulate the range. */
 		private var union = bottom
 
-		/** The infinities that should be included in the result.  */
+		/** The infinities that should be included in the result. */
 		private val includedInfinities = mutableSetOf<A_Number>()
 
 		/**
@@ -194,7 +193,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		private fun processPair(a: A_Number, b: A_Number)
 		{
 			if ((!a.equalsInt(0) || b.isFinite)
-			    && (!b.equalsInt(0) || a.isFinite))
+				&& (!b.equalsInt(0) || a.isFinite))
 			{
 				// It's not 0 × ±∞, so include this product in the range.
 				// Always include infinities for now, and trim them out later.
@@ -202,8 +201,8 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				product.makeImmutable()
 				union = union.typeUnion(inclusive(product, product))
 				if (!product.isFinite
-				    && a.isInstanceOf(aType)
-				    && b.isInstanceOf(bType))
+					&& a.isInstanceOf(aType)
+					&& b.isInstanceOf(bType))
 				{
 					// Both inputs are inclusive, and the product is infinite.
 					// Include the product in the output.
@@ -224,12 +223,12 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			val bRanges = split(bType)
 			for (aRange in aRanges)
 			{
-				val aMin = aRange.lowerBound()
-				val aMax = aRange.upperBound()
+				val aMin = aRange.lowerBound
+				val aMax = aRange.upperBound
 				for (bRange in bRanges)
 				{
-					val bMin = bRange.lowerBound()
-					val bMax = bRange.upperBound()
+					val bMin = bRange.lowerBound
+					val bMax = bRange.upperBound
 					processPair(aMin, bMin)
 					processPair(aMin, bMax)
 					processPair(aMax, bMin)
@@ -248,7 +247,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 
 		companion object
 		{
-			/** Partition the integers by sign.  */
+			/** Partition the integers by sign. */
 			private val interestingRanges = listOf(
 				inclusive(negativeInfinity, negativeOne()),
 				inclusive(zero, zero),
@@ -268,8 +267,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		val aTypeIncludesZero = zero.isInstanceOf(aType)
 		val aTypeIncludesInfinity =
@@ -305,7 +303,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		// If either of the argument types does not intersect with int32, then
 		// fall back to the primitive invocation.
 		if (aType.typeIntersection(int32).isBottom
-		    || bType.typeIntersection(int32).isBottom)
+			|| bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}

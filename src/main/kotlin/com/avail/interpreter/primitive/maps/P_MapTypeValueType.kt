@@ -56,7 +56,7 @@ object P_MapTypeValueType : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val mapType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(mapType.valueType())
+		return interpreter.primitiveSuccess(mapType.valueType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

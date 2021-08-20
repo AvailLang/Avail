@@ -84,12 +84,12 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 		val argsListPhrase = interpreter.argument(1)
 		val returnType = interpreter.argument(2)
 
-		val argExpressions = argsListPhrase.expressionsTuple()
-		val argsCount = argExpressions.tupleSize()
+		val argExpressions = argsListPhrase.expressionsTuple
+		val argsCount = argExpressions.tupleSize
 		try
 		{
 			val bundle: A_Bundle = messageName.bundleOrCreate()
-			val splitter = bundle.messageSplitter()
+			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
 				return interpreter.primitiveFailure(
@@ -126,7 +126,7 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 		// final A_Type argsListNodeType = argumentTypes.get(1);
 		val returnTypeType = argumentTypes[2]
 
-		val returnType = returnTypeType.instance()
+		val returnType = returnTypeType.instance
 		return SEND_PHRASE.create(returnType)
 	}
 

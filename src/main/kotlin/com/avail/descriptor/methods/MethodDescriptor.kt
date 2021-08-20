@@ -46,11 +46,20 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.addDefinitionParsingPlan
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleAddMacro
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.A_Bundle.Companion.removePlanForSendable
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import com.avail.descriptor.methods.A_Method.Companion.bundles
+import com.avail.descriptor.methods.A_Method.Companion.chooseBundle
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.membershipChanged
+import com.avail.descriptor.methods.A_Method.Companion.methodAddDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import com.avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
 import com.avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import com.avail.descriptor.methods.MethodDescriptor.Companion.initialMutableDescriptor
@@ -147,6 +156,7 @@ import com.avail.interpreter.primitive.modules.P_PublishName
 import com.avail.interpreter.primitive.objects.P_RecordNewTypeName
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import com.avail.interpreter.primitive.phrases.P_CreateLiteralToken
+import com.avail.interpreter.primitive.phrases.P_SetStyleFunction
 import com.avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import com.avail.interpreter.primitive.variables.P_AtomicAddToMap
 import com.avail.interpreter.primitive.variables.P_AtomicRemoveFromMap
@@ -162,6 +172,7 @@ import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.IdentityHashMap
 import java.util.WeakHashMap
+import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.atomic.AtomicReferenceFieldUpdater.newUpdater
 import kotlin.concurrent.withLock
 
@@ -203,7 +214,7 @@ class MethodDescriptor private constructor(
 	 * on the module scope of the bundles' [atomic&#32;names][AtomDescriptor]).
 	 */
 	@Volatile
-	var owningBundles = emptySet
+	var owningBundles = AtomicReference(emptySet)
 
 	/**
 	 * A [LookupTree] used to determine the most specific method definition that
@@ -233,11 +244,12 @@ class MethodDescriptor private constructor(
 		{
 			// Double-check the volatile field.
 			dynamicLookupStat?.let { return it }
-			val name = when (owningBundles.setSize())
+			val bundles = owningBundles.get()
+			val name = when (bundles.setSize)
 			{
 				0 -> "(no name)"
-				1 -> owningBundles.single().message().toString()
-				else -> owningBundles.first().toString() +
+				1 -> bundles.single().message.toString()
+				else -> bundles.first().toString() +
 					" & aliases"
 			}
 			val stat = Statistic(DYNAMIC_LOOKUP_TIME, name)
@@ -344,13 +356,15 @@ class MethodDescriptor private constructor(
 				toList(self.volatileSlot(DEFINITIONS_TUPLE)),
 				nCopiesOfAnyRestriction(numArgs),
 				Unit)
-			do {
+			do
+			{
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
 				// winner's tree.
 				methodTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = methodTestingTree
-			} while (tree === null)
+			}
+			while (tree === null)
 		}
 		return tree
 	}
@@ -369,13 +383,13 @@ class MethodDescriptor private constructor(
 		indent: Int)
 	{
 		builder.run {
-			when (val size = self.definitionsTuple().tupleSize())
+			when (val size = self.definitionsTuple.tupleSize)
 			{
 				1 -> append("1 definition")
 				else -> append("$size definitions")
 			}
 			append(" of ")
-			self.bundles().joinTo(this, " a.k.a. ") { it.message().toString() }
+			self.bundles.joinTo(this, " a.k.a. ") { it.message.toString() }
 		}
 	}
 
@@ -413,15 +427,15 @@ class MethodDescriptor private constructor(
 		self.setSlot(SEMANTIC_RESTRICTIONS_SET, set.makeShared())
 	}
 
-	override fun o_Bundles(self: AvailObject): A_Set = owningBundles
+	override fun o_Bundles(self: AvailObject): A_Set = owningBundles.get()
 
 	override fun o_ChooseBundle(
 		self: AvailObject,
 		currentModule: A_Module
 	): A_Bundle {
-		val bundles: A_Set = owningBundles
+		val bundles: A_Set = owningBundles.get()
 		return bundles.find {
-			currentModule.hasAncestor(it.message().issuingModule())
+			currentModule.hasAncestor(it.message.issuingModule)
 		} ?: bundles.first() // Fall back to any bundle.
 	}
 
@@ -446,7 +460,7 @@ class MethodDescriptor private constructor(
 	): List<A_Definition> =
 		// Use the accessor instead of reading the slot directly (to acquire the
 		// monitor first).
-		self.definitionsTuple().filter {
+		self.definitionsTuple.filter {
 			it.bodySignature().couldEverBeInvokedWith(argRestrictions)
 		}
 
@@ -457,6 +471,12 @@ class MethodDescriptor private constructor(
 		self: AvailObject
 	): Array<AvailObjectFieldHelper> {
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("owningBundles"),
+				-1,
+				owningBundles))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
@@ -491,7 +511,7 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		argTypes: List<A_Type>
 	): List<A_Definition> =
-		self.definitionsTuple().filter {
+		self.definitionsTuple.filter {
 			it.bodySignature().acceptsListOfArgTypes(argTypes)
 		}
 
@@ -506,13 +526,13 @@ class MethodDescriptor private constructor(
 	override fun o_IncludesDefinition(
 		self: AvailObject,
 		definition: A_Definition
-	) = self.definitionsTuple().contains(definition)
+	) = self.definitionsTuple.contains(definition)
 
 	override fun o_IsMethodEmpty(self: AvailObject) = synchronized(self) {
-		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize() == 0
-			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize() == 0
-			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize() == 0
-			&& owningBundles.all { it.macrosTuple().tupleSize() == 0 }
+		self.volatileSlot(DEFINITIONS_TUPLE).tupleSize == 0
+			&& self.slot(SEMANTIC_RESTRICTIONS_SET).setSize == 0
+			&& self.slot(SEALED_ARGUMENTS_TYPES_TUPLE).tupleSize == 0
+			&& owningBundles.get().all { it.macrosTuple.tupleSize == 0 }
 	}
 
 	override fun o_Kind(self: AvailObject): A_Type = METHOD.o
@@ -555,17 +575,18 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		bundle: A_Bundle)
 	{
-		owningBundles =
-			owningBundles.setWithElementCanDestroy(bundle, false).makeShared()
+		owningBundles.updateAndGet {
+			it.setWithElementCanDestroy(bundle, false).makeShared()
+		}
 	}
 
 	override fun o_MethodRemoveBundle(
 		self: AvailObject,
 		bundle: A_Bundle)
 	{
-		owningBundles =
-			owningBundles.setWithoutElementCanDestroy(bundle, false)
-				.makeShared()
+		owningBundles.updateAndGet {
+			it.setWithoutElementCanDestroy(bundle, false).makeShared()
+		}
 	}
 
 	/**
@@ -584,11 +605,11 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
-		val paramTypes = definition.bodySignature().argsTupleType()
+		val paramTypes = definition.bodySignature().argsTupleType
 		val seals: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
 		seals.forEach { seal: A_Tuple ->
 			val sealType = tupleTypeForSizesTypesDefaultType(
-				singleInt(seal.tupleSize()), seal, bottom)
+				singleInt(seal.tupleSize), seal, bottom)
 			if (paramTypes.isSubtypeOf(sealType)) {
 				throw SignatureException(E_METHOD_IS_SEALED)
 			}
@@ -596,14 +617,20 @@ class MethodDescriptor private constructor(
 		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
 			appendCanDestroy(definition, true)
 		}
-		owningBundles.forEach {
+		// TODO MvG 2021-06-19:  This might be a race.  I *think* the worst that
+		//  can happen is that dependency-incomparable modules won't have
+		//  parsing plans for definitions that they can't parse invocations of
+		//  anyhow, because they're not dependently related.  However, internal
+		//  accounting might end up not quite right when the definitions or
+		//  bundles need to be removed during unloading.
+		owningBundles.get().forEach {
 			it.addDefinitionParsingPlan(newParsingPlan(it, definition))
 		}
 		self.membershipChanged()
 	}
 
 	override fun o_MethodName(self: AvailObject): A_String =
-		self.chooseBundle(self.module()).message().atomName()
+		self.chooseBundle(self.module).message.atomName
 
 	override fun o_NumArgs(self: AvailObject) = self.slot(NUM_ARGS)
 
@@ -619,11 +646,11 @@ class MethodDescriptor private constructor(
 		self: AvailObject,
 		definition: A_Definition
 	) = L2Chunk.invalidationLock.withLock {
-		assert(!definition.definitionModule().equalsNil())
+		assert(definition.definitionModule().notNil)
 		self.atomicUpdateSlot(DEFINITIONS_TUPLE) {
 			tupleWithout(this, definition)
 		}
-		owningBundles.forEach { bundle ->
+		owningBundles.get().forEach { bundle ->
 			bundle.removePlanForSendable(definition)
 		}
 		self.membershipChanged()
@@ -654,7 +681,7 @@ class MethodDescriptor private constructor(
 	) = synchronized(self) {
 		val oldTuple: A_Tuple = self.slot(SEALED_ARGUMENTS_TYPES_TUPLE)
 		val newTuple = tupleWithout(oldTuple, typeTuple)
-		assert(newTuple.tupleSize() == oldTuple.tupleSize() - 1)
+		assert(newTuple.tupleSize == oldTuple.tupleSize - 1)
 		self.setSlot(SEALED_ARGUMENTS_TYPES_TUPLE, newTuple.makeShared())
 	}
 
@@ -687,14 +714,14 @@ class MethodDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { owningBundles.writeTo(writer) }
+			at("aliases") { owningBundles.get().writeTo(writer) }
 			at("definitions") { self.volatileSlot(DEFINITIONS_TUPLE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("method") }
-			at("aliases") { owningBundles.writeSummaryTo(writer) }
+			at("aliases") { owningBundles.get().writeSummaryTo(writer) }
 			at("definitions") {
 				self.volatileSlot(DEFINITIONS_TUPLE).writeSummaryTo(writer)
 			}
@@ -912,20 +939,20 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(
-			"Module…$§"
-				+ "«Versions«…$§‡,»»"
-				+ '«'
-				+ "«Extends|Uses»!"
-				+ '«'
-				+ "…$"
-				+ "«(«…$§‡,»)»"
-				+ "«=(««-»?…$«→…$»?‡,»,⁇«`…»?)»"
-				+ "‡,"
-				+ '»'
-				+ '»'
-				+ "«Names«…$‡,»»"
-				+ "«Entries«…$‡,»»"
-				+ "«Pragma«…$‡,»»"
+			"Module…#§"
+				+ "«Versions«…#§‡,»»"
+				+ ('«'
+					+ ("«Extends|Uses»!"
+						+ '«'
+						+ "…#"
+						+ "«(«…#§‡,»)»"
+						+ "«=(««-»?…#«→…#»?‡,»,⁇«`…»?)»"
+						+ "‡,"
+					+ '»')
+				+ '»')
+				+ "«Names«…#‡,»»"
+				+ "«Entries«…#‡,»»"
+				+ "«Pragma«…#‡,»»"
 				+ "Body",
 			listOf(
 				P_ModuleHeaderPrefixCheckModuleName,
@@ -955,9 +982,12 @@ class MethodDescriptor private constructor(
 
 		/** The special atom's message bundle. */
 		val bundle: A_Bundle =
-			try {
+			try
+			{
 				atom.bundleOrCreate()
-			} catch (e: MalformedMessageException) {
+			}
+			catch (e: MalformedMessageException)
+			{
 				throw RuntimeException("VM method name is invalid: $name", e)
 			}
 
@@ -971,8 +1001,7 @@ class MethodDescriptor private constructor(
 				{
 					when (prefixFunctions)
 					{
-						null -> {
-							val method: A_Method = bundle.bundleMethod()
+						null -> bundle.bundleMethod.also { method ->
 							method.methodAddDefinition(
 								newMethodDefinition(method, nil, function))
 						}
@@ -999,7 +1028,7 @@ class MethodDescriptor private constructor(
 				}
 			}
 			assert(atom.descriptor().isShared)
-			assert(atom.isAtomSpecial())
+			assert(atom.isAtomSpecial)
 		}
 	}
 
@@ -1030,7 +1059,7 @@ class MethodDescriptor private constructor(
 			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
 				override fun extractSignature(element: A_Definition) =
-					element.bodySignature().argsTupleType()
+					element.bodySignature().argsTupleType
 
 				override fun constructResult(
 					elements: List<A_Definition>,

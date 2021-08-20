@@ -92,12 +92,12 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		pathIndex: Int,
 		newValue: A_BasicObject): A_Tuple
 	{
-		val targetIndex = pathTuple.tupleAt(pathIndex).extractInt()
-		if (targetIndex > targetTuple.tupleSize())
+		val targetIndex = pathTuple.tupleAt(pathIndex).extractInt
+		if (targetIndex > targetTuple.tupleSize)
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		if (pathIndex == pathTuple.tupleSize())
+		if (pathIndex == pathTuple.tupleSize)
 		{
 			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newValue, true)
@@ -152,7 +152,7 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		{
 			throw AvailException(E_KEY_NOT_FOUND)
 		}
-		if (pathIndex == pathTuple.tupleSize())
+		if (pathIndex == pathTuple.tupleSize)
 		{
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newValue, true)
@@ -184,10 +184,13 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		val map = interpreter.argument(0)
 		val pathTuple = interpreter.argument(1)
 		val newValue = interpreter.argument(2)
-		return try {
+		return try
+		{
 			interpreter.primitiveSuccess(recursivelyUpdateMap(
 				map, pathTuple, 1, newValue))
-		} catch (e: AvailException) {
+		}
+		catch (e: AvailException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 
@@ -201,6 +204,6 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(E_SUBSCRIPT_OUT_OF_BOUNDS,
-			    E_INCORRECT_ARGUMENT_TYPE,
-			    E_KEY_NOT_FOUND))
+				E_INCORRECT_ARGUMENT_TYPE,
+				E_KEY_NOT_FOUND))
 }

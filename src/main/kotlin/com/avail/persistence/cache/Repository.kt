@@ -66,9 +66,7 @@ import java.util.TreeMap
 import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.xml.bind.DatatypeConverter
 import kotlin.concurrent.withLock
-import kotlin.streams.toList
 
 /**
  * An `Repository` manages a persistent [IndexedFile] of compiled
@@ -539,13 +537,8 @@ class Repository constructor(
 			binaryStream.write(sourceDigest)
 		}
 
-		override fun toString(): String
-		{
-			return String.format(
-				"VersionKey(@%s...)",
-				DatatypeConverter.printHexBinary(
-					sourceDigest.copyOf(3)))
-		}
+		override fun toString(): String =
+			String.format("VersionKey(@%s...)", shortString)
 
 		/**
 		 * Reconstruct a `ModuleVersionKey`, having previously been written via
@@ -591,11 +584,12 @@ class Repository constructor(
 		 * @return
 		 *   A short [String] to help identify this module version.
 		 */
-		fun shortString(): String
-		{
-			val prefix = sourceDigest.copyOf(3)
-			return DatatypeConverter.printHexBinary(prefix)
-		}
+		val shortString: String get() =
+			String.format(
+				"%02x%02x%02x",
+				sourceDigest[0],
+				sourceDigest[1],
+				sourceDigest[2])
 
 		override fun compareTo(other: ModuleVersionKey): Int
 		{
@@ -744,7 +738,7 @@ class Repository constructor(
 		 * The list of entry points declared by this version of the module. Note
 		 * that because the entry point declarations are in the module header
 		 * and in a fixed syntax, all valid compilations of the module would
-		 * produce the same list of entry points.  Therefore the entry points
+		 * produce the same list of entry points.  Therefore, the entry points
 		 * belong here in the module version, not with a compilation.
 		 */
 		private val entryPoints: MutableList<String>
@@ -1004,7 +998,8 @@ class Repository constructor(
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
 
-		val blockPhraseBytes: ByteArray?
+		/** The byte array containing a serialization of this block phrase. */
+		val blockPhraseBytes: ByteArray
 			get() = lock.withLock { repository!![recordNumberOfBlockPhrases] }
 
 		/**
@@ -1068,8 +1063,8 @@ class Repository constructor(
 			// No need to hold a lock during initialization.
 			this.compilationTime = compilationTime
 			val repo = repository!!
-			var indexOfRecord: Long = -1
-			var indexOfBlockPhrasesRecord: Long = -1
+			var indexOfRecord: Long
+			var indexOfBlockPhrasesRecord: Long
 			lock.withLock {
 				indexOfRecord = repo.size
 				repo.add(serializedBody)
@@ -1092,7 +1087,8 @@ class Repository constructor(
 	 */
 	fun getArchive(rootRelativeName: String): ModuleArchive =
 		lock.withLock {
-			moduleMap.computeIfAbsent(rootRelativeName) { ModuleArchive(it) }
+			moduleMap.computeIfAbsent(
+				rootRelativeName, this::ModuleArchive)
 		}
 
 	/**
@@ -1314,7 +1310,7 @@ class Repository constructor(
 
 	companion object
 	{
-		/** The [logger][Logger].  */
+		/** The [logger][Logger]. */
 		private val logger = Logger.getLogger(Repository::class.java.name)
 
 		/** The maximum number of versions to keep for each module. */

@@ -32,8 +32,7 @@
 
 @file:Suppress(
 	"PLATFORM_CLASS_MAPPED_TO_KOTLIN",
-	"RemoveRedundantQualifierName"
-)
+	"RemoveRedundantQualifierName")
 
 package com.avail.interpreter
 
@@ -84,16 +83,16 @@ object JavaLibrary
 	val floatBoxed = JavaFloat::class.java
 	val doubleBoxed = JavaDouble::class.java
 
-	/** Static method to cast from `long` to `double`.  */
-	var bitCastLongToDoubleMethod: CheckedMethod =
+	/** Static method to cast from `long` to `double`. */
+	var bitCastLongToDoubleMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
 			java.lang.Double::longBitsToDouble.name,
 			double,
 			long)
 
-	/** Static method to cast from `double` to `long`.  */
-	var bitCastDoubleToLongMethod: CheckedMethod =
+	/** Static method to cast from `double` to `long`. */
+	var bitCastDoubleToLongMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
 			java.lang.Double::doubleToRawLongBits.name,
@@ -101,41 +100,41 @@ object JavaLibrary
 			double)
 
 	/** The [CheckedMethod] for [Class.getClassLoader]. */
-	val getClassLoader: CheckedMethod =
+	val getClassLoader =
 		javaLibraryInstanceMethod(
 			Class::class.java,
 			java.lang.Class<*>::getClassLoader.name,
 			ClassLoader::class.java)
 
 	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
-	val javaUnboxIntegerMethod: CheckedMethod = javaLibraryStaticMethod(
+	val javaUnboxIntegerMethod = javaLibraryStaticMethod(
 		intBoxed,
 		"valueOf",
 		intBoxed,
 		int)
 
-	/** The [CheckedMethod] for [java.util.List.get].  */
-	val listGetMethod: CheckedMethod = javaLibraryInstanceMethod(
+	/** The [CheckedMethod] for [java.util.List.get]. */
+	val listGetMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::get.name,
 		Object::class.java,
 		int)
 
-	/** The [CheckedMethod] for [java.util.List.clear].  */
-	val listClearMethod: CheckedMethod = javaLibraryInstanceMethod(
+	/** The [CheckedMethod] for [java.util.List.clear]. */
+	val listClearMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::clear.name,
 		void)
 
-	/** The [CheckedMethod] for [java.util.List.add].  */
-	val listAddMethod: CheckedMethod = javaLibraryInstanceMethod(
+	/** The [CheckedMethod] for [java.util.List.add]. */
+	val listAddMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		"add",
 		boolean,
 		Object::class.java)
 
 	/** The [CheckedMethod] for [LongAdder.increment]. */
-	val longAdderIncrement: CheckedMethod = javaLibraryInstanceMethod(
+	val longAdderIncrement = javaLibraryInstanceMethod(
 		LongAdder::class.java,
 		LongAdder::increment.name,
 		void)

@@ -74,10 +74,10 @@ object P_PublishName : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val module = loader.module()
-		if (module.equalsNil())
+		val loader = interpreter.fiber().availLoader()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val module = loader.module
+		if (module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
@@ -98,7 +98,6 @@ object P_PublishName : Primitive(
 					LoadingEffectToRunPrimitive(
 						PUBLISH_NEW_NAME.bundle,
 						name))
-
 			}
 			interpreter.primitiveSuccess(nil)
 		}
@@ -109,11 +108,11 @@ object P_PublishName : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), TOP.o)
+		functionType(tuple(stringType), TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(
 			E_LOADING_IS_OVER,
 			E_CANNOT_DEFINE_DURING_COMPILATION,
-		    E_AMBIGUOUS_NAME))
+			E_AMBIGUOUS_NAME))
 }

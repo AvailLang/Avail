@@ -32,8 +32,11 @@
 
 Module "builder tests"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
+	"Avail",
+	"Valid Tests",
+	"Invalid Tests"
 Body
 
 /** Dummy package, so that this shows up in the workbench. */

@@ -37,7 +37,6 @@ import com.avail.server.io.AvailServerChannel
 import com.avail.server.messages.Message
 import com.avail.server.AvailServer.Companion.logger
 import java.util.logging.Level
-import javax.xml.bind.DatatypeConverter
 
 /**
  * `InvalidBinaryMessage` is a [BinaryMessage] that wraps a received [Message]
@@ -71,8 +70,7 @@ internal class InvalidBinaryMessage constructor(
 			content.copyOfRange(0, minOf(content.size, PREFIX_SIZE))
 		logger.log(
 			Level.WARNING,
-			"InvalidBinaryMessage ($commandId): " +
-				DatatypeConverter.printHexBinary(prefix))
+			"InvalidBinaryMessage ($commandId)")
 	}
 
 	override val command: BinaryCommand get() = BinaryCommand.INVALID

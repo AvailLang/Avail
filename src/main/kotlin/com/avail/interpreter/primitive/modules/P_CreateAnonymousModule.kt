@@ -73,6 +73,5 @@ object P_CreateAnonymousModule : Primitive(1, CanInline, CannotFail)
 		functionType(
 			// All atoms that should be imported privately.
 			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
-			MODULE.o
-		)
+			MODULE.o)
 }

@@ -33,15 +33,22 @@ package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.methods.A_Method.Companion.chooseBundle
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor.ObjectSlots.STYLERS
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types.FORWARD_DEFINITION
@@ -71,8 +78,7 @@ import java.util.IdentityHashMap
 class ForwardDefinitionDescriptor private constructor(
 	mutability: Mutability
 ) : DefinitionDescriptor(
-	mutability, ObjectSlots::class.java, null
-)
+	mutability, ObjectSlots::class.java, null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -90,6 +96,12 @@ class ForwardDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
+		 * The [A_Set] of [A_Styler]s that have been added to this definition.
+		 */
+		@HideFieldJustForPrinting
+		STYLERS,
+
+		/**
 		 * The [function&#32;type][FunctionTypeDescriptor] for which this
 		 * signature is being specified.
 		 */
@@ -105,6 +117,9 @@ class ForwardDefinitionDescriptor private constructor(
 				assert(
 					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
 						== MODULE.ordinal)
+				assert(
+					DefinitionDescriptor.ObjectSlots.STYLERS.ordinal
+						== STYLERS.ordinal)
 			}
 		}
 	}
@@ -113,12 +128,11 @@ class ForwardDefinitionDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	)
+		indent: Int)
 	{
 		self.slot(DEFINITION_METHOD)
 			.chooseBundle(self.slot(MODULE))
-			.message()
+			.message
 			.printOnAvoidingIndent(builder, recursionMap, indent)
 		builder.append(' ')
 		self.slot(BODY_SIGNATURE).printOnAvoidingIndent(
@@ -128,9 +142,10 @@ class ForwardDefinitionDescriptor private constructor(
 	override fun o_BodySignature(self: AvailObject): A_Type =
 		self.slot(BODY_SIGNATURE)
 
-	override fun o_Hash(self: AvailObject) =
-		(self.slot(BODY_SIGNATURE).hash() * 19
-			xor self.slot(DEFINITION_METHOD).hash() * 757)
+	override fun o_Hash(self: AvailObject) = combine3(
+		self.slot(BODY_SIGNATURE).hash(),
+		self.slot(DEFINITION_METHOD).hash(),
+		0x17d95098)
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		FORWARD_DEFINITION.o
@@ -144,7 +159,7 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -156,7 +171,7 @@ class ForwardDefinitionDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("forward definition") }
 			at("definition method") {
-				self.slot(DEFINITION_METHOD).methodName().writeTo(writer)
+				self.slot(DEFINITION_METHOD).methodName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -195,13 +210,14 @@ class ForwardDefinitionDescriptor private constructor(
 		): AvailObject = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
+			setSlot(STYLERS, emptySet)
 			setSlot(BODY_SIGNATURE, bodySignature)
 		}
 
-		/** The mutable [ForwardDefinitionDescriptor].  */
+		/** The mutable [ForwardDefinitionDescriptor]. */
 		private val mutable = ForwardDefinitionDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ForwardDefinitionDescriptor].  */
+		/** The shared [ForwardDefinitionDescriptor]. */
 		private val shared = ForwardDefinitionDescriptor(Mutability.SHARED)
 	}
 }

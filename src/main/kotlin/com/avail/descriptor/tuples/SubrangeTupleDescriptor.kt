@@ -129,7 +129,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 			}
 		}
 	}
@@ -156,7 +156,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		val originalSize = self.slot(SIZE)
 		val endIndex = startIndex + originalSize - 1
 		val basisTuple = self.slot(BASIS_TUPLE)
-		if (endIndex < basisTuple.tupleSize()
+		if (endIndex < basisTuple.tupleSize
 			&& basisTuple.tupleAt(endIndex).equals(newElement))
 		{
 			// We merely need to increase the range.
@@ -243,8 +243,8 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		}
 		if (startIndex1 == 1
 			&& startIndex2 == 1
-			&& endIndex1 == self.tupleSize()
-			&& endIndex1 == anotherObject.tupleSize())
+			&& endIndex1 == self.tupleSize
+			&& endIndex1 == anotherObject.tupleSize)
 		{
 			if (!isShared)
 			{
@@ -281,8 +281,8 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		assert(self.tupleSize() > 0)
-		if (otherTuple.tupleSize() == 0)
+		assert(self.tupleSize > 0)
+		if (otherTuple.tupleSize == 0)
 		{
 			if (!canDestroy)
 			{
@@ -295,7 +295,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			// No tree tuples are involved yet.  Create a bottom-level tree
 			// tuple on these two level zero tuples (the tuples may be flat or
@@ -357,7 +357,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		when
 		{
 			self.sameAddressAs(aTuple) -> return true
-			self.tupleSize() != aTuple.tupleSize() -> return false
+			self.tupleSize != aTuple.tupleSize -> return false
 			self.hash() != aTuple.hash() -> return false
 			else ->
 			{
@@ -447,13 +447,13 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		val splitPoint = start + (tupleSize ushr 1)
 		var leftPart = basis.copyTupleFromToCanDestroy(
 			start, splitPoint - 1, false)
-		assert(1 <= leftPart.tupleSize())
-		assert(leftPart.tupleSize() < tupleSize)
+		assert(1 <= leftPart.tupleSize)
+		assert(leftPart.tupleSize < tupleSize)
 		val end = tupleSize + adjustment
 		var rightPart = basis.copyTupleFromToCanDestroy(splitPoint, end, false)
-		assert(1 <= rightPart.tupleSize())
-		assert(rightPart.tupleSize() < tupleSize)
-		assert(leftPart.tupleSize() + rightPart.tupleSize() == tupleSize)
+		assert(1 <= rightPart.tupleSize)
+		assert(rightPart.tupleSize < tupleSize)
+		assert(leftPart.tupleSize + rightPart.tupleSize == tupleSize)
 		val adjustedIndex = index + adjustment
 		if (adjustedIndex < splitPoint)
 		{
@@ -504,9 +504,9 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 				self.slot(BASIS_TUPLE).tupleReverse())
 			setSlot(
 				START_INDEX,
-				self.slot(BASIS_TUPLE).tupleSize() + 2 -
-					(self.tupleSize() + self.slot(START_INDEX)))
-			setSlot(SIZE, self.tupleSize())
+				self.slot(BASIS_TUPLE).tupleSize + 2 -
+					(self.tupleSize + self.slot(START_INDEX)))
+			setSlot(SIZE, self.tupleSize)
 		}
 	}
 
@@ -550,7 +550,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			size: Int): AvailObject
 		{
 			assert(size >= minSize)
-			assert(size < basisTuple.tupleSize())
+			assert(size < basisTuple.tupleSize)
 			basisTuple.makeImmutable()
 			return mutable.create(size) {
 				setSlot(BASIS_TUPLE, basisTuple)
@@ -559,13 +559,13 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [SubrangeTupleDescriptor].  */
+		/** The mutable [SubrangeTupleDescriptor]. */
 		val mutable = SubrangeTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [SubrangeTupleDescriptor].  */
+		/** The immutable [SubrangeTupleDescriptor]. */
 		private val immutable = SubrangeTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [SubrangeTupleDescriptor].  */
+		/** The shared [SubrangeTupleDescriptor]. */
 		private val shared = SubrangeTupleDescriptor(Mutability.SHARED)
 	}
 }

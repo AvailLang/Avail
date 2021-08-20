@@ -73,22 +73,22 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 		interpreter.fiber().availLoader() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
-		val sendPhrase = sendPhraseInLiteral.token().literal()
+		val sendPhrase = sendPhraseInLiteral.token.literal()
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
 		{
 			throw AvailRejectedParseException(
 				WEAK,
 				StringDescriptor.stringFrom(
 					"statement to be a ⊤-valued send phrase, not "
-					+ "a ${sendPhrase.phraseKind().name}: $sendPhrase"))
+					+ "a ${sendPhrase.phraseKind.name}: $sendPhrase"))
 		}
-		if (!sendPhrase.phraseExpressionType().isTop)
+		if (!sendPhrase.phraseExpressionType.isTop)
 		{
 			throw AvailRejectedParseException(
 				WEAK,
 				StringDescriptor.stringFrom("statement to yield ⊤, "
-                    + "but it yields ${sendPhrase.phraseExpressionType()}.  "
-                    + "Expression is: $sendPhrase"))
+					+ "but it yields ${sendPhrase.phraseExpressionType}.  "
+					+ "Expression is: $sendPhrase"))
 		}
 		val sendAsStatement = newExpressionAsStatement(sendPhrase)
 		return interpreter.primitiveSuccess(sendAsStatement)

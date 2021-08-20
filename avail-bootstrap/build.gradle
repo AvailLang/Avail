@@ -38,15 +38,17 @@ plugins {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
 	}
 }
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
 	}
 }
 
@@ -59,14 +61,10 @@ dependencies {
 	implementation rootProject
 
 	// Kotlin.
-	implementation group: 'org.jetbrains.kotlin',
-		name: 'kotlin-stdlib-jdk8',
-		version: "$kotlin_version"
+	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
 
 	// JSR-305 null analysis framework.
-	implementation group: 'com.google.code.findbugs',
-		name: 'jsr305',
-		version: "$jsr_version"
+	implementation "com.google.code.findbugs:jsr305:$jsr_version"
 }
 
 // Copy the generated bootstrap property files into the build directory, so that
@@ -96,7 +94,7 @@ classes.dependsOn relocateGeneratedPropertyFiles
 // Bootstrap Primitive_<lang>.properties for the current locale.
 task generatePrimitiveNames(type: JavaExec) {
 	group = 'bootstrap'
-	main = 'com.avail.tools.bootstrap.PrimitiveNamesGenerator'
+	mainClass.set('com.avail.tools.bootstrap.PrimitiveNamesGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -104,7 +102,7 @@ task generatePrimitiveNames(type: JavaExec) {
 // Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
 task generateErrorCodeNames(type: JavaExec) {
 	group = 'bootstrap'
-	main = 'com.avail.tools.bootstrap.ErrorCodeNamesGenerator'
+	mainClass.set('com.avail.tools.bootstrap.ErrorCodeNamesGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -112,7 +110,7 @@ task generateErrorCodeNames(type: JavaExec) {
 // Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
 task generateSpecialObjectNames(type: JavaExec) {
 	group = 'bootstrap'
-	main = 'com.avail.tools.bootstrap.SpecialObjectNamesGenerator'
+	mainClass.set('com.avail.tools.bootstrap.SpecialObjectNamesGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -128,7 +126,7 @@ task generateAllNames {
 // Generate the new bootstrap Avail modules for the current locale.
 task internalGenerateBootstrap(type: JavaExec) {
 	group = 'internal'
-	main = 'com.avail.tools.bootstrap.BootstrapGenerator'
+	mainClass.set('com.avail.tools.bootstrap.BootstrapGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -136,13 +134,13 @@ task internalGenerateBootstrap(type: JavaExec) {
 // Generate the new bootstrap Avail modules for the current locale and copy them
 // to the appropriate location for distribution.
 task generateBootstrap(type: Copy) {
-	def source = "$projectDir/src/main/kotlin"
-	def lang = System.getProperty("user.language")
+	String source = "$projectDir/src/main/kotlin"
+	String lang = System.getProperty("user.language")
 	def pathBootstrap = fileTree(
 		"$source/com/avail/tools/bootstrap/generated/$lang/Bootstrap.avail")
 	inputs.files pathBootstrap
 
-	def distro = "${rootProject.projectDir}/distro"
+	String distro = "${rootProject.projectDir}/distro"
 	def distroBootstrap =
 		file("$distro/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail")
 	outputs.dir distroBootstrap
@@ -160,8 +158,7 @@ task generateBootstrap(type: Copy) {
 jar.enabled = false
 
 // Generate documentation
-dokka {
-	outputFormat='gfm'
+dokkaGfm {
 	// Outputting to documentation/docs/src-docs directly causes the contents of
 	// the directory to be deleted. Moving the directory post generation is the
 	// work around.
@@ -171,7 +168,6 @@ dokka {
 	}
 }
 
-task dokkaHTML(type: org.jetbrains.dokka.gradle.DokkaTask) {
-	outputFormat = 'html'
-	outputDirectory = "$buildDir/dokka"
+dokkaHtml {
+	outputDirectory = file "$buildDir/dokka"
 }

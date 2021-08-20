@@ -94,17 +94,18 @@ class Message constructor(
 	 *   [AvailServerChannel] was at when this `Message` was received/created.
 	 * @param closeAfterSending
 	 *   `true` if the [channel][AvailServerChannel] should be
-	 *   [closed][AvailServerChannel.scheduleClose] after transmitting this message.
+	 *   [closed][AvailServerChannel.scheduleClose] after transmitting this
+	 *   message.
 	 */
 	constructor(
 		writer: JSONWriter,
 		state: AvailServerChannel.ProtocolState,
-		closeAfterSending: Boolean = false):
-			this(writer.toString().toByteArray(), state, closeAfterSending)
+		closeAfterSending: Boolean = false
+	): this(writer.toString().toByteArray(), state, closeAfterSending)
 
 	companion object
 	{
-		/** The maximum allowed size of a frame.  */
+		/** The maximum allowed size of a frame. */
 		const val MAX_SIZE = 1024000
 	}
 }

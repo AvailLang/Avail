@@ -116,7 +116,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 							workbench.setEnablements()
 						}
 					}
-					if (result.equalsNil())
+					if (result.isNil)
 					{
 						cleanup(afterward)
 						return@attemptCommand

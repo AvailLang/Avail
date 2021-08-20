@@ -47,7 +47,7 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  */
 open class AvailException : Exception
 {
-	/** The [error value][AvailObject].  */
+	/** The [error value][AvailObject]. */
 	val errorCode: AvailErrorCode
 
 	/**
@@ -96,7 +96,7 @@ open class AvailException : Exception
 	companion object
 	{
 		/** The [CheckedMethod] for [numericCode]. */
-		val numericCodeMethod: CheckedMethod = instanceMethod(
+		val numericCodeMethod = instanceMethod(
 			AvailException::class.java,
 			AvailException::numericCode.name,
 			A_Number::class.java)

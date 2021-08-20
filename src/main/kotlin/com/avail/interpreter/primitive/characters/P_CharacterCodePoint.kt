@@ -57,7 +57,7 @@ object P_CharacterCodePoint : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val character = interpreter.argument(0)
-		return interpreter.primitiveSuccess(fromInt(character.codePoint()))
+		return interpreter.primitiveSuccess(fromInt(character.codePoint))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

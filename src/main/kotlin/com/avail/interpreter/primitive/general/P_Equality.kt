@@ -75,8 +75,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
-		val type1 = argumentTypes[0]
-		val type2 = argumentTypes[1]
+		val (type1, type2) = argumentTypes
 
 		if (type1.typeIntersection(type2).isBottom)
 		{
@@ -84,10 +83,10 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 			return falseType
 		}
 		if (type1.isEnumeration
-		    && type1.equals(type2)
-		    && type1.instanceCount().equalsInt(1))
+			&& type1.equals(type2)
+			&& type1.instanceCount.equalsInt(1))
 		{
-			val value = type1.instances().single()
+			val value = type1.instances.single()
 			// Because of metacovariance, a meta may actually have many
 			// instances.  For instance, tuple's type contains not only tuple,
 			// but every subtype of tuple (e.g., string, <>'s type, etc.).
@@ -111,8 +110,7 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val firstReg = arguments[0]
-		val secondReg = arguments[1]
+		val (firstReg, secondReg) = arguments
 
 		if (firstReg.register() === secondReg.register())
 		{
@@ -136,8 +134,8 @@ object P_Equality : Primitive(2, CannotFail, CanFold, CanInline)
 		// For instance, tuple's type contains not only tuple, but every subtype
 		// of tuple (e.g., string, <>'s type, etc.).
 		if (type1.equals(type2)
-		    && type1.instanceCount().equalsInt(1)
-		    && !type1.isInstanceMeta)
+			&& type1.instanceCount.equalsInt(1)
+			&& !type1.isInstanceMeta)
 		{
 			callSiteHelper.useAnswer(
 				translator.generator.boxedConstant(trueObject))

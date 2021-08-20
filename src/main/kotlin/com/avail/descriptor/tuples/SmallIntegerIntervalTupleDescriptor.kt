@@ -96,7 +96,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		@HideFieldInDebugger
 		HASH_AND_MORE,
 
-		/** [BitField]s containing the extrema of the tuple.  */
+		/** [BitField]s containing the extrema of the tuple. */
 		START_AND_END,
 
 		/**
@@ -107,10 +107,10 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 
 		companion object
 		{
-			/** The number of elements in the tuple.  */
+			/** The number of elements in the tuple. */
 			val SIZE = BitField(HASH_AND_MORE, 32, 32)
 
-			/** The first value in the tuple, inclusive.  */
+			/** The first value in the tuple, inclusive. */
 			val START = BitField(START_AND_END, 32, 32)
 
 			/**
@@ -130,7 +130,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -159,12 +159,12 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		val endValue = self.slot(END).toLong()
 		val deltaValue = self.slot(DELTA)
 		if (newElement.isInt)
 		{
-			val newElementValue = (newElement as A_Number).extractInt()
+			val newElementValue = (newElement as A_Number).extractInt
 			if (newElementValue.toLong() ==
 				endValue + deltaValue && originalSize < Int.MAX_VALUE)
 			{
@@ -268,7 +268,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			otherTuple.makeImmutable()
 		}
 
-		if (otherTuple.tupleSize() == 0) return self
+		if (otherTuple.tupleSize == 0) return self
 
 		// Assess the possibility that the concatenation will still be a small
 		// integer interval tuple.
@@ -311,7 +311,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				}
 			}
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -413,7 +413,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		val temp = self.slot(START) + (index - 1) * self.slot(DELTA)
 		assert(temp == temp.toInt().toLong())
 		return fromInt(temp.toInt())
@@ -428,10 +428,10 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (newValueObject.isInt
 			&& self.tupleIntAt(index)
-				== (newValueObject as A_Number).extractInt())
+				== (newValueObject as A_Number).extractInt)
 		{
 			// The element is to be replaced with itself.
 			if (!canDestroy) self.makeImmutable()
@@ -451,7 +451,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 					if (it == index)
 					{
 						(newValueObject as A_Number)
-							.extractUnsignedByte().toInt()
+							.extractUnsignedByte.toInt()
 					}
 					else
 					{
@@ -503,7 +503,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		var temp = index - 1.toLong()
 		temp *= self.slot(DELTA)
 		temp += self.slot(START).toLong()
@@ -515,7 +515,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Answer the value at the given index in the tuple object.
 		// START + (index-1) × DELTA
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		var temp = index - 1.toLong()
 		temp *= self.slot(DELTA)
 		temp += self.slot(START).toLong()
@@ -558,15 +558,15 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		 */
 		private const val maximumCopySize = 32
 
-		/** The mutable [SmallIntegerIntervalTupleDescriptor].  */
+		/** The mutable [SmallIntegerIntervalTupleDescriptor]. */
 		private val mutable =
 			SmallIntegerIntervalTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [IntegerIntervalTupleDescriptor].  */
+		/** The immutable [IntegerIntervalTupleDescriptor]. */
 		private val immutable =
 			SmallIntegerIntervalTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [SmallIntegerIntervalTupleDescriptor].  */
+		/** The shared [SmallIntegerIntervalTupleDescriptor]. */
 		private val shared =
 			SmallIntegerIntervalTupleDescriptor(Mutability.SHARED)
 
@@ -596,8 +596,8 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				return false
 			}
 			val size =
-				((newEnd.extractLong() - newStart.extractLong())
-				 	/ delta.extractInt() + 1L)
+				((newEnd.extractLong - newStart.extractLong)
+					/ delta.extractInt + 1L)
 			// Watch out for the case that they're all ints, but the size is
 			// bigger than Integer.MAX_VALUE.  (e.g., -2 billion to +2 billion
 			// has a size of 4 billion, which is bigger than a signed int can

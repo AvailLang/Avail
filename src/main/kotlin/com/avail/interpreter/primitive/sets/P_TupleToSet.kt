@@ -76,13 +76,13 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val tuple = interpreter.argument(0)
-		return interpreter.primitiveSuccess(tuple.asSet())
+		return interpreter.primitiveSuccess(tuple.asSet)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType()),
+				mostGeneralTupleType),
 			mostGeneralSetType())
 
 	override fun returnTypeGuaranteedByVM(
@@ -93,7 +93,7 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 
 		val unionType = tupleType.unionOfTypesAtThrough(1, Integer.MAX_VALUE)
 		unionType.makeImmutable()
-		val tupleSizes = tupleType.sizeRange()
+		val tupleSizes = tupleType.sizeRange
 		// Technically, if two tuple entries have disjoint types then the
 		// minimum set size is two.  Generalizing this leads to computing the
 		// Birkhoff chromatic polynomial of the graph whose vertices are the
@@ -106,14 +106,12 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 		// elements.  We do neither optimization here, but we do note that only
 		// the empty tuple can produce the empty set, and the set size is never
 		// greater than the tuple size.
-		val minSize =
-			if (tupleSizes.lowerBound().equalsInt(0)) zero
-			else one
+		val minSize = if (tupleSizes.lowerBound.equalsInt(0)) zero else one
 		val setSizes = integerRangeType(
 			minSize,
 			true,
-			tupleSizes.upperBound(),
-			tupleSizes.upperInclusive())
+			tupleSizes.upperBound,
+			tupleSizes.upperInclusive)
 		return setTypeForSizesContentType(setSizes, unionType)
 	}
 
@@ -135,11 +133,11 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 			return true
 		}
 
-		val sizeRange = tupleReg.type().sizeRange()
-		val size = sizeRange.lowerBound()
-		if (!size.isInt || !sizeRange.upperBound().equals(size))
+		val sizeRange = tupleReg.type().sizeRange
+		val size = sizeRange.lowerBound
+		if (!size.isInt || !sizeRange.upperBound.equals(size))
 			return false
-		val sizeInt = size.extractInt()
+		val sizeInt = size.extractInt
 		val elementRegs = generator.explodeTupleIfPossible(
 			tupleReg,
 			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())

@@ -50,7 +50,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.transferIntoByteBuffer
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
-import com.avail.descriptor.tuples.StringDescriptor
+import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
@@ -81,9 +81,7 @@ import com.avail.io.SimpleCompletionHandler
 import com.avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousFileChannel
-import java.util.ArrayList
 import java.util.Collections.emptyList
-import java.util.NoSuchElementException
 import kotlin.math.min
 
 /**
@@ -123,10 +121,10 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		val priority = interpreter.argument(5)
 
 		val pojo = atom.getAtomProperty(FILE_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (atom.isAtomSpecial())
+				if (atom.isAtomSpecial)
 				{
 					E_SPECIAL_ATOM
 				}
@@ -148,19 +146,17 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 		val alignment = handle.alignment
 		val runtime = currentRuntime()
 		val ioSystem = runtime.ioSystem
-		val oneBasedPositionLong = positionObject.extractLong()
+		val oneBasedPositionLong = positionObject.extractLong
 		// Guaranteed positive by argument constraint.
 		assert(oneBasedPositionLong > 0L)
 		// Write the tuple of bytes, possibly split up into manageable sections.
 		// Also update the buffer cache to reflect the modified file content.
 		val current = interpreter.fiber()
-		val newFiber =
-			newFiber(
-				succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-				priority.extractInt())
+		val newFiber = newFiber(
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt)
 		{
-			StringDescriptor.stringFrom(
-				"Asynchronous file write, ${handle.filename}")
+			stringFrom("Asynchronous file write, ${handle.filename}")
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
@@ -177,18 +173,18 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 
 		// The iterator produces non-empty ByteBuffers, possibly the same one
 		// multiple times, refilling it each time.
-		val totalBytes = bytes.tupleSize()
+		val totalBytes = bytes.tupleSize
 		val bufferIterator: Iterator<ByteBuffer> = when {
 			bytes.isByteBufferTuple -> {
-				val buffer = bytes.byteBuffer().slice()
+				val buffer = bytes.byteBuffer.slice()
 				listOf(buffer).iterator()
 			}
 			bytes.isByteArrayTuple -> {
-				val buffer = ByteBuffer.wrap(bytes.byteArray())
+				val buffer = ByteBuffer.wrap(bytes.byteArray)
 				listOf(buffer).iterator()
 			}
 			else -> object : MutableIterator<ByteBuffer> {
-				/** The buffer to reuse for writing.  */
+				/** The buffer to reuse for writing. */
 				val buffer = ByteBuffer.allocateDirect(
 					min(totalBytes, MAX_WRITE_BUFFER_SIZE))
 
@@ -208,10 +204,13 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					}
 					buffer.clear()
 					var count = nextSubscript + buffer.limit() - 1
-					if (count >= totalBytes) {
+					if (count >= totalBytes)
+					{
 						// All the rest.
 						count = totalBytes
-					} else {
+					}
+					else
+					{
 						// It's not all the rest, so round down to the nearest
 						// alignment boundary for performance.
 						val zeroBasedSubscriptAfterBuffer =
@@ -315,7 +314,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					else if (tuple !== null)
 					{
 						// Update the cached tuple.
-						assert(tuple.tupleSize() == alignment)
+						assert(tuple.tupleSize == alignment)
 						val parts = mutableListOf<A_Tuple>()
 						if (offsetInBuffer > 1)
 						{
@@ -342,7 +341,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 							tuple = tuple!!.concatenateWith(
 								parts.removeAt(0), true)
 						}
-						assert(tuple!!.tupleSize() == alignment)
+						assert(tuple!!.tupleSize == alignment)
 					}
 					// Otherwise we're attempting to update a subregion of
 					// an uncached buffer.  Just drop it in that case and
@@ -373,10 +372,8 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 				ATOM.o,
 				functionType(emptyTuple, TOP.o),
 				functionType(
-					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o
-				),
-				bytes
-			),
+					tuple(instanceType(E_IO_ERROR.numericCode())), TOP.o),
+				bytes),
 			fiberType(TOP.o))
 
 	override fun privateFailureVariableType(): A_Type =

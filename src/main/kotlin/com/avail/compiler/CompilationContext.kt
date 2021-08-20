@@ -50,6 +50,11 @@ import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -164,10 +169,10 @@ class CompilationContext constructor(
 	 */
 	val loader = AvailLoader(module, textInterface)
 
-	/** The number of work units that have been queued.  */
+	/** The number of work units that have been queued. */
 	private val atomicWorkUnitsQueued = AtomicLong(0)
 
-	/** The number of work units that have been completed.  */
+	/** The number of work units that have been completed. */
 	private val atomicWorkUnitsCompleted = AtomicLong(0)
 
 	/**
@@ -178,7 +183,7 @@ class CompilationContext constructor(
 		set(newNoMoreWorkUnits)
 		{
 			assert(newNoMoreWorkUnits === null
-				   != (this.noMoreWorkUnits === null)) {
+					!= (this.noMoreWorkUnits === null)) {
 				"noMoreWorkUnits must transition to or from null"
 			}
 
@@ -203,7 +208,8 @@ class CompilationContext constructor(
 			field =
 				if (newNoMoreWorkUnits === null)
 					null
-				else {
+				else
+				{
 					{
 					assert(!ran.getAndSet(true)) {
 						"Attempting to invoke the same noMoreWorkUnits twice"
@@ -217,7 +223,7 @@ class CompilationContext constructor(
 				}
 		}
 
-	/** The output stream on which the serializer writes.  */
+	/** The output stream on which the serializer writes. */
 	val serializerOutputStream = IndexedFile.ByteArrayOutputStream(1000)
 
 	/**
@@ -226,7 +232,7 @@ class CompilationContext constructor(
 	 */
 	internal val serializer = Serializer(serializerOutputStream, module)
 
-	/** The cached module name.  */
+	/** The cached module name. */
 	@Volatile
 	private var debugModuleName: String? = null
 
@@ -235,7 +241,7 @@ class CompilationContext constructor(
 	 * compilation.
 	 */
 	internal val moduleName get() =
-		ModuleName(module.moduleName().asNativeString())
+		ModuleName(module.moduleName.asNativeString())
 
 	/** The current number of work units that have been queued. */
 	val workUnitsQueued get() = atomicWorkUnitsQueued.get()
@@ -533,14 +539,14 @@ class CompilationContext constructor(
 		val code = function.code()
 		assert(code.numArgs() == args.size)
 		val fiber = newLoaderFiber(
-			function.kind().returnType(),
+			function.kind().returnType,
 			loader
 		) {
 			formatString(
 				"Eval fn=%s, in %s:%d",
-				code.methodName(),
-				code.module().moduleName(),
-				code.startingLineNumber())
+				code.methodName,
+				code.module.moduleName,
+				code.codeStartingLineNumber)
 		}
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
@@ -556,9 +562,9 @@ class CompilationContext constructor(
 		{
 			shouldSerialize ->
 			{
-				val before = AvailRuntimeSupport.captureNanos()
+				val before = fiber.fiberHelper().fiberTime()
 				adjustedSuccess = { successValue ->
-					val after = AvailRuntimeSupport.captureNanos()
+					val after = fiber.fiberHelper().fiberTime()
 					Interpreter.current().recordTopStatementEvaluation(
 						(after - before).toDouble(), module)
 					loader.stopRecordingEffects()
@@ -663,7 +669,7 @@ class CompilationContext constructor(
 	private fun serializeAfterRunning(function: A_Function)
 	{
 		val code = function.code()
-		val startingLineNumber = code.startingLineNumber()
+		val startingLineNumber = code.codeStartingLineNumber
 		if (loader.statementCanBeSummarized())
 		{
 			// Output summarized functions instead of what ran.  Associate the
@@ -676,7 +682,7 @@ class CompilationContext constructor(
 				val writer = L1InstructionWriter(
 					module,
 					startingLineNumber,
-					code.originatingPhrase())
+					code.originatingPhrase)
 				writer.argumentTypes()
 				writer.returnType = TOP.o
 				writer.returnTypeIfPrimitiveFails = TOP.o
@@ -698,11 +704,11 @@ class CompilationContext constructor(
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					println(
-						module.moduleName().asNativeString()
-						+ ':'.toString() + startingLineNumber
-						+ " Summary -- \n"
-						+ L1Decompiler.decompile(summaryFunction.code())
-						+ "(batch = $batchCount)")
+						module.moduleName.asNativeString()
+							+ ':'.toString() + startingLineNumber
+							+ " Summary -- \n"
+							+ L1Decompiler.decompile(summaryFunction.code())
+							+ "(batch = $batchCount)")
 				}
 				serializer.serialize(summaryFunction)
 			}
@@ -713,9 +719,9 @@ class CompilationContext constructor(
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				println(
-					module.moduleName().asNativeString()
-					+ ":" + startingLineNumber
-					+ " Unsummarized -- \n" + function)
+					module.moduleName.asNativeString()
+						+ ":" + startingLineNumber
+						+ " Unsummarized -- \n" + function)
 			}
 			serializer.serialize(function)
 		}
@@ -735,9 +741,9 @@ class CompilationContext constructor(
 		if (AvailLoader.debugUnsummarizedStatements)
 		{
 			println(
-				module.moduleName().asNativeString()
-				+ ":" + function.code().startingLineNumber()
-				+ " Forced -- \n" + function)
+				module.moduleName.asNativeString()
+					+ ":" + function.code().codeStartingLineNumber
+					+ " Forced -- \n" + function)
 		}
 		serializer.serialize(function)
 	}
@@ -894,7 +900,7 @@ class CompilationContext constructor(
 
 	companion object
 	{
-		/** The [logger][Logger].  */
+		/** The [logger][Logger]. */
 		val logger: Logger = Logger.getLogger(
 			CompilationContext::class.java.name)
 	}

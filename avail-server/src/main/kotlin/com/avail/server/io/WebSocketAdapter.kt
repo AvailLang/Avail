@@ -50,13 +50,13 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.Base64
 import java.util.Collections
 import java.util.Formatter
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 import java.util.regex.Pattern
-import javax.xml.bind.DatatypeConverter
 import kotlin.experimental.and
 import kotlin.experimental.xor
 
@@ -140,11 +140,11 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	override val timer =
 		ScheduledThreadPoolExecutor(
 			1,
-			ThreadFactory { r ->
-				val thread = Thread(r)
-				thread.isDaemon = true
-				thread.name = "WebSocketAdapterTimer" + thread.id
-				thread
+			ThreadFactory {
+				Thread(it).apply {
+					isDaemon = true
+					name = "WebSocketAdapterTimer$id"
+				}
 			})
 
 	/**
@@ -156,32 +156,32 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private enum class HttpHeaderState
 	{
-		/** Beginning to read, or previously read an "ordinary" character.  */
+		/** Beginning to read, or previously read an "ordinary" character. */
 		START
 		{
 			override fun nextState(c: Int) =
-				if (c == '\r'.toInt()) FIRST_CARRIAGE_RETURN else START
+				if (c == '\r'.code) FIRST_CARRIAGE_RETURN else START
 		},
 
-		/** Just read the first carriage return.  */
+		/** Just read the first carriage return. */
 		FIRST_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
-				if (c == '\n'.toInt()) FIRST_LINE_FEED else START
+				if (c == '\n'.code) FIRST_LINE_FEED else START
 		},
 
-		/** Just read the first carriage return + line feed.  */
+		/** Just read the first carriage return + line feed. */
 		FIRST_LINE_FEED
 		{
 			override fun nextState(c: Int) =
-				if (c == '\r'.toInt()) SECOND_CARRIAGE_RETURN else START
+				if (c == '\r'.code) SECOND_CARRIAGE_RETURN else START
 		},
 
-		/** Just read the second carriage return.  */
+		/** Just read the second carriage return. */
 		SECOND_CARRIAGE_RETURN
 		{
 			override fun nextState(c: Int) =
-				if (c == '\n'.toInt()) SECOND_LINE_FEED else START
+				if (c == '\n'.code) SECOND_LINE_FEED else START
 		},
 
 		/** Just read the second carriage return + line feed. */
@@ -242,7 +242,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			{
 				for (method in values())
 				{
-					methodsByName[method.name.toLowerCase()] = method
+					methodsByName[method.name.lowercase()] = method
 				}
 			}
 
@@ -257,7 +257,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			 *   exists.
 			 */
 			internal fun named(name: String): HttpRequestMethod? =
-				methodsByName[name.toLowerCase()]
+				methodsByName[name.lowercase()]
 		}
 	}
 
@@ -279,16 +279,16 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private enum class HttpStatusCode constructor(val statusCode: Int)
 	{
-		/** Switching protocols.  */
+		/** Switching protocols. */
 		SWITCHING_PROTOCOLS(101),
 
-		/** Bad request.  */
+		/** Bad request. */
 		BAD_REQUEST(400),
 
-		/** Not found.  */
+		/** Not found. */
 		NOT_FOUND(404),
 
-		/** Method not allowed.  */
+		/** Method not allowed. */
 		METHOD_NOT_ALLOWED(405)
 	}
 
@@ -312,20 +312,20 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * @param headers
 	 *   The parsed headers.
 	 */
-	private open class ClientRequest internal constructor(
-		internal val method: HttpRequestMethod,
-		internal val uri: String,
+	private open class ClientRequest constructor(
+		val method: HttpRequestMethod,
+		val uri: String,
 		headers: Map<String, String>)
 	{
-		/** The HTTP headers.  */
-		internal val headers = Collections.unmodifiableMap(headers)
+		/** The HTTP headers. */
+		val headers: Map<String, String> = Collections.unmodifiableMap(headers)
 
 		companion object
 		{
-			/** A [Pattern] for splitting HTTP headers.  */
+			/** A [Pattern] for splitting HTTP headers. */
 			private val splitHeaders = Pattern.compile("(?:\r\n)+")
 
-			/** A [Pattern] for identifying one or more spaces.  */
+			/** A [Pattern] for identifying one or more spaces. */
 			private val manySpaces = Pattern.compile(" +")
 
 			/**
@@ -436,7 +436,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				for (i in 1 until headers.size - 1)
 				{
 					val pair = headers[i].split(":".toRegex(), 2)
-					map[pair[0].trim { it <= ' ' }.toLowerCase()] =
+					map[pair[0].trim { it <= ' ' }.lowercase()] =
 						pair[1].trim { it <= ' ' }
 				}
 				// Validate the request.
@@ -586,14 +586,14 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 */
 	private class ClientHandshake private constructor(
 		request: ClientRequest,
-		internal val key: ByteArray,
-		internal val protocols: List<String>,
-		internal val extensions: List<String>)
+		val key: ByteArray,
+		val protocols: List<String>,
+		val extensions: List<String>)
 		: ClientRequest(request.method, request.uri, request.headers)
 	{
 		companion object
 		{
-			/** A [Pattern] to recognize space padded commas.  */
+			/** A [Pattern] to recognize space padded commas. */
 			private val paddedComma = Pattern.compile(" *, *")
 
 			/**
@@ -616,7 +616,12 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				request: ClientRequest): ClientHandshake?
 			{
 				val map = request.headers
-				if (!"websocket".equals(map["upgrade"], ignoreCase = true))
+				// Firefox does not correctly implement the WebSocket standard,
+				// so we must also check the "Connection" header for an
+				// "Upgrade" token.
+				if (!"websocket".equals(map["upgrade"], ignoreCase = true)
+					&& !(map["connection"] ?: "").contains(
+						"upgrade", ignoreCase = true))
 				{
 					badRequest(
 						channel,
@@ -669,7 +674,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						"Missing WebSocket Key")
 					return null
 				}
-				val key = DatatypeConverter.parseBase64Binary(
+				val key = Base64.getMimeDecoder().decode(
 					map["sec-websocket-key"])
 				if (key.size != 16)
 				{
@@ -763,13 +768,13 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	 * @param extensions
 	 *   The selected extensions.
 	 */
-	private class ServerHandshake internal constructor(
+	private class ServerHandshake constructor(
 		key: ByteArray,
-		internal val protocols: List<String>,
-		internal val extensions: List<String>)
+		val protocols: List<String>,
+		val extensions: List<String>)
 	{
 		/** The WebSocket accept key. */
-		internal val acceptKey: String
+		val acceptKey: String
 
 		/**
 		 * Compute the WebSocket accept key from the client-supplied key.
@@ -792,11 +797,11 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			val stringKey =
-				DatatypeConverter.printBase64Binary(key) +
+				Base64.getMimeEncoder().encodeToString(key) +
 					"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 			val acceptBytes =
 				digest.digest(stringKey.toByteArray(StandardCharsets.US_ASCII))
-			return DatatypeConverter.printBase64Binary(acceptBytes)
+			return Base64.getMimeEncoder().encodeToString(acceptBytes)
 		}
 
 		init
@@ -935,8 +940,12 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		// Process a GET request.
 		if (request.method == HttpRequestMethod.GET)
 		{
-			// Process a WebSocket request.
-			if (request.headers.containsKey("upgrade"))
+			// Process a WebSocket request. Firefox does not correctly implement
+			// the WebSocket standard, so we must also check the "Connection"
+			// header for an "Upgrade" token.
+			if (request.headers.containsKey("upgrade")
+				|| (request.headers.containsKey("connection")
+					&& request.headers["connection"]!!.contains("upgrade", ignoreCase = true)))
 			{
 				val handshake =
 					ClientHandshake.readClientHandshake(channel, request)
@@ -989,7 +998,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	{
 		/*
 		 * Do not change the order of these values! Their ordinals correspond
-		 * to the WebSocket opcodes, and the adapter uses this ordinals to
+		 * to the WebSocket opcodes, and the adapter uses these ordinals to
 		 * dispatch control.
 		 */
 
@@ -1064,7 +1073,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 
 		companion object
 		{
-			/** An array of all [Opcode] enumeration values.  */
+			/** An array of all [Opcode] enumeration values. */
 			val all = values()
 		}
 	}
@@ -1135,26 +1144,26 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	private class Frame
 	{
 		/** Is this the final fragment of the message? */
-		internal var isFinalFragment: Boolean = false
+		var isFinalFragment: Boolean = false
 
 		/** Is this fragment masked? */
-		internal var isMasked: Boolean = false
+		var isMasked: Boolean = false
 
 		/** The [opcode][Opcode]. */
-		internal var opcode: Opcode? = null
+		var opcode: Opcode? = null
 
 		/** The length of the payload. */
-		internal var payloadLength: Long = 0
+		var payloadLength: Long = 0
 
 		/** The masking key (valid only if [isMasked] is `true`). */
-		internal var maskingKey: ByteBuffer? = null
+		var maskingKey: ByteBuffer? = null
 
 		/**
 		 * The payload. This must not be
 		 * [allocated&#32;directly][ByteBuffer.allocateDirect], as access to the
 		 * [backing&#32;array][ByteBuffer.array] is required.
 		 */
-		internal var payloadData: ByteBuffer? = null
+		var payloadData: ByteBuffer? = null
 
 		/**
 		 * Answer a [buffer][ByteBuffer] that encodes the WebSocket
@@ -1918,7 +1927,9 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						handler.guardedDo {
 							transport.read(buffer, dummy, handler)
 						}
-					} else {
+					}
+					else
+					{
 						buffer.flip()
 						if (frame.isMasked) {
 							val mask = frame.maskingKey!!

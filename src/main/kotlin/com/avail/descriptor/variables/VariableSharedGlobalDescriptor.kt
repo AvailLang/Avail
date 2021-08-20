@@ -129,9 +129,9 @@ class VariableSharedGlobalDescriptor private constructor(
 			init
 			{
 				assert(VariableSharedDescriptor.IntegerSlots
-			       .HASH_AND_MORE.ordinal == HASH_AND_MORE.ordinal)
+					.HASH_AND_MORE.ordinal == HASH_AND_MORE.ordinal)
 				assert(VariableSharedDescriptor.IntegerSlots.HASH_ALWAYS_SET
-			       .isSamePlaceAs(HASH_ALWAYS_SET))
+					.isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
 	}
@@ -194,7 +194,7 @@ class VariableSharedGlobalDescriptor private constructor(
 					.WRITE_REACTORS.ordinal
 						== WRITE_REACTORS.ordinal)
 				assert(VariableSharedDescriptor.ObjectSlots
-			       .DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
+					.DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal
 						== DEPENDENT_CHUNKS_WEAK_SET_POJO.ordinal)
 			}
 		}
@@ -218,7 +218,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
 		val outerKind = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(
 				E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -233,7 +233,7 @@ class VariableSharedGlobalDescriptor private constructor(
 			super.o_SetValueNoCheck(self, newValue)
 			return
 		}
-		assert(!newValue.equalsNil())
+		assert(newValue.notNil)
 		try
 		{
 			handleVariableWriteTracing(self)
@@ -387,7 +387,7 @@ class VariableSharedGlobalDescriptor private constructor(
 		private val mutableInitial =
 			VariableSharedGlobalDescriptor(Mutability.MUTABLE, false)
 
-		/** The shared [VariableSharedGlobalDescriptor].  */
+		/** The shared [VariableSharedGlobalDescriptor]. */
 		val shared =
 			VariableSharedGlobalDescriptor(Mutability.SHARED, false)
 

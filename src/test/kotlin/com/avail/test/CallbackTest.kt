@@ -47,6 +47,8 @@ import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.maps.A_Map.Companion.mapAt
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.entryPoints
 import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
@@ -80,16 +82,10 @@ import java.util.concurrent.SynchronousQueue
 @TestInstance(Lifecycle.PER_CLASS)
 class CallbackTest
 {
-	/** Setup for the test.  */
-	private var helper: AvailRuntimeTestHelper? = null
-
 	/**
-	 * Answer the [AvailRuntimeTestHelper], ensuring it's not `null`.
-	 *
-	 * @return
-	 *   The [AvailRuntimeTestHelper].
+	 * The [AvailRuntimeTestHelper] used for the tests.
 	 */
-	private fun helper(): AvailRuntimeTestHelper = helper!!
+	private val helper = AvailRuntimeTestHelper(false)
 
 	/**
 	 * Clear all repositories iff the `clearAllRepositories` system
@@ -105,10 +101,9 @@ class CallbackTest
 	@Throws(FileNotFoundException::class, RenamesFileParserException::class)
 	fun maybeClearAllRepositories()
 	{
-		helper = AvailRuntimeTestHelper()
 		if (System.getProperty("clearAllRepositories", null) !== null)
 		{
-			helper().clearAllRepositories()
+			helper.clearAllRepositories()
 		}
 	}
 
@@ -118,7 +113,7 @@ class CallbackTest
 	@BeforeEach
 	fun clearError()
 	{
-		helper().clearError()
+		helper.clearError()
 	}
 
 	/**
@@ -127,7 +122,7 @@ class CallbackTest
 	@AfterAll
 	fun tearDownRuntime()
 	{
-		helper().tearDownRuntime()
+		helper.tearDownRuntime()
 	}
 
 	/**
@@ -145,12 +140,12 @@ class CallbackTest
 	private fun monomorphicDefinitionBody(
 		moduleName: A_String, entryPointMethodName: A_String): A_Function
 	{
-		val module: A_Module = helper().runtime.moduleAt(moduleName)
-		val entryPointsNames = module.entryPoints()
+		val module: A_Module = helper.runtime.moduleAt(moduleName)
+		val entryPointsNames = module.entryPoints
 		val atom: A_Atom = entryPointsNames.mapAt(entryPointMethodName)
 		val definitions: A_Tuple =
-			atom.bundleOrNil().bundleMethod().definitionsTuple()
-		assert(definitions.tupleSize() == 1)
+			atom.bundleOrNil.bundleMethod.definitionsTuple
+		assert(definitions.tupleSize == 1)
 		return definitions.tupleAt(1).bodyBlock()
 	}
 
@@ -167,11 +162,11 @@ class CallbackTest
 	fun testDivisionCallback()
 	{
 		val harnessModuleName = "/builder-tests/Callback Test Harness"
-		val loaded = helper().loadModule(harnessModuleName)
+		val loaded = helper.loadModule(harnessModuleName)
 		Assertions.assertTrue(
 			loaded,
 			"Failed to load module: $harnessModuleName")
-		Assertions.assertFalse(helper().errorDetected())
+		Assertions.assertFalse(helper.errorDetected())
 		val body = monomorphicDefinitionBody(
 			stringFrom(harnessModuleName),
 			stringFrom("Invoke Once_with_"))
@@ -179,7 +174,7 @@ class CallbackTest
 			Types.NUMBER.o,
 			FiberDescriptor.commandPriority,
 			null,
-			helper().runtime)
+			helper.runtime)
 		{
 			stringFrom("testDivisionCallback")
 		}
@@ -212,7 +207,7 @@ class CallbackTest
 			}
 		}
 		runOutermostFunction(
-			helper().runtime,
+			helper.runtime,
 			fiber,
 			body,
 			listOf(
@@ -250,7 +245,7 @@ class CallbackTest
 					completion: CallbackCompletion,
 					failure: CallbackFailure)
 				{
-					assert(argumentsTuple.tupleSize() == 2)
+					assert(argumentsTuple.tupleSize == 2)
 					val a = argumentsTuple.tupleAt(1)
 					val b = argumentsTuple.tupleAt(2)
 					try
@@ -268,10 +263,8 @@ class CallbackTest
 				functionType(
 					tuple(
 						Types.NUMBER.o,
-						Types.NUMBER.o
-					),
-					Types.NUMBER.o
-				),
+						Types.NUMBER.o),
+					Types.NUMBER.o),
 				callback)
 		}
 	}

@@ -54,9 +54,9 @@ object P_AtomName : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val atom = interpreter.argument(0)
-		return interpreter.primitiveSuccess(atom.atomName())
+		return interpreter.primitiveSuccess(atom.atomName)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(ATOM.o), stringType())
+		functionType(tuple(ATOM.o), stringType)
 }

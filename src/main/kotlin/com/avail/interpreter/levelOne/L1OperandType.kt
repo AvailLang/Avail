@@ -32,6 +32,7 @@
 
 package com.avail.interpreter.levelOne
 
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.representation.AvailObject
@@ -60,7 +61,7 @@ enum class L1OperandType
 	/**
 	 * The integer in the nybblecode stream is to be treated as an index into
 	 * the current [compiled&#32;code][CompiledCodeDescriptor] object's
-	 * [literals][AvailObject.literalAt]. This allows instructions to refer to
+	 * [literals][A_RawFunction.literalAt]. This allows instructions to refer to
 	 * arbitrary [AvailObject]s.
 	 */
 	LITERAL

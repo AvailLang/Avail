@@ -86,31 +86,31 @@ object P_BootstrapPrefixPrimitiveDeclaration
 		interpreter.availLoaderOrNull() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
-		assert(optionalPrimPhrase.expressionsSize() == 1)
-		val primPhrase = optionalPrimPhrase.lastExpression()
+		assert(optionalPrimPhrase.expressionsSize == 1)
+		val primPhrase = optionalPrimPhrase.lastExpression
 		val primNamePhrase = primPhrase.expressionAt(1)
 		if (!primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 		{
 			throw AvailRejectedParseException(
 				STRONG, "primitive specification to be a literal keyword token")
 		}
-		val primName = primNamePhrase.token().string()
+		val primName = primNamePhrase.token.string()
 		val prim = primitiveByName(primName.asNativeString())
-		   ?: throw AvailRejectedParseException(
-			   STRONG,
-			   "a supported primitive name, not $primName")
+			?: throw AvailRejectedParseException(
+				STRONG,
+				"a supported primitive name, not $primName")
 
 		// Check that the primitive signature agrees with the arguments.
 		val blockArgumentPhrases = mutableListOf<A_Phrase>()
-		if (optionalBlockArgumentsList.expressionsSize() == 1)
+		if (optionalBlockArgumentsList.expressionsSize == 1)
 		{
 			val blockArgumentsList =
-				optionalBlockArgumentsList.lastExpression()
-			assert(blockArgumentsList.expressionsSize() >= 1)
-			blockArgumentsList.expressionsTuple().forEach { pair ->
-				assert(pair.expressionsSize() == 2)
+				optionalBlockArgumentsList.lastExpression
+			assert(blockArgumentsList.expressionsSize >= 1)
+			blockArgumentsList.expressionsTuple.forEach { pair ->
+				assert(pair.expressionsSize == 2)
 				val namePhrase = pair.expressionAt(1)
-				val name = namePhrase.token().literal().string()
+				val name = namePhrase.token.literal().string()
 				assert(name.isString)
 				val declaration =
 					FiberDescriptor.lookupBindingOrNull(name)!!
@@ -126,7 +126,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 		// Therefore, the variable declaration is not required to be present.
 		// Make sure the failure variable is present exactly when it should be.
 		val optionalFailure = primPhrase.expressionAt(2)
-		if (optionalFailure.expressionsSize() == 1)
+		if (optionalFailure.expressionsSize == 1)
 		{
 			if (prim.hasFlag(CannotFail))
 			{
@@ -136,9 +136,9 @@ object P_BootstrapPrefixPrimitiveDeclaration
 						+ "infallible primitive")
 			}
 			val failurePair = optionalFailure.expressionAt(1)
-			assert(failurePair.expressionsSize() == 2)
+			assert(failurePair.expressionsSize == 2)
 			val failureNamePhrase = failurePair.expressionAt(1)
-			val failureName = failureNamePhrase.token().literal()
+			val failureName = failureNamePhrase.token.literal()
 			if (failureName.tokenType() != TokenType.KEYWORD)
 			{
 				throw AvailRejectedParseException(
@@ -146,7 +146,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 					"primitive failure variable name to be alphanumeric")
 			}
 			val failureTypePhrase = failurePair.expressionAt(2)
-			val failureType = failureTypePhrase.token().literal()
+			val failureType = failureTypePhrase.token.literal()
 			if (failureType.isBottom || failureType.isTop)
 			{
 				throw AvailRejectedParseException(
@@ -173,7 +173,7 @@ object P_BootstrapPrefixPrimitiveDeclaration
 							+ conflictingDeclaration.declarationKind()
 								.nativeKindName()
 							+  " (from line "
-							+ "${conflictingDeclaration.token().lineNumber()})")
+							+ "${conflictingDeclaration.token.lineNumber()})")
 			}
 			return interpreter.primitiveSuccess(nil)
 		}
@@ -219,6 +219,5 @@ object P_BootstrapPrefixPrimitiveDeclaration
 									TOKEN.o,
 									/* Primitive failure variable type */
 									anyMeta())))))),
-			TOP.o
-		)
+			TOP.o)
 }

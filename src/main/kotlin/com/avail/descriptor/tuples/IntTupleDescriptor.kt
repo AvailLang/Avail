@@ -136,7 +136,7 @@ class IntTupleDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -148,14 +148,14 @@ class IntTupleDescriptor private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		if (!newElement.isInt)
 		{
 			// Transition to a tree tuple because it's not an int.
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val intValue = (newElement as AvailObject).extractInt()
+		val intValue = (newElement as AvailObject).extractInt
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -267,7 +267,7 @@ class IntTupleDescriptor private constructor(
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		val size1 = self.tupleSize()
+		val size1 = self.tupleSize
 		if (size1 == 0)
 		{
 			if (!canDestroy)
@@ -276,7 +276,7 @@ class IntTupleDescriptor private constructor(
 			}
 			return otherTuple
 		}
-		val size2 = otherTuple.tupleSize()
+		val size2 = otherTuple.tupleSize
 		if (size2 == 0)
 		{
 			if (!canDestroy)
@@ -323,14 +323,11 @@ class IntTupleDescriptor private constructor(
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		if (otherTuple.treeTupleLevel == 0)
 		{
-			createTwoPartTreeTuple(self, otherTuple, 1, 0)
+			return createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
-		else
-		{
-			concatenateAtLeastOneTree(self, otherTuple, true)
-		}
+		return concatenateAtLeastOneTree(self, otherTuple, true)
 	}
 
 	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple
@@ -339,9 +336,7 @@ class IntTupleDescriptor private constructor(
 	}
 
 	override fun o_CopyAsMutableLongTuple(self: AvailObject): A_Tuple =
-		generateLongTupleFrom(self.tupleSize()) {
-			self.tupleIntAt(it).toLong()
-		}
+		generateLongTupleFrom(self.tupleSize) { self.tupleIntAt(it).toLong() }
 
 	override fun o_CopyTupleFromToCanDestroy(
 		self: AvailObject,
@@ -349,7 +344,7 @@ class IntTupleDescriptor private constructor(
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
@@ -381,11 +376,11 @@ class IntTupleDescriptor private constructor(
 	{
 		when
 		{
-			self.tupleSize() != aByteTuple.tupleSize() -> return false
+			self.tupleSize != aByteTuple.tupleSize -> return false
 			self.hash() != aByteTuple.hash() -> return false
 			!self.compareFromToWithByteTupleStartingAt(
 				1,
-				self.tupleSize(),
+				self.tupleSize,
 				aByteTuple,
 				1) -> return false
 			// They're equal (but occupy disjoint storage). If possible, replace
@@ -414,11 +409,11 @@ class IntTupleDescriptor private constructor(
 		when
 		{
 			self.sameAddressAs(anIntTuple) -> return true
-			self.tupleSize() != anIntTuple.tupleSize() -> return false
+			self.tupleSize != anIntTuple.tupleSize -> return false
 			self.hash() != anIntTuple.hash() -> return false
 			!self.compareFromToWithIntTupleStartingAt(
 				1,
-				self.tupleSize(),
+				self.tupleSize,
 				anIntTuple,
 				1) -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
@@ -444,9 +439,9 @@ class IntTupleDescriptor private constructor(
 	{
 		when
 		{
-			self.tupleSize() != aLongTuple.tupleSize() -> return false
+			self.tupleSize != aLongTuple.tupleSize -> return false
 			self.hash() != aLongTuple.hash() -> return false
-			(1..self.tupleSize()).any {
+			(1..self.tupleSize).any {
 				self.intSlot(RAW_LONG_AT_, it) != aLongTuple.tupleIntAt(it)
 			} -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
@@ -472,7 +467,7 @@ class IntTupleDescriptor private constructor(
 		// representations smaller and faster when concatenating short, quickly
 		// built int tuples that happen to only contain bytes onto the start
 		// or end of other byte tuples.
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize <= 10)
 		{
 			for (i in 1 .. tupleSize)
@@ -503,13 +498,13 @@ class IntTupleDescriptor private constructor(
 			return false
 		}
 		//  See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(self.tupleSize.toLong()))
 		{
 			return false
 		}
 		//  tuple's size is in range.
-		val typeTuple = aType.typeTuple()
-		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
+		val typeTuple = aType.typeTuple
+		val breakIndex = min(self.tupleSize, typeTuple.tupleSize)
 		for (i in 1 .. breakIndex)
 		{
 			if (!self.tupleAt(i).isInstanceOf(typeTuple.tupleAt(i)))
@@ -517,13 +512,13 @@ class IntTupleDescriptor private constructor(
 				return false
 			}
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		if (int32.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
 		var i = breakIndex + 1
-		val end = self.tupleSize()
+		val end = self.tupleSize
 		while (i <= end)
 		{
 			if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
@@ -540,7 +535,7 @@ class IntTupleDescriptor private constructor(
 		if (isMutable)
 		{
 			self.setDescriptor(
-				descriptorFor(Mutability.IMMUTABLE, self.tupleSize()))
+				descriptorFor(Mutability.IMMUTABLE, self.tupleSize))
 		}
 		return self
 	}
@@ -550,7 +545,7 @@ class IntTupleDescriptor private constructor(
 		if (!isShared)
 		{
 			self.setDescriptor(
-				descriptorFor(Mutability.SHARED, self.tupleSize()))
+				descriptorFor(Mutability.SHARED, self.tupleSize))
 		}
 		return self
 	}
@@ -574,7 +569,7 @@ class IntTupleDescriptor private constructor(
 		index: Int): AvailObject
 	{
 		// Answer the element at the given index in the tuple object.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return fromInt(self.intSlot(RAW_LONG_AT_, index))
 	}
 
@@ -587,7 +582,7 @@ class IntTupleDescriptor private constructor(
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (!newValueObject.isInt)
 		{
 			return self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
@@ -601,7 +596,7 @@ class IntTupleDescriptor private constructor(
 		result.setIntSlot(
 			RAW_LONG_AT_,
 			index,
-			(newValueObject as A_Number).extractInt())
+			(newValueObject as A_Number).extractInt)
 		result.setHashOrZero(0)
 		return result
 	}
@@ -622,17 +617,17 @@ class IntTupleDescriptor private constructor(
 			// It must be an integer range kind.  Find the bounds.
 			else ->
 			{
-				val lowerObject = type.lowerBound()
+				val lowerObject = type.lowerBound
 				val lower = when
 				{
-					lowerObject.isInt -> lowerObject.extractInt()
+					lowerObject.isInt -> lowerObject.extractInt
 					lowerObject.lessThan(zero) -> Int.MIN_VALUE
 					else -> return false
 				}
-				val upperObject = type.upperBound()
+				val upperObject = type.upperBound
 				val upper = when
 				{
-					upperObject.isInt -> upperObject.extractInt()
+					upperObject.isInt -> upperObject.extractInt
 					upperObject.greaterThan(zero) -> Int.MAX_VALUE
 					else -> return false
 				}
@@ -647,7 +642,7 @@ class IntTupleDescriptor private constructor(
 		self: AvailObject,
 		index: Int): Int
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return self.intSlot(RAW_LONG_AT_, index)
 	}
 
@@ -655,13 +650,13 @@ class IntTupleDescriptor private constructor(
 		self: AvailObject,
 		index: Int): Long
 	{
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		return self.intSlot(RAW_LONG_AT_, index).toLong()
 	}
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize <= 1)
 		{
 			return self
@@ -684,7 +679,7 @@ class IntTupleDescriptor private constructor(
 	{
 		writer.startArray()
 		var i = 1
-		val limit = self.tupleSize()
+		val limit = self.tupleSize
 		while (i <= limit)
 		{
 			writer.write(self.tupleIntAt(i))
@@ -702,7 +697,7 @@ class IntTupleDescriptor private constructor(
 		 */
 		private const val maximumCopySize = 32
 
-		/** The [IntTupleDescriptor] instances.  */
+		/** The [IntTupleDescriptor] instances. */
 		private val descriptors = arrayOfNulls<IntTupleDescriptor>(2 * 3)
 
 		/**
@@ -740,7 +735,7 @@ class IntTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedIntTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedIntTupleMethod = staticMethod(
 			IntTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,

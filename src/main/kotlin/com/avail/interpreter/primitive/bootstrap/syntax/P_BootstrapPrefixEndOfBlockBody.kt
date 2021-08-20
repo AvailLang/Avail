@@ -83,13 +83,13 @@ import com.avail.interpreter.execution.Interpreter
 @Suppress("unused")
 object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 {
-	/** The key to the client parsing data in the fiber's environment.  */
+	/** The key to the client parsing data in the fiber's environment. */
 	private val clientDataKey = CLIENT_DATA_GLOBAL_KEY.atom
 
-	/** The key to the variable scope map in the client parsing data.  */
+	/** The key to the variable scope map in the client parsing data. */
 	private val scopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 
-	/** The key to the tuple of scopes to pop as blocks complete parsing.  */
+	/** The key to the tuple of scopes to pop as blocks complete parsing. */
 	private val scopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 
 	override fun attempt(interpreter: Interpreter): Result
@@ -121,19 +121,15 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 		// then discard it when complete.
 		val currentScopeMap = clientData.mapAt(scopeMapKey)
 		var stack: A_Tuple = clientData.mapAt(scopeStackKey)
-		val poppedScopeMap = stack.tupleAt(stack.tupleSize())
-		stack =
-			stack.tupleAtPuttingCanDestroy(
-				stack.tupleSize(), currentScopeMap, true)
-		clientData =
-			clientData.mapAtPuttingCanDestroy(
-				scopeMapKey, poppedScopeMap, true)
-		clientData =
-			clientData.mapAtPuttingCanDestroy(
-				scopeStackKey, stack, true)
-		fiberGlobals =
-			fiberGlobals.mapAtPuttingCanDestroy(
-				clientDataKey, clientData, true)
+		val poppedScopeMap = stack.tupleAt(stack.tupleSize)
+		stack = stack.tupleAtPuttingCanDestroy(
+			stack.tupleSize, currentScopeMap, true)
+		clientData = clientData.mapAtPuttingCanDestroy(
+			scopeMapKey, poppedScopeMap, true)
+		clientData = clientData.mapAtPuttingCanDestroy(
+			scopeStackKey, stack, true)
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataKey, clientData, true)
 		fiber.setFiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(nil)
 	}
@@ -194,8 +190,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 				LIST_PHRASE.create(
 					zeroOrOneOf(
 						PARSE_PHRASE.create(ANY.o)))),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER, E_INCONSISTENT_PREFIX_FUNCTION))

@@ -37,6 +37,7 @@ import com.avail.compiler.ParsingOperation.Companion.decode
 import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
@@ -48,7 +49,7 @@ import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.IntegerSlots
 import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor.ObjectSlots.PARSING_PLAN
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
-import com.avail.descriptor.representation.AvailObject.Companion.multiplier
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
@@ -126,22 +127,23 @@ class ParsingPlanInProgressDescriptor private constructor(
 			return false
 		}
 		val strongAnother = another as A_ParsingPlanInProgress
-		return (self.slot(PARSING_PLAN).equals(strongAnother.parsingPlan())
-			&& self.slot(PARSING_PC) == strongAnother.parsingPc())
+		return (self.slot(PARSING_PLAN).equals(strongAnother.parsingPlan)
+			&& self.slot(PARSING_PC) == strongAnother.parsingPc)
 	}
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.slot(PARSING_PC) xor -0x6d5d9ebe) * multiplier
-			- self.slot(PARSING_PLAN).hash())
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(PARSING_PC),
+		self.slot(PARSING_PLAN).hash(),
+		-0x37f29658)
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		PARSING_PLAN_IN_PROGRESS.o
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean {
 		val plan: A_DefinitionParsingPlan = self.slot(PARSING_PLAN)
-		val instructions = plan.parsingInstructions()
+		val instructions = plan.parsingInstructions
 		val pc = self.slot(PARSING_PC)
-		if (pc > instructions.tupleSize()) {
+		if (pc > instructions.tupleSize) {
 			return false
 		}
 		val instruction = instructions.tupleIntAt(pc)
@@ -164,8 +166,8 @@ class ParsingPlanInProgressDescriptor private constructor(
 		val pc = self.slot(PARSING_PC)
 		return when {
 			pc <= 1 -> "(any method invocation)"
-			else -> plan.bundle().messageSplitter().highlightedNameFor(
-				plan.definition().parsingSignature(), pc)
+			else -> plan.bundle.messageSplitter.highlightedNameFor(
+				plan.definition.parsingSignature(), pc)
 		}
 	}
 
@@ -176,9 +178,9 @@ class ParsingPlanInProgressDescriptor private constructor(
 		indent: Int
 	) = with(builder) {
 		append("plan @")
-		append(self.parsingPc())
+		append(self.parsingPc)
 		append(" of ")
-		append(self.nameHighlightingPc())
+		append(self.nameHighlightingPc)
 		return@with
 	}
 
@@ -208,11 +210,11 @@ class ParsingPlanInProgressDescriptor private constructor(
 			setSlot(PARSING_PC, pc)
 		}
 
-		/** The mutable [ParsingPlanInProgressDescriptor].  */
+		/** The mutable [ParsingPlanInProgressDescriptor]. */
 		private val mutable =
 			ParsingPlanInProgressDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ParsingPlanInProgressDescriptor].  */
+		/** The shared [ParsingPlanInProgressDescriptor]. */
 		private val shared = ParsingPlanInProgressDescriptor(Mutability.SHARED)
 	}
 }

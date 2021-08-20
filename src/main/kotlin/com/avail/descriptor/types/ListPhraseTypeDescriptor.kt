@@ -35,6 +35,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -57,7 +58,12 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.EXPRESSIO
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.ObjectSlots.SUBEXPRESSIONS_TUPLE_TYPE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.serialization.SerializerOperation
+import com.avail.utility.ifZero
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
 
@@ -94,8 +100,9 @@ import java.util.IdentityHashMap
  */
 class ListPhraseTypeDescriptor internal constructor(
 	mutability: Mutability,
-	kind: PhraseKind) : PhraseTypeDescriptor(
-		mutability, kind, ObjectSlots::class.java, IntegerSlots::class.java)
+	kind: PhraseKind
+) : PhraseTypeDescriptor(
+	mutability, kind, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * My slots of type [int][Integer].
@@ -117,9 +124,9 @@ class ListPhraseTypeDescriptor internal constructor(
 			init
 			{
 				assert(PhraseTypeDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-					       == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(PhraseTypeDescriptor.IntegerSlots.HASH_OR_ZERO
-					       .isSamePlaceAs(HASH_OR_ZERO))
+							.isSamePlaceAs(HASH_OR_ZERO))
 			}
 		}
 	}
@@ -147,7 +154,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			init
 			{
 				assert(PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE.ordinal
-				       == EXPRESSION_TYPE.ordinal)
+						== EXPRESSION_TYPE.ordinal)
 			}
 		}
 	}
@@ -192,28 +199,22 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): Boolean
 	{
 		assert(aListNodeType.phraseKindIsUnder(PhraseKind.LIST_PHRASE))
-		return (self.phraseKind() === aListNodeType.phraseKind()
-		        && self.slot(EXPRESSION_TYPE).equals(
-			aListNodeType.phraseTypeExpressionType())
-		        && self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
-			aListNodeType.subexpressionsTupleType()))
+		return (self.phraseKind === aListNodeType.phraseKind
+			&& self.slot(EXPRESSION_TYPE).equals(
+				aListNodeType.phraseTypeExpressionType)
+			&& self.slot(SUBEXPRESSIONS_TUPLE_TYPE).equals(
+				aListNodeType.subexpressionsTupleType))
 	}
 
-	override fun o_Hash(self: AvailObject): Int
-	{
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0)
-		{
-			hash = self.slot(EXPRESSION_TYPE).hash()
-			hash *= AvailObject.multiplier
-			hash -= kind.ordinal
-			hash *= AvailObject.multiplier
-			hash = hash xor self.slot(SUBEXPRESSIONS_TUPLE_TYPE).hash()
-			hash *= AvailObject.multiplier
-			self.setSlot(HASH_OR_ZERO, hash)
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
+			combine4(
+				self.slot(EXPRESSION_TYPE).hash(),
+				kind.ordinal,
+				self.slot(SUBEXPRESSIONS_TUPLE_TYPE).hash(),
+				0x6d386470
+			).also { self.setSlot(HASH_OR_ZERO, it) }
 		}
-		return hash
-	}
 
 	override fun o_SubexpressionsTupleType(self: AvailObject): A_Type =
 		self.slot(SUBEXPRESSIONS_TUPLE_TYPE)
@@ -223,11 +224,12 @@ class ListPhraseTypeDescriptor internal constructor(
 
 	override fun o_IsSupertypeOfListNodeType(
 		self: AvailObject,
-		aListNodeType: A_Type): Boolean =
-			(aListNodeType.phraseKindIsUnder(self.phraseKind())
-			        && aListNodeType.phraseTypeExpressionType().isSubtypeOf(
+		aListNodeType: A_Type
+	): Boolean =
+		(aListNodeType.phraseKindIsUnder(self.phraseKind)
+			&& aListNodeType.phraseTypeExpressionType.isSubtypeOf(
 				self.slot(EXPRESSION_TYPE))
-			        && aListNodeType.subexpressionsTupleType().isSubtypeOf(
+			&& aListNodeType.subexpressionsTupleType.isSubtypeOf(
 				self.slot(SUBEXPRESSIONS_TUPLE_TYPE)))
 
 	override fun o_IsSupertypeOfPhraseType(
@@ -249,32 +251,32 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): A_Type
 	{
 		// Intersection of two list phrase types.
-		val intersectionKind = self.phraseKind().commonDescendantWith(
-			aListNodeType.phraseKind())
-		                       ?: return bottom
+		val intersectionKind = self.phraseKind.commonDescendantWith(
+			aListNodeType.phraseKind)
+								?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
-		return createListNodeType(
+		return createListPhraseType(
 			intersectionKind,
-			self.phraseTypeExpressionType().typeIntersection(
-				aListNodeType.phraseTypeExpressionType()),
-			self.subexpressionsTupleType().typeIntersection(
-				aListNodeType.subexpressionsTupleType()))
+			self.phraseTypeExpressionType.typeIntersection(
+				aListNodeType.phraseTypeExpressionType),
+			self.subexpressionsTupleType.typeIntersection(
+				aListNodeType.subexpressionsTupleType))
 	}
 
 	override fun o_TypeIntersectionOfPhraseType(
 		self: AvailObject,
 		aPhraseType: A_Type): A_Type
 	{
-		val otherKind = aPhraseType.phraseKind()
+		val otherKind = aPhraseType.phraseKind
 		assert(!otherKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		val intersectionKind =
-			otherKind.commonDescendantWith(self.phraseKind()) ?: return bottom
+			otherKind.commonDescendantWith(self.phraseKind) ?: return bottom
 		assert(intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
-		return createListNodeType(
+		return createListPhraseType(
 			intersectionKind,
-			self.phraseTypeExpressionType().typeIntersection(
-				aPhraseType.phraseTypeExpressionType()),
-			self.subexpressionsTupleType())
+			self.phraseTypeExpressionType.typeIntersection(
+				aPhraseType.phraseTypeExpressionType),
+			self.subexpressionsTupleType)
 	}
 
 	override fun o_TypeUnion(self: AvailObject, another: A_Type): A_Type =
@@ -285,18 +287,18 @@ class ListPhraseTypeDescriptor internal constructor(
 		aListNodeType: A_Type): A_Type
 	{
 		// Union of two list phrase types.
-		val objectKind = self.phraseKind()
-		val otherKind = aListNodeType.phraseKind()
+		val objectKind = self.phraseKind
+		val otherKind = aListNodeType.phraseKind
 		assert(otherKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		val unionKind = objectKind.commonAncestorWith(
 			otherKind)
 		assert(unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
-		return createListNodeType(
+		return createListPhraseType(
 			unionKind,
-			self.phraseTypeExpressionType().typeUnion(
-				aListNodeType.phraseTypeExpressionType()),
-			self.subexpressionsTupleType().typeUnion(
-				aListNodeType.subexpressionsTupleType()))
+			self.phraseTypeExpressionType.typeUnion(
+				aListNodeType.phraseTypeExpressionType),
+			self.subexpressionsTupleType.typeUnion(
+				aListNodeType.subexpressionsTupleType))
 	}
 
 	override fun o_TypeUnionOfPhraseType(
@@ -305,21 +307,21 @@ class ListPhraseTypeDescriptor internal constructor(
 	{
 		// Union of a list phrase type and a non-list phrase type is a
 		// non-list phrase type.
-		val objectKind = self.phraseKind()
-		val otherKind = aPhraseType.phraseKind()
+		val objectKind = self.phraseKind
+		val otherKind = aPhraseType.phraseKind
 		val unionKind = objectKind.commonAncestorWith(
 			otherKind)
 		assert(!unionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
 		return unionKind.create(
-			self.phraseTypeExpressionType().typeUnion(
-				aPhraseType.phraseTypeExpressionType()))
+			self.phraseTypeExpressionType.typeUnion(
+				aPhraseType.phraseTypeExpressionType))
 	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
 		writer.write("kind")
-		writer.write(self.phraseKind().jsonName)
+		writer.write(self.phraseKind.jsonName)
 		writer.write("expression type")
 		self.slot(EXPRESSION_TYPE).writeTo(writer)
 		writer.write("subexpressions tuple type")
@@ -336,19 +338,20 @@ class ListPhraseTypeDescriptor internal constructor(
 		super.printObjectOnAvoidingIndent(
 			self, builder, recursionMap, indent)
 		builder.append(" (subexpressions tuple type=")
-		self.subexpressionsTupleType().printOnAvoidingIndent(
+		self.subexpressionsTupleType.printOnAvoidingIndent(
 			builder, recursionMap, indent + 1)
 		builder.append(")")
 	}
 
-	/** A static inner type that delays initialization until first use.  */
+	/** A static inner type that delays initialization until first use. */
 	private object Empty
 	{
-		/** The empty list phrase's type.  */
+		/** The empty list phrase's type. */
 		val empty: A_Type = createListNodeTypeNoCheck(
 			PhraseKind.LIST_PHRASE,
-			TupleTypeDescriptor.tupleTypeForTypes(),
-			TupleTypeDescriptor.tupleTypeForTypes()).makeShared()
+			tupleTypeForTypes(),
+			tupleTypeForTypes()
+		).makeShared()
 	}
 
 	companion object
@@ -363,7 +366,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 *   A list phrase type.
 		 */
 		fun zeroOrMoreList(type: A_Type): A_Type =
-			createListNodeType(TupleTypeDescriptor.zeroOrMoreOf(type))
+			createListPhraseType(zeroOrMoreOf(type))
 
 		/**
 		 * Create a list phrase type matching zero or one occurrences of
@@ -374,10 +377,8 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A list phrase type.
 		 */
-		fun zeroOrOneList(type: A_Type): A_Type
-		{
-			return createListNodeType(TupleTypeDescriptor.zeroOrOneOf(type))
-		}
+		fun zeroOrOneList(type: A_Type): A_Type =
+			createListPhraseType(zeroOrOneOf(type))
 
 		/**
 		 * Given an array of types, create the most general list phrase type
@@ -390,7 +391,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 *   A list phrase type.
 		 */
 		fun list(vararg types: A_Type): A_Type =
-			createListNodeType(TupleTypeDescriptor.tupleTypeForTypes(*types))
+			createListPhraseType(tupleTypeForTypes(*types))
 
 		/**
 		 * Given an array of types, create the most general list phrase type
@@ -406,12 +407,11 @@ class ListPhraseTypeDescriptor internal constructor(
 		 *   A list phrase type.
 		 */
 		fun listPrefix(minimumSize: Int, vararg types: A_Type): A_Type =
-			createListNodeType(
-				TupleTypeDescriptor.tupleTypeForSizesTypesDefaultType(
+			createListPhraseType(
+				tupleTypeForSizesTypesDefaultType(
 					inclusive(fromInt(minimumSize), fromInt(types.size)),
 					tupleFromArray(*types),
-					bottom
-				))
+					bottom))
 
 		/**
 		 * Create a list phrase type with the given yield type and the given
@@ -429,7 +429,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A canonized list phrase type.
 		 */
-		fun createListNodeType(
+		fun createListPhraseType(
 			kind: PhraseKind,
 			yieldType: A_Type,
 			subexpressionsTupleType: A_Type): A_Type
@@ -449,7 +449,7 @@ class ListPhraseTypeDescriptor internal constructor(
 					assert(
 						descriptorTraversed is PhraseTypeDescriptor
 							|| descriptorTraversed is BottomTypeDescriptor)
-					it.phraseTypeExpressionType()
+					it.phraseTypeExpressionType
 				}
 			return createListNodeTypeNoCheck(
 				kind,
@@ -467,7 +467,7 @@ class ListPhraseTypeDescriptor internal constructor(
 		 * @return
 		 *   A canonized list phrase type.
 		 */
-		fun createListNodeType(subexpressionsTupleType: A_Type): A_Type
+		fun createListPhraseType(subexpressionsTupleType: A_Type): A_Type
 		{
 			assert(subexpressionsTupleType.isTupleType)
 			val phraseTypesAsYields =
@@ -476,7 +476,7 @@ class ListPhraseTypeDescriptor internal constructor(
 					assert(
 						descriptorTraversed is PhraseTypeDescriptor
 							|| descriptorTraversed is BottomTypeDescriptor)
-					it.phraseTypeExpressionType()
+					it.phraseTypeExpressionType
 				}
 			return createListNodeTypeNoCheck(
 				PhraseKind.LIST_PHRASE,
@@ -510,7 +510,7 @@ class ListPhraseTypeDescriptor internal constructor(
 			subexpressionsTupleType: A_Type): A_Type
 		{
 			// Can't verify this, because LIST_NODE might not exist yet.
-			// assert listNodeEnumKind.isSubkindOf(LIST_NODE);
+			// assert(listNodeEnumKind.isSubkindOf(LIST_NODE))
 			assert(yieldType.isTupleType)
 			assert(subexpressionsTupleType.isTupleType)
 			return listNodeEnumKind.mutableDescriptor.create {

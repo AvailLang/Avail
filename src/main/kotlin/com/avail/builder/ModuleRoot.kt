@@ -95,7 +95,7 @@ class ModuleRoot
 	{
 		writer.writeArray {
 			write(repository.fileName.absolutePath)
-			write("${resolver.uri.scheme}:${resolver.uri.path}")
+			write("${resolver.uri.scheme}://${resolver.uri.path}")
 		}
 	}
 

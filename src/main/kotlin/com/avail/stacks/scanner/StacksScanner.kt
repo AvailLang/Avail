@@ -91,7 +91,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 	 */
 	private val commentStartLine: Int
 
-	/** The module file name without the path.  */
+	/** The module file name without the path. */
 	val moduleLeafName: String
 
 	/**
@@ -466,17 +466,17 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 						{
 							in '0'..'9' ->
 							{
-								value = (value shl 4) + c.toInt() - '0'.toInt()
+								value = (value shl 4) + c.code - '0'.code
 								digitCount++
 							}
 							in 'A'..'F' ->
 							{
-								value = (value shl 4) + c.toInt() - 'A'.toInt() + 10
+								value = (value shl 4) + c.code - 'A'.code + 10
 								digitCount++
 							}
 							in 'a'..'f' ->
 							{
-								value = (value shl 4) + c.toInt() - 'a'.toInt() + 10
+								value = (value shl 4) + c.code - 'a'.code + 10
 								digitCount++
 							}
 							else -> throw StacksScannerException(
@@ -858,7 +858,7 @@ class StacksScanner constructor (commentToken: A_Token, moduleName: String)
 			 */
 			fun forCodePoint(c: Char): ScannerAction
 			{
-				val cp = c.toInt()
+				val cp = c.code
 				return if (cp < 65536)
 				{
 					values()[dispatchTable[cp].toInt()]

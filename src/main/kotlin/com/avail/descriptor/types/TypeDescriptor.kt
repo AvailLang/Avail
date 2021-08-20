@@ -292,7 +292,7 @@ abstract class TypeDescriptor protected constructor(
 
 		companion object
 		{
-			/** The total count of [Types] enum values.  */
+			/** The total count of [Types] enum values. */
 			const val enumCount = 22
 
 			/**
@@ -415,7 +415,7 @@ abstract class TypeDescriptor protected constructor(
 		 */
 		val parent: Types?
 
-		/** The [TypeTag] for this primitive type.  */
+		/** The [TypeTag] for this primitive type. */
 		val typeTag: TypeTag
 
 		/**
@@ -471,7 +471,7 @@ abstract class TypeDescriptor protected constructor(
 			this.parent = parent
 			this.typeTag = typeTag
 			o = PrimitiveTypeDescriptor.createMutablePrimitiveObjectNamed(
-				name.toLowerCase().replace('_', ' '))
+				name.lowercase().replace('_', ' '))
 		}
 	}
 

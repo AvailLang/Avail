@@ -59,7 +59,7 @@ object P_ReferenceTarget : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val ref = interpreter.argument(0)
-		return interpreter.primitiveSuccess(ref.variable())
+		return interpreter.primitiveSuccess(ref.variable)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

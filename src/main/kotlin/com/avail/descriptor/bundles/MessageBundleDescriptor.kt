@@ -36,6 +36,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.DEFINITION_PARSING_PLANS
@@ -43,6 +44,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.GRAMMATI
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MACROS_TUPLE
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.MESSAGE
 import com.avail.descriptor.bundles.MessageBundleDescriptor.ObjectSlots.METHOD
+import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.A_Map.Companion.hasKey
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
@@ -52,21 +54,29 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
+import com.avail.descriptor.methods.A_Method.Companion.methodAddBundle
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.methods.MacroDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.addBundle
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.styleType
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan
 import com.avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
-import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
+import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.A_Set.Companion.setSize
@@ -91,6 +101,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.variables.A_Variable
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.SignatureException
@@ -172,9 +183,8 @@ class MessageBundleDescriptor private constructor(
 		GRAMMATICAL_RESTRICTIONS,
 
 		/**
-		 * The [tuple][A_Tuple] of
-		 * [macro&#32;definitions][MacroDescriptor] that are defined
-		 * for this macro.
+		 * The [tuple][A_Tuple] of [macro][MacroDescriptor] definitions that are
+		 * defined for this message bundle.
 		 */
 		MACROS_TUPLE,
 
@@ -202,7 +212,7 @@ class MessageBundleDescriptor private constructor(
 		var tree = macroTestingTree
 		if (tree === null) {
 			val method = self.slot(METHOD)
-			val numArgs = method.numArgs()
+			val numArgs = method.numArgs
 			val newTree = MethodDescriptor.runtimeDispatcher.createRoot(
 				toList(self.slot(MACROS_TUPLE)),
 				nCopies(
@@ -210,13 +220,15 @@ class MessageBundleDescriptor private constructor(
 					restrictionForType(
 						PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
 				Unit)
-			do {
+			do
+			{
 				// Try to replace null with the new tree.  If the replacement
 				// fails, it means someone else already succeeded, so use that
 				// winner's tree.
 				macroTestingTreeUpdater.compareAndSet(this, null, newTree)
 				tree = macroTestingTree
-			} while (tree === null)
+			}
+			while (tree === null)
 		}
 		return tree
 	}
@@ -259,11 +271,11 @@ class MessageBundleDescriptor private constructor(
 	) = L2Chunk.invalidationLock.withLock {
 		if (!ignoreSeals)
 		{
-			val paramTypes = macro.bodySignature().argsTupleType()
-			val seals: A_Tuple = self.bundleMethod().sealedArgumentsTypesTuple()
+			val paramTypes = macro.bodySignature().argsTupleType
+			val seals: A_Tuple = self.bundleMethod.sealedArgumentsTypesTuple
 			seals.forEach { seal: A_Tuple ->
 				val sealType = tupleTypeForSizesTypesDefaultType(
-					singleInt(seal.tupleSize()), seal, bottom)
+					singleInt(seal.tupleSize), seal, bottom)
 				if (paramTypes.isSubtypeOf(sealType))
 				{
 					throw SignatureException(AvailErrorCode.E_METHOD_IS_SEALED)
@@ -313,10 +325,10 @@ class MessageBundleDescriptor private constructor(
 		self.mutableSlot(GRAMMATICAL_RESTRICTIONS)
 
 	override fun o_HasGrammaticalRestrictions(self: AvailObject) =
-		self.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize() > 0
+		self.mutableSlot(GRAMMATICAL_RESTRICTIONS).setSize > 0
 
 	override fun o_Hash(self: AvailObject) =
-		self.message().hash() xor 0x0312CAB9
+		combine2(self.message.hash(), 0x0312CAB9)
 
 	override fun o_Kind(self: AvailObject) = MESSAGE_BUNDLE.o
 
@@ -385,29 +397,29 @@ class MessageBundleDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("message bundle") }
-			at("method") { self.slot(MESSAGE).atomName().writeTo(writer) }
+			at("method") { self.slot(MESSAGE).atomName.writeTo(writer) }
 			at("macro definitions") { self.slot(MACROS_TUPLE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("message bundle") }
-			at("method") { self.slot(MESSAGE).atomName().writeTo(writer) }
+			at("method") { self.slot(MESSAGE).atomName.writeTo(writer) }
 		}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		// The existing definitions are also printed in parentheses to help
 		// distinguish polymorphism from occurrences of non-polymorphic
 		// homonyms.
 		builder.append("bundle \"")
-		builder.append(self.message().atomName().asNativeString())
+		builder.append(self.message.atomName.asNativeString())
 		builder.append("\"")
-		when (val numMacros = self.macrosTuple().tupleSize())
+		when (val numMacros = self.macrosTuple.tupleSize)
 		{
 			0 -> { }
 			1 -> builder.append(" (1 macro)")
@@ -434,10 +446,9 @@ class MessageBundleDescriptor private constructor(
 				"macroTestingTree")
 
 		/**
-		 * Add a
-		 * [definition&#32;parsing&#32;plan][DefinitionParsingPlanDescriptor] to
-		 * this bundle.  This is performed to make the bundle agree with the
-		 * method's definitions and macro definitions.
+		 * Add an [A_DefinitionParsingPlan] to this bundle.  This is performed
+		 * to make the bundle agree with the method definitions and macro
+		 * definitions.
 		 *
 		 * @param self
 		 *   The affected message bundle.
@@ -446,10 +457,10 @@ class MessageBundleDescriptor private constructor(
 		 */
 		private fun addDefinitionParsingPlan(
 			self: AvailObject,
-			plan: A_DefinitionParsingPlan
-		) {
+			plan: A_DefinitionParsingPlan)
+		{
 			var plans: A_Map = self.slot(DEFINITION_PARSING_PLANS)
-			plans = plans.mapAtPuttingCanDestroy(plan.definition(), plan, true)
+			plans = plans.mapAtPuttingCanDestroy(plan.definition, plan, true)
 			self.setSlot(DEFINITION_PARSING_PLANS, plans.makeShared())
 		}
 
@@ -523,7 +534,10 @@ class MessageBundleDescriptor private constructor(
 		/**
 		 * Create a new [message&#32;bundle][A_Bundle] for the given message.
 		 * Add the bundle to the method's collection of
-		 * [owning&32;bundles][MethodDescriptor.owningBundles].
+		 * [owning&#32;bundles][MethodDescriptor.owningBundles].  Update the
+		 * atom's (methodName's) bundle field to point to the new bundle. Also
+		 * update the current loading module, if any, to be responsible for
+		 * destruction of the bundle upon unloading.
 		 *
 		 * @param methodName
 		 *   The message name, an [atom][AtomDescriptor].
@@ -538,28 +552,28 @@ class MessageBundleDescriptor private constructor(
 			methodName: A_Atom,
 			method: A_Method,
 			splitter: MessageSplitter
-		): A_Bundle {
+		): A_Bundle
+		{
 			assert(methodName.isAtom)
-			assert(splitter.numberOfArguments == method.numArgs())
-			assert(splitter.messageName.equals(methodName.atomName()))
+			assert(splitter.numberOfArguments == method.numArgs)
+			assert(splitter.messageName.equals(methodName.atomName))
 			val currentModule = Interpreter.currentOrNull()
 				?.availLoaderOrNull()
-				?.module()
+				?.module
 			return initialMutableDescriptor.create {
 				setSlot(METHOD, method)
 				setSlot(MESSAGE, methodName.makeShared())
 				setSlot(MACROS_TUPLE, emptyTuple())
 				setSlot(GRAMMATICAL_RESTRICTIONS, emptySet)
 				setSlot(DEFINITION_PARSING_PLANS, emptyMap)
-				val newDescriptor = MessageBundleDescriptor(
-					Mutability.SHARED, splitter)
-				setDescriptor(newDescriptor)
+				setDescriptor(
+					MessageBundleDescriptor(Mutability.SHARED, splitter))
 				method.methodAddBundle(this)
 				currentModule?.addBundle(this)
-				// Note that there are no macros implementations in this bundle
+				// Note that there are no macro implementations in this bundle
 				// at this time, since this bundle is new.
 				var plans = emptyMap
-				for (definition in method.definitionsTuple())
+				for (definition in method.definitionsTuple)
 				{
 					val plan = newParsingPlan(this, definition)
 					plans = plans.mapAtPuttingCanDestroy(definition, plan, true)

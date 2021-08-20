@@ -32,7 +32,7 @@
 package com.avail.descriptor.types
 
 import com.avail.annotations.ThreadSafe
-import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.character.CharacterDescriptor.Companion.maxCodePointInt
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -55,6 +55,7 @@ import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractDescriptor
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -106,14 +107,16 @@ import java.util.IdentityHashMap
  * @param upperInclusive
  *   Do my object instances include their upper bound?
  */
-class IntegerRangeTypeDescriptor private constructor(
+class IntegerRangeTypeDescriptor
+private constructor(
 	isMutable: Boolean,
 	private val lowerInclusive: Boolean,
-	private val upperInclusive: Boolean) : TypeDescriptor(
-		if (isMutable) Mutability.MUTABLE else Mutability.SHARED,
-		TypeTag.EXTENDED_INTEGER_TYPE_TAG,
-		ObjectSlots::class.java,
-		null)
+	private val upperInclusive: Boolean
+) : TypeDescriptor(
+	if (isMutable) Mutability.MUTABLE else Mutability.SHARED,
+	TypeTag.EXTENDED_INTEGER_TYPE_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -141,7 +144,7 @@ class IntegerRangeTypeDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		builder.append(if (self.lowerInclusive()) '[' else '(')
+		builder.append(if (lowerInclusive) '[' else '(')
 		self.slot(LOWER_BOUND).printOnAvoidingIndent(
 			builder,
 			recursionMap,
@@ -151,7 +154,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			builder,
 			recursionMap,
 			indent + 1)
-		builder.append(if (self.upperInclusive()) ']' else ')')
+		builder.append(if (upperInclusive) ']' else ')')
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
@@ -159,11 +162,11 @@ class IntegerRangeTypeDescriptor private constructor(
 
 	override fun o_EqualsIntegerRangeType(
 		self: AvailObject,
-		another: A_Type): Boolean =
-			(self.slot(LOWER_BOUND).equals(another.lowerBound())
-		        && self.slot(UPPER_BOUND).equals(another.upperBound())
-		        && self.lowerInclusive() == another.lowerInclusive()
-			    && self.upperInclusive() == another.upperInclusive())
+		another: A_Type
+	): Boolean = (self.slot(LOWER_BOUND).equals(another.lowerBound)
+		&& self.slot(UPPER_BOUND).equals(another.upperBound)
+		&& lowerInclusive == another.lowerInclusive
+		&& upperInclusive == another.upperInclusive)
 
 	/**
 	 * {@inheritDoc}
@@ -171,7 +174,7 @@ class IntegerRangeTypeDescriptor private constructor(
 	 * Answer the object's hash value.  Be careful, as the range (10..20) is the
 	 * same type as the range [11..19], so they should hash the same.  Actually,
 	 * this is taken care of during instance creation - if an exclusive bound is
-	 * finite, it is converted to its inclusive equivalent.  Otherwise asking
+	 * finite, it is converted to its inclusive equivalent.  Otherwise, asking
 	 * for one of the bounds would yield a value which is either inside or
 	 * outside depending on something that should not be observable (because it
 	 * serves to distinguish two representations of equal objects).
@@ -180,8 +183,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		computeHash(
 			self.slot(LOWER_BOUND).hash(),
 			self.slot(UPPER_BOUND).hash(),
-			self.lowerInclusive(),
-			self.upperInclusive())
+			lowerInclusive,
+			upperInclusive)
 
 	override fun o_IsIntegerRangeType(self: AvailObject): Boolean = true
 
@@ -203,27 +206,27 @@ class IntegerRangeTypeDescriptor private constructor(
 		self: AvailObject,
 		anIntegerRangeType: A_Type): Boolean
 	{
-		val subMinObject = anIntegerRangeType.lowerBound()
+		val subMinObject = anIntegerRangeType.lowerBound
 		val superMinObject = self.slot(LOWER_BOUND)
 		if (subMinObject.lessThan(superMinObject))
 		{
 			return false
 		}
 		if (subMinObject.equals(superMinObject)
-		    && anIntegerRangeType.lowerInclusive()
-		    && !self.lowerInclusive())
+			&& anIntegerRangeType.lowerInclusive
+			&& !lowerInclusive)
 		{
 			return false
 		}
-		val subMaxObject = anIntegerRangeType.upperBound()
+		val subMaxObject = anIntegerRangeType.upperBound
 		val superMaxObject: A_Number = self.slot(UPPER_BOUND)
 		return if (superMaxObject.lessThan(subMaxObject))
 		{
 			false
 		}
 		else !superMaxObject.equals(subMaxObject)
-		     || !anIntegerRangeType.upperInclusive()
-		     || self.upperInclusive()
+			 || !anIntegerRangeType.upperInclusive
+			 || upperInclusive
 	}
 
 	override fun o_LowerBound(self: AvailObject): A_Number =
@@ -269,8 +272,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		val asInteger: A_Number
 		when
 		{
-			lower.isLong && aLong < lower.extractLong() -> return false
-			!lower.isFinite && lower.isPositive() -> return false
+			lower.isLong && aLong < lower.extractLong -> return false
+			!lower.isFinite && lower.isPositive -> return false
 			else ->
 			{
 				asInteger = fromLong(aLong)
@@ -283,8 +286,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		val upper: A_Number = self.slot(UPPER_BOUND)
 		return when
 		{
-			upper.isLong -> aLong <= upper.extractLong()
-			!upper.isFinite -> upper.isPositive()
+			upper.isLong -> aLong <= upper.extractLong
+			!upper.isFinite -> upper.isPositive
 			else -> !upper.lessThan(asInteger)
 		}
 	}
@@ -300,10 +303,10 @@ class IntegerRangeTypeDescriptor private constructor(
 			!typeToRemove.isIntegerRangeType -> self
 			// Don't use a conservative union of the values' types.
 			typeToRemove.isEnumeration &&
-				!typeToRemove.instanceCount().equalsInt(1) -> self
-			(!self.lowerInclusive()
-					&& typeToRemove.lowerBound().equals(negativeInfinity))
-				|| self.lowerBound().isInstanceOf(typeToRemove) ->
+				!typeToRemove.instanceCount.equalsInt(1) -> self
+			(!lowerInclusive
+					&& typeToRemove.lowerBound.equals(negativeInfinity))
+				|| self.lowerBound.isInstanceOf(typeToRemove) ->
 			{
 				// The x&&y part of the condition means it starts at -∞
 				// exclusive.  The other clause allows a lower bound that's a
@@ -319,22 +322,22 @@ class IntegerRangeTypeDescriptor private constructor(
 				// [-∞..m] - [p..q]            -> excluded (not element)
 				// [m..n] - [p..q] where p≤m≤q -> (q..m]
 				integerRangeType(
-					typeToRemove.upperBound(),
-					typeToRemove.upperBound().equalsInfinity(POSITIVE),
+					typeToRemove.upperBound,
+					typeToRemove.upperBound.equalsInfinity(POSITIVE),
 					positiveInfinity,
 					true
 				).typeIntersection(self)
 			}
-			(!self.upperInclusive()
-					&& typeToRemove.upperBound().equals(positiveInfinity))
-				|| self.upperBound().isInstanceOf(typeToRemove) ->
+			(!upperInclusive
+					&& typeToRemove.upperBound.equals(positiveInfinity))
+				|| self.upperBound.isInstanceOf(typeToRemove) ->
 			{
 				// By symmetry on the other bound.
 				integerRangeType(
 					negativeInfinity,
 					true,
-					typeToRemove.lowerBound(),
-					typeToRemove.lowerBound().equalsInfinity(NEGATIVE)
+					typeToRemove.lowerBound,
+					typeToRemove.lowerBound.equalsInfinity(NEGATIVE)
 				).typeIntersection(self)
 			}
 			else -> self
@@ -355,26 +358,26 @@ class IntegerRangeTypeDescriptor private constructor(
 		anIntegerRangeType: A_Type): A_Type
 	{
 		var minObject: A_Number = self.slot(LOWER_BOUND)
-		var isMinInc = self.lowerInclusive()
-		if (anIntegerRangeType.lowerBound().equals(minObject))
+		var isMinInc = lowerInclusive
+		if (anIntegerRangeType.lowerBound.equals(minObject))
 		{
-			isMinInc = isMinInc && anIntegerRangeType.lowerInclusive()
+			isMinInc = isMinInc && anIntegerRangeType.lowerInclusive
 		}
-		else if (minObject.lessThan(anIntegerRangeType.lowerBound()))
+		else if (minObject.lessThan(anIntegerRangeType.lowerBound))
 		{
-			minObject = anIntegerRangeType.lowerBound()
-			isMinInc = anIntegerRangeType.lowerInclusive()
+			minObject = anIntegerRangeType.lowerBound
+			isMinInc = anIntegerRangeType.lowerInclusive
 		}
 		var maxObject: A_Number = self.slot(UPPER_BOUND)
-		var isMaxInc = self.upperInclusive()
-		if (anIntegerRangeType.upperBound().equals(maxObject))
+		var isMaxInc = upperInclusive
+		if (anIntegerRangeType.upperBound.equals(maxObject))
 		{
-			isMaxInc = isMaxInc && anIntegerRangeType.upperInclusive()
+			isMaxInc = isMaxInc && anIntegerRangeType.upperInclusive
 		}
-		else if (anIntegerRangeType.upperBound().lessThan(maxObject))
+		else if (anIntegerRangeType.upperBound.lessThan(maxObject))
 		{
-			maxObject = anIntegerRangeType.upperBound()
-			isMaxInc = anIntegerRangeType.upperInclusive()
+			maxObject = anIntegerRangeType.upperBound
+			isMaxInc = anIntegerRangeType.upperInclusive
 		}
 		// At least two references now.
 		return integerRangeType(
@@ -403,26 +406,26 @@ class IntegerRangeTypeDescriptor private constructor(
 		anIntegerRangeType: A_Type): A_Type
 	{
 		var minObject: A_Number = self.slot(LOWER_BOUND)
-		var isMinInc = self.lowerInclusive()
-		if (anIntegerRangeType.lowerBound().equals(minObject))
+		var isMinInc = lowerInclusive
+		if (anIntegerRangeType.lowerBound.equals(minObject))
 		{
-			isMinInc = isMinInc || anIntegerRangeType.lowerInclusive()
+			isMinInc = isMinInc || anIntegerRangeType.lowerInclusive
 		}
-		else if (anIntegerRangeType.lowerBound().lessThan(minObject))
+		else if (anIntegerRangeType.lowerBound.lessThan(minObject))
 		{
-			minObject = anIntegerRangeType.lowerBound()
-			isMinInc = anIntegerRangeType.lowerInclusive()
+			minObject = anIntegerRangeType.lowerBound
+			isMinInc = anIntegerRangeType.lowerInclusive
 		}
 		var maxObject: A_Number = self.slot(UPPER_BOUND)
-		var isMaxInc = self.upperInclusive()
-		if (anIntegerRangeType.upperBound().equals(maxObject))
+		var isMaxInc = upperInclusive
+		if (anIntegerRangeType.upperBound.equals(maxObject))
 		{
-			isMaxInc = isMaxInc || anIntegerRangeType.upperInclusive()
+			isMaxInc = isMaxInc || anIntegerRangeType.upperInclusive
 		}
-		else if (maxObject.lessThan(anIntegerRangeType.upperBound()))
+		else if (maxObject.lessThan(anIntegerRangeType.upperBound))
 		{
-			maxObject = anIntegerRangeType.upperBound()
-			isMaxInc = anIntegerRangeType.upperInclusive()
+			maxObject = anIntegerRangeType.upperBound
+			isMaxInc = anIntegerRangeType.upperInclusive
 		}
 		return integerRangeType(minObject, isMinInc, maxObject, isMaxInc)
 	}
@@ -473,15 +476,14 @@ class IntegerRangeTypeDescriptor private constructor(
 			lowerInclusive: Boolean,
 			upperInclusive: Boolean): Int
 		{
-			val flagsHash =
-				when
-				{
-					lowerInclusive && upperInclusive -> 0x1503045E
-					lowerInclusive -> 0x753A6C17
-					upperInclusive -> 0x1DB2D751
-					else -> 0x1130427D
-				}
-			return lowerBoundHash * 29 xor flagsHash xor upperBoundHash
+			val flagsHash = when
+			{
+				lowerInclusive && upperInclusive -> 0x1503045E
+				lowerInclusive -> 0x753A6C17
+				upperInclusive -> 0x1DB2D751
+				else -> 0x1130427D
+			}
+			return combine3(lowerBoundHash, upperBoundHash, flagsHash)
 		}
 
 		/**
@@ -540,7 +542,7 @@ class IntegerRangeTypeDescriptor private constructor(
 				if (lowerBound.descriptor().isMutable)
 				{
 					error("Don't plug in a mutable object as two distinct " +
-					      "construction parameters")
+						"construction parameters")
 				}
 			}
 			var low = lowerBound
@@ -578,10 +580,10 @@ class IntegerRangeTypeDescriptor private constructor(
 			if (low.isInt && high.isInt)
 			{
 				assert(lowInc && highInc)
-				val lowInt = low.extractInt()
-				val highInt = high.extractInt()
+				val lowInt = low.extractInt
+				val highInt = high.extractInt
 				if (lowInt in 0 until smallRangeLimit
-				    && highInt in 0 until smallRangeLimit)
+					&& highInt in 0 until smallRangeLimit)
 				{
 					return smallRanges[highInt][lowInt]
 				}
@@ -623,9 +625,8 @@ class IntegerRangeTypeDescriptor private constructor(
 		 * The array of descriptor instances of this class.  There are three
 		 * boolean decisions to make when selecting a descriptor, namely:
 		 *
-		 * * Whether the descriptor is *[ shared][Mutability.SHARED]*,
-		 * * Whether the descriptor's instances include their lower bound, and
-		 *
+		 * * Whether the descriptor is [shared][Mutability.SHARED],
+		 * * Whether the descriptor's instances include their lower bound,
 		 * * Whether the descriptor's instances include their upper bound.
 		 *
 		 * These occur in bit positions 0x01, 0x02, and 0x04 of the array
@@ -664,7 +665,7 @@ class IntegerRangeTypeDescriptor private constructor(
 			return descriptors[subscript]
 		}
 
-		/** One past the maximum lower or upper bound of a pre-built range.  */
+		/** One past the maximum lower or upper bound of a pre-built range. */
 		private const val smallRangeLimit = 20
 
 		/**
@@ -692,23 +693,19 @@ class IntegerRangeTypeDescriptor private constructor(
 
 		/** The range of Unicode code points, [0..1114111]. */
 		val characterCodePoints: A_Type =
-			inclusive(0, CharacterDescriptor.maxCodePointInt.toLong())
-				.makeShared()
+			inclusive(0, maxCodePointInt.toLong()).makeShared()
 
 		/** The range of integers including infinities, [-∞..∞]. */
 		val extendedIntegers: A_Type =
 			inclusive(negativeInfinity, positiveInfinity).makeShared()
 
 		/** The range of integers not including infinities, (∞..∞). */
-		val integers: A_Type =
-			integerRangeType(
-				negativeInfinity, false, positiveInfinity, false)
-					.makeShared()
+		val integers: A_Type = integerRangeType(
+			negativeInfinity, false, positiveInfinity, false).makeShared()
 
 		/** The range of natural numbers, [1..∞). */
 		val naturalNumbers: A_Type =
-			integerRangeType(one, true, positiveInfinity, false)
-				.makeShared()
+			integerRangeType(one, true, positiveInfinity, false).makeShared()
 
 		/** The range [0..15]. */
 		val nybbles: A_Type = inclusive(0, 15).makeShared()

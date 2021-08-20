@@ -44,6 +44,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
@@ -111,7 +112,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 	 */
 	internal abstract class PojoArray<T> : Cloneable, Serializable
 
-	/** The layout of the integer slots.  */
+	/** The layout of the integer slots. */
 	internal enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
@@ -130,7 +131,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		}
 	}
 
-	/** The layout of the object slots.  */
+	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum
 	{
 		/**
@@ -172,9 +173,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			aPojoType.equalsPojoBottomType() -> return false
 			aPojoType.isPojoSelfType ->
 				return self.pojoSelfType().equalsPojoType(aPojoType)
-			!self.slot(SIZE_RANGE).equals(aPojoType.sizeRange())
+			!self.slot(SIZE_RANGE).equals(aPojoType.sizeRange)
 				|| !self.slot(CONTENT_TYPE)
-					.equals(aPojoType.contentType()) -> return false
+					.equals(aPojoType.contentType) -> return false
 			// The objects are known to be equal and not reference identical
 			// (checked by a caller), so coalesce them if possible.
 			!isShared ->
@@ -284,10 +285,10 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		val intersectionAncestors = computeUnion(
 			self, aFusedPojoType)
 		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+			intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor.createUnfusedPojoType(
 				javaClass, intersectionAncestors)
@@ -310,10 +311,10 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		val intersectionAncestors = computeUnion(
 			self, anUnfusedPojoType)
 		val javaClass = mostSpecificOf(
-			intersectionAncestors.keysAsSet())
+			intersectionAncestors.keysAsSet)
 		// If the intersection contains a most specific type, then the answer is
 		// not a fused pojo type; otherwise it is.
-		return if (!javaClass.equalsNil())
+		return if (javaClass.notNil)
 		{
 			UnfusedPojoTypeDescriptor.createUnfusedPojoType(
 				javaClass, intersectionAncestors)
@@ -338,9 +339,9 @@ internal class ArrayPojoTypeDescriptor private constructor(
 		val range = self.slot(SIZE_RANGE)
 		when
 		{
-			range.lowerBound().equals(range.upperBound()) ->
+			range.lowerBound.equals(range.upperBound) ->
 			{
-				range.lowerBound().printOnAvoidingIndent(
+				range.lowerBound.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 			}
 			wholeNumbers.isSubtypeOf(range) ->
@@ -350,10 +351,10 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			}
 			else ->
 			{
-				range.lowerBound().printOnAvoidingIndent(
+				range.lowerBound.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 				builder.append("..")
-				range.upperBound().printOnAvoidingIndent(
+				range.upperBound.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 			}
 		}
@@ -397,21 +398,20 @@ internal class ArrayPojoTypeDescriptor private constructor(
 				// Note that this definition produces a value compatible with a
 				// pojo self type; this is necessary to permit comparison
 				// between an unfused pojo type and its self type.
-				hash =
-					self.slot(JAVA_ANCESTORS).keysAsSet().hash() xor
-						-0x5fea43bc
+				hash = combine2(
+					self.slot(JAVA_ANCESTORS).keysAsSet.hash(), -0x5fea43bc)
 				self.setSlot(HASH_OR_ZERO, hash)
 			}
 			return hash
 		}
 
-		/** The mutable [ArrayPojoTypeDescriptor].  */
+		/** The mutable [ArrayPojoTypeDescriptor]. */
 		private val mutable = ArrayPojoTypeDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [ArrayPojoTypeDescriptor].  */
+		/** The immutable [ArrayPojoTypeDescriptor]. */
 		private val immutable = ArrayPojoTypeDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [ArrayPojoTypeDescriptor].  */
+		/** The shared [ArrayPojoTypeDescriptor]. */
 		private val shared = ArrayPojoTypeDescriptor(Mutability.SHARED)
 
 		/**
@@ -471,7 +471,7 @@ internal class ArrayPojoTypeDescriptor private constructor(
 			arrayBaseAncestorMap = javaAncestors.makeShared()
 		}
 
-		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor].  */
+		/** The most general [pojo&#32;array&#32;type][PojoTypeDescriptor]. */
 		val mostGeneralType: A_Type =
 			pojoArrayType(Types.ANY.o, wholeNumbers).makeShared()
 	}

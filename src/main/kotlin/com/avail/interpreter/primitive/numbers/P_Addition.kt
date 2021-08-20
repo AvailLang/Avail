@@ -105,18 +105,16 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
-
+		val (aType, bType) = argumentTypes
 		try
 		{
 			if (aType.isEnumeration && bType.isEnumeration)
 			{
-				val aInstances = aType.instances()
-				val bInstances = bType.instances()
+				val aInstances = aType.instances
+				val bInstances = bType.instances
 				// Compute the Cartesian product as an enumeration if there will
 				// be few enough entries.
-				if (aInstances.setSize() * bInstances.setSize().toLong() < 100)
+				if (aInstances.setSize * bInstances.setSize.toLong() < 100)
 				{
 					var answers = emptySet
 					for (aInstance in aInstances)
@@ -133,10 +131,10 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 			}
 			if (aType.isIntegerRangeType && bType.isIntegerRangeType)
 			{
-				val low = aType.lowerBound().plusCanDestroy(
-					bType.lowerBound(), false)
-				val high = aType.upperBound().plusCanDestroy(
-					bType.upperBound(), false)
+				val low = aType.lowerBound.plusCanDestroy(
+					bType.lowerBound, false)
+				val high = aType.upperBound.plusCanDestroy(
+					bType.upperBound, false)
 				val includesNegativeInfinity =
 					negativeInfinity.isInstanceOf(aType)
 						|| negativeInfinity.isInstanceOf(bType)
@@ -161,15 +159,14 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		val aTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(aType)
 		val aTypeIncludesInfinity = positiveInfinity.isInstanceOf(aType)
 		val bTypeIncludesNegativeInfinity = negativeInfinity.isInstanceOf(bType)
 		val bTypeIncludesInfinity = positiveInfinity.isInstanceOf(bType)
 		return if (aTypeIncludesInfinity && bTypeIncludesNegativeInfinity
-           || aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
+			|| aTypeIncludesNegativeInfinity && bTypeIncludesInfinity)
 		{
 			CallSiteCanFail
 		}
@@ -196,16 +193,16 @@ object P_Addition : Primitive(2, CanFold, CanInline)
 		val aIntersectInt32 = aType.typeIntersection(int32)
 		val bIntersectInt32 = bType.typeIntersection(int32)
 		if (aType.typeIntersection(int32).isBottom
-		    || bType.typeIntersection(int32).isBottom)
+			|| bType.typeIntersection(int32).isBottom)
 		{
 			return false
 		}
 		// lowest and highest can be at most ±2^32, so there's lots of room in
 		// a long.
-		val lowest = aIntersectInt32.lowerBound().extractLong() +
-			bIntersectInt32.lowerBound().extractLong()
-		val highest = aIntersectInt32.lowerBound().extractLong() +
-			bIntersectInt32.lowerBound().extractLong()
+		val lowest = aIntersectInt32.lowerBound.extractLong +
+			bIntersectInt32.lowerBound.extractLong
+		val highest = aIntersectInt32.lowerBound.extractLong +
+			bIntersectInt32.lowerBound.extractLong
 		if (lowest > Int.MAX_VALUE || highest < Int.MIN_VALUE)
 		{
 			// The sum is definitely out of range, so don't bother switching to

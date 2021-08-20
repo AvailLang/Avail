@@ -32,7 +32,7 @@
 
 Module "Address"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Foundation"
 Names
@@ -50,7 +50,6 @@ Names
 
 	/* IPv4 address construction. */
 	"IPv4 lexer",
-	"…!",
 
 	/* IPv6 address construction. */
 	"IPv6««…#§»?«…§»?‡:»",
@@ -153,9 +152,9 @@ Method "an IP address from_" is
  * @lexer "IPv4 lexer"
  * @param "source" "string"
  *        The complete source text.
- * @param "position" "real source position"
+ * @param "position" "natural number"
  *        The position of the leading {@type "character"}.
- * @param "line" "real source line number"
+ * @param "line" "natural number"
  *        The line number of the leading {@type "character"}.
  * @returns "{token+|}"
  *          The possible lexes discovered at {@code "position"}, potentially
@@ -167,11 +166,11 @@ when [c : character | c is an Arabic numeral]
 is
 [
 	source : string,
-	firstOctetPosition : real source position,
-	line : real source line number
+	firstOctetPosition : natural number,
+	line : natural number
 |
 	$body : {token+|};
-	i : real source position := firstOctetPosition;
+	i : natural number := firstOctetPosition;
 	size ::= |source|;
 	While i ≤ size ∧ source[i] is an Arabic numeral do [i++;];
 	Exit body with ∅ if i > size ∨ source[i] ≠ ¢.;
@@ -223,13 +222,6 @@ is
 		Reject parse, expected:
 			"each octet of an IPv4 address to be [0..255]"
 	]
-];
-
-Public macro "…!" is
-[
-	tokenPhrase : literal phrase ⇒ (literal token ⇒ IPv4 address)
-|
-	‘tokenPhrase's token's value's value’
 ];
 
 /**

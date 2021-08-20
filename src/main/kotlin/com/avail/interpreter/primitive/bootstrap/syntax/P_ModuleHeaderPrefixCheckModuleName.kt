@@ -64,13 +64,13 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 		val moduleNameLiteral = interpreter.argument(0)
 
 		val loader = interpreter.availLoader()
-		val module = loader.module()
-		val qualifiedName = module.moduleName()
+		val module = loader.module
+		val qualifiedName = module.moduleName
 		val moduleNameInstance = ModuleName(qualifiedName.asNativeString())
 		val localName = moduleNameInstance.localName
 
 		val declaredModuleName =
-			moduleNameLiteral.token().literal().literal().asNativeString()
+			moduleNameLiteral.token.literal().literal().asNativeString()
 		if (localName != declaredModuleName)
 		{
 			throw AvailRejectedParseException(
@@ -86,6 +86,5 @@ object P_ModuleHeaderPrefixCheckModuleName : Primitive(1, Private, Bootstrap)
 		functionType(
 			/* Module name */
 			tupleFromArray(stringLiteralType),
-			TOP.o
-		)
+			TOP.o)
 }

@@ -133,7 +133,7 @@ class CompilerDiagnostics(
 	 */
 	private var liveTokens = mutableListOf<A_Token>()
 
-	/** A lock to protect access to [liveTokens].  */
+	/** A lock to protect access to [liveTokens]. */
 	private val liveTokensLock = ReentrantReadWriteLock()
 
 	/**
@@ -193,7 +193,7 @@ class CompilerDiagnostics(
 
 		companion object
 		{
-			/** Capture the values once in an array.  */
+			/** Capture the values once in an array. */
 			private val all = values()
 
 			/**
@@ -283,8 +283,8 @@ class CompilerDiagnostics(
 	 */
 	private inner class ExpectationsList
 	{
-		/** Guards access to [expectations] and expectationsIndexHeap]. */
-		internal val expectationsLock = ReentrantReadWriteLock()
+		/** Guard access to [expectations] and [expectationsIndexHeap]. */
+		val expectationsLock = ReentrantReadWriteLock()
 
 		/**
 		 * The rightmost few positions at which potential problems have been
@@ -309,7 +309,7 @@ class CompilerDiagnostics(
 		private val expectationsIndexHeap = PriorityQueue<Int>()
 
 		/** `true` iff there are no expectations recorded herein. */
-		internal val isEmpty: Boolean
+		val isEmpty: Boolean
 			get() = expectationsLock.read { expectations.isEmpty() }
 
 		/**
@@ -397,38 +397,38 @@ class CompilerDiagnostics(
 			// the content before the line on which startOfStatement resides.
 			val startOfFirstLine = 1 + lastIndexOf(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				startOfStatement!!.position - 1,
 				1)
 			val initialLineNumber = 1 + occurrencesInRange(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				1,
-				min(source.tupleSize(), startOfFirstLine))
-			// Now figure out the last line to show, which if possible should be
-			// the line after the *end* of the last problem token.
+				min(source.tupleSize, startOfFirstLine))
+			// Now figure out the last line to show, which, if possible, should
+			// be the line after the *end* of the last problem token.
 			val lastProblem = ascending[ascending.size - 1]
 			val finalLineNumber = lastProblem.lineNumber
 			var startOfNextLine = 1 + firstIndexOf(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				lastProblem.lexingStateAfterToken.position,
-				source.tupleSize())
+				source.tupleSize)
 			startOfNextLine =
 				if (startOfNextLine != 1)
 					startOfNextLine
 				else
-					source.tupleSize() + 1
+					source.tupleSize + 1
 			var startOfSecondNextLine = 1 + firstIndexOf(
 				source,
-				'\n'.toInt(),
+				'\n'.code,
 				startOfNextLine,
-				source.tupleSize())
+				source.tupleSize)
 			startOfSecondNextLine =
 				if (startOfSecondNextLine != 1)
 					startOfSecondNextLine
 				else
-					source.tupleSize() + 1
+					source.tupleSize + 1
 
 			// Insert the problem location indicators...
 			var sourcePosition = startOfFirstLine
@@ -448,90 +448,90 @@ class CompilerDiagnostics(
 			// Ensure the last character is a newline.
 			var unnumbered =
 				tupleFromList(parts).concatenateTuplesCanDestroy(true)
-			if (unnumbered.tupleSize() == 0
-				|| unnumbered.tupleCodePointAt(unnumbered.tupleSize())
-					!= '\n'.toInt())
+			if (unnumbered.tupleSize == 0
+				|| unnumbered.tupleCodePointAt(unnumbered.tupleSize)
+					!= '\n'.code)
 			{
 				unnumbered = unnumbered.appendCanDestroy(
-					fromCodePoint('\n'.toInt()), true)
+					fromCodePoint('\n'.code), true)
 			}
 
 			// Insert line numbers...
 			val maxDigits = (finalLineNumber + 1).toString().length
-			val builder = StringBuilder()
+			StringBuilder(500).run {
+				append(
+					addLineNumbers(
+						(unnumbered as A_String).asNativeString(),
+						">>> %${maxDigits}d: %s",
+						initialLineNumber))
+				append(">>>$rowOfDashes")
 
-			builder.append(
-				addLineNumbers(
-					(unnumbered as A_String).asNativeString(),
-					">>> %" + maxDigits + "d: %s",
-					initialLineNumber))
-			builder.append(">>>").append(rowOfDashes)
-
-			// Now output all the problems, in the original group order.  Start
-			// off with an empty problemIterator to keep the code simple.
-			val groupIterator = groupedProblems.iterator()
-			val problemIterator = Mutable(emptyIterator<Describer>())
-			val alreadySeen = mutableSetOf<String>()
-			// Initiate all the grouped error printing.
-			recurse { continueReport ->
-				if (!problemIterator.value.hasNext())
-				{
-					// End this group.
-					if (!groupIterator.hasNext())
+				// Now output all the problems, in the original group order.  Start
+				// off with an empty problemIterator to keep the code simple.
+				val groupIterator = groupedProblems.iterator()
+				val problemIterator = Mutable(emptyIterator<Describer>())
+				val alreadySeen = mutableSetOf<String>()
+				// Initiate all the grouped error printing.
+				recurse { continueReport ->
+					if (!problemIterator.value.hasNext())
 					{
-						// Done everything.  Pass the complete text forward.
-						compilationIsInvalid = true
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						builder.append(
-							format(
-								"%n(file=\"%s\", line=%d)%n>>>%s",
-								moduleName.qualifiedName,
+						// End this group.
+						if (!groupIterator.hasNext())
+						{
+							// Done everything.  Pass the complete text forward.
+							compilationIsInvalid = true
+							// Generate the footer that indicates the module and
+							// line where the last indicator was found.
+							append(
+								format(
+									"%n(file=\"%s\", line=%d)%n>>>%s",
+									moduleName.qualifiedName,
+									lastProblem.lineNumber,
+									rowOfDashes))
+							handleProblem(object : Problem(
+								moduleName,
 								lastProblem.lineNumber,
-								rowOfDashes))
-						handleProblem(object : Problem(
-							moduleName,
-							lastProblem.lineNumber,
-							lastProblem.position.toLong(),
-							PARSE,
-							"{0}",
-							builder.toString()) {
-								override fun abortCompilation()
-								{
-									failureReporter!!()
-								}
-							})
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						return@recurse
+								lastProblem.position.toLong(),
+								PARSE,
+								"{0}",
+								this@run.toString().replace("\t", "    ")) {
+									override fun abortCompilation()
+									{
+										failureReporter!!()
+									}
+								})
+							// Generate the footer that indicates the module and
+							// line where the last indicator was found.
+							return@recurse
+						}
+						// Advance to the next problem group...
+						val newGroup = groupIterator.next()
+						append("\n>>> ")
+						append(
+							format(
+								headerMessagePattern,
+								newGroup.indicator,
+								newGroup.lineNumber))
+						problemIterator.value = newGroup.describers.iterator()
+						alreadySeen.clear()
+						assert(problemIterator.value.hasNext())
 					}
-					// Advance to the next problem group...
-					val newGroup = groupIterator.next()
-					builder.append("\n>>> ")
-					builder.append(
-						format(
-							headerMessagePattern,
-							newGroup.indicator,
-							newGroup.lineNumber))
-					problemIterator.value = newGroup.describers.iterator()
-					alreadySeen.clear()
-					assert(problemIterator.value.hasNext())
-				}
-				problemIterator.value.next().invoke { message ->
-					// Suppress duplicate messages.
-					if (!alreadySeen.contains(message))
-					{
-						alreadySeen.add(message)
-						builder.append("\n>>>\t\t")
-						builder.append(
-							lineBreakPattern.matcher(message).replaceAll(
-								Matcher.quoteReplacement("\n>>>\t\t")))
+					problemIterator.value.next().invoke { message ->
+						// Suppress duplicate messages.
+						if (!alreadySeen.contains(message))
+						{
+							alreadySeen.add(message)
+							append("\n>>>\t\t")
+							append(
+								lineBreakPattern.matcher(message).replaceAll(
+									Matcher.quoteReplacement("\n>>>\t\t")))
+						}
+						// Avoid using direct recursion to keep the stack
+						// from getting too deep.
+						currentRuntime().execute(
+							FiberDescriptor.compilerPriority,
+							continueReport)
 					}
-					// Avoid using direct recursion to keep the stack
-					// from getting too deep.
-					currentRuntime().execute(
-						FiberDescriptor.compilerPriority,
-						continueReport)
 				}
 			}
 		}
@@ -545,7 +545,7 @@ class CompilerDiagnostics(
 		 *   first argument is where the indicator string goes, and the second
 		 *   is for the line number.
 		 */
-		internal fun reportError(headerMessagePattern: String)
+		fun reportError(headerMessagePattern: String)
 		{
 			assert(!isEmpty)
 			val descendingIndices =
@@ -858,11 +858,11 @@ class CompilerDiagnostics(
 
 	companion object
 	{
-		/** A bunch of dash characters, wide enough to catch the eye.  */
+		/** A bunch of dash characters, wide enough to catch the eye. */
 		private const val rowOfDashes =
 			"---------------------------------------------------------------------"
 
-		/** The 26 letters of the English alphabet, inside circles.  */
+		/** The 26 letters of the English alphabet, inside circles. */
 		private const val circledLetters =
 			"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
 
@@ -926,7 +926,7 @@ class CompilerDiagnostics(
 				continuation(emptyToken.makeShared())
 				return
 			}
-			continuation(candidates.maxBy { it.string().tupleSize() }!!)
+			continuation(candidates.maxByOrNull { it.string().tupleSize }!!)
 		}
 
 		/**

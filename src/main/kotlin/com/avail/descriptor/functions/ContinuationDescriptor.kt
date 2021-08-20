@@ -36,6 +36,13 @@ import com.avail.annotations.EnumField
 import com.avail.annotations.HideFieldInDebugger
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import com.avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
@@ -52,6 +59,8 @@ import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
+import com.avail.descriptor.representation.AvailObject.Companion.combine6
 import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.BitField
@@ -89,6 +98,7 @@ import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.cast
+import com.avail.utility.ifZero
 import java.util.ArrayDeque
 import java.util.Deque
 
@@ -235,8 +245,8 @@ class ContinuationDescriptor private constructor(
 	override fun o_AdjustPcAndStackp(
 		self: AvailObject,
 		pc: Int,
-		stackp: Int
-	) {
+		stackp: Int)
+	{
 		assert(isMutable)
 		self.setSlot(PROGRAM_COUNTER, pc)
 		self.setSlot(STACK_POINTER, stackp)
@@ -249,7 +259,8 @@ class ContinuationDescriptor private constructor(
 		self: AvailObject,
 		index: Int,
 		value: AvailObject
-	): AvailObject {
+	): AvailObject
+	{
 		self.setSlot(FRAME_AT_, index, value)
 		return self
 	}
@@ -258,14 +269,15 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_CurrentLineNumber(
 		self: AvailObject
-	): Int {
+	): Int
+	{
 		val code = self.function().code()
-		val encodedDeltas = code.lineNumberEncodedDeltas()
+		val encodedDeltas = code.lineNumberEncodedDeltas
 		val instructionDecoder = L1InstructionDecoder()
 		code.setUpInstructionDecoder(instructionDecoder)
 		val thisPc = self.pc()
 		instructionDecoder.pc(1)
-		var lineNumber = code.startingLineNumber()
+		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		while (!instructionDecoder.atEnd()
 			&& instructionDecoder.pc() < thisPc)
@@ -288,10 +300,10 @@ class ContinuationDescriptor private constructor(
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
-		val declarationNames = code.declarationNames()
+		val declarationNames = code.declarationNames
 		for (i in 1..self.numSlots())
 		{
-			var name = if (i <= declarationNames.tupleSize())
+			var name = if (i <= declarationNames.tupleSize)
 			{
 				val declName = declarationNames.tupleAt(i).asNativeString()
 				"FRAME[$i: $declName]"
@@ -308,14 +320,14 @@ class ContinuationDescriptor private constructor(
 					-1,
 					self.frameAt(i)))
 		}
-		val moduleName = code.module().run {
-			if (equalsNil()) "No module"
-			else moduleName().asNativeString().split("/").last()
+		val moduleName = code.module.run {
+			if (isNil) "No module"
+			else moduleName.asNativeString().split("/").last()
 		}
 
 		// Figure out the pc of the instruction before the current one, since
 		// (1) calls leave the pc at the next instruction after the call, and
-		// (2) other instructions are likewidse advanced past before running
+		// (2) other instructions are likewise advanced past before running
 		// them.
 		val currentPc = self.pc()
 		var pcBefore = -1
@@ -369,39 +381,40 @@ class ContinuationDescriptor private constructor(
 
 	override fun o_Function(self: AvailObject): A_Function = self.slot(FUNCTION)
 
-	override fun o_Hash(self: AvailObject): Int {
-		// Hashing a continuation isn't expected to be common, but it's
-		// sufficiently expensive that we need to cache the hash value in the
-		// rare case that we do need it.
-		var hash = self.slot(HASH_OR_ZERO)
-		if (hash == 0) {
-			val caller = self.caller().traversed().cast()
+	// Hashing a continuation isn't expected to be common, but it's
+	// sufficiently expensive that we need to cache the hash value in the
+	// rare case that we do need it.
+	override fun o_Hash(self: AvailObject): Int =
+		self.slot(HASH_OR_ZERO).ifZero {
+			val caller = self.caller().traversed().cast()!!
 			var callerHash = 0
-			if (!caller.equalsNil()
-				&& caller.slot(HASH_OR_ZERO) == 0) {
+			if (caller.notNil && caller.slot(HASH_OR_ZERO) == 0)
+			{
 				// The caller isn't hashed yet either.  Iteratively hash the
 				// call chain bottom-up to avoid potentially deep recursion.
 				val chain: Deque<AvailObject> = ArrayDeque()
 				var ancestor = caller
-				do {
+				do
+				{
 					chain.addFirst(ancestor)
 					ancestor = ancestor.caller().traversed()
-				} while (!ancestor.equalsNil()
-					&& ancestor.slot(HASH_OR_ZERO) == 0)
-				for (c in chain) {
+				}
+				while (ancestor.notNil && ancestor.slot(HASH_OR_ZERO) == 0)
+				// Force the hashes to be computed, starting with the deepest.
+				chain.forEach { c ->
 					callerHash = c.hashCode()
 				}
 			}
-			hash = 0x0593599A xor callerHash
-			hash += self.function().hash()
-			hash *= AvailObject.multiplier
-			hash += self.pc()
-			hash *= AvailObject.multiplier
-			hash = hash xor self.stackp()
-			for (i in self.numSlots() downTo 1) {
-				hash *= AvailObject.multiplier
-				hash += -0x23cb5228 xor self.frameAt(i).hash()
+			val slotsHash = (1..self.numSlots()).fold(0x0593599A) { h, i ->
+				combine3(h, self.frameAt(i).hash(), -0x23cb5228)
 			}
+			var hash = combine6(
+				callerHash,
+				self.function().hash(),
+				self.pc(),
+				self.stackp(),
+				slotsHash,
+				0x75398c87)
 			if (hash == 0) {
 				// Using this substitute for 0 is not strictly necessary, but
 				// there's always a tiny chance that some pattern of components
@@ -409,9 +422,8 @@ class ContinuationDescriptor private constructor(
 				hash = 0x4693F664
 			}
 			self.setSlot(HASH_OR_ZERO, hash)
+			hash
 		}
-		return hash
-	}
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		continuationTypeForFunctionType(self.function().kind())
@@ -422,14 +434,16 @@ class ContinuationDescriptor private constructor(
 	override fun o_LevelTwoChunkOffset(
 		self: AvailObject,
 		chunk: L2Chunk,
-		offset: Int
-	) {
+		offset: Int)
+	{
 		if (isShared) {
 			synchronized(self) {
 				self.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo)
 				self.setSlot(LEVEL_TWO_OFFSET, offset)
 			}
-		} else {
+		}
+		else
+		{
 			self.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo)
 			self.setSlot(LEVEL_TWO_OFFSET, offset)
 		}
@@ -453,23 +467,24 @@ class ContinuationDescriptor private constructor(
 			append(super.o_NameForDebugger(self))
 			append(": ")
 			val code = self.function().code()
-			append(code.methodName().asNativeString())
+			append(code.methodName.asNativeString())
 			append(" (")
-			val module = code.module()
-			if (module.equalsNil())
+			val module = code.module
+			if (module.isNil)
 			{
 				append("?")
 			}
 			else
 			{
-				val name = module.moduleName().asNativeString()
+				val name = module.moduleName.asNativeString()
 				append(name.split("/").last())
 			}
 			append(":")
 			append(self.currentLineNumber())
 			append(")")
-			val primitive = code.primitive()
-			if (primitive === P_CatchException) {
+			val primitive = code.codePrimitive()
+			if (primitive === P_CatchException)
+			{
 				append(" CATCH var = ")
 				append(self.frameAt(4).value().value())
 			}
@@ -489,7 +504,8 @@ class ContinuationDescriptor private constructor(
 	override fun o_ReplacingCaller(
 		self: AvailObject,
 		newCaller: A_Continuation
-	): A_Continuation {
+	): A_Continuation
+	{
 		val mutableVersion =
 			if (isMutable) self
 			else newLike(mutable, self, 0, 0)
@@ -519,7 +535,7 @@ class ContinuationDescriptor private constructor(
 
 	companion object {
 		/** The [CheckedMethod] for [A_Continuation.function]. */
-		val continuationFunctionMethod: CheckedMethod = instanceMethod(
+		val continuationFunctionMethod = instanceMethod(
 			A_Continuation::class.java,
 			A_Continuation::function.name,
 			A_Function::class.java)
@@ -549,10 +565,11 @@ class ContinuationDescriptor private constructor(
 			startingChunk: L2Chunk,
 			startingOffset: Int,
 			args: List<AvailObject>
-		): A_Continuation {
+		): A_Continuation
+		{
 			val code = function.code()
-			assert(code.primitive() === null)
-			val frameSize = code.numSlots()
+			assert(code.codePrimitive() === null)
+			val frameSize = code.numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
 				setSlot(FUNCTION, function)
@@ -606,8 +623,9 @@ class ContinuationDescriptor private constructor(
 			stackp: Int,
 			levelTwoChunk: L2Chunk,
 			levelTwoOffset: Int
-		): AvailObject {
-			val frameSize = function.code().numSlots()
+		): AvailObject
+		{
+			val frameSize = function.code().numSlots
 			return mutable.create(frameSize) {
 				setSlot(CALLER, caller)
 				setSlot(FUNCTION, function)
@@ -621,7 +639,7 @@ class ContinuationDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [createContinuationExceptFrame]. */
-		val createContinuationExceptFrameMethod: CheckedMethod = staticMethod(
+		val createContinuationExceptFrameMethod = staticMethod(
 			ContinuationDescriptor::class.java,
 			::createContinuationExceptFrame.name,
 			AvailObject::class.java,
@@ -726,7 +744,7 @@ class ContinuationDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [createDummyContinuation]. */
-		val createDummyContinuationMethod: CheckedMethod = staticMethod(
+		val createDummyContinuationMethod = staticMethod(
 			ContinuationDescriptor::class.java,
 			::createDummyContinuation.name,
 			AvailObject::class.java,
@@ -782,11 +800,11 @@ class ContinuationDescriptor private constructor(
 			runtime: AvailRuntime,
 			textInterface: TextInterface,
 			availContinuation: A_Continuation,
-			action: (List<String>) -> Unit
-		) {
+			action: (List<String>) -> Unit)
+		{
 			val frames = mutableListOf<A_Continuation>()
 			var c = availContinuation
-			while (!c.equalsNil()) {
+			while (c.notNil) {
 				frames.add(c)
 				c = c.caller()
 			}
@@ -797,8 +815,8 @@ class ContinuationDescriptor private constructor(
 			}
 			val allTypes = frames.flatMap { frame ->
 				val code = frame.function().code()
-				val paramsType = code.functionType().argsTupleType()
-				(1..code.numArgs()).map { paramsType.typeAtIndex(it) }
+				val paramsType = code.functionType().argsTupleType
+				(1 .. code.numArgs()).map { paramsType.typeAtIndex(it) }
 			}
 			val strings = arrayOfNulls<String>(lines)
 			stringifyThen(runtime, textInterface, allTypes) { allTypeNames ->
@@ -810,14 +828,14 @@ class ContinuationDescriptor private constructor(
 					val signature = (1..code.numArgs()).joinToString {
 						allTypeNames[allTypesIndex++]
 					}
-					val module = code.module()
+					val module = code.module
 					strings[frameIndex] = String.format(
 						"#%d: %s [%s] (%s:%d)",
 						lines - frameIndex,
-						code.methodName().asNativeString(),
+						code.methodName.asNativeString(),
 						signature,
-						if (module.equalsNil()) "?"
-						else module.moduleName().asNativeString(),
+						if (module.isNil) "?"
+						else module.moduleName.asNativeString(),
 						frame.currentLineNumber())
 				}
 				assert (allTypesIndex == allTypeNames.size)

@@ -32,19 +32,26 @@
 package com.avail.descriptor.methods
 
 import com.avail.annotations.HideFieldJustForPrinting
-import com.avail.descriptor.maps.MapBinDescriptor
+import com.avail.descriptor.maps.A_Map
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
+import com.avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.STYLERS
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
+import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type
@@ -52,10 +59,11 @@ import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.upperBound
-import com.avail.descriptor.types.ListPhraseTypeDescriptor
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.variables.A_Variable
 import com.avail.serialization.SerializerOperation
 
 /**
@@ -79,12 +87,7 @@ import com.avail.serialization.SerializerOperation
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-abstract class DefinitionDescriptor
-/**
- * Construct a new [MapBinDescriptor].
- *
- */
-protected constructor(
+abstract class DefinitionDescriptor protected constructor(
 	mutability: Mutability,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
@@ -92,20 +95,65 @@ protected constructor(
 	mutability,
 	TypeTag.DEFINITION_TAG,
 	objectSlotsEnumClass,
-	integerSlotsEnumClass
-) {
+	integerSlotsEnumClass)
+{
 	/**
 	 * The layout of object slots for my instances.
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/** The [method][MethodDescriptor] in which this is a definition. */
 		@HideFieldJustForPrinting
 		DEFINITION_METHOD,
 
 		/** The [module][ModuleDescriptor] in which this definition occurs. */
 		@HideFieldJustForPrinting
-		MODULE
+		MODULE,
+
+		/**
+		 * The [A_Set] of [A_Styler]s that have been added to this definition.
+		 * At most one may be added to each definition per module.
+		 *
+		 * Styling only happens when a top-level statement of a module has been
+		 * unambiguously compiled.  Child phrases are processed before their
+		 * parent.
+		 *
+		 * The function accepts three arguments:
+		 *   1. The send phrase, which is possibly the original phrase of a
+		 *      macro substitution.
+		 *   2. An [A_Variable] containing an [A_Map] from [A_Phrase] to a
+		 *      style, and
+		 *   3. Another [A_Variable] containing a map from [A_Token] to style.
+		 *
+		 * The maps will already have been populated by running the styling
+		 * function for each of the children (perhaps running all children in
+		 * parallel).  These variables should be updated to reflect how the
+		 * invocation of this bundle should be presented.
+		 *
+		 * These maps will later be used to produce a linear sequence of styled
+		 * substrings, suitable for passing to an IDE or other technology
+		 * capable of presenting styled text.
+		 *
+		 * The linearization of the fully populated style information proceeds
+		 * by scanning the map from phrase to style, and for each phrase adding
+		 * an entry to the map from token to style for each of the phrase's
+		 * static tokens.  If there is already an entry for some static token,
+		 * the map is not updated for that token.  Afterward, the token map is
+		 * sorted, and used to partition the module text.
+		 *
+		 * The resulting tuple of ranges and styles (perhaps with line numbers)
+		 * might even be accessed with a binary search, to deliver a windowed
+		 * view into the styled text.  This allows enormous files to be
+		 * presented in an IDE without having to transfer and decode all of the
+		 * styling information for the entire file.
+		 */
+		@HideFieldJustForPrinting
+		STYLERS
 	}
+
+	override fun allowsImmutableToMutableReferenceInField(
+		e: AbstractSlotsEnum
+	) = e === STYLERS
 
 	abstract override fun o_BodySignature(self: AvailObject): A_Type
 
@@ -115,15 +163,11 @@ protected constructor(
 	override fun o_DefinitionModule(self: AvailObject): A_Module =
 		self.slot(MODULE)
 
-	override fun o_DefinitionModuleName(self: AvailObject): A_String
-	{
-		val module: A_Module = self.slot(MODULE)
-		return if (module.equalsNil()) {
-			builtInNoModuleName
-		} else {
-			module.moduleName()
+	override fun o_DefinitionModuleName(self: AvailObject): A_String =
+		self.slot(MODULE).run {
+			if (isNil) builtInNoModuleName
+			else moduleName
 		}
-	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.traversed().sameAddressAs(self)
@@ -142,13 +186,12 @@ protected constructor(
 	{
 		// Non-macro definitions have a signature derived from the
 		// bodySignature.  We can safely make it a list phrase type.
-		val argsTupleType = self.bodySignature().argsTupleType()
-		val sizes = argsTupleType.sizeRange()
-		assert(sizes.lowerBound().extractInt()
-			== sizes.upperBound().extractInt())
-		assert(sizes.lowerBound().extractInt()
-			== self.slot(DEFINITION_METHOD).numArgs())
-		return ListPhraseTypeDescriptor.createListNodeType(
+		val argsTupleType = self.bodySignature().argsTupleType
+		val sizes = argsTupleType.sizeRange
+		assert(sizes.lowerBound.extractInt == sizes.upperBound.extractInt)
+		assert(sizes.lowerBound.extractInt
+			== self.slot(DEFINITION_METHOD).numArgs)
+		return createListPhraseType(
 			PhraseKind.LIST_PHRASE,
 			argsTupleType,
 			mappingElementTypes(argsTupleType) {
@@ -160,7 +203,19 @@ protected constructor(
 		self: AvailObject
 	): SerializerOperation
 
-	companion object {
+	override fun o_UpdateStylers (
+		self: AvailObject,
+		updater: A_Set.() -> A_Set)
+	{
+		self.atomicUpdateSlot(STYLERS, 1, updater)
+	}
+
+	override fun o_Stylers(self: AvailObject): A_Set =
+		self.volatileSlot(STYLERS)
+
+	companion object
+	{
+		/** The fake module name to use for built-in methods. */
 		val builtInNoModuleName: A_String =
 			stringFrom("(built-in)").makeShared()
 	}

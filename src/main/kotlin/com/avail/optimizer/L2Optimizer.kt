@@ -84,13 +84,13 @@ import kotlin.reflect.KClass
 class L2Optimizer internal constructor(
 	val generator: L2Generator)
 {
-	/** The [L2ControlFlowGraph] to optimize.  */
+	/** The [L2ControlFlowGraph] to optimize. */
 	private val controlFlowGraph = generator.controlFlowGraph
 
-	/** The mutable list of blocks taken from the [controlFlowGraph].  */
+	/** The mutable list of blocks taken from the [controlFlowGraph]. */
 	val blocks: MutableList<L2BasicBlock> = controlFlowGraph.basicBlockOrder
 
-	/** The register coloring algorithm.  */
+	/** The register coloring algorithm. */
 	private var colorer: L2RegisterColorer? = null
 
 	/**
@@ -976,7 +976,7 @@ class L2Optimizer internal constructor(
 			}
 		}
 
-		/** Create an instance with no tracking information.  */
+		/** Create an instance with no tracking information. */
 		constructor()
 		{
 			val kinds = RegisterKind.values()
@@ -1258,10 +1258,10 @@ class L2Optimizer internal constructor(
 
 	companion object
 	{
-		/** Whether to sanity-check the graph between optimization steps.  */
+		/** Whether to sanity-check the graph between optimization steps. */
 		var shouldSanityCheck = false
 
-		/** Statistic for tracking the cost of sanity checks.  */
+		/** Statistic for tracking the cost of sanity checks. */
 		private val sanityCheckStat = Statistic(
 			L2_OPTIMIZATION_TIME, "(Sanity check)")
 	}

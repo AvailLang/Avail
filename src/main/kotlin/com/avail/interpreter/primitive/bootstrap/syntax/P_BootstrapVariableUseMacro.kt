@@ -61,8 +61,8 @@ import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
@@ -86,11 +86,12 @@ object P_BootstrapVariableUseMacro
 		interpreter.checkArgumentCount(1)
 		val variableNameLiteral = interpreter.argument(0)
 
-		val loader = interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		assert(variableNameLiteral.isInstanceOf(
-			LITERAL_PHRASE.mostGeneralType()))
-		val literalToken = variableNameLiteral.token()
+		val loader = interpreter.availLoaderOrNull()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		assert(
+			variableNameLiteral.isInstanceOf(
+				LITERAL_PHRASE.mostGeneralType()))
+		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
 		assert(actualToken.isInstanceOf(TOKEN.o))
@@ -110,11 +111,11 @@ object P_BootstrapVariableUseMacro
 			// If the local constant is initialized by a literal, then treat a
 			// mention of that constant as though it were the literal itself.
 			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
-			    && localDeclaration.initializationExpression()
+				&& localDeclaration.initializationExpression
 					.phraseKindIsUnder(LITERAL_PHRASE))
 			{
 				return interpreter.primitiveSuccess(
-					localDeclaration.initializationExpression())
+					localDeclaration.initializationExpression)
 			}
 
 			val variableUse =
@@ -124,33 +125,34 @@ object P_BootstrapVariableUseMacro
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
-		val module = loader.module()
-		if (module.variableBindings().hasKey(variableNameString))
+		val module = loader.module
+		if (module.variableBindings.hasKey(variableNameString))
 		{
 			val variableObject =
-				module.variableBindings().mapAt(variableNameString)
+				module.variableBindings.mapAt(variableNameString)
 			val moduleVarDecl =
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)
 			variableUse.makeImmutable()
 			return interpreter.primitiveSuccess(variableUse)
 		}
-		if (!module.constantBindings().hasKey(variableNameString))
+		if (!module.constantBindings.hasKey(variableNameString))
 		{
 			throw AvailRejectedParseException(
 				// Almost any theory is better than guessing that we want the
 				// value of some variable that doesn't exist.
-				if (scopeMap.mapSize() == 0) SILENT else WEAK)
+				if (scopeMap.mapSize == 0) SILENT else WEAK)
 			{
 				stringFrom(
 					buildString {
 						val scope =
-							toList<A_String>(scopeMap.keysAsSet().asTuple())
+							toList<A_String>(scopeMap.keysAsSet.asTuple)
 								.map(A_String::asNativeString)
 						append("potential variable ")
 						append(variableNameString)
 						append(" to be in scope (local scope is")
-						when {
+						when
+						{
 							scope.isEmpty() -> append(" empty)")
 							else -> append(
 								scope.sorted().joinToString(
@@ -161,7 +163,7 @@ object P_BootstrapVariableUseMacro
 			}
 		}
 		val variableObject =
-			module.constantBindings().mapAt(variableNameString)
+			module.constantBindings.mapAt(variableNameString)
 		val moduleConstDecl =
 			newModuleConstant(actualToken, variableObject, nil)
 		val variableUse =
@@ -172,5 +174,5 @@ object P_BootstrapVariableUseMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(LITERAL_PHRASE.create(TOKEN.o)), // Variable name
-			EXPRESSION_PHRASE.mostGeneralType())
+			VARIABLE_USE_PHRASE.mostGeneralType())
 }

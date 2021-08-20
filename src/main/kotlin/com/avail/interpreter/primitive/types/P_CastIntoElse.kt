@@ -74,7 +74,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 		interpreter.argsBuffer.clear()
 		val expectedType =
-			castFunction.code().functionType().argsTupleType().typeAtIndex(1)
+			castFunction.code().functionType().argsTupleType.typeAtIndex(1)
 		// "Jump" into the castFunction or elseFunction, to keep this frame from
 		// showing up.
 		interpreter.function = when {
@@ -94,8 +94,8 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// Keep it simple.
 		val castFunctionType = argumentTypes[1]
 		val elseFunctionType = argumentTypes[2]
-		return castFunctionType.returnType().typeUnion(
-			elseFunctionType.returnType())
+		return castFunctionType.returnType.typeUnion(
+			elseFunctionType.returnType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -104,16 +104,12 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 				ANY.o,
 				functionType(
 					tuple(
-						bottom
-					),
-					TOP.o
-				),
+						bottom),
+					TOP.o),
 				functionType(
 					emptyTuple,
-					TOP.o
-				)),
-			TOP.o
-		)
+					TOP.o)),
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,
@@ -127,10 +123,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 		// does a type test for the type being cast to, then either invokes the
 		// first block with the value being cast or the second block with no
 		// arguments.
-		val valueRead = arguments[0]
-		val castFunctionRead = arguments[1]
-		val elseFunctionRead = arguments[2]
-
+		val (valueRead, castFunctionRead, elseFunctionRead) = arguments
 		val castBlock =
 			translator.generator.createBasicBlock("cast type matched")
 		val elseBlock =

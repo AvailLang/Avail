@@ -71,7 +71,7 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type =
-			argumentTypes[2].returnType()
+			argumentTypes[2].returnType
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
@@ -79,8 +79,7 @@ object P_IfFalseThenElse : Primitive(3, Invokes, CanInline, CannotFail)
 				ANY.o,
 				functionType(emptyTuple, TOP.o),
 				functionType(emptyTuple, TOP.o)),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

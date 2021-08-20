@@ -88,13 +88,13 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		var excludedAtomSets: A_Tuple = excludedStringSets.makeShared()
-		for (i in excludedStringSets.tupleSize() downTo 1)
+		for (i in excludedStringSets.tupleSize downTo 1)
 		{
 			val strings = excludedStringSets.tupleAt(i)
 			val atomSet =
 				try
 				{
-					generateSetFrom(strings.setSize(), strings.iterator()) {
+					generateSetFrom(strings.setSize, strings.iterator()) {
 						loader.lookupName(it, false)
 					}
 				}
@@ -108,10 +108,9 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 		try
 		{
 			val parentAtoms = generateSetFrom(
-				parentStrings.setSize(), parentStrings.iterator())
-			{
-				loader.lookupName(it)
-			}
+				parentStrings.setSize,
+				parentStrings.iterator(),
+				loader::lookupName)
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}
 		catch (e: MalformedMessageException)
@@ -133,11 +132,10 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				setTypeForSizesContentType(naturalNumbers, stringType()),
+				setTypeForSizesContentType(naturalNumbers, stringType),
 				zeroOrMoreOf(
-					setTypeForSizesContentType(wholeNumbers, stringType()))),
-			TOP.o
-		)
+					setTypeForSizesContentType(wholeNumbers, stringType))),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

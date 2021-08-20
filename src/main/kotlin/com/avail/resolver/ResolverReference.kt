@@ -217,8 +217,7 @@ class ResolverReference constructor(
 	}
 
 	val parentName: String by lazy {
-		val end = qualifiedName.length - this.localName.length - 2
-		qualifiedName.substring(0..end)
+		qualifiedName.substringBeforeLast("/")
 	}
 
 	/**
@@ -527,10 +526,9 @@ class ResolverReference constructor(
 
 		/**
 		 * Visit the provided [ResolverReference] by handing it to the provided
-		 * lambda then add all its [children][childReferences] to the provided
-		 * `stack`. Then pop the next `ResolverReference` and recursively visit
-		 * it by calling this function on it. An empty stack indicates all
-		 * children have been visited.
+		 * lambda then add all its [children][childReferences] to a stack.
+		 * Then pop the next `ResolverReference` and iteratively visit it until
+		 * the stack has been emptied.
 		 *
 		 * **NOTE** Graph uses depth-first traversal to visit each reference.
 		 *
@@ -540,48 +538,38 @@ class ResolverReference constructor(
 		 *   `true` indicates [resources][ResolverReference.isResource] should
 		 *   be included in the walk; `false` indicates walk should be
 		 *   restricted to packages and [modules][ResourceType.MODULE].
-		 * @param visited
-		 *   The count of visited [modules][ResolverReference.isModule] so far.
-		 * @param stack
-		 *   The [Deque] containing all the `ResolverReference`s that still need
-		 *   to be visited.
 		 * @param withReference
 		 *   The lambda that accepts the visited [ResolverReference]. This
 		 *   `ResolverReference` will not be provided to the lambda.
 		 * @return
-		 *   The value of [visited] after completing this step of the recursion.
+		 *   The number of entries that were processed.
 		 */
-		@Suppress("TAILREC_WITH_DEFAULTS")
-		private tailrec fun visitReference (
+		private fun visitReference (
 			reference: ResolverReference,
 			visitResources: Boolean,
-			visited: Int = 0,
-			stack: Deque<ResolverReference> = LinkedList<ResolverReference>(),
 			withReference: (ResolverReference)->Unit
 		): Int
 		{
-			if (visitResources || !reference.isResource)
+			var ref = reference
+			var visited = 0
+			val stack: Deque<ResolverReference> = LinkedList()
+			while (true)
 			{
-				withReference(reference)
-				if (reference.hasChildren)
+				if (visitResources || !ref.isResource)
 				{
-					// Add this to the stack, when it is removed, we know we've
-					// visited all its descendants.
-					reference.childReferences(visitResources).forEach {
-						stack.addFirst(it)
+					withReference(ref)
+					if (ref.hasChildren)
+					{
+						// Add this to the stack, when it is removed, we know we've
+						// visited all its descendants.
+						ref.childReferences(visitResources)
+							.forEach(stack::addFirst)
 					}
 				}
-				if (stack.isNotEmpty())
-				{
-					return visitReference(
-						stack.removeFirst(),
-						visitResources,
-						visited + 1,
-						stack,
-						withReference)
-				}
+				if (stack.isEmpty()) return visited
+				visited++
+				ref = stack.removeFirst()
 			}
-			return visited
 		}
 	}
 }
@@ -612,5 +600,5 @@ enum class ResourceType
 	RESOURCE;
 
 	/** A short description of the receiver. */
-	val label get () = name.toLowerCase()
+	val label get() = name.lowercase()
 }

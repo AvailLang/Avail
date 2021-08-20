@@ -59,7 +59,7 @@ object P_PojoArrayTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val pojoArrayType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(pojoArrayType.sizeRange())
+		return interpreter.primitiveSuccess(pojoArrayType.sizeRange)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

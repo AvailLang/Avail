@@ -32,18 +32,16 @@
 
 package com.avail.environment.actions
 
-import com.avail.builder.ModuleRoot
 import com.avail.environment.AvailWorkbench
 import com.avail.persistence.IndexedFileException
 import com.avail.persistence.cache.Repositories
-import com.avail.resolver.ModuleRootResolverRegistry
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Dialog.ModalityType
 import java.awt.Dimension
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
-import java.net.URI
+import java.util.concurrent.Semaphore
 import javax.swing.Action
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.Alignment
@@ -123,27 +121,20 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		val roots = workbench.resolver.moduleRoots
 		Repositories.closeAllRepositories()
 		roots.clearRoots()
-		for (double in rootsTableModel.rows)
+		for (pair in rootsTableModel.rows)
 		{
-			assert(double.size == 2)
+			assert(pair.size == 2)
 			try
 			{
-				val name = double[0]
-				val root = ModuleRoot(
-					name,
-					if (double[1].isEmpty())
-					{
-						throw RuntimeException(
-							"Module root, $name, is missing a source URI")
+				val (name, uri) = pair
+				val semaphore = Semaphore(0)
+				roots.addRoot(name, uri) { failures ->
+					failures.forEach { failure ->
+						System.err.println(failure)
 					}
-					else
-					{
-						ModuleRootResolverRegistry.createResolver(
-							name,
-							URI(double[1]),
-							roots.fileManager)
-					})
-				roots.addRoot(root)
+					semaphore.release()
+				}
+				semaphore.acquire()
 			}
 			catch (e: IndexedFileException)
 			{
@@ -173,7 +164,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 	 * invoke it directly whenever we want, without having to synthesize an
 	 * [ActionEvent].
 	 */
-	fun createDialog()
+	private fun createDialog()
 	{
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
@@ -194,7 +185,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 			rootsTableModel.rows.add(double)
 		}
 		val rootsTable = JTable(rootsTableModel)
-		rootsTable.putClientProperty("terminateEditOnFocusLost", java.lang.Boolean.TRUE)
+		rootsTable.putClientProperty("terminateEditOnFocusLost", true)
 		val rootsColumns = rootsTable.columnModel
 		rootsColumns.getColumn(0).minWidth = 30
 		rootsColumns.getColumn(0).preferredWidth = 60
@@ -264,8 +255,7 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 		}
 
 		val renamesTable = JTable(renamesTableModel)
-		renamesTable.putClientProperty(
-			"terminateEditOnFocusLost", java.lang.Boolean.TRUE)
+		renamesTable.putClientProperty("terminateEditOnFocusLost", true)
 		val renamesColumns = renamesTable.columnModel
 		renamesColumns.getColumn(0).minWidth = 50
 		renamesColumns.getColumn(0).preferredWidth = 400
@@ -359,13 +349,13 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 				.addComponent(rootsLabel)
 				.addComponent(rootsScrollPane)
 				.addGroup(layout.createSequentialGroup()
-					          .addComponent(addRootButton)
-					          .addComponent(removeRootButton))
+					.addComponent(addRootButton)
+					.addComponent(removeRootButton))
 				.addComponent(renamesLabel)
 				.addComponent(renamesScrollPane)
 				.addGroup(layout.createSequentialGroup()
-					          .addComponent(addRenameButton)
-					          .addComponent(removeRenameButton))
+					.addComponent(addRenameButton)
+					.addComponent(removeRenameButton))
 				.addGroup(Alignment.TRAILING, layout.createSequentialGroup()
 					.addComponent(okButton)
 					.addComponent(cancelButton)))
@@ -374,16 +364,16 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 				.addComponent(rootsLabel)
 				.addComponent(rootsScrollPane)
 				.addGroup(layout.createParallelGroup()
-					          .addComponent(addRootButton)
-					          .addComponent(removeRootButton))
+					.addComponent(addRootButton)
+					.addComponent(removeRootButton))
 				.addComponent(renamesLabel)
 				.addComponent(renamesScrollPane)
 				.addGroup(layout.createParallelGroup()
-					          .addComponent(addRenameButton)
-					          .addComponent(removeRenameButton))
+					.addComponent(addRenameButton)
+					.addComponent(removeRenameButton))
 				.addGroup(layout.createParallelGroup()
-					          .addComponent(okButton)
-					          .addComponent(cancelButton)))
+					.addComponent(okButton)
+					.addComponent(cancelButton)))
 		layout.linkSize(SwingConstants.HORIZONTAL, okButton, cancelButton)
 		preferencesDialog!!.minimumSize = Dimension(300, 250)
 		preferencesDialog!!.preferredSize = Dimension(900, 500)

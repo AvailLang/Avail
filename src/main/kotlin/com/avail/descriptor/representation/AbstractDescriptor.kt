@@ -65,8 +65,10 @@ import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.GrammaticalRestrictionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
@@ -107,7 +109,6 @@ import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.tuples.A_Tuple.Companion.asSet
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithAnyTupleStartingAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteStringStartingAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithByteTupleStartingAt
@@ -132,9 +133,6 @@ import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgTypes
 import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
 import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
 import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
-import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
@@ -145,7 +143,6 @@ import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailException
-import com.avail.exceptions.AvailRuntimeException
 import com.avail.exceptions.AvailUnsupportedOperationException
 import com.avail.exceptions.MalformedMessageException
 import com.avail.exceptions.MethodDefinitionException
@@ -159,6 +156,7 @@ import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.io.TextInterface
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
@@ -182,6 +180,12 @@ import java.util.stream.Stream
 import kotlin.concurrent.read
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.isSubtypeOf
+import kotlin.reflect.full.memberProperties
+import kotlin.reflect.full.starProjectedType
+import kotlin.reflect.full.valueParameters
 
 /**
  * [AbstractDescriptor] is the base descriptor type.  An [AvailObject] contains
@@ -452,7 +456,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()
+		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()!!
 		val loader = cls.classLoader
 		var enumClass: Class<Enum<*>>? =
 			try
@@ -659,13 +663,15 @@ abstract class AbstractDescriptor protected constructor (
 		val shortenedName = className.substring(0, className.length - 10)
 		when (shortenedName.codePointAt(0))
 		{
-			'A'.toInt(),
-			'E'.toInt(),
-			'I'.toInt(),
-			'O'.toInt(),
-			'U'.toInt() ->
+			'A'.code,
+			'E'.code,
+			'I'.code,
+			'O'.code,
+			'U'.code ->
 				append('n')
-			else -> {}
+			else ->
+			{
+			}
 		}
 		append(' ')
 		append(shortenedName)
@@ -676,7 +682,7 @@ abstract class AbstractDescriptor protected constructor (
 			// Circled Latin capital letter S.
 			isShared -> append('\u24C8')
 		}
-		val cls = this@AbstractDescriptor.javaClass.cast()
+		val cls = this@AbstractDescriptor.javaClass.cast()!!
 		val loader = cls.classLoader
 		val intSlots: Array<out IntegerSlotsEnum> =
 			try
@@ -975,7 +981,7 @@ abstract class AbstractDescriptor protected constructor (
 	 *   The definition to be added.
 	 * @throws SignatureException
 	 *   If the definition could not be added.
-	 * @see AvailObject.methodAddDefinition
+	 * @see A_Method.methodAddDefinition
 	 */
 	@Throws(SignatureException::class)
 	abstract fun o_MethodAddDefinition (
@@ -1816,6 +1822,12 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		chunk: L2Chunk,
 		countdown: Long)
+
+	abstract fun o_UpdateStylers (
+		self: AvailObject,
+		updater: A_Set.() -> A_Set)
+
+	abstract fun o_Stylers (self: AvailObject): A_Set
 
 	/**
 	 * Difference the [operands][AvailObject] and answer the result.
@@ -3808,6 +3820,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_RegisterDump (self: AvailObject): AvailObject
 
+	abstract fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler)
+
+	abstract fun o_ModuleStylers (self: AvailObject): A_Set
 
 	abstract fun o_ModuleState(self: AvailObject): ModuleDescriptor.State
 
@@ -3882,8 +3897,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_SerializedObjectsMap(
 		self: AvailObject,
-		serializedObjectsMap: A_Map
-	)
+		serializedObjectsMap: A_Map)
 
 	abstract fun o_ApplyModuleHeader(
 		self: AvailObject,
@@ -3904,7 +3918,7 @@ abstract class AbstractDescriptor protected constructor (
 		/**
 		 * The [CheckedMethod] for [isMutable].
 		 */
-		val isMutableMethod: CheckedMethod = CheckedMethod.instanceMethod(
+		val isMutableMethod = instanceMethod(
 			AbstractDescriptor::class.java,
 			AbstractDescriptor::isMutable.name,
 			Boolean::class.javaPrimitiveType!!)
@@ -3982,7 +3996,7 @@ abstract class AbstractDescriptor protected constructor (
 		private val emptyDebugObjectSlots: Array<Array<ObjectSlotsEnum>?> =
 			arrayOf()
 
-		/** A reusable empty array for when field checking is disabled.  */
+		/** A reusable empty array for when field checking is disabled. */
 		private val emptyDebugIntegerSlots: Array<Array<IntegerSlotsEnum>?> =
 			arrayOf()
 
@@ -4131,22 +4145,24 @@ abstract class AbstractDescriptor protected constructor (
 				bitFieldsCache[slot]?.let { return it }
 				val slotAsEnum = slot as Enum<*>
 				val bitFields = mutableListOf<BitField>()
-				for (field in slotAsEnum::class.java.declaredFields)
+				val companionObject = slotAsEnum::class.companionObject
+				val fields = companionObject?.memberProperties
+				for (field in fields ?: listOf())
 				{
-					if (Modifier.isStatic(field.modifiers)
-						&& BitField::class.java.isAssignableFrom(field.type))
+					if (field.returnType.isSubtypeOf(
+							BitField::class.starProjectedType))
 					{
 						try
 						{
-							val bitField: BitField = field[null].cast()
+							field.valueParameters
+							val bitField: BitField = field.getter.call(
+								companionObject!!.objectInstance).cast()
 							if (bitField.integerSlot === slot)
 							{
-								if (field.getAnnotation(
-										HideFieldInDebugger::class.java)
+								if (field.findAnnotation<HideFieldInDebugger>()
 									=== null)
 								{
-									bitField.enumField = field.getAnnotation(
-										EnumField::class.java)
+									bitField.enumField = field.findAnnotation()
 									bitField.name = field.name
 									bitFields.add(bitField)
 								}
@@ -4190,13 +4206,13 @@ abstract class AbstractDescriptor protected constructor (
 			if (enumAnnotation !== null)
 			{
 				val describingClass: Class<Enum<*>> =
-					enumAnnotation.describedBy.java.cast()
+					enumAnnotation.describedBy.java.cast()!!
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-						describingClass.enumConstants.cast()
+						describingClass.enumConstants.cast()!!
 					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName())
@@ -4280,8 +4296,8 @@ abstract class AbstractDescriptor protected constructor (
 		 * A thread-safe, low-contention map from each encountered
 		 * [AbstractDescriptor] class to the [Statistic] that tracks its
 		 * allocations.
- 		 */
-		val allocationStatisticsByClass =
+		 */
+		private val allocationStatisticsByClass =
 			ConcurrentHashMap<Class<AbstractDescriptor>, Statistic>()
 
 		/**

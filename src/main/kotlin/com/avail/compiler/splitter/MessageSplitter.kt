@@ -37,7 +37,6 @@ import com.avail.compiler.problems.CompilerDiagnostics
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
-import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOLLAR_SIGN
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
 import com.avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
@@ -97,7 +96,6 @@ import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_CASE_INSENSITIVE_EXPRESSION_CANONIZATION
-import com.avail.exceptions.AvailErrorCode.E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS
 import com.avail.exceptions.AvailErrorCode.E_DOUBLE_QUESTION_MARK_MUST_FOLLOW_A_TOKEN_OR_SIMPLE_GROUP
 import com.avail.exceptions.AvailErrorCode.E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP
 import com.avail.exceptions.AvailErrorCode.E_EXPECTED_OPERATOR_AFTER_BACKQUOTE
@@ -151,7 +149,8 @@ import kotlin.streams.toList
  *         If the message name is malformed.
  */
 class MessageSplitter
-@Throws(MalformedMessageException::class) constructor(messageName: A_String) {
+@Throws(MalformedMessageException::class)
+constructor(messageName: A_String) {
 	/**
 	 * The Avail string to be parsed.
 	 */
@@ -226,7 +225,7 @@ class MessageSplitter
 	 */
 	private val messagePartPositions: IntArray
 
-	/** The current one-based parsing position in the list of tokens.  */
+	/** The current one-based parsing position in the list of tokens. */
 	private var messagePartPosition: Int = 0
 
 	/**
@@ -250,7 +249,7 @@ class MessageSplitter
 	 */
 	var numberOfSectionCheckpoints: Int = 0
 
-	/** The top-most [sequence][Sequence].  */
+	/** The top-most [sequence][Sequence]. */
 	private val rootSequence: Sequence
 
 	/**
@@ -284,14 +283,6 @@ class MessageSplitter
 		 * that started with an [OPEN_GUILLEMET] open-guillemet («).
 		 */
 		CLOSE_GUILLEMET("»"),
-
-		/**
-		 * A dollar sign ($) after an [ELLIPSIS] (…) indicates that a
-		 * string-valued literal token should be consumed from the Avail source
-		 * code at this position.  This is accomplished through the use of a
-		 * [RawStringLiteralTokenArgument].
-		 */
-		DOLLAR_SIGN("$"),
 
 		/**
 		 * The double-dagger (‡) is used within a [Group] to delimit the
@@ -334,12 +325,8 @@ class MessageSplitter
 		 *  * If left unadorned, it creates a [RawKeywordTokenArgument], which
 		 *    matches a single [A_Token] of kind [TokenType.KEYWORD].
 		 *  * If followed by an [OCTOTHORP] (#), it creates a
-		 *    [RawNumericLiteralTokenArgument], which matches a single
-		 *    [A_Token] of kind [TokenType.LITERAL] which yields a positive
-		 *    number.
-		 *  * If followed by a [DOLLAR_SIGN] ($), it creates a
-		 *    [RawStringLiteralTokenArgument], which matches a single [A_Token]
-		 *    of kind [TokenType.LITERAL] which yields a string.
+		 *    [RawTokenArgument], which matches a single [A_Token] of kind
+		 *    [TokenType.LITERAL].
 		 *  * If followed by an [EXCLAMATION_MARK] (!), it creates a
 		 *    [RawTokenArgument], which matches a single [A_Token] of any kind
 		 *    except [TokenType.WHITESPACE] or [TokenType.COMMENT].
@@ -379,7 +366,7 @@ class MessageSplitter
 		 * An octothorp (#) after an [ELLIPSIS] (…) indicates that a
 		 * whole-number-valued literal token should be consumed from the Avail
 		 * source code at this position.  This is accomplished through the use
-		 * of a [RawNumericLiteralTokenArgument].
+		 * of a [RawLiteralTokenArgument].
 		 */
 		OCTOTHORP("#"),
 
@@ -479,9 +466,9 @@ class MessageSplitter
 		 */
 		VERTICAL_BAR("|");
 
-		/** The Avail [A_String] denoting this metacharacter.  */
+		/** The Avail [A_String] denoting this metacharacter. */
 		val string: A_String = stringFrom(javaString).makeShared().also {
-			assert(it.tupleSize() == 1)
+			assert(it.tupleSize == 1)
 		}
 
 		/** The sole codepoint ([Int]) of this [Metacharacter] instance. */
@@ -521,7 +508,8 @@ class MessageSplitter
 		val tokenizer = MessageSplitterTokenizer(this.messageName)
 		this.messageParts = tokenizer.canonicalMessageParts()
 		this.messagePartPositions = tokenizer.messagePartPositions()
-		try {
+		try
+		{
 			messagePartPosition = 1
 			rootSequence = parseSequence()
 
@@ -541,7 +529,9 @@ class MessageSplitter
 					E_UNBALANCED_GUILLEMETS,
 					"Encountered unexpected character: $currentMessagePart")
 			}
-		} catch (e: MalformedMessageException) {
+		}
+		catch (e: MalformedMessageException)
+		{
 			// Add contextual text and rethrow it.
 			throw MalformedMessageException(e.errorCode)
 			{
@@ -554,12 +544,12 @@ class MessageSplitter
 						if (messagePartPosition > 0)
 							if (!atEnd)
 								messagePartPositions[messagePartPosition - 1]
-							else messageName.tupleSize() + 1
+							else messageName.tupleSize + 1
 						else 0
 					val before = messageName.copyStringFromToCanDestroy(
 						1, characterIndex - 1, false)
 					val after = messageName.copyStringFromToCanDestroy(
-						characterIndex, messageName.tupleSize(), false)
+						characterIndex, messageName.tupleSize, false)
 					append(before.asNativeString())
 					append(CompilerDiagnostics.errorIndicatorSymbol)
 					append(after.asNativeString())
@@ -593,9 +583,8 @@ class MessageSplitter
 	 */
 	private val positionInName
 		get() =
-			if (atEnd) {
-				messageName.tupleSize()
-			} else messagePartPositions[messagePartPosition - 1]
+			if (atEnd) messageName.tupleSize
+			else messagePartPositions[messagePartPosition - 1]
 
 	/**
 	 * Answer whether parsing has reached the end of the message parts.
@@ -646,7 +635,7 @@ class MessageSplitter
 	) {
 		builder.append('«')
 		rootSequence.printWithArguments(
-			sendPhrase.argumentsListNode().expressionsTuple().iterator(),
+			sendPhrase.argumentsListNode.expressionsTuple.iterator(),
 			builder,
 			indent)
 		builder.append('»')
@@ -687,7 +676,7 @@ class MessageSplitter
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
 		generator.optimizeInstructions()
 		val expressions = generator.expressionList()
-		assert(expressions.size == generator.instructionsTuple().tupleSize())
+		assert(expressions.size == generator.instructionsTuple().tupleSize)
 		return expressions
 	}
 
@@ -870,25 +859,20 @@ class MessageSplitter
 	 *   it was malformed.
 	 */
 	@Throws(MalformedMessageException::class)
-	private fun parseElement(): Expression? {
+	private fun parseElement(): Expression? = when
+	{
+		atEnd -> null
 		// Try to parse the kinds of things that deal with their own suffixes.
-		if (atEnd
-			|| peekAheadFor(DOUBLE_DAGGER)
-			|| peekAheadFor(CLOSE_GUILLEMET)) {
-			return null
-		}
-		if (peekFor(UNDERSCORE)) {
-			return parseOptionalExplicitOrdinal(parseUnderscoreElement())
-		}
-		if (peekFor(ELLIPSIS)) {
-			return parseOptionalExplicitOrdinal(parseEllipsisElement())
-		}
-		if (peekFor(OPEN_GUILLEMET)) {
-			return parseOptionalExplicitOrdinal(parseGuillemetElement())
-		}
-		return if (peekFor(SECTION_SIGN)) {
+		peekAheadFor(DOUBLE_DAGGER) || peekAheadFor(CLOSE_GUILLEMET) -> null
+		peekFor(UNDERSCORE) ->
+			parseOptionalExplicitOrdinal(parseUnderscoreElement())
+		peekFor(ELLIPSIS) ->
+			parseOptionalExplicitOrdinal(parseEllipsisElement())
+		peekFor(OPEN_GUILLEMET) ->
+			parseOptionalExplicitOrdinal(parseGuillemetElement())
+		peekFor(SECTION_SIGN) ->
 			SectionCheckpoint(positionInName, ++numberOfSectionCheckpoints)
-		} else parseSimple()
+		else -> parseSimple()
 	}
 
 	/**
@@ -912,12 +896,14 @@ class MessageSplitter
 			val token = currentMessagePart
 			// Expects metacharacter or space or circled number after backquote.
 			throwMalformedIf(
-				token.tupleSize() != 1 || !canBeBackQuoted(
+				token.tupleSize != 1 || !canBeBackQuoted(
 					token.tupleCodePointAt(1)),
 				E_EXPECTED_OPERATOR_AFTER_BACKQUOTE,
 				"Backquote (`) must be followed by a special " +
 					"metacharacter, space, or circled number, not ($token)")
-		} else {
+		}
+		else
+		{
 			// Parse a regular keyword or operator.
 			checkSuffixCharactersNotInSuffix()
 		}
@@ -940,7 +926,9 @@ class MessageSplitter
 			expression = Optional(
 				expression.positionInName,
 				sequence)
-		} else if (peekFor(DOUBLE_QUESTION_MARK)) {
+		}
+		else if (peekFor(DOUBLE_QUESTION_MARK))
+		{
 			val sequence = Sequence(expression.positionInName)
 			sequence.addExpression(expression)
 			expression = CompletelyOptional(
@@ -992,11 +980,6 @@ class MessageSplitter
 			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
 			"An octothorp (#) may only follow a simple group («») " +
 				"or an ellipsis (…)")
-		peekFor(
-			DOLLAR_SIGN,
-			true,
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
-			"A dollar sign ($) may only follow an ellipsis(…)")
 		peekFor(
 			QUESTION_MARK,
 			true,
@@ -1150,9 +1133,7 @@ class MessageSplitter
 		return when {
 			peekFor(EXCLAMATION_MARK) -> RawTokenArgument(
 				tokenStart, leafArgumentCount)
-			peekFor(OCTOTHORP) -> RawNumericLiteralTokenArgument(
-				tokenStart, leafArgumentCount)
-			peekFor(DOLLAR_SIGN) -> RawStringLiteralTokenArgument(
+			peekFor(OCTOTHORP) -> RawLiteralTokenArgument(
 				tokenStart, leafArgumentCount)
 			else -> RawKeywordTokenArgument(
 				tokenStart, leafArgumentCount)
@@ -1223,20 +1204,20 @@ class MessageSplitter
 		functionType: A_Type,
 		sectionNumber: Int = Integer.MAX_VALUE
 	) {
-		val argsTupleType = functionType.argsTupleType()
-		val sizes = argsTupleType.sizeRange()
-		val lowerBound = sizes.lowerBound()
-		val upperBound = sizes.upperBound()
+		val argsTupleType = functionType.argsTupleType
+		val sizes = argsTupleType.sizeRange
+		val lowerBound = sizes.lowerBound
+		val upperBound = sizes.upperBound
 		if (!lowerBound.equals(upperBound) || !lowerBound.isInt) {
 			// Method definitions (and other definitions) should take a
 			// definite number of arguments.
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val lowerBoundInt = lowerBound.extractInt()
+		val lowerBoundInt = lowerBound.extractInt
 		if (lowerBoundInt != numberOfArguments) {
 			throwSignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		rootSequence.checkRootType(functionType.argsTupleType(), sectionNumber)
+		rootSequence.checkRootType(functionType.argsTupleType, sectionNumber)
 	}
 
 	/**
@@ -1253,10 +1234,8 @@ class MessageSplitter
 	 *   Whether the supplied list is recursively of the right shape to be used
 	 *   as the argument list for a call of this splitter's [A_Bundle].
 	 */
-	fun checkListStructure(list: A_Phrase): Boolean
-	{
-		return rootSequence.checkListStructure(list)
-	}
+	fun checkListStructure(list: A_Phrase): Boolean =
+		rootSequence.checkListStructure(list)
 
 	/**
 	 * Does the message contain any groups?
@@ -1264,17 +1243,20 @@ class MessageSplitter
 	 * @return
 	 *   `true` if the message contains any groups, `false` otherwise.
 	 */
-	val containsGroups
-		get(): Boolean = rootSequence.expressions.any(Expression::isGroup)
+	val containsGroups get() = rootSequence.expressions.any(Expression::isGroup)
 
+	/**
+	 * Answer whether there are any reordered expressions anywhere inside this
+	 * method name.  Reordering is specified by placing circled numbers
+	 * (e.g., ①, ②) after all argument-yielding [Expression]s occurring in some
+	 * [Sequence].  Either none or all must be numbered within any sequence, and
+	 * the numbers must be a non-identity permutation (not simply ①, ②, ③,
+	 * etc.).
+	 */
 	val recursivelyContainsReorders
-		get(): Boolean = rootSequence.recursivelyContainsReorders
+		get() = rootSequence.recursivelyContainsReorders
 
-	override fun toString(): String {
-		val builder = StringBuilder()
-		dumpForDebug(builder)
-		return builder.toString()
-	}
+	override fun toString() = buildString { dumpForDebug(this) }
 
 	companion object {
 		/**
@@ -1293,7 +1275,6 @@ class MessageSplitter
 			E_METHOD_NAME_IS_NOT_CANONICAL,
 			E_ALTERNATIVE_MUST_NOT_CONTAIN_ARGUMENTS,
 			E_OCTOTHORP_MUST_FOLLOW_A_SIMPLE_GROUP_OR_ELLIPSIS,
-			E_DOLLAR_SIGN_MUST_FOLLOW_AN_ELLIPSIS,
 			E_QUESTION_MARK_MUST_FOLLOW_A_SIMPLE_GROUP,
 			E_VERTICAL_BAR_MUST_SEPARATE_TOKENS_OR_SIMPLE_GROUPS,
 			E_EXCLAMATION_MARK_MUST_FOLLOW_AN_ALTERNATION_GROUP,
@@ -1303,17 +1284,17 @@ class MessageSplitter
 			E_UP_ARROW_MUST_FOLLOW_ARGUMENT,
 			E_INCONSISTENT_ARGUMENT_REORDERING).makeShared()
 
-		/** A String containing all 51 circled numbers.  */
+		/** A String containing all 51 circled numbers. */
 		private const val circledNumbersString =
 			"⓪①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯" +
 				"⑰⑱⑲⑳㉑㉒㉓㉔㉕㉖㉗㉘㉙㉚㉛㉜㉝" +
 				"㉞㉟㊱㊲㊳㊴㊵㊶㊷㊸㊹㊺㊻㊼㊽㊾㊿"
 
-		/** How many circled numbers are in Unicode.  */
+		/** How many circled numbers are in Unicode. */
 		private val circledNumbersCount =
 			circledNumbersString.codePointCount(0, circledNumbersString.length)
 
-		/** An array of the circled number code points.  */
+		/** An array of the circled number code points. */
 		private val circledNumberCodePoints: IntArray =
 			circledNumbersString.codePoints().toList().toIntArray()
 
@@ -1399,7 +1380,7 @@ class MessageSplitter
 			var checkedLimit = 0
 			while (true) {
 				val before = permutations.get()
-				val newLimit = before.tupleSize()
+				val newLimit = before.tupleSize
 				for (i in checkedLimit + 1..newLimit) {
 					if (before.tupleAt(i).equals(permutation)) {
 						// Already exists.
@@ -1410,7 +1391,7 @@ class MessageSplitter
 					before.appendCanDestroy(permutation, false).makeShared()
 				if (permutations.compareAndSet(before, after)) {
 					// Added it successfully.
-					return after.tupleSize()
+					return after.tupleSize
 				}
 				checkedLimit = newLimit
 			}
@@ -1448,10 +1429,10 @@ class MessageSplitter
 			}
 		}
 
-		/** The position at which true is stored in the [constantsList].  */
+		/** The position at which true is stored in the [constantsList]. */
 		val indexForTrue = indexForConstant(trueObject)
 
-		/** The position at which false is stored in the [constantsList].  */
+		/** The position at which false is stored in the [constantsList]. */
 		val indexForFalse = indexForConstant(falseObject)
 
 		/**
@@ -1555,11 +1536,10 @@ class MessageSplitter
 		 *   underscore, or ellipsis; or `false` otherwise.
 		 */
 		fun isUnderscoreOrSpaceOrOperator(cp: Int) =
-			cp == '_'.toInt()
-				|| cp == '…'.toInt()
-				|| cp == ' '.toInt()
-				|| cp == '/'.toInt()
-				|| cp == '$'.toInt()
+			cp == '_'.code
+				|| cp == '…'.code
+				|| cp == ' '.code
+				|| cp == '/'.code
 				|| isOperator(cp)
 
 		/**
@@ -1577,10 +1557,10 @@ class MessageSplitter
 				|| Character.isSpaceChar(cp)
 				|| Character.isWhitespace(cp)
 				|| cp < 32
-				|| cp in 127..159
+				|| cp in 127 .. 159
 				|| !Character.isDefined(cp)
-				|| cp == '_'.toInt()
-				|| cp == '"'.toInt()
-				|| cp == '\uFEFF'.toInt())
+				|| cp == '_'.code
+				|| cp == '"'.code
+				|| cp == '\uFEFF'.code)
 	}
 }

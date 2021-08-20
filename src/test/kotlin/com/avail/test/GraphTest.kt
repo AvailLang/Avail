@@ -259,8 +259,7 @@ class GraphTest
 		tinyGraph.parallelVisit { vertex: Int, completion: Function0<Unit> ->
 			Assertions.assertEquals(
 				mainThread,
-				Thread.currentThread()
-			)
+				Thread.currentThread())
 			for (previousVertex in visitedVertices)
 			{
 				Assertions.assertFalse(previousVertex % vertex == 0)

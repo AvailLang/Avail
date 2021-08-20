@@ -32,14 +32,14 @@
 
 Module "Perl Lite"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Avail",
 	"Perl Lite Implementation"
 Extends
 	"Perl Lite Implementation" =
 	(
-		"(Perl)`$…" → "`$…",
+		"(Perl)$…" → "$…",
 		"(Perl)(«_‡,»)" → "(«_‡,»)",
 		…
 	)

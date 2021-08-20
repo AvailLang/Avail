@@ -32,7 +32,7 @@
 
 Module "Late Atoms"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Atoms"
 Uses
@@ -56,8 +56,8 @@ Names
 	"atom for_where_",
 	"_hails from Foundation",
 	"Foundation atom for_",
-	"Foundation`$…",
-	"Foundation`$…$",
+	"Foundation$…",
+	"Foundation$…#",
 
 	/* This is for use by the representative only! */
 	"Brand all visible atoms as hailing from Foundation"
@@ -185,7 +185,7 @@ Public method "Foundation atom for_" is
  * result {@method "_hails from Foundation"}. The name of the atom is
  * provided by the argument's lexeme.
  *
- * @macro "Foundation`$…"
+ * @macro "Foundation$…"
  * @param "aToken"
  *        "literal phrase ⇒ (literal token ⇒ string)"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
@@ -194,7 +194,7 @@ Public method "Foundation atom for_" is
  *          The {@type "atom"} {@type "literal phrase" literal}.
  * @category "Atoms" "Constructors"
  */
-Public macro "Foundation`$…" is
+Public macro "Foundation$…" is
 [
 	tokenPhrase : literal phrase ⇒ token
 |
@@ -208,7 +208,7 @@ Public macro "Foundation`$…" is
  * result {@method "_hails from Foundation"}. If the token is a string literal,
  * then use its value instead of its lexeme for the name of the atom.
  *
- * @macro "Foundation`$…$"
+ * @macro "Foundation$…#"
  * @param "aToken"
  *        "literal phrase ⇒ (literal token ⇒ string)"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
@@ -217,7 +217,7 @@ Public macro "Foundation`$…" is
  *          The {@type "atom"} {@type "literal phrase" literal}.
  * @category "Atoms" "Constructors"
  */
-Public macro "Foundation`$…$" is
+Public macro "Foundation$…#" is
 [
 	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
 |

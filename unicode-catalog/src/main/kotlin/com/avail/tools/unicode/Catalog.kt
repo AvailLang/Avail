@@ -193,7 +193,7 @@ internal class Catalog
 	 */
 	@Throws(IOException::class)
 	private fun computeAllPaths() =
-		rootPaths.forEach { computeAllPathsBeneath(it) }
+		rootPaths.forEach(this@Catalog::computeAllPathsBeneath)
 
 	/**
 	 * Accumulate into [allCodePoints] every Unicode code point encountered
@@ -281,7 +281,7 @@ internal class Catalog
 	 */
 	@Throws(IOException::class)
 	private fun computeAllCodePoints() =
-		allPaths.forEach { computeAllCodePointsIn(it) }
+		allPaths.forEach(this@Catalog::computeAllCodePointsIn)
 
 	/**
 	 * Refresh the [catalog][Catalog] from the file system and the Internet.
@@ -453,7 +453,7 @@ internal class Catalog
 		internal val extensions = setOf(
 			"java", "avail", "properties")
 
-		/** The source paths to search for matching files.  */
+		/** The source paths to search for matching files. */
 		internal val rootPaths = listOf(
 			// The Java search path.
 			Paths.get("src"),

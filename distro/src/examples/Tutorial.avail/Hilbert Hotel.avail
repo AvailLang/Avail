@@ -42,7 +42,6 @@ Extends
 		"keyword lexer",
 		"operator lexer",
 
-		"…$",
 		"…#"
 	)
 Names

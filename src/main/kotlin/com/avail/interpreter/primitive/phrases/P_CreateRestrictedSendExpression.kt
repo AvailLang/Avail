@@ -43,6 +43,10 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.methods.A_Method.Companion.filterByTypes
+import com.avail.descriptor.methods.A_Method.Companion.semanticRestrictions
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModule
 import com.avail.descriptor.module.A_Module.Companion.hasAncestor
 import com.avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import com.avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -122,13 +126,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val originalFiber = currentFiber()
 		val loader = originalFiber.availLoader() ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val argExpressions = argsListPhrase.expressionsTuple()
-		val argsCount = argExpressions.tupleSize()
+		val argExpressions = argsListPhrase.expressionsTuple
+		val argsCount = argExpressions.tupleSize
 		val bundle: A_Bundle
 		try
 		{
 			bundle = messageName.bundleOrCreate()
-			val splitter = bundle.messageSplitter()
+			val splitter = bundle.messageSplitter
 			if (splitter.numberOfArguments != argsCount)
 			{
 				return interpreter.primitiveFailure(
@@ -145,26 +149,26 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(e)
 		}
 
-		val argsTupleType = argsListPhrase.phraseExpressionType()
-		val argTypesList = (1..argsCount).map { index ->
+		val argsTupleType = argsListPhrase.phraseExpressionType
+		val argTypesList = (1 .. argsCount).map { index ->
 			argsTupleType.typeAtIndex(index).makeShared()
 		}
 		// Compute the intersection of the supplied type, applicable definition
 		// return types, and semantic restriction types.  Start with the
 		// supplied type.
-		val module = loader.module()
+		val module = loader.module
 		var intersection: A_Type = returnType
 		val resultLock = ReentrantReadWriteLock()
 		// Merge in the applicable (and visible) definition return types.
 		var anyDefinitionsApplicable = false
-		for (definition in bundle.bundleMethod().filterByTypes(argTypesList))
+		for (definition in bundle.bundleMethod.filterByTypes(argTypesList))
 		{
 			val definitionModule = definition.definitionModule()
-			if (definitionModule.equalsNil()
+			if (definitionModule.isNil
 				|| module.hasAncestor(definitionModule))
 			{
 				intersection = intersection.typeIntersection(
-					definition.bodySignature().returnType())
+					definition.bodySignature().returnType)
 				anyDefinitionsApplicable = true
 			}
 		}
@@ -174,7 +178,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		}
 		// Note, the semantic restriction takes the *types* as arguments.
 		val applicableRestrictions =
-			bundle.bundleMethod().semanticRestrictions().filter {
+			bundle.bundleMethod.semanticRestrictions.filter {
 				module.hasAncestor(it.definitionModule())
 					&& it.function().kind().acceptsListOfArgValues(argTypesList)
 			}
@@ -195,12 +199,13 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		return interpreter.suspendThen {
 			val countdown = AtomicInteger(restrictionsSize)
 			val problems = mutableListOf<A_String>()
-			val decrement = decrement@{
+			val decrement = {
 				when
 				{
 					countdown.decrementAndGet() != 0 ->
+					{
 						// We're not last to decrement.
-						return@decrement
+					}
 					problems.isEmpty() ->
 						// We're last to report, and there were no errors.
 						succeed(
@@ -220,7 +225,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 								collectProblemReport(problems)))
 				}
 			}
-			val success: (AvailObject) -> Unit = {
+			val success: (AvailObject)->Unit = {
 				resultLock.safeWrite {
 					when
 					{
@@ -236,7 +241,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			}
 			// Now launch the fibers.
 			var fiberCount = 1
-			for (restriction in applicableRestrictions) {
+			for (restriction in applicableRestrictions)
+			{
 				val finalCount = fiberCount++
 				val forkedFiber = newFiber(
 					topMeta(), originalFiber.priority()
@@ -246,7 +252,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							+ finalCount
 							+ ") for primitive "
 							+ this@P_CreateRestrictedSendExpression.javaClass
-								.simpleName)
+							.simpleName)
 				}
 				forkedFiber.setAvailLoader(loader)
 				forkedFiber.setHeritableFiberGlobals(
@@ -255,21 +261,25 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				forkedFiber.setSuccessAndFailure(
 					success,
 					{ throwable ->
-						when (throwable) {
-							is AvailRejectedParseException -> {
+						when (throwable)
+						{
+							is AvailRejectedParseException ->
+							{
 								// Compute rejectionString outside the mutex.
 								val string = throwable.rejectionString
 								resultLock.safeWrite { problems.add(string) }
 							}
-							is AvailAcceptedParseException -> {
+							is AvailAcceptedParseException ->
+							{
 								// Success without type narrowing – do nothing.
 							}
 							else ->
 								resultLock.safeWrite {
-									problems.add(stringFrom(
-										"evaluation of macro body not to " +
-											"raise an unhandled " +
-											"exception:\n\t$throwable"))
+									problems.add(
+										stringFrom(
+											"evaluation of macro body not to " +
+												"raise an unhandled " +
+												"exception:\n\t$throwable"))
 								}
 						}
 					})
@@ -308,7 +318,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				topMeta()),
 			tupleTypeForTypes(
 				zeroOrOneOf(SEND_PHRASE.mostGeneralType()),
-				stringType()))
+				stringType))
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,
@@ -319,10 +329,10 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 //		val argsListNodeType: A_Type = argumentTypes[1]
 		val returnTypeType = argumentTypes[2]
 
-		val returnType = returnTypeType.instance()
+		val returnType = returnTypeType.instance
 		return tupleTypeForTypes(
 			zeroOrOneOf(SEND_PHRASE.create(returnType)),
-			stringType())
+			stringType)
 	}
 
 	override fun privateFailureVariableType(): A_Type =

@@ -35,6 +35,7 @@
 package com.avail.utility
 
 import com.avail.utility.structures.EnumMap
+import java.util.concurrent.atomic.AtomicInteger
 
 /**
  * Project the receiver onto an {@link EnumMap}, applying the function to each
@@ -137,6 +138,46 @@ inline fun <A: Iterable<B>, B, C, D> A.deepForEach (
  */
 fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
 
+/**
+ * Partition the receiver into [partitions] approximately equal sublists.  Some
+ * may be empty if count is larger than the receiver's size.  Invoke the
+ * supplied [body] for each sublist.  The body must eventually, perhaps in
+ * another [Thread], invoke a function passed to it, to indicate completion, and
+ * to provide a list containing the element-wise transformation of the original
+ * sublist.  These transformed sublists are then concatenated to form a new
+ * list, which is passed to the [after] function, perhaps in another [Thread].
+ *
+ * The original calling thread returns after each body returns, *not* after the
+ * bodies call their completion function, so if they offload the responsibility
+ * to run the completion function to another thread, that may be where the
+ * [after] function is executed as well.  If no offloading happens, the original
+ * thread will run the [after] function.
+ */
+fun<E, R> List<E>.partitionedMap(
+	partitions : Int,
+	body: (List<E>, (List<R>)->Unit)->Unit,
+	after: (List<R>)->Unit)
+{
+	val size = size
+	val sublists = (0L until partitions).map { i ->
+		subList(
+			(i * size / partitions).toInt(),
+			((i + 1) * size / partitions).toInt())
+	}
+	val countdown = AtomicInteger(partitions)
+	val outputLists = MutableList<List<R>?>(partitions) { null }
+	sublists.forEachIndexed { i, sublist ->
+		body(sublist) { transformed ->
+			outputLists[i] = transformed
+			if (countdown.decrementAndGet() == 0)
+			{
+				after(outputLists.flatMap { it!! })
+			}
+		}
+	}
+}
+
+
 /** Tuple of length 1. */
 data class Tuple1<T1> constructor (val t1: T1)
 
@@ -151,8 +192,7 @@ data class Tuple4<T1, T2, T3, T4> constructor (
 	val t1: T1,
 	val t2: T2,
 	val t3: T3,
-	val t4: T4
-)
+	val t4: T4)
 
 /** Tuple of length 5. */
 data class Tuple5<T1, T2, T3, T4, T5> constructor (
@@ -160,8 +200,7 @@ data class Tuple5<T1, T2, T3, T4, T5> constructor (
 	val t2: T2,
 	val t3: T3,
 	val t4: T4,
-	val t5: T5
-)
+	val t5: T5)
 
 /** Tuple of length 6. */
 data class Tuple6<T1, T2, T3, T4, T5, T6> constructor (
@@ -170,8 +209,7 @@ data class Tuple6<T1, T2, T3, T4, T5, T6> constructor (
 	val t3: T3,
 	val t4: T4,
 	val t5: T5,
-	val t6: T6
-)
+	val t6: T6)
 
 /** Tuple of length 7. */
 data class Tuple7<T1, T2, T3, T4, T5, T6, T7> constructor (
@@ -181,8 +219,7 @@ data class Tuple7<T1, T2, T3, T4, T5, T6, T7> constructor (
 	val t4: T4,
 	val t5: T5,
 	val t6: T6,
-	val t7: T7
-)
+	val t7: T7)
 
 /** Tuple of length 8. */
 data class Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> constructor (
@@ -193,8 +230,7 @@ data class Tuple8<T1, T2, T3, T4, T5, T6, T7, T8> constructor (
 	val t5: T5,
 	val t6: T6,
 	val t7: T7,
-	val t8: T8
-)
+	val t8: T8)
 
 /** Tuple of length 9. */
 data class Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> constructor (
@@ -206,8 +242,7 @@ data class Tuple9<T1, T2, T3, T4, T5, T6, T7, T8, T9> constructor (
 	val t6: T6,
 	val t7: T7,
 	val t8: T8,
-	val t9: T9
-)
+	val t9: T9)
 
 /** Tuple of length 10. */
 data class Tuple10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> constructor (
@@ -220,8 +255,7 @@ data class Tuple10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10> constructor (
 	val t7: T7,
 	val t8: T8,
 	val t9: T9,
-	val t10: T10
-)
+	val t10: T10)
 
 /** Construct a tuple of length 1. */
 fun <T1> t(t1: T1) = Tuple1(t1)

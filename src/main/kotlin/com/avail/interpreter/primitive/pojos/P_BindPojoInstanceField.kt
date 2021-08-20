@@ -92,7 +92,7 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveFailure(E_JAVA_FIELD_NOT_AVAILABLE)
 		}
 		val fieldType = resolvePojoType(
-			field.genericType, pojo.kind().typeVariables())
+			field.genericType, pojo.kind().typeVariables)
 		val variable = pojoFieldVariableForInnerType(
 			equalityPojo(field), pojo.rawPojo(), fieldType)
 		return interpreter.primitiveSuccess(variable)
@@ -102,7 +102,7 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralPojoType(),
-				stringType()),
+				stringType),
 			mostGeneralVariableType())
 
 	override fun privateFailureVariableType(): A_Type =

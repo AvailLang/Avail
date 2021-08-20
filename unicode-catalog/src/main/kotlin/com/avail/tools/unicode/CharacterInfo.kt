@@ -56,7 +56,7 @@ import java.lang.String.format
 internal class CharacterInfo constructor(internal val codePoint: Int)
 	: Comparable<CharacterInfo>, JSONFriendly
 {
-	/** The HTML entity name of the code point.  */
+	/** The HTML entity name of the code point. */
 	var htmlEntityName: String? = null
 
 	/**

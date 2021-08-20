@@ -126,7 +126,7 @@ class LongTupleDescriptor private constructor(
 			init
 			{
 				assert(TupleDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-						   == HASH_AND_MORE.ordinal)
+							== HASH_AND_MORE.ordinal)
 				assert(TupleDescriptor.IntegerSlots.HASH_OR_ZERO.isSamePlaceAs(
 					HASH_OR_ZERO))
 			}
@@ -138,14 +138,14 @@ class LongTupleDescriptor private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
-		val originalSize = self.tupleSize()
+		val originalSize = self.tupleSize
 		if (!newElement.isLong)
 		{
 			// Transition to a tree tuple because it's not a long.
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val longValue = (newElement as AvailObject).extractLong()
+		val longValue = (newElement as AvailObject).extractLong
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -229,7 +229,7 @@ class LongTupleDescriptor private constructor(
 		otherTuple: A_Tuple,
 		canDestroy: Boolean): A_Tuple
 	{
-		val size1 = self.tupleSize()
+		val size1 = self.tupleSize
 		if (size1 == 0)
 		{
 			if (!canDestroy)
@@ -238,7 +238,7 @@ class LongTupleDescriptor private constructor(
 			}
 			return otherTuple
 		}
-		val size2 = otherTuple.tupleSize()
+		val size2 = otherTuple.tupleSize
 		if (size2 == 0)
 		{
 			if (!canDestroy)
@@ -266,7 +266,7 @@ class LongTupleDescriptor private constructor(
 			self.makeImmutable()
 			otherTuple.makeImmutable()
 		}
-		return if (otherTuple.treeTupleLevel() == 0)
+		return if (otherTuple.treeTupleLevel == 0)
 		{
 			createTwoPartTreeTuple(self, otherTuple, 1, 0)
 		}
@@ -282,7 +282,7 @@ class LongTupleDescriptor private constructor(
 	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple
 	{
 		// Verify that the values are in range.
-		return generateIntTupleFrom(self.tupleSize()) {
+		return generateIntTupleFrom(self.tupleSize) {
 			self.slot(LONG_AT_, it).toInt()
 		}
 	}
@@ -301,7 +301,7 @@ class LongTupleDescriptor private constructor(
 		end: Int,
 		canDestroy: Boolean): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		assert(1 <= start && start <= end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
@@ -333,10 +333,10 @@ class LongTupleDescriptor private constructor(
 	{
 		when
 		{
-			self.tupleSize() != aByteTuple.tupleSize() -> return false
+			self.tupleSize != aByteTuple.tupleSize -> return false
 			self.hash() != aByteTuple.hash() -> return false
 			!self.compareFromToWithByteTupleStartingAt(
-				1, self.tupleSize(), aByteTuple, 1) -> return false
+				1, self.tupleSize, aByteTuple, 1) -> return false
 			// They're equal (but occupy disjoint storage). If possible, replace
 			// one with an indirection to the other to keep down the frequency
 			// of byte/long-wise comparisons.  Prefer the byte representation if
@@ -361,10 +361,10 @@ class LongTupleDescriptor private constructor(
 	{
 		when
 		{
-			self.tupleSize() != anIntTuple.tupleSize() -> return false
+			self.tupleSize != anIntTuple.tupleSize -> return false
 			self.hash() != anIntTuple.hash() -> return false
 			!self.compareFromToWithIntTupleStartingAt(
-				1, self.tupleSize(), anIntTuple, 1) -> return false
+				1, self.tupleSize, anIntTuple, 1) -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
 			// replace one with an indirection to the other to keep down the
 			// frequency of int-wise comparisons.
@@ -391,11 +391,10 @@ class LongTupleDescriptor private constructor(
 		when
 		{
 			self.sameAddressAs(aLongTuple) -> return true
-			self.tupleSize() != aLongTuple.tupleSize() -> return false
+			self.tupleSize != aLongTuple.tupleSize -> return false
 			self.hash() != aLongTuple.hash() -> return false
-			(1..self.tupleSize()).any {
-				self.slot(LONG_AT_, it) !=
-					strongLongTuple.slot(LONG_AT_, it)
+			(1..self.tupleSize).any {
+				self.slot(LONG_AT_, it) != strongLongTuple.slot(LONG_AT_, it)
 			} -> return false
 			// They're equal (but occupy disjoint storage). If possible, then
 			// replace one with an indirection to the other to keep down the
@@ -420,7 +419,7 @@ class LongTupleDescriptor private constructor(
 		// representations smaller and faster when concatenating short, quickly
 		// built int tuples that happen to only contain bytes onto the start
 		// or end of other byte tuples.
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize <= 10)
 		{
 			for (i in 1 .. tupleSize)
@@ -449,13 +448,13 @@ class LongTupleDescriptor private constructor(
 			return false
 		}
 		//  See if it's an acceptable size...
-		if (!aType.sizeRange().rangeIncludesLong(self.tupleSize().toLong()))
+		if (!aType.sizeRange.rangeIncludesLong(self.tupleSize.toLong()))
 		{
 			return false
 		}
 		//  tuple's size is in range.
-		val typeTuple = aType.typeTuple()
-		val breakIndex = min(self.tupleSize(), typeTuple.tupleSize())
+		val typeTuple = aType.typeTuple
+		val breakIndex = min(self.tupleSize, typeTuple.tupleSize)
 		for (i in 1 .. breakIndex)
 		{
 			if (!typeTuple.tupleAt(i).rangeIncludesLong(self.slot(LONG_AT_, i)))
@@ -467,12 +466,12 @@ class LongTupleDescriptor private constructor(
 		{
 			return false
 		}
-		val defaultTypeObject = aType.defaultType()
+		val defaultTypeObject = aType.defaultType
 		if (int64.isSubtypeOf(defaultTypeObject))
 		{
 			return true
 		}
-		return (breakIndex + 1 .. self.tupleSize()).all {
+		return (breakIndex + 1 .. self.tupleSize).all {
 			self.tupleAt(it).isInstanceOf(defaultTypeObject)
 		}
 	}
@@ -528,7 +527,7 @@ class LongTupleDescriptor private constructor(
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize())
+		assert(index >= 1 && index <= self.tupleSize)
 		if (!newValueObject.isLong)
 		{
 			return self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
@@ -540,7 +539,7 @@ class LongTupleDescriptor private constructor(
 		result.setSlot(
 			LONG_AT_,
 			index,
-			(newValueObject as A_Number).extractLong())
+			(newValueObject as A_Number).extractLong)
 		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}
@@ -561,17 +560,17 @@ class LongTupleDescriptor private constructor(
 			// It must be an integer range kind.  Find the bounds.
 			else ->
 			{
-				val lowerObject = type.lowerBound()
+				val lowerObject = type.lowerBound
 				val lower = when
 				{
-					lowerObject.isLong -> lowerObject.extractLong()
+					lowerObject.isLong -> lowerObject.extractLong
 					lowerObject.lessThan(zero) -> Long.MIN_VALUE
 					else -> return false
 				}
-				val upperObject = type.upperBound()
+				val upperObject = type.upperBound
 				val upper = when
 				{
-					upperObject.isLong -> upperObject.extractLong()
+					upperObject.isLong -> upperObject.extractLong
 					upperObject.greaterThan(zero) -> Long.MAX_VALUE
 					else -> return false
 				}
@@ -595,7 +594,7 @@ class LongTupleDescriptor private constructor(
 
 	override fun o_TupleReverse(self: AvailObject): A_Tuple
 	{
-		val tupleSize = self.tupleSize()
+		val tupleSize = self.tupleSize
 		if (tupleSize <= 1)
 		{
 			return self
@@ -650,7 +649,7 @@ class LongTupleDescriptor private constructor(
 		fun mutableObjectOfSize(size: Int): AvailObject = mutable.create(size)
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedLongTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedLongTupleMethod = staticMethod(
 			LongTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,
@@ -681,13 +680,13 @@ class LongTupleDescriptor private constructor(
 			}
 		}
 
-		/** The mutable [LongTupleDescriptor].  */
+		/** The mutable [LongTupleDescriptor]. */
 		private val mutable = LongTupleDescriptor(Mutability.MUTABLE)
 
-		/** The immutable [LongTupleDescriptor].  */
+		/** The immutable [LongTupleDescriptor]. */
 		private val immutable = LongTupleDescriptor(Mutability.IMMUTABLE)
 
-		/** The shared [LongTupleDescriptor].  */
+		/** The shared [LongTupleDescriptor]. */
 		private val shared = LongTupleDescriptor(Mutability.SHARED)
 	}
 }

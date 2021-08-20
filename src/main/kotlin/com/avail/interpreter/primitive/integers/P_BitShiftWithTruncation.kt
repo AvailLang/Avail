@@ -72,14 +72,16 @@ object P_BitShiftWithTruncation : Primitive(3, CanInline, CanFold)
 		}
 		catch (e: ArithmeticException)
 		{
+			// Note: The primitive's type signature ensures both baseInteger and
+			// truncationBits are non-negative.
 			interpreter.primitiveFailure(e)
 		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(wholeNumbers, integers, wholeNumbers), wholeNumbers
-		)
+			tuple(wholeNumbers, integers, wholeNumbers),
+			wholeNumbers)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_TOO_LARGE_TO_REPRESENT))

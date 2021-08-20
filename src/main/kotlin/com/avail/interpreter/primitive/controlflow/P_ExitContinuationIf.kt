@@ -74,16 +74,15 @@ object P_ExitContinuationIf : Primitive(
 		interpreter.checkArgumentCount(2)
 		val (continuation, condition) = interpreter.argsBuffer
 
-		if (!condition.extractBoolean())
+		if (!condition.extractBoolean)
 		{
 			return interpreter.primitiveSuccess(nil)
 		}
 
 		val caller = continuation.caller()
-		val result = nil
-		if (caller.equalsNil())
+		interpreter.setReifiedContinuation(caller)
+		if (caller.isNil)
 		{
-			interpreter.setReifiedContinuation(caller)
 			interpreter.function = null
 			interpreter.chunk = null
 			interpreter.offset = Int.MAX_VALUE
@@ -91,13 +90,12 @@ object P_ExitContinuationIf : Primitive(
 		}
 		else
 		{
-			interpreter.setReifiedContinuation(caller)
 			interpreter.function = caller.function()
 			interpreter.chunk = caller.levelTwoChunk()
 			interpreter.offset = caller.levelTwoOffset()
 			interpreter.returnNow = false
 		}
-		interpreter.setLatestResult(result)
+		interpreter.setLatestResult(nil)
 		return CONTINUATION_CHANGED
 	}
 
@@ -107,8 +105,7 @@ object P_ExitContinuationIf : Primitive(
 				continuationTypeForFunctionType(
 					functionTypeReturning(TOP.o)),
 				booleanType),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

@@ -60,7 +60,7 @@ import java.nio.charset.StandardCharsets
  */
 class ConsoleInputChannel constructor(stream: InputStream) : TextInputChannel
 {
-	/** The wrapped [reader][Reader].  */
+	/** The wrapped [reader][Reader]. */
 	private val input: Reader
 
 	init

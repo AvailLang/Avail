@@ -38,6 +38,7 @@ import com.avail.interpreter.execution.Interpreter.Companion.log
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.MethodVisitor
@@ -115,8 +116,8 @@ object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 		stepper.stackp = continuation.stackp()
 	}
 
-	/** The [CheckedMethod] for [reenter].  */
-	private val reenterMethod = CheckedMethod.staticMethod(
+	/** The [CheckedMethod] for [reenter]. */
+	private val reenterMethod = staticMethod(
 		L2_REENTER_L1_CHUNK_FROM_INTERRUPT::class.java,
 		::reenter.name,
 		Void.TYPE,

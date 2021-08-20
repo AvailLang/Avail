@@ -84,15 +84,14 @@ object P_BootstrapDefineSpecialObjectMacro
 		val specialObjectLiteral = interpreter.argument(1)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
-		if (loader === null || loader.module().equalsNil())
+		if (loader === null || loader.module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
 		val bundle: A_Bundle =
 			try
 			{
-				loader.lookupName(nameLiteral.token().literal())
-					.bundleOrCreate()
+				loader.lookupName(nameLiteral.token.literal()).bundleOrCreate()
 			}
 			catch (e: AmbiguousNameException)
 			{
@@ -105,7 +104,7 @@ object P_BootstrapDefineSpecialObjectMacro
 
 		// Create a send of the bootstrap method definer that, when actually
 		// sent, will produce a method that answers the special object.
-		val literalType = specialObjectLiteral.phraseExpressionType()
+		val literalType = specialObjectLiteral.phraseExpressionType
 		val defineMethod = newSendNode(
 			emptyTuple,
 			METHOD_DEFINER.bundle,
@@ -120,8 +119,7 @@ object P_BootstrapDefineSpecialObjectMacro
 						emptySet,
 						0,
 						emptyTuple))),
-			TOP.o
-		)
+			TOP.o)
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.
 		val getValue =
@@ -138,7 +136,7 @@ object P_BootstrapDefineSpecialObjectMacro
 					tuple(
 						getValue,
 						syntheticLiteralNodeFor(
-							specialObjectLiteral.token().string()),
+							specialObjectLiteral.token.string()),
 						syntheticLiteralNodeFor(
 							fromInt(0)),
 						syntheticLiteralNodeFor(
@@ -167,8 +165,7 @@ object P_BootstrapDefineSpecialObjectMacro
 							emptySet,
 							0,
 							emptyTuple))),
-				TOP.o
-			)
+				TOP.o)
 		return interpreter.primitiveSuccess(
 			newSequence(
 				tuple(
@@ -179,7 +176,7 @@ object P_BootstrapDefineSpecialObjectMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.create(nonemptyStringType()),
+				LITERAL_PHRASE.create(nonemptyStringType),
 				LITERAL_PHRASE.create(ANY.o)),
 			SEQUENCE_PHRASE.mostGeneralType())
 }

@@ -66,14 +66,17 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		val variable = interpreter.argument(0)
 		val key = interpreter.argument(1)
 		// Forbid special atoms.
-		if (key.isAtomSpecial())
+		if (key.isAtomSpecial)
 		{
 			return interpreter.primitiveFailure(E_SPECIAL_ATOM)
 		}
-		return try {
+		return try
+		{
 			variable.removeWriteReactor(key)
 			interpreter.primitiveSuccess(nil)
-		} catch (e: AvailException) {
+		}
+		catch (e: AvailException)
+		{
 			interpreter.primitiveFailure(e.numericCode())
 		}
 	}
@@ -82,10 +85,8 @@ object P_RemoveWriteReactor : Primitive(2, HasSideEffect)
 		functionType(
 			tuple(
 				mostGeneralVariableType(),
-				ATOM.o
-			),
-			TOP.o
-		)
+				ATOM.o),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

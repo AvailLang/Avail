@@ -401,7 +401,7 @@ class CommentsModule constructor(
 					//Determine what keys need to be explicitly removed
 					//due to the rename.
 					val removeRenames =
-						moduleImport.renames.valuesAsTuple().asSet()
+						moduleImport.renames.valuesAsTuple.asSet
 
 					collectedExtendedNames = collectedExtendedNames
 						.setMinusCanDestroy(removeRenames, true)
@@ -416,7 +416,7 @@ class CommentsModule constructor(
 
 					val renameValues = mutableListOf<A_String>()
 
-					for (rename in moduleImport.renames.keysAsSet())
+					for (rename in moduleImport.renames.keysAsSet)
 					{
 						renameValues.add(rename)
 					}
@@ -427,7 +427,7 @@ class CommentsModule constructor(
 
 					inScopeMethodsToFileNames.putAll(renameFileNames)
 
-					for (rename in moduleImport.renames.keysAsSet())
+					for (rename in moduleImport.renames.keysAsSet)
 					{
 						stacksExtends.renameImplementation(
 							moduleImport.renames.mapAt(rename),
@@ -527,7 +527,7 @@ class CommentsModule constructor(
 					//Determine what keys need to be explicitly removed
 					//due to the rename.
 					val removeRenames =
-						moduleImport.renames.valuesAsTuple().asSet()
+						moduleImport.renames.valuesAsTuple.asSet
 
 					collectedUsesNames = collectedUsesNames
 						.setMinusCanDestroy(removeRenames, true)
@@ -541,7 +541,7 @@ class CommentsModule constructor(
 
 					val renameValues = mutableListOf<A_String>()
 
-					for (rename in moduleImport.renames.keysAsSet())
+					for (rename in moduleImport.renames.keysAsSet)
 					{
 						renameValues.add(rename)
 					}
@@ -549,7 +549,7 @@ class CommentsModule constructor(
 					val renameFileNames =
 						createFileNames(renameValues, moduleName, ".json")
 
-					for (rename in moduleImport.renames.keysAsSet())
+					for (rename in moduleImport.renames.keysAsSet)
 					{
 						stacksUses.renameImplementation(
 							moduleImport.renames.mapAt(rename),

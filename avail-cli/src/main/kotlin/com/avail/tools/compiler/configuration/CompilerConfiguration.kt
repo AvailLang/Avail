@@ -88,7 +88,7 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 	 */
 	private val lock = ReentrantLock()
 
-	/** The [Avail roots][ModuleRoots].  */
+	/** The [Avail roots][ModuleRoots]. */
 	private var availRoots: ModuleRoots? = null
 		get() =
 			// It is possible for multiple threads to race to this condition
@@ -112,7 +112,7 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 
 
 
-	/** The path to the [renames file][RenamesFileParser].  */
+	/** The path to the [renames file][RenamesFileParser]. */
 	internal var renamesFilePath: String? = null
 		set(newValue)
 		{
@@ -141,7 +141,9 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 				val path = renamesFilePath
 				reader = if (path === null) {
 					StringReader("")
-				} else {
+				}
+				else
+				{
 					File(path).inputStream().reader(UTF_8).buffered()
 				}
 				val renameParser = RenamesFileParser(reader, availRoots!!)
@@ -160,7 +162,7 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 			return resolver
 		}
 
-	/** The target [module][ModuleName] for compilation.  */
+	/** The target [module][ModuleName] for compilation. */
 	internal var targetModuleName: ModuleName? = null
 
 	/**
@@ -180,7 +182,7 @@ class CompilerConfiguration constructor(private val fileManager: FileManager)
 	 */
 	internal var generateDocumentation = false
 
-	/** The Stacks documentation path.  */
+	/** The Stacks documentation path. */
 	internal var documentationPath = StacksGenerator.defaultDocumentationPath
 
 	/**

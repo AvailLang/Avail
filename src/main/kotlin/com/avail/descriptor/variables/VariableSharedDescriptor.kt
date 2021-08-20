@@ -133,9 +133,9 @@ open class VariableSharedDescriptor protected constructor(
 			init
 			{
 				assert(VariableDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
-			       == HASH_AND_MORE.ordinal)
+					== HASH_AND_MORE.ordinal)
 				assert(VariableDescriptor.IntegerSlots.HASH_OR_ZERO
-			       .isSamePlaceAs(HASH_ALWAYS_SET))
+					.isSamePlaceAs(HASH_ALWAYS_SET))
 			}
 		}
 	}
@@ -180,11 +180,11 @@ open class VariableSharedDescriptor protected constructor(
 			init
 			{
 				assert(VariableDescriptor.ObjectSlots.VALUE.ordinal
-			       == VALUE.ordinal)
+					== VALUE.ordinal)
 				assert(VariableDescriptor.ObjectSlots.KIND.ordinal
-				   == KIND.ordinal)
+					== KIND.ordinal)
 				assert(VariableDescriptor.ObjectSlots.WRITE_REACTORS.ordinal
-				   == WRITE_REACTORS.ordinal)
+					== WRITE_REACTORS.ordinal)
 			}
 		}
 	}
@@ -226,7 +226,7 @@ open class VariableSharedDescriptor protected constructor(
 		// Answer the current value of the variable. Fail if no value is
 		// currently assigned.
 		val value = self.volatileSlot(VALUE)
-		if (value.equalsNil())
+		if (value.isNil)
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
@@ -250,14 +250,14 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			// No implementation required.
 		}
-		return !self.volatileSlot(VALUE).equalsNil()
+		return self.volatileSlot(VALUE).notNil
 	}
 
 	@Throws(VariableSetException::class)
 	override fun o_SetValue(self: AvailObject, newValue: A_BasicObject)
 	{
 		val outerKind: A_Type = self.slot(KIND)
-		if (!newValue.isInstanceOf(outerKind.writeType()))
+		if (!newValue.isInstanceOf(outerKind.writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -270,7 +270,7 @@ open class VariableSharedDescriptor protected constructor(
 		self: AvailObject,
 		newValue: A_BasicObject)
 	{
-		assert(!newValue.equalsNil())
+		assert(newValue.notNil)
 		handleVariableWriteTracing(self)
 		self.setVolatileSlot(VALUE, newValue.makeShared())
 		recordWriteToSharedVariable()
@@ -284,13 +284,13 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			handleVariableWriteTracing(self)
 			val outerKind = self.slot(KIND)
-			if (!newValue.isInstanceOf(outerKind.writeType()))
+			if (!newValue.isInstanceOf(outerKind.writeType))
 			{
 				throw VariableSetException(
 					E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 			}
 			val oldValue = self.getAndSetVolatileSlot(VALUE, newValue)
-			if (oldValue.equalsNil())
+			if (oldValue.isNil)
 			{
 				// NOTE: It writes the new value, but still reports an error.
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
@@ -309,7 +309,7 @@ open class VariableSharedDescriptor protected constructor(
 		reference: A_BasicObject,
 		newValue: A_BasicObject): Boolean
 	{
-		if (!newValue.isInstanceOf(self.slot(KIND).writeType()))
+		if (!newValue.isInstanceOf(self.slot(KIND).writeType))
 		{
 			throw VariableSetException(E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
 		}
@@ -359,7 +359,7 @@ open class VariableSharedDescriptor protected constructor(
 		var oldValue: A_Number
 		while (true) {
 			oldValue = self.value()
-			if (oldValue.equalsNil())
+			if (oldValue.isNil)
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 			val newValue = oldValue.plusCanDestroy(addend, false)
 			if (o_CompareAndSwapValues(self, oldValue, newValue))
@@ -377,11 +377,11 @@ open class VariableSharedDescriptor protected constructor(
 	{
 		// Simply read, add, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		do
 		{
 			val oldValue = self.volatileSlot(VALUE)
-			if (oldValue.equalsNil())
+			if (oldValue.isNil)
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 			if (!oldValue.isMap)
 				throw VariableGetException(
@@ -390,10 +390,10 @@ open class VariableSharedDescriptor protected constructor(
 			if (writeType.isMapType)
 			{
 				// Just check the new size, new key, and new value.
-				if (!writeType.sizeRange().rangeIncludesLong(
-						newMap.mapSize().toLong())
-					|| !key.isInstanceOf(writeType.keyType())
-					|| !value.isInstanceOf(writeType.valueType()))
+				if (!writeType.sizeRange.rangeIncludesLong(
+						newMap.mapSize.toLong())
+					|| !key.isInstanceOf(writeType.keyType)
+					|| !value.isInstanceOf(writeType.valueType))
 				{
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -417,10 +417,10 @@ open class VariableSharedDescriptor protected constructor(
 	{
 		// Simply read, remove, and compare-and-set until it succeeds.
 		val outerKind: A_Type = self.slot(KIND)
-		val writeType = outerKind.writeType()
+		val writeType = outerKind.writeType
 		while (true) {
 			val oldValue = self.volatileSlot(VALUE)
-			if (oldValue.equalsNil())
+			if (oldValue.isNil)
 				throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 			if (!oldValue.isMap)
 				throw VariableGetException(
@@ -430,8 +430,8 @@ open class VariableSharedDescriptor protected constructor(
 			{
 				// We only have to check the size, since we didn't add any new
 				// information to the map, other than to potentially shrink it.
-				if (!writeType.sizeRange().rangeIncludesLong(
-						newMap.mapSize().toLong()))
+				if (!writeType.sizeRange.rangeIncludesLong(
+						newMap.mapSize.toLong()))
 				{
 					throw VariableSetException(
 						E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE)
@@ -477,7 +477,7 @@ open class VariableSharedDescriptor protected constructor(
 		// can't happen while L2 code is running (and therefore when the
 		// L2Generator could be calling this).
 		var pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			pojo = identityPojo(
 				synchronizedSet<L2Chunk>(newSetFromMap(WeakHashMap())))
@@ -500,7 +500,7 @@ open class VariableSharedDescriptor protected constructor(
 		// Remove this chunk from the variable's set of dependent chunks.
 		// The weak set *must* have been initialized first.
 		val pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-		assert(!pojo.equalsNil())
+		assert(pojo.notNil)
 		val chunkSet: MutableSet<L2Chunk> = pojo.javaObjectNotNull()
 		chunkSet.remove(chunk)
 	}
@@ -604,8 +604,8 @@ open class VariableSharedDescriptor protected constructor(
 		{
 			val loader = Interpreter.current().availLoaderOrNull()
 			if (loader !== null && loader.statementCanBeSummarized()
-			    && !self.slot(VALUE).equalsNil()
-			    && !self.valueWasStablyComputed())
+				&& self.slot(VALUE).notNil
+				&& !self.valueWasStablyComputed())
 			{
 				loader.statementCanBeSummarized(false)
 			}
@@ -623,7 +623,7 @@ open class VariableSharedDescriptor protected constructor(
 			assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
 			// Invalidate any affected level two chunks.
 			val pojo: A_BasicObject = self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-			if (!pojo.equalsNil())
+			if (pojo.notNil)
 			{
 				// Copy the set of chunks to avoid modification while iterating.
 				val originalSet = pojo.javaObjectNotNull<Set<L2Chunk>>()
@@ -706,7 +706,7 @@ open class VariableSharedDescriptor protected constructor(
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The shared [VariableSharedDescriptor].  */
+		/** The shared [VariableSharedDescriptor]. */
 		val shared = VariableSharedDescriptor(
 			Mutability.SHARED,
 			TypeTag.VARIABLE_TAG,

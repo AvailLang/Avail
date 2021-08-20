@@ -142,7 +142,7 @@ class BottomTypeDescriptor private constructor()
 	// can take any number of arguments of any type (since there are no
 	// complying function instances).
 	override fun o_ArgsTupleType(self: AvailObject): A_Type =
-		TupleTypeDescriptor.mostGeneralTupleType()
+		TupleTypeDescriptor.mostGeneralTupleType
 
 	/**
 	 * {@inheritDoc}
@@ -196,7 +196,7 @@ class BottomTypeDescriptor private constructor()
 	 */
 	override fun o_EqualsEnumerationWithSet(
 		self: AvailObject,
-		aSet: A_Set): Boolean = aSet.setSize() == 0
+		aSet: A_Set): Boolean = aSet.setSize == 0
 
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type = self
 
@@ -402,15 +402,15 @@ class BottomTypeDescriptor private constructor()
 
 	companion object
 	{
-		/** The shared [BottomTypeDescriptor].  */
+		/** The shared [BottomTypeDescriptor]. */
 		private val shared = BottomTypeDescriptor()
 
 		/**
 		 * The unique object that represents the type with no instances.
 		 */
-		val bottom: A_Type = shared.create { }
+		val bottom: A_Type = shared.create()
 
-		/** The meta-type with exactly one instance, [bottom].  */
+		/** The meta-type with exactly one instance, [bottom]. */
 		val bottomMeta: A_Type = instanceMeta(bottom).makeShared()
 	}
 }

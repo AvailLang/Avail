@@ -62,7 +62,6 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.cast
 import com.avail.utility.structures.EnumMap
-import java.util.NoSuchElementException
 
 /**
  * A [LinearMapBinDescriptor] is a leaf bin in a [map][MapDescriptor]'s
@@ -255,7 +254,7 @@ internal class LinearMapBinDescriptor private constructor(
 							"The element should have been added without copying"
 						}
 					}
-					assert(result.mapBinSize() == oldSize + 1)
+					assert(result.mapBinSize == oldSize + 1)
 					checkHashedMapBin(result)
 					return result
 				}
@@ -266,7 +265,7 @@ internal class LinearMapBinDescriptor private constructor(
 					2,
 					// Grow if it had an even number of ints
 					oldSize and 1 xor 1)
-				result.setSlot(KEYS_HASH, self.mapBinKeysHash() + keyHash)
+				result.setSlot(KEYS_HASH, self.mapBinKeysHash + keyHash)
 				result.setSlot(VALUES_HASH_OR_ZERO, 0)
 				result.setIntSlot(KEY_HASHES_AREA_, oldSize + 1, keyHash)
 				result.setSlot(BIN_SLOT_AT_, (oldSize shl 1) + 1, key)
@@ -488,7 +487,7 @@ internal class LinearMapBinDescriptor private constructor(
 	 */
 	private fun mapBinKeyUnionKind(self: AvailObject): A_Type {
 		var keyType: A_Type = self.slot(BIN_KEY_UNION_KIND_OR_NIL)
-		if (keyType.equalsNil()) {
+		if (keyType.isNil) {
 			keyType = computeKeyKind(self)
 			self.setSlot(BIN_KEY_UNION_KIND_OR_NIL, keyType)
 		}
@@ -528,7 +527,7 @@ internal class LinearMapBinDescriptor private constructor(
 	 */
 	private fun mapBinValueUnionKind(self: AvailObject): A_Type {
 		var valueType: A_Type = self.slot(BIN_VALUE_UNION_KIND_OR_NIL)
-		if (valueType.equalsNil()) {
+		if (valueType.isNil) {
 			valueType = computeValueKind(self)
 			self.setSlot(BIN_VALUE_UNION_KIND_OR_NIL, valueType)
 		}
@@ -544,7 +543,7 @@ internal class LinearMapBinDescriptor private constructor(
 	override fun o_MapBinIterable(self: AvailObject): MapIterable
 	{
 		return object : MapIterable() {
-			/** A countdown of entry indices.  */
+			/** A countdown of entry indices. */
 			var index = entryCount(self)
 
 			override fun next(): MapDescriptor.Entry {

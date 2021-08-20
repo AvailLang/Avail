@@ -34,12 +34,12 @@ package com.avail.interpreter.levelOne
 
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.functions.A_RawFunction
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.methods.MethodDefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.representation.AbstractDescriptor
-import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.interpreter.levelOne.L1OperandType.IMMEDIATE
@@ -51,7 +51,7 @@ import com.avail.io.NybbleOutputStream
 
 /**
  * An [L1Operation] is encoded within a [ nybblecode
- * stream][AvailObject.nybbles] as an opcode followed by operands.  Opcodes less
+ * stream][A_RawFunction.nybbles] as an opcode followed by operands.  Opcodes less
  * than 16 are encoded as a single nybble, and the others are represented as the
  * [extension][L1_doExtension] nybble (15), followed by the opcode minus 16.
  * This supports up to 31 distinct nybblecodes, the statically most frequently
@@ -84,7 +84,7 @@ enum class L1Operation constructor(
 	 * Invoke a method.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][AvailObject.literalAt], which specifies an [A_Bundle] which
+	 * [literals][A_RawFunction.literalAt], which specifies an [A_Bundle] which
 	 * names a [method][MethodDescriptor] that contains a collection of
 	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
 	 * invoked.  The arguments are expected to already have been pushed. They
@@ -332,7 +332,7 @@ enum class L1Operation constructor(
 	 * Invoke a method with a supercall.
 	 *
 	 * The first operand is an index into the current code's
-	 * [literals][AvailObject.literalAt], which specifies a
+	 * [literals][A_RawFunction.literalAt], which specifies a
 	 * [message&#32;bundle][MessageBundleDescriptor] that is a particular naming
 	 * of a [method][MethodDescriptor] which itself contains a collection of
 	 * [method&#32;definitions][MethodDefinitionDescriptor] that might be
@@ -410,7 +410,7 @@ enum class L1Operation constructor(
 
 	companion object
 	{
-		/** An array of all [L1Operation] enumeration values.  */
+		/** An array of all [L1Operation] enumeration values. */
 		private val all = values()
 
 		/**

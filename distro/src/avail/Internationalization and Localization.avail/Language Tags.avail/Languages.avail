@@ -32,7 +32,7 @@
 
 Module "Languages"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Avail" = (
 		/* Some of the core Avail syntax */
@@ -43,7 +43,7 @@ Uses
 		"keyword lexer",
 		"operator lexer",
 		"_!;",
-		"…$"),
+		"…#"),
 	"Framework"
 Body
 

@@ -36,6 +36,11 @@ import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.ABSTRACT_DEFINER
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.FORWARD_DEFINER
@@ -65,7 +70,7 @@ internal class LoadingEffectToAddDefinition constructor(
 ) : LoadingEffect() {
 	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
-		val atom = bundle.message()
+		val atom = bundle.message
 		with(writer) {
 			when {
 				definition.isAbstractDefinition() -> {

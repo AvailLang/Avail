@@ -71,14 +71,14 @@ object P_BootstrapSuperCastMacro
 		val expressionNode = interpreter.argument(0)
 		val typeLiteral = interpreter.argument(1)
 
-		val type = typeLiteral.token().literal()
+		val type = typeLiteral.token.literal()
 		if (type.isTop || type.isBottom)
 		{
 			throw AvailRejectedParseException(
 				STRONG,
 				"supercast type to be something other than $type")
 		}
-		val expressionType = expressionNode.phraseExpressionType()
+		val expressionType = expressionNode.phraseExpressionType
 		if (!expressionType.isSubtypeOf(type))
 		{
 			throw AvailRejectedParseException(

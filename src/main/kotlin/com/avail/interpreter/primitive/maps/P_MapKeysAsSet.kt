@@ -60,7 +60,7 @@ object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val map = interpreter.argument(0)
-		return interpreter.primitiveSuccess(map.keysAsSet())
+		return interpreter.primitiveSuccess(map.keysAsSet)
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -71,9 +71,7 @@ object P_MapKeysAsSet : Primitive(1, CannotFail, CanFold, CanInline)
 
 		// There can't be any duplicate keys in the map, so the size range is
 		// the same for the set.
-		return setTypeForSizesContentType(
-			mapType.sizeRange(),
-			mapType.keyType())
+		return setTypeForSizesContentType(mapType.sizeRange, mapType.keyType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

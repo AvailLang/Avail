@@ -40,12 +40,26 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
+import com.avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
+import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
+import com.avail.descriptor.functions.A_RawFunction.Companion.returneeCheckStat
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnerCheckStat
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createLabelContinuation
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createExceptOuters
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import com.avail.descriptor.methods.A_Method
+import com.avail.descriptor.methods.A_Method.Companion.lookupByTypesFromTuple
+import com.avail.descriptor.methods.A_Method.Companion.lookupByValuesFromList
+import com.avail.descriptor.methods.A_Method.Companion.numArgs
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
+import com.avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -125,10 +139,10 @@ import java.util.regex.Pattern
  */
 class L1InstructionStepper constructor(val interpreter: Interpreter)
 {
-	/** The current position in the nybblecodes.  */
+	/** The current position in the nybblecodes. */
 	val instructionDecoder = L1InstructionDecoder()
 
-	/** The current stack position as would be seen in a continuation.  */
+	/** The current stack position as would be seen in a continuation. */
 	var stackp = 0
 
 	/**
@@ -254,7 +268,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						code.literalAt(instructionDecoder.getOperand())
 					val expectedReturnType: A_Type =
 						code.literalAt(instructionDecoder.getOperand())
-					val numArgs: Int = bundle.bundleMethod().numArgs()
+					val numArgs: Int = bundle.bundleMethod.numArgs
 					if (Interpreter.debugL1)
 					{
 						log(
@@ -262,7 +276,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							Level.FINER,
 							"{0}         L1 call ({1})",
 							interpreter.debugModeString,
-							bundle.message().atomName())
+							bundle.message.atomName)
 					}
 					interpreter.argsBuffer.clear()
 					for (i in stackp + numArgs - 1 downTo stackp)
@@ -275,7 +289,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
 					push(expectedReturnType)
-					val method: A_Method = bundle.bundleMethod()
+					val method: A_Method = bundle.bundleMethod
 					val matching: A_Definition
 					val beforeLookup = AvailRuntimeSupport.captureNanos()
 					matching = try
@@ -318,7 +332,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// the failed return type check.
 						return returnCheckReifier
 					}
-					assert(stackp <= code.numSlots())
+					assert(stackp <= code.numSlots)
 					// Replace the stack slot.
 					pointerAtPut(stackp, result)
 				}
@@ -330,21 +344,21 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val localIndex = instructionDecoder.getOperand()
 					val local = pointerAt(localIndex)
-					assert(!local.equalsNil())
+					assert(local.notNil)
 					pointerAtPut(localIndex, nil)
 					push(local)
 				}
 				L1_doPushLocal.ordinal ->
 				{
 					val local = pointerAt(instructionDecoder.getOperand())
-					assert(!local.equalsNil())
+					assert(local.notNil)
 					push(local.makeImmutable())
 				}
 				L1_doPushLastOuter.ordinal ->
 				{
 					val outerIndex = instructionDecoder.getOperand()
 					val outer: A_BasicObject = function.outerVarAt(outerIndex)
-					assert(!outer.equalsNil())
+					assert(outer.notNil)
 					if (function.optionallyNilOuterVar(outerIndex))
 					{
 						push(outer)
@@ -374,7 +388,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// the outer variables would have to makeImmutable() to
 						// be referenced by an immutable function.
 						val value = pop()
-						assert(!value.equalsNil())
+						assert(value.notNil)
 						newFunction.outerVarAtPut(i, value)
 						i--
 					}
@@ -413,7 +427,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val outer =
 						function.outerVarAt(instructionDecoder.getOperand())
-					assert(!outer.equalsNil())
+					assert(outer.notNil)
 					push(outer.makeImmutable())
 				}
 				L1_doPop.ordinal ->
@@ -488,10 +502,10 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				L1Ext_doPushLabel.ordinal ->
 				{
 					val numArgs = code.numArgs()
-					assert(code.primitive() === null)
+					assert(code.codePrimitive() === null)
 					val args = (1..numArgs).map {
 						val arg = pointerAt(it)
-						assert(!arg.equalsNil())
+						assert(arg.notNil)
 						arg
 					}
 					assert(interpreter.chunk == L2Chunk.unoptimizedChunk)
@@ -543,8 +557,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// Freeze all fields of the new object, including
 						// its caller, function, and args.
 						newContinuation.makeSubobjectsImmutable()
-						assert(newContinuation.caller().equalsNil()
-							   || !newContinuation.caller().descriptor()
+						assert(newContinuation.caller().isNil
+								|| !newContinuation.caller().descriptor()
 							.isMutable) {
 							("Caller should freeze because two "
 							 + "continuations can see it")
@@ -579,7 +593,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val permutation: A_Tuple =
 						code.literalAt(instructionDecoder.getOperand())
-					val size = permutation.tupleSize()
+					val size = permutation.tupleSize
 					val values = arrayOfNulls<AvailObject>(size)
 					run {
 						var i = 1
@@ -605,7 +619,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						code.literalAt(instructionDecoder.getOperand())
 					val superUnionType: A_Type =
 						code.literalAt(instructionDecoder.getOperand())
-					val numArgs: Int = bundle.bundleMethod().numArgs()
+					val numArgs: Int = bundle.bundleMethod.numArgs
 					if (Interpreter.debugL1)
 					{
 						log(
@@ -613,7 +627,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							Level.FINER,
 							"{0}L1 supercall: {1}",
 							interpreter.debugModeString,
-							bundle.message().atomName())
+							bundle.message.atomName)
 					}
 					interpreter.argsBuffer.clear()
 					var reversedStackp = stackp + numArgs
@@ -630,7 +644,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					// stack with the actual value when the call completes
 					// (after ensuring it complies).
 					push(expectedReturnType)
-					val method: A_Method = bundle.bundleMethod()
+					val method: A_Method = bundle.bundleMethod
 					val matching: A_Definition
 					val beforeLookup = AvailRuntimeSupport.captureNanos()
 					matching = try
@@ -674,7 +688,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						// the failed return type check.
 						return returnCheckReifier
 					}
-					assert(stackp <= code.numSlots())
+					assert(stackp <= code.numSlots)
 					// Replace the stack slot.
 					pointerAtPut(stackp, result)
 				}
@@ -737,7 +751,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				Level.FINER,
 				logMessage,
 				interpreter.debugModeString,
-				continuation.function().code().methodName())
+				continuation.function().code().methodName)
 		}
 		reifier.pushAction { theInterpreter: Interpreter ->
 			theInterpreter.setReifiedContinuation(
@@ -873,13 +887,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		if (matching.isForwardDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(),
+				matching.definitionMethod,
 				AvailErrorCode.E_FORWARD_METHOD_DEFINITION)
 		}
 		if (matching.isAbstractDefinition())
 		{
 			return reifyAndReportFailedLookup(
-				matching.definitionMethod(),
+				matching.definitionMethod,
 				AvailErrorCode.E_ABSTRACT_METHOD_DEFINITION)
 		}
 		val savedFunction = interpreter.function!!
@@ -942,7 +956,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val checkOk = result.isInstanceOf(expectedReturnType)
 		val after = AvailRuntimeSupport.captureNanos()
 		val returner = interpreter.returningFunction!!
-		val calledPrimitive = returner.code().primitive()
+		val calledPrimitive = returner.code().codePrimitive()
 		if (calledPrimitive !== null)
 		{
 			calledPrimitive.addNanosecondsCheckingResultType(
@@ -950,9 +964,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		}
 		else
 		{
-			returner.code().returnerCheckStat().record(
+			returner.code().returnerCheckStat.record(
 				after - before, interpreter.interpreterIndex)
-			returnee.code().returneeCheckStat().record(
+			returnee.code().returneeCheckStat.record(
 				after - before, interpreter.interpreterIndex)
 		}
 		if (!checkOk)
@@ -971,7 +985,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			argsBuffer.add(expectedReturnType as AvailObject)
 			argsBuffer.add(reportedResult)
 			val reifier = interpreter.invokeFunction(
-				interpreter.runtime.resultDisagreedWithExpectedTypeFunction())!!
+				interpreter.runtime.resultDisagreedWithExpectedTypeFunction()
+			)!!
 			pointers = savedPointers
 			interpreter.chunk = L2Chunk.unoptimizedChunk
 			interpreter.setOffset(savedOffset)
@@ -1046,11 +1061,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 
 	companion object
 	{
-		/** The [Statistic] for reifications prior to label creation in L1.  */
+		/** The [Statistic] for reifications prior to label creation in L1. */
 		private val reificationBeforeLabelCreationStat = Statistic(
 			REIFICATIONS, "Reification before label creation in L1")
 
-		/** An empty array used for clearing the pointers quickly.  */
+		/** An empty array used for clearing the pointers quickly. */
 		private val emptyPointersArray = arrayOf<AvailObject>()
 
 		/**
@@ -1059,8 +1074,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		 */
 		private val whitespaces = Pattern.compile("\\s+")
 
-		/** The [CheckedMethod] for [run].  */
-		val runMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [run]. */
+		val runMethod = instanceMethod(
 			L1InstructionStepper::class.java,
 			L1InstructionStepper::run.name,
 			StackReifier::class.java)

@@ -40,6 +40,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.tokens
 import com.avail.descriptor.phrases.ExpressionAsStatementPhraseDescriptor.ObjectSlots.EXPRESSION
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tuples.A_Tuple
@@ -74,7 +75,7 @@ class ExpressionAsStatementPhraseDescriptor(
 	 * My slots of type [AvailObject].
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
-		/** The expression being wrapped to be a statement.  */
+		/** The expression being wrapped to be a statement. */
 		EXPRESSION
 	}
 
@@ -109,9 +110,9 @@ class ExpressionAsStatementPhraseDescriptor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(EXPRESSION).equals(aPhrase.expression()))
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(EXPRESSION).equals(aPhrase.expression))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)
@@ -120,7 +121,7 @@ class ExpressionAsStatementPhraseDescriptor(
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
 
 	override fun o_Hash(self: AvailObject) =
-		self.slot(EXPRESSION).hash() + -0x6f773228
+		combine2(self.slot(EXPRESSION).hash(), -0x6f773228)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
@@ -134,7 +135,7 @@ class ExpressionAsStatementPhraseDescriptor(
 	) = continuation(self)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens()
+		self.slot(EXPRESSION).tokens
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
@@ -175,11 +176,11 @@ class ExpressionAsStatementPhraseDescriptor(
 				setSlot(EXPRESSION, expression)
 			}
 
-		/** The mutable [ExpressionAsStatementPhraseDescriptor].  */
+		/** The mutable [ExpressionAsStatementPhraseDescriptor]. */
 		private val mutable =
 			ExpressionAsStatementPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ExpressionAsStatementPhraseDescriptor].  */
+		/** The shared [ExpressionAsStatementPhraseDescriptor]. */
 		private val shared =
 			ExpressionAsStatementPhraseDescriptor(Mutability.SHARED)
 	}

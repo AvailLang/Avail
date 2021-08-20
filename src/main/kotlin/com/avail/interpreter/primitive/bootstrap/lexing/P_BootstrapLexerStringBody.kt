@@ -73,8 +73,8 @@ object P_BootstrapLexerStringBody
 		val sourcePositionInteger = interpreter.argument(1)
 		val lineNumberInteger = interpreter.argument(2)
 
-		val startPosition = sourcePositionInteger.extractInt()
-		val startLineNumber = lineNumberInteger.extractInt()
+		val startPosition = sourcePositionInteger.extractInt
+		val startLineNumber = lineNumberInteger.extractInt
 
 		val token = parseString(source, startPosition, startLineNumber)
 		return interpreter.primitiveSuccess(set(tuple(token)))
@@ -144,7 +144,7 @@ object P_BootstrapLexerStringBody
 						{
 							// Treat \r or \r\n in the source just like \n.
 							if (scanner.hasNext()
-								&& scanner.peek() == '\n'.toInt())
+								&& scanner.peek() == '\n'.code)
 							{
 								scanner.next()
 							}
@@ -193,11 +193,11 @@ object P_BootstrapLexerStringBody
 				'\r' ->
 				{
 					// Transform \r or \r\n in the source into \n.
-					if (scanner.hasNext() && scanner.peek() == '\n'.toInt())
+					if (scanner.hasNext() && scanner.peek() == '\n'.code)
 					{
 						scanner.next()
 					}
-					builder.appendCodePoint('\n'.toInt())
+					builder.appendCodePoint('\n'.code)
 					canErase = true
 					erasurePosition = builder.length
 				}
@@ -205,13 +205,13 @@ object P_BootstrapLexerStringBody
 				{
 					// Just like a regular character, but limit how much
 					// can be removed by a subsequent '\|'.
-					builder.appendCodePoint(c.toInt())
+					builder.appendCodePoint(c.code)
 					canErase = true
 					erasurePosition = builder.length
 				}
 				else ->
 				{
-					builder.appendCodePoint(c.toInt())
+					builder.appendCodePoint(c.code)
 					if (canErase && !Character.isWhitespace(c))
 					{
 						canErase = false
@@ -249,8 +249,8 @@ object P_BootstrapLexerStringBody
 	internal class Scanner constructor (
 		private val source: A_String, var position: Int, var lineNumber: Int)
 	{
-		/** The number of characters in the module source.  */
-		private val sourceSize: Int = source.tupleSize()
+		/** The number of characters in the module source. */
+		private val sourceSize: Int = source.tupleSize
 
 		/**
 		 * Whether there are any more codepoints available.
@@ -277,7 +277,7 @@ object P_BootstrapLexerStringBody
 		operator fun next(): Int
 		{
 			val c = source.tupleCodePointAt(position++)
-			if (c == '\n'.toInt())
+			if (c == '\n'.code)
 			{
 				lineNumber++
 			}
@@ -308,25 +308,25 @@ object P_BootstrapLexerStringBody
 				"Unicode escape sequence in string literal")
 		}
 		var c = scanner.next()
-		while (c != ')'.toInt())
+		while (c != ')'.code)
 		{
 			var value = 0
 			var digitCount = 0
-			while (c != ','.toInt() && c != ')'.toInt())
+			while (c != ','.code && c != ')'.code)
 			{
-				if (c >= '0'.toInt() && c <= '9'.toInt())
+				if (c >= '0'.code && c <= '9'.code)
 				{
-					value = (value shl 4) + c - '0'.toInt()
+					value = (value shl 4) + c - '0'.code
 					digitCount++
 				}
-				else if (c >= 'A'.toInt() && c <= 'F'.toInt())
+				else if (c >= 'A'.code && c <= 'F'.code)
 				{
-					value = (value shl 4) + c - 'A'.toInt() + 10
+					value = (value shl 4) + c - 'A'.code + 10
 					digitCount++
 				}
-				else if (c >= 'a'.toInt() && c <= 'f'.toInt())
+				else if (c >= 'a'.code && c <= 'f'.code)
 				{
-					value = (value shl 4) + c - 'a'.toInt() + 10
+					value = (value shl 4) + c - 'a'.code + 10
 					digitCount++
 				}
 				else
@@ -349,8 +349,8 @@ object P_BootstrapLexerStringBody
 				throw AvailRejectedParseException(
 					STRONG,
 					"a comma-separated list of Unicode code"
-					+ " points, each being one to six (upper case)"
-					+ " hexadecimal digits")
+						+ " points, each being one to six (upper case)"
+						+ " hexadecimal digits")
 			}
 			if (value > CharacterDescriptor.maxCodePointInt)
 			{
@@ -359,7 +359,7 @@ object P_BootstrapLexerStringBody
 					"A valid Unicode code point, which must be <= U+10FFFF")
 			}
 			stringBuilder.appendCodePoint(value)
-			if (c == ','.toInt())
+			if (c == ','.code)
 			{
 				c = scanner.next()
 			}

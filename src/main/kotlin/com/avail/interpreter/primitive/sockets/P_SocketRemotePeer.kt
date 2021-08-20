@@ -76,10 +76,10 @@ object P_SocketRemotePeer : Primitive(1, CanInline)
 		interpreter.checkArgumentCount(1)
 		val handle = interpreter.argument(0)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
@@ -98,8 +98,7 @@ object P_SocketRemotePeer : Primitive(1, CanInline)
 		return interpreter.primitiveSuccess(
 			tuple(
 				tupleForByteArray(peer.address.address),
-				fromInt(peer.port))
-		)
+				fromInt(peer.port)))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -109,10 +108,8 @@ object P_SocketRemotePeer : Primitive(1, CanInline)
 				tupleTypeForSizesTypesDefaultType(
 					inclusive(4, 16),
 					emptyTuple,
-					bytes
-				),
-				unsignedShorts
-			))
+					bytes),
+				unsignedShorts))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

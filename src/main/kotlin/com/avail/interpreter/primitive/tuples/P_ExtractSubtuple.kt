@@ -84,15 +84,15 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		{
 			return interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val startInt = start.extractInt()
-		val endInt = end.extractInt()
+		val startInt = start.extractInt
+		val endInt = end.extractInt
 		return when
 		{
 			startInt < 1 ->
 				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			startInt > endInt + 1 ->
 				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
-			endInt > tuple.tupleSize() ->
+			endInt > tuple.tupleSize ->
 				interpreter.primitiveFailure(E_SUBSCRIPT_OUT_OF_BOUNDS)
 			else ->
 				interpreter.primitiveSuccess(
@@ -104,12 +104,9 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		argumentTypes: List<A_Type>
 	): Fallibility
 	{
-		val tupleType = argumentTypes[0]
-		val startIndexType = argumentTypes[1]
-		val endIndexType = argumentTypes[2]
-
+		val (tupleType, startIndexType, endIndexType) = argumentTypes
 		return checkFallibility(
-			tupleType.sizeRange(), startIndexType, endIndexType)
+			tupleType.sizeRange, startIndexType, endIndexType)
 	}
 
 	/**
@@ -133,30 +130,30 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		endIndexType: A_Type
 	): Fallibility
 	{
-		val sizeLower = sizeRange.lowerBound().run {
+		val sizeLower = sizeRange.lowerBound.run {
 			if (!isInt) return CallSiteMustFail  // Call can't actually happen.
-			extractInt()
+			extractInt
 		}
-		val sizeUpper = sizeRange.upperBound().run {
-			if (isInt) extractInt()
+		val sizeUpper = sizeRange.upperBound.run {
+			if (isInt) extractInt
 			else Int.MAX_VALUE  // The *actual* tuple is constrained.
 		}
 
-		val startLower = startIndexType.lowerBound().run {
+		val startLower = startIndexType.lowerBound.run {
 			if (!isInt) return CallSiteMustFail
-			extractInt()
+			extractInt
 		}
-		val endLower = endIndexType.lowerBound().run {
+		val endLower = endIndexType.lowerBound.run {
 			if (!isInt) return CallSiteMustFail
-			extractInt()
+			extractInt
 		}
-		val startUpper = startIndexType.upperBound().run {
+		val startUpper = startIndexType.upperBound.run {
 			if (!isInt) return CallSiteCanFail
-			extractInt()
+			extractInt
 		}
-		val endUpper = endIndexType.upperBound().run {
+		val endUpper = endIndexType.upperBound.run {
 			if (!isInt) return CallSiteCanFail
-			extractInt()
+			extractInt
 		}
 		return when
 		{
@@ -177,10 +174,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val tupleType = argumentTypes[0]
-		val startIndexType = argumentTypes[1]
-		val endIndexType = argumentTypes[2]
-
+		val (tupleType, startIndexType, endIndexType) = argumentTypes
 		return computeSliceType(tupleType, startIndexType, endIndexType)
 	}
 
@@ -207,28 +201,28 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 	): A_Type
 	{
 		// Precompute a fallback return type for easy exits.
-		val fallback = mostGeneralTupleType()
+		val fallback = mostGeneralTupleType
 
-		val sizeRange = tupleType.sizeRange()
-		val sizeUpper = sizeRange.upperBound().run {
-			if (isInt) extractInt()
+		val sizeRange = tupleType.sizeRange
+		val sizeUpper = sizeRange.upperBound.run {
+			if (isInt) extractInt
 			else Int.MAX_VALUE  // If it's very large or even infinity
 		}
-		val startLower = startIndexType.lowerBound().run {
+		val startLower = startIndexType.lowerBound.run {
 			if (!isInt) return fallback
-			extractInt()
+			extractInt
 		}
-		val startUpper = startIndexType.upperBound().run {
+		val startUpper = startIndexType.upperBound.run {
 			if (!isInt) Int.MAX_VALUE
-			else extractInt()
+			else extractInt
 		}
-		val endLower = endIndexType.lowerBound().run {
+		val endLower = endIndexType.lowerBound.run {
 			if (!isInt) return fallback
-			extractInt()
+			extractInt
 		}
-		val endUpper = endIndexType.upperBound().run {
+		val endUpper = endIndexType.upperBound.run {
 			if (!isInt) Int.MAX_VALUE
-			else extractInt()
+			else extractInt
 		}
 
 		if (startLower > endUpper)
@@ -240,7 +234,7 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 		// No need to compute element types beyond this position, since
 		// they'll all have the same type.
 		val variationLimit =
-			min(tupleType.typeTuple().tupleSize() + 1, sizeUpper)
+			min(tupleType.typeTuple.tupleSize + 1, sizeUpper)
 
 		// The difference between extrema for starting positions.
 		val smearDelta = startUpper - startLower
@@ -276,11 +270,10 @@ object P_ExtractSubtuple : Primitive(3, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				naturalNumbers,
-				wholeNumbers
-			),
-			mostGeneralTupleType())
+				wholeNumbers),
+			mostGeneralTupleType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_SUBSCRIPT_OUT_OF_BOUNDS))

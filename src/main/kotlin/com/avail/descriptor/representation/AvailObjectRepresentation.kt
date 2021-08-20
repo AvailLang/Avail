@@ -79,12 +79,12 @@ abstract class AvailObjectRepresentation protected constructor(
 				+ ((objectSlotsSize + integerSlotsCount) shl 3).toLong())
 	}
 
-	/** An array of all my references to other [AvailObject]s.  */
+	/** An array of all my references to other [AvailObject]s. */
 	private var objectSlots: Array<AvailObject?> =
 		if (objectSlotsSize == 0) emptyObjectSlots
 		else arrayOfNulls(objectSlotsSize)
 
-	/** A `LongArray` encoding all of my digital state.  */
+	/** A `LongArray` encoding all of my digital state. */
 	private var longSlots: LongArray =
 		if (integerSlotsCount == 0) emptyIntegerSlots
 		else LongArray(integerSlotsCount)
@@ -235,8 +235,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			else ->
 			{
 				newPermittedFields = Arrays.copyOf(
-					permittedFields, permittedFields.size + 1
-				)
+					permittedFields, permittedFields.size + 1)
 				newPermittedFields[permittedFields.size] = field
 			}
 		}
@@ -553,6 +552,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * @param anInteger
 	 *   An [Int] to store in the indicated slot.
 	 */
+	@Suppress("unused")
 	fun setMutableSlot(bitField: BitField, anInteger: Int)
 	{
 		checkWriteForField(bitField.integerSlot)
@@ -774,6 +774,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	 * Extract the current value of the slot, pass it to the supplied inline
 	 * Kotlin function, and write the result back to the slot.
 	 */
+	@Suppress("unused")
 	fun updateSlot(
 		field: ObjectSlotsEnum,
 		updater: AvailObject.()->A_BasicObject)

@@ -42,6 +42,7 @@ import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectTypeDescriptor
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tokens.A_Token
 import com.avail.descriptor.tuples.A_String
@@ -53,9 +54,6 @@ import com.avail.descriptor.tuples.LongTupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TwoByteStringDescriptor
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.A_Type.Companion.argsTupleType
-import com.avail.descriptor.types.A_Type.Companion.declaredExceptions
-import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
@@ -483,10 +481,20 @@ interface A_BasicObject : JSONFriendly {
 	 */
 	fun equalsTwoByteString(aTwoByteString: A_String): Boolean
 
+
 	/**
-	 * Dispatch to the descriptor.
+	 * Test if the receiver is the [nil][NilDescriptor] value.
+	 *
+	 * Note: [nil] is never the target of an indirection.
 	 */
-	fun equalsNil(): Boolean
+	val isNil get() = this === nil
+
+	/**
+	 * Test if the receiver is *not* the [nil][NilDescriptor] value.
+	 *
+	 * Note: [nil] is never the target of an indirection.
+	 */
+	val notNil get() = this !== nil
 
 	/**
 	 * Dispatch to the descriptor.
@@ -722,13 +730,13 @@ interface A_BasicObject : JSONFriendly {
 	fun declarationKind(): DeclarationKind
 
 	/**
-	 * @return
+	 * Answer whether the receiver is a 32-bit signed integer.
 	 */
 	@get:ReferencedInGeneratedCode
 	val isInt: Boolean
 
 	/**
-	 * @return
+	 * Answer whether the receiver is a 64-bit signed integer.
 	 */
 	val isLong: Boolean
 
@@ -1134,47 +1142,47 @@ interface A_BasicObject : JSONFriendly {
 			else -> body()
 		}
 
-		/** The [CheckedMethod] for [.equals].  */
-		val equalsMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [.equals]. */
+		val equalsMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::equals.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_BasicObject::class.java)
 
-		/** The [CheckedMethod] for [.isInstanceOf].  */
-		val isInstanceOfMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [.isInstanceOf]. */
+		val isInstanceOfMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInstanceOf.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_Type::class.java)
 
-		/** The [CheckedMethod] for [.makeImmutable].  */
-		val makeImmutableMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [.makeImmutable]. */
+		val makeImmutableMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::makeImmutable.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.makeSubobjectsImmutable].  */
+		/** The [CheckedMethod] for [.makeSubobjectsImmutable]. */
 		@Suppress("unused")
-		val makeSubobjectsImmutableMethod: CheckedMethod = instanceMethod(
+		val makeSubobjectsImmutableMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::makeSubobjectsImmutable.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.traversed].  */
-		val traversedMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [.traversed]. */
+		val traversedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::traversed.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.isInt].  */
-		val isIntMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [.isInt]. */
+		val isIntMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInt.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** The [CheckedMethod] for [.isDouble].  */
-		val isDoubleMethod: CheckedMethod = instanceMethod(
+		/** The [CheckedMethod] for [.isDouble]. */
+		val isDoubleMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isDouble.name,
 			Boolean::class.javaPrimitiveType!!)

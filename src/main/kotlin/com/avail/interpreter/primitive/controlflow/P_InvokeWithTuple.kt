@@ -33,6 +33,8 @@ package com.avail.interpreter.primitive.controlflow
 
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import com.avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.tuples.A_Tuple
@@ -90,13 +92,13 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val argTuple = interpreter.argument(1)
 		val functionType = function.kind()
 
-		val numArgs = argTuple.tupleSize()
+		val numArgs = argTuple.tupleSize
 		val code = function.code()
 		if (code.numArgs() != numArgs)
 		{
 			return interpreter.primitiveFailure(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		val tupleType = functionType.argsTupleType()
+		val tupleType = functionType.argsTupleType
 		for (i in 1 .. numArgs)
 		{
 			val arg = argTuple.tupleAt(i)
@@ -118,20 +120,18 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		functionType(
 			tuple(
 				mostGeneralFunctionType(),
-				mostGeneralTupleType()),
-			TOP.o
-		)
+				mostGeneralTupleType),
+			TOP.o)
 
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val functionType = argumentTypes[0]
-		val argTupleType = argumentTypes[1]
-		val paramsType = functionType.argsTupleType()
-		val fixedSize = argTupleType.sizeRange().upperBound().equals(
-			argTupleType.sizeRange().lowerBound())
+		val (functionType, argTupleType) = argumentTypes
+		val paramsType = functionType.argsTupleType
+		val fixedSize = argTupleType.sizeRange.upperBound.equals(
+			argTupleType.sizeRange.lowerBound)
 		if (fixedSize
-			&& paramsType.sizeRange().equals(argTupleType.sizeRange())
+			&& paramsType.sizeRange.equals(argTupleType.sizeRange)
 			&& argTupleType.isSubtypeOf(paramsType))
 		{
 			return CallSiteMayInvoke
@@ -143,33 +143,32 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val functionType = argumentTypes[0]
-		val argTupleType = argumentTypes[1]
-		val paramsType = functionType.argsTupleType()
-		val argCountRange = argTupleType.sizeRange()
-		val argCount = argCountRange.upperBound()
-		if (argCount.equals(argCountRange.lowerBound())
-		    && paramsType.sizeRange().equals(argCountRange)
-		    && argTupleType.isSubtypeOf(paramsType))
+		val (functionType, argTupleType) = argumentTypes
+		val paramsType = functionType.argsTupleType
+		val argCountRange = argTupleType.sizeRange
+		val argCount = argCountRange.upperBound
+		if (argCount.equals(argCountRange.lowerBound)
+			&& paramsType.sizeRange.equals(argCountRange)
+			&& argTupleType.isSubtypeOf(paramsType))
 		{
 			// The argument types are hereby guaranteed to be compatible.
 			// Therefore the invoke itself will succeed, so we can rely on the
 			// invoked function's return type at least.  See if we can do even
 			// better if we know the exact function being invoked.
-			if (functionType.instanceCount().equalsInt(1))
+			if (functionType.instanceCount.equalsInt(1))
 			{
 				// The actual function being invoked is known.
-				val function = functionType.instance()
+				val function = functionType.instance
 				val code = function.code()
-				val primitive = code.primitive()
+				val primitive = code.codePrimitive()
 				if (primitive !== null)
 				{
 					// The function being invoked is itself a primitive. Dig
 					// deeper to find out whether that primitive would itself
 					// always succeed, and if so, what type it guarantees.
 					val primArgCount = primitive.argCount
-					if (argCountRange.lowerBound().equalsInt(primArgCount)
-					    && argCountRange.upperBound().equalsInt(primArgCount))
+					if (argCountRange.lowerBound.equalsInt(primArgCount)
+						&& argCountRange.upperBound.equalsInt(primArgCount))
 					{
 						val innerArgTypes = (1 .. primArgCount).map {
 							argTupleType.typeAtIndex(it)
@@ -188,11 +187,11 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 							}
 							CallSiteMustFail ->
 							{
-								code.returnTypeIfPrimitiveFails()
+								code.returnTypeIfPrimitiveFails
 							}
 							else ->
 							{
-								code.returnTypeIfPrimitiveFails().typeUnion(
+								code.returnTypeIfPrimitiveFails.typeUnion(
 									primitive.returnTypeGuaranteedByVM(
 										code, innerArgTypes))
 							}
@@ -210,8 +209,8 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		}
 		// The arguments that will be supplied to the inner function might not
 		// have the right count.
-		return functionType.returnType().typeUnion(
-			rawFunction.returnTypeIfPrimitiveFails())
+		return functionType.returnType.typeUnion(
+			rawFunction.returnTypeIfPrimitiveFails)
 	}
 
 	/**
@@ -247,16 +246,16 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 
 		// Examine the function type.
 		val functionType = functionReg.type()
-		val functionArgsType = functionType.argsTupleType()
-		val functionTypeSizes = functionArgsType.sizeRange()
-		val upperBound = functionTypeSizes.upperBound()
+		val functionArgsType = functionType.argsTupleType
+		val functionTypeSizes = functionArgsType.sizeRange
+		val upperBound = functionTypeSizes.upperBound
 		if (!upperBound.isInt ||
-			!functionTypeSizes.lowerBound().equals(upperBound))
+			!functionTypeSizes.lowerBound.equals(upperBound))
 		{
 			// The exact function arity is not known.  Give up.
 			return false
 		}
-		val argsSize = upperBound.extractInt()
+		val argsSize = upperBound.extractInt
 
 		// Note: Uses any as each type, since we're going to do strengthening
 		// checks ourselves, below.
@@ -270,7 +269,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 		val functionArgTypes = functionArgsType.tupleOfTypesFromTo(1, argsSize)
 
 		// Fall back if the count will always be wrong.
-		if (functionArgTypes.tupleSize() != argsSize) return false
+		if (functionArgTypes.tupleSize != argsSize) return false
 		val failurePath = generator.createBasicBlock(
 			"Failed dynamic type check for P_InvokeWithTuple")
 		for (i in 1..argsSize)

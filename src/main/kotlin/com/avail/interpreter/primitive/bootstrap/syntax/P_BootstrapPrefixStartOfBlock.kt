@@ -76,18 +76,17 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 		var fiberGlobals = fiber.fiberGlobals()
 		var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 		val bindings = clientData.mapAt(compilerScopeMapKey)
-		val stack: A_Tuple =
-			if (clientData.hasKey(compilerScopeStackKey))
-			{
+		var stack: A_Tuple = when
+		{
+			clientData.hasKey(compilerScopeStackKey) ->
 				clientData.mapAt(compilerScopeStackKey)
-			}
-			else { emptyTuple }.appendCanDestroy(bindings, false)
-		clientData =
-			clientData.mapAtPuttingCanDestroy(
-				compilerScopeStackKey, stack, true)
-		fiberGlobals =
-			fiberGlobals.mapAtPuttingCanDestroy(
-				clientDataGlobalKey, clientData, true)
+			else -> emptyTuple
+		}
+		stack = stack.appendCanDestroy(bindings, false)
+		clientData = clientData.mapAtPuttingCanDestroy(
+			compilerScopeStackKey, stack, true)
+		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			clientDataGlobalKey, clientData, true)
 		fiber.setFiberGlobals(fiberGlobals.makeShared())
 		return interpreter.primitiveSuccess(nil)
 	}

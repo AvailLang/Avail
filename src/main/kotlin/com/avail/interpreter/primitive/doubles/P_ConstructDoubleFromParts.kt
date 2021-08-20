@@ -75,7 +75,7 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 		val numeral =
 			("${integerPart.string().asNativeString()}."
 				+ "${fractionalPart.string().asNativeString()}e"
-			    + exponentPart.string().asNativeString())
+				+ exponentPart.string().asNativeString())
 		val result: A_Number
 		try
 		{
@@ -97,6 +97,5 @@ object P_ConstructDoubleFromParts : Primitive(3, CannotFail, CanInline, CanFold)
 				literalTokenType(wholeNumbers),
 				literalTokenType(wholeNumbers),
 				literalTokenType(integers)),
-			DOUBLE.o
-		)
+			DOUBLE.o)
 }

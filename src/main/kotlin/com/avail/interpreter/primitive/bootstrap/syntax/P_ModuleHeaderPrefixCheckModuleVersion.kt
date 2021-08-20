@@ -67,25 +67,25 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		val versionsOptionalList = interpreter.argument(1)
-		assert(versionsOptionalList.expressionsSize() == 1)
+		assert(versionsOptionalList.expressionsSize == 1)
 		val versions = versionsOptionalList.expressionAt(1)
-		val versionsCount = versions.expressionsSize()
-		val latestVersionPhrase = versions.lastExpression()
+		val versionsCount = versions.expressionsSize
+		val latestVersionPhrase = versions.lastExpression
 		assert(latestVersionPhrase.phraseKindIsUnder(LITERAL_PHRASE))
-		val latestVersionToken = latestVersionPhrase.token()
+		val latestVersionToken = latestVersionPhrase.token
 		assert(latestVersionToken.isLiteralToken())
 		val latestVersionString = latestVersionToken.literal().literal()
 		for (i in 1 until versionsCount)
 		{
 			val oldVersionPhrase = versions.expressionAt(i)
-			val oldVersion = oldVersionPhrase.token().literal().literal()
+			val oldVersion = oldVersionPhrase.token.literal().literal()
 			if (latestVersionString.equals(oldVersion))
 			{
 				throw AvailRejectedParseException(
 					STRONG,
 					"module version $latestVersionString to be unique, not a "
 						+  "duplicate of #$i in " + "the list (on line "
-						+ "${oldVersionPhrase.token().lineNumber()})")
+						+ "${oldVersionPhrase.token.lineNumber()})")
 			}
 		}
 		return interpreter.primitiveSuccess(nil)
@@ -98,6 +98,5 @@ object P_ModuleHeaderPrefixCheckModuleVersion : Primitive(2, Private, Bootstrap)
 				stringLiteralType,
 				/* Optional versions */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
-			TOP.o
-		)
+			TOP.o)
 }

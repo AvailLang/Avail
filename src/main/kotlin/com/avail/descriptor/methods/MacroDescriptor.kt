@@ -36,8 +36,11 @@ import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
+import com.avail.descriptor.bundles.A_Bundle.Companion.numArgs
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.FunctionDescriptor
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
+import com.avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import com.avail.descriptor.methods.DefinitionDescriptor.Companion.builtInNoModuleName
 import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.BODY_BLOCK
 import com.avail.descriptor.methods.MacroDescriptor.ObjectSlots.BUNDLE
@@ -51,6 +54,7 @@ import com.avail.descriptor.phrases.ListPhraseDescriptor
 import com.avail.descriptor.phrases.PhraseDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -144,10 +148,12 @@ class MacroDescriptor private constructor(
 	override fun o_DefinitionModuleName(self: AvailObject): A_String
 	{
 		val module: A_Module = self.slot(MODULE)
-		return if (module.equalsNil()) {
+		return if (module.isNil) {
 			builtInNoModuleName
-		} else {
-			module.moduleName()
+		}
+		else
+		{
+			module.moduleName
 		}
 	}
 
@@ -164,7 +170,13 @@ class MacroDescriptor private constructor(
 		self.slot(BUNDLE)
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.bodyBlock().hash() xor 0x67f6ec56 + 0x0AFB0E62
+		combine2(self.bodyBlock().hash(), 0x67f6ec56)
+
+	override fun o_IsAbstractDefinition(self: AvailObject): Boolean = false
+
+	override fun o_IsForwardDefinition(self: AvailObject): Boolean = false
+
+	override fun o_IsMethodDefinition(self: AvailObject): Boolean = false
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.MACRO_DEFINITION.o
 
@@ -173,16 +185,16 @@ class MacroDescriptor private constructor(
 		// A macro definition's parsing signature is a list phrase type whose
 		// covariant subexpressions type is the body block's kind's arguments
 		// type.
-		val argsTupleType = self.slot(BODY_BLOCK).kind().argsTupleType()
-		val sizes = argsTupleType.sizeRange()
-		assert(sizes.lowerBound().extractInt()
-			== sizes.upperBound().extractInt())
-		assert(sizes.lowerBound().extractInt() == self.slot(BUNDLE).numArgs())
+		val argsTupleType = self.slot(BODY_BLOCK).kind().argsTupleType
+		val sizes = argsTupleType.sizeRange
+		assert(sizes.lowerBound.extractInt
+			== sizes.upperBound.extractInt)
+		assert(sizes.lowerBound.extractInt == self.slot(BUNDLE).numArgs)
 		// TODO MvG - 2016-08-21 deal with permutation of main list.
-		return ListPhraseTypeDescriptor.createListNodeType(
+		return ListPhraseTypeDescriptor.createListPhraseType(
 			PhraseKind.LIST_PHRASE,
 			mappingElementTypes(argsTupleType) {
-				it.phraseTypeExpressionType()
+				it.phraseTypeExpressionType
 			},
 			argsTupleType)
 	}
@@ -197,7 +209,7 @@ class MacroDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("macro definition") }
 			at("definition method") {
-				self.definitionBundle().message().atomName().writeTo(writer)
+				self.definitionBundle().message.atomName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -212,7 +224,7 @@ class MacroDescriptor private constructor(
 		writer.writeObject {
 			at("kind") { write("macro definition") }
 			at("definition method") {
-				self.definitionBundle().message().atomName().writeTo(writer)
+				self.definitionBundle().message.atomName.writeTo(writer)
 			}
 			at("definition module") {
 				self.definitionModuleName().writeTo(writer)
@@ -260,10 +272,10 @@ class MacroDescriptor private constructor(
 			setSlot(MACRO_PREFIX_FUNCTIONS, prefixFunctions)
 		}
 
-		/** The mutable [MacroDescriptor].  */
+		/** The mutable [MacroDescriptor]. */
 		private val mutable = MacroDescriptor(Mutability.MUTABLE)
 
-		/** The shared [MacroDescriptor].  */
+		/** The shared [MacroDescriptor]. */
 		private val shared = MacroDescriptor(Mutability.SHARED)
 	}
 }

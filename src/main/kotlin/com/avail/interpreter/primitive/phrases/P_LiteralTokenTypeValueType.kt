@@ -62,7 +62,7 @@ object P_LiteralTokenTypeValueType : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val literalTokenType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(literalTokenType.literalType())
+		return interpreter.primitiveSuccess(literalTokenType.literalType)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

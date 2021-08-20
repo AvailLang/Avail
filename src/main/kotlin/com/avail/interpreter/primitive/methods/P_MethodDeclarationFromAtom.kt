@@ -34,6 +34,7 @@ package com.avail.interpreter.primitive.methods
 
 import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import com.avail.descriptor.sets.SetDescriptor.Companion.set
@@ -72,7 +73,7 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 		val function = interpreter.argument(1)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
-		if (loader === null || loader.module().equalsNil())
+		if (loader === null || loader.module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		}
@@ -87,8 +88,8 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 			{
 				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
-				function.code().setMethodName(
-					stringFrom(atom.atomName().toString()))
+				function.code().methodName =
+					stringFrom(atom.atomName.toString())
 				succeed(nil)
 			}
 			catch (e: AvailException)

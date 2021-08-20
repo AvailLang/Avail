@@ -32,7 +32,7 @@
 
 Module "Early Maps"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Collections" = ("_[_]else_")
 Uses
@@ -50,8 +50,8 @@ Uses
 	"Variables"
 Names
 	"environment map",
-	"`${…}«else_»",
-	"`${…$}«else_»"
+	"${…}«else_»",
+	"${…#}«else_»"
 Body
 
 Method "{_→_`|_.._}" is stable at
@@ -325,7 +325,7 @@ Public method "environment map" is
 /**
  * Answer the value of the requested environment variable.
  *
- * @method "`${…}«else_»"
+ * @method "${…}«else_»"
  * @param "aToken" "token"
  *        The name of the environment variable.
  * @param "else" "[]→string"
@@ -334,7 +334,7 @@ Public method "environment map" is
  * @returns "string"
  * @category "Maps" "Queries"
  */
-Public method "`${…}«else_»" is
+Public method "${…}«else_»" is
 [
 	aToken : token,
 	else : ([]→string)?
@@ -351,7 +351,7 @@ Public method "`${…}«else_»" is
 /**
  * Answer the value of the requested environment variable.
  *
- * @method "`${…$}«else_»"
+ * @method "${…#}«else_»"
  * @param "aToken" "literal token ⇒ nonempty string"
  *        The name of the environment variable.
  * @param "else" "[]→string"
@@ -360,7 +360,7 @@ Public method "`${…}«else_»" is
  * @returns "string"
  * @category "Maps" "Queries"
  */
-Public method "`${…$}«else_»" is
+Public method "${…#}«else_»" is
 [
 	aToken : literal token ⇒ nonempty string,
 	else : ([]→string)?

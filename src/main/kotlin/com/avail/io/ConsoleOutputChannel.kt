@@ -59,7 +59,7 @@ import java.nio.charset.StandardCharsets
  */
 class ConsoleOutputChannel constructor(stream: PrintStream) : TextOutputChannel
 {
-	/** The wrapped [writer][Writer].  */
+	/** The wrapped [writer][Writer]. */
 	private val out: Writer
 
 	init

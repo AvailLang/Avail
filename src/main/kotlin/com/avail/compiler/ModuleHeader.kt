@@ -34,6 +34,7 @@ package com.avail.compiler
 
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
+import com.avail.compiler.ModuleImport.Companion.fromSerializedTuple
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.applyModuleHeader
@@ -152,7 +153,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 * tuples suitable for serialization.
 	 */
 	private val tuplesForSerializingModuleImports: A_Tuple get () =
-		tupleFromList(importedModules.map { it.tupleForSerialization })
+		tupleFromList(importedModules.map(ModuleImport::tupleForSerialization))
 
 	/**
 	 * Convert the information encoded in a tuple into a [List] of
@@ -168,7 +169,7 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	@Throws(MalformedSerialStreamException::class)
 	private fun moduleImportsFromTuple(
 			serializedTuple: A_Tuple): List<ModuleImport> =
-		serializedTuple.map { ModuleImport.fromSerializedTuple(it) }
+		serializedTuple.map(::fromSerializedTuple)
 
 	/**
 	 * Extract the module's header information from the [Deserializer].
@@ -205,17 +206,12 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 		// Synthesize fake tokens for the pragma strings.
 		for (pragmaString in thePragmas)
 		{
-			pragmas.add(
-				literalToken(
-					pragmaString,
-					0,
-					0,
-					pragmaString))
+			pragmas.add(literalToken(pragmaString, 0, 0, pragmaString))
 		}
 		val positionInteger = deserializer.deserialize()!!
-		startOfBodyPosition = positionInteger.extractInt()
+		startOfBodyPosition = positionInteger.extractInt
 		val lineNumberInteger = deserializer.deserialize()!!
-		startOfBodyLineNumber = lineNumberInteger.extractInt()
+		startOfBodyLineNumber = lineNumberInteger.extractInt
 	}
 
 	/**
@@ -230,6 +226,6 @@ class ModuleHeader constructor(val moduleName: ResolvedModuleName)
 	 */
 	fun applyToModule(loader: AvailLoader): String?
 	{
-		return loader.module().applyModuleHeader(loader, this)
+		return loader.module.applyModuleHeader(loader, this)
 	}
 }

@@ -66,9 +66,9 @@ object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(
 			integerRangeType(
 				min,
-				minInc.extractBoolean(),
+				minInc.extractBoolean,
 				max,
-				maxInc.extractBoolean()))
+				maxInc.extractBoolean))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -78,6 +78,5 @@ object P_CreateIntegerRange : Primitive(4, CannotFail, CanFold, CanInline)
 				booleanType,
 				extendedIntegers,
 				booleanType),
-			extendedIntegersMeta
-		)
+			extendedIntegersMeta)
 }

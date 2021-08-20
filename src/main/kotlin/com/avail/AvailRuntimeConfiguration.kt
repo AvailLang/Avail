@@ -43,7 +43,7 @@ import java.util.Scanner
 @Suppress("unused")
 object AvailRuntimeConfiguration
 {
-	/** The build version, set by the build process.  */
+	/** The build version, set by the build process. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	val buildVersion: String
 
@@ -51,7 +51,7 @@ object AvailRuntimeConfiguration
 	 * The active versions of the Avail virtual machine. These are the versions
 	 * for which the virtual machine guarantees compatibility.
 	 */
-	val activeVersions = arrayOf("1.5.1")
+	val activeVersions = arrayOf("Avail-1.6.0")
 
 	/**
 	 * Answer a short string indicating the most recent version of Avail
@@ -64,7 +64,7 @@ object AvailRuntimeConfiguration
 		get() = activeVersions[activeVersions.size - 1].split(" ".toRegex(), 2)
 			.toTypedArray()[0]
 
-	/** The number of available processors.  */
+	/** The number of available processors. */
 	val availableProcessors = Runtime.getRuntime().availableProcessors()
 
 	/**

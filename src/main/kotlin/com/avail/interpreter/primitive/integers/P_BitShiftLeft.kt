@@ -89,7 +89,7 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 		val (_, shiftFactors) = argumentTypes
 		return when
 		{
-			shiftFactors.upperBound().lessOrEqual(zero) ->
+			shiftFactors.upperBound.lessOrEqual(zero) ->
 			{
 				// A left shift by a non-positive amount is a right shift by a
 				// non-negative amount, so it can't exceed the limit if the base
@@ -106,19 +106,19 @@ object P_BitShiftLeft : Primitive(2, CanFold, CanInline)
 	): A_Type
 	{
 		val (baseIntegers: A_Type, shiftFactors: A_Type) = argumentTypes
-		val leastShift = shiftFactors.lowerBound()
+		val leastShift = shiftFactors.lowerBound
 		return when
 		{
-			shiftFactors.upperBound().equals(leastShift) ->
+			shiftFactors.upperBound.equals(leastShift) ->
 			{
 				// Shifting by a constant amount is a common case.
 				integerRangeType(
-					baseIntegers.lowerBound().bitShift(leastShift, false),
-					baseIntegers.lowerInclusive(),
-					baseIntegers.upperBound().bitShift(leastShift, false),
-					baseIntegers.upperInclusive())
+					baseIntegers.lowerBound.bitShift(leastShift, false),
+					baseIntegers.lowerInclusive,
+					baseIntegers.upperBound.bitShift(leastShift, false),
+					baseIntegers.upperInclusive)
 			}
-			baseIntegers.lowerBound().greaterOrEqual(zero) ->
+			baseIntegers.lowerBound.greaterOrEqual(zero) ->
 			{
 				// Be conservative for simplicity.
 				wholeNumbers

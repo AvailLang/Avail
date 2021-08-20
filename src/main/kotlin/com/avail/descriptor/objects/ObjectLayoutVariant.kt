@@ -107,12 +107,11 @@ class ObjectLayoutVariant private constructor(
 		val explicitSubclassingKey = SpecialAtom.EXPLICIT_SUBCLASSING_KEY.atom
 		// Alphabetize the fields to make debugging nice.  Note that field names
 		// don't have to be lexicographically unique.
-		val sortedFields = allFields.sortedBy { it.atomName().asNativeString() }
+		val sortedFields = allFields.sortedBy { it.atomName.asNativeString() }
 		fieldToSlotIndex = mutableMapOf()
 		var slotCount = 0
 		realSlots = sortedFields.filter { field ->
-			val isReal =
-				field.getAtomProperty(explicitSubclassingKey).equalsNil()
+			val isReal = field.getAtomProperty(explicitSubclassingKey).isNil
 			fieldToSlotIndex[field] = if (isReal) ++slotCount else 0
 			isReal
 		}
@@ -126,24 +125,24 @@ class ObjectLayoutVariant private constructor(
 	 */
 	val thisPojo: A_BasicObject = identityPojo(this)
 
-	/** The mutable object descriptor for this variant.  */
+	/** The mutable object descriptor for this variant. */
 	val mutableObjectDescriptor = ObjectDescriptor(Mutability.MUTABLE, this)
 
-	/** The immutable object descriptor for this variant.  */
+	/** The immutable object descriptor for this variant. */
 	val immutableObjectDescriptor = ObjectDescriptor(Mutability.IMMUTABLE, this)
 
-	/** The shared object descriptor for this variant.  */
+	/** The shared object descriptor for this variant. */
 	val sharedObjectDescriptor = ObjectDescriptor(Mutability.SHARED, this)
 
-	/** The mutable object type descriptor for this variant.  */
+	/** The mutable object type descriptor for this variant. */
 	val mutableObjectTypeDescriptor =
 		ObjectTypeDescriptor(Mutability.MUTABLE, this)
 
-	/** The immutable object type descriptor for this variant.  */
+	/** The immutable object type descriptor for this variant. */
 	val immutableObjectTypeDescriptor =
 		ObjectTypeDescriptor(Mutability.IMMUTABLE, this)
 
-	/** The shared object type descriptor for this variant.  */
+	/** The shared object type descriptor for this variant. */
 	val sharedObjectTypeDescriptor =
 		ObjectTypeDescriptor(Mutability.SHARED, this)
 

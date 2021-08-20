@@ -81,27 +81,29 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 		val handle = interpreter.argument(0)
 		val options = interpreter.argument(1)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
 		return try
 		{
-			for ((key, value) in options.mapIterable())
+			for ((key, value) in options.mapIterable)
 			{
-				val option = Options.socketOptions[key.extractInt()]!!
+				val option = Options.socketOptions[key.extractInt]!!
 				if (option.type() == java.lang.Boolean::class.java
-						&& value.isBoolean) {
+						&& value.isBoolean)
+						{
 					val booleanOption: SocketOption<Boolean> = option.cast()
-					socket.setOption(booleanOption, value.extractBoolean())
+					socket.setOption(booleanOption, value.extractBoolean)
 				}
 				else if (option.type() == java.lang.Integer::class.java
-						&& value.isInt) {
+						&& value.isInt)
+				{
 					val intOption: SocketOption<Int> = option.cast()
-					socket.setOption(intOption, value.extractInt())
+					socket.setOption(intOption, value.extractInt)
 				}
 				else return interpreter.primitiveFailure(
 					E_INCORRECT_ARGUMENT_TYPE)
@@ -125,10 +127,8 @@ object P_ServerSocketSetOption : Primitive(2, CanInline, HasSideEffect)
 				mapTypeForSizesKeyTypeValueType(
 					inclusive(0, (Options.socketOptions.size - 1).toLong()),
 					inclusive(1, (Options.socketOptions.size - 1).toLong()),
-					ANY.o
-				)),
-			TOP.o
-		)
+					ANY.o)),
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

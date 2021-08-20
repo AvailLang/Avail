@@ -103,10 +103,10 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TokenDescriptor.IntegerSlots
-			       .TOKEN_TYPE_AND_START_AND_LINE.ordinal == START_AND_LINE.ordinal)
+					.TOKEN_TYPE_AND_START_AND_LINE.ordinal == START_AND_LINE.ordinal)
 				assert(TokenDescriptor.IntegerSlots.START.isSamePlaceAs(START))
 				assert(TokenDescriptor.IntegerSlots.LINE_NUMBER
-			       .isSamePlaceAs(LINE_NUMBER))
+					.isSamePlaceAs(LINE_NUMBER))
 			}
 		}
 	}
@@ -132,9 +132,9 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			init
 			{
 				assert(TokenDescriptor.ObjectSlots.STRING.ordinal
-			       == STRING.ordinal)
+					== STRING.ordinal)
 				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
-			       == NEXT_LEXING_STATE_POJO.ordinal)
+					== NEXT_LEXING_STATE_POJO.ordinal)
 			}
 		}
 	}
@@ -142,7 +142,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
 			(e === NEXT_LEXING_STATE_POJO
-		        || super.allowsImmutableToMutableReferenceInField(e))
+				|| super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun o_SerializerOperation(
 		self: AvailObject): SerializerOperation =
@@ -155,7 +155,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		writer.writeObject {
 			at("kind") { write("token") }
 			at("token type") {
-				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+				write(self.tokenType().name.lowercase().replace('_', ' '))
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }
@@ -195,10 +195,10 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 			}
 		}
 
-		/** The mutable [LiteralTokenDescriptor].  */
+		/** The mutable [LiteralTokenDescriptor]. */
 		private val mutable = CommentTokenDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralTokenDescriptor].  */
+		/** The shared [LiteralTokenDescriptor]. */
 		private val shared = CommentTokenDescriptor(Mutability.SHARED)
 	}
 }

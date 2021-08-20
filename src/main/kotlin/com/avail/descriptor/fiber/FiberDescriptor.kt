@@ -298,14 +298,37 @@ class FiberDescriptor private constructor(
 		 *
 		 * Each suspension/resumption pair causes this field to increase.
 		 */
-		private var clockBiasNanos: Long = 0L
+		private var clockBiasNanos = 0L
 
 		/**
 		 * The last system clock time, in nanoseconds, that this fiber was
 		 * suspended, or blocked in any other way.  It must be zero (`0L`) while
 		 * the fiber is running.
 		 */
-		private var suspensionTimeNanos: Long = 0L
+		private var suspensionTimeNanos = AvailRuntimeSupport.captureNanos()
+
+		/**
+		 * The fiber has just started running, so do what must be done for the
+		 * correct accounting of CPU time by the fiber.
+		 */
+		fun startCountingCPU()
+		{
+			val now = AvailRuntimeSupport.captureNanos()
+			clockBiasNanos += (now - suspensionTimeNanos)
+			suspensionTimeNanos = 0L
+		}
+
+		/**
+		 * The fiber has just stopped running, either due to completion, an
+		 * interrupt, or suspension, so do what must be done for the
+		 * correct accounting of CPU time by the fiber.
+		 */
+		fun stopCountingCPU()
+		{
+			val now = AvailRuntimeSupport.captureNanos()
+			assert (suspensionTimeNanos == 0L)
+			suspensionTimeNanos = now
+		}
 
 		/**
 		 * Answer a [Long], representing nanoseconds, which increases
@@ -533,8 +556,7 @@ class FiberDescriptor private constructor(
 	enum class ExecutionState(
 		val indicatesSuspension: Boolean,
 		val indicatesTermination: Boolean,
-		private val privateSuccessors: ()->Set<ExecutionState>
-	)
+		private val privateSuccessors: ()->Set<ExecutionState>)
 	{
 		/**
 		 * The fiber has not been started.
@@ -604,7 +626,7 @@ class FiberDescriptor private constructor(
 		fun mayTransitionTo(newState: ExecutionState): Boolean {
 			if (successors == -1) {
 				// No lock - redundant computation in other threads is stable.
-				successors = privateSuccessors().sumBy { 1 shl it.ordinal }
+				successors = privateSuccessors().sumOf { 1 shl it.ordinal }
 			}
 			return successors ushr newState.ordinal and 1 == 1
 		}
@@ -879,10 +901,10 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.toLowerCase())
+				write(self.executionState().name.lowercase())
 			}
 			val result = self.mutableSlot(RESULT)
-			if (!result.equalsNil())
+			if (result.notNil)
 			{
 				at("result") { result.writeSummaryTo(writer) }
 			}
@@ -893,7 +915,7 @@ class FiberDescriptor private constructor(
 			at("kind") { write("fiber") }
 			at("fiber name") { self.fiberName().writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.toLowerCase())
+				write(self.executionState().name.lowercase())
 			}
 		}
 
@@ -901,8 +923,10 @@ class FiberDescriptor private constructor(
 		self: AvailObject,
 		suspendingFunction: A_Function
 	) {
-		assert(suspendingFunction.equalsNil()
-			|| suspendingFunction.code().primitive()!!.hasFlag(CanSuspend))
+		assert(
+			suspendingFunction.isNil
+				|| suspendingFunction.code().codePrimitive()!!
+					.hasFlag(CanSuspend))
 		self.setSlot(SUSPENDING_FUNCTION, suspendingFunction)
 	}
 
@@ -984,7 +1008,8 @@ class FiberDescriptor private constructor(
 				clientData.mapAt(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
 			return if (bindings.hasKey(name)) {
 				bindings.mapAt(name)
-			} else null
+			}
+			else null
 		}
 
 		/**
@@ -1008,7 +1033,7 @@ class FiberDescriptor private constructor(
 			var fiberGlobals = fiber.fiberGlobals()
 			var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 			var bindings: A_Map = clientData.mapAt(compilerScopeMapKey)
-			val declarationName = declaration.token().string()
+			val declarationName = declaration.token.string()
 			assert(declarationName.isString)
 			if (bindings.hasKey(declarationName)) {
 				return bindings.mapAt(declarationName)

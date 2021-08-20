@@ -278,7 +278,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		generator.startBlock(fallThrough)
 		val frameSizeInt = frameSize.value
 		val slots = arguments.elements().toMutableList()
- 		val nilRead = generator.boxedConstant(nil)
+		val nilRead = generator.boxedConstant(nil)
 		repeat(frameSizeInt - slots.size) { slots.add(nilRead) }
 		generator.addInstruction(
 			L2_CREATE_CONTINUATION,

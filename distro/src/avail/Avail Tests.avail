@@ -32,7 +32,7 @@
 
 Module "Avail Tests"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Avail" = ("all test suites"→"the test suites", …),
 	"Tests"
@@ -46,8 +46,7 @@ Extends
 		"keyword lexer",
 		"operator lexer",
 		"…#",
-		"…$",
-		"`$…$"
+		"$…#"
 	),
 	"Tests" =
 	(

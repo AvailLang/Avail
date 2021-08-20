@@ -33,14 +33,14 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/12/21 11:44 PM
+ * * Last Generated: 8/13/21 1:27 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
 Module "Special Objects"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Origin"
 Uses
@@ -61,12 +61,12 @@ Names
 	/*   2 */ "boolean",
 	/* 129 */ "byte",
 	/*   3 */ "character",
-	/* 169 */ "character type number",
+	/* 167 */ "character type number",
 	/*  38 */ "code point",
 	/* 164 */ "comment",
 	/*   9 */ "continuation",
 	/*  10 */ "continuation meta",
-	/* 170 */ "continuation returning top",
+	/* 168 */ "continuation returning top",
 	/*  92 */ "continuation variable",
 	/*  61 */ "declaration phrase",
 	/* 123 */ "declaration tuple",
@@ -128,7 +128,7 @@ Names
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
 	/*  99 */ "non-empty set",
-	/* 171 */ "non-empty string of digits",
+	/* 169 */ "non-empty string of digits",
 	/* 136 */ "nonempty set of atom",
 	/* 135 */ "nonempty set of string",
 	/* 133 */ "nonempty string",
@@ -141,9 +141,9 @@ Names
 	/*  22 */ "object",
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
-	/* 172 */ "optional send phrase and report string",
+	/* 170 */ "optional send phrase and report string",
 	/* 143 */ "parse map key",
-	/* 168 */ "parse rejection level",
+	/* 166 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
 	/* 141 */ "permuted list phrase",
 	/*  50 */ "phrase",
@@ -172,14 +172,15 @@ Names
 	/* 114 */ "set of atom",
 	/* 134 */ "set of exception",
 	/*  75 */ "set of string",
-	/* 167 */ "source line number",
-	/* 166 */ "source position",
 	/*  49 */ "stack dump key",
 	/* 148 */ "statement phrase",
 	/* 159 */ "static tokens key",
 	/*  28 */ "string",
+	/* 171 */ "styler function",
 	/* 142 */ "super cast phrase",
 	/* 115 */ "token",
+	/* 172 */ "token classifiers",
+	/* 173 */ "token tuple",
 	/*  70 */ "true",
 	/*  32 */ "tuple",
 	/*  33 */ "tuple meta",
@@ -276,7 +277,7 @@ Special object "any" is special object 1;
  *
  * Note that values may be instances of many enumerations. This means that Avail
  * directly supports other logical systems, such as Kleene's three-valued logic
- * of indeterminacy, whose truth values are {@code "true"}, {@code "false"},
+ * of indeterminacy, whose truth values are {@code "true"}, {@code "false"}, 
  * and {@code "unknown"}. Implementation of this system would proceed directly
  * from creation of an atom to represent {@code "unknown"} and the formation of
  * a new enumeration that contained the standard {@method "true"} and {@method
@@ -363,6 +364,7 @@ Special object "function implementation" is special object 6;
  *
  * @category "Primitives" "Types"
  * @type "variable"
+ * @alias "read ⊤/write ⊥"
  * @supertype "nontype"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
  */
@@ -373,6 +375,7 @@ Special object "variable" is special object 7;
  *
  * @category "Primitives" "Types"
  * @type "variable meta"
+ * @alias "(read ⊤/write ⊥)'s type"
  * @supertype "nontypes type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-variable.html"
@@ -384,7 +387,7 @@ Special object "variable meta" is special object 8;
  *
  * @category "Primitives" "Types"
  * @type "continuation"
- * @alias "`$[…]→⊥"
+ * @alias "$[…]→⊥"
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
 Special object "continuation" is special object 9;
@@ -394,7 +397,7 @@ Special object "continuation" is special object 9;
  *
  * @category "Primitives" "Types"
  * @type "continuation meta"
- * @alias "(`$[…]→⊥)'s type"
+ * @alias "($[…]→⊥)'s type"
  * @sticky
  * @see "http://www.availlang.org/about-avail/documentation/type-system/types-continuation.html"
  */
@@ -650,6 +653,7 @@ Special object "module" is special object 20;
  *
  * @category "Primitives" "Constants"
  * @method "VM error codes"
+ * @alias "<natural number…|>"
  * @returns "VM error codes's type"
  */
 Special object "VM error codes" is special object 21;
@@ -1092,11 +1096,12 @@ Special object "macro definition" is special object 47;
 Special object "tuple of function" is special object 48;
 
 /**
- * The {@code atom} under which the stack is captured within an
+ * The {@code atom} under which the stack is captured within an 
  * {@code exception} when it is raised.
  *
  * @category "Primitives" "Constants"
  * @type "stack dump key"
+ * @alias "atom"
  * @returns "stack dump key's type"
  */
 Special object "stack dump key" is special object 49;
@@ -1430,6 +1435,7 @@ Special object "pojo" is special object 80;
  *
  * @category "Primitives" "Types"
  * @type "pojo⊥"
+ * @alias "pojo ⊥"
  * @supertype "pojo"
  */
 Special object "pojo⊥" is special object 81;
@@ -1439,6 +1445,7 @@ Special object "pojo⊥" is special object 81;
  *
  * @category "Primitives" "Constants"
  * @method "Java null"
+ * @type "⊥"
  * @returns "Java null's type"
  */
 Special object "Java null" is special object 82;
@@ -1448,6 +1455,7 @@ Special object "Java null" is special object 82;
  *
  * @category "Primitives" "Types"
  * @type "pojo self type"
+ * @alias "pojo self type"
  * @supertype "atom"
  */
 Special object "pojo self type" is special object 83;
@@ -1529,7 +1537,7 @@ Special object "predicate function" is special object 91;
  *
  * @category "Primitives" "Types"
  * @type "continuation variable"
- * @alias "↑`$[…]→⊥"
+ * @alias "↑$[…]→⊥"
  */
 Special object "continuation variable" is special object 92;
 
@@ -1745,6 +1753,7 @@ Special object "token" is special object 115;
  *
  * @category "Primitives" "Types"
  * @type "literal token"
+ * @alias "literal token⇒any"
  * @supertype "token"
  */
 Special object "literal token" is special object 116;
@@ -1817,6 +1826,7 @@ Special object "declaration tuple" is special object 123;
  *
  * @category "Primitives" "Types"
  * @type "write-only variable"
+ * @alias "read ⊤/write ⊥"
  * @supertype "variable"
  */
 Special object "write-only variable" is special object 124;
@@ -1989,6 +1999,7 @@ Special object "super cast phrase" is special object 142;
  *
  * @category "Primitives" "Constants"
  * @method "parse map key"
+ * @type "atom"
  * @returns "parse map key's type"
  */
 Special object "parse map key" is special object 143;
@@ -1999,6 +2010,7 @@ Special object "parse map key" is special object 143;
  *
  * @category "Primitives" "Constants"
  * @method "scope map key"
+ * @type "atom"
  * @returns "scope map key's type"
  */
 Special object "scope map key" is special object 144;
@@ -2009,6 +2021,7 @@ Special object "scope map key" is special object 144;
  *
  * @category "Primitives" "Constants"
  * @method "all tokens key"
+ * @type "atom"
  * @returns "all tokens key's type"
  */
 Special object "all tokens key" is special object 145;
@@ -2047,6 +2060,7 @@ Special object "statement phrase" is special object 148;
  *
  * @category "Primitives" "Constants"
  * @method "scope stack key"
+ * @type "atom"
  * @returns "scope stack key's type"
  */
 Special object "scope stack key" is special object 149;
@@ -2094,6 +2108,7 @@ Special object "map from string to atom" is special object 153;
  *
  * @category "Primitives" "Constants"
  * @method "macro bundle key"
+ * @type "atom"
  * @returns "macro bundle key's type"
  */
 Special object "macro bundle key" is special object 154;
@@ -2104,6 +2119,7 @@ Special object "macro bundle key" is special object 154;
  *
  * @category "Primitives" "Constants"
  * @method "explicit subclassing key"
+ * @type "atom"
  * @returns "explicit subclassing key's type"
  */
 Special object "explicit subclassing key" is special object 155;
@@ -2146,6 +2162,7 @@ Special object "lexer body function" is special object 158;
  *
  * @category "Primitives" "Constants"
  * @method "static tokens key"
+ * @type "atom"
  * @returns "static tokens key's type"
  */
 Special object "static tokens key" is special object 159;
@@ -2155,6 +2172,7 @@ Special object "static tokens key" is special object 159;
  *
  * @category "Primitives" "Constants"
  * @method "end of file"
+ * @type "atom"
  * @returns "end of file's type"
  */
 Special object "end of file" is special object 160;
@@ -2164,6 +2182,7 @@ Special object "end of file" is special object 160;
  *
  * @category "Primitives" "Constants"
  * @method "keyword"
+ * @type "atom"
  * @returns "keyword's type"
  */
 Special object "keyword" is special object 161;
@@ -2173,6 +2192,7 @@ Special object "keyword" is special object 161;
  *
  * @category "Primitives" "Constants"
  * @method "literal"
+ * @type "atom"
  * @returns "literal's type"
  */
 Special object "literal" is special object 162;
@@ -2182,6 +2202,7 @@ Special object "literal" is special object 162;
  *
  * @category "Primitives" "Constants"
  * @method "operator"
+ * @type "atom"
  * @returns "operator's type"
  */
 Special object "operator" is special object 163;
@@ -2191,6 +2212,7 @@ Special object "operator" is special object 163;
  *
  * @category "Primitives" "Constants"
  * @method "comment"
+ * @type "atom"
  * @returns "comment's type"
  */
 Special object "comment" is special object 164;
@@ -2200,27 +2222,10 @@ Special object "comment" is special object 164;
  *
  * @category "Primitives" "Constants"
  * @method "whitespace"
+ * @type "atom"
  * @returns "whitespace's type"
  */
 Special object "whitespace" is special object 165;
-
-/**
- * The type of the character position within an Avail source module.
- *
- * @category "Primitives" "Types"
- * @type "[0..2147483647]"
- * @alias "source position"
- */
-Special object "source position" is special object 166;
-
-/**
- * The type of the line number within an Avail source module.
- *
- * @category "Primitives" "Types"
- * @type "[0..268435455]"
- * @alias "source line number"
- */
-Special object "source line number" is special object 167;
 
 /**
  * The type for parse rejection levels, currently [1..4].
@@ -2229,7 +2234,7 @@ Special object "source line number" is special object 167;
  * @type "[1..4]"
  * @alias "parse rejection level"
  */
-Special object "parse rejection level" is special object 168;
+Special object "parse rejection level" is special object 166;
 
 /**
  * An integer indicating the nature of some Unicode code point.  For details,
@@ -2239,7 +2244,7 @@ Special object "parse rejection level" is special object 168;
  * @type "[0..31]"
  * @alias "character type number"
  */
-Special object "character type number" is special object 169;
+Special object "character type number" is special object 167;
 
 /**
  * The continuation type for continuations based on ⊤-valued functions.
@@ -2248,7 +2253,7 @@ Special object "character type number" is special object 169;
  * @type "$[…]→⊤"
  * @alias "continuation returning top"
  */
-Special object "continuation returning top" is special object 170;
+Special object "continuation returning top" is special object 168;
 
 /**
  * The type for non-empty strings composed entirely of digit characters.
@@ -2257,7 +2262,7 @@ Special object "continuation returning top" is special object 170;
  * @type "¢[0-9]ᵀ+"
  * @alias "non-empty string of digits"
  */
-Special object "non-empty string of digits" is special object 171;
+Special object "non-empty string of digits" is special object 169;
 
 /**
  * The 2-element tuple type where the first element is itself a tuple of zero
@@ -2268,5 +2273,43 @@ Special object "non-empty string of digits" is special object 171;
  * @type "<(send phrase→⊤)?, string…|2>"
  * @alias "optional send phrase and report string"
  */
-Special object "optional send phrase and report string" is special object 172;
+Special object "optional send phrase and report string" is special object 170;
+
+/**
+ * The type for styler functions.  These are passed:
+ *   1. a send phrase to be styled,
+ *   2. a variable containing a map from send phrase to style, already populated
+ *      with styles from the current send phrase's descendants.
+ *   3. a variable containing a map from token to style, already populated with
+ *      styles from the current send phrase's descendants.
+ * When subsequently applying the final styles to the source text, the phrase
+ * style map is visited.  Each static token of that phrase is added to the token
+ * style map, if it's not already present.  Static tokens are those tokens which
+ * literally occur in the message name.  After the token style map has been
+ * updated, the tokens are extracted, sorted by file position, and captured in
+ * separate records in the relevant repository file.  These can then be overlaid
+ * efficiently onto the module text.
+ *
+ * @category "Primitives" "Types"
+ * @type "[send phrase, ↑{send phrase→style|}, ↑{token→style|}]→⊤"
+ * @alias "styler function"
+ */
+Special object "styler function" is special object 171;
+
+/**
+ * The enumeration of atoms that specify a token's type.
+ *
+ * @category "Primitives" "Types"
+ * @type "token classifiers"
+ */
+Special object "token classifiers" is special object 172;
+
+/**
+ * The type of a tuple containing zero or more tokens.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "token tuple"
+ */
+Special object "token tuple" is special object 173;
 

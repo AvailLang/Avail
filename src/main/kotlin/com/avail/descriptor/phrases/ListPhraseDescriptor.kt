@@ -46,6 +46,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -117,7 +118,7 @@ class ListPhraseDescriptor private constructor(
 	) {
 		builder.append("List(")
 		var first = true
-		self.expressionsTuple().forEach {
+		self.expressionsTuple.forEach {
 			if (!first) {
 				builder.append(", ")
 			}
@@ -130,7 +131,7 @@ class ListPhraseDescriptor private constructor(
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase) -> Unit
-	) = self.expressionsTuple().forEach(action)
+	) = self.expressionsTuple.forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
@@ -138,7 +139,7 @@ class ListPhraseDescriptor private constructor(
 	) {
 		self.setSlot(
 			EXPRESSIONS_TUPLE,
-			tupleFromList(self.expressionsTuple().map(transformer)))
+			tupleFromList(self.expressionsTuple.map(transformer)))
 	}
 
 	/**
@@ -174,12 +175,12 @@ class ListPhraseDescriptor private constructor(
 		newListPhrase: A_Phrase
 	): A_Phrase = newListNode(
 		self.slot(EXPRESSIONS_TUPLE).concatenateWith(
-			newListPhrase.expressionsTuple(), false))
+			newListPhrase.expressionsTuple, false))
 
 	override fun o_EmitAllValuesOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.expressionsTuple().forEach {
+	) = self.expressionsTuple.forEach {
 		it.emitValueOn(codeGenerator)
 	}
 
@@ -187,25 +188,25 @@ class ListPhraseDescriptor private constructor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) {
-		val childNodes = self.expressionsTuple()
+		val childNodes = self.expressionsTuple
 		childNodes.forEach {
 			it.emitValueOn(codeGenerator)
 		}
-		codeGenerator.emitMakeTuple(emptyTuple, childNodes.tupleSize())
+		codeGenerator.emitMakeTuple(emptyTuple, childNodes.tupleSize)
 	}
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.expressionsTuple().equals(aPhrase.expressionsTuple()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.expressionsTuple.equals(aPhrase.expressionsTuple))
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
 		self.slot(EXPRESSIONS_TUPLE).tupleAt(index)
 
 	override fun o_ExpressionsSize(self: AvailObject): Int =
-		self.slot(EXPRESSIONS_TUPLE).tupleSize()
+		self.slot(EXPRESSIONS_TUPLE).tupleSize
 
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
 		self.slot(EXPRESSIONS_TUPLE)
@@ -214,10 +215,10 @@ class ListPhraseDescriptor private constructor(
 		self.synchronizeIf(isShared) { expressionType(self) }
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.expressionsTuple().hash() xor -0x3ebc1689
+		combine2(self.expressionsTuple.hash(), -0x3ebc1689)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast() }
+		self.slot(EXPRESSIONS_TUPLE).any { it.hasSuperCast }
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,
@@ -226,13 +227,13 @@ class ListPhraseDescriptor private constructor(
 		!super.o_IsInstanceOfKind(self, aType) -> false
 		!aType.isSubtypeOf(PhraseKind.LIST_PHRASE.mostGeneralType()) -> true
 		else -> self.slot(EXPRESSIONS_TUPLE).isInstanceOf(
-			aType.subexpressionsTupleType())
+			aType.subexpressionsTupleType)
 	}
 
 	override fun o_LastExpression(self: AvailObject): A_Phrase
 	{
 		val tuple: A_Tuple = self.slot(EXPRESSIONS_TUPLE)
-		return tuple.tupleAt(tuple.tupleSize())
+		return tuple.tupleAt(tuple.tupleSize)
 	}
 
 	override fun o_StatementsDo(
@@ -254,7 +255,7 @@ class ListPhraseDescriptor private constructor(
 			self.slot(EXPRESSIONS_TUPLE).makeImmutable()
 		var anyStripped = false
 		val newExpressions = expressionsTuple.map {
-			val strippedElement = it.stripMacro()
+			val strippedElement = it.stripMacro
 			if (!it.equals(strippedElement)) {
 				anyStripped = true
 			}
@@ -270,8 +271,8 @@ class ListPhraseDescriptor private constructor(
 	{
 		val expressions: A_Tuple = self.slot(EXPRESSIONS_TUPLE)
 		var anyNotBottom = false
-		val types = Array(expressions.tupleSize()) { i ->
-			val lookupType = expressions.tupleAt(i + 1).superUnionType()
+		val types = Array(expressions.tupleSize) { i ->
+			val lookupType = expressions.tupleAt(i + 1).superUnionType
 			if (!lookupType.isBottom) anyNotBottom = true
 			lookupType
 		}
@@ -293,7 +294,7 @@ class ListPhraseDescriptor private constructor(
 	override fun o_Tokens(self: AvailObject): A_Tuple
 	{
 		val tokens = mutableListOf<A_Token>()
-		self.slot(EXPRESSIONS_TUPLE).forEach { tokens.addAll(it.tokens()) }
+		self.slot(EXPRESSIONS_TUPLE).forEach { tokens.addAll(it.tokens) }
 		return tupleFromList(tokens)
 	}
 
@@ -327,9 +328,9 @@ class ListPhraseDescriptor private constructor(
 		 */
 		private fun expressionType(self: AvailObject): A_Type {
 			var tupleType: A_Type = self.mutableSlot(TUPLE_TYPE)
-			if (!tupleType.equalsNil()) return tupleType
-			val types = self.expressionsTuple().map {
-				val expressionType = it.phraseExpressionType()
+			if (tupleType.notNil) return tupleType
+			val types = self.expressionsTuple.map {
+				val expressionType = it.phraseExpressionType
 				if (expressionType.isBottom) return bottom
 				expressionType
 			}
@@ -353,13 +354,13 @@ class ListPhraseDescriptor private constructor(
 				setSlot(TUPLE_TYPE, nil)
 			}
 
-		/** The mutable [ListPhraseDescriptor].  */
+		/** The mutable [ListPhraseDescriptor]. */
 		private val mutable = ListPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [ListPhraseDescriptor].  */
+		/** The shared [ListPhraseDescriptor]. */
 		private val shared = ListPhraseDescriptor(Mutability.SHARED)
 
-		/** The empty [list phrase][ListPhraseDescriptor].  */
+		/** The empty [list phrase][ListPhraseDescriptor]. */
 		private val empty = newListNode(emptyTuple).makeShared()
 
 		/**

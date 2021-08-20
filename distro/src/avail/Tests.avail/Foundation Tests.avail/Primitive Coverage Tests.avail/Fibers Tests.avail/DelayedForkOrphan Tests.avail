@@ -32,7 +32,7 @@
 
 Module "DelayedForkOrphan Tests"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Primitive Test Common"
 Body

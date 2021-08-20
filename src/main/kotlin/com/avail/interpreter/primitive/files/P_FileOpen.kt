@@ -99,7 +99,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
 		}
-		var alignmentInt = alignment.extractInt()
+		var alignmentInt = alignment.extractInt
 		if (alignmentInt == 0)
 		{
 			// Plug in the default alignment for the device on which the
@@ -166,14 +166,13 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				stringType(),
+				stringType,
 				wholeNumbers,
 				setTypeForSizesContentType(
 					wholeNumbers, inclusive(0, 9)),
 				setTypeForSizesContentType(
 					wholeNumbers, inclusive(1, 9))),
-			ATOM.o
-		)
+			ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
@@ -204,7 +203,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 			EnumSet.noneOf(StandardOpenOption::class.java)
 		for (optionInt in optionInts)
 		{
-			options.add(allStandardOpenOptions[optionInt.extractInt()])
+			options.add(allStandardOpenOptions[optionInt.extractInt])
 		}
 		return options
 	}
@@ -228,9 +227,12 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 				PosixFilePermission::class.java)
 			for (optionInt in optionInts)
 			{
-				permissions.add(allPermissions[optionInt.extractInt() - 1])
+				permissions.add(allPermissions[optionInt.extractInt - 1])
 			}
 			arrayOf(PosixFilePermissions.asFileAttribute(permissions))
 		}
-		else { arrayOf() }
+		else
+		{
+			arrayOf()
+		}
 }

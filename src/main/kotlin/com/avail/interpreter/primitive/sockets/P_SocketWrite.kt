@@ -104,26 +104,28 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		val fail = interpreter.argument(3)
 		val priority = interpreter.argument(4)
 		val pojo = handle.getAtomProperty(SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM else E_INVALID_HANDLE)
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousSocketChannel>()
 		// Obtain a buffer for writing.
 		val buffer = when {
-			tuple.isByteBufferTuple -> tuple.byteBuffer().slice()
-			tuple.isByteArrayTuple -> ByteBuffer.wrap(tuple.byteArray())
-			else -> ByteBuffer.allocateDirect(tuple.tupleSize()).also {
-				tuple.transferIntoByteBuffer(1, tuple.tupleSize(), it)
+			tuple.isByteBufferTuple -> tuple.byteBuffer.slice()
+			tuple.isByteArrayTuple -> ByteBuffer.wrap(tuple.byteArray)
+			else -> ByteBuffer.allocateDirect(tuple.tupleSize).also {
+				tuple.transferIntoByteBuffer(1, tuple.tupleSize, it)
 				it.flip()
 			}
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			succeed.kind().returnType().typeUnion(fail.kind().returnType()),
-			priority.extractInt()
-		) { formatString("Socket write, %s", handle.atomName()) }
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			priority.extractInt
+		) {
+			formatString("Socket write, %s", handle.atomName)
+		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.setAvailLoader(current.availLoader())
@@ -179,14 +181,11 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 				ATOM.o,
 				functionType(
 					emptyTuple,
-					TOP.o
-				),
+					TOP.o),
 				functionType(
 					tuple(instanceType(E_IO_ERROR.numericCode())),
-					TOP.o
-				),
-				bytes
-			),
+					TOP.o),
+				bytes),
 			mostGeneralFiberType())
 
 	override fun privateFailureVariableType(): A_Type =

@@ -80,10 +80,13 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		val tuple = interpreter.argument(0)
 		val pathTuple = interpreter.argument(1)
 		val newValue = interpreter.argument(2)
-		return try {
+		return try
+		{
 			interpreter.primitiveSuccess(
 				recursivelyUpdateTuple(tuple, pathTuple, 1, newValue))
-		} catch (e: AvailException) {
+		}
+		catch (e: AvailException)
+		{
 			interpreter.primitiveFailure(e)
 		}
 	}
@@ -117,12 +120,12 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		val targetIndex = targetIndexObject.extractInt()
-		if (targetIndex > targetTuple.tupleSize())
+		val targetIndex = targetIndexObject.extractInt
+		if (targetIndex > targetTuple.tupleSize)
 		{
 			throw AvailException(E_SUBSCRIPT_OUT_OF_BOUNDS)
 		}
-		if (pathIndex == pathTuple.tupleSize())
+		if (pathIndex == pathTuple.tupleSize)
 		{
 			return targetTuple.tupleAtPuttingCanDestroy(
 				targetIndex, newValue, true)
@@ -176,7 +179,7 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 		{
 			throw AvailException(E_KEY_NOT_FOUND)
 		}
-		if (pathIndex == pathTuple.tupleSize())
+		if (pathIndex == pathTuple.tupleSize)
 		{
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newValue, true)
@@ -202,7 +205,7 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralTupleType(),
+				mostGeneralTupleType,
 				tupleTypeForSizesTypesDefaultType(
 					integerRangeType(
 						fromInt(2),
@@ -210,16 +213,14 @@ object P_TupleReplaceAtNAry : Primitive(3, CanInline, CanFold)
 						positiveInfinity,
 						false),
 					emptyTuple,
-					ANY.o
-				),
-				ANY.o
-			),
-			mostGeneralTupleType())
+					ANY.o),
+				ANY.o),
+			mostGeneralTupleType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
 				E_SUBSCRIPT_OUT_OF_BOUNDS,
 				E_INCORRECT_ARGUMENT_TYPE,
-			    E_KEY_NOT_FOUND))
+				E_KEY_NOT_FOUND))
 }

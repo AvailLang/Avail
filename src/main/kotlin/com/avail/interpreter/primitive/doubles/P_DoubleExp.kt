@@ -61,15 +61,13 @@ object P_DoubleExp : Primitive(2, CannotFail, CanFold, CanInline)
 		//		final A_BasicObject euler = interpreter.argument(0);
 		val a = interpreter.argument(1)
 		return interpreter.primitiveSuccess(
-			fromDoubleRecycling(exp(a.extractDouble()), a, true))
+			fromDoubleRecycling(exp(a.extractDouble), a, true))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
 				instanceType(fromDouble(E)),
-				DOUBLE.o
-			),
-			DOUBLE.o
-		)
+				DOUBLE.o),
+			DOUBLE.o)
 }

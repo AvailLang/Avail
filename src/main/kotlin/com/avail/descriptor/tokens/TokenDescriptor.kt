@@ -43,6 +43,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine4
 import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
@@ -208,9 +209,11 @@ open class TokenDescriptor protected constructor(
 
 		override fun fieldOrdinal(): Int = ordinal
 
-		/** The associated special atom.  */
+		/** The associated special atom. */
 		val atom: A_Atom =
-			createSpecialAtom(name.toLowerCase().replace('_', ' ')).apply {
+			createSpecialAtom(
+				name.lowercase().replace('_', ' ')
+			).apply {
 				setAtomProperty(
 					StaticInit.tokenTypeOrdinalKey,
 					fromInt(ordinal))
@@ -218,7 +221,7 @@ open class TokenDescriptor protected constructor(
 
 		companion object
 		{
-			/** An array of all [TokenType] enumeration values.  */
+			/** An array of all [TokenType] enumeration values. */
 			private val all = values()
 
 			/**
@@ -235,7 +238,7 @@ open class TokenDescriptor protected constructor(
 
 	}
 
-	/** A static class for untangling enum initialization.  */
+	/** A static class for untangling enum initialization. */
 	object StaticInit
 	{
 		/**
@@ -259,7 +262,7 @@ open class TokenDescriptor protected constructor(
 	{
 		builder.append(String.format(
 			"%s (%s) @ %d:%d",
-			self.tokenType().name.toLowerCase().replace('_', ' '),
+			self.tokenType().name.lowercase().replace('_', ' '),
 			self.slot(STRING),
 			self.slot(START),
 			self.slot(LINE_NUMBER)))
@@ -281,11 +284,11 @@ open class TokenDescriptor protected constructor(
 			&& (!self.isLiteralToken()
 				|| self.literal().equals(aToken.literal())))
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.string().hash() * AvailObject.multiplier
-		         + self.start()) * AvailObject.multiplier
-			+ self.tokenType().ordinal
-			xor 0x62CE7BA2)
+	override fun o_Hash(self: AvailObject): Int = combine4(
+		self.string().hash(),
+		self.start(),
+		self.tokenType().ordinal,
+		0x62CE7BA2)
 
 	override fun o_Kind(self: AvailObject): A_Type = tokenType(self.tokenType())
 
@@ -294,7 +297,7 @@ open class TokenDescriptor protected constructor(
 		aType: A_Type
 	): Boolean =
 		(aType.isSupertypeOfPrimitiveTypeEnum(Types.TOKEN)
-			|| (aType.isTokenType && self.tokenType() == aType.tokenType()))
+			|| (aType.isTokenType && self.tokenType() == aType.tokenType))
 
 	override fun o_LineNumber(self: AvailObject): Int = self.slot(LINE_NUMBER)
 
@@ -313,11 +316,11 @@ open class TokenDescriptor protected constructor(
 	) {
 		// First, figure out where the token ends.
 		val string: A_String = self.slot(STRING)
-		val stringSize = string.tupleSize()
+		val stringSize = string.tupleSize
 		val positionAfter = self.slot(START) + stringSize
 		var line = self.slot(LINE_NUMBER)
 		line += (1..stringSize).count {
-			string.tupleCodePointAt(it) == '\n'.toInt()
+			string.tupleCodePointAt(it) == '\n'.code
 		}
 		// Now lookup/capture the next state.
 		val allTokens = priorLexingState.allTokens.append(self)
@@ -341,7 +344,7 @@ open class TokenDescriptor protected constructor(
 		writer.writeObject {
 			at("kind") { write("token") }
 			at("token type") {
-				write(self.tokenType().name.toLowerCase().replace('_', ' '))
+				write(self.tokenType().name.lowercase().replace('_', ' '))
 			}
 			at("start") { write(self.slot(START)) }
 			at("line number") { write(self.slot(LINE_NUMBER)) }
@@ -370,7 +373,7 @@ open class TokenDescriptor protected constructor(
 		private fun lowerCaseStringFrom(token: AvailObject): A_String
 		{
 			val nativeOriginal = token.slot(STRING).asNativeString()
-			val nativeLowerCase = nativeOriginal.toLowerCase()
+			val nativeLowerCase = nativeOriginal.lowercase()
 			return StringDescriptor.stringFrom(nativeLowerCase)
 		}
 
@@ -412,14 +415,14 @@ open class TokenDescriptor protected constructor(
 			}
 		}
 
-		/** The mutable [TokenDescriptor].  */
+		/** The mutable [TokenDescriptor]. */
 		private val mutable = TokenDescriptor(
 			Mutability.MUTABLE,
 			TypeTag.TOKEN_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
 
-		/** The shared [TokenDescriptor].  */
+		/** The shared [TokenDescriptor]. */
 		private val shared = TokenDescriptor(
 			Mutability.SHARED,
 			TypeTag.TOKEN_TAG,

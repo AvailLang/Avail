@@ -53,6 +53,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine3
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -148,7 +149,7 @@ class PermutedListPhraseDescriptor private constructor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		self.slot(LIST).emitAllValuesOn(codeGenerator)
-		codeGenerator.emitPermute(self.tokens(), self.permutation())
+		codeGenerator.emitPermute(self.tokens, self.permutation)
 	}
 
 	override fun o_EmitValueOn(
@@ -157,41 +158,42 @@ class PermutedListPhraseDescriptor private constructor(
 	) {
 		self.slot(LIST).emitAllValuesOn(codeGenerator)
 		val permutation: A_Tuple = self.slot(PERMUTATION)
-		codeGenerator.emitPermute(self.tokens(), permutation)
-		codeGenerator.emitMakeTuple(self.tokens(), permutation.tupleSize())
+		codeGenerator.emitPermute(self.tokens, permutation)
+		codeGenerator.emitMakeTuple(self.tokens, permutation.tupleSize)
 	}
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.list().equals(aPhrase.list())
-		&& self.permutation().equals(aPhrase.permutation()))
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.list.equals(aPhrase.list)
+		&& self.permutation.equals(aPhrase.permutation))
 
 	/** DON'T transform the index. */
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
 		self.slot(LIST).expressionAt(index)
 
 	override fun o_ExpressionsSize(self: AvailObject): Int =
-		self.slot(LIST).expressionsSize()
+		self.slot(LIST).expressionsSize
 
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		self.slot(LIST).expressionsTuple()
+		self.slot(LIST).expressionsTuple
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.synchronizeIf(isShared) { computeExpressionType(self) }
 
-	override fun o_Hash(self: AvailObject): Int =
-		((self.slot(LIST).hash() xor -0x3703d84e)
-			+ self.slot(PERMUTATION).hash())
+	override fun o_Hash(self: AvailObject): Int = combine3(
+		self.slot(LIST).hash(),
+		self.slot(PERMUTATION).hash(),
+		-0x3703d84e)
 
 	override fun o_HasSuperCast(self: AvailObject): Boolean =
-		self.slot(LIST).hasSuperCast()
+		self.slot(LIST).hasSuperCast
 
 	/** DON'T transform the index. */
 	override fun o_LastExpression(self: AvailObject): A_Phrase =
-		self.slot(LIST).lastExpression()
+		self.slot(LIST).lastExpression
 
 	override fun o_List(self: AvailObject): A_Phrase = self.slot(LIST)
 
@@ -218,7 +220,7 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_StripMacro(self: AvailObject): A_Phrase
 	{
 		val originalList: A_Phrase = self.slot(LIST)
-		val strippedList = originalList.stripMacro()
+		val strippedList = originalList.stripMacro
 		return when {
 			strippedList.sameAddressAs(originalList) -> {
 				// Nothing changed, so return the original permuted list.
@@ -231,13 +233,13 @@ class PermutedListPhraseDescriptor private constructor(
 	override fun o_SuperUnionType(self: AvailObject): A_Type
 	{
 		val list: A_Phrase = self.slot(LIST)
-		val listSuperUnionType = list.superUnionType()
+		val listSuperUnionType = list.superUnionType
 		if (listSuperUnionType.isBottom) {
 			// It doesn't contain a supercast, so answer bottom.
 			return listSuperUnionType
 		}
 		val permutation: A_Tuple = self.slot(PERMUTATION)
-		val size = list.expressionsSize()
+		val size = list.expressionsSize
 		val types = Array<A_Type>(size) { nil }
 		(1..size).forEach { i ->
 			val t = listSuperUnionType.typeAtIndex(i)
@@ -247,7 +249,7 @@ class PermutedListPhraseDescriptor private constructor(
 		return tupleTypeForTypes(*types)
 	}
 
-	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(LIST).tokens()
+	override fun o_Tokens(self: AvailObject): A_Tuple = self.slot(LIST).tokens
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
@@ -286,11 +288,11 @@ class PermutedListPhraseDescriptor private constructor(
 		 */
 		private fun computeExpressionType(self: AvailObject): A_Type {
 			var expressionType: A_Type = self.mutableSlot(EXPRESSION_TYPE)
-			if (!expressionType.equalsNil()) return expressionType
-			val originalTupleType = self.slot(LIST).phraseExpressionType()
+			if (expressionType.notNil) return expressionType
+			val originalTupleType = self.slot(LIST).phraseExpressionType
 			val permutation: A_Tuple = self.slot(PERMUTATION)
-			val size = permutation.tupleSize()
-			assert(originalTupleType.sizeRange().lowerBound().extractInt()
+			val size = permutation.tupleSize
+			assert(originalTupleType.sizeRange.lowerBound.extractInt
 				== size)
 			val adjustedTypes = Array<A_Type>(size) { nil }
 			for (i in 1..size) {
@@ -324,10 +326,10 @@ class PermutedListPhraseDescriptor private constructor(
 			setSlot(EXPRESSION_TYPE, nil)
 		}
 
-		/** The mutable [PermutedListPhraseDescriptor].  */
+		/** The mutable [PermutedListPhraseDescriptor]. */
 		private val mutable = PermutedListPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [PermutedListPhraseDescriptor].  */
+		/** The shared [PermutedListPhraseDescriptor]. */
 		private val shared = PermutedListPhraseDescriptor(Mutability.SHARED)
 	}
 }

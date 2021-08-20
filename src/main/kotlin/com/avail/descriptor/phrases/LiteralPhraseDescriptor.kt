@@ -37,6 +37,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.token
 import com.avail.descriptor.phrases.LiteralPhraseDescriptor.ObjectSlots.TOKEN
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.tokens.A_Token
@@ -93,7 +94,7 @@ class LiteralPhraseDescriptor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		builder.append(self.token().string().asNativeString())
+		builder.append(self.token.string().asNativeString())
 	}
 
 	override fun o_ChildrenDo(self: AvailObject, action: (A_Phrase) -> Unit) {
@@ -118,14 +119,14 @@ class LiteralPhraseDescriptor(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
 	) = codeGenerator.emitPushLiteral(
-		tuple(self.token()), self.slot(TOKEN).literal())
+		tuple(self.token), self.slot(TOKEN).literal())
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	) = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(TOKEN).equals(aPhrase.token()))
+	) = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(TOKEN).equals(aPhrase.token))
 
 	/**
 	 * Simplify decompilation by pretending a literal phrase holding tuple is
@@ -134,7 +135,7 @@ class LiteralPhraseDescriptor(
 	 * This only comes into play if the [L1Decompiler] was about to fail anyhow.
 	 */
 	override fun o_ExpressionsTuple(self: AvailObject): A_Tuple =
-		tupleFromList(self.map { syntheticLiteralNodeFor(it) })
+		tupleFromList(self.map(::syntheticLiteralNodeFor))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val token: A_Token = self.slot(TOKEN)
@@ -143,7 +144,7 @@ class LiteralPhraseDescriptor(
 	}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.token().hash() xor -0x6379f3f3
+		combine2(self.token.hash(), -0x6379f3f3)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.LITERAL_PHRASE
@@ -234,10 +235,10 @@ class LiteralPhraseDescriptor(
 		): A_Phrase = literalNodeFromToken(
 			literalToken(literalAsString, 0, 0, literalValue))
 
-		/** The mutable [LiteralPhraseDescriptor].  */
+		/** The mutable [LiteralPhraseDescriptor]. */
 		private val mutable = LiteralPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [LiteralPhraseDescriptor].  */
+		/** The shared [LiteralPhraseDescriptor]. */
 		private val shared = LiteralPhraseDescriptor(Mutability.SHARED)
 	}
 }

@@ -61,7 +61,7 @@ object P_MapTypeSizes : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val mapType = interpreter.argument(0)
-		return interpreter.primitiveSuccess(mapType.sizeRange())
+		return interpreter.primitiveSuccess(mapType.sizeRange)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

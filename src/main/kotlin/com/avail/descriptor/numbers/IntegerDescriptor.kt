@@ -171,10 +171,13 @@ class IntegerDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
 	) {
-		if (self.isLong) {
+		if (self.isLong)
+		{
 			// The *vast* majority of uses, extends beyond 9 quintillion.
-			builder.append(self.extractLong())
-		} else {
+			builder.append(self.extractLong)
+		}
+		else
+		{
 			var magnitude: A_Number = self
 			if (self.lessThan(zero)) {
 				builder.append('-')
@@ -185,12 +188,13 @@ class IntegerDescriptor private constructor(
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		if (self.isLong) {
+		if (self.isLong)
+		{
 			buildString {
 				append("(Integer")
 				append(mutability.suffix)
 				append(") = ")
-				val longValue = self.extractLong()
+				val longValue = self.extractLong
 				describeLong(
 					longValue,
 					if (intCount(self) == 1) 32 else 64,
@@ -199,7 +203,8 @@ class IntegerDescriptor private constructor(
 				append(longValue)
 			}
 		}
-		else {
+		else
+		{
 			super.o_NameForDebugger(self)
 		}
 
@@ -254,10 +259,10 @@ class IntegerDescriptor private constructor(
 	) = when {
 		aType.isSupertypeOfPrimitiveTypeEnum(Types.NUMBER) -> true
 		!aType.isIntegerRangeType -> false
-		(if (aType.upperInclusive()) !self.lessOrEqual(aType.upperBound())
-			else !self.lessThan(aType.upperBound())) -> false
-		(if (aType.lowerInclusive()) !aType.lowerBound().lessOrEqual(self)
-			else !aType.lowerBound().lessThan(self)) -> false
+		(if (aType.upperInclusive) !self.lessOrEqual(aType.upperBound)
+			else !self.lessThan(aType.upperBound)) -> false
+		(if (aType.lowerInclusive) !aType.lowerBound.lessOrEqual(self)
+			else !aType.lowerBound.lessThan(self)) -> false
 		else -> true
 	}
 
@@ -267,9 +272,8 @@ class IntegerDescriptor private constructor(
 	): Order = another.numericCompareToInteger(self).reverse()
 
 	override fun o_Hash(self: AvailObject): Int =
-		if (self.isUnsignedByte) {
-			hashOfUnsignedByte(self.extractUnsignedByte())
-		} else computeHashOfIntegerObject(self)
+		if (self.isUnsignedByte) hashOfUnsignedByte(self.extractUnsignedByte)
+		else computeHashOfIntegerObject(self)
 
 	override fun o_IsFinite(self: AvailObject) = true
 
@@ -301,19 +305,19 @@ class IntegerDescriptor private constructor(
 	): A_Number = aNumber.multiplyByIntegerCanDestroy(self, canDestroy)
 
 	override fun o_IsNybble(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt() in 0..15
+		intCount(self) == 1 && self.extractInt in 0..15
 
 	override fun o_IsSignedByte(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt() in -128..127
+		intCount(self) == 1 && self.extractInt in -128..127
 
 	override fun o_IsUnsignedByte(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt() in 0..255
+		intCount(self) == 1 && self.extractInt in 0..255
 
 	override fun o_IsSignedShort(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt() in -32768..32767
+		intCount(self) == 1 && self.extractInt in -32768..32767
 
 	override fun o_IsUnsignedShort(self: AvailObject) =
-		intCount(self) == 1 && self.extractInt() in 0..65535
+		intCount(self) == 1 && self.extractInt in 0..65535
 
 	override fun o_IsInt(self: AvailObject) = intCount(self) == 1
 
@@ -418,25 +422,33 @@ class IntegerDescriptor private constructor(
 					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) >= 0)
 				{
 					size--
-					if (size and 1 == 0) {
+					if (size and 1 == 0)
+					{
 						// Remove an entire long.
 						self.truncateWithFillerForNewIntegerSlotsCount(
 							size + 1 shr 1)
-					} else {
+					}
+					else
+					{
 						// Safety: Zero the bytes if the size is now odd.
 						self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
 					}
 				}
-			} else {
+			}
+			else
+			{
 				while (size > 1 && self.intSlot(RAW_LONG_SLOTS_, size) == -1
 					&& self.intSlot(RAW_LONG_SLOTS_, size - 1) < 0)
 				{
 					size--
-					if (size and 1 == 0) {
+					if (size and 1 == 0)
+					{
 						// Remove an entire long.
 						self.truncateWithFillerForNewIntegerSlotsCount(
 							size + 1 shr 1)
-					} else {
+					}
+					else
+					{
 						// Safety: Zero the bytes if the size is now odd.
 						self.setIntSlot(RAW_LONG_SLOTS_, size + 1, 0)
 					}
@@ -499,15 +511,15 @@ class IntegerDescriptor private constructor(
 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
 		var output =
-			if (canDestroy) {
+			if (canDestroy)
+			{
 				largerMutableOf(self, anInteger, objectSize, anIntegerSize)
-			} else {
-				null
 			}
+			else null
 		if (objectSize == 1 && anIntegerSize == 1) {
 			// See if the (signed) sum will fit in 32 bits, the most common case
 			// by far.
-			val sum = self.extractLong() + anInteger.extractLong()
+			val sum = self.extractLong + anInteger.extractLong
 			if (sum == sum.toInt().toLong()) {
 				// Yes, it fits.  Clobber one of the inputs, or create a new
 				// object if they were both immutable...
@@ -571,7 +583,7 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		val d: Double = addDoubleAndIntegerCanDestroy(
-			doubleObject.extractDouble(), self, canDestroy)
+			doubleObject.extractDouble, self, canDestroy)
 		return fromDoubleRecycling(d, doubleObject, canDestroy)
 	}
 
@@ -581,7 +593,7 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number {
 		val d: Double = addDoubleAndIntegerCanDestroy(
-			floatObject.extractDouble(), self, canDestroy)
+			floatObject.extractDouble, self, canDestroy)
 		return fromFloatRecycling(d.toFloat(), floatObject, canDestroy)
 	}
 
@@ -625,7 +637,7 @@ class IntegerDescriptor private constructor(
 		// Compute anInteger / self. Round towards negative infinity.
 		if (self.isLong)
 		{
-			var denominator = self.extractLong()
+			var denominator = self.extractLong
 			if (denominator == 0L)
 			{
 				throw ArithmeticException(E_CANNOT_DIVIDE_BY_ZERO)
@@ -633,7 +645,7 @@ class IntegerDescriptor private constructor(
 			if (anInteger.isLong)
 			{
 				// Two longs - by far the most common case.
-				var numerator = anInteger.extractLong()
+				var numerator = anInteger.extractLong
 				if (numerator != Long.MIN_VALUE
 					&& denominator != Long.MIN_VALUE)
 				{
@@ -704,7 +716,7 @@ class IntegerDescriptor private constructor(
 		val scale = max(intCount(self) - 4, 0) shl 5
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
-		val scaledQuotient = doubleObject.extractDouble() / scaledIntAsDouble
+		val scaledQuotient = doubleObject.extractDouble / scaledIntAsDouble
 		val quotient = scalb(scaledQuotient, scale)
 		return fromDoubleRecycling(quotient, doubleObject, canDestroy)
 	}
@@ -723,7 +735,7 @@ class IntegerDescriptor private constructor(
 		val scale = max(intCount(self) - 4, 0) shl 5
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
-		val scaledQuotient = floatObject.extractDouble() / scaledIntAsDouble
+		val scaledQuotient = floatObject.extractDouble / scaledIntAsDouble
 		val quotient = scalb(scaledQuotient, scale)
 		return fromFloatRecycling(quotient.toFloat(), floatObject, canDestroy)
 	}
@@ -749,8 +761,8 @@ class IntegerDescriptor private constructor(
 		if (self.isInt && anInteger.isInt) {
 			// See if the (signed) product will fit in 32 bits, the most common
 			// case by far.
-			val prod = (self.extractInt().toLong()
-				* anInteger.extractInt().toLong())
+			val prod = (self.extractInt.toLong()
+				* anInteger.extractInt.toLong())
 			if (prod == prod.toInt().toLong())
 			{
 				// Yes, it fits.  Clobber one of the inputs, or create a new
@@ -843,7 +855,7 @@ class IntegerDescriptor private constructor(
 		val scale = max(intCount(self) - 4, 0) shl 5
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
-		val scaledProduct = doubleObject.extractDouble() * scaledIntAsDouble
+		val scaledProduct = doubleObject.extractDouble * scaledIntAsDouble
 		val product = scalb(scaledProduct, scale)
 		return fromDoubleRecycling(product, doubleObject, canDestroy)
 	}
@@ -862,7 +874,7 @@ class IntegerDescriptor private constructor(
 		val scale = max(intCount(self) - 4, 0) shl 5
 		val scaledIntAsDouble = extractDoubleScaled(self, scale)
 		assert(!isInfinite(scaledIntAsDouble))
-		val scaledProduct = floatObject.extractDouble() * scaledIntAsDouble
+		val scaledProduct = floatObject.extractDouble * scaledIntAsDouble
 		val product = scalb(scaledProduct, scale)
 		return fromFloatRecycling(product.toFloat(), floatObject, canDestroy)
 	}
@@ -886,16 +898,15 @@ class IntegerDescriptor private constructor(
 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
 		var output =
-			if (canDestroy) {
+			if (canDestroy)
+			{
 				largerMutableOf(self, anInteger, objectSize, anIntegerSize)
 			}
-			else {
-				null
-			}
+			else null
 		if (objectSize == 1 && anIntegerSize == 1) {
 			// See if the (signed) difference will fit in 32 bits, the most
 			// common case by far.
-			val diff = anInteger.extractLong() - self.extractLong()
+			val diff = anInteger.extractLong - self.extractLong
 			if (diff == diff.toInt().toLong()){
 				// Yes, it fits. Clobber one of the inputs, or create a new
 				// object if they were both immutable...
@@ -960,7 +971,7 @@ class IntegerDescriptor private constructor(
 	): A_Number {
 		// Compute the negative (i.e., int-double)
 		val d: Double = addDoubleAndIntegerCanDestroy(
-			-doubleObject.extractDouble(), self, canDestroy)
+			-doubleObject.extractDouble, self, canDestroy)
 		// Negate it to produce (double-int).
 		return fromDoubleRecycling(-d, doubleObject, canDestroy)
 	}
@@ -972,7 +983,7 @@ class IntegerDescriptor private constructor(
 	): A_Number {
 		// Compute the negative (i.e., int-float)
 		val d: Double = addDoubleAndIntegerCanDestroy(
-			-floatObject.extractDouble(), self, canDestroy)
+			-floatObject.extractDouble, self, canDestroy)
 		// Negate it to produce (float-int).
 		return fromFloatRecycling((-d).toFloat(), floatObject, canDestroy)
 	}
@@ -1038,7 +1049,8 @@ class IntegerDescriptor private constructor(
 		val anIntegerSize = intCount(anIntegerTraversed)
 		var output = if (canDestroy) {
 			largerMutableOf(self, anIntegerTraversed, objectSize, anIntegerSize)
-		} else null
+		}
+		else null
 		// Both integers are 32 bits. This is by far the most common case.
 		if (objectSize == 1 && anIntegerSize == 1) {
 			val result = operation(
@@ -1060,12 +1072,16 @@ class IntegerDescriptor private constructor(
 		for (i in 1..outputSize) {
 			val objectWord = if (i > objectSize) {
 				extendedObject
-			} else {
+			}
+			else
+			{
 				self.rawSignedIntegerAt(i)
 			}
 			val anIntegerWord = if (i > anIntegerSize) {
 				extendedAnInteger
-			} else {
+			}
+			else
+			{
 				anIntegerTraversed.rawSignedIntegerAt(i)
 			}
 			val result = operation(objectWord, anIntegerWord)
@@ -1128,16 +1144,10 @@ class IntegerDescriptor private constructor(
 		if (!truncationBits.isInt) {
 			throw ArithmeticException(AvailErrorCode.E_TOO_LARGE_TO_REPRESENT)
 		}
-		val truncationInt = truncationBits.extractInt()
-		if (truncationInt < 0) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
-		}
+		val truncationInt = truncationBits.extractInt
+		assert (truncationInt >= 0)
 		val sign = self.numericCompareToInteger(zero)
-		if (sign == Order.LESS) {
-			throw ArithmeticException(
-				AvailErrorCode.E_SHIFT_AND_TRUNCATE_REQUIRES_NON_NEGATIVE)
-		}
+		assert (sign != Order.LESS)
 		if (sign == Order.EQUAL) {
 			if (!canDestroy || isMutable) {
 				self.makeImmutable()
@@ -1150,9 +1160,9 @@ class IntegerDescriptor private constructor(
 			// also 123 << 999999999999999999 truncated to N bits (N<2^31) is 0.
 			return zero
 		}
-		val shiftInt = shiftFactor.extractInt()
+		val shiftInt = shiftFactor.extractInt
 		if (self.isLong) {
-			val baseLong = self.extractLong()
+			val baseLong = self.extractLong
 			val shiftedLong = bitShiftLong(baseLong, shiftInt)
 			if (shiftInt < 0
 				|| truncationInt < 64
@@ -1162,19 +1172,26 @@ class IntegerDescriptor private constructor(
 				// or a left shift that will fit in a long after the truncation.
 				// In these cases the result will still be a long.
 				var resultLong = shiftedLong
-				if (truncationInt < 64) {
+				if (truncationInt < 64)
+				{
 					resultLong = resultLong and (1L shl truncationInt) - 1
 				}
-				if (canDestroy && isMutable) {
-					if (resultLong == resultLong.toInt().toLong()) {
+				if (canDestroy && isMutable)
+				{
+					if (resultLong == resultLong.toInt().toLong())
+					{
 						// Fits in an int.  Try to recycle.
-						if (intCount(self) == 1) {
+						if (intCount(self) == 1)
+						{
 							self.rawSignedIntegerAtPut(1, resultLong.toInt())
 							return self
 						}
-					} else {
+					}
+					else
+					{
 						// *Fills* a long.  Try to recycle.
-						if (intCount(self) == 2) {
+						if (intCount(self) == 2)
+						{
 							self.rawSignedIntegerAtPut(
 								1, resultLong.toInt())
 							self.rawSignedIntegerAtPut(
@@ -1199,9 +1216,11 @@ class IntegerDescriptor private constructor(
 		var accumulator = 0x5EADCAFEBABEBEEFL
 		// We range from slotCount+1 to 1 to pre-load the accumulator.
 		for (destIndex in slotCount + 1 downTo 1) {
-			val nextWord = if (sourceIndex in 1..sourceSlots) {
+			val nextWord = if (sourceIndex in 1..sourceSlots)
+			{
 				self.rawSignedIntegerAt(sourceIndex)
-			} else 0
+			}
+			else 0
 			accumulator = accumulator shl 32
 			accumulator = accumulator or (nextWord.toLong() shl shortShift)
 			if (destIndex <= slotCount) {
@@ -1263,25 +1282,31 @@ class IntegerDescriptor private constructor(
 				else -> negativeOne()
 			}
 		}
-		val shiftInt = shiftFactor.extractInt()
+		val shiftInt = shiftFactor.extractInt
 		if (self.isLong) {
-			val baseLong = self.extractLong()
+			val baseLong = self.extractLong
 			val shiftedLong = arithmeticBitShiftLong(baseLong, shiftInt)
 			if (shiftInt < 0
 				|| arithmeticBitShiftLong(shiftedLong, -shiftInt) == baseLong)
 			{
 				// Either a right shift, or a left shift that didn't lose bits.
 				// In these cases the result will still be a long.
-				if (canDestroy && isMutable) {
-					if (shiftedLong == shiftedLong.toInt().toLong()) {
+				if (canDestroy && isMutable)
+				{
+					if (shiftedLong == shiftedLong.toInt().toLong())
+					{
 						// Fits in an int.  Try to recycle.
-						if (intCount(self) == 1) {
+						if (intCount(self) == 1)
+						{
 							self.rawSignedIntegerAtPut(1, shiftedLong.toInt())
 							return self
 						}
-					} else {
+					}
+					else
+					{
 						// *Fills* a long.  Try to recycle.
-						if (intCount(self) == 2) {
+						if (intCount(self) == 2)
+						{
 							self.rawSignedIntegerAtPut(
 								1, shiftedLong.toInt())
 							self.rawSignedIntegerAtPut(
@@ -1330,7 +1355,7 @@ class IntegerDescriptor private constructor(
 		self: AvailObject
 	): SerializerOperation {
 		if (self.isInt) {
-			return when (self.extractInt()) {
+			return when (self.extractInt) {
 				0 -> SerializerOperation.ZERO_INTEGER
 				1 -> SerializerOperation.ONE_INTEGER
 				2 -> SerializerOperation.TWO_INTEGER
@@ -1359,32 +1384,32 @@ class IntegerDescriptor private constructor(
 		// Force marshaling to Java's primitive long type.
 		java.lang.Long::class.javaPrimitiveType,
 		java.lang.Long::class.java -> when {
-			self.isLong -> self.extractLong()
+			self.isLong -> self.extractLong
 			else -> throw MarshalingException()
 		}
 		// Force marshaling to Java's primitive int type.
 		java.lang.Integer::class.javaPrimitiveType,
 		java.lang.Integer::class.java -> when {
-			self.isInt -> self.extractInt()
+			self.isInt -> self.extractInt
 			else -> throw MarshalingException()
 		}
 		// Force marshaling to Java's primitive short type.
 		java.lang.Short::class.javaPrimitiveType,
 		java.lang.Short::class.java -> when {
-			self.isSignedShort -> self.extractSignedShort()
+			self.isSignedShort -> self.extractSignedShort
 			else -> throw MarshalingException()
 		}
 		// Force marshaling to Java's primitive byte type.
 		java.lang.Byte::class.javaPrimitiveType,
 		java.lang.Byte::class.java -> when {
-			self.isSignedByte -> self.extractSignedByte()
+			self.isSignedByte -> self.extractSignedByte
 			else -> throw MarshalingException()
 		}
 		// No useful hint was provided, so marshal to the smallest primitive
 		// integral type able to express object's value.
 		else -> {
 			if (!self.isLong) self.asBigInteger()
-			else when (val longValue = self.extractLong()) {
+			else when (val longValue = self.extractLong) {
 				longValue.toByte().toLong() -> longValue.toByte()
 				longValue.toShort().toLong() -> longValue.toShort()
 				longValue.toInt().toLong() -> longValue.toInt()
@@ -1401,7 +1426,7 @@ class IntegerDescriptor private constructor(
 	{
 		val integerCount = intCount(self)
 		if (integerCount <= 2) {
-			return BigInteger.valueOf(self.extractLong())
+			return BigInteger.valueOf(self.extractLong)
 		}
 		val bytes = ByteArray(integerCount shl 2)
 		var b = 0
@@ -1418,7 +1443,7 @@ class IntegerDescriptor private constructor(
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean = true
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) = when {
-		self.isLong -> writer.write(self.extractLong())
+		self.isLong -> writer.write(self.extractLong)
 		else -> writer.write(self.asBigInteger())
 	}
 
@@ -1456,7 +1481,7 @@ class IntegerDescriptor private constructor(
 			assert(minDigits >= 0)
 			if (magnitude.isLong) {
 				// Use native printing.
-				val value = magnitude.extractLong()
+				val value = magnitude.extractLong
 				if (minDigits == 0) {
 					aStream.append(value)
 					return
@@ -1474,10 +1499,12 @@ class IntegerDescriptor private constructor(
 			var n = 0
 			var nextDivisor = quintillionInteger
 			var previousDivisor: A_Number
-			do {
+			do
+			{
 				previousDivisor = nextDivisor
 				nextDivisor = cachedSquareOfQuintillion(++n)
-			} while (nextDivisor.lessThan(magnitude))
+			}
+			while (nextDivisor.lessThan(magnitude))
 			// We went one too far.  Decrement n and use previousDivisor.
 			// Splitting the number by dividing by previousDivisor assigns the
 			// low 18*(2^n) digits to the remainder, and the rest to the
@@ -1627,8 +1654,8 @@ class IntegerDescriptor private constructor(
 			}
 		}
 
-		/** The [CheckedMethod] for [IntegerDescriptor.fromInt].  */
-		val fromIntMethod: CheckedMethod = staticMethod(
+		/** The [CheckedMethod] for [IntegerDescriptor.fromInt]. */
+		val fromIntMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
 			AvailObject::class.java,
@@ -1716,7 +1743,7 @@ class IntegerDescriptor private constructor(
 		fun hashOfUnsignedByte(anInteger: Short) =
 			hashesOfSmallIntegers[anInteger.toInt()]
 
-		/** The initialization value for computing the hash of an integer.  */
+		/** The initialization value for computing the hash of an integer. */
 		private const val initialHashValue = 0x13592884
 
 		/**
@@ -1832,7 +1859,7 @@ class IntegerDescriptor private constructor(
 		 * and then the number of unused ints in the last long.  This is mostly
 		 * a vestigial effect of having used 32-bit integer slots in the past.
 		 * There is still some merit to the technique, since for example integer
-		 * multiplication has to use u32xu32->u64 for speed.
+		 * multiplication has to use u32 x u32 -> u64 for speed.
 		 */
 		private val descriptors = EnumMap.enumMap { mut: Mutability ->
 			Array(2) { unusedInts ->
@@ -1883,20 +1910,19 @@ class IntegerDescriptor private constructor(
 		 * An array of size [smallIntegerLimit] of [Int]s, corresponding to the
 		 * hashes of the integers at the corresponding indices.
 		 */
-		private val hashesOfSmallIntegers = IntArray(smallIntegerLimit) {
-			computeHashOfInt(it)
-		}
+		private val hashesOfSmallIntegers =
+			IntArray(smallIntegerLimit, ::computeHashOfInt)
 
-		/** An Avail integer representing zero (0).  */
+		/** An Avail integer representing zero (0). */
 		val zero: AvailObject = smallIntegers[0]!!
 
-		/** An Avail integer representing one (1).  */
+		/** An Avail integer representing one (1). */
 		val one: AvailObject = smallIntegers[1]!!
 
-		/** An Avail integer representing two (2).  */
+		/** An Avail integer representing two (2). */
 		val two: AvailObject = smallIntegers[2]!!
 
-		/** The Avail integer negative one (-1).  */
+		/** The Avail integer negative one (-1). */
 		var negativeOne: AvailObject =
 			createUninitializedInteger(1).apply {
 				rawSignedIntegerAtPut(1, -1)

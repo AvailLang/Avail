@@ -32,6 +32,7 @@
 package com.avail.interpreter.primitive.privatehelpers
 
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -55,7 +56,7 @@ object P_PushLastOuter : Primitive(
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		val function = interpreter.function!!
-		assert(function.code().primitive() === this)
+		assert(function.code().codePrimitive() === this)
 		return interpreter.primitiveSuccess(function.outerVarAt(1))
 	}
 
@@ -95,7 +96,7 @@ object P_PushLastOuter : Primitive(
 		// should allow us to skip the creation of the function.
 		val functionCreationInstruction =
 			functionToCallReg.definitionSkippingMoves(true)
-		val returnType = functionToCallReg.type().returnType()
+		val returnType = functionToCallReg.type().returnType
 		val outerReg = functionCreationInstruction.operation()
 			.extractFunctionOuter(
 				functionCreationInstruction,

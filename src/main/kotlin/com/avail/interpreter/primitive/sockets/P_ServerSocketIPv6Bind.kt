@@ -89,10 +89,10 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 		val port = interpreter.argument(2)
 		val backlog = interpreter.argument(3)
 		val pojo = handle.getAtomProperty(SERVER_SOCKET_KEY.atom)
-		if (pojo.equalsNil())
+		if (pojo.isNil)
 		{
 			return interpreter.primitiveFailure(
-				if (handle.isAtomSpecial()) E_SPECIAL_ATOM
+				if (handle.isAtomSpecial) E_SPECIAL_ATOM
 				else E_INVALID_HANDLE)
 		}
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
@@ -100,12 +100,12 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 		val addressBytes = ByteArray(16) {
 			addressTuple.tupleIntAt(it + 1).toByte()
 		}
-		val backlogInt = backlog.extractInt()
+		val backlogInt = backlog.extractInt
 		return try
 		{
 			val inetAddress: Inet6Address = getByAddress(addressBytes).cast()
 			val address =
-				InetSocketAddress(inetAddress, port.extractUnsignedShort())
+				InetSocketAddress(inetAddress, port.extractUnsignedShort)
 			socket.bind(address, backlogInt)
 			interpreter.primitiveSuccess(nil)
 		}
@@ -137,12 +137,10 @@ object P_ServerSocketIPv6Bind : Primitive(4, CanInline, HasSideEffect)
 				tupleTypeForSizesTypesDefaultType(
 					singleInt(16),
 					emptyTuple,
-					bytes
-				),
+					bytes),
 				unsignedShorts,
 				intRange()),
-			TOP.o
-		)
+			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

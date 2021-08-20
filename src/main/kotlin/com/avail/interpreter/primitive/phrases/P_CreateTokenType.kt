@@ -77,7 +77,7 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		return interpreter.primitiveSuccess(
 			tokenType(
 				TokenDescriptor.TokenType.lookupTokenType(
-					type.getAtomProperty(tokenTypeOrdinalKey).extractInt())))
+					type.getAtomProperty(tokenTypeOrdinalKey).extractInt)))
 	}
 
 	override fun returnTypeGuaranteedByVM(
@@ -85,13 +85,13 @@ object P_CreateTokenType : Primitive(1, CannotFail, CanFold, CanInline)
 		argumentTypes: List<A_Type>): A_Type
 	{
 		val atomType = argumentTypes[0]
-		if (atomType.instanceCount().equalsInt(1))
+		if (atomType.instanceCount.equalsInt(1))
 		{
 			return instanceType(
 				tokenType(
 					TokenDescriptor.TokenType.lookupTokenType(
-						atomType.instance().getAtomProperty(tokenTypeOrdinalKey)
-							.extractInt())))
+						atomType.instance.getAtomProperty(tokenTypeOrdinalKey)
+							.extractInt)))
 
 		}
 		return super.returnTypeGuaranteedByVM(rawFunction, argumentTypes)

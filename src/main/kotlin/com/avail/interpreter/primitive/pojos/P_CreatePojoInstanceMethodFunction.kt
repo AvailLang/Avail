@@ -134,7 +134,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 
 		val returnType = resolvePojoType(
 			method.genericReturnType,
-			if (pojoType.isPojoType) pojoType.typeVariables() else emptyMap)
+			if (pojoType.isPojoType) pojoType.typeVariables else emptyMap)
 		val paramTypesWithReceiver =
 			tuple(pojoType).concatenateWith(paramTypes, false)
 		val functionType = functionType(paramTypesWithReceiver, returnType)
@@ -155,8 +155,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 			// Outer#1 = Instance method to invoke.
 			equalityPojo(method),
 			// Outer#2 = Marshaled type parameters.
-			marshaledTypesTuple.cast()
-		)
+			marshaledTypesTuple.cast())
 		return interpreter.primitiveSuccess(function)
 	}
 
@@ -164,7 +163,7 @@ object P_CreatePojoInstanceMethodFunction : Primitive(3, CanInline, CanFold)
 		functionType(
 			tuple(
 				anyMeta(),
-				stringType(),
+				stringType,
 				zeroOrMoreOf(anyMeta())),
 			functionTypeReturning(TOP.o))
 

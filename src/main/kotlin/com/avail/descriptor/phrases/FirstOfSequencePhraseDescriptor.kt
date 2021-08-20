@@ -41,6 +41,7 @@ import com.avail.descriptor.phrases.A_Phrase.Companion.statements
 import com.avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import com.avail.descriptor.phrases.FirstOfSequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
@@ -127,8 +128,8 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		codeGenerator: AvailCodeGenerator
 	) {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		val statementsCount = statements.tupleSize()
-		assert(statements.tupleSize() > 0)
+		val statementsCount = statements.tupleSize
+		assert(statements.tupleSize > 0)
 		// Leave the first statement's value on the stack while evaluating the
 		// subsequent statements.
 		statements.tupleAt(1).emitValueOn(codeGenerator)
@@ -140,14 +141,14 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode()
-		&& self.phraseKind() == aPhrase.phraseKind()
-		&& self.slot(STATEMENTS).equals(aPhrase.statements()))
+	): Boolean = (!aPhrase.isMacroSubstitutionNode
+		&& self.phraseKind == aPhrase.phraseKind
+		&& self.slot(STATEMENTS).equals(aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)
-		assert(statements.tupleSize() > 0)
-		return statements.tupleAt(1).phraseExpressionType()
+		assert(statements.tupleSize > 0)
+		return statements.tupleAt(1).phraseExpressionType
 	}
 
 	override fun o_FlattenStatementsInto(
@@ -161,7 +162,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		val valueProducer = accumulatedStatements.removeAt(
 			accumulatedStatements.size - 1)
 		val myFlatStatements = mutableListOf(valueProducer)
-		(2..statements.tupleSize()).forEach {
+		(2..statements.tupleSize).forEach {
 			statements.tupleAt(it).flattenStatementsInto(myFlatStatements)
 		}
 		when (myFlatStatements.size) {
@@ -176,7 +177,7 @@ class FirstOfSequencePhraseDescriptor private constructor(
 	}
 
 	override fun o_Hash(self: AvailObject) =
-		self.slot(STATEMENTS).hash() xor 0x70EDD231
+		combine2(self.slot(STATEMENTS).hash(), 0x70EDD231)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
 		PhraseKind.FIRST_OF_SEQUENCE_PHRASE
@@ -229,17 +230,17 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		 *   The resulting first-of-sequence phrase.
 		 */
 		fun newFirstOfSequenceNode(statements: A_Tuple): A_Phrase {
-			assert(statements.tupleSize() > 1)
+			assert(statements.tupleSize > 1)
 			return mutable.createShared {
 				setSlot(STATEMENTS, statements)
 			}
 		}
 
-		/** The mutable [FirstOfSequencePhraseDescriptor].  */
+		/** The mutable [FirstOfSequencePhraseDescriptor]. */
 		private val mutable =
 			FirstOfSequencePhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [FirstOfSequencePhraseDescriptor].  */
+		/** The shared [FirstOfSequencePhraseDescriptor]. */
 		private val shared =
 			FirstOfSequencePhraseDescriptor(Mutability.SHARED)
 	}

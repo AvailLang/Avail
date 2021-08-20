@@ -98,7 +98,7 @@ object P_FilePathConcatenation : Primitive(1, CanInline, CanFold)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(zeroOrMoreOf(stringType())), stringType())
+		functionType(tuple(zeroOrMoreOf(stringType)), stringType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_INVALID_PATH))

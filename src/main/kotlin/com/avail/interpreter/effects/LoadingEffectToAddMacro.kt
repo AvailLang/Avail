@@ -35,6 +35,7 @@ package com.avail.interpreter.effects
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.methods.A_Macro
+import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.interpreter.levelOne.L1InstructionWriter
@@ -65,7 +66,7 @@ internal class LoadingEffectToAddMacro constructor(
 ) : LoadingEffect() {
 	override fun writeEffectTo(writer: L1InstructionWriter)
 	{
-		val atom = bundle.message()
+		val atom = bundle.message
 		with(writer) {
 			// NOTE: The prefix functions are dealt with as separate effects.
 			// Push the bundle's atom.

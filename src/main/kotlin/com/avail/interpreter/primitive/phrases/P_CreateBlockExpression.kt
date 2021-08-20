@@ -32,7 +32,7 @@
 
 package com.avail.interpreter.primitive.phrases
 
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import com.avail.descriptor.phrases.A_Phrase
 import com.avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import com.avail.descriptor.phrases.BlockPhraseDescriptor
@@ -55,7 +55,7 @@ import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesCon
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.exceptions.AvailErrorCode.E_BLOCK_CONTAINS_INVALID_STATEMENTS
-import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NUMBER
+import com.avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -64,7 +64,7 @@ import com.avail.interpreter.execution.Interpreter
 /**
 * **Primitive:** Create a [block&#32;expression][BlockPhraseDescriptor] from
  * the specified [argument&#32;declarations][PhraseKind.ARGUMENT_PHRASE],
- * primitive number, statements, result type, and exception set.
+ * primitive name, statements, result type, and exception set.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -84,12 +84,12 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		// "resultType".
 		val flat = mutableListOf<A_Phrase>()
 		statements.forEach { it.flattenStatementsInto(flat) }
-		val primitive = when
+		val primitive = when (primitiveName.tupleSize)
 		{
-			primitiveName.tupleSize() == 0 -> null
+			0 -> null
 			else -> primitiveByName(primitiveName.asNativeString())
 				?: return interpreter.primitiveFailure(
-					E_INVALID_PRIMITIVE_NUMBER)
+					E_INVALID_PRIMITIVE_NAME)
 		}
 		if (!containsOnlyStatements(flat, resultType))
 		{
@@ -111,15 +111,15 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 		functionType(
 			tuple(
 				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()),
-				stringType(),
+				stringType,
 				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()),
 				topMeta(),
-				setTypeForSizesContentType(wholeNumbers, exceptionType())),
+				setTypeForSizesContentType(wholeNumbers, exceptionType)),
 			BLOCK_PHRASE.mostGeneralType())
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(
 			set(
 				E_BLOCK_CONTAINS_INVALID_STATEMENTS,
-				E_INVALID_PRIMITIVE_NUMBER))
+				E_INVALID_PRIMITIVE_NAME))
 }

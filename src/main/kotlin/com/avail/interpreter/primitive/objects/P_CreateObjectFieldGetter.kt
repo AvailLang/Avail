@@ -89,15 +89,13 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val (objectType, fieldAtom) = interpreter.argsBuffer
 
-		val map = objectType.fieldTypeMap()
+		val map = objectType.fieldTypeMap
 		if (!map.hasKey(fieldAtom))
 		{
 			// The field is not guaranteed to be part of the object.
 			return interpreter.primitiveFailure(AvailErrorCode.E_NO_SUCH_FIELD)
 		}
-		val explicitSubclassingProperty =
-			fieldAtom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom)
-		if (!explicitSubclassingProperty.equalsNil())
+		if (fieldAtom.getAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom).notNil)
 		{
 			// It's an explicit-subclass field, which has no backing slot, but
 			// is considered to have the fieldAtom itself as its value.  Answer
@@ -105,7 +103,7 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 			val newFunction = functionReturningConstant(objectType, fieldAtom)
 			return interpreter.primitiveSuccess(newFunction)
 		}
-		val module = interpreter.availLoaderOrNull()?.module() ?: nil
+		val module = interpreter.availLoaderOrNull()?.module ?: nil
 		val returnType = objectType.fieldTypeAt(fieldAtom)
 		val rawFunction = newCompiledCode(
 			emptyTuple,
@@ -153,13 +151,11 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralObjectMeta(),
-				ATOM.o
-			),
+				ATOM.o),
 			functionType(
 				tuple(
 					mostGeneralObjectType()),
-				ANY.o
-			))
+				ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(AvailErrorCode.E_NO_SUCH_FIELD))

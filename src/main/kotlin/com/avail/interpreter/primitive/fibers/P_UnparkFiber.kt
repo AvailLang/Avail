@@ -75,13 +75,15 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 				// Restore the permit. If the fiber is parked, then unpark it.
 				getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
 				when {
-					executionState() === PARKED -> {
+					executionState() === PARKED ->
+					{
 						// Wake up the fiber.
 						setExecutionState(SUSPENDED)
 						val suspendingPrimitive =
-							suspendingFunction().code().primitive()!!
-						assert(suspendingPrimitive === P_ParkCurrentFiber
-							|| suspendingPrimitive === P_AttemptJoinFiber)
+							suspendingFunction().code().codePrimitive()!!
+						assert(
+							suspendingPrimitive === P_ParkCurrentFiber
+								|| suspendingPrimitive === P_AttemptJoinFiber)
 						resumeFromSuccessfulPrimitive(
 							currentRuntime(), fiber, suspendingPrimitive, nil)
 					}

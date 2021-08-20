@@ -32,7 +32,7 @@
 
 Module "Phrases"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Bootstrap",
 	"Early Conditionals",
@@ -53,10 +53,7 @@ Names
 	"`«[_`|_]:_`»",
 	"`«[_]:_`»",
 	"_token",
-	"_(_)@_:_",
-	"_'s⁇classifier",
-	"real source position",
-	"real source line number"
+	"_'s⁇classifier"
 Body
 
 /**
@@ -168,38 +165,6 @@ Public method "_token" is
 ] : token's type;
 
 /**
- * Answer a {@type "token"} with the specified {@param "classifier"}, {@param
- * "lexeme"}, {@param "position" one-based source position}, and {@param "line"
- * one-based source line number}.
- *
- * @method "_(_)@_:_"
- * @param "classifier"
- *        "enumeration of {end of file, keyword, operator, comment, whitespace}"
- *        A {@type "atom" classifier} that specifies the lexical role of the
- *        {@type "token"}.
- * @param "lexeme" "string"
- *        The source text of the {@type "token"}.
- * @param "position" "source position"
- *        The one-based character position within the Avail source module, or
- *        {@code "0"} if the character position is unknown or meaningless.
- * @param "line" "source line number"
- *        The one-based line number within the Avail source module, or {@code
- *        "0"} if the line number is unknown or meaningless.
- * @returns "token"
- *          The requested {@type "token"}.
- */
-Public method "_(_)@_:_" is
-[
-	classifier : enumeration of
-		{end of file, keyword, operator, comment, whitespace},
-	lexeme : string,
-	position : source position,
-	line : source line number
-|
-	Primitive CreateToken;
-] : token;
-
-/**
  * Strengthen token building to covary with the classifier.
  *
  * @method "_(_)@_:_"
@@ -213,8 +178,8 @@ Semantic restriction "_(_)@_:_" is
 	classifier : enumeration of
 		{end of file, keyword, operator, comment, whitespace}'s type,
 	lexeme : string's type,
-	position : source position's type,
-	line : source line number's type
+	position : whole number's type,
+	line : whole number's type
 |
 	if |classifier| = 1 then
 	[
@@ -611,32 +576,6 @@ Semantic restriction "bootstrap restricted send_with_:_" is
 	basicReturnMeta : type's type
 |
 	send phrase ⇒ basicReturnMeta's instance
-];
-
-/**
- * Answer an {@type "integer"} {@type "type"} that represents an a real
- * source position, that is, one with which the compiler will invoke a lexer
- * body.
- *
- * @method "real source position"
- * @returns "[1..2147483647]"
- */
-Public method "real source position" is
-[
-	integer range from 1 (inclusive=true) to 2147483647 (inclusive=true)
-];
-
-/**
- * Answer an {@type "integer"} {@type "type"} that represents an a real
- * source position, that is, one with which the compiler will invoke a lexer
- * body.
- *
- * @method "real source line number"
- * @returns "[1..268435455]"
- */
-Public method "real source line number" is
-[
-	integer range from 1 (inclusive=true) to 268435455 (inclusive=true)
 ];
 
 Method "“_”" is

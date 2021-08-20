@@ -36,6 +36,8 @@ import com.avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import com.avail.descriptor.methods.SemanticRestrictionDescriptor.Companion.newSemanticRestriction
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
@@ -75,9 +77,9 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 		val atom = interpreter.argument(0)
 		val function = interpreter.argument(1)
 		val functionType = function.kind()
-		val tupleType = functionType.argsTupleType()
-		val loader = interpreter.availLoaderOrNull() ?:
-			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val tupleType = functionType.argsTupleType
+		val loader = interpreter.availLoaderOrNull()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
@@ -93,7 +95,7 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 		}
 		try
 		{
-			val method = atom.bundleOrCreate().bundleMethod()
+			val method = atom.bundleOrCreate().bundleMethod
 			val restriction =
 				newSemanticRestriction(function, method, interpreter.module())
 			loader.addSemanticRestriction(restriction)
@@ -107,8 +109,8 @@ object P_AddSemanticRestrictionForAtom : Primitive(2, Unknown)
 			return interpreter.primitiveFailure(e)
 		}
 
-		function.code().setMethodName(
-			stringFrom("Semantic restriction of ${atom.atomName()}"))
+		function.code().methodName =
+			stringFrom("Semantic restriction of ${atom.atomName}")
 		return interpreter.primitiveSuccess(nil)
 	}
 

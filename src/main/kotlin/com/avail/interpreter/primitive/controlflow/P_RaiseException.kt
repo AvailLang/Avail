@@ -36,8 +36,8 @@ import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.functions.FunctionDescriptor
 import com.avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import com.avail.descriptor.objects.ObjectDescriptor.Companion.objectFromMap
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.exceptionType
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.stackDumpAtom
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.stackDumpAtom
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -75,7 +75,7 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 		// dump can be obtained later.
 		val fieldMap = exception.fieldMap()
 		val newFieldMap = fieldMap.mapAtPuttingCanDestroy(
-			stackDumpAtom(),
+			stackDumpAtom,
 			interpreter.getReifiedContinuation()!!.makeImmutable(),
 			false)
 		val newException = objectFromMap(newFieldMap)
@@ -84,7 +84,7 @@ object P_RaiseException : Primitive(1, CanSuspend, CanSwitchContinuations)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(exceptionType()), bottom)
+		functionType(tuple(exceptionType), bottom)
 
-	override fun privateFailureVariableType(): A_Type = exceptionType()
+	override fun privateFailureVariableType(): A_Type = exceptionType
 }

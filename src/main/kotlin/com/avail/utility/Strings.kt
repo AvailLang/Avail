@@ -61,12 +61,12 @@ object Strings {
 			val codePoint = s.codePointAt(i)
 			when (codePoint)
 			{
-				'\\'.toInt() -> append("\\\\")
-				'"'.toInt() -> append("\\\"")
-				'\b'.toInt() -> append("\\b")
-				'\n'.toInt() -> append("\\n")
-				'\r'.toInt() -> append("\\r")
-				'\t'.toInt() -> append("\\t")
+				'\\'.code -> append("\\\\")
+				'"'.code -> append("\\\"")
+				'\b'.code -> append("\\b")
+				'\n'.code -> append("\\n")
+				'\r'.code -> append("\\r")
+				'\t'.code -> append("\\t")
 				else -> appendCodePoint(codePoint)
 			}
 			i += Character.charCount(codePoint)
@@ -177,7 +177,7 @@ object Strings {
 		}
 	}
 
-	/** A regex [Pattern] containing just a line break.  */
+	/** A regex [Pattern] containing just a line break. */
 	val lineBreakPattern: Pattern = Pattern.compile("\n", Pattern.LITERAL)
 
 	/**
@@ -195,12 +195,17 @@ object Strings {
 		increasedIndentation: Int
 	): String {
 		assert(increasedIndentation >= 0)
-		return if (increasedIndentation == 0) {
+		return if (increasedIndentation == 0)
+		{
 			originalString
-		} else lineBreakPattern
-			.matcher(originalString)
-			.replaceAll(
-				Matcher.quoteReplacement("\n" + tabs(increasedIndentation)))
+		}
+		else
+		{
+			lineBreakPattern
+				.matcher(originalString)
+				.replaceAll(
+					Matcher.quoteReplacement("\n" + tabs(increasedIndentation)))
+		}
 	}
 
 	/**
@@ -211,13 +216,16 @@ object Strings {
 	 * @return The stringification of the stack trace.
 	 */
 	fun traceFor(e: Throwable): String {
-		return try {
+		return try
+		{
 			val traceBytes = ByteArrayOutputStream()
 			val trace = PrintStream(
 				traceBytes, true, StandardCharsets.UTF_8.name())
 			e.printStackTrace(trace)
 			String(traceBytes.toByteArray(), StandardCharsets.UTF_8)
-		} catch (x: UnsupportedEncodingException) {
+		}
+		catch (x: UnsupportedEncodingException)
+		{
 			assert(false) { "This never happens!" }
 			throw RuntimeException(x)
 		}

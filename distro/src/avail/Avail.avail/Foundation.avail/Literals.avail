@@ -32,7 +32,7 @@
 
 Module "Literals"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Early Literals" =
 	(
@@ -54,8 +54,8 @@ Uses
 	"Phrases"
 Names
 	"{«_→_‡,»}",
-	"`$…",
-	"`$…$",
+	"$…",
+	"$…#",
 	"¢…!",
 	"enclosing module"
 Body
@@ -334,7 +334,7 @@ Semantic restriction "⌈_⌉" is
  * looked up using in the current module's context. The name of the atom is
  * provided by the argument's lexeme.
  *
- * @macro "`$…"
+ * @macro "$…"
  * @param "tokenPhrase" "literal phrase ⇒ token"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value is the name of the atom.
@@ -342,7 +342,7 @@ Semantic restriction "⌈_⌉" is
  *          The {@type "atom"} {@type "literal phrase" literal}.
  * @category "Atoms" "Constructors"
  */
-Public macro "`$…" is
+Public macro "$…" is
 [
 	tokenPhrase : literal phrase ⇒ token
 |
@@ -355,7 +355,7 @@ Public macro "`$…" is
  * looked up in the current module's context. If the token is a string literal,
  * then use its value instead of its lexeme for the name of the atom.
  *
- * @macro "`$…$"
+ * @macro "$…#"
  * @param "aToken"
  *        "literal phrase ⇒ (literal token ⇒ string)"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
@@ -364,7 +364,7 @@ Public macro "`$…" is
  *          The {@type "atom"} {@type "literal phrase" literal}.
  * @category "Atoms" "Constructors"
  */
-Public macro "`$…$" is
+Public macro "$…#" is
 [
 	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
 |
@@ -392,6 +392,12 @@ Public macro "¢…!" is
 	[
 		Immediately reject parse, expected:
 			"a single-character token or single-character literal string"
+	];
+	If lexeme = "[" then
+	[
+		Immediately reject parse silently, expected:
+			"open square bracket ([) to be quoted when used in a character \
+				\|literal"
 	];
 	‘lexeme[1]’
 ];

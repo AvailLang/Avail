@@ -31,7 +31,10 @@
  */
 package com.avail.interpreter.levelTwo.operation
 
-import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.decrementCountdownToReoptimize
+import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
@@ -40,8 +43,9 @@ import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.optimizer.L1Translator
-import com.avail.optimizer.L2Generator.OptimizationLevel
+import com.avail.optimizer.L2Generator.OptimizationLevel.Companion.optimizationLevel
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
@@ -50,7 +54,7 @@ import org.objectweb.asm.Opcodes
 
 /**
  * Explicitly decrement the current compiled code's countdown via
- * [AvailObject.countdownToReoptimize].  If it reaches zero then re-optimize the
+ * [A_RawFunction.countdownToReoptimize].  If it reaches zero then re-optimize the
  * code and jump to its [L2Chunk.offsetAfterInitialTryPrimitive], which expects
  * the arguments to still be set up in the [Interpreter].
  *
@@ -78,7 +82,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 		instruction: L2Instruction)
 	{
 		val optimization = instruction.operand<L2IntImmediateOperand>(0)
-		//		final L2IntImmediateOperand isEntryPoint = instruction.operand(1);
+		//val isEntryPoint: L2IntImmediateOperand = instruction.operand(1)
 
 		// :: if (L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO.decrement(
 		// ::    interpreter, targetOptimizationLevel)) return null;
@@ -118,10 +122,10 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 				code.countdownToReoptimize(countdownForNewlyOptimizedCode)
 				L1Translator.translateToLevelTwo(
 					code,
-					OptimizationLevel.optimizationLevel(targetOptimizationLevel),
+					optimizationLevel(targetOptimizationLevel),
 					interpreter)
 			}
-			val chunk = code.startingChunk()
+			val chunk = code.startingChunk
 			interpreter.chunk = chunk
 			interpreter.setOffset(chunk.offsetAfterInitialTryPrimitive())
 			chunkChanged = true
@@ -132,7 +136,7 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 	/**
 	 * The [CheckedMethod] for [decrement].
 	 */
-	private val decrementMethod = CheckedMethod.staticMethod(
+	private val decrementMethod = staticMethod(
 		L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO::class.java,
 		::decrement.name,
 		Boolean::class.javaPrimitiveType!!,

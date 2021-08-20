@@ -89,7 +89,7 @@ import java.util.ArrayDeque
 class Serializer constructor (
 	val output: OutputStream,
 	val module: A_Module? = null,
-	val lookupPumpedObject: (A_BasicObject)->Int = { 0 })
+	private val lookupPumpedObject: (A_BasicObject)->Int = { 0 })
 {
 	/**
 	 * This keeps track of all objects that have been encountered.  It's a map
@@ -162,8 +162,8 @@ class Serializer constructor (
 		{
 			return
 		}
-		val atomModule = atom.issuingModule()
-		if (atomModule.equalsNil())
+		val atomModule = atom.issuingModule
+		if (atomModule.isNil)
 		{
 			return
 		}
@@ -232,19 +232,6 @@ class Serializer constructor (
 	}
 
 	/**
-	 * Look up the object.  If it is already in the [encounteredObjects] list,
-	 * answer the corresponding [SerializerInstruction].
-	 *
-	 * @param obj
-	 *   The object to look up.
-	 * @return
-	 *   The object's zero-based index in `encounteredObjects`.
-	 */
-	internal fun instructionForObject(
-		obj: A_BasicObject
-	): SerializerInstruction = encounteredObjects[obj]!!
-
-	/**
 	 * Look up the object and return the existing instruction that produces it.
 	 * The instruction must have an index other than -1, which indicates that
 	 * the instruction has not yet been written; that is, the instruction must
@@ -301,8 +288,8 @@ class Serializer constructor (
 	{
 		val before = System.nanoTime()
 		// Build but don't yet emit the instruction.
-		val instruction =
-			encounteredObjects.computeIfAbsent(obj) { newInstruction(it) }
+		val instruction = encounteredObjects.computeIfAbsent(
+			obj, this::newInstruction)
 		// Do nothing if the object's instruction has already been emitted.
 		if (!instruction.hasBeenWritten)
 		{
@@ -334,7 +321,7 @@ class Serializer constructor (
 				}
 			}
 			if (instruction.operation.isVariableCreation
-				&& !obj.value().equalsNil())
+				&& obj.value().notNil)
 			{
 				variablesToAssign.add(obj)
 				// Output an action to the *start* of the workStack to trace the
@@ -366,7 +353,7 @@ class Serializer constructor (
 		for (variable in variablesToAssign)
 		{
 			ASSIGN_TO_VARIABLE.serializeStat.record {
-				assert(!variable.value().equalsNil())
+				assert(variable.value().notNil)
 				val assignment = SerializerInstruction(
 					ASSIGN_TO_VARIABLE,
 					variable,
@@ -430,7 +417,7 @@ class Serializer constructor (
 		 * their [A_String], where the value is the [A_Atom] itself.
 		 */
 		internal val specialAtomsByName =
-			specialAtoms.keys.associateBy { it.atomName() }
+			specialAtoms.keys.associateBy { it.atomName }
 
 		/**
 		 * Look up the object.  If it is a

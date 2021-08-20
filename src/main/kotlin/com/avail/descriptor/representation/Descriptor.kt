@@ -56,6 +56,7 @@ import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Method
 import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable
+import com.avail.descriptor.methods.A_Styler
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.descriptor.numbers.A_Number
@@ -106,7 +107,6 @@ import com.avail.utility.visitor.BeSharedSubobjectVisitor
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
-import java.util.NoSuchElementException
 import java.util.Spliterator
 import java.util.TimerTask
 import java.util.stream.Stream
@@ -770,6 +770,12 @@ abstract class Descriptor protected constructor (
 		chunk: L2Chunk,
 		countdown: Long): Unit = unsupported
 
+	override fun o_UpdateStylers(
+		self: AvailObject,
+		updater: A_Set.() -> A_Set): Unit = unsupported
+
+	override fun o_Stylers(self: AvailObject): A_Set = unsupported
+
 	override fun o_SubtractFromInfinityCanDestroy (
 		self: AvailObject,
 		sign: Sign,
@@ -1328,10 +1334,9 @@ abstract class Descriptor protected constructor (
 	override fun o_IsInstanceOfKind (self: AvailObject, aType: A_Type) =
 		self.kind().isSubtypeOf(aType)
 
-	override fun o_Hash (self: AvailObject): Int =
-		// Answer a 32-bit long that is always the same for equal objects, but
-		// statistically different for different objects.
-		unsupported
+	// Answer a 32-bit long that is always the same for equal objects, but
+	// statistically different for different objects.
+	override fun o_Hash (self: AvailObject): Int = unsupported
 
 	override fun o_IsFunction (self: AvailObject) = false
 
@@ -2046,7 +2051,7 @@ abstract class Descriptor protected constructor (
 		// By default an object acts like a bin of size one.
 		object : SetIterator()
 		{
-			/** Whether there are more elements.  */
+			/** Whether there are more elements. */
 			private var hasNext = true
 
 			override fun next(): AvailObject
@@ -2628,6 +2633,11 @@ abstract class Descriptor protected constructor (
 
 	override fun o_ExtractDumpedLongAt(self: AvailObject, index: Int): Long =
 		unsupported
+
+	override fun o_ModuleAddStyler(self: AvailObject, styler: A_Styler): Unit =
+		unsupported
+
+	override fun o_ModuleStylers (self: AvailObject): A_Set = unsupported
 
 	override fun o_ModuleState(
 		self: AvailObject

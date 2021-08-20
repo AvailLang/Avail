@@ -35,6 +35,7 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor
 import com.avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -72,9 +73,7 @@ object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 		if (loader === null)
 		{
 			atom = createAtom(name, nil)
-			atom.setAtomProperty(
-				EXPLICIT_SUBCLASSING_KEY.atom,
-				EXPLICIT_SUBCLASSING_KEY.atom)
+			atom.setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 		}
 		else
 		{
@@ -93,7 +92,7 @@ object P_CreateExplicitSubclassAtom : Primitive(1, CanInline)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(stringType()), ATOM.o)
+		functionType(tuple(stringType), ATOM.o)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_AMBIGUOUS_NAME))

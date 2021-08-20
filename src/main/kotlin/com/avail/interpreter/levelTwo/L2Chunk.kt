@@ -38,6 +38,9 @@ import com.avail.builder.UnresolvedDependencyException
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
+import com.avail.descriptor.functions.A_RawFunction.Companion.module
+import com.avail.descriptor.functions.A_RawFunction.Companion.setStartingChunkAndReoptimizationCountdown
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.ContinuationDescriptor
 import com.avail.descriptor.methods.A_ChunkDependable
@@ -162,9 +165,9 @@ import kotlin.concurrent.withLock
  */
 class L2Chunk private constructor(
 	val code: A_RawFunction?,
-	val numObjects: Int,
+	private val numObjects: Int,
 	val numIntegers: Int,
-	val numDoubles: Int,
+	private val numDoubles: Int,
 	private val offsetAfterInitialTryPrimitive: Int,
 	instructions: List<L2Instruction>,
 	private val controlFlowGraph: L2ControlFlowGraph,
@@ -172,7 +175,7 @@ class L2Chunk private constructor(
 	val executableChunk: JVMChunk)
 {
 	/** Allow reads but not writes of this property. */
-	fun contingentValues() = contingentValues
+	private fun contingentValues() = contingentValues
 
 	/** The [WeakReference] that points to this [L2Chunk]. */
 	val weakReference = WeakReference(this)
@@ -209,7 +212,7 @@ class L2Chunk private constructor(
 			@GuardedBy("generationsLock")
 			private val generations: Deque<Generation> = ArrayDeque()
 
-			/** The lock for accessing the [Deque] of [Generation]s.  */
+			/** The lock for accessing the [Deque] of [Generation]s. */
 			private val generationsLock = ReentrantReadWriteLock()
 
 			/**
@@ -401,7 +404,7 @@ class L2Chunk private constructor(
 			"Chunk #%08x",
 			System.identityHashCode(this)))
 		code?.let {
-			val codeName = it.methodName()
+			val codeName = it.methodName
 			builder.append(" for ")
 			builder.append(codeName)
 		}
@@ -508,6 +511,7 @@ class L2Chunk private constructor(
 	 * @return
 	 *   This chunk's [L2ControlFlowGraph].
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	fun controlFlowGraph(): L2ControlFlowGraph = controlFlowGraph
 
 	/**
@@ -659,7 +663,7 @@ class L2Chunk private constructor(
 		 *   The effective name of the function.
 		 */
 		private fun name(code: A_RawFunction?): String =
-			code?.methodName()?.asNativeString() ?: "«default»"
+			code?.methodName?.asNativeString() ?: "«default»"
 
 		/**
 		 * Return the number of times to invoke a
@@ -756,8 +760,8 @@ class L2Chunk private constructor(
 			assert(offsetAfterInitialTryPrimitive >= 0)
 			var sourceFileName: String? = null
 			code?.let {
-				val module = it.module()
-				if (!module.equalsNil())
+				val module = it.module
+				if (module.notNil)
 				{
 					try
 					{
@@ -765,7 +769,7 @@ class L2Chunk private constructor(
 							AvailRuntime.currentRuntime().moduleNameResolver
 								.resolve(
 									ModuleName(
-										module.moduleName().asNativeString()),
+										module.moduleName.asNativeString()),
 									null)
 						sourceFileName =
 							resolved.resolverReference.uri.toString()
@@ -866,14 +870,14 @@ class L2Chunk private constructor(
 					emptySet)
 			assert(initialBlock.offset() == 0)
 			assert(reenterFromRestartBlock.offset()
-				   == ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
+					== ChunkEntryPoint.TO_RESTART.offsetInDefaultChunk)
 			assert(loopBlock.offset() == 3)
 			assert(reenterFromCallBlock.offset()
-				   == ChunkEntryPoint.TO_RETURN_INTO.offsetInDefaultChunk)
+					== ChunkEntryPoint.TO_RETURN_INTO.offsetInDefaultChunk)
 			assert(reenterFromInterruptBlock.offset()
-				   == ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
+					== ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
 			assert(unreachableBlock.offset()
-				   == ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk)
+					== ChunkEntryPoint.UNREACHABLE.offsetInDefaultChunk)
 			return defaultChunk
 		}
 	}

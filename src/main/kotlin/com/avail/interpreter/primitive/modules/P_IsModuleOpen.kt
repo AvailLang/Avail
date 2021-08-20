@@ -60,7 +60,7 @@ object P_IsModuleOpen : Primitive(1, CanInline, CannotFail)
 		val module: A_Module = interpreter.argument(0)
 
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(module.moduleState() == Loading))
+			objectFromBoolean(module.moduleState == Loading))
 	}
 
 	override fun privateBlockTypeRestriction () =

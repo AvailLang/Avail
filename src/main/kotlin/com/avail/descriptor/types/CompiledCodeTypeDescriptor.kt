@@ -34,6 +34,7 @@ package com.avail.descriptor.types
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObject.Companion.combine2
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type.Companion.functionType
@@ -62,7 +63,7 @@ import java.util.IdentityHashMap
  * Construct a new `CompiledCodeTypeDescriptor`.
  *
  * @param mutability
- * 		The [mutability][Mutability] of the new descriptor.
+ *   The [mutability][Mutability] of the new descriptor.
  */
 class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
@@ -120,11 +121,11 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 			}
 			else
 			{
-				aCompiledCodeType.functionType().equals(self.functionType())
+				aCompiledCodeType.functionType.equals(self.functionType())
 			}
 
 	override fun o_Hash(self: AvailObject): Int =
-		self.functionType().hash() * 71 xor -0x5874fe3d
+		combine2(self.functionType().hash(), -0x5874fe3d)
 
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
 		aType.isSupertypeOfCompiledCodeType(self)
@@ -138,7 +139,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		self: AvailObject,
 		aCompiledCodeType: A_Type): Boolean
 	{
-		val subFunctionType = aCompiledCodeType.functionType()
+		val subFunctionType = aCompiledCodeType.functionType
 		val superFunctionType = self.functionType()
 		return subFunctionType.isSubtypeOf(superFunctionType)
 	}
@@ -165,7 +166,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		aCompiledCodeType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType()
-		val functionType2 = aCompiledCodeType.functionType()
+		val functionType2 = aCompiledCodeType.functionType
 		return if (functionType1.equals(functionType2))
 		{
 			self
@@ -198,7 +199,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		aCompiledCodeType: A_Type): A_Type
 	{
 		val functionType1 = self.functionType()
-		val functionType2 = aCompiledCodeType.functionType()
+		val functionType2 = aCompiledCodeType.functionType
 		return if (functionType1.equals(functionType2))
 		{
 			// Optimization only
@@ -259,11 +260,11 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 				setSlot(FUNCTION_TYPE, functionType.makeImmutable())
 			}
 
-		/** The mutable [CompiledCodeTypeDescriptor].  */
+		/** The mutable [CompiledCodeTypeDescriptor]. */
 		private val mutable: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.MUTABLE)
 
-		/** The shared [CompiledCodeTypeDescriptor].  */
+		/** The shared [CompiledCodeTypeDescriptor]. */
 		private val shared: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.SHARED)
 

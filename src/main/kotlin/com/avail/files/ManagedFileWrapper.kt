@@ -1,5 +1,5 @@
 /*
- * ServerFileWrapper.kt
+ * ManagedFileWrapper.kt
  * Copyright © 1993-2019, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -35,7 +35,6 @@ package com.avail.files
 import com.avail.error.ErrorCode
 import com.avail.resolver.ResolverReference
 import com.avail.resolver.ResourceType
-import java.nio.channels.AsynchronousFileChannel
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
@@ -91,8 +90,7 @@ abstract class AbstractFileWrapper constructor(
 	open val error: Throwable? = null
 
 	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
-	abstract var file: AvailFile
-		protected set
+	abstract val file: AvailFile
 
 	/**
 	 * `true` indicates that [file] is fully populated with the content of the
@@ -387,14 +385,11 @@ abstract class AbstractFileWrapper constructor(
 class ManagedFileWrapper constructor(
 	id: UUID,
 	resolverReference: ResolverReference,
-	fileManager: FileManager)
-		: AbstractFileWrapper(id, resolverReference, fileManager)
+	fileManager: FileManager
+): AbstractFileWrapper(id, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
-	override lateinit var file: AvailFile
-
-	init
-	{
+	override val file: AvailFile by lazy {
 		when
 		{
 			resolverReference.type == ResourceType.MODULE
@@ -426,10 +421,6 @@ class ManagedFileWrapper constructor(
 		 * Answer a new [AvailFile] that will be associated with the
 		 * [ManagedFileWrapper].
 		 *
-		 * @param path
-		 *   The String path to the target file on disk.
-		 * @param file
-		 *   The [AsynchronousFileChannel] used to access the file.
 		 * @param mimeType
 		 *   The MIME type of the file.
 		 * @param fileWrapper
@@ -437,14 +428,13 @@ class ManagedFileWrapper constructor(
 		 */
 		fun createFile (
 			mimeType: String,
-			fileWrapper: ManagedFileWrapper): AvailFile =
-				when
-				{
-					mimeType == "text/avail" -> AvailModuleFile(fileWrapper)
-					AvailFile.isTextFile(mimeType) ->
-						AvailTextFile(fileWrapper)
-					else -> AvailBinaryFile(fileWrapper)
-				}
+			fileWrapper: ManagedFileWrapper
+		): AvailFile = when
+		{
+			mimeType == "text/avail" -> AvailModuleFile(fileWrapper)
+			AvailFile.isTextFile(mimeType) -> AvailTextFile(fileWrapper)
+			else -> AvailBinaryFile(fileWrapper)
+		}
 	}
 }
 
@@ -464,16 +454,13 @@ class ManagedFileWrapper constructor(
  *   The [FileManager] this [ManagedFileWrapper] belongs to.
  */
 class NullFileWrapper constructor(
-		raw : ByteArray,
-		resolverReference: ResolverReference,
-		fileManager: FileManager)
-	: AbstractFileWrapper(nullUUID, resolverReference, fileManager)
+	raw : ByteArray,
+	resolverReference: ResolverReference,
+	fileManager: FileManager
+): AbstractFileWrapper(nullUUID, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [NullFileWrapper]. */
-	override lateinit var file: AvailFile
-
-	init
-	{
+	override val file: AvailFile by lazy {
 		when
 		{
 			resolverReference.type == ResourceType.MODULE
@@ -533,15 +520,16 @@ class ErrorFileWrapper constructor(
 	resolverReference: ResolverReference,
 	fileManager: FileManager,
 	e: Throwable,
-	errorCode: ErrorCode)
-		: AbstractFileWrapper(id, resolverReference, fileManager)
+	errorCode: ErrorCode
+): AbstractFileWrapper(id, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
-	override lateinit var file: AvailFile
+	override val file: AvailFile
+		get() = throw UnsupportedOperationException("File is not available")
 
 	override val isError = true
-	override val error: Throwable? = e
-	override val errorCode: ErrorCode? = errorCode
+	override val error: Throwable = e
+	override val errorCode: ErrorCode = errorCode
 
 	override fun delete(
 		success: (UUID?)->Unit,

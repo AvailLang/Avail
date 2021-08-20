@@ -83,7 +83,7 @@ class CommandLineConfigurator constructor(
 	private val helpStream: Appendable
 ) : Configurator<IndexedFileAnalyzerConfiguration>
 {
-	/** The command line arguments.  */
+	/** The command line arguments. */
 	private val commandLineArguments = commandLineArguments.clone()
 
 	/** Has the [configurator][CommandLineConfigurator] been run yet? */
@@ -217,9 +217,9 @@ class CommandLineConfigurator constructor(
 	}
 
 	/**
-	 * Create an [option&32;processor][OptionProcessor] suitable for
+	 * Create an [option&#32;processor][OptionProcessor] suitable for
 	 * [updating][updateConfiguration] an
-	 * [analyzer&32;configuration][IndexedFileAnalyzerConfiguration].
+	 * [analyzer&#32;configuration][IndexedFileAnalyzerConfiguration].
 	 *
 	 * @return
 	 *   An option processor.
