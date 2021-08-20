@@ -35,7 +35,7 @@
 
 Module "The Ship of Stories"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Uses
 	"Avail",
 	"Choosable Path",

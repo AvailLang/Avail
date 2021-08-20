@@ -32,7 +32,7 @@
 
 Module "Late Atoms"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 	"Atoms"
 Uses

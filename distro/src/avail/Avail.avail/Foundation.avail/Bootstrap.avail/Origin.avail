@@ -40,7 +40,7 @@
 
 Module "Origin"
 Versions
-	"1.5.1"
+	"Avail-1.6.0"
 Extends
 Uses
 Names
@@ -72,7 +72,7 @@ Names
 	"(_::_†)",
 	"…#"
 Pragma
-	"check=version=1.5.1",
+	"check=version=Avail-1.6.0",
 	"lexer=BootstrapLexerWhitespaceFilter,BootstrapLexerWhitespaceBody=whitespace lexer",
 	"lexer=BootstrapLexerSlashStarCommentFilter,BootstrapLexerSlashStarCommentBody=comment lexer",
 	"lexer=BootstrapLexerStringFilter,BootstrapLexerStringBody=string token lexer",
