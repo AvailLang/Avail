@@ -77,6 +77,7 @@ import com.avail.environment.actions.ToggleDebugInterpreterL1
 import com.avail.environment.actions.ToggleDebugInterpreterL2
 import com.avail.environment.actions.ToggleDebugInterpreterPrimitives
 import com.avail.environment.actions.ToggleDebugJVM
+import com.avail.environment.actions.ToggleDebugJVMCodeGeneration
 import com.avail.environment.actions.ToggleDebugWorkUnits
 import com.avail.environment.actions.ToggleFastLoaderAction
 import com.avail.environment.actions.ToggleL2SanityCheck
@@ -119,8 +120,10 @@ import com.github.weisj.darklaf.LafManager
 import com.github.weisj.darklaf.theme.DarculaTheme
 import java.awt.Color
 import java.awt.Component
+import java.awt.Desktop
 import java.awt.Dimension
 import java.awt.EventQueue
+import java.awt.Taskbar
 import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
@@ -158,6 +161,7 @@ import java.util.prefs.BackingStoreException
 import javax.swing.Action
 import javax.swing.BorderFactory
 import javax.swing.GroupLayout
+import javax.swing.ImageIcon
 import javax.swing.JCheckBoxMenuItem
 import javax.swing.JComponent
 import javax.swing.JFrame
@@ -430,6 +434,10 @@ class AvailWorkbench internal constructor (
 
 	/** The [toggle JVM dump debug action][ToggleDebugJVM]. */
 	private val toggleDebugJVM = ToggleDebugJVM(this)
+
+	/** The [toggle JVM code generation][ToggleDebugJVMCodeGeneration]. */
+	private val toggleDebugJVMCodeGeneration =
+		ToggleDebugJVMCodeGeneration(this)
 
 	/**
 	 * The
@@ -949,25 +957,32 @@ class AvailWorkbench internal constructor (
 	 */
 	fun refreshFor(modules: TreeNode, entryPoints: TreeNode)
 	{
-		val selection = selectedModule()
+		val selection = moduleTree.selectionPath
 		moduleTree.isVisible = false
 		entryPointsTree.isVisible = false
 		try
 		{
-			moduleTree.model = DefaultTreeModel(modules)
-			for (i in moduleTree.rowCount - 1 downTo 0)
-			{
-				moduleTree.expandRow(i)
-			}
-			if (selection !== null)
-			{
-				val path = modulePath(selection.qualifiedName)
-				if (path !== null)
-				{
-					moduleTree.selectionPath = path
+			val root = moduleTree.model.root as DefaultMutableTreeNode
+			val allExpanded = moduleTree
+				.getExpandedDescendants(TreePath(root))
+				?.toList()?.sortedBy(TreePath::getPathCount)
+				?: modules.children().toList().map {
+					// Expand each root on the first refresh.
+					TreePath(arrayOf(root, it))
 				}
+			moduleTree.model = DefaultTreeModel(modules)
+			allExpanded.asSequence()
+				.map(TreePath::getLastPathComponent)
+				.filterIsInstance<AbstractBuilderFrameTreeNode>()
+				.mapNotNull { modulePath(it.modulePathString()) }
+				.forEach(moduleTree::expandPath)
+			selection?.let { path ->
+				val node =
+					path.lastPathComponent as AbstractBuilderFrameTreeNode
+				moduleTree.selectionPath = modulePath(node.modulePathString())
 			}
 
+			// Now process the entry points tree.
 			entryPointsTree.model = DefaultTreeModel(entryPoints)
 			for (i in entryPointsTree.rowCount - 1 downTo 0)
 			{
@@ -1551,10 +1566,6 @@ class AvailWorkbench internal constructor (
 
 		// Create the menu bar and its menus.
 		val buildMenu = menu("Build")
-		if (!runningOnMac)
-		{
-			augment(buildMenu, aboutAction, null)
-		}
 		augment(
 			buildMenu,
 			buildAction, cancelAction, null,
@@ -1562,10 +1573,6 @@ class AvailWorkbench internal constructor (
 //			cleanModuleAction,  //TODO MvG Fix implementation and enable.
 			refreshAction)
 		val menuBar = JMenuBar()
-		if (!runningOnMac)
-		{
-			augment(buildMenu, null, preferencesAction)
-		}
 		menuBar.add(buildMenu)
 		menuBar.add(
 			menu(
@@ -1604,6 +1611,7 @@ class AvailWorkbench internal constructor (
 					JCheckBoxMenuItem(toggleDebugWorkUnits),
 					null,
 					JCheckBoxMenuItem(toggleDebugJVM),
+					JCheckBoxMenuItem(toggleDebugJVMCodeGeneration),
 					null,
 					parserIntegrityCheckAction,
 					examineRepositoryAction,
@@ -1623,8 +1631,7 @@ class AvailWorkbench internal constructor (
 		val transcriptPopup = menu("Transcript", clearTranscriptAction)
 
 		// Create the module tree.
-		moduleTree = JTree(
-			DefaultMutableTreeNode("(packages hidden root)"))
+		moduleTree = JTree(DefaultMutableTreeNode("(packages hidden root)"))
 		moduleTree.background = null
 		moduleTree.toolTipText = "All modules, organized by module root."
 		moduleTree.componentPopupMenu = buildMenu.popupMenu
@@ -1658,11 +1665,6 @@ class AvailWorkbench internal constructor (
 		actionMap = moduleTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
-		// Expand rows bottom-to-top to expand only the root nodes.
-		for (i in moduleTree.rowCount - 1 downTo 0)
-		{
-			moduleTree.expandRow(i)
-		}
 
 		// Create the entry points tree.
 		entryPointsTree =
@@ -1719,10 +1721,6 @@ class AvailWorkbench internal constructor (
 		actionMap = entryPointsTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
-		for (i in 0 until entryPointsTree.rowCount)
-		{
-			entryPointsTree.expandRow(i)
-		}
 
 		// Create the build progress bar.
 		buildProgress = JProgressBar(0, 1000)
@@ -1894,26 +1892,32 @@ class AvailWorkbench internal constructor (
 				saveWindowPosition()
 			}
 		})
-		if (runningOnMac)
-		{
-			OSXUtility.setQuitHandler {
-				// Quit was pressed.  Close the workbench, which should
-				// save window position state then exit.
-				// Apple's apple.eawt.quitStrategy has never worked, to
-				// the best of my knowledge.  It's a trick.  We must
-				// close the workbench window explicitly to give it a
-				// chance to save.
-				val closeEvent = WindowEvent(
-					this@AvailWorkbench,
-					WindowEvent.WINDOW_CLOSING)
-				dispatchEvent(closeEvent)
-				true
-			}
-			OSXUtility.setAboutHandler {
-				aboutAction.showDialog()
-				true
-			}
+
+		// Set up desktop and taskbar features.
+		Desktop.getDesktop().setDefaultMenuBar(menuBar)
+		setQuitHandler {
+			// Quit was pressed.  Close the workbench, which should
+			// save window position state then exit.
+			// Apple's apple.eawt.quitStrategy has never worked, to
+			// the best of my knowledge.  It's a trick.  We must
+			// close the workbench window explicitly to give it a
+			// chance to save.
+			val closeEvent = WindowEvent(
+				this@AvailWorkbench,
+				WindowEvent.WINDOW_CLOSING)
+			dispatchEvent(closeEvent)
+			true
 		}
+		setAboutHandler {
+			aboutAction.showDialog()
+		}
+		setPreferencesHandler {
+			preferencesAction.actionPerformed(null)
+		}
+		Taskbar.getTaskbar().iconImage = ImageIcon(
+			AvailWorkbench::class.java.classLoader.getResource(
+				"resources/workbench/AvailHammer.png")).image
+		Taskbar.getTaskbar().setIconBadge(activeVersionSummary)
 
 		// Select an initial module if specified.
 		validate()
@@ -1936,26 +1940,6 @@ class AvailWorkbench internal constructor (
 				leftPane.dividerLocation / max(leftPane.height.toDouble(), 1.0)
 		}
 		layoutConfiguration.saveWindowPosition()
-	}
-
-	/**
-	 * Make the workbench instance behave more like a Mac application.
-	 */
-	private fun setUpInstanceForMac()
-	{
-		assert(runningOnMac)
-		try
-		{
-			// Set up Mac-specific preferences menu handler...
-			OSXUtility.setPreferencesHandler {
-				preferencesAction.actionPerformed(null)
-				true
-			}
-		}
-		catch (e: Exception)
-		{
-			throw RuntimeException(e)
-		}
 	}
 
 	/** Perform the first refresh of the workbench. */
@@ -2024,13 +2008,6 @@ class AvailWorkbench internal constructor (
 		 */
 		private const val maximumModulesInProgressReport = 20
 
-		/** Determine at startup whether we're on a Mac. */
-		val runningOnMac =
-			System
-				.getProperty("os.name")
-				.lowercase()
-				.matches("mac os x.*".toRegex())
-
 		/** Determine at startup whether we should show developer commands. */
 		val showDeveloperTools =
 			"true".equals(
@@ -2061,7 +2038,7 @@ class AvailWorkbench internal constructor (
 		 * The numeric mask for the modifier key suitable for the current
 		 * platform.
 		 */
-		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMask
+		val menuShortcutMask = Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
 
 		/**
 		 * The current working directory of the Avail virtual machine. Because
@@ -2301,28 +2278,45 @@ class AvailWorkbench internal constructor (
 			}
 
 		/**
-		 * Make the workbench behave more like a Mac application.
+		 * Pass this method an Object and Method equipped to perform application
+		 * shutdown logic.  The method passed should return a boolean stating
+		 * whether the quit should occur.
+		 *
+		 * @param quitHandler
 		 */
-		private fun setUpForMac()
+		fun setQuitHandler (quitHandler: () -> Boolean)
 		{
-			assert(runningOnMac)
-			try
-			{
-				System.setProperty("apple.laf.useScreenMenuBar", "true")
-				System.setProperty(
-					"com.apple.mrj.application.apple.menu.about.name",
-					"Avail Workbench")
-				System.setProperty(
-					"com.apple.awt.graphics.UseQuartz",
-					"true")
-				val application = OSXUtility.macOSXApplication
-				OSXUtility.setDockIconBadgeMethod(
-					application, activeVersionSummary)
+			Desktop.getDesktop().setQuitHandler { _, response ->
+				when (quitHandler())
+				{
+					true -> response.performQuit()
+					false -> response.cancelQuit()
+				}
 			}
-			catch (e: Exception)
-			{
-				throw RuntimeException(e)
-			}
+		}
+
+		/**
+		 * Pass this method an Object and Method equipped to display application
+		 * info.  They will be called when the About menu item is selected from
+		 * the application menu.
+		 *
+		 * @param aboutHandler
+		 */
+		fun setAboutHandler (aboutHandler: () -> Unit)
+		{
+			Desktop.getDesktop().setAboutHandler { aboutHandler() }
+		}
+
+		/**
+		 * Pass this method an Object and a Method equipped to display
+		 * application options. They will be called when the Preferences menu
+		 * item is selected from the application menu.
+		 *
+		 * @param preferences
+		 */
+		fun setPreferencesHandler (preferences: ()-> Unit)
+		{
+			Desktop.getDesktop().setPreferencesHandler { preferences() }
 		}
 
 		/**
@@ -2342,10 +2336,6 @@ class AvailWorkbench internal constructor (
 			val swingReady = Semaphore(0)
 			val runtimeReady = Semaphore(0)
 			thread(name = "Set up LAF") {
-				if (runningOnMac)
-				{
-					setUpForMac()
-				}
 				if (darkMode)
 				{
 					LafManager.install(DarculaTheme())
@@ -2415,10 +2405,6 @@ class AvailWorkbench internal constructor (
 			val bench = AvailWorkbench(runtime, fileManager, resolver)
 			bench.createBufferStrategy(2)
 			bench.ignoreRepaint = true
-			if (runningOnMac)
-			{
-				bench.setUpInstanceForMac()
-			}
 			invokeLater {
 				val initialRefreshTask =
 					object : AbstractWorkbenchTask(bench, null)

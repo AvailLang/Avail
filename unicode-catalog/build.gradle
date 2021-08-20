@@ -38,7 +38,7 @@ plugins {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -46,7 +46,7 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -69,9 +69,8 @@ classes.dependsOn generateBuildTime
 
 // Produce a fat JAR for the Avail CLI.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.tools.unicode.CatalogGenerator'
-	}
+	manifest.attributes.put 'Main-Class',
+			'com.avail.tools.unicode.CatalogGenerator'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 

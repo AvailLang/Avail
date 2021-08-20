@@ -50,6 +50,7 @@ import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import com.avail.descriptor.bundles.A_Bundle
 import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.bundles.A_Bundle.Companion.definitionParsingPlans
+import com.avail.descriptor.bundles.A_Bundle.Companion.macrosTuple
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeGrammaticalRestriction
 import com.avail.descriptor.bundles.A_Bundle.Companion.removeMacro
 import com.avail.descriptor.character.CharacterDescriptor
@@ -82,12 +83,12 @@ import com.avail.descriptor.methods.A_Method.Companion.addSealedArgumentsType
 import com.avail.descriptor.methods.A_Method.Companion.addSemanticRestriction
 import com.avail.descriptor.methods.A_Method.Companion.bundles
 import com.avail.descriptor.methods.A_Method.Companion.definitionsTuple
-import com.avail.descriptor.methods.A_Method.Companion.macrosTuple
 import com.avail.descriptor.methods.A_Method.Companion.numArgs
 import com.avail.descriptor.methods.A_Method.Companion.removeDefinition
 import com.avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import com.avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import com.avail.descriptor.methods.A_SemanticRestriction
+import com.avail.descriptor.methods.A_Sendable
 import com.avail.descriptor.methods.DefinitionDescriptor
 import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -238,7 +239,6 @@ import java.util.Collections
 import java.util.Timer
 import java.util.TimerTask
 import java.util.WeakHashMap
-import java.util.concurrent.PriorityBlockingQueue
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.ThreadPoolExecutor.AbortPolicy
 import java.util.concurrent.TimeUnit
@@ -330,14 +330,15 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * The [thread pool executor][ThreadPoolExecutor] for this [Avail runtime][AvailRuntime].
+	 * The [ThreadPoolExecutor] for running tasks and fibers of this
+	 * [AvailRuntime].
 	 */
 	val executor = ThreadPoolExecutor(
 		min(availableProcessors, maxInterpreters),
 		maxInterpreters,
 		10L,
 		TimeUnit.SECONDS,
-		PriorityBlockingQueue(),
+		WorkStealingQueue(maxInterpreters),
 		{
 			val interpreter = Interpreter(this)
 			interpreterHolders[interpreter.interpreterIndex].set(interpreter)
@@ -444,18 +445,19 @@ class AvailRuntime constructor(
 			}
 			for (method in methods)
 			{
-				val bundleDefinitions: MutableSet<A_Definition> =
+				val bundleDefinitions: MutableSet<A_Sendable> =
 					method.definitionsTuple.toMutableSet()
-				bundleDefinitions.addAll(method.macrosTuple)
 				for (bundle in method.bundles)
 				{
+					val withMacros = bundleDefinitions.toMutableSet()
+					withMacros.addAll(bundle.macrosTuple)
 					val bundlePlans: A_Map = bundle.definitionParsingPlans
-					if (bundlePlans.mapSize != bundleDefinitions.size)
+					if (bundlePlans.mapSize != withMacros.size)
 					{
 						println(
 							"Mismatched definitions / plans:\n\t" +
 								"bundle = $bundle\n\t" +
-								"definitions# = ${bundleDefinitions.size}\n\t" +
+								"definitions# = ${withMacros.size}\n\t" +
 								"plans# = ${bundlePlans.mapSize}")
 					}
 				}
@@ -1256,21 +1258,28 @@ class AvailRuntime constructor(
 			put(TokenType.OPERATOR.atom)
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
-			put(inclusive(0, (1L shl 31) - 1))
-			put(inclusive(0, (1L shl 28) - 1))
 			put(inclusive(1L, 4L))
 			put(inclusive(0L, 31L))
-
-			at(170)
 			put(
 				continuationTypeForFunctionType(
 					functionTypeReturning(Types.TOP.o)))
 			put(CharacterDescriptor.nonemptyStringOfDigitsType)
+
+			at(170)
 			put(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
 					stringType))
 			put(stylerFunctionType)
+			put(
+				enumerationWith(
+					set(
+						TokenType.WHITESPACE.atom,
+						TokenType.COMMENT.atom,
+						TokenType.OPERATOR.atom,
+						TokenType.KEYWORD.atom,
+						TokenType.END_OF_FILE.atom)))
+			put(zeroOrMoreOf(Types.TOKEN.o))
 
 			at(174)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }

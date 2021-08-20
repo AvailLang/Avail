@@ -34,6 +34,7 @@ package com.avail.dispatch
 
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
+import com.avail.dispatch.DecisionStep.TestArgumentDecisionStep
 import com.avail.utility.cast
 
 /**
@@ -72,7 +73,7 @@ import com.avail.utility.cast
  * @param expandAll
  *   Whether to force expansion of every path of the tree.
  */
-internal abstract class LookupTreeTraverser<
+abstract class LookupTreeTraverser<
 	Element : A_BasicObject,
 	Result : A_BasicObject,
 	AdaptorMemento,
@@ -86,7 +87,7 @@ protected constructor(
 	 * The stack of outstanding actions, which allows the tree to be traversed
 	 * without recursion, only iteration.
 	 */
-	private val actionStack = mutableListOf<() -> Unit>()
+	val actionStack = mutableListOf<() -> Unit>()
 
 	/**
 	 * An expanded internal node has been reached, having expanded it if it
@@ -104,9 +105,9 @@ protected constructor(
 		argumentType: A_Type): TraversalMemento
 
 	/**
-	 * The [InternalLookupTree.ifCheckHolds] path has already been fully visited
-	 * below some node, and the [InternalLookupTree.ifCheckFails] will be
-	 * traversed next.  The argument is the TraversalMemento built by
+	 * The [TestArgumentDecisionStep.ifCheckHolds] path has already been fully
+	 * visited below some node, and the [TestArgumentDecisionStep.ifCheckFails]
+	 * will be traversed next.  The argument is the TraversalMemento built by
 	 * visitPreInternalNode for that node.
 	 *
 	 * @param memento
@@ -151,7 +152,7 @@ protected constructor(
 	 * @param node
 	 *   The lookup tree node that was reached.
 	 */
-	private fun visit(node: LookupTree<Element, Result>)
+	fun visit(node: LookupTree<Element, Result>)
 	{
 		val solution = node.solutionOrNull
 		if (solution !== null)
@@ -160,31 +161,20 @@ protected constructor(
 			return
 		}
 		val internalNode: InternalLookupTree<Element, Result> = node.cast()
-		if (expandAll)
+		if (!expandAll && !internalNode.isExpanded)
 		{
-			internalNode.expandIfNecessary(adaptor, adaptorMemento)
-		}
-		else if (!internalNode.isExpanded)
-		{
-			// This internal node isn't expanded.
+			// This internal node isn't expanded, and shouldn't be.
 			visitUnexpanded()
 			return
 		}
-		// Create a memento to share between the below actions operating at the
-		// same position in the tree.  Push them in *reverse* order of their
-		// execution.
-		var memento: TraversalMemento? = null
-		actionStack.addAll(
-			arrayOf(
-				{ visitPostInternalNode(memento!!) },
-				{ visit(internalNode.ifCheckFails!!) },
-				{ visitIntraInternalNode(memento!!) },
-				{ visit(internalNode.ifCheckHolds!!) },
-				{
-					memento = visitPreInternalNode(
-						internalNode.argumentPositionToTest,
-						internalNode.argumentTypeToTest!!)
-				}))
+		val decisionStep =
+			internalNode.expandIfNecessary(adaptor, adaptorMemento)
+		// Note: This is a dispatch on a sealed class, so as we add more
+		// dispatch mechanisms, this will correctly indicate that it needs work.
+		when (decisionStep)
+		{
+			is TestArgumentDecisionStep -> decisionStep.visitStep(this)
+		}
 	}
 
 	/**

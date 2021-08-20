@@ -81,8 +81,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
-		val objectType = argumentTypes[0]
-		val fieldType = argumentTypes[1]
+		val (objectType, fieldType) = argumentTypes
 
 		if (objectType.isBottom)
 		{
@@ -109,8 +108,7 @@ object P_GetObjectField : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val objectType = argumentTypes[0]
-		val fieldType = argumentTypes[1]
+		val (objectType, fieldType) = argumentTypes
 		val fieldTypeMap = objectType.fieldTypeMap
 		if (fieldType.isEnumeration)
 		{

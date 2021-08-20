@@ -85,6 +85,9 @@ Names
 	"While_do_",
 	"While_do_alternate with_",
 
+	/* Parser diagnostic improvement helpers. */
+	"If|if__«else|;|]»#",
+
 	/* Support methods for semantic restrictions, exported for use by other
 	 * library- and user-defined control structures.
 	 */
@@ -2412,4 +2415,24 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		union := eject union ∪ else[1]'s return type;
 	];
 	union
+];
+
+/**
+ * Give better diagnostics when "then" is omitted from an if/then/else
+ * conditional.  Always fail the parse.
+ */
+Macro "If|if__«else|;|]»#" is
+[
+	condition : expression phrase ⇒ boolean,
+	body : block phrase ⇒ []→⊤,
+	optionalElse : literal phrase ⇒ [1..3]
+|
+	bodyTokens ::= body's tokens;
+	openSquare ::= bodyTokens[1] else [
+		Immediately reject parse strongly,
+			expected: "You may have forgotten the word \"then\" above."
+	];
+	Immediately reject parse strongly,
+		expected: "You may have forgotten \"then\" between the condition \
+			\|expression and the \"[\" on line " ++ “openSquare's line number”
 ];

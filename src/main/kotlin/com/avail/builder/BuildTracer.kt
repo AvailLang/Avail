@@ -178,7 +178,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				0,
 				TRACE,
 				"Recursive module dependency:\n\t{0}",
-				recursionSet)
+				recursionSet.joinToString("\n\t"))
 			{
 				override fun abortCompilation()
 				{

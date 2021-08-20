@@ -1201,7 +1201,7 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 
 		/** The [CheckedMethod] for [A_RawFunction.codePrimitive]. */
-		val codePrimitiveMethod: CheckedMethod = instanceMethod(
+		val codePrimitiveMethod = instanceMethod(
 			A_RawFunction::class.java,
 			A_RawFunction::codePrimitive.name,
 			Primitive::class.java)

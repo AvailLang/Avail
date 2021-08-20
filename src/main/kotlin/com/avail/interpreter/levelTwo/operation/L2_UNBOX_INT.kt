@@ -77,7 +77,7 @@ object L2_UNBOX_INT : L2Operation(
 
 		// :: destination = source.extractInt();
 		translator.load(method, source.register())
-		A_Number.extractIntMethod.generateCall(method)
+		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
 	}
 }

@@ -375,7 +375,7 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		}
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
-		getInstance(self).typeTag().metaTag()
+		getInstance(self).typeTag().metaTag!!
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{

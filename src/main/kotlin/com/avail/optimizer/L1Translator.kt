@@ -42,6 +42,7 @@ import com.avail.descriptor.bundles.MessageBundleDescriptor
 import com.avail.descriptor.functions.A_Continuation
 import com.avail.descriptor.functions.A_Function
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
 import com.avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import com.avail.descriptor.functions.A_RawFunction.Companion.literalAt
@@ -55,7 +56,6 @@ import com.avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import com.avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import com.avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
 import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
-import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.CompiledCodeDescriptor
 import com.avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import com.avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
@@ -113,7 +113,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForType
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor.Types
 import com.avail.descriptor.variables.A_Variable
-import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.InternalLookupTree
 import com.avail.dispatch.LookupTreeTraverser
 import com.avail.exceptions.AvailErrorCode
@@ -1283,7 +1283,7 @@ class L1Translator private constructor(
 	 *   The [CallSiteHelper] object for this dispatch.
 	 * @param solutions
 	 *   The [A_Tuple] of [A_Definition]s at this leaf of the lookup tree.  If
-	 *   there's exactly one and it's a method definition, the lookup is
+	 *   there's exactly one, and it's a method definition, the lookup is
 	 *   considered successful, otherwise it's a failed lookup.
 	 */
 	fun leafVisit(
@@ -1631,7 +1631,7 @@ class L1Translator private constructor(
 					{
 						// It's a comparison against a constant.  Recurse to
 						// deal with comparing the result of a prior comparison
-						// to a boolean.
+						// to some boolean.
 						jumpIfEqualsConstant(
 							previousRegister,
 							previousConstant,
@@ -1872,10 +1872,10 @@ class L1Translator private constructor(
 						rawFunction, argumentTypes)
 					if (resultType.isBottom)
 					{
-						// Even though the Invoke primitive can't fail, the
-						// ultimately called function won't return.  In this
-						// case, weaken the resultType to avoid ⊥, just to
-						// keep the call machinery happy.
+						// Even though the P_InvokeWithTuple primitive can't
+						// fail, the ultimately called function won't return.
+						// In this case, weaken the resultType to avoid ⊥, just
+						// to keep the call machinery happy.
 						resultType = Types.ANY.o
 					}
 					val writer = generator.boxedWriteTemp(
@@ -2623,8 +2623,8 @@ class L1Translator private constructor(
 
 	/**
 	 * Emit the specified variable-writing instruction, and an off-ramp to deal
-	 * with the case that the variable has write
-	 * [reactors][VariableDescriptor.VariableAccessReactor] but variable write
+	 * with the case that the variable has
+	 * [write-reactors][VariableAccessReactor] but variable write
 	 * [tracing][Interpreter.traceVariableWrites] is disabled.
 	 *
 	 * @param setOperation

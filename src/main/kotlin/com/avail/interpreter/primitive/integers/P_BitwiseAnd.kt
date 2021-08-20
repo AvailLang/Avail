@@ -77,8 +77,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction, argumentTypes: List<A_Type>): A_Type
 	{
 		assert(argumentTypes.size == 2)
-		val aRange = argumentTypes[0]
-		val bRange = argumentTypes[1]
+		val (aRange, bRange) = argumentTypes
 
 		// If either value is constrained to a positive range, then at least
 		// guarantee the bit-wise and can't be greater than or equal to the next

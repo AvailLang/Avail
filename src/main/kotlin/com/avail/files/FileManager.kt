@@ -206,7 +206,7 @@ open class FileManager
 			fileCache.remove(id)
 			resolverRefToId.remove(it.reference)
 			idToResolverRef.remove(id)
-		} ?: idToResolverRef.remove(id)?.let { resolverRefToId.remove(it) }
+		} ?: idToResolverRef.remove(id)?.let(resolverRefToId::remove)
 	}
 
 	/**

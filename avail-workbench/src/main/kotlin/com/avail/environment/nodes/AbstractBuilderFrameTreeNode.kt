@@ -70,6 +70,12 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 ) : DefaultMutableTreeNode(), Comparable<AbstractBuilderFrameTreeNode>
 {
 	/**
+	 * Answer a [String] suitable for identifying this node even after
+	 * refreshing the tree.
+	 */
+	abstract fun modulePathString(): String
+
+	/**
 	 * Extract text to display for this node.  Presentation styling will be
 	 * applied separately.
 	 *

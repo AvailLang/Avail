@@ -730,7 +730,7 @@ open class VariableDescriptor protected constructor(
 		}
 
 		/** The [CheckedMethod] for [A_Variable.clearValue]. */
-		val clearVariableMethod: CheckedMethod = instanceMethod(
+		val clearVariableMethod = instanceMethod(
 			A_Variable::class.java,
 			A_Variable::clearValue.name,
 			Void.TYPE)
@@ -785,7 +785,7 @@ open class VariableDescriptor protected constructor(
 		/**
 		 * The [CheckedMethod] for [newVariableWithOuterType].
 		 */
-		val newVariableWithOuterTypeMethod: CheckedMethod = staticMethod(
+		val newVariableWithOuterTypeMethod = staticMethod(
 			VariableDescriptor::class.java,
 			::newVariableWithOuterType.name,
 			AvailObject::class.java,

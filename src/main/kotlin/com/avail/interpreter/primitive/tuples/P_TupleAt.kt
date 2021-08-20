@@ -112,9 +112,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val tupleType = argumentTypes[0]
-		val subscripts = argumentTypes[1]
-
+		val (tupleType, subscripts) = argumentTypes
 		val lower = subscripts.lowerBound
 		val upper = subscripts.upperBound
 		val lowerInt = if (lower.isInt) lower.extractInt else 1
@@ -130,9 +128,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(
 		argumentTypes: List<A_Type>): Fallibility
 	{
-		val tupleType = argumentTypes[0]
-		val subscripts = argumentTypes[1]
-
+		val (tupleType, subscripts) = argumentTypes
 		val tupleTypeSizes = tupleType.sizeRange
 		val minTupleSize = tupleTypeSizes.lowerBound
 		return if (subscripts.lowerBound.greaterOrEqual(one)
@@ -151,8 +147,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 		translator: L1Translator,
 		callSiteHelper: CallSiteHelper): Boolean
 	{
-		val tupleReg = arguments[0]
-		val subscriptReg = arguments[1]
+		val (tupleReg, subscriptReg) = arguments
 		val generator = translator.generator
 		if (fallibilityForArgumentTypes(argumentTypes) != CallSiteCannotFail)
 		{

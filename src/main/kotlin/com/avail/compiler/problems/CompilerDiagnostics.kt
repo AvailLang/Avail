@@ -283,7 +283,7 @@ class CompilerDiagnostics(
 	 */
 	private inner class ExpectationsList
 	{
-		/** Guards access to [expectations] and expectationsIndexHeap]. */
+		/** Guard access to [expectations] and [expectationsIndexHeap]. */
 		val expectationsLock = ReentrantReadWriteLock()
 
 		/**
@@ -405,8 +405,8 @@ class CompilerDiagnostics(
 				'\n'.code,
 				1,
 				min(source.tupleSize, startOfFirstLine))
-			// Now figure out the last line to show, which if possible should be
-			// the line after the *end* of the last problem token.
+			// Now figure out the last line to show, which, if possible, should
+			// be the line after the *end* of the last problem token.
 			val lastProblem = ascending[ascending.size - 1]
 			val finalLineNumber = lastProblem.lineNumber
 			var startOfNextLine = 1 + firstIndexOf(
@@ -458,80 +458,80 @@ class CompilerDiagnostics(
 
 			// Insert line numbers...
 			val maxDigits = (finalLineNumber + 1).toString().length
-			val builder = StringBuilder()
+			StringBuilder(500).run {
+				append(
+					addLineNumbers(
+						(unnumbered as A_String).asNativeString(),
+						">>> %${maxDigits}d: %s",
+						initialLineNumber))
+				append(">>>$rowOfDashes")
 
-			builder.append(
-				addLineNumbers(
-					(unnumbered as A_String).asNativeString(),
-					">>> %" + maxDigits + "d: %s",
-					initialLineNumber))
-			builder.append(">>>").append(rowOfDashes)
-
-			// Now output all the problems, in the original group order.  Start
-			// off with an empty problemIterator to keep the code simple.
-			val groupIterator = groupedProblems.iterator()
-			val problemIterator = Mutable(emptyIterator<Describer>())
-			val alreadySeen = mutableSetOf<String>()
-			// Initiate all the grouped error printing.
-			recurse { continueReport ->
-				if (!problemIterator.value.hasNext())
-				{
-					// End this group.
-					if (!groupIterator.hasNext())
+				// Now output all the problems, in the original group order.  Start
+				// off with an empty problemIterator to keep the code simple.
+				val groupIterator = groupedProblems.iterator()
+				val problemIterator = Mutable(emptyIterator<Describer>())
+				val alreadySeen = mutableSetOf<String>()
+				// Initiate all the grouped error printing.
+				recurse { continueReport ->
+					if (!problemIterator.value.hasNext())
 					{
-						// Done everything.  Pass the complete text forward.
-						compilationIsInvalid = true
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						builder.append(
-							format(
-								"%n(file=\"%s\", line=%d)%n>>>%s",
-								moduleName.qualifiedName,
+						// End this group.
+						if (!groupIterator.hasNext())
+						{
+							// Done everything.  Pass the complete text forward.
+							compilationIsInvalid = true
+							// Generate the footer that indicates the module and
+							// line where the last indicator was found.
+							append(
+								format(
+									"%n(file=\"%s\", line=%d)%n>>>%s",
+									moduleName.qualifiedName,
+									lastProblem.lineNumber,
+									rowOfDashes))
+							handleProblem(object : Problem(
+								moduleName,
 								lastProblem.lineNumber,
-								rowOfDashes))
-						handleProblem(object : Problem(
-							moduleName,
-							lastProblem.lineNumber,
-							lastProblem.position.toLong(),
-							PARSE,
-							"{0}",
-							builder.toString()) {
-								override fun abortCompilation()
-								{
-									failureReporter!!()
-								}
-							})
-						// Generate the footer that indicates the module and
-						// line where the last indicator was found.
-						return@recurse
+								lastProblem.position.toLong(),
+								PARSE,
+								"{0}",
+								this@run.toString().replace("\t", "    ")) {
+									override fun abortCompilation()
+									{
+										failureReporter!!()
+									}
+								})
+							// Generate the footer that indicates the module and
+							// line where the last indicator was found.
+							return@recurse
+						}
+						// Advance to the next problem group...
+						val newGroup = groupIterator.next()
+						append("\n>>> ")
+						append(
+							format(
+								headerMessagePattern,
+								newGroup.indicator,
+								newGroup.lineNumber))
+						problemIterator.value = newGroup.describers.iterator()
+						alreadySeen.clear()
+						assert(problemIterator.value.hasNext())
 					}
-					// Advance to the next problem group...
-					val newGroup = groupIterator.next()
-					builder.append("\n>>> ")
-					builder.append(
-						format(
-							headerMessagePattern,
-							newGroup.indicator,
-							newGroup.lineNumber))
-					problemIterator.value = newGroup.describers.iterator()
-					alreadySeen.clear()
-					assert(problemIterator.value.hasNext())
-				}
-				problemIterator.value.next().invoke { message ->
-					// Suppress duplicate messages.
-					if (!alreadySeen.contains(message))
-					{
-						alreadySeen.add(message)
-						builder.append("\n>>>\t\t")
-						builder.append(
-							lineBreakPattern.matcher(message).replaceAll(
-								Matcher.quoteReplacement("\n>>>\t\t")))
+					problemIterator.value.next().invoke { message ->
+						// Suppress duplicate messages.
+						if (!alreadySeen.contains(message))
+						{
+							alreadySeen.add(message)
+							append("\n>>>\t\t")
+							append(
+								lineBreakPattern.matcher(message).replaceAll(
+									Matcher.quoteReplacement("\n>>>\t\t")))
+						}
+						// Avoid using direct recursion to keep the stack
+						// from getting too deep.
+						currentRuntime().execute(
+							FiberDescriptor.compilerPriority,
+							continueReport)
 					}
-					// Avoid using direct recursion to keep the stack
-					// from getting too deep.
-					currentRuntime().execute(
-						FiberDescriptor.compilerPriority,
-						continueReport)
 				}
 			}
 		}

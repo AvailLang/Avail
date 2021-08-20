@@ -84,7 +84,7 @@ object JavaLibrary
 	val doubleBoxed = JavaDouble::class.java
 
 	/** Static method to cast from `long` to `double`. */
-	var bitCastLongToDoubleMethod: CheckedMethod =
+	var bitCastLongToDoubleMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
 			java.lang.Double::longBitsToDouble.name,
@@ -92,7 +92,7 @@ object JavaLibrary
 			long)
 
 	/** Static method to cast from `double` to `long`. */
-	var bitCastDoubleToLongMethod: CheckedMethod =
+	var bitCastDoubleToLongMethod =
 		javaLibraryStaticMethod(
 			doubleBoxed,
 			java.lang.Double::doubleToRawLongBits.name,
@@ -100,41 +100,41 @@ object JavaLibrary
 			double)
 
 	/** The [CheckedMethod] for [Class.getClassLoader]. */
-	val getClassLoader: CheckedMethod =
+	val getClassLoader =
 		javaLibraryInstanceMethod(
 			Class::class.java,
 			java.lang.Class<*>::getClassLoader.name,
 			ClassLoader::class.java)
 
 	/** The [CheckedMethod] for *Java* [Integer.valueOf] boxing. */
-	val javaUnboxIntegerMethod: CheckedMethod = javaLibraryStaticMethod(
+	val javaUnboxIntegerMethod = javaLibraryStaticMethod(
 		intBoxed,
 		"valueOf",
 		intBoxed,
 		int)
 
 	/** The [CheckedMethod] for [java.util.List.get]. */
-	val listGetMethod: CheckedMethod = javaLibraryInstanceMethod(
+	val listGetMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::get.name,
 		Object::class.java,
 		int)
 
 	/** The [CheckedMethod] for [java.util.List.clear]. */
-	val listClearMethod: CheckedMethod = javaLibraryInstanceMethod(
+	val listClearMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		JavaList::clear.name,
 		void)
 
 	/** The [CheckedMethod] for [java.util.List.add]. */
-	val listAddMethod: CheckedMethod = javaLibraryInstanceMethod(
+	val listAddMethod = javaLibraryInstanceMethod(
 		java.util.List::class.java,
 		"add",
 		boolean,
 		Object::class.java)
 
 	/** The [CheckedMethod] for [LongAdder.increment]. */
-	val longAdderIncrement: CheckedMethod = javaLibraryInstanceMethod(
+	val longAdderIncrement = javaLibraryInstanceMethod(
 		LongAdder::class.java,
 		LongAdder::increment.name,
 		void)

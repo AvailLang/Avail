@@ -119,7 +119,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		// ::    goto ifUnboxed;
 		// :: }
 		translator.load(method, source.register())
-		A_Number.extractIntMethod.generateCall(method)
+		A_Number.extractIntStaticMethod.generateCall(method)
 		translator.store(method, destination.register())
 		translator.jump(method, instruction, ifUnboxed)
 	}

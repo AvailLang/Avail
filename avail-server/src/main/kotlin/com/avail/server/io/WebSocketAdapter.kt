@@ -50,13 +50,13 @@ import java.nio.channels.AsynchronousSocketChannel
 import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.security.NoSuchAlgorithmException
+import java.util.Base64
 import java.util.Collections
 import java.util.Formatter
 import java.util.concurrent.ScheduledThreadPoolExecutor
 import java.util.concurrent.ThreadFactory
 import java.util.logging.Level
 import java.util.regex.Pattern
-import javax.xml.bind.DatatypeConverter
 import kotlin.experimental.and
 import kotlin.experimental.xor
 
@@ -616,7 +616,12 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 				request: ClientRequest): ClientHandshake?
 			{
 				val map = request.headers
-				if (!"websocket".equals(map["upgrade"], ignoreCase = true))
+				// Firefox does not correctly implement the WebSocket standard,
+				// so we must also check the "Connection" header for an
+				// "Upgrade" token.
+				if (!"websocket".equals(map["upgrade"], ignoreCase = true)
+					&& !(map["connection"] ?: "").contains(
+						"upgrade", ignoreCase = true))
 				{
 					badRequest(
 						channel,
@@ -669,7 +674,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						"Missing WebSocket Key")
 					return null
 				}
-				val key = DatatypeConverter.parseBase64Binary(
+				val key = Base64.getMimeDecoder().decode(
 					map["sec-websocket-key"])
 				if (key.size != 16)
 				{
@@ -792,11 +797,11 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 			}
 
 			val stringKey =
-				DatatypeConverter.printBase64Binary(key) +
+				Base64.getMimeEncoder().encodeToString(key) +
 					"258EAFA5-E914-47DA-95CA-C5AB0DC85B11"
 			val acceptBytes =
 				digest.digest(stringKey.toByteArray(StandardCharsets.US_ASCII))
-			return DatatypeConverter.printBase64Binary(acceptBytes)
+			return Base64.getMimeEncoder().encodeToString(acceptBytes)
 		}
 
 		init
@@ -935,8 +940,12 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		// Process a GET request.
 		if (request.method == HttpRequestMethod.GET)
 		{
-			// Process a WebSocket request.
-			if (request.headers.containsKey("upgrade"))
+			// Process a WebSocket request. Firefox does not correctly implement
+			// the WebSocket standard, so we must also check the "Connection"
+			// header for an "Upgrade" token.
+			if (request.headers.containsKey("upgrade")
+				|| (request.headers.containsKey("connection")
+					&& request.headers["connection"]!!.contains("upgrade", ignoreCase = true)))
 			{
 				val handshake =
 					ClientHandshake.readClientHandshake(channel, request)
@@ -989,7 +998,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 	{
 		/*
 		 * Do not change the order of these values! Their ordinals correspond
-		 * to the WebSocket opcodes, and the adapter uses this ordinals to
+		 * to the WebSocket opcodes, and the adapter uses these ordinals to
 		 * dispatch control.
 		 */
 

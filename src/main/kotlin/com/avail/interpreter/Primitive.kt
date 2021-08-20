@@ -965,7 +965,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 
 		/** The method [attempt]. */
-		val attemptMethod: CheckedMethod = instanceMethod(
+		val attemptMethod = instanceMethod(
 			Primitive::class.java,
 			Primitive::attempt.name,
 			Result::class.java,

@@ -1084,7 +1084,7 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [divideStatic].
 		 */
-		val divideMethod: CheckedMethod = staticMethod(
+		val divideMethod = staticMethod(
 			A_Number::class.java,
 			::divideStatic.name,
 			AvailObject::class.java,
@@ -1101,12 +1101,11 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [extractDoubleStatic].
 		 */
-		val extractDoubleMethod: CheckedMethod = staticMethod(
+		val extractDoubleMethod = staticMethod(
 			A_Number::class.java,
 			::extractDoubleStatic.name,
 			Double::class.javaPrimitiveType!!,
 			AvailObject::class.java)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1116,12 +1115,11 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [extractInt].
 		 */
-		val extractIntMethod: CheckedMethod = staticMethod(
+		val extractIntStaticMethod = staticMethod(
 			A_Number::class.java,
 			::extractIntStatic.name,
 			Integer::class.javaPrimitiveType!!,
 			AvailObject::class.java)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1137,14 +1135,13 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [minusStatic].
 		 */
-		val minusCanDestroyMethod: CheckedMethod = staticMethod(
+		val minusCanDestroyMethod = staticMethod(
 			A_Number::class.java,
 			::minusStatic.name,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java,
 			Boolean::class.javaPrimitiveType!!)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1156,13 +1153,12 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [numericCompare].
 		 */
-		val numericCompareMethod: CheckedMethod = staticMethod(
+		val numericCompareMethod = staticMethod(
 			A_Number::class.java,
 			::numericCompareStatic.name,
 			Order::class.java,
 			AvailObject::class.java,
 			AvailObject::class.java)
-
 
 		@ReferencedInGeneratedCode
 		@JvmStatic
@@ -1178,7 +1174,7 @@ interface A_Number : A_BasicObject
 		/**
 		 * The [CheckedMethod] for [timesCanDestroy].
 		 */
-		val timesCanDestroyMethod: CheckedMethod = staticMethod(
+		val timesCanDestroyMethod = staticMethod(
 			A_Number::class.java,
 			::timesStatic.name,
 			AvailObject::class.java,

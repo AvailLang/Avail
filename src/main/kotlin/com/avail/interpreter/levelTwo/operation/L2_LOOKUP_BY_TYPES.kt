@@ -79,6 +79,7 @@ import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.CheckedMethod
+import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import org.objectweb.asm.Label
@@ -265,7 +266,7 @@ object L2_LOOKUP_BY_TYPES : L2ControlFlowOperation(
 	/**
 	 * The [CheckedMethod] for [lookup].
 	 */
-	private val lookupMethod = CheckedMethod.staticMethod(
+	private val lookupMethod = staticMethod(
 		L2_LOOKUP_BY_TYPES::class.java,
 		::lookup.name,
 		A_Function::class.java,

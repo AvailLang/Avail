@@ -38,7 +38,7 @@ plugins {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -46,7 +46,7 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -94,7 +94,7 @@ classes.dependsOn relocateGeneratedPropertyFiles
 // Bootstrap Primitive_<lang>.properties for the current locale.
 task generatePrimitiveNames(type: JavaExec) {
 	group = 'bootstrap'
-	mainClass = 'com.avail.tools.bootstrap.PrimitiveNamesGenerator'
+	mainClass.set('com.avail.tools.bootstrap.PrimitiveNamesGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -102,7 +102,7 @@ task generatePrimitiveNames(type: JavaExec) {
 // Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
 task generateErrorCodeNames(type: JavaExec) {
 	group = 'bootstrap'
-	mainClass = 'com.avail.tools.bootstrap.ErrorCodeNamesGenerator'
+	mainClass.set('com.avail.tools.bootstrap.ErrorCodeNamesGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -110,7 +110,7 @@ task generateErrorCodeNames(type: JavaExec) {
 // Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
 task generateSpecialObjectNames(type: JavaExec) {
 	group = 'bootstrap'
-	mainClass = 'com.avail.tools.bootstrap.SpecialObjectNamesGenerator'
+	mainClass.set('com.avail.tools.bootstrap.SpecialObjectNamesGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -126,7 +126,7 @@ task generateAllNames {
 // Generate the new bootstrap Avail modules for the current locale.
 task internalGenerateBootstrap(type: JavaExec) {
 	group = 'internal'
-	mainClass = 'com.avail.tools.bootstrap.BootstrapGenerator'
+	mainClass.set('com.avail.tools.bootstrap.BootstrapGenerator')
 	classpath = sourceSets.main.runtimeClasspath
 	dependsOn classes
 }
@@ -134,13 +134,13 @@ task internalGenerateBootstrap(type: JavaExec) {
 // Generate the new bootstrap Avail modules for the current locale and copy them
 // to the appropriate location for distribution.
 task generateBootstrap(type: Copy) {
-	def source = "$projectDir/src/main/kotlin"
-	def lang = System.getProperty("user.language")
+	String source = "$projectDir/src/main/kotlin"
+	String lang = System.getProperty("user.language")
 	def pathBootstrap = fileTree(
 		"$source/com/avail/tools/bootstrap/generated/$lang/Bootstrap.avail")
 	inputs.files pathBootstrap
 
-	def distro = "${rootProject.projectDir}/distro"
+	String distro = "${rootProject.projectDir}/distro"
 	def distroBootstrap =
 		file("$distro/src/avail/Avail.avail/Foundation.avail/Bootstrap.avail")
 	outputs.dir distroBootstrap

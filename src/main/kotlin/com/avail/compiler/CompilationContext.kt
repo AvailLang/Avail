@@ -562,9 +562,9 @@ class CompilationContext constructor(
 		{
 			shouldSerialize ->
 			{
-				val before = AvailRuntimeSupport.captureNanos()
+				val before = fiber.fiberHelper().fiberTime()
 				adjustedSuccess = { successValue ->
-					val after = AvailRuntimeSupport.captureNanos()
+					val after = fiber.fiberHelper().fiberTime()
 					Interpreter.current().recordTopStatementEvaluation(
 						(after - before).toDouble(), module)
 					loader.stopRecordingEffects()

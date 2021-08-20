@@ -1098,9 +1098,6 @@ javax/swing/tree/DefaultTreeCellRenderer.getTreeCellRendererComponent:(Ljavax/sw
 javax/swing/tree/DefaultTreeModel."<init>":(Ljavax/swing/tree/TreeNode;)V
 javax/swing/tree/TreePath."<init>":([Ljava/lang/Object;)V
 javax/swing/tree/TreePath.getLastPathComponent:()Ljava/lang/Object;
-javax/xml/bind/DatatypeConverter.parseBase64Binary:(Ljava/lang/String;)[B
-javax/xml/bind/DatatypeConverter.printBase64Binary:([B)Ljava/lang/String;
-javax/xml/bind/DatatypeConverter.printHexBinary:([B)Ljava/lang/String;
 javax/xml/parsers/SAXParser.parse:(Ljava/io/InputStream;Lorg/xml/sax/helpers/DefaultHandler;)V
 javax/xml/parsers/SAXParserFactory.newInstance:()Ljavax/xml/parsers/SAXParserFactory;
 javax/xml/parsers/SAXParserFactory.newSAXParser:()Ljavax/xml/parsers/SAXParser;

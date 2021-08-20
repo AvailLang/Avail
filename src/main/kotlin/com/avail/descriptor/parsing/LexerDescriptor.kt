@@ -62,6 +62,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
@@ -294,8 +295,8 @@ class LexerDescriptor private constructor(
 		private val lexerBodyFunctionType: A_Type = functionType(
 			tuple(
 				stringType,
-				inclusive(1, (1L shl 31) - 1),
-				inclusive(1, (1L shl 28) - 1)),
+				naturalNumbers,
+				naturalNumbers),
 			setTypeForSizesContentType(
 				wholeNumbers,
 				oneOrMoreOf(Types.TOKEN.o))

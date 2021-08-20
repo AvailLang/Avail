@@ -199,7 +199,7 @@ abstract class AbstractAvailObject protected constructor(
 
 	companion object {
 		/** The [CheckedMethod] for [descriptor]. */
-		val descriptorMethod: CheckedMethod = instanceMethod(
+		val descriptorMethod = instanceMethod(
 			AbstractAvailObject::class.java,
 			AbstractAvailObject::descriptor.name,
 			AbstractDescriptor::class.java)

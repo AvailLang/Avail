@@ -142,9 +142,7 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		argumentTypes: List<A_Type>
 	): Fallibility
 	{
-		val tupleType = argumentTypes[0]
-		val startType = argumentTypes[1]
-		val endType = argumentTypes[2]
+		val (tupleType, startType, endType) = argumentTypes
 		// val replacementType = argumentTypes[3]
 
 		val tupleSizeRange = tupleType.sizeRange
@@ -180,11 +178,7 @@ object P_TupleReplaceRange : Primitive(4, CanInline, CanFold)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val tupleType = argumentTypes[0]
-		val startType = argumentTypes[1]
-		val endType = argumentTypes[2]
-		val replacementType = argumentTypes[3]
-
+		val (tupleType, startType, endType, replacementType) = argumentTypes
 		val tupleSizeRange = tupleType.sizeRange
 		val leftTupleType = P_ExtractSubtuple.computeSliceType(
 			tupleType,

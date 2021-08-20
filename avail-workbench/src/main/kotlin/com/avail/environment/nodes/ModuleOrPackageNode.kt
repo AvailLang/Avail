@@ -65,6 +65,13 @@ class ModuleOrPackageNode constructor(
 	val resolvedModuleName: ResolvedModuleName,
 	val isPackage: Boolean) : AbstractBuilderFrameTreeNode(builder)
 {
+	override fun modulePathString(): String = when
+	{
+		resolvedModuleName.resolverReference.isPackageRepresentative ->
+			resolvedModuleName.packageName
+		else -> resolvedModuleName.qualifiedName
+	}
+
 	/**
 	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?
 	 *

@@ -97,7 +97,7 @@ class SequencePhraseDescriptor private constructor(
 		transformer: (A_Phrase) -> A_Phrase
 	) = self.setSlot(
 		STATEMENTS,
-		tupleFromList(self.slot(STATEMENTS).map { transformer(it) }))
+		tupleFromList(self.slot(STATEMENTS).map(transformer)))
 
 	override fun o_EmitEffectOn(
 		self: AvailObject,

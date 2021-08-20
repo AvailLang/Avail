@@ -233,9 +233,7 @@ class Session constructor(private val commandChannel: AvailServerChannel):
 	 *   or `null` if that location was invalid or empty.
 	 */
 	fun removeFile (fileManagerId: UUID) =
-		fileCacheIdSessionId[fileManagerId]?.let {
-			removeFileCacheId(it)
-		}
+		fileCacheIdSessionId[fileManagerId]?.let(this::removeFileCacheId)
 
 	/**
 	 * Answer the [FileManager] id linked to the provided [FreeList] index id.

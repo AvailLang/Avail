@@ -38,6 +38,7 @@ import com.avail.anvil.MessageOrigin.SERVER
 import com.avail.anvil.MessageTag.ACCEPTED_VERSION
 import com.avail.anvil.MessageTag.ACKNOWLEDGED
 import com.avail.anvil.MessageTag.DISCONNECT
+import com.avail.anvil.MessageTag.IDENTIFY_CHANNEL
 import com.avail.anvil.MessageTag.NEGOTIATE_VERSION
 import com.avail.anvil.MessageTag.REBUTTED_VERSIONS
 import com.avail.anvil.io.AnvilServerChannel
@@ -53,6 +54,7 @@ import com.avail.anvil.io.WriteMore
 import com.avail.anvil.io.decodeList
 import com.avail.anvil.io.encode
 import com.avail.anvil.io.unvlqInt
+import com.avail.anvil.io.unvlqLong
 import com.avail.anvil.io.unzigzagLong
 import com.avail.anvil.io.vlq
 import com.avail.anvil.io.zigzag
@@ -153,7 +155,7 @@ private interface BasicMessage
  */
 enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 {
-	/** 0: Perform an orderly shutdown of the connection. */
+	/** Perform an orderly shutdown of the connection. */
 	DISCONNECT(0)
 	{
 		override val mustStartConversation = true
@@ -183,7 +185,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 		}
 	},
 
-	/** 1: Negotiate a protocol version. */
+	/** Negotiate a protocol version. */
 	NEGOTIATE_VERSION(1)
 	{
 		override fun availableInVersion (version: Int) = true
@@ -229,7 +231,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 		}
 	},
 
-	/** 2: Accept an offered protocol version. */
+	/** Accept an offered protocol version. */
 	ACCEPTED_VERSION(2)
 	{
 		override val allowedOrigins = setOf(SERVER)
@@ -258,8 +260,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 	},
 
 	/**
-	 * 3: Reject all offered protocol versions, rebutting with supported
-	 * versions.
+	 * Reject all offered protocol versions, rebutting with supported versions.
 	 */
 	REBUTTED_VERSIONS(3)
 	{
@@ -303,7 +304,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 		}
 	},
 
-	/** 4: Acknowledged. */
+	/** Acknowledged. */
 	ACKNOWLEDGED(4)
 	{
 		override val allowedOrigins get () = setOf(CLIENT, SERVER)
@@ -327,6 +328,40 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 		{
 			AcknowledgmentCode.decode(bytes, readMore, failed) { code, bytes1 ->
 				done(AcknowledgedMessage(CLIENT, id, code), bytes1)
+			}
+		}
+	},
+
+	/** Identify a newly connected channel. */
+	IDENTIFY_CHANNEL(5)
+	{
+		override fun availableInVersion (version: Int) = true
+		override val mustStartConversation = true
+		override val allowedOrigins = setOf(SERVER)
+		override val allowedStates =
+			setOf(VERSION_NEGOTIATION, VERSION_REBUTTED, READY)
+
+		override fun encodeContent(
+			message: Message,
+			bytes: ByteBuffer,
+			writeMore: WriteMore,
+			done: DoneWriting
+		)
+		{
+			require(message is IdentifyChannelMessage)
+			message.channelId.vlq(bytes, writeMore, done)
+		}
+
+		override fun decodeContent(
+			id: Long,
+			bytes: ByteBuffer,
+			readMore: ReadMore,
+			failed: FailedReading,
+			done: DoneReading<Message>
+		)
+		{
+			unvlqLong(bytes, readMore = readMore) { channelId, bytes1 ->
+				done(IdentifyChannelMessage(CLIENT, id, channelId), bytes1)
 			}
 		}
 	};
@@ -742,6 +777,38 @@ data class AcknowledgedMessage constructor (
 }
 
 ////////////////////////////////////////////////////////////////////////////////
+//                          Channel identification.                           //
+////////////////////////////////////////////////////////////////////////////////
+
+/**
+ * Identify a newly connected channel.
+ *
+ * @property channelId
+ *   The channel identifier.
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct a new [AcknowledgedMessage].
+ *
+ * @param origin
+ *   The origin of the message.
+ * @param id
+ *   The conversation id of the message.
+ * @param channelId
+ *   The channel identifier.
+ */
+data class IdentifyChannelMessage constructor (
+	override val origin: MessageOrigin,
+	override val id: Long,
+	val channelId: Long
+) : Message(IDENTIFY_CHANNEL, origin, id)
+{
+	override fun visit (visitor: MessageVisitor, after: AfterMessage) =
+		visitor.visit(this, after)
+}
+
+////////////////////////////////////////////////////////////////////////////////
 //                             Message visitors.                              //
 ////////////////////////////////////////////////////////////////////////////////
 
@@ -764,6 +831,7 @@ interface MessageVisitor
 	fun visit (message: AcceptedVersionMessage, after: AfterMessage)
 	fun visit (message: RebuttedVersionsMessage, after: AfterMessage)
 	fun visit (message: AcknowledgedMessage, after: AfterMessage)
+	fun visit (message: IdentifyChannelMessage, after: AfterMessage)
 }
 
 /**
@@ -797,6 +865,11 @@ abstract class AbstractMessageVisitor : MessageVisitor
 
 	override fun visit (
 		message: AcknowledgedMessage,
+		after: AfterMessage
+	): Unit = throw UnsupportedOperationException()
+
+	override fun visit (
+		message: IdentifyChannelMessage,
 		after: AfterMessage
 	): Unit = throw UnsupportedOperationException()
 }

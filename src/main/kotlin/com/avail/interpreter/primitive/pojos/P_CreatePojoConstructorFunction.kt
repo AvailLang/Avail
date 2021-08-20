@@ -106,8 +106,8 @@ object P_CreatePojoConstructorFunction : Primitive(2, CanInline, CanFold)
 			}
 			val marshaledTypes = marshalTypes(paramTypes)
 			constructor = javaClass.getConstructor(*marshaledTypes)
-			marshaledTypesTuple = tupleFromList(
-				marshaledTypes.map{ equalityPojo(it) })
+			marshaledTypesTuple =
+				tupleFromList(marshaledTypes.map(::equalityPojo))
 		}
 		catch (e: MarshalingException)
 		{

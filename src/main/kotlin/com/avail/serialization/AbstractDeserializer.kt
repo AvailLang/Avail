@@ -56,6 +56,10 @@ import java.io.InputStream
  * @property runtime
  *   The [AvailRuntime] whose scope is used to decode references to constructs
  *   that need to be looked up rather than re-instantiated.
+ * @property lookupPumpedObject
+ *   A function that maps from negative integers to objects that this
+ *   deserializer has been primed with.  This is the inverse function of
+ *   [Serializer.lookupPumpedObject].
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
@@ -67,6 +71,10 @@ import java.io.InputStream
  * @param runtime
  *   The [AvailRuntime] from which to locate well-known objects during
  *   deserialization.
+ * @param lookupPumpedObject
+ *   A function that maps from negative integers to objects that this
+ *   deserializer has been primed with.  This is the inverse function of
+ *   [Serializer.lookupPumpedObject].
  */
 abstract class AbstractDeserializer constructor(
 	internal val input: InputStream,

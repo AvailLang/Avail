@@ -55,6 +55,9 @@ class EntryPointModuleNode constructor(
 		builder: AvailBuilder, val resolvedModuleName: ResolvedModuleName)
 	: AbstractBuilderFrameTreeNode(builder)
 {
+	override fun modulePathString(): String =
+		throw UnsupportedOperationException()
+
 	/**
 	 * Is the [module&#32;or&#32;package][ModuleOrPackageNode] loaded?
 	 *

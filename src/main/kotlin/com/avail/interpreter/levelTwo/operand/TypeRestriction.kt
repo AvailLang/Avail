@@ -335,7 +335,7 @@ class TypeRestriction private constructor(
 			return this
 		}
 		// We can only exclude types that were excluded in both restrictions.
-		// Therefore find each intersection of an excluded type from the first
+		// Therefore, find each intersection of an excluded type from the first
 		// restriction and an excluded type from the second restriction.
 		val mutualTypeIntersections = mutableSetOf<A_Type>()
 		for (t1 in excludedTypes)
@@ -355,14 +355,15 @@ class TypeRestriction private constructor(
 		for (value in excludedValues)
 		{
 			if (other.excludedValues.contains(value)
-				|| other.excludedTypes.any { value.isInstanceOf(it) })
+				|| other.excludedTypes.any(value::isInstanceOf)
+			)
 			{
 				newExcludedValues.add(value)
 			}
 		}
 		for (value in other.excludedValues)
 		{
-			if (excludedTypes.any { value.isInstanceOf(it) })
+			if (excludedTypes.any(value::isInstanceOf))
 			{
 				newExcludedValues.add(value)
 			}
@@ -535,7 +536,7 @@ class TypeRestriction private constructor(
 		{
 			return false
 		}
-		if (excludedTypes.any {intersectedType.isSubtypeOf(it) })
+		if (excludedTypes.any { intersectedType.isSubtypeOf(it) })
 		{
 			// Even though the bare types intersect, the intersection was
 			// explicitly excluded by the restriction.
@@ -776,13 +777,14 @@ class TypeRestriction private constructor(
 		for (otherExcludedValue in other.excludedValues)
 		{
 			if (!excludedValues.contains(otherExcludedValue)
-				&& excludedTypes.none { otherExcludedValue.isInstanceOf(it) })
+				&& excludedTypes.none(otherExcludedValue::isInstanceOf)
+			)
 			{
 				return false
 			}
 		}
-		// Any additional exclusions that the receiver has are irrelevant, as
-		// they only act to strengthen the restriction.
+		// Any additional receiver exclusions are irrelevant, as they only act
+		// to strengthen the restriction.
 		return true
 	}
 
@@ -1053,8 +1055,8 @@ class TypeRestriction private constructor(
 						assert(givenConstantOrNull.isInstanceOf(type))
 						assert(givenConstantOrNull !in givenExcludedValues)
 						assert(
-							givenExcludedTypes
-								.none { givenConstantOrNull.isInstanceOf(it) })
+							givenExcludedTypes.none(
+								givenConstantOrNull::isInstanceOf))
 						// No reason to exclude it, so use the constant.  We can
 						// safely omit the excluded types and values as part of
 						// canonicalization.
@@ -1312,7 +1314,7 @@ class TypeRestriction private constructor(
 			// Eliminate excluded values that are already under an excluded type, or
 			// are not under the given type.
 			excludedValues.removeIf { v: A_BasicObject ->
-				!v.isInstanceOf(type) || excludedTypes.any { v.isInstanceOf(it) }
+				!v.isInstanceOf(type) || excludedTypes.any(v::isInstanceOf)
 			}
 			return if (type.equals(TOP.o)
 						&& excludedTypes.isEmpty()

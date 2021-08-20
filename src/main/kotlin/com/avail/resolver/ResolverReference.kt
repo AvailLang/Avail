@@ -562,9 +562,8 @@ class ResolverReference constructor(
 					{
 						// Add this to the stack, when it is removed, we know we've
 						// visited all its descendants.
-						ref.childReferences(visitResources).forEach {
-							stack.addFirst(it)
-						}
+						ref.childReferences(visitResources)
+							.forEach(stack::addFirst)
 					}
 				}
 				if (stack.isEmpty()) return visited

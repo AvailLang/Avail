@@ -39,7 +39,6 @@ import com.avail.anvil.configuration.CommandLineConfigurator
 import com.avail.anvil.configuration.EnvironmentConfigurator
 import com.avail.anvil.io.AnvilServerChannel
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.READY
-import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_NEGOTIATION
 import com.avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_REBUTTED
 import com.avail.anvil.io.BadProtocolVersion
 import com.avail.anvil.io.InternalErrorCloseReason
@@ -131,6 +130,25 @@ class AnvilServer constructor (
 		channels.remove(channel.channelId)
 
 	/**
+	 * Apprise the specified newly created [channel][AnvilServerChannel] of its
+	 * unique [channel&#32;identifier][AnvilServerChannel.channelId].
+	 *
+	 * @param channel
+	 *   The newly created channel.
+	 */
+	internal fun identifyChannel (channel: AnvilServerChannel)
+	{
+		val conversationId = channel.nextConversationId
+		val message = IdentifyChannelMessage(
+			SERVER, conversationId, channel.channelId)
+		channel.enqueueMessage(message) {
+			// We usually need to do something here, but this is a
+			// set-it-and-forget-it protocol. We're not even looking for a
+			// response.
+		}
+	}
+
+	/**
 	 * Receive a [message][Message] from the specified
 	 * [channel][AnvilServerChannel].
 	 *
@@ -188,11 +206,7 @@ class AnvilServer constructor (
 			message: NegotiateVersionMessage,
 			after: AfterMessage)
 		{
-			when (channel.state)
-			{
-				VERSION_NEGOTIATION -> negotiateVersion(message, channel, after)
-				else -> assert(false)
-			}
+			negotiateVersion(message, channel, after)
 		}
 	}
 

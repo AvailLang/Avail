@@ -280,9 +280,7 @@ private constructor(
 				expectedContentType.equals(Types.ANY.o) -> true
 				expectedContentType.isEnumeration ->
 					// Check the complete membership.
-					self.all {
-						expectedContentType.enumerationIncludesInstance(it)
-					}
+					self.all(expectedContentType::enumerationIncludesInstance)
 				else -> rootBin(self).binElementsAreAllInstancesOfKind(
 					expectedContentType)
 			}
@@ -682,7 +680,7 @@ private constructor(
 		/**
 		 * The [CheckedMethod] for [emptySet].
 		 */
-		val emptySetMethod: CheckedMethod = staticMethod(
+		val emptySetMethod = staticMethod(
 			SetDescriptor::class.java,
 			::emptyAvailSet.name,
 			A_Set::class.java)

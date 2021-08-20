@@ -1399,9 +1399,8 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val outers = generateObjectTupleFrom(obj.numOuterVars) {
-				obj.outerVarAt(it)
-			}
+			val outers = generateObjectTupleFrom(
+				obj.numOuterVars, obj::outerVarAt)
 			return array(
 				obj.code(),
 				outers)
@@ -1840,8 +1839,7 @@ enum class SerializerOperation constructor(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			val definitionBundle: A_Bundle = subobjects[0]
-			val signature: A_Type = subobjects[1]
+			val (definitionBundle: A_Bundle, signature: A_Type) = subobjects
 			val definitions = definitionBundle.macrosTuple
 				.filter { it.bodySignature().equals(signature) }
 			assert(definitions.size == 1)

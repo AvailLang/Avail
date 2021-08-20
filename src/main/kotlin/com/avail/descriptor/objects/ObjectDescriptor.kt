@@ -180,8 +180,8 @@ class ObjectDescriptor internal constructor(
 		 * dispatching are always against shared object types, and that's the
 		 * case we're attempting to speed up.
 		 *
-		 * Note that object types cache their hash value once computed.  The
-		 * two sets can be quickly searched because different object types very
+		 * Note that object types cache their hash value once computed.  The two
+		 * sets can be quickly searched because different object types very
 		 * rarely have equal hashes, and equal ones merge via indirections after
 		 * a successful comparison.  Shared object types are placed in a
 		 * canonical weak map to ensure these comparisons are fast.
@@ -596,7 +596,7 @@ class ObjectDescriptor internal constructor(
 		}
 
 		/** Access the [setField] method. */
-		var setFieldMethod: CheckedMethod = staticMethod(
+		var setFieldMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::setField.name,
 			AvailObject::class.java,
@@ -637,7 +637,7 @@ class ObjectDescriptor internal constructor(
 		 * The [CheckedMethod] for [objectFromMap].
 		 */
 		@Suppress("unused")
-		val objectFromMapMethod: CheckedMethod = staticMethod(
+		val objectFromMapMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::objectFromMap.name,
 			AvailObject::class.java,
@@ -682,7 +682,7 @@ class ObjectDescriptor internal constructor(
 		/**
 		 * Access the [createUninitializedObject] static method.
 		 */
-		var createUninitializedObjectMethod: CheckedMethod = staticMethod(
+		var createUninitializedObjectMethod = staticMethod(
 			ObjectDescriptor::class.java,
 			::createUninitializedObject.name,
 			AvailObject::class.java,

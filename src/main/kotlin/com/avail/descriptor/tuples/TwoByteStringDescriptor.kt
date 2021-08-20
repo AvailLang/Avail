@@ -480,7 +480,7 @@ class TwoByteStringDescriptor private constructor(
 
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedTwoByteStringMethod: CheckedMethod =
+		val createUninitializedTwoByteStringMethod =
 			staticMethod(
 				TwoByteStringDescriptor::class.java,
 				::mutableTwoByteStringOfSize.name,

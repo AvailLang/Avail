@@ -71,8 +71,7 @@ object P_TypeIntersection : Primitive(2, CannotFail, CanFold, CanInline)
 		rawFunction: A_RawFunction,
 		argumentTypes: List<A_Type>): A_Type
 	{
-		val meta1 = argumentTypes[0]
-		val meta2 = argumentTypes[1]
+		val (meta1, meta2) = argumentTypes
 		return meta1.typeIntersection(meta2)  // by metavariance
 	}
 }

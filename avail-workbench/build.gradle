@@ -40,7 +40,7 @@ plugins {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -48,7 +48,7 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -56,9 +56,6 @@ compileTestKotlin {
 
 repositories {
 	mavenCentral()
-	maven {
-		url("https://repo.spring.io/plugins-release/")
-	}
 }
 
 dependencies {
@@ -89,9 +86,7 @@ shadowJar {
 // Produce a jar for the Avail workbench.  It should have a Gradle dependency on
 // the core Avail VM module.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.environment.AvailWorkbench'
-	}
+	manifest.attributes.put 'Main-Class', 'com.avail.environment.AvailWorkbench'
 }
 
 // Copy the JAR into the distribution directory.
@@ -112,7 +107,13 @@ task osx {
 	def appSrc = fileTree("$projectDir/osx")
 	def appDst = rootProject.projectDir.toString() +
 			"/distro/Apps/Avail Workbench.app"
-	inputs.files appSrc
+	def resDir = projectDir.toString() +
+			"/src/main/resources/resources/workbench"
+	def resSrc = file("$resDir/AvailHammer.icns")
+	def resDst = file("$appDst/Contents/Resources")
+	def jarSrc = shadowJar.outputs.files
+	def jarDst = file("$appDst/Contents/Java")
+	inputs.files appSrc, resSrc, resDst
 	outputs.dir appDst
 
 	group = 'build'
@@ -120,25 +121,16 @@ task osx {
 
 	doLast {
 		mkdir appDst
-
 		copy {
 			from appSrc
 			into file(appDst)
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
-
-		def resDir = projectDir.toString() +
-				"/src/main/resources/resources/workbench"
-		def resSrc = file("$resDir/AvailHammer.icns")
-		def resDst = file("$appDst/Contents/Resources")
 		copy {
 			from resSrc
 			into resDst
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
-
-		def jarSrc = shadowJar.outputs.files
-		def jarDst = file("$appDst/Contents/Java")
 		mkdir jarDst
 		copy {
 			from jarSrc
@@ -146,12 +138,10 @@ task osx {
 			rename '.*', 'avail-workbench.jar'
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}
-
 		exec {
-			def launcher = appDst + "/Contents/MacOS/JavaAppLauncher"
+			String launcher = "$appDst/Contents/MacOS/JavaAppLauncher"
 			commandLine 'chmod', '+x', launcher
 		}
-
 		exec {
 			commandLine 'setfile', '-a', 'B', appDst
 		}
@@ -179,14 +169,8 @@ publishing {
 			name = "GitHub"
 			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
 			credentials {
-				username = System.getenv("GITHUB_USER")
-				password = System.getenv("GITHUB_TOKEN")
-				if (username == null || password == null)
-				{
-					System.err.println("GITHUB_USER = $username")
-					System.err.println("GITHUB_TOKEN = $password")
-					System.err.println(credentialsWarning)
-				}
+				username = github_username
+				password = github_password
 			}
 		}
 	}

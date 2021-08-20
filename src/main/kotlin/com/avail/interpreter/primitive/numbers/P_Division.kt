@@ -84,8 +84,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 	override fun fallibilityForArgumentTypes(argumentTypes: List<A_Type>)
 		: Fallibility
 	{
-		val aType = argumentTypes[0]
-		val bType = argumentTypes[1]
+		val (aType, bType) = argumentTypes
 
 		val aTypeIncludesInfinity =
 			negativeInfinity.isInstanceOf(aType)

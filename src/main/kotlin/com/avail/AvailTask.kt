@@ -131,6 +131,7 @@ class AvailTask constructor(
 					assert(fiber.executionState().indicatesSuspension)
 					val bound = fiber.getAndSetSynchronizationFlag(
 						SynchronizationFlag.BOUND, true)
+					fiber.fiberHelper().startCountingCPU()
 					assert(!bound)
 					val wasScheduled = fiber.getAndSetSynchronizationFlag(
 						SynchronizationFlag.SCHEDULED, false)

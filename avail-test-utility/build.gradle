@@ -37,6 +37,22 @@ plugins {
 	id 'org.jetbrains.dokka'
 }
 
+compileKotlin {
+	kotlinOptions {
+		jvmTarget = "16"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
+	}
+}
+
+compileTestKotlin {
+	kotlinOptions {
+		jvmTarget = "16"
+		freeCompilerArgs = ['-Xjvm-default=compatibility']
+		languageVersion = "1.5"
+	}
+}
+
 repositories {
 	mavenCentral()
 }

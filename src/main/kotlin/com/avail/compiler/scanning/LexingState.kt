@@ -203,8 +203,8 @@ class LexingState constructor(
 		compilationContext.loader.lexicalScanner().getLexersForCodePointThen(
 			this,
 			source.tupleCodePointAt(position),
-			{ this.evaluateLexers(it) },
-			{ this.reportLexerFilterFailures(it) })
+			this::evaluateLexers,
+			this::reportLexerFilterFailures)
 	}
 
 	/**

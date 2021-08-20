@@ -38,7 +38,7 @@ plugins {
 
 compileKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -46,7 +46,7 @@ compileKotlin {
 
 compileTestKotlin {
 	kotlinOptions {
-		jvmTarget = "1.8"
+		jvmTarget = "16"
 		freeCompilerArgs = ['-Xjvm-default=compatibility']
 		languageVersion = "1.5"
 	}
@@ -66,10 +66,6 @@ dependencies {
 
 	// JSR-305 null analysis framework.
 	implementation "com.google.code.findbugs:jsr305:$jsr_version"
-
-	// JUnit 5.
-	testImplementation("org.junit.jupiter:junit-jupiter-engine:$junit_version")
-	testImplementation("org.junit.jupiter:junit-jupiter-params:$junit_version")
 }
 
 // Update the dependencies of "classes".
@@ -92,9 +88,7 @@ dokkaHtml {
 
 // Produce a fat JAR for the Avail server.
 jar {
-	manifest {
-		attributes 'Main-Class': 'com.avail.server.AvailServer'
-	}
+	manifest.attributes.put 'Main-Class', 'com.avail.server.AvailServer'
 	duplicatesStrategy = DuplicatesStrategy.INCLUDE
 }
 

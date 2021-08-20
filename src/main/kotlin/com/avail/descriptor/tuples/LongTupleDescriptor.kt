@@ -649,7 +649,7 @@ class LongTupleDescriptor private constructor(
 		fun mutableObjectOfSize(size: Int): AvailObject = mutable.create(size)
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedLongTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedLongTupleMethod = staticMethod(
 			LongTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,

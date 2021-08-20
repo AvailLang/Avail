@@ -723,7 +723,7 @@ class NybbleTupleDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [mutableObjectOfSize]. */
-		val createUninitializedNybbleTupleMethod: CheckedMethod = staticMethod(
+		val createUninitializedNybbleTupleMethod = staticMethod(
 			NybbleTupleDescriptor::class.java,
 			::mutableObjectOfSize.name,
 			AvailObject::class.java,

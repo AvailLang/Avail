@@ -311,9 +311,8 @@ class CharacterDescriptor private constructor(
 		}
 
 		/** The hashes of the first 256 Unicode characters. */
-		private val hashesOfByteCharacters = IntArray(256) {
-			computeHashOfCharacterWithCodePoint(it)
-		}
+		private val hashesOfByteCharacters =
+			IntArray(256, ::computeHashOfCharacterWithCodePoint)
 
 		/**
 		 * A cache of non-byte characters that have been encountered so far
@@ -325,7 +324,7 @@ class CharacterDescriptor private constructor(
 		/** Protection for accessing the [characterCache]. */
 		private val characterCacheLock = ReentrantReadWriteLock()
 
-		/** The maximum code point value as an [Int]. */
+		/** The maximum Unicode code point value as an [Int]. */
 		const val maxCodePointInt = Character.MAX_CODE_POINT
 
 		/** A type that contains all ASCII decimal digit characters. */

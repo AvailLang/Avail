@@ -1075,7 +1075,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		private val whitespaces = Pattern.compile("\\s+")
 
 		/** The [CheckedMethod] for [run]. */
-		val runMethod: CheckedMethod = instanceMethod(
+		val runMethod = instanceMethod(
 			L1InstructionStepper::class.java,
 			L1InstructionStepper::run.name,
 			StackReifier::class.java)

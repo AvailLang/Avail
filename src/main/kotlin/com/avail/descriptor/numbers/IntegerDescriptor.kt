@@ -1655,7 +1655,7 @@ class IntegerDescriptor private constructor(
 		}
 
 		/** The [CheckedMethod] for [IntegerDescriptor.fromInt]. */
-		val fromIntMethod: CheckedMethod = staticMethod(
+		val fromIntMethod = staticMethod(
 			IntegerDescriptor::class.java,
 			::fromInt.name,
 			AvailObject::class.java,
@@ -1910,9 +1910,8 @@ class IntegerDescriptor private constructor(
 		 * An array of size [smallIntegerLimit] of [Int]s, corresponding to the
 		 * hashes of the integers at the corresponding indices.
 		 */
-		private val hashesOfSmallIntegers = IntArray(smallIntegerLimit) {
-			computeHashOfInt(it)
-		}
+		private val hashesOfSmallIntegers =
+			IntArray(smallIntegerLimit, ::computeHashOfInt)
 
 		/** An Avail integer representing zero (0). */
 		val zero: AvailObject = smallIntegers[0]!!
