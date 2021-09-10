@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/13/21 1:27 PM
+ * * Last Generated: 8/26/21, 10:06 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -270,6 +270,7 @@ Names
 	"invoke_with_,⁇forked at priority_",
 	"literal token⇒_",
 	"ln_",
+	"lookup macro_for arguments_",
 	"message_contains groups",
 	"method definition of_for_",
 	"method exists named_",

@@ -38,6 +38,7 @@ pluginManagement {
 }
 rootProject.name = "avail"
 include(
+	"avail-core",
 	"anvil-server",
 	"avail-bootstrap",
 	"avail-cli",

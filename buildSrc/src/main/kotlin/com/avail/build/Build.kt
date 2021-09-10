@@ -40,8 +40,6 @@ import org.gradle.api.file.FileCollection
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
-import org.gradle.api.tasks.SourceSetContainer
-import org.gradle.jvm.tasks.Jar
 
 /// Herein lies utility functions and state for use in `build.gradle.kts` files.
 

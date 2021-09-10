@@ -45,7 +45,7 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation (rootProject)
+	implementation(project(":avail-core"))
 }
 tasks {
 	// Update the dependencies of "classes".

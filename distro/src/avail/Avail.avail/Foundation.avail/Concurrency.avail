@@ -48,11 +48,7 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Enumeration Support",
-	"Exceptions" =
-	(
-		-"expected type",
-		…
-	),
+	"Exceptions",
 	"Functions",
 	"Literals",
 	"Logic",

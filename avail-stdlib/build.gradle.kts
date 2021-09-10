@@ -43,7 +43,7 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation (rootProject)
+	implementation(project(":avail-core"))
 }
 tasks {
 	processResources {

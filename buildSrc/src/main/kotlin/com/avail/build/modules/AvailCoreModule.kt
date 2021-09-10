@@ -48,6 +48,7 @@ object AvailCoreModule: ModuleDependencies(
 		Libraries.fileWatcher,
 		Libraries.tikka),
 	apis = listOf(Libraries.kotlinReflection),
-	testImplementations = listOf(Libraries.junitJupiter),
+	testImplementations = listOf(
+		Libraries.junitJupiterParams, Libraries.junitJupiterEngine),
 	compileOnlys = listOf(Libraries.kotlinAnnotations))
 

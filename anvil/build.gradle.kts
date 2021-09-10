@@ -50,7 +50,7 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation (rootProject)
+	implementation(project(":avail-core"))
 	implementation(compose.desktop.currentOs)
 }
 tasks {

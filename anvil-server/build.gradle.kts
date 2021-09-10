@@ -48,7 +48,7 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation (rootProject)
+	implementation(project(":avail-core"))
 
 	AnvilServerModule.addDependencies(this)
 }

@@ -206,11 +206,6 @@ sealed class Dependencies
 	 */
 	open fun addDependencies (scope: DependencyHandlerScope)
 	{
-//		apis.forEach { scope.addApi(it.base) }
-//		compileOnlys.forEach { scope.addCompileOnly(it.base) }
-//		implementations.forEach { scope.addImplementation(it.base) }
-//		testApis.forEach { scope.addTestApi(it.base) }
-//		testImplementations.forEach { scope.addTestImplementation(it.base) }
 		apis.forEach { scope.addApi(it.versioned) }
 		implementations.forEach { scope.addImplementation(it.versioned) }
 		compileOnlys.forEach { scope.addCompileOnly(it.versioned) }

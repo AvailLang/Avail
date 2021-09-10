@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/13/21 1:27 PM
+ * * Last Generated: 8/26/21, 10:06 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -130,6 +130,7 @@ Uses
 		"function from_and_",
 		"in_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 		"invoke_with_,⁇forked at priority_",
+		"lookup macro_for arguments_",
 		"message_contains groups",
 		"method definition of_for_",
 		"method for_",
@@ -3391,6 +3392,47 @@ Primitive "_(_)@_:_" is
 		exceeds-VM-limit code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : token;
+
+/**
+ * Given an {@type atom} and a {@type tuple} of {@type "phrase" phrases},
+ * look up the body function of the applicable {@code macro}. *Do not*
+ * execute it. The returned function should accept the given tuple of phrases.
+ *
+ * The primitive fails if the number of arguments is incorrect, or if there is
+ * not exactly one most-specific macro definition applicable for the supplied
+ * phrases. If the atom does not have a bundle associated with it, it's treated
+ * as having no applicable macros.
+ *
+ * Note that the lookup does not take a current module into account, so each
+ * macro definition of the bundle is eligible to be returned.
+ *
+ * @category "Primitives"
+ * @method "lookup macro_for arguments_"
+ * @param "macroAtom" "atom"
+ *        The {@type bundle} containing the macro.
+ * @param "argumentPhrases" "<phrase⇒⊤…|>"
+ *        The {@type tuple} of {@type "phrases" phrases} for which to look
+ *        up the macro.
+ * @returns "[…]→phrase⇒⊤"
+ *    The body function of the looked-up macro.
+ * @raises "incorrect-number-of-arguments exception"
+ *         If the wrong number of phrases was provided.
+ * @raises "no-method-definition exception"
+ *         If no macro definitions are applicable.
+ * @raises "ambiguous-method-definition exception"
+ *         If more than one most-specific macro was found.
+ */
+Primitive "lookup macro_for arguments_" is
+[
+	macroAtom : atom,
+	argumentPhrases : phrase tuple
+|
+	Primitive LookupMacro (failureCode : {
+		incorrect-number-of-arguments code,
+		no-method-definition code,
+		ambiguous-method-definition code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : macro function;
 
 /**
  * Associate a styler function with this definition. The styling mechanism is

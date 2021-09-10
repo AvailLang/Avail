@@ -46,7 +46,7 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation (rootProject)
+	implementation(project(":avail-core"))
 	testImplementation(project(":avail-test-utility"))
 	AvailServerModule.addDependencies(this)
 }

@@ -33,7 +33,8 @@
 Module "Sequences"
 Versions
 	"Avail-1.6.0"
-Uses
-	"Foundation",
+Extends
 	"Abstract Sequences"
+Uses
+	"Foundation"
 Body

@@ -102,10 +102,14 @@ object AvailSetupContext
  * @return
  *   An [AvailRoot].
  */
-fun Project.availRoot(name: String): AvailRoot =
-	AvailRoot(
+fun Project.availRoot(name: String): AvailRoot
+{
+	val rootURI = "${rootProject.projectDir}/$distroSrc/$name"
+	println("AvailRoot: $rootURI")
+	return AvailRoot(
 		name,
-		URI("${rootProject.projectDir}/$distroSrc/$name"))
+		URI(rootURI))
+}
 
 /**
  * Compute the Avail roots. This is needed to properly configure "test".

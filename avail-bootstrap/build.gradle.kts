@@ -29,6 +29,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import com.avail.build.AvailSetupContext
+import com.avail.build.generateBootStrap
 import com.avail.build.modules.AvailBootstrapModule
 
 plugins {
@@ -42,7 +44,7 @@ repositories {
 }
 
 dependencies {
-	implementation (rootProject)
+	implementation(project(":avail-core"))
 	AvailBootstrapModule.addDependencies(this)
 }
 
@@ -50,58 +52,95 @@ tasks {
 	// Don't build any JAR files, since these are bootstrap tools only.
 	jar { enabled = false }
 
-	// Copy the generated bootstrap property files into the build directory, so
-	// that the executable tools can find them as resources.
+	/**
+	 * Copy the generated bootstrap property files into the build directory, so
+	 * that the executable tools can find them as resources.
+	 *
+	 * See [AvailBootstrapModule.relocateGeneratedPropertyFiles].
+	 */
 	val relocateGeneratedPropertyFiles by creating(Copy::class) {
+		description =
+			"Copy the generated bootstrap property files into the build " +
+				"directory, that the executable tools can find them as " +
+				"resources. See " +
+				"`AvailBootstrapModule.relocateGeneratedPropertyFiles`."
 		AvailBootstrapModule.relocateGeneratedPropertyFiles(project, this)
 	}
 
 	// Update the dependencies of "classes".
 	classes { dependsOn(relocateGeneratedPropertyFiles) }
 
-	// Bootstrap Primitive_<lang>.properties for the current locale.
+	/** Bootstrap Primitive_<lang>.properties for the current locale. */
 	val generatePrimitiveNames by creating(JavaExec::class) {
+		description =
+			"Bootstrap Primitive_<lang>.properties for the current locale."
 		group = "bootstrap"
 		mainClass.set("com.avail.tools.bootstrap.PrimitiveNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
 
-	// Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
+	/** Bootstrap ErrorCodeNames_<lang>.properties for the current locale. */
 	val generateErrorCodeNames by creating(JavaExec::class) {
+		description =
+			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
 		group = "bootstrap"
 		mainClass.set("com.avail.tools.bootstrap.ErrorCodeNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
 
-	// Bootstrap ErrorCodeNames_<lang>.properties for the current locale.
+	/** Bootstrap ErrorCodeNames_<lang>.properties for the current locale. */
 	val generateSpecialObjectNames by creating(JavaExec::class) {
+		description =
+			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
 		group = "bootstrap"
 		mainClass.set("com.avail.tools.bootstrap.SpecialObjectNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
 
-	// Generate all bootstrap .properties files for the current locale.
+	/**
+	 * Gradle task to generate all bootstrap `.properties` files for the current
+	 * locale.
+	 */
+	@Suppress("UNUSED_VARIABLE")
 	val generateAllNames by creating {
+		description =
+			"Gradle task to generate all bootstrap `.properties` files for " +
+				"the current locale."
 		group = "bootstrap"
-		dependsOn(getByName("generatePrimitiveNames"))
-		dependsOn(getByName("generateErrorCodeNames"))
-		dependsOn(getByName("generateSpecialObjectNames"))
+		dependsOn(generatePrimitiveNames)
+		dependsOn(generateErrorCodeNames)
+		dependsOn(generateSpecialObjectNames)
 	}
 
-	// Generate the new bootstrap Avail modules for the current locale.
+	/**
+	 * Generate the new bootstrap Avail modules for the current locale.
+	 *
+	 * This is used in [AvailSetupContext]'s [Project.generateBootStrap].
+	 */
+	@Suppress("UNUSED_VARIABLE")
 	val internalGenerateBootstrap by creating(JavaExec::class) {
+		description =
+			"Generate the new bootstrap Avail modules for the current locale." +
+				"\n\tThis is used in AvailSetupContext's Project.generateBootStrap."
 		group = "internal"
 		mainClass.set("com.avail.tools.bootstrap.BootstrapGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
 
-	// Generate the new bootstrap Avail modules for the current locale and copy
-	// them to the appropriate location for distribution.
+	/**
+	 * Gradle task to generate the new bootstrap Avail modules for the current
+	 * locale and copy them to the appropriate location for distribution.
+	 */
+	@Suppress("UNUSED_VARIABLE")
 	val generateBootstrap by creating(Copy::class) {
+		description =
+			"Gradle task to generate the new bootstrap Avail modules for the " +
+				"current locale and copy them to the appropriate location " +
+				"for distribution."
 		AvailBootstrapModule.generateBootStrap(project, this)
 	}
 }

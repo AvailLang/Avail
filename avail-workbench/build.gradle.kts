@@ -52,7 +52,7 @@ repositories {
 
 dependencies {
 	// Avail.
-	api (rootProject)
+	implementation(project(":avail-core"))
 	AvailWorkbenchModule.addDependencies(this)
 }
 

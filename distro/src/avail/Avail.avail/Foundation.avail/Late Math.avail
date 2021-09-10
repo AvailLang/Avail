@@ -39,12 +39,7 @@ Uses
 	"Bootstrap",
 	"Casts",
 	"Characters",
-	"Control Structures" =
-	(
-		-"Cast_into_",
-		-"Cast|cast_into_else_",
-		…
-	),
+	"Control Structures",
 	"Definers",
 	"Early Assertions",
 	"Early Conditionals",

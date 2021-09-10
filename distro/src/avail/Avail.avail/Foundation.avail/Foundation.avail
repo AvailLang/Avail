@@ -479,6 +479,7 @@ Extends
 		"invalid-special-object-number code",
 		"key-not-found code",
 		"loading-is-over code",
+		"lookup macro_for arguments_",
 		"macro-argument-must-be-a-phrase code",
 		"macro-must-return-a-phrase code",
 		"macro-prefix-function-argument-must-be-a-phrase code",

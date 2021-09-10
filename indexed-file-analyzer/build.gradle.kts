@@ -44,7 +44,7 @@ repositories {
 }
 
 dependencies {
-	implementation(rootProject)
+	implementation(project(":avail-core"))
 }
 
 tasks {

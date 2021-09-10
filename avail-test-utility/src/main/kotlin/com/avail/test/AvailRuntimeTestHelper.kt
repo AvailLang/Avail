@@ -43,7 +43,7 @@ import com.avail.builder.UnresolvedDependencyException
 import com.avail.files.FileManager
 import com.avail.io.TextInterface
 import com.avail.io.TextOutputChannel
-import com.avail.resolver.ModuleRootResolver
+import com.avail.test.AvailRuntimeTestHelper.Companion.testDirectory
 import com.avail.utility.IO.closeIfNotNull
 import com.avail.utility.cast
 import java.io.BufferedReader
@@ -80,8 +80,9 @@ class AvailRuntimeTestHelper constructor (
 	private val includeTemporaryTestsDirectory: Boolean)
 {
 	/** The [FileManager] used in this test. */
-	val fileManager: FileManager = FileManager()
+	private val fileManager: FileManager = FileManager()
 
+	/** The [ModuleRoots] under test. */
 	private val moduleRoots: ModuleRoots = createModuleRoots(fileManager)
 
 	/** The [module name resolver][ModuleNameResolver]. */
@@ -102,10 +103,6 @@ class AvailRuntimeTestHelper constructor (
 	/** The maximum notification rate for partially-loaded modules. */
 	@Suppress("MemberVisibilityCanBePrivate")
 	var updateRateMillis: Long = 500
-
-	val testModuleRootResolver: ModuleRootResolver by lazy {
-		moduleRoots.moduleRootFor("tests")!!.resolver
-	}
 
 	/**
 	 * A `TestErrorChannel` augments a [TextOutputChannel] with error detection.
@@ -338,7 +335,9 @@ class AvailRuntimeTestHelper constructor (
 	private fun createModuleRoots(fileManager: FileManager): ModuleRoots
 	{
 		val userDir = System.getProperty("user.dir")
-		val path = userDir.replace("/avail-server", "")
+		val path = userDir
+			.replace("/avail-server", "")
+			.replace("/avail-core", "")
 		val uri = "file://$path"
 		val rootsList = mutableListOf(
 			"avail" to "$uri/distro/src/avail",

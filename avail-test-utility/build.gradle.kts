@@ -40,5 +40,5 @@ repositories {
 }
 
 dependencies {
-	implementation(rootProject)
+	api(project(":avail-core"))
 }
