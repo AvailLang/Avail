@@ -1,5 +1,5 @@
 /*
- * build.gradle
+ * Versions.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,74 +29,59 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-plugins {
-	id 'java'
-	id 'org.jetbrains.kotlin.jvm'
-	id 'com.github.johnrengelman.shadow'
-	id 'org.jetbrains.dokka'
-}
 
-compileKotlin {
-	kotlinOptions {
-		jvmTarget = "16"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-		languageVersion = "1.5"
-	}
-}
+/**
+ * The central source of all versions. This ranges from dependency versions
+ * to language level versions.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object Versions
+{
+	/** The version of Kotlin to be used by Avail. */
+	const val kotlin = "1.5.21"
 
-compileTestKotlin {
-	kotlinOptions {
-		jvmTarget = "16"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-		languageVersion = "1.5"
-	}
-}
+	/** The Kotlin Desktop Compose version [org.jetbrains.compose]. */
+	const val compose = "1.0.0-alpha3"
 
-repositories {
-	mavenCentral()
-}
+	/** The Avail version. */
+	const val avail = "1.6.0"
 
-dependencies {
-	// Avail.
-	implementation rootProject
+	/** The `com.github.johnrengelman.shadow` version. */
+	const val shadow = "6.0.0"
 
-	// Kotlin.
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
+	/** The `org.jetbrains:annotations` version. */
+	const val kotlinAnnotations="22.0.0"
 
-// Update the dependencies of "classes".
-classes.dependsOn generateBuildTime
+	/** The `org.ow2.asm` version. */
+	const val asmVersion="9.2"
 
-// Produce a fat JAR for the Avail CLI.
-jar {
-	manifest.attributes.put 'Main-Class',
-			'com.avail.tools.unicode.CatalogGenerator'
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
+	/** The `com.github.weisj:darklaf-core` version.*/
+	const val darklafVersion = "2.7.2"
 
-// Copy the JAR into the distribution directory.
-task releaseUnicodeGenerator(type: Copy) {
-	group = 'release'
-	from shadowJar.outputs.files
-	into file("${rootProject.projectDir}/distro/lib")
-	rename '.*', 'unicode-catalog.jar'
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
+	/** The `io.methvin:directory-watcher` version. */
+	const val directoryWatcherVersion = "0.15.0"
 
-// Update the dependencies of "assemble".
-assemble.dependsOn releaseUnicodeGenerator
+	/** The `com.google.code.findbugs:jsr305` version. */
+	const val jsrVersion = "3.0.2"
 
-// Generate documentation
-dokkaGfm {
-	// Outputting to documentation/docs/src-docs directly causes the contents of
-	// the directory to be deleted. Moving the directory post generation is the
-	// work around.
-	doLast {
-		ant.move file: "${buildDir}/dokka/unicode-catalog",
-			todir: "../documentation/docs/src_docs"
-	}
-}
+	/** The `org.junit.jupiter:junit-jupiter` version. */
+	const val junitVersion = "5.7.2"
 
-dokkaHtml {
-	outputDirectory = file "$buildDir/dokka"
+	/** The `org.apache.tika:tika-core` version. */
+	const val tikaVersion = "2.0.0"
+
+	/** The language level version of Kotlin. */
+	const val kotlinLanguage = "1.5"
+
+	/** The JVM target version for Kotlin. */
+	const val jvmTarget = "16"
+
+	/**
+	 * The list of compile-time arguments to be used during Kotlin compilation.
+	 */
+	val freeCompilerArgs = listOf("-Xjvm-default=compatibility")
+
+	/** The language level version of Kotlin. */
+	const val languageVersion = kotlinLanguage
 }

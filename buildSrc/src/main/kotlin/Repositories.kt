@@ -1,5 +1,5 @@
 /*
- * build.gradle
+ * Repositories.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,73 +29,21 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-plugins {
-	id 'java'
-	id 'org.jetbrains.kotlin.jvm'
-	id 'com.github.johnrengelman.shadow'
-	id 'org.jetbrains.dokka'
-}
 
-compileKotlin {
-	kotlinOptions {
-		jvmTarget = "16"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-		languageVersion = "1.5"
-	}
-}
+/**
+ * Contains state and functionality for managing repositories for
+ * `build.gradle.kts` files.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object Repositories
+{
+	/**
+	 * The Maven URI for accessing Kotlin Desktop Compose.
+	 */
+	const val composeMavenUri =
+		"https://maven.pkg.jetbrains.space/public/p/compose/dev"
 
-compileTestKotlin {
-	kotlinOptions {
-		jvmTarget = "16"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-		languageVersion = "1.5"
-	}
-}
-
-repositories {
-	mavenCentral()
-}
-
-dependencies {
-	// Avail.
-	implementation rootProject
-
-	// Kotlin.
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
-}
-
-// Update the dependencies of "classes".
-classes.dependsOn generateBuildTime
-
-// Produce a fat JAR for the Avail CLI.
-jar {
-	manifest.attributes.put 'Main-Class', 'com.avail.tools.compiler.Compiler'
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-// Copy the JAR into the distribution directory.
-task releaseAvailCLI(type: Copy) {
-	group = 'release'
-	from shadowJar.outputs.files
-	into file("${rootProject.projectDir}/distro/lib")
-	rename '.*', 'avail-cli.jar'
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-// Update the dependencies of "assemble".
-assemble.dependsOn releaseAvailCLI
-
-// Generate documentation
-dokkaGfm {
-	// Outputting to documentation/docs/src-docs directly causes the contents of
-	// the directory to be deleted. Moving the directory post generation is the
-	// work around.
-	doLast {
-		ant.move file: "${buildDir}/dokka/avail-cli",
-			todir: "../documentation/docs/src_docs"
-	}
-}
-
-dokkaHtml {
-	outputDirectory = file "$buildDir/dokka"
+	const val ossSonaType =
+		"https://oss.sonatype.org/content/repositories/snapshots/"
 }

@@ -1,5 +1,5 @@
 /*
- * build.gradle
+ * build.gradle.kts
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,27 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import com.avail.build.cleanupJars
+import com.avail.build.generateBuildTime
+import com.avail.build.releaseSubproject
+
 plugins {
-	id 'java'
-	id 'org.jetbrains.kotlin.jvm'
-	id 'com.github.johnrengelman.shadow'
-	id 'org.jetbrains.dokka'
-}
-
-compileKotlin {
-	kotlinOptions {
-		jvmTarget = "16"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-		languageVersion = "1.5"
-	}
-}
-
-compileTestKotlin {
-	kotlinOptions {
-		jvmTarget = "16"
-		freeCompilerArgs = ['-Xjvm-default=compatibility']
-		languageVersion = "1.5"
-	}
+	java
+	kotlin("jvm")
+	id("com.github.johnrengelman.shadow")
 }
 
 repositories {
@@ -57,46 +44,33 @@ repositories {
 }
 
 dependencies {
-	// Avail.
-	implementation rootProject
-
-	// Kotlin.
-	implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version"
+	implementation(rootProject)
 }
 
-// Update the dependencies of "classes".
-classes.dependsOn generateBuildTime
-
-// Produce a fat JAR for the IndexFileAnalyzer.
-jar {
-	manifest.attributes.put 'Main-Class',
-			'com.avail.tools.fileanalyzer.IndexedFileAnalyzer'
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-// Copy the JAR into the distribution directory.
-task releaseIndexedFileAnalyzer(type: Copy) {
-	group = 'release'
-	from shadowJar.outputs.files
-	into file("${rootProject.projectDir}/distro/lib")
-	rename '.*', 'indexed-file-analyzer.jar'
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-}
-
-// Update the dependencies of "assemble".
-assemble.dependsOn releaseIndexedFileAnalyzer
-
-// Generate documentation
-dokkaGfm {
-	// Outputting to documentation/docs/src-docs directly causes the contents of
-	// the directory to be deleted. Moving the directory post generation is the
-	// work around.
-	doLast {
-		ant.move file: "${buildDir}/dokka/indexed-file-analyzer",
-			todir: "../documentation/docs/src_docs"
+tasks {
+	// Update the dependencies of "classes".
+	classes {
+		doLast {
+			generateBuildTime(this)
+		}
 	}
-}
 
-dokkaHtml {
-	outputDirectory = file "$buildDir/dokka"
+	// Produce a fat JAR for the IndexFileAnalyzer.
+	jar {
+		doFirst { cleanupJars() }
+		manifest.attributes["Main-Class"] =
+			"com.avail.tools.fileanalyzer.IndexedFileAnalyzer"
+		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+	}
+
+	// Copy the JAR into the distribution directory.
+	val releaseIndexedFileAnalyzer by creating(Copy::class) {
+		releaseSubproject(
+			this,
+			"indexed-file-analyzer.jar",
+			shadowJar.get().outputs.files)
+	}
+
+	// Update the dependencies of "assemble".
+	assemble { dependsOn(releaseIndexedFileAnalyzer) }
 }

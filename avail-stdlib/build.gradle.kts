@@ -1,5 +1,5 @@
 /*
- * build.gradle
+ * build.gradle.kts
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,11 +29,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import com.avail.build.AvailSetupContext.distroLib
 
 plugins {
-	id 'java'
-	id 'maven-publish'
-	id 'publishing'
+	java
+	id("maven-publish")
+	publishing
 }
 
 repositories {
@@ -42,44 +43,50 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation rootProject
+	implementation (rootProject)
 }
-
-// Produce a JAR with the source of every module in the standard Avail library.
-def standardLibraryName = buildDir.toString() + "/avail-standard-library.jar"
-jar {
-	description = "The Avail standard library"
-	archiveFileName = standardLibraryName
-	exclude "stacks/**"
-	exclude "com/"
-	// Exclude all the java files that Gradle puts in by default.
-	processResources.exclude("**")
-
-	from('../distro/src/avail') {
-		include '**/*.*'
+tasks {
+	processResources {
+		exclude("**")
 	}
-	duplicatesStrategy = DuplicatesStrategy.FAIL
-	manifest.attributes.put 'Implementation-Title', 'Avail standard library'
-	manifest.attributes.put 'Implementation-Version', versionToPublish
-	// Even though the jar only includes .avail source files, we need the
-	// content to be available at runtime, so we use "" for the archive
-	// classifier instead of "sources".
-	archiveClassifier.set("")
+	// Produce a JAR with the source of every module in the standard Avail library.
+	val standardLibraryName =
+		"$buildDir/avail-standard-library.jar"
+	jar {
+		description = "The Avail standard library"
+		archiveFileName.set(standardLibraryName)
+		exclude("stacks/**")
+		exclude("com/")
+		// Exclude all the java files that Gradle puts in by default.
+		dependsOn(processResources)
+
+		from("../distro/src/avail") {
+			include("**/*.*")
+		}
+		val versionToPublish = Publish.versionToPublish
+		duplicatesStrategy = DuplicatesStrategy.FAIL
+		manifest.attributes["Implementation-Title"] = "Avail standard library"
+		manifest.attributes["Implementation-Version"] = versionToPublish
+		// Even though the jar only includes .avail source files, we need the
+		// content to be available at runtime, so we use "" for the archive
+		// classifier instead of "sources".
+		archiveClassifier.set("")
+	}
+
+	// Copy the library into the distribution directory.
+	val releaseStandardLibrary by creating(Copy::class) {
+		group = "release"
+		from(standardLibraryName)
+		into("${rootProject.projectDir}/$distroLib")
+		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+		dependsOn(jar)
+	}
+
+	// Update the dependencies of "assemble".
+	assemble { dependsOn(releaseStandardLibrary) }
 }
-
-// Copy the library into the distribution directory.
-task releaseStandardLibrary(type: Copy) {
-	group = 'release'
-	from standardLibraryName
-	into "${rootProject.projectDir}/distro/lib"
-	duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-	dependsOn jar
-}
-
-// Update the dependencies of "assemble".
-assemble.dependsOn releaseStandardLibrary
-rootProject.assemble.dependsOn releaseStandardLibrary
+rootProject.tasks.assemble { dependsOn(tasks.getByName("releaseStandardLibrary")) }
 
 publishing {
 	repositories {
@@ -87,15 +94,16 @@ publishing {
 			name = "GitHub"
 			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
 			credentials {
-				username = github_username
-				password = github_password
+				username = Publish.githubUsername
+				password = Publish.githubPassword
 			}
 		}
 	}
 
 	publications {
-		standardLibrary(MavenPublication) {
-			artifact jar
+		create<MavenPublication>("workbench") {
+			val jar = tasks.jar
+			artifact(jar)
 		}
 	}
 }
