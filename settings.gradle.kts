@@ -1,5 +1,5 @@
 /*
- * settings.gradle
+ * settings.gradle.kts
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,7 +29,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
+pluginManagement {
+	repositories {
+		google()
+		gradlePluginPortal()
+		maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
+	}
+}
 rootProject.name = "avail"
 include(
 	"anvil-server",
@@ -40,4 +46,5 @@ include(
 	"avail-test-utility",
 	"avail-workbench",
 	"indexed-file-analyzer",
-	"unicode-catalog")
+	"unicode-catalog",
+	"anvil")
