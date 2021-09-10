@@ -85,7 +85,6 @@ class GenerateDocumentationAction constructor (workbench: AvailWorkbench)
 		putValue(
 			Action.ACCELERATOR_KEY,
 			KeyStroke.getKeyStroke(
-				KeyEvent.VK_G,
-				AvailWorkbench.menuShortcutMask))
+				KeyEvent.VK_G, AvailWorkbench.menuShortcutMask))
 	}
 }

@@ -64,6 +64,7 @@ class CancelAction constructor(workbench: AvailWorkbench)
 			Action.SHORT_DESCRIPTION, "Cancel the current build process.")
 		putValue(
 			Action.ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE, InputEvent.CTRL_MASK))
+			KeyStroke.getKeyStroke(
+				KeyEvent.VK_ESCAPE, InputEvent.CTRL_DOWN_MASK))
 	}
 }

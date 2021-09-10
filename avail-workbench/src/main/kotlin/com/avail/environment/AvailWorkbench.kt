@@ -1622,7 +1622,7 @@ class AvailWorkbench internal constructor (
 		jMenuBar = menuBar
 
 		// The refresh item needs a little help ...
-		var inputMap = getRootPane().getInputMap(
+		var inputMap = rootPane.getInputMap(
 			JComponent.WHEN_IN_FOCUSED_WINDOW)
 		var actionMap = getRootPane().actionMap
 		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh")
@@ -1661,7 +1661,7 @@ class AvailWorkbench internal constructor (
 				}
 			})
 		inputMap = moduleTree.getInputMap(
-			JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
+			JComponent.WHEN_IN_FOCUSED_WINDOW)
 		actionMap = moduleTree.actionMap
 		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
 		actionMap.put("build", buildAction)
@@ -1895,6 +1895,7 @@ class AvailWorkbench internal constructor (
 
 		// Set up desktop and taskbar features.
 		Desktop.getDesktop().setDefaultMenuBar(menuBar)
+		jMenuBar.maximumSize = Dimension(0, 0)
 		setQuitHandler {
 			// Quit was pressed.  Close the workbench, which should
 			// save window position state then exit.

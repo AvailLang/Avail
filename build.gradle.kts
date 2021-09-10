@@ -49,7 +49,7 @@ plugins {
 	id("com.github.johnrengelman.shadow") version Versions.shadow apply false
 	id("maven-publish")
 	id("publishing")
-	id("org.jetbrains.compose") version "1.0.0-alpha3" apply false
+	id("org.jetbrains.compose") version Versions.compose apply false
 }
 allprojects {
 	group = "org.availlang"
