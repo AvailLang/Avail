@@ -39,11 +39,11 @@ import com.avail.build.releaseAvail
 import com.avail.build.scrubReleases
 
 plugins {
-	id("java")
-	id("org.jetbrains.kotlin.jvm")
+	java
+	kotlin("jvm")
 	id("com.github.johnrengelman.shadow")
-	id("maven-publish")
-	id("publishing")
+	`maven-publish`
+	publishing
 }
 
 repositories {

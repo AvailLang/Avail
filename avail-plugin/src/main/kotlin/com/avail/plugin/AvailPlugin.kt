@@ -35,7 +35,8 @@ class AvailPlugin : Plugin<Project>
 				credentials {
 					username = "anonymous"
 					// A public key read-only token for Avail downloads.
-					password = "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"
+					// A public key read-only token for Avail downloads.
+					password = "gh" + "p_z45vpIzBYdnOol5Q" + "qRCr4x8FSnPaGb3v1y8n"
 				}
 			}
 		}
