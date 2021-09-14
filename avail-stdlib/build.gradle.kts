@@ -33,7 +33,7 @@ import com.avail.build.AvailSetupContext.distroLib
 
 plugins {
 	java
-	id("maven-publish")
+	`maven-publish`
 	publishing
 }
 

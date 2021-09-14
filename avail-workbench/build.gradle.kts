@@ -39,7 +39,7 @@ plugins {
 	java
 	kotlin("jvm")
 	id("com.github.johnrengelman.shadow")
-	id("maven-publish")
+	`maven-publish`
 	publishing
 }
 

@@ -44,11 +44,11 @@ extra.apply{
 }
 
 plugins {
-	id("java")
-	id("org.jetbrains.kotlin.jvm") version Versions.kotlin
+	java
+	kotlin("jvm") version Versions.kotlin
 	id("com.github.johnrengelman.shadow") version Versions.shadow apply false
-	id("maven-publish")
-	id("publishing")
+	`maven-publish`
+	publishing
 	id("org.jetbrains.compose") version Versions.compose apply false
 }
 allprojects {
