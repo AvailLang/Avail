@@ -77,13 +77,26 @@ dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}")
 }
 
-tasks.test {
-	useJUnitPlatform()
-}
+tasks {
+	test {
+		useJUnitPlatform()
+	}
 
-tasks.withType<KotlinCompile> {
-	kotlinOptions {
-		jvmTarget = Versions.jvmTarget
-		languageVersion = Versions.kotlinLanguage
+	withType<KotlinCompile> {
+		kotlinOptions {
+			jvmTarget = Versions.jvmTarget
+			languageVersion = Versions.kotlinLanguage
+		}
 	}
 }
+
+publishing {
+	repositories {
+		maven {
+			name = "localPluginRepository"
+			url = uri("../local-plugin-repository")
+		}
+	}
+}
+
+
