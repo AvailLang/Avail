@@ -92,6 +92,10 @@ The following are the options available for configuration:
  `assembleAndRunWorkbench` task in the Plugin Tasks section*). Defaults to `true`.
 
 
+* ***workbenchName*** - Provides a custom name for the workbench jar created and 
+  run from the `assembleAndRunWorkbench` task. Defaults to "workbench".
+
+
 * ***root(name, uri, optional action)*** - Adds an `AvailRoot` to the project. 
   The URI indicates the file location of the root directory as a file directory 
   or a jar file. This root is included in the Avail Workbench when`runWorkbench` 
@@ -174,7 +178,10 @@ The following represent the tasks provided by the Avail Plugin.
   run before building `workbench.jar`, such as `dependsOn(jar)` if `workbench` 
   is to include the root project's built jar file. Once built, it launches 
   an instance of the Avail Workbench using the configured Avail Roots in the 
-  `avail` extension block.
+  `avail` extension block. This task can be run multiple times to launch 
+  additional workbenches. Changing the `avail` extension configuration between
+  runs enables you to have concurrently running workbenches with potentially 
+  different roots, dependencies, or even jar name.
 
 
 * ***printAvailConfig*** - Prints the Avail configuration details to standard out.
@@ -220,6 +227,10 @@ avail {
 	// Indicates whether or not the Avail Standard Library, `avail-stdlib`
 	// should be imported into the roots directory
 	useAvailStdLib = true
+
+    // Provides a custom name for the workbench jar created and run from
+    // the `assembleAndRunWorkbench` task. Defaults to "workbench".
+	workbenchName = "sample-workbench"
     
     // Point to a file that contains the file header comment body to be used
     // by all generated modules.

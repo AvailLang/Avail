@@ -68,6 +68,11 @@ open class AvailExtension constructor(private val project: Project)
 	var repositoryDirectory: String =
 		"${project.projectDir.absolutePath}/$defaultRepositoryDirectory"
 
+	/**
+	 * The base name of the workbench jar file (without `.jar`). Defaults to
+	 * `workbench`.
+	 */
+	var workbenchName: String = WORKBENCH
 
 	/**
 	 * The map of [AvailRoot.name]s to [AvailRoot]s be included in the Avail
