@@ -102,7 +102,11 @@ tasks {
 		}
 	}
 
-	jar { doFirst { cleanupJars() } }
+	jar {
+		manifest.attributes["Implementation-Version"] =
+			project.version
+		doFirst { cleanupJars() }
+	}
 	shadowJar { doFirst { cleanupAllJars() } }
 
 	// Copy the JAR into the distribution directory.

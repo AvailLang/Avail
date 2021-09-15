@@ -63,10 +63,9 @@ tasks {
 		from("../distro/src/avail") {
 			include("**/*.*")
 		}
-		val versionToPublish = Publish.versionToPublish
 		duplicatesStrategy = DuplicatesStrategy.FAIL
 		manifest.attributes["Implementation-Title"] = "Avail standard library"
-		manifest.attributes["Implementation-Version"] = versionToPublish
+		manifest.attributes["Implementation-Version"] = project.version
 		// Even though the jar only includes .avail source files, we need the
 		// content to be available at runtime, so we use "" for the archive
 		// classifier instead of "sources".

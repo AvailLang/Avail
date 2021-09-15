@@ -83,8 +83,8 @@ val buildFailMessage =
 
 // Show the release banner upon final completion of the recursive build.
 gradle.buildFinished {
-	if (("build" in gradle!!.startParameter.taskNames) // TODO revisit me
-		&& failure == null)
+	if (("build" in gradle!!.startParameter.taskNames)
+		&& failure != null)
 	{
 		println(buildFailMessage)
 	}
