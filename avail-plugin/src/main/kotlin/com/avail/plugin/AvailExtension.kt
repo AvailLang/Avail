@@ -32,6 +32,7 @@
 
 package com.avail.plugin
 
+import com.avail.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
 import org.gradle.api.Project
 import java.io.File
 import java.net.URI
@@ -42,58 +43,99 @@ import java.net.URI
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-open class AvailExtension constructor(
-	internal val plugin: AvailPlugin,
-	internal val project: Project)
+open class AvailExtension constructor(private val project: Project)
 {
 	/**
 	 * The directory location where the Avail roots exist. The path to this
 	 * location must be absolute.
 	 */
-	open var rootsDirectory: String = ""
-
-	/**
-	 * Answer the roots directory; uses default if [rootsDirectory] is not
-	 * set in this extension in the build script.
-	 */
-	internal val rootsDir get() =
-		rootsDirectory.ifEmpty {
+	@Suppress("MemberVisibilityCanBePrivate")
+	var rootsDirectory: String =
 			"${project.projectDir.absolutePath}/$defaultAvailRootsDirectory"
+		set(value)
+		{
+			if (useAvailStdLib)
+			{
+				addStdLib(value)
+			}
+			field = value
 		}
 
 	/**
 	 * The directory location where the Avail roots repositories exist.
 	 */
-	open var repositoryDirectory: String = ""
+	@Suppress("MemberVisibilityCanBePrivate")
+	var repositoryDirectory: String =
+		"${project.projectDir.absolutePath}/$defaultRepositoryDirectory"
+
 
 	/**
-	 * Provide the repos directory; uses default if [repositoryDirectory] is not
-	 * set in this extension in the build script.
+	 * The map of [AvailRoot.name]s to [AvailRoot]s be included in the Avail
+	 * project.
 	 */
-	val reposDir: String get() =
-		repositoryDirectory.ifEmpty {
-			"${project.projectDir.absolutePath}/$defaultRepositoryDirectory"
-		}
+	internal val roots: MutableMap<String, AvailRoot> = mutableMapOf()
+
+	/**
+	 * Add the `avail-stdlib` to the [roots].
+	 */
+
+	private fun addStdLib (rootDir: String)
+	{
+		roots[AvailPlugin.AVAIL] = AvailRoot(
+			AvailPlugin.AVAIL,
+			"jar:$rootDir/${AvailPlugin.AVAIL_STDLIB_JAR_NAME}")
+	}
+
+	/**
+	 * The map of [CreateAvailRoot.name]s to [CreateAvailRoot]s that will be
+	 * created when the `initializeAvail` task is run.
+	 */
+	internal val createRoots: MutableMap<String, CreateAvailRoot> =
+		mutableMapOf()
+
+	/**
+	 * The list of additional dependencies to be bundled in with the fat jar
+	 * of the Workbench.
+	 */
+	internal val workBenchDependencies = mutableSetOf<String>()
 
 	/**
 	 * `true` indicates the Avail Standard Library (`avail-stdlib`) should be
 	 * included in the [roots directory][rootsDirectory]; `false`
 	 * otherwise.
 	 */
-	open var useAvailStdLib: Boolean = true
+	var useAvailStdLib: Boolean = true
+		set(value)
+		{
+			if (value)
+			{
+				addStdLib(rootsDirectory)
+			}
+			field = value
+		}
 
 	/**
-	 * Raw copyright file header. Will be wrapped in comment along with file
-	 * name. If copyright is empty (*default*), will only provide the file name
-	 * in the header.
+	 * Raw module header comment. This is typically for a copyright. Will be
+	 * wrapped in comment along with file name. If comment body is empty
+	 * (*default*), will only provide the file name in the header comment.
 	 */
-	open var copyrightBody: String = ""
+	var moduleHeaderCommentBody: String = ""
 
 	/**
-	 * The absolute path to a file containing the text for the [copyrightBody].
-	 * This will be ignored if [copyrightBodyFile] is not empty.
+	 * The absolute path to a file containing the text for the
+	 * [moduleHeaderCommentBody]. This will be ignored if
+	 * [moduleHeaderCommentBodyFile] is not empty.
 	 */
-	open var copyrightBodyFile: String = ""
+	@Suppress("Unused")
+	var moduleHeaderCommentBodyFile: String = ""
+		set(value)
+		{
+			if (moduleHeaderCommentBody.isEmpty())
+			{
+				moduleHeaderCommentBody = project.file(value).readText()
+			}
+			field = value
+		}
 
 	/**
 	 * Add an Avail root with the provided name and [URI].
@@ -109,10 +151,10 @@ open class AvailExtension constructor(
 	 *   A lambda that accepts the created [AvailRoot] and is executed after
 	 *   [AvailExtension.initExtension] is run. Does nothing by default.
 	 */
-	@Suppress("MemberVisibilityCanBePrivate")
+	@Suppress("Unused")
 	fun root(name: String, uri: String, initializer: (AvailRoot) -> Unit = {})
 	{
-		plugin.roots.add(AvailRoot(name, uri, initializer))
+		roots[name] = AvailRoot(name, uri, initializer)
 	}
 
 	/**
@@ -129,8 +171,8 @@ open class AvailExtension constructor(
 	@Suppress("Unused")
 	fun root(name: String, initializer: (AvailRoot) -> Unit = {})
 	{
-		plugin.roots.add(
-			AvailRoot(name, "${plugin.internalRootsDir}/$name", initializer))
+		roots[name] =
+			AvailRoot(name, "$rootsDirectory/$name", initializer)
 	}
 
 	/**
@@ -146,10 +188,10 @@ open class AvailExtension constructor(
 	fun createRoot (name: String, rootInitializer: (CreateAvailRoot) -> Unit)
 	{
 		val createRoot =
-			CreateAvailRoot(name, "$rootsDir/$name")
+			CreateAvailRoot(name, "$rootsDirectory/$name")
 		rootInitializer(createRoot)
-		plugin.createRoots.add(createRoot)
-		plugin.roots.add(createRoot)
+		createRoots[name] = createRoot
+		roots[name] = createRoot
 	}
 
 	/**
@@ -161,7 +203,7 @@ open class AvailExtension constructor(
 	@Suppress("unused")
 	fun workBenchDependency(dependency: String)
 	{
-		plugin.workBenchDependencies.add(dependency)
+		workBenchDependencies.add(dependency)
 	}
 
 	/**
@@ -172,23 +214,62 @@ open class AvailExtension constructor(
 	 */
 	internal fun initExtension(project: Project)
 	{
-		plugin.internalRootsDir = rootsDir
-		project.mkdir(rootsDir)
-		plugin.internalReposDir = reposDir
-		project.mkdir(reposDir)
+		project.mkdir(rootsDirectory)
+		project.mkdir(repositoryDirectory)
 
-		plugin.internalCopyrightBody = copyrightBody
-		plugin.internalCopyrightBodyFile = copyrightBodyFile
 		if (useAvailStdLib)
 		{
 			val availLibConfig =
 				project.configurations.getByName(AvailPlugin.AVAIL_LIBRARY)
 			val stdlibJar = availLibConfig.singleFile
 			val targetFile =
-				File("$rootsDir/${AvailPlugin.AVAIL_STDLIB_JAR_NAME}")
+				File("$rootsDirectory/${AvailPlugin.AVAIL_STDLIB_JAR_NAME}")
 			stdlibJar.copyTo(targetFile, true)
 		}
 	}
+
+	/**
+	 * The VM Options associated with running the workbench.
+	 */
+	val workbenchVmOptions: List<String> get() =
+		standardWorkbenchVmOptions + buildString {
+			if (roots.isNotEmpty())
+			{
+				append("-DavailRoots=")
+				append(roots.values.sorted()
+					.joinToString(";") { it.rootString })
+			}
+		} + listOf("-Davail.repositories=$repositoryDirectory")
+
+	/**
+	 * Create a printable view of this entire [AvailExtension]'s current
+	 * configuration state.
+	 */
+	val printableConfig: String get() =
+		buildString {
+			append("\n========================= Avail Configuration")
+			append(" =========================\n")
+			append("\tAvail Version: $AVAIL_STRIPE_RELEASE\n")
+			append("\tRepository Location: $repositoryDirectory\n")
+			append("\tRoots Location: $rootsDirectory\n")
+			append("\tIncluded Roots:")
+			roots.values.sorted().forEach {
+				append("\n\t\t-${it.name}: ${it.uri}")
+			}
+			append("\n\tCreated Roots:")
+			if (createRoots.isNotEmpty())
+			{
+				append("\n\t\t")
+				append(createRoots.values.sorted()
+					.joinToString(", ") { it.name })
+			}
+			append("\n\tIncluded Workbench Dependencies:")
+			workBenchDependencies.sorted().forEach { append("\n\t\t$it") }
+			append("\n\tWorkbench VM Options:")
+			workbenchVmOptions.forEach { append("\n\t\t-$it") }
+			append("\n====================================")
+			append("====================================\n")
+		}
 
 	companion object
 	{
@@ -202,5 +283,11 @@ open class AvailExtension constructor(
 		 */
 		private const val defaultRepositoryDirectory: String =
 			"avail/repositories"
+
+		/**
+		 * The static list of Workbench VM arguments.
+		 */
+		private val standardWorkbenchVmOptions = listOf(
+			"-ea", "-XX:+UseCompressedOops", "-Xmx12g", "-DavailDeveloper=true")
 	}
 }

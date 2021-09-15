@@ -74,88 +74,110 @@ avail {
 }
 ```
 
-This is where you can configure your avail project. The following are the 
-options available for configuration:
+Inside the `avail { ... }` block is where you can configure your Avail project. 
+The following are the options available for configuration:
 
- * `rootsDirectory` - (*optional; has default*) The absolute filepath to the 
-   base roots directory where your Avail project's roots are located.
- * `repositoryDirectory` - (*optional; has default*) The directory to place your 
-   build `.repo` files for the included Avail roots.
- * `useAvailStdLib` - `true` indicates that the `avail-stdlib` Avail root jar 
-   with the same version as this plugin should be copied into the 
-   `rootsDirectory` and included as a root in when the Avail Workbench is 
-   launched (*see `runWorkbench` task in the Plugin Tasks section*).
- * `root(name, uri, optional action)` - Adds an `AvailRoot` to the project. The 
-   URI indicates the file location of the root directory as a file directory or 
-   a jar file. This root is included in the Avail Workbench when`runWorkbench` 
-   is launched. This does not result in copying the root to the`rootsDirectory`,
-   it only points to location of the root. You can add an optional lambda 
-   that accepts the created `AvailRoot` and is executed when the task
-   `initializeAvail` is run (*see Avail Plugin Tasks*).
- * `root(name, optional action)` - Adds an Avail root to the `rootsDirectory`. 
-   This sets the root URI as: `"$rootsDirectory/my-avail-root"`, defaulting 
-   to using the`file://` scheme for the URI. It is expected that the root 
-   has already been created. You can add an optional lambda that accepts the 
-   created `AvailRoot` and is executed when the task `initializeAvail` is 
-   run (*see Avail Plugin Tasks*)
- * `createRoot(rootName, optional initializer)` - Add an `AvailRoot` that is
+* ***rootsDirectory*** - (*optional; default defaults to project directory*) 
+  The absolute filepath to the base roots directory where your Avail 
+  project's roots are located.
+   
+
+* ***repositoryDirectory*** - (*optional; default defaults to project directory*)  
+  The directory to place your build `.repo` files for the included Avail roots.
+ 
+
+* ***useAvailStdLib*** - `true` indicates that the `avail-stdlib` Avail root jar 
+  with the same version as this plugin will be copied into the `rootsDirectory` 
+  and included as a root in when the Avail Workbench is launched (*see 
+ `assembleAndRunWorkbench` task in the Plugin Tasks section*). Defaults to `true`.
+
+
+* ***root(name, uri, optional action)*** - Adds an `AvailRoot` to the project. 
+  The URI indicates the file location of the root directory as a file directory 
+  or a jar file. This root is included in the Avail Workbench when`runWorkbench` 
+  is launched. This does not result in copying the root to the`rootsDirectory`,
+  it only points to location of the root. You can add an optional lambda 
+  that accepts the created `AvailRoot` and is executed when the task
+  `initializeAvail` is run (*see Avail Plugin Tasks*).
+
+
+* ***root(name, optional action)*** - Adds an Avail root to the `rootsDirectory`. 
+  This sets the root URI as: `"$rootsDirectory/$name"`, defaulting to using the 
+  `file://` scheme for the URI. It is expected that the root has already been 
+  created. You can add an optional lambda that accepts the created `AvailRoot` 
+  and is executed when the task `initializeAvail` is run (*see Avail Plugin 
+  Tasks*)
+  
+
+* ***createRoot(rootName, optional initializer)*** - Add an `AvailRoot` that is
    created if it does not already exist when `initializeAvail` is run. The 
    function takes an optional lambda that accepts the newly created root. The 
-   following can be called/set in the body of the `initializer`:
-      * `module(name, fileExtension, module initializer)` - Creates an Avail 
+   following can be called/set in the body of the optional `initializer`:
+  * **module(name, fileExtension, module initializer)** - Creates an Avail 
         Module at the top level of the root directory. It takes the base 
         module name, an optional file extension (*uses "avail" by default*), 
         and a lambda that accepts the newly created module. The following 
         options can be set in the `module initializer`:
-         * `copyrightBody` - The raw text to be included in the file header 
-           comment.
-         * `versions` - The String list of versions to be included in the 
-           Avail Module header's `Versions` section.
-         * `extends` - The String list of Avail Modules to be included in the
-           Avail Module header's `Extends` section.
-        * `uses` - The String list of Avail Modules to be included in the
-          Avail Module header's `Uses` section.
-      * `modulePackage(name, fileExtension, module initializer)` - Creates an 
+    * `moduleHeaderCommentBody` - The raw text to be included in the file 
+      header comment.
+    * `versions` - The String list of versions to be included in the Avail 
+       Module header's `Versions` section.
+    * `extends` - The String list of Avail Modules to be included in the Avail 
+       Module header's `Extends` section.
+    * `uses` - The String list of Avail Modules to be included in the Avail 
+      Module header's `Uses` section.
+    * `modulePackage(name, fileExtension, module initializer)` - Creates an 
         Avail Module package (directory) at the top level of the root directory.
         It takes the base module name, an optional file extension (*uses 
         "avail" by default*), and a lambda that accepts the newly created 
         module. It creates both the package directory and creates the 
         representative Module in that directory. The same options can be set 
         in the `module initializer` as were set for the `module` function.
- * `workBenchDependency(dependency)` - Add a local Jar as a dependency to be 
+      
+
+* ***workBenchDependency(dependency)*** - Add a local Jar as a dependency to be 
    included in the `workbench.jar` (fatjar). The dependency should be the 
    absolute path to the jar to be included.
- * `copyrightBodyFile` - The absolute path to a file containing the raw file 
-   comment header that may optionally be included in the `AvailModule`s 
-   generated by the `createRoot` function.
- * `copyrightBody` - A string to optionally include in the comment header that 
-   may optionally be included in the `AvailModule`s generated by the 
-   `createRoot` function. This takes precedence over `copyrightBodyFile`.
+
+
+* ***moduleHeaderCommentBodyFile*** - The absolute path to a file containing the 
+   raw file comment header that may optionally be included in the 
+   `AvailModule`s generated by the `createRoot` function.
+
+
+* ***moduleHeaderCommentBody*** - A string to optionally include in the comment 
+  header that may optionally be included in the `AvailModule`s generated by the 
+  `createRoot` function. This takes precedence over `moduleHeaderCommentBodyFile`.
 
 ## Plugin Tasks
 The following represent the tasks provided by the Avail Plugin.
 
 ![Avail Plugin Tasks](readme-resources/tasks.jpg?raw=true)
+ 
+* ***initializeAvail*** - Initializes the Avail project. It will create both 
+  the roots' and repositories' directories if they don't exist. It will also 
+  move the `avail-stdlib` jar into the roots directory if `useAvailStdLib` is 
+  set to `true` (*see Configuration section*). It creates the roots specified
+  in the `avail` extension through the `createRoot` function. It will also 
+  run the arbitrary lambdas included with the `root` functions (*see 
+  Configuration section*). This is only run if a user explicitly runs it.
+  The following is the result of running `initializeAvail` for the
+  [example](#Example) included at the end of this README.
+   
+    ![Generated Output](readme-resources/generated.jpg?raw=true)
+   
 
- * `_basicAvailSetup` - Task that is run when the build script is first run and 
-   the plugin is created. This is a dependency for all other tasks. It will 
-   create both the roots and repositories if they don't exist. It will also 
-   move the `avail-stdlib` jar into the roots directory if `useAvailStdLib` 
-   is set to `true` (*see Configuration section*). 
- * `initializeAvail` - Initializes the Avail project creating the roots 
-   specified in the `avail` extension through the `createRoot` function. It 
-   will also run the arbitrary lambdas included with the `root` functions 
-   (*see Configuration section*). This is only run if a user explicitly runs it.
- * `assembleWorkbench` - Builds the Avail Workbench fatjar using all the 
-   necessary base dependencies as well as the additional jar dependencies 
-   added using `workBenchDependency` in the `avail` extension. This task can 
-   be configured to use `dependsOn` if there are any tasks that should be 
-   run before building `workbench.jar`, such as `dependsOn(jar)` if 
-   `workbench` is to include the root project's built jar file.
- * `printAvailConfig` - Prints the Avail configuration details to screen 
-   standard out.
- * `runWorkbench` - This launches an instance of the Avail Workbench using 
-   your configured Avail Roots.
+* ***assembleAndRunWorkbench*** - Builds the Avail Workbench fatjar using all 
+  the necessary base dependencies as well as the additional jar dependencies 
+  added using `workBenchDependency` in the `avail` extension. This task can 
+  be configured to use `dependsOn` if there are any tasks that should be 
+  run before building `workbench.jar`, such as `dependsOn(jar)` if `workbench` 
+  is to include the root project's built jar file. Once built, it launches 
+  an instance of the Avail Workbench using the configured Avail Roots in the 
+  `avail` extension block.
+
+
+* ***printAvailConfig*** - Prints the Avail configuration details to standard out.
 
 ### Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
@@ -164,103 +186,118 @@ The following is an example `build.gradle.kts` file that uses the Avail Plugin.
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-   kotlin("jvm") version "1.5.21"
-   id("com.avail.plugin") version "1.6.0.20210910.181950"
+	kotlin("jvm") version "1.5.21"
+    // Add the Avail plugin
+	id("com.avail.plugin") version "1.6.0.20210910.181950"
 }
 
 group = "com.avail.sample"
 version = "1.0.0"
 
 repositories {
-   mavenCentral()
+    // mavenCentral is needed to resolve internal dependencies.
+	mavenCentral()
+    // Include the repository where the Avail Plugin can be located
+	maven {
+		setUrl("https://maven.pkg.github.com/AvailLang/Avail")
+		metadataSources {
+			mavenPom()
+			artifact()
+		}
+		credentials {
+			username = "anonymous"
+			// A public key read-only token for Avail downloads.
+			password = "[THE AVAIL PUBLIC KEY]"
+		}
+	}
 }
 
 dependencies {
-   testImplementation(kotlin("test"))
+	testImplementation(kotlin("test"))
 }
 
 avail {
-   // Indicates whether or not the Avail Standard Library, `avail-stdlib`
-   // should be imported into the roots directory
-   useAvailStdLib = true
-   copyrightBodyFile = "$projectDir/copyright.txt"
-   rootsDirectory = "$projectDir/avail/my-roots"
+	// Indicates whether or not the Avail Standard Library, `avail-stdlib`
+	// should be imported into the roots directory
+	useAvailStdLib = true
+    
+    // Point to a file that contains the file header comment body to be used
+    // by all generated modules.
+	moduleHeaderCommentBodyFile = "$projectDir/copyright.txt"
+    
+    // Specify the roots directory where the roots should be located.
+	rootsDirectory = "$projectDir/avail/my-roots"
 
-   // Add this new root to the roots directory and create it.
-   createRoot("my-avail-root") { root ->
-      // Creates a Module Package with module associated module file.
-      root.modulePackage("App") { modulePackage ->
-         // The list of version that will be placed in the `Versions` section 
-         // of an Avail header.
-         modulePackage.versions = listOf("Avail-1.0.6")
-         // The list of Avail Modules that will be placed in the `Extends` 
-         // section of an Avail header that this module will extend. 
-         modulePackage.extends = listOf("Avail")
-      }
+	// Add this new root to the roots directory and create it.
+	createRoot("my-avail-root") { root ->
+		root.modulePackage("App") { modulePackage ->
+			modulePackage.versions = listOf("Avail-1.0.6")
+			modulePackage.extends = listOf("Avail")
+		}
 
-      root.module("Scripts") { module ->
-         // The list of version that will be placed in the `Versions` section 
-         // of an Avail header.
-         module.versions = listOf("Avail-1.0.6")
-         // The list of Avail Modules that will be placed in the `Uses` 
-         // section of an Avail header that this module can use in its `Body`.
-         module.uses = listOf("Avail")
-         
-         // Overrides all inherited module comment header text.
-         module.copyrightBody =
-            "Copyright © 1993-2021, The Avail Foundation, LLC.\n" +
-                    "All rights reserved."
-      }
-   }
+		root.module("Scripts") { module ->
+			module.versions = listOf("Avail-1.0.6")
+			module.uses = listOf("Avail")
+			module.moduleHeaderCommentBody =
+				"Copyright © 1993-2021, The Avail Foundation, LLC.\n" +
+					"All rights reserved."
+		}
+	}
 
-   // Add a root existing somewhere else.
-   root("imported-library", "jar:/Users/Some/Place/Else/imported-library.jar")
-   {
-      // Will be run as part of the initialize task
-      println("imported-library action has run!!!")
-   }
+	// Adds a root that will not be located in the `rootsDirectory`. 
+	root("imported-library", "jar:/Users/Some/Place/Else/imported-library.jar")
+	{
+		// Will be run as part of the initialize task
+		println("imported-library action has run!!!")
+	}
 
-   // Includes a jar in the fatjar, workbench.jar used to run the workbench
-   // with your project roots.
-   workBenchDependency("${buildDir}/libs/sample-1.0.0.jar")
+	// Includes a jar in the fatjar, workbench.jar, used to run the workbench
+	// with your project roots. Note that this is the jar for this sample 
+    // project. The dependency to create this so it can be included is set up 
+    // in the `tasks.assembleAndRunWorkbench` configuration below.
+	workBenchDependency("${buildDir}/libs/sample-1.0.0.jar")
 }
 tasks {
-   assembleWorkbench {
-      // This task is run before launching the Avail Workbench. In this
-      // example, the `dependsOn(jar)` is used as the Workbench fatjar is to
-      // include this sample project's jar file. This is only needed if you
-      // require a task be complete before the Workbench jar is built.
-      dependsOn(jar)
-   }
-}
+	assembleAndRunWorkbench {
+		// This task is used to build and launch the Avail Workbench. In this
+		// example, the `dependsOn(jar)` is used as the Workbench fatjar is to
+		// include this sample project's jar file (see the included 
+        // workbenchDependency above. This is only needed if you require a 
+        // task be complete before the Workbench jar is built.
+		dependsOn(jar)
+	}
 
-tasks.test {
-   useJUnitPlatform()
-}
+	test {
+		useJUnitPlatform()
+	}
 
-tasks.withType<KotlinCompile>() {
-   kotlinOptions.jvmTarget = "16"
+	withType<KotlinCompile>() {
+		kotlinOptions.jvmTarget = "16"
+	}
 }
-
 ```
 Running the `printAvailConfig` task for the above configuration will print 
 the following to standard out:
 
-```
-================== Avail Configuration ==================
+```shell
+========================= Avail Configuration =========================
 	Avail Version: 1.6.0.20210910.181950
 	Repository Location: /Users/MyUser/Development/MyProject/avail/repositories
 	Roots Location: /Users/MyUser/Development/MyProject/avail/my-roots
 	Included Roots:
-		-my-avail-root: /Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
+		-avail: jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar
 		-imported-library: jar:/Users/Some/Place/Else/imported-library.jar
+		-my-avail-root: /Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
+	Created Roots:
+		my-avail-root
 	Included Workbench Dependencies:
-		/Users/MyUser/Development/MyProject/build/libs/sample-1.0.0.jar	Workbench VM Options:
+		/Users/MyUser/Development/MyProject/build/libs/sample-1.0.0.jar
+	Workbench VM Options:
 		--ea
 		--XX:+UseCompressedOops
 		--Xmx12g
 		--DavailDeveloper=true
-		--DavailRoots=my-avail-root=/Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root;imported-library=jar:/Users/Some/Place/Else/imported-library.jar;avail=jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar
+		--DavailRoots=avail=jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar;imported-library=jar:/Users/Some/Place/Else/imported-library.jar;my-avail-root=/Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
 		--Davail.repositories=/Users/MyUser/Development/MyProject/avail/repositories
-=========================================================
+========================================================================
 ```

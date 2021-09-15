@@ -62,10 +62,14 @@ import java.net.URI
 open class AvailRoot constructor(
 	val name: String,
 	val uri: String,
-	var action: (AvailRoot) -> Unit = {})
+	var action: (AvailRoot) -> Unit = {}
+): Comparable<AvailRoot>
 {
 	/** The VM Options, `-DavailRoot`, root string. */
 	val rootString: String by lazy { "$name=$uri" }
+
+	override fun compareTo(other: AvailRoot): Int =
+		name.compareTo(other.name)
 
 	override fun toString(): String = rootString
 
@@ -123,6 +127,7 @@ class CreateAvailRoot constructor(
 	 *   A lambda that accepts the created `AvailModule` and enables the user
 	 *   to configure it.
 	 */
+	@Suppress("unused")
 	fun module (
 		name: String,
 		extension: String = "avail",
@@ -146,6 +151,7 @@ class CreateAvailRoot constructor(
 	 *   A lambda that accepts the created `AvailModule` and enables the user
 	 *   to configure it.
 	 */
+	@Suppress("unused")
 	fun modulePackage (
 		name: String,
 		extension: String = "avail",
@@ -155,11 +161,6 @@ class CreateAvailRoot constructor(
 		initializer(mod)
 		modulePackages.add(mod)
 	}
-
-	/**
-	 * The [AvailExtension.copyrightBody].
-	 */
-	internal var copyright: String = ""
 
 	/**
 	 * The set of [AvailModule]s to add to the top level of this [AvailRoot].
@@ -180,13 +181,13 @@ class CreateAvailRoot constructor(
 	 * @param project
 	 *   The host [Project] running the Avail Plugin.
 	 */
-	internal fun create (project: Project, plugin: AvailPlugin)
+	internal fun create (project: Project, extension: AvailExtension)
 	{
 		modulePackages.forEach {
-			if (it.copyrightBody.isEmpty()
-				&& plugin.internalCopyrightBody.isNotEmpty())
+			if (it.moduleHeaderCommentBody.isEmpty()
+				&& extension.moduleHeaderCommentBody.isNotEmpty())
 			{
-				it.copyrightBody = plugin.internalCopyrightBody
+				it.moduleHeaderCommentBody = extension.moduleHeaderCommentBody
 			}
 			it.create(project, uri)
 		}
@@ -224,28 +225,31 @@ open class AvailModule constructor(
 	val fileName: String = "$baseName.$fileExtension"
 
 	/**
-	 * Raw copyright file header. Will be wrapped in comment along with file
-	 * name. If copyright is empty (*default*), will only provide the file name
-	 * in the header.
+	 * Raw module header comment. This is typically for a copyright. Will be
+	 * wrapped in comment along with file name. If comment body is empty
+	 * (*default*), will only provide the file name in the header comment.
 	 */
-	var copyrightBody: String = ""
+	var moduleHeaderCommentBody: String = ""
 
 	/**
 	 * The list of module `Versions` to populate the `Versions` section of the
 	 * module header.
 	 */
+	@Suppress("unused")
 	var versions: List<String> = listOf()
 
 	/**
 	 * The list of Avail Modules this [AvailModule] will `Extend` for Avail
 	 * Modules that `Use`/`Extend` this module as well as use in the `Body`
 	 */
+	@Suppress("unused")
 	var extends: List<String> = listOf()
 
 	/**
 	 * The list of Avail Modules this [AvailModule] will be able to `Use`
 	 * in the `Body` of this module..
 	 */
+	@Suppress("unused")
 	var uses: List<String> = listOf()
 
 	/**
@@ -257,9 +261,9 @@ open class AvailModule constructor(
 			append("/*\n")
 			append(" * ")
 			append(fileName)
-			if (copyrightBody.isNotEmpty())
+			if (moduleHeaderCommentBody.isNotEmpty())
 			{
-				copyrightBody.split("\n").forEach {
+				moduleHeaderCommentBody.split("\n").forEach {
 					append("\n * ")
 					append(it)
 				}
