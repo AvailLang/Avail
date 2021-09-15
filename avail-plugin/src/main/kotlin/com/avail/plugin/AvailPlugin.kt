@@ -1,5 +1,6 @@
 package com.avail.plugin
 
+import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -15,6 +16,95 @@ import org.gradle.jvm.tasks.Jar
  */
 class AvailPlugin : Plugin<Project>
 {
+	/**
+	 * The directory location where the Avail roots exist. This will be set
+	 * during [AvailExtension.initExtension]. If [AvailExtension.rootsDirectory]
+	 * is explicitly set by a user `internalRootsDir` will use that value
+	 * otherwise it will be set to the default value. This is done as there is
+	 * no guarantee of having an initialized value for `rootsDirectory` when
+	 * used due to Gradle's initialization mechanism.
+	 */
+	internal var internalRootsDir: String = ""
+
+	/**
+	 * The directory location where the Avail roots exist. This will be set
+	 * during [AvailExtension.initExtension]. If
+	 * [AvailExtension.repositoryDirectory] is explicitly set by a user `v` will
+	 * use that value otherwise it will be set to the default value. This is
+	 * done as there is no guarantee of having an initialized value for
+	 * `repositoryDirectory` when used due to Gradle's initialization mechanism.
+	 */
+	internal var internalReposDir: String = ""
+
+	/**
+	 * The list of [AvailRoot]s that are statically known to be included in the
+	 * [roots directory][internalRootsDir].
+	 */
+	internal val roots: MutableSet<AvailRoot> = mutableSetOf()
+
+	/**
+	 * The set of [CreateAvailRoot]s that will be created when the
+	 * `initializeAvail` task is run.
+	 */
+	internal val createRoots: MutableSet<CreateAvailRoot> = mutableSetOf()
+
+	/**
+	 * The list of additional dependencies to be bundled in with the fat jar
+	 * of the Workbench.
+	 */
+	internal val workBenchDependencies = mutableSetOf<String>()
+
+	/**
+	 * Raw copyright file header. Will be wrapped in comment along with file
+	 * name. If copyright is empty (*default*), will only provide the file name
+	 * in the header.
+	 */
+	internal var internalCopyrightBody: String = ""
+
+	/**
+	 * The absolute path to a file containing the text for the
+	 * [AvailExtension.copyrightBody]. This will be ignored if
+	 * [AvailExtension.copyrightBodyFile] is not empty.
+	 */
+	internal var internalCopyrightBodyFile: String = ""
+
+	/**
+	 * Create a printable view of this entire [AvailExtension]'s current
+	 * configuration state.
+	 */
+	private fun printableConfig(ext: AvailExtension): String =
+		buildString {
+			append("\n================== Avail Configuration ==================\n")
+			append("\tAvail Version: ${AVAIL_STRIPE_RELEASE}\n")
+			append("\tRepository Location: ${ext.reposDir}\n")
+			append("\tRoots Location: ${ext.rootsDir}\n")
+			append("\tIncluded Roots:")
+			roots.forEach { append("\n\t\t-${it.name}: ${it.uri}") }
+			append("\n\tIncluded Workbench Dependencies:")
+			workBenchDependencies.forEach { append("\n\t\t$it") }
+			append("\tWorkbench VM Options:")
+			workbenchVmOptions(ext).forEach { append("\n\t\t-$it") }
+			append("\n=========================================================\n")
+		}
+
+	/**
+	 * The VM Options associated with running the workbench.
+	 */
+	private fun workbenchVmOptions(ext: AvailExtension): List<String> =
+		standardWorkbenchVmOptions + buildString {
+			if (ext.useAvailStdLib)
+			{
+				roots.add(AvailRoot(
+					AVAIL,
+					"jar:${ext.rootsDir}/$AVAIL_STDLIB_JAR_NAME"))
+			}
+			if (roots.isNotEmpty())
+			{
+				append("-DavailRoots=")
+				append(roots.joinToString(";") { it.rootString })
+			}
+		} + listOf("-Davail.repositories=${ext.reposDir}")
+
 	override fun apply(target: Project)
 	{
 		// Create Custom Project Configurations
@@ -22,6 +112,10 @@ class AvailPlugin : Plugin<Project>
 			create(AVAIL_LIBRARY)
 			create(WORKBENCH)
 		}
+
+		// Create AvailExtension and attach it to the target host Project
+		val extension =
+			target.extensions.create(AVAIL, AvailExtension::class.java, this, target)
 
 		// Set up repositories
 		target.repositories.run {
@@ -35,8 +129,7 @@ class AvailPlugin : Plugin<Project>
 				credentials {
 					username = "anonymous"
 					// A public key read-only token for Avail downloads.
-					// A public key read-only token for Avail downloads.
-					password = "gh" + "p_z45vpIzBYdnOol5Q" + "qRCr4x8FSnPaGb3v1y8n"
+					password = "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"
 				}
 			}
 		}
@@ -62,46 +155,83 @@ class AvailPlugin : Plugin<Project>
 		workbenchConfig.dependencies.add(workbenchDependency)
 		implementationConfig.dependencies.add(coreDependency)
 
-		// Declare Extensions
-		val extension =
-			target.extensions
-				.create(AVAIL, AvailExtension::class.java)
-				.apply { init(target, availLibConfig) }
+		val basicSetup =
+			target.tasks.register("_basicAvailSetup")
+			{
+				group = "avail"
+				description = "An internal task that performs basic Avail " +
+					"setup actions after the `avail` extension is " +
+					"initialized/populated by gradle. This task is meant to " +
+					"be run by a user of this plugin."
+				extension.initExtension(project)
+			}
+
+		target.tasks.register("initializeAvail", DefaultTask::class.java)
+		{
+			group = AVAIL
+			description = "Initialize the Avail Project. This sets up the " +
+				"project according to the configuration in the `avail` " +
+				"extension block. At the end of this task, all root " +
+				"initializers (lambdas) that were added will be run."
+
+			// Putting the call into a `doLast` block forces this to only be
+			// calculated when
+			dependsOn(basicSetup)
+			doLast {
+				if (internalCopyrightBody.isEmpty()
+					&& internalCopyrightBodyFile.isNotEmpty())
+				{
+					internalCopyrightBody =
+						project.file(internalCopyrightBodyFile).readText()
+				}
+				createRoots.forEach {
+					it.create(project, this@AvailPlugin)
+				}
+				roots.forEach { it.action(it) }
+			}
+		}
 
 		target.tasks.register("printAvailConfig")
 		{
-			group = "avail"
-			description = "Print the `avail` configuration."
-			println(extension.printableConfig)
+			group = AVAIL
+			description = "Print the `avail` configuration. Depends on " +
+				"`_basicAvailSetup`."
+			dependsOn(basicSetup)
+			println(printableConfig(extension))
 		}
 
-		target.tasks.register("assembleWorkbench", Jar::class.java)
-		{
-			group = "avail"
-			description = "Assemble a standalone Workbench fat jar."
-			manifest.attributes["Main-Class"] =
-				"com.avail.environment.AvailWorkbench"
-			archiveBaseName.set(WORKBENCH)
-			archiveVersion.set("")
-			// Explicitly gather up the complete classpath, so that we end
-			// up with a JAR including the complete Avail workbench plus... TODO
-			from(
-				workbenchConfig.resolve().map {
-						if (it.isDirectory) it else target.zipTree(it) } +
-					extension.workBenchDependencies.map {
-						val f = project.file(it)
-						if (f.isDirectory) f else target.zipTree(f)})
-			duplicatesStrategy = DuplicatesStrategy.INCLUDE
-		}
+		val assembleWorkbench =
+			target.tasks.register("assembleWorkbench", Jar::class.java)
+			{
+				group = AVAIL
+				description = "Assemble a standalone Workbench fat jar. " +
+					"This task will be run before `runWorkbench` to build the " +
+					"workbench.jar that will be run. Depends on " +
+					"`_basicAvailSetup`."
+				dependsOn(basicSetup)
+				manifest.attributes["Main-Class"] =
+					"com.avail.environment.AvailWorkbench"
+				archiveBaseName.set(WORKBENCH)
+				archiveVersion.set("")
+				// Explicitly gather up the dependencies, so that we end up with
+				// a JAR including the complete Avail workbench plus
+				from(
+					workbenchConfig.resolve().map {
+							if (it.isDirectory) it else target.zipTree(it) } +
+						workBenchDependencies.map {
+							val f = project.file(it)
+							if (f.isDirectory) f else target.zipTree(f)})
+				duplicatesStrategy = DuplicatesStrategy.INCLUDE
+			}
 		target.tasks.register("runWorkbench", JavaExec::class.java)
 		{
-			group = "avail"
+			group = AVAIL
 			description =
 				"Run the Avail Workbench defaulting to include the project's " +
-					"Avail roots"
-			dependsOn(target.tasks.getByName("assembleWorkbench"))
+					"Avail roots. Depends on `assembleWorkbench`."
+			dependsOn(assembleWorkbench)
 			workingDir = target.projectDir
-			jvmArgs(extension.workbenchVmOptions)
+			jvmArgs(workbenchVmOptions(extension))
 			classpath =
 				target.files("${target.buildDir}/libs/$WORKBENCH_JAR")
 		}
@@ -138,7 +268,7 @@ class AvailPlugin : Plugin<Project>
 		 * The name of the custom [Project] [Configuration], `availLibrary`,
 		 * where only the [AVAIL_STDLIB_DEP] is added.
 		 */
-		private const val AVAIL_LIBRARY: String = "availLibrary"
+		internal const val AVAIL_LIBRARY: String = "availLibrary"
 
 		/**
 		 * The rename that is applied to the [AVAIL_STDLIB_DEP] Jar if it is
@@ -172,6 +302,12 @@ class AvailPlugin : Plugin<Project>
 		 *
 		 *  This represents the version of this plugin.
 		 */
-		const val AVAIL_STRIPE_RELEASE = "1.6.0.20210910.181950"
+		internal const val AVAIL_STRIPE_RELEASE = "1.6.0.20210910.181950"
+
+		/**
+		 * The static list of Workbench VM arguments.
+		 */
+		private val standardWorkbenchVmOptions = listOf(
+			"-ea", "-XX:+UseCompressedOops", "-Xmx12g", "-DavailDeveloper=true")
 	}
 }
