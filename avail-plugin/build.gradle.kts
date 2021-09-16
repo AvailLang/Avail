@@ -48,13 +48,13 @@ plugins {
 gradlePlugin {
 	plugins {
 		create("avail-plugin") {
-			id = "com.avail.plugin"
-			implementationClass = "com.avail.plugin.AvailPlugin"
+			id = "org.availlang.avail-plugin"
+			implementationClass = "org.availlang.plugin.AvailPlugin"
 		}
 	}
 }
 
-group = "com.avail.plugin"
+group = "org.availlang.avail-plugin"
 version = Versions.availStripeVersion
 
 repositories {
@@ -78,16 +78,34 @@ dependencies {
 }
 
 tasks {
-	test {
-		useJUnitPlatform()
-	}
-
 	withType<KotlinCompile> {
 		kotlinOptions {
 			jvmTarget = Versions.jvmTarget
 			languageVersion = Versions.kotlinLanguage
 		}
 	}
+
+	val sourceJar by creating(Jar::class) {
+		group = "build"
+		description = "Creates sources JAR."
+		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+		archiveClassifier.set("sources")
+		manifest.attributes["Implementation-Version"] =
+			project.version
+		from(sourceSets["main"].allSource)
+	}
+
+	jar {
+		doFirst {
+			delete(fileTree("$buildDir/libs").matching {
+				include("**/*.jar")
+			})
+		}
+		manifest.attributes["Implementation-Version"] =
+			project.version
+	}
+
+	artifacts { add("archives", sourceJar) }
 }
 
 publishing {

@@ -93,16 +93,17 @@ The following are the options available for configuration:
 
 
 * ***workbenchName*** - Provides a custom name for the workbench jar created and 
-  run from the `assembleAndRunWorkbench` task. Defaults to "workbench".
+  run from the `assembleAndRunWorkbench` task. Defaults to "workbench". Jar 
+  will be placed in `"$buildDir/workbench"`.
 
 
 * ***root(name, uri, optional action)*** - Adds an `AvailRoot` to the project. 
-  The URI indicates the file location of the root directory as a file directory 
-  or a jar file. This root is included in the Avail Workbench when`runWorkbench` 
-  is launched. This does not result in copying the root to the`rootsDirectory`,
-  it only points to location of the root. You can add an optional lambda 
-  that accepts the created `AvailRoot` and is executed when the task
-  `initializeAvail` is run (*see Avail Plugin Tasks*).
+  The URI indicates the file location of the root directory as a file directory
+  or a jar file. This root will be included in the Avail Workbench when
+  `assembleAndRunWorkbench` is launched. This does not result in copying the 
+  root to the`rootsDirectory`, it only points to location of the root. You 
+  can add an optional lambda that accepts the created `AvailRoot` and is 
+  executed when the task `initializeAvail` is run (*see Avail Plugin Tasks*).
 
 
 * ***root(name, optional action)*** - Adds an Avail root to the `rootsDirectory`. 

@@ -1,4 +1,4 @@
-package com.avail.plugin
+package org.availlang.plugin
 
 import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
@@ -117,8 +117,9 @@ class AvailPlugin : Plugin<Project>
 					"configurations from the `avail` extension."
 			manifest.attributes["Main-Class"] =
 				"com.avail.environment.AvailWorkbench"
-			archiveBaseName.set(WORKBENCH)
+			archiveBaseName.set(extension.workbenchName)
 			archiveVersion.set("")
+			destinationDirectory.set(target.file("${target.buildDir}/$WORKBENCH"))
 			// Explicitly gather up the dependencies, so that we end up with
 			// a JAR including the complete Avail workbench plus
 			from(
@@ -139,7 +140,7 @@ class AvailPlugin : Plugin<Project>
 					workingDir = target.projectDir
 					jvmArgs(extension.workbenchVmOptions)
 					classpath =
-						target.files("${target.buildDir}/libs/$WORKBENCH_JAR")
+						target.files("${target.buildDir}/$WORKBENCH/${extension.workbenchName}")
 				}.exec()
 			}
 		}

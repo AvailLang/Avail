@@ -30,9 +30,9 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.plugin
+package org.availlang.plugin
 
-import com.avail.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
+import org.availlang.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
 import org.gradle.api.Project
 import java.io.File
 import java.net.URI
@@ -72,7 +72,7 @@ open class AvailExtension constructor(private val project: Project)
 	 * The base name of the workbench jar file (without `.jar`). Defaults to
 	 * `workbench`.
 	 */
-	var workbenchName: String = WORKBENCH
+	var workbenchName: String = AvailPlugin.WORKBENCH
 
 	/**
 	 * The map of [AvailRoot.name]s to [AvailRoot]s be included in the Avail
