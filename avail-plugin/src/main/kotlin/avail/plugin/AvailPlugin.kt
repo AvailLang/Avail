@@ -175,7 +175,7 @@ class AvailPlugin : Plugin<Project>
 					workingDir = target.projectDir
 					jvmArgs(extension.workbenchVmOptions)
 					classpath =
-						target.files("${target.buildDir}/$WORKBENCH/${extension.workbenchName}")
+						target.files("${target.buildDir}/$WORKBENCH/${extension.workbenchName}.jar")
 				}.exec()
 			}
 		}
