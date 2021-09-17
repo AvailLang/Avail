@@ -48,13 +48,13 @@ plugins {
 gradlePlugin {
 	plugins {
 		create("avail-plugin") {
-			id = "org.availlang.avail-plugin"
+			id = "avail.avail-plugin"
 			implementationClass = "org.availlang.plugin.AvailPlugin"
 		}
 	}
 }
 
-group = "org.availlang.avail-plugin"
+group = "avail"
 version = Versions.availStripeVersion
 
 repositories {
@@ -113,6 +113,28 @@ publishing {
 		maven {
 			name = "localPluginRepository"
 			url = uri("../local-plugin-repository")
+		}
+	}
+
+	// You can pull in the locally published maven into another project by adding
+	// this to your settings.gradle.kts file of the project you want to pull the
+	// dependency into:
+	// ```
+	// pluginManagement {
+	//	repositories {
+	//		mavenLocal()
+	//      // Adds the gradle plugin portal back to the plugin repositories as
+	//      // this is removed (overridden) by adding any repository here.
+	//		gradlePluginPortal()
+	//	}
+	// }
+	// rootProject.name = "plugin-test"
+	//```
+	publications {
+		create<MavenPublication>("avail-plugin") {
+			val sourceJar = tasks.getByName("sourceJar") as Jar
+			from(components["java"])
+			artifact(sourceJar)
 		}
 	}
 }

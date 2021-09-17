@@ -54,7 +54,7 @@ maven {
 }
 ```
 
-To include the plugin, you must add the plugin id, `com.avail.plugin` and 
+To include the plugin, you must add the plugin id, `avail.avail-plugin` and 
 provide a corresponding Avail release version in your Gradle build file. The 
 following is an example that imports the version `1.6.0.20210910.181950` of 
 the `avail-core`, `avail-workbench`, and `avail-stdlib` releases (*The 
@@ -62,12 +62,12 @@ version should be changed to match your desired version of Avail.*):
 
 **`build.gradle.kts`**
 ```kotlin
-id("com.avail.plugin") version "1.6.0.20210910.181950"
+id("avail.avail-plugin") version "1.6.0.20210910.181950"
 ```
 
 **`build.gradle`**
 ```groovy
-id 'com.avail.plugin' version '1.6.0.20210910.181950'
+id 'avail.avail-plugin' version '1.6.0.20210910.181950'
 ```
 
 ## Configuration
@@ -214,7 +214,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins {
 	kotlin("jvm") version "1.5.21" 
         // Add the Avail plugin
-	id("com.avail.plugin") version "1.6.0.20210910.181950"
+	id("avail.avail-plugin") version "1.6.0.20210910.181950"
 }
 
 group = "com.avail.sample"
@@ -336,4 +336,25 @@ the following to standard out:
         --DavailRoots=avail=jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar;imported-library=jar:/Users/Some/Place/Else/imported-library.jar;my-avail-root=/Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
         --Davail.repositories=/Users/MyUser/Development/MyProject/avail/repositories
 ========================================================================
+```
+## Local Publishing
+To publish this project locally, use the task, `publishToMavenLocal` under the 
+`publishing` group. This will publish your plugin to `~/.m2`.
+
+You can pull in the plugin repository from the local maven repository by 
+adding `mavenLocal()` to your `settings.gradle.kts` file as shown below. 
+Make sure to add back the `gradlePluginPortal()` as this is the default that 
+is stripped when adding anything to the `repositories` block in 
+`pluginManagement`.
+
+```kotlin
+pluginManagement {
+    repositories {
+        mavenLocal()
+        // Adds the gradle plugin portal back to the plugin repositories as
+        // this is removed (overridden) by adding any repository here.
+        gradlePluginPortal()
+    }
+}
+rootProject.name = "plugin-test"
 ```
