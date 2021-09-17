@@ -35,14 +35,18 @@ package avail.plugin
 import org.gradle.jvm.tasks.Jar
 
 /**
- * A `AvailLibraryPackager` is a [Jar] task for creating Avail Root jars.
+ * A `AvailJarPackager` is an internal [Jar] task for exposing the [Jar.copy]
+ * function for internal use.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-open class AvailLibraryPackager: Jar()
+internal open class AvailJarPackager: Jar()
 {
 	/**
 	 * Expose the [copy] function publicly.
 	 */
-	fun doCopy () { copy() }
+	internal fun doCopy ()
+	{
+		copy()
+	}
 }

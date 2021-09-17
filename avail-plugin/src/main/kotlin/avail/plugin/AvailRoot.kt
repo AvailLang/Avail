@@ -35,6 +35,7 @@ package avail.plugin
 import org.gradle.api.Project
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.jvm.tasks.Jar
+import java.io.File
 import java.net.URI
 import java.util.jar.Manifest
 
@@ -254,6 +255,12 @@ class CreateAvailRoot constructor(
 		internal val packageTask = "package-library-$packageNameBase"
 
 		/**
+		 * An optional action to be run post build of the library jar file. This
+		 * action accepts the [File] that was just assembled.
+		 */
+		var postPackageAction: (File) -> Unit = {}
+
+		/**
 		 * The printable configuration screen.
 		 */
 		internal val configString: String get() = buildString {
@@ -269,7 +276,8 @@ class CreateAvailRoot constructor(
 		 */
 		internal fun createAndRunTask (project: Project)
 		{
-			project.tasks.create(packageTask, AvailLibraryPackager::class.java)
+			val fullPath = "$exportDirectory/$packageNameBase.jar"
+			project.tasks.create(packageTask, AvailJarPackager::class.java)
 			{
 				group = AvailPlugin.AVAIL
 				description =
@@ -287,6 +295,17 @@ class CreateAvailRoot constructor(
 					manifest.attributes[t] = u
 				}
 			}.doCopy()
+			val file = project.file(fullPath)
+			if (file.exists())
+			{
+				println("Packaged ${this@CreateAvailRoot.name}: $fullPath")
+				postPackageAction(file)
+			}
+			else
+			{
+				System.err.println("Could not build or access $fullPath")
+			}
+
 		}
 	}
 }
