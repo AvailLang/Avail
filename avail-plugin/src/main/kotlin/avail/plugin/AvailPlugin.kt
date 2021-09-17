@@ -37,6 +37,8 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import java.io.File
+import java.io.FileInputStream
+import java.util.Properties
 
 /**
  * `AvailPlugin` represents the Avail Gradle plugin.
@@ -45,6 +47,18 @@ import java.io.File
  */
 class AvailPlugin : Plugin<Project>
 {
+	internal lateinit var releaseVersion: String
+
+	init
+	{
+		// Get the release version stripe for all Avail resources to be acquired
+		// as dependencies.
+		val propsFile = javaClass.getResourceAsStream(releaseVersionFile)
+		val props = Properties()
+		props.load(propsFile)
+		this.releaseVersion = props.getProperty("releaseVersion")
+	}
+
 	override fun apply(target: Project)
 	{
 		// Create Custom Project Configurations
@@ -55,7 +69,11 @@ class AvailPlugin : Plugin<Project>
 
 		// Create AvailExtension and attach it to the target host Project
 		val extension =
-			target.extensions.create(AVAIL, AvailExtension::class.java, target)
+			target.extensions.create(
+				AVAIL,
+				AvailExtension::class.java,
+				target,
+				this)
 
 		// Set up repositories
 		target.repositories.run {
@@ -77,11 +95,11 @@ class AvailPlugin : Plugin<Project>
 
 		// Create Dependencies
 		val workbenchDependency =
-			target.dependencies.create("$WORKBENCH_DEP:$AVAIL_STRIPE_RELEASE:all")
+			target.dependencies.create("$WORKBENCH_DEP:$releaseVersion:all")
 		val coreDependency: Dependency =
-			target.dependencies.create("$AVAIL_CORE:$AVAIL_STRIPE_RELEASE")
+			target.dependencies.create("$AVAIL_CORE:$releaseVersion")
 		val stdlibDependency =
-			target.dependencies.create("$AVAIL_STDLIB_DEP:$AVAIL_STRIPE_RELEASE")
+			target.dependencies.create("$AVAIL_STDLIB_DEP:$releaseVersion")
 
 		// Obtain Project Configurations
 		val availLibConfig =
@@ -246,5 +264,11 @@ class AvailPlugin : Plugin<Project>
 		 *  This represents the version of this plugin.
 		 */
 		internal const val AVAIL_STRIPE_RELEASE = "1.6.0.20210910.181950"
+
+		/**
+		 * The location of the properties file that contains the last published
+		 * release of the avail libraries.
+		 */
+		const val releaseVersionFile = "/releaseVersion.properties"
 	}
 }

@@ -1,5 +1,11 @@
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Exec
+import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.TaskAction
+import org.gradle.jvm.tasks.Jar
+
 /*
- * Versions.kt
+ * RunPluginPublish.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,36 +37,23 @@
  */
 
 /**
- * The central source of all versions. This ranges from dependency versions
- * to language level versions.
+ * A `RunPluginPublish` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object Versions
+open class RunPluginPublish: DefaultTask()
 {
-	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.30"
+	@TaskAction
+	fun buildIt ()
+	{
+//		project.tasks.create("execPlugin", Exec::class.java)
+//		{
+//			workingDir = project.file("${project.projectDir}/avail-plugin")
+//
+//			commandLine.add("./gradlew")
+//			commandLine.add("jar")
+////			this.setExecutable("./gradlew")
+//		}.exec()
 
-	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "16"
-
-	/** The language level version of Kotlin. */
-	const val kotlinLanguage = "1.5"
-
-	/**
-	 * The stripe release version of avail jars:
-	 *  * `avail-core`
-	 *  * `avail-workbench`
-	 *  * `avail-stdlib`
-	 *
-	 *  This represents the version of this plugin.
-	 */
-	const val availStripeVersion = "1.6.0.20210910.181950"
-
-	/**
-	 * The location of the properties file that contains the last published
-	 * release of the avail libraries.
-	 */
-	const val releaseVersionFile =
-		"src/main/resources/releaseVersion.properties"
+	}
 }

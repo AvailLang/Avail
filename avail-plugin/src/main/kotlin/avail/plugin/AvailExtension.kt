@@ -31,7 +31,6 @@
  */
 package avail.plugin
 
-import avail.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
 import org.gradle.api.Project
 import java.io.File
 import java.net.URI
@@ -41,8 +40,15 @@ import java.net.URI
  * a user can configure Avail.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property project
+ *   The host [Project].
+ * @property plugin
+ *   The hosting [AvailPlugin] instance.
  */
-open class AvailExtension constructor(private val project: Project)
+open class AvailExtension constructor(
+	private val project: Project,
+	private val plugin: AvailPlugin)
 {
 	/**
 	 * The directory location where the Avail roots exist. The path to this
@@ -238,7 +244,7 @@ open class AvailExtension constructor(private val project: Project)
 		buildString {
 			append("\n========================= Avail Configuration")
 			append(" =========================\n")
-			append("\tAvail Version: $AVAIL_STRIPE_RELEASE\n")
+			append("\tAvail Version: ${plugin.releaseVersion}\n")
 			append("\tRepository Location: $repositoryDirectory\n")
 			append("\tRoots Location: $rootsDirectory\n")
 			append("\tIncluded Roots:")

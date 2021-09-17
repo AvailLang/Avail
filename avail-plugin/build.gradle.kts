@@ -31,6 +31,9 @@
  */
 
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import java.util.Properties
+import java.io.FileInputStream
+import java.io.FileOutputStream
 
 buildscript {
 	extensions.add("kotlin_version", Versions.kotlin)
@@ -103,9 +106,32 @@ tasks {
 		}
 		manifest.attributes["Implementation-Version"] =
 			project.version
+		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+		from("src/main/kotlin") {
+			include("src/main/resources/*.*")
+		}
 	}
 
 	artifacts { add("archives", sourceJar) }
+
+	register("updateVersion", DefaultTask::class)
+	{
+		if(project.hasProperty("versionStripe"))
+		{
+			val updatedVersion =
+				project.property("versionStripe").toString()
+			val propsFile = FileInputStream(Versions.releaseVersionFile)
+			val props = Properties()
+			props.load(propsFile)
+			props.setProperty("releaseVersion", updatedVersion)
+			props.store(FileOutputStream(Versions.releaseVersionFile), null)
+		}
+		else
+		{
+			System.err.println("`avail-plugin` `updateVersion` task run but " +
+				"receive no updated version.")
+		}
+	}
 }
 
 publishing {
