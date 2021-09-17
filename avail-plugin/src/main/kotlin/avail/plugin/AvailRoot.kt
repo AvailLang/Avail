@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.plugin
+package avail.plugin
 
 import org.gradle.api.Project
 import java.net.URI

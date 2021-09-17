@@ -49,7 +49,7 @@ gradlePlugin {
 	plugins {
 		create("avail-plugin") {
 			id = "avail.avail-plugin"
-			implementationClass = "org.availlang.plugin.AvailPlugin"
+			implementationClass = "avail.plugin.AvailPlugin"
 		}
 	}
 }

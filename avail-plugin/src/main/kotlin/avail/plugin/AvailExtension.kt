@@ -29,9 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package org.availlang.plugin
+package avail.plugin
 
-import org.availlang.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
+import avail.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
 import org.gradle.api.Project
 import java.io.File
 import java.net.URI
