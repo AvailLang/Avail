@@ -1,3 +1,8 @@
+import org.gradle.api.Project
+import java.io.FileInputStream
+import java.io.FileOutputStream
+import java.util.Properties
+
 /*
  * Versions.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
@@ -63,4 +68,18 @@ object Versions
 	 */
 	const val releaseVersionFile =
 		"src/main/resources/releaseVersion.properties"
+
+	/**
+	 * Answer the version id for the `avail-plugin`.
+	 *
+	 * @param project
+	 *   The running Gradle [Project].
+	 */
+	fun getReleaseVersion (project: Project): String
+	{
+		val propsFile = FileInputStream(releaseVersionFile)
+		val props = Properties()
+		props.load(propsFile)
+		return props.getProperty("releaseVersion")
+	}
 }
