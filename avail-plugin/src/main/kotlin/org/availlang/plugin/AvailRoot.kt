@@ -212,7 +212,7 @@ class CreateAvailRoot constructor(
  * @param baseName
  *   The name of the module without the file extension.
  * @param fileExtension
- *   The file extension to use for the module. This defaults to `.avail`.
+ *   The file extension to use for the module. This defaults to `avail`.
  *   Do not prefix with ".".
  */
 open class AvailModule constructor(
@@ -353,11 +353,11 @@ open class AvailModule constructor(
  * @param baseName
  *   The name of the module without the file extension.
  * @param fileExtension
- *   The file extension to use for the module. This defaults to `.avail`
+ *   The file extension to use for the module. This defaults to `avail`
  */
 class AvailModulePackage constructor(
 	baseName: String,
-	fileExtension: String = ".avail"
+	fileExtension: String = "avail"
 ): AvailModule(baseName, fileExtension)
 {
 	override fun create (project: Project, directory: String)

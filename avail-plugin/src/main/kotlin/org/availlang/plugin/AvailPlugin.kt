@@ -1,3 +1,34 @@
+/*
+ * AvailPlugin.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
+ *
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
+ *
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
 package org.availlang.plugin
 
 import org.gradle.api.DefaultTask
@@ -22,7 +53,7 @@ class AvailPlugin : Plugin<Project>
 		// Create Custom Project Configurations
 		target.configurations.run {
 			create(AVAIL_LIBRARY)
-			create(WORKBENCH)
+			create(WORKBENCH_CONFIG)
 		}
 
 		// Create AvailExtension and attach it to the target host Project
@@ -59,7 +90,7 @@ class AvailPlugin : Plugin<Project>
 		val availLibConfig =
 			target.configurations.getByName(AVAIL_LIBRARY)
 		val workbenchConfig =
-			target.configurations.getByName(WORKBENCH)
+			target.configurations.getByName(WORKBENCH_CONFIG)
 		val implementationConfig =
 			target.configurations.getByName(IMPLEMENTATION)
 
@@ -121,11 +152,15 @@ class AvailPlugin : Plugin<Project>
 			archiveVersion.set("")
 			destinationDirectory.set(target.file("${target.buildDir}/$WORKBENCH"))
 			// Explicitly gather up the dependencies, so that we end up with
-			// a JAR including the complete Avail workbench plus
+			// a JAR including the complete Avail workbench plus any workbench
+			// dependencies explicitly stated in the Avail extension.
+			// Additionally anything added to the "workbench" configuration in
+			// the host project's dependencies section of the build script will
+			// also be added.
 			from(
 				workbenchConfig.resolve().map {
 						if (it.isDirectory) it else target.zipTree(it) } +
-					extension.workBenchDependencies.map {
+					extension.workbenchDependencies.map {
 						val f = project.file(it)
 						if (f.isDirectory) f else target.zipTree(f)})
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
@@ -193,15 +228,25 @@ class AvailPlugin : Plugin<Project>
 		internal const val AVAIL = "avail"
 
 		/**
-		 * The name of the custom [Project] [Configuration], `workbench`,
-		 * where only the [WORKBENCH_DEP] is added.
+		 * The string, `workbench`, is the standard label for the avail
+		 * workbench.
 		 */
 		internal const val WORKBENCH = "workbench"
 
 		/**
-		 * The name to apply to the built workbench jar.
+		 * The name of the custom [Project] [Configuration], `availWorkbench`,
+		 * where the [WORKBENCH_DEP] is added. Any dependencies that a project
+		 * would like to add to the workbench fat jar can be added to the
+		 * corresponding configuration in the dependencies section of the
+		 * build script:
+		 *
+		 * ```
+		 * dependencies {
+		 *    availWorkbench("org.some.library:9.9.9")
+		 * }
+		 * ```
 		 */
-		internal const val WORKBENCH_JAR = "workbench.jar"
+		internal const val WORKBENCH_CONFIG = "availWorkbench"
 
 		/**
 		 * The stripe release version of avail jars:

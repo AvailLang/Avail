@@ -29,7 +29,6 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
 package org.availlang.plugin
 
 import org.availlang.plugin.AvailPlugin.Companion.AVAIL_STRIPE_RELEASE
@@ -83,7 +82,6 @@ open class AvailExtension constructor(private val project: Project)
 	/**
 	 * Add the `avail-stdlib` to the [roots].
 	 */
-
 	private fun addStdLib (rootDir: String)
 	{
 		roots[AvailPlugin.AVAIL] = AvailRoot(
@@ -102,7 +100,7 @@ open class AvailExtension constructor(private val project: Project)
 	 * The list of additional dependencies to be bundled in with the fat jar
 	 * of the Workbench.
 	 */
-	internal val workBenchDependencies = mutableSetOf<String>()
+	internal val workbenchDependencies = mutableSetOf<String>()
 
 	/**
 	 * `true` indicates the Avail Standard Library (`avail-stdlib`) should be
@@ -146,38 +144,24 @@ open class AvailExtension constructor(private val project: Project)
 	 * Add an Avail root with the provided name and [URI].
 	 *
 	 * There is no need to prefix the file scheme, `file://`, if it exists on
-	 * the local file file system; otherwise the scheme should be prefixed.
+	 * the local file system; otherwise the scheme should be prefixed.
 	 *
 	 * @param name
 	 *   The name of the root to add.
 	 * @param uri
-	 *   The uri path to the root.
+	 *   The uri path to the root. This defaults to the root URI to be located
+	 *   in the [rootsDirectory]
 	 * @param initializer
 	 *   A lambda that accepts the created [AvailRoot] and is executed after
 	 *   [AvailExtension.initExtension] is run. Does nothing by default.
 	 */
 	@Suppress("Unused")
-	fun root(name: String, uri: String, initializer: (AvailRoot) -> Unit = {})
+	fun root(
+		name: String,
+		uri: String = "$rootsDirectory/$name",
+		initializer: (AvailRoot) -> Unit = {})
 	{
 		roots[name] = AvailRoot(name, uri, initializer)
-	}
-
-	/**
-	 * Add an Avail root with the provided name and [URI]. This defaults the
-	 * root URI to be located in the [rootsDirectory], using the root name as
-	 * the top level folder of the root.
-	 *
-	 * @param name
-	 *   The name of the root to add.
-	 * @param initializer
-	 *   A lambda that accepts the created [AvailRoot] and is executed after
-	 *   [AvailExtension.initExtension] is run.
-	 */
-	@Suppress("Unused")
-	fun root(name: String, initializer: (AvailRoot) -> Unit = {})
-	{
-		roots[name] =
-			AvailRoot(name, "$rootsDirectory/$name", initializer)
 	}
 
 	/**
@@ -206,9 +190,9 @@ open class AvailExtension constructor(private val project: Project)
 	 *   The String path to the dependency that must be added.
 	 */
 	@Suppress("unused")
-	fun workBenchDependency(dependency: String)
+	fun workbenchDependency(dependency: String)
 	{
-		workBenchDependencies.add(dependency)
+		workbenchDependencies.add(dependency)
 	}
 
 	/**
@@ -269,7 +253,7 @@ open class AvailExtension constructor(private val project: Project)
 					.joinToString(", ") { it.name })
 			}
 			append("\n\tIncluded Workbench Dependencies:")
-			workBenchDependencies.sorted().forEach { append("\n\t\t$it") }
+			workbenchDependencies.sorted().forEach { append("\n\t\t$it") }
 			append("\n\tWorkbench VM Options:")
 			workbenchVmOptions.forEach { append("\n\t\t-$it") }
 			append("\n====================================")
