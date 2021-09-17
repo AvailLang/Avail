@@ -246,11 +246,8 @@ open class AvailExtension constructor(private val project: Project)
 				append("\n\t\t-${it.name}: ${it.uri}")
 			}
 			append("\n\tCreated Roots:")
-			if (createRoots.isNotEmpty())
-			{
-				append("\n\t\t")
-				append(createRoots.values.sorted()
-					.joinToString(", ") { it.name })
+			createRoots.values.sorted().forEach {
+				append(it.configString)
 			}
 			append("\n\tIncluded Workbench Dependencies:")
 			workbenchDependencies.sorted().forEach { append("\n\t\t$it") }

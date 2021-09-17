@@ -179,6 +179,18 @@ class AvailPlugin : Plugin<Project>
 				}.exec()
 			}
 		}
+
+		target.tasks.register("packageRoots", DefaultTask::class.java)
+		{
+			group = AVAIL
+			description = "Package the roots created in the Avail extension " +
+				"that have been provided an AvailLibraryPackageContext"
+			doLast {
+				extension.createRoots.values.forEach {
+					it.packageLibrary(target)
+				}
+			}
+		}
 	}
 	companion object
 	{
