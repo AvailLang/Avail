@@ -71,7 +71,7 @@ fi
 
 # Create the repository directory if necessary. Fix the permissions if it is
 # not readable and writable by the current user.
-REPO_DIR=$AVAIL_USER/repos
+REPO_DIR=$AVAIL_USER/repositories
 if [ ! -e "$REPO_DIR" ]; then
   install -d -m 700 "$REPO_DIR"
 elif [ ! -d "$REPO_DIR" ]; then
@@ -103,7 +103,7 @@ else
       improvised_name="${improvised_name%%.*}"
       improvised_name="local.$USER.${improvised_name// /}"
       # the root's name is given as local.username.directoryname
-      ADDITIONAL_ROOTS+=("$improvised_name=$REPO_DIR/$improvised_name.repo,$PWD")
+      ADDITIONAL_ROOTS+=("$improvised_name=$PWD")
       ;;
     d)
       # perform a [d]ry run and output the final command instead of running it
@@ -161,9 +161,9 @@ fi
 
 # If AVAIL_ROOTS is not set, then default it.
 if [ "X$AVAIL_ROOTS" = "X" ]; then
-  AVAIL_ROOTS="avail=$REPO_DIR/avail.repo,$AVAIL_HOME/src/avail"
+  AVAIL_ROOTS="avail=$AVAIL_HOME/src/avail"
   if [ "$USE_EXAMPLE_ROOTS" = true ]; then
-    AVAIL_ROOTS="$AVAIL_ROOTS"';'"examples=$REPO_DIR/examples.repo,$AVAIL_HOME/src/examples"
+    AVAIL_ROOTS="$AVAIL_ROOTS"';'"examples=$AVAIL_HOME/src/examples"
   fi
 fi
 
