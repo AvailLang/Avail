@@ -34,17 +34,15 @@ package avail.plugin
 
 import avail.plugin.AvailPlugin.Companion.WORKBENCH
 import avail.plugin.AvailPlugin.Companion.WORKBENCH_CONFIG
-import org.gradle.api.Action
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskAction
-import java.io.File
+import java.lang.IllegalStateException
 import java.net.URI
 
 /**
@@ -77,8 +75,11 @@ open class AvailWorkbenchTask: DefaultTask()
 	 * The [Configuration] for adding [dependencies][Dependency] to be included
 	 * in the workbench jar.
 	 */
-	private val localConfig =
+	private val localConfig: Configuration by lazy {
 		project.configurations.create(configName)
+	}
+
+	internal open fun config (): Configuration = localConfig
 
 	/**
 	 * Get the active [AvailExtension] from the host [Project].
@@ -112,7 +113,7 @@ open class AvailWorkbenchTask: DefaultTask()
 	 *   The String path to the jar that must be added.
 	 */
 	@Suppress("unused")
-	fun workbenchDependency(dependency: String)
+	fun workbenchLocalJarDependency(dependency: String)
 	{
 		workbenchJarDependencies.add(dependency)
 	}
@@ -124,12 +125,11 @@ open class AvailWorkbenchTask: DefaultTask()
 	 *   The string that identifies the dependency such as:
 	 *   `org.package:myLibrary:2.3.1`.
 	 */
+	@Suppress("unused")
 	fun dependency (dependency: String)
 	{
 		localConfig.dependencies.add(project.dependencies.create(dependency))
 	}
-
-	private val myDependencyFiles = mutableSetOf<File>()
 
 	/**
 	 * The set of VM Options that will be used when the Avail Workbench jar is
@@ -151,6 +151,55 @@ open class AvailWorkbenchTask: DefaultTask()
 	{
 		vmOptions.add(option)
 	}
+
+	/**
+	 * The maximum heap size that will be presented as a VM option upon running
+	 * an Avail Workbench.
+	 *
+	 * `-Xmx` will be prefixed with the provided option. You must provide a
+	 * value of the format:
+	 * `<size>[g|G|m|M|k|K]`
+	 *
+	 * An example of a valid value is: `"6g"`.
+	 */
+	@Input
+	var maximumJavaHeap: String = "6g"
+		set(value)
+		{
+			val last = value.last()
+			val sizeString = value.split(last).first()
+			if (setOf('g', 'G', 'm', 'M', 'k', 'K').contains(value.last()))
+			{
+				val size =try
+				{
+					sizeString.toInt()
+				}
+				catch (e: NumberFormatException)
+				{
+					throw IllegalStateException(
+						"`$value` is not a valid number for memory size " +
+							"for running an Avail Workbench.")
+				}
+				if (size < 1)
+				{
+					throw IllegalStateException(
+						"`$value` is not a valid number for memory size for " +
+							"running an Avail Workbench.")
+				}
+				field = value
+			}
+			else
+			{
+				throw IllegalStateException(
+					"`$value` does not have a valid memory size, `$last` for " +
+						"running an Avail Workbench.")
+			}
+		}
+
+	/**
+	 * The maximum heap size VM option for running an Avail Workbench.
+	 */
+	private val heapSize: List<String> get() = listOf("-Xmx$maximumJavaHeap")
 
 	/**
 	 * The map of [AvailRoot.name] to [AvailRoot] that will be included in this
@@ -180,7 +229,7 @@ open class AvailWorkbenchTask: DefaultTask()
 	 * The list of VM options to be used when starting the workbench jar.
 	 */
 	private val assembledVmOptions: List<String> by lazy {
-		vmOptions.toList() + buildString {
+		vmOptions.toList() + heapSize + buildString {
 			if (roots.isNotEmpty())
 			{
 				append("-DavailRoots=")
@@ -228,7 +277,7 @@ open class AvailWorkbenchTask: DefaultTask()
 			from(
 				workbenchConfig.resolve().map {
 					if (it.isDirectory) it else project.zipTree(it) } +
-					localConfig.resolve().map {
+					config().resolve().map {
 						if (it.isDirectory) it
 						else project.zipTree(it) } +
 					workbenchJarDependencies.map {
@@ -273,4 +322,10 @@ open class AvailWorkbenchTask: DefaultTask()
 		assemble(fullPathToFile)
 		launch(fullPathToFile)
 	}
+}
+
+internal open class InternalWorkbenchTask: AvailWorkbenchTask()
+{
+	override fun config(): Configuration =
+		project.configurations.getByName(WORKBENCH_CONFIG)
 }

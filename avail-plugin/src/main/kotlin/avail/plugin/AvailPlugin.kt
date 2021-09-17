@@ -36,9 +36,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.file.DuplicatesStrategy
-import org.gradle.api.tasks.JavaExec
-import org.gradle.jvm.tasks.Jar
 import java.io.File
 
 /**
@@ -137,47 +134,21 @@ class AvailPlugin : Plugin<Project>
 			println(extension.printableConfig)
 		}
 
-		target.tasks.register("assembleAndRunWorkbench", Jar::class.java)
+		target.tasks.register(
+			"assembleAndRunWorkbench", InternalWorkbenchTask::class.java)
 		{
 			group = AVAIL
-			description =
-				"Assemble a standalone Workbench fat jar and run it. " +
-					"This task will require `initializeAvail` to be run " +
-					"once to initialize the environment before building " +
-					"the workbench.jar that will then be run using " +
-					"configurations from the `avail` extension."
-			manifest.attributes["Main-Class"] =
-				"com.avail.environment.AvailWorkbench"
-			archiveBaseName.set(extension.workbenchName)
-			archiveVersion.set("")
-			destinationDirectory.set(target.file("${target.buildDir}/$WORKBENCH"))
-			// Explicitly gather up the dependencies, so that we end up with
-			// a JAR including the complete Avail workbench plus any workbench
-			// dependencies explicitly stated in the Avail extension.
-			// Additionally anything added to the "workbench" configuration in
-			// the host project's dependencies section of the build script will
-			// also be added.
-			from(
-				workbenchConfig.resolve().map {
-						if (it.isDirectory) it else target.zipTree(it) } +
-					extension.workbenchDependencies.map {
-						val f = project.file(it)
-						if (f.isDirectory) f else target.zipTree(f)})
-			duplicatesStrategy = DuplicatesStrategy.INCLUDE
-			doLast {
-				// Create and run an anonymous task
-				target.tasks.create("runWorkbench", JavaExec::class.java)
-				{
-					group = AVAIL
-					description =
-						"Run the Avail Workbench jar that was assembled " +
-							"in the parent task, `assembleAndRunWorkbench`."
-					workingDir = target.projectDir
-					jvmArgs(extension.workbenchVmOptions)
-					classpath =
-						target.files("${target.buildDir}/$WORKBENCH/${extension.workbenchName}.jar")
-				}.exec()
+			description = "My custom workbench build."
+			workbenchJarBaseName = extension.workbenchName
+			rebuildWorkbenchJar = true
+			extension.workbenchDependencies.forEach {
+				workbenchLocalJarDependency(it)
 			}
+			extension.roots.forEach { (t, u) ->  root(t, u.uri)}
+			maximumJavaHeap = "6g"
+			vmOption("-ea")
+			vmOption("-XX:+UseCompressedOops")
+			vmOption("-DavailDeveloper=true")
 		}
 
 		target.tasks.register("packageRoots", DefaultTask::class.java)
@@ -228,8 +199,8 @@ class AvailPlugin : Plugin<Project>
 
 		/**
 		 * The rename that is applied to the [AVAIL_STDLIB_DEP] Jar if it is
-		 * copied into the roots directory given
-		 * [AvailExtension.useAvailStdLib] is `true`.
+		 * copied into the roots directory given [AvailExtension.useAvailStdLib]
+		 * is `true`.
 		 */
 		internal const val AVAIL_STDLIB_JAR_NAME: String = "avail-stdlib.jar"
 
@@ -246,11 +217,11 @@ class AvailPlugin : Plugin<Project>
 		internal const val WORKBENCH = "workbench"
 
 		/**
-		 * The name of the custom [Project] [Configuration], `availWorkbench`,
-		 * where the [WORKBENCH_DEP] is added. Any dependencies that a project
-		 * would like to add to the workbench fat jar can be added to the
-		 * corresponding configuration in the dependencies section of the
-		 * build script:
+		 * The name of the custom [Project] [Configuration] where any
+		 * dependencies that a project would like to add to the workbench fat
+		 * jar created and run by the task, `assembleAndRunWorkbench` can be
+		 * added to the corresponding configuration in the dependencies section
+		 * of the build script:
 		 *
 		 * ```
 		 * dependencies {
@@ -259,6 +230,12 @@ class AvailPlugin : Plugin<Project>
 		 * ```
 		 */
 		internal const val WORKBENCH_CONFIG = "availWorkbench"
+
+		/**
+		 * The name of the custom [Project] [Configuration],
+		 * `__internalAvailWorkbench`, where the [WORKBENCH_DEP] is added.
+		 */
+		internal const val WORKBENCH_INTERNAL_CONFIG = "__internalAvailWorkbench"
 
 		/**
 		 * The stripe release version of avail jars:
