@@ -33,7 +33,6 @@
 package avail.plugin
 
 import avail.plugin.AvailPlugin.Companion.WORKBENCH
-import avail.plugin.AvailPlugin.Companion.WORKBENCH_CONFIG
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -78,8 +77,6 @@ open class AvailWorkbenchTask: DefaultTask()
 	private val localConfig: Configuration by lazy {
 		project.configurations.create(configName)
 	}
-
-	internal open fun config (): Configuration = localConfig
 
 	/**
 	 * Get the active [AvailExtension] from the host [Project].
@@ -151,6 +148,12 @@ open class AvailWorkbenchTask: DefaultTask()
 	{
 		vmOptions.add(option)
 	}
+
+	/**
+	 * Clear all the set VM options used when launching the workbench.
+	 */
+	@Suppress("unused")
+	fun clearVmOptions () { vmOptions.clear() }
 
 	/**
 	 * The maximum heap size that will be presented as a VM option upon running
@@ -267,7 +270,8 @@ open class AvailWorkbenchTask: DefaultTask()
 			destinationDirectory.set(project.file(
 				"${project.buildDir}/$WORKBENCH"))
 			val workbenchConfig =
-				project.configurations.getByName(WORKBENCH_CONFIG)
+				project.configurations.getByName(
+					AvailPlugin.WORKBENCH_INTERNAL_CONFIG)
 			// Explicitly gather up the dependencies, so that we end up with
 			// a JAR including the complete Avail workbench plus any workbench
 			// dependencies explicitly stated in the Avail extension.
@@ -277,7 +281,7 @@ open class AvailWorkbenchTask: DefaultTask()
 			from(
 				workbenchConfig.resolve().map {
 					if (it.isDirectory) it else project.zipTree(it) } +
-					config().resolve().map {
+					localConfig.resolve().map {
 						if (it.isDirectory) it
 						else project.zipTree(it) } +
 					workbenchJarDependencies.map {
@@ -322,10 +326,4 @@ open class AvailWorkbenchTask: DefaultTask()
 		assemble(fullPathToFile)
 		launch(fullPathToFile)
 	}
-}
-
-internal open class InternalWorkbenchTask: AvailWorkbenchTask()
-{
-	override fun config(): Configuration =
-		project.configurations.getByName(WORKBENCH_CONFIG)
 }

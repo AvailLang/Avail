@@ -31,6 +31,7 @@
  */
 package avail.plugin
 
+import avail.plugin.AvailPlugin.Companion.AVAIL_STDLIB_BASE_JAR_NAME
 import org.gradle.api.Project
 import java.io.File
 import java.net.URI
@@ -50,6 +51,12 @@ open class AvailExtension constructor(
 	private val project: Project,
 	private val plugin: AvailPlugin)
 {
+	/**
+	 * The name of the standard
+	 */
+	private val stdLibName =
+		"$AVAIL_STDLIB_BASE_JAR_NAME-${plugin.releaseVersion}.jar"
+
 	/**
 	 * The directory location where the Avail roots exist. The path to this
 	 * location must be absolute.
@@ -74,12 +81,6 @@ open class AvailExtension constructor(
 		"${project.projectDir.absolutePath}/$defaultRepositoryDirectory"
 
 	/**
-	 * The base name of the workbench jar file (without `.jar`). Defaults to
-	 * `workbench`.
-	 */
-	var workbenchName: String = AvailPlugin.WORKBENCH
-
-	/**
 	 * The map of [AvailRoot.name]s to [AvailRoot]s be included in the Avail
 	 * project.
 	 */
@@ -91,8 +92,7 @@ open class AvailExtension constructor(
 	private fun addStdLib (rootDir: String)
 	{
 		roots[AvailPlugin.AVAIL] = AvailRoot(
-			AvailPlugin.AVAIL,
-			"jar:$rootDir/${AvailPlugin.AVAIL_STDLIB_JAR_NAME}")
+			AvailPlugin.AVAIL, "jar:$rootDir/$stdLibName")
 	}
 
 	/**
@@ -101,12 +101,6 @@ open class AvailExtension constructor(
 	 */
 	internal val createRoots: MutableMap<String, CreateAvailRoot> =
 		mutableMapOf()
-
-	/**
-	 * The list of additional dependencies to be bundled in with the fat jar
-	 * of the Workbench.
-	 */
-	internal val workbenchDependencies = mutableSetOf<String>()
 
 	/**
 	 * `true` indicates the Avail Standard Library (`avail-stdlib`) should be
@@ -175,31 +169,15 @@ open class AvailExtension constructor(
 	 *
 	 * @param name
 	 *   The [CreateAvailRoot.name].
-	 * @param rootInitializer
-	 *   A lambda that accepts the created `CreateAvailRoot` so that it may be
-	 *   initialized.
+	 * @return
+	 *   The created Root.
 	 */
 	@Suppress("Unused")
-	fun createRoot (name: String, rootInitializer: (CreateAvailRoot) -> Unit)
-	{
-		val createRoot =
-			CreateAvailRoot(name, "$rootsDirectory/$name")
-		rootInitializer(createRoot)
-		createRoots[name] = createRoot
-		roots[name] = createRoot
-	}
-
-	/**
-	 * Add a dependency jar file to be included in the workbench jar.
-	 *
-	 * @param dependency
-	 *   The String path to the dependency that must be added.
-	 */
-	@Suppress("unused")
-	fun workbenchDependency(dependency: String)
-	{
-		workbenchDependencies.add(dependency)
-	}
+	fun createRoot (name: String): CreateAvailRoot =
+		CreateAvailRoot(name, "$rootsDirectory/$name").apply {
+			createRoots[name] = this
+			roots[name] = this
+		}
 
 	/**
 	 * Initialize this [AvailExtension] with the host [Project].
@@ -218,23 +196,10 @@ open class AvailExtension constructor(
 				project.configurations.getByName(AvailPlugin.AVAIL_LIBRARY)
 			val stdlibJar = availLibConfig.singleFile
 			val targetFile =
-				File("$rootsDirectory/${AvailPlugin.AVAIL_STDLIB_JAR_NAME}")
+				File("$rootsDirectory/$stdLibName")
 			stdlibJar.copyTo(targetFile, true)
 		}
 	}
-
-	/**
-	 * The VM Options associated with running the workbench.
-	 */
-	val workbenchVmOptions: List<String> get() =
-		standardWorkbenchVmOptions + buildString {
-			if (roots.isNotEmpty())
-			{
-				append("-DavailRoots=")
-				append(roots.values.sorted()
-					.joinToString(";") { it.rootString })
-			}
-		} + listOf("-Davail.repositories=$repositoryDirectory")
 
 	/**
 	 * Create a printable view of this entire [AvailExtension]'s current
@@ -255,10 +220,6 @@ open class AvailExtension constructor(
 			createRoots.values.sorted().forEach {
 				append(it.configString)
 			}
-			append("\n\tIncluded Workbench Dependencies:")
-			workbenchDependencies.sorted().forEach { append("\n\t\t$it") }
-			append("\n\tWorkbench VM Options:")
-			workbenchVmOptions.forEach { append("\n\t\t-$it") }
 			append("\n====================================")
 			append("====================================\n")
 		}

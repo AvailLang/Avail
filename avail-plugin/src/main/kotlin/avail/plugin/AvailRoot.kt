@@ -75,7 +75,7 @@ open class AvailRoot constructor(
 	/**
 	 * The printable configuration for this root.
 	 */
-	open internal val configString: String get() = "\n\t$name ($uri)"
+	internal open val configString: String get() = "\n\t$name ($uri)"
 
 	override fun compareTo(other: AvailRoot): Int =
 		name.compareTo(other.name)
@@ -143,44 +143,33 @@ class CreateAvailRoot constructor(
 	 * @param extension
 	 *   The Module's file extension. Defaults to `"avail"`.
 	 *   Do not prefix with ".".
-	 * @param initializer
-	 *   A lambda that accepts the created `AvailModule` and enables the user
-	 *   to configure it.
+	 * @return
+	 *   The created [AvailModule].
 	 */
 	@Suppress("unused")
-	fun module (
-		name: String,
-		extension: String = "avail",
-		initializer: (AvailModule) -> Unit)
-	{
-		val mod = AvailModule(name, extension)
-		initializer(mod)
-		modules.add(mod)
-	}
+	fun module (name: String, extension: String = "avail"): AvailModule =
+		AvailModule(name, extension).apply {
+			modules.add(this)
+		}
 
 	/**
 	 * Add an [AvailModulePackage] with the given name to the top level of this
 	 * [CreateAvailRoot].
 	 *
 	 * @param name
-	 *   The name of the [AvailModule] to create and add.
+	 *   The name of the [AvailModulePackage] to create and add.
 	 * @param extension
 	 *   The Module's file extension. Defaults to `"avail"`.
 	 *   Do not prefix with ".".
-	 * @param initializer
-	 *   A lambda that accepts the created `AvailModule` and enables the user
-	 *   to configure it.
+	 * @return
+	 *   The created [AvailModulePackage].
 	 */
 	@Suppress("unused")
 	fun modulePackage (
-		name: String,
-		extension: String = "avail",
-		initializer: (AvailModulePackage) -> Unit)
-	{
-		val mod = AvailModulePackage(name, extension)
-		initializer(mod)
-		modulePackages.add(mod)
-	}
+		name: String, extension: String = "avail"): AvailModulePackage =
+			AvailModulePackage(name, extension).apply{
+				modulePackages.add(this)
+		}
 
 	/**
 	 * The set of [AvailModule]s to add to the top level of this [AvailRoot].
@@ -240,19 +229,20 @@ class CreateAvailRoot constructor(
 	 *   be exported to.
 	 */
 	inner class AvailLibraryPackageContext constructor(
-		internal val packageNameBase: String,
-		internal val exportDirectory: String)
+		private val packageNameBase: String,
+		private val exportDirectory: String)
 	{
 		/**
 		 * The map of [Manifest] key to [Manifest] value to be included in the
 		 * library jar.
 		 */
+		@Suppress("MemberVisibilityCanBePrivate")
 		val manifestPairs: MutableMap<String, String> = mutableMapOf()
 
 		/**
 		 * The name of the [Jar] task that will be used to package the library.
 		 */
-		internal val packageTask = "package-library-$packageNameBase"
+		private val packageTask = "package-library-$packageNameBase"
 
 		/**
 		 * An optional action to be run post build of the library jar file. This
@@ -277,6 +267,7 @@ class CreateAvailRoot constructor(
 		internal fun createAndRunTask (project: Project)
 		{
 			val fullPath = "$exportDirectory/$packageNameBase.jar"
+			project.mkdir(exportDirectory)
 			project.tasks.create(packageTask, AvailJarPackager::class.java)
 			{
 				group = AvailPlugin.AVAIL
@@ -476,7 +467,7 @@ class AvailModulePackage constructor(
 	/**
 	 * The set of [AvailModule]'s to create in this module.
 	 */
-	internal val otherModules = mutableSetOf<AvailModule>()
+	private val otherModules = mutableSetOf<AvailModule>()
 
 	/**
 	 * Add an [AvailModule] to be added to this [AvailModulePackage].
@@ -485,19 +476,15 @@ class AvailModulePackage constructor(
 	 *   The name of the module without the file extension.
 	 * @param fileExtension
 	 *   The file extension to use for the module. This defaults to `avail`.
-	 * @param initializer
-	 *   A lambda that accepts the created AvailModule and enables the user to
-	 *   configure it.
+	 * @return
+	 *   The created [AvailModule].
 	 */
+	@Suppress("Unused")
 	fun addModule(
-		baseName: String,
-		fileExtension: String = "avail",
-		initializer: (AvailModule) -> Unit = {})
-	{
-		val modPackage = AvailModule(baseName, fileExtension)
-		initializer(modPackage)
-		otherModules.add(modPackage)
-	}
+		baseName: String, fileExtension: String = "avail"): AvailModule =
+			AvailModule(baseName, fileExtension).apply {
+				otherModules.add(this)
+			}
 
 	/**
 	 * Add an [AvailModulePackage] to be added to this [AvailModulePackage].
@@ -506,19 +493,15 @@ class AvailModulePackage constructor(
 	 *   The name of the module without the file extension.
 	 * @param fileExtension
 	 *   The file extension to use for the module. This defaults to `avail`.
-	 * @param initializer
-	 *   A lambda that accepts the created AvailModule and enables the user to
-	 *   configure it.
+	 * @return
+	 *   The created [AvailModulePackage].
 	 */
+	@Suppress("Unused")
 	fun addModulePackage(
-		baseName: String,
-		fileExtension: String = "avail",
-		initializer: (AvailModulePackage) -> Unit = {})
-	{
-		val modPackage = AvailModulePackage(baseName, fileExtension)
-		initializer(modPackage)
-		otherModules.add(modPackage)
-	}
+		baseName: String, fileExtension: String = "avail"): AvailModulePackage =
+			AvailModulePackage(baseName, fileExtension).apply {
+				otherModules.add(this)
+			}
 
 	override fun create (project: Project, directory: String)
 	{

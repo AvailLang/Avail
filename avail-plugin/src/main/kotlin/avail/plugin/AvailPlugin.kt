@@ -36,8 +36,6 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import java.io.File
-import java.io.FileInputStream
 import java.util.Properties
 
 /**
@@ -47,7 +45,11 @@ import java.util.Properties
  */
 class AvailPlugin : Plugin<Project>
 {
-	internal lateinit var releaseVersion: String
+	/**
+	 * The release version of the Avail dependencies to target. This also will
+	 * represent the version of the released plugin.
+	 */
+	internal var releaseVersion: String
 
 	init
 	{
@@ -64,7 +66,7 @@ class AvailPlugin : Plugin<Project>
 		// Create Custom Project Configurations
 		target.configurations.run {
 			create(AVAIL_LIBRARY)
-			create(WORKBENCH_CONFIG)
+			create(WORKBENCH_INTERNAL_CONFIG)
 		}
 
 		// Create AvailExtension and attach it to the target host Project
@@ -105,12 +107,11 @@ class AvailPlugin : Plugin<Project>
 		val availLibConfig =
 			target.configurations.getByName(AVAIL_LIBRARY)
 		val workbenchConfig =
-			target.configurations.getByName(WORKBENCH_CONFIG)
+			target.configurations.getByName(WORKBENCH_INTERNAL_CONFIG)
 		val implementationConfig =
 			target.configurations.getByName(IMPLEMENTATION)
 
 		// Add Dependencies
-		availLibConfig.dependencies.add(stdlibDependency)
 		workbenchConfig.dependencies.add(workbenchDependency)
 		implementationConfig.dependencies.add(coreDependency)
 
@@ -122,20 +123,20 @@ class AvailPlugin : Plugin<Project>
 				"extension block. At the end of this task, all root " +
 				"initializers (lambdas) that were added will be run."
 
+			if (extension.useAvailStdLib)
+			{
+				availLibConfig.dependencies.add(stdlibDependency)
+			}
 			// Putting the call into a `doLast` block forces this to only be
 			// executed when explicitly run.
 			doLast {
 				project.mkdir(extension.rootsDirectory)
 				project.mkdir(extension.repositoryDirectory)
 
-				if (extension.useAvailStdLib)
-				{
-					val stdlibJar = availLibConfig.singleFile
-					val targetFile =
-						File(
-							"${extension.rootsDirectory}/$AVAIL_STDLIB_JAR_NAME")
-					stdlibJar.copyTo(targetFile, true)
+				availLibConfig.resolve().forEach {
+					it.copyTo(it, true)
 				}
+
 				extension.createRoots.values.forEach {
 					it.create(project, extension)
 				}
@@ -153,15 +154,11 @@ class AvailPlugin : Plugin<Project>
 		}
 
 		target.tasks.register(
-			"assembleAndRunWorkbench", InternalWorkbenchTask::class.java)
+			"assembleAndRunWorkbench", AvailWorkbenchTask::class.java)
 		{
 			group = AVAIL
 			description = "My custom workbench build."
-			workbenchJarBaseName = extension.workbenchName
-			rebuildWorkbenchJar = true
-			extension.workbenchDependencies.forEach {
-				workbenchLocalJarDependency(it)
-			}
+			workbenchJarBaseName = WORKBENCH
 			extension.roots.forEach { (t, u) ->  root(t, u.uri)}
 			maximumJavaHeap = "6g"
 			vmOption("-ea")
@@ -194,7 +191,7 @@ class AvailPlugin : Plugin<Project>
 		 * The dependency group-artifact String dependency that points to the
 		 * published Avail Standard Library Jar. This is absent the version.
 		 */
-		private const val AVAIL_STDLIB_DEP: String =
+		internal const val AVAIL_STDLIB_DEP: String =
 			"org.availlang:avail-stdlib"
 
 		/**
@@ -220,7 +217,7 @@ class AvailPlugin : Plugin<Project>
 		 * copied into the roots directory given [AvailExtension.useAvailStdLib]
 		 * is `true`.
 		 */
-		internal const val AVAIL_STDLIB_JAR_NAME: String = "avail-stdlib.jar"
+		internal const val AVAIL_STDLIB_BASE_JAR_NAME: String = "avail-stdlib"
 
 		/**
 		 * The string "avail" that is used to name the [AvailExtension] for the
@@ -235,35 +232,10 @@ class AvailPlugin : Plugin<Project>
 		internal const val WORKBENCH = "workbench"
 
 		/**
-		 * The name of the custom [Project] [Configuration] where any
-		 * dependencies that a project would like to add to the workbench fat
-		 * jar created and run by the task, `assembleAndRunWorkbench` can be
-		 * added to the corresponding configuration in the dependencies section
-		 * of the build script:
-		 *
-		 * ```
-		 * dependencies {
-		 *    availWorkbench("org.some.library:9.9.9")
-		 * }
-		 * ```
-		 */
-		internal const val WORKBENCH_CONFIG = "availWorkbench"
-
-		/**
 		 * The name of the custom [Project] [Configuration],
 		 * `__internalAvailWorkbench`, where the [WORKBENCH_DEP] is added.
 		 */
 		internal const val WORKBENCH_INTERNAL_CONFIG = "__internalAvailWorkbench"
-
-		/**
-		 * The stripe release version of avail jars:
-		 *  * `avail-core`
-		 *  * `avail-workbench`
-		 *  * `avail-stdlib`
-		 *
-		 *  This represents the version of this plugin.
-		 */
-		internal const val AVAIL_STRIPE_RELEASE = "1.6.0.20210910.181950"
 
 		/**
 		 * The location of the properties file that contains the last published
