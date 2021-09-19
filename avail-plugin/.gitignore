@@ -1,7 +1,7 @@
 /**/.DS_Store
 /**/*.ws.kts
-/.gradle
+.gradle
 /.swp
-/build
-/out
+build
+out
 hs_err_*.log

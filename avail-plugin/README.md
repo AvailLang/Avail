@@ -70,7 +70,7 @@ the configuration `availLibrary`. For example:
 
 ```kotlin
 dependencies {
-	implementation("org.foo:myProject:1.2.3")
+    implementation("org.foo:myProject:1.2.3")
     availLibrary("com.somewhere.cool:avail-cool-lib:5.4.3")
 }
 ```
@@ -162,7 +162,7 @@ dependencies {
     // This adds the listed dependencies to the custom build of the 
     // workbench fat jar launched from the task assembleAndRunWorkbench
     availWorkbench("org.some.dependency:someProject:9.8.7")
-	availWorkbench("come.some.other:dependency:7.8.9")
+    availWorkbench("come.some.other:dependency:7.8.9")
 }
 ```
 
@@ -265,6 +265,7 @@ task group when the plugin is applied.
 
 ## Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
+You can see a full project in [sample-project](../samples/sample-project).
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -279,21 +280,8 @@ group = "com.avail.sample"
 version = "1.0.0"
 
 repositories {
-        // mavenCentral is needed to resolve internal dependencies.
-	mavenCentral()
-        // Include the repository where the Avail Plugin can be located
-	maven {
-		setUrl("https://maven.pkg.github.com/AvailLang/Avail")
-		metadataSources {
-			mavenPom()
-			artifact()
-		}
-		credentials {
-			username = "anonymous"
-			// A public key read-only token for Avail downloads.
-			password = "[THE AVAIL PUBLIC KEY]"
-		}
-	}
+    // mavenCentral is needed to resolve internal dependencies.
+    mavenCentral()
 }
 
 dependencies { 
@@ -308,14 +296,14 @@ avail {
     // be imported into the roots directory. Defaults to `true`.
     useAvailStdLib = true
 
-	// Specify the roots directory where the roots should be located. This will
+    // Specify the roots directory where the roots should be located. This will
     // default to `"$projectDir/avail/roots"` if not specified.
-	rootsDirectory = "$projectDir/avail/my-roots"
+    rootsDirectory = "$projectDir/avail/my-roots"
 
-	// The directory to place your build `.repo` files for the included 
+    // The directory to place your build `.repo` files for the included 
     // Avail roots. This will default to `"$projectDir/avail/repositories"` if
     // not specified.
-	repositoryDirectory = "$projectDir/avail/my-repos"
+    repositoryDirectory = "$projectDir/avail/my-repos"
 
     // Provides a custom name for the workbench jar created and run from
     // the `assembleAndRunWorkbench` task. Defaults to "workbench". 
@@ -349,8 +337,8 @@ avail {
             versions = listOf("Avail-1.0.6")
             // The modules to extend in the Avail header.
             extends = listOf("Avail")
-          // Add a module inside the `App` module package.
-          addModule("Configurations").apply {
+            // Add a module inside the `App` module package.
+            addModule("Configurations").apply {
             // The versions to list in the Avail header
             versions = listOf("Avail-1.6.0")
             // The modules to list in the uses section in the Avail header.
@@ -358,7 +346,7 @@ avail {
             // Override the module header comment from 
             // moduleHeaderCommentBodyFile
             moduleHeaderCommentBody = customHeader
-          }
+        }
           
           // Add a module representative package inside `App`.
           addModulePackage("Network").apply {
@@ -390,62 +378,62 @@ avail {
     }
 }
 tasks {
-    // This task is constructed by default as a way to launch the Avail 
-    // workbench which includes all the Avail roots specified in the `avail`
-    // extension above. It is of type
-	assembleAndRunWorkbench {
-            // This task is used to build and launch the Avail Workbench. In this
-            // example, the `dependsOn(jar)` is used as the Workbench fatjar is to
-            // include this sample project's jar file (see the included 
-            // workbenchDependency above). This is only needed if you require a 
-            // task be complete before the Workbench jar is built.
-            dependsOn(jar)
-
-            // This task is customizable in the same manner as any
-            // AvailWorkbenchTask.
-            workbenchDependency("${buildDir}/libs/sample-1.0.0.jar")
-            dependency("org.foo:my-sample:1.2.3")
-        }
+  // This task is constructed by default as a way to launch the Avail 
+  // workbench which includes all the Avail roots specified in the `avail`
+  // extension above. It is of type
+  assembleAndRunWorkbench {
+      // This task is used to build and launch the Avail Workbench. In this
+      // example, the `dependsOn(jar)` is used as the Workbench fatjar is to
+      // include this sample project's jar file (see the included 
+      // workbenchDependency above). This is only needed if you require a 
+      // task be complete before the Workbench jar is built.
+      dependsOn(jar)
+  
+      // This task is customizable in the same manner as any
+      // AvailWorkbenchTask.
+      workbenchDependency("${buildDir}/libs/sample-1.0.0.jar")
+      dependency("org.foo:my-sample:1.2.3")
+    }
 
 	val myWorkbenchTask by creating(AvailWorkbenchTask::class.java)
 	{
-        // Add to task group
-		group = "My Tasks"
-		description = "My custom workbench build."
-        
-        // Depends on jar task running first
-		dependsOn(jar)
-        
-        // Base name of the workbench jar, the result of which placed in 
-        // "$buildDir/workbench/myCustomWorkBench.jar".
-		workbenchJarBaseName = "myCustomWorkBench"
-        
-        // true indicates the jar should be rebuilt on each run.
-		rebuildWorkbenchJar = true
-        
-        // The heap should be set to 6 GB when the workbench is run.
-		maximumJavaHeap = "6g"
-
-		// Package this project's jar in with the workbench fatjar, hence 
-        // `dependsOn(jar)`.
-		workbenchLocalJarDependency("${buildDir}/libs/sample-1.0.0.jar")
-        
-        // Some other local jar is packaged in with the fatjar
-		workbenchDependency("/Users/Person/local/libs/myLocal-1.2.4.jar")
-		
-        // These are the dependencies that should be resolved and used when the
-        // workbench is run.
-        dependency("com.google.crypto.tink:tink:1.6.1")
-		dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
-        
-        // The Avail roots to start the workbench with.
-		root("my-avail-root", "$projectDir/avail/roots/my-avail-root")
-		root("avail", "jar:$projectDir/avail/roots/avail-stdlib.jar")
-        
-        // The VM options to use when running the workbench jar. 
-		vmOption("-ea")
-		vmOption("-XX:+UseCompressedOops")
-		vmOption("-DavailDeveloper=true")
+            // Add to task group
+            group = "My Tasks"
+            description = "My custom workbench build."
+            
+            // Depends on jar task running first
+            dependsOn(jar)
+            
+            // Base name of the workbench jar, the result of which placed in 
+            // "$buildDir/workbench/myCustomWorkBench.jar".
+            workbenchJarBaseName = "myCustomWorkBench"
+            
+            // true indicates the jar should be rebuilt on each run.
+            rebuildWorkbenchJar = true
+            
+            // The heap should be set to 6 GB when the workbench is run.
+            maximumJavaHeap = "6g"
+            
+            // Package this project's jar in with the workbench fatjar, hence 
+            // `dependsOn(jar)`.
+            workbenchLocalJarDependency("${buildDir}/libs/sample-1.0.0.jar")
+            
+            // Some other local jar is packaged in with the fatjar
+            workbenchDependency("/Users/Person/local/libs/myLocal-1.2.4.jar")
+            
+            // These are the dependencies that should be resolved and used when the
+            // workbench is run.
+            dependency("com.google.crypto.tink:tink:1.6.1")
+            dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+            
+            // The Avail roots to start the workbench with.
+            root("my-avail-root", "$projectDir/avail/roots/my-avail-root")
+            root("avail", "jar:$projectDir/avail/roots/avail-stdlib.jar")
+            
+            // The VM options to use when running the workbench jar. 
+            vmOption("-ea")
+            vmOption("-XX:+UseCompressedOops")
+            vmOption("-DavailDeveloper=true")
 	}
     
 	test {

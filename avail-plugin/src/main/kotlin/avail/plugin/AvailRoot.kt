@@ -38,6 +38,7 @@ import org.gradle.jvm.tasks.Jar
 import java.io.File
 import java.net.URI
 import java.util.jar.Manifest
+import kotlin.text.StringBuilder
 
 /**
  * `AvailRoot` represents an Avail source root.
@@ -77,8 +78,18 @@ open class AvailRoot constructor(
 	 */
 	internal open val configString: String get() = "\n\t$name ($uri)"
 
+	// Module packages always come before modules.
 	override fun compareTo(other: AvailRoot): Int =
-		name.compareTo(other.name)
+	 	when
+		{
+			this is CreateAvailRoot && other is CreateAvailRoot ||
+			this !is CreateAvailRoot && other !is CreateAvailRoot ->
+				name.compareTo(other.name)
+			this is CreateAvailRoot && other !is CreateAvailRoot -> 1
+			else ->
+				// Therefore: this !is CreateAvailRoot && other is CreateAvailRoot
+				-1
+		}
 
 	override fun toString(): String = rootString
 
@@ -130,8 +141,10 @@ class CreateAvailRoot constructor(
 	var packageContext: AvailLibraryPackageContext? = null
 
 	override val configString: String get() = buildString {
-		append("\n\t\t$name ($uri)")
+		append("\n\t\t$name")
 		packageContext?.let { append(it.configString) }
+		append("\n\t\t\tRoot Contents:")
+		this@CreateAvailRoot.appendRootHierarchy(this)
 	}
 
 	/**
@@ -206,6 +219,18 @@ class CreateAvailRoot constructor(
 	}
 
 	/**
+	 * Append a printable tree representation of this entire root.
+	 *
+	 * @param sb
+	 *   The [StringBuilder] to add the hierarchy to.
+	 */
+	fun appendRootHierarchy (sb: StringBuilder)
+	{
+		modulePackages.forEach { it.hierarchyPrinter(1, sb) }
+		modules.forEach { it.hierarchyPrinter(1, sb) }
+	}
+
+	/**
 	 * Optionally package the root given a [packageContext] is set.
 	 *
 	 * @param project
@@ -254,8 +279,8 @@ class CreateAvailRoot constructor(
 		 * The printable configuration screen.
 		 */
 		internal val configString: String get() = buildString {
-			append("\n\t\t\tPackage root as: $packageNameBase.jar")
-			append("\n\t\t\texport to: $exportDirectory")
+			append("\n\t\t\tPackage Root\n\t\t\t\tas: $packageNameBase.jar")
+			append("\n\t\t\t\texport to: $exportDirectory")
 		}
 
 		/**
@@ -321,7 +346,7 @@ class CreateAvailRoot constructor(
  */
 open class AvailModule constructor(
 	private val baseName: String,
-	fileExtension: String = "avail")
+	fileExtension: String = "avail"): Comparable<AvailModule>
 {
 	/**
 	 * The file name. *e.g. Avail.avail*.
@@ -433,6 +458,37 @@ open class AvailModule constructor(
 		}
 	}
 
+	/**
+	 * Add the printable hierarchical position representation of this
+	 * [AvailModule] in its respective [AvailRoot].
+	 *
+	 * @param level
+	 *   The depth in the tree where this module sits.
+	 * @param sb
+	 *   The [StringBuilder] to add the printable representation to.
+	 */
+	open fun hierarchyPrinter (level: Int, sb: StringBuilder): StringBuilder =
+		sb.apply {
+			val prefix = hierarchyPrinterPrefix(level)
+			append(prefix)
+			append(" ")
+			append(fileName)
+		}
+
+	/**
+	 * Create the prefix string for each line printed in [hierarchyPrinter].
+	 *
+	 * @param level
+	 *   The depth in the tree where this module sits.
+	 */
+	protected fun hierarchyPrinterPrefix(level: Int) =
+		(0 until level)
+			.map { "－" }
+			.joinToString(prefix = "\n\t\t\t\t|", separator = "") { it }
+
+	override fun compareTo(other: AvailModule): Int =
+		fileName.compareTo(other.fileName)
+
 	override fun equals(other: Any?): Boolean =
 		when
 		{
@@ -441,7 +497,6 @@ open class AvailModule constructor(
 			fileName != other.fileName -> false
 			else -> true
 		}
-
 
 	override fun hashCode(): Int = fileName.hashCode()
 }
@@ -483,7 +538,7 @@ class AvailModulePackage constructor(
 	fun addModule(
 		baseName: String, fileExtension: String = "avail"): AvailModule =
 			AvailModule(baseName, fileExtension).apply {
-				otherModules.add(this)
+				this@AvailModulePackage.otherModules.add(this)
 			}
 
 	/**
@@ -500,11 +555,12 @@ class AvailModulePackage constructor(
 	fun addModulePackage(
 		baseName: String, fileExtension: String = "avail"): AvailModulePackage =
 			AvailModulePackage(baseName, fileExtension).apply {
-				otherModules.add(this)
+				this@AvailModulePackage.otherModules.add(this)
 			}
 
 	override fun create (project: Project, directory: String)
 	{
+		project.mkdir(directory)
 		val modulePackage = "$directory/$fileName"
 		project.mkdir(modulePackage)
 		val module = project.file("$modulePackage/$fileName")
@@ -513,6 +569,22 @@ class AvailModulePackage constructor(
 			module.writeText(fileContents)
 		}
 		// Create modules in this module package.
-		otherModules.forEach { it.create(project, modulePackage) }
+		otherModules.forEach {
+			it.create(project, modulePackage)
+		}
 	}
+
+	override fun hierarchyPrinter (level: Int, sb: StringBuilder): StringBuilder =
+		sb.apply {
+			val prefix = hierarchyPrinterPrefix(level)
+			append(prefix)
+			append(" ")
+			append(fileName)
+			append(prefix)
+			append("－ ")
+			append(fileName)
+			otherModules.toList().sorted().forEach {
+				it.hierarchyPrinter(level + 1, sb)
+			}
+		}
 }

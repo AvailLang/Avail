@@ -214,7 +214,7 @@ open class AvailExtension constructor(
 			append("\tRoots Location: $rootsDirectory\n")
 			append("\tIncluded Roots:")
 			roots.values.sorted().forEach {
-				append("\n\t\t-${it.name}: ${it.uri}")
+				append("\n\t\t• ${it.name}: ${it.uri}")
 			}
 			append("\n\tCreated Roots:")
 			createRoots.values.sorted().forEach {
