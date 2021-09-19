@@ -36,6 +36,7 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
+import java.io.File
 import java.util.Properties
 
 /**
@@ -134,9 +135,10 @@ class AvailPlugin : Plugin<Project>
 				project.mkdir(extension.repositoryDirectory)
 
 				availLibConfig.resolve().forEach {
-					it.copyTo(it, true)
+					val targetFile = File(
+						"${extension.rootsDirectory}/${it.name}")
+					it.copyTo(targetFile, true)
 				}
-
 				extension.createRoots.values.forEach {
 					it.create(project, extension)
 				}
