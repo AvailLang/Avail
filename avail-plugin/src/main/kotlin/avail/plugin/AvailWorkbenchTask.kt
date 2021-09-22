@@ -173,7 +173,7 @@ open class AvailWorkbenchTask: DefaultTask()
 			val sizeString = value.split(last).first()
 			if (setOf('g', 'G', 'm', 'M', 'k', 'K').contains(value.last()))
 			{
-				val size =try
+				val size = try
 				{
 					sizeString.toInt()
 				}
@@ -308,8 +308,7 @@ open class AvailWorkbenchTask: DefaultTask()
 			println(buildString {
 				append("Launching: $fullPathToFile with VM options:")
 				assembledVmOptions.forEach {
-					append("\n\t • ")
-					append(it)
+					append("\n\t • $it")
 				}
 			})
 		}.exec()

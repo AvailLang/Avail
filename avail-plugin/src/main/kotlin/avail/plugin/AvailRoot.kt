@@ -180,9 +180,9 @@ class CreateAvailRoot constructor(
 	@Suppress("unused")
 	fun modulePackage (
 		name: String, extension: String = "avail"): AvailModulePackage =
-			AvailModulePackage(name, extension).apply{
+			AvailModulePackage(name, extension).apply {
 				modulePackages.add(this)
-		}
+			}
 
 	/**
 	 * The set of [AvailModule]s to add to the top level of this [AvailRoot].

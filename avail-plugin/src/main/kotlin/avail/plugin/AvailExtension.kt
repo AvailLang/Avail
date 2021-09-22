@@ -81,7 +81,7 @@ open class AvailExtension constructor(
 		"${project.projectDir.absolutePath}/$defaultRepositoryDirectory"
 
 	/**
-	 * The map of [AvailRoot.name]s to [AvailRoot]s be included in the Avail
+	 * The map of [AvailRoot.name]s to be [AvailRoot]s be included in the Avail
 	 * project.
 	 */
 	internal val roots: MutableMap<String, AvailRoot> = mutableMapOf()
@@ -229,18 +229,18 @@ open class AvailExtension constructor(
 		/**
 		 * The directory location where the Avail roots exist.
 		 */
-		private const val defaultAvailRootsDirectory: String = "avail/roots"
+		private const val defaultAvailRootsDirectory: String = ".avail/roots"
 
 		/**
 		 * The directory location where the Avail roots repositories exist.
 		 */
 		private const val defaultRepositoryDirectory: String =
-			"avail/repositories"
+			".avail/repositories"
 
 		/**
 		 * The static list of Workbench VM arguments.
 		 */
 		private val standardWorkbenchVmOptions = listOf(
-			"-ea", "-XX:+UseCompressedOops", "-Xmx12g", "-DavailDeveloper=true")
+			"-ea", "-XX:+UseCompressedOops", "-Xmx6g", "-DavailDeveloper=true")
 	}
 }

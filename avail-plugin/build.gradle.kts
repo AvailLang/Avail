@@ -112,7 +112,9 @@ tasks {
 		}
 	}
 
-	artifacts { add("archives", sourceJar) }
+	artifacts {
+		add("archives", sourceJar)
+	}
 
 	register("updateVersion", DefaultTask::class)
 	{

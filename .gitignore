@@ -9,7 +9,4 @@
 /out
 /debug
 /local-plugin-repository
-/documentation/docs/src_docs
-/documentation/docs/index.md
-/documentation/site
 hs_err_*.log

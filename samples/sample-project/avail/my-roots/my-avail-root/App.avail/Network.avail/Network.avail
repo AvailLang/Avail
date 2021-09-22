@@ -1,0 +1,14 @@
+/*
+ * Network.avail
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Network"
+Versions
+	"Avail-1.6.0"
+Uses
+	"Avail"
+Extends
+	"Server"
+Body

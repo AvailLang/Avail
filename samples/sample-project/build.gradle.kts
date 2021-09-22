@@ -50,6 +50,7 @@ dependencies {
     // availLibrary("avail:example-lib:1.2.3")
     testImplementation(kotlin("test"))
 }
+
 avail {
     // Indicate "avail-std-lib-${Versions.availStripeVersion}.jar" should be
     // added to the roots directory. Defaults to true.
@@ -95,7 +96,7 @@ avail {
             }
             // Add a module package to this module package.
             addModulePackage("Network").apply {
-                println("Settingup Network.avail")
+                println("Setting up Network.avail")
                 versions = listOf("Avail-1.6.0")
                 uses = listOf("Avail")
                 extends = listOf("Server")
@@ -131,7 +132,7 @@ tasks {
         group = "My Tasks"
         description = "My custom workbench build."
         dependsOn(jar)
-        workbenchJarBaseName = "myCustomWorkBench"
+        workbenchJarBaseName = "myCustomWorkbench"
         rebuildWorkbenchJar = true
         maximumJavaHeap = "6g"
         workbenchLocalJarDependency("$buildDir/libs/sample-project.jar")
@@ -139,7 +140,7 @@ tasks {
         root("my-avail-root", "$projectDir/avail/roots/my-avail-root")
         root(
             "avail",
-            "jar:$projectDir/avail/roots/avail-stdlib-1.6.0.20210910.181950.jar")
+            "jar:$projectDir/avail/roots/avail-stdlib-${Versions.availStripeVersion}.jar")
         vmOption("-ea")
         vmOption("-XX:+UseCompressedOops")
         vmOption("-DavailDeveloper=true")
