@@ -265,7 +265,7 @@ task group when the plugin is applied.
 
 ## Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
-You can see a full project in [sample-project](../samples/sample-project).
+You can see a full project in [sample-project](/samples/sample-project).
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
