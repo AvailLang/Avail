@@ -48,6 +48,7 @@ plugins {
 	`kotlin-dsl`
 	`maven-publish`
 }
+
 gradlePlugin {
 	plugins {
 		create("avail-plugin") {

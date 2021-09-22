@@ -38,6 +38,6 @@ package com.avail.compiler
  *
  * The arguments are:
  * 1. the current number of bytes that have been compiled and executed
- * 2. the total number of bytes of source being compiled and .
+ * 2. the total number of bytes of source being compiled.
  */
 typealias GlobalProgressReporter = (Long, Long)->Unit
