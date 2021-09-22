@@ -1,6 +1,12 @@
 OVERVIEW
 --------------------------------------------------------------------------------
 
+If you would simply like to use Avail in a JVM project, you can import a
+prebuilt version of Avail as a dependency. See the
+[Avail Gradle Plugin](/avail-plugin/README.md) for more details on how to
+accomplish this. You can also refer to our [sample project](/samples/sample-project)
+to see how Avail can be incorporated into a JVM project.
+
 This document describes the entire process of obtaining, installing,
 configuring, and running the Avail development workbench. Depending on how you
 obtained Avail, whether it is a first time installation, and what utilities are

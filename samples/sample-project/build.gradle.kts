@@ -45,6 +45,10 @@ repositories {
 }
 
 dependencies {
+    // Dependency prevents SLF4J warning from being printed
+    // see: http://www.slf4j.org/codes.html#noProviders
+    implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
+
     // Can add an Avail library dependency as a jar available in one of the
     // repositories listed in the repository section
     // availLibrary("avail:example-lib:1.2.3")
@@ -136,8 +140,10 @@ tasks {
         rebuildWorkbenchJar = true
         maximumJavaHeap = "6g"
         workbenchLocalJarDependency("$buildDir/libs/sample-project.jar")
+        // Dependency prevents SLF4J warning from being printed
+        // see: http://www.slf4j.org/codes.html#noProviders
         dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
-        root("my-avail-root", "$projectDir/avail/roots/my-avail-root")
+        root("my-avail-root", "$projectDir/avail/my-roots/my-avail-root")
         root(
             "avail",
             "jar:$projectDir/avail/roots/avail-stdlib-${Versions.availStripeVersion}.jar")

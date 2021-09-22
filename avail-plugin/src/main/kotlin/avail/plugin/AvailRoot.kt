@@ -408,33 +408,21 @@ open class AvailModule constructor(
 			if (versions.isNotEmpty())
 			{
 				append("\nVersions")
-				versions.forEach {
-					append("\n\t\"")
-					append(it)
-					append('"')
-				}
+				append(versions.joinToString(",\n\t", "\n\t") { "\"$it\"" })
 			}
 
 			// Uses
 			if (uses.isNotEmpty())
 			{
 				append("\nUses")
-				uses.forEach {
-					append("\n\t\"")
-					append(it)
-					append('"')
-				}
+				append(uses.joinToString(",\n\t", "\n\t") { "\"$it\"" })
 			}
 
 			// Extends
 			if (extends.isNotEmpty())
 			{
 				append("\nExtends")
-				extends.forEach {
-					append("\n\t\"")
-					append(it)
-					append('"')
-				}
+				append(extends.joinToString(",\n\t", "\n\t") { "\"$it\"" })
 			}
 			append("\nBody\n")
 		}

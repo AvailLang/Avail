@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="AppKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="org.availlang.sample.AppKt" />
+    <module name="sample-project.main" />
+    <option name="PROGRAM_PARAMETERS" value="&quot;my project&quot; &quot;my-avail-root=$PROJECT_DIR$/avail/my-roots/my-avail-root&quot;" />
+    <shortenClasspath name="NONE" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

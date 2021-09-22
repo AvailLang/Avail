@@ -34,7 +34,7 @@ Module "App"
 Versions
 	"Avail-1.6.0"
 Extends
-	"Avail"
-	"Configurations"
+	"Avail",
+	"Configurations",
 	"Network"
 Body
