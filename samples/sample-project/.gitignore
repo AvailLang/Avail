@@ -8,3 +8,5 @@ build
 /debug
 hs_err_*.log
 .idea
+**/*.jar
+**/*.repo
