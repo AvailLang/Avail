@@ -32,12 +32,19 @@
 package org.availlang.sample
 
 import com.avail.AvailRuntime
+import com.avail.builder.AvailBuilder
+import com.avail.builder.ModuleName
+import com.avail.descriptor.module.ModuleDescriptor
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
+import com.avail.compiler.CompilerProgressReporter
+import com.avail.compiler.GlobalProgressReporter
+import com.avail.compiler.problems.Problem
+import com.avail.compiler.problems.SimpleProblemHandler
 import com.avail.files.FileManager
 
-// This file contains functionality to set up an Avail environment.
+// This file contains functionality to set up and manage an Avail environment.
 
 /**
  * A project aggregates and encapsulates all state pertinent to a user
@@ -67,6 +74,66 @@ data class Project constructor(
 			moduleRootsPath = moduleRootsPath,
 			renamesFileBody = renamesFileBody,
 			fileManager = fileManager)
+	}
+
+	/** The [AvailBuilder] used to build Avail [Modules][ModuleDescriptor]. */
+	val builder: AvailBuilder by lazy {
+		AvailBuilder(runtime)
+	}
+
+	/**
+	 * Build the indicated Avail [module][ModuleDescriptor].
+	 *
+	 * @param qualifiedModuleName
+	 *   The [fully qualified module name][ModuleName.qualifiedName].
+	 * @param done
+	 *   The lambda to run after build is complete.
+	 */
+	fun build (qualifiedModuleName: String, done: () -> Unit)
+	{
+		val resolvedModuleName =
+			builder.runtime.moduleNameResolver.resolve(
+				ModuleName(qualifiedModuleName), null)
+		println("Target module for compilation: $qualifiedModuleName")
+
+		val progressReporter: CompilerProgressReporter =
+			{   moduleName,
+				moduleSizeInBytes,
+				currentByteProcessing,
+				lineNumber ->
+
+				// Add behavior to present compiler progress on module currently
+				// being compiled. This can be used to present the compilation
+				// progress on the currently compiling file.
+			}
+		val globalProgressReporter: GlobalProgressReporter =
+			{ bytesCompiled, totalBytesToCompile ->
+				// Add behavior to present total compiler progress on all
+				// modules being compiled in the course of compiling target
+				// module. This can be used to show a counter counting up:
+				// "$bytesCompiled / $totalBytesToCompile"
+			}
+		println("Compiling...")
+		builder.buildTargetThen(
+			resolvedModuleName,
+			progressReporter,
+			globalProgressReporter,
+			object : SimpleProblemHandler
+			{
+				override fun handleGeneric(
+					problem: Problem,
+					decider: (Boolean) -> Unit)
+				{
+					builder.stopBuildReason = "Build failed"
+					val problemText = with(problem) {
+						val adjustedLine = lineNumber - 5
+						"$moduleName, line $adjustedLine:\n$this"
+					}
+					System.err.println(problemText)
+					decider(false)
+				}
+			}
+		) { done() }
 	}
 }
 
@@ -108,5 +175,5 @@ fun createAvailRuntime (
  */
 fun createAvailRuntime (
 	moduleNameResolver: ModuleNameResolver,
-	fileManager: com.avail.files.FileManager
+	fileManager: FileManager
 ): AvailRuntime = AvailRuntime(moduleNameResolver, fileManager)

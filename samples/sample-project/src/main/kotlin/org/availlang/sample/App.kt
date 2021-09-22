@@ -32,6 +32,7 @@
 package org.availlang.sample
 
 import com.avail.AvailRuntime
+import java.util.concurrent.Semaphore
 import kotlin.system.exitProcess
 
 /**
@@ -59,6 +60,26 @@ class App
 	fun addProject(project: Project)
 	{
 		app.availProjects[project.name] = project
+	}
+
+	/**
+	 * Add project with the provided `name` using the
+	 * [configuredModuleRootsPath].
+	 *
+	 * @param name
+	 *   The [name][Project.name] of the project to add.
+	 * @return
+	 *   The created project.
+	 */
+	fun addConfiguredProject (name: String): Project =
+		Project(name, configuredModuleRootsPath).apply { addProject(this) }
+
+	/**
+	 * The default module roots path taken from the system property
+	 * `availRoots` included as a VM Argument.
+	 */
+	val configuredModuleRootsPath: String by lazy {
+		System.getProperty("availRoots") ?: ""
 	}
 
 	/**
@@ -117,26 +138,40 @@ class App
  */
 fun main(args: Array<String>)
 {
-	println("Hello Avail!")
-
 	// Check of Project configuration provided.
 	if (args.isEmpty())
 	{
-		println("No Avail Project configuration provided!")
+		println("No Avail Project Name Provided!")
 		exitProcess(1)
 	}
+
 	// Create the backing App
 	App()
+
+	// Check to see if the project is configured
+	if (App.app.configuredModuleRootsPath.isEmpty())
+	{
+		System.err.println("No Avail Roots included as VM argument!")
+		exitProcess(1)
+	}
+
+	// Confirm has repositories set. If not set, inform user of expected
+	// default.
+	if ((System.getProperty("avail.repositories") ?: "").isEmpty())
+	{
+		val home = System.getProperty("user.home")
+		println("No Repository location specified. Using system default:")
+		println("\t$home/.avail/repositories/\"")
+	}
 
 	// The first configuration input is a project name, "My Project"
 	val projectName = args[0]
 
-	// The next configuration is the semicolon-delimited roots location:
-	// `root=rooturi`.
-	val projectModuleRootsPath = args[1]
+	// Welcome the Avail Project!
+	println("Hello $projectName!")
 
 	// Create the project.
-	val myProject = Project(projectName, projectModuleRootsPath)
+	val myProject = App.app.addConfiguredProject(projectName)
 
 	// Add the project to be tracked/made available from App
 	App.app.addProject(myProject)
@@ -146,11 +181,29 @@ fun main(args: Array<String>)
 	// Start
 	println("\nStarting Avail Runtime")
 	println("=======================")
+	println("Runtime Includes ModuleRoot(s):")
 	myProject.runtime.moduleRoots().forEach {
-		println("Runtime Includes ModuleRoot: ${it.name}")
+		println("\t${it.name}")
 	}
-	println("\n")
+
+	// Perform an integrity check on the parser data structures. Report the
+	// findings to System.out. If nothing errant, prints `done`.
+	myProject.runtime.integrityCheck()
+
+	// The AvailBuilder will build the Avail Module in an Avail Task running on
+	// a separate thread. We need to block the main thread of execution until
+	// the build is complete.
+	val semaphore = Semaphore(0)
+	val module = "/my-avail-root/App/App"
+	myProject.build(module) {
+		println("Completed compilation of Avail Module: $module")
+		// Release the semaphore so the main thread can continue execution.
+		semaphore.release()
+	}
+	// This will block the main thread until the module has been built.
+	semaphore.acquireUninterruptibly()
+
 	// Clean up
 	val removed = App.app.removeProject(myProject.name)
-	println("Stopped ${myProject.name}: $removed")
+	println("\nStopped ${myProject.name}: $removed")
 }

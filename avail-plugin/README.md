@@ -261,7 +261,40 @@ task group when the plugin is applied.
     * `-XX:+UseCompressedOops`
     * `-DavailDeveloper=true`
 
-* ***printAvailConfig*** - Prints the Avail configuration details to standard out.
+* ***printAvailConfig*** - Prints the Avail configuration details to 
+  standard out. Note that this will provide you with the VM arguments needed 
+  to have the Avail Runtime point to your Avail project roots and repository 
+  when running your application. This can be found in the printed section, 
+  `VM Arguments to include for Avail Runtime:`. The following is an example of 
+  the output of this task:
+
+```
+========================= Avail Configuration =========================
+    Avail Version: 1.6.0.20210910.181950
+    Repository Location: /Users/MyUser/Development/MyProject/avail/repositories
+    VM Arguments to include for Avail Runtime:
+      • -DavailRoots=avail=jar:/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/avail-stdlib-1.6.0.20210910.181950.jar;my-avail-root=/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/my-avail-root
+      • -Davail.repositories=/Users/Rich/Development/Avail/samples/sample-project/avail/my-repos
+    Roots Location: /Users/MyUser/Development/MyProject/avail/my-roots
+    Included Roots:
+      -avail: jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar
+      -imported-library: jar:/Users/Some/Place/Else/imported-library.jar
+      -my-avail-root: /Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
+    Created Roots:
+      my-avail-root
+        Package Root
+          as: myJar.jar
+          export to: /Users/Rich/Development/Avail/samples/sample-project/build/libs
+        Root Contents:
+          |－ App.avail
+          |－－ App.avail
+          |－－ Configurations.avail
+          |－－ Network.avail
+          |－－－ Network.avail
+          |－－－ Server.avail
+          |－ Scripts.avail
+========================================================================
+```
 
 ## Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
@@ -445,24 +478,37 @@ tasks {
 	}
 }
 ```
-Running the `printAvailConfig` task for the above configuration will print 
+Running the `printAvailConfig` task for the above configuration will print
 the following to standard out:
 
-```shell
+```
 ========================= Avail Configuration =========================
     Avail Version: 1.6.0.20210910.181950
     Repository Location: /Users/MyUser/Development/MyProject/avail/repositories
+    VM Arguments to include for Avail Runtime:
+      • -DavailRoots=avail=jar:/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/avail-stdlib-1.6.0.20210910.181950.jar;my-avail-root=/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/my-avail-root
+      • -Davail.repositories=/Users/Rich/Development/Avail/samples/sample-project/avail/my-repos
     Roots Location: /Users/MyUser/Development/MyProject/avail/my-roots
     Included Roots:
-        -avail: jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar
-        -imported-library: jar:/Users/Some/Place/Else/imported-library.jar
-        -my-avail-root: /Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
+      -avail: jar:/Users/MyUser/Development/MyProject/avail/my-roots/avail-stdlib.jar
+      -imported-library: jar:/Users/Some/Place/Else/imported-library.jar
+      -my-avail-root: /Users/MyUser/Development/MyProject/avail/my-roots/my-avail-root
     Created Roots:
-        my-avail-root
-    Included Workbench Dependencies:
-        /Users/MyUser/Development/MyProject/build/libs/sample-1.0.0.jar
+      my-avail-root
+        Package Root
+          as: myJar.jar
+          export to: /Users/Rich/Development/Avail/samples/sample-project/build/libs
+        Root Contents:
+          |－ App.avail
+          |－－ App.avail
+          |－－ Configurations.avail
+          |－－ Network.avail
+          |－－－ Network.avail
+          |－－－ Server.avail
+          |－ Scripts.avail
 ========================================================================
 ```
+
 ## Local Publishing
 To publish this project locally, use the task, `publishToMavenLocal` under the 
 `publishing` group. This will publish your plugin to `~/.m2`.

@@ -36,7 +36,8 @@ package com.avail.compiler
  * The [compiler][AvailCompiler] notifies a `GlobalProgressReporter`
  * whenever a top-level statement is parsed unambiguously.
  *
- * The arguments are the total number of bytes of source being compiled and the
- * current number of bytes that have been compiled and executed.
+ * The arguments are:
+ * 1. the current number of bytes that have been compiled and executed
+ * 2. the total number of bytes of source being compiled and .
  */
 typealias GlobalProgressReporter = (Long, Long)->Unit

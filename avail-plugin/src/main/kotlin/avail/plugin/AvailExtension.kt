@@ -207,12 +207,25 @@ open class AvailExtension constructor(
 	 */
 	val printableConfig: String get() =
 		buildString {
+			/**
+			 * The list of VM options to be used when starting the workbench jar.
+			 */
+			val vmArgs = listOf(
+				"-Davail.repositories=$repositoryDirectory",
+				)
+
+
 			append("\n========================= Avail Configuration")
-			append(" =========================\n")
-			append("\tAvail Version: ${plugin.releaseVersion}\n")
-			append("\tRepository Location: $repositoryDirectory\n")
-			append("\tRoots Location: $rootsDirectory\n")
-			append("\tIncluded Roots:")
+			append(" =========================")
+			append("\n\tAvail Version: ${plugin.releaseVersion}")
+			append("\n\tRepository Location: $repositoryDirectory")
+			append("\n\tVM Arguments to include for Avail Runtime:")
+			append(roots.values
+				.sorted()
+				.joinToString(";", "\n\t\t• -DavailRoots=") { it.rootString })
+			append("\n\t\t• -Davail.repositories=$repositoryDirectory")
+			append("\n\tRoots Location: $rootsDirectory")
+			append("\n\tIncluded Roots:")
 			roots.values.sorted().forEach {
 				append("\n\t\t• ${it.name}: ${it.uri}")
 			}
