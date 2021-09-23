@@ -2,11 +2,11 @@
 /**/*.jpage
 /**/*.ws.kts
 /.gradle
-/.swp
-/build
-/stacks
-/modules.dot
+.swp
+build
 /out
 /debug
-/local-plugin-repository
 hs_err_*.log
+.idea
+**/*.jar
+**/*.repo

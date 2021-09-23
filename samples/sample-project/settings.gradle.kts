@@ -1,5 +1,5 @@
 /*
- * GlobalProgressReporter.kt
+ * settings.gradle.kts
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,15 +29,13 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+pluginManagement {
+	repositories {
+		mavenLocal()
+		// Adds the gradle plugin portal back to the plugin repositories as
+		// this is removed (overridden) by adding any repository here.
+		gradlePluginPortal()
+	}
+}
+rootProject.name = "sample-project"
 
-package com.avail.compiler
-
-/**
- * The [compiler][AvailCompiler] notifies a `GlobalProgressReporter`
- * whenever a top-level statement is parsed unambiguously.
- *
- * The arguments are:
- * 1. the current number of bytes that have been compiled and executed
- * 2. the total number of bytes of source being compiled.
- */
-typealias GlobalProgressReporter = (Long, Long)->Unit

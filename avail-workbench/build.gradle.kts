@@ -39,7 +39,7 @@ plugins {
 	java
 	kotlin("jvm")
 	id("com.github.johnrengelman.shadow")
-	id("maven-publish")
+	`maven-publish`
 	publishing
 }
 
@@ -85,6 +85,8 @@ tasks {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] =
 			"com.avail.environment.AvailWorkbench"
+		manifest.attributes["Implementation-Version"] =
+			project.version
 	}
 
 	// Copy the JAR into the distribution directory.

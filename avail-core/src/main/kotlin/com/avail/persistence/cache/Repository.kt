@@ -69,13 +69,15 @@ import java.util.logging.Logger
 import kotlin.concurrent.withLock
 
 /**
- * An `Repository` manages a persistent [IndexedFile] of compiled
+ * A [Repository] manages a persistent [IndexedFile] of compiled
  * [modules][ModuleDescriptor].
  *
+ * ```
  * **Metadata:**
- *  1. #modules
- *  2. For each module,
+ * 1. #modules
+ * 2. For each module,
  *    2a. moduleArchive
+ *
  * **ModuleArchive:**
  * 1. UTF8 rootRelativeName
  * 2. digestCache size
@@ -86,9 +88,11 @@ import kotlin.concurrent.withLock
  * 5. For each version,
  *    5a. ModuleVersionKey
  *    5b. ModuleVersion
+ *
  * **ModuleVersionKey:**
  * 1. isPackage (byte)
  * 2. digest (32 bytes)
+ *
  * **ModuleVersion:**
  * 1. moduleSize (long)
  * 2. localImportNames size (int)
@@ -103,14 +107,17 @@ import kotlin.concurrent.withLock
  *    7b. ModuleCompilation
  * 8. moduleHeaderRecordNumber (long)
  * 9. stacksRecordNumber (long)
+ *
  * **ModuleCompilationKey:**
  * 1. predecessorCompilationTimes length (int)
  * 2. For each predecessor compilation time,
  *    2a. predecessor compilation time (long)
+ *
  * **ModuleCompilation:**
  * 1. compilationTime (long)
  * 2. recordNumber (long)
  * 3. recordNumberOfBlockPhrases (long)
+ * ```
  *
  * @property rootName
  *   The name of the [Avail&#32;root][ModuleRoot] represented by this
@@ -207,7 +214,7 @@ class Repository constructor(
 	 */
 	class LimitedCache<K, V> constructor(
 		private val maximumSize: Int)
-	: LinkedHashMap<K, V>(maximumSize,0.75f,true)
+	: LinkedHashMap<K, V>(maximumSize, 0.75f, true)
 	{
 		init
 		{
@@ -424,10 +431,6 @@ class Repository constructor(
 		 */
 		fun putVersion(versionKey: ModuleVersionKey, version: ModuleVersion) =
 			lock.withLock {
-				assert(!versions.containsKey(versionKey)) {
-					"A version for $rootRelativeName has already been added " +
-						"for this ModuleVersionKey"
-				}
 				versions[versionKey] = version
 				markDirty()
 			}
@@ -453,7 +456,6 @@ class Repository constructor(
 				compilation: ModuleCompilation) =
 			lock.withLock {
 				val version = versions[versionKey]!!
-				assert(version.getCompilation(compilationKey) === null)
 				version.compilations[compilationKey] = compilation
 				markDirty()
 			}

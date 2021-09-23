@@ -1,21 +1,21 @@
 /*
- * GlobalProgressReporter.kt
+ * AvailLibraryPackager.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -30,14 +30,23 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.compiler
+package avail.plugin
+
+import org.gradle.jvm.tasks.Jar
 
 /**
- * The [compiler][AvailCompiler] notifies a `GlobalProgressReporter`
- * whenever a top-level statement is parsed unambiguously.
+ * A `AvailJarPackager` is an internal [Jar] task for exposing the [Jar.copy]
+ * function for internal use.
  *
- * The arguments are:
- * 1. the current number of bytes that have been compiled and executed
- * 2. the total number of bytes of source being compiled.
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-typealias GlobalProgressReporter = (Long, Long)->Unit
+internal open class AvailJarPackager: Jar()
+{
+	/**
+	 * Expose the [copy] function publicly.
+	 */
+	internal fun doCopy ()
+	{
+		copy()
+	}
+}

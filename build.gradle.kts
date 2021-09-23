@@ -44,11 +44,11 @@ extra.apply{
 }
 
 plugins {
-	id("java")
-	id("org.jetbrains.kotlin.jvm") version Versions.kotlin
+	java
+	kotlin("jvm") version Versions.kotlin
 	id("com.github.johnrengelman.shadow") version Versions.shadow apply false
-	id("maven-publish")
-	id("publishing")
+	`maven-publish`
+	publishing
 	id("org.jetbrains.compose") version Versions.compose apply false
 }
 allprojects {
@@ -76,6 +76,22 @@ repositories {
 	mavenCentral()
 }
 
+tasks {
+	// Associated with the publishing of `avail-core`. Publishing `avail-core`
+	// will cause this task to trigger as a dependency.
+	register("updatePluginPublishVersion", Exec::class) {
+		group = "publish"
+		description = "This pushes the most recently created " +
+			"`versionToPublish` build version to `avail-plugin` so that it " +
+			"can be updated in that project."
+		workingDir = project.file("${project.projectDir}/avail-plugin")
+		commandLine = listOf(
+			"./gradlew", "updateVersion", "-PversionStripe=$versionToPublish")
+		println("Sending `avail-plugin` (${project.projectDir}/avail-plugin) " +
+			"gradle command, `updateVersion` with version, $versionToPublish")
+	}
+}
+
 val buildFailMessage =
 	file("buildSrc/buildFailureMessage.txt")
 		.readText()
@@ -83,8 +99,8 @@ val buildFailMessage =
 
 // Show the release banner upon final completion of the recursive build.
 gradle.buildFinished {
-	if (("build" in gradle!!.startParameter.taskNames) // TODO revisit me
-		&& failure == null)
+	if (("build" in gradle!!.startParameter.taskNames)
+		&& failure != null)
 	{
 		println(buildFailMessage)
 	}
