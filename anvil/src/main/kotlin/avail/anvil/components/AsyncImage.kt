@@ -254,7 +254,10 @@ fun loadImageBitmap(file: File): ImageBitmap =
  *   The corresponding Image Bitmap.
  */
 fun loadSvgPainter(file: File, density: Density): Painter =
-	file.inputStream().buffered().use { loadSvgPainter(it, density) }
+	file.inputStream().buffered().use {
+		println("Load: ${file.absolutePath}")
+		loadSvgPainter(it, density)
+	}
 
 /**
  * Answer an [ImageVector] using the provided [File].

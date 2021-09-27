@@ -33,6 +33,7 @@
 package avail.anvil
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.mutableStateMapOf
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.utilities.Defaults
@@ -86,7 +87,7 @@ object Anvil: JSONFriendly
 	/**
 	 * The [Project]s that Anvil presently has open.
 	 */
-	val openProjects = mutableMapOf<String, Project>()
+	val openProjects = mutableStateMapOf<String, Project>()
 
 	/**
 	 * Add the [project] to [knownProjectMap].
@@ -136,14 +137,18 @@ object Anvil: JSONFriendly
 					"`knownProjects`.")
 			val descriptor = ProjectDescriptor.from(projObj)
 			knownProjectMap[descriptor.id] = descriptor
+			println("Added project: ${descriptor.name}")
 		}
-		obj.getArray(OPEN_PROJECTS).forEach { data ->
-			(data as? JSONValue)?.string?.let {
-				knownProjectMap[it]?.let { descriptor ->
-					val project = descriptor.project()
-					openProjects[project.id] = project
-					// TODO what else needs to happen?
-					project.walkRoots()
+		val opens = obj.getArray(OPEN_PROJECTS)
+		println("Open projects: ${opens.size()}")
+		opens.forEach { data ->
+			(data as? JSONValue)?.string?.let { key ->
+				knownProjectMap[key]?.let { descriptor ->
+					println("Opening Project: ${descriptor.name} (${descriptor.id})")
+					descriptor.project { project ->
+						println("Open Project: ${project.descriptor.name}")
+						openProjects[project.id] = project
+					}
 				}
 			}
 		}

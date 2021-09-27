@@ -33,56 +33,82 @@
 package avail.anvil
 
 import androidx.compose.desktop.DesktopMaterialTheme
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.geometry.Size
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.graphics.drawscope.DrawScope
+import androidx.compose.ui.graphics.painter.Painter
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Tray
+import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowSize
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberNotification
+import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
+import avail.anvil.components.AsyncSvg
 import avail.anvil.components.WorkspaceWindow
 import avail.anvil.models.ProjectDescriptor
+import avail.anvil.screens.ProjectManagerView
+import avail.anvil.screens.ProjectManagerWorkspaceContent
+import avail.anvil.themes.ImageResources
+import avail.anvil.themes.LocalTheme
+import avail.anvil.themes.anvilTheme
 
 fun main()
 {
 	Anvil.initialize()
 	application {
-		DesktopMaterialTheme {
-			val windowSize = rememberSaveable {
-				WindowSize(width = 800.dp, height = 600.dp)
-			}
-			if (Anvil.openProjects.isEmpty())
-			{
-				// TODO open dialog that lists known projects that can be
-				//  opened, with option to create new project. The new project
-				//  dialog can just be effectively the edit config project.
-
-				if (Anvil.knownProjects.isEmpty())
-				{
-					Anvil.addKnownProject(ProjectDescriptor("«test»"))
-				}
-				// TODO REMOVE
-				Anvil.knownProjects.forEach {
-					Anvil.openProjects[it.id] = it.project()
-				}
-			}
-			else
-			{
-				// TODO open projects?
-			}
-
-			// TODO remove this and associate the project config editor with the
-			//  project
+		val windowSize = rememberSaveable {
+			WindowSize(width = 800.dp, height = 600.dp)
+		}
+//		val trayState = rememberTrayState()
+//		val notification = rememberNotification("Notification", "Welcome to Anvil")
+//		Tray(
+//			state = trayState,
+//			icon = painterResource(ImageResources.availHammer.absolutePath),
+//			menu = {
+//				Item(
+//					"Greeting",
+//					onClick = {
+//						trayState.sendNotification(notification)
+//					}
+//				)
+//				Item(
+//					"Exit",
+//					onClick = {
+//						Anvil.saveConfigToDisk()
+//						exitApplication()
+//					}
+//				)
+//			}
+//		)
+		if (Anvil.openProjects.isEmpty())
+		{
+			// TODO open dialog that lists known projects that can be
+			//  opened, with option to create new project. The new project
+			//  dialog can just be effectively the edit config project.
+			ProjectManagerView()
+		}
+		else
+		{
 			Anvil.openProjects.values.toList().sorted().forEach { project ->
 				WorkspaceWindow(
-					project = project,
+					descriptor = project.descriptor,
 					state = rememberWindowState(
 						width = windowSize.width,
 						height = windowSize.height))
 				{
 					Anvil.saveConfigToDisk()
-					exitApplication()
+					project.stopRuntime()
+					Anvil.openProjects.remove(project.id)
+					Anvil.saveConfigToDisk()
 				}
 			}
 		}
+
 	}
 }
-

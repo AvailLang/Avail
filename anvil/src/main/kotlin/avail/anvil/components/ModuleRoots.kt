@@ -47,6 +47,7 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
+import androidx.compose.material.OutlinedTextField
 import androidx.compose.material.Surface
 import androidx.compose.material.TextField
 import androidx.compose.material.TextFieldDefaults
@@ -80,6 +81,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import avail.anvil.Anvil
 import avail.anvil.models.Project
+import avail.anvil.models.ProjectDescriptor
 import avail.anvil.models.ProjectRoot
 import com.avail.builder.ModuleRoots
 
@@ -91,7 +93,7 @@ import com.avail.builder.ModuleRoots
  * Editor for the Avail [module&#32;roots][ModuleRoots], allowing edits to
  * existing roots, subtraction of existing roots, and addition of new roots.
  *
- * @param project
+ * @param descriptor
  *   The [Project] being updated.
  * @param projectConfigEditorIsOpen
  *   The [MutableState] Boolean, `true` if this screen should be open; `false`
@@ -105,19 +107,20 @@ import com.avail.builder.ModuleRoots
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun AvailProjectEditor (
-	project: Project,
+	descriptor: ProjectDescriptor,
 	roots: MutableList<ProjectRoot>,
 	projectConfigEditorIsOpen: MutableState<Boolean>,
 	isEditable: Boolean = true,
-	tableModifier: Modifier = Modifier
+	tableModifier: Modifier = Modifier,
+	onClose: () -> Unit = {}
 )
 {
 	var rootCount by mutableStateOf(roots.map { it.name }.toHashSet().size)
 	var projectName by remember {
-		mutableStateOf(project.descriptor.name)
+		mutableStateOf(descriptor.name)
 	}
 	var repoPath by remember {
-		mutableStateOf(project.descriptor.repositoryPath)
+		mutableStateOf(descriptor.repositoryPath)
 	}
 	val focusManager = LocalFocusManager.current
 	val focusRequester = remember { FocusRequester() }
@@ -299,7 +302,7 @@ internal fun AvailProjectEditor (
 				}
 				Box(modifier = Modifier.weight(0.8f))
 				{
-					TextField(
+					OutlinedTextField(
 						value = projectName,
 						onValueChange = { projectName = it },
 						colors = TextFieldDefaults
@@ -328,7 +331,7 @@ internal fun AvailProjectEditor (
 										Key.Escape ->
 										{
 											projectName =
-												project.descriptor.name
+												descriptor.name
 											focusManager.clearFocus()
 											false
 										}
@@ -348,7 +351,7 @@ internal fun AvailProjectEditor (
 				}
 				Box(modifier = Modifier.weight(0.8f))
 				{
-					TextField(
+					OutlinedTextField(
 						value = repoPath,
 						onValueChange = { repoPath = it },
 						colors = TextFieldDefaults
@@ -376,7 +379,7 @@ internal fun AvailProjectEditor (
 										}
 										Key.Escape ->
 										{
-											repoPath = project.descriptor
+											repoPath = descriptor
 												.repositoryPath
 											focusManager.clearFocus()
 											false
@@ -414,7 +417,7 @@ internal fun AvailProjectEditor (
 								modifier = buttonModifier,
 								contentPadding = PaddingValues(0.dp),
 								onClick = {
-									roots.add(ProjectRoot(" - ", " - "))
+									roots.add(ProjectRoot("-", "-"))
 									rootCount =
 										roots.map { it.name }.toHashSet().size
 								})
@@ -446,9 +449,9 @@ internal fun AvailProjectEditor (
 														it.resolver.uri.toString()))
 											}
 										repoPath =
-											project.descriptor.repositoryPath
+											descriptor.repositoryPath
 										projectName =
-											project.descriptor.name
+											descriptor.name
 									})
 								{
 									Icon(
@@ -465,8 +468,6 @@ internal fun AvailProjectEditor (
 									contentPadding = PaddingValues(0.dp),
 									enabled = rootCount == roots.size,
 									onClick = {
-										val descriptor =
-											project.descriptor
 										descriptor.roots.clear()
 										roots.forEach {
 											descriptor.roots[it.id] = it
@@ -474,15 +475,18 @@ internal fun AvailProjectEditor (
 										descriptor.name = projectName
 										descriptor.repositoryPath =
 											repoPath
+										Anvil.addKnownProject(descriptor)
 										Anvil.saveConfigToDisk()
 										projectConfigEditorIsOpen.value = false
 										roots.clear()
 										roots.addAll(descriptor.rootsCopy)
-										project.stopRuntime()
-										val refreshProject =
-											descriptor.project()
-										Anvil.openProjects[descriptor.id] =
-											refreshProject
+										Anvil.openProjects[descriptor.id]
+											?.stopRuntime()
+										descriptor.project {
+											Anvil.openProjects[descriptor.id] =
+												it
+											onClose()
+										}
 									})
 								{
 									Icon(
@@ -501,12 +505,12 @@ internal fun AvailProjectEditor (
 									{
 										projectConfigEditorIsOpen.value = false
 										repoPath =
-											project.descriptor.repositoryPath
+											descriptor.repositoryPath
 										projectName =
-											project.descriptor.name
+											descriptor.name
 										roots.clear()
 										roots.addAll(
-											project.descriptor.rootsCopy)
+											descriptor.rootsCopy)
 									})
 								{
 									Icon(

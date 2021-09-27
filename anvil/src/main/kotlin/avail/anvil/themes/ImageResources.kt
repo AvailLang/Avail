@@ -55,6 +55,15 @@ object ImageResources
 			?: error("Cound not locate resource $resource")
 
 	/**
+	 * The image file of an Avail logo with a hammer.
+	 */
+	val availHammer by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("AvailHammer.svg")!!.file)
+	}
+
+	/**
 	 * The image file used to represent an Avail Module file.
 	 */
 	val moduleFileImage by lazy {
@@ -70,5 +79,77 @@ object ImageResources
 		File(
 			this.javaClass.classLoader
 				.getResource("PackageInTree.png")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val resourceFileImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("file_resource_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val rootFileImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("folder_blue_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val resourceDirectoryImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("folder_yellow_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val expandedDirectoryImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("expand_more_grey_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val collapsedDirectoryImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("chevron_right_grey_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val expandedModuleImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("unfold_more_blue_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val collapsedModuleImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("unfold_less_blue_24dp.svg")!!.file)
+	}
+
+	/**
+	 * The image file used to represent an Avail root.
+	 */
+	val playArrowImage by lazy {
+		File(
+			this.javaClass.classLoader
+				.getResource("play_arrow_green_24dp.svg")!!.file)
 	}
 }

@@ -33,40 +33,52 @@
 package avail.anvil.components
 
 import androidx.compose.desktop.DesktopMaterialTheme
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.HorizontalScrollbar
+import androidx.compose.foundation.VerticalScrollbar
+import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.Button
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.rememberScrollbarAdapter
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.Colors
-import androidx.compose.material.Icon
-import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Surface
-import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocal
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.snapshots.SnapshotStateList
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyShortcut
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberDialogState
+import avail.anvil.Anvil
 import avail.anvil.models.Project
-import avail.anvil.models.ProjectRoot
+import avail.anvil.models.ProjectDescriptor
+import avail.anvil.screens.ProjectManagerView
+import avail.anvil.themes.AlternatingRowColor
+import avail.anvil.themes.AvailColors
 import avail.anvil.themes.LocalTheme
 import avail.anvil.themes.anvilTheme
+import kotlin.system.exitProcess
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                Workspaces.                                 //
@@ -76,26 +88,74 @@ import avail.anvil.themes.anvilTheme
  * Present a window housing a complete [workspace][Workspace].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @param project
- *   The project.
+ * @author Richard Arriaga
+ *
+ * @param descriptor
+ *   The [Project].
  * @param state
  *   The [WindowState].
  * @param onClose
  *   What to do when the workspace closes.
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun WorkspaceWindow (
-	project: Project,
+	descriptor: ProjectDescriptor,
 	state: WindowState,
 	onClose: () -> Unit = {}
 )
 {
 	Window(
 		onCloseRequest = onClose,
-		title = project.descriptor.name,
+		title = descriptor.name,
 		state = state
 	) {
-		Workspace(project = project, state = state)
+		val projectConfigEditorIsOpen = remember { mutableStateOf(false) }
+		val projectManagerIsOpen = remember { mutableStateOf(false) }
+		val newProjectConfigEditorIsOpen = remember { mutableStateOf(false) }
+		MenuBar {
+			Menu("File", mnemonic = 'P') {
+				Item(
+					"New Project…",
+					onClick = {
+						newProjectConfigEditorIsOpen.value = true
+					},
+					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
+				Item(
+					"Open Project…",
+					onClick = {
+						projectManagerIsOpen.value = true
+					},
+					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
+				Item(
+					"Exit Anvil",
+					onClick = {
+						Anvil.saveConfigToDisk()
+						exitProcess(0)
+					},
+					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
+			}
+			Menu("Project", mnemonic = 'P') {
+				Item(
+					"Edit Roots",
+					onClick = { projectConfigEditorIsOpen.value = true },
+					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
+			}
+		}
+		Workspace(descriptor, projectConfigEditorIsOpen, state)
+		if (newProjectConfigEditorIsOpen.value)
+		{
+			Workspace(
+				ProjectDescriptor("-"),
+				newProjectConfigEditorIsOpen,
+				state)
+		}
+		if(projectManagerIsOpen.value)
+		{
+			ProjectManagerView {
+				projectManagerIsOpen.value = false
+			}
+		}
 	}
 }
 
@@ -111,20 +171,21 @@ fun WorkspaceWindow (
  * @author Richard Arriaga
  *
  * @param project
- *   The project.
+ *   The [Project].
  * @param state
  *   The [WindowState].
  * @param theme
  *   The user interface theme.
  */
 @Composable
-private fun Workspace (
-	project: Project,
+fun Workspace (
+	descriptor: ProjectDescriptor,
+	projectConfigEditorIsOpen: MutableState<Boolean>,
 	state: WindowState,
 	theme: Colors = anvilTheme())
 {
 	CompositionLocalProvider(LocalTheme provides theme) {
-		WorkspaceContent(project, state)
+		WorkspaceContent(descriptor, state, projectConfigEditorIsOpen, )
 	}
 }
 
@@ -135,38 +196,103 @@ private fun Workspace (
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga
  *
- * @param project
- *   The [Project] to open.
+ * @param descriptor
+ *   The [ProjectDescriptor] to open.
  * @param state
  *   The [WindowState].
  */
 @Composable
-private fun WorkspaceContent (project: Project, state: WindowState)
+private fun WorkspaceContent (
+	descriptor: ProjectDescriptor,
+	state: WindowState,
+	projectConfigEditorIsOpen: MutableState<Boolean>)
 {
 	val width = state.size.width
 	val height = state.size.height
-	val roots = project.descriptor.rootsCopy
+	val roots = descriptor.rootsCopy
 
 	DesktopMaterialTheme(colors = LocalTheme.current) {
 		Surface(
 			shape = RectangleShape,
-			color = anvilTheme().background,
+			color = AvailColors.BG,
 			modifier = Modifier
+				.background(AvailColors.BG)
+				.padding(all = 7.dp)
 				.fillMaxSize()
 				.defaultMinSize(minWidth = width, minHeight = height)
 		) {
-			var projectConfigEditorIsOpen = remember { mutableStateOf(false) }
-			Button(
-				onClick = { projectConfigEditorIsOpen.value = true }
-			) {
-				Row {
-					Text("Edit Avail roots")
-					Icon(
-						Icons.Outlined.Edit,
-						contentDescription = "Edit Avail roots"
-					)
+			// Box(
+			//        modifier = Modifier.fillMaxSize()
+			//            .background(color = Color(180, 180, 180))
+			//            .padding(10.dp)
+			//    ) {
+			//        val stateVertical = rememberScrollState(0)
+			//        val stateHorizontal = rememberScrollState(0)
+			//
+			//        Box(
+			//            modifier = Modifier
+			//                .fillMaxSize()
+			//                .verticalScroll(stateVertical)
+			//                .padding(end = 12.dp, bottom = 12.dp)
+			//                .horizontalScroll(stateHorizontal)
+			//        ) {
+			//            Column {
+			//                for (item in 0..30) {
+			//                    TextBox("Item #$item")
+			//                    if (item < 30) {
+			//                        Spacer(modifier = Modifier.height(5.dp))
+			//                    }
+			//                }
+			//            }
+			//        }
+			//        VerticalScrollbar(
+			//            modifier = Modifier.align(Alignment.CenterEnd)
+			//                .fillMaxHeight(),
+			//            adapter = rememberScrollbarAdapter(stateVertical)
+			//        )
+			//        HorizontalScrollbar(
+			//            modifier = Modifier.align(Alignment.BottomStart)
+			//                .fillMaxWidth()
+			//                .padding(end = 12.dp),
+			//            adapter = rememberScrollbarAdapter(stateHorizontal)
+			//        )
+			//    }
+
+			Box {
+				val stateVertical = rememberScrollState()
+				val stateHorizontal = rememberScrollState()
+				Box(
+					modifier = Modifier
+						.fillMaxSize()
+						.verticalScroll(stateVertical)
+						.padding(end = 12.dp, bottom = 12.dp)
+						.horizontalScroll(stateHorizontal)
+				) {
+					Column(
+						modifier = Modifier
+							.fillMaxSize())
+					{
+						Anvil.openProjects[descriptor.id]?.let {
+							it.rootNodes.values.toList().sorted()
+								.forEach { root ->
+									root.draw(AlternatingRowColor.ROW1)
+								}
+						}
+					}
 				}
+				VerticalScrollbar(
+					modifier = Modifier.align(Alignment.CenterEnd)
+						.fillMaxHeight(),
+					adapter = rememberScrollbarAdapter(stateVertical)
+				)
+				HorizontalScrollbar(
+					modifier = Modifier.align(Alignment.BottomStart)
+						.fillMaxWidth()
+						.padding(end = 12.dp),
+					adapter = rememberScrollbarAdapter(stateHorizontal)
+				)
 			}
+
 			Dialog(
 				onCloseRequest = { projectConfigEditorIsOpen.value = false },
 				visible = projectConfigEditorIsOpen.value,
@@ -174,7 +300,7 @@ private fun WorkspaceContent (project: Project, state: WindowState)
 					width = width,
 					height = height,
 					position = state.position),
-				title = "Configure Avail Roots",
+				title = "Configure Project",
 				icon = rememberVectorPainter(Icons.Outlined.Settings)
 			) {
 				Surface(
@@ -185,12 +311,14 @@ private fun WorkspaceContent (project: Project, state: WindowState)
 						.fillMaxSize()
 				) {
 					AvailProjectEditor(
-						project,
+						descriptor,
 						roots,
 						projectConfigEditorIsOpen,
 						tableModifier = Modifier
 							.fillMaxSize()
-							.defaultMinSize(minWidth = width, minHeight = height)
+							.defaultMinSize(
+								minWidth = width,
+								minHeight = height)
 							.padding(16.dp))
 				}
 			}

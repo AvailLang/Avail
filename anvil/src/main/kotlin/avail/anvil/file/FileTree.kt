@@ -7,92 +7,63 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.material.Icon
+import androidx.compose.material.LocalContentColor
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Build
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import avail.anvil.components.AsyncImageBitmap
+import avail.anvil.components.AsyncSvg
 import avail.anvil.themes.AlternatingRowColor
 import avail.anvil.themes.AvailColors
 import avail.anvil.themes.ImageResources
 import avail.anvil.themes.LoadedStyle
 
 @Composable
-fun FileExplorerView ()
+fun ItemView (node: AvailNode, rowColor: AlternatingRowColor)
 {
-	Surface(
-		modifier =
-			Modifier.background(AvailColors.BG).fillMaxSize().padding(10.dp),
-		color = AvailColors.BG)
+	if (node.children.isEmpty())
 	{
-		Column(Modifier.fillMaxSize())
-		{
-			DirectoryStructureView(
-				"Avail",
-				listOf("Atoms", "Maps", "Numbers", "Tuples", "Sets"))
-		}
+
+		return
 	}
-}
-/**
- * A `FileTree` is TODO: Document this!
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- */
-@Composable
-fun DirectoryStructureView (name: String, files: List<String>)
-{
 	var isExpanded by remember { mutableStateOf(false) }
-	var rowColor = AlternatingRowColor.ROW2
-	val arrow = if (isExpanded) { "▽" } else { "▷" }
-	Row (
-		Modifier.clickable { isExpanded = !isExpanded }
-			.background(rowColor.color)
-			.fillMaxWidth(),
-		verticalAlignment = Alignment.CenterVertically)
-	{
-		DirectoryView(name, arrow)
-	}
-	if (isExpanded)
-	{
-		rowColor = rowColor.next
-		val listState = rememberLazyListState()
-		LazyColumn (state = listState)
-		{
-			items(files) {
-				Row (
-					modifier = Modifier.fillMaxWidth()
-						.padding(vertical = 3.dp, horizontal = 35.dp)
-						.background(rowColor.color),
-					verticalAlignment = Alignment.CenterVertically)
-				{
-					AsyncImageBitmap(
-						file = ImageResources.moduleFileImage,
-						modifier = Modifier.widthIn(max = 20.dp).heightIn(max = 20.dp))
-					Text(
-						text = name,
-						color = LoadedStyle.color,
-						fontSize = LoadedStyle.size,
-						modifier =
-						Modifier.align(Alignment.CenterVertically).padding(horizontal = 5.dp))
-					rowColor = rowColor.next
-				}
-			}
-		}
-	}
+	AsyncSvg(
+		file = if (isExpanded) ImageResources.rootFileImage else ImageResources.rootFileImage,
+		modifier = Modifier.widthIn(max = 20.dp))
+
+	Spacer(Modifier.width(5.dp))
+	AsyncSvg(
+		file = ImageResources.rootFileImage,
+		modifier = Modifier.widthIn(max = 20.dp))
+	Spacer(Modifier.width(4.dp))
+	Text(
+		text = node.reference.localName,
+		color = LoadedStyle.color,
+		fontSize = LoadedStyle.size)
 }
 
 /**
@@ -118,8 +89,8 @@ fun ModuleRootView (node: RootNode)
 			color = AvailColors.GREY)
 
 		Spacer(Modifier.width(5.dp))
-		AsyncImageBitmap(
-			file = ImageResources.packageFileImage,
+		AsyncSvg(
+			file = ImageResources.rootFileImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 		Spacer(Modifier.width(4.dp))
 		Text(
@@ -131,7 +102,7 @@ fun ModuleRootView (node: RootNode)
 	{
 		rowColor = rowColor.next
 		val listState = rememberLazyListState()
-		LazyColumn (state = listState)
+		LazyColumn(state = listState, modifier = Modifier.padding(start = 15.dp))
 		{
 			items(node.sortedChildren) {
 				it.draw(rowColor)
@@ -148,7 +119,7 @@ fun ModuleView (
 	val rowColor = alternatingColor.next
 	Row (
 		modifier = Modifier.fillMaxWidth()
-			.padding(vertical = 3.dp, horizontal = 35.dp)
+			.padding(vertical = 3.dp, horizontal = 12.dp)
 			.background(rowColor.color),
 		verticalAlignment = Alignment.CenterVertically)
 	{
@@ -172,7 +143,7 @@ fun ModuleWithEntriesView (
 	val rowColor = alternatingColor.next
 	Row (
 		modifier = Modifier.fillMaxWidth()
-			.padding(vertical = 3.dp, horizontal = 35.dp)
+			.padding(vertical = 3.dp, horizontal = 12.dp)
 			.background(rowColor.color),
 		verticalAlignment = Alignment.CenterVertically)
 	{
@@ -196,13 +167,13 @@ fun ResourceView (
 	val rowColor = alternatingColor.next
 	Row (
 		modifier = Modifier.fillMaxWidth()
-			.padding(vertical = 3.dp, horizontal = 35.dp)
+			.padding(vertical = 3.dp, horizontal = 12.dp)
 			.background(rowColor.color),
 		verticalAlignment = Alignment.CenterVertically)
 	{
-		AsyncImageBitmap(
-			file = ImageResources.moduleFileImage,
-			modifier = Modifier.widthIn(max = 20.dp).heightIn(max = 20.dp))
+		AsyncSvg(
+			file = ImageResources.resourceFileImage,
+			modifier = Modifier.widthIn(max = 20.dp))
 		Text(
 			text = node.reference.localName,
 			color = LoadedStyle.color,
@@ -220,7 +191,7 @@ fun ModulePackageView (
 {
 	var isExpanded by remember { mutableStateOf(false) }
 	var rowColor = alternatingColor.next
-	val arrow = if (isExpanded) { "▽" } else { "▷" }
+	val arrow = if (isExpanded) { "▽" } else { "˃˃˃˃˃˃˲͕>˅⌄⬎" }
 	Row (
 		Modifier.clickable { isExpanded = !isExpanded }
 			.background(rowColor.color)
@@ -246,11 +217,10 @@ fun ModulePackageView (
 	{
 		rowColor = rowColor.next
 		val listState = rememberLazyListState()
-		LazyColumn (state = listState, modifier = Modifier.padding(start = 15.dp))
+		Column(modifier = Modifier.padding(start = 15.dp))
 		{
-
-			items(node.sortedChildren) {
-				it.draw(alternatingColor)
+			node.sortedChildren.forEach {
+				it.draw(rowColor)
 			}
 		}
 	}
@@ -276,8 +246,8 @@ fun DirectoryView (
 			color = AvailColors.GREY)
 
 		Spacer(Modifier.width(5.dp))
-		AsyncImageBitmap(
-			file = ImageResources.packageFileImage,
+		AsyncSvg(
+			file = ImageResources.resourceDirectoryImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 		Spacer(Modifier.width(4.dp))
 		Text(
@@ -289,10 +259,10 @@ fun DirectoryView (
 	{
 		rowColor = rowColor.next
 		val listState = rememberLazyListState()
-		LazyColumn (state = listState, modifier = Modifier.padding(start = 15.dp))
+		Column(modifier = Modifier.padding(start = 15.dp))
 		{
-			items(node.sortedChildren) {
-				it.draw(alternatingColor)
+			node.sortedChildren.forEach {
+				it.draw(rowColor)
 			}
 		}
 	}
@@ -305,7 +275,6 @@ fun DirectoryView (name: String, arrow: String)
 		text = arrow,
 		fontSize = 8.sp,
 		color = AvailColors.GREY)
-
 	Spacer(Modifier.width(5.dp))
 	AsyncImageBitmap(
 		file = ImageResources.packageFileImage,
@@ -316,3 +285,40 @@ fun DirectoryView (name: String, arrow: String)
 		color = LoadedStyle.color,
 		fontSize = LoadedStyle.size)
 }
+//
+//@Composable
+//private fun FileItemIcon(modifier: Modifier, node: AvailNode) =
+//	Box(modifier.size(24.dp).padding(4.dp))
+//	{
+//		when (node)
+//		{
+//			is DirectoryNode -> TODO()
+//			is ModuleNode -> TODO()
+//			is ModulePackageNode -> TODO()
+//			is RootNode -> TODO()
+//			is ResourceNode -> TODO()
+//		}
+//		when (node) {
+//			is FileTree.ItemType.Folder -> when {
+//				!type.canExpand -> Unit
+//				type.isExpanded -> Icon(
+//					Icons.Default.KeyboardArrowDown, contentDescription = null, tint = LocalContentColor.current
+//				)
+//				else -> Icon(
+//					Icons.Default.KeyboardArrowRight, contentDescription = null, tint = LocalContentColor.current
+//				)
+//			}
+//			is FileTree.ItemType.File -> when (type.ext) {
+//				"kt" -> Icon(Icons.Default.Code, contentDescription = null, tint = Color(0xFF3E86A0))
+//				"xml" -> Icon(Icons.Default.Code, contentDescription = null, tint = Color(0xFFC19C5F))
+//				"txt" -> Icon(Icons.Default.Description, contentDescription = null, tint = Color(0xFF87939A))
+//				"md" -> Icon(Icons.Default.Description, contentDescription = null, tint = Color(0xFF87939A))
+//				"gitignore" -> Icon(Icons.Default.BrokenImage, contentDescription = null, tint = Color(0xFF87939A))
+//				"gradle" -> Icon(Icons.Default.Build, contentDescription = null, tint = Color(0xFF87939A))
+//				"kts" -> Icon(Icons.Default.Build, contentDescription = null, tint = Color(0xFF3E86A0))
+//				"properties" -> Icon(Icons.Default.Settings, contentDescription = null, tint = Color(0xFF62B543))
+//				"bat" -> Icon(Icons.Default.Launch, contentDescription = null, tint = Color(0xFF87939A))
+//				else -> Icon(Icons.Default.TextSnippet, contentDescription = null, tint = Color(0xFF87939A))
+//			}
+//		}
+//}

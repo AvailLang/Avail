@@ -34,13 +34,12 @@ package avail.anvil
 
 import androidx.compose.material.MaterialTheme
 import androidx.compose.ui.window.singleWindowApplication
-import avail.anvil.file.FileExplorerView
 
 // DEVELOPMENT USE ONLY
 // This main entry is present to allow for running small portions of UI to test
 // things out.
 fun main() = singleWindowApplication {
 	MaterialTheme {
-		FileExplorerView()
+//		FileExplorerView()
 	}
 }

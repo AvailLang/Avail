@@ -214,8 +214,11 @@ data class ProjectDescriptor constructor(
 	 * @return
 	 *   A new `Project`.
 	 */
-	fun project (fileManager: FileManager = FileManager()): Project =
-		Project(this, fileManager).apply { walkRoots() }
+	fun project (
+		fileManager: FileManager = FileManager(),
+		then: (Project) -> Unit = {}
+	): Project =
+		Project(this, fileManager).apply { walkRoots(then) }
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -391,7 +394,7 @@ data class Project constructor(
 
 	val nodes = ConcurrentHashMap<String, AvailNode>()
 
-	fun walkRoots ()
+	fun walkRoots (then: (Project) -> Unit)
 	{
 		nodes.clear()
 		rootNodes.clear()
@@ -400,61 +403,68 @@ data class Project constructor(
 				val rootNode = RootNode(builder, refRoot, it)
 				rootNodes[rootNode.reference.qualifiedName] = rootNode
 				nodes[refRoot.qualifiedName] = rootNode
-				walkChildrenThen(refRoot, { visited ->
-					when(visited.type)
+				walkChildrenThen(
+					refRoot,
+					{ visited ->
+						when(visited.type)
+						{
+							ResourceType.MODULE ->
+							{
+								val parent =
+									nodes[visited.parentName]!!
+								val node = ModuleNode(parent, visited, builder)
+								nodes[visited.qualifiedName] = node
+								parent.addChild(node)
+							}
+							ResourceType.REPRESENTATIVE ->
+							{
+								val parent =
+									nodes[visited.parentName]!!
+								val node = ModuleNode(parent, visited, builder)
+								nodes[visited.qualifiedName] = node
+								parent.addChild(node)
+							}
+							ResourceType.PACKAGE ->
+							{
+								val parent =
+									nodes[visited.parentName]!!
+								val node =
+									ModulePackageNode(parent, visited, builder)
+								nodes[visited.qualifiedName] = node
+								parent.addChild(node)
+							}
+							ResourceType.ROOT ->
+							{
+								// shouldn't get here?
+							}
+							ResourceType.DIRECTORY ->
+							{
+								val parent =
+									nodes[visited.parentName]!!
+								val node =
+									DirectoryNode(parent, visited, builder)
+								nodes[visited.qualifiedName] = node
+								parent.addChild(node)
+							}
+							ResourceType.RESOURCE ->
+							{
+								val parent =
+									nodes[visited.parentName]!!
+								val node =
+									ResourceNode(parent, visited, builder)
+								nodes[visited.qualifiedName] = node
+								parent.addChild(node)
+							}
+						}
+					},
 					{
-						ResourceType.MODULE ->
-						{
-							val parent =
-								nodes[visited.parentName]!!
-							val node = ModuleNode(parent, visited, builder)
-							nodes[visited.qualifiedName] = node
-							parent.addChild(node)
-						}
-						ResourceType.REPRESENTATIVE ->
-						{
-							val parent =
-								nodes[visited.parentName]!!
-							val node = ModuleNode(parent, visited, builder)
-							nodes[visited.qualifiedName] = node
-							parent.addChild(node)
-						}
-						ResourceType.PACKAGE ->
-						{
-							val parent =
-								nodes[visited.parentName]!!
-							val node =
-								ModulePackageNode(parent, visited, builder)
-							nodes[visited.qualifiedName] = node
-							parent.addChild(node)
-						}
-						ResourceType.ROOT ->
-						{
-							// shouldn't get here?
-						}
-						ResourceType.DIRECTORY ->
-						{
-							val parent =
-								nodes[visited.parentName]!!
-							val node =
-								DirectoryNode(parent, visited, builder)
-							nodes[visited.qualifiedName] = node
-							parent.addChild(node)
-						}
-						ResourceType.RESOURCE ->
-						{
-							val parent =
-								nodes[visited.parentName]!!
-							val node =
-								ResourceNode(parent, visited, builder)
-							nodes[visited.qualifiedName] = node
-							parent.addChild(node)
-						}
-					}
-				})
-			}) { code, e ->
-
-			}
+						println("======== Walked $it (${this.descriptor.name}) ============")
+						then(this)
+					})
+				}) { code, e ->
+					System.err.println("Error: $code")
+					e?.printStackTrace()
+				}
 		}
 	}
 
@@ -490,9 +500,7 @@ data class Project constructor(
 	fun walkChildrenThen(
 		ref: ResolverReference,
 		withReference: (ResolverReference)->Unit,
-		afterAllVisited: (Int)->Unit = {
-			println("=======Walked $it files =========")
-		})
+		afterAllVisited: (Int)->Unit )
 	{
 		if (
 			ref.type != ResourceType.ROOT
