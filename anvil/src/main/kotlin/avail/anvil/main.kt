@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * main.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,60 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.generateBuildTime
-import org.jetbrains.compose.compose
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
-plugins {
-	java
-	kotlin("jvm")
-	id("org.jetbrains.compose")
-}
+package avail.anvil
 
-group = "com.avail"
-version = "1.0"
+import androidx.compose.desktop.DesktopMaterialTheme
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.WindowSize
+import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
+import avail.anvil.components.WorkspaceWindow
+import avail.anvil.models.ProjectDescriptor
 
-repositories {
-	google()
-	mavenCentral()
-	maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-}
-
-dependencies {
-	// Avail.
-	implementation(project(":avail-core"))
-	implementation(compose.desktop.currentOs)
-	implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
-}
-tasks {
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-}
-compose.desktop {
+fun main()
+{
+	Anvil.initialize()
 	application {
-		mainClass = "avail.anvil.MainKt"
-		nativeDistributions {
-			targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-			packageName = "anvil"
-			packageVersion = "1.0.0"
+		DesktopMaterialTheme {
+			val windowSize = rememberSaveable {
+				WindowSize(width = 800.dp, height = 600.dp)
+			}
+			if (Anvil.openProjects.isEmpty())
+			{
+				// TODO open dialog that lists known projects that can be
+				//  opened, with option to create new project. The new project
+				//  dialog can just be effectively the edit config project.
+
+				if (Anvil.knownProjects.isEmpty())
+				{
+					Anvil.addKnownProject(ProjectDescriptor("«test»"))
+				}
+				// TODO REMOVE
+				Anvil.knownProjects.forEach {
+					Anvil.openProjects[it.id] = it.project()
+				}
+			}
+			else
+			{
+				// TODO open projects?
+			}
+
+			// TODO remove this and associate the project config editor with the
+			//  project
+			Anvil.openProjects.values.toList().sorted().forEach { project ->
+				WorkspaceWindow(
+					project = project,
+					state = rememberWindowState(
+						width = windowSize.width,
+						height = windowSize.height))
+				{
+					Anvil.saveConfigToDisk()
+					exitApplication()
+				}
+			}
 		}
 	}
 }
+

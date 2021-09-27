@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * Errors.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,45 +29,14 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.generateBuildTime
-import org.jetbrains.compose.compose
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
-plugins {
-	java
-	kotlin("jvm")
-	id("org.jetbrains.compose")
-}
+package avail.anvil.utilities
 
-group = "com.avail"
-version = "1.0"
-
-repositories {
-	google()
-	mavenCentral()
-	maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-}
-
-dependencies {
-	// Avail.
-	implementation(project(":avail-core"))
-	implementation(compose.desktop.currentOs)
-	implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
-}
-tasks {
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-}
-compose.desktop {
-	application {
-		mainClass = "avail.anvil.MainKt"
-		nativeDistributions {
-			targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-			packageName = "anvil"
-			packageVersion = "1.0.0"
-		}
-	}
-}
+/**
+ * This call site should be unreachable in the control flow graph of the caller,
+ * so raise an exception if execution reaches here.
+ *
+ * @throws IllegalStateException
+ *   Always thrown.
+ */
+fun unreachable (): Nothing = error("unreachable")

@@ -544,7 +544,7 @@ class ResolverReference constructor(
 		 * @return
 		 *   The number of entries that were processed.
 		 */
-		private fun visitReference (
+		fun visitReference (
 			reference: ResolverReference,
 			visitResources: Boolean,
 			withReference: (ResolverReference)->Unit
