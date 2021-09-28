@@ -201,6 +201,7 @@ fun Workspace (
  * @param state
  *   The [WindowState].
  */
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WorkspaceContent (
 	descriptor: ProjectDescriptor,
@@ -211,7 +212,8 @@ private fun WorkspaceContent (
 	val height = state.size.height
 	val roots = descriptor.rootsCopy
 
-	DesktopMaterialTheme(colors = LocalTheme.current) {
+	DesktopMaterialTheme(colors = LocalTheme.current)
+	{
 		Surface(
 			shape = RectangleShape,
 			color = AvailColors.BG,
@@ -221,43 +223,6 @@ private fun WorkspaceContent (
 				.fillMaxSize()
 				.defaultMinSize(minWidth = width, minHeight = height)
 		) {
-			// Box(
-			//        modifier = Modifier.fillMaxSize()
-			//            .background(color = Color(180, 180, 180))
-			//            .padding(10.dp)
-			//    ) {
-			//        val stateVertical = rememberScrollState(0)
-			//        val stateHorizontal = rememberScrollState(0)
-			//
-			//        Box(
-			//            modifier = Modifier
-			//                .fillMaxSize()
-			//                .verticalScroll(stateVertical)
-			//                .padding(end = 12.dp, bottom = 12.dp)
-			//                .horizontalScroll(stateHorizontal)
-			//        ) {
-			//            Column {
-			//                for (item in 0..30) {
-			//                    TextBox("Item #$item")
-			//                    if (item < 30) {
-			//                        Spacer(modifier = Modifier.height(5.dp))
-			//                    }
-			//                }
-			//            }
-			//        }
-			//        VerticalScrollbar(
-			//            modifier = Modifier.align(Alignment.CenterEnd)
-			//                .fillMaxHeight(),
-			//            adapter = rememberScrollbarAdapter(stateVertical)
-			//        )
-			//        HorizontalScrollbar(
-			//            modifier = Modifier.align(Alignment.BottomStart)
-			//                .fillMaxWidth()
-			//                .padding(end = 12.dp),
-			//            adapter = rememberScrollbarAdapter(stateHorizontal)
-			//        )
-			//    }
-
 			Box {
 				val stateVertical = rememberScrollState()
 				val stateHorizontal = rememberScrollState()

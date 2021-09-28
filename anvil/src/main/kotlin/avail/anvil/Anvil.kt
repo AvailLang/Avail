@@ -34,6 +34,7 @@ package avail.anvil
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.utilities.Defaults
@@ -61,6 +62,11 @@ object Anvil: JSONFriendly
 	val defaults = Defaults()
 
 	/**
+	 *
+	 */
+	var isSufficientlyLoadedFromDisk = mutableStateOf(false)
+
+	/**
 	 * The [Project]s that Anvil presently knows exists.
 	 */
 	private val knownProjectMap =
@@ -83,6 +89,30 @@ object Anvil: JSONFriendly
 	 */
 	fun project (id: String): ProjectDescriptor? =
 		knownProjectMap[id]
+
+	/**
+	 * Close the [open project][openProjects] with the given project id.
+	 *
+	 * @param id
+	 *   The [Project.id] to remove.
+	 */
+	fun closeProject (id: String)
+	{
+		openProjects.remove(id)
+		saveConfigToDisk()
+	}
+
+	/**
+	 * Open the [Project].
+	 *
+	 * @param project
+	 *   The `project` to add to [openProjects].
+	 */
+	fun openProject (project: Project)
+	{
+		openProjects[project.id] = project
+		saveConfigToDisk()
+	}
 
 	/**
 	 * The [Project]s that Anvil presently has open.
@@ -137,17 +167,21 @@ object Anvil: JSONFriendly
 					"`knownProjects`.")
 			val descriptor = ProjectDescriptor.from(projObj)
 			knownProjectMap[descriptor.id] = descriptor
-			println("Added project: ${descriptor.name}")
 		}
 		val opens = obj.getArray(OPEN_PROJECTS)
-		println("Open projects: ${opens.size()}")
-		opens.forEach { data ->
-			(data as? JSONValue)?.string?.let { key ->
-				knownProjectMap[key]?.let { descriptor ->
-					println("Opening Project: ${descriptor.name} (${descriptor.id})")
-					descriptor.project { project ->
-						println("Open Project: ${project.descriptor.name}")
-						openProjects[project.id] = project
+		if (opens.size() == 0)
+		{
+			isSufficientlyLoadedFromDisk.value = true
+		}
+		else
+		{
+			opens.forEach { data ->
+				(data as? JSONValue)?.string?.let { key ->
+					knownProjectMap[key]?.let { descriptor ->
+						descriptor.project { project ->
+							openProjects[project.id] = project
+							isSufficientlyLoadedFromDisk.value = true
+						}
 					}
 				}
 			}

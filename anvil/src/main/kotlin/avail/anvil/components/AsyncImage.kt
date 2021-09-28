@@ -32,18 +32,12 @@
 
 package avail.anvil.components
 
-/**
- * A `AsyncImage` is TODO: Document this!
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- */
 import androidx.compose.foundation.Image
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.painter.BitmapPainter
 import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -53,18 +47,17 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.loadImageBitmap
 import androidx.compose.ui.res.loadSvgPainter
 import androidx.compose.ui.res.loadXmlImageVector
-import androidx.compose.ui.unit.Density
+import avail.anvil.themes.ImageResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import org.xml.sax.InputSource
-import java.io.File
 import java.io.IOException
 
 /**
- * Load an [ImageBitmap] asynchronously.
+ * Load an SVG image asynchronously.
  *
- * @param file
- *   The [File] to load.
+ * @param resource
+ *   The resource to load.
  * @param contentDescription
  *   The [Image] `contentDescription` input that describes the image.
  * @param modifier
@@ -75,13 +68,16 @@ import java.io.IOException
  */
 @Composable
 fun AsyncImageBitmap(
-	file: File,
+	resource: String,
 	contentDescription: String = "",
 	modifier: Modifier = Modifier,
 	contentScale: ContentScale = ContentScale.Fit, )
 {
 	AsyncImage(
-		load = { loadImageBitmap(file) },
+		load = {
+			val input = ImageResources.resource(resource)
+			loadImageBitmap(input)
+	   },
 		painterFor = { remember { BitmapPainter(it) } },
 		contentDescription = contentDescription,
 		modifier = modifier,
@@ -91,8 +87,8 @@ fun AsyncImageBitmap(
 /**
  * Load an SVG image asynchronously.
  *
- * @param file
- *   The [File] to load.
+ * @param resource
+ *   The resource to load.
  * @param contentDescription
  *   The [Image] `contentDescription` input that describes the image.
  * @param modifier
@@ -103,15 +99,22 @@ fun AsyncImageBitmap(
  */
 @Composable
 fun AsyncSvg(
-	file: File,
+	resource: String,
 	contentDescription: String = "",
 	modifier: Modifier = Modifier,
 	contentScale: ContentScale = ContentScale.Fit, )
 {
 	val density = LocalDensity.current
 	AsyncImage(
-		load = { loadSvgPainter(file, density) },
-		painterFor = { remember { it } },
+		load = {
+			val input = ImageResources.resource(resource)
+			loadSvgPainter(input, density)
+		},
+		painterFor = {
+			remember {
+				it
+			}
+					 },
 		contentDescription = contentDescription,
 		modifier = modifier,
 		contentScale = contentScale)
@@ -120,8 +123,8 @@ fun AsyncSvg(
 /**
  * Load an [ImageVector] image asynchronously.
  *
- * @param file
- *   The [File] to load.
+ * @param resource
+ *   The resource to load.
  * @param contentDescription
  *   The [Image] `contentDescription` input that describes the image.
  * @param modifier
@@ -132,14 +135,18 @@ fun AsyncSvg(
  */
 @Composable
 fun AsyncImageVector(
-	file: File,
+	resource: String,
 	contentDescription: String = "",
 	modifier: Modifier = Modifier,
 	contentScale: ContentScale = ContentScale.Fit, )
 {
 	val density = LocalDensity.current
 	AsyncImage(
-		load = { loadXmlImageVector(file, density) },
+		load =
+		{
+			val input = ImageResources.resource(resource)
+			loadXmlImageVector(InputSource(input), density)
+		},
 		painterFor = { rememberVectorPainter(it) },
 		contentDescription = contentDescription,
 		modifier = modifier,
@@ -205,9 +212,9 @@ fun <T> AsyncImage(
 ) {
 	val image: T? by produceState<T?>(null)
 	{
-		value = withContext(Dispatchers.IO)
+		withContext(Dispatchers.IO)
 		{
-			try
+			value = try
 			{
 				load()
 			}
@@ -218,7 +225,6 @@ fun <T> AsyncImage(
 			}
 		}
 	}
-
 	if (image != null)
 	{
 		Image(
@@ -229,47 +235,3 @@ fun <T> AsyncImage(
 		)
 	}
 }
-
-/**
- * Answer an [ImageBitmap] using the provided [File].
- *
- * @param file
- *   The file to load.
- * @return
- *   The corresponding Image Bitmap.
- */
-fun loadImageBitmap(file: File): ImageBitmap =
-	file.inputStream().buffered().use(::loadImageBitmap)
-
-/**
- * Answer an [ImageBitmap] using the provided [File].
- *
- * @param file
- *   The file to load.
- * @param density
- *   The density that will be used to set the intrinsic size of the Painter. If
- *   the image will be drawn with the specified size, density will have no
- *   effect.
- * @return
- *   The corresponding Image Bitmap.
- */
-fun loadSvgPainter(file: File, density: Density): Painter =
-	file.inputStream().buffered().use {
-		println("Load: ${file.absolutePath}")
-		loadSvgPainter(it, density)
-	}
-
-/**
- * Answer an [ImageVector] using the provided [File].
- *
- * @param file
- *   The file to load.
- * @param density
- *   The density that will be used to set the default size of the `ImageVector`.
- *   If the image will be drawn with the specified size, density will have no
- *   effect.
- * @return
- *   The corresponding Image Vector.
- */
-fun loadXmlImageVector(file: File, density: Density): ImageVector =
-	file.inputStream().buffered().use { loadXmlImageVector(InputSource(it), density) }

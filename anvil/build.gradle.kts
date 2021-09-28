@@ -54,7 +54,14 @@ dependencies {
 	implementation(compose.desktop.currentOs)
 	implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
 }
+
 tasks {
+//	jar {
+//		from("src/main/kotlin") {
+//			include("src/main/resources/*.*")
+//		}
+//	}
+
 	classes {
 		doLast {
 			generateBuildTime(this)

@@ -32,7 +32,7 @@
 
 package avail.anvil.themes
 
-import java.io.File
+import java.io.InputStream
 import java.net.URL
 
 /**
@@ -50,106 +50,62 @@ object ImageResources
 	 * @return
 	 *   The resource [URL].
 	 */
-	fun resource (resource: String): URL =
-		this.javaClass.classLoader.getResource(resource)
+	fun resource (resource: String): InputStream =
+		this.javaClass.classLoader.getResourceAsStream(resource)
 			?: error("Cound not locate resource $resource")
 
 	/**
 	 * The image file of an Avail logo with a hammer.
 	 */
-	val availHammer by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("AvailHammer.svg")!!.file)
-	}
+	val availHammer = "AvailHammer.svg"
 
 	/**
 	 * The image file used to represent an Avail Module file.
 	 */
-	val moduleFileImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("ModuleInTree.png")!!.file)
-	}
+	val moduleFileImage = "ModuleInTree.png"
 
 	/**
 	 * The image file used to represent an Avail Module package.
 	 */
-	val packageFileImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("PackageInTree.png")!!.file)
-	}
+	val packageFileImage = "PackageInTree.png"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val resourceFileImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("file_resource_24dp.svg")!!.file)
-	}
+	val resourceFileImage = "file_resource_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val rootFileImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("folder_blue_24dp.svg")!!.file)
-	}
+	val rootFileImage = "folder_blue_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val resourceDirectoryImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("folder_yellow_24dp.svg")!!.file)
-	}
+	val resourceDirectoryImage = "folder_yellow_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val expandedDirectoryImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("expand_more_grey_24dp.svg")!!.file)
-	}
+	val expandedDirectoryImage = "expand_more_grey_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val collapsedDirectoryImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("chevron_right_grey_24dp.svg")!!.file)
-	}
+	val collapsedDirectoryImage = "chevron_right_grey_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val expandedModuleImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("unfold_more_blue_24dp.svg")!!.file)
-	}
+	val expandedModuleImage = "unfold_more_blue_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val collapsedModuleImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("unfold_less_blue_24dp.svg")!!.file)
-	}
+	val collapsedModuleImage = "unfold_less_blue_24dp.svg"
 
 	/**
 	 * The image file used to represent an Avail root.
 	 */
-	val playArrowImage by lazy {
-		File(
-			this.javaClass.classLoader
-				.getResource("play_arrow_green_24dp.svg")!!.file)
-	}
+	val playArrowImage = "play_arrow_green_24dp.svg"
 }

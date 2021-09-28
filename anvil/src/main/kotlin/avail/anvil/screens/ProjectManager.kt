@@ -36,21 +36,17 @@ import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.Button
-import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.Edit
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -72,13 +68,14 @@ import avail.anvil.components.DataColumn
 import avail.anvil.components.HeaderLabel
 import avail.anvil.components.ModuleRootLabel
 import avail.anvil.components.TableView
-import avail.anvil.components.Workspace
-import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.models.ProjectRoot
 import avail.anvil.themes.LocalTheme
 import avail.anvil.themes.anvilTheme
 
+/**
+ * Display the Project Manager Window.
+ */
 @Composable
 fun ProjectManagerView (
 	onClose: () -> Unit = {})
@@ -104,15 +101,8 @@ fun ProjectManagerView (
 }
 
 /**
- * A `ProjectManager` is TODO: Document this!
+ * Present the content of a the project manager window.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- */
-/**
- * Present the content of a [workspace][Workspace]. The [project][Project] and
- * theme have been injected by the enclosing [Workspace].
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga
  *
  * @param state
@@ -155,7 +145,7 @@ fun ProjectManagerWorkspaceContent (
 									v.name,
 									modifier = Modifier.clickable {
 										v.project {
-											Anvil.openProjects[v.id] = it
+											Anvil.openProject(it)
 											onClose()
 										}
 									})

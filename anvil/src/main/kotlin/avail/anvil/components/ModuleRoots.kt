@@ -483,8 +483,7 @@ internal fun AvailProjectEditor (
 										Anvil.openProjects[descriptor.id]
 											?.stopRuntime()
 										descriptor.project {
-											Anvil.openProjects[descriptor.id] =
-												it
+											Anvil.openProject(it)
 											onClose()
 										}
 									})

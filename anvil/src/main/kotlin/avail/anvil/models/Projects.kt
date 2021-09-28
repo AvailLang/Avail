@@ -34,10 +34,17 @@ package avail.anvil.models
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.WindowSize
+import androidx.compose.ui.window.rememberWindowState
+import avail.anvil.Anvil
 import avail.anvil.Anvil.defaults
+import avail.anvil.components.WorkspaceWindow
 import com.avail.AvailRuntime
 import avail.anvil.file.AvailNode
 import avail.anvil.file.DirectoryNode
+import avail.anvil.file.EntryPointNode
 import avail.anvil.file.ModuleNode
 import avail.anvil.file.ModulePackageNode
 import avail.anvil.file.ResourceNode
@@ -46,6 +53,7 @@ import avail.anvil.utilities.createAvailRuntime
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleName
 import com.avail.builder.ModuleNameResolver
+import com.avail.builder.ModuleRoot
 import com.avail.builder.ModuleRoots
 import com.avail.builder.RenamesFileParser
 import com.avail.compiler.CompilerProgressReporter
@@ -62,9 +70,10 @@ import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONObject
 import com.avail.utility.json.JSONWriter
 import java.net.URI
-import java.util.LinkedList
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicInteger
 
 ////////////////////////////////////////////////////////////////////////////////
 //                                Projects.                                   //
@@ -218,7 +227,16 @@ data class ProjectDescriptor constructor(
 		fileManager: FileManager = FileManager(),
 		then: (Project) -> Unit = {}
 	): Project =
-		Project(this, fileManager).apply { walkRoots(then) }
+		Project(this, fileManager).apply {
+			initializeRootsThen({
+				walkRoots(then)
+			},
+			{
+				// TODO?
+				then(this)
+			})
+
+		}
 
 	override fun writeTo(writer: JSONWriter)
 	{
@@ -293,24 +311,107 @@ data class Project constructor(
 	 */
 	val id: String get() = descriptor.id
 
+	/**
+	 * `true` indicates [build] is running, `false` otherwise.
+	 */
+	private val isBuilding = AtomicBoolean(false)
+
+	/**
+	 * The list of String errors received while resolving module roots for this
+	 * project.
+	 */
 	private val moduleRootResolutionErrors = mutableListOf<String>()
+
+	/**
+	 * Add a [ProjectRoot] to this [Project].
+	 *
+	 * @param root
+	 *   The `ProjectRoot` to add.
+	 * @param successHandler
+	 *   The lambda to run if adding the rot was successful.
+	 * @param failureHandler
+	 *   The lambda that accepts the list of failures to run if adding the root
+	 *   fails.
+	 */
+	internal fun addRoot (
+		root: ProjectRoot,
+		successHandler: () -> Unit,
+		failureHandler: (List<String>)->Unit)
+	{
+		moduleRoots.addRoot(root.name, root.uri) {
+			if (it.isEmpty())
+			{
+				successHandler()
+			}
+			else
+			{
+				failureHandler(it)
+			}
+		}
+	}
+
+	/**
+	 * Initialize this [Project]'s [ModuleRoots] with all the [ProjectRoot]s
+	 * listed in its [descriptor].
+	 *
+	 * @param successHandler
+	 *   The lambda to run if adding the rot was successful.
+	 * @param failureHandler
+	 *   The lambda that accepts the list of failures to run if adding the root
+	 *   fails.
+	 */
+	fun initializeRootsThen (
+		successHandler: ()->Unit,
+		failureHandler: (List<String>)->Unit)
+	{
+		val rootCount = AtomicInteger(descriptor.roots.size)
+		val errorList = mutableListOf<String>()
+		descriptor.roots.values.forEach { root ->
+			addRoot(root,
+				{
+					if (rootCount.decrementAndGet() == 0)
+					{
+						if (errorList.isEmpty())
+						{
+							moduleNameResolver
+							successHandler()
+						}
+						else
+						{
+							moduleRootResolutionErrors.addAll(errorList)
+							failureHandler(errorList)
+						}
+					}
+				},
+				{
+					errorList.addAll(it)
+					if (rootCount.decrementAndGet() == 0)
+					{
+						if (errorList.isEmpty())
+						{
+							successHandler()
+						}
+						else
+						{
+							failureHandler(errorList)
+						}
+					}
+				})
+		}
+	}
 
 	/**
 	 * The [ModuleRoots] for this [Project].
 	 */
-	val moduleRoots: ModuleRoots = run {
-		val moduleRoots = ModuleRoots(fileManager, "") {
+	private val moduleRoots: ModuleRoots =
+		ModuleRoots(fileManager, "") {
 			moduleRootResolutionErrors.addAll(it)
 		}
-		descriptor.roots.values.forEach { root ->
-			moduleRoots.addRoot(root.name, root.uri) {
-				moduleRootResolutionErrors.addAll(it)
-			}
-		}
-		moduleRoots
-	}
 
-	val moduleNameResolver: ModuleNameResolver = run {
+	/**
+	 * The [ModuleNameResolver] for this project.
+	 */
+	val moduleNameResolver: ModuleNameResolver by lazy {
 		val renamesFileParser = RenamesFileParser(
 			descriptor.renamesFileBody.reader(), moduleRoots)
 		renamesFileParser.parse()
@@ -342,13 +443,17 @@ data class Project constructor(
 	 *   The [fully qualified module name][ModuleName.qualifiedName].
 	 * @param done
 	 *   The lambda to run after build is complete.
+	 * @return
 	 */
-	fun build (qualifiedModuleName: String, done: () -> Unit)
+	fun build (qualifiedModuleName: String, done: () -> Unit): Boolean
 	{
+		if (isBuilding.getAndSet(true))
+		{
+			return false
+		}
 		val resolvedModuleName =
 			builder.runtime.moduleNameResolver.resolve(
 				ModuleName(qualifiedModuleName), null)
-		println("Target module for compilation: $qualifiedModuleName")
 
 		val progressReporter: CompilerProgressReporter =
 			{   moduleName,
@@ -367,7 +472,6 @@ data class Project constructor(
 				// module. This can be used to show a counter counting up:
 				// "$bytesCompiled / $totalBytesToCompile"
 			}
-		println("Compiling...")
 		builder.buildTargetThen(
 			resolvedModuleName,
 			progressReporter,
@@ -387,135 +491,146 @@ data class Project constructor(
 					decider(false)
 				}
 			}
-		) { done() }
+		) {
+			done()
+			isBuilding.set(false)
+		}
+		return true
 	}
 
+	/**
+	 * The [RootNode]s in this [Project].
+	 */
 	val rootNodes = ConcurrentHashMap<String, RootNode>()
 
-	val nodes = ConcurrentHashMap<String, AvailNode>()
+	/**
+	 * The map of [ResolverReference.qualifiedName] to the corresponding
+	 * [AvailNode].
+	 */
+	private val nodes = ConcurrentHashMap<String, AvailNode>()
 
+	/**
+	 * Walk all the [ModuleRoot]s populating all the [AvailNode]s ([nodes]) for
+	 * this [Project].
+	 *
+	 * @param then
+	 *   The lambda that accepts this project that is run after the entire
+	 *   project is walked.
+	 */
 	fun walkRoots (then: (Project) -> Unit)
 	{
 		nodes.clear()
 		rootNodes.clear()
 		runtime.moduleRoots().forEach {
-			it.resolver.provideModuleRootTree({ refRoot ->
-				val rootNode = RootNode(builder, refRoot, it)
-				rootNodes[rootNode.reference.qualifiedName] = rootNode
-				nodes[refRoot.qualifiedName] = rootNode
-				walkChildrenThen(
-					refRoot,
-					{ visited ->
-						when(visited.type)
-						{
-							ResourceType.MODULE ->
-							{
-								val parent =
-									nodes[visited.parentName]!!
-								val node = ModuleNode(parent, visited, builder)
-								nodes[visited.qualifiedName] = node
-								parent.addChild(node)
-							}
-							ResourceType.REPRESENTATIVE ->
-							{
-								val parent =
-									nodes[visited.parentName]!!
-								val node = ModuleNode(parent, visited, builder)
-								nodes[visited.qualifiedName] = node
-								parent.addChild(node)
-							}
-							ResourceType.PACKAGE ->
-							{
-								val parent =
-									nodes[visited.parentName]!!
-								val node =
-									ModulePackageNode(parent, visited, builder)
-								nodes[visited.qualifiedName] = node
-								parent.addChild(node)
-							}
-							ResourceType.ROOT ->
-							{
-								// shouldn't get here?
-							}
-							ResourceType.DIRECTORY ->
-							{
-								val parent =
-									nodes[visited.parentName]!!
-								val node =
-									DirectoryNode(parent, visited, builder)
-								nodes[visited.qualifiedName] = node
-								parent.addChild(node)
-							}
-							ResourceType.RESOURCE ->
-							{
-								val parent =
-									nodes[visited.parentName]!!
-								val node =
-									ResourceNode(parent, visited, builder)
-								nodes[visited.qualifiedName] = node
-								parent.addChild(node)
-							}
-						}
-					},
-					{
-						println("======== Walked $it (${this.descriptor.name}) ============")
-						then(this)
-					})
-				}) { code, e ->
-					System.err.println("Error: $code")
-					e?.printStackTrace()
-				}
+			walkRoot(it, then)
 		}
 	}
 
 	/**
-	 * Draw the file tree to screen
+	 * Walk the provided roots.
+	 */
+	private fun walkRoot(root: ModuleRoot, then: (Project) -> Unit)
+	{
+		root.resolver.provideModuleRootTree({ refRoot ->
+			val rootNode = RootNode(this, refRoot, root)
+			rootNodes[rootNode.reference.qualifiedName] = rootNode
+			nodes[refRoot.qualifiedName] = rootNode
+			refRoot.walkChildrenThen(true, { visited ->
+				when(visited.type)
+				{
+					ResourceType.MODULE ->
+					{
+						val parent =
+							nodes[visited.parentName]!!
+						val node = ModuleNode(parent, visited, this)
+						nodes[visited.qualifiedName] = node
+						parent.addChild(node)
+					}
+					ResourceType.REPRESENTATIVE ->
+					{
+						val parent =
+							nodes[visited.parentName]!!
+						val node = ModuleNode(parent, visited, this)
+						nodes[visited.qualifiedName] = node
+						parent.addChild(node)
+					}
+					ResourceType.PACKAGE ->
+					{
+						val parent =
+							nodes[visited.parentName]!!
+						val node =
+							ModulePackageNode(parent, visited, this)
+						nodes[visited.qualifiedName] = node
+						parent.addChild(node)
+					}
+					ResourceType.ROOT ->
+					{
+						// shouldn't get here?
+					}
+					ResourceType.DIRECTORY ->
+					{
+						val parent =
+							nodes[visited.parentName]!!
+						val node =
+							DirectoryNode(parent, visited, this)
+						nodes[visited.qualifiedName] = node
+						parent.addChild(node)
+					}
+					ResourceType.RESOURCE ->
+					{
+						val parent =
+							nodes[visited.parentName]!!
+						val node =
+							ResourceNode(parent, visited, this)
+						nodes[visited.qualifiedName] = node
+						parent.addChild(node)
+					}
+				}
+			},
+				{
+					builder.traceDirectoriesThen(
+						{ name, version, after ->
+							val entryPoints = version.getEntryPoints()
+							if (entryPoints.isNotEmpty())
+							{
+								val node =
+									nodes[name.qualifiedName]
+								if (node != null && node is ModuleNode)
+								{
+									entryPoints.forEach {
+										node.entryPointNodes.add(
+											EntryPointNode(node, it))
+									}
+								}
+							}
+							after()
+						}) { then(this) }
+				})
+		}) { code, e ->
+			System.err.println("Error: $code")
+			e?.printStackTrace()
+		}
+	}
+
+	/**
+	 * Open the project screen for this [Project].
 	 */
 	@Composable
-	fun ProjectFileTree ()
+	fun OpenProject ()
 	{
-
-	}
-
-	/**
-	 * Walk the [children][childReferences] of this [ResolverReference]. This
-	 * reference **must** be either a [root][ResourceType.ROOT],
-	 * [package][ResourceType.PACKAGE], or
-	 * [directory][ResourceType.DIRECTORY].
-	 *
-	 * **NOTE** Graph uses depth-first traversal to visit each reference.
-	 *
-	 * @param visitResources
-	 *   `true` indicates [resources][ResolverReference.isResource] should
-	 *   be included in the walk; `false` indicates walk should be
-	 *   restricted to packages and [modules][ResourceType.MODULE].
-	 * @param withReference
-	 *   The lambda that accepts the visited [ResolverReference]. This
-	 *   `ResolverReference` will not be provided to the lambda.
-	 * @param afterAllVisited
-	 *   The lambda that accepts the total number of
-	 *   [modules][ResolverReference.isModule] visited to be called after
-	 *   all `ResolverReference`s have been visited.
-	 */
-	fun walkChildrenThen(
-		ref: ResolverReference,
-		withReference: (ResolverReference)->Unit,
-		afterAllVisited: (Int)->Unit )
-	{
-		if (
-			ref.type != ResourceType.ROOT
-			&& !ref.isPackage
-			&& ref.type != ResourceType.DIRECTORY)
-		{
-			// If there's nothing to walk, then walk nothing.
-			return
+		val windowSize = rememberSaveable {
+			WindowSize(width = 800.dp, height = 600.dp)
 		}
-		val top = ref.modules + LinkedList(ref.childReferences(true))
-		afterAllVisited(
-			top.fold(0) { count, module ->
-				count + ResolverReference.visitReference(
-					module, true, withReference)
-			})
+		WorkspaceWindow(
+			descriptor = descriptor,
+			state = rememberWindowState(
+				width = windowSize.width,
+				height = windowSize.height))
+		{
+			Anvil.saveConfigToDisk()
+			stopRuntime()
+			Anvil.closeProject(id)
+		}
 	}
 
 	override fun compareTo(other: Project): Int =

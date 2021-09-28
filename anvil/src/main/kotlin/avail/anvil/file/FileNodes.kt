@@ -32,23 +32,41 @@
 
 package avail.anvil.file
 
+import androidx.compose.foundation.ExperimentalDesktopApi
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.mouseClickable
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clipToBounds
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.nativeKeyCode
+import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.max
 import avail.anvil.components.AsyncImageBitmap
 import avail.anvil.components.AsyncSvg
 import avail.anvil.models.Project
@@ -73,9 +91,11 @@ import com.avail.resolver.ResourceType
  *   The [ResolverReference] that this [AvailNode] points to.
  */
 sealed class AvailNode constructor(
-	val builder: AvailBuilder,
+	val project: Project,
 	val reference: ResolverReference): Comparable<AvailNode>
 {
+	val builder: AvailBuilder get() = project.builder
+
 	/**
 	 * This [AvailNode]'s immediate parent node.
 	 */
@@ -88,12 +108,12 @@ sealed class AvailNode constructor(
 		parentNode?.let { it.indent + 1 } ?: 0
 	}
 
+	val rawIndent by lazy { indent * 12 + 4 }
+
 	/**
 	 * The indention [Dp] for this [AvailNode].
 	 */
-	val indentPadding: Dp by lazy {
-		(indent * 12 + 4).dp
-	}
+	val indentPadding: Dp by lazy { rawIndent.dp }
 
 	/**
 	 * `true` indicates this is a directory; `false` otherwise.
@@ -109,27 +129,44 @@ sealed class AvailNode constructor(
 	/**
 	 * `true` indicates it is expanded showing its children; `false` otherwise.
 	 */
-	protected var isExpanded by mutableStateOf(false)
+	protected var isExpanded= false
 
 	/**
 	 * `true` indicates there are [children]; `false` otherwise.
 	 */
-	internal var hasChildren  by mutableStateOf(children.isNotEmpty())
+	protected var hasChildren  by mutableStateOf(children.isNotEmpty())
+
+	protected fun build (then: () -> Unit): Boolean =
+		project.build(reference.qualifiedName, then)
 
 	/**
 	 * Draw the expandable icon if there are [children].
 	 */
 	@Composable
-	internal open fun ExpandableIcon ()
+	internal open fun ExpandableIcon (expanded: MutableState<Boolean>)
 	{
-		if(hasChildren)
+		if (hasChildren)
 		{
-			AsyncSvg(
-				file =
-					if (isExpanded) ImageResources.expandedDirectoryImage
-					else ImageResources.collapsedDirectoryImage,
-				modifier =
-					Modifier.padding(start = indentPadding).widthIn(max = 18.dp))
+			val modifier =
+				Modifier
+					.clickable {
+						expanded.value = !expanded.value
+						isExpanded = expanded.value
+					}
+					.padding(start = indentPadding).widthIn(max = 18.dp)
+			if (expanded.value)
+			{
+				AsyncSvg(
+					resource = ImageResources.expandedDirectoryImage,
+					modifier = modifier)
+
+			}
+			else
+			{
+				AsyncSvg(
+					resource = ImageResources.collapsedDirectoryImage,
+					modifier = modifier)
+			}
 		}
 		else
 		{
@@ -138,13 +175,13 @@ sealed class AvailNode constructor(
 	}
 
 	/**
-	 * The
+	 * Draw the icon that represents this file type
 	 */
 	@Composable
 	abstract fun FileIcon ()
 
 	/**
-	 * The [ModuleRootResolver] used for the [ModuleRootView] this node is part of.
+	 * The [ModuleRootResolver] used for the [draw] this node is part of.
 	 */
 	abstract val resolver: ModuleRootResolver
 
@@ -166,32 +203,54 @@ sealed class AvailNode constructor(
 	/**
 	 * Answer a [Composable] lambda that accepts a [AlternatingRowColor].
 	 */
+	@ExperimentalComposeUiApi
+	@OptIn(ExperimentalFoundationApi::class,
+		androidx.compose.foundation.ExperimentalDesktopApi::class)
 	@Composable
 	open fun draw (alternatingColor: AlternatingRowColor = ROW1)
 	{
+		val expanded = remember { mutableStateOf(isExpanded) }
 		// TODO add padding based on indentation
-		val modifier =
-			Modifier.clickable { isExpanded = !isExpanded }
+		val modifier = Modifier
 		if (!isDirectory)
 		{
 			modifier.background(alternatingColor.next.color)
 		}
-		modifier.fillMaxWidth()
 
+		modifier.fillMaxWidth()
 		Row (
 			modifier = modifier,
 			verticalAlignment = Alignment.CenterVertically)
 		{
-			ExpandableIcon()
+			ExpandableIcon(expanded)
 			Spacer(Modifier.width(5.dp))
 			FileIcon()
 			Spacer(Modifier.width(4.dp))
-			Text(
-				text = reference.localName,
-				color = LoadedStyle.color,
-				fontSize = LoadedStyle.size)
+			SelectionContainer {
+				val active = remember { mutableStateOf(false) }
+				val textColor =
+					if (active.value) LoadedStyle.color.copy(alpha = 0.6f)
+					else LoadedStyle.color
+				Text(
+					text = reference.localName,
+					color = textColor,
+					fontSize = LoadedStyle.size,
+					modifier = Modifier
+						.align(Alignment.CenterVertically)
+						.clipToBounds()
+						.pointerMoveFilter(
+							onEnter = {
+								active.value = true
+								true
+							},
+							onExit = {
+								active.value = false
+								true
+							}
+						))
+			}
 		}
-		if (isExpanded)
+		if (expanded.value)
 		{
 			val rowColor = ROW1
 			sortedChildren.forEach { it.draw(rowColor) }
@@ -270,25 +329,27 @@ sealed class AvailNode constructor(
  * An [AvailNode] that represents a [ResourceType.ROOT] node.
  *
  * @author Richard Arriaga.
- *
- * @property root
- *   The corresponding [ModuleRootView].
  */
 class RootNode constructor(
-	builder: AvailBuilder,
+	project: Project,
 	reference: ResolverReference,
 	val root: ModuleRoot
-): AvailNode(builder, reference)
+): AvailNode(project, reference)
 {
 	override val isDirectory: Boolean = true
 	override val parentNode: AvailNode? = null
 	override val resolver: ModuleRootResolver get() = root.resolver
 
+	fun f ()
+	{
+		reference.moduleName
+	}
+
 	@Composable
 	override fun FileIcon()
 	{
 		AsyncSvg(
-			file = ImageResources.rootFileImage,
+			resource = ImageResources.rootFileImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 	}
 }
@@ -297,27 +358,99 @@ class RootNode constructor(
  * An [AvailNode] that represents a [ResourceType.PACKAGE] node.
  *
  * @author Richard Arriaga.
- *
- * @property root
- *   The corresponding [ModuleRootView].
  */
 class ModulePackageNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	builder: AvailBuilder
-): AvailNode(builder, reference)
+	project: Project
+): AvailNode(project, reference)
 {
 	override val isDirectory: Boolean = true
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
+	private val isbuilding = mutableStateOf(false)
 
 	@Composable
 	override fun FileIcon()
 	{
 		AsyncImageBitmap(
-			file = ImageResources.packageFileImage,
+			resource = ImageResources.packageFileImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 	}
+
+	@OptIn(ExperimentalDesktopApi::class)
+	@Composable
+	@ExperimentalComposeUiApi
+	override fun draw(alternatingColor: AlternatingRowColor)
+	{
+		val expanded = remember { mutableStateOf(isExpanded) }
+		// TODO add padding based on indentation
+		val modifier = Modifier
+		if (!isDirectory)
+		{
+			modifier.background(alternatingColor.next.color)
+		}
+		val building by remember { isbuilding }
+		val textModifier = Modifier.mouseClickable(
+			onClick = {
+				if (buttons.isPrimaryPressed
+					&& keyboardModifiers.isShiftPressed)
+				{
+					isbuilding.value = build { isbuilding.value = false }
+				}
+			})
+		modifier.fillMaxWidth()
+		Row (
+			modifier = modifier,
+			verticalAlignment = Alignment.CenterVertically)
+		{
+			ExpandableIcon(expanded)
+			Spacer(Modifier.width(5.dp))
+			FileIcon()
+			Spacer(Modifier.width(4.dp))
+			SelectionContainer {
+				val active = remember { mutableStateOf(false) }
+				val textColor =
+					if (active.value) LoadedStyle.color.copy(alpha = 0.6f)
+					else LoadedStyle.color
+				Text(
+					text = reference.localName,
+					color = textColor,
+					fontSize = LoadedStyle.size,
+					modifier = textModifier
+						.align(Alignment.CenterVertically)
+						.clipToBounds()
+						.pointerMoveFilter(
+							onEnter = {
+								active.value = true
+								true
+							},
+							onExit = {
+								active.value = false
+								true
+							}
+						))
+			}
+			if (building)
+			{
+				Spacer(Modifier.width(5.dp))
+				Box (Modifier.fillMaxSize().align(Alignment.CenterVertically), Alignment.Center)
+				{
+					CircularProgressIndicator(
+						modifier =
+							Modifier.heightIn(max = 10.dp).widthIn(max = 10.dp),
+						color = Color(0xFFAEB0B2),
+						strokeWidth = 2.dp)
+				}
+			}
+		}
+		if (expanded.value)
+		{
+			val rowColor = ROW1
+			sortedChildren.forEach { it.draw(rowColor) }
+		}
+	}
 }
+
 /**
  * An [AvailNode] that represents a [ResourceType.DIRECTORY] node.
  *
@@ -326,8 +459,8 @@ class ModulePackageNode constructor(
 class DirectoryNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	builder: AvailBuilder
-): AvailNode(builder, reference)
+	project: Project
+): AvailNode(project, reference)
 {
 	override val isDirectory: Boolean = true
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
@@ -336,7 +469,7 @@ class DirectoryNode constructor(
 	override fun FileIcon()
 	{
 		AsyncSvg(
-			file = ImageResources.resourceDirectoryImage,
+			resource = ImageResources.resourceDirectoryImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 	}
 }
@@ -346,44 +479,83 @@ class DirectoryNode constructor(
  * [ResourceType.REPRESENTATIVE] node.
  *
  * @author Richard Arriaga.
- *
- * @property root
- *   The corresponding [ModuleRootView].
  */
 class ModuleNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	builder: AvailBuilder
-): AvailNode(builder, reference)
+	project: Project
+): AvailNode(project, reference)
 {
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
 	val entryPointNodes =
 		mutableListOf<EntryPointNode>()
 
+	private val isbuilding = mutableStateOf(false)
+
+	@OptIn(ExperimentalComposeUiApi::class, ExperimentalDesktopApi::class)
 	@Composable
 	override fun draw (alternatingColor: AlternatingRowColor)
 	{
-		// TODO add padding based on indentation
+		val expanded = remember { mutableStateOf(isExpanded) }
 		val modifier =
-			Modifier.clickable {
-				if (entryPointNodes.isNotEmpty()) { isExpanded = !isExpanded } }
+			Modifier
 				.background(alternatingColor.next.color)
 				.fillMaxWidth()
-
+		val building by remember { isbuilding }
 		Row (
-			modifier = modifier,
+			modifier = modifier.padding(vertical = 3.dp),
 			verticalAlignment = Alignment.CenterVertically)
 		{
-			ExpandableIcon()
+			ExpandableIcon(expanded)
 			Spacer(Modifier.width(5.dp))
 			FileIcon()
 			Spacer(Modifier.width(4.dp))
-			Text(
-				text = reference.localName,
-				color = LoadedStyle.color,
-				fontSize = LoadedStyle.size)
+			SelectionContainer {
+				val active = remember { mutableStateOf(false) }
+				val textColor =
+					if (active.value) LoadedStyle.color.copy(alpha = 0.6f)
+					else LoadedStyle.color
+				Text(
+					text = reference.localName,
+					color = textColor,
+					fontSize = LoadedStyle.size,
+					modifier = Modifier
+						.mouseClickable(
+							onClick = {
+								if (buttons.isPrimaryPressed
+									&& keyboardModifiers.isShiftPressed)
+								{
+									isbuilding.value =
+										build { isbuilding.value = false }
+								}
+							})
+						.align(Alignment.CenterVertically)
+						.clipToBounds()
+						.pointerMoveFilter(
+							onEnter = {
+								active.value = true
+								true
+							},
+							onExit = {
+								active.value = false
+								true
+							}
+						))
+			}
+			if (building)
+			{
+				Spacer(Modifier.width(5.dp))
+				Box (Modifier.fillMaxSize().align(Alignment.CenterVertically), Alignment.Center)
+				{
+					CircularProgressIndicator(
+						modifier =
+						Modifier.heightIn(max = 10.dp).widthIn(max = 10.dp),
+						color = Color(0xFFAEB0B2),
+						strokeWidth = 2.dp)
+				}
+			}
 		}
-		if (isExpanded)
+		if (expanded.value)
 		{
 			val rowColor = ROW1
 			entryPointNodes.forEach { it.draw(rowColor) }
@@ -391,16 +563,29 @@ class ModuleNode constructor(
 	}
 
 	@Composable
-	override fun ExpandableIcon()
+	override fun ExpandableIcon(expanded: MutableState<Boolean>)
 	{
-		if(hasChildren)
+		if(entryPointNodes.isNotEmpty())
 		{
-			AsyncSvg(
-				file =
-				if (isExpanded) ImageResources.expandedModuleImage
-				else ImageResources.expandedDirectoryImage,
-				modifier =
-					Modifier.padding(start = indentPadding).widthIn(max = 18.dp))
+			val modifier =
+				Modifier
+					.clickable {
+						expanded.value = !expanded.value
+						isExpanded = expanded.value
+					}
+					.padding(start = indentPadding).widthIn(max = 18.dp)
+			if (expanded.value)
+			{
+				AsyncSvg(
+					resource = ImageResources.expandedModuleImage,
+					modifier = modifier)
+			}
+			else
+			{
+				AsyncSvg(
+					resource = ImageResources.collapsedModuleImage,
+					modifier = modifier)
+			}
 		}
 		else
 		{
@@ -412,7 +597,7 @@ class ModuleNode constructor(
 	override fun FileIcon()
 	{
 		AsyncImageBitmap(
-			file = ImageResources.moduleFileImage,
+			resource = ImageResources.moduleFileImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 	}
 }
@@ -421,15 +606,12 @@ class ModuleNode constructor(
  * An [AvailNode] that represents a [ResourceType.RESOURCE] node.
  *
  * @author Richard Arriaga.
- *
- * @property root
- *   The corresponding [ModuleRootView].
  */
 class ResourceNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	builder: AvailBuilder
-): AvailNode(builder, reference)
+	project: Project
+): AvailNode(project, reference)
 {
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
 
@@ -437,11 +619,21 @@ class ResourceNode constructor(
 	override fun FileIcon()
 	{
 		AsyncSvg(
-			file = ImageResources.resourceFileImage,
+			resource = ImageResources.resourceFileImage,
 			modifier = Modifier.widthIn(max = 20.dp))
 	}
 }
 
+/**
+ * The node representation for entry points for a [ModuleNode].
+ *
+ * @author Richard Arriaga
+ *
+ * @property parent
+ *   The parent [ModuleNode].
+ * @property name
+ *   The entry point method name.
+ */
 class EntryPointNode constructor(
 	val parent: ModuleNode,
 	val name: String)
@@ -457,18 +649,21 @@ class EntryPointNode constructor(
 			modifier = Modifier
 				.clickable { println("TODO: Run entry point $name") }
 				.background(alternatingColor.next.color)
-				.fillMaxWidth(),
+				.fillMaxWidth().
+				padding(vertical = 4.dp),
 			verticalAlignment = Alignment.CenterVertically)
 		{
 			Spacer(Modifier.width(20.dp))
 			Spacer(Modifier.width(5.dp))
 			AsyncSvg(
-				file = ImageResources.playArrowImage,
-				modifier = Modifier.widthIn(max = 20.dp))
+				resource = ImageResources.playArrowImage,
+				modifier = Modifier
+					.padding(start = (parent.rawIndent + 30).dp)
+					.widthIn(max = 14.dp))
 			Spacer(Modifier.width(4.dp))
 			Text(
 				text = name,
-				color = LoadedStyle.color,
+				color = Color(0xFF3E86A0),
 				fontSize = LoadedStyle.size)
 		}
 	}
