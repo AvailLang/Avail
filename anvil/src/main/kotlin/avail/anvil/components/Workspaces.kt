@@ -57,9 +57,11 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
@@ -68,6 +70,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowScope
 import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberDialogState
 import avail.anvil.Anvil
@@ -78,6 +81,7 @@ import avail.anvil.themes.AlternatingRowColor
 import avail.anvil.themes.AvailColors
 import avail.anvil.themes.LocalTheme
 import avail.anvil.themes.anvilTheme
+import java.awt.Window
 import kotlin.system.exitProcess
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -142,13 +146,14 @@ fun WorkspaceWindow (
 					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
 			}
 		}
-		Workspace(descriptor, projectConfigEditorIsOpen, state)
+		Workspace(descriptor, projectConfigEditorIsOpen, state, window)
 		if (newProjectConfigEditorIsOpen.value)
 		{
 			Workspace(
 				ProjectDescriptor("-"),
 				newProjectConfigEditorIsOpen,
-				state)
+				state,
+				window)
 		}
 		if(projectManagerIsOpen.value)
 		{
@@ -182,10 +187,11 @@ fun Workspace (
 	descriptor: ProjectDescriptor,
 	projectConfigEditorIsOpen: MutableState<Boolean>,
 	state: WindowState,
+	window: ComposeWindow,
 	theme: Colors = anvilTheme())
 {
 	CompositionLocalProvider(LocalTheme provides theme) {
-		WorkspaceContent(descriptor, state, projectConfigEditorIsOpen, )
+		WorkspaceContent(descriptor, state, projectConfigEditorIsOpen)
 	}
 }
 

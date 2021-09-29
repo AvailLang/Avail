@@ -34,6 +34,7 @@ package avail.anvil.utilities
 
 import avail.anvil.Anvil
 import avail.anvil.Anvil.defaults
+import avail.anvil.Anvil.userHome
 import com.avail.AvailRuntime
 import com.avail.builder.ModuleNameResolver
 import com.avail.builder.ModuleRoots
@@ -182,5 +183,5 @@ class Defaults
 	 * The default directory where Avail [Repository]s are written to.
 	 */
 	val defaultRepositoryPath: String =
-		"${Anvil.anvilHome}/${Anvil.REPOS_DEFAULT}"
+		"$userHome/${Anvil.REPOS_DEFAULT}"
 }

@@ -32,6 +32,7 @@
 
 package avail.anvil.components
 
+import androidx.compose.desktop.LocalAppWindow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -45,6 +46,7 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.sizeIn
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.Button
 import androidx.compose.material.Icon
 import androidx.compose.material.OutlinedTextField
@@ -58,6 +60,8 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -76,13 +80,18 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogWindowScope
 import avail.anvil.Anvil
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.models.ProjectRoot
+import avail.anvil.themes.ImageResources
 import com.avail.builder.ModuleRoots
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -106,7 +115,7 @@ import com.avail.builder.ModuleRoots
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun AvailProjectEditor (
+internal fun DialogWindowScope.AvailProjectEditor (
 	descriptor: ProjectDescriptor,
 	roots: MutableList<ProjectRoot>,
 	projectConfigEditorIsOpen: MutableState<Boolean>,
@@ -294,13 +303,17 @@ internal fun AvailProjectEditor (
 			horizontalAlignment = Alignment.CenterHorizontally)
 		{
 			// Set project name
-			Row(modifier = Modifier.weight(0.1f))
+			Row(modifier = Modifier.weight(0.1f).fillMaxSize())
 			{
-				Box(modifier = Modifier.weight(0.2f))
+				Box(
+					modifier = Modifier.weight(0.2f).fillMaxSize(),
+					contentAlignment = Alignment.CenterStart)
 				{
 					HeaderLabel("Project Name")
 				}
-				Box(modifier = Modifier.weight(0.8f))
+				Box(
+					modifier = Modifier.weight(0.8f).fillMaxSize(),
+					contentAlignment = Alignment.CenterStart)
 				{
 					OutlinedTextField(
 						value = projectName,
@@ -342,14 +355,19 @@ internal fun AvailProjectEditor (
 							})
 				}
 			}
+			var repoSelectDialogOpen by remember { mutableStateOf(false) }
 			// Set repository
-			Row(modifier = Modifier.weight(0.1f))
+			Row(modifier = Modifier.weight(0.1f).fillMaxSize())
 			{
-				Box(modifier = Modifier.weight(0.2f))
+				Box(
+					modifier = Modifier.weight(0.2f).fillMaxSize(),
+					contentAlignment = Alignment.CenterStart)
 				{
 					HeaderLabel("Repository Path")
 				}
-				Box(modifier = Modifier.weight(0.8f))
+				Box(
+					modifier = Modifier.weight(0.75f).fillMaxSize(),
+					contentAlignment = Alignment.CenterStart)
 				{
 					OutlinedTextField(
 						value = repoPath,
@@ -389,6 +407,36 @@ internal fun AvailProjectEditor (
 								}
 								else true
 							})
+					if (repoSelectDialogOpen)
+					{
+						// TODO you can't actually select a directory...
+						val startDir =
+							repoPath.ifEmpty { Anvil.userHome }
+						SelectDirectoryDialog(
+							window,
+							"Choose Repository Location",
+							startDir)
+						{
+							println("Selected: $it")
+							if (it != null)
+							{
+								repoPath = it.toString()
+							}
+							repoSelectDialogOpen = false
+						}
+					}
+				}
+				Box(
+					modifier = Modifier.weight(0.05f).fillMaxSize(),
+					contentAlignment = Alignment.CenterStart)
+				{
+					AsyncSvg(
+						resource = ImageResources.resourceDirectoryImage,
+						modifier = Modifier
+							.clickable {
+								repoSelectDialogOpen = true
+							}
+							.padding(start = 5.dp).widthIn(max = 18.dp))
 				}
 			}
 			// Draw the table

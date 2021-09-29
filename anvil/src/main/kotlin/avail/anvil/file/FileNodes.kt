@@ -32,6 +32,8 @@
 
 package avail.anvil.file
 
+import androidx.compose.foundation.ContextMenuArea
+import androidx.compose.foundation.ContextMenuDataProvider
 import androidx.compose.foundation.ExperimentalDesktopApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -64,6 +66,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.pointer.pointerMoveFilter
+import androidx.compose.ui.platform.ContextMenuItem
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.max
@@ -76,6 +79,7 @@ import avail.anvil.themes.ImageResources
 import avail.anvil.themes.LoadedStyle
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleRoot
+import com.avail.builder.ResolvedModuleName
 import com.avail.resolver.ModuleRootResolver
 import com.avail.resolver.ResolverReference
 import com.avail.resolver.ResourceType
@@ -369,15 +373,43 @@ class ModulePackageNode constructor(
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
 	private val isbuilding = mutableStateOf(false)
 
+	/**
+	 * The [ResolvedModuleName] this node represents.
+	 */
+	val resolved: ResolvedModuleName =
+		project.moduleNameResolver.resolve(reference.moduleName)
+
+	/**
+	 * Is the module loaded?
+	 *
+	 * @return
+	 *   `true` if the module or package is already loaded, `false` otherwise.
+	 */
+	val isLoaded: Boolean
+		get() = synchronized(builder) {
+			return builder.getLoadedModule(resolved) !== null
+		}
+
+	@OptIn(ExperimentalDesktopApi::class)
 	@Composable
 	override fun FileIcon()
 	{
 		AsyncImageBitmap(
 			resource = ImageResources.packageFileImage,
-			modifier = Modifier.widthIn(max = 20.dp))
+			modifier = Modifier
+				.widthIn(max = 20.dp))
+//				.mouseClickable(
+//					onClick = {
+//						if (buttons.isPrimaryPressed
+//							&& keyboardModifiers.isShiftPressed)
+//						{
+//							isbuilding.value = build { isbuilding.value = false }
+//						}
+//					}))
 	}
 
-	@OptIn(ExperimentalDesktopApi::class)
+	@OptIn(ExperimentalDesktopApi::class,
+		androidx.compose.foundation.ExperimentalFoundationApi::class)
 	@Composable
 	@ExperimentalComposeUiApi
 	override fun draw(alternatingColor: AlternatingRowColor)
@@ -390,14 +422,6 @@ class ModulePackageNode constructor(
 			modifier.background(alternatingColor.next.color)
 		}
 		val building by remember { isbuilding }
-		val textModifier = Modifier.mouseClickable(
-			onClick = {
-				if (buttons.isPrimaryPressed
-					&& keyboardModifiers.isShiftPressed)
-				{
-					isbuilding.value = build { isbuilding.value = false }
-				}
-			})
 		modifier.fillMaxWidth()
 		Row (
 			modifier = modifier,
@@ -408,10 +432,22 @@ class ModulePackageNode constructor(
 			FileIcon()
 			Spacer(Modifier.width(4.dp))
 			SelectionContainer {
+				val textModifier = Modifier
+					.mouseClickable(
+					onClick = {
+						if (buttons.isPrimaryPressed
+							&& keyboardModifiers.isShiftPressed)
+						{
+							isbuilding.value = build { isbuilding.value = false }
+						}
+					})
 				val active = remember { mutableStateOf(false) }
 				val textColor =
 					if (active.value) LoadedStyle.color.copy(alpha = 0.6f)
 					else LoadedStyle.color
+//				ContextMenuArea( { listOf(
+//					ContextMenuItem("Fooey") { println("Did it")}
+//				)}) {
 				Text(
 					text = reference.localName,
 					color = textColor,
@@ -429,7 +465,8 @@ class ModulePackageNode constructor(
 								true
 							}
 						))
-			}
+				}
+//			}
 			if (building)
 			{
 				Spacer(Modifier.width(5.dp))
@@ -489,6 +526,23 @@ class ModuleNode constructor(
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
 	val entryPointNodes =
 		mutableListOf<EntryPointNode>()
+
+	/**
+	 * The [ResolvedModuleName] this node represents.
+	 */
+	val resolved: ResolvedModuleName =
+		project.moduleNameResolver.resolve(reference.moduleName)
+
+	/**
+	 * Is the module loaded?
+	 *
+	 * @return
+	 *   `true` if the module or package is already loaded, `false` otherwise.
+	 */
+	val isLoaded: Boolean
+		get() = synchronized(builder) {
+			return builder.getLoadedModule(resolved) !== null
+		}
 
 	private val isbuilding = mutableStateOf(false)
 
@@ -589,7 +643,7 @@ class ModuleNode constructor(
 		}
 		else
 		{
-			Spacer(Modifier.padding(start = indentPadding).width(20.dp))
+			Spacer(Modifier.padding(start = indentPadding).width(18.dp))
 		}
 	}
 

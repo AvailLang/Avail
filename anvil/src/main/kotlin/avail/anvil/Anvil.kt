@@ -43,9 +43,13 @@ import com.avail.utility.json.JSONObject
 import com.avail.utility.json.JSONReader
 import com.avail.utility.json.JSONValue
 import com.avail.utility.json.JSONWriter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
+import kotlin.coroutines.CoroutineContext
 
 /**
  * `Anvil` is the application context for the running Anvil application. It
@@ -56,6 +60,20 @@ import java.nio.file.Files
  */
 object Anvil: JSONFriendly
 {
+	/**
+	 * This is the [CoroutineScope] used for running coroutines that are
+	 * independent of any individual screen.
+	 */
+	val applicationScope: CoroutineScope  =
+		CoroutineScope(SupervisorJob() + Dispatchers.Default)
+
+	/**
+	 * This is the [CoroutineScope] used for running IO coroutines that are
+	 * independent of any individual screen.
+	 */
+	val applicationIoScope =
+		CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
 	/**
 	 * These are all the [default][Defaults] settings for Anvil.
 	 */
@@ -135,12 +153,13 @@ object Anvil: JSONFriendly
 		knownProjectMap[project.id] = project.descriptor
 	}
 
+	internal val userHome: String get() = System.getProperty("user.home")
+
 	/**
 	 * The path to the Anvil home directory.
 	 */
 	internal val anvilHome get() = run {
-		val home = System.getProperty("user.home")
-		File("$home/$ANVIL_HOME").apply {
+		File("$userHome/$ANVIL_HOME").apply {
 			mkdirs()
 		}.absolutePath
 	}
