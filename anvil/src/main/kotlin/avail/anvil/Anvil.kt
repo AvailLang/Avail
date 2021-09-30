@@ -35,8 +35,10 @@ package avail.anvil
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
+import avail.anvil.models.ProjectState
 import avail.anvil.utilities.Defaults
 import com.avail.utility.json.JSONFriendly
 import com.avail.utility.json.JSONObject
@@ -60,6 +62,8 @@ import kotlin.coroutines.CoroutineContext
  */
 object Anvil: JSONFriendly
 {
+	val projectManagerIsOpen =  mutableStateOf(false)
+
 	/**
 	 * This is the [CoroutineScope] used for running coroutines that are
 	 * independent of any individual screen.
@@ -191,13 +195,17 @@ object Anvil: JSONFriendly
 		if (opens.size() == 0)
 		{
 			isSufficientlyLoadedFromDisk.value = true
+			projectManagerIsOpen.value = true
 		}
 		else
 		{
 			opens.forEach { data ->
-				(data as? JSONValue)?.string?.let { key ->
+				(data as? JSONObject)?.let { openObj ->
+					val key = openObj.getString("id")
+					val projectState = ProjectState.fromJson(openObj)
 					knownProjectMap[key]?.let { descriptor ->
-						descriptor.project { project ->
+						descriptor.project(projectState)
+						{ project ->
 							openProjects[project.id] = project
 							isSufficientlyLoadedFromDisk.value = true
 						}
@@ -221,7 +229,9 @@ object Anvil: JSONFriendly
 		writer.at(OPEN_PROJECTS) {
 			startArray()
 			openProjects.values.toList().sorted().forEach { p ->
-				write(p.id)
+				startObject()
+				p.writeTo(writer)
+				endObject()
 			}
 			endArray()
 		}
@@ -280,6 +290,11 @@ object Anvil: JSONFriendly
 	 * The default repositories directory located in the `user.home` directory.
 	 */
 	internal const val REPOS_DEFAULT = ".avail/repositories"
+
+	/**
+	 * The key used to track serialization version of the Anvil config file.
+	 */
+	internal const val VERSION = "version"
 
 	///////////////////////////////////////////////////////////////////////////
 	//                         JSON CONFIG FILE KEYS                         //

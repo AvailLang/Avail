@@ -145,10 +145,12 @@ fun ProjectManagerWorkspaceContent (
 								HeaderLabel(header)
 							},
 							dataCellView = @Composable { v, row, mutable ->
+								val emptyState = rememberWindowState()
 								ModuleRootLabel(
 									v.name,
 									modifier = Modifier.clickable {
-										v.project {
+										v.project (emptyState)
+										{
 											Anvil.openProject(it)
 											onClose()
 										}

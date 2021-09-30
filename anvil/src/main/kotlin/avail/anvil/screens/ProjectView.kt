@@ -47,13 +47,10 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.rememberScrollbarAdapter
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.Colors
 import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -72,7 +69,6 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberDialogState
 import avail.anvil.Anvil
 import avail.anvil.models.Project
-import avail.anvil.models.ProjectDescriptor
 import avail.anvil.themes.AvailColors
 import avail.anvil.themes.LocalTheme
 import avail.anvil.themes.anvilTheme
@@ -83,8 +79,8 @@ import kotlin.system.exitProcess
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @param descriptor
- *   The [ProjectDescriptor].
+ * @param project
+ *   The [Project].
  * @param state
  *   The [WindowState].
  * @param theme
@@ -95,19 +91,16 @@ import kotlin.system.exitProcess
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun ProjectWindow (
-	descriptor: ProjectDescriptor,
-	state: WindowState,
+	project: Project,
 	onClose: () -> Unit = {}
 )
 {
 	Window(
 		onCloseRequest = onClose,
-		title = descriptor.name,
-		state = state
+		title = project.descriptor.name,
+		state = project.projectState.windowState
 	) {
 		val projectConfigEditorIsOpen =
-			remember { mutableStateOf(false) }
-		val projectManagerIsOpen =
 			remember { mutableStateOf(false) }
 		val newProjectConfigEditorIsOpen =
 			remember { mutableStateOf(false) }
@@ -122,7 +115,7 @@ fun ProjectWindow (
 				Item(
 					"Open Project",
 					onClick = {
-						projectManagerIsOpen.value = true
+						Anvil.projectManagerIsOpen.value = true
 					},
 					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
 				Item(
@@ -140,19 +133,19 @@ fun ProjectWindow (
 					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
 			}
 		}
-		ProjectFileExplorer(descriptor, state)
-		val roots = descriptor.rootsCopy
+		ProjectFileExplorer(project, project.projectState.windowState)
+		val roots = project.descriptor.rootsCopy
 		DesktopMaterialTheme(colors = LocalTheme.current)
 		{
+			val dialogState = rememberDialogState(
+				width = 600.dp,
+				height = 800.dp)
 			Dialog(
 				onCloseRequest = {
 					projectConfigEditorIsOpen.value = false
 				},
 				visible = projectConfigEditorIsOpen.value,
-				state = rememberDialogState(
-					width = 600.dp,
-					height = state.size.height,
-					position = state.position),
+				state = dialogState,
 				title = "Configure Project",
 				icon = rememberVectorPainter(Icons.Outlined.Settings)
 			) {
@@ -161,19 +154,19 @@ fun ProjectWindow (
 					color = anvilTheme().background,
 					modifier = Modifier
 						.defaultMinSize(
-							minWidth = state.size.width,
-							minHeight = state.size.height)
+							minWidth = dialogState.size.width,
+							minHeight = dialogState.size.height)
 						.fillMaxSize()
 				) {
 					AvailProjectEditor(
-						descriptor,
+						project.descriptor,
 						roots,
 						projectConfigEditorIsOpen,
 						tableModifier = Modifier
 							.fillMaxSize()
 							.defaultMinSize(
-								minWidth = state.size.width,
-								minHeight = state.size.height)
+								minWidth = dialogState.size.width,
+								minHeight = dialogState.size.height)
 							.padding(16.dp))
 				}
 			}
@@ -187,20 +180,17 @@ fun ProjectWindow (
  *
  * @author Richard Arriaga
  *
- * @param descriptor
- *   The [ProjectDescriptor] to open.
+ * @param project
+ *   The [Project] to open.
  * @param state
  *   The [WindowState].
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 private fun WindowScope.ProjectFileExplorer (
-	descriptor: ProjectDescriptor,
+	project: Project,
 	state: WindowState)
 {
-	val width = 300.dp
-	val height = state.size.height
-
 	DesktopMaterialTheme(colors = LocalTheme.current)
 	{
 		Surface(
@@ -210,40 +200,45 @@ private fun WindowScope.ProjectFileExplorer (
 				.background(AvailColors.BG)
 				.padding(all = 7.dp)
 				.fillMaxSize()
-				.defaultMinSize(minWidth = width, minHeight = height)
 		) {
 			Box {
-				val stateVertical = rememberScrollState()
-				val stateHorizontal = rememberScrollState()
+				project.projectState.verticalScroll =
+					rememberScrollState(
+						project.projectState.verticalScroll.value)
+				project.projectState.horizontalScroll =
+					rememberScrollState(
+						project.projectState.horizontalScroll.value)
+				rememberScrollState()
 				Box(
 					modifier = Modifier
 						.fillMaxSize()
-						.verticalScroll(stateVertical)
+						.verticalScroll(project.projectState.verticalScroll)
 						.padding(end = 12.dp, bottom = 12.dp)
-						.horizontalScroll(stateHorizontal)
+						.horizontalScroll(project.projectState.horizontalScroll)
 				) {
 					Column(
 						modifier = Modifier
 							.fillMaxSize())
 					{
-						Anvil.openProjects[descriptor.id]?.let {
-							it.rootNodes.values.toList().sorted()
-								.forEach { root ->
-									root.draw()
-								}
-						}
+						project.rootNodes.values
+							.toList()
+							.sorted()
+							.forEach { it.draw() }
 					}
 				}
 				VerticalScrollbar(
 					modifier = Modifier.align(Alignment.CenterEnd)
 						.fillMaxHeight(),
-					adapter = rememberScrollbarAdapter(stateVertical)
+					adapter = rememberScrollbarAdapter(
+						project.projectState.verticalScroll
+					)
 				)
 				HorizontalScrollbar(
 					modifier = Modifier.align(Alignment.BottomStart)
 						.fillMaxWidth()
 						.padding(end = 12.dp),
-					adapter = rememberScrollbarAdapter(stateHorizontal)
+					adapter = rememberScrollbarAdapter(
+						project.projectState.horizontalScroll)
 				)
 			}
 		}

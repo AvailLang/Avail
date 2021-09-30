@@ -97,6 +97,7 @@ fun main()
 	Anvil.initialize()
 	application {
 		val trayState = rememberTrayState()
+		val openProjectManager = remember { Anvil.projectManagerIsOpen }
 		val notification =
 			rememberNotification("Notification", "Welcome to Anvil")
 		Tray(
@@ -125,61 +126,61 @@ fun main()
 				ImageResources.trayIcon)).image
 		CompositionLocalProvider(LocalTheme provides anvilTheme()) {
 			var beginShowingScreens by remember { Anvil.isSufficientlyLoadedFromDisk }
-			if (beginShowingScreens)
+
+			if (Anvil.projectManagerIsOpen.value)
 			{
-				if (Anvil.openProjects.isEmpty())
-				{
-					ProjectManagerView()
-				}
-				else
-				{
-					Anvil.openProjects.values.forEach { project ->
-						project.OpenProject()
-					}
+				ProjectManagerView {
+					Anvil.projectManagerIsOpen.value = false
 				}
 			}
 			else
 			{
-				val windowSize = rememberSaveable {
-					WindowSize(width = 300.dp, height = 240.dp)
-				}
-				Window(
-					onCloseRequest = { exitApplication() },
-					undecorated = true,
-					state = rememberWindowState(
-						width = windowSize.width,
-						height = windowSize.height,
-						position = WindowPosition.Aligned(Alignment.Center)),
-					title = "")
+				if (!beginShowingScreens)
 				{
-					Surface(
-						color = Color(0xFF00824F),
-						modifier = Modifier
-							.defaultMinSize(
-								minWidth = 100.dp,
-								minHeight = 100.dp)
-							.fillMaxSize()
-					) {
-						Box(
-							contentAlignment = Alignment.Center,
+					val windowSize = rememberSaveable {
+						WindowSize(width = 300.dp, height = 240.dp)
+					}
+					Window(
+						onCloseRequest = { exitApplication() },
+						undecorated = true,
+						state = rememberWindowState(
+							width = windowSize.width,
+							height = windowSize.height,
+							position = WindowPosition.Aligned(Alignment.Center)),
+						title = "")
+					{
+						Surface(
+							color = Color(0xFF00824F),
 							modifier = Modifier
-								.fillMaxSize())
-						{
-							AsyncSvg(
-								resource = ImageResources.availHammer,
-								modifier = Modifier.padding(20.dp)
-									.size(100.dp))
-							CircularProgressIndicator(
-								color = Color(0x33000000),
-								modifier = Modifier.size(120.dp))
-							Text(
-								"Opening Projects…",
-								Modifier
-									.align(Alignment.BottomCenter)
-									.padding(bottom = 10.dp),
-								Color(0x88000000))
+								.defaultMinSize(
+									minWidth = 100.dp,
+									minHeight = 100.dp)
+								.fillMaxSize()
+						) {
+							Box(
+								contentAlignment = Alignment.Center,
+								modifier = Modifier
+									.fillMaxSize())
+							{
+								AsyncSvg(
+									resource = ImageResources.availHammer,
+									modifier = Modifier.padding(20.dp)
+										.size(100.dp))
+								CircularProgressIndicator(
+									color = Color(0x33000000),
+									modifier = Modifier.size(120.dp))
+								Text(
+									"Opening Projects…",
+									Modifier
+										.align(Alignment.BottomCenter)
+										.padding(bottom = 10.dp),
+									Color(0x88000000))
+							}
 						}
 					}
+				}
+				Anvil.openProjects.values.forEach { project ->
+					project.OpenProject()
 				}
 			}
 		}

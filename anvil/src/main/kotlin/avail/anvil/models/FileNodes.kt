@@ -127,7 +127,7 @@ sealed class AvailNode constructor(
 	/**
 	 * `true` indicates it is expanded showing its children; `false` otherwise.
 	 */
-	protected var isExpanded= false
+	var isExpanded= false
 
 	/**
 	 * `true` indicates there are [children]; `false` otherwise.

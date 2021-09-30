@@ -81,6 +81,7 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.window.WindowScope
+import androidx.compose.ui.window.rememberWindowState
 import avail.anvil.Anvil
 import avail.anvil.components.AsyncSvg
 import avail.anvil.components.DataColumn
@@ -515,6 +516,7 @@ internal fun WindowScope.AvailProjectEditor (
 							}
 							Tooltip("Save all updates")
 							{
+								val emptyState = rememberWindowState()
 								Button(
 									modifier = buttonModifier,
 									contentPadding = PaddingValues(0.dp),
@@ -534,7 +536,8 @@ internal fun WindowScope.AvailProjectEditor (
 										roots.addAll(descriptor.rootsCopy)
 										Anvil.openProjects[descriptor.id]
 											?.stopRuntime()
-										descriptor.project {
+										descriptor.project(emptyState)
+										{
 											Anvil.openProject(it)
 											onClose()
 										}
