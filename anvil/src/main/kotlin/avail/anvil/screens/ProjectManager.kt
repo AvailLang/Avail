@@ -36,14 +36,19 @@ import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.sizeIn
 import androidx.compose.material.Button
+import androidx.compose.material.Icon
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Clear
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -63,7 +68,6 @@ import androidx.compose.ui.window.WindowState
 import androidx.compose.ui.window.rememberDialogState
 import androidx.compose.ui.window.rememberWindowState
 import avail.anvil.Anvil
-import avail.anvil.components.AvailProjectEditor
 import avail.anvil.components.DataColumn
 import avail.anvil.components.HeaderLabel
 import avail.anvil.components.ModuleRootLabel
@@ -149,7 +153,30 @@ fun ProjectManagerWorkspaceContent (
 											onClose()
 										}
 									})
-							})
+							}),
+						DataColumn(
+							"",
+							0.1f,
+							false,
+							null,
+							Modifier.padding(vertical = 2.dp).heightIn(min = 24.dp),
+							Modifier.padding(vertical = 2.dp).heightIn(min = 24.dp),
+							{ }
+						) { _, row, _ ->
+							Button(
+								modifier = Modifier
+									.padding(horizontal = 5.dp)
+									.sizeIn(maxHeight = 20.dp, maxWidth = 20.dp)
+									.fillMaxSize()
+									.align(Alignment.CenterEnd),
+								contentPadding = PaddingValues(0.dp),
+								onClick = { roots.removeAt(row) })
+							{
+								Icon(
+									Icons.Outlined.Clear,
+									contentDescription = "Remove this module root")
+							}
+						}
 					))
 				Box(modifier =
 					Modifier.weight(0.2f).padding(horizontal = 20.dp))

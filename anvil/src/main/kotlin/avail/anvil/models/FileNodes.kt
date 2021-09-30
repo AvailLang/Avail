@@ -30,10 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.file
+package avail.anvil.models
 
-import androidx.compose.foundation.ContextMenuArea
-import androidx.compose.foundation.ContextMenuDataProvider
 import androidx.compose.foundation.ExperimentalDesktopApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
@@ -45,7 +43,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.mouseClickable
@@ -63,18 +60,15 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.nativeKeyCode
 import androidx.compose.ui.input.pointer.pointerMoveFilter
-import androidx.compose.ui.platform.ContextMenuItem
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.max
 import avail.anvil.components.AsyncImageBitmap
 import avail.anvil.components.AsyncSvg
 import avail.anvil.models.Project
 import avail.anvil.themes.AlternatingRowColor
 import avail.anvil.themes.AlternatingRowColor.*
+import avail.anvil.themes.AvailColors
 import avail.anvil.themes.ImageResources
 import avail.anvil.themes.LoadedStyle
 import com.avail.builder.AvailBuilder
@@ -208,17 +202,17 @@ sealed class AvailNode constructor(
 	 * Answer a [Composable] lambda that accepts a [AlternatingRowColor].
 	 */
 	@ExperimentalComposeUiApi
-	@OptIn(ExperimentalFoundationApi::class,
-		androidx.compose.foundation.ExperimentalDesktopApi::class)
+	@OptIn(ExperimentalFoundationApi::class, ExperimentalDesktopApi::class)
 	@Composable
-	open fun draw (alternatingColor: AlternatingRowColor = ROW1)
+	open fun draw ()
 	{
 		val expanded = remember { mutableStateOf(isExpanded) }
 		// TODO add padding based on indentation
 		val modifier = Modifier
 		if (!isDirectory)
 		{
-			modifier.background(alternatingColor.next.color)
+
+			modifier.background(AvailColors.BG)
 		}
 
 		modifier.fillMaxWidth()
@@ -257,7 +251,7 @@ sealed class AvailNode constructor(
 		if (expanded.value)
 		{
 			val rowColor = ROW1
-			sortedChildren.forEach { it.draw(rowColor) }
+			sortedChildren.forEach { it.draw() }
 		}
 	}
 
@@ -344,11 +338,6 @@ class RootNode constructor(
 	override val parentNode: AvailNode? = null
 	override val resolver: ModuleRootResolver get() = root.resolver
 
-	fun f ()
-	{
-		reference.moduleName
-	}
-
 	@Composable
 	override fun FileIcon()
 	{
@@ -371,7 +360,8 @@ class ModulePackageNode constructor(
 {
 	override val isDirectory: Boolean = true
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
-	private val isbuilding = mutableStateOf(false)
+	val entryPointNodes =
+		mutableListOf<EntryPointNode>()
 
 	/**
 	 * The [ResolvedModuleName] this node represents.
@@ -389,6 +379,8 @@ class ModulePackageNode constructor(
 		get() = synchronized(builder) {
 			return builder.getLoadedModule(resolved) !== null
 		}
+
+	private val isbuilding = mutableStateOf(false)
 
 	@OptIn(ExperimentalDesktopApi::class)
 	@Composable
@@ -412,14 +404,14 @@ class ModulePackageNode constructor(
 		androidx.compose.foundation.ExperimentalFoundationApi::class)
 	@Composable
 	@ExperimentalComposeUiApi
-	override fun draw(alternatingColor: AlternatingRowColor)
+	override fun draw()
 	{
 		val expanded = remember { mutableStateOf(isExpanded) }
 		// TODO add padding based on indentation
 		val modifier = Modifier
 		if (!isDirectory)
 		{
-			modifier.background(alternatingColor.next.color)
+			modifier.background(AvailColors.BG)
 		}
 		val building by remember { isbuilding }
 		modifier.fillMaxWidth()
@@ -466,6 +458,29 @@ class ModulePackageNode constructor(
 							}
 						))
 				}
+				if (entryPointNodes.isNotEmpty())
+				{
+					val entryIconModifier =
+						Modifier
+							.padding(start = 2.dp)
+							.widthIn(max = 18.dp)
+							.clickable {
+								expanded.value = !expanded.value
+								isExpanded = expanded.value
+							}
+					if (expanded.value)
+					{
+						AsyncSvg(
+							resource = ImageResources.expandedModuleImage,
+							modifier = entryIconModifier)
+					}
+					else
+					{
+						AsyncSvg(
+							resource = ImageResources.collapsedModuleImage,
+							modifier = entryIconModifier)
+					}
+				}
 //			}
 			if (building)
 			{
@@ -482,8 +497,8 @@ class ModulePackageNode constructor(
 		}
 		if (expanded.value)
 		{
-			val rowColor = ROW1
-			sortedChildren.forEach { it.draw(rowColor) }
+			entryPointNodes.forEach { it.draw(ROW1) }
+			sortedChildren.forEach { it.draw() }
 		}
 	}
 }
@@ -548,20 +563,22 @@ class ModuleNode constructor(
 
 	@OptIn(ExperimentalComposeUiApi::class, ExperimentalDesktopApi::class)
 	@Composable
-	override fun draw (alternatingColor: AlternatingRowColor)
+	override fun draw()
 	{
+		if (reference.type == ResourceType.REPRESENTATIVE) { return }
 		val expanded = remember { mutableStateOf(isExpanded) }
 		val modifier =
 			Modifier
-				.background(alternatingColor.next.color)
+				.background(AvailColors.BG)
 				.fillMaxWidth()
 		val building by remember { isbuilding }
 		Row (
 			modifier = modifier.padding(vertical = 3.dp),
 			verticalAlignment = Alignment.CenterVertically)
 		{
-			ExpandableIcon(expanded)
-			Spacer(Modifier.width(5.dp))
+//			ExpandableIcon(expanded)
+			Spacer(Modifier.padding(start = indentPadding).width(23.dp))
+//			Spacer(Modifier.width(5.dp))
 			FileIcon()
 			Spacer(Modifier.width(4.dp))
 			SelectionContainer {
@@ -596,6 +613,29 @@ class ModuleNode constructor(
 							}
 						))
 			}
+			if (entryPointNodes.isNotEmpty())
+			{
+				val entryIconModifier =
+					Modifier
+						.padding(start = 2.dp)
+						.widthIn(max = 18.dp)
+						.clickable {
+							expanded.value = !expanded.value
+							isExpanded = expanded.value
+						}
+				if (expanded.value)
+				{
+					AsyncSvg(
+						resource = ImageResources.expandedModuleImage,
+						modifier = entryIconModifier)
+				}
+				else
+				{
+					AsyncSvg(
+						resource = ImageResources.collapsedModuleImage,
+						modifier = entryIconModifier)
+				}
+			}
 			if (building)
 			{
 				Spacer(Modifier.width(5.dp))
@@ -619,7 +659,7 @@ class ModuleNode constructor(
 	@Composable
 	override fun ExpandableIcon(expanded: MutableState<Boolean>)
 	{
-		if(entryPointNodes.isNotEmpty())
+		if (entryPointNodes.isNotEmpty())
 		{
 			val modifier =
 				Modifier
@@ -689,20 +729,21 @@ class ResourceNode constructor(
  *   The entry point method name.
  */
 class EntryPointNode constructor(
-	val parent: ModuleNode,
+	val parent: AvailNode,
 	val name: String)
 {
+	val rawIndent by lazy { (parent.indent + 1) * 12 + 4 }
+
 	/**
 	 * Answer a [Composable] lambda that accepts a [AlternatingRowColor].
 	 */
 	@Composable
 	fun draw (alternatingColor: AlternatingRowColor)
 	{
-		// TODO add padding based on indentation
 		Row (
 			modifier = Modifier
 				.clickable { println("TODO: Run entry point $name") }
-				.background(alternatingColor.next.color)
+				.background(AvailColors.BG)
 				.fillMaxWidth().
 				padding(vertical = 4.dp),
 			verticalAlignment = Alignment.CenterVertically)
@@ -712,7 +753,7 @@ class EntryPointNode constructor(
 			AsyncSvg(
 				resource = ImageResources.playArrowImage,
 				modifier = Modifier
-					.padding(start = (parent.rawIndent + 30).dp)
+					.padding(start = rawIndent.dp)
 					.widthIn(max = 14.dp))
 			Spacer(Modifier.width(4.dp))
 			Text(

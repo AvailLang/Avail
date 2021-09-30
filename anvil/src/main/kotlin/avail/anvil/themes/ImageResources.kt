@@ -59,6 +59,8 @@ object ImageResources
 	 */
 	val availHammer = "AvailHammer.svg"
 
+	val trayIcon = "AvailHammer.png"
+
 	/**
 	 * The image file used to represent an Avail Module file.
 	 */

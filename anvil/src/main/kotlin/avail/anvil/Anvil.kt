@@ -80,7 +80,7 @@ object Anvil: JSONFriendly
 	val defaults = Defaults()
 
 	/**
-	 *
+	 * Is there enough state loaded to show a window on startup?
 	 */
 	var isSufficientlyLoadedFromDisk = mutableStateOf(false)
 

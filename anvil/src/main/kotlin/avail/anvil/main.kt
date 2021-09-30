@@ -32,24 +32,73 @@
 
 package avail.anvil
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.Scaffold
+import androidx.compose.material.Surface
+import androidx.compose.material.Text
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.platform.LocalAccessibilityManager
+import androidx.compose.ui.platform.LocalAutofill
+import androidx.compose.ui.platform.LocalAutofillTree
+import androidx.compose.ui.platform.LocalClipboardManager
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalFontLoader
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.platform.LocalTextInputService
+import androidx.compose.ui.platform.LocalTextToolbar
+import androidx.compose.ui.platform.LocalUriHandler
+import androidx.compose.ui.platform.LocalViewConfiguration
+import androidx.compose.ui.platform.LocalWindowInfo
+import androidx.compose.ui.platform.ViewConfiguration
+import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Tray
+import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
+import androidx.compose.ui.window.WindowSize
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberNotification
 import androidx.compose.ui.window.rememberTrayState
+import androidx.compose.ui.window.rememberWindowState
+import avail.anvil.components.AsyncImage
+import avail.anvil.components.AsyncSvg
 import avail.anvil.screens.ProjectManagerView
+import avail.anvil.themes.ImageResources
+import avail.anvil.themes.LocalTheme
+import avail.anvil.themes.anvilTheme
 import java.awt.Taskbar
 import javax.swing.ImageIcon
+import kotlin.system.exitProcess
 
 fun main()
 {
 	Anvil.initialize()
 	application {
 		val trayState = rememberTrayState()
-		val notification = rememberNotification("Notification", "Welcome to Anvil")
+		val notification =
+			rememberNotification("Notification", "Welcome to Anvil")
 		Tray(
 			state = trayState,
 			icon = painterResource("AvailHammer.svg"),
@@ -65,6 +114,7 @@ fun main()
 					onClick = {
 						Anvil.saveConfigToDisk()
 						exitApplication()
+						exitProcess(0)
 					}
 				)
 			}
@@ -72,25 +122,66 @@ fun main()
 		// Java AWT hack to change the app icon
 		Taskbar.getTaskbar().iconImage = ImageIcon(
 			this::class.java.classLoader.getResource(
-				"AvailHammer.png")).image
-
-		var beginShowingScreens by remember { Anvil.isSufficientlyLoadedFromDisk }
-		if (beginShowingScreens)
-		{
-			if (Anvil.openProjects.isEmpty())
+				ImageResources.trayIcon)).image
+		CompositionLocalProvider(LocalTheme provides anvilTheme()) {
+			var beginShowingScreens by remember { Anvil.isSufficientlyLoadedFromDisk }
+			if (beginShowingScreens)
 			{
-				ProjectManagerView()
+				if (Anvil.openProjects.isEmpty())
+				{
+					ProjectManagerView()
+				}
+				else
+				{
+					Anvil.openProjects.values.forEach { project ->
+						project.OpenProject()
+					}
+				}
 			}
 			else
 			{
-				Anvil.openProjects.values.forEach { project ->
-					project.OpenProject()
+				val windowSize = rememberSaveable {
+					WindowSize(width = 300.dp, height = 240.dp)
+				}
+				Window(
+					onCloseRequest = { exitApplication() },
+					undecorated = true,
+					state = rememberWindowState(
+						width = windowSize.width,
+						height = windowSize.height,
+						position = WindowPosition.Aligned(Alignment.Center)),
+					title = "")
+				{
+					Surface(
+						color = Color(0xFF00824F),
+						modifier = Modifier
+							.defaultMinSize(
+								minWidth = 100.dp,
+								minHeight = 100.dp)
+							.fillMaxSize()
+					) {
+						Box(
+							contentAlignment = Alignment.Center,
+							modifier = Modifier
+								.fillMaxSize())
+						{
+							AsyncSvg(
+								resource = ImageResources.availHammer,
+								modifier = Modifier.padding(20.dp)
+									.size(100.dp))
+							CircularProgressIndicator(
+								color = Color(0x33000000),
+								modifier = Modifier.size(120.dp))
+							Text(
+								"Opening Projects…",
+								Modifier
+									.align(Alignment.BottomCenter)
+									.padding(bottom = 10.dp),
+								Color(0x88000000))
+						}
+					}
 				}
 			}
-		}
-		else
-		{
-			// TODO show loader...
 		}
 	}
 }

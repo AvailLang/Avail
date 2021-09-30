@@ -43,7 +43,6 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import avail.anvil.components.Tooltip
-import avail.anvil.components.WorkspaceWindow
 import com.avail.builder.ModuleRoot
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -59,14 +58,16 @@ fun anvilTheme () =
 val anvilLightTheme = lightColors()
 
 /** The default dark theme for Anvil. */
-val anvilDarkTheme = darkColors(primary = Color(0xFF3b3b3b))
+val anvilDarkTheme = darkColors(
+	primary = Color(0xFF3b3b3b),
+	background = Color(0xFF3C3F41))
 
 ////////////////////////////////////////////////////////////////////////////////
 //                             Theme management.                              //
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * The dynamically scoped theme for the enclosing [workspace][WorkspaceWindow].
+ * The dynamically scoped theme for the enclosing view.
  */
 val LocalTheme = staticCompositionLocalOf<Colors> {
 	throw IllegalStateException("theme unavailable")

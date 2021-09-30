@@ -187,7 +187,7 @@ fun FileDialog(
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SelectDirectoryDialog(
-	window: Dialog,
+	window: Window,
 	title: String,
 	startDirectory: String,
 	current: String = "",

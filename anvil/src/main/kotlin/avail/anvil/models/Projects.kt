@@ -40,15 +40,8 @@ import androidx.compose.ui.window.WindowSize
 import androidx.compose.ui.window.rememberWindowState
 import avail.anvil.Anvil
 import avail.anvil.Anvil.defaults
-import avail.anvil.components.WorkspaceWindow
 import com.avail.AvailRuntime
-import avail.anvil.file.AvailNode
-import avail.anvil.file.DirectoryNode
-import avail.anvil.file.EntryPointNode
-import avail.anvil.file.ModuleNode
-import avail.anvil.file.ModulePackageNode
-import avail.anvil.file.ResourceNode
-import avail.anvil.file.RootNode
+import avail.anvil.screens.ProjectWindow
 import avail.anvil.utilities.createAvailRuntime
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleName
@@ -232,8 +225,7 @@ data class ProjectDescriptor constructor(
 				walkRoots(then)
 			},
 			{
-				// TODO?
-				then(this)
+//				then(this)
 			})
 
 		}
@@ -587,25 +579,45 @@ data class Project constructor(
 					}
 				}
 			},
-				{
-					builder.traceDirectoriesThen(
-						{ name, version, after ->
-							val entryPoints = version.getEntryPoints()
-							if (entryPoints.isNotEmpty())
+			{
+				val moduleCount =
+					AtomicInteger(nodes.size)
+				builder.traceDirectoriesThen(
+					{ name, version, after ->
+						val entryPoints = version.getEntryPoints()
+						if (entryPoints.isNotEmpty())
+						{
+							val node =
+								nodes[name.qualifiedName]
+							if (node != null)
 							{
-								val node =
-									nodes[name.qualifiedName]
-								if (node != null && node is ModuleNode)
+								when (node.reference.type)
 								{
-									entryPoints.forEach {
-										node.entryPointNodes.add(
-											EntryPointNode(node, it))
+									ResourceType.MODULE ->
+									{
+										node as ModuleNode
+										entryPoints.forEach {
+											node.entryPointNodes.add(
+												EntryPointNode(node, it))
+										}
 									}
+									ResourceType.REPRESENTATIVE ->
+									{
+										node as ModuleNode
+										val parent =
+											node.parentNode as ModulePackageNode
+										entryPoints.forEach {
+											parent.entryPointNodes.add(
+												EntryPointNode(node, it))
+										}
+									}
+									else -> Unit
 								}
 							}
-							after()
-						}) { then(this) }
-				})
+						}
+						after()
+					}) {then(this)}
+			})
 		}) { code, e ->
 			System.err.println("Error: $code")
 			e?.printStackTrace()
@@ -619,10 +631,9 @@ data class Project constructor(
 	fun OpenProject ()
 	{
 		val windowSize = rememberSaveable {
-			WindowSize(width = 800.dp, height = 600.dp)
+			WindowSize(width = 300.dp, height = 600.dp)
 		}
-		WorkspaceWindow(
-			descriptor = descriptor,
+		ProjectWindow(descriptor = descriptor,
 			state = rememberWindowState(
 				width = windowSize.width,
 				height = windowSize.height))

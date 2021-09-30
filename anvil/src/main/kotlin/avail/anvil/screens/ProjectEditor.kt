@@ -1,5 +1,5 @@
 /*
- * ModuleRoots.kt
+ * ProjectEditor.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,9 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.components
+package avail.anvil.screens
 
-import androidx.compose.desktop.LocalAppWindow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxScope
@@ -60,8 +59,6 @@ import androidx.compose.material.icons.outlined.Close
 import androidx.compose.material.icons.outlined.Done
 import androidx.compose.material.icons.outlined.Refresh
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -80,27 +77,30 @@ import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.TextStyle
-import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.ui.window.DialogWindowScope
+import androidx.compose.ui.window.WindowScope
 import avail.anvil.Anvil
+import avail.anvil.components.AsyncSvg
+import avail.anvil.components.DataColumn
+import avail.anvil.components.HeaderLabel
+import avail.anvil.components.ModuleRootLabel
+import avail.anvil.components.SelectDirectoryDialog
+import avail.anvil.components.TableView
+import avail.anvil.components.Tooltip
+import avail.anvil.components.URILabel
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.models.ProjectRoot
 import avail.anvil.themes.ImageResources
-import com.avail.builder.ModuleRoots
 
-////////////////////////////////////////////////////////////////////////////////
-//                            Module roots views.                             //
-////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Editor for the Avail [module&#32;roots][ModuleRoots], allowing edits to
- * existing roots, subtraction of existing roots, and addition of new roots.
+ * Editor for an Avail [Project], allowing edits to the
+ *  * [ProjectDescriptor.name]
+ *  * [ProjectDescriptor.repositoryPath]
+ *  * [ProjectDescriptor.roots]
  *
  * @param descriptor
  *   The [Project] being updated.
@@ -111,11 +111,15 @@ import com.avail.builder.ModuleRoots
  *   Whether the view permits editing.
  * @param tableModifier
  *   The [Modifier] to use for the table of module roots.
+ * @param onClose
+ *   The action to perform upon closing this window.
+ *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-internal fun DialogWindowScope.AvailProjectEditor (
+internal fun WindowScope.AvailProjectEditor (
 	descriptor: ProjectDescriptor,
 	roots: MutableList<ProjectRoot>,
 	projectConfigEditorIsOpen: MutableState<Boolean>,
@@ -573,35 +577,3 @@ internal fun DialogWindowScope.AvailProjectEditor (
 		}
 	}
 }
-
-////////////////////////////////////////////////////////////////////////////////
-//                                 Previews.                                  //
-////////////////////////////////////////////////////////////////////////////////
-//
-///**
-// * Preview of light [AvailModuleRootsEditor].
-// */
-//@Preview
-//@Composable
-//private fun PreviewAvailModuleRootsViewLight () =
-//	MaterialTheme(colors = anvilLightTheme) {
-//		AvailModuleRootsEditor(
-//			createAvailRuntime()
-//				.moduleRoots()
-//				.toModuleRootBuffers()
-//				.toMutableList())
-//	}
-//
-///**
-// * Preview of dark [AvailModuleRootsEditor].
-// */
-//@Preview
-//@Composable
-//private fun PreviewAvailModuleRootsViewDark () =
-//	MaterialTheme(colors = anvilDarkTheme) {
-//		AvailModuleRootsEditor(
-//			createAvailRuntime()
-//				.moduleRoots()
-//				.toModuleRootBuffers()
-//				.toMutableList())
-//	}

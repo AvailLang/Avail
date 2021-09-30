@@ -1,5 +1,5 @@
 /*
- * Workspaces.kt
+ * ProjectView.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.components
+package avail.anvil.screens
 
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.foundation.HorizontalScrollbar
@@ -52,16 +52,13 @@ import androidx.compose.material.Surface
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Settings
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocal
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.rememberVectorPainter
 import androidx.compose.ui.input.key.Key
@@ -76,34 +73,28 @@ import androidx.compose.ui.window.rememberDialogState
 import avail.anvil.Anvil
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
-import avail.anvil.screens.ProjectManagerView
-import avail.anvil.themes.AlternatingRowColor
 import avail.anvil.themes.AvailColors
 import avail.anvil.themes.LocalTheme
 import avail.anvil.themes.anvilTheme
-import java.awt.Window
 import kotlin.system.exitProcess
 
-////////////////////////////////////////////////////////////////////////////////
-//                                Workspaces.                                 //
-////////////////////////////////////////////////////////////////////////////////
-
 /**
- * Present a window housing a complete [workspace][Workspace].
+ * A `ProjectView` is the overall screen displaying an interactive [Project].
  *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Richard Arriaga
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @param descriptor
- *   The [Project].
+ *   The [ProjectDescriptor].
  * @param state
  *   The [WindowState].
+ * @param theme
+ *   The user interface theme.
  * @param onClose
  *   What to do when the workspace closes.
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun WorkspaceWindow (
+fun ProjectWindow (
 	descriptor: ProjectDescriptor,
 	state: WindowState,
 	onClose: () -> Unit = {}
@@ -114,19 +105,22 @@ fun WorkspaceWindow (
 		title = descriptor.name,
 		state = state
 	) {
-		val projectConfigEditorIsOpen = remember { mutableStateOf(false) }
-		val projectManagerIsOpen = remember { mutableStateOf(false) }
-		val newProjectConfigEditorIsOpen = remember { mutableStateOf(false) }
+		val projectConfigEditorIsOpen =
+			remember { mutableStateOf(false) }
+		val projectManagerIsOpen =
+			remember { mutableStateOf(false) }
+		val newProjectConfigEditorIsOpen =
+			remember { mutableStateOf(false) }
 		MenuBar {
 			Menu("File", mnemonic = 'P') {
 				Item(
-					"New Project…",
+					"New Project",
 					onClick = {
 						newProjectConfigEditorIsOpen.value = true
 					},
 					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
 				Item(
-					"Open Project…",
+					"Open Project",
 					onClick = {
 						projectManagerIsOpen.value = true
 					},
@@ -141,65 +135,56 @@ fun WorkspaceWindow (
 			}
 			Menu("Project", mnemonic = 'P') {
 				Item(
-					"Edit Roots",
+					"Configure Project",
 					onClick = { projectConfigEditorIsOpen.value = true },
 					shortcut = KeyShortcut(Key.E, ctrl = true, alt = true))
 			}
 		}
-		Workspace(descriptor, projectConfigEditorIsOpen, state, window)
-		if (newProjectConfigEditorIsOpen.value)
+		ProjectFileExplorer(descriptor, state)
+		val roots = descriptor.rootsCopy
+		DesktopMaterialTheme(colors = LocalTheme.current)
 		{
-			Workspace(
-				ProjectDescriptor("-"),
-				newProjectConfigEditorIsOpen,
-				state,
-				window)
-		}
-		if(projectManagerIsOpen.value)
-		{
-			ProjectManagerView {
-				projectManagerIsOpen.value = false
+			Dialog(
+				onCloseRequest = {
+					projectConfigEditorIsOpen.value = false
+				},
+				visible = projectConfigEditorIsOpen.value,
+				state = rememberDialogState(
+					width = 600.dp,
+					height = state.size.height,
+					position = state.position),
+				title = "Configure Project",
+				icon = rememberVectorPainter(Icons.Outlined.Settings)
+			) {
+				Surface(
+					shape = RectangleShape,
+					color = anvilTheme().background,
+					modifier = Modifier
+						.defaultMinSize(
+							minWidth = state.size.width,
+							minHeight = state.size.height)
+						.fillMaxSize()
+				) {
+					AvailProjectEditor(
+						descriptor,
+						roots,
+						projectConfigEditorIsOpen,
+						tableModifier = Modifier
+							.fillMaxSize()
+							.defaultMinSize(
+								minWidth = state.size.width,
+								minHeight = state.size.height)
+							.padding(16.dp))
+				}
 			}
 		}
 	}
 }
 
 /**
- * Present a complete workspace. A workspace focuses on a particular
- * [project][Project], providing all views, editors, and interactivity required
- * to manage the Avail development experience.
+ * Present the content of a [project][Project]'s module roots in a file
+ * explorer window.
  *
- * Provides the project and the theme to transitive subcomponents as
- * [CompositionLocal]s.
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- * @author Richard Arriaga
- *
- * @param project
- *   The [Project].
- * @param state
- *   The [WindowState].
- * @param theme
- *   The user interface theme.
- */
-@Composable
-fun Workspace (
-	descriptor: ProjectDescriptor,
-	projectConfigEditorIsOpen: MutableState<Boolean>,
-	state: WindowState,
-	window: ComposeWindow,
-	theme: Colors = anvilTheme())
-{
-	CompositionLocalProvider(LocalTheme provides theme) {
-		WorkspaceContent(descriptor, state, projectConfigEditorIsOpen)
-	}
-}
-
-/**
- * Present the content of a [workspace][Workspace]. The [project][Project] and
- * theme have been injected by the enclosing [Workspace].
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga
  *
  * @param descriptor
@@ -209,14 +194,12 @@ fun Workspace (
  */
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-private fun WorkspaceContent (
+private fun WindowScope.ProjectFileExplorer (
 	descriptor: ProjectDescriptor,
-	state: WindowState,
-	projectConfigEditorIsOpen: MutableState<Boolean>)
+	state: WindowState)
 {
-	val width = state.size.width
+	val width = 300.dp
 	val height = state.size.height
-	val roots = descriptor.rootsCopy
 
 	DesktopMaterialTheme(colors = LocalTheme.current)
 	{
@@ -246,7 +229,7 @@ private fun WorkspaceContent (
 						Anvil.openProjects[descriptor.id]?.let {
 							it.rootNodes.values.toList().sorted()
 								.forEach { root ->
-									root.draw(AlternatingRowColor.ROW1)
+									root.draw()
 								}
 						}
 					}
@@ -263,36 +246,7 @@ private fun WorkspaceContent (
 					adapter = rememberScrollbarAdapter(stateHorizontal)
 				)
 			}
-
-			Dialog(
-				onCloseRequest = { projectConfigEditorIsOpen.value = false },
-				visible = projectConfigEditorIsOpen.value,
-				state = rememberDialogState(
-					width = width,
-					height = height,
-					position = state.position),
-				title = "Configure Project",
-				icon = rememberVectorPainter(Icons.Outlined.Settings)
-			) {
-				Surface(
-					shape = RectangleShape,
-					color = anvilTheme().background,
-					modifier = Modifier
-						.defaultMinSize(minWidth = width, minHeight = height)
-						.fillMaxSize()
-				) {
-					AvailProjectEditor(
-						descriptor,
-						roots,
-						projectConfigEditorIsOpen,
-						tableModifier = Modifier
-							.fillMaxSize()
-							.defaultMinSize(
-								minWidth = width,
-								minHeight = height)
-							.padding(16.dp))
-				}
-			}
 		}
+
 	}
 }
