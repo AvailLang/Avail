@@ -42,7 +42,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.tuples.A_Tuple
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 
@@ -70,12 +70,17 @@ import com.avail.serialization.SerializerOperation
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots layout, or null if there are no integer slots.
  */
-abstract class AbstractTypeDescriptor protected constructor(
+abstract class AbstractTypeDescriptor
+protected constructor(
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) : Descriptor(
-		mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+) : Descriptor(
+	mutability,
+	typeTag,
+	objectSlotsEnumClass,
+	integerSlotsEnumClass)
 {
 	abstract override fun o_AcceptsArgTypesFromFunctionType(
 		self: AvailObject,
@@ -139,6 +144,8 @@ abstract class AbstractTypeDescriptor protected constructor(
 
 	abstract override fun o_InstanceCount(
 		self: AvailObject): A_Number
+
+	abstract override fun o_InstanceTag(self: AvailObject): TypeTag
 
 	abstract override fun o_IsBetterRepresentationThan(
 		self: AvailObject,
@@ -216,7 +223,7 @@ abstract class AbstractTypeDescriptor protected constructor(
 
 	abstract override fun o_IsSupertypeOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): Boolean
+		primitiveTypeEnum: PrimitiveTypeDescriptor.Types): Boolean
 
 	abstract override fun o_IsSupertypeOfSetType(
 		self: AvailObject,
@@ -314,7 +321,7 @@ abstract class AbstractTypeDescriptor protected constructor(
 
 	abstract override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type
+		primitiveTypeEnum: PrimitiveTypeDescriptor.Types): A_Type
 
 	abstract override fun o_TypeIntersectionOfSetType(
 		self: AvailObject,
@@ -380,7 +387,7 @@ abstract class AbstractTypeDescriptor protected constructor(
 
 	abstract override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type
+		primitiveTypeEnum: PrimitiveTypeDescriptor.Types): A_Type
 
 	abstract override fun o_TypeUnionOfSetType(
 		self: AvailObject,
@@ -421,4 +428,6 @@ abstract class AbstractTypeDescriptor protected constructor(
 	abstract override fun o_IsVacuousType(self: AvailObject): Boolean
 
 	abstract override fun o_IsTop(self: AvailObject): Boolean
+
+	abstract override fun o_ComputeInstanceTag(self: AvailObject): TypeTag
 }

@@ -65,6 +65,6 @@ object P_LiteralExpressionToken : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LITERAL_PHRASE.mostGeneralType()),
+				LITERAL_PHRASE.mostGeneralType),
 			mostGeneralLiteralTokenType())
 }

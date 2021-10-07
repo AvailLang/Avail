@@ -50,7 +50,7 @@ import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types.METHOD_DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 

@@ -40,7 +40,7 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.en
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_DIRECTORY_NOT_EMPTY
 import com.avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import com.avail.exceptions.AvailErrorCode.E_IO_ERROR

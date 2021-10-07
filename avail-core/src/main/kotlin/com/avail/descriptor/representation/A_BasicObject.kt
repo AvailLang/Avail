@@ -58,8 +58,6 @@ import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.ListPhraseTypeDescriptor
-import com.avail.descriptor.variables.A_Variable
-import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -339,20 +337,6 @@ interface A_BasicObject : JSONFriendly {
 	 * equal to the argument, `false` otherwise.
 	 */
 	fun equalsCompiledCode(aCompiledCode: A_RawFunction): Boolean
-
-	/**
-	 * Answer whether the arguments, an [object][AvailObject] and a
-	 * [variable][VariableDescriptor], are the exact same object,
-	 * comparing by address (Java object identity). There's no need to traverse
-	 * the objects before comparing addresses, because this message was a
-	 * double-dispatch that would have skipped (and stripped) the indirection
-	 * objects in either path.
-	 *
-	 * @param aVariable The variable used in the comparison.
-	 * @return `true` if the receiver is a variable with the same identity
-	 * as the argument, `false` otherwise.
-	 */
-	fun equalsVariable(aVariable: A_Variable): Boolean
 
 	/**
 	 * Answer whether the receiver equals the argument.

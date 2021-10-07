@@ -66,5 +66,5 @@ object P_CreateLiteralExpression : Primitive(1, CannotFail, CanFold, CanInline)
 		functionType(
 			tuple(
 				mostGeneralLiteralTokenType()),
-			LITERAL_PHRASE.mostGeneralType())
+			LITERAL_PHRASE.mostGeneralType)
 }

@@ -62,6 +62,6 @@ object P_CreateExpressionAsStatementPhrase : Primitive(1, CannotFail, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				EXPRESSION_PHRASE.mostGeneralType()),
-			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
+				EXPRESSION_PHRASE.mostGeneralType),
+			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType)
 }

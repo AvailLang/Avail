@@ -33,6 +33,8 @@
 package com.avail.dispatch
 
 import com.avail.AvailRuntimeSupport.captureNanos
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
@@ -40,6 +42,7 @@ import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
+import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 
 /**
@@ -60,6 +63,12 @@ abstract class LookupTreeAdaptor<
 	Result : A_BasicObject,
 	Memento>
 {
+	/**
+	 * A lightweight leaf node that can be used to indicate a negative
+	 * search (i.e., no elements were applicable).
+	 */
+	abstract val emptyLeaf: LeafLookupTree<Element, Result>
+
 	/**
 	 * Convert from an [Element] to a suitable [A_Type] for
 	 * organizing the tree.
@@ -198,7 +207,11 @@ abstract class LookupTreeAdaptor<
 			}
 		}
 		return createTree(
-			prequalified, undecided, knownArgumentRestrictions, memento)
+			prequalified,
+			undecided,
+			knownArgumentRestrictions,
+			zero,
+			memento)
 	}
 
 	/**
@@ -239,6 +252,12 @@ abstract class LookupTreeAdaptor<
 	 * @param knownArgumentRestrictions
 	 *   The [TypeRestriction]s that the arguments are known to comply with at
 	 *   this point.
+	 * @param alreadyTypeTestedArguments
+	 *   An Avail [integer][A_Number] coding whether the arguments (and extras
+	 *   that may have been generated during traversal of ancestors) have had
+	 *   their [TypeTag] extracted and dispatched on by an ancestor.  Argument
+	 *   #n is indicated by a set bit in the n-1st bit position, the one whose
+	 *   value in the integer is 2^(n-1).
 	 * @return
 	 *   A (potentially lazy) LookupTree used to look up Elements.
 	 */
@@ -246,6 +265,7 @@ abstract class LookupTreeAdaptor<
 		positive: List<Element>,
 		undecided: List<Element>,
 		knownArgumentRestrictions: List<TypeRestriction>,
+		alreadyTypeTestedArguments: A_Number,
 		memento: Memento): LookupTree<Element, Result>
 	{
 		if (undecided.isEmpty())
@@ -283,7 +303,8 @@ abstract class LookupTreeAdaptor<
 		return InternalLookupTree(
 			simplifyList(positive),
 			simplifyList(undecided),
-			knownArgumentRestrictions)
+			knownArgumentRestrictions,
+			alreadyTypeTestedArguments)
 	}
 
 	/**

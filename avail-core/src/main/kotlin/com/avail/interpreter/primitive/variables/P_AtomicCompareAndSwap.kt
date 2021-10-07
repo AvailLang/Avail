@@ -44,7 +44,7 @@ import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
@@ -145,7 +145,7 @@ object P_AtomicCompareAndSwap : Primitive(3, CanInline, HasSideEffect)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralVariableType(),
+				mostGeneralVariableType,
 				ANY.o,
 				ANY.o),
 			booleanType)

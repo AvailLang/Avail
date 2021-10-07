@@ -177,6 +177,40 @@ fun<E, R> List<E>.partitionedMap(
 	}
 }
 
+/**
+ * Given a list and a key-extraction function, produce a list of non-empty lists
+ * of elements that have the same key.  Note that it only looks for runs of a
+ * key, and treats reoccurrences of some key after a gap to be a new key.
+ *
+ * @receiver
+ *   The list of elements.
+ * @param groupingKey
+ *   The key extraction lambda.
+ * @return
+ *   A list (empty iff the receiver is empty) of non-empty lists, each producing
+ *   the same key.  Note that flattening this list produces the original list.
+ */
+fun<E, K> List<E>.partitionRunsBy(
+	groupingKey: (E) -> K
+): List<List<E>>
+{
+	if (isEmpty()) return emptyList()
+	val result = mutableListOf<List<E>>()
+	var currentGroup: MutableList<E> = mutableListOf()
+	var currentKey: K? = null
+	forEach { e ->
+		val newKey = groupingKey(e)
+		if (currentGroup.isNotEmpty() && newKey != currentKey)
+		{
+			result.add(currentGroup)
+			currentGroup = mutableListOf()
+		}
+		currentGroup.add(e)
+		currentKey = newKey
+	}
+	result.add(currentGroup)
+	return result
+}
 
 /** Tuple of length 1. */
 data class Tuple1<T1> constructor (val t1: T1)

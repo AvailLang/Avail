@@ -136,10 +136,10 @@ import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
 import com.avail.descriptor.types.FiberTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.A_Variable
-import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailException
@@ -656,8 +656,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int) =
-	with(builder) {
+		indent: Int
+	) = with(builder)
+	{
 		append('a')
 		val className = this@AbstractDescriptor.javaClass.simpleName
 		val shortenedName = className.substring(0, className.length - 10)
@@ -705,7 +706,7 @@ abstract class AbstractDescriptor protected constructor (
 					=== null)
 			{
 				val intSlot = slot as IntegerSlotsEnum
-				newlineTab(builder, indent)
+				newlineTab(indent)
 				val slotName = intSlot.fieldName()
 				val bitFields = bitFieldsFor(intSlot)
 				if (slotName[slotName.length - 1] == '_')
@@ -752,7 +753,7 @@ abstract class AbstractDescriptor protected constructor (
 				&& getAnnotation(
 					slot, HideFieldJustForPrinting::class.java) === null)
 			{
-				newlineTab(builder, indent)
+				newlineTab(indent)
 				val objectSlot = slot as ObjectSlotsEnum
 				val slotName = objectSlot.fieldName()
 				if (slotName[slotName.length - 1] == '_')
@@ -1570,7 +1571,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsSupertypeOfPrimitiveTypeEnum (
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): Boolean
+		primitiveTypeEnum: PrimitiveTypeDescriptor.Types): Boolean
 
 	abstract fun o_IsSupertypeOfSetType (
 		self: AvailObject,
@@ -1827,7 +1828,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set)
 
-	abstract fun o_Stylers (self: AvailObject): A_Set
+	abstract fun o_DefinitionStylers (self: AvailObject): A_Set
 
 	/**
 	 * Difference the [operands][AvailObject] and answer the result.
@@ -2446,27 +2447,6 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_EqualsCompiledCode (
 		self: AvailObject,
 		aCompiledCode: A_RawFunction): Boolean
-
-	/**
-	 * Answer whether the arguments, an [object][AvailObject] and a
-	 * [variable][VariableDescriptor], are the exact same object, comparing by
-	 * address (Java object identity). There's no need to traverse the objects
-	 * before comparing addresses, because this message was a double-dispatch
-	 * that would have skipped (and stripped) the indirection objects in either
-	 * path.
-	 *
-	 * @param self
-	 *   The receiver.
-	 * @param aVariable
-	 *   The variable used in the comparison.
-	 * @return
-	 *   `true` if the receiver is a variable with the same identity as the
-	 *   argument, `false` otherwise.
-	 * @see AvailObject.equalsVariable
-	 */
-	abstract fun o_EqualsVariable (
-		self: AvailObject,
-		aVariable: A_Variable): Boolean
 
 	abstract fun o_EqualsVariableType (
 		self: AvailObject,
@@ -3304,6 +3284,18 @@ abstract class AbstractDescriptor protected constructor (
 		anInteger: A_Number,
 		canDestroy: Boolean): A_Number
 
+	abstract fun o_BitTest(
+		self: AvailObject,
+		bitPosition: Int
+	): Boolean
+
+	abstract fun o_BitSet(
+		self: AvailObject,
+		bitPosition: Int,
+		value: Boolean,
+		canDestroy: Boolean
+	) : A_Number
+
 	abstract fun o_AddSeal (
 		self: AvailObject,
 		methodName: A_Atom,
@@ -3617,11 +3609,11 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_TypeIntersectionOfPrimitiveTypeEnum (
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type
+		primitiveTypeEnum: PrimitiveTypeDescriptor.Types): A_Type
 
 	abstract fun o_TypeUnionOfPrimitiveTypeEnum (
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types): A_Type
+		primitiveTypeEnum: PrimitiveTypeDescriptor.Types): A_Type
 
 	abstract fun o_TupleOfTypesFromTo (
 		self: AvailObject,
@@ -3913,6 +3905,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_FiberHelper(self: AvailObject): FiberDescriptor.FiberHelper
 
 	abstract fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
+
+	abstract fun o_InstanceTag(self: AvailObject): TypeTag
+
+	abstract fun o_ComputeInstanceTag(self: AvailObject): TypeTag
 
 	companion object
 	{
@@ -4322,5 +4318,25 @@ abstract class AbstractDescriptor protected constructor (
 				Statistic(ALLOCATIONS_BY_DESCRIPTOR_CLASS, name)
 			}
 		}
+
+		/**
+		 * Answer the given value's [TypeTag]'s [ordinal][Enum.ordinal].
+		 *
+		 * @param value
+		 *   The given value to examine.
+		 * @return
+		 *   The value's [TypeTag]'s [ordinal][Enum.ordinal].
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticTypeTagOrdinal(value: AvailObject): Int =
+			value.typeTag.ordinal
+
+		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
+		val staticTypeTagOrdinalMethod = CheckedMethod.staticMethod(
+			AbstractDescriptor::class.java,
+			::staticTypeTagOrdinal.name,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
 	}
 }

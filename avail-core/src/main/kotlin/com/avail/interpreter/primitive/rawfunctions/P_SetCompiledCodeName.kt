@@ -41,7 +41,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail

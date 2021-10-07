@@ -51,6 +51,6 @@ import kotlin.reflect.KClass
  *   The [StateFlag]s required to be already clear.
  */
 @Target(AnnotationTarget.FIELD)
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class RequiresNot constructor(
 	vararg val value: KClass<out StateFlag>)

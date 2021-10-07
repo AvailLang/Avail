@@ -54,8 +54,8 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import com.avail.interpreter.Primitive

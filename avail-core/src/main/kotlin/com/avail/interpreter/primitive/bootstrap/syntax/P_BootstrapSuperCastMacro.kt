@@ -46,7 +46,7 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SUPER_CAST_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -95,5 +95,5 @@ object P_BootstrapSuperCastMacro
 			tuple(
 				EXPRESSION_PHRASE.create(ANY.o),
 				LITERAL_PHRASE.create(anyMeta())),
-			SUPER_CAST_PHRASE.mostGeneralType())
+			SUPER_CAST_PHRASE.mostGeneralType)
 }

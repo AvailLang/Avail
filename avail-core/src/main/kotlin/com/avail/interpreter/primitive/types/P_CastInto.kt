@@ -47,8 +47,8 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCanFail

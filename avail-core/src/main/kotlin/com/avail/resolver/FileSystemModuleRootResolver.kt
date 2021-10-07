@@ -287,8 +287,7 @@ class FileSystemModuleRootResolver constructor(
 							"(${reference.qualifiedName}) File changed " +
 								"during digest calculation: modified " +
 								"timestamp at file read start " +
-								"$initialModified, at finish $modified"
-						)
+								"$initialModified, at finish $modified")
 					}
 					val hasher = MessageDigest.getInstance(
 						ResolverReference.DIGEST_ALGORITHM)

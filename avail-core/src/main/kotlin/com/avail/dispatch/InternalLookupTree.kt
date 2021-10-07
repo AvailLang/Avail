@@ -32,12 +32,22 @@
 
 package com.avail.dispatch
 
+import com.avail.descriptor.numbers.A_Number
+import com.avail.descriptor.numbers.A_Number.Companion.bitSet
+import com.avail.descriptor.numbers.A_Number.Companion.bitTest
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.instanceTag
 import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
+import com.avail.descriptor.types.TypeTag
+import com.avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
+import com.avail.descriptor.types.TypeTag.TOP_TYPE_TAG
 import com.avail.dispatch.DecisionStep.TestArgumentDecisionStep
+import com.avail.dispatch.DecisionStep.TypeTagDecisionStep
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
+import com.avail.utility.notNullAnd
 import java.lang.String.format
 import kotlin.math.max
 import kotlin.math.min
@@ -62,6 +72,12 @@ import kotlin.math.min
  *   The list of argument [TypeRestriction]s known to hold at this position in
  *   the decision tree.  Each element corresponds with an argument position for
  *   the method.
+ * @property alreadyTypeTestedArguments
+ *   An Avail [integer][A_Number] coding whether the arguments (and extras that
+ *   may have been generated during traversal of ancestors) have had their
+ *   [TypeTag] extracted and dispatched on by an ancestor.  Argument #n is
+ *   indicated by a set bit in the n-1st bit position, the one whose value in
+ *   the integer is 2^(n-1).
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
@@ -75,9 +91,17 @@ class InternalLookupTree<
 internal constructor(
 	val positiveElements: List<Element>,
 	val undecidedElements: List<Element>,
-	val knownArgumentRestrictions: List<TypeRestriction>)
+	val knownArgumentRestrictions: List<TypeRestriction>,
+	private val alreadyTypeTestedArguments: A_Number)
 : LookupTree<Element, Result>()
 {
+	override val solutionOrNull: Result? get() = null
+
+	init
+	{
+		assert(alreadyTypeTestedArguments.descriptor().isShared)
+	}
+
 	/**
 	 * The current [DecisionStep], initialized via [expandIfNecessary] when
 	 * needed.
@@ -87,6 +111,9 @@ internal constructor(
 
 	/** `true` if this node has been expanded, otherwise `false`. */
 	internal val isExpanded: Boolean get() = decisionStep !== null
+
+	/** Access the [decisionStep] if available, otherwise answer `null`. */
+	val decisionStepOrNull get() = decisionStep
 
 	/**
 	 * If it has not already been computed, compute and cache the [decisionStep]
@@ -157,26 +184,38 @@ internal constructor(
 			&& undecidedElements.size > 1)
 		{
 			val iterator = undecidedElements.iterator()
-			assert(iterator.hasNext())
 			val firstElement = iterator.next()
 			val commonArgTypes =
 				adaptor.restrictedSignature(firstElement, bound)
 					.tupleOfTypesFromTo(1, numArgs)
 					.toMutableList<A_Type?>()
+			// See if the type tags differ for any of the values.  Assume type
+			// tag dispatch is always more efficient than type testing.
+			val commonTags = commonArgTypes
+				.map { it!!.instanceTag }
+				.toMutableList<TypeTag?>()
+			// Check for any tag variations.  Also check for common types that
+			// have not yet been verified at this point.
 			iterator.forEachRemaining { element ->
 				val argTypes = adaptor.restrictedSignature(element, bound)
 					.tupleOfTypesFromTo(1, numArgs)
-					.toList<A_Type>()
 				for (i in 0 until numArgs)
 				{
-					val commonArgType = commonArgTypes[i]
-					if (commonArgType !== null
-						&& !commonArgType.equals(argTypes[i]))
+					val argType = argTypes.tupleAt(i + 1)
+					if (commonArgTypes[i].notNullAnd { !equals(argType) })
 					{
 						commonArgTypes[i] = null
 					}
+					if (commonTags[i].notNullAnd {
+							!equals(argType.instanceTag) })
+					{
+						commonTags[i] = null
+					}
 				}
 			}
+
+			// See if everybody requires the same type for an argument, but
+			// doesn't guarantee it's satisfied yet.
 			for (argNumber in 1..numArgs)
 			{
 				val commonType = commonArgTypes[argNumber - 1]
@@ -193,6 +232,24 @@ internal constructor(
 						adaptor, memento, argNumber, commonType)
 				}
 			}
+
+			for (argNumber in 1..numArgs)
+			{
+				if (commonTags[argNumber - 1] === null
+					&& !alreadyTypeTestedArguments.bitTest(argNumber - 1))
+				{
+					// A type tag dispatch here is guaranteed to reduce the
+					// number of undecided elements in every subtree.
+					return buildTypeTagTest(adaptor, memento, argNumber)
+				}
+			}
+			// TODO MvG: If we reach here, each argument position has a known
+			//  type tag.  This may be the ideal time to choose a Covariant
+			//  relation of one of the type tags, and follow it to augment the
+			//  arguments list. The assumption is that checking the covariant
+			//  value is cheaper than checking the whole argument, and may also
+			//  lead to an opportunity to use a type tag (or object layout
+			//  variant) to dispatch on the subobject.
 		}
 
 		// Choose a signature to test that guarantees it eliminates the most
@@ -385,6 +442,7 @@ internal constructor(
 			positiveIfTrue,
 			undecidedIfTrue,
 			positiveKnownRestrictions,
+			alreadyTypeTestedArguments,
 			memento)
 		// Since we're using TypeRestrictions, there are cases with instance
 		// enumerations in which a failed test can actually certify a new
@@ -394,6 +452,7 @@ internal constructor(
 			positiveIfFalse,
 			undecidedIfFalse,
 			negativeKnownRestrictions,
+			alreadyTypeTestedArguments,
 			memento)
 		// This is a volatile write, so all previous writes had to precede it.
 		// If another process runs expandIfNecessary(), it will either see null
@@ -403,9 +462,95 @@ internal constructor(
 			typeToTest.makeShared(), argumentIndex, ifCheckHolds, ifCheckFails)
 	}
 
-	override val solutionOrNull: Result? get() = null
+	/**
+	 * Create a [TypeTagDecisionStep] for the given values.  The basic idea is
+	 * to create a [Map] from tag to a [Set] of [Result]s.  Only add elements at
+	 * the [A_Type.instanceTag] reported by the argument type.  During lookup,
+	 * the [A_BasicObject.typeTag] of the actual argument value is used to find
+	 * an entry in this map, but if there's no entry, its parent chain is
+	 * searched instead.
+	 *
+	 * [BOTTOM_TYPE_TAG] is problematic, because it breaks the tree shape.  We
+	 * can't just leave it out, and we can't pretend it's not a child of all
+	 * other types.  For simplicity, every time elements are added to any subtag
+	 * of [TOP_TYPE_TAG], they're also added to [BOTTOM_TYPE_TAG].  That makes
+	 * lookup inefficient only when the ⊥ type is the actual argument value.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param memento
+	 *   The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *   The one-based index of the argument being tested.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildTypeTagTest(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		memento: AdaptorMemento,
+		argumentIndex: Int,
+	): TypeTagDecisionStep<Element, Result>
+	{
+		val tagToElements = mutableMapOf<TypeTag, MutableSet<Element>>()
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		undecidedElements.forEach { element ->
+			val commonArgType = adaptor.restrictedSignature(element, bound)
+				.typeAtIndex(argumentIndex)
+			val tag = commonArgType.instanceTag
+			val subset =
+				tagToElements.computeIfAbsent(tag) {
+					mutableSetOf()
+				}
+			subset.add(element)
+			if (tag.isSubtagOf(TOP_TYPE_TAG))
+			{
+				// It's a type, so pump BOTTOM_TYPE_TAG as well.
+				val bottomTypeSubset =
+					tagToElements.computeIfAbsent(BOTTOM_TYPE_TAG) {
+						mutableSetOf()
+					}
+				bottomTypeSubset.add(element)
+			}
+		}
+		// For each TypeTag that's present in the map, add in the elements
+		// associated with its ancestors.  Later, when using this lookup tree,
+		// the actually occurring TypeTag will have to be looked up, and if not
+		// found, its ancestors must be searched.
+		tagToElements.forEach { (k, v) ->
+			var p = k.parent
+			while (p != null) {
+				tagToElements[p]?.let(v::addAll)
+				p = p.parent
+			}
+		}
+		val alreadyTested = alreadyTypeTestedArguments
+			.bitSet(argumentIndex - 1, true, false)
+			.makeShared()
+		val tagToSubtree = tagToElements.mapValues { (tag, elements) ->
+			val restrictions = knownArgumentRestrictions.toMutableList()
+			restrictions[argumentIndex - 1] = restrictions[argumentIndex - 1]
+				.intersectionWithType(tag.supremum)
+			val boundForTag = adaptor.extractBoundingType(restrictions)
+			val positive = positiveElements.toMutableList()
+			val undecided = mutableListOf<Element>()
+			elements.forEach { element ->
+				val positiveComparison = adaptor.compareTypes(
+					restrictions,
+					adaptor.restrictedSignature(element, boundForTag))
+				//assert (positiveComparison != TypeComparison.DISJOINT_TYPE)
+				positiveComparison.applyEffect(element, positive, undecided)
+			}
+			adaptor.createTree(
+				positive,
+				undecided,
+				restrictions,
+				alreadyTested,
+				memento)
+		}
+		return TypeTagDecisionStep(argumentIndex, tagToSubtree)
+	}
 
-	override fun toString(indent: Int): String = when (decisionStep)
+	override fun toString(indent: Int): String = when (val step = decisionStep)
 	{
 		null -> format(
 			"Lazy internal node: (u=%d, p=%d) known=%s",
@@ -413,8 +558,7 @@ internal constructor(
 			positiveElements.size,
 			knownArgumentRestrictions)
 		else -> buildString {
-			decisionStep!!.describe(
-				this@InternalLookupTree, indent, this@buildString)
+			step.describe(this@InternalLookupTree, indent, this@buildString)
 		}
 	}
 }

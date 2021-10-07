@@ -56,7 +56,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_ARGUMENT_REORDERING
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.MalformedMessageException
@@ -113,9 +113,9 @@ object P_CreateSendExpression : Primitive(3, CanFold, CanInline)
 		functionType(
 			tuple(
 				ATOM.o,
-				LIST_PHRASE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType,
 				topMeta()),
-			SEND_PHRASE.mostGeneralType())
+			SEND_PHRASE.mostGeneralType)
 
 	override fun returnTypeGuaranteedByVM(
 		rawFunction: A_RawFunction,

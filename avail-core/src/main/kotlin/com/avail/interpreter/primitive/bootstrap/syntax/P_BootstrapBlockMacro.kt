@@ -85,9 +85,9 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
@@ -481,7 +481,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 						 * literal phrase, so expect a phrase here instead of
 						 * TOP.o.
 						 */
-						STATEMENT_PHRASE.mostGeneralType())),
+						STATEMENT_PHRASE.mostGeneralType)),
 				/* Optional return expression */
 				LIST_PHRASE.create(zeroOrOneOf(PARSE_PHRASE.create(ANY.o))),
 				/* Optional return type */
@@ -489,7 +489,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				/* Optional tuple of exception types */
 				LIST_PHRASE.create(zeroOrOneOf(oneOrMoreOf(exceptionType)))),
 			/* ...and produce a block phrase. */
-			BLOCK_PHRASE.mostGeneralType())
+			BLOCK_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

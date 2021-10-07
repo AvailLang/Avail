@@ -89,7 +89,6 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.variables.A_Variable
-import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.exceptions.AvailException
 import com.avail.exceptions.VariableGetException
@@ -255,7 +254,7 @@ class AvailObject private constructor(
 							this,
 							DebuggerObjectSlots("Stack trace"),
 							-1,
-							traceFor(e),
+							arrayOf(traceFor(e)),
 							forcedName = "Stack trace"))))
 		}
 
@@ -391,7 +390,9 @@ class AvailObject private constructor(
 	 */
 	override fun copyStringFromToCanDestroy(
 		start: Int, end: Int, canDestroy: Boolean
-	): A_String = descriptor().o_CopyTupleFromToCanDestroy(this, start, end, canDestroy).cast()
+	): A_String = descriptor()
+		.o_CopyTupleFromToCanDestroy(this, start, end, canDestroy)
+		.cast()
 
 	override fun ensureMutable() = descriptor().o_EnsureMutable(this)
 
@@ -577,23 +578,6 @@ class AvailObject private constructor(
 	 */
 	override fun equalsCompiledCode(aCompiledCode: A_RawFunction) =
 		descriptor().o_EqualsCompiledCode(this, aCompiledCode)
-
-	/**
-	 * Answer whether the receiver, an [AvailObject], and a
-	 * [variable][VariableDescriptor], are the exact same object, comparing by
-	 * address (Java object identity). There's no need to traverse the objects
-	 * before comparing addresses, because this message was a double-dispatch
-	 * that would have skipped (and stripped) the indirection objects in either
-	 * path.
-	 *
-	 * @param aVariable
-	 *   The variable used in the comparison.
-	 * @return
-	 *   `true` if the receiver is a variable with the same identity as the
-	 *   argument, `false` otherwise.
-	 */
-	override fun equalsVariable(aVariable: A_Variable) =
-		descriptor().o_EqualsVariable(this, aVariable)
 
 	override fun equalsVariableType(aVariableType: A_Type) =
 		descriptor().o_EqualsVariableType(this, aVariableType)

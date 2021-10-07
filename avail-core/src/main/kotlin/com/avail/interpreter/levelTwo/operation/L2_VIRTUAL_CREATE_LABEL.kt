@@ -36,7 +36,7 @@ import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType

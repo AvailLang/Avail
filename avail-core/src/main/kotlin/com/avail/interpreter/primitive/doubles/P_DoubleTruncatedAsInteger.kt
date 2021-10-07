@@ -41,7 +41,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
-import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_CONVERT_NOT_A_NUMBER_TO_INTEGER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

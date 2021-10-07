@@ -179,7 +179,7 @@ private constructor(
 		/**
 		 * Initialize the move-constant operation for boxed values.
 		 */
-		@kotlin.jvm.JvmField
+		@JvmField
 		val boxed = L2_MOVE_CONSTANT<
 				L2ConstantOperand,
 				L2BoxedRegister,
@@ -197,7 +197,7 @@ private constructor(
 		/**
 		 * Initialize the move-constant operation for int values.
 		 */
-		@kotlin.jvm.JvmField
+		@JvmField
 		val unboxedInt = L2_MOVE_CONSTANT<
 				L2IntImmediateOperand,
 				L2IntRegister,

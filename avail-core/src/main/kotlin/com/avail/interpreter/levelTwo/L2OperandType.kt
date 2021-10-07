@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
@@ -162,6 +163,12 @@ enum class L2OperandType
 	READ_FLOAT_VECTOR,
 
 	/**
+	 * The [L2PcVectorOperand] holds a [List] of [L2PcOperand]s which can be
+	 * the targets of a multi-way jump.
+	 */
+	PC_VECTOR(true),
+
+	/**
 	 * The [L2CommentOperand] holds descriptive text that does not affect
 	 * analysis or execution of level two code.  It is for diagnostic purposes
 	 * only.
@@ -169,8 +176,7 @@ enum class L2OperandType
 	COMMENT;
 
 	/**
-	 * Whether this kind of operand can have a [Purpose] associated with
-	 * it.
+	 * Whether this kind of operand can have a [Purpose] associated with it.
 	 */
 	val canHavePurpose: Boolean
 

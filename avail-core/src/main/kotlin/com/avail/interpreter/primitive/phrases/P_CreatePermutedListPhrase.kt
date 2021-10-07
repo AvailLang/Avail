@@ -102,9 +102,9 @@ object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				LIST_PHRASE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType,
 				oneOrMoreOf(naturalNumbers)),
-			PERMUTED_LIST_PHRASE.mostGeneralType())
+			PERMUTED_LIST_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

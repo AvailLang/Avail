@@ -34,7 +34,6 @@ package com.avail.compiler
 
 import com.avail.AvailRuntime
 import com.avail.AvailRuntime.Companion.currentRuntime
-import com.avail.AvailRuntimeSupport
 import com.avail.builder.ModuleName
 import com.avail.builder.ResolvedModuleName
 import com.avail.compiler.problems.CompilerDiagnostics
@@ -73,7 +72,7 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type.Companion.returnType
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailAssertionFailedException
 import com.avail.exceptions.AvailEmergencyExitException
 import com.avail.interpreter.execution.AvailLoader

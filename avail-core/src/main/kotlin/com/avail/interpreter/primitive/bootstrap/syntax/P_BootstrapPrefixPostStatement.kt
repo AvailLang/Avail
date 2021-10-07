@@ -49,8 +49,8 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
@@ -139,6 +139,6 @@ object P_BootstrapPrefixPostStatement : Primitive(4, CanInline, Bootstrap)
 						// The "_!" mechanism wrapped each statement or
 						// declaration inside a literal phrase, so expect a
 						// phrase here instead of TOP.o.
-						STATEMENT_PHRASE.mostGeneralType()))),
+						STATEMENT_PHRASE.mostGeneralType))),
 			TOP.o)
 }

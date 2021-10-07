@@ -81,7 +81,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -125,9 +125,14 @@ import kotlin.math.min
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class InstanceTypeDescriptor private constructor(mutability: Mutability)
-	: AbstractEnumerationTypeDescriptor(
-		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
+class InstanceTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : AbstractEnumerationTypeDescriptor(
+	mutability,
+	TypeTag.UNKNOWN_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -227,6 +232,9 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 		}
 
 	override fun o_Instance(self: AvailObject): AvailObject = getInstance(self)
+
+	override fun o_InstanceTag(self: AvailObject): TypeTag =
+		getInstance(self).typeTag
 
 	override fun o_ComputeSuperkind(self: AvailObject): A_Type =
 		getSuperkind(self)
@@ -583,7 +591,10 @@ class InstanceTypeDescriptor private constructor(mutability: Mutability)
 	}
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
-		getInstance(self).typeTag().metaTag!!
+		getInstance(self).typeTag.metaTag!!
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
+		getInstance(self).typeTag
 
 	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
 

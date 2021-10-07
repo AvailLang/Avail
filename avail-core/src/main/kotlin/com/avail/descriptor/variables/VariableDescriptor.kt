@@ -560,12 +560,7 @@ open class VariableDescriptor protected constructor(
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = another.equalsVariable(self)
-
-	override fun o_EqualsVariable(
-		self: AvailObject,
-		aVariable: A_Variable
-	): Boolean = self.sameAddressAs(aVariable)
+	): Boolean = another.traversed().sameAddressAs(self)
 
 	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{

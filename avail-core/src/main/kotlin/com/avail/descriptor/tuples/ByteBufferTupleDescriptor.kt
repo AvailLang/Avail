@@ -68,7 +68,7 @@ import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeTuple
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.utility.json.JSONWriter
 import java.nio.ByteBuffer
 import kotlin.experimental.and

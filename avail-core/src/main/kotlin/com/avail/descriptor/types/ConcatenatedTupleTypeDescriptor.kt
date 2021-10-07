@@ -93,6 +93,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 	mutability: Mutability) : TypeDescriptor(
 		mutability,
 		TypeTag.TUPLE_TYPE_TAG,
+		TypeTag.TUPLE_TAG,
 		ObjectSlots::class.java,
 		IntegerSlots::class.java)
 {

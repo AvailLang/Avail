@@ -51,9 +51,9 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.PrimitiveTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
-import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
 import com.avail.utility.Strings
 import java.util.IdentityHashMap
 

@@ -126,7 +126,7 @@ class MacroSubstitutionPhraseDescriptor(
 	mutability: Mutability
 ) : PhraseDescriptor(
 	mutability,
-	TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	null)
 {
@@ -188,6 +188,9 @@ class MacroSubstitutionPhraseDescriptor(
 			OUTPUT_PHRASE,
 			transformer(self.slot(OUTPUT_PHRASE)))
 	}
+
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
+		self.slot(OUTPUT_PHRASE).typeTag
 
 	/** Create a copy of the list, not this macro substitution. */
 	override fun o_CopyWith(self: AvailObject, newPhrase: A_Phrase): A_Phrase =

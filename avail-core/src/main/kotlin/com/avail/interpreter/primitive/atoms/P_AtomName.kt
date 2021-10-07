@@ -37,7 +37,7 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline

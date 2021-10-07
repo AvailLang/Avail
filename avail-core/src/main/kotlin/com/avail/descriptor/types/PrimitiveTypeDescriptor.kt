@@ -31,6 +31,25 @@
  */
 package com.avail.descriptor.types
 
+import com.avail.annotations.ThreadSafe
+import com.avail.compiler.AvailCompiler
+import com.avail.descriptor.atoms.AtomDescriptor
+import com.avail.descriptor.bundles.MessageBundleDescriptor
+import com.avail.descriptor.bundles.MessageBundleTreeDescriptor
+import com.avail.descriptor.character.CharacterDescriptor
+import com.avail.descriptor.methods.AbstractDefinitionDescriptor
+import com.avail.descriptor.methods.DefinitionDescriptor
+import com.avail.descriptor.methods.ForwardDefinitionDescriptor
+import com.avail.descriptor.methods.MethodDefinitionDescriptor
+import com.avail.descriptor.module.ModuleDescriptor
+import com.avail.descriptor.numbers.DoubleDescriptor
+import com.avail.descriptor.numbers.FloatDescriptor
+import com.avail.descriptor.numbers.InfinityDescriptor
+import com.avail.descriptor.numbers.IntegerDescriptor
+import com.avail.descriptor.parsing.DefinitionParsingPlanDescriptor
+import com.avail.descriptor.parsing.LexerDescriptor
+import com.avail.descriptor.parsing.ParsingPlanInProgressDescriptor
+import com.avail.descriptor.pojos.PojoDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
@@ -38,7 +57,10 @@ import com.avail.descriptor.representation.BitField
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.NilDescriptor
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.representation.ObjectSlotsEnum
+import com.avail.descriptor.tokens.LiteralTokenDescriptor
+import com.avail.descriptor.tokens.TokenDescriptor
 import com.avail.descriptor.tuples.StringDescriptor
 import com.avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -50,53 +72,73 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.IntegerSlots.Companion.HASH
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.NAME
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.ObjectSlots.PARENT
-import com.avail.descriptor.types.TypeDescriptor.Types.ABSTRACT_DEFINITION
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
-import com.avail.descriptor.types.TypeDescriptor.Types.Companion.all
-import com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION
-import com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION_PARSING_PLAN
-import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
-import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
-import com.avail.descriptor.types.TypeDescriptor.Types.FORWARD_DEFINITION
-import com.avail.descriptor.types.TypeDescriptor.Types.LEXER
-import com.avail.descriptor.types.TypeDescriptor.Types.MACRO_DEFINITION
-import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
-import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE_TREE
-import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
-import com.avail.descriptor.types.TypeDescriptor.Types.METHOD_DEFINITION
-import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
-import com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE
-import com.avail.descriptor.types.TypeDescriptor.Types.NUMBER
-import com.avail.descriptor.types.TypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
-import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ABSTRACT_DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.Companion.all
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.FORWARD_DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.LEXER
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MACRO_DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE_TREE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.PARSING_PLAN_IN_PROGRESS
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import com.avail.descriptor.variables.VariableDescriptor
+import com.avail.interpreter.execution.AvailLoader
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
+import java.beans.MethodDescriptor
 import java.util.IdentityHashMap
 
 /**
  * The primitive types of Avail are different from the notion of primitive types
  * in other object-oriented languages. Traditionally, a compiler or virtual
  * machine encodes representation knowledge about and makes other special
- * provisions about its primitive types. Since *all* types are in a
- * sense provided by the Avail system, it has no special primitive types that
- * fill that role – they're *all* special.
+ * provisions about its primitive types. Since *all* types are in a sense
+ * provided by the Avail system, it has no special primitive types that fill
+ * that role – they're *all* special.
  *
- * [any][TypeDescriptor.Types.ANY], and various specialties such as
- * [atom][TypeDescriptor.Types.ATOM] and [number][TypeDescriptor.Types.NUMBER].
- * Type hierarchies that have a natural root don't bother with a primitive type
- * to delimit the hierarchy, using the natural root itself. For of the tuple
- * types.
+ * The primitive types in Avail include [any][Types.ANY], and various
+ * specialties such as [atom][Types.ATOM] and [number][Types.NUMBER]. Type
+ * hierarchies that have a natural root don't bother with a primitive type to
+ * delimit the hierarchy, using the natural root itself.
  *
- * @see TypeDescriptor.Types all primitive types
+ * @property primitiveType
+ *   The [primitive&#32;type][Types] represented by this descriptor.
  *
+ * @constructor
+ * Construct a new [shared][Mutability.SHARED] [PrimitiveTypeDescriptor].
+ *
+ * @param mutability
+ *   The [mutability][Mutability] of the new descriptor.
+ *
+ * @see [Types] all primitive types.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-open class PrimitiveTypeDescriptor : TypeDescriptor
+open class PrimitiveTypeDescriptor
+private constructor(
+	mutability: Mutability,
+	val primitiveType: Types
+) : TypeDescriptor(
+	mutability,
+	primitiveType.typeTag,
+	primitiveType.instanceTag,
+	ObjectSlots::class.java,
+	IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -275,6 +317,9 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		anEnumerationType: A_Type): Boolean =
 			topMeta().isSubtypeOf(self)
 
+	@ThreadSafe
+	override fun o_IsTop(self: AvailObject): Boolean = self.sameAddressAs(TOP.o)
+
 	override fun o_MakeImmutable(self: AvailObject): AvailObject
 	{
 		if (isMutable)
@@ -375,71 +420,6 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		self.setDescriptor(this)
 	}
 
-	/**
-	 * The [primitive&#32;type][TypeDescriptor.Types] represented by this
-	 * descriptor.
-	 */
-	val primitiveType: Types?
-
-	/**
-	 * Construct a new [shared][Mutability.SHARED] [PrimitiveTypeDescriptor].
-	 *
-	 * @param typeTag
-	 *   The [TypeTag] to embed in the new descriptor.
-	 * @param primitiveType
-	 *   The [primitive&#32;type][TypeDescriptor.Types] represented by this
-	 *   descriptor.
-	 * @param objectSlotsEnumClass
-	 *   The Java [Class] which is a subclass of [ObjectSlotsEnum] and defines
-	 *   this object's object slots layout, or `null` if there are no object
-	 *   slots.
-	 * @param integerSlotsEnumClass
-	 *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines
-	 *   this object's integer slots layout, or `null` if there are no integer
-	 *   slots.
-	 */
-	protected constructor(
-		typeTag: TypeTag,
-		primitiveType: Types,
-		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) : super(
-			Mutability.SHARED,
-			typeTag,
-			objectSlotsEnumClass,
-			integerSlotsEnumClass)
-	{
-		this.primitiveType = primitiveType
-	}
-
-	/**
-	 * Construct a new [shared][Mutability.SHARED] [PrimitiveTypeDescriptor].
-	 *
-	 * @param typeTag
-	 *   The [TypeTag] to embed in the new descriptor.
-	 * @param primitiveType
-	 * The [primitive&#32;type][TypeDescriptor.Types] represented by this
-	 * descriptor.
-	 */
-	internal constructor(typeTag: TypeTag, primitiveType: Types)
-		: this(
-			typeTag,
-			primitiveType,
-			ObjectSlots::class.java,
-			IntegerSlots::class.java)
-
-	/**
-	 * Construct the sole mutable [PrimitiveTypeDescriptor], used only during
-	 * early instantiation of the primitive types.
-	 */
-	private constructor() : super(
-		Mutability.MUTABLE,
-		TypeTag.UNKNOWN_TAG,
-		ObjectSlots::class.java,
-		IntegerSlots::class.java)
-	{
-		primitiveType = null
-	}
-
 	override fun mutable(): PrimitiveTypeDescriptor = transientMutable
 
 	override fun immutable(): PrimitiveTypeDescriptor
@@ -458,25 +438,25 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 	companion object
 	{
 		/**
-		 * Extract the [TypeDescriptor.Types] enum value from this primitive
+		 * Extract the [Types] enum value from this primitive
 		 * type.
 		 *
 		 * @param self
 		 *   The primitive type.
 		 * @return
-		 *   The [TypeDescriptor.Types] enum value.
+		 *   The [Types] enum value.
 		 */
 		private fun extractEnum(self: AvailObject): Types =
-			(self.descriptor() as PrimitiveTypeDescriptor).primitiveType!!
+			(self.descriptor() as PrimitiveTypeDescriptor).primitiveType
 
 		/**
-		 * Extract the [TypeDescriptor.Types] enum value's [Enum.ordinal] from
+		 * Extract the [Types] enum value's [Enum.ordinal] from
 		 * this primitive type.
 		 *
 		 * @param self
 		 *   The primitive type.
 		 * @return
-		 *   The [TypeDescriptor.Types] enum value's ordinal.
+		 *   The [Types] enum value's ordinal.
 		 */
 		fun extractOrdinal(self: AvailObject): Int = extractEnum(self).ordinal
 
@@ -496,7 +476,7 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		): AvailObject = transientMutable.create {
 			val name = stringFrom(typeNameString)
 			setSlot(NAME, name.makeShared())
-			setSlot(PARENT, NilDescriptor.nil)
+			setSlot(PARENT, nil)
 			setSlot(HASH, typeNameString.hashCode() * multiplier)
 		}
 
@@ -504,6 +484,362 @@ open class PrimitiveTypeDescriptor : TypeDescriptor
 		 * The sole mutable [PrimitiveTypeDescriptor], only used during early
 		 * instantiation.
 		 */
-		val transientMutable = PrimitiveTypeDescriptor()
+		val transientMutable = PrimitiveTypeDescriptor(
+			Mutability.MUTABLE,
+			TOP)
+	}
+
+	/**
+	 * The [Types] enumeration provides a place and a way
+	 * to statically declare the upper stratum of Avail's type lattice,
+	 * specifically all [primitive&#32;types][PrimitiveTypeDescriptor].
+	 *
+	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
+	 */
+
+	/**
+	 * Construct a new `Types` instance with the specified parent.  Use
+	 * [PrimitiveTypeDescriptor] for the new type's descriptor.
+	 *
+	 * @param parent
+	 *   The new type's parent, or `null` if the type has no parent.
+	 * @param typeTag
+	 *   The [TypeTag] that labels the kind of value that `o` is.
+	 * @param instanceTag
+	 *   The [TypeTag] that this type's actual *instances* will have.
+	 */
+	enum class Types
+	constructor(
+		val parent: Types?,
+		val typeTag: TypeTag,
+		val instanceTag: TypeTag)
+	{
+		/**
+		 * The most general type of the type lattice, also written ⊤ and
+		 * pronounced "top".  All types are subtypes of this, and all objects
+		 * are instances of it.  However, this top type has an additional role:
+		 * No variable or argument may be of this type, so the only thing that
+		 * can be done with the result of a function call of type ⊤ is to
+		 * implicitly discard it.  This is a precise way of making the
+		 * traditional distinction between functions and procedures. In fact,
+		 * Avail requires all statements except the last one in a block to be of
+		 * type ⊤, to ensure that functions are not accidentally used as
+		 * procedures – and to ensure that the reader of the code knows it.
+		 */
+		TOP(null, TypeTag.TOP_TYPE_TAG, TypeTag.TOP_TAG),
+
+		/**
+		 * This is the second-most general type in Avail's type lattice.  It is
+		 * the only direct descendant of [top&#32;(⊤)][TOP], and all types
+		 * except ⊤ are subtypes of it.  Like ⊤, all Avail objects are instances
+		 * of `ANY`. Technically there is also a [nil][NilDescriptor.nil], but
+		 * that is only used internally by the Avail machinery (e.g., the value
+		 * of an unassigned [variable][VariableDescriptor]) and can never be
+		 * manipulated by an Avail program.
+		 */
+		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.TOP_TAG),
+
+		/**
+		 * This is the kind of all non-types.
+		 */
+		NONTYPE(ANY, TypeTag.NONTYPE_TYPE_TAG, TypeTag.NONTYPE_TAG),
+
+		/**
+		 * This is the kind of all [atoms][AtomDescriptor].  Atoms have fiat
+		 * identity and their corresponding type structure is trivial.
+		 */
+		ATOM(NONTYPE, TypeTag.ATOM_TYPE_TAG, TypeTag.ATOM_TAG),
+
+		/**
+		 * This is the kind of all [characters][CharacterDescriptor], as defined
+		 * by the [Unicode](http://www.unicode.org) standard.  Note that all
+		 * characters in the supplementary multilingual planes are explicitly
+		 * supported.
+		 */
+		CHARACTER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.CHARACTER_TAG),
+
+		/**
+		 * `Number` is the generalization of all numeric types, which includes
+		 * [float][FLOAT], [double][DOUBLE], and the
+		 * [integer&#32;types][IntegerRangeTypeDescriptor] (which can contain
+		 * both [integers][IntegerDescriptor] and the signed
+		 * [integral&#32;infinities][InfinityDescriptor]),
+		 */
+		NUMBER(NONTYPE, TypeTag.NUMBER_TYPE_TAG, TypeTag.NUMBER_TAG),
+
+		/**
+		 * The type of all double-precision floating point numbers.  This
+		 * includes the double precision
+		 * [positive][DoubleDescriptor.doublePositiveInfinity] and
+		 * [negative][DoubleDescriptor.doubleNegativeInfinity] infinities and
+		 * [Not-a-Number][DoubleDescriptor.doubleNotANumber].
+		 */
+		DOUBLE(NUMBER, TypeTag.NUMBER_TYPE_TAG, TypeTag.DOUBLE_TAG),
+
+		/**
+		 * The type of all single-precision floating point numbers.  This
+		 * includes the single precision
+		 * [positive][FloatDescriptor.floatPositiveInfinity] and
+		 * [negative][FloatDescriptor.floatNegativeInfinity] infinities and
+		 * [Not-a-Number][FloatDescriptor.floatNotANumber].
+		 */
+		FLOAT(NUMBER, TypeTag.NUMBER_TYPE_TAG, TypeTag.FLOAT_TAG),
+
+		/**
+		 * All [lexers][LexerDescriptor] are of this kind.
+		 */
+		LEXER(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.LEXER_TAG),
+
+		/**
+		 * All [methods][MethodDescriptor] are of this kind.
+		 */
+		METHOD(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.METHOD_TAG),
+
+		/**
+		 * This is the kind of all
+		 * [message&#32;bundles][MessageBundleDescriptor], which are used during
+		 * parsing of Avail code.
+		 */
+		MESSAGE_BUNDLE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.BUNDLE_TAG),
+
+		/**
+		 * This is the kind of all
+		 * [definition&#32;parsing&#32;plans][DefinitionParsingPlanDescriptor],
+		 * which are used during parsing of Avail code.
+		 */
+		DEFINITION_PARSING_PLAN(
+			NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.PARSING_PLAN_TAG),
+
+		/**
+		 * The type of macro definitions.
+		 */
+		MACRO_DEFINITION(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.MACRO_TAG),
+
+		/**
+		 * This is the kind of all
+		 * [parsing-plans-in-progress][ParsingPlanInProgressDescriptor], which
+		 * are used during parsing of Avail code.
+		 */
+		PARSING_PLAN_IN_PROGRESS(
+			NONTYPE,
+			TypeTag.NONTYPE_TYPE_TAG,
+			TypeTag.PARSING_PLAN_IN_PROGRESS_TAG),
+
+		/**
+		 * This is the kind of all
+		 * [message&#32;bundle&#32;trees][MessageBundleTreeDescriptor], which
+		 * are lazily expanded during parallel parsing of Avail expressions.
+		 * They collapse together the cost of parsing method or macro
+		 * invocations that start with the same tokens and arguments.
+		 */
+		MESSAGE_BUNDLE_TREE(
+			NONTYPE,
+			TypeTag.NONTYPE_TYPE_TAG,
+			TypeTag.BUNDLE_TREE_TAG),
+
+		/**
+		 * [Tokens][TokenDescriptor] all have the same kind, except for
+		 * [literal&#32;tokens][LiteralTokenDescriptor], which are
+		 * parametrically typed by the type of value they contain.  They are
+		 * produced by a [lexical&#32;scanner][AvailLoader.LexicalScanner] and
+		 * are consumed by the [parser][AvailCompiler].
+		 */
+		TOKEN(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.TOKEN_TAG),
+
+		/**
+		 * The general kind of [method signatures][DefinitionDescriptor].
+		 */
+		DEFINITION(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.DEFINITION_TAG),
+
+		/**
+		 * The specific kind of a definition which is an
+		 * [abstract&#32;declaration][AbstractDefinitionDescriptor] of a method.
+		 */
+		ABSTRACT_DEFINITION(
+			DEFINITION, TypeTag.NONTYPE_TYPE_TAG, TypeTag.DEFINITION_TAG),
+
+		/**
+		 * The specific kind of definition which is a
+		 * [forward&#32;declaration][ForwardDefinitionDescriptor].  Such
+		 * declarations must be resolved by the end of the module in which they
+		 * occur.
+		 */
+		FORWARD_DEFINITION(
+			DEFINITION, TypeTag.NONTYPE_TYPE_TAG, TypeTag.DEFINITION_TAG),
+
+		/**
+		 * The specific kind of definition which is an actual
+		 * [method&#32;function][MethodDefinitionDescriptor], by far the most
+		 * common case.
+		 */
+		METHOD_DEFINITION(
+			DEFINITION, TypeTag.NONTYPE_TYPE_TAG, TypeTag.DEFINITION_TAG),
+
+		/**
+		 * [Modules][ModuleDescriptor] are maintained mostly automatically by
+		 * Avail's runtime environment.  Modules are not currently visible to
+		 * the Avail programmer, but there may still be a need for modules to be
+		 * placed in sets and maps maintained by the runtime, so the type story
+		 * has to at least be consistent.
+		 */
+		MODULE(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.MODULE_TAG),
+
+		/**
+		 * A [POJO][PojoDescriptor] is a Plain Old Java [Object].  Avail is able
+		 * to interface to arbitrary Java code via its implementation of POJOs.
+		 * POJOs contain (and conform to) their own POJO types, but that
+		 * requires a separate concept of *raw* POJOs.  Avail code only works
+		 * with the typed POJOs, but the Avail machinery has to be able to use
+		 * the raw POJOs, placing them in sets and doing other things that
+		 * occasionally require their kind to be extracted.
+		 */
+		RAW_POJO(NONTYPE, TypeTag.NONTYPE_TYPE_TAG, TypeTag.POJO_TAG);
+
+		/**
+		 * Create the [A_Type] associated with this [Types] entry.
+		 */
+		lateinit var o: AvailObject
+			private set
+
+		companion object
+		{
+			/**
+			 * Stash a [List] of all `Types` enum values.
+			 */
+			private val all = values().toList()
+
+			/**
+			 * Answer the previously stashed [List] of all `Types`.
+			 *
+			 * @return
+			 *   The immutable [List] of all `Types`.
+			 */
+			fun all(): List<Types> = all
+
+			init
+			{
+				assert(values().size == typesEnumCount)
+				// Build all the objects with null fields.
+				assert(all.size == typesEnumCount)
+				// Connect the objects.
+				for (spec in all)
+				{
+					val o = createMutablePrimitiveObjectNamed(
+						when (spec.parent)
+						{
+							null -> "⊤"
+							else -> spec.name.lowercase().replace('_', ' ')
+						})
+					spec.o = o
+
+					val descriptor = PrimitiveTypeDescriptor(
+						Mutability.SHARED, spec)
+					descriptor.finishInitializingPrimitiveTypeWithParent(
+						o,
+						if (spec.parent === null)
+						{
+							nil
+						}
+						else
+						{
+							spec.parent.o
+						})
+					var pointer: Types? = spec
+					while (pointer !== null)
+					{
+						val ancestorOrdinal: Int = pointer.ordinal
+						spec.superTests[ancestorOrdinal] = true
+						pointer = pointer.parent
+					}
+				}
+				// Precompute all type unions and type intersections.
+				for (a in all)
+				{
+					for (b in all)
+					{
+						// First, compute the union.  Move both pointers up the
+						// tree repeatedly until one is a supertype of the
+						// other.  Use that supertype as the union.
+						val bOrdinal: Int = b.ordinal
+						var aAncestor: Types = a
+						var bAncestor: Types = b
+						val union: Types
+						while (true)
+						{
+							val bAncestorOrdinal: Int = bAncestor.ordinal
+							if (a.superTests[bAncestorOrdinal])
+							{
+								union = bAncestor
+								break
+							}
+							if (b.superTests[aAncestor.ordinal])
+							{
+								union = aAncestor
+								break
+							}
+							aAncestor = aAncestor.parent!!
+							bAncestor = bAncestor.parent!!
+							// Neither pointer can be null, because if one were
+							// at  "top", it would have already been detected as
+							// a supertype of the other.
+						}
+						a.unionTypes[bOrdinal] = union.o
+						assert(a.superTests[union.ordinal])
+						assert(b.superTests[union.ordinal])
+
+						// Now compute the type intersection.  Note that since
+						// the  types form a tree, any two types related by
+						// sub/super typing have an intersection that's the
+						// subtype, and all other type pairs have bottom as
+						// their intersection.
+						a.intersectionTypes[bOrdinal] =
+							when
+							{
+								a.superTests[bOrdinal] -> a.o
+								b.superTests[a.ordinal] -> b.o
+								else -> bottom
+							}
+					}
+				}
+				// Now make all the objects shared.
+				for (spec in all)
+				{
+					spec.o.makeShared()
+				}
+				// Sanity check them for metacovariance: a<=b -> a.type<=b.type
+				for (spec in all)
+				{
+					if (spec.parent !== null)
+					{
+						assert(spec.o.isSubtypeOf(spec.parent.o))
+						assert(spec.o.isInstanceOfKind(spec.parent.o.kind()))
+					}
+				}
+			}
+		}
+
+		/**
+		 * A boolean array where the entries correspond to ordinals of other
+		 * Types. They are true precisely when the type with that ordinal is a
+		 * supertype of the current type.
+		 */
+		val superTests = BooleanArray(typesEnumCount)
+
+		/**
+		 * An array of `A_Type`s, where the entries correspond to ordinals
+		 * of other Types, and hold the unions of that type and the current
+		 * type.
+		 */
+		val unionTypes = arrayOfNulls<A_Type>(typesEnumCount)
+
+		/**
+		 * An array of `A_Type`s, where the entries correspond to ordinals
+		 * of other Types, and hold the intersection of that type and the
+		 * current type.
+		 */
+		val intersectionTypes = arrayOfNulls<A_Type>(typesEnumCount)
 	}
 }
+
+/** The total count of [Types] enum values. */
+const val typesEnumCount = 22

@@ -67,7 +67,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import com.avail.descriptor.types.A_Type.Companion.tokenType
 import com.avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.PrefixSharingList.Companion.append

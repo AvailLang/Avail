@@ -34,7 +34,7 @@ package com.avail.descriptor.representation
 import com.avail.annotations.ThreadSafe
 import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import java.util.IdentityHashMap
@@ -47,9 +47,13 @@ import java.util.IdentityHashMap
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class NilDescriptor private constructor() : Descriptor(
-	Mutability.SHARED, TypeTag.NIL_TAG, null, null
-) {
+class NilDescriptor
+private constructor() : Descriptor(
+	Mutability.SHARED,
+	TypeTag.NIL_TAG,
+	null,
+	null)
+{
 	@ThreadSafe
 	override fun o_Equals(
 		self: AvailObject, another: A_BasicObject

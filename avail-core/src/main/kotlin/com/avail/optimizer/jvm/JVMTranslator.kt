@@ -47,7 +47,7 @@ import com.avail.descriptor.tuples.A_String
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.interpreter.JavaLibrary.getClassLoader
 import com.avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import com.avail.interpreter.JavaLibrary.longAdderIncrement
@@ -66,6 +66,7 @@ import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -672,6 +673,11 @@ class JVMTranslator constructor(
 				{ nextLocal(Type.getType(AvailObject::class.java)) }
 		}
 
+		override fun doOperand(operand: L2PcVectorOperand)
+		{
+			operand.edges.forEach(this::doOperand)
+		}
+
 		/**
 		 * Convert the [A_String] into a suitable suffix for a symbolic static
 		 * constant name in Java decompilation and the debugger.
@@ -732,7 +738,7 @@ class JVMTranslator constructor(
 						"CODE_${tidy(value.methodName)}"
 					else ->
 						"literal_" + tagEndPattern
-							.matcher(value.makeShared().typeTag().name)
+							.matcher(value.makeShared().typeTag.name)
 							.replaceAll("")
 				}
 				name += "_$index"
@@ -873,15 +879,13 @@ class JVMTranslator constructor(
 				classNode.name,
 				classNode.signature,
 				classNode.superName,
-				classNode.interfaces.toTypedArray()
-			)
+				classNode.interfaces.toTypedArray())
 			val methodWriter = classWriter.visitMethod(
 				methodNode.access,
 				methodNode.name,
 				methodNode.desc,
 				methodNode.signature,
-				methodNode.exceptions.toTypedArray()
-			)
+				methodNode.exceptions.toTypedArray())
 			try
 			{
 				// Compute the stack map frames, including the maximum stack
@@ -895,8 +899,7 @@ class JVMTranslator constructor(
 						Interpreter.loggerDebugJVM,
 						Level.SEVERE,
 						"stack map frame computation failed for {0}",
-						className
-					)
+						className)
 					dumpTraceToFile(e)
 				}
 				throw e

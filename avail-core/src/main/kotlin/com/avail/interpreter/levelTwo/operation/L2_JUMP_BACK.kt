@@ -101,7 +101,7 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 	 * @return
 	 *   The [L2PcOperand] to which the instruction jumps.
 	 */
-	@kotlin.jvm.JvmStatic
+	@JvmStatic
 	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
 		assert(instruction.operation() === this)

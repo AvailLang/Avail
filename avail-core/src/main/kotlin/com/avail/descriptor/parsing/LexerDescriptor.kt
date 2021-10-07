@@ -61,14 +61,13 @@ import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.LEXER
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.LEXER
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -185,7 +184,7 @@ class LexerDescriptor private constructor(
 	override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject
-	): Boolean = another.equalsVariable(self)
+	): Boolean = another.traversed().sameAddressAs(self)
 
 	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 

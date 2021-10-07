@@ -55,6 +55,6 @@ import kotlin.reflect.KClass
  *   annotated [L2Operation].
  */
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class WritesHiddenVariable constructor(
 	vararg val value: KClass<out HiddenVariable>)

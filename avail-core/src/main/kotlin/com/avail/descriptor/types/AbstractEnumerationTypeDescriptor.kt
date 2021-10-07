@@ -48,7 +48,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -82,18 +82,22 @@ import com.avail.utility.cast
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots layout, or null if there are no integer slots.
  */
-abstract class AbstractEnumerationTypeDescriptor protected constructor(
+abstract class AbstractEnumerationTypeDescriptor
+protected constructor(
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) : AbstractTypeDescriptor(
-		mutability,
-		typeTag,
-		objectSlotsEnumClass,
-		integerSlotsEnumClass)
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+) : AbstractTypeDescriptor(
+	mutability,
+	typeTag,
+	objectSlotsEnumClass,
+	integerSlotsEnumClass)
 {
 	abstract override fun o_InstanceCount(self: AvailObject): A_Number
+
 	abstract override fun o_Instances(self: AvailObject): A_Set
+
 	abstract override fun o_Equals(
 		self: AvailObject,
 		another: A_BasicObject): Boolean

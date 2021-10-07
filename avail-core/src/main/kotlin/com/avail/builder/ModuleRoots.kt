@@ -213,8 +213,7 @@ class ModuleRoots constructor(
 				System.err.println(message)
 				ex?.printStackTrace()
 				withFailures(singletonList(message))
-			}
-		)
+			})
 	}
 
 	/**

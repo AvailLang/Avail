@@ -387,17 +387,24 @@ class L1InstructionWriter constructor(
 		assert(p === null || p.hasFlag(Flag.CannotFail) || localTypes.size > 0) {
 			"Fallible primitive needs a primitive failure variable"
 		}
-
-		val declarations = mutableListOf<A_Phrase>()
+		val names = mutableListOf<String>()
 		if (phrase.notNil)
 		{
-			declarations.addAll(phrase.argumentsTuple)
-			declarations.addAll(locals(phrase))
-			declarations.addAll(constants(phrase))
+			listOf(phrase.argumentsTuple, locals(phrase), constants(phrase))
+				.flatten()
+				.map { it.token.string().asNativeString() }
 		}
-		val packedDeclarationNames = declarations.joinToString(",") {
+		else
+		{
+			// Synthesize fake names to ensure we have the right number of
+			// names for the arguments and locals.
+			var counter = 1
+			names.addAll(argumentTypes.map { "arg${counter++}" })
+			names.addAll(localTypes.map { "local${counter++}" })
+			names.addAll(constantTypes.map { "constant${counter++}" })
+		}
+		val packedDeclarationNames = names.joinToString(",") { name ->
 			// Quote-escape any name that contains a comma (,) or quote (").
-			val name = it.token.string().asNativeString()
 			if (name.contains(',') || name.contains('\"'))
 				stringFrom(name).toString()
 			else name

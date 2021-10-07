@@ -153,37 +153,34 @@ constructor(elements: List<RR>) : L2Operand()
 		elements.forEach { it.setInstruction(theInstruction) }
 	}
 
-	override fun appendTo(builder: StringBuilder) =
-		with(builder)
+	override fun appendTo(builder: StringBuilder): Unit = with(builder)
+	{
+		append("@<")
+		var first = true
+		for (read in elements)
 		{
-			append("@<")
-			var first = true
-			for (read in elements)
+			if (!first)
 			{
-				if (!first)
-				{
-					append(", ")
-				}
-				append(read.registerString())
-				val restriction = read.restriction()
-				if (restriction.constantOrNull === null)
-				{
-					// Don't redundantly print restriction information for
-					// constants.
-					append(restriction.suffixString())
-				}
-				first = false
+				append(", ")
 			}
-			append(">")
-			Unit
+			append(read.registerString())
+			val restriction = read.restriction()
+			if (restriction.constantOrNull === null)
+			{
+				// Don't redundantly print restriction information for
+				// constants.
+				append(restriction.suffixString())
+			}
+			first = false
 		}
+		append(">")
+	}
 
 	override fun replaceConstantRegisters() =
 		elements.forEach { it.replaceConstantRegisters() }
 
 	override fun postOptimizationCleanup() =
 		elements.forEach { it.postOptimizationCleanup() }
-
 
 	/**
 	 * This vector operand is the input to an [L2_PHI_PSEUDO_OPERATION]

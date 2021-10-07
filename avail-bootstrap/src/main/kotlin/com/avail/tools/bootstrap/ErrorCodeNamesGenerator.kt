@@ -186,7 +186,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 							reachableErrorCodes.setUnionCanDestroy(
 								failureType.instances, true)
 					}
-					else if (failureType.isSubtypeOf(mostGeneralVariableType()))
+					else if (failureType.isSubtypeOf(mostGeneralVariableType))
 					{
 						// This supports P_CatchException, which hides its error
 						// codes inside a variable type.

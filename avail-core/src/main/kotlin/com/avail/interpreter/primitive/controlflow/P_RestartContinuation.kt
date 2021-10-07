@@ -131,7 +131,7 @@ object P_RestartContinuation : Primitive(
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val generator = translator.generator
-		val manifest = generator.currentManifest()
+		val manifest = generator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
 		val label = generator.topFrame.label()
@@ -146,7 +146,8 @@ object P_RestartContinuation : Primitive(
 			val tempSemanticValues = mutableSetOf<L2SemanticValue>()
 			val tempRegisters = mutableSetOf<L2Register>()
 			val tempReads = mutableListOf<L2ReadBoxedOperand>()
-			for (i in 1..translator.code.numArgs()) {
+			for (i in 1 .. translator.code.numArgs())
+			{
 				val read = translator.readSlot(i)
 				val temp = generator.newTemp()
 				tempSemanticValues.add(temp)
@@ -170,8 +171,7 @@ object P_RestartContinuation : Primitive(
 			// RESTART_LOOP_HEAD will know what to do with them.  Force a move
 			// for simplicity (i.e., suppress the mechanism that moveRegister()
 			// uses to simply enlarge synonyms.
-			val newReads = tempSemanticValues.mapIndexed {
-				zeroIndex, temp ->
+			val newReads = tempSemanticValues.mapIndexed { zeroIndex, temp ->
 				val newArg = translator.createSemanticSlot(zeroIndex + 1, 1)
 				val writeOperand = generator.boxedWrite(
 					newArg, manifest.restrictionFor(temp))

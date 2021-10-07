@@ -40,7 +40,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
 import com.avail.interpreter.Primitive
@@ -70,7 +70,7 @@ object P_CreateModuleVariableDeclaration : Primitive(2, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralVariableType(),
+				mostGeneralVariableType,
 				TOKEN.o),
-			MODULE_VARIABLE_PHRASE.mostGeneralType())
+			MODULE_VARIABLE_PHRASE.mostGeneralType)
 }

@@ -34,8 +34,9 @@ package com.avail.interpreter.levelTwo.operation
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.types.A_Type
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -62,8 +63,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_MAKE_IMMUTABLE : L2Operation(
-	L2OperandType.READ_BOXED.named("input"),
-	L2OperandType.WRITE_BOXED.named("output"))
+	READ_BOXED.named("input"),
+	WRITE_BOXED.named("output"))
 {
 	override fun extractFunctionOuter(
 		instruction: L2Instruction,
@@ -74,7 +75,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	{
 		assert(this == instruction.operation())
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
-		//		final L2WriteBoxedOperand write = instruction.operand(1);
+		// val write: L2WriteBoxedOperand = instruction.operand(1)
 
 		// Trace it back toward the actual function creation. We don't care if
 		// the function is still mutable, since the generated JVM code will make
@@ -96,27 +97,6 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		read.instructionWasAdded(manifest)
 		write.instructionWasAddedForMakeImmutable(
 			read.semanticValue(), manifest)
-	}
-
-	override fun updateManifest(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest,
-		optionalPurpose: L2NamedOperandType.Purpose?)
-	{
-		assert(this == instruction.operation())
-		assert(optionalPurpose === null)
-		val read = sourceOfImmutable(instruction)
-		val write = destinationOfImmutable(instruction)
-
-		// Only deal with the boxed form.  The unboxed values are dealt with by
-		// subsequent move instructions.
-		val synonym = manifest.semanticValueToSynonym(read.semanticValue())
-
-		// Make inaccessible all places holding the mutable boxed value.
-		manifest.forget(synonym)
-
-		// Add back the new definition, which is restricted to be immutable.
-		manifest.recordDefinition(write)
 	}
 
 	override fun appendToWithWarnings(

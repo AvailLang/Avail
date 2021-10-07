@@ -71,8 +71,8 @@ import com.avail.descriptor.types.ContinuationTypeDescriptor
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter

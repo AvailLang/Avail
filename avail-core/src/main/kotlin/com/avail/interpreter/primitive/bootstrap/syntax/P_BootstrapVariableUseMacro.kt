@@ -63,7 +63,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
@@ -90,7 +90,7 @@ object P_BootstrapVariableUseMacro
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
-				LITERAL_PHRASE.mostGeneralType()))
+				LITERAL_PHRASE.mostGeneralType))
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
@@ -174,5 +174,5 @@ object P_BootstrapVariableUseMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(LITERAL_PHRASE.create(TOKEN.o)), // Variable name
-			VARIABLE_USE_PHRASE.mostGeneralType())
+			VARIABLE_USE_PHRASE.mostGeneralType)
 }

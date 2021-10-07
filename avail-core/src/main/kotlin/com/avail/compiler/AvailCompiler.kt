@@ -264,8 +264,8 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import com.avail.dispatch.LookupStatistics
@@ -282,7 +282,6 @@ import com.avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import com.avail.interpreter.execution.Interpreter.Companion.stringifyThen
-import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.primitive.compiler.P_RejectParsing
@@ -1476,7 +1475,7 @@ class AvailCompiler(
 				val latestArgument = argsSoFar.last()
 				if (latestArgument.isMacroSubstitutionNode
 					|| latestArgument.isInstanceOfKind(
-						SEND_PHRASE.mostGeneralType()))
+						SEND_PHRASE.mostGeneralType))
 				{
 					val argumentBundle =
 						latestArgument.apparentSendName.bundleOrNil
@@ -1524,8 +1523,7 @@ class AvailCompiler(
 						typeFilterTreePojo.javaObjectNotNull(),
 						latestPhrase,
 						bundleTree.latestBackwardJump,
-						typeCheckArgumentStat
-					)
+						typeCheckArgumentStat)
 				if (AvailRuntimeConfiguration.debugCompilerSteps)
 				{
 					println("Type filter: $latestPhrase -> $successor")
@@ -2498,15 +2496,10 @@ class AvailCompiler(
 			// Find all macro definitions that could match the argument phrases.
 			// Only consider definitions that are defined in the current module
 			// or an ancestor.
-			val visibleDefinitions = mutableListOf<A_Macro>()
-			for (definition in macros)
-			{
+			val visibleDefinitions = macros.filter { definition ->
 				val definitionModule = definition.definitionModule()
-				if (definitionModule.isNil
-					|| compilationContext.module.hasAncestor(definitionModule))
-				{
-					visibleDefinitions.add(definition)
-				}
+				definitionModule.isNil
+					|| compilationContext.module.hasAncestor(definitionModule)
 			}
 			var errorCode: AvailErrorCode? = null
 			if (visibleDefinitions.size == macros.tupleSize)
@@ -2525,20 +2518,11 @@ class AvailCompiler(
 			{
 				// Some macro definitions are not visible.  Search the hard (but
 				// hopefully infrequent) way.
-				val phraseRestrictions = mutableListOf<TypeRestriction>()
-				for (argPhrase in argumentsListNode.expressionsTuple)
-				{
-					phraseRestrictions.add(
-						restrictionForConstant(argPhrase, BOXED_FLAG))
-				}
-				val filtered = mutableListOf<A_Macro>()
-				for (macroDefinition in visibleDefinitions)
-				{
-					if (macroDefinition.bodySignature().couldEverBeInvokedWith(
-							phraseRestrictions))
-					{
-						filtered.add(macroDefinition)
-					}
+				val phraseRestrictions = argumentsListNode.expressionsTuple
+					.map { restrictionForConstant(it, BOXED_FLAG) }
+				val filtered = visibleDefinitions.filter { macroDefinition ->
+					macroDefinition.bodySignature()
+						.couldEverBeInvokedWith(phraseRestrictions)
 				}
 
 				when (filtered.size)
@@ -2971,7 +2955,7 @@ class AvailCompiler(
 				// mess with continuations to get it wrong.
 				val adjustedReplacement: A_Phrase = when {
 					!replacement.isInstanceOfKind(
-						PARSE_PHRASE.mostGeneralType()) ->
+						PARSE_PHRASE.mostGeneralType) ->
 					{
 						stateAfterCall.expected(
 							STRONG,
@@ -4436,7 +4420,7 @@ class AvailCompiler(
 			}
 			val objectCopy = obj.copyMutablePhrase()
 			objectCopy.childrenMap { child ->
-				assert(child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType()))
+				assert(child.isInstanceOfKind(PARSE_PHRASE.mostGeneralType))
 				treeMapWithParent(
 					child, transformer, objectCopy, outerPhrases, phraseMap)
 			}
@@ -4523,9 +4507,9 @@ class AvailCompiler(
 					val literal1 = phrase1.value.token.literal()
 					val literal2 = phrase2.value.token.literal()
 					if (literal1.isInstanceOfKind(
-							PARSE_PHRASE.mostGeneralType())
+							PARSE_PHRASE.mostGeneralType)
 						&& literal2.isInstanceOfKind(
-							PARSE_PHRASE.mostGeneralType()))
+							PARSE_PHRASE.mostGeneralType))
 					{
 						phrase1.value = literal1
 						phrase2.value = literal2
@@ -4895,7 +4879,7 @@ class AvailCompiler(
 			var usedDeclarations = emptySet
 			phrase.childrenDo { childPhrase ->
 				if (childPhrase.isInstanceOfKind(
-						VARIABLE_USE_PHRASE.mostGeneralType()))
+						VARIABLE_USE_PHRASE.mostGeneralType))
 				{
 					val declaration = childPhrase.declaration
 					if (!declaration.declarationKind().isModuleScoped)

@@ -101,7 +101,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledCodeTypeForFunctionType
 import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.MODULE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.levelOne.L1Disassembler
@@ -580,7 +580,7 @@ open class CompiledCodeDescriptor protected constructor(
 		val longCount = self.variableIntegerSlotsCount()
 		if (longCount > 0)
 		{
-			newlineTab(builder, indent)
+			builder.newlineTab(indent)
 			builder.append("Nybblecodes:\n")
 			L1Disassembler(self).print(builder, recursionMap, indent + 1)
 		}

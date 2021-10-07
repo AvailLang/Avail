@@ -45,8 +45,9 @@ import com.avail.descriptor.types.A_Type.Companion.tokenType
 import com.avail.descriptor.types.A_Type.Companion.typeIntersectionOfTokenType
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -65,12 +66,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class TokenTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability,
-		TypeTag.NONTYPE_TYPE_TAG,
-		null,
-		IntegerSlots::class.java)
+class TokenTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.TOKEN_TYPE_TAG,
+	TypeTag.TOKEN_TAG,
+	null,
+	IntegerSlots::class.java)
 {
 	/**
 	 * My slots of type [AvailObject].

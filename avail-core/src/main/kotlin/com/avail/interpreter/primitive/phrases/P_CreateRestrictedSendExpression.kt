@@ -77,7 +77,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -314,10 +314,10 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		functionType(
 			tuple(
 				ATOM.o,
-				LIST_PHRASE.mostGeneralType(),
+				LIST_PHRASE.mostGeneralType,
 				topMeta()),
 			tupleTypeForTypes(
-				zeroOrOneOf(SEND_PHRASE.mostGeneralType()),
+				zeroOrOneOf(SEND_PHRASE.mostGeneralType),
 				stringType))
 
 	override fun returnTypeGuaranteedByVM(

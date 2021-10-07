@@ -44,7 +44,7 @@ import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuat
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CONTINUATION_EXPECTED_STRONGER_TYPE
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -124,7 +124,7 @@ object P_ExitContinuationIf : Primitive(
 		// Check for the common case that the continuation was created for this
 		// very frame.
 		val generator = translator.generator
-		val manifest = generator.currentManifest()
+		val manifest = generator.currentManifest
 		val synonym = manifest.semanticValueToSynonym(
 			continuationReg.semanticValue())
 		val label = generator.topFrame.label()

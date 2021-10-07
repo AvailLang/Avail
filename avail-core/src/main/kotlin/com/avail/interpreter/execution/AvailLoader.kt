@@ -165,7 +165,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FunctionTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
@@ -1126,7 +1126,7 @@ class AvailLoader(
 			macroCode.numArgs() != numArgs ->
 				throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 			!macroCode.functionType().returnType.isSubtypeOf(
-					PARSE_PHRASE.mostGeneralType()) ->
+					PARSE_PHRASE.mostGeneralType) ->
 				throw SignatureException(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 		// Make it so we can safely hold onto these things in the VM.
@@ -1517,8 +1517,9 @@ class AvailLoader(
 				throw RuntimeException(e)
 			}
 			val headerPlan: A_DefinitionParsingPlan =
-				headerMethodBundle.definitionParsingPlans.mapIterable.next()
-				.value()
+				headerMethodBundle.definitionParsingPlans.mapIterable
+					.next()
+					.value()
 			addPlanInProgress(newPlanInProgress(headerPlan, 1))
 		}
 

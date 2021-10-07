@@ -680,7 +680,7 @@ class L2Chunk private constructor(
 		 * @return
 		 *   The number of invocations before initial optimization.
 		 */
-		const val countdownForNewCode: Long = 10000
+		const val countdownForNewCode: Long = 1_000_000_000_000_000_000  // TODO 10000
 
 		/**
 		 * Each time an [A_RawFunction] is found to be the running code for some
@@ -714,9 +714,9 @@ class L2Chunk private constructor(
 		val invalidationLock = ReentrantLock()
 
 		/**
-		 * Allocate and set up a new `L2Chunk level two chunk` with the given
-		 * information. If `code` is non-null, set it up to use the new chunk
-		 * for subsequent invocations.
+		 * Allocate and set up a new [L2Chunk] with the given information. If
+		 * [code] is non-null, set it up to use the new chunk for subsequent
+		 * invocations.
 		 *
 		 * @param code
 		 *   The [code][CompiledCodeDescriptor] for which to use the new level

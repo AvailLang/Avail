@@ -50,7 +50,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralTy
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -139,5 +139,5 @@ object P_ModuleHeaderPseudoMacro
 				/* Optional pragma */
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
 			/* Shouldn't be invoked, so always fail. */
-			STATEMENT_PHRASE.mostGeneralType())
+			STATEMENT_PHRASE.mostGeneralType)
 }

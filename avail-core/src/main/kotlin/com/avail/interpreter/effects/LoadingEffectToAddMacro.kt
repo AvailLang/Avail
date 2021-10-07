@@ -37,7 +37,7 @@ import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.methods.A_Macro
 import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import com.avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.interpreter.levelOne.L1InstructionWriter
 import com.avail.interpreter.levelOne.L1Operation
 

@@ -60,8 +60,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
@@ -94,7 +94,7 @@ object P_BootstrapAssignmentStatementMacro
 				?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
-				LITERAL_PHRASE.mostGeneralType()))
+				LITERAL_PHRASE.mostGeneralType))
 		val literalToken = variableNameLiteral.token
 		assert(literalToken.tokenType() == TokenType.LITERAL)
 		val actualToken = literalToken.literal()
@@ -172,5 +172,5 @@ object P_BootstrapAssignmentStatementMacro
 				LITERAL_PHRASE.create(TOKEN.o),
 				/* Assignment value */
 				EXPRESSION_PHRASE.create(ANY.o)),
-			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
+			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType)
 }

@@ -98,8 +98,8 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 		functionType(
 			tuple(
 				/* The send phrase to treat as a statement */
-				LITERAL_PHRASE.create(SEND_PHRASE.mostGeneralType())),
-			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
+				LITERAL_PHRASE.create(SEND_PHRASE.mostGeneralType)),
+			EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

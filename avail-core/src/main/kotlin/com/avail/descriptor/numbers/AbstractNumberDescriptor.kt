@@ -60,8 +60,8 @@ import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
-import com.avail.descriptor.types.TypeDescriptor.Types.DOUBLE
-import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.DOUBLE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import com.avail.descriptor.types.TypeTag
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod

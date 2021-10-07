@@ -80,8 +80,10 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class SelfPojoTypeDescriptor constructor(mutability: Mutability)
-	: PojoTypeDescriptor(mutability, ObjectSlots::class.java, null)
+class SelfPojoTypeDescriptor
+constructor(
+	mutability: Mutability
+) : PojoTypeDescriptor(mutability, ObjectSlots::class.java, null)
 {
 	/** The layout of the object slots. */
 	internal enum class ObjectSlots : ObjectSlotsEnum

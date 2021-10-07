@@ -46,7 +46,7 @@ import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanTyp
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline

@@ -161,7 +161,7 @@ import com.avail.descriptor.tuples.TupleDescriptor
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.variables.A_Variable
@@ -805,7 +805,7 @@ class ModuleDescriptor private constructor(
 		name: A_String,
 		constantBinding: A_Variable
 	) = lock.safeWrite {
-		assert(constantBinding.kind().isSubtypeOf(mostGeneralVariableType()))
+		assert(constantBinding.kind().isSubtypeOf(mostGeneralVariableType))
 		assertState(Loading)
 		self.updateSlotShared(CONSTANT_BINDINGS) {
 			mapAtPuttingCanDestroy(name, constantBinding, true)
@@ -863,7 +863,7 @@ class ModuleDescriptor private constructor(
 		name: A_String,
 		variableBinding: A_Variable
 	) = lock.safeWrite {
-		assert(variableBinding.kind().isSubtypeOf(mostGeneralVariableType()))
+		assert(variableBinding.kind().isSubtypeOf(mostGeneralVariableType))
 		assertState(Loading)
 		self.updateSlotShared(VARIABLE_BINDINGS) {
 			mapAtPuttingCanDestroy(name, variableBinding, true)

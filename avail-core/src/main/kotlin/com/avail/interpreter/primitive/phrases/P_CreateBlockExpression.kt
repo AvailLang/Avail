@@ -110,12 +110,12 @@ object P_CreateBlockExpression : Primitive(5, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()),
+				zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType),
 				stringType,
-				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()),
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType),
 				topMeta(),
 				setTypeForSizesContentType(wholeNumbers, exceptionType)),
-			BLOCK_PHRASE.mostGeneralType())
+			BLOCK_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

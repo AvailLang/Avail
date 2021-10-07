@@ -65,6 +65,6 @@ object P_AssignmentTarget : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				ASSIGNMENT_PHRASE.mostGeneralType()),
-			VARIABLE_USE_PHRASE.mostGeneralType())
+				ASSIGNMENT_PHRASE.mostGeneralType),
+			VARIABLE_USE_PHRASE.mostGeneralType)
 }

@@ -47,7 +47,8 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfLiteralTokenType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.ObjectSlots.LITERAL_TYPE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -57,8 +58,9 @@ import java.util.IdentityHashMap
  * Like any object, a particular literal token has an exact
  * [instance&#32;type][InstanceTypeDescriptor], and [tokens][TokenDescriptor] in
  * general have a simple [primitive&#32;type][PrimitiveTypeDescriptor] of
- * [TypeDescriptor.Types.TOKEN], but `LiteralTokenTypeDescriptor` covariantly
- * constrains a literal token's type with the type of the value it contains.
+ * [PrimitiveTypeDescriptor.Types.TOKEN], but `LiteralTokenTypeDescriptor`
+ * covariantly constrains a literal token's type with the type of the value it
+ * contains.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
@@ -68,9 +70,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability, TypeTag.NONTYPE_TYPE_TAG, ObjectSlots::class.java, null)
+class LiteralTokenTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.LITERAL_TOKEN_TYPE_TAG,
+	TypeTag.LITERAL_TOKEN_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * My slots of type [AvailObject].
@@ -124,9 +132,8 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun o_IsSupertypeOfLiteralTokenType(
 		self: AvailObject,
-		aLiteralTokenType: A_Type): Boolean =
-			aLiteralTokenType.literalType.isSubtypeOf(
-				self.literalType)
+		aLiteralTokenType: A_Type
+	): Boolean = aLiteralTokenType.literalType.isSubtypeOf(self.literalType)
 
 	override fun o_IsVacuousType(self: AvailObject): Boolean =
 		self.slot(LITERAL_TYPE).isVacuousType
@@ -237,7 +244,7 @@ class LiteralTokenTypeDescriptor private constructor(mutability: Mutability)
 		/**
 		 * Answer the most general literal token type, specifically the literal
 		 * token type whose literal tokens' literal values are constrained by
-		 * [any][TypeDescriptor.Types.ANY].
+		 * [any][Types.ANY].
 		 *
 		 * @return
 		 * The most general literal token type.

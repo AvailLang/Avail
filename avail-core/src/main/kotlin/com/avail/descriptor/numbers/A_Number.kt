@@ -874,6 +874,49 @@ interface A_Number : A_BasicObject
 		): A_Number = dispatch { o_BitwiseAnd(it, anInteger, canDestroy) }
 
 		/**
+		 * Extract the bit with value 2^[bitPosition] from the integer, as a
+		 * [Boolean].
+		 *
+		 * @receiver
+		 *   The [integer][IntegerDescriptor] to query.
+		 * @param bitPosition
+		 *   Which bit to query.  0 indicates the low bit (even/odd), and in
+		 *   general, the bit representing 2^[bitPosition] is being queried.
+		 *   This must be non-negative.
+		 * @return
+		 *   True if the indicated bit was set, otherwise false.
+		 */
+		fun A_Number.bitTest(
+			bitPosition: Int
+		): Boolean = dispatch { o_BitTest(it, bitPosition) }
+
+		/**
+		 * Produce an integer like the receiver, but with the bit corresponding
+		 * to 2^[bitPosition] either set or cleared, depending on [value].  The
+		 * receiver may be recycled or destroyed if [canDestroy] is true.
+		 *
+		 * @receiver
+		 *   The integer[IntegerDescriptor] to update or replace.
+		 * @param bitPosition
+		 *   The bit position to update.  If it's 0, update the lowest bit, and
+		 *   so on, updating the bit representing the value 2^[bitPosition].
+		 *   This must be non-negative, and be within reasonable VM limits
+		 *   related to representing the output value.
+		 * @param value
+		 *   If true, set the indicated bit in the result, otherwise clear it.
+		 * @param canDestroy
+		 *   If true, the receiver may be recycled or destroyed if it happens to
+		 *   be mutable.
+		 * @return
+		 *   The resulting integer.
+		 */
+		fun A_Number.bitSet(
+			bitPosition: Int,
+			value: Boolean,
+			canDestroy: Boolean
+		): A_Number = dispatch { o_BitSet(it, bitPosition, value, canDestroy) }
+
+		/**
 		 * Shift the non-negative integer to the left by the specified number of
 		 * bits, then truncate the representation to force bits above the
 		 * specified position to be zeroed.  The shift factor may be negative,

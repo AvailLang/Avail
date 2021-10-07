@@ -685,7 +685,7 @@ class L1Decompiler constructor(
 		{
 			val label: A_Phrase
 			if (statements.size > 0 && statements[0].isInstanceOfKind(
-					LABEL_PHRASE.mostGeneralType()))
+					LABEL_PHRASE.mostGeneralType))
 			{
 				label = statements[0]
 			}

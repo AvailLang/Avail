@@ -65,6 +65,6 @@ object P_PermutedListList : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				PERMUTED_LIST_PHRASE.mostGeneralType()),
-			LIST_PHRASE.mostGeneralType())
+				PERMUTED_LIST_PHRASE.mostGeneralType),
+			LIST_PHRASE.mostGeneralType)
 }

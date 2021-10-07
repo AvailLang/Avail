@@ -210,7 +210,7 @@ abstract class DefinitionDescriptor protected constructor(
 		self.atomicUpdateSlot(STYLERS, 1, updater)
 	}
 
-	override fun o_Stylers(self: AvailObject): A_Set =
+	override fun o_DefinitionStylers(self: AvailObject): A_Set =
 		self.volatileSlot(STYLERS)
 
 	companion object

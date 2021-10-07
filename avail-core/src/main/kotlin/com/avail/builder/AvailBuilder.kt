@@ -1045,7 +1045,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val moduleEntryPoints = key.entryPoints
 			for (solution in value)
 			{
-				if (solution.isInstanceOfKind(SEND_PHRASE.mostGeneralType()))
+				if (solution.isInstanceOfKind(SEND_PHRASE.mostGeneralType))
 				{
 					val name = solution.apparentSendName
 					val nameString = name.atomName.asNativeString()

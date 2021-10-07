@@ -50,8 +50,8 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -69,9 +69,12 @@ import java.util.IdentityHashMap
  * @constructor
  *  Construct a new `BottomTypeDescriptor`.
  */
-class BottomTypeDescriptor private constructor()
-	: AbstractEnumerationTypeDescriptor(
-		Mutability.SHARED, TypeTag.BOTTOM_TYPE_TAG, null, null)
+class BottomTypeDescriptor
+private constructor() : AbstractEnumerationTypeDescriptor(
+	Mutability.SHARED,
+	TypeTag.BOTTOM_TYPE_TAG,
+	null,
+	null)
 {
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -385,8 +388,12 @@ class BottomTypeDescriptor private constructor()
 
 	override fun o_WriteType(self: AvailObject): A_Type = bottom
 
-	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
-		TypeTag.BOTTOM_TYPE_TAG
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag = unsupported
+
+	override fun o_InstanceTag(self: AvailObject): TypeTag =
+		TypeTag.NIL_TAG  // Shouldn't
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 
 	override fun mutable(): BottomTypeDescriptor
 	{

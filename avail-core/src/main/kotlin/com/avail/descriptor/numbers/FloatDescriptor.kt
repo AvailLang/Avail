@@ -56,7 +56,7 @@ import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import com.avail.descriptor.types.TypeDescriptor.Types.FLOAT
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter

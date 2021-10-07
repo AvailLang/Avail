@@ -217,7 +217,7 @@ internal class Optional constructor(
 		val literal = arguments!!.next()
 		assert(
 			literal.isInstanceOf(
-				PhraseKind.LITERAL_PHRASE.mostGeneralType()))
+				PhraseKind.LITERAL_PHRASE.mostGeneralType))
 		val flag = literal.token.literal().extractBoolean
 		if (flag)
 		{

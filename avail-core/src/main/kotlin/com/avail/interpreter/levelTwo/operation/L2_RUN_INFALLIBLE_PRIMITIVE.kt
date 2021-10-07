@@ -203,7 +203,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		 * @return
 		 *   A suitable `L2_RUN_INFALLIBLE_PRIMITIVE` instance.
 		 */
-		@kotlin.jvm.JvmStatic
+		@JvmStatic
 		fun forPrimitive(primitive: Primitive): L2_RUN_INFALLIBLE_PRIMITIVE
 		{
 			// Until we have all primitives annotated with global read/write
@@ -233,7 +233,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		 * @return
 		 *   The [Primitive] invoked by this instruction.
 		 */
-		@kotlin.jvm.JvmStatic
+		@JvmStatic
 		fun primitiveOf(instruction: L2Instruction): Primitive
 		{
 			assert(instruction.operation() is L2_RUN_INFALLIBLE_PRIMITIVE)
@@ -251,7 +251,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		 *   The [List] of [L2ReadBoxedOperand]s that supply arguments to the
 		 *   primitive.
 		 */
-		@kotlin.jvm.JvmStatic
+		@JvmStatic
 		fun argsOf(instruction: L2Instruction): List<L2ReadBoxedOperand>
 		{
 			assert(instruction.operation() is L2_RUN_INFALLIBLE_PRIMITIVE)

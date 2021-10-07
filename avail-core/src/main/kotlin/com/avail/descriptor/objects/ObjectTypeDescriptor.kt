@@ -109,11 +109,13 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.serialization.SerializerOperation
@@ -145,10 +147,11 @@ class ObjectTypeDescriptor internal constructor(
 	val variant: ObjectLayoutVariant
 ) : TypeDescriptor(
 	mutability,
+	TypeTag.OBJECT_TYPE_TAG,
 	TypeTag.OBJECT_TAG,
 	ObjectSlots::class.java,
-	IntegerSlots::class.java
-) {
+	IntegerSlots::class.java)
+{
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -216,7 +219,7 @@ class ObjectTypeDescriptor internal constructor(
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false
-				newlineTab(builder, indent)
+				newlineTab(indent)
 				append(key.atomName.asNativeString())
 				append(" : ")
 				type.printOnAvoidingIndent(builder, recursionMap, indent + 1)
@@ -400,7 +403,7 @@ class ObjectTypeDescriptor internal constructor(
 		// supertype... but also note that the number of real slots can still be
 		// equal while satisfying the not-same-variant but is-subtype.
 		if (subtypeVariant.realSlotCount < variant.realSlotCount
-			|| subtypeVariant.fieldToSlotIndex.size <=
+			|| subtypeVariant.fieldToSlotIndex.size <
 				variant.fieldToSlotIndex.size) {
 			return false
 		}
@@ -1058,7 +1061,8 @@ class ObjectTypeDescriptor internal constructor(
 						tuple(subclassAtom, instanceType(subclassAtom)),
 						tuple(semanticClassifierAtom, stringType),
 						tuple(methodNameAtom, stringType),
-						tuple(sourceModuleAtom, zeroOrOneOf(Types.MODULE.o)),
+						tuple(sourceModuleAtom, zeroOrOneOf(
+							Types.MODULE.o)),
 						tuple(generatedAtom, booleanType),
 						tuple(lineNumberAtom, wholeNumbers)))
 				setNameForType(type, stringFrom("style"), true)
@@ -1070,11 +1074,11 @@ class ObjectTypeDescriptor internal constructor(
 			 */
 			val stylerFunctionType: A_Type = functionType(
 				tuple(
-					SEND_PHRASE.mostGeneralType(),
+					SEND_PHRASE.mostGeneralType,
 					variableTypeFor(
 						mapTypeForSizesKeyTypeValueType(
 							wholeNumbers,
-							SEND_PHRASE.mostGeneralType(),
+							SEND_PHRASE.mostGeneralType,
 							styleType)),
 					variableTypeFor(
 						mapTypeForSizesKeyTypeValueType(

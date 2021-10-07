@@ -67,6 +67,6 @@ object P_SendArgumentsList : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				SEND_PHRASE.mostGeneralType()),
-			LIST_PHRASE.mostGeneralType())
+				SEND_PHRASE.mostGeneralType),
+			LIST_PHRASE.mostGeneralType)
 }

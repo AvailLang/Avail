@@ -47,8 +47,8 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalDefiningType
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.marshalTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import com.avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import com.avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import com.avail.exceptions.AvailErrorCode.E_POJO_TYPE_IS_ABSTRACT

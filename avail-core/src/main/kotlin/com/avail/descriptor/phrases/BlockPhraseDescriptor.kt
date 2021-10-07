@@ -190,7 +190,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int)
+		indent: Int
+	) : Unit = with(builder)
 	{
 		// Optimize for one-liners...
 		val argumentsTuple = self.argumentsTuple
@@ -225,19 +226,19 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 				indent)
 			if (!tempBuilder.contains('\n') && tempBuilder.length < 100)
 			{
-				builder.append('[')
-				builder.append(tempBuilder)
+				append('[')
+				append(tempBuilder)
 				if (endsWithStatement)
 				{
-					builder.append(';')
+					append(';')
 				}
-				builder.append(']')
+				append(']')
 				return
 			}
 		}
 
 		// Use multiple lines instead...
-		builder.append('[')
+		append('[')
 		var wroteAnything = false
 		if (argCount > 0)
 		{
@@ -246,31 +247,31 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				if (argIndex > 1)
 				{
-					builder.append(',')
+					append(',')
 				}
-				newlineTab(builder, indent)
+				newlineTab(indent)
 				argumentsTuple.tupleAt(argIndex).printOnAvoidingIndent(
 					builder, recursionMap, indent)
 			}
-			newlineTab(builder, indent - 1)
-			builder.append('|')
+			newlineTab(indent - 1)
+			append('|')
 		}
 		var skipFailureDeclaration = false
 		if (primitive !== null && !primitive.hasFlag(Flag.SpecialForm))
 		{
 			wroteAnything = true
-			newlineTab(builder, indent)
-			builder.append("Primitive ")
-			builder.append(primitive.name)
+			newlineTab(indent)
+			append("Primitive ")
+			append(primitive.name)
 			if (!primitive.hasFlag(Flag.CannotFail))
 			{
-				builder.append(" (")
+				append(" (")
 				statementsTuple.tupleAt(1).printOnAvoidingIndent(
 					builder, recursionMap, indent)
-				builder.append(')')
+				append(')')
 				skipFailureDeclaration = true
 			}
-			builder.append(';')
+			append(';')
 		}
 		for (index in 1 .. statementsSize)
 		{
@@ -279,35 +280,35 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				assert(
 					statement.isInstanceOf(
-						DECLARATION_PHRASE.mostGeneralType()))
+						DECLARATION_PHRASE.mostGeneralType))
 				skipFailureDeclaration = false
 			}
 			else
 			{
 				wroteAnything = true
-				newlineTab(builder, indent)
+				newlineTab(indent)
 				statement.printOnAvoidingIndent(
 					builder, recursionMap, indent)
 				if (index < statementsSize || endsWithStatement)
 				{
-					builder.append(';')
+					append(';')
 				}
 			}
 		}
 		if (wroteAnything)
 		{
-			newlineTab(builder, indent - 1)
+			newlineTab(indent - 1)
 		}
-		builder.append(']')
+		append(']')
 		if (explicitResultType !== null)
 		{
-			builder.append(" : ")
-			builder.append(explicitResultType)
+			append(" : ")
+			append(explicitResultType)
 		}
 		if (declaredExceptions !== null)
 		{
-			builder.append(" ^ ")
-			builder.append(declaredExceptions)
+			append(" ^ ")
+			append(declaredExceptions)
 		}
 	}
 
@@ -536,7 +537,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		{
 			for (phrase in self.statementsTuple)
 			{
-				if (phrase.isInstanceOfKind(LABEL_PHRASE.mostGeneralType()))
+				if (phrase.isInstanceOfKind(LABEL_PHRASE.mostGeneralType))
 				{
 					assert(phrase.declarationKind() === DeclarationKind.LABEL)
 					return listOf(phrase)
@@ -563,7 +564,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			for (phrase in self.statementsTuple)
 			{
 				if (phrase.isInstanceOfKind(
-						DECLARATION_PHRASE.mostGeneralType()))
+						DECLARATION_PHRASE.mostGeneralType))
 				{
 					val kind = phrase.declarationKind()
 					if (kind === DeclarationKind.LOCAL_VARIABLE
@@ -592,7 +593,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			for (phrase in self.statementsTuple)
 			{
 				if (phrase.isInstanceOfKind(
-						DECLARATION_PHRASE.mostGeneralType())
+						DECLARATION_PHRASE.mostGeneralType)
 					&& phrase.declarationKind()
 					=== DeclarationKind.LOCAL_CONSTANT)
 				{
@@ -645,7 +646,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			{
 				val statement = flattenedStatements[index]
 				if (statement.isInstanceOfKind(
-						LITERAL_PHRASE.mostGeneralType()))
+						LITERAL_PHRASE.mostGeneralType))
 				{
 					flattenedStatements.removeAt(index)
 				}

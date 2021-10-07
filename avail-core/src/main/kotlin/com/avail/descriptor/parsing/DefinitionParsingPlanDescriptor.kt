@@ -72,7 +72,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.TypeDescriptor.Types.DEFINITION_PARSING_PLAN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.StackPrinter
 import java.util.IdentityHashMap

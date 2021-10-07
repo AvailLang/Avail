@@ -37,6 +37,7 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operation.L2_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import com.avail.interpreter.levelTwo.register.L2Register
@@ -339,7 +340,11 @@ class L2ControlFlowGraphVisualizer constructor(
 		val types: Array<out L2NamedOperandType> =
 			sourceInstruction.operation().operandTypes()
 		val operands = sourceInstruction.operands()
-		val type = types[listOf(*operands).indexOf(edge)]
+		val operandIndex = operands.indexOfFirst {
+			it == edge
+				|| (it is L2PcVectorOperand && it.edges.contains(edge))
+		}
+		val type = types[operandIndex]
 		// The selection of Helvetica as the font is important. Some
 		// renderers, like Viz.js, only seem to fully support a small number
 		// of standard, widely available fonts:

@@ -32,12 +32,14 @@
 
 package com.avail.dispatch
 
+import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject.Companion.error
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import java.lang.String.format
 
@@ -62,7 +64,7 @@ import java.lang.String.format
  *   empty, there are no applicable definitions, and if there's more than one
  *   element the actual call is ambiguous.
  */
-internal class LeafLookupTree<
+class LeafLookupTree<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 internal constructor(private val finalResult: Result)
@@ -100,6 +102,13 @@ internal constructor(private val finalResult: Result)
 		else
 		{
 			return format("Result: %s", finalResult)
+		}
+	}
+
+	companion object
+	{
+		val emptyMethodLeaf by lazy {
+			LeafLookupTree<A_Definition, A_Tuple>(emptyTuple)
 		}
 	}
 }

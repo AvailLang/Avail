@@ -124,8 +124,9 @@ import com.avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PhraseTypeDescriptor
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
+import com.avail.dispatch.LeafLookupTree
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
 import com.avail.dispatch.TypeComparison.Companion.compareForParsing
@@ -451,7 +452,7 @@ class MessageBundleTreeDescriptor private constructor(
 			}
 			else
 			{
-				val pre = buildString { newlineTab(this, indent) }
+				val pre = buildString { newlineTab(indent) }
 				sorted.joinTo(builder, pre, pre)
 			}
 		}
@@ -617,7 +618,7 @@ class MessageBundleTreeDescriptor private constructor(
 					toList(typeFilterPairs.value),
 					listOf(
 						restrictionForType(
-							PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
+							PARSE_PHRASE.mostGeneralType, BOXED_FLAG)),
 					latestBackwardJump)
 				self.setSlot(
 					LAZY_TYPE_FILTER_TREE_POJO, identityPojo(tree).makeShared())
@@ -835,6 +836,10 @@ class MessageBundleTreeDescriptor private constructor(
 		val parserTypeChecker =
 			object : LookupTreeAdaptor<A_Tuple, A_BundleTree, A_BundleTree>()
 		{
+			override val emptyLeaf by lazy {
+				LeafLookupTree<A_Tuple, A_BundleTree>(newBundleTree(nil))
+			}
+
 			// Extract the phrase type from the pair, and use it directly as
 			// the signature type for the tree.
 			override fun extractSignature(element: A_Tuple): A_Type =

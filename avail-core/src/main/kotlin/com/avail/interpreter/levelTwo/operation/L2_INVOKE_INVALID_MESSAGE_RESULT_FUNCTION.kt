@@ -88,7 +88,7 @@ object L2_INVOKE_INVALID_MESSAGE_RESULT_FUNCTION : L2ControlFlowOperation(
 		builder.append(" got: ")
 		builder.append(returnedValue.registerString())
 		builder.append(", expected: ")
-		builder.append(expectedType.constant.typeTag())
+		builder.append(expectedType.constant.typeTag)
 		builder.append(", pc: ")
 		builder.append(pc.value)
 		builder.append(", stackp: ")

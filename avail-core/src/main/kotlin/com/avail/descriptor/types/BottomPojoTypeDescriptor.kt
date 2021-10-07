@@ -58,8 +58,8 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class BottomPojoTypeDescriptor constructor(mutability: Mutability)
-	: PojoTypeDescriptor(mutability, null, null)
+class BottomPojoTypeDescriptor
+constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 {
 	override fun o_EqualsPojoBottomType(self: AvailObject): Boolean = true
 

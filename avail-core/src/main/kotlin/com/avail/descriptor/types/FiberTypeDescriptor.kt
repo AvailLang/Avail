@@ -48,7 +48,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfFiberType
 import com.avail.descriptor.types.FiberTypeDescriptor.ObjectSlots.RESULT_TYPE
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -72,9 +72,15 @@ import java.util.IdentityHashMap
  * @param mutability
 	* The [mutability][Mutability] of the new descriptor.
  */
-class FiberTypeDescriptor constructor (mutability: Mutability)
-	: TypeDescriptor(
-		mutability, TypeTag.FIBER_TYPE_TAG, ObjectSlots::class.java, null)
+class FiberTypeDescriptor
+constructor (
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.FIBER_TYPE_TAG,
+	TypeTag.FIBER_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.

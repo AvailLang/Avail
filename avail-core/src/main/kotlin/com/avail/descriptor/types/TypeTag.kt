@@ -31,10 +31,19 @@
  */
 package com.avail.descriptor.types
 
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import com.avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import com.avail.descriptor.maps.A_Map.Companion.mapSize
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
+import com.avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
+import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.NilDescriptor.Companion.nil
 import com.avail.descriptor.sets.A_Set.Companion.setSize
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.contentType
 import com.avail.descriptor.types.A_Type.Companion.functionType
@@ -45,10 +54,35 @@ import com.avail.descriptor.types.A_Type.Companion.returnType
 import com.avail.descriptor.types.A_Type.Companion.sizeRange
 import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.A_Type.Companion.writeType
-import com.avail.descriptor.types.TypeTag.Variant.Co
-import com.avail.descriptor.types.TypeTag.Variant.Contra
-import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
+import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
+import com.avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
+import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
+import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.trueType
+import com.avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
+import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
+import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.mostGeneralLiteralTokenType
+import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
+import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import com.avail.descriptor.types.PojoTypeDescriptor.Companion.mostGeneralPojoType
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
+import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import com.avail.descriptor.types.TypeTag.Modifier
+import com.avail.descriptor.types.TypeTag.Modifier.Abstract
+import com.avail.descriptor.types.TypeTag.Modifier.Co
+import com.avail.descriptor.types.TypeTag.Modifier.Contra
+import com.avail.descriptor.types.TypeTag.Modifier.Sup
+import com.avail.descriptor.types.TypeTag.Modifier.Unique
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 
 /**
  * `TypeTag` is an enumeration that corresponds with the basic type structure of
@@ -66,193 +100,408 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
  * checking if a.ordinal ≥ b.ordinal and a.highOrdinal ≤ b.highOrdinal.  For a
  * proper subtype test, we turn the first condition into an inequality.
  *
+ * @property parent
+ *   The parent of this [TypeTag].
+ *
+ * @constructor
+ * Construct a new enum instance.  Must be listed in hierarchical order.
+ *
+ * @param instance
+ *   The most general instance of this [TypeTag].
+ * @param modifiers
+ *   The vararg list of [Modifier]s, which set flags or declare covariant and
+ *   contravariant relationships.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 enum class TypeTag
+constructor(
+	val parent: TypeTag?,
+	instance: TypeTag? = null,
+	vararg modifiers: Modifier)
 {
-	UNKNOWN_TAG,
-	TOP_TAG,
-	NIL_TAG(TOP_TAG),
-	ATOM_TAG(TOP_TAG),
-	BOOLEAN_TAG(ATOM_TAG),
-	TRUE_TAG(BOOLEAN_TAG),
-	FALSE_TAG(BOOLEAN_TAG),
-	BUNDLE_TAG(TOP_TAG),
-	BUNDLE_TREE_TAG(TOP_TAG),
-	CHARACTER_TAG(TOP_TAG),
-	CONTINUATION_TAG(TOP_TAG),
-	DEFINITION_TAG(TOP_TAG),
-	FIBER_TAG(TOP_TAG),
-	FUNCTION_TAG(TOP_TAG),
-	GRAMMATICAL_RESTRICTION_TAG(TOP_TAG),
-	LEXER_TAG(TOP_TAG),
-	MACRO_TAG(TOP_TAG),
-	MAP_TAG(TOP_TAG),
-	MAP_LINEAR_BIN_TAG(TOP_TAG),
-	MAP_HASHED_BIN_TAG(TOP_TAG),
-	METHOD_TAG(TOP_TAG),
-	MODULE_TAG(TOP_TAG),
-	NUMBER_TAG(TOP_TAG),
-	EXTENDED_INTEGER_TAG(NUMBER_TAG),
-	INTEGER_TAG(EXTENDED_INTEGER_TAG),
-	WHOLE_NUMBER_TAG(INTEGER_TAG),
-	NATURAL_NUMBER_TAG(WHOLE_NUMBER_TAG),
-	NEGATIVE_INFINITY_TAG(EXTENDED_INTEGER_TAG),
-	POSITIVE_INFINITY_TAG(EXTENDED_INTEGER_TAG),
-	FLOAT_TAG(NUMBER_TAG),
-	DOUBLE_TAG(NUMBER_TAG),
-	OBJECT_TAG(TOP_TAG),
-	PARSING_PLAN_TAG(TOP_TAG),
-	PARSING_PLAN_IN_PROGRESS_TAG(TOP_TAG),
-	PHRASE_TAG(TOP_TAG),
-	MARKER_PHRASE_TAG(PHRASE_TAG),
-	EXPRESSION_PHRASE_TAG(PHRASE_TAG),
-	ASSIGNMENT_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	BLOCK_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	LITERAL_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	REFERENCE_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	SUPER_CAST_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	SEND_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	LIST_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	PERMUTED_LIST_PHRASE_TAG(LIST_PHRASE_TAG),
-	VARIABLE_USE_PHRASE_TAG(EXPRESSION_PHRASE_TAG),
-	STATEMENT_PHRASE_TAG(PHRASE_TAG),
-	SEQUENCE_PHRASE_TAG(STATEMENT_PHRASE_TAG),
-	FIRST_OF_SEQUENCE_PHRASE_TAG(STATEMENT_PHRASE_TAG),
-	DECLARATION_PHRASE_TAG(STATEMENT_PHRASE_TAG),
-	ARGUMENT_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	LABEL_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	LOCAL_VARIABLE_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	LOCAL_CONSTANT_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	MODULE_VARIABLE_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	MODULE_CONSTANT_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	PRIMITIVE_FAILURE_REASON_PHRASE_TAG(DECLARATION_PHRASE_TAG),
-	EXPRESSION_AS_STATEMENT_PHRASE_TAG(STATEMENT_PHRASE_TAG),
-	MACRO_SUBSTITUTION_PHRASE_TAG(PHRASE_TAG),
-	POJO_TAG(TOP_TAG),
-	RAW_FUNCTION_TAG(TOP_TAG),
-	SEMANTIC_RESTRICTION_TAG(TOP_TAG),
-	SET_TAG(TOP_TAG),
-	SET_LINEAR_BIN_TAG(TOP_TAG),
-	SET_HASHED_BIN_TAG(TOP_TAG),
-	TOKEN_TAG(TOP_TAG),
-	LITERAL_TOKEN_TAG(TOKEN_TAG),
-	TUPLE_TAG(TOP_TAG),
-	STRING_TAG(TUPLE_TAG),
-	VARIABLE_TAG(TOP_TAG),
+	UNKNOWN_TAG(null, instance = UNKNOWN_TAG, Abstract, Sup { Types.TOP.o }),
+	TOP_TAG(null, null, Abstract, Sup { Types.TOP.o }),
+	NIL_TAG(TOP_TAG, null, Unique { nil }, Sup { Types.TOP.o }),
+	NONTYPE_TAG(TOP_TAG, null, Sup { Types.NONTYPE.o }),
+	ATOM_TAG(NONTYPE_TAG, null, Sup { Types.ATOM.o }),
+	BOOLEAN_TAG(ATOM_TAG, null, Abstract, Sup { booleanType }),
+	TRUE_TAG(BOOLEAN_TAG, null, Unique { trueObject }),
+	FALSE_TAG(BOOLEAN_TAG, null, Unique { falseObject }),
+	BUNDLE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE.o }),
+	BUNDLE_TREE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE_TREE.o }),
+	CHARACTER_TAG(NONTYPE_TAG, null, Sup { Types.CHARACTER.o }),
+	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType() }),
+	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION.o }),
+	FIBER_TAG(NONTYPE_TAG, null, Sup { mostGeneralFiberType() }),
+	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType() }),
+	LEXER_TAG(NONTYPE_TAG, null, Sup { Types.LEXER.o }),
+	MACRO_TAG(NONTYPE_TAG, null, Sup { Types.MACRO_DEFINITION.o }),
+	MAP_TAG(NONTYPE_TAG, null, Sup { mostGeneralMapType() }),
+	METHOD_TAG(NONTYPE_TAG, null, Sup { Types.METHOD.o }),
+	MODULE_TAG(NONTYPE_TAG, null, Sup { Types.MODULE.o }),
+	NUMBER_TAG(NONTYPE_TAG, null, Abstract, Sup { Types.NUMBER.o }),
+	EXTENDED_INTEGER_TAG(NUMBER_TAG, null, Abstract, Sup { extendedIntegers }),
+	INTEGER_TAG(EXTENDED_INTEGER_TAG, null, Sup { integers }),
+	WHOLE_NUMBER_TAG(INTEGER_TAG, null, Sup { wholeNumbers }),
+	NATURAL_NUMBER_TAG(WHOLE_NUMBER_TAG, null, Sup { naturalNumbers }),
+	NEGATIVE_INFINITY_TAG(
+		EXTENDED_INTEGER_TAG, null, Unique { negativeInfinity }),
+	POSITIVE_INFINITY_TAG(
+		EXTENDED_INTEGER_TAG, null, Unique { positiveInfinity }),
+	FLOAT_TAG(NUMBER_TAG, null, Sup { Types.FLOAT.o }),
+	DOUBLE_TAG(NUMBER_TAG, null, Sup { Types.DOUBLE.o }),
+	OBJECT_TAG(NONTYPE_TAG, null, Sup { mostGeneralObjectType() }),
+	PARSING_PLAN_TAG(
+		NONTYPE_TAG, null, Sup { Types.DEFINITION_PARSING_PLAN.o }),
+	PARSING_PLAN_IN_PROGRESS_TAG(
+		NONTYPE_TAG, null, Sup {Types.PARSING_PLAN_IN_PROGRESS.o }),
+	PHRASE_TAG(
+		NONTYPE_TAG,
+		null,
+		Abstract,
+		Sup { PhraseKind.PARSE_PHRASE.mostGeneralType }),
+	MARKER_PHRASE_TAG(
+		PHRASE_TAG, null, Sup { PhraseKind.MARKER_PHRASE.mostGeneralType }),
+	EXPRESSION_PHRASE_TAG(
+		PHRASE_TAG,
+		null,
+		Abstract,
+		Sup { PhraseKind.EXPRESSION_PHRASE.mostGeneralType}),
+	ASSIGNMENT_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType }),
+	BLOCK_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.BLOCK_PHRASE.mostGeneralType }),
+	LITERAL_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.LITERAL_PHRASE.mostGeneralType }),
+	REFERENCE_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.REFERENCE_PHRASE.mostGeneralType }),
+	SUPER_CAST_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.SUPER_CAST_PHRASE.mostGeneralType }),
+	SEND_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.SEND_PHRASE.mostGeneralType }),
+	LIST_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.LIST_PHRASE.mostGeneralType }),
+	PERMUTED_LIST_PHRASE_TAG(
+		LIST_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType }),
+	VARIABLE_USE_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType }),
+	STATEMENT_PHRASE_TAG(
+		PHRASE_TAG,
+		null,
+		Abstract,
+		Sup { PhraseKind.STATEMENT_PHRASE.mostGeneralType }),
+	SEQUENCE_PHRASE_TAG(
+		STATEMENT_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.SEQUENCE_PHRASE.mostGeneralType }),
+	FIRST_OF_SEQUENCE_PHRASE_TAG(
+		STATEMENT_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType }),
+	DECLARATION_PHRASE_TAG(
+		STATEMENT_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.STATEMENT_PHRASE.mostGeneralType }),
+	ARGUMENT_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.ARGUMENT_PHRASE.mostGeneralType }),
+	LABEL_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.LABEL_PHRASE.mostGeneralType }),
+	LOCAL_VARIABLE_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType }),
+	LOCAL_CONSTANT_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType }),
+	MODULE_VARIABLE_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType }),
+	MODULE_CONSTANT_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType }),
+	PRIMITIVE_FAILURE_REASON_PHRASE_TAG(
+		DECLARATION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType }),
+	EXPRESSION_AS_STATEMENT_PHRASE_TAG(
+		STATEMENT_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType }),
+	MACRO_SUBSTITUTION_PHRASE_TAG(
+		PHRASE_TAG,
+		null,
+		Sup { PhraseKind.MACRO_SUBSTITUTION_PHRASE.mostGeneralType }),
+	POJO_TAG(NONTYPE_TAG, null, Sup { mostGeneralPojoType() }),
+	RAW_FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralCompiledCodeType() }),
+	SET_TAG(NONTYPE_TAG, null, Sup { mostGeneralSetType() }),
+	TOKEN_TAG(NONTYPE_TAG, null, Sup { Types.TOKEN.o }),
+	LITERAL_TOKEN_TAG(TOKEN_TAG, null, Sup { mostGeneralLiteralTokenType() }),
+	TUPLE_TAG(NONTYPE_TAG, null, Sup { mostGeneralTupleType }),
+	VARIABLE_TAG(NONTYPE_TAG, null, Sup { mostGeneralVariableType }),
 
-	TOP_TYPE_TAG(TOP_TAG, TOP_TAG),
-	ANY_TYPE_TAG(TOP_TYPE_TAG),
-	NONTYPE_TYPE_TAG(ANY_TYPE_TAG),
+	// All the rest are the tags for types...
+	TOP_TYPE_TAG(
+		TOP_TAG, instance = TOP_TAG, Sup { instanceMeta(Types.TOP.o) }),
+	ANY_TYPE_TAG(TOP_TYPE_TAG, null, Sup { instanceMeta(Types.ANY.o) }),
+	NONTYPE_TYPE_TAG(
+		ANY_TYPE_TAG,
+		instance = NONTYPE_TAG,
+		Sup { instanceMeta(Types.NONTYPE.o) }),
+	ATOM_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		instance = ATOM_TAG,
+		Sup { instanceMeta(Types.ATOM.o) }),
+	BOOLEAN_TYPE_TAG(
+		ATOM_TYPE_TAG,
+		instance = BOOLEAN_TAG,
+		Sup { instanceMeta(booleanType) }),
+	TRUE_TYPE_TAG(
+		BOOLEAN_TYPE_TAG,
+		instance = TRUE_TAG,
+		Sup { instanceMeta(trueType) }),
+	FALSE_TYPE_TAG(
+		BOOLEAN_TYPE_TAG,
+		instance = FALSE_TAG,
+		Sup { instanceMeta(falseType) }),
 	SET_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		SET_TAG,
+		instance = SET_TAG,
+		Sup { instanceMeta(mostGeneralSetType()) },
 		Co("size", part = { fromInt(setSize) }) { sizeRange },
 		Co("element") { contentType }),
-	POJO_TYPE_TAG(NONTYPE_TYPE_TAG, POJO_TAG),
-	NUMBER_TYPE_TAG(NONTYPE_TYPE_TAG, NUMBER_TAG),
-	EXTENDED_INTEGER_TYPE_TAG(NUMBER_TYPE_TAG, EXTENDED_INTEGER_TAG),
+	POJO_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		instance = POJO_TAG,
+		Sup { instanceMeta(mostGeneralPojoType()) }),
+	NUMBER_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		instance = NUMBER_TAG,
+		Sup { instanceMeta(Types.NUMBER.o) }),
+	EXTENDED_INTEGER_TYPE_TAG(
+		NUMBER_TYPE_TAG,
+		instance = EXTENDED_INTEGER_TAG,
+		Sup { instanceMeta(extendedIntegers) }),
 	PHRASE_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		PHRASE_TAG,
+		instance = PHRASE_TAG,
+		Sup { instanceMeta(PhraseKind.PARSE_PHRASE.mostGeneralType) },
 		Co("yields") { phraseTypeExpressionType }),
-	LIST_PHRASE_TYPE_TAG(PHRASE_TYPE_TAG, LIST_PHRASE_TAG),
+	LIST_PHRASE_TYPE_TAG(
+		PHRASE_TYPE_TAG,
+		instance = LIST_PHRASE_TAG,
+		Sup { instanceMeta(PhraseKind.LIST_PHRASE.mostGeneralType) }),
 	VARIABLE_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		VARIABLE_TAG,
+		instance = VARIABLE_TAG,
+		Sup { mostGeneralVariableMeta },
 		Co("read") { readType },
 		Contra("write") { writeType }),
-	PRIMITIVE_TYPE_TAG(NONTYPE_TYPE_TAG),
 	FUNCTION_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		FUNCTION_TAG,
+		instance = FUNCTION_TAG,
+		Sup { instanceMeta(mostGeneralFunctionType()) },
 		Contra("arguments") { argsTupleType },
 		Co("return") { returnType }),
-	OBJECT_TYPE_TAG(NONTYPE_TYPE_TAG, OBJECT_TAG),
+	OBJECT_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		instance = OBJECT_TAG,
+		Sup { mostGeneralObjectMeta()}),
 	MAP_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		MAP_TAG,
+		instance = MAP_TAG,
+		Sup { instanceMeta(mostGeneralMapType()) },
 		Co("size", part = { fromInt(mapSize) }) { sizeRange },
 		Co("key") { keyType },
 		Co("value") { valueType }),
+	TOKEN_TYPE_TAG(
+		NONTYPE_TYPE_TAG,
+		instance = TOKEN_TAG,
+		Sup { instanceMeta(Types.TOKEN.o) }),
+	LITERAL_TOKEN_TYPE_TAG(
+		TOKEN_TYPE_TAG,
+		instance = LITERAL_TOKEN_TAG,
+		Sup { instanceMeta(mostGeneralLiteralTokenType()) }),
 	TUPLE_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		TUPLE_TAG,
+		instance = TUPLE_TAG,
+		Sup { instanceMeta(mostGeneralTupleType) },
 		Co("size", part = { fromInt(tupleSize) }) { sizeRange }),
 	CONTINUATION_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		CONTINUATION_TAG,
+		instance = CONTINUATION_TAG,
+		Sup { instanceMeta(mostGeneralContinuationType()) },
 		Contra("arguments") { functionType.argsTupleType },
 		Contra("result") { functionType.returnType }),
 	RAW_FUNCTION_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		RAW_FUNCTION_TAG,
+		instance = RAW_FUNCTION_TAG,
+		Sup { instanceMeta(mostGeneralCompiledCodeType()) },
 		Co("functionType") { functionType }),
 	FIBER_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
-		FIBER_TAG,
+		instance = FIBER_TAG,
+		Sup { instanceMeta(mostGeneralFiberType()) },
 		Co("result") { resultType() }),
-	META_TAG(ANY_TYPE_TAG, TOP_TYPE_TAG),
-	BOTTOM_TYPE_TAG(ANY_TYPE_TAG);
-
-	// Special case
-	constructor ()
-	{
-		depth = 0
-		parent = null
-		highOrdinal = ordinal
-		covariants = emptyArray()
-		contravariants = emptyArray()
-	}
-
-	constructor (parent: TypeTag)
-	{
-		assert(parent.metaTag === null) {
-			"Children of tags with metaTags should also have metaTags"
-		}
-		depth = parent.depth + 1
-		this.parent = parent
-		highOrdinal = ordinal
-		parent.addDescendant(this)
-		covariants = emptyArray()
-		contravariants = emptyArray()
-	}
-
-	constructor (
-		parent: TypeTag,
-		instance: TypeTag,
-		vararg variants: Variant)
-	{
-		depth = parent.depth + 1
-		this.parent = parent
-		highOrdinal = ordinal
-		parent.addDescendant(this)
-		instance.metaTag = this
-		covariants = parent.covariants +
-			variants.filterIsInstance<Co>().toTypedArray()
-		contravariants = parent.contravariants +
-			variants.filterIsInstance<Contra>().toTypedArray()
-	}
+	META_TAG(
+		ANY_TYPE_TAG,
+		instance = TOP_TYPE_TAG,
+		Sup { instanceMeta(instanceMeta(Types.TOP.o)) }),
+	BOTTOM_TYPE_TAG(
+		TOP_TYPE_TAG,
+		NIL_TAG,
+		Unique { bottom });
 
 	/**
-	 * The mechanism for expressing covariant and contravariant relationships
-	 * for types.  Each [TypeTag] that represents a region of the [type][A_Type]
-	 * lattice can define [Co]variant and [Contra]variant relations that apply
-	 * to types that have that `TypeTag`.
-	 *
-	 * @property name
-	 *   The symbolic name of the variant, for descriptive purposes.
-	 * @property traverse
-	 *   A function that extracts a co-/contravariant type from the original
-	 *   type, where this [Variant] is applicable.  For example, given something
-	 *   with the tag [SET_TYPE_TAG] (the [TypeTag] for set types), the set
-	 *   type's element type can be extracted by running the [traverse] function
-	 *   of the "element" covariant type parameter.
+	 * The number of ancestors of this [TypeTag]
 	 */
-	sealed class Variant(
-		val name: String,
-		val traverse: A_Type.()->A_Type)
+	val depth: Int = if (parent == null) 0 else parent.depth + 1
+
+	/**
+	 * If object X has tag T, then X's type has tag T.metaTag.
+	 */
+	var metaTag: TypeTag? = null
+		private set
+
+	/**
+	 * A flag set during initialization, indicating this [TypeTag] has no
+	 * direct instances.
+	 */
+	var isAbstract = false
+
+	/**
+	 * Some [TypeTag]s occur in exactly one [AvailObject].  If so, this field is
+	 * a lambda that produces that value.
+	 */
+	private var uniqueProducer: (() -> A_BasicObject)? = null
+
+	/**
+	 * Some [TypeTag]s occur in exactly one [AvailObject].  If so, this field
+	 * will be initialized to a lambda that produces the value.
+	 */
+	val uniqueValue by lazy { uniqueProducer?.invoke() as AvailObject? }
+
+	/**
+	 * Every [TypeTag] has a (potentially infinite) collection of values that
+	 * use that tag.  This is a lambda that produces the least upper bound
+	 * [A_Type] that constrains all those values.
+	 */
+	private lateinit var supremumProducer: (() -> A_Type)
+
+	/**
+	 * Every [TypeTag] has a (potentially infinite) collection of values that
+	 * use that tag.  After initialization, this property has the least upper
+	 * bound [A_Type] that constrains all those values.
+	 */
+	val supremum by lazy { supremumProducer() }
+
+	/**
+	 * The array of [Co]variant relationships defined during construction.
+	 */
+	val covariants = mutableListOf<Co>()
+
+	/**
+	 * The array of [Contra]variant relationships defined during construction.
+	 */
+	val contravariants = mutableListOf<Contra>()
+
+	init
 	{
+		instance?.metaTag = this
+		modifiers.forEach { it.applyTo(this) }
+	}
+
+	sealed class Modifier
+	{
+		/**
+		 * An indicator that the TypeTag has no direct instances.
+		 */
+		object Abstract : Modifier()
+		{
+			override fun applyTo(typeTag: TypeTag)
+			{
+				typeTag.isAbstract = true
+			}
+		}
+
+		/**
+		 * An indicator that the TypeTag has exactly one instance.  A lambda to
+		 * produce that instance is provided, and will be executed once, when
+		 * first requested.
+		 *
+		 * If the [Unique] value is provided, the [Sup] (supremum) is
+		 * automatically set accordingly.
+		 */
+		class Unique(val value: ()->A_BasicObject) : Modifier()
+		{
+			override fun applyTo(typeTag: TypeTag)
+			{
+				typeTag.uniqueProducer = value
+				typeTag.supremumProducer =
+					{ instanceTypeOrMetaOn(typeTag.uniqueValue!!) }
+			}
+		}
+
+		/**
+		 * Every [TypeTag] has a (potentially infinite) collection of values
+		 * that use that tag.  This specifies a lambda that produces the least
+		 * upper bound [A_Type] that constrains all those values.
+		 *
+		 * The lambda will be provided at most once, and only when needed.
+		 */
+		class Sup constructor(val value: ()->A_Type) : Modifier()
+		{
+			override fun applyTo(typeTag: TypeTag)
+			{
+				typeTag.supremumProducer = value
+			}
+		}
+
+		/**
+		 * The mechanism for expressing covariant and contravariant
+		 * relationships for types.  Each [TypeTag] that represents a region of
+		 * the [type][A_Type] lattice can define [Co]variant and [Contra]variant
+		 * relations that apply to types that have that `TypeTag`.
+		 *
+		 * @property name
+		 *   The symbolic name of the variant, for descriptive purposes.
+		 * @property traverse
+		 *   A function that extracts a co-/contravariant type from the original
+		 *   type, where this [Variant] is applicable.  For example, given
+		 *   something with the tag [SET_TYPE_TAG] (the [TypeTag] for set
+		 *   types), the set type's element type can be extracted by running the
+		 *   [traverse] function of the "element" covariant type parameter.
+		 */
+		abstract class Variant constructor(
+			val name: String,
+			val traverse: A_Type.()->A_Type
+		) : Modifier()
+
 		/**
 		 * A Covariant relationship.  When a [TypeTag] declares such a
 		 * relationship, then for all A and B having that `TypeTag`, if A ⊆ B,
@@ -272,6 +521,12 @@ enum class TypeTag
 			val part: (AvailObject.()->A_BasicObject)? = null,
 			traverse: A_Type.()->A_Type
 		) : Variant(name, traverse)
+		{
+			override fun applyTo(typeTag: TypeTag)
+			{
+				typeTag.covariants.add(this)
+			}
+		}
 
 		/**
 		 * A Contravariant relationship.  When a [TypeTag] declares such a
@@ -283,38 +538,16 @@ enum class TypeTag
 			name: String,
 			traverse: A_Type.()->A_Type
 		) : Variant(name, traverse)
+		{
+			override fun applyTo(typeTag: TypeTag)
+			{
+				typeTag.contravariants.add(this)
+			}
+		}
+
+		/** Adjust the TypeTag to accommodate this modifier. */
+		abstract fun applyTo(typeTag: TypeTag)
 	}
-
-	/**
-	 * The array of [Co]variant relationships defined during construction.
-	 */
-	val covariants: Array<Co>
-
-	/**
-	 * The array of [Contra]variant relationships defined during construction.
-	 */
-	val contravariants: Array<Contra>
-
-	/**
-	 * The parent of this [TypeTag].
-	 */
-	val parent: TypeTag?
-
-	/**
-	 * If object X has tag T, then X's type has tag T.metaTag.
-	 */
-	var metaTag: TypeTag? = null
-		private set
-
-	/**
-	 * The number of ancestors of this [TypeTag]
-	 */
-	val depth: Int
-
-	/**
-	 * The complete list of descendants of this [TypeTag].
-	 */
-	private val descendants = mutableListOf<TypeTag>()
 
 	/**
 	 * The highest ordinal value of all of this [TypeTag]'s descendants,
@@ -324,23 +557,14 @@ enum class TypeTag
 	 * definition must be followed immediately by each of its children and their
 	 * descendants, which is prefix tree order.
 	 */
-	private var highOrdinal: Int
-
-	/**
-	 * Add the argument as a descendant of the receiver in the [TypeTag]
-	 * hierarchy.
-	 */
-	private fun addDescendant (descendant: TypeTag)
-	{
-		assert(descendant.ordinal == highOrdinal + 1)
-		descendants.add(descendant)
-		highOrdinal++
-		parent?.addDescendant(descendant)
-	}
+	var highOrdinal: Int = -1
+		private set
 
 	@Suppress("unused")
 	fun isSubtagOf (otherTag: TypeTag): Boolean =
-		(ordinal >= otherTag.ordinal && highOrdinal <= otherTag.highOrdinal)
+		((ordinal >= otherTag.ordinal && highOrdinal <= otherTag.highOrdinal)
+			|| (this == BOTTOM_TYPE_TAG
+				&& otherTag.ordinal >= TOP_TYPE_TAG.ordinal))
 
 	fun commonAncestorWith (other: TypeTag?): TypeTag
 	{
@@ -367,21 +591,33 @@ enum class TypeTag
 
 	companion object
 	{
+		/** Capture the enumeration values in a private array. */
+		private val all = values()
+
+		/** The number of [TypeTag]s. */
+		val count = all.size
+
+		/** Look up the [TypeTag] with the given ordinal. */
+		fun tagFromOrdinal(ordinal: Int) = all[ordinal]
+
 		init
 		{
-			for (tag in values())
-			{
+			all.forEach { tag ->
 				if (tag.metaTag === null && tag != UNKNOWN_TAG)
 				{
 					tag.metaTag = tag.parent!!.metaTag
 				}
 			}
-			BOTTOM_TYPE_TAG.highOrdinal = ANY_TYPE_TAG.ordinal
-			for (tag in TOP_TYPE_TAG.descendants)
-			{
-				if (!tag.descendants.contains(BOTTOM_TYPE_TAG))
-				{
-					tag.descendants.add(BOTTOM_TYPE_TAG)
+			// Working backwards, set the highOrdinal of any tag that hasn't
+			// had a child set it already, implying it has no children.  Then
+			// attempt to copy the highOrdinal into the parent's highOrdinal, if
+			// it hasn't already been set yet.
+			all.reversed().forEach { tag ->
+				if (tag.highOrdinal == -1)
+					tag.highOrdinal = tag.ordinal
+				tag.parent?.let { parent ->
+					if (parent.highOrdinal == -1)
+						parent.highOrdinal = tag.highOrdinal
 				}
 			}
 		}

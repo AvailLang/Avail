@@ -54,7 +54,7 @@ import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnu
 import com.avail.descriptor.types.A_Type.Companion.literalType
 import com.avail.descriptor.types.InstanceTypeDescriptor
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter

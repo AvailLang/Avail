@@ -62,6 +62,6 @@ object P_SuperCastLookupType : Primitive(1, CanFold, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				SUPER_CAST_PHRASE.mostGeneralType()),
+				SUPER_CAST_PHRASE.mostGeneralType),
 			anyMeta())
 }

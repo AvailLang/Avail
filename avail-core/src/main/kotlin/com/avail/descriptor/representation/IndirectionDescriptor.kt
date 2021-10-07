@@ -147,7 +147,7 @@ import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
 import com.avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import com.avail.descriptor.maps.MapDescriptor.MapIterable
 import com.avail.descriptor.methods.A_Definition
-import com.avail.descriptor.methods.A_Definition.Companion.stylers
+import com.avail.descriptor.methods.A_Definition.Companion.definitionStylers
 import com.avail.descriptor.methods.A_Definition.Companion.updateStylers
 import com.avail.descriptor.methods.A_GrammaticalRestriction
 import com.avail.descriptor.methods.A_Macro
@@ -234,8 +234,10 @@ import com.avail.descriptor.numbers.A_Number.Companion.addToFloatCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToInfinityCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.addToIntegerCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.asBigInteger
+import com.avail.descriptor.numbers.A_Number.Companion.bitSet
 import com.avail.descriptor.numbers.A_Number.Companion.bitShift
 import com.avail.descriptor.numbers.A_Number.Companion.bitShiftLeftTruncatingToBits
+import com.avail.descriptor.numbers.A_Number.Companion.bitTest
 import com.avail.descriptor.numbers.A_Number.Companion.bitwiseAnd
 import com.avail.descriptor.numbers.A_Number.Companion.bitwiseOr
 import com.avail.descriptor.numbers.A_Number.Companion.bitwiseXor
@@ -426,6 +428,7 @@ import com.avail.descriptor.types.A_Type.Companion.acceptsListOfArgValues
 import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArgTypes
 import com.avail.descriptor.types.A_Type.Companion.acceptsTupleOfArguments
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
+import com.avail.descriptor.types.A_Type.Companion.computeInstanceTag
 import com.avail.descriptor.types.A_Type.Companion.computeSuperkind
 import com.avail.descriptor.types.A_Type.Companion.contentType
 import com.avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
@@ -435,6 +438,7 @@ import com.avail.descriptor.types.A_Type.Companion.fieldTypeTuple
 import com.avail.descriptor.types.A_Type.Companion.hasObjectInstance
 import com.avail.descriptor.types.A_Type.Companion.instance
 import com.avail.descriptor.types.A_Type.Companion.instanceCount
+import com.avail.descriptor.types.A_Type.Companion.instanceTag
 import com.avail.descriptor.types.A_Type.Companion.instances
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfCompiledCodeType
@@ -516,7 +520,8 @@ import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.PrimitiveTypeDescriptor
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
@@ -749,7 +754,7 @@ class IndirectionDescriptor private constructor(
 
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag {
-		val tag = self .. { typeTag() }
+		val tag = self .. { typeTag }
 		// Now that we know it, switch to a descriptor that has it cached...
 		self.setDescriptor(when {
 			mutability === Mutability.MUTABLE -> mutable(tag)
@@ -1141,11 +1146,6 @@ class IndirectionDescriptor private constructor(
 		aCompiledCode: A_RawFunction
 	): Boolean = self .. { equalsCompiledCode(aCompiledCode) }
 
-	override fun o_EqualsVariable(
-		self: AvailObject,
-		aVariable: A_Variable
-	): Boolean = self .. { equalsVariable(aVariable) }
-
 	override fun o_EqualsVariableType(
 		self: AvailObject,
 		aType: A_Type
@@ -1423,7 +1423,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_IsSupertypeOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types
+		primitiveTypeEnum: Types
 	): Boolean = self .. {
 		isSupertypeOfPrimitiveTypeEnum(primitiveTypeEnum)
 	}
@@ -2871,6 +2871,18 @@ class IndirectionDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number = self .. { bitwiseXor(anInteger, canDestroy) }
 
+	override fun o_BitTest(
+		self: AvailObject,
+		bitPosition: Int
+	): Boolean = self .. { bitTest(bitPosition) }
+
+	override fun o_BitSet(
+		self: AvailObject,
+		bitPosition: Int,
+		value: Boolean,
+		canDestroy: Boolean
+	) : A_Number = self .. { bitSet(bitPosition, value, canDestroy) }
+
 	override fun o_AddSeal(
 		self: AvailObject,
 		methodName: A_Atom,
@@ -3306,13 +3318,13 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types
+		primitiveTypeEnum: Types
 	): A_Type =
 		self .. { typeIntersectionOfPrimitiveTypeEnum(primitiveTypeEnum) }
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum(
 		self: AvailObject,
-		primitiveTypeEnum: TypeDescriptor.Types
+		primitiveTypeEnum: Types
 	): A_Type = self .. { typeUnionOfPrimitiveTypeEnum(primitiveTypeEnum) }
 
 	override fun o_TupleOfTypesFromTo(
@@ -3769,7 +3781,14 @@ class IndirectionDescriptor private constructor(
 		updater: A_Set.() -> A_Set
 	) = self .. { updateStylers(updater) }
 
-	override fun o_Stylers(
+	override fun o_DefinitionStylers(
 		self: AvailObject
-	): A_Set = self .. { (self as A_Definition).stylers }
+	): A_Set = self .. { definitionStylers }
+
+	override fun o_InstanceTag(
+		self: AvailObject
+	): TypeTag = self .. { instanceTag }
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
+		self .. { computeInstanceTag() }
 }

@@ -42,8 +42,8 @@ import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
@@ -76,5 +76,5 @@ object P_CreateInitializingVariableDeclaration : Primitive(3, CanInline, CannotF
 				TOKEN.o,
 				anyMeta(),
 				EXPRESSION_PHRASE.create(ANY.o)),
-			LOCAL_VARIABLE_PHRASE.mostGeneralType())
+			LOCAL_VARIABLE_PHRASE.mostGeneralType)
 }

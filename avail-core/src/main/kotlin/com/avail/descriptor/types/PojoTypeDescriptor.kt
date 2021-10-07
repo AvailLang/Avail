@@ -83,6 +83,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.exceptions.MarshalingException
 import com.avail.utility.LRUCache
 import com.avail.utility.Mutable
@@ -129,14 +130,17 @@ import java.util.IdentityHashMap
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots layout, or null if there are no integer slots.
  */
-abstract class PojoTypeDescriptor protected constructor(
+abstract class PojoTypeDescriptor
+protected constructor(
 	mutability: Mutability,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?) : TypeDescriptor(
-		mutability,
-		TypeTag.POJO_TYPE_TAG,
-		objectSlotsEnumClass,
-		integerSlotsEnumClass)
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
+) : TypeDescriptor(
+	mutability,
+	TypeTag.POJO_TYPE_TAG,
+	TypeTag.POJO_TAG,
+	objectSlotsEnumClass,
+	integerSlotsEnumClass)
 {
 	/**
 	 * `Canon` specifies a [map][Map] from [Java&#32;classes][Class] to
@@ -841,32 +845,26 @@ abstract class PojoTypeDescriptor protected constructor(
 		 */
 		fun unmarshal(self: Any?, type: A_Type): AvailObject
 		{
-			if (self === null)
+			self ?: return nullPojo()
+			val availObject = when (self.javaClass)
 			{
-				return nullPojo()
+				AvailObject::class.java -> self as AvailObject
+				java.lang.Boolean::class.java ->
+					objectFromBoolean(self as Boolean)
+				java.lang.Byte::class.java ->
+					fromInt((self as Byte).toInt())
+				java.lang.Short::class.java ->
+					fromInt((self as Short).toInt())
+				java.lang.Integer::class.java -> fromInt(self as Int)
+				java.lang.Long::class.java -> fromLong(self as Long)
+				java.lang.Float::class.java -> fromFloat(self as Float)
+				java.lang.Double::class.java -> fromDouble(self as Double)
+				java.lang.Character::class.java ->
+					fromInt((self as Char).code)
+				java.lang.String::class.java -> stringFrom(self as String)
+				BigInteger::class.java -> fromBigInteger(self as BigInteger)
+				else -> newPojo(equalityPojo(self), type)
 			}
-			val javaClass: Class<*> = self.javaClass
-			val availObject: A_BasicObject
-			availObject =
-				when (javaClass)
-				{
-					AvailObject::class.java -> self as AvailObject
-					java.lang.Boolean::class.java ->
-						objectFromBoolean(self as Boolean)
-					java.lang.Byte::class.java ->
-						fromInt((self as Byte).toInt())
-					java.lang.Short::class.java ->
-						fromInt((self as Short).toInt())
-					java.lang.Integer::class.java -> fromInt(self as Int)
-					java.lang.Long::class.java -> fromLong(self as Long)
-					java.lang.Float::class.java -> fromFloat(self as Float)
-					java.lang.Double::class.java -> fromDouble(self as Double)
-					java.lang.Character::class.java ->
-						fromInt((self as Char).code)
-					java.lang.String::class.java -> stringFrom(self as String)
-					BigInteger::class.java -> fromBigInteger(self as BigInteger)
-					else -> newPojo(equalityPojo(self), type)
-				}
 			if (!availObject.isInstanceOf(type))
 			{
 				throw MarshalingException()
@@ -1035,7 +1033,8 @@ abstract class PojoTypeDescriptor protected constructor(
 					if (javaClass.typeParameters.isEmpty())
 					{
 						val resolved = resolvePojoType(javaClass, emptyMap)
-						return if (!allowMetas && resolved.equals(Types.ANY.o))
+						return if (!allowMetas && resolved.equals(
+								Types.ANY.o))
 						{
 							Types.NONTYPE.o
 						}

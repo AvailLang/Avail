@@ -81,7 +81,7 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import com.avail.descriptor.types.TypeDescriptor
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
@@ -141,7 +141,8 @@ import java.util.stream.Stream
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots layout, or null if there are no integer slots.
  */
-abstract class Descriptor protected constructor (
+abstract class Descriptor
+protected constructor (
 	mutability: Mutability,
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
@@ -556,7 +557,7 @@ abstract class Descriptor protected constructor (
 
 	override fun o_IsSupertypeOfPrimitiveTypeEnum (
 			self: AvailObject,
-			primitiveTypeEnum: TypeDescriptor.Types): Boolean =
+			primitiveTypeEnum: Types): Boolean =
 		unsupported
 
 	override fun o_IsSupertypeOfSetType (
@@ -775,7 +776,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set): Unit = unsupported
 
-	override fun o_Stylers(self: AvailObject): A_Set = unsupported
+	override fun o_DefinitionStylers(self: AvailObject): A_Set = unsupported
 
 	override fun o_SubtractFromInfinityCanDestroy (
 		self: AvailObject,
@@ -1217,10 +1218,6 @@ abstract class Descriptor protected constructor (
 	override fun o_EqualsCompiledCode (
 		self: AvailObject,
 		aCompiledCode: A_RawFunction) = false
-
-	override fun o_EqualsVariable (
-		self: AvailObject,
-		aVariable: A_Variable) = false
 
 	override fun o_EqualsVariableType (
 		self: AvailObject,
@@ -1998,8 +1995,19 @@ abstract class Descriptor protected constructor (
 		anInteger: A_Number,
 		canDestroy: Boolean): A_Number = unsupported
 
-	override fun o_Instance (self: AvailObject): AvailObject =
-		unsupported
+	override fun o_BitTest(
+		self: AvailObject,
+		bitPosition: Int
+	): Boolean = unsupported
+
+	override fun o_BitSet(
+		self: AvailObject,
+		bitPosition: Int,
+		value: Boolean,
+		canDestroy: Boolean
+	) : A_Number = unsupported
+
+	override fun o_Instance (self: AvailObject): AvailObject = unsupported
 
 	override fun o_SetMethodName (
 		self: AvailObject,
@@ -2356,12 +2364,12 @@ abstract class Descriptor protected constructor (
 
 	override fun o_TypeIntersectionOfPrimitiveTypeEnum (
 			self: AvailObject,
-			primitiveTypeEnum: TypeDescriptor.Types): A_Type =
+			primitiveTypeEnum: Types): A_Type =
 		unsupported
 
 	override fun o_TypeUnionOfPrimitiveTypeEnum (
 			self: AvailObject,
-			primitiveTypeEnum: TypeDescriptor.Types): A_Type =
+			primitiveTypeEnum: Types): A_Type =
 		unsupported
 
 	override fun o_TupleOfTypesFromTo (
@@ -2717,4 +2725,7 @@ abstract class Descriptor protected constructor (
 		self: AvailObject
 	): FiberDescriptor.FiberHelper = unsupported
 
+	override fun o_InstanceTag(self: AvailObject): TypeTag = unsupported
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 }

@@ -85,7 +85,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import com.avail.descriptor.types.A_Type.Companion.hasObjectInstance
 import com.avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.L2Optimizer
@@ -543,7 +543,7 @@ class ObjectDescriptor internal constructor(
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false
-				newlineTab(builder, indent)
+				newlineTab(indent)
 				append(key.atomName.asNativeString())
 				append(" = ")
 				value.printOnAvoidingIndent(builder, recursionMap, indent + 1)

@@ -94,7 +94,7 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
@@ -569,7 +569,7 @@ class TypeConsistencyTest
 			 */
 			private val ROOT_VARIABLE = Node(
 				"ROOT_VARIABLE",
-				mostGeneralVariableType(),
+				mostGeneralVariableType,
 				primitiveTypes[Types.NONTYPE]!!)
 
 			/**

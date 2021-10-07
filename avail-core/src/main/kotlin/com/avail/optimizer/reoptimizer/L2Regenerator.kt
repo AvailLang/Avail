@@ -41,6 +41,7 @@ import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -242,6 +243,12 @@ abstract class L2Regenerator internal constructor(
 		}
 
 		override fun doOperand(operand: L2SelectorOperand) = Unit
+
+		override fun doOperand(operand: L2PcVectorOperand)
+		{
+			currentOperand = L2PcVectorOperand(
+				operand.edges.map(this@L2Regenerator::transformOperand))
+		}
 	}
 
 	/**

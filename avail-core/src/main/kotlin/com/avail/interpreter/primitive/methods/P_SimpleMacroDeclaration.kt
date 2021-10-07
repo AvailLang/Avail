@@ -57,7 +57,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFu
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
@@ -109,7 +109,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			for (argIndex in 1 .. numArgs)
 			{
 				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-						PARSE_PHRASE.mostGeneralType()))
+						PARSE_PHRASE.mostGeneralType))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
@@ -142,13 +142,13 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		for (argIndex in 1 .. numArgs)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-					PARSE_PHRASE.mostGeneralType()))
+					PARSE_PHRASE.mostGeneralType))
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
-		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
+		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 		{
 			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
@@ -179,7 +179,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			tuple(
 				stringType,
 				zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType)),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

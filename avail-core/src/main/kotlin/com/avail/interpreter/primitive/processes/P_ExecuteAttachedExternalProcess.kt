@@ -55,7 +55,7 @@ import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKey
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import com.avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED

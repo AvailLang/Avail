@@ -35,7 +35,7 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.InstanceTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
@@ -120,7 +120,7 @@ object L2_GET_TYPE : L2Operation(
 	 * @return
 	 *   The [L2ReadBoxedOperand] supplying the value.
 	 */
-	@kotlin.jvm.JvmStatic
+	@JvmStatic
 	fun sourceValueOf(
 		instruction: L2Instruction): L2ReadBoxedOperand
 	{

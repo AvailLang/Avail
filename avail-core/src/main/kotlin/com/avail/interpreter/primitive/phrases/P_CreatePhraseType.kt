@@ -66,7 +66,7 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveSuccess(baseType)
 		}
 		val kind = baseType.phraseKind
-		return if (!expressionType.isSubtypeOf(kind.mostGeneralYieldType()))
+		return if (!expressionType.isSubtypeOf(kind.mostGeneralYieldType))
 		{
 			interpreter.primitiveFailure(E_BAD_YIELD_TYPE)
 		}
@@ -76,9 +76,9 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				instanceMeta(PARSE_PHRASE.mostGeneralType()),
+				instanceMeta(PARSE_PHRASE.mostGeneralType),
 				topMeta()),
-			instanceMeta(PARSE_PHRASE.mostGeneralType()))
+			instanceMeta(PARSE_PHRASE.mostGeneralType))
 
 	override fun privateFailureVariableType(): A_Type =
 		instanceType(E_BAD_YIELD_TYPE.numericCode())

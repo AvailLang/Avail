@@ -36,6 +36,7 @@ import com.avail.descriptor.numbers.A_Number.Companion.asBigInteger
 import com.avail.descriptor.numbers.A_Number.Companion.bitwiseXor
 import com.avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import com.avail.descriptor.numbers.A_Number.Companion.divideIntoIntegerCanDestroy
+import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInteger
 import com.avail.descriptor.numbers.A_Number.Companion.extractDouble
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -67,6 +68,7 @@ import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.multiplier
 import com.avail.descriptor.representation.AvailObjectFieldHelper
+import com.avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import com.avail.descriptor.representation.IntegerSlotsEnum
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.IMMUTABLE
@@ -79,7 +81,7 @@ import com.avail.descriptor.types.A_Type.Companion.lowerInclusive
 import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.A_Type.Companion.upperInclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInteger
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.ArithmeticException
 import com.avail.exceptions.AvailErrorCode
@@ -140,11 +142,15 @@ class IntegerDescriptor private constructor(
 	mutability: Mutability,
 	val unusedIntsOfLastLong: Byte
 ) : ExtendedIntegerDescriptor(
-	mutability, TypeTag.INTEGER_TAG, null, IntegerSlots::class.java
-) {
+	mutability,
+	TypeTag.UNKNOWN_TAG,
+	null,
+	IntegerSlots::class.java)
+{
 	init {
 		assert((unusedIntsOfLastLong.toInt() and 1.inv()) == 0)
 	}
+
 	/**
 	 * The layout of integer slots for my instances.
 	 */
@@ -510,12 +516,12 @@ class IntegerDescriptor private constructor(
 		// is to use 64-bit.
 		val objectSize = intCount(self)
 		val anIntegerSize = intCount(anInteger)
-		var output =
-			if (canDestroy)
-			{
+		var output = when
+		{
+			canDestroy ->
 				largerMutableOf(self, anInteger, objectSize, anIntegerSize)
-			}
-			else null
+			else -> null
+		}
 		if (objectSize == 1 && anIntegerSize == 1) {
 			// See if the (signed) sum will fit in 32 bits, the most common case
 			// by far.
@@ -1109,6 +1115,75 @@ class IntegerDescriptor private constructor(
 		canDestroy: Boolean
 	): A_Number = bitwiseOperation(self, anInteger, canDestroy, Int::xor)
 
+	override fun o_BitTest(
+		self: AvailObject,
+		bitPosition: Int
+	): Boolean
+	{
+		assert (bitPosition >= 0)
+		val intIndex = (bitPosition ushr 5) + 1
+		if (intIndex > intCount(self))
+		{
+			// Treat the receiver as two's complement.
+			return self.lessThan(zero)
+		}
+		val intValue = self.rawSignedIntegerAt(intIndex)
+		return (intValue and (1 shl (bitPosition and 31))) != 0
+	}
+
+	override fun o_BitSet(
+		self: AvailObject,
+		bitPosition: Int,
+		value: Boolean,
+		canDestroy: Boolean
+	) : A_Number
+	{
+		assert (bitPosition >= 0)
+		val intIndex = (bitPosition ushr 5) + 1
+		val oldIntCount = intCount(self)
+		val mask = 1 shl (bitPosition and 31)
+		val oldInt = when
+		{
+			intIndex <= oldIntCount -> self.rawSignedIntegerAt(intIndex)
+			self.lessThan(zero) -> -1
+			else -> 0
+		}
+		val newInt = when
+		{
+			value -> oldInt or mask
+			else -> oldInt and mask.inv()
+		}
+		if (oldInt == newInt)
+		{
+			// No change.
+			if (isMutable && !canDestroy) self.makeImmutable()
+			return self
+		}
+		// The bit changed.  If the sign bit is what changed, add an int
+		// (the bitPosition + 1, below).
+		val newIntCount = max(oldIntCount, ((bitPosition + 1) ushr 5) + 1)
+		if (oldIntCount == newIntCount && isMutable && canDestroy)
+		{
+			// Clobber it in place.
+			self.rawSignedIntegerAtPut(intIndex, newInt)
+			// Representation might need to shrink.
+			self.trimExcessInts()
+			return self
+		}
+		// It must be copied.
+		val result = newLike(mutableFor(newIntCount), self, 0, 0)
+		if (self.lessThan(zero))
+		{
+			for (i in oldIntCount + 1 .. newIntCount)
+			{
+				result.rawSignedIntegerAtPut(i, -1)
+			}
+		}
+		result.rawSignedIntegerAtPut(intIndex, newInt)
+		result.trimExcessInts()
+		return result
+	}
+
 	/**
 	 * Shift the given positive number to the left by the specified shift factor
 	 * (number of bits), then truncate the representation to force bits above
@@ -1441,6 +1516,13 @@ class IntegerDescriptor private constructor(
 	}
 
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean = true
+
+	override fun o_ComputeTypeTag(self: AvailObject): TypeTag = when
+	{
+		self.greaterThan(zero) -> TypeTag.NATURAL_NUMBER_TAG
+		self.equalsInt(0) -> TypeTag.WHOLE_NUMBER_TAG
+		else -> TypeTag.INTEGER_TAG
+	}
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) = when {
 		self.isLong -> writer.write(self.extractLong)

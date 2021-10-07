@@ -100,7 +100,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import com.avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.CACHED_SUPERKIND
 import com.avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
@@ -142,9 +142,14 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class EnumerationTypeDescriptor private constructor(mutability: Mutability)
-	: AbstractEnumerationTypeDescriptor(
-		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
+class EnumerationTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : AbstractEnumerationTypeDescriptor(
+	mutability,
+	TypeTag.UNKNOWN_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/** The layout of object slots for my instances. */
 	enum class ObjectSlots : ObjectSlotsEnum
@@ -721,6 +726,14 @@ class EnumerationTypeDescriptor private constructor(mutability: Mutability)
 		getInstances(self)
 			.map(AvailObject::typeTag)
 			.reduce(TypeTag::commonAncestorWith)
+			.metaTag!!
+
+	override fun o_InstanceTag(self: AvailObject): TypeTag =
+		getInstances(self)
+			.map(AvailObject::typeTag)
+			.reduce(TypeTag::commonAncestorWith)
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 
 	override fun mutable(): AbstractEnumerationTypeDescriptor = mutable
 

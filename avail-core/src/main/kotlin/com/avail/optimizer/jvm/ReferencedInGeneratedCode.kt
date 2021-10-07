@@ -38,10 +38,10 @@ package com.avail.optimizer.jvm
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+@Retention(AnnotationRetention.RUNTIME)
 @Target(AnnotationTarget.CONSTRUCTOR,
 		AnnotationTarget.FUNCTION,
 		AnnotationTarget.PROPERTY_GETTER,
 		AnnotationTarget.PROPERTY_SETTER,
 		AnnotationTarget.FIELD)
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
 annotation class ReferencedInGeneratedCode

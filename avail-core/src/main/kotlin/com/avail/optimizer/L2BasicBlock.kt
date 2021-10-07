@@ -294,7 +294,7 @@ class L2BasicBlock @JvmOverloads constructor(
 		generatePhis: Boolean = true,
 		regenerator: L2Regenerator? = null)
 	{
-		generator.currentManifest().clear()
+		generator.currentManifest.clear()
 		if (isIrremovable)
 		{
 			// Irremovable blocks are entry points, and don't require any
@@ -304,7 +304,7 @@ class L2BasicBlock @JvmOverloads constructor(
 		}
 		// Keep semantic values that are common to all incoming paths.  Create
 		// phi functions if the registers disagree.
-		generator.currentManifest().populateFromIntersection(
+		generator.currentManifest.populateFromIntersection(
 			predecessorEdges.map(L2PcOperand::manifest),
 			generator,
 			generatePhis,

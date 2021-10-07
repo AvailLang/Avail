@@ -67,7 +67,7 @@ import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.KEY_TYPE
 import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.SIZE_RANGE
 import com.avail.descriptor.types.MapTypeDescriptor.ObjectSlots.VALUE_TYPE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -87,9 +87,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class MapTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability, TypeTag.MAP_TYPE_TAG, ObjectSlots::class.java, null)
+class MapTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.MAP_TYPE_TAG,
+	TypeTag.MAP_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.

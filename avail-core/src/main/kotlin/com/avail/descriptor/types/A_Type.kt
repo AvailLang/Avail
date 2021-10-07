@@ -61,7 +61,6 @@ import com.avail.optimizer.jvm.ReferencedInGeneratedCode
  */
 interface A_Type : A_BasicObject
 {
-
 	/**
 	 * Answer whether this type is ⊥ ([bottom][BottomTypeDescriptor]), the most
 	 * specific type.
@@ -77,8 +76,8 @@ interface A_Type : A_BasicObject
 	val isEnumeration: Boolean
 
 	/**
-	 * Answer whether this type is ⊤ ([top][TypeDescriptor.Types.TOP]), the most
-	 * general type.
+	 * Answer whether this type is ⊤ ([top][PrimitiveTypeDescriptor.Types.TOP]),
+	 * the most general type.
 	 *
 	 * @return
 	 *   Whether the type is type.
@@ -186,6 +185,16 @@ interface A_Type : A_BasicObject
 		 */
 		val A_Type.argsTupleType: A_Type
 			get() = dispatch { o_ArgsTupleType(it) }
+
+		/**
+		 * Given an [A_Type], compute the most specific [TypeTag] that is
+		 * ensured for instances of that type.
+		 *
+		 * @return
+		 *   The [TypeTag] of this type's instances.
+		 */
+		fun A_Type.computeInstanceTag(): TypeTag =
+			dispatch { o_ComputeInstanceTag(it) }
 
 		/**
 		 * Answer the type of elements that this set type's sets may hold.
@@ -370,7 +379,7 @@ interface A_Type : A_BasicObject
 		 * @return
 		 */
 		fun A_Type.isSupertypeOfPrimitiveTypeEnum(
-			primitiveTypeEnum: TypeDescriptor.Types
+			primitiveTypeEnum: PrimitiveTypeDescriptor.Types
 		): Boolean = dispatch {
 			o_IsSupertypeOfPrimitiveTypeEnum(it, primitiveTypeEnum)
 		}
@@ -730,7 +739,7 @@ interface A_Type : A_BasicObject
 		 * @return
 		 */
 		fun A_Type.typeIntersectionOfPrimitiveTypeEnum(
-			primitiveTypeEnum: TypeDescriptor.Types
+			primitiveTypeEnum: PrimitiveTypeDescriptor.Types
 		): A_Type = dispatch {
 			o_TypeIntersectionOfPrimitiveTypeEnum(it, primitiveTypeEnum)
 		}
@@ -859,7 +868,7 @@ interface A_Type : A_BasicObject
 		 * @return
 		 */
 		fun A_Type.typeUnionOfPrimitiveTypeEnum(
-			primitiveTypeEnum: TypeDescriptor.Types
+			primitiveTypeEnum: PrimitiveTypeDescriptor.Types
 		): A_Type = dispatch {
 			o_TypeUnionOfPrimitiveTypeEnum(it, primitiveTypeEnum)
 		}
@@ -1022,6 +1031,13 @@ interface A_Type : A_BasicObject
 		 */
 		fun A_Type.isSupertypeOfListNodeType(aListNodeType: A_Type): Boolean =
 			dispatch { o_IsSupertypeOfListNodeType(it, aListNodeType) }
+
+		/**
+		 * Given an [A_Type], determine which TypeTag its *instances* will
+		 * comply with.
+		 */
+		val A_Type.instanceTag: TypeTag
+			get() = dispatch { o_InstanceTag(it) }
 
 
 		// Static methods referenced from generated code.

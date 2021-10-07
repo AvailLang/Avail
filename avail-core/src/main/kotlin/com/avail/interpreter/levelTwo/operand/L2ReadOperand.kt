@@ -383,8 +383,8 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			if (bypassImmutables
 				&& instruction.operation() === L2_MAKE_IMMUTABLE)
 			{
-				def =
-					L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction).definition()
+				def = L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction)
+					.definition()
 				continue
 			}
 			return earliestBoxed!!

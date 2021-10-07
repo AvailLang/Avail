@@ -57,7 +57,6 @@ import com.avail.utility.structures.EnumMap.Companion.enumMap
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 import org.objectweb.asm.Type
-import java.util.ArrayDeque
 import java.util.concurrent.atomic.LongAdder
 
 /**
@@ -95,10 +94,10 @@ class L2PcOperand constructor (
 	private var manifest: L2ValueManifest? = null
 
 	/**
-	 * The [Set] of [L2Register]s that are written in all pasts, and
-	 * are consumed along all future paths after the start of this block.  This
-	 * is only populated during optimization, while the control flow graph is
-	 * still in SSA form.
+	 * The [Set] of [L2Register]s that are written in all pasts, and are
+	 * consumed along all future paths after the start of this block.  This is
+	 * only populated during optimization, while the control flow graph is still
+	 * in SSA form.
 	 *
 	 * This is a superset of [sometimesLiveInRegisters].
 	 */
@@ -440,39 +439,6 @@ class L2PcOperand constructor (
 			}
 		}
 		// The stack is now AvailObject[], long[].
-	}
-
-	/**
-	 * Erase all information about the given registers from this edge's
-	 * manifest, and in the manifests of any edges recursively reachable from
-	 * this edge. Terminate the recursion if an edge already doesn't know any of
-	 * these registers.  Ignore back-edges, as their manifests are explicitly
-	 * created to contain only the function's arguments.
-	 *
-	 * Also fix up synonyms that no longer have backing registers, or that
-	 * have lost their last register of a particular [RegisterKind].
-	 *
-	 * @param registersToForget
-	 *   The [Set] of [L2Register]s that we must erase all knowledge about in
-	 *   manifests reachable from here.
-	 */
-	fun forgetRegistersInManifestsRecursively(
-		registersToForget: Set<L2Register>)
-	{
-		val workQueue = ArrayDeque<L2PcOperand>()
-		workQueue.add(this)
-		while (!workQueue.isEmpty())
-		{
-			val edge = workQueue.remove()
-			if (edge.isBackward)
-			{
-				continue
-			}
-			if (edge.manifest().forgetRegisters(registersToForget))
-			{
-				workQueue.addAll(edge.targetBlock().successorEdges())
-			}
-		}
 	}
 
 	/**

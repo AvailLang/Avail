@@ -60,6 +60,7 @@ import com.avail.descriptor.pojos.RawPojoDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
+import com.avail.descriptor.representation.AvailObjectFieldHelper
 import com.avail.descriptor.representation.Descriptor
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.Mutability.IMMUTABLE
@@ -636,6 +637,25 @@ class FiberDescriptor private constructor(
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	): Boolean = true
+
+	/**
+	 * {@inheritDoc}
+	 *
+	 * Show the types of local variables and outer variables.
+	 */
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
+	{
+		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots("(HELPER)"),
+				-1,
+				helper))
+		return fields.toTypedArray()
+	}
 
 	override fun o_FiberHelper(self: AvailObject): FiberHelper = helper
 

@@ -85,8 +85,8 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.NONTYPE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import com.avail.descriptor.types.TypeTag
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.MapException
@@ -147,24 +147,24 @@ class MapDescriptor private constructor(
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int
-	) {
-		builder.append('{')
-		val startPosition = builder.length
+	) : Unit = with(builder) {
+		append('{')
+		val startPosition = length
 		var first = true
 		var multiline = false
 		for ((key, value) in self.mapIterable) {
 			if (!first) {
-				builder.append(", ")
+				append(", ")
 			}
-			val entryStart = builder.length
+			val entryStart = length
 			key.printOnAvoidingIndent(builder, recursionMap, indent + 2)
-			builder.append('→')
+			append('→')
 			value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
-			if (builder.length - startPosition > 100
-				|| builder.indexOf("\n", entryStart) != -1
+			if (length - startPosition > 100
+				|| indexOf("\n", entryStart) != -1
 			) {
 				// Start over with multiple line formatting.
-				builder.setLength(startPosition)
+				setLength(startPosition)
 				multiline = true
 				break
 			}
@@ -174,21 +174,21 @@ class MapDescriptor private constructor(
 			first = true
 			self.forEach { key, value ->
 				if (!first) {
-					builder.append(',')
+					append(',')
 				}
-				newlineTab(builder, indent + 1)
-				val entryStart = builder.length
+				newlineTab(indent + 1)
+				val entryStart = length
 				key.printOnAvoidingIndent(builder, recursionMap, indent + 2)
-				if (builder.indexOf("\n", entryStart) != -1) {
-					newlineTab(builder, indent + 1)
+				if (indexOf("\n", entryStart) != -1) {
+					newlineTab(indent + 1)
 				}
-				builder.append('→')
+				append('→')
 				value.printOnAvoidingIndent(builder, recursionMap, indent + 1)
 				first = false
 			}
-			newlineTab(builder, indent)
+			newlineTab(indent)
 		}
-		builder.append('}')
+		append('}')
 	}
 
 	/**

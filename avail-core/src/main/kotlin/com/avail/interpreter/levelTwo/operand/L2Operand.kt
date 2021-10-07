@@ -282,6 +282,13 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 				when(val operand = operands[i])
 				{
 					this -> return false
+					is L2PcVectorOperand ->
+					{
+						if (operand.edges.contains(this))
+						{
+							return false
+						}
+					}
 					is L2ReadVectorOperand<*, *> ->
 					{
 						if (operand.elements.contains(this))

@@ -38,6 +38,7 @@ import com.avail.descriptor.numbers.A_Number.Companion.equalsInfinity
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractLong
+import com.avail.descriptor.numbers.A_Number.Companion.greaterThan
 import com.avail.descriptor.numbers.A_Number.Companion.isPositive
 import com.avail.descriptor.numbers.A_Number.Companion.lessThan
 import com.avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
@@ -78,6 +79,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.charRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.intRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.longRange
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.shortRange
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.math.BigInteger
@@ -115,6 +117,7 @@ private constructor(
 ) : TypeDescriptor(
 	if (isMutable) Mutability.MUTABLE else Mutability.SHARED,
 	TypeTag.EXTENDED_INTEGER_TYPE_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	null)
 {
@@ -155,6 +158,20 @@ private constructor(
 			recursionMap,
 			indent + 1)
 		builder.append(if (upperInclusive) ']' else ')')
+	}
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag
+	{
+		val lower = self.slot(LOWER_BOUND)
+		val upper = self.slot(UPPER_BOUND)
+		return when
+		{
+			!lower.isFinite && lowerInclusive -> TypeTag.EXTENDED_INTEGER_TAG
+			!upper.isFinite && upperInclusive -> TypeTag.EXTENDED_INTEGER_TAG
+			lower.greaterThan(zero) -> TypeTag.NATURAL_NUMBER_TAG
+			lower.equalsInt(0) -> TypeTag.WHOLE_NUMBER_TAG
+			else -> TypeTag.INTEGER_TAG
+		}
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =

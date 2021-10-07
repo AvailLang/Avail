@@ -51,7 +51,7 @@ import com.avail.descriptor.sets.A_Set
 import com.avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.FORWARD_DEFINITION
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.FORWARD_DEFINITION
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap

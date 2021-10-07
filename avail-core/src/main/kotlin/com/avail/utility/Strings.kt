@@ -150,18 +150,12 @@ object Strings {
 	 * Append a newline ('\n' = U+000A) then the specified number of tab ('\t' =
 	 * U+0009) characters to the given [StringBuilder].
 	 *
-	 * @param builder A [StringBuilder].
+	 * @receiver A [StringBuilder].
 	 * @param indent The number of tabs to append after the newline.
 	 */
-	fun newlineTab(
-		builder: StringBuilder,
+	fun StringBuilder.newlineTab(
 		indent: Int
-	) {
-		builder.append('\n')
-		for (i in 1..indent) {
-			builder.append('\t')
-		}
-	}
+	) : Unit = append('\n').tab(indent)
 
 	/**
 	 * Answer a [String] consisting of [count] repetitions of [string],

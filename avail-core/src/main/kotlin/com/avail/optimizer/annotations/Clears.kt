@@ -52,5 +52,5 @@ import kotlin.reflect.KClass
  *   The [StateFlag]s to clear in the [L2ControlFlowGraph].
  */
 @Target(AnnotationTarget.FIELD)
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class Clears constructor(vararg val value: KClass<out StateFlag>)

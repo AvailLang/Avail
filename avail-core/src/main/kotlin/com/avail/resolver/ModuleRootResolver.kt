@@ -261,17 +261,13 @@ constructor(
 						{
 							null -> ModuleNameResolutionResult(
 								UnresolvedModuleException(
-									null, representativeName, this
-								)
-							)
+									null, representativeName, this))
 							else -> ModuleNameResolutionResult(
 								ResolvedModuleName(
 									rep.moduleName,
 									moduleNameResolver.moduleRoots,
 									rep,
-									initialCanonicalName.isRename
-								)
-							)
+									initialCanonicalName.isRename))
 						}
 					}
 					ResourceType.MODULE ->
@@ -281,9 +277,7 @@ constructor(
 								resolved.moduleName,
 								moduleNameResolver.moduleRoots,
 								resolved,
-								initialCanonicalName.isRename
-							)
-						)
+								initialCanonicalName.isRename))
 					}
 					else -> Unit
 				}
@@ -308,8 +302,7 @@ constructor(
 	open fun provideResolverReference(
 		qualifiedName: String,
 		withReference: (ResolverReference)->Unit,
-		failureHandler: (ErrorCode, Throwable?) -> Unit
-	)
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		val qname = qualifiedName.replace(availExtension, "")
 		referenceMap[qname]?.let { reference ->

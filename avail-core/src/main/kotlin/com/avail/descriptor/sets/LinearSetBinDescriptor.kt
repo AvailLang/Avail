@@ -73,7 +73,7 @@ class LinearSetBinDescriptor private constructor(
 	level: Int
 ) : SetBinDescriptor(
 	mutability,
-	TypeTag.SET_LINEAR_BIN_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java,
 	level

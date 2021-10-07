@@ -69,6 +69,6 @@ object P_FirstOfSequenceStatements : Primitive(1, CannotFail, CanFold, CanInline
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				FIRST_OF_SEQUENCE_PHRASE.mostGeneralType()),
-			zeroOrMoreOf(PARSE_PHRASE.mostGeneralType()))
+				FIRST_OF_SEQUENCE_PHRASE.mostGeneralType),
+			zeroOrMoreOf(PARSE_PHRASE.mostGeneralType))
 }

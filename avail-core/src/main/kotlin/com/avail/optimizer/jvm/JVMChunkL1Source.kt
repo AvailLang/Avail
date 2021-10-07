@@ -57,8 +57,9 @@ import java.nio.file.Path
  *   [code][A_RawFunction] that serves as the basis for the annotated
  *   [method][ExecutableChunk.runChunk].
  */
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION,
-		AnnotationTarget.PROPERTY_GETTER,
-		AnnotationTarget.PROPERTY_SETTER)
+@Retention(AnnotationRetention.RUNTIME)
+@Target(
+	AnnotationTarget.FUNCTION,
+	AnnotationTarget.PROPERTY_GETTER,
+	AnnotationTarget.PROPERTY_SETTER)
 annotation class JVMChunkL1Source constructor(val sourcePath: String)

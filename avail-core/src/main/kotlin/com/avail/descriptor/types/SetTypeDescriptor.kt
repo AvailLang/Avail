@@ -66,7 +66,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumb
 import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE
 import com.avail.descriptor.types.SetTypeDescriptor.ObjectSlots.SIZE_RANGE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.util.IdentityHashMap
@@ -86,9 +86,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class SetTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability, TypeTag.SET_TYPE_TAG, ObjectSlots::class.java, null)
+class SetTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.SET_TYPE_TAG,
+	TypeTag.SET_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.

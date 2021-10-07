@@ -69,6 +69,7 @@ import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.CONTENT_TY
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.JAVA_ANCESTORS
 import com.avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.SIZE_RANGE
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.json.JSONWriter
 import java.io.Serializable
@@ -96,9 +97,11 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-internal class ArrayPojoTypeDescriptor private constructor(
-	mutability: Mutability) : PojoTypeDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+internal class ArrayPojoTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : PojoTypeDescriptor(
+	mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/**
 	 * `PojoArray` mimics the type properties of Java array types. It extends

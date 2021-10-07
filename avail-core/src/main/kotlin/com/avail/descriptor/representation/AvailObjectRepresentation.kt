@@ -42,8 +42,8 @@ import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.TypeTag
 import com.avail.utility.visitor.MarkUnreachableSubobjectVisitor
-import sun.misc.Unsafe
-import java.lang.Integer.numberOfTrailingZeros
+import java.lang.invoke.MethodHandles
+import java.lang.invoke.VarHandle
 import java.util.Arrays
 import kotlin.math.min
 
@@ -1216,42 +1216,18 @@ abstract class AvailObjectRepresentation protected constructor(
 	private object VolatileSlotHelper
 	{
 		/**
-		 * This is used for atomic access to slots.  It's not allowed to be used
-		 * by non-system code in sand-boxed contexts, so we'll need a
-		 * poorer-performing solution there.
+		 * Create a JVM [VarHandle] for accessing the [Array] of objects in an
+		 * [AvailObject].
 		 */
-		private val unsafe =
-			with(Unsafe::class.java.getDeclaredField("theUnsafe")) {
-				isAccessible = true
-				get(null) as Unsafe
-			}
+		private val objectArrayHandle =
+			MethodHandles.arrayElementVarHandle(Array<AvailObject>::class.java)
 
-		/** The offset of the 0th element of a [LongArray]. */
-		private val longArrayBaseOffset =
-			unsafe.arrayBaseOffset(LongArray::class.java)
-
-		/** The stride in bytes between consecutive [LongArray] elements. */
-		private val longArrayShift = with(unsafe) {
-			val delta = arrayIndexScale(LongArray::class.java)
-			assert(delta and delta - 1 == 0) {
-				"The reserved size of a long wasn't a power of two"
-			}
-			numberOfTrailingZeros(delta)
-		}
-
-		/** The offset of the 0th element of an [Array] of objects. */
-		private val objectArrayBaseOffset =
-			unsafe.arrayBaseOffset(Array<AvailObject>::class.java)
-
-		/** The stride in bytes between consecutive [Array] elements. */
-		private val objectArrayShift = with(unsafe) {
-			val delta = arrayIndexScale(Array<AvailObject>::class.java)
-			assert(delta and delta - 1 == 0) {
-				"The reserved size of a slot in an object array wasn't " +
-					"a power of two"
-			}
-			numberOfTrailingZeros(delta)
-		}
+		/**
+		 * Create a JVM [VarHandle] for accessing the [LongArray] of an
+		 * [AvailObject].
+		 */
+		private val longArrayHandle =
+			MethodHandles.arrayElementVarHandle(LongArray::class.java)
 
 		/**
 		 * Perform a read with volatile semantics from the given [LongArray] and
@@ -1259,10 +1235,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		 */
 		fun volatileRead(longs: LongArray, subscript: Int): Long
 		{
-			assert(0 <= subscript && subscript < longs.size)
-			val byteOffset =
-				(subscript.toLong() shl longArrayShift) + longArrayBaseOffset
-			return unsafe.getLongVolatile(longs, byteOffset)
+			return longArrayHandle.getVolatile(longs, subscript) as Long
 		}
 
 		/**
@@ -1271,10 +1244,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		 */
 		fun volatileWrite(longs: LongArray, subscript: Int, value: Long)
 		{
-			assert(0 <= subscript && subscript < longs.size)
-			val byteOffset =
-				(subscript.toLong() shl longArrayShift) + longArrayBaseOffset
-			unsafe.putLongVolatile(longs, byteOffset, value)
+			longArrayHandle.setVolatile(longs, subscript, value)
 		}
 
 		/**
@@ -1291,10 +1261,8 @@ abstract class AvailObjectRepresentation protected constructor(
 			value: Long
 		): Boolean
 		{
-			assert(0 <= subscript && subscript < longs.size)
-			val byteOffset =
-				(subscript.toLong() shl longArrayShift) + longArrayBaseOffset
-			return unsafe.compareAndSwapLong(longs, byteOffset, expected, value)
+			return longArrayHandle.compareAndSet(
+				longs, subscript, expected, value)
 		}
 
 		/** Perform a read with volatile semantics from an [Array]. */
@@ -1302,10 +1270,9 @@ abstract class AvailObjectRepresentation protected constructor(
 			objects: Array<AvailObject?>,
 			subscript: Int): AvailObject
 		{
-			assert(0 <= subscript && subscript < objects.size)
-			val byteOffset = (subscript.toLong() shl objectArrayShift) +
-				objectArrayBaseOffset
-			return unsafe.getObjectVolatile(objects, byteOffset) as AvailObject
+			return objectArrayHandle.getVolatile(
+				objects, subscript
+			) as AvailObject
 		}
 
 		/** Perform a write with volatile semantics to an [Array]. */
@@ -1314,10 +1281,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			subscript: Int,
 			value: AvailObject)
 		{
-			assert(0 <= subscript && subscript < objects.size)
-			val byteOffset = (subscript.toLong() shl objectArrayShift) +
-				objectArrayBaseOffset
-			unsafe.putObjectVolatile(objects, byteOffset, value)
+			objectArrayHandle.setVolatile(objects, subscript, value)
 		}
 
 		/**
@@ -1330,11 +1294,9 @@ abstract class AvailObjectRepresentation protected constructor(
 			subscript: Int,
 			value: AvailObject): AvailObject
 		{
-			assert(0 <= subscript && subscript < objects.size)
-			val byteOffset = (subscript.toLong() shl objectArrayShift) +
-				objectArrayBaseOffset
-			return unsafe.getAndSetObject(objects, byteOffset, value)
-				as AvailObject
+			return objectArrayHandle.getAndSet(
+				objects, subscript, value
+			) as AvailObject
 		}
 
 		/**
@@ -1350,11 +1312,8 @@ abstract class AvailObjectRepresentation protected constructor(
 			expected: AvailObject,
 			value: AvailObject): Boolean
 		{
-			assert(0 <= subscript && subscript < objects.size)
-			val byteOffset = (subscript.toLong() shl objectArrayShift) +
-				objectArrayBaseOffset
-			return unsafe.compareAndSwapObject(
-				objects, byteOffset, expected, value)
+			return objectArrayHandle.compareAndSet(
+				objects, subscript, expected, value)
 		}
 	}
 
@@ -1754,29 +1713,19 @@ abstract class AvailObjectRepresentation protected constructor(
 	/** Redirect Kotlin's [hashCode] to [AbstractDescriptor.o_Hash]. */
 	override fun hashCode(): Int = currentDescriptor.o_Hash(this as AvailObject)
 
-	/**
-	 * Extract the type tag for this object.  Does not answer
-	 * [TypeTag.UNKNOWN_TAG].
-	 *
-	 * It's usually sufficient to access this descriptor's
-	 * [AbstractDescriptor.typeTag], but rarely it may be necessary to invoke
-	 * computeTypeTag().
-	 *
-	 * @return
-	 *   The [TypeTag] of this object.
-	 */
-	fun typeTag(): TypeTag
-	{
-		// First, directly access the descriptor's typeTag, which will be
-		// something other than UNKNOWN_TAG in the vast majority of attempts.
-		return when(val tag = currentDescriptor.typeTag)
+	val typeTag : TypeTag
+		get()
 		{
-			TypeTag.UNKNOWN_TAG ->
-				// Fall back to computing the tag with a polymorphic method.
-				currentDescriptor.o_ComputeTypeTag(this as AvailObject)
-			else -> tag
+			// First, directly access the descriptor's typeTag, which will be
+			// something other than UNKNOWN_TAG in the vast majority of attempts.
+			return when(val tag = currentDescriptor.typeTag)
+			{
+				TypeTag.UNKNOWN_TAG ->
+					// Fall back to computing the tag with a polymorphic method.
+					currentDescriptor.o_ComputeTypeTag(this as AvailObject)
+				else -> tag
+			}
 		}
-	}
 
 	companion object
 	{

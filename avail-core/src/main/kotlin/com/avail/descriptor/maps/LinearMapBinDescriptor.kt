@@ -82,7 +82,7 @@ internal class LinearMapBinDescriptor private constructor(
 	level: Int
 ) : MapBinDescriptor(
 	mutability,
-	TypeTag.MAP_LINEAR_BIN_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java,
 	level

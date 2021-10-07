@@ -65,5 +65,5 @@ object P_DecompileFunction : Primitive(1, CanInline, CanFold, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralFunctionType()), BLOCK_PHRASE.mostGeneralType())
+			tuple(mostGeneralFunctionType()), BLOCK_PHRASE.mostGeneralType)
 }

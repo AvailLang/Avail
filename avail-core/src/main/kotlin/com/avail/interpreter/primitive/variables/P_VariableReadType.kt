@@ -40,7 +40,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import com.avail.descriptor.types.VariableTypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -63,7 +63,7 @@ object P_VariableReadType : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(variableMeta()),
+			tuple(mostGeneralVariableMeta),
 			topMeta())
 
 	override fun returnTypeGuaranteedByVM(

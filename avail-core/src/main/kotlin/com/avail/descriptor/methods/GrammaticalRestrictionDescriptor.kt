@@ -95,7 +95,7 @@ class GrammaticalRestrictionDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(
 	mutability,
-	TypeTag.GRAMMATICAL_RESTRICTION_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java
 ) {

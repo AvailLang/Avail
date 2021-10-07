@@ -65,6 +65,6 @@ object P_DeclarationType : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				DECLARATION_PHRASE.mostGeneralType()),
+				DECLARATION_PHRASE.mostGeneralType),
 			anyMeta())
 }

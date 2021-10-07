@@ -54,7 +54,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Fallibility.CallSiteCannotFail
@@ -206,7 +206,7 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 				generator.addInstruction(
 					L2_JUMP_IF_COMPARE_INT.lessOrEqual,
 					readSubscript,
-					generator.currentManifest().readInt(unboxedSemanticSize),
+					translator.currentManifest.readInt(unboxedSemanticSize),
 					edgeTo(success2),
 					edgeTo(failed))
 				generator.startBlock(success2)

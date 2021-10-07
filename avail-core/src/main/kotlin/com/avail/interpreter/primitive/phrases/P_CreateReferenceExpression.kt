@@ -79,8 +79,8 @@ object P_CreateReferenceExpression : Primitive(1, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				VARIABLE_USE_PHRASE.mostGeneralType()),
-			REFERENCE_PHRASE.mostGeneralType())
+				VARIABLE_USE_PHRASE.mostGeneralType),
+			REFERENCE_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

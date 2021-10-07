@@ -40,6 +40,7 @@ import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -201,4 +202,13 @@ interface L2OperandDispatcher
 	 *   An [L2WriteBoxedOperand].
 	 */
 	fun doOperand(operand: L2WriteBoxedOperand)
+
+
+	/**
+	 * Process an operand which is a vector of [L2PcOperand]s.
+	 *
+	 * @param operand
+	 *   An [L2PcVectorOperand].
+	 */
+	fun doOperand(operand: L2PcVectorOperand)
 }

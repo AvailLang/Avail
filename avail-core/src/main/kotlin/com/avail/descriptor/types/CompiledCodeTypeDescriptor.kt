@@ -69,6 +69,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
 		mutability,
 		TypeTag.RAW_FUNCTION_TYPE_TAG,
+		TypeTag.RAW_FUNCTION_TAG,
 		ObjectSlots::class.java,
 		null)
 {

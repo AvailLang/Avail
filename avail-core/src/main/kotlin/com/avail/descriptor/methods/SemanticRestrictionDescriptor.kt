@@ -74,7 +74,7 @@ import com.avail.interpreter.primitive.compiler.P_RejectParsing
 class SemanticRestrictionDescriptor
 private constructor(mutability: Mutability) : Descriptor(
 	mutability,
-	TypeTag.SEMANTIC_RESTRICTION_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	null)
 {

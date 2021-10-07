@@ -94,9 +94,11 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-internal class FusedPojoTypeDescriptor constructor (mutability: Mutability)
-	: PojoTypeDescriptor(
-		mutability, ObjectSlots::class.java, IntegerSlots::class.java)
+internal class FusedPojoTypeDescriptor
+constructor (
+	mutability: Mutability
+) : PojoTypeDescriptor(
+	mutability, ObjectSlots::class.java, IntegerSlots::class.java)
 {
 	/** The layout of the integer slots. */
 	internal enum class IntegerSlots : IntegerSlotsEnum

@@ -72,7 +72,7 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nybbles
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.interpreter.levelTwo.L2Chunk
 import com.avail.interpreter.levelTwo.L2Chunk.Companion.allocate
 import com.avail.interpreter.levelTwo.L2Instruction
@@ -85,6 +85,7 @@ import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -300,15 +301,6 @@ class L2Generator internal constructor(
 	 * [L2SemanticValue] at the current code generation point.
 	 */
 	var currentManifest = L2ValueManifest()
-
-	/**
-	 * Answer the current [L2ValueManifest], which tracks which [L2Register]
-	 * holds which [L2SemanticValue] at the current code generation point.
-	 *
-	 * @return
-	 *   The current [L2ValueManifest].
-	 */
-	fun currentManifest(): L2ValueManifest = currentManifest
 
 	/** The control flow graph being generated. */
 	val controlFlowGraph = L2ControlFlowGraph()
@@ -1278,7 +1270,7 @@ class L2Generator internal constructor(
 	 *   Whether the current block is probably reachable.
 	 */
 	fun currentlyReachable(): Boolean =
-		currentBlock.notNullAnd { currentlyReachable() }
+		currentBlock.notNullAnd(L2BasicBlock::currentlyReachable)
 
 	/**
 	 * Create and add an [L2Instruction] with the given [L2Operation] and
@@ -1496,6 +1488,8 @@ class L2Generator internal constructor(
 		{
 			objectMax = objectMax.coerceAtLeast(operand.finalIndex())
 		}
+
+		override fun doOperand(operand: L2PcVectorOperand) = Unit
 	}
 
 	companion object

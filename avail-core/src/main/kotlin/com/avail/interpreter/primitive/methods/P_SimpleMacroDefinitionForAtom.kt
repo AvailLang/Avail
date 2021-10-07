@@ -59,8 +59,8 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeR
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -111,7 +111,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			val argsKind = kind.argsTupleType
 			(1 .. numArgs).forEach { argIndex ->
 				if (!argsKind.typeAtIndex(argIndex)
-						.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
+						.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
@@ -144,13 +144,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		for (argIndex in 1 .. numArgs)
 		{
 			if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-					PARSE_PHRASE.mostGeneralType()))
+					PARSE_PHRASE.mostGeneralType))
 			{
 				return interpreter.primitiveFailure(
 					E_MACRO_ARGUMENT_MUST_BE_A_PHRASE)
 			}
 		}
-		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()))
+		if (!kind.returnType.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 		{
 			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
@@ -187,7 +187,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			tuple(
 				ATOM.o,
 				zeroOrMoreOf(mostGeneralFunctionType()),
-				functionTypeReturning(PARSE_PHRASE.mostGeneralType())),
+				functionTypeReturning(PARSE_PHRASE.mostGeneralType)),
 			TOP.o)
 
 	override fun privateFailureVariableType(): A_Type =

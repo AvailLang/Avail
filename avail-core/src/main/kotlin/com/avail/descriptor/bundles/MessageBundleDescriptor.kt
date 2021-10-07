@@ -95,7 +95,7 @@ import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.types.TypeDescriptor.Types.MESSAGE_BUNDLE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import com.avail.descriptor.types.TypeTag
 import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailErrorCode
@@ -213,7 +213,7 @@ class MessageBundleDescriptor private constructor(
 				nCopies(
 					numArgs,
 					restrictionForType(
-						PARSE_PHRASE.mostGeneralType(), BOXED_FLAG)),
+						PARSE_PHRASE.mostGeneralType, BOXED_FLAG)),
 				Unit)
 			do
 			{
@@ -301,14 +301,14 @@ class MessageBundleDescriptor private constructor(
 				self,
 				DebuggerObjectSlots("messageSplitter"),
 				-1,
-				messageSplitter,
+				arrayOf(messageSplitter),
 				forcedName = "messageSplitter"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
 				DebuggerObjectSlots("macroTestingTree"),
 				-1,
-				macroTestingTree,
+				arrayOf(macroTestingTree),
 				forcedName = "macroTestingTree"))
 		return fields.toTypedArray()
 	}

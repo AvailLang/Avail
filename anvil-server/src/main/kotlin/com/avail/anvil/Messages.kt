@@ -345,8 +345,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 			message: Message,
 			bytes: ByteBuffer,
 			writeMore: WriteMore,
-			done: DoneWriting
-		)
+			done: DoneWriting)
 		{
 			require(message is IdentifyChannelMessage)
 			message.channelId.vlq(bytes, writeMore, done)
@@ -357,8 +356,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 			bytes: ByteBuffer,
 			readMore: ReadMore,
 			failed: FailedReading,
-			done: DoneReading<Message>
-		)
+			done: DoneReading<Message>)
 		{
 			unvlqLong(bytes, readMore = readMore) { channelId, bytes1 ->
 				done(IdentifyChannelMessage(CLIENT, id, channelId), bytes1)

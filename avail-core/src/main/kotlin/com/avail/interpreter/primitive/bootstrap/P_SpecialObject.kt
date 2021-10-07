@@ -87,7 +87,7 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(LITERAL_PHRASE.create(naturalNumbers)),
-			LITERAL_PHRASE.mostGeneralType())
+			LITERAL_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SPECIAL_OBJECT))

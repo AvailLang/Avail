@@ -40,7 +40,7 @@ import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.representation.ObjectSlotsEnum
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.PojoTypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.RAW_POJO
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.RAW_POJO
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.cast

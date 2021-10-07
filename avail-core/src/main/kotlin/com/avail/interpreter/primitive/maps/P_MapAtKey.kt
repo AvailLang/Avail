@@ -45,7 +45,7 @@ import com.avail.descriptor.types.A_Type.Companion.valueType
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold

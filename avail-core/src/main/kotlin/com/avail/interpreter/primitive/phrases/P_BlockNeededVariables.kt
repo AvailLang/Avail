@@ -68,6 +68,6 @@ object P_BlockNeededVariables : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				BLOCK_PHRASE.mostGeneralType()),
-			zeroOrMoreOf(DECLARATION_PHRASE.mostGeneralType()))
+				BLOCK_PHRASE.mostGeneralType),
+			zeroOrMoreOf(DECLARATION_PHRASE.mostGeneralType))
 }

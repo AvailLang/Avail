@@ -65,7 +65,7 @@ object P_PhraseTypeExpressionType : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				instanceMeta(PARSE_PHRASE.mostGeneralType())),
+				instanceMeta(PARSE_PHRASE.mostGeneralType)),
 			topMeta())
 
 	override fun returnTypeGuaranteedByVM(

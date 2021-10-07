@@ -47,8 +47,8 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_CONSTANT_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.CanInline
@@ -111,5 +111,5 @@ object P_BootstrapConstantDeclarationMacro
 				LITERAL_PHRASE.create(TOKEN.o),
 				/* Initialization expression */
 				EXPRESSION_PHRASE.create(ANY.o)),
-			LOCAL_CONSTANT_PHRASE.mostGeneralType())
+			LOCAL_CONSTANT_PHRASE.mostGeneralType)
 }

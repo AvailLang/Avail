@@ -271,7 +271,12 @@ class L2ValueManifest
 				}
 				constraints[synonym] = newConstraint
 			}
-			else -> constraint.body()
+			else ->
+			{
+				val newConstraint = Constraint(constraint)
+				constraints[synonym] = newConstraint
+				newConstraint.body()
+			}
 		}
 
 
@@ -1470,53 +1475,6 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Forget the given registers from my definitions.  If all registers for a
-	 * synonym are removed, remove the entire synonym.  If all registers of a
-	 * particular [RegisterKind] are removed from a synonym, remove that kind
-	 * from its [TypeRestriction].
-	 *
-	 * @param registersToForget
-	 *   The [Set] of [L2Register]s to remove knowledge about from this manifest.
-	 * @return
-	 *   Whether any registers were removed.
-	 */
-	fun forgetRegisters(registersToForget: Set<L2Register>): Boolean
-	{
-		var anyChanged = false
-		// Iterate over a copy, because we're making changes.
-		for ((synonym, constraint) in constraints.entries.toList())
-		{
-			val registers = constraint.definitions.toMutableList()
-			if (registers.removeAll(registersToForget))
-			{
-				anyChanged = true
-				if (registers.isEmpty())
-				{
-					forget(synonym)
-				}
-				else
-				{
-					val remainingKinds =
-						EnumSet.noneOf(RegisterKind::class.java)
-					registers.mapTo(remainingKinds) { it.registerKind() }
-					var restriction = constraint.restriction
-					if (restriction.kinds() != remainingKinds)
-					{
-						EnumSet.complementOf(remainingKinds).forEach {
-							unavailableKind ->
-							restriction = restriction.withoutFlag(
-								unavailableKind.restrictionFlag)
-						}
-					}
-					constraint.restriction = restriction
-				}
-			}
-		}
-		check()
-		return anyChanged
-	}
-
-	/**
 	 * Forget only the [BOXED_KIND] register definitions for this synonym.  Keep
 	 * the synonym around in all circumstances, even if there are no remaining
 	 * definitions.  Also, do not alter the synonym's restriction.
@@ -1529,7 +1487,7 @@ class L2ValueManifest
 	 * @param synonym
 	 *   The [L2Synonym] for which to forget all boxed definitions.
 	 */
-	private fun forgetBoxedRegistersFor(synonym: L2Synonym)
+	fun forgetBoxedRegistersFor(synonym: L2Synonym)
 	{
 		val constraint = constraints[synonym]
 			?: throw RuntimeException("Synonym not found")

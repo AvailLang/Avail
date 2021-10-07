@@ -40,8 +40,10 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.interpreter.levelTwo.L2Instruction
-import com.avail.interpreter.levelTwo.L2NamedOperandType
+import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.PC
+import com.avail.interpreter.levelTwo.L2OperandType.READ_INT
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import com.avail.optimizer.L2ValueManifest
@@ -87,10 +89,10 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		private val computeRestrictions: (Long, Long, Long, Long) ->
 			Tuple4<A_Type, A_Type, A_Type, A_Type>
 	) : L2ConditionalJump(
-		L2OperandType.READ_INT.named("int1"),
-		L2OperandType.READ_INT.named("int2"),
-		L2OperandType.PC.named("if true", L2NamedOperandType.Purpose.SUCCESS),
-		L2OperandType.PC.named("if false", L2NamedOperandType.Purpose.FAILURE))
+		READ_INT.named("int1"),
+		READ_INT.named("int2"),
+		PC.named("if true", Purpose.SUCCESS),
+		PC.named("if false", Purpose.FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
@@ -293,5 +295,4 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 				equalHelper(low2, high2, low1, high1))
 		}
 	}
-
 }

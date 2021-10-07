@@ -55,11 +55,7 @@ class L2ReadBoxedVectorOperand constructor(
 	: L2ReadVectorOperand<L2BoxedRegister, L2ReadBoxedOperand>(elements)
 {
 	override fun clone(): L2ReadBoxedVectorOperand =
-		L2ReadBoxedVectorOperand(
-			// Requires explicit parameter typing
-			elements.map <L2ReadBoxedOperand, L2ReadBoxedOperand>{
-				it.clone().cast()
-			})
+		L2ReadBoxedVectorOperand(elements.map { it.clone().cast() })
 
 	override fun clone(replacementElements: List<L2ReadBoxedOperand>) =
 		L2ReadBoxedVectorOperand(replacementElements)

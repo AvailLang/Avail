@@ -100,6 +100,5 @@ open class AvailException : Exception
 			AvailException::class.java,
 			AvailException::numericCode.name,
 			A_Number::class.java)
-
 	}
 }

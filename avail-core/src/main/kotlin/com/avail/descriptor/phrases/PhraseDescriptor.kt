@@ -59,6 +59,7 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.TypeDescriptor
 import com.avail.descriptor.types.TypeTag
 import com.avail.serialization.SerializerOperation
@@ -87,9 +88,8 @@ abstract class PhraseDescriptor protected constructor(
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
-) : Descriptor(
-	mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass
-) {
+) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+{
 	override fun maximumIndent(): Int = Int.MAX_VALUE
 
 	/**
@@ -233,8 +233,8 @@ abstract class PhraseDescriptor protected constructor(
 		self: AvailObject,
 		aType: A_Type
 	) = when {
-		PARSE_PHRASE.mostGeneralType().isSubtypeOf(aType) -> true
-		!aType.isSubtypeOf(PARSE_PHRASE.mostGeneralType()) -> false
+		PARSE_PHRASE.mostGeneralType.isSubtypeOf(aType) -> true
+		!aType.isSubtypeOf(PARSE_PHRASE.mostGeneralType) -> false
 		!self.phraseKindIsUnder(aType.phraseKind) -> false
 		else -> self.phraseExpressionType.isSubtypeOf(
 			aType.phraseTypeExpressionType)
@@ -335,7 +335,8 @@ abstract class PhraseDescriptor protected constructor(
 		 *   A flattened list of statements.
 		 * @param resultType
 		 *   The result type of the sequence. Use
-		 *   [top][TypeDescriptor.Types.TOP] if unconcerned about result type.
+		 *   [top][PrimitiveTypeDescriptor.Types.TOP] if unconcerned about
+		 *   result type.
 		 * @return
 		 *   `true` if the list contains only statements, `false` otherwise.
 		 */

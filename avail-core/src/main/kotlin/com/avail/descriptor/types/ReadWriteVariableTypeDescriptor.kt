@@ -74,9 +74,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class ReadWriteVariableTypeDescriptor private constructor(
-	mutability: Mutability) : TypeDescriptor(
-		mutability, TypeTag.VARIABLE_TYPE_TAG, ObjectSlots::class.java, null)
+class ReadWriteVariableTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.VARIABLE_TYPE_TAG,
+	TypeTag.VARIABLE_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.

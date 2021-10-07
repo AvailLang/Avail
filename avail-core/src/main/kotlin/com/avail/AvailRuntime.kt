@@ -205,9 +205,9 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.A_Variable
@@ -1015,8 +1015,8 @@ class AvailRuntime constructor(
 			put(mostGeneralFunctionType())
 			put(functionMeta())
 			put(mostGeneralCompiledCodeType())
-			put(mostGeneralVariableType())
-			put(variableMeta())
+			put(mostGeneralVariableType)
+			put(mostGeneralVariableMeta)
 			put(mostGeneralContinuationType())
 
 			at(10)
@@ -1068,27 +1068,27 @@ class AvailRuntime constructor(
 			put(Exceptions.stackDumpAtom)
 
 			at(50)
-			put(PhraseKind.PARSE_PHRASE.mostGeneralType())
-			put(PhraseKind.SEQUENCE_PHRASE.mostGeneralType())
-			put(PhraseKind.EXPRESSION_PHRASE.mostGeneralType())
-			put(PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType())
-			put(PhraseKind.BLOCK_PHRASE.mostGeneralType())
-			put(PhraseKind.LITERAL_PHRASE.mostGeneralType())
-			put(PhraseKind.REFERENCE_PHRASE.mostGeneralType())
-			put(PhraseKind.SEND_PHRASE.mostGeneralType())
+			put(PhraseKind.PARSE_PHRASE.mostGeneralType)
+			put(PhraseKind.SEQUENCE_PHRASE.mostGeneralType)
+			put(PhraseKind.EXPRESSION_PHRASE.mostGeneralType)
+			put(PhraseKind.ASSIGNMENT_PHRASE.mostGeneralType)
+			put(PhraseKind.BLOCK_PHRASE.mostGeneralType)
+			put(PhraseKind.LITERAL_PHRASE.mostGeneralType)
+			put(PhraseKind.REFERENCE_PHRASE.mostGeneralType)
+			put(PhraseKind.SEND_PHRASE.mostGeneralType)
 			put(instanceMeta(mostGeneralLiteralTokenType()))
-			put(PhraseKind.LIST_PHRASE.mostGeneralType())
+			put(PhraseKind.LIST_PHRASE.mostGeneralType)
 
 			at(60)
-			put(PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType())
-			put(PhraseKind.DECLARATION_PHRASE.mostGeneralType())
-			put(PhraseKind.ARGUMENT_PHRASE.mostGeneralType())
-			put(PhraseKind.LABEL_PHRASE.mostGeneralType())
-			put(PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType())
-			put(PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType())
-			put(PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType())
-			put(PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType())
-			put(PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType())
+			put(PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType)
+			put(PhraseKind.DECLARATION_PHRASE.mostGeneralType)
+			put(PhraseKind.ARGUMENT_PHRASE.mostGeneralType)
+			put(PhraseKind.LABEL_PHRASE.mostGeneralType)
+			put(PhraseKind.LOCAL_VARIABLE_PHRASE.mostGeneralType)
+			put(PhraseKind.LOCAL_CONSTANT_PHRASE.mostGeneralType)
+			put(PhraseKind.MODULE_VARIABLE_PHRASE.mostGeneralType)
+			put(PhraseKind.MODULE_CONSTANT_PHRASE.mostGeneralType)
+			put(PhraseKind.PRIMITIVE_FAILURE_REASON_PHRASE.mostGeneralType)
 			put(anyMeta())
 
 			at(70)
@@ -1160,7 +1160,7 @@ class AvailRuntime constructor(
 					functionTypeReturning(topMeta())))
 			put(
 				functionTypeReturning(
-					PhraseKind.PARSE_PHRASE.mostGeneralType()))
+					PhraseKind.PARSE_PHRASE.mostGeneralType))
 
 			at(110)
 			put(instanceType(two))
@@ -1168,7 +1168,7 @@ class AvailRuntime constructor(
 			put(instanceType(fromDouble(Math.E)))
 			put(
 				instanceMeta(
-					PhraseKind.PARSE_PHRASE.mostGeneralType()))
+					PhraseKind.PARSE_PHRASE.mostGeneralType))
 			put(
 				setTypeForSizesContentType(
 					wholeNumbers, Types.ATOM.o))
@@ -1189,9 +1189,9 @@ class AvailRuntime constructor(
 						singleInt(2),
 						tuple(Types.ATOM.o),
 						Types.ANY.o)))
-			put(zeroOrMoreOf(PhraseKind.PARSE_PHRASE.mostGeneralType()))
-			put(zeroOrMoreOf(PhraseKind.ARGUMENT_PHRASE.mostGeneralType()))
-			put(zeroOrMoreOf(PhraseKind.DECLARATION_PHRASE.mostGeneralType()))
+			put(zeroOrMoreOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
+			put(zeroOrMoreOf(PhraseKind.ARGUMENT_PHRASE.mostGeneralType))
+			put(zeroOrMoreOf(PhraseKind.DECLARATION_PHRASE.mostGeneralType))
 			put(variableReadWriteType(Types.TOP.o, bottom))
 			put(zeroOrMoreOf(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o)))
 			put(PhraseKind.EXPRESSION_PHRASE.create(Types.ANY.o))
@@ -1226,19 +1226,19 @@ class AvailRuntime constructor(
 			// slots to maintain reasonable topical consistency.)
 
 			at(140)
-			put(PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType())
-			put(PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType())
-			put(PhraseKind.SUPER_CAST_PHRASE.mostGeneralType())
+			put(PhraseKind.FIRST_OF_SEQUENCE_PHRASE.mostGeneralType)
+			put(PhraseKind.PERMUTED_LIST_PHRASE.mostGeneralType)
+			put(PhraseKind.SUPER_CAST_PHRASE.mostGeneralType)
 			put(SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom)
 			put(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
 			put(SpecialAtom.ALL_TOKENS_KEY.atom)
 			put(int32)
 			put(int64)
-			put(PhraseKind.STATEMENT_PHRASE.mostGeneralType())
+			put(PhraseKind.STATEMENT_PHRASE.mostGeneralType)
 			put(SpecialAtom.COMPILER_SCOPE_STACK_KEY.atom)
 
 			at(150)
-			put(PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType())
+			put(PhraseKind.EXPRESSION_AS_STATEMENT_PHRASE.mostGeneralType)
 			put(oneOrMoreOf(naturalNumbers))
 			put(zeroOrMoreOf(Types.DEFINITION.o))
 			put(
@@ -1268,7 +1268,7 @@ class AvailRuntime constructor(
 			at(170)
 			put(
 				tupleTypeForTypes(
-					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType()),
+					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
 					stringType))
 			put(stylerFunctionType)
 			put(

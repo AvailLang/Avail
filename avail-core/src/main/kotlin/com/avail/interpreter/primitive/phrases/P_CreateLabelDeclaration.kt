@@ -42,7 +42,7 @@ import com.avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGener
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanInline
 import com.avail.interpreter.Primitive.Flag.CannotFail
@@ -71,5 +71,5 @@ object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
 			tuple(
 				TOKEN.o,
 				mostGeneralContinuationType()),
-			LABEL_PHRASE.mostGeneralType())
+			LABEL_PHRASE.mostGeneralType)
 }

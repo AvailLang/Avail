@@ -78,7 +78,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.ObjectSlots.RETURN_TYPE
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.Strings.newlineTab
@@ -119,6 +119,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
 		mutability,
 		TypeTag.FUNCTION_TYPE_TAG,
+		TypeTag.FUNCTION_TAG,
 		ObjectSlots::class.java,
 		IntegerSlots::class.java)
 {
@@ -519,9 +520,10 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 */
 		private fun printListOnAvoidingIndent(
 			objects: List<A_BasicObject?>,
-			aStream: StringBuilder,
+			builder: StringBuilder,
 			recursionMap: IdentityHashMap<A_BasicObject, Void>,
-			indent: Int)
+			indent: Int
+		) : Unit = with(builder)
 		{
 			val objectCount = objects.size
 			var anyBreaks = false
@@ -541,15 +543,15 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 				{
 					if (i > 0)
 					{
-						aStream.append(',')
+						append(',')
 					}
-					newlineTab(aStream, indent)
+					newlineTab(indent)
 					val item = objects[i]
 					item?.printOnAvoidingIndent(
-						aStream,
+						builder,
 						recursionMap,
 						indent + 1)
-					?: aStream.append("…")
+					?: append("…")
 				}
 			}
 			else
@@ -558,9 +560,9 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 				{
 					if (i > 0)
 					{
-						aStream.append(", ")
+						append(", ")
 					}
-					aStream.append(tempStrings[i])
+					append(tempStrings[i])
 				}
 			}
 		}

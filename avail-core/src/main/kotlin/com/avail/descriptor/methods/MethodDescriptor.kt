@@ -109,9 +109,10 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import com.avail.descriptor.types.TupleTypeDescriptor
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.METHOD
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import com.avail.descriptor.types.TypeTag
+import com.avail.dispatch.LeafLookupTree
 import com.avail.dispatch.LookupStatistics
 import com.avail.dispatch.LookupTree
 import com.avail.dispatch.LookupTreeAdaptor
@@ -203,7 +204,7 @@ class MethodDescriptor private constructor(
 	mutability: Mutability
 ) : Descriptor(
 	mutability,
-	TypeTag.RAW_FUNCTION_TAG,
+	TypeTag.METHOD_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java)
 {
@@ -482,7 +483,7 @@ class MethodDescriptor private constructor(
 				self,
 				DebuggerObjectSlots("methodTestingTree"),
 				-1,
-				methodTestingTree))
+				arrayOf(methodTestingTree)))
 		dependentChunksWeakSet?.let {
 			fields.add(
 				AvailObjectFieldHelper(
@@ -1061,6 +1062,10 @@ class MethodDescriptor private constructor(
 		val runtimeDispatcher =
 			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
+				override val emptyLeaf by lazy {
+					LeafLookupTree<A_Definition, A_Tuple>(emptyTuple)
+				}
+
 				override fun extractSignature(element: A_Definition) =
 					element.bodySignature().argsTupleType
 

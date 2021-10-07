@@ -76,26 +76,6 @@ object L2_STRIP_MANIFEST : L2Operation(
 		liveVector.instructionWasAdded(manifest)
 	}
 
-	override fun updateManifest(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest,
-		optionalPurpose: L2NamedOperandType.Purpose?)
-	{
-		assert(this == instruction.operation())
-		assert(optionalPurpose === null)
-		val liveVector = instruction.operand<L2ReadBoxedVectorOperand>(0)
-
-		// Clear the manifest, other than the mentioned semantic values and
-		// registers.
-		val liveSemanticValues =
-			liveVector.elements().mapTo(mutableSetOf()) { it.semanticValue() }
-		val liveRegisters =
-			liveVector.elements().mapTo(mutableSetOf()) { it.register() }
-
-		manifest.retainSemanticValues(liveSemanticValues)
-		manifest.retainRegisters(liveRegisters.toSet())
-	}
-
 	override fun translateToJVM(
 		translator: JVMTranslator,
 		method: MethodVisitor,

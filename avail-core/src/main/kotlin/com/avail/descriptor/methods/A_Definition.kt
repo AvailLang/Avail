@@ -78,7 +78,8 @@ interface A_Definition : A_Sendable
 		 * module is used. Otherwise a special conflict styler will be used to
 		 * bring attention to the collision.
 		 */
-		val A_Definition.stylers: A_Set get() = dispatch { o_Stylers(it) }
+		val A_Definition.definitionStylers: A_Set
+			get() = dispatch { o_DefinitionStylers(it) }
 
 		/**
 		 * Atomically update this definition's set of stylers.

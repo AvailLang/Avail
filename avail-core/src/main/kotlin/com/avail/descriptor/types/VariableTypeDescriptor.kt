@@ -46,7 +46,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnionOfVariableType
 import com.avail.descriptor.types.A_Type.Companion.writeType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import com.avail.descriptor.variables.VariableDescriptor
@@ -71,9 +71,15 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class VariableTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability, TypeTag.VARIABLE_TYPE_TAG, ObjectSlots::class.java, null)
+class VariableTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.VARIABLE_TYPE_TAG,
+	TypeTag.VARIABLE_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -287,35 +293,15 @@ class VariableTypeDescriptor private constructor(mutability: Mutability)
 		private val shared = VariableTypeDescriptor(Mutability.SHARED)
 
 		/**
-		 * The most general [variable][ReadWriteVariableTypeDescriptor].
+		 * The most general [variable][ReadWriteVariableTypeDescriptor] type.
 		 */
-		private val mostGeneralType: A_Type =
+		val mostGeneralVariableType: A_Type =
 			variableReadWriteType(TOP.o, bottom).makeShared()
 
 		/**
-		 * Answer the most general
-		 * [variable&amp;#32;type][ReadWriteVariableTypeDescriptor].
-		 *
-		 * @return
-		 *   The most general
-		 *   [variable&amp;#32;type][ReadWriteVariableTypeDescriptor].
+		 * The (instance) type of the most general variable metatype.
 		 */
-		fun mostGeneralVariableType(): A_Type = mostGeneralType
-
-		/**
-		 * The (instance) type of the most general [ ] metatype.
-		 */
-		private val variableMeta: A_Type =
-			instanceMeta(mostGeneralType).makeShared()
-
-		/**
-		 * Answer the (instance) type of the most general
-		 * [variable][ReadWriteVariableTypeDescriptor] metatype.
-		 *
-		 * @return
-		 *   The instance type containing the most general
-		 *   [variable][ReadWriteVariableTypeDescriptor] metatype.
-		 */
-		fun variableMeta(): A_Type = variableMeta
+		val mostGeneralVariableMeta: A_Type =
+			instanceMeta(mostGeneralVariableType).makeShared()
 	}
 }

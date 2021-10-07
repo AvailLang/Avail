@@ -907,7 +907,7 @@ internal class Group : Expression
 				// to fill in to this group's arguments and subgroups.
 				assert(
 					occurrence.isInstanceOfKind(
-						LIST_PHRASE.mostGeneralType()))
+						LIST_PHRASE.mostGeneralType))
 				innerIterator = occurrence.expressionsTuple.iterator()
 			}
 			else
@@ -918,7 +918,7 @@ internal class Group : Expression
 				// right).
 				assert(
 					occurrence.isInstanceOfKind(
-						EXPRESSION_PHRASE.mostGeneralType()))
+						EXPRESSION_PHRASE.mostGeneralType))
 				val argumentNodes = listOf(occurrence)
 				innerIterator = argumentNodes.iterator()
 			}

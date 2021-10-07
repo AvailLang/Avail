@@ -46,7 +46,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AvailErrorCode.E_SEQUENCE_CONTAINS_INVALID_STATEMENTS
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
@@ -82,8 +82,8 @@ object P_CreateSequenceOfStatements : Primitive(1, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType())),
-			SEQUENCE_PHRASE.mostGeneralType())
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType)),
+			SEQUENCE_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

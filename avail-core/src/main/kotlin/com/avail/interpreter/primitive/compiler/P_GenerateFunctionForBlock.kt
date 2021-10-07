@@ -99,7 +99,7 @@ object P_GenerateFunctionForBlock : Primitive(1, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				BLOCK_PHRASE.mostGeneralType()),
+				BLOCK_PHRASE.mostGeneralType),
 			mostGeneralFunctionType())
 
 	override fun privateFailureVariableType(): A_Type =

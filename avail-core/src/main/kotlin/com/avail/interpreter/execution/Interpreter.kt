@@ -37,8 +37,6 @@ import com.avail.AvailRuntimeConfiguration.maxInterpreters
 import com.avail.AvailRuntimeSupport
 import com.avail.AvailTask
 import com.avail.AvailThread
-import com.avail.descriptor.bundles.A_Bundle
-import com.avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import com.avail.descriptor.fiber.A_Fiber
 import com.avail.descriptor.fiber.FiberDescriptor
 import com.avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
@@ -66,7 +64,6 @@ import com.avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import com.avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import com.avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import com.avail.descriptor.functions.FunctionDescriptor
-import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number
@@ -89,12 +86,11 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.argsTupleType
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
-import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_MARK_HANDLER_FRAME
@@ -661,7 +657,7 @@ class Interpreter(
 				Level.INFO,
 				debugModeString + "Set latestResult: " +
 					if (latestResult === null) "null"
-					else latestResult!!.typeTag().name)
+					else latestResult!!.typeTag.name)
 		}
 	}
 
@@ -2732,7 +2728,7 @@ class Interpreter(
 							when
 							{
 								it !is AvailObject -> it
-								it.typeTag() == TypeTag.OBJECT_TAG ->
+								it.typeTag == TypeTag.OBJECT_TAG ->
 									"(some object)"
 								!it.isTuple -> it
 								it.isString && it.tupleSize > 200 ->

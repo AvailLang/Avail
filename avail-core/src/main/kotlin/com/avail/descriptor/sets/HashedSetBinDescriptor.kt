@@ -105,7 +105,7 @@ class HashedSetBinDescriptor private constructor(
 	level: Int
 ) : SetBinDescriptor(
 	mutability,
-	TypeTag.SET_HASHED_BIN_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	IntegerSlots::class.java,
 	level

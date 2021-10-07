@@ -225,7 +225,7 @@ class ListPhraseDescriptor private constructor(
 		aType: A_Type
 	) = when {
 		!super.o_IsInstanceOfKind(self, aType) -> false
-		!aType.isSubtypeOf(PhraseKind.LIST_PHRASE.mostGeneralType()) -> true
+		!aType.isSubtypeOf(PhraseKind.LIST_PHRASE.mostGeneralType) -> true
 		else -> self.slot(EXPRESSIONS_TUPLE).isInstanceOf(
 			aType.subexpressionsTupleType)
 	}

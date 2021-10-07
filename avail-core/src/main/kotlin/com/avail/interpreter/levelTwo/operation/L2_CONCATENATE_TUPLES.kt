@@ -35,6 +35,8 @@ import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.concatenateTupleMethod
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -51,8 +53,8 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CONCATENATE_TUPLES : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.named("tuples to concatenate"),
-	L2OperandType.WRITE_BOXED.named("concatenated tuple"))
+	READ_BOXED_VECTOR.named("tuples to concatenate"),
+	WRITE_BOXED.named("concatenated tuple"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

@@ -95,8 +95,7 @@ abstract class PropertiesFileGenerator protected constructor(
 				preambleBundle.getString(
 					Resources.Key.propertiesCopyright.name),
 				localName(baseName) + "_" + locale.language,
-				Date())
-		)
+				Date()))
 		println(
 			checkedFormat(
 				preambleBundle.getString(

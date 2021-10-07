@@ -36,7 +36,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import com.avail.descriptor.types.VariableTypeDescriptor
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.CanFold
@@ -61,5 +61,5 @@ object P_CreateVariableType : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(anyMeta()),
-			variableMeta())
+			mostGeneralVariableMeta)
 }

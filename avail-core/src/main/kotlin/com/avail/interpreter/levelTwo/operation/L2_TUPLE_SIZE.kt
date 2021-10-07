@@ -32,9 +32,12 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.tuples.A_Tuple
+import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleSizeMethod
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -42,13 +45,13 @@ import com.avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Answer the [size][A_Tuple.tupleSize] of the specified [tuple][A_Tuple].
+ * Answer the [size][tupleSize] of the specified [tuple][A_Tuple].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_TUPLE_SIZE : L2Operation(
-	L2OperandType.READ_BOXED.named("tuple"),
-	L2OperandType.WRITE_INT.named("size of tuple"))
+	READ_BOXED.named("tuple"),
+	WRITE_INT.named("size of tuple"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

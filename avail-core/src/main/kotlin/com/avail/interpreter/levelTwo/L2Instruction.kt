@@ -35,6 +35,7 @@ import com.avail.interpreter.execution.Interpreter
 import com.avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteOperand
 import com.avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
@@ -150,9 +151,8 @@ class L2Instruction constructor(
 	fun operandsWithNamedTypesDo(
 		consumer: (L2Operand, L2NamedOperandType) -> Unit)
 	{
-		for (i in operands.indices)
-		{
-			consumer(operands[i], operation.namedOperandTypes[i])
+		operands.forEachIndexed { i, operand ->
+			consumer(operand, operation.namedOperandTypes[i])
 		}
 	}
 
@@ -171,12 +171,15 @@ class L2Instruction constructor(
 	fun edgesAndPurposesDo(
 		consumer: (L2PcOperand, Purpose?) -> Unit)
 	{
-		for (i in operands.indices)
-		{
-			val operand = operands[i]
-			if (operand is L2PcOperand)
+		operands.forEachIndexed { i, operand ->
+			when (operand)
 			{
-				consumer(operand, operation.namedOperandTypes[i].purpose())
+				is L2PcOperand ->
+					consumer(operand, operation.namedOperandTypes[i].purpose())
+				is L2PcVectorOperand ->
+					operand.edges.forEach { edge ->
+						consumer(edge, operation.namedOperandTypes[i].purpose())
+					}
 			}
 		}
 	}
@@ -201,9 +204,7 @@ class L2Instruction constructor(
 		consumer: (L2WriteOperand<*>) -> Unit)
 	{
 		assert(altersControlFlow)
-		for (i in operands.indices)
-		{
-			val operand = operands[i]
+		operands.forEachIndexed { i, operand ->
 			if (operand is L2WriteOperand<*>)
 			{
 				if (operation.namedOperandTypes[i].purpose() === purpose)
@@ -259,10 +260,10 @@ class L2Instruction constructor(
 	 *   must agree with the operation's array of [L2NamedOperandType]s.
 	 */
 	constructor(
-			generator: L2Generator,
-			operation: L2Operation,
-			vararg theOperands: L2Operand)
-		: this(generator.currentBlock(), operation, *theOperands)
+		generator: L2Generator,
+		operation: L2Operation,
+		vararg theOperands: L2Operand
+	) : this(generator.currentBlock(), operation, *theOperands)
 
 	/**
 	 * Check that this instruction's [basicBlock] has been set, and that each
@@ -429,91 +430,6 @@ class L2Instruction constructor(
 		operands.forEach(L2Operand::instructionWasRemoved)
 		operands.forEach { it.setInstruction(null) }
 		basicBlock = null
-	}
-
-	/**
-	 * Recreate the [L2ValueManifest] that was in effect just prior to the
-	 * instruction that is the receiver.
-	 *
-	 * @return
-	 *   An [L2ValueManifest].
-	 */
-	@Suppress("unused")
-	fun recreateIncomingManifest(): L2ValueManifest
-	{
-		// Start with the intersection of the incoming manifests.
-		val incomingEdges = basicBlock().predecessorEdges()
-		val manifest = L2ValueManifest.intersectionOfManifests(
-			incomingEdges.map(L2PcOperand::manifest))
-		// Now record all writes until we reach the instruction.
-		for (instruction in basicBlock().instructions())
-		{
-			if (instruction == this)
-			{
-				return manifest
-			}
-			instruction.writeOperands().forEach(manifest::recordDefinition)
-		}
-		throw RuntimeException("Instruction was not found in its block")
-	}
-
-	/**
-	 * Update the given manifest with the effect of this instruction.  If a
-	 * [L2NamedOperandType.Purpose] is given, alter the manifest to agree with
-	 * outbound edges having that purpose.
-	 *
-	 * @param manifest
-	 *   The [L2ValueManifest] to update with the effect of this instruction.
-	 * @param optionalPurpose
-	 *   If non-`null`, produce tha manifest that should be active along
-	 *   outbound edges having the indicated [L2NamedOperandType.Purpose].
-	 */
-	@Suppress("unused")
-	fun updateManifest(
-		manifest: L2ValueManifest?,
-		optionalPurpose: Purpose?
-	) = operation.updateManifest(this, manifest!!, optionalPurpose)
-
-	/**
-	 * Attempt to create a copy of this instruction, but using the
-	 * [L2SemanticValue]s present in the given [L2ValueManifest]. Answer `null`
-	 * if the transformation won't work because of a missing read operand.
-	 *
-	 * @param newBlock
-	 *   The [L2BasicBlock] in which the instruction will eventually be
-	 *   inserted.
-	 * @param manifest
-	 *   The [L2ValueManifest] that's active where the new instruction would be
-	 *   inserted.
-	 * @return
-	 *   The new instruction or `null`.
-	 */
-	@Suppress("unused")
-	fun copyInstructionForManifest(
-		newBlock: L2BasicBlock, manifest: L2ValueManifest): L2Instruction?
-	{
-		var failed = false
-		val transform: (L2ReadOperand<*>) -> L2ReadOperand<*> =
-			 {
-				read: L2ReadOperand<*> ->
-				val registers = manifest.getDefinitions<L2Register>(
-					read.semanticValue(), read.registerKind())
-				when
-				{
-					registers.isEmpty() ->
-					{
-						failed = true
-						read
-					}
-					else -> read.copyForRegister(registers[0])
-				}
-			}
-		val operandsCopy = operands.map { operand ->
-			operand.transformEachRead(transform)
-		}.toTypedArray()
-
-		return if (failed) null
-			else L2Instruction(newBlock, operation, *operandsCopy)
 	}
 
 	/**

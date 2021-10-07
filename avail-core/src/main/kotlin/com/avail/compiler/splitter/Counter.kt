@@ -181,7 +181,7 @@ internal class Counter(
 		val countLiteral = arguments!!.next()
 		assert(
 			countLiteral.isInstanceOf(
-				PhraseKind.LITERAL_PHRASE.mostGeneralType()))
+				PhraseKind.LITERAL_PHRASE.mostGeneralType))
 		val count = countLiteral.token.literal().extractInt
 		for (i in 1..count)
 		{

@@ -464,7 +464,7 @@ private constructor(
 		/**
 		 * Initialize the instance used for merging boxed values.
 		 */
-		@kotlin.jvm.JvmField
+		@JvmField
 		val boxed = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.boxed,
 			L2OperandType.READ_BOXED_VECTOR.named("potential boxed sources"),
@@ -473,7 +473,7 @@ private constructor(
 		/**
 		 * Initialize the instance used for merging boxed values.
 		 */
-		@kotlin.jvm.JvmField
+		@JvmField
 		val unboxedInt = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedInt,
 			L2OperandType.READ_INT_VECTOR.named("potential int sources"),
@@ -482,7 +482,7 @@ private constructor(
 		/**
 		 * Initialize the instance used for merging boxed values.
 		 */
-		@kotlin.jvm.JvmField
+		@JvmField
 		val unboxedFloat = L2_PHI_PSEUDO_OPERATION(
 			L2_MOVE.unboxedFloat,
 			L2OperandType.READ_FLOAT_VECTOR.named("potential float sources"),

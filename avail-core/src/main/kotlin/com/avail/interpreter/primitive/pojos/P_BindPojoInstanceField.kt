@@ -103,7 +103,7 @@ object P_BindPojoInstanceField : Primitive(2, CanFold, CanInline)
 			tuple(
 				mostGeneralPojoType(),
 				stringType),
-			mostGeneralVariableType())
+			mostGeneralVariableType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_JAVA_FIELD_NOT_AVAILABLE))

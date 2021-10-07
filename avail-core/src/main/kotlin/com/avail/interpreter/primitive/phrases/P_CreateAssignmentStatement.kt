@@ -50,8 +50,8 @@ import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHR
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LOCAL_VARIABLE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MODULE_VARIABLE_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import com.avail.exceptions.AvailErrorCode.E_DECLARATION_KIND_DOES_NOT_SUPPORT_ASSIGNMENT
 import com.avail.interpreter.Primitive
@@ -100,9 +100,9 @@ object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				VARIABLE_USE_PHRASE.mostGeneralType(),
+				VARIABLE_USE_PHRASE.mostGeneralType,
 				EXPRESSION_PHRASE.create(ANY.o)),
-			ASSIGNMENT_PHRASE.mostGeneralType())
+			ASSIGNMENT_PHRASE.mostGeneralType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

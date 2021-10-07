@@ -51,6 +51,7 @@ import com.avail.interpreter.levelTwo.operand.L2FloatImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2Operand
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadOperand
@@ -374,21 +375,20 @@ protected constructor(
 	 *   The [L2ValueManifest] that is active at this instruction.
 	 */
 	open fun instructionWasAdded(
-		instruction: L2Instruction, manifest: L2ValueManifest)
+		instruction: L2Instruction,
+		manifest: L2ValueManifest)
 	{
 		val edgeIndexOrder = mutableListOf<Int>()
 		val operands = instruction.operands()
-		for (i in operands.indices)
-		{
+		operands.forEachIndexed { i, operand ->
 			val namedOperandType = namedOperandTypes[i]
 			val purpose = namedOperandType.purpose()
-			val operand = operands[i]
 			if (purpose === null)
 			{
 				// Process all operands without a purpose first.
 				operand.instructionWasAdded(manifest)
 			}
-			else if (operand is L2PcOperand)
+			else if (operand is L2PcOperand || operand is L2PcVectorOperand)
 			{
 				edgeIndexOrder.add(i)
 			}
@@ -396,19 +396,28 @@ protected constructor(
 		// Create separate copies of the manifest for each outgoing edge.
 		for (operandIndex in edgeIndexOrder)
 		{
-			val edge = operands[operandIndex].cast<L2Operand?, L2PcOperand>()
-			val purpose = namedOperandTypes[operandIndex].purpose()
-			val manifestCopy = L2ValueManifest(manifest)
-			for (i in operands.indices)
+			val edges = when (val operand = operands[operandIndex])
 			{
-				val namedOperandType = namedOperandTypes[i]
-				if (namedOperandType.purpose() == purpose
-					&& operands[i] !is L2PcOperand)
-				{
-					operands[i].instructionWasAdded(manifestCopy)
-				}
+				is L2PcOperand -> listOf(operand)
+				is L2PcVectorOperand -> operand.edges
+				else -> throw RuntimeException("Unsupported operand case")
 			}
-			edge.instructionWasAdded(manifestCopy)
+			for (edge in edges)
+			{
+				val purpose = namedOperandTypes[operandIndex].purpose()
+				val manifestCopy = L2ValueManifest(manifest)
+				for (i in operands.indices)
+				{
+					val namedOperandType = namedOperandTypes[i]
+					if (namedOperandType.purpose() == purpose
+						&& operands[i] !is L2PcOperand
+						&& operands[i] !is L2PcVectorOperand)
+					{
+						operands[i].instructionWasAdded(manifestCopy)
+					}
+				}
+				edge.instructionWasAdded(manifestCopy)
+			}
 		}
 	}
 
@@ -769,45 +778,6 @@ protected constructor(
 		regenerator: L2Regenerator)
 	{
 		regenerator.basicProcessInstruction(instruction)
-	}
-
-	/**
-	 * Update the given [L2ValueManifest] with the effect of the given
-	 * [L2Instruction].  If a [L2NamedOperandType.Purpose] is given, alter the
-	 * manifest to agree with outbound edges having that purpose.
-	 *
-	 * @param instruction
-	 *   The [L2Instruction] having this operation.
-	 * @param manifest
-	 *   The [L2ValueManifest] to update with the effect of this instruction.
-	 * @param optionalPurpose
-	 *   If non-`null`, produce tha manifest that should be active along
-	 *   outbound edges having the indicated [L2NamedOperandType.Purpose].
-	 */
-	open fun updateManifest(
-		instruction: L2Instruction,
-		manifest: L2ValueManifest,
-		optionalPurpose: L2NamedOperandType.Purpose?)
-	{
-		assert(this === instruction.operation())
-		val count = namedOperandTypes.size
-		val operands = instruction.operands()
-		assert(operands.size == count)
-		for (i in 0 until count)
-		{
-			val operand = instruction.operand<L2Operand>(i)
-			if (operand is L2WriteOperand<*>)
-			{
-				val write: L2WriteOperand<*> = operand.cast()
-				// Pay attention to purpose-less writes, or writes for the
-				// specified purpose.
-				if (namedOperandTypes[i].purpose() === null
-					|| namedOperandTypes[i].purpose() == optionalPurpose)
-				{
-					manifest.recordDefinition(write)
-				}
-			}
-		}
 	}
 
 	// Do some more initialization for both constructors.

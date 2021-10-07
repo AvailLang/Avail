@@ -35,6 +35,8 @@ import com.avail.descriptor.maps.A_Map
 import com.avail.descriptor.maps.MapDescriptor
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -49,9 +51,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_MAP : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.named("keys"),
-	L2OperandType.READ_BOXED_VECTOR.named("values"),
-	L2OperandType.WRITE_BOXED.named("new map"))
+	READ_BOXED_VECTOR.named("keys"),
+	READ_BOXED_VECTOR.named("values"),
+	WRITE_BOXED.named("new map"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

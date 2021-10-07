@@ -61,6 +61,6 @@ object P_HasNoValue : Primitive(1, CanInline, CannotFail)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralVariableType()),
+			tuple(mostGeneralVariableType),
 			booleanType)
 }

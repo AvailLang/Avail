@@ -64,15 +64,16 @@ import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.A_Type.Companion.typeUnionOfPhraseType
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListNodeTypeNoCheck
+import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhraseType
 import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTokenType
 import com.avail.descriptor.types.PhraseTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import com.avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.serialization.SerializerOperation
 import com.avail.utility.ifZero
@@ -107,7 +108,11 @@ open class PhraseTypeDescriptor protected constructor(
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
 ) : TypeDescriptor(
-	mutability, kind.typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+	mutability,
+	kind.typeTag.metaTag ?: TypeTag.UNKNOWN_TAG,
+	kind.typeTag,
+	objectSlotsEnumClass,
+	integerSlotsEnumClass)
 {
 	/**
 	 * My slots of type [int][Integer].
@@ -191,7 +196,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.BLOCK_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type =
+			override fun produceMostGeneralYieldType(): A_Type =
 				mostGeneralFunctionType()
 		},
 
@@ -203,7 +208,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.LITERAL_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type = ANY.o
+			override fun produceMostGeneralYieldType(): A_Type = ANY.o
 		},
 
 		/**
@@ -214,8 +219,8 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.REFERENCE_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type =
-				mostGeneralVariableType()
+			override fun produceMostGeneralYieldType(): A_Type =
+				mostGeneralVariableType
 		},
 
 		/**
@@ -226,7 +231,7 @@ open class PhraseTypeDescriptor protected constructor(
 			EXPRESSION_PHRASE,
 			TypeTag.SUPER_CAST_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type = ANY.o
+			override fun produceMostGeneralYieldType(): A_Type = ANY.o
 		},
 
 		/** The kind of a [send&#32;phrase][SendPhraseDescriptor]. */
@@ -242,7 +247,8 @@ open class PhraseTypeDescriptor protected constructor(
 				mutability: Mutability): PhraseTypeDescriptor =
 					ListPhraseTypeDescriptor(mutability, this)
 
-			override fun mostGeneralYieldType(): A_Type = mostGeneralTupleType
+			override fun produceMostGeneralYieldType(): A_Type =
+				mostGeneralTupleType
 
 			override fun createNoCheck(yieldType: A_Type): A_Type
 			{
@@ -269,7 +275,8 @@ open class PhraseTypeDescriptor protected constructor(
 				mutability: Mutability): PhraseTypeDescriptor =
 					ListPhraseTypeDescriptor(mutability, this)
 
-			override fun mostGeneralYieldType(): A_Type = mostGeneralTupleType
+			override fun produceMostGeneralYieldType(): A_Type =
+				mostGeneralTupleType
 
 			override fun createNoCheck(
 				yieldType: A_Type): A_Type
@@ -290,9 +297,9 @@ open class PhraseTypeDescriptor protected constructor(
 		VARIABLE_USE_PHRASE(
 			"variable use phrase type",
 			EXPRESSION_PHRASE,
-			TypeTag.VARIABLE_TAG)
+			TypeTag.VARIABLE_USE_PHRASE_TAG)
 		{
-			override fun mostGeneralYieldType(): A_Type = ANY.o
+			override fun produceMostGeneralYieldType(): A_Type = ANY.o
 		},
 
 		/** A phrase that does not produce a result. */
@@ -381,7 +388,7 @@ open class PhraseTypeDescriptor protected constructor(
 		MACRO_SUBSTITUTION_PHRASE(
 			"macro substitution phrase type",
 			PARSE_PHRASE,
-			TypeTag.MACRO_SUBSTITUTION_PHRASE_TAG);
+			TypeTag.UNKNOWN_TAG);
 
 		override fun fieldName(): String = name
 
@@ -401,7 +408,16 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   The most general inner type for this kind of phrase.
 		 */
-		open fun mostGeneralYieldType(): A_Type = Types.TOP.o
+		protected open fun produceMostGeneralYieldType(): A_Type = Types.TOP.o
+
+		/**
+		 * The most general inner type for this kind of phrase.  Computed lazily
+		 * via the overrideable [produceMostGeneralYieldType].
+		 *
+		 * @return
+		 *   The most general inner type for this kind of phrase.
+		 */
+		val mostGeneralYieldType by lazy { produceMostGeneralYieldType() }
 
 		/**
 		 * The depth of this object in the PhraseKind hierarchy.
@@ -437,7 +453,7 @@ open class PhraseTypeDescriptor protected constructor(
 		fun create(
 			yieldType: A_Type): A_Type
 		{
-			assert(yieldType.isSubtypeOf(mostGeneralYieldType()))
+			assert(yieldType.isSubtypeOf(mostGeneralYieldType))
 			return createNoCheck(yieldType)
 		}
 
@@ -462,9 +478,6 @@ open class PhraseTypeDescriptor protected constructor(
 		/** The descriptor for shared instances of this kind. */
 		val sharedDescriptor: PhraseTypeDescriptor
 
-		/** The most general type for this kind of phrase. */
-		private val mostGeneralType: A_Type
-
 		init
 		{
 			depth = if (parentKind !== null)
@@ -477,20 +490,19 @@ open class PhraseTypeDescriptor protected constructor(
 			}
 			mutableDescriptor = createDescriptor(Mutability.MUTABLE)
 			sharedDescriptor = createDescriptor(Mutability.SHARED)
-			mostGeneralType = createNoCheck(mostGeneralYieldType())
 		}
 
 		/**
 		 * Answer a [phrase&#32;type][PhraseTypeDescriptor] whose kind is the
 		 * receiver and whose expression type is
-		 * [top][TypeDescriptor.Types.TOP]. This is the most general phrase type
+		 * [top][Types.TOP]. This is the most general phrase type
 		 * of that kind.
 		 *
 		 * @return
 		 *   The new phrase type, whose kind is the receiver and whose
-		 *   expression type is [top][TypeDescriptor.Types.TOP].
+		 *   expression type is [top][Types.TOP].
 		 */
-		fun mostGeneralType(): A_Type = mostGeneralType
+		val mostGeneralType by lazy { createNoCheck(mostGeneralYieldType) }
 
 		/**
 		 * Answer the `PhraseKind` that is the nearest common ancestor to both
@@ -774,8 +786,8 @@ open class PhraseTypeDescriptor protected constructor(
 		val intersectionKind =
 			kind.commonDescendantWith(aPhraseType.phraseKind) ?: return bottom
 		assert(!intersectionKind.isSubkindOf(PhraseKind.LIST_PHRASE))
-		// It should be safe to assume the mostGeneralType() of a subkind is
-		// always a subtype of the mostGeneralType() of a superkind.
+		// It should be safe to assume the mostGeneralType of a subkind is
+		// always a subtype of the mostGeneralType of a superkind.
 		return intersectionKind.createNoCheck(
 			self.slot(EXPRESSION_TYPE).typeIntersection(
 				aPhraseType.phraseTypeExpressionType))

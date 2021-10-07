@@ -40,6 +40,9 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
+import com.avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import com.avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
 import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -60,9 +63,9 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_FUNCTION : L2Operation(
-	L2OperandType.CONSTANT.named("compiled code"),
-	L2OperandType.READ_BOXED_VECTOR.named("captured variables"),
-	L2OperandType.WRITE_BOXED.named("new function"))
+	CONSTANT.named("compiled code"),
+	READ_BOXED_VECTOR.named("captured variables"),
+	WRITE_BOXED.named("new function"))
 {
 	override fun extractFunctionOuter(
 		instruction: L2Instruction,
@@ -83,7 +86,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 			outerType.typeIntersection(
 				code.constant.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
-		val manifest = generator.currentManifest()
+		val manifest = generator.currentManifest
 		val semanticValue = originalRead.semanticValue()
 		if (manifest.hasSemanticValue(semanticValue))
 		{
@@ -203,7 +206,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 	 * @return
 	 *   The constant [A_RawFunction] that is closed by the instruction.
 	 */
-	@kotlin.jvm.JvmStatic
+	@JvmStatic
 	fun constantRawFunctionOf(instruction: L2Instruction): A_RawFunction
 	{
 		assert(instruction.operation() is L2_CREATE_FUNCTION)

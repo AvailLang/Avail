@@ -70,7 +70,6 @@ import com.avail.descriptor.methods.A_SemanticRestriction
 import com.avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import com.avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import com.avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
-import com.avail.descriptor.methods.MethodDescriptor
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.numbers.A_Number.Companion.equalsInt
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -111,11 +110,12 @@ import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import com.avail.dispatch.InternalLookupTree
-import com.avail.dispatch.LookupTreeTraverser
+import com.avail.dispatch.LeafLookupTree
+import com.avail.dispatch.LookupTree
 import com.avail.exceptions.AvailErrorCode
 import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import com.avail.exceptions.MethodDefinitionException
@@ -220,6 +220,7 @@ import com.avail.performance.Statistic
 import com.avail.performance.StatisticReport.L1_NAIVE_TRANSLATION_TIME
 import com.avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import com.avail.performance.StatisticReport.L2_TRANSLATION_VALUES
+import com.avail.utility.removeLast
 import java.util.concurrent.atomic.AtomicReference
 import java.util.logging.Level
 
@@ -311,13 +312,11 @@ class L1Translator private constructor(
 	private fun topFrame(): Frame = generator.topFrame
 
 	/**
-	 * Answer the current [L2ValueManifest], which tracks which [L2Synonym]s
-	 * hold which [L2SemanticValue]s at the current code generation point.
-	 *
-	 * @return
-	 *   The current [L2ValueManifest].
+	 * The current [L2ValueManifest], which tracks which [L2Synonym]s hold which
+	 * [L2SemanticValue]s at the current code generation point.
 	 */
-	fun currentManifest(): L2ValueManifest = generator.currentManifest
+	val currentManifest: L2ValueManifest
+		get() = generator.currentManifest
 
 	/**
 	 * Get the program counter for the next instruction to be decoded.
@@ -435,7 +434,7 @@ class L1Translator private constructor(
 			L2_MOVE.boxed,
 			sourceSemanticValue,
 			slotSemanticValue)
-		currentManifest().setRestriction(slotSemanticValue, restriction)
+		currentManifest.setRestriction(slotSemanticValue, restriction)
 	}
 
 	/**
@@ -472,7 +471,7 @@ class L1Translator private constructor(
 		get()
 		{
 			val semanticFunction = topFrame().function()
-			if (currentManifest().hasSemanticValue(semanticFunction))
+			if (currentManifest.hasSemanticValue(semanticFunction))
 			{
 				// Note the current function can't ever be an int or float.
 				return generator.readBoxed(semanticFunction)
@@ -511,7 +510,7 @@ class L1Translator private constructor(
 	{
 		//TODO capture names of outers, then use: outerNames[outerIndex - 1]
 		val semanticOuter = topFrame().outer(outerIndex, null)
-		if (currentManifest().hasSemanticValue(semanticOuter))
+		if (currentManifest.hasSemanticValue(semanticOuter))
 		{
 			return generator.readBoxed(semanticOuter)
 		}
@@ -738,51 +737,6 @@ class L1Translator private constructor(
 	}
 
 	/**
-	 * A memento to be used for coordinating code generation between the
-	 * branches of an [InternalLookupTree].
-	 *
-	 * @property argumentIndexToTest
-	 *   The one-based index of the argument being tested.
-	 * @property typeToTest
-	 *   The [A_Type] that should be subtracted from argument's possible type
-	 *   along the path where the type test fails.
-	 *
-	 * @constructor
-	 * Construct a new memento.  Make the label something meaningful to
-	 * make it easier to decipher.
-	 *
-	 * @param argumentIndexToTest
-	 *   The one-based subscript of the argument being tested.
-	 * @param typeToTest
-	 *   The type to test the argument against.
-	 * @param branchLabelCounter
-	 *   An int unique to this dispatch tree, monotonically allocated at each
-	 *   branch.
-	 */
-	inner class InternalNodeMemento constructor(
-		private val argumentIndexToTest: Int,
-		private val typeToTest: A_Type,
-		branchLabelCounter: Int)
-	{
-		private val shortTypeName =
-			"$branchLabelCounter (arg#$argumentIndexToTest is " +
-				typeToTest.traversed().descriptor().typeTag.name
-					.replace("_TAG", "") + ")"
-
-		/**
-		 * Where to jump if the [InternalLookupTree]'s type test is true.
-		 */
-		val passCheckBasicBlock = generator.createBasicBlock(
-			"pass lookup test #$shortTypeName")
-
-		/**
-		 * Where to jump if the [InternalLookupTree]'s type test is false.
-		 */
-		val failCheckBasicBlock = generator.createBasicBlock(
-			"fail lookup test #$shortTypeName")
-	}
-
-	/**
 	 * A helper that aggregates parameters for polymorphic dispatch inlining.
 	 *
 	 * @property bundle
@@ -933,16 +887,14 @@ class L1Translator private constructor(
 				answerType.isSubtypeOf(expectedType) ->
 				{
 					// Capture it as the checked value L2SemanticSlot.
-					forceSlotRegister(
-						stackp, pc, answerReg)
+					forceSlotRegister(stackp, pc, answerReg)
 					generator.jumpTo(afterCallNoCheck)
 				}
 				else ->
 				{
 					// Capture it as the unchecked return value SemanticSlot by
 					// using pc - 1.
-					forceSlotRegister(
-						stackp, pc - 1, answerReg)
+					forceSlotRegister(stackp, pc - 1, answerReg)
 					generator.jumpTo(afterCallWithCheck)
 				}
 			}
@@ -1006,17 +958,15 @@ class L1Translator private constructor(
 		// Determine which applicable definitions have already been expanded in
 		// the lookup tree.
 		val tree = method.testingTree
-		val argumentRestrictions = semanticArguments
-			.map { currentManifest().restrictionFor(it) }
-
+		val argumentRestrictions =
+			semanticArguments.map(currentManifest::restrictionFor)
 
 		// Special case: If there's only one method definition and the type tree
 		// has not yet been expanded, go ahead and do so.  It takes less space
 		// in L2/JVM to store the simple invocation than a full lookup.
 		if (method.definitionsTuple.tupleSize <= 1)
 		{
-			val argTypes = argumentRestrictions
-				.map { restriction: TypeRestriction -> restriction.type }
+			val argTypes = argumentRestrictions.map(TypeRestriction::type)
 			try
 			{
 				val result =
@@ -1029,87 +979,62 @@ class L1Translator private constructor(
 			}
 			// The tree is now warmed up for a monomorphic inline.
 		}
+		// Visit the expanded parts of the tree and collect the leaves that
+		// indicate a singular answer, keeping only those that are possible at
+		// this call site.
 		val applicableExpandedLeaves = mutableListOf<A_Definition>()
-		val definitionCollector =
-			object : LookupTreeTraverser<A_Definition, A_Tuple, Unit, Boolean>(
-				MethodDescriptor.runtimeDispatcher, Unit, false)
+		val workList = mutableListOf(tree)
+		while (workList.isNotEmpty())
 		{
-			override fun visitPreInternalNode(
-				argumentIndex: Int, argumentType: A_Type): Boolean = true
-
-			override fun visitLeafNode(lookupResult: A_Tuple)
+			when (val node = workList.removeLast())
 			{
-				if (lookupResult.tupleSize != 1)
+				is InternalLookupTree ->
+					node.decisionStepOrNull?.addChildrenTo(workList)
+				is LeafLookupTree ->
 				{
-					return
-				}
-				val definition: A_Definition = lookupResult.tupleAt(1)
-				// Only inline successful lookups.
-				if (!definition.isMethodDefinition())
-				{
-					return
-				}
-				val signature = definition.bodySignature()
-				if (signature.couldEverBeInvokedWith(argumentRestrictions)
-					&& superUnionType.isSubtypeOf(
-						signature.argsTupleType))
-				{
-					applicableExpandedLeaves.add(definition)
+					val lookupResult = node.solutionOrNull
+					if (lookupResult.tupleSize != 1) continue
+					val definition: A_Definition = lookupResult.tupleAt(1)
+					// Only inline successful lookups.
+					if (!definition.isMethodDefinition()) continue
+					val signature = definition.bodySignature()
+					if (signature.couldEverBeInvokedWith(argumentRestrictions)
+						&& superUnionType.isSubtypeOf(signature.argsTupleType))
+					{
+						applicableExpandedLeaves.add(definition)
+					}
 				}
 			}
 		}
-		definitionCollector.traverseEntireTree(tree)
 		if (applicableExpandedLeaves.size <=
 			L2Generator.maxPolymorphismToInlineDispatch)
 		{
-			val traverser = object :
-				LookupTreeTraverser
-					<A_Definition, A_Tuple, Unit, InternalNodeMemento>(
-						MethodDescriptor.runtimeDispatcher, Unit, false)
+			// Generate all the branches and corresponding target blocks.
+			val edges = mutableListOf<
+				Pair<L2BasicBlock?, LookupTree<A_Definition, A_Tuple>>>()
+			edges.add(null to tree)
+			while (edges.isNotEmpty())
 			{
-				override fun visitPreInternalNode(
-					argumentIndex: Int,
-					argumentType: A_Type
-				): InternalNodeMemento = preInternalVisit(
-					callSiteHelper,
-					semanticArguments,
-					argumentIndex,
-					argumentType)
-
-				override fun visitIntraInternalNode(memento: InternalNodeMemento)
+				val (block, node) = edges.removeLast()
+				if (block != null) generator.startBlock(block)
+				if (!generator.currentlyReachable()) continue
+				when (node)
 				{
-					// Every leaf and unexpanded internal node ends with an edge
-					// to afterCall* and/or onReification* and/or the
-					// unreachableBlock.
-					assert(!generator.currentlyReachable())
-					generator.startBlock(memento.failCheckBasicBlock)
-				}
-
-				override fun visitPostInternalNode(memento: InternalNodeMemento)
-				{
-					// The leaves already end with jumps, and the manifest
-					// at the next site should have the weaker types that
-					// were known before this test.
-					assert(!generator.currentlyReachable())
-				}
-
-				override fun visitUnexpanded()
-				{
-					// This part of the lookup tree wasn't expanded yet, so fall
-					// back to the slow dispatch.
-					if (generator.currentlyReachable())
+					is InternalLookupTree ->
 					{
-						generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
+						when (val step = node.decisionStepOrNull)
+						{
+							null -> generator.jumpTo(
+								callSiteHelper.onFallBackToSlowLookup)
+							else -> edges.addAll(
+								step.generateEdgesFor(
+									semanticArguments, callSiteHelper))
+						}
 					}
-				}
-
-				override fun visitLeafNode(lookupResult: A_Tuple)
-				{
-					leafVisit(semanticArguments, callSiteHelper, lookupResult)
-					assert(!generator.currentlyReachable())
+					is LeafLookupTree -> leafVisit(
+						semanticArguments, callSiteHelper, node.solutionOrNull)
 				}
 			}
-			traverser.traverseEntireTree(tree)
 		}
 		else
 		{
@@ -1286,7 +1211,7 @@ class L1Translator private constructor(
 	 *   there's exactly one, and it's a method definition, the lookup is
 	 *   considered successful, otherwise it's a failed lookup.
 	 */
-	fun leafVisit(
+	private fun leafVisit(
 		semanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper,
 		solutions: A_Tuple)
@@ -1328,12 +1253,10 @@ class L1Translator private constructor(
 		semanticArguments: List<L2SemanticValue>,
 		callSiteHelper: CallSiteHelper)
 	{
-		val existingPair =
-			callSiteHelper.invocationSitesToCreate[function]
-		val block: L2BasicBlock
+		val existingPair = callSiteHelper.invocationSitesToCreate[function]
 		if (existingPair === null)
 		{
-			block = generator.createBasicBlock("successful lookup")
+			val block = generator.createBasicBlock("successful lookup")
 			// Safety check.
 			var ran = 0
 			val newAction = {
@@ -1345,9 +1268,7 @@ class L1Translator private constructor(
 					generator.startBlock(block)
 					generateGeneralFunctionInvocation(
 						generator.boxedConstant(function),
-						semanticArguments.map {
-							currentManifest().readBoxed(it)
-						},
+						semanticArguments.map(currentManifest::readBoxed),
 						true,
 						callSiteHelper)
 					assert(!generator.currentlyReachable())
@@ -1355,226 +1276,12 @@ class L1Translator private constructor(
 			}
 			callSiteHelper.invocationSitesToCreate[function] =
 				block to newAction
+			generator.jumpTo(block)
 		}
 		else
 		{
-			block = existingPair.first
+			generator.jumpTo(existingPair.first)
 		}
-		// Whether we just created this pair or found it, emit a jump to
-		// the block.
-		generator.jumpTo(block)
-	}
-
-	/**
-	 * An expanded internal node has been reached.  Emit a type test to
-	 * determine which way to jump.  Answer a new [InternalNodeMemento] to pass
-	 * along to other visitor operations to coordinate branch targets.
-	 *
-	 * @param callSiteHelper
-	 *   The [CallSiteHelper] object for this dispatch.
-	 * @param semanticArguments
-	 *   The list of [L2SemanticValue]s supplying argument values. These become
-	 *   strengthened by type tests in the current manifest.
-	 * @param argumentIndexToTest
-	 *   The argument number to test here.  This is a one-based index into the
-	 *   list of arguments (which is zero-based).
-	 * @param typeToTest
-	 *   The type to check the argument against.
-	 * @return
-	 *   An [InternalNodeMemento] which is made available in other callbacks for
-	 *   this particular type test node.  It captures branch labels, for
-	 *   example.
-	 */
-	fun preInternalVisit(
-		callSiteHelper: CallSiteHelper,
-		semanticArguments: List<L2SemanticValue>,
-		argumentIndexToTest: Int,
-		typeToTest: A_Type): InternalNodeMemento
-	{
-		val memento = preInternalVisitForJustTheJumps(
-			callSiteHelper,
-			semanticArguments,
-			argumentIndexToTest,
-			typeToTest)
-
-		// Prepare to generate the pass block, if reachable.
-		generator.startBlock(memento.passCheckBasicBlock)
-		if (!generator.currentlyReachable())
-		{
-			return memento
-		}
-		// Replace the current argument with a pass-strengthened reader.  It'll
-		// be replaced with a fail-strengthened reader during the
-		// intraInternalNode, then replaced with whatever it was upon entry to
-		// this subtree during the postInternalNode.
-		val semanticArgument = semanticArguments[argumentIndexToTest - 1]
-		val argumentRestriction =
-			currentManifest().restrictionFor(semanticArgument)
-		if (!argumentRestriction.intersectsType(typeToTest))
-		{
-			generator.addUnreachableCode()
-		}
-		return memento
-	}
-
-	/**
-	 * An expanded internal node has been reached.  Emit a type test to
-	 * determine which way to jump.  Answer a new [InternalNodeMemento] to pass
-	 * along to other visitor operations to coordinate branch targets. Don't
-	 * strengthen the tested argument type yet.
-	 *
-	 * @param callSiteHelper
-	 *   The [CallSiteHelper] object for this dispatch.
-	 * @param semanticArguments
-	 *   The list of [L2SemanticValue]s supplying argument values. These become
-	 *   strengthened by type tests in the current manifest.
-	 * @param argumentIndexToTest
-	 *   The argument number to test here.  This is a one-based index into the
-	 *   list of arguments (which is zero-based).
-	 * @param typeToTest
-	 *   The type to check the argument against.
-	 * @return
-	 *   An [InternalNodeMemento] which is made available in other callbacks for
-	 *   this particular type test node.  It captures branch labels, for
-	 *   example.
-	 */
-	private fun preInternalVisitForJustTheJumps(
-		callSiteHelper: CallSiteHelper,
-		semanticArguments: List<L2SemanticValue>,
-		argumentIndexToTest: Int,
-		typeToTest: A_Type): InternalNodeMemento
-	{
-		val semanticArgument =
-			semanticArguments[argumentIndexToTest - 1]
-		val argRead =
-			currentManifest().readBoxed(semanticArgument)
-		val memento = InternalNodeMemento(
-			argumentIndexToTest,
-			typeToTest,
-			callSiteHelper.branchLabelCounter++)
-		if (!generator.currentlyReachable())
-		{
-			// If no paths lead here, don't generate code.  This can happen when
-			// we short-circuit type-tests into unconditional jumps, due to the
-			// complexity of super calls.  We short-circuit code generation
-			// within this entire subtree by performing the same check in each
-			// callback.
-			return memento
-		}
-		val argRestriction = argRead.restriction()
-
-		// Tricky here.  We have the type we want to test for, and we have the
-		// argument for which we want to test the type, but we also have an
-		// element of the superUnionType to consider.  And that element might be
-		// a combination of restrictions and bottoms.  Deal with the easy,
-		// common cases first.
-		val superUnionElementType =
-			callSiteHelper.superUnionType.typeAtIndex(argumentIndexToTest)
-		if (superUnionElementType.isBottom)
-		{
-			// It's not a super call, or at least this test isn't related to any
-			// parts that are supercast upward.
-			val intersection = argRestriction.intersectionWithType(typeToTest)
-			if (intersection === TypeRestriction.bottomRestriction)
-			{
-				// It will always fail the test.
-				generator.jumpTo(memento.failCheckBasicBlock)
-				return memento
-			}
-			if (argRestriction.type.isSubtypeOf(typeToTest))
-			{
-				// It will always pass the test.
-				generator.jumpTo(memento.passCheckBasicBlock)
-				return memento
-			}
-
-			// A runtime test is needed.  Try to special-case small enumeration.
-			val possibleValues =
-				intersection.enumerationValuesOrNull(
-					L2Generator.maxExpandedEqualityChecks)
-			if (possibleValues !== null)
-			{
-				// The restriction has a small number of values.  Use equality
-				// checks rather than the more general type checks.
-				val iterator: Iterator<AvailObject> = possibleValues.iterator()
-				var instance: A_BasicObject = iterator.next()
-				while (iterator.hasNext())
-				{
-					val nextCheckOrFail = generator.createBasicBlock(
-						"test next case of enumeration")
-					jumpIfEqualsConstant(
-						argRead,
-						instance,
-						memento.passCheckBasicBlock,
-						nextCheckOrFail)
-					generator.startBlock(nextCheckOrFail)
-					instance = iterator.next()
-				}
-				jumpIfEqualsConstant(
-					argRead,
-					instance,
-					memento.passCheckBasicBlock,
-					memento.failCheckBasicBlock)
-				return memento
-			}
-			// A runtime test is needed, and it's not a small enumeration.
-			jumpIfKindOfConstant(
-				argRead,
-				typeToTest,
-				memento.passCheckBasicBlock,
-				memento.failCheckBasicBlock)
-			return memento
-		}
-
-		// The argument is subject to a super-cast.
-		if (argRestriction.type.isSubtypeOf(superUnionElementType))
-		{
-			// The argument's actual type will always be a subtype of the
-			// superUnion type, so the dispatch will always be decided by only
-			// the superUnion type, which does not vary at runtime.  Decide
-			// the branch direction right now.
-			generator.jumpTo(
-				if (superUnionElementType.isSubtypeOf(typeToTest))
-				{
-					memento.passCheckBasicBlock
-				}
-				else
-				{
-					memento.failCheckBasicBlock
-				})
-			return memento
-		}
-
-		// This is the most complex case, where the argument dispatch type is a
-		// mixture of supercasts and non-supercasts.  Do it the slow way with a
-		// type union.  Technically, the superUnionElementType's recursive tuple
-		// structure mimics the call site, so it must have a fixed, finite
-		// structure corresponding with occurrences of supercasts syntactically.
-		// Thus, in theory we could analyze the superUnionElementType and
-		// generate a more complex collection of branches – but this is already
-		// a pretty rare case.
-		val argMeta =
-			instanceMeta(argRestriction.type)
-		val argTypeWrite =
-			generator.boxedWriteTemp(argRestriction.metaRestriction())
-		addInstruction(L2_GET_TYPE, argRead, argTypeWrite)
-		val superUnionReg =
-			generator.boxedConstant(superUnionElementType)
-		val unionReg = generator.boxedWriteTemp(
-			restrictionForType(
-				argMeta.typeUnion(superUnionReg.type()), BOXED_FLAG))
-		addInstruction(
-			L2_TYPE_UNION,
-			readBoxed(argTypeWrite),
-			superUnionReg,
-			unionReg)
-		addInstruction(
-			L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
-			readBoxed(unionReg),
-			L2ConstantOperand(typeToTest),
-			edgeTo(memento.passCheckBasicBlock),
-			edgeTo(memento.failCheckBasicBlock))
-		return memento
 	}
 
 	/**
@@ -1757,7 +1464,7 @@ class L1Translator private constructor(
 		}
 		generator.startBlock(innerPass)
 		val semanticConstant = L2SemanticConstant(constantValue)
-		if (!generator.currentManifest().hasSemanticValue(semanticConstant))
+		if (!currentManifest.hasSemanticValue(semanticConstant))
 		{
 			generator.moveRegister(
 				L2_MOVE.boxed,
@@ -1833,7 +1540,7 @@ class L1Translator private constructor(
 				// monomorphic *in the event of success*, so we can safely
 				// tighten the argument types here to conform to the only
 				// possible found function.
-				val manifest = currentManifest()
+				val manifest = currentManifest
 				val strongArguments = (0 until argumentCount).map {
 					val arg = arguments[it]
 					val argSemanticValue = arg.semanticValue()
@@ -2011,7 +1718,7 @@ class L1Translator private constructor(
 		// the instruction after the call (which takes at least three nybbles).
 		val semanticValue =
 			createSemanticSlot(stackp, pc - 1)
-		val uncheckedValueRead = currentManifest().readBoxed(semanticValue)
+		val uncheckedValueRead = currentManifest.readBoxed(semanticValue)
 		if (uncheckedValueRead.type().isVacuousType)
 		{
 			// There are no return values possible, so we can't get here.  It
@@ -2276,7 +1983,7 @@ class L1Translator private constructor(
 		for (i in 1 .. nArgs)
 		{
 			val argumentRestriction =
-				currentManifest().restrictionFor(semanticArguments[i - 1])
+				currentManifest.restrictionFor(semanticArguments[i - 1])
 			val unionRestriction = argumentRestriction.union(
 				restrictionForType(
 					callSiteHelper.superUnionType.typeAtIndex(i), BOXED_FLAG))
@@ -2294,7 +2001,7 @@ class L1Translator private constructor(
 		val functionTypeUnion =
 			enumerationWith(setFromCollection(possibleFunctions))
 		val argumentReads =
-			semanticArguments.map { currentManifest().readBoxed(it) }
+			semanticArguments.map { currentManifest.readBoxed(it) }
 
 		// At some point we might want to introduce a SemanticValue for tagging
 		// this register.
@@ -2736,7 +2443,7 @@ class L1Translator private constructor(
 		generator.specialBlocks[AFTER_OPTIONAL_PRIMITIVE] = afterPrimitive
 		generator.jumpTo(afterPrimitive)
 		generator.startBlock(afterPrimitive)
-		currentManifest().clear()
+		currentManifest.clear()
 		// While it's true that invalidation may only take place when no Avail
 		// code is running (even when evicting old chunks), and it's also the
 		// case that invalidation causes the chunk to be disconnected from its
@@ -3134,7 +2841,7 @@ class L1Translator private constructor(
 		// will be empty.
 		assert(code.codePrimitive() === null)
 		val semanticLabel = topFrame().label()
-		if (generator.currentManifest.hasSemanticValue(semanticLabel))
+		if (currentManifest.hasSemanticValue(semanticLabel))
 		{
 			// Reuse a label that was computed for an earlier L1 pushLabel.
 		}
@@ -3162,7 +2869,7 @@ class L1Translator private constructor(
 		forceSlotRegister(
 			stackp,
 			pc,
-			currentManifest().readBoxed(semanticLabel))
+			currentManifest.readBoxed(semanticLabel))
 	}
 
 	override fun L1Ext_doGetLiteral()
@@ -3242,7 +2949,7 @@ class L1Translator private constructor(
 			forceSlotRegister(
 				stackp + size - i,
 				pc,
-				currentManifest().readBoxed(temps[i - 1]!!))
+				currentManifest.readBoxed(temps[i - 1]!!))
 		}
 	}
 

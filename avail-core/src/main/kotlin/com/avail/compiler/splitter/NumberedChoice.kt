@@ -198,7 +198,7 @@ internal class NumberedChoice constructor(private val alternation: Alternation)
 		val literal = arguments!!.next()
 		assert(
 			literal.isInstanceOf(
-				PhraseKind.LITERAL_PHRASE.mostGeneralType()))
+				PhraseKind.LITERAL_PHRASE.mostGeneralType))
 		val index = literal.token.literal().extractInt
 		builder.append('«')
 		val alternative = alternation.alternatives[index - 1]

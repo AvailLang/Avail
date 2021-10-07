@@ -58,8 +58,9 @@ import java.nio.file.Path
  *   the [L2Chunk] that serves as the basis for the annotated
  *   [method][ExecutableChunk.runChunk].
  */
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION,
-		AnnotationTarget.PROPERTY_GETTER,
-		AnnotationTarget.PROPERTY_SETTER)
+@Retention(AnnotationRetention.RUNTIME)
+@Target(
+	AnnotationTarget.FUNCTION,
+	AnnotationTarget.PROPERTY_GETTER,
+	AnnotationTarget.PROPERTY_SETTER)
 annotation class JVMChunkL2Source constructor(val sourcePath: String)

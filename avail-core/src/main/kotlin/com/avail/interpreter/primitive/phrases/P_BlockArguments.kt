@@ -68,6 +68,6 @@ object P_BlockArguments : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				BLOCK_PHRASE.mostGeneralType()),
-			zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType()))
+				BLOCK_PHRASE.mostGeneralType),
+			zeroOrMoreOf(ARGUMENT_PHRASE.mostGeneralType))
 }

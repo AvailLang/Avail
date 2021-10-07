@@ -36,6 +36,7 @@ import com.avail.interpreter.levelTwo.L2NamedOperandType
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
+import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.L2BasicBlock
 
@@ -62,6 +63,11 @@ abstract class L2ControlFlowOperation protected constructor(
 	 */
 	private val labelOperandIndices: IntArray
 
+	/**
+	 * The array of operand indices which have type [L2PcVectorOperand].
+	 */
+	private val labelVectorOperandIndices: IntArray
+
 	override fun altersControlFlow() = true
 
 	/**
@@ -77,9 +83,15 @@ abstract class L2ControlFlowOperation protected constructor(
 	 *   change, or reachable only from some other mechanism like continuation
 	 *   reification and later resumption of a continuation.
 	 */
-	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand> =
+	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
+	{
 		// Requires explicit parameter typing
-		labelOperandIndices.map { instruction.operand<L2PcOperand>(it) }
+		var edges = labelOperandIndices.map<L2PcOperand>(instruction::operand)
+		labelVectorOperandIndices.forEach {
+			edges = edges + instruction.operand<L2PcVectorOperand>(it).edges
+		}
+		return edges
+	}
 
 	init
 	{
@@ -88,5 +100,10 @@ abstract class L2ControlFlowOperation protected constructor(
 		}
 		labelOperandIndices =
 			IntArray(labelIndicesList.size) { labelIndicesList[it] }
+		val labelVectorIndicesList = namedOperandTypes.indices.filter {
+			namedOperandTypes[it].operandType == L2OperandType.PC_VECTOR
+		}
+		labelVectorOperandIndices =
+			IntArray(labelVectorIndicesList.size) { labelVectorIndicesList[it] }
 	}
 }

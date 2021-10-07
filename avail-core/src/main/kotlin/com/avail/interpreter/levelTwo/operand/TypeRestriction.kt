@@ -61,9 +61,9 @@ import com.avail.descriptor.types.BottomTypeDescriptor
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import com.avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
@@ -171,11 +171,11 @@ class TypeRestriction private constructor(
 
 		/**
 		 * When used in the positive group, this set, if present, must contain
-		 * the [typeTag()][AvailObjectRepresentation.typeTag] of the value under
+		 * the [typeTag][AvailObjectRepresentation.typeTag] of the value under
 		 * test.
 		 *
 		 * When used in the negative group, the value under test must *not* have
-		 * a [typeTag()][AvailObjectRepresentation.typeTag] in this set.
+		 * a [typeTag][AvailObjectRepresentation.typeTag] in this set.
 		 */
 		var tags: Set<TypeTag>?)
 
@@ -399,8 +399,7 @@ class TypeRestriction private constructor(
 		for (value in excludedValues)
 		{
 			if (other.excludedValues.contains(value)
-				|| other.excludedTypes.any(value::isInstanceOf)
-			)
+				|| other.excludedTypes.any(value::isInstanceOf))
 			{
 				newExcludedValues.add(value)
 			}
@@ -819,8 +818,7 @@ class TypeRestriction private constructor(
 		for (otherExcludedValue in other.excludedValues)
 		{
 			if (!excludedValues.contains(otherExcludedValue)
-				&& excludedTypes.none(otherExcludedValue::isInstanceOf)
-			)
+				&& excludedTypes.none(otherExcludedValue::isInstanceOf))
 			{
 				return false
 			}
@@ -843,13 +841,11 @@ class TypeRestriction private constructor(
 		val constant = constantOrNull
 		if (constant !== null)
 		{
-			return "=" + constant.typeTag().name.replace(
-				"_TAG", "")
+			return "=" + constant.typeTag.name.replace("_TAG", "")
 		}
 		return if (!type.equals(TOP.o))
 		{
-			":" + (type as AvailObject).typeTag().name
-				.replace("_TAG", "")
+			":" + (type as AvailObject).typeTag.name.replace("_TAG", "")
 		}
 		else ""
 	}
@@ -1539,8 +1535,7 @@ class TypeRestriction private constructor(
 				{
 					BOXED_FLAG -> encoding.mask or IMMUTABLE_FLAG.mask
 					else -> encoding.mask
-				}
-			)
+				})
 		}
 	}
 }

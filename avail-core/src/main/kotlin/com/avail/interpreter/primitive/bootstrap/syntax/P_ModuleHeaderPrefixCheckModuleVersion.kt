@@ -47,7 +47,7 @@ import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrMoreL
 import com.avail.descriptor.types.ListPhraseTypeDescriptor.Companion.zeroOrOneList
 import com.avail.descriptor.types.PhraseTypeDescriptor.Constants.stringLiteralType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.interpreter.Primitive
 import com.avail.interpreter.Primitive.Flag.Bootstrap
 import com.avail.interpreter.Primitive.Flag.Private

@@ -47,5 +47,5 @@ package com.avail.interpreter.levelTwo
  *   The amount to shift `1` to the left to get the mask.
  */
 @Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
-@kotlin.annotation.Retention(AnnotationRetention.RUNTIME)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class HiddenVariableShift(val value: Int)

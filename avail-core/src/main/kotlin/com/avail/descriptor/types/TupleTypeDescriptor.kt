@@ -84,8 +84,8 @@ import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.DEFAULT_TYPE
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.SIZE_RANGE
 import com.avail.descriptor.types.TupleTypeDescriptor.ObjectSlots.TYPE_TUPLE
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.CHARACTER
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import com.avail.optimizer.jvm.ReferencedInGeneratedCode
 import com.avail.serialization.SerializerOperation
@@ -115,9 +115,15 @@ import kotlin.math.min
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class TupleTypeDescriptor private constructor(mutability: Mutability)
-	: TypeDescriptor(
-		mutability, TypeTag.TUPLE_TYPE_TAG, ObjectSlots::class.java, null)
+class TupleTypeDescriptor
+private constructor(
+	mutability: Mutability
+) : TypeDescriptor(
+	mutability,
+	TypeTag.TUPLE_TYPE_TAG,
+	TypeTag.TUPLE_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.

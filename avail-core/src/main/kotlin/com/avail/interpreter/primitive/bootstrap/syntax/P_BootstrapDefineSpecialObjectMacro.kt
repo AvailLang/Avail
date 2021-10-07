@@ -57,8 +57,8 @@ import com.avail.descriptor.types.LiteralTokenTypeDescriptor.Companion.literalTo
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
-import com.avail.descriptor.types.TypeDescriptor.Types.TOP
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.exceptions.AmbiguousNameException
 import com.avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import com.avail.exceptions.MalformedMessageException
@@ -178,5 +178,5 @@ object P_BootstrapDefineSpecialObjectMacro
 			tuple(
 				LITERAL_PHRASE.create(nonemptyStringType),
 				LITERAL_PHRASE.create(ANY.o)),
-			SEQUENCE_PHRASE.mostGeneralType())
+			SEQUENCE_PHRASE.mostGeneralType)
 }

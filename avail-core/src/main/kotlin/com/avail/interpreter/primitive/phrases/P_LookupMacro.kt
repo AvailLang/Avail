@@ -51,7 +51,7 @@ import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import com.avail.descriptor.types.TypeDescriptor.Types.ATOM
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import com.avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import com.avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import com.avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
@@ -106,8 +106,8 @@ object P_LookupMacro : Primitive(2, CanInline, ReadsFromHiddenGlobalState)
 		functionType(
 			tuple(
 				ATOM.o,
-				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType())),
-			functionTypeReturning(PARSE_PHRASE.mostGeneralType()))
+				zeroOrMoreOf(PARSE_PHRASE.mostGeneralType)),
+			functionTypeReturning(PARSE_PHRASE.mostGeneralType))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(

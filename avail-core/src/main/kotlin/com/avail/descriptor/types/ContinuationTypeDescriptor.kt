@@ -87,6 +87,7 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 	: TypeDescriptor(
 		mutability,
 		TypeTag.CONTINUATION_TYPE_TAG,
+		TypeTag.CONTINUATION_TAG,
 		ObjectSlots::class.java,
 		null)
 {

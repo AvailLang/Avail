@@ -52,8 +52,8 @@ import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import com.avail.descriptor.types.InstanceMetaDescriptor.ObjectSlots.INSTANCE
-import com.avail.descriptor.types.TypeDescriptor.Types
-import com.avail.descriptor.types.TypeDescriptor.Types.ANY
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.optimizer.jvm.CheckedMethod
 import com.avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -94,9 +94,14 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class InstanceMetaDescriptor private constructor(mutability: Mutability)
-	: AbstractEnumerationTypeDescriptor(
-		mutability, TypeTag.UNKNOWN_TAG, ObjectSlots::class.java, null)
+class InstanceMetaDescriptor
+private constructor(
+	mutability: Mutability
+) : AbstractEnumerationTypeDescriptor(
+	mutability,
+	TypeTag.UNKNOWN_TAG,
+	ObjectSlots::class.java,
+	null)
 {
 	/**
 	 * The layout of object slots for my instances.
@@ -173,6 +178,9 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		// Unless another is top, then the answer will be any.
 		else -> ANY.o.typeUnion(another)
 	}
+
+	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
+		getInstance(self).typeTag
 
 	override fun o_Instance(self: AvailObject): AvailObject = getInstance(self)
 
@@ -375,7 +383,10 @@ class InstanceMetaDescriptor private constructor(mutability: Mutability)
 		}
 
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag =
-		getInstance(self).typeTag().metaTag!!
+		getInstance(self).typeTag.metaTag!!
+
+	override fun o_InstanceTag(self: AvailObject): TypeTag =
+		getInstance(self).typeTag
 
 	override fun o_TrimType(self: AvailObject, typeToRemove: A_Type): A_Type
 	{

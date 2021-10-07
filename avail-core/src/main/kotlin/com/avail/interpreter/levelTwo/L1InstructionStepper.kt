@@ -75,7 +75,7 @@ import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeUnion
 import com.avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
-import com.avail.descriptor.types.TypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.variables.A_Variable
 import com.avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import com.avail.exceptions.AvailErrorCode
@@ -312,7 +312,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							Level.FINER,
 							"{0}Call returned: {1}",
 							interpreter.debugModeString,
-							result.typeTag().name)
+							result.typeTag.name)
 					}
 					val returnCheckReifier =
 						checkReturnType(result, expectedReturnType, function)
@@ -657,7 +657,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 							Level.FINER,
 							"{0}Call returned: {1}",
 							interpreter.debugModeString,
-							result.typeTag().name)
+							result.typeTag.name)
 					}
 					val returnCheckReifier =
 						checkReturnType(result, expectedReturnType, function)

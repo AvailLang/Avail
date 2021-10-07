@@ -95,7 +95,7 @@ import com.avail.descriptor.types.TypeTag
  */
 class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 	mutability,
-	TypeTag.SEMANTIC_RESTRICTION_TAG,
+	TypeTag.UNKNOWN_TAG,
 	ObjectSlots::class.java,
 	null)
 {
