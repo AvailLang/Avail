@@ -35,9 +35,7 @@ import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandDispatcher
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2Operation
-import com.avail.interpreter.levelTwo.register.L2FloatRegister
 import com.avail.interpreter.levelTwo.register.L2Register
-import com.avail.optimizer.L2EntityAndKind
 import com.avail.optimizer.L2ValueManifest
 import com.avail.utility.cast
 
@@ -119,4 +117,7 @@ class L2PcVectorOperand constructor(
 		}
 		append("\n>")
 	}
+
+	override fun postOptimizationCleanup(): Unit =
+		edges.forEach(L2PcOperand::postOptimizationCleanup)
 }

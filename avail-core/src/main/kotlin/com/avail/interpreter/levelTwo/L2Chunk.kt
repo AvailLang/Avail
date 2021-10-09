@@ -680,7 +680,7 @@ class L2Chunk private constructor(
 		 * @return
 		 *   The number of invocations before initial optimization.
 		 */
-		const val countdownForNewCode: Long = 1_000_000_000_000_000_000  // TODO 10000
+		const val countdownForNewCode: Long = 10000
 
 		/**
 		 * Each time an [A_RawFunction] is found to be the running code for some

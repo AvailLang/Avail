@@ -59,7 +59,7 @@ import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
+import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import com.avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
@@ -517,8 +517,7 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 			val superUnionReg = generator.boxedConstant(superUnionElementType)
 			val unionReg = generator.boxedWriteTemp(
 				restrictionForType(
-					argMeta.typeUnion(superUnionReg.type()),
-					RestrictionFlagEncoding.BOXED_FLAG))
+					argMeta.typeUnion(superUnionReg.type()), BOXED_FLAG))
 			generator.addInstruction(
 				L2_TYPE_UNION,
 				generator.readBoxed(argTypeWrite),
@@ -827,29 +826,27 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 		/**
 		 * A private class for keeping track of a run of tags and its associated
 		 * information.
+		 *
+		 * @property low
+		 *   The lowest [TypeTag] ordinal included in this [Span].
+		 * @property high
+		 *   The highest [TypeTag] ordinal included in this [Span].
+		 * @property subtree
+		 *   The [LookupTree] reachable through this [Span].
+		 * @property tag
+		 *   The [TypeTag] that this [Span] guarantees the value will be in. If
+		 *   this is null, the [Span] should be treated as a don't-care.
+		 * @property restriction
+		 *   The [TypeRestriction] for the value when this [Span] is in effect.
 		 */
 		private data class Span(
-			/** The lowest tag ordinal included in this [Span]. */
 			val low: Int,
-
-			/** The highest tag ordinal included in this [Span]. */
 			val high: Int,
-
-			/** The [LookupTree] reachable through this [Span]. */
 			val subtree: LookupTree<A_Definition, A_Tuple>?,
-
-			/**
-			 * The [TypeTag] that this [Span] guarantees the value will be in.
-			 * If this is null, the [Span] should be treated as a don't-care.
-			 */
-			val tag: TypeTag?)
-		{
-			/**
-			 * The [A_Type] that a value is guaranteed to conform to if this
-			 * [Span] applies.
-			 */
-			val provenType: A_Type? get() = tag?.supremum
-		}
+			val tag: TypeTag?,
+			var restriction: TypeRestriction? = tag?.run {
+				restrictionForType(supremum, BOXED_FLAG)
+			})
 
 		/**
 		 * Given a [List] of [Span]s that are contiguous and *don't disagree*
@@ -882,32 +879,31 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 			// outstanding, to know when to resume or finish them.
 			val semanticSource = semanticArguments[argumentPositionToTest - 1]
 			val generator = callSiteHelper.generator()
-			val restriction =
+			val currentRestriction =
 				generator.currentManifest.restrictionFor(semanticSource)
-			val couldBeBottom = restriction.intersectsType(bottomMeta)
-			val restrictionTag = restriction.type.instanceTag
-			val ordinalRestriction = restrictionForType(
-				inclusive(
-					fromInt(
-						restrictionTag.ordinal +
-							(if (restrictionTag.isAbstract) 1 else 0)),
-					fromInt(restrictionTag.highOrdinal)),
-				UNBOXED_INT_FLAG)
-			val strongTagToSubtree: Map<
-					TypeTag, LookupTree<A_Definition, A_Tuple>
-				> = tagToSubtree.cast()
+			val couldBeBottom = currentRestriction.intersectsType(bottomMeta)
+			val restrictionTag = currentRestriction.type.instanceTag
+			val strongTagToSubtree:
+					Map<TypeTag, LookupTree<A_Definition, A_Tuple>> =
+				tagToSubtree.cast()
 			// Keep the entries that are both valid solutions (1 method def) and
 			// reachable (tags could actually occur).
-			val reducedMap = strongTagToSubtree.mapValuesTo(mutableMapOf()) {
-					(tag, subtree) ->
-				when
-				{
-					!containsAnyValidLookup(subtree) -> null
-					restrictionTag.isSubtagOf(tag) -> subtree
-					tag.isSubtagOf(restrictionTag) -> subtree
-					else -> null
+			val reducedMap = strongTagToSubtree
+				.filterKeys {
+					restrictionTag.isSubtagOf(it)
+						|| it.isSubtagOf(restrictionTag)
 				}
-			}
+				.mapValuesTo(mutableMapOf()) { (tag, subtree) ->
+					when
+					{
+						!containsAnyValidLookup(subtree) -> null
+						restrictionTag.isSubtagOf(tag) -> subtree
+						tag.isSubtagOf(restrictionTag) &&
+								currentRestriction.intersectsType(tag.supremum)
+							-> subtree
+						else -> null
+					}
+				}
 			if (!couldBeBottom)
 			{
 				// This condition shouldn't be possible at runtime, so force an
@@ -925,14 +921,26 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 					}
 				}
 				assert(0 <= index && index < runs.size)
+				// Subtract the new tag's supremum from all existing spans, then
+				// insert the new tag's spans at the appropriate place.
+				runs.forEach { span ->
+					span.restriction?.let {
+						span.restriction = it.minusType(tag.supremum)
+					}
+				}
 				// Replace the existing element with a left part, the new value,
 				// and a right part, omitting any empty ranges.
-				val (low, high, existing, oldTag) = runs[index]
+				val (low, high, existing, oldTag, oldRestriction) = runs[index]
 				runs.removeAt(index)
 				runs.addAll(
 					index,
 					listOf(
-						Span(low, tag.ordinal - 1, existing, oldTag),
+						Span(
+							low,
+							tag.ordinal - 1,
+							existing,
+							oldTag,
+							oldRestriction),
 						Span(
 							tag.ordinal,
 							tag.ordinal,
@@ -943,9 +951,23 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 							tag.highOrdinal,
 							subtree,
 							tag),
-						Span(tag.highOrdinal + 1, high, existing, oldTag)
+						Span(
+							tag.highOrdinal + 1,
+							high,
+							existing,
+							oldTag,
+							oldRestriction)
 					).filter { (low, high) -> low <= high })
 			}
+			val ordinalRestriction = restrictionForType(
+				inclusive(
+					fromInt(
+						restrictionTag.ordinal +
+							(if (restrictionTag.isAbstract) 1 else 0)),
+					fromInt(
+						if (couldBeBottom) TypeTag.BOTTOM_TYPE_TAG.ordinal
+						else restrictionTag.highOrdinal)),
+				UNBOXED_INT_FLAG)
 			// We have to smear it both directions, in case there were multiple
 			// entries that homogenized with entries that later homogenized with
 			// something different, breaking the equivalence.  Forward then
@@ -963,13 +985,31 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 				generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
 				return emptyList()
 			}
-			if (reachableSpans.size == 1)
+			// Expand the ranges through the don't-cares that were removed, so
+			// that the entire tag range is covered.  Initially pad to the left,
+			// then do a separate step at the end to pad the last one rightward.
+			var nextOrdinal = 0
+			val padded = reachableSpans.map { (_, high, subtree, tag) ->
+				Span(nextOrdinal, high, subtree, tag).also {
+					nextOrdinal = high + 1
+				}
+			}.toMutableList()
+			// Extend the last one.
+			padded.add(padded.removeLast().copy(high = TypeTag.count - 1))
+			// Merge consecutive spans that have the same outcome.
+			val reducedSpans = padded
+				.partitionRunsBy(Span::subtree)
+				.map(::mergeSpans)
+
+			// We now have contiguous runs that cover the tag space, with no
+			// spurious checks.
+			if (reducedSpans.size == 1)
 			{
 				// Only one path is reachable.
-				reachableSpans[0].run {
-					// Check if the value is already as strong as the type tag's
-					// supremum.
-					if (restriction.type.isSubtypeOf(provenType!!))
+				reducedSpans[0].run {
+					// Check if the value is already as strong as the
+					// restriction in the span.
+					if (currentRestriction.isStrongerThan(restriction!!))
 					{
 						// No need to strengthen the type.
 						val target = L2BasicBlock("Sole target")
@@ -993,29 +1033,12 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 						generator.readBoxed(semanticSource),
 						generator.boxedWrite(
 							semanticSource,
-							restriction.intersectionWithType(provenType!!)))
+							currentRestriction.intersection(restriction!!)))
 					generator.jumpTo(soleTarget)
 					return listOf(soleTarget to subtree!!)
 				}
 			}
-			// Expand the ranges through the don't-cares that were removed, so
-			// that the entire tag range is covered.  Initially pad to the left,
-			// then do a separate step at the end to pad the last one rightward.
-			var nextOrdinal = 0
-			val padded = reachableSpans.map { (_, high, subtree, tag) ->
-				Span(nextOrdinal, high, subtree, tag).also {
-					nextOrdinal = high + 1
-				}
-			}.toMutableList()
-			// Extend the last one.
-			padded.add(padded.removeLast().copy(high = TypeTag.count - 1))
-			// Merge consecutive spans that have the same outcome.
-			val reducedSpans = padded
-				.partitionRunsBy(Span::subtree)
-				.map(this@TypeTagDecisionStep::mergeSpans)
-
-			// We now have contiguous runs that cover the tag space, with no
-			// spurious checks.
+			// Generate a multi-way branch.
 			val splitsTuple =
 				tupleFromIntegerList(reducedSpans.drop(1).map(Span::low))
 			val edges = reducedSpans.map { (low, high, subtree) ->
@@ -1042,13 +1065,13 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 				// Generate type strengthening clauses along every non-fallback
 				// path.
 				reducedSpans.mapIndexedNotNull {
-						index, (low, high, subtree, tag) ->
+						index, (low, high, subtree, tag, restriction) ->
 					val supremum = tag?.supremum
 					when
 					{
 						subtree == null -> null
 						supremum.notNullAnd {
-							restriction.type.isSubtypeOf(this@notNullAnd)
+							currentRestriction.type.isSubtypeOf(this@notNullAnd)
 						} ->
 						{
 							// No need to further restrict the type.
@@ -1064,8 +1087,8 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 								readBoxed(semanticSource),
 								boxedWrite(
 									semanticSource,
-									restriction.intersectionWithType(
-										supremum!!)))
+									currentRestriction.intersection(
+										restriction!!)))
 							val newBlock =
 								L2BasicBlock("Strengthened [$low..$high]")
 							jumpTo(newBlock)

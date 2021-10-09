@@ -671,6 +671,12 @@ class IntegerDescriptor private constructor(
 						// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
 						return fromLong(-1 - (-1 - numerator) / denominator)
 					}
+					else
+					{
+						// This won't overflow, because the numerator isn't
+						// Long.MIN_VALUE.
+						return fromLong(numerator / denominator)
+					}
 				}
 			}
 		}

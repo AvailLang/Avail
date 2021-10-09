@@ -121,8 +121,12 @@ class TypeRestriction private constructor(
 			|| flags == (BOXED_FLAG.mask + IMMUTABLE_FLAG.mask)
 			|| flags == UNBOXED_INT_FLAG.mask
 			|| flags == UNBOXED_FLOAT_FLAG.mask)
-		positiveGroup.constants?.run { size == 1 }
+		positiveGroup.constants?.run { assert(size == 1) }
 		assert(positiveGroup.types.size == 1)
+		// Ensure all referenced objects are immutable.  When a CFG is used for
+		// final code generation, these are strengthened to Shared.
+		positiveGroup.makeImmutable()
+		negativeGroup.makeImmutable()
 	}
 
 	data class RestrictionGroup(
@@ -178,6 +182,21 @@ class TypeRestriction private constructor(
 		 * a [typeTag][AvailObjectRepresentation.typeTag] in this set.
 		 */
 		var tags: Set<TypeTag>?)
+	{
+		/** Ensure all referenced [AvailObject]s are at least Immutable. */
+		fun makeImmutable()
+		{
+			constants?.forEach { it.makeImmutable() }
+			types.forEach { it.makeImmutable() }
+		}
+
+		/** Ensure all referenced [AvailObject]s are Shared. */
+		fun makeShared()
+		{
+			constants?.forEach { it.makeImmutable() }
+			types.forEach { it.makeImmutable() }
+		}
+	}
 
 	/**
 	 * An enumeration used to interpret the [flags] of a [TypeRestriction].  The
@@ -431,23 +450,23 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The new type restriction.
 	 */
-	fun intersection(other: TypeRestriction) =
-		if (constantOrNull !== null && other.constantOrNull !== null
-			&& !constantOrNull!!.equals(other.constantOrNull!!))
+	fun intersection(other: TypeRestriction): TypeRestriction
+	{
+		val c1 = constantOrNull
+		val c2 = other.constantOrNull
+		if (c1 !== null && c2 !== null && !c1.equals(c2))
 		{
 			// The restrictions are both constant, but disagree, so the
 			// intersection is empty.
-			bottomRestriction
+			return bottomRestriction
 		}
-		else
-		{
-			restriction(
-				type.typeIntersection(other.type),
-				constantOrNull ?: other.constantOrNull,
-				excludedTypes + other.excludedTypes,
-				excludedValues + other.excludedValues,
-				flags or other.flags)
-		}
+		return restriction(
+			type.typeIntersection(other.type),
+			c1 ?: c2,
+			excludedTypes + other.excludedTypes,
+			excludedValues + other.excludedValues,
+			flags or other.flags)
+	}
 
 	/**
 	 * Create the intersection of the receiver with the given A_Type.  This is
@@ -850,60 +869,46 @@ class TypeRestriction private constructor(
 		else ""
 	}
 
-	override fun toString(): String =
-		buildString {
-			append("restriction(")
-			if (constantOrNull !== null)
+	override fun toString(): String = buildString {
+		append("restriction(")
+		if (constantOrNull !== null)
+		{
+			append("c=")
+			var valueString = constantOrNull.toString()
+			if (valueString.length > 50)
 			{
-				append("c=")
-				var valueString = constantOrNull.toString()
-				if (valueString.length > 50)
-				{
-					valueString = valueString.substring(0, 50) + '…'
-				}
-				valueString = valueString
-					.replace("\n", "\\n")
-					.replace("\t", "\\t")
-				append(valueString)
+				valueString = valueString.substring(0, 50) + '…'
 			}
-			else
-			{
-				append("t=")
-				var typeString = type.toString()
-				if (typeString.length > 50)
-				{
-					typeString = typeString.substring(0, 50) + '…'
-				}
-				append(typeString)
-				if (excludedTypes.isNotEmpty())
-				{
-					append(", ex.t=")
-					append(excludedTypes)
-				}
-				if (excludedValues.isNotEmpty())
-				{
-					append(", ex.v=")
-					append(excludedValues)
-				}
-			}
-			if (isImmutable)
-			{
-				append(", imm")
-			}
-			if (isBoxed)
-			{
-				append(", box")
-			}
-			if (isUnboxedInt)
-			{
-				append(", int")
-			}
-			if (isUnboxedFloat)
-			{
-				append(", float")
-			}
-			append(")")
+			valueString = valueString
+				.replace("\n", "\\n")
+				.replace("\t", "\\t")
+			append(valueString)
 		}
+		else
+		{
+			append("t=")
+			var typeString = type.toString()
+			if (typeString.length > 50)
+			{
+				typeString = typeString.substring(0, 50) + '…'
+			}
+			append(typeString)
+			if (excludedTypes.isNotEmpty()) append(", ex.t=$excludedTypes")
+			if (excludedValues.isNotEmpty()) append(", ex.v=$excludedValues")
+		}
+		if (isImmutable) append(", imm")
+		if (isBoxed) append(", box")
+		if (isUnboxedInt) append(", int")
+		if (isUnboxedFloat) append(", float")
+		append(")")
+	}
+
+	/** Ensure all referenced [AvailObject]s are Shared. */
+	fun makeShared()
+	{
+		positiveGroup.makeShared()
+		negativeGroup.makeShared()
+	}
 
 	companion object
 	{
@@ -1122,6 +1127,7 @@ class TypeRestriction private constructor(
 			// wouldn't be able to trim anything from the type when removing
 			// [7..8] from [5..10], so we repeatedly iterate over the exclusions
 			// until trimming makes no further change.
+			var anyTrimsAtAll = false
 			do
 			{
 				val typeBefore = type.makeImmutable()
@@ -1140,8 +1146,21 @@ class TypeRestriction private constructor(
 							instanceTypeOrMetaOn(excludedValue))
 					}
 				}
+				val anyTrimsThisPass = !type.equals(typeBefore)
+				anyTrimsAtAll = anyTrimsAtAll or anyTrimsThisPass
 			}
-			while (!type.equals(typeBefore))
+			while (anyTrimsThisPass)
+
+			if (anyTrimsAtAll)
+			{
+				// Recanonicalize if any trimming happened.
+				return restriction(
+					type,
+					givenConstantOrNull,
+					givenExcludedTypes,
+					givenExcludedValues,
+					flags)
+			}
 
 			return when
 			{
@@ -1339,11 +1358,7 @@ class TypeRestriction private constructor(
 				// happens to leave exactly zero or one possibility.
 				val instances = type.instances.toMutableSet()
 				instances.removeAll(givenExcludedValues)
-				instances.removeIf { instance ->
-					givenExcludedTypes.any { aType ->
-						instance.isInstanceOf(aType)
-					}
-				}
+				instances.removeIf { givenExcludedTypes.any(it::isInstanceOf) }
 				return when (instances.size)
 				{
 					0 -> bottomRestriction
@@ -1391,23 +1406,17 @@ class TypeRestriction private constructor(
 					return nilRestriction
 				}
 				if (!constantOrNull.isInstanceOf(type)
-					|| givenExcludedValues.contains(constantOrNull))
+					|| givenExcludedValues.contains(constantOrNull)
+					|| givenExcludedTypes.any(constantOrNull::isInstanceOf))
 				{
 					return bottomRestriction
 				}
-				for (excludedType in givenExcludedTypes)
-				{
-					if (constantOrNull.isInstanceOf(excludedType))
-					{
-						return bottomRestriction
-					}
-				}
 				// No reason to exclude it, so use the constant.  We can safely
-				// omit the excluded types and values as part of canonicalization.
-				// Note that even though we make the constant immutable here, and
-				// the value passing through registers at runtime will be equal to
-				// it, it might be a different Java AvailObject that's still
-				// mutable.
+				// omit the excluded types and values as part of
+				// canonicalization. Note that even though we make the constant
+				// immutable here, and the value passing through registers at
+				// runtime will be equal to it, it might be a different Java
+				// AvailObject that's still mutable.
 				constantOrNull.makeImmutable()
 				return TypeRestriction(
 					positiveGroup = RestrictionGroup(
@@ -1431,9 +1440,9 @@ class TypeRestriction private constructor(
 				return bottomRestriction
 			}
 
-			// Eliminate excluded types that are proper subtypes of other excluded
-			// types.  Note: this reduction is O(n^2) in the number of excluded
-			// types.  We could use a LookupTree to speed this up.
+			// Eliminate excluded types that are proper subtypes of other
+			// excluded types.  Note: this reduction is O(n^2) in the number of
+			// excluded types.  We could use a LookupTree to speed this up.
 			val excludedValues: MutableSet<A_BasicObject> =
 				givenExcludedValues.toMutableSet()
 			val excludedTypes =
@@ -1453,8 +1462,8 @@ class TypeRestriction private constructor(
 				}
 			}
 
-			// Eliminate excluded values that are already under an excluded type, or
-			// are not under the given type.
+			// Eliminate excluded values that are already under an excluded
+			// type, or are not under the given type.
 			excludedValues.removeIf { v: A_BasicObject ->
 				!v.isInstanceOf(type) || excludedTypes.any(v::isInstanceOf)
 			}

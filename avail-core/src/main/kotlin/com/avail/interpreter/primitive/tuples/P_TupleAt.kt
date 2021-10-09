@@ -188,8 +188,8 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			{
 				val success1 = generator.createBasicBlock(
 					"passed lower bound check")
-				generator.addInstruction(
-					L2_JUMP_IF_COMPARE_INT.greaterOrEqual,
+				L2_JUMP_IF_COMPARE_INT.greaterOrEqual.compareAndBranch(
+					generator,
 					readSubscript,
 					generator.unboxedIntConstant(1),
 					edgeTo(success1),
@@ -203,8 +203,8 @@ object P_TupleAt : Primitive(2, CanFold, CanInline)
 			{
 				val success2 = generator.createBasicBlock(
 					"passed upper bound check")
-				generator.addInstruction(
-					L2_JUMP_IF_COMPARE_INT.lessOrEqual,
+				L2_JUMP_IF_COMPARE_INT.lessOrEqual.compareAndBranch(
+					generator,
 					readSubscript,
 					translator.currentManifest.readInt(unboxedSemanticSize),
 					edgeTo(success2),

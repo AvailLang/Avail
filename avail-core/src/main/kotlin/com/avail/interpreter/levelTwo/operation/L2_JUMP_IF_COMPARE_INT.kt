@@ -46,6 +46,7 @@ import com.avail.interpreter.levelTwo.L2OperandType.PC
 import com.avail.interpreter.levelTwo.L2OperandType.READ_INT
 import com.avail.interpreter.levelTwo.operand.L2PcOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.utility.Tuple4
@@ -94,6 +95,60 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		PC.named("if true", Purpose.SUCCESS),
 		PC.named("if false", Purpose.FAILURE))
 {
+	/**
+	 * Compare the int register values and branch to one target or the other.
+	 * Restrict the possible values as much as possible along both branches.
+	 * Convert the branch to an unconditional jump if possible.
+	 */
+	fun compareAndBranch(
+		generator: L2Generator,
+		int1Reg: L2ReadIntOperand,
+		int2Reg: L2ReadIntOperand,
+		ifTrue: L2PcOperand,
+		ifFalse: L2PcOperand)
+	{
+		val restriction1 = int1Reg.restriction()
+		val restriction2 = int2Reg.restriction()
+
+		val low1 = restriction1.type.lowerBound.extractLong
+		val high1 = restriction1.type.upperBound.extractLong
+		val low2 = restriction2.type.lowerBound.extractLong
+		val high2 = restriction2.type.upperBound.extractLong
+
+		// Restrict both values along both branches.
+		val (type1, type2, type3, type4) =
+			computeRestrictions(low1, high1, low2, high2)
+		when
+		{
+			type1.isBottom || type2.isBottom ->
+			{
+				// One of the registers would have an impossible value if the
+				// ifTrue branch is taken, so always jump to the ifFalse case.
+				ifFalse.manifest().setRestriction(
+					int1Reg.semanticValue(),
+					restriction1.intersectionWithType(type3))
+				ifFalse.manifest().setRestriction(
+					int2Reg.semanticValue(),
+					restriction2.intersectionWithType(type4))
+				generator.addInstruction(L2_JUMP, ifFalse)
+			}
+			type3.isBottom || type4.isBottom ->
+			{
+				// One of the registers would have an impossible value if the
+				// ifFalse branch is taken, so always jump to the ifTrue case.
+				ifTrue.manifest().setRestriction(
+					int1Reg.semanticValue(),
+					restriction1.intersectionWithType(type1))
+				ifTrue.manifest().setRestriction(
+					int2Reg.semanticValue(),
+					restriction2.intersectionWithType(type2))
+				generator.addInstruction(L2_JUMP, ifTrue)
+			}
+			else -> generator.addInstruction(
+				this, int1Reg, int2Reg, ifTrue, ifFalse)
+		}
+	}
+
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
 	{

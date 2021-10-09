@@ -182,6 +182,7 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.findAnnotation
+import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
@@ -4154,15 +4155,14 @@ abstract class AbstractDescriptor protected constructor (
 							field.valueParameters
 							val bitField: BitField = field.getter.call(
 								companionObject!!.objectInstance).cast()
-							if (bitField.integerSlot === slot)
+							if (bitField.integerSlot === slot
+								&& !field.hasAnnotation<HideFieldInDebugger>()
+								&& !field
+									.hasAnnotation<HideFieldJustForPrinting>())
 							{
-								if (field.findAnnotation<HideFieldInDebugger>()
-									=== null)
-								{
-									bitField.enumField = field.findAnnotation()
-									bitField.name = field.name
-									bitFields.add(bitField)
-								}
+								bitField.enumField = field.findAnnotation()
+								bitField.name = field.name
+								bitFields.add(bitField)
 							}
 						}
 						catch (e: IllegalAccessException)

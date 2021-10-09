@@ -152,8 +152,8 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		val splitValue = splitPoints.tupleIntAt(splitIndex)
 		val left = generator.createBasicBlock("< $splitValue")
 		val right = generator.createBasicBlock("≥ $splitValue")
-		generator.addInstruction(
-			L2_JUMP_IF_COMPARE_INT.greaterOrEqual,
+		L2_JUMP_IF_COMPARE_INT.greaterOrEqual.compareAndBranch(
+			generator,
 			value,
 			generator.unboxedIntConstant(splitValue),
 			L2Generator.edgeTo(right),

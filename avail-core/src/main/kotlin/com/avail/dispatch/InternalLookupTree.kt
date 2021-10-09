@@ -36,6 +36,7 @@ import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.bitSet
 import com.avail.descriptor.numbers.A_Number.Companion.bitTest
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AvailObjectRepresentation
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.instanceTag
@@ -466,9 +467,9 @@ internal constructor(
 	 * Create a [TypeTagDecisionStep] for the given values.  The basic idea is
 	 * to create a [Map] from tag to a [Set] of [Result]s.  Only add elements at
 	 * the [A_Type.instanceTag] reported by the argument type.  During lookup,
-	 * the [A_BasicObject.typeTag] of the actual argument value is used to find
-	 * an entry in this map, but if there's no entry, its parent chain is
-	 * searched instead.
+	 * the [typeTag][AvailObjectRepresentation.typeTag] of the actual argument
+	 * value is used to find an entry in this map, but if there's no entry, its
+	 * parent chain is searched instead.
 	 *
 	 * [BOTTOM_TYPE_TAG] is problematic, because it breaks the tree shape.  We
 	 * can't just leave it out, and we can't pretend it's not a child of all
@@ -497,10 +498,7 @@ internal constructor(
 			val commonArgType = adaptor.restrictedSignature(element, bound)
 				.typeAtIndex(argumentIndex)
 			val tag = commonArgType.instanceTag
-			val subset =
-				tagToElements.computeIfAbsent(tag) {
-					mutableSetOf()
-				}
+			val subset = tagToElements.computeIfAbsent(tag) { mutableSetOf() }
 			subset.add(element)
 			if (tag.isSubtagOf(TOP_TYPE_TAG))
 			{
@@ -528,8 +526,21 @@ internal constructor(
 			.makeShared()
 		val tagToSubtree = tagToElements.mapValues { (tag, elements) ->
 			val restrictions = knownArgumentRestrictions.toMutableList()
-			restrictions[argumentIndex - 1] = restrictions[argumentIndex - 1]
-				.intersectionWithType(tag.supremum)
+			var restriction = restrictions[argumentIndex - 1]
+			restriction = restriction.intersectionWithType(tag.supremum)
+			// NOTE: Exclude the supremum of any proper subtags that are present
+			// in this dispatch step.  That's because during lookup,
+			// encountering that other tag would have taken it on that other
+			// branch, and any value under that supremum type would have had
+			// that other tag or a subtag.
+			tagToElements.forEach { (otherTag, _) ->
+				if (otherTag !== tag && otherTag.isSubtagOf(tag))
+				{
+					restriction = restriction.minusType(otherTag.supremum)
+				}
+			}
+			restrictions[argumentIndex - 1] = restriction
+
 			val boundForTag = adaptor.extractBoundingType(restrictions)
 			val positive = positiveElements.toMutableList()
 			val undecided = mutableListOf<Element>()

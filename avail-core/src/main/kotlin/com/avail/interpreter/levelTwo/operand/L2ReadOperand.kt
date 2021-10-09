@@ -429,5 +429,6 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	{
 		// Leave the restriction in place.  It shouldn't be all that big.
 		// Same for the semanticValue.
+		restriction.makeShared()
 	}
 }

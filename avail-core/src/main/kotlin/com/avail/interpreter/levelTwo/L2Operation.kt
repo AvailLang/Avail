@@ -34,9 +34,9 @@ package com.avail.interpreter.levelTwo
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.bundles.A_Bundle.Companion.message
 import com.avail.descriptor.functions.A_RawFunction
+import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.functions.A_RawFunction.Companion.methodName
 import com.avail.descriptor.functions.A_RawFunction.Companion.module
-import com.avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import com.avail.descriptor.module.A_Module.Companion.moduleName
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
@@ -77,7 +77,6 @@ import com.avail.optimizer.reoptimizer.L2Regenerator
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Strings.escape
 import com.avail.utility.Strings.increaseIndentation
-import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 
 /**

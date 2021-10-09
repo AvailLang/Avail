@@ -113,10 +113,12 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 		val write = instruction.operand<L2WriteBoxedOperand>(1)
 
 		read.instructionWasAdded(manifest)
-		val synonym = manifest.semanticValueToSynonym(read.semanticValue())
-		manifest.forgetBoxedRegistersFor(synonym)
-		write.instructionWasAdded(manifest)
-		manifest.updateConstraint(synonym) {
+		val oldSynonym = manifest.semanticValueToSynonym(read.semanticValue())
+		manifest.forgetBoxedRegistersFor(oldSynonym)
+		write.instructionWasAddedForMove(read.semanticValue(), manifest)
+		val newSynonym =
+			manifest.semanticValueToSynonym(write.pickSemanticValue())
+		manifest.updateConstraint(newSynonym) {
 			restriction = restriction.intersection(write.restriction())
 		}
 	}

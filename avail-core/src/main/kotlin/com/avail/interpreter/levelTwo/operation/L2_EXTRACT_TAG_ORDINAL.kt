@@ -32,15 +32,18 @@
 package com.avail.interpreter.levelTwo.operation
 
 import com.avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinalMethod
+import com.avail.descriptor.types.A_Type.Companion.instanceTag
 import com.avail.descriptor.types.TypeTag
 import com.avail.interpreter.levelTwo.L2Instruction
 import com.avail.interpreter.levelTwo.L2OperandType
 import com.avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import com.avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import com.avail.interpreter.levelTwo.L2Operation
+import com.avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import com.avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import com.avail.interpreter.levelTwo.operand.L2WriteIntOperand
 import com.avail.optimizer.jvm.JVMTranslator
+import com.avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -69,6 +72,31 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 			.append(" ← TAG(")
 			.append(value.registerString())
 			.append(")")
+	}
+
+	override fun generateReplacement(
+		instruction: L2Instruction,
+		regenerator: L2Regenerator)
+	{
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
+
+		// If the tag is statically deducible at this point, use the constant.
+		val type = value.type()
+		val baseTag = type.instanceTag
+		if (baseTag.ordinal == baseTag.highOrdinal
+			&& (!baseTag.isSubtagOf(TypeTag.TOP_TYPE_TAG)
+				|| baseTag == TypeTag.BOTTOM_TYPE_TAG))
+		{
+			// This tag always applies, and it has no children, not even the
+			// bottom type (which is special in the TypeTag hierarchy).
+			regenerator.targetGenerator.addInstruction(
+				L2_MOVE_CONSTANT.unboxedInt,
+				L2IntImmediateOperand(baseTag.ordinal),
+				tagOrdinal)
+			return
+		}
+		super.generateReplacement(instruction, regenerator)
 	}
 
 	override fun translateToJVM(

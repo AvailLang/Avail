@@ -263,5 +263,6 @@ constructor(
 	{
 		// Leave the restriction in place.  It shouldn't be all that big.
 		semanticValues.clear()
+		restriction.makeShared()
 	}
 }

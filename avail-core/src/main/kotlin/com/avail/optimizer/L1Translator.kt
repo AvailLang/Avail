@@ -1442,8 +1442,8 @@ class L1Translator private constructor(
 			// The constant and the value are both int32s.  Use the quicker int
 			// test, unboxing the int register if needed.
 			val trulyUnreachable = L2BasicBlock("truly unreachable")
-			addInstruction(
-				L2_JUMP_IF_COMPARE_INT.equal,
+			L2_JUMP_IF_COMPARE_INT.equal.compareAndBranch(
+				generator,
 				generator.readInt(
 					L2SemanticUnboxedInt(registerToTest.semanticValue()),
 					trulyUnreachable),

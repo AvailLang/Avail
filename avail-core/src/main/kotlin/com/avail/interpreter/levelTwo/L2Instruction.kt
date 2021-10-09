@@ -46,7 +46,6 @@ import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2ValueManifest
 import com.avail.optimizer.jvm.JVMTranslator
 import com.avail.optimizer.reoptimizer.L2Regenerator
-import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.cast
 import org.objectweb.asm.MethodVisitor
 import java.util.EnumSet
@@ -493,7 +492,7 @@ class L2Instruction constructor(
 	fun transformAndEmitOn(regenerator: L2Regenerator) =
 		operation().emitTransformedInstruction(
 			Array(operands().size) {
-				regenerator.transformOperand<L2Operand>(operand(it))
+				regenerator.transformOperand(operand(it))
 			},
 			regenerator)
 
