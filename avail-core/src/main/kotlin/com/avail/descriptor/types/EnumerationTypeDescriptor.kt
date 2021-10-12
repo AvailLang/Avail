@@ -305,18 +305,11 @@ private constructor(
 			// See if my instances comply with aType's instance (a type).
 			val aTypeInstance = aType.instance
 			val instanceSet = getInstances(self)
-			assert(instanceSet.isSet)
 			if (aTypeInstance.isEnumeration)
 			{
 				// Check the complete membership.
-				for (member in instanceSet)
-				{
-					if (!aTypeInstance.enumerationIncludesInstance(member))
-					{
-						return false
-					}
-				}
-				return true
+				return instanceSet.all(
+					aTypeInstance::enumerationIncludesInstance)
 			}
 			return instanceSet.setElementsAreAllInstancesOfKind(aTypeInstance)
 		}
@@ -425,23 +418,17 @@ private constructor(
 	 */
 	override fun computeUnionWith(
 		self: AvailObject,
-		another: A_Type): A_Type
+		another: A_Type
+	): A_Type = when (another.isEnumeration)
 	{
-		if (another.isEnumeration)
-		{
-			// Create a new enumeration containing all elements from both
-			// enumerations.
-			return enumerationWith(getInstances(self).setUnionCanDestroy(
-				another.instances,
-				false))
-		}
+		// Create a new enumeration containing all elements from both
+		// enumerations.
+		true -> enumerationWith(getInstances(self).setUnionCanDestroy(
+			another.instances, false))
 		// Go up to my nearest kind, then compute the union with the given kind.
-		var union = another
-		for (instance in getInstances(self))
-		{
-			union = union.typeUnion(instance.kind())
+		else -> getInstances(self).fold(another) {
+			type, instance -> type.typeUnion(instance.kind())
 		}
-		return union
 	}
 
 	override fun o_FieldTypeAt(self: AvailObject, field: A_Atom): A_Type =

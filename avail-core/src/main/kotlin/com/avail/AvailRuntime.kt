@@ -192,6 +192,7 @@ import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoSelfTypeAtom
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassWithTypeArguments
 import com.avail.descriptor.types.PojoTypeDescriptor.Companion.selfTypeForClass
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import com.avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
@@ -205,9 +206,8 @@ import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableMeta
+import com.avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.descriptor.variables.A_Variable
@@ -1034,8 +1034,8 @@ class AvailRuntime constructor(
 			at(20)
 			put(Types.MODULE.o)
 			put(tupleFromIntegerList(allNumericCodes()))
-			put(mostGeneralObjectType())
-			put(mostGeneralObjectMeta())
+			put(mostGeneralObjectType)
+			put(mostGeneralObjectMeta)
 			put(Exceptions.exceptionType)
 			put(mostGeneralFiberType())
 			put(mostGeneralSetType())

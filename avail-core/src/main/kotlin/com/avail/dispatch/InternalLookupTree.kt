@@ -35,16 +35,24 @@ package com.avail.dispatch
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.bitSet
 import com.avail.descriptor.numbers.A_Number.Companion.bitTest
+import com.avail.descriptor.objects.ObjectDescriptor
+import com.avail.descriptor.objects.ObjectLayoutVariant
+import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObjectRepresentation
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.types.A_Type
 import com.avail.descriptor.types.A_Type.Companion.instanceTag
+import com.avail.descriptor.types.A_Type.Companion.instances
+import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
+import com.avail.descriptor.types.TypeTag.OBJECT_TAG
 import com.avail.descriptor.types.TypeTag.TOP_TYPE_TAG
+import com.avail.dispatch.DecisionStep.ObjectLayoutVariantDecisionStep
 import com.avail.dispatch.DecisionStep.TestArgumentDecisionStep
 import com.avail.dispatch.DecisionStep.TypeTagDecisionStep
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
@@ -79,6 +87,13 @@ import kotlin.math.min
  *   [TypeTag] extracted and dispatched on by an ancestor.  Argument #n is
  *   indicated by a set bit in the n-1st bit position, the one whose value in
  *   the integer is 2^(n-1).
+ * @param alreadyVariantTestedArguments
+ *   An Avail [integer][A_Number] coding whether the arguments (and extras
+ *   that may have been generated during traversal of ancestors) have been
+ *   proven to be an [object][ObjectDescriptor], and was already dispatched
+ *   via an [ObjectLayoutVariantDecisionStep] in an ancestor.  Argument #n
+ *   is indicated by a set bit in the n-1st bit position, the one whose
+ *   value in the integer is 2^(n-1).
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
@@ -93,7 +108,8 @@ internal constructor(
 	val positiveElements: List<Element>,
 	val undecidedElements: List<Element>,
 	val knownArgumentRestrictions: List<TypeRestriction>,
-	private val alreadyTypeTestedArguments: A_Number)
+	val alreadyTypeTestedArguments: A_Number,
+	private val alreadyVariantTestedArguments: A_Number)
 : LookupTree<Element, Result>()
 {
 	override val solutionOrNull: Result? get() = null
@@ -242,6 +258,22 @@ internal constructor(
 					// A type tag dispatch here is guaranteed to reduce the
 					// number of undecided elements in every subtree.
 					return buildTypeTagTest(adaptor, memento, argNumber)
+				}
+			}
+
+			// If an argument is known to have the OBJECT_TAG and hasn't been
+			// dispatched via a ObjectLayoutVariantDecisionStep, do so now.
+			for (argNumber in 1..numArgs)
+			{
+				if (commonTags[argNumber - 1] === OBJECT_TAG
+					&& !alreadyVariantTestedArguments.bitTest(argNumber - 1)
+					&& knownArgumentRestrictions[argNumber - 1].type
+						.isSubtypeOf(mostGeneralObjectType))
+				{
+					// A type tag dispatch here is guaranteed to reduce the
+					// number of undecided elements in every subtree.
+					return buildObjectLayoutVariantStep(
+						adaptor, memento, argNumber)
 				}
 			}
 			// TODO MvG: If we reach here, each argument position has a known
@@ -444,6 +476,7 @@ internal constructor(
 			undecidedIfTrue,
 			positiveKnownRestrictions,
 			alreadyTypeTestedArguments,
+			alreadyVariantTestedArguments,
 			memento)
 		// Since we're using TypeRestrictions, there are cases with instance
 		// enumerations in which a failed test can actually certify a new
@@ -454,6 +487,7 @@ internal constructor(
 			undecidedIfFalse,
 			negativeKnownRestrictions,
 			alreadyTypeTestedArguments,
+			alreadyVariantTestedArguments,
 			memento)
 		// This is a volatile write, so all previous writes had to precede it.
 		// If another process runs expandIfNecessary(), it will either see null
@@ -556,9 +590,69 @@ internal constructor(
 				undecided,
 				restrictions,
 				alreadyTested,
+				alreadyVariantTestedArguments,
 				memento)
 		}
 		return TypeTagDecisionStep(argumentIndex, tagToSubtree)
+	}
+
+	/**
+	 * Create an [ObjectLayoutVariantDecisionStep] for the given tree.  The
+	 * idea is that we have already proven that the indicated argument is an
+	 * object, so maintain a map from the exact argument variant to subtree, and
+	 * populate it lazily.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param memento
+	 *   The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *   The one-based index of the argument being tested.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildObjectLayoutVariantStep(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		memento: AdaptorMemento,
+		argumentIndex: Int,
+	): ObjectLayoutVariantDecisionStep<Element, Result>
+	{
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		val variantToElementsSet =
+			mutableMapOf<ObjectLayoutVariant, MutableSet<Element>>()
+		undecidedElements.forEach { element ->
+			val commonArgType = adaptor.restrictedSignature(element, bound)
+				.typeAtIndex(argumentIndex)
+			when
+			{
+				commonArgType.isEnumeration -> {
+					// The method has an argument typed as an enumeration of
+					// some specific objects.  Add this element under each
+					// instance's variant.
+					commonArgType.instances.forEach { instance ->
+						val descriptor = instance.traversed().descriptor()
+						val variant = (descriptor as ObjectDescriptor).variant
+						variantToElementsSet.getOrPut(variant) {
+							mutableSetOf()
+						}.add(element)
+					}
+				}
+				else -> {
+					// Store the element under the object type's variant.
+					val descriptor = commonArgType.traversed().descriptor()
+					val variant = (descriptor as ObjectTypeDescriptor).variant
+					variantToElementsSet.getOrPut(variant) {
+						mutableSetOf()
+					}.add(element)
+				}
+			}
+		}
+		return ObjectLayoutVariantDecisionStep(
+			this,
+			argumentIndex,
+			variantToElementsSet.mapValues { it.value.toList() },
+			alreadyVariantTestedArguments.bitSet(argumentIndex - 1, true, false)
+				.makeShared())
 	}
 
 	override fun toString(indent: Int): String = when (val step = decisionStep)

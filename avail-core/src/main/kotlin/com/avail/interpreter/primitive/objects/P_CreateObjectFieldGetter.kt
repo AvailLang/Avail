@@ -150,11 +150,11 @@ object P_CreateObjectFieldGetter : Primitive(2, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralObjectMeta(),
+				mostGeneralObjectMeta,
 				ATOM.o),
 			functionType(
 				tuple(
-					mostGeneralObjectType()),
+					mostGeneralObjectType),
 				ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =

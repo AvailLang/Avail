@@ -64,6 +64,6 @@ object P_TypeNames : Primitive(1, CanInline, CannotFail)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralObjectMeta()),
+				mostGeneralObjectMeta),
 			setTypeForSizesContentType(wholeNumbers, stringType))
 }

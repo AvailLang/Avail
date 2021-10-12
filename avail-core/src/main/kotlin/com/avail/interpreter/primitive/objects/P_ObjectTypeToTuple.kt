@@ -86,6 +86,6 @@ object P_ObjectTypeToTuple : Primitive(1, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralObjectMeta()),
+			tuple(mostGeneralObjectMeta),
 			zeroOrMoreOf(tupleTypeForTypes(ATOM.o, anyMeta())))
 }

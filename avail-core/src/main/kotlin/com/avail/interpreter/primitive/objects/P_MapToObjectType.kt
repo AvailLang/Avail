@@ -71,5 +71,5 @@ object P_MapToObjectType : Primitive(1, CannotFail, CanFold, CanInline)
 			tuple(
 				mapTypeForSizesKeyTypeValueType(
 					wholeNumbers, ATOM.o, anyMeta())),
-			mostGeneralObjectMeta())
+			mostGeneralObjectMeta)
 }

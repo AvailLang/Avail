@@ -35,6 +35,7 @@ package com.avail.dispatch
 import com.avail.AvailRuntimeSupport.captureNanos
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.tuples.A_Tuple
 import com.avail.descriptor.types.A_Type
@@ -43,6 +44,7 @@ import com.avail.descriptor.types.A_Type.Companion.typeAtIndex
 import com.avail.descriptor.types.A_Type.Companion.typeIntersection
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import com.avail.descriptor.types.TypeTag
+import com.avail.dispatch.DecisionStep.ObjectLayoutVariantDecisionStep
 import com.avail.interpreter.levelTwo.operand.TypeRestriction
 
 /**
@@ -211,6 +213,7 @@ abstract class LookupTreeAdaptor<
 			undecided,
 			knownArgumentRestrictions,
 			zero,
+			zero,
 			memento)
 	}
 
@@ -258,6 +261,13 @@ abstract class LookupTreeAdaptor<
 	 *   their [TypeTag] extracted and dispatched on by an ancestor.  Argument
 	 *   #n is indicated by a set bit in the n-1st bit position, the one whose
 	 *   value in the integer is 2^(n-1).
+	 * @param alreadyVariantTestedArguments
+	 *   An Avail [integer][A_Number] coding whether the arguments (and extras
+	 *   that may have been generated during traversal of ancestors) have been
+	 *   proven to be an [object][ObjectDescriptor], and was already dispatched
+	 *   via an [ObjectLayoutVariantDecisionStep] in an ancestor.  Argument #n
+	 *   is indicated by a set bit in the n-1st bit position, the one whose
+	 *   value in the integer is 2^(n-1).
 	 * @return
 	 *   A (potentially lazy) LookupTree used to look up Elements.
 	 */
@@ -266,6 +276,7 @@ abstract class LookupTreeAdaptor<
 		undecided: List<Element>,
 		knownArgumentRestrictions: List<TypeRestriction>,
 		alreadyTypeTestedArguments: A_Number,
+		alreadyVariantTestedArguments: A_Number,
 		memento: Memento): LookupTree<Element, Result>
 	{
 		if (undecided.isEmpty())
@@ -304,7 +315,8 @@ abstract class LookupTreeAdaptor<
 			simplifyList(positive),
 			simplifyList(undecided),
 			knownArgumentRestrictions,
-			alreadyTypeTestedArguments)
+			alreadyTypeTestedArguments,
+			alreadyVariantTestedArguments)
 	}
 
 	/**

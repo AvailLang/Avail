@@ -1,5 +1,5 @@
 /*
- * P_ObjectToMap.kt
+ * L2SemanticObjectVariantId.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,40 +29,42 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.interpreter.primitive.objects
+package com.avail.optimizer.values
 
-import com.avail.descriptor.maps.MapDescriptor
 import com.avail.descriptor.objects.ObjectDescriptor
-import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
-import com.avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import com.avail.descriptor.types.A_Type
-import com.avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import com.avail.interpreter.Primitive
-import com.avail.interpreter.Primitive.Flag.CanFold
-import com.avail.interpreter.Primitive.Flag.CanInline
-import com.avail.interpreter.Primitive.Flag.CannotFail
-import com.avail.interpreter.execution.Interpreter
+import com.avail.descriptor.objects.ObjectLayoutVariant
+import com.avail.descriptor.types.TypeTag
+import com.avail.interpreter.levelTwo.register.L2BoxedRegister
 
 /**
- * **Primitive:** Convert an [object][ObjectDescriptor] into a
- * [map][MapDescriptor] from fields to values.
+ * A semantic value which represents the variantId of the [ObjectLayoutVariant]
+ * extracted from some [object][ObjectDescriptor] in the [base] semantic value.
+ * To keep unboxed ints homogenous, this will always be wrapped inside an
+ * [L2SemanticUnboxedInt], even though the boxed value generally will not occur
+ * in any [L2BoxedRegister].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ * Create a new `L2SemanticObjectVariantId` semantic value.
+ *
+ * @param base
+ *   The semantic value holding the value for which a [TypeTag] has been
+ *   extracted.
  */
-@Suppress("unused")
-object P_ObjectToMap : Primitive(1, CannotFail, CanFold, CanInline)
+class L2SemanticObjectVariantId constructor(val base: L2SemanticValue)
+	: L2SemanticValue(base.hash xor 0x788919B8)
 {
-	override fun attempt(interpreter: Interpreter): Result
-	{
-		interpreter.checkArgumentCount(1)
-		val obj = interpreter.argument(0)
-		return interpreter.primitiveSuccess(obj.fieldMap())
-	}
+	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
+		other is L2SemanticObjectVariantId
+			&& base.equalsSemanticValue(other.base)
 
-	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(
-			tuple(mostGeneralObjectType),
-			mapTypeForSizesKeyTypeValueType(wholeNumbers, ATOM.o, ANY.o))
+	override fun transform(
+		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
+		frameTransformer: (Frame) -> Frame): L2SemanticValue =
+			semanticValueTransformer(base).let {
+				if (it == base) this else L2SemanticObjectVariantId(it)
+		}
+
+	override fun toString(): String = "Variant($base)"
 }

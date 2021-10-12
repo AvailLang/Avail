@@ -67,5 +67,5 @@ object P_MapToObject : Primitive(1, CannotFail, CanFold, CanInline)
 			tuple(
 				mapTypeForSizesKeyTypeValueType(
 					wholeNumbers, ATOM.o, ANY.o)),
-			mostGeneralObjectType())
+			mostGeneralObjectType)
 }

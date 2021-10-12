@@ -74,5 +74,5 @@ object P_RecordNewTypeName : Primitive(2, CanInline, CannotFail, HasSideEffect)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(instanceMeta(mostGeneralObjectType()), stringType), TOP.o)
+			tuple(instanceMeta(mostGeneralObjectType), stringType), TOP.o)
 }

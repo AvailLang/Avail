@@ -109,13 +109,12 @@ import com.avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import com.avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import com.avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import com.avail.descriptor.types.PrimitiveTypeDescriptor
 import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import com.avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import com.avail.descriptor.types.TypeDescriptor
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import com.avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import com.avail.serialization.SerializerOperation
@@ -941,24 +940,13 @@ class ObjectTypeDescriptor internal constructor(
 			namesAndBaseTypesForObjectType(anObjectType).tupleAt(2)
 
 		/**
-		 * The most general [object&#32;type][ObjectTypeDescriptor].
-		 */
-		private val mostGeneralType: A_Type =
-			objectTypeFromMap(emptyMap).makeShared()
-
-		/**
 		 * Answer the top (i.e., most general) object type.
 		 *
 		 * @return
 		 *   The object type that makes no constraints on its fields.
 		 */
-		fun mostGeneralObjectType(): A_Type = mostGeneralType
-
-		/**
-		 * The metatype of all object types.
-		 */
-		private val mostGeneralMeta: A_Type =
-			instanceMeta(mostGeneralType).makeShared()
+		val mostGeneralObjectType: A_Type =
+			objectTypeFromMap(emptyMap).makeShared()
 
 		/**
 		 * Answer the metatype for all object types.  This is just an
@@ -968,7 +956,8 @@ class ObjectTypeDescriptor internal constructor(
 		 * @return
 		 *   The (meta)type of the most general object type.
 		 */
-		fun mostGeneralObjectMeta(): A_Type = mostGeneralMeta
+		val mostGeneralObjectMeta: A_Type =
+			instanceMeta(mostGeneralObjectType).makeShared()
 
 		/**
 		 * Declarations related to exception objects.

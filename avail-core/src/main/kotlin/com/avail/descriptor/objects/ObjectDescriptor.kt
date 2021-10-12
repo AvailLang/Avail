@@ -52,6 +52,7 @@ import com.avail.descriptor.objects.ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_C
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
 import com.avail.descriptor.representation.A_BasicObject
+import com.avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import com.avail.descriptor.representation.AbstractSlotsEnum
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.representation.AvailObject.Companion.combine2
@@ -695,6 +696,27 @@ class ObjectDescriptor internal constructor(
 		 * [TYPE_VETTINGS_CACHE] may be before taking action to reduce it.
 		 */
 		private const val maximumVettingSetSize = 20
+
+		/**
+		 * Produce the given object's [ObjectLayoutVariant]'s variantId.
+		 *
+		 * @param anObject
+		 *   The [object][ObjectDescriptor] to examine.
+		 * @return
+		 *   The object's variantId, which is an [Int].
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticObjectVariantId(anObject: AvailObject): Int =
+			(anObject.traversed().descriptor() as ObjectDescriptor)
+				.variant.variantId
+
+		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
+		val staticObjectVariantIdMethod = staticMethod(
+			ObjectDescriptor::class.java,
+			::staticObjectVariantId.name,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java)
 	}
 }
 

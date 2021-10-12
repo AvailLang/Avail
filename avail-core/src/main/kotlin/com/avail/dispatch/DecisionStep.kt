@@ -33,9 +33,13 @@
 package com.avail.dispatch
 
 import com.avail.descriptor.methods.A_Definition
+import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
 import com.avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
+import com.avail.descriptor.objects.ObjectDescriptor
 import com.avail.descriptor.objects.ObjectLayoutVariant
+import com.avail.descriptor.objects.ObjectTypeDescriptor
+import com.avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.AvailObject
 import com.avail.descriptor.tuples.A_Tuple
@@ -43,6 +47,7 @@ import com.avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import com.avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import com.avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import com.avail.descriptor.types.A_Type
+import com.avail.descriptor.types.A_Type.Companion.computeSuperkind
 import com.avail.descriptor.types.A_Type.Companion.instanceTag
 import com.avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import com.avail.descriptor.types.A_Type.Companion.lowerBound
@@ -52,6 +57,7 @@ import com.avail.descriptor.types.A_Type.Companion.upperBound
 import com.avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import com.avail.descriptor.types.InstanceMetaDescriptor
 import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import com.avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
 import com.avail.descriptor.types.TypeTag
 import com.avail.descriptor.types.TypeTag.Companion.tagFromOrdinal
 import com.avail.interpreter.levelTwo.operand.L2ConstantOperand
@@ -61,8 +67,10 @@ import com.avail.interpreter.levelTwo.operand.TypeRestriction
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import com.avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import com.avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
 import com.avail.interpreter.levelTwo.operation.L2_EXTRACT_TAG_ORDINAL
 import com.avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
 import com.avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
 import com.avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import com.avail.interpreter.levelTwo.operation.L2_STRENGTHEN_TYPE
@@ -72,6 +80,7 @@ import com.avail.optimizer.L2BasicBlock
 import com.avail.optimizer.L2Generator
 import com.avail.optimizer.L2Generator.Companion.edgeTo
 import com.avail.optimizer.values.L2SemanticExtractedTag
+import com.avail.optimizer.values.L2SemanticObjectVariantId
 import com.avail.optimizer.values.L2SemanticUnboxedInt
 import com.avail.optimizer.values.L2SemanticValue
 import com.avail.utility.Strings.newlineTab
@@ -80,6 +89,7 @@ import com.avail.utility.notNullAnd
 import com.avail.utility.partitionRunsBy
 import com.avail.utility.removeLast
 import java.lang.String.format
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * This abstraction represents a mechanism for achieving a quantum of
@@ -687,6 +697,335 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 
 	/**
 	 * This is a [DecisionStep] which dispatches to subtrees by looking up the
+	 * argument's [ObjectLayoutVariant].  It can only be used when the argument
+	 * has been constrained to an [object][mostGeneralObjectType].
+	 *
+	 * The idea is to filter out most variants based on the fields that they
+	 * define, *and* the fields they specifically don't define.  If variant #1
+	 * has fields {x, y}, and variant #2 has fields {y, z}, then an object with
+	 * variant #1 can't ever be an instance of an object type using variant #2.
+	 *
+	 * Note that only the variants which have occurred have entries in this
+	 * step; new variants arriving will be dynamically added to this step.
+	 *
+	 * Also note that when an argument position is specified with a type that is
+	 * an enumeration of multiple objects, the corresponding [Result] is
+	 * duplicated for each of the objects' variants, ensuring a lookup of any of
+	 * those actual objects can reach the correct solution.
+	 *
+	 * @constructor
+	 * Construct the new instance.
+	 *
+	 * @property thisInternalLookupTree
+	 *   A reference to the [InternalLookupTree] in which this has been
+	 *   installed as the [DecisionStep].
+	 * @property argumentPositionToTest
+	 *   The 1-based index of the argument for which to test by
+	 *   [ObjectLayoutVariant].
+	 * @property variantToElements
+	 *   A [Map] grouping this step's [Element]s by their [ObjectLayoutVariant]
+	 *   at the indicated [argumentPositionToTest].
+	 */
+	class ObjectLayoutVariantDecisionStep<
+		Element : A_BasicObject,
+		Result : A_BasicObject>
+	constructor(
+		private val thisInternalLookupTree: InternalLookupTree<Element, Result>,
+		val argumentPositionToTest: Int,
+		private val variantToElements: Map<ObjectLayoutVariant, List<Element>>,
+		private val alreadyVariantTestedArgumentsForChildren: A_Number
+	) : DecisionStep<Element, Result>()
+	{
+		/**
+		 * A [Map] from [ObjectLayoutVariant.variantId] to the child
+		 * [LookupTree] that should be visited if the given
+		 * [ObjectLayoutVariant] occurs during lookup.  If the provided variant
+		 * is not present, it will be added dynamically.
+		 */
+		private val variantToSubtree: ConcurrentHashMap
+				<ObjectLayoutVariant, LookupTree<Element, Result>> =
+			ConcurrentHashMap()
+
+		/**
+		 * Given the actual [variant] that has been supplied for an actual
+		 * lookup, collect the relevant [Element]s into a suitable [LookupTree].
+		 */
+		private fun elementsForVariant(
+			variant: ObjectLayoutVariant
+		): List<Element>
+		{
+			val entries = variantToElements.entries.filter {
+				variant.isSubvariantOf(it.key)
+			}
+			return when (entries.size)
+			{
+				0 -> emptyList()
+				1 -> entries.first().value
+				else -> entries.flatMap { it.value }
+			}
+		}
+
+		override fun <AdaptorMemento> lookupStepByValues(
+			argValues: List<A_BasicObject>,
+			extraValues: Array<Element?>?,
+			adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+			memento: AdaptorMemento): LookupTree<Element, Result>
+		{
+			val index = argumentPositionToTest
+			assert(index > 0)
+			val argument = argValues[index - 1].traversed()
+			val descriptor = argument.descriptor() as ObjectDescriptor
+			val variant = descriptor.variant
+			return variantToSubtree.getOrPut(variant) {
+				thisInternalLookupTree.run {
+					adaptor.createTree(
+						positiveElements,
+						elementsForVariant(variant),
+						knownArgumentRestrictions,
+						alreadyTypeTestedArguments,
+						alreadyVariantTestedArgumentsForChildren,
+						memento)
+				}
+			}
+		}
+
+		override fun <AdaptorMemento> lookupStepByValues(
+			argValues: A_Tuple,
+			extraValues: Array<Element?>?,
+			adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+			memento: AdaptorMemento): LookupTree<Element, Result>
+		{
+			val index = argumentPositionToTest
+			assert(index > 0)
+			val argument = argValues.tupleAt(index)
+			val descriptor = argument.descriptor() as ObjectDescriptor
+			val variant = descriptor.variant
+			return variantToSubtree.getOrPut(variant) {
+				thisInternalLookupTree.run {
+					adaptor.createTree(
+						positiveElements,
+						elementsForVariant(variant),
+						knownArgumentRestrictions,
+						alreadyTypeTestedArguments,
+						alreadyVariantTestedArgumentsForChildren,
+						memento)
+				}
+			}
+		}
+
+		override fun <AdaptorMemento> lookupStepByTypes(
+			argTypes: List<A_Type>,
+			extraValues: Array<Element?>?,
+			adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+			memento: AdaptorMemento): LookupTree<Element, Result>
+		{
+			val index = argumentPositionToTest
+			assert(index > 0)
+			val argumentType = argTypes[index - 1].traversed()
+			val argumentKind = when (argumentType.isEnumeration)
+			{
+				true -> argumentType.computeSuperkind()
+				else -> argumentType
+			}
+			val descriptor = argumentKind.descriptor() as ObjectTypeDescriptor
+			val variant = descriptor.variant
+			return variantToSubtree.getOrPut(variant) {
+				thisInternalLookupTree.run {
+					adaptor.createTree(
+						positiveElements,
+						elementsForVariant(variant),
+						knownArgumentRestrictions,
+						alreadyTypeTestedArguments,
+						alreadyVariantTestedArgumentsForChildren,
+						memento)
+				}
+			}
+		}
+
+		override fun <AdaptorMemento> lookupStepByTypes(
+			argTypes: A_Tuple,
+			extraValues: Array<Element?>?,
+			adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+			memento: AdaptorMemento): LookupTree<Element, Result>
+		{
+			val index = argumentPositionToTest
+			assert(index > 0)
+			val argumentType = argTypes.tupleAt(index).traversed()
+			val argumentKind = when (argumentType.isEnumeration)
+			{
+				true -> argumentType.computeSuperkind()
+				else -> argumentType
+			}
+			val descriptor = argumentKind.descriptor() as ObjectTypeDescriptor
+			val variant = descriptor.variant
+			return variantToSubtree.getOrPut(variant) {
+				thisInternalLookupTree.run {
+					adaptor.createTree(
+						positiveElements,
+						elementsForVariant(variant),
+						knownArgumentRestrictions,
+						alreadyTypeTestedArguments,
+						alreadyVariantTestedArgumentsForChildren,
+						memento)
+				}
+			}
+		}
+
+		override fun <AdaptorMemento> lookupStepByValue(
+			probeValue: A_BasicObject,
+			extraValues: Array<Element?>?,
+			adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+			memento: AdaptorMemento): LookupTree<Element, Result>
+		{
+			assert(argumentPositionToTest == 0)
+			val argument = probeValue.traversed()
+			val descriptor = argument.descriptor() as ObjectDescriptor
+			val variant = descriptor.variant
+			return variantToSubtree.getOrPut(variant) {
+				thisInternalLookupTree.run {
+					adaptor.createTree(
+						positiveElements,
+						elementsForVariant(variant),
+						knownArgumentRestrictions,
+						alreadyTypeTestedArguments,
+						alreadyVariantTestedArgumentsForChildren,
+						memento)
+				}
+			}
+		}
+
+		override fun describe(
+			node: InternalLookupTree<Element, Result>,
+			indent: Int,
+			builder: StringBuilder
+		): Unit = with(builder)
+		{
+			val entries = variantToSubtree.entries.toList()
+			append(
+				format(
+					"(u=%d, p=%d) #%d variants : known=%s",
+					node.undecidedElements.size,
+					node.positiveElements.size,
+					argumentPositionToTest,
+					node.knownArgumentRestrictions))
+			entries.sortedBy { it.key.variantId }.forEach { (variant, child) ->
+				newlineTab(indent + 1)
+				append("VAR#${variant.variantId}")
+				variant.allFields
+					.map(AvailObject::asNativeString)
+					.sorted()
+					.joinTo(this, ", ", " (", "): ")
+				append(child.toString(indent + 1))
+			}
+		}
+
+		override fun addChildrenTo(
+			list: MutableList<LookupTree<Element, Result>>)
+		{
+			list.addAll(variantToSubtree.values)
+		}
+
+		override fun generateEdgesFor(
+			semanticArguments: List<L2SemanticValue>,
+			callSiteHelper: CallSiteHelper
+		): List<Pair<L2BasicBlock, LookupTree<A_Definition, A_Tuple>>>
+		{
+			// Create a multi-way branch using an object's variant.  Any variant
+			// that wasn't present during generation will jump to the slower,
+			// general lookup.  The slow lookup will populate the map with a new
+			// subtree, which (TODO) should increase pressure to reoptimize the
+			// calling method, specifically to include the new variant.
+			val semanticSource = semanticArguments[argumentPositionToTest - 1]
+			val generator = callSiteHelper.generator()
+			val currentRestriction =
+				generator.currentManifest.restrictionFor(semanticSource)
+			val restrictionType = currentRestriction.type.traversed()
+			val restrictionDescriptor =
+				restrictionType.descriptor() as? ObjectTypeDescriptor ?:
+					restrictionType.computeSuperkind().descriptor()
+						as ObjectTypeDescriptor
+			val restrictionVariant = restrictionDescriptor.variant
+			// Only keep relevant variants, and only if they lead to at least
+			// one success.
+			val applicableEntries = variantToSubtree.entries
+				.filter { (key, subtree) ->
+					key.isSubvariantOf(restrictionVariant)
+						&& containsAnyValidLookup(subtree.cast())
+				}
+				.sortedBy { (key, _) -> key.variantId }
+			if (applicableEntries.isEmpty())
+			{
+				// Just jump to the slow lookup, and don't continue down any
+				// more lookup subtrees.
+				generator.jumpTo(callSiteHelper.onFallBackToSlowLookup)
+				return emptyList()
+			}
+			val semanticVariantId = L2SemanticUnboxedInt(
+				L2SemanticObjectVariantId(semanticSource))
+			generator.addInstruction(
+				L2_EXTRACT_OBJECT_VARIANT_ID,
+				generator.readBoxed(semanticSource),
+				generator.intWrite(
+					setOf(semanticVariantId),
+					restrictionForType(nonnegativeInt32, UNBOXED_INT_FLAG)))
+			if (applicableEntries.size == 1)
+			{
+				// Check for the only variant that leads to a solution.
+				val (variant, subtree) = applicableEntries[0]
+				val variantId = variant.variantId
+				val matchBlock = L2BasicBlock("matches variant #$variantId")
+				val trulyUnreachable = L2BasicBlock("truly unreachable")
+				L2_JUMP_IF_COMPARE_INT.equal.compareAndBranch(
+					callSiteHelper.generator(),
+					generator.readInt(semanticVariantId, trulyUnreachable),
+					generator.unboxedIntConstant(variantId),
+					edgeTo(matchBlock),
+					edgeTo(callSiteHelper.onFallBackToSlowLookup))
+				assert(trulyUnreachable.predecessorEdges().isEmpty())
+				return listOf(matchBlock to subtree.cast())
+			}
+			// There are at least two variants that can lead to valid solutions,
+			// so extract create a multi-way branch.
+			val splits = mutableListOf<Int>()
+			val targets = mutableListOf(callSiteHelper.onFallBackToSlowLookup)
+			val result = mutableListOf<
+				Pair<L2BasicBlock, LookupTree<A_Definition, A_Tuple>>>()
+			var lastSplit = 0
+			// The multi-way branch has positive cases for each individual
+			// possible variant (based on the known restrictions at this site),
+			// and fall-through cases for the spans between them.
+			applicableEntries.forEach { (variant, subtree) ->
+				val variantId = variant.variantId
+				if (variantId == lastSplit)
+				{
+					// Two adjacent variantIds occurred, so we save a split.
+					assert(targets.last()
+						== callSiteHelper.onFallBackToSlowLookup)
+					targets.removeLast()
+					splits.removeLast()
+				}
+				val target = L2BasicBlock("Variant = #$variantId")
+				splits.add(variantId)
+				targets.add(target)
+				result.add(target to subtree.cast())
+				splits.add(variantId + 1)
+				targets.add(callSiteHelper.onFallBackToSlowLookup)
+				lastSplit = variantId + 1
+			}
+			assert(targets.size == splits.size + 1)
+			assert(result.size == applicableEntries.size)
+			// Generate the multi-way branch.
+			generator.addInstruction(
+				L2_MULTIWAY_JUMP,
+				generator.currentManifest.readInt(semanticVariantId),
+				L2ConstantOperand(tupleFromIntegerList(splits)),
+				L2PcVectorOperand(targets.map { L2PcOperand(it, false) }))
+			return result
+		}
+	}
+
+	/**
+	 * This is a [DecisionStep] which dispatches to subtrees by looking up the
 	 * [TypeTag] for a particular argument position.  Narrowing the effective
 	 * [TypeRestriction] on the argument in this way can quickly reduce the
 	 * number of applicable elements in the subtrees, which may also promote
@@ -1055,7 +1394,7 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 				// ordinals.
 				addInstruction(
 					L2_EXTRACT_TAG_ORDINAL,
-					readBoxed(semanticArguments[argumentPositionToTest - 1]),
+					readBoxed(semanticSource),
 					intWrite(setOf(semanticTag), ordinalRestriction))
 				addInstruction(
 					L2_MULTIWAY_JUMP,

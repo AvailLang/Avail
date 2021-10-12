@@ -151,7 +151,7 @@ constructor(
 		EXTENDED_INTEGER_TAG, null, Unique { positiveInfinity }),
 	FLOAT_TAG(NUMBER_TAG, null, Sup { Types.FLOAT.o }),
 	DOUBLE_TAG(NUMBER_TAG, null, Sup { Types.DOUBLE.o }),
-	OBJECT_TAG(NONTYPE_TAG, null, Sup { mostGeneralObjectType() }),
+	OBJECT_TAG(NONTYPE_TAG, null, Sup { mostGeneralObjectType }),
 	PARSING_PLAN_TAG(
 		NONTYPE_TAG, null, Sup { Types.DEFINITION_PARSING_PLAN.o }),
 	PARSING_PLAN_IN_PROGRESS_TAG(
@@ -331,7 +331,7 @@ constructor(
 	OBJECT_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = OBJECT_TAG,
-		Sup { mostGeneralObjectMeta()}),
+		Sup { mostGeneralObjectMeta}),
 	MAP_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = MAP_TAG,

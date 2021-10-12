@@ -35,13 +35,12 @@ import com.avail.descriptor.atoms.A_Atom
 import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import com.avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.allVariants
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsCounter
 import com.avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
-import com.avail.descriptor.pojos.RawPojoDescriptor
-import com.avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
-import com.avail.descriptor.representation.A_BasicObject
 import com.avail.descriptor.representation.Mutability
 import com.avail.descriptor.sets.A_Set
+import com.avail.descriptor.sets.A_Set.Companion.isSubsetOf
 import com.avail.utility.safeWrite
 import java.lang.ref.WeakReference
 import java.util.WeakHashMap
@@ -118,13 +117,6 @@ class ObjectLayoutVariant private constructor(
 		realSlotCount = slotCount
 	}
 
-	/**
-	 * A raw [POJO][RawPojoDescriptor] that wraps this [ObjectLayoutVariant].
-	 * This pojo makes it convenient to capture the variant in an object
-	 * register in Level Two code.
-	 */
-	val thisPojo: A_BasicObject = identityPojo(this)
-
 	/** The mutable object descriptor for this variant. */
 	val mutableObjectDescriptor = ObjectDescriptor(Mutability.MUTABLE, this)
 
@@ -145,6 +137,15 @@ class ObjectLayoutVariant private constructor(
 	/** The shared object type descriptor for this variant. */
 	val sharedObjectTypeDescriptor =
 		ObjectTypeDescriptor(Mutability.SHARED, this)
+
+	/**
+	 * Check whether an object type based on the receiver could be a subtype of
+	 * a type based on [another], based only on the fields present in each.
+	 */
+	fun isSubvariantOf(another: ObjectLayoutVariant): Boolean
+	{
+		return another.allFields.isSubsetOf(allFields)
+	}
 
 	companion object {
 		/**
@@ -175,11 +176,8 @@ class ObjectLayoutVariant private constructor(
 		 */
 		fun variantForFields(allFields: A_Set): ObjectLayoutVariant {
 			variantsLock.read {
-				val variant = allVariants[allFields]?.get()
-				if (variant !== null) {
-					// By far the most likely path.
-					return variant
-				}
+				// By far the most likely path.
+				allVariants[allFields]?.get()?.let { return it }
 			}
 			// Didn't find it while holding the read lock.  We could create it
 			// outside of the lock, then test for its presence again inside the

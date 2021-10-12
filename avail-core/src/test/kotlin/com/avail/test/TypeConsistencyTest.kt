@@ -381,7 +381,7 @@ class TypeConsistencyTest
 			 */
 			private val OBJECT_TYPE = Node(
 				"OBJECT_TYPE",
-				mostGeneralObjectType(),
+				mostGeneralObjectType,
 				primitiveTypes[Types.NONTYPE]!!)
 
 			/**
