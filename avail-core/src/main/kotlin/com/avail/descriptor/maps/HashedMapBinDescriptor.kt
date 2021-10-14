@@ -239,7 +239,7 @@ class HashedMapBinDescriptor private constructor(
 	private fun computeKeyAndValueKinds(self: AvailObject) {
 		var keyType = bottom
 		var valueType = bottom
-		val binCount = self.objectSlotsCount() - numberOfFixedObjectSlots()
+		val binCount = self.objectSlotsCount() - numberOfFixedObjectSlots
 		for (i in 1..binCount) {
 			val subBin = self.slot(SUB_BINS_, i)
 			keyType = keyType.typeUnion(subBin.mapBinKeyUnionKind)

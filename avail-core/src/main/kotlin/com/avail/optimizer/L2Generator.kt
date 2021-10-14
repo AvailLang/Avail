@@ -1500,7 +1500,7 @@ class L2Generator internal constructor(
 		 * precludes many fruitful opportunities, but code splitting should help
 		 * eliminate all but a few possibilities at many call sites.
 		 */
-		const val maxPolymorphismToInlineDispatch = 4
+		const val maxPolymorphismToInlineDispatch = 8
 
 		/**
 		 * Use a series of instance equality checks if we're doing type testing

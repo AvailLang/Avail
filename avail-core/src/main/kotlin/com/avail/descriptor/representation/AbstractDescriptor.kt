@@ -285,14 +285,14 @@ abstract class AbstractDescriptor protected constructor (
 	 * this [descriptor][AbstractDescriptor]. Does not include indexed slots
 	 * possibly at the end. Populated automatically by the constructor.
 	 */
-	private val numberOfFixedObjectSlots: Int
+	val numberOfFixedObjectSlots: Int
 
 	/**
 	 * The minimum number of integer slots an [AvailObject] can have if it uses
 	 * this descriptor. Does not include indexed slots possibly at the end.
 	 * Populated automatically by the constructor.
 	 */
-	private val numberOfFixedIntegerSlots: Int
+	val numberOfFixedIntegerSlots: Int
 
 	/**
 	 * A [Statistic] that records the number and size of each allocation.
@@ -400,28 +400,6 @@ abstract class AbstractDescriptor protected constructor (
 	val isShared get () = mutability === Mutability.SHARED
 
 	/**
-	 * Answer the minimum number of object slots an [AvailObject] can have if it
-	 * uses this descriptor. Does not include indexed slots possibly at the end.
-	 * Populated automatically by the constructor.
-	 *
-	 * @return
-	 *   The minimum number of object slots featured by an object using this
-	 *   descriptor.
-	 */
-	fun numberOfFixedObjectSlots () = numberOfFixedObjectSlots
-
-	/**
-	 * Answer the minimum number of integer slots an [AvailObject] can have if
-	 * it uses this descriptor. Does not include indexed slots possibly at the
-	 * end. Populated automatically by the constructor.
-	 *
-	 * @return
-	 *   The minimum number of integer slots featured by an object using this
-	 *   descriptor.
-	 */
-	fun numberOfFixedIntegerSlots () = numberOfFixedIntegerSlots
-
-	/**
 	 * Can an [object][AvailObject] using this descriptor have more than the
 	 * [minimum&#32;number&#32;of&#32;object&#32;slots][numberOfFixedObjectSlots]?
 	 *
@@ -472,7 +450,7 @@ abstract class AbstractDescriptor protected constructor (
 		if (enumClass !== null)
 		{
 			val slots = enumClass.enumConstants
-			val fixed = numberOfFixedIntegerSlots()
+			val fixed = numberOfFixedIntegerSlots
 			(0 until fixed)
 				.map { slots[it] }
 				.filter {
@@ -514,7 +492,7 @@ abstract class AbstractDescriptor protected constructor (
 		if (enumClass !== null)
 		{
 			val slots: Array<Enum<*>> = enumClass.enumConstants
-			for (i in 0 until numberOfFixedObjectSlots())
+			for (i in 0 until numberOfFixedObjectSlots)
 			{
 				val slot = slots[i]
 				if (getAnnotation(slot, HideFieldInDebugger::class.java)
@@ -531,10 +509,10 @@ abstract class AbstractDescriptor protected constructor (
 			val slot = slots[slots.size - 1]
 			if (getAnnotation(slot, HideFieldInDebugger::class.java) === null)
 			{
-				for (i in numberOfFixedObjectSlots()
+				for (i in numberOfFixedObjectSlots
 					until self.objectSlotsCount())
 				{
-					val subscript = i - numberOfFixedObjectSlots() + 1
+					val subscript = i - numberOfFixedObjectSlots + 1
 					fields.add(
 						AvailObjectFieldHelper(
 							self,

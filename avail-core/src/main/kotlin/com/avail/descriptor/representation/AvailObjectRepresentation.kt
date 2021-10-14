@@ -1776,14 +1776,14 @@ abstract class AvailObjectRepresentation protected constructor(
 				== objectToCopy.currentDescriptor.javaClass)
 			val newObjectSlotCount =
 				objectToCopy.objectSlots.size + deltaObjectSlots
-			assert(newObjectSlotCount >= descriptor.numberOfFixedObjectSlots())
+			assert(newObjectSlotCount >= descriptor.numberOfFixedObjectSlots)
 			val newIntegerSlotCount =
 				objectToCopy.longSlots.size + deltaIntegerSlots
 			assert(
-				newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots())
+				newIntegerSlotCount >= descriptor.numberOfFixedIntegerSlots)
 			val newObject = newObjectIndexedIntegerIndexedDescriptor(
-				newObjectSlotCount - descriptor.numberOfFixedObjectSlots(),
-				newIntegerSlotCount - descriptor.numberOfFixedIntegerSlots(),
+				newObjectSlotCount - descriptor.numberOfFixedObjectSlots,
+				newIntegerSlotCount - descriptor.numberOfFixedIntegerSlots,
 				descriptor)
 			// Even though we define the private fields in this class we aren't
 			// allowed to access them in an instance of something that we know

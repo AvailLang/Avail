@@ -1006,7 +1006,7 @@ class L1Translator private constructor(
 				}
 			}
 		}
-		if (applicableExpandedLeaves.size <=
+		if (applicableExpandedLeaves.toSet().size <=
 			L2Generator.maxPolymorphismToInlineDispatch)
 		{
 			// Generate all the branches and corresponding target blocks.

@@ -137,7 +137,7 @@ abstract class AbstractAvailObject protected constructor(
 	 *   The number of variable integer slots.
 	 */
 	fun variableIntegerSlotsCount() =
-		integerSlotsCount() - currentDescriptor.numberOfFixedIntegerSlots()
+		integerSlotsCount() - currentDescriptor.numberOfFixedIntegerSlots
 
 	/**
 	 * Answer the number of object slots in this [AvailObject]. All variable
@@ -156,7 +156,7 @@ abstract class AbstractAvailObject protected constructor(
 	 *   The number of variable object slots.
 	 */
 	fun variableObjectSlotsCount() =
-		objectSlotsCount() - currentDescriptor.numberOfFixedObjectSlots()
+		objectSlotsCount() - currentDescriptor.numberOfFixedObjectSlots
 
 	/**
 	 * Sanity check: ensure that the specified field is writable.

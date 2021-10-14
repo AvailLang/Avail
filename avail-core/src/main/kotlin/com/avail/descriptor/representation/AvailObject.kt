@@ -1452,11 +1452,11 @@ class AvailObject private constructor(
 			size: Int,
 			descriptor: AbstractDescriptor
 		): AvailObject {
-			var objectSlotCount = descriptor.numberOfFixedObjectSlots()
+			var objectSlotCount = descriptor.numberOfFixedObjectSlots
 			if (descriptor.hasVariableObjectSlots()) {
 				objectSlotCount += size
 			}
-			var integerSlotCount = descriptor.numberOfFixedIntegerSlots()
+			var integerSlotCount = descriptor.numberOfFixedIntegerSlots
 			if (descriptor.hasVariableIntegerSlots()) {
 				integerSlotCount += size
 			}
@@ -1486,8 +1486,8 @@ class AvailObject private constructor(
 			assert(hasVariableIntegerSlots() || variableIntegerSlots == 0)
 			return AvailObject(
 				descriptor,
-				numberOfFixedObjectSlots() + variableObjectSlots,
-				numberOfFixedIntegerSlots() + variableIntegerSlots)
+				numberOfFixedObjectSlots + variableObjectSlots,
+				numberOfFixedIntegerSlots + variableIntegerSlots)
 		}
 
 		/** The [CheckedMethod] for [iterator]. */

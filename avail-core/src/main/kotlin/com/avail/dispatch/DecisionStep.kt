@@ -32,6 +32,7 @@
 
 package com.avail.dispatch
 
+import com.avail.descriptor.atoms.A_Atom.Companion.atomName
 import com.avail.descriptor.methods.A_Definition
 import com.avail.descriptor.numbers.A_Number
 import com.avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -912,7 +913,7 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 				newlineTab(indent + 1)
 				append("VAR#${variant.variantId}")
 				variant.allFields
-					.map(AvailObject::asNativeString)
+					.map { it.atomName.asNativeString() }
 					.sorted()
 					.joinTo(this, ", ", " (", "): ")
 				append(child.toString(indent + 1))
