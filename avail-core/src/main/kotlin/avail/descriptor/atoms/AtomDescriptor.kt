@@ -76,7 +76,7 @@ import avail.io.IOSystem.FileHandle
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 import java.util.IdentityHashMap

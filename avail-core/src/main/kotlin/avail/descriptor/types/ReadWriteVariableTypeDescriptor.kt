@@ -51,7 +51,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWrite
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableDescriptor
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

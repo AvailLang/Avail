@@ -51,7 +51,7 @@ import avail.descriptor.types.VariableTypeDescriptor.ObjectSlots
 import avail.descriptor.types.VariableTypeDescriptor.ObjectSlots.INNER_TYPE
 import avail.descriptor.variables.VariableDescriptor
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

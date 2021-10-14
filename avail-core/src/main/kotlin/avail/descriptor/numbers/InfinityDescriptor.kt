@@ -65,7 +65,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_ADD_UNLIKE_INFINITIES
 import avail.exceptions.AvailErrorCode.E_CANNOT_DIVIDE_INFINITIES
 import avail.exceptions.AvailErrorCode.E_CANNOT_MULTIPLY_ZERO_AND_INFINITY
 import avail.exceptions.AvailErrorCode.E_CANNOT_SUBTRACT_LIKE_INFINITIES
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

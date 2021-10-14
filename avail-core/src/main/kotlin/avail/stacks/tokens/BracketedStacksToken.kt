@@ -38,7 +38,7 @@ import avail.stacks.exceptions.StacksScannerException
 import avail.stacks.scanner.StacksBracketScanner
 import avail.stacks.tags.StacksLinkTag
 import avail.stacks.tags.StacksSeeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 

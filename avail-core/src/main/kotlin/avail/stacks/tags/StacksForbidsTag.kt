@@ -36,7 +36,7 @@ import avail.stacks.LinkingFileMap
 import avail.stacks.StacksErrorLog
 import avail.stacks.tokens.AbstractStacksToken
 import avail.stacks.tokens.QuotedStacksToken
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * The "@forbids" tag in an Avail Class comment.

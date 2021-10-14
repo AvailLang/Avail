@@ -98,7 +98,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.TypeTag
 import avail.interpreter.Primitive
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

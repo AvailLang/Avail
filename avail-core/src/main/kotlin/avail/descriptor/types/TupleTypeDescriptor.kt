@@ -89,7 +89,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 import kotlin.math.max
 import kotlin.math.min

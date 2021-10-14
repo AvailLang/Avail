@@ -50,7 +50,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

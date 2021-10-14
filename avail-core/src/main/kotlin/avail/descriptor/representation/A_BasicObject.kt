@@ -62,8 +62,8 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONFriendly
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONWriter
 import avail.utility.visitor.AvailSubobjectVisitor
 import java.util.IdentityHashMap
 import java.util.function.Supplier
@@ -85,7 +85,8 @@ import java.util.function.Supplier
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_BasicObject : JSONFriendly {
+interface A_BasicObject : JSONFriendly
+{
 	/**
 	 * Retrieve the object's {@linkplain AbstractDescriptor descriptor}.
 	 *

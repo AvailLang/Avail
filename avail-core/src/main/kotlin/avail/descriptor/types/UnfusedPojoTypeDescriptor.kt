@@ -73,7 +73,7 @@ import avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.JAVA_CLASS
 import avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE
 import avail.descriptor.types.UnfusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.lang.reflect.TypeVariable
 import java.util.IdentityHashMap

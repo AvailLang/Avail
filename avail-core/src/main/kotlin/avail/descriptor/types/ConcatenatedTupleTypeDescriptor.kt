@@ -71,7 +71,7 @@ import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.FIRST_
 import avail.descriptor.types.ConcatenatedTupleTypeDescriptor.ObjectSlots.SECOND_TUPLE_TYPE
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import kotlin.math.max
 import kotlin.math.min
 

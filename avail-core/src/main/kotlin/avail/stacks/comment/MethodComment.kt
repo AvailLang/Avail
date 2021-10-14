@@ -47,7 +47,7 @@ import avail.stacks.tags.StacksParameterTag
 import avail.stacks.tags.StacksRaisesTag
 import avail.stacks.tags.StacksReturnTag
 import avail.stacks.tags.StacksSeeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * A comment that describes a particular method implementation

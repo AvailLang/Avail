@@ -68,7 +68,7 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
 import kotlin.experimental.and
 import kotlin.math.min

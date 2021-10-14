@@ -33,10 +33,10 @@
 package avail.tools.unicode
 
 import avail.utility.IO
-import avail.utility.json.JSONArray
-import avail.utility.json.JSONData
-import avail.utility.json.JSONFriendly
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONArray
+import org.availlang.json.JSONData
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONWriter
 import java.io.BufferedReader
 import java.io.IOException
 import java.io.InputStreamReader

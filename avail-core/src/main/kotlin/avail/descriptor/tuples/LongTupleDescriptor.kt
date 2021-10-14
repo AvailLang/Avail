@@ -75,7 +75,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.nio.ByteBuffer
 import kotlin.math.min
 

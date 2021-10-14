@@ -72,7 +72,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * Macros are extremely hygienic in Avail.  They are defined almost exactly like

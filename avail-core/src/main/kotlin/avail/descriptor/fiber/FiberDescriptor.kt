@@ -84,7 +84,7 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor

@@ -71,7 +71,7 @@ import avail.descriptor.types.ArrayPojoTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.io.Serializable
 import java.lang.reflect.Array
 import java.util.IdentityHashMap

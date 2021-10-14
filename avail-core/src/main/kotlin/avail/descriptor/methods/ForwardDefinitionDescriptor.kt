@@ -53,7 +53,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FORWARD_DEFINITION
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

@@ -36,7 +36,7 @@ import avail.stacks.LinkingFileMap
 import avail.stacks.StacksDescription
 import avail.stacks.StacksErrorLog
 import avail.stacks.tokens.QuotedStacksToken
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * The "@restricts" tag in an Avail comment that represents the meta type of an

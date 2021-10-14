@@ -34,7 +34,7 @@ package avail.stacks.tokens
 
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksErrorLog
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * A stacks token representing a quoted region in the comment.

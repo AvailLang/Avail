@@ -32,9 +32,9 @@
 
 package avail.test
 
-import avail.utility.json.JSONNumber
-import avail.utility.json.JSONObject
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONNumber
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONWriter
 import org.junit.jupiter.api.Assertions.assertArrayEquals
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

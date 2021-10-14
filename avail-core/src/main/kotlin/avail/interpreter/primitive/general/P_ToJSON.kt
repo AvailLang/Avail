@@ -43,7 +43,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * **Primitive:** Render the given [value][AvailObject] into JSON.

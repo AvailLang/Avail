@@ -36,7 +36,7 @@ import avail.stacks.LinkingFileMap
 import avail.stacks.StacksDescription
 import avail.stacks.StacksErrorLog
 import avail.stacks.tokens.QuotedStacksToken
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * The "@field" tag in an Avail Class comment.

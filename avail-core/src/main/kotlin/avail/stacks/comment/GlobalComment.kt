@@ -45,7 +45,7 @@ import avail.stacks.tags.StacksAuthorTag
 import avail.stacks.tags.StacksCategoryTag
 import avail.stacks.tags.StacksGlobalTag
 import avail.stacks.tags.StacksSeeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * A module global variable comment

@@ -32,7 +32,7 @@
 
 package avail.stacks.comment.signature
 
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.String.format
 
 /**

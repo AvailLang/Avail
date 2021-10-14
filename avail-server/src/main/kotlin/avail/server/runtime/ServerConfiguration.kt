@@ -32,7 +32,7 @@
 
 package avail.server.runtime
 
-import avail.utility.json.JSONObject
+import org.availlang.json.JSONObject
 
 /**
  * A `ServerConfiguration` contains all the state that provides the

@@ -103,7 +103,7 @@ import avail.descriptor.types.EnumerationTypeDescriptor.ObjectSlots.INSTANCES
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

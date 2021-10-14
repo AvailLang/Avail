@@ -173,7 +173,7 @@ import avail.interpreter.execution.AvailLoader.LexicalScanner
 import avail.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
 import java.util.IdentityHashMap

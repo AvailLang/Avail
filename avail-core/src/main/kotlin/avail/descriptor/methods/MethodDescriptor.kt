@@ -166,7 +166,7 @@ import avail.optimizer.L2Generator
 import avail.performance.Statistic
 import avail.performance.StatisticReport.DYNAMIC_LOOKUP
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.Collections.emptyList
 import java.util.Collections.nCopies
 import java.util.Collections.newSetFromMap

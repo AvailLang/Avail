@@ -163,7 +163,7 @@ import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
 import avail.utility.visitor.AvailSubobjectVisitor
 import java.lang.reflect.Modifier

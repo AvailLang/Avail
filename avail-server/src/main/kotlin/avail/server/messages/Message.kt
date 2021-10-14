@@ -34,7 +34,7 @@ package avail.server.messages
 
 import avail.server.AvailServer
 import avail.server.io.AvailServerChannel
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.nio.charset.StandardCharsets
 
 /**

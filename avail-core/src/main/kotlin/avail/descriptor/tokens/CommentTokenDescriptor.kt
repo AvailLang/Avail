@@ -49,7 +49,7 @@ import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * This is a token of an Avail method/class comment.  More specifically, this

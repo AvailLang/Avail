@@ -60,7 +60,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

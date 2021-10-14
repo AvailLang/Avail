@@ -33,7 +33,7 @@
 package avail.stacks
 
 import avail.stacks.tokens.AbstractStacksToken
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * A collection of [tokens][AbstractStacksToken] that make up a

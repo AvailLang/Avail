@@ -34,8 +34,8 @@ package avail.server.messages
 
 import avail.builder.ModuleRoot
 import avail.server.AvailServer
-import avail.utility.json.JSONFriendly
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONWriter
 
 /**
  * `NotificationType` enumerates the different types server-originating

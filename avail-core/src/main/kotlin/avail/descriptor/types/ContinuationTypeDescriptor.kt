@@ -53,7 +53,7 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromA
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

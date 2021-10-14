@@ -52,7 +52,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD_DEFINITION
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * An object instance of `MethodDefinitionDescriptor` represents a function in

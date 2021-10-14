@@ -44,7 +44,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

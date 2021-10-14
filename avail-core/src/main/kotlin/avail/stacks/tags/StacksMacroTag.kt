@@ -35,7 +35,7 @@ package avail.stacks.tags
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksErrorLog
 import avail.stacks.tokens.QuotedStacksToken
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * The Avail comment "@macro" tag

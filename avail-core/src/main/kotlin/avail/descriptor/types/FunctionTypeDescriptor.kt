@@ -82,7 +82,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.Integer.max
 import java.util.IdentityHashMap
 

@@ -59,7 +59,7 @@ import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.FLOAT
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.Double.isNaN
 import java.lang.Float.floatToRawIntBits
 import java.lang.Float.intBitsToFloat

@@ -41,7 +41,7 @@ import avail.stacks.comment.GrammaticalRestrictionComment
 import avail.stacks.comment.MacroComment
 import avail.stacks.comment.MethodComment
 import avail.stacks.comment.SemanticRestrictionComment
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.io.IOException
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes

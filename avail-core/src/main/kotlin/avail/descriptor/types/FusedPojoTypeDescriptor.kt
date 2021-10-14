@@ -72,7 +72,7 @@ import avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.SELF_TYPE
 import avail.descriptor.types.FusedPojoTypeDescriptor.ObjectSlots.TYPE_VARIABLES
 import avail.serialization.SerializerOperation
 import avail.utility.ifZero
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.lang.reflect.TypeVariable
 import java.util.IdentityHashMap

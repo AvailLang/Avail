@@ -81,7 +81,7 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.longRange
 import avail.descriptor.types.PojoTypeDescriptor.Companion.shortRange
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.util.IdentityHashMap
 

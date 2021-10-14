@@ -46,7 +46,7 @@ import avail.stacks.tags.StacksCategoryTag
 import avail.stacks.tags.StacksFieldTag
 import avail.stacks.tags.StacksSeeTag
 import avail.stacks.tags.StacksSuperTypeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * A comment that describes a particular class.

@@ -43,7 +43,7 @@ import avail.stacks.tags.StacksAliasTag
 import avail.stacks.tags.StacksAuthorTag
 import avail.stacks.tags.StacksCategoryTag
 import avail.stacks.tags.StacksSeeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * An abstract Avail comment.

@@ -46,11 +46,11 @@ import avail.test.TestJSONKeyValue.IMASTRING
 import avail.test.TestJSONKeyValue.IMATRUE
 import avail.test.TestJSONKeyValue.OBJINT
 import avail.test.TestJSONKeyValue.OBJSTRING
-import avail.utility.json.JSONException
-import avail.utility.json.JSONIOException
-import avail.utility.json.JSONObject
-import avail.utility.json.JSONReader
-import avail.utility.json.MalformedJSONException
+import org.availlang.json.JSONException
+import org.availlang.json.JSONIOException
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONReader
+import org.availlang.json.MalformedJSONException
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertThrows

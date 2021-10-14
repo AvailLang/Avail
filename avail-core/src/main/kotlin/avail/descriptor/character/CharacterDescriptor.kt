@@ -52,7 +52,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.descriptor.types.TypeTag
 import avail.exceptions.MarshalingException
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
 import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock

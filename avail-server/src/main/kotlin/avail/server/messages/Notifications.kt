@@ -37,8 +37,8 @@ import avail.builder.ModuleRoot
 import avail.server.AvailServer
 import avail.server.io.AvailServerChannel
 import avail.server.messages.NotificationType.*
-import avail.utility.json.JSONFriendly
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONWriter
 
 /**
  * A `Notification` is an [AvailServer]-originating message sent to a client

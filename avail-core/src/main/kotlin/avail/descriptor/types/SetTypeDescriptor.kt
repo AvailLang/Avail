@@ -68,7 +68,7 @@ import avail.descriptor.types.SetTypeDescriptor.ObjectSlots.CONTENT_TYPE
 import avail.descriptor.types.SetTypeDescriptor.ObjectSlots.SIZE_RANGE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

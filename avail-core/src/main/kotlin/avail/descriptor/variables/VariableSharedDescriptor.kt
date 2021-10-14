@@ -75,7 +75,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.SLOW_VARIABLE
 import avail.performance.Statistic
 import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.WeakHashMap

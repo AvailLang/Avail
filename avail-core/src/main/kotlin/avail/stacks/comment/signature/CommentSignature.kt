@@ -32,7 +32,7 @@
 
 package avail.stacks.comment.signature
 
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * The defining characteristic of a comment as it pertains to the implementation

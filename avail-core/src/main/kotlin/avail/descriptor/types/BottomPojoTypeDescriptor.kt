@@ -41,7 +41,7 @@ import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoBottomType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

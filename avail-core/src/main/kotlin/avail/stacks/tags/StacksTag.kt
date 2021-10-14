@@ -34,7 +34,7 @@ package avail.stacks.tags
 
 import avail.stacks.LinkingFileMap
 import avail.stacks.StacksErrorLog
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * An Avail comment @ tag.

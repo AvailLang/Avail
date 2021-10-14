@@ -52,7 +52,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import kotlin.math.max
 
 /**

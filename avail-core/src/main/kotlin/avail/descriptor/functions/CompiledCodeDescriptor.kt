@@ -119,7 +119,7 @@ import avail.performance.StatisticReport.NON_PRIMITIVE_RETURNER_TYPE_CHECKS
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet
 import java.util.IdentityHashMap

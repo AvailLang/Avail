@@ -34,7 +34,7 @@ package avail.server.io
 
 import avail.io.TextOutputChannel
 import avail.server.messages.Message
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.nio.CharBuffer
 import java.nio.channels.ClosedChannelException
 import java.nio.channels.CompletionHandler

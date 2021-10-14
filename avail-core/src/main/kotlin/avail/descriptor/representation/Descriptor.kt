@@ -100,7 +100,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import avail.utility.visitor.AvailSubobjectVisitor
 import avail.utility.visitor.BeImmutableSubobjectVisitor
 import avail.utility.visitor.BeSharedSubobjectVisitor

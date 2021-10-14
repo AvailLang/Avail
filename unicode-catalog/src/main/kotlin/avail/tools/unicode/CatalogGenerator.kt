@@ -32,9 +32,9 @@
 
 package avail.tools.unicode
 
-import avail.utility.json.JSONFriendly
-import avail.utility.json.JSONReader
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONReader
+import org.availlang.json.JSONWriter
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files
 import java.nio.file.NoSuchFileException

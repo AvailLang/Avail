@@ -102,7 +102,7 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
 import avail.utility.cast
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import avail.utility.visitor.AvailSubobjectVisitor
 import avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import org.jetbrains.annotations.Debug.Renderer

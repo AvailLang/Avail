@@ -80,7 +80,7 @@ import avail.server.messages.binary.editor.BinaryCommand
 import avail.server.messages.binary.editor.ErrorBinaryMessage
 import avail.server.session.Session
 import avail.utility.configuration.ConfigurationException
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress

@@ -40,7 +40,7 @@ import avail.persistence.cache.Repositories
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry.createResolver
 import avail.resolver.ResolverReference
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.net.URI
 import java.util.Collections.singletonList
 import java.util.Collections.synchronizedList

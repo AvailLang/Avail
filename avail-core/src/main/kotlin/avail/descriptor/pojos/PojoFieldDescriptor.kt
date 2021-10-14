@@ -55,7 +55,7 @@ import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MarshalingException
 import avail.exceptions.VariableGetException
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.reflect.Field
 import java.lang.reflect.Modifier
 import java.util.IdentityHashMap

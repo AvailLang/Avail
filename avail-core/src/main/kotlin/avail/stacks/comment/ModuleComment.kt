@@ -41,7 +41,7 @@ import avail.stacks.comment.signature.CommentSignature
 import avail.stacks.module.StacksImportModule
 import avail.stacks.tags.StacksAuthorTag
 import avail.stacks.tags.StacksSeeTag
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 
 /**
  * A comment that describes a particular module

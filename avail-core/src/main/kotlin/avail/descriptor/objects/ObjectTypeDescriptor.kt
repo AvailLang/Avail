@@ -120,7 +120,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.ifZero
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.lang.ref.WeakReference
 import java.util.IdentityHashMap
 import java.util.WeakHashMap

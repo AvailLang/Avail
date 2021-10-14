@@ -34,7 +34,7 @@ package avail.stacks
 
 import avail.stacks.comment.ModuleComment
 import avail.utility.Strings.tabs
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.io.IOException
 import java.nio.charset.StandardCharsets
 import java.nio.file.Files

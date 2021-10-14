@@ -37,7 +37,7 @@ import avail.persistence.IndexedFileException
 import avail.persistence.cache.Repositories
 import avail.persistence.cache.Repository
 import avail.resolver.ModuleRootResolver
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.io.File
 import java.lang.RuntimeException
 

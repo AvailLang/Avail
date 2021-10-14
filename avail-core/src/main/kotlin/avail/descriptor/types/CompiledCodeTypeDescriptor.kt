@@ -46,7 +46,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfCompiledCodeType
 import avail.descriptor.types.CompiledCodeTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import avail.serialization.SerializerOperation
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**

@@ -60,7 +60,7 @@ import avail.stacks.comment.AvailComment
 import avail.stacks.exceptions.StacksCommentBuilderException
 import avail.stacks.exceptions.StacksScannerException
 import avail.stacks.scanner.StacksScanner
-import avail.utility.json.JSONWriter
+import org.availlang.json.JSONWriter
 import java.io.IOException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
