@@ -1,4 +1,4 @@
-package com.avail.anvil
+package avail.anvil
 
 import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.ui.window.Window

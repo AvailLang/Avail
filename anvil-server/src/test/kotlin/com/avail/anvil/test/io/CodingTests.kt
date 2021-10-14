@@ -30,17 +30,17 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package com.avail.anvil.test.io
+package avail.anvil.test.io
 
-import com.avail.anvil.io.decodeList
-import com.avail.anvil.io.decodeString
-import com.avail.anvil.io.encode
-import com.avail.anvil.io.unvlqInt
-import com.avail.anvil.io.unvlqLong
-import com.avail.anvil.io.unzigzagInt
-import com.avail.anvil.io.unzigzagLong
-import com.avail.anvil.io.vlq
-import com.avail.anvil.io.zigzag
+import avail.anvil.io.decodeList
+import avail.anvil.io.decodeString
+import avail.anvil.io.encode
+import avail.anvil.io.unvlqInt
+import avail.anvil.io.unvlqLong
+import avail.anvil.io.unzigzagInt
+import avail.anvil.io.unzigzagLong
+import avail.anvil.io.vlq
+import avail.anvil.io.zigzag
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Assertions.fail

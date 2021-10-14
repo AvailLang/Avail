@@ -263,7 +263,7 @@ open class AvailWorkbenchTask: DefaultTask()
 					"the workbench.jar that will then be run using " +
 					"configurations from the `avail` extension."
 			manifest.attributes["Main-Class"] =
-				"com.avail.environment.AvailWorkbench"
+				"avail.environment.AvailWorkbench"
 			project.mkdir("${project.buildDir}/$WORKBENCH")
 			archiveBaseName.set(workbenchJarBaseName)
 			archiveVersion.set("")

@@ -29,8 +29,8 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.cleanupJars
-import com.avail.build.generateBuildTime
+import avail.build.cleanupJars
+import avail.build.generateBuildTime
 
 plugins {
 	java
@@ -58,7 +58,7 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] =
-			"com.avail.tools.unicode.CatalogGenerator"
+			"avail.tools.unicode.CatalogGenerator"
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 

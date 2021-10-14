@@ -1,4 +1,4 @@
-package com.avail.anvil
+package avail.anvil
 
 import androidx.compose.material.Text
 import androidx.compose.material.Button

@@ -31,18 +31,18 @@
  */
 package org.availlang.sample
 
-import com.avail.AvailRuntime
-import com.avail.builder.AvailBuilder
-import com.avail.builder.ModuleName
-import com.avail.descriptor.module.ModuleDescriptor
-import com.avail.builder.ModuleNameResolver
-import com.avail.builder.ModuleRoots
-import com.avail.builder.RenamesFileParser
-import com.avail.compiler.CompilerProgressReporter
-import com.avail.compiler.GlobalProgressReporter
-import com.avail.compiler.problems.Problem
-import com.avail.compiler.problems.SimpleProblemHandler
-import com.avail.files.FileManager
+import avail.AvailRuntime
+import avail.builder.AvailBuilder
+import avail.builder.ModuleName
+import avail.descriptor.module.ModuleDescriptor
+import avail.builder.ModuleNameResolver
+import avail.builder.ModuleRoots
+import avail.builder.RenamesFileParser
+import avail.compiler.CompilerProgressReporter
+import avail.compiler.GlobalProgressReporter
+import avail.compiler.problems.Problem
+import avail.compiler.problems.SimpleProblemHandler
+import avail.files.FileManager
 
 // This file contains functionality to set up and manage an Avail environment.
 

@@ -29,9 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.AvailSetupContext
-import com.avail.build.generateBootStrap
-import com.avail.build.modules.AvailBootstrapModule
+import avail.build.AvailSetupContext
+import avail.build.generateBootStrap
+import avail.build.modules.AvailBootstrapModule
 
 plugins {
 	java
@@ -75,7 +75,7 @@ tasks {
 		description =
 			"Bootstrap Primitive_<lang>.properties for the current locale."
 		group = "bootstrap"
-		mainClass.set("com.avail.tools.bootstrap.PrimitiveNamesGenerator")
+		mainClass.set("avail.tools.bootstrap.PrimitiveNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
@@ -85,7 +85,7 @@ tasks {
 		description =
 			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
 		group = "bootstrap"
-		mainClass.set("com.avail.tools.bootstrap.ErrorCodeNamesGenerator")
+		mainClass.set("avail.tools.bootstrap.ErrorCodeNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
@@ -95,7 +95,7 @@ tasks {
 		description =
 			"Bootstrap ErrorCodeNames_<lang>.properties for the current locale."
 		group = "bootstrap"
-		mainClass.set("com.avail.tools.bootstrap.SpecialObjectNamesGenerator")
+		mainClass.set("avail.tools.bootstrap.SpecialObjectNamesGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}
@@ -126,7 +126,7 @@ tasks {
 			"Generate the new bootstrap Avail modules for the current locale." +
 				"\n\tThis is used in AvailSetupContext's Project.generateBootStrap."
 		group = "internal"
-		mainClass.set("com.avail.tools.bootstrap.BootstrapGenerator")
+		mainClass.set("avail.tools.bootstrap.BootstrapGenerator")
 		classpath = sourceSets.main.get().runtimeClasspath
 		dependsOn(classes)
 	}

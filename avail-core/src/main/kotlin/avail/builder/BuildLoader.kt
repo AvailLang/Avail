@@ -1,0 +1,697 @@
+/*
+ * BuildLoader.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * All rights reserved.
+ *
+ * Redistribution and use in source and binary forms, with or without
+ * modification, are permitted provided that the following conditions are met:
+ *
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
+ *
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
+ *
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
+ *
+ * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
+ * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
+ * IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE
+ * ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE
+ * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
+ * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF
+ * SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS
+ * INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN
+ * CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
+ * POSSIBILITY OF SUCH DAMAGE.
+ */
+
+package avail.builder
+
+import avail.AvailRuntime
+import avail.AvailRuntimeSupport.captureNanos
+import avail.builder.AvailBuilder.LoadedModule
+import avail.compiler.AvailCompiler
+import avail.compiler.CompilerProgressReporter
+import avail.compiler.GlobalProgressReporter
+import avail.compiler.ModuleHeader
+import avail.compiler.problems.Problem
+import avail.compiler.problems.ProblemHandler
+import avail.compiler.problems.ProblemType.EXECUTION
+import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
+import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
+import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapSize
+import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
+import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.removeFrom
+import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.serializedObjectsMap
+import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.descriptor.types.A_Type.Companion.returnType
+import avail.interpreter.execution.AvailLoader
+import avail.interpreter.execution.AvailLoader.Phase
+import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
+import avail.persistence.IndexedFile
+import avail.persistence.IndexedFile.Companion.appendCRC
+import avail.persistence.IndexedFile.Companion.validatedBytesFrom
+import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ModuleCompilation
+import avail.persistence.cache.Repository.ModuleCompilationKey
+import avail.persistence.cache.Repository.ModuleVersion
+import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.serialization.Deserializer
+import avail.serialization.MalformedSerialStreamException
+import avail.serialization.Serializer
+import avail.utility.evaluation.Combinator.recurse
+import java.lang.String.format
+import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicLong
+import java.util.logging.Level
+import kotlin.math.min
+
+/**
+ * Used for parallel-loading modules in the
+ * [module&#32;graph][AvailBuilder.moduleGraph].
+ *
+ * @property availBuilder
+ *   The [AvailBuilder] for which we're loading.
+ * @property localTracker
+ *   The [CompilerProgressReporter] to invoke when a top-level statement is
+ *   unambiguously parsed.
+ * @property globalTracker
+ *   The [GlobalProgressReporter] to invoke when a top-level statement is
+ *   unambiguously parsed.
+ * @property problemHandler
+ *   The [ProblemHandler] to use when compilation [Problem]s are encountered.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct a new `BuildLoader`.
+ *
+ * @param availBuilder
+ *   The [AvailBuilder] for which to load modules.
+ * @param localTracker
+ *   The [CompilerProgressReporter] to invoke when a top-level statement is
+ *   unambiguously parsed.
+ * @param globalTracker
+ *   The [GlobalProgressReporter] to invoke when a top-level statement is
+ *   unambiguously parsed.
+ * @param problemHandler
+ *   How to handle or report [Problem]s that arise during the build.
+ */
+internal class BuildLoader constructor(
+	val availBuilder: AvailBuilder,
+	private val localTracker: CompilerProgressReporter,
+	private val globalTracker: GlobalProgressReporter,
+	private val problemHandler: ProblemHandler)
+{
+	/** The size, in bytes, of all source files that will be built. */
+	private val globalCodeSize: Long
+
+	/** The number of bytes compiled so far. */
+	private val bytesCompiled = AtomicLong(0L)
+
+	init
+	{
+		var size = 0L
+		for (mod in availBuilder.moduleGraph.vertices)
+		{
+			size += mod.moduleSize
+		}
+		globalCodeSize = size
+	}
+
+	/**
+	 * Schedule a build of the specified [module][ModuleDescriptor], on the
+	 * assumption that its predecessors have already been built.
+	 *
+	 * @param target
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
+	 * @param completionAction
+	 *   The action to perform after this module
+	 */
+	private fun scheduleLoadModule(
+		target: ResolvedModuleName,
+		completionAction: ()->Unit)
+	{
+		// Avoid scheduling new tasks if an exception has happened.
+		if (availBuilder.shouldStopBuild)
+		{
+			postLoad(target, 0L)
+			availBuilder.runtime.execute(loaderPriority, completionAction)
+			return
+		}
+		availBuilder.runtime.execute(loaderPriority) {
+			if (availBuilder.shouldStopBuild)
+			{
+				// An exception has been encountered since the earlier check.
+				// Exit quickly.
+				availBuilder.runtime.execute(loaderPriority, completionAction)
+			}
+			else
+			{
+				loadModule(target, completionAction)
+			}
+		}
+	}
+
+	/**
+	 * Load the specified [module][ModuleDescriptor] into the
+	 * [Avail&#32;runtime][AvailRuntime]. If a current compiled module is
+	 * available from the [repository][Repository], then simply load it.
+	 * Otherwise, [compile][AvailCompiler] the module, store it into the
+	 * repository, and then load it.
+	 *
+	 * Note that the predecessors of this module must have already been loaded.
+	 *
+	 * @param moduleName
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
+	 * @param completionAction
+	 *   What to do after loading the module successfully.
+	 */
+	private fun loadModule(
+		moduleName: ResolvedModuleName,
+		completionAction: ()->Unit)
+	{
+		globalTracker(bytesCompiled.get(), globalCodeSize)
+		// If the module is already loaded into the runtime, then we must not
+		// reload it.
+		val isLoaded = availBuilder.getLoadedModule(moduleName) !== null
+
+		assert(
+			isLoaded == availBuilder.runtime.includesModuleNamed(
+				stringFrom(moduleName.qualifiedName)))
+		if (isLoaded)
+		{
+			// The module is already loaded.
+			AvailBuilder.log(
+				Level.FINEST,
+				"Already loaded: %s",
+				moduleName.qualifiedName)
+			postLoad(moduleName, 0L)
+			// Since no fiber was created for running the module loading, we
+			// still have the responsibility to run the completionAction.  If
+			// we run it right now in the current thread, it will recurse,
+			// potentially deeply, as the already-loaded part of the module
+			// graph is skipped in this way.  To avoid this deep stack, queue a
+			// task run the completionAction.
+			availBuilder.runtime.execute(loaderPriority, completionAction)
+		}
+		else
+		{
+			val repository = moduleName.repository
+			val archive = repository.getArchive(moduleName.rootRelativeName)
+			archive.digestForFile(
+				moduleName,
+				false,
+				{ digest ->
+					val versionKey = ModuleVersionKey(moduleName, digest)
+					val version = archive.getVersion(versionKey) ?: error(
+						"Version should have been populated during tracing")
+					val imports = version.imports
+					val resolver = availBuilder.runtime.moduleNameResolver
+					val loadedModulesByName = mutableMapOf<String, LoadedModule>()
+					for (localName in imports)
+					{
+						val resolvedName: ResolvedModuleName
+						try
+						{
+							resolvedName = resolver.resolve(
+								moduleName.asSibling(localName), moduleName)
+						}
+						catch (e: UnresolvedDependencyException)
+						{
+							availBuilder.stopBuildReason =
+								format(
+									"A module predecessor was malformed or absent: "
+										+ "%s -> %s\n",
+									moduleName.qualifiedName,
+									localName)
+							completionAction()
+							return@digestForFile
+						}
+
+						val loadedPredecessor =
+							availBuilder.getLoadedModule(resolvedName)!!
+						loadedModulesByName[localName] = loadedPredecessor
+					}
+					val predecessorCompilationTimes = LongArray(imports.size)
+					for (i in predecessorCompilationTimes.indices)
+					{
+						val loadedPredecessor = loadedModulesByName[imports[i]]!!
+						predecessorCompilationTimes[i] =
+							loadedPredecessor.compilation.compilationTime
+					}
+					val compilationKey =
+						ModuleCompilationKey(predecessorCompilationTimes)
+					val compilation = version.getCompilation(compilationKey)
+					if (compilation !== null)
+					{
+						// The current version of the module is already compiled, so
+						// load the repository's version.
+						loadRepositoryModule(
+							moduleName,
+							version,
+							compilation,
+							versionKey.sourceDigest,
+							completionAction)
+					}
+					else
+					{
+						// Compile the module and cache its compiled form.
+						compileModule(
+							moduleName,
+							compilationKey,
+							completionAction)
+					}
+				}) { code, ex ->
+				// TODO figure out what to do with these!!! Probably report them?
+				System.err.println(
+					"Received ErrorCode: $code with exception:\n")
+				ex?.printStackTrace()
+			}
+		}
+	}
+
+	/**
+	 * Load the specified [module][ModuleDescriptor] from the
+	 * [repository][Repository] and into the
+	 * [runtime][AvailRuntime].
+	 *
+	 * Note that the predecessors of this module must have already been loaded.
+	 *
+	 * @param moduleName
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
+	 * @param version
+	 *   The [ModuleVersion] containing information about this module.
+	 * @param compilation
+	 *   The [ModuleCompilation] containing information about the particular
+	 *   stored compilation of this module in the repository.
+	 * @param sourceDigest
+	 *   The cryptographic digest of the module's source code.
+	 * @param completionAction
+	 *   What to do after loading the module successfully.
+	 */
+	private fun loadRepositoryModule(
+		moduleName: ResolvedModuleName,
+		version: ModuleVersion,
+		compilation: ModuleCompilation,
+		sourceDigest: ByteArray,
+		completionAction: ()->Unit)
+	{
+		localTracker(moduleName, moduleName.moduleSize, 0L, 0)
+		val module = newModule(stringFrom(moduleName.qualifiedName))
+		// Set up the block phrases field with an A_Number, so that requests for
+		// block phrases will retrieve them from the repository.
+		module.getAndSetTupleOfBlockPhrases(
+			fromLong(compilation.recordNumberOfBlockPhrases))
+		val availLoader = AvailLoader(module, availBuilder.textInterface)
+		availLoader.prepareForLoadingModuleBody()
+		val fail = { e: Throwable ->
+			module.removeFrom(availLoader) {
+				postLoad(moduleName, 0L)
+				val problem = object : Problem(
+					moduleName,
+					1,
+					1,
+					EXECUTION,
+					"Problem loading module: {0}",
+					e.localizedMessage ?: e.toString())
+				{
+					override fun abortCompilation()
+					{
+						availBuilder.stopBuildReason = "Problem loading module"
+						completionAction()
+					}
+				}
+				problemHandler.handle(problem)
+			}
+		}
+		// Read the module header from the repository.
+		try
+		{
+			val bytes = version.moduleHeader
+			val inputStream = validatedBytesFrom(bytes)
+			val deserializer = Deserializer(inputStream, availBuilder.runtime)
+			val header = ModuleHeader(moduleName)
+			header.deserializeHeaderFrom(deserializer)
+			val errorString = header.applyToModule(availLoader)
+			if (errorString !== null)
+			{
+				throw RuntimeException(errorString)
+			}
+		}
+		catch (e: MalformedSerialStreamException)
+		{
+			fail(e)
+			return
+		}
+		catch (e: RuntimeException)
+		{
+			fail(e)
+			return
+		}
+
+		val deserializer: Deserializer
+		try
+		{
+			// Read the module data from the repository.
+			val bytes = compilation.bytes
+			val inputStream = validatedBytesFrom(bytes)
+			deserializer = Deserializer(inputStream, availBuilder.runtime) {
+				throw Exception("Not yet implemented") // TODO MvG
+			}
+			deserializer.currentModule = module
+		}
+		catch (e: MalformedSerialStreamException)
+		{
+			fail(e)
+			return
+		}
+		catch (e: RuntimeException)
+		{
+			fail(e)
+			return
+		}
+
+		// Run each zero-argument block, one after another.
+		recurse { runNext ->
+			availLoader.setPhase(Phase.LOADING)
+			val function: A_Function?
+			try
+			{
+				function =
+					if (availBuilder.shouldStopBuild) null
+					else deserializer.deserialize()
+			}
+			catch (e: MalformedSerialStreamException)
+			{
+				fail(e)
+				return@recurse
+			}
+			catch (e: RuntimeException)
+			{
+				fail(e)
+				return@recurse
+			}
+
+			when
+			{
+				function !== null ->
+				{
+					val fiber = newLoaderFiber(
+						function.kind().returnType,
+						availLoader
+					) {
+						val code = function.code()
+						formatString(
+							"Load repo module %s, in %s:%d",
+							code.methodName,
+							code.module.moduleName,
+							code.codeStartingLineNumber)
+					}
+					fiber.setTextInterface(availBuilder.textInterface)
+					val before = fiber.fiberHelper().fiberTime()
+					fiber.setSuccessAndFailure(
+						{
+							val after = fiber.fiberHelper().fiberTime()
+							Interpreter.current().recordTopStatementEvaluation(
+								(after - before).toDouble(), module)
+							runNext()
+						},
+						fail)
+					availLoader.setPhase(Phase.EXECUTING_FOR_LOAD)
+					if (AvailLoader.debugLoadedStatements)
+					{
+						println(
+							module.toString()
+								+ ":" + function.code()
+								.codeStartingLineNumber
+								+ " Running precompiled -- " + function)
+					}
+					runOutermostFunction(
+						availBuilder.runtime, fiber, function, emptyList())
+				}
+				availBuilder.shouldStopBuild ->
+					module.removeFrom(availLoader) {
+						postLoad(moduleName, 0L)
+						completionAction()
+					}
+				else ->
+				{
+					module.serializedObjects(deserializer.serializedObjects())
+					availBuilder.runtime.addModule(module)
+					val loadedModule = LoadedModule(
+						moduleName,
+						sourceDigest,
+						module,
+						version,
+						compilation)
+					availBuilder.putLoadedModule(moduleName, loadedModule)
+					postLoad(moduleName, 0L)
+					completionAction()
+				}
+			}
+		}
+	}
+
+	/**
+	 * Compile the specified [module][ModuleDescriptor], store it into the
+	 * [repository][Repository], and then load it into the
+	 * [Avail&#32;runtime][AvailRuntime].
+	 *
+	 * Note that the predecessors of this module must have already been loaded.
+	 *
+	 * @param moduleName
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that should
+	 *   be loaded.
+	 * @param compilationKey
+	 *   The circumstances of compilation of this module.  Currently this is
+	 *   just the compilation times (`long`s) of the module's currently loaded
+	 *   predecessors, listed in the same order as the module's
+	 *   [imports][ModuleHeader.importedModules].
+	 * @param completionAction
+	 *   What to do after loading the module successfully or unsuccessfully.
+	 */
+	private fun compileModule(
+		moduleName: ResolvedModuleName,
+		compilationKey: ModuleCompilationKey,
+		completionAction: ()->Unit)
+	{
+		val repository = moduleName.repository
+		val archive = repository.getArchive(moduleName.rootRelativeName)
+		archive.digestForFile(
+			moduleName,
+			false,
+			{ digest ->
+				val versionKey = ModuleVersionKey(moduleName, digest)
+				var lastPosition = 0L
+				val ranOnce = AtomicBoolean(false)
+				AvailCompiler.create(
+					moduleName,
+					availBuilder.runtime,
+					availBuilder.textInterface,
+					availBuilder.pollForAbort,
+					{ moduleName2, moduleSize, position, line ->
+						assert(moduleName == moduleName2)
+						// Don't reach the full module size yet.  A separate
+						// update at 100% will be sent after post-loading
+						// actions are complete.
+						localTracker(
+							moduleName,
+							moduleSize,
+							min(position, moduleSize - 1),
+							line)
+						globalTracker(
+							bytesCompiled.addAndGet(position - lastPosition),
+							globalCodeSize)
+						lastPosition = position
+					},
+					{
+						postLoad(moduleName, lastPosition)
+						completionAction()
+					},
+					problemHandler
+				) { compiler: AvailCompiler ->
+					compiler.parseModule(
+						{ module ->
+							val old = ranOnce.getAndSet(true)
+							assert(!old) {
+								"Completed module compilation twice!"
+							}
+							val stream = compiler.compilationContext
+								.serializerOutputStream
+							appendCRC(stream)
+
+							// Also produce the serialization of the module's
+							// tuple of block phrases.
+							val blockPhrasesOutputStream =
+								IndexedFile.ByteArrayOutputStream(5000)
+							val bodyObjectsMap =
+								compiler.compilationContext.serializer
+									.serializedObjectsMap()
+							// Ensure the primed objects are always at strictly
+							// negative indices.
+							val delta = bodyObjectsMap.mapSize + 1
+							val blockPhraseSerializer = Serializer(
+								blockPhrasesOutputStream,
+								module
+							) { obj ->
+								when (bodyObjectsMap.hasKey(obj))
+								{
+									true ->
+										bodyObjectsMap
+											.mapAt(obj)
+											.extractInt - delta
+									else -> 0
+								}
+							}
+							blockPhraseSerializer.serialize(
+								module.getAndSetTupleOfBlockPhrases(nil))
+							appendCRC(blockPhrasesOutputStream)
+
+							// This is the moment of compilation.
+							val compilationTime = System.currentTimeMillis()
+							val compilation = repository.ModuleCompilation(
+								compilationTime,
+								stream.toByteArray(),
+								blockPhrasesOutputStream.toByteArray())
+							archive.putCompilation(
+								versionKey, compilationKey, compilation)
+
+							// Serialize the Stacks comments.
+							val out = IndexedFile.ByteArrayOutputStream(100)
+							// TODO MvG - Capture "/**" comments for Stacks.
+							//		final A_Tuple comments = fromList(
+							//         module.commentTokens());
+							val comments = emptyTuple
+							val serializer = Serializer(out, module)
+							serializer.serialize(comments)
+							module.getAndSetTupleOfBlockPhrases(
+								fromLong(
+									compilation.recordNumberOfBlockPhrases))
+							appendCRC(out)
+
+							val version = archive.getVersion(versionKey)!!
+							version.putComments(out.toByteArray())
+
+							repository.commitIfStaleChanges(
+								AvailBuilder.maximumStaleRepositoryMs)
+							postLoad(moduleName, lastPosition)
+							module.serializedObjects(
+								serializer.serializedObjects())
+							module.serializedObjectsMap(
+								serializer.serializedObjectsMap())
+							availBuilder.putLoadedModule(
+								moduleName,
+								LoadedModule(
+									moduleName,
+									versionKey.sourceDigest,
+									module,
+									version,
+									compilation))
+							completionAction()
+						},
+						{
+							postLoad(moduleName, lastPosition)
+							completionAction()
+						})
+				}
+			}
+		) { code, ex ->
+			// TODO figure out what to do with these!!! Probably report them?
+			System.err.println(
+				"Received ErrorCode: $code with exception:\n")
+			ex?.printStackTrace()
+		}
+	}
+
+	/**
+	 * Report progress related to this module.  In particular, note that the
+	 * current module has advanced from its provided lastPosition to the end of
+	 * the module.
+	 *
+	 * @param moduleName
+	 *   The [resolved&#32;name][ResolvedModuleName] of the module that just
+	 *   finished loading.
+	 * @param lastPosition
+	 *   The last local file position previously reported.
+	 */
+	private fun postLoad(moduleName: ResolvedModuleName, lastPosition: Long)
+	{
+		val moduleSize = moduleName.moduleSize
+		globalTracker(
+			bytesCompiled.addAndGet(moduleSize - lastPosition),
+			globalCodeSize)
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE)
+	}
+
+	/**
+	 * Load the modules in the [AvailBuilder.moduleGraph].
+	 *
+	 * @param afterAll
+	 *   What to do after all module loading completes, whether successful or
+	 *   not.
+	 */
+	fun loadThen(afterAll: ()->Unit)
+	{
+		bytesCompiled.set(0L)
+		val vertexCountBefore = availBuilder.moduleGraph.vertexCount
+		availBuilder.moduleGraph.parallelVisitThen(
+			{ vertex, done -> scheduleLoadModule(vertex, done) },
+			{
+				try
+				{
+					assert(
+						availBuilder.moduleGraph.vertexCount
+							== vertexCountBefore)
+					availBuilder.runtime
+						.moduleNameResolver
+						.commitRepositories()
+					// Parallel load has now completed or failed. Clean up any
+					// modules that didn't load.  There can be no loaded
+					// successors of unloaded modules, so they can all be
+					// excised safely.
+					availBuilder.trimGraphToLoadedModules()
+				}
+				finally
+				{
+					afterAll()
+				}
+			})
+	}
+
+	/**
+	 * Load the modules in the [AvailBuilder.moduleGraph], blocking until all
+	 * loading completes, whether successful or not.
+	 */
+	fun load()
+	{
+		val semaphore = Semaphore(0)
+		loadThen { semaphore.release() }
+		semaphore.acquireUninterruptibly()
+	}
+}

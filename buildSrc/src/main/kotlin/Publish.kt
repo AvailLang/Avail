@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.avail.build.Utility.formattedNow
+import avail.build.Utility.formattedNow
 import org.gradle.api.DefaultTask
 
 /**
