@@ -36,6 +36,7 @@ import androidx.compose.foundation.ExperimentalDesktopApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -45,12 +46,20 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.layout.wrapContentHeight
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.mouseClickable
+import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.CircularProgressIndicator
+import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.material.TextFieldColors
+import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,6 +69,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -229,10 +239,13 @@ sealed class AvailNode constructor(
 				val textColor =
 					if (active.value) LoadedStyle.color.copy(alpha = 0.6f)
 					else LoadedStyle.color
-				Text(
-					text = reference.localName,
-					color = textColor,
-					fontSize = LoadedStyle.size,
+				BasicTextField(
+					value = reference.localName,
+					onValueChange = {},
+					readOnly = true,
+					textStyle = LocalTextStyle.current.copy(
+						color = textColor,
+						fontSize = LoadedStyle.size),
 					modifier = Modifier
 						.align(Alignment.CenterVertically)
 						.clipToBounds()
@@ -440,10 +453,13 @@ class ModulePackageNode constructor(
 //				ContextMenuArea( { listOf(
 //					ContextMenuItem("Fooey") { println("Did it")}
 //				)}) {
-				Text(
-					text = reference.localName,
-					color = textColor,
-					fontSize = LoadedStyle.size,
+				BasicTextField(
+					value = reference.localName,
+					onValueChange = {},
+					readOnly = true,
+					textStyle = LocalTextStyle.current.copy(
+						color = textColor,
+						fontSize = LoadedStyle.size),
 					modifier = textModifier
 						.align(Alignment.CenterVertically)
 						.clipToBounds()
@@ -576,9 +592,7 @@ class ModuleNode constructor(
 			modifier = modifier.padding(vertical = 3.dp),
 			verticalAlignment = Alignment.CenterVertically)
 		{
-//			ExpandableIcon(expanded)
 			Spacer(Modifier.padding(start = indentPadding).width(23.dp))
-//			Spacer(Modifier.width(5.dp))
 			FileIcon()
 			Spacer(Modifier.width(4.dp))
 			SelectionContainer {
@@ -586,16 +600,31 @@ class ModuleNode constructor(
 				val textColor =
 					if (active.value) LoadedStyle.color.copy(alpha = 0.6f)
 					else LoadedStyle.color
-				Text(
-					text = reference.localName,
-					color = textColor,
-					fontSize = LoadedStyle.size,
+				BasicTextField(
+					value = reference.localName,
+					onValueChange = {},
+					readOnly = true,
+					singleLine = true,
+					textStyle = LocalTextStyle.current.copy(
+						color = textColor,
+						fontSize = LoadedStyle.size),
 					modifier = Modifier
+						.widthIn(min = 0.dp)
+						.wrapContentWidth(Alignment.Start)
+//						.heightIn(min = 0.dp, max = 50.dp)
+//						.wrapContentHeight(Alignment.CenterVertically)
 						.mouseClickable(
 							onClick = {
+								println("FEED ME")
+								val primary = buttons.isPrimaryPressed
+								val shift = keyboardModifiers.isShiftPressed
+								val modifiers = keyboardModifiers.value
+								val buttonstuff = buttons.value
+								println("primary: $primary\nshift: $shift\nmodifiers: $modifiers\nbuttons: $buttonstuff")
 								if (buttons.isPrimaryPressed
 									&& keyboardModifiers.isShiftPressed)
 								{
+									println("I did it!")
 									isbuilding.value =
 										build { isbuilding.value = false }
 								}

@@ -35,7 +35,7 @@ package avail.anvil.models
 import androidx.compose.foundation.ScrollState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
-import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.WindowPlacement
 import androidx.compose.ui.window.WindowPosition
@@ -47,6 +47,9 @@ import avail.anvil.Anvil.VERSION
 import avail.anvil.Anvil.defaults
 import com.avail.AvailRuntime
 import avail.anvil.screens.ProjectWindow
+import avail.anvil.streams.AnvilOutputStream
+import avail.anvil.streams.StreamStyle
+import avail.anvil.streams.StyledStreamEntry
 import avail.anvil.utilities.createAvailRuntime
 import com.avail.builder.AvailBuilder
 import com.avail.builder.ModuleName
@@ -456,6 +459,14 @@ data class Project constructor(
 	private val isBuilding = AtomicBoolean(false)
 
 	/**
+	 * The output stream to write to.
+	 */
+	val output = AnvilOutputStream()
+
+	fun outputAsAnnotatedString (isDark: Boolean): AnnotatedString =
+		output.toAnvilInputStream().toAnnotatedString(isDark)
+
+	/**
 	 * The list of String errors received while resolving module roots for this
 	 * project.
 	 */
@@ -607,6 +618,8 @@ data class Project constructor(
 		{
 			return false
 		}
+		output.write(StyledStreamEntry(
+			StreamStyle.COMMAND, "Build $qualifiedModuleName\n"))
 		val resolvedModuleName =
 			builder.runtime.moduleNameResolver.resolve(
 				ModuleName(qualifiedModuleName), null)
@@ -628,6 +641,7 @@ data class Project constructor(
 				// module. This can be used to show a counter counting up:
 				// "$bytesCompiled / $totalBytesToCompile"
 			}
+		val start = System.currentTimeMillis()
 		builder.buildTargetThen(
 			resolvedModuleName,
 			progressReporter,
@@ -643,12 +657,16 @@ data class Project constructor(
 						val adjustedLine = lineNumber - 5
 						"$moduleName, line $adjustedLine:\n$this"
 					}
-					System.err.println(problemText)
+					output.write(
+						StyledStreamEntry(StreamStyle.ERR, problemText))
 					decider(false)
 				}
 			}
 		) {
 			done()
+			output.write(StyledStreamEntry(
+				StreamStyle.INFO,
+				"Build ended $qualifiedModuleName\n (${System.currentTimeMillis() - start} ms)"))
 			isBuilding.set(false)
 		}
 		return true

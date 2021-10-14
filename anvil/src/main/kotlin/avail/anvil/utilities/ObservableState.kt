@@ -32,7 +32,8 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 class ObservableState<T> constructor(
 	state: T,
-	private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Default))
+	private val scope: CoroutineScope =
+		CoroutineScope(SupervisorJob() + Dispatchers.Default))
 {
 	/**
 	 * The wrapped state that, when changes, notifies all interested observers.

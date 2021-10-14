@@ -32,47 +32,23 @@
 
 package avail.anvil
 
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.defaultMinSize
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.CircularProgressIndicator
-import androidx.compose.material.Scaffold
 import androidx.compose.material.Surface
 import androidx.compose.material.Text
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.platform.LocalAccessibilityManager
-import androidx.compose.ui.platform.LocalAutofill
-import androidx.compose.ui.platform.LocalAutofillTree
-import androidx.compose.ui.platform.LocalClipboardManager
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.platform.LocalFocusManager
-import androidx.compose.ui.platform.LocalFontLoader
-import androidx.compose.ui.platform.LocalHapticFeedback
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.platform.LocalTextInputService
-import androidx.compose.ui.platform.LocalTextToolbar
-import androidx.compose.ui.platform.LocalUriHandler
-import androidx.compose.ui.platform.LocalViewConfiguration
-import androidx.compose.ui.platform.LocalWindowInfo
-import androidx.compose.ui.platform.ViewConfiguration
-import androidx.compose.ui.platform.WindowInfo
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.unit.Density
-import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Tray
 import androidx.compose.ui.window.Window
@@ -82,7 +58,6 @@ import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberNotification
 import androidx.compose.ui.window.rememberTrayState
 import androidx.compose.ui.window.rememberWindowState
-import avail.anvil.components.AsyncImage
 import avail.anvil.components.AsyncSvg
 import avail.anvil.screens.ProjectManagerView
 import avail.anvil.themes.ImageResources
@@ -97,7 +72,7 @@ fun main()
 	Anvil.initialize()
 	application {
 		val trayState = rememberTrayState()
-		val openProjectManager = remember { Anvil.projectManagerIsOpen }
+		var openProjectManager by remember { Anvil.projectManagerIsOpen }
 		val notification =
 			rememberNotification("Notification", "Welcome to Anvil")
 		Tray(
@@ -127,10 +102,10 @@ fun main()
 		CompositionLocalProvider(LocalTheme provides anvilTheme()) {
 			var beginShowingScreens by remember { Anvil.isSufficientlyLoadedFromDisk }
 
-			if (Anvil.projectManagerIsOpen.value)
+			if (openProjectManager)
 			{
 				ProjectManagerView {
-					Anvil.projectManagerIsOpen.value = false
+					openProjectManager = false
 				}
 			}
 			else

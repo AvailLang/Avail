@@ -62,6 +62,7 @@ import kotlin.coroutines.CoroutineContext
  */
 object Anvil: JSONFriendly
 {
+	// TODO comment me!
 	val projectManagerIsOpen =  mutableStateOf(false)
 
 	/**
