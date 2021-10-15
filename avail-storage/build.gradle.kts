@@ -29,49 +29,40 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import avail.build.cleanupJars
 import avail.build.generateBuildTime
-import avail.build.releaseSubproject
-
+import avail.build.modules.AvailStorageModule
 plugins {
-	java
-	kotlin("jvm")
-	id("com.github.johnrengelman.shadow")
+    java
+    kotlin("jvm")
+    `maven-publish`
+    publishing
 }
 
+group = "org.availlang"
+version = "1.6.0.20211015.010321"
+
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	implementation(project(":avail-storage"))
-	implementation(project(":avail-core"))
+    implementation(kotlin("stdlib"))
+    testImplementation(project(":avail-json"))
+    AvailStorageModule.addDependencies(this)
 }
 
 tasks {
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
+    val sourceJar by creating(Jar::class) {
+        description = "Creates sources JAR."
+        dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        archiveClassifier.set("sources")
+        from(sourceSets["main"].allSource)
+    }
 
-	// Produce a fat JAR for the IndexFileAnalyzer.
-	jar {
-		doFirst { cleanupJars() }
-		manifest.attributes["Main-Class"] =
-			"avail.tools.fileanalyzer.IndexedFileAnalyzer"
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-	}
-
-	// Copy the JAR into the distribution directory.
-	val releaseIndexedFileAnalyzer by creating(Copy::class) {
-		releaseSubproject(
-			this,
-			"indexed-file-analyzer.jar",
-			shadowJar.get().outputs.files)
-	}
-
-	// Update the dependencies of "assemble".
-	assemble { dependsOn(releaseIndexedFileAnalyzer) }
+    // Update the dependencies of "classes".
+    classes {
+        doLast {
+            generateBuildTime(this)
+        }
+    }
 }

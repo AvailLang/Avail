@@ -1,5 +1,3 @@
-import avail.build.generateBuildTime
-
 /*
  * build.gradle.kts
  * Copyright © 1993-2021, The Avail Foundation, LLC.
@@ -31,6 +29,7 @@ import avail.build.generateBuildTime
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import avail.build.generateBuildTime
 import avail.build.modules.AvailJsonModule
 
 plugins {

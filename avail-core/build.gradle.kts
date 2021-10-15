@@ -52,6 +52,7 @@ repositories {
 
 dependencies {
 	implementation(project(":avail-json"))
+	implementation(project(":avail-storage"))
 	testApi(project(":avail-test-utility"))
 	AvailCoreModule.addDependencies(this)
 }
