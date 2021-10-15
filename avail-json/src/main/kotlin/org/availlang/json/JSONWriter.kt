@@ -164,7 +164,7 @@ class JSONWriter : AutoCloseable
 	}
 
 	/**
-	 * A {@JSONState} represents the [writer][JSONWriter]'s view of what
+	 * A `JSONState` represents the [writer][JSONWriter]'s view of what
 	 * operations are legal based on what operations have become before.
 	 */
 	internal enum class JSONState

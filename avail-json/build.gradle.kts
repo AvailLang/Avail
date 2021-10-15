@@ -1,3 +1,5 @@
+import avail.build.generateBuildTime
+
 /*
  * build.gradle.kts
  * Copyright © 1993-2021, The Avail Foundation, LLC.
@@ -29,49 +31,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import avail.build.cleanupJars
-import avail.build.generateBuildTime
+import avail.build.modules.AvailJsonModule
 
 plugins {
-	java
-	kotlin("jvm")
-	id("com.github.johnrengelman.shadow")
+    java
+    kotlin("jvm")
+    `maven-publish`
+    publishing
 }
 
+group = "org.availlang"
+version = "1.6.0.20211014.232537"
+
 repositories {
-	mavenCentral()
+    mavenCentral()
 }
 
 dependencies {
-	// Avail.
-	implementation(project(":avail-json"))
-	implementation(project(":avail-core"))
+    implementation(kotlin("stdlib"))
+   AvailJsonModule.addDependencies(this)
 }
+
 tasks {
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
+    val sourceJar by creating(Jar::class) {
+        description = "Creates sources JAR."
+        dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+        archiveClassifier.set("sources")
+        from(sourceSets["main"].allSource)
+    }
 
-	// Produce a fat JAR for the Avail CLI.
-	jar {
-		doFirst { cleanupJars() }
-		manifest.attributes["Main-Class"] =
-			"avail.tools.unicode.CatalogGenerator"
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-	}
-
-	// Copy the JAR into the distribution directory.
-	val releaseUnicodeGenerator by creating(Copy::class) {
-		group = "release"
-		from(shadowJar.get().outputs.files)
-		into(file("${rootProject.projectDir}/distro/lib"))
-		rename(".*", "unicode-catalog.jar")
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-	}
-
-	// Update the dependencies of "assemble".
-	assemble { dependsOn(releaseUnicodeGenerator) }
+    // Update the dependencies of "classes".
+    classes {
+        doLast {
+            generateBuildTime(this)
+        }
+    }
 }

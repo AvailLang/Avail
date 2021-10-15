@@ -52,6 +52,7 @@ repositories {
 
 dependencies {
 	// Avail.
+	implementation(project(":avail-json"))
 	implementation(project(":avail-core"))
 	AvailWorkbenchModule.addDependencies(this)
 }

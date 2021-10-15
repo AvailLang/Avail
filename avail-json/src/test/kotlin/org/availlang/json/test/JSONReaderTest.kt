@@ -30,22 +30,22 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.test
+package org.availlang.json.test
 
-import avail.test.TestJSONKeyValue.Companion
-import avail.test.TestJSONKeyValue.IMACOMPACTARRAY
-import avail.test.TestJSONKeyValue.IMADOUBLE
-import avail.test.TestJSONKeyValue.IMAFALSE
-import avail.test.TestJSONKeyValue.IMAFLOAT
-import avail.test.TestJSONKeyValue.IMALONG
-import avail.test.TestJSONKeyValue.IMANARRAY
-import avail.test.TestJSONKeyValue.IMANINT
-import avail.test.TestJSONKeyValue.IMANOBJECT
-import avail.test.TestJSONKeyValue.IMANULL
-import avail.test.TestJSONKeyValue.IMASTRING
-import avail.test.TestJSONKeyValue.IMATRUE
-import avail.test.TestJSONKeyValue.OBJINT
-import avail.test.TestJSONKeyValue.OBJSTRING
+import org.availlang.json.test.TestJSONKeyValue.Companion
+import org.availlang.json.test.TestJSONKeyValue.IMACOMPACTARRAY
+import org.availlang.json.test.TestJSONKeyValue.IMADOUBLE
+import org.availlang.json.test.TestJSONKeyValue.IMAFALSE
+import org.availlang.json.test.TestJSONKeyValue.IMAFLOAT
+import org.availlang.json.test.TestJSONKeyValue.IMALONG
+import org.availlang.json.test.TestJSONKeyValue.IMANARRAY
+import org.availlang.json.test.TestJSONKeyValue.IMANINT
+import org.availlang.json.test.TestJSONKeyValue.IMANOBJECT
+import org.availlang.json.test.TestJSONKeyValue.IMANULL
+import org.availlang.json.test.TestJSONKeyValue.IMASTRING
+import org.availlang.json.test.TestJSONKeyValue.IMATRUE
+import org.availlang.json.test.TestJSONKeyValue.OBJINT
+import org.availlang.json.test.TestJSONKeyValue.OBJSTRING
 import org.availlang.json.JSONException
 import org.availlang.json.JSONIOException
 import org.availlang.json.JSONObject

@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.test
+package org.availlang.json.test
 
 import org.availlang.json.JSONNumber
 import org.availlang.json.JSONObject

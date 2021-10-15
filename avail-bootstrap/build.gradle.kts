@@ -44,6 +44,7 @@ repositories {
 }
 
 dependencies {
+	implementation(project(":avail-json"))
 	implementation(project(":avail-core"))
 	AvailBootstrapModule.addDependencies(this)
 }
