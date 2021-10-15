@@ -39,6 +39,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import org.availlang.persistence.MalformedSerialStreamException
 import java.io.InputStream
 
 /**

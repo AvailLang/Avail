@@ -35,7 +35,7 @@ package avail.builder
 import avail.annotations.ThreadSafe
 import avail.descriptor.module.ModuleDescriptor
 import avail.persistence.cache.Repositories
-import avail.utility.LRUCache
+import org.availlang.cache.LRUCache
 import java.io.File
 import java.util.Collections
 

@@ -34,36 +34,36 @@ import avail.build.generateBuildTime
 import avail.build.modules.AvailJsonModule
 
 plugins {
-    java
-    kotlin("jvm")
-    `maven-publish`
-    publishing
+	java
+	kotlin("jvm")
+	`maven-publish`
+	publishing
 }
 
 group = "org.availlang"
 version = "1.6.0.20211014.232537"
 
 repositories {
-    mavenCentral()
+	mavenCentral()
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
-   AvailJsonModule.addDependencies(this)
+	implementation(kotlin("stdlib"))
+	AvailJsonModule.addDependencies(this)
 }
 
 tasks {
-    val sourceJar by creating(Jar::class) {
-        description = "Creates sources JAR."
-        dependsOn(JavaPlugin.CLASSES_TASK_NAME)
-        archiveClassifier.set("sources")
-        from(sourceSets["main"].allSource)
-    }
+	val sourceJar by creating(Jar::class) {
+		description = "Creates sources JAR."
+		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+		archiveClassifier.set("sources")
+		from(sourceSets["main"].allSource)
+	}
 
-    // Update the dependencies of "classes".
-    classes {
-        doLast {
-            generateBuildTime(this)
-        }
-    }
+	// Update the dependencies of "classes".
+	classes {
+		doLast {
+			generateBuildTime(this)
+		}
+	}
 }

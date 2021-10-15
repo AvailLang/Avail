@@ -53,7 +53,7 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.interpreter.execution.AvailLoader
 import avail.serialization.Deserializer
-import avail.serialization.MalformedSerialStreamException
+import org.availlang.persistence.MalformedSerialStreamException
 import avail.serialization.Serializer
 
 /**

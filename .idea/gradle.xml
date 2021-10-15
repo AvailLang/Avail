@@ -17,6 +17,7 @@
             <option value="$PROJECT_DIR$/avail-json" />
             <option value="$PROJECT_DIR$/avail-server" />
             <option value="$PROJECT_DIR$/avail-stdlib" />
+            <option value="$PROJECT_DIR$/avail-storage" />
             <option value="$PROJECT_DIR$/avail-test-utility" />
             <option value="$PROJECT_DIR$/avail-workbench" />
             <option value="$PROJECT_DIR$/buildSrc" />

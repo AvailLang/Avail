@@ -61,7 +61,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
-import avail.serialization.MalformedSerialStreamException
+import org.availlang.persistence.MalformedSerialStreamException
 
 /**
  * Information that a [ModuleHeader] uses to keep track of a module

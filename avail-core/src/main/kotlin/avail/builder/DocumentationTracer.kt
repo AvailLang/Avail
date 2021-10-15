@@ -47,7 +47,7 @@ import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.serialization.Deserializer
-import avail.serialization.MalformedSerialStreamException
+import org.availlang.persistence.MalformedSerialStreamException
 import avail.stacks.StacksGenerator
 import java.nio.file.Path
 import java.nio.file.attribute.BasicFileAttributes

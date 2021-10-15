@@ -42,7 +42,7 @@ import avail.io.AvailClient
 import avail.io.IOSystem
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
-import avail.utility.LRUCache
+import org.availlang.cache.LRUCache
 import avail.utility.Mutable
 import java.io.IOException
 import java.nio.file.NoSuchFileException

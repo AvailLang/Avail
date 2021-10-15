@@ -42,7 +42,7 @@ import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedSta
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.RenamedState.Renamed
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Selected
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.SelectedState.Unselected
-import avail.utility.LRUCache
+import org.availlang.cache.LRUCache
 import avail.utility.cast
 import avail.utility.ifZero
 import java.awt.Color

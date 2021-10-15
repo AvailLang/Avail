@@ -41,7 +41,7 @@ import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
-import avail.utility.LRUCache
+import org.availlang.cache.LRUCache
 import avail.utility.Mutable
 import avail.utility.SimpleThreadFactory
 import java.io.IOException

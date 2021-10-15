@@ -85,7 +85,7 @@ import avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoT
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.MarshalingException
-import avail.utility.LRUCache
+import org.availlang.cache.LRUCache
 import avail.utility.Mutable
 import avail.utility.cast
 import java.lang.reflect.Constructor

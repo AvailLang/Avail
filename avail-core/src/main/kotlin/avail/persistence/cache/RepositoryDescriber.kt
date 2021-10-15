@@ -38,7 +38,7 @@ import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.DeserializerDescriber
-import avail.serialization.MalformedSerialStreamException
+import org.availlang.persistence.MalformedSerialStreamException
 
 /**
  * An `RepositoryDescriber` provides a textual representation of

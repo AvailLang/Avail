@@ -34,6 +34,7 @@ package avail.serialization
 
 import avail.AvailRuntime
 import avail.descriptor.representation.AvailObject
+import org.availlang.persistence.MalformedSerialStreamException
 
 import java.io.InputStream
 /**

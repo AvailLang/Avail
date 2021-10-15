@@ -73,7 +73,7 @@ import avail.files.FileManager
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.primitive.floats.P_FloatFloor
 import avail.serialization.Deserializer
-import avail.serialization.MalformedSerialStreamException
+import org.availlang.persistence.MalformedSerialStreamException
 import avail.serialization.Serializer
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions.assertEquals

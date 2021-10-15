@@ -33,7 +33,6 @@
 package avail.builder
 
 import avail.AvailRuntime
-import avail.AvailRuntimeSupport.captureNanos
 import avail.builder.AvailBuilder.LoadedModule
 import avail.compiler.AvailCompiler
 import avail.compiler.CompilerProgressReporter
@@ -78,7 +77,7 @@ import avail.persistence.cache.Repository.ModuleCompilationKey
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.serialization.Deserializer
-import avail.serialization.MalformedSerialStreamException
+import org.availlang.persistence.MalformedSerialStreamException
 import avail.serialization.Serializer
 import avail.utility.evaluation.Combinator.recurse
 import java.lang.String.format

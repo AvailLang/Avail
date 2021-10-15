@@ -31,10 +31,7 @@
  */
 package org.availlang.persistence
 
-import avail.serialization.MalformedSerialStreamException
-import avail.utility.IO
-import avail.utility.LRUCache
-import avail.utility.safeWrite
+import org.availlang.cache.LRUCache
 import java.io.ByteArrayInputStream
 import java.io.DataOutputStream
 import java.io.File
@@ -52,6 +49,8 @@ import java.util.zip.Deflater.BEST_COMPRESSION
 import java.util.zip.DeflaterOutputStream
 import java.util.zip.Inflater
 import kotlin.concurrent.read
+import kotlin.concurrent.withLock
+import kotlin.concurrent.write
 import kotlin.math.abs
 import kotlin.math.min
 
@@ -1022,12 +1021,12 @@ class IndexedFile internal constructor(
 	{
 		lock.safeWrite {
 			longTermWriterLock?.let {
-				IO.close(it)
+				close(it)
 				longTermWriterLock = null
 			}
 
-			IO.close(channel)
-			IO.close(file)
+			close(channel)
+			close(file)
 
 			try
 			{
@@ -1078,13 +1077,13 @@ class IndexedFile internal constructor(
 				}
 				finally
 				{
-					IO.close(shortTermLock)
+					close(shortTermLock)
 				}
 			}
 			finally
 			{
 				longTermWriterLock?.let {
-					IO.close(it)
+					close(it)
 					longTermWriterLock = null
 				}
 			}
@@ -1315,5 +1314,45 @@ class IndexedFile internal constructor(
 			}
 			return ByteArrayInputStream(bytes, 0, bytes.size - 4)
 		}
+	}
+}
+
+/**
+ * Execute the given lambda while holding the supplied
+ * [ReentrantReadWriteLock]'s
+ * [write lock][ReentrantReadWriteLock.WriteLock]. This is the correct
+ * alternative to the *broken* [write] supplied by the Kotlin library, which
+ * non-atomically attempts to upgrade a read lock into a write lock by
+ * first dropping all extant holds of the read lock (!).
+ *
+ * @receiver
+ *   The `ReentrantReadWriteLock`.
+ * @param lambda
+ *   The action to perform while holding the write lock.
+ * @return
+ *   The result of evaluating the supplied lambda.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+internal inline fun <T> ReentrantReadWriteLock.safeWrite (lambda: () -> T) =
+	this.writeLock().withLock(lambda)
+
+/**
+ * Attempt to [close][AutoCloseable.close] the specified
+ * [resource][AutoCloseable]. Suppress any [exception][Exception] thrown by
+ * the underlying `close` operation.
+ *
+ * @param closeable
+ *   A closeable resource. **Must not be `null`**; see
+ *   [closeIfNotNull][.closeIfNotNull] to handle that case.
+ */
+internal fun close(closeable: AutoCloseable)
+{
+	try
+	{
+		closeable.close()
+	}
+	catch (e: Exception)
+	{
+		// Do nothing; suppress this exception.
 	}
 }
