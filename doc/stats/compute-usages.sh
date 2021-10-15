@@ -48,7 +48,7 @@ CLASSES=used_classes.txt
 
 find $ROOT -name '*.class' -exec javap -c -verbose {} \; \
 	| awk '$3 == "Methodref" {print $6}' \
-	| grep -v '^com/avail' \
+	| grep -v '^avail' \
 	| grep -v '^"' \
 	| sort \
 	| uniq \

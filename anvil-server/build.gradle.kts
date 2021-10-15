@@ -30,11 +30,11 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.avail.build.AvailSetupContext.distroLib
-import com.avail.build.cleanupAllJars
-import com.avail.build.cleanupJars
-import com.avail.build.generateBuildTime
-import com.avail.build.modules.AnvilServerModule
+import avail.build.AvailSetupContext.distroLib
+import avail.build.cleanupAllJars
+import avail.build.cleanupJars
+import avail.build.generateBuildTime
+import avail.build.modules.AnvilServerModule
 
 plugins {
 	java
@@ -69,7 +69,7 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] =
-			"com.avail.anvil.AnvilServer"
+			"avail.anvil.AnvilServer"
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 

@@ -309,7 +309,7 @@ plugins {
 	id("avail.avail-plugin") version "1.6.0.20210910.181950"
 }
 
-group = "com.avail.sample"
+group = "avail.sample"
 version = "1.0.0"
 
 repositories {

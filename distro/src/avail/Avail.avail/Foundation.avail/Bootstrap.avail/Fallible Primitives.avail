@@ -32,7 +32,7 @@
 
 /*
  * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
+ * * Generator: avail.tools.bootstrap.BootstrapGenerator
  * * Last Generated: 8/26/21, 10:06 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
@@ -3584,7 +3584,7 @@ Primitive "_'s⁇_field" is
  * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
  *     or interface.</li>
  * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.representation.AvailObject"}.</li>
+ *     {@code "avail.descriptor.representation.AvailObject"}.</li>
  * </ul>
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
@@ -3638,7 +3638,7 @@ Primitive "constructor of_,⁇parameterized by_" is
  * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
  *     or interface.</li>
  * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.representation.AvailObject"}.</li>
+ *     {@code "avail.descriptor.representation.AvailObject"}.</li>
  * </ul>
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"
@@ -3692,7 +3692,7 @@ Primitive "method_._,⁇parameterized by_" is
  * <li>{@method "_parameterized by_"} is marshaled to the reflected Java class
  *     or interface.</li>
  * <li>All other values are marshaled to
- *     {@code "com.avail.descriptor.representation.AvailObject"}.</li>
+ *     {@code "avail.descriptor.representation.AvailObject"}.</li>
  * </ul>
  *
  * @category "Primitives" "Functions" "POJO" "Constructors"

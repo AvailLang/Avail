@@ -72,9 +72,9 @@ Test "Avail pojo classes are forbidden" in pojo test suite is
 	// Try to look up some critical Avail classes.
 	For each className in
 	<
-		"com.avail.descriptor.AvailObject",
-		"com.avail.descriptor.Descriptor",
-		"com.avail.interpreter.Interpreter"
+		"avail.descriptor.AvailObject",
+		"avail.descriptor.Descriptor",
+		"avail.interpreter.Interpreter"
 	>
 	do
 	[
