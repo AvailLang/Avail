@@ -33,7 +33,7 @@
 package avail.builder
 
 import avail.descriptor.module.ModuleDescriptor
-import avail.persistence.IndexedFileException
+import org.availlang.persistence.IndexedFileException
 import avail.persistence.cache.Repositories
 import avail.persistence.cache.Repository
 import avail.resolver.ModuleRootResolver

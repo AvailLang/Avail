@@ -69,9 +69,9 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import avail.persistence.IndexedFile
-import avail.persistence.IndexedFile.Companion.appendCRC
-import avail.persistence.IndexedFile.Companion.validatedBytesFrom
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile.Companion.appendCRC
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey

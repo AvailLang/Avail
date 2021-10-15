@@ -32,8 +32,8 @@
 
 package avail.tools.fileanalyzer
 
-import avail.persistence.IndexedFile
-import avail.persistence.IndexedFileBuilder
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFileBuilder
 import avail.tools.fileanalyzer.IndexedFileAnalyzer.ProcessResult.CONFIGURATION_ERROR
 import avail.tools.fileanalyzer.IndexedFileAnalyzer.ProcessResult.OTHER_ERROR
 import avail.tools.fileanalyzer.configuration.CommandLineConfigurator

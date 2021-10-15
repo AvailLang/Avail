@@ -44,9 +44,9 @@ import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.tokens.CommentTokenDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.error.ErrorCode
-import avail.persistence.IndexedFile
-import avail.persistence.IndexedFileBuilder
-import avail.persistence.IndexedFileException
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFileBuilder
+import org.availlang.persistence.IndexedFileException
 import avail.resolver.ResolverReference
 import avail.serialization.Serializer
 import java.io.ByteArrayInputStream

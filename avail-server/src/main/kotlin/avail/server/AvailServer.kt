@@ -47,7 +47,7 @@ import avail.descriptor.module.A_Module
 import avail.error.ErrorCodeRangeRegistry
 import avail.files.FileManager
 import avail.interpreter.execution.Interpreter
-import avail.persistence.IndexedFileException
+import org.availlang.persistence.IndexedFileException
 import avail.persistence.cache.Repository
 import avail.server.configuration.AvailServerConfiguration
 import avail.server.configuration.CommandLineConfigurator

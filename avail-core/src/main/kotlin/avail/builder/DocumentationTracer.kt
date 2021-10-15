@@ -43,7 +43,7 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.tokens.CommentTokenDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.error.ErrorCode
-import avail.persistence.IndexedFile.Companion.validatedBytesFrom
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.serialization.Deserializer

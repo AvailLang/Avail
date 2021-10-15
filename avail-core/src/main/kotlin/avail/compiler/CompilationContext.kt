@@ -81,7 +81,7 @@ import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
-import avail.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile
 import avail.serialization.Serializer
 import avail.utility.StackPrinter.Companion.trace
 import java.lang.String.format

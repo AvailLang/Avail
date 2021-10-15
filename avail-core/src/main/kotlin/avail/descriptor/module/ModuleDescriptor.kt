@@ -170,7 +170,7 @@ import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.LexicalScanner
-import avail.persistence.IndexedFile.Companion.validatedBytesFrom
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter

@@ -74,8 +74,8 @@ import avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import avail.io.TextInterface
-import avail.persistence.IndexedFile
-import avail.persistence.IndexedFile.Companion.appendCRC
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleArchive
 import avail.persistence.cache.Repository.ModuleCompilation

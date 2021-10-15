@@ -34,7 +34,7 @@ package avail.persistence.cache
 
 import avail.AvailRuntime
 import avail.descriptor.module.A_Module
-import avail.persistence.IndexedFile.Companion.validatedBytesFrom
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.DeserializerDescriber

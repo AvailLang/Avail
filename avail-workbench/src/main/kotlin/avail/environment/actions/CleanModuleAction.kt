@@ -34,7 +34,7 @@ package avail.environment.actions
 
 import avail.environment.AvailWorkbench
 import avail.environment.streams.StreamStyle.INFO
-import avail.persistence.IndexedFileException
+import org.availlang.persistence.IndexedFileException
 import java.awt.event.ActionEvent
 import java.lang.String.format
 import javax.swing.Action

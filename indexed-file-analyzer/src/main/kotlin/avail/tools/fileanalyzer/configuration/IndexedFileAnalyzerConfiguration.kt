@@ -32,7 +32,7 @@
 
 package avail.tools.fileanalyzer.configuration
 
-import avail.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile
 import avail.tools.fileanalyzer.IndexedFileAnalyzer
 import avail.utility.configuration.Configuration
 import java.io.File

@@ -33,7 +33,7 @@
 package avail.environment.actions
 
 import avail.environment.AvailWorkbench
-import avail.persistence.IndexedFileException
+import org.availlang.persistence.IndexedFileException
 import avail.persistence.cache.Repositories
 import java.awt.BorderLayout
 import java.awt.Color
