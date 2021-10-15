@@ -41,6 +41,7 @@ group = "org.availlang.sample"
 version = "1.0"
 
 repositories {
+    mavenLocal()
     mavenCentral()
 }
 
@@ -56,9 +57,27 @@ dependencies {
 }
 
 avail {
-    // Indicate "avail-std-lib-${Versions.availStripeVersion}.jar" should be
-    // added to the roots directory. Defaults to true.
-    useAvailStdLib = true
+//    // Indicate "avail-std-lib-${Versions.availStripeVersion}.jar" should be
+//    // added to the roots directory. Defaults to true.
+//    useAvailStdLib = true
+//
+//    // If `useAvailStdLib` is true, can rename standard library jar file to
+//    // this value when it is copied to the roots directory.
+//    availStdlibRename = "avail-stdlib"
+
+    useStdAvailLib {
+        // The name of the root for the standard library actually defaults to
+        // "avail", so it is not necessary to include this line.
+        name = "avail"
+
+        // The base name the `avail-stdlib` jar file that should be named
+        // without the `.jar` extension. This will be used to construct the
+        // [AvailRoot.uri]. Not setting this will default jar name to be the
+        // jar as it is retrieved from maven:
+        //    `avail-stdlib-<AVAIL BUILD VERSION>.jar
+        jarLibBaseName = "avail-stdlib"
+    }
+
     // Specify where the main Avail roots' directory is located.
     rootsDirectory = "$projectDir/avail/my-roots"
     // Specify where to write the .repo files to.

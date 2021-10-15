@@ -100,7 +100,7 @@ publishing {
 	}
 
 	publications {
-		create<MavenPublication>("workbench") {
+		create<MavenPublication>("avail-stdlib") {
 			val jar = tasks.jar
 			artifact(jar)
 		}

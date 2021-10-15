@@ -76,8 +76,10 @@ val Project.platformNeutralBuildDir get() =
  *
  * @param task
  *   The [Task] in which this code is executed.
+ * @param output
+ *   The contents to write. Defaults to [formattedNow]
  */
-fun Project.generateBuildTime (task: Task)
+fun Project.generateBuildTime (task: Task, output: String = formattedNow)
 {
 	val pathToBuildTime = "$buildDir/${BuildContext.buildTimePath}"
 	val buildTime =
@@ -89,7 +91,7 @@ fun Project.generateBuildTime (task: Task)
 		val created = dir.mkdirs()
 		println("Created ($created): $dir")
 	}
-	file(buildTime).writeText("$formattedNow\n")
+	file(buildTime).writeText("$output\n")
 }
 
 /**

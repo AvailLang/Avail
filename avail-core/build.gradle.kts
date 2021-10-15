@@ -51,8 +51,8 @@ repositories {
 }
 
 dependencies {
-	implementation(project(":avail-json"))
-	implementation(project(":avail-storage"))
+	api(project(":avail-json"))
+	api(project(":avail-storage"))
 	testApi(project(":avail-test-utility"))
 	AvailCoreModule.addDependencies(this)
 }
@@ -190,4 +190,11 @@ tasks {
 			Publish.checkCredentials()
 		}
 	}
+
+//	publishToMavenLocal {
+//		// Copy updated version to `avail-plugin`. This only provides
+//		// `avail-plugin` with the new version, it does not publish
+//		// `avail-plugin`.
+//		dependsOn(rootProject.tasks.getByName("updatePluginPublishVersion"))
+//	}
 }
