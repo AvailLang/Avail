@@ -29,8 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import avail.build.cleanupJars
 import avail.build.generateBuildTime
 import avail.build.modules.AvailStorageModule
+import avail.build.releaseAvail
+
 plugins {
     java
     kotlin("jvm")
@@ -39,7 +42,7 @@ plugins {
 }
 
 group = "org.availlang"
-version = "1.6.0.20211015.010321"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -52,6 +55,9 @@ dependencies {
 }
 
 tasks {
+    // This is looked up by name in the publishing the scope but cannot be
+    // referred to directly as this is created in a different scope.
+    @Suppress("UNUSED_VARIABLE")
     val sourceJar by creating(Jar::class) {
         description = "Creates sources JAR."
         dependsOn(JavaPlugin.CLASSES_TASK_NAME)
@@ -63,6 +69,44 @@ tasks {
     classes {
         doLast {
             generateBuildTime(this)
+        }
+    }
+
+    jar {
+        manifest.attributes["Implementation-Version"] =
+            project.version
+        doFirst { cleanupJars() }
+    }
+
+    // Copy the JAR into the distribution directory.
+    val releaseAvail by creating(Copy::class) {
+        releaseAvail(this, jar.get().outputs.files)
+    }
+
+    // Update the dependencies of "assemble".
+    assemble { dependsOn(releaseAvail) }
+
+    artifacts { add("archives", sourceJar) }
+    publish { Publish.checkCredentials() }
+}
+
+publishing {
+    repositories {
+        maven {
+            name = "GitHub"
+            url = uri("https://maven.pkg.github.com/AvailLang/Avail")
+            credentials {
+                username = Publish.githubUsername
+                password = Publish.githubPassword
+            }
+        }
+    }
+
+    publications {
+        create<MavenPublication>("avail-storage") {
+            val sourceJar = tasks.getByName("sourceJar") as Jar
+            from(components["java"])
+            artifact(sourceJar)
         }
     }
 }

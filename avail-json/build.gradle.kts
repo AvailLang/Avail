@@ -29,8 +29,10 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+import avail.build.cleanupJars
 import avail.build.generateBuildTime
 import avail.build.modules.AvailJsonModule
+import avail.build.releaseAvail
 
 plugins {
 	java
@@ -40,7 +42,8 @@ plugins {
 }
 
 group = "org.availlang"
-version = "1.6.0.20211014.232537"
+version = "1.0.0"
+description = "A flexible JSON building and reading utility"
 
 repositories {
 	mavenCentral()
@@ -63,6 +66,44 @@ tasks {
 	classes {
 		doLast {
 			generateBuildTime(this)
+		}
+	}
+
+	jar {
+		manifest.attributes["Implementation-Version"] =
+			project.version
+		doFirst { cleanupJars() }
+	}
+
+	// Copy the JAR into the distribution directory.
+	val releaseAvail by creating(Copy::class) {
+		releaseAvail(this, jar.get().outputs.files)
+	}
+
+	// Update the dependencies of "assemble".
+	assemble { dependsOn(releaseAvail) }
+
+	artifacts { add("archives", sourceJar) }
+	publish { Publish.checkCredentials() }
+}
+
+publishing {
+	repositories {
+		maven {
+			name = "GitHub"
+			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
+			credentials {
+				username = Publish.githubUsername
+				password = Publish.githubPassword
+			}
+		}
+	}
+
+	publications {
+		create<MavenPublication>("avail-json") {
+			val sourceJar = tasks.getByName("sourceJar") as Jar
+			from(components["java"])
+			artifact(sourceJar)
 		}
 	}
 }

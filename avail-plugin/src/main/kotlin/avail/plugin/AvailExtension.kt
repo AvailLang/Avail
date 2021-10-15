@@ -33,7 +33,6 @@ package avail.plugin
 
 import avail.plugin.AvailPlugin.Companion.AVAIL_STDLIB_BASE_JAR_NAME
 import org.gradle.api.Project
-import java.io.File
 import java.net.URI
 
 /**
@@ -66,10 +65,7 @@ open class AvailExtension constructor(
 			"${project.projectDir.absolutePath}/$defaultAvailRootsDirectory"
 		set(value)
 		{
-			if (useAvailStdLib)
-			{
-				addStdLib(value)
-			}
+			availStandardLibrary?.root(value)?.let { root(it) }
 			field = value
 		}
 
@@ -79,6 +75,11 @@ open class AvailExtension constructor(
 	@Suppress("MemberVisibilityCanBePrivate")
 	var repositoryDirectory: String =
 		"${project.projectDir.absolutePath}/$defaultRepositoryDirectory"
+
+	/**
+	 * The [AvailStandardLibrary] if it is being used by this project.
+	 */
+	internal var availStandardLibrary: AvailStandardLibrary? = null
 
 	/**
 	 * The map of [AvailRoot.name]s to be [AvailRoot]s be included in the Avail
@@ -91,8 +92,25 @@ open class AvailExtension constructor(
 	 */
 	private fun addStdLib (rootDir: String)
 	{
-		roots[AvailPlugin.AVAIL] = AvailRoot(
-			AvailPlugin.AVAIL, "jar:$rootDir/$stdLibName")
+		roots[AvailPlugin.AVAIL_LIBRARY] = AvailRoot(
+			AvailPlugin.AVAIL_LIBRARY, "jar:$rootDir/$stdLibName")
+	}
+
+	/**
+	 * This function informs the plugin to include the Avail Standard Library
+	 * as a root.
+	 *
+	 * @param configure
+	 *   The lambda that allows for configuring the [AvailStandardLibrary].
+	 */
+	@Suppress("Unused")
+	fun useStdAvailLib (configure: AvailStandardLibrary.() -> Unit)
+	{
+		val asl = AvailStandardLibrary(
+			"$AVAIL_STDLIB_BASE_JAR_NAME-${plugin.releaseVersion}")
+		configure(asl)
+		this.availStandardLibrary = asl
+		root(asl.root(rootsDirectory))
 	}
 
 	/**
@@ -107,15 +125,7 @@ open class AvailExtension constructor(
 	 * included in the [roots directory][rootsDirectory]; `false`
 	 * otherwise.
 	 */
-	var useAvailStdLib: Boolean = true
-		set(value)
-		{
-			if (value)
-			{
-				addStdLib(rootsDirectory)
-			}
-			field = value
-		}
+	internal val useAvailStdLib: Boolean get()  = availStandardLibrary != null
 
 	/**
 	 * Raw module header comment. This is typically for a copyright. Will be
@@ -141,6 +151,18 @@ open class AvailExtension constructor(
 		}
 
 	/**
+	 * Add the provided [AvailRoot].
+	 *
+	 * @param root
+	 *   The name of the root to add.
+	 */
+	@Suppress("Unused")
+	fun root(root: AvailRoot)
+	{
+		roots[root.name] = root
+	}
+
+	/**
 	 * Add an Avail root with the provided name and [URI].
 	 *
 	 * There is no need to prefix the file scheme, `file://`, if it exists on
@@ -153,7 +175,7 @@ open class AvailExtension constructor(
 	 *   in the [rootsDirectory]
 	 * @param initializer
 	 *   A lambda that accepts the created [AvailRoot] and is executed after
-	 *   [AvailExtension.initExtension] is run. Does nothing by default.
+	 *   all roots have been added.
 	 */
 	@Suppress("Unused")
 	fun root(
@@ -161,7 +183,7 @@ open class AvailExtension constructor(
 		uri: String = "$rootsDirectory/$name",
 		initializer: (AvailRoot) -> Unit = {})
 	{
-		roots[name] = AvailRoot(name, uri, initializer)
+		root(AvailRoot(name, uri, initializer))
 	}
 
 	/**
@@ -180,28 +202,6 @@ open class AvailExtension constructor(
 		}
 
 	/**
-	 * Initialize this [AvailExtension] with the host [Project].
-	 *
-	 * @param project
-	 *   The host `Project`.
-	 */
-	internal fun initExtension(project: Project)
-	{
-		project.mkdir(rootsDirectory)
-		project.mkdir(repositoryDirectory)
-
-		if (useAvailStdLib)
-		{
-			val availLibConfig =
-				project.configurations.getByName(AvailPlugin.AVAIL_LIBRARY)
-			val stdlibJar = availLibConfig.singleFile
-			val targetFile =
-				File("$rootsDirectory/$stdLibName")
-			stdlibJar.copyTo(targetFile, true)
-		}
-	}
-
-	/**
 	 * Create a printable view of this entire [AvailExtension]'s current
 	 * configuration state.
 	 */
@@ -213,7 +213,6 @@ open class AvailExtension constructor(
 			val vmArgs = listOf(
 				"-Davail.repositories=$repositoryDirectory",
 				)
-
 
 			append("\n========================= Avail Configuration")
 			append(" =========================")

@@ -6,11 +6,11 @@ using a Gradle Plugin. It can be found on [Github](https://github.com/orgs/Avail
 
 ## Overview
 The plugin provides:
- * The inclusion of the `org.availlang:avail-core` dependency in the 
+ * The inclusion of the `avail:avail-core` dependency in the 
    `implementation` `Configuration` of your project.
  * Initializes your Avail Roots directory, or uses a default.
  * Initializes your Avail Repositories directory, or uses a default.
- * Includes the Avail Standard Library, `org.availlang:avail-stdlib` as an 
+ * Includes the Avail Standard Library, `avail:avail-stdlib` as an 
    Avail Root for your Avail project by default but permits opting out of 
    using the Avail Standard Library.
  * A human-readable printable configuration of your Avail Project.
@@ -97,12 +97,25 @@ The following are the options available for configuration:
   `"$projectDir/avail/repositories"`.
  
 
-* ***useAvailStdLib*** (`boolean`) - `true` indicates that the`avail-stdlib` 
-  Avail root jar with the same version as this plugin will be copied into the 
-  `rootsDirectory`and included as a root in the Avail Workbench when it is  
+* ***useAvailStdLib*** (`AvailStandardLibrary.() -> Unit`) - A function that 
+  accepts a lambda that allows for the configuration of the 
+  `AvailStandardLibrary` pulled in as a jar, `avail-stdlib-<VERSION>.jar` as an 
+  Avail root jar with the same version as this plugin which will be copied into 
+  the `rootsDirectory`and included as a root in the Avail Workbench when it is  
   launched (*see `assembleAndRunWorkbench` task in the Plugin Tasks section*).
-  Defaults to `true`.
-
+  The fields that can be configured in the body of the lambda are:
+    * `name` -  The name of the root for the standard library actually defaults 
+      to "avail". It only needs to be set if the root should be named something
+      other than "avail".
+    * `jarLibBaseName` - The base name the `avail-stdlib` jar file that should 
+      be named without the `.jar` extension. This will be used to construct the 
+      Avail root uri.
+  This function *must be called* in order for the Avail standard library to be
+  included as a root. If no customization is needed, this function should be 
+  called with an empty lambda:
+```kotlin
+  useAvailStdLib {}
+```
 
 * ***root*** (`name: string, optional uri: string, optional action: lambda`) - 
   Function that adds an `AvailRoot` to the project. The URI indicates the file 

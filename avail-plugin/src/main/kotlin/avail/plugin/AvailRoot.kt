@@ -50,8 +50,8 @@ import kotlin.text.StringBuilder
  * @property uri
  *   The String [URI] location of the root.
  * @property action
- *   A lambda that accepts this [AvailRoot] and is executed after
- *   [AvailExtension.initExtension] is run.
+ *   A lambda that accepts this [AvailRoot] and is executed after all roots have
+ *   been added.
  *
  * @constructor
  * Construct an [AvailRoot].
@@ -61,8 +61,8 @@ import kotlin.text.StringBuilder
  * @param uri
  *   The String [URI] location of the root.
  * @param action
- *   A lambda that accepts this [AvailRoot] and is executed after
- *   [AvailExtension.initExtension] is run.
+ *   A lambda that accepts this [AvailRoot] and is executed after all roots have
+ *   been added.
  */
 open class AvailRoot constructor(
 	val name: String,
@@ -124,8 +124,8 @@ open class AvailRoot constructor(
  * @param uri
  *   The String [URI] location of the root.
  * @param action
- *   A lambda that accepts this [AvailRoot] and is executed after
- *   [AvailExtension.initExtension] is run.
+ *   A lambda that accepts this [AvailRoot] and is executed after all roots have
+ *   been added.
  */
 class CreateAvailRoot constructor(
 	name: String,
@@ -575,4 +575,47 @@ class AvailModulePackage constructor(
 				it.hierarchyPrinter(level + 1, sb)
 			}
 		}
+}
+
+/**
+ * Helper used to provide configurability to the
+ * [avail standard library jar][AvailPlugin.AVAIL_STDLIB_BASE_JAR_NAME].
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property jarLibBaseName
+ *   The base name the `avail-stdlib` jar file that should be named without the
+ *   `.jar` extension. This will be used to construct the [AvailRoot.uri].
+ *
+ * @constructor
+ * Construct an [AvailStandardLibrary].
+ *
+ * @param jarLibBaseName
+ *   The base name the `avail-stdlib` jar file that should be named without the
+ *   `.jar` extension. This will be used to construct the [AvailRoot.uri].
+ */
+class AvailStandardLibrary internal constructor(var jarLibBaseName: String )
+{
+	/**
+	 * The name of the root as it will used by Avail. Defaults to "avail".
+	 */
+	var name: String = AvailPlugin.AVAIL
+
+	/**
+	 * Provide the corresponding [AvailRoot] for this [AvailStandardLibrary].
+	 *
+	 * @param rootDir
+	 *   The roots directory where the jar file should be.
+	 */
+	internal fun root(rootDir: String): AvailRoot =
+		AvailRoot(name, "jar:$rootDir/$jarLibBaseName.jar")
+
+	/**
+	 * Answer the file where the `avail-stdlib.jar` should be copied to.
+	 *
+	 * @param rootDir
+	 *   The roots directory where the jar file should be.
+	 */
+	internal fun jar (rootDir: String): File =
+		File("$rootDir/$jarLibBaseName.jar")
 }

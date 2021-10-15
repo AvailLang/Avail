@@ -44,7 +44,7 @@ import java.util.Properties
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.30"
+	const val kotlin = "1.5.21"
 
 	/** The JVM target version for Kotlin. */
 	const val jvmTarget = "16"
@@ -60,7 +60,7 @@ object Versions
 	 *
 	 *  This represents the version of this plugin.
 	 */
-	const val availStripeVersion = "1.6.0.20210910.181950"
+	const val availStripeVersion = "1.6.0.20211015.161728"
 
 	/**
 	 * The location of the properties file that contains the last published
