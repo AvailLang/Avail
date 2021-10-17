@@ -41,4 +41,4 @@ pluginManagement {
 	}
 }
 rootProject.name = "sample-project"
-
+include("avail-java-ffi")

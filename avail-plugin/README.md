@@ -229,6 +229,10 @@ standard out. Here are the options for configuring `AvailWorkbenchTask`.
   as `org.package:myLibrary:2.3.1`.
 
 
+* ***dependency*** (`Dependency`) - The `Dependency` to include such as 
+  `dependency(project.dependencies.project(":avail-java-ffi"))`.
+
+
 * ***vmOption*** (`option: string`) - A function that adds a VM option for 
   running the jar.
 
@@ -335,6 +339,7 @@ dependencies {
     // This adds the listed dependency to the custom build of the workbench fat
     // jar.
     availWorkbench("org.some.dependency:someProject:9.8.7")
+    implementation(project(":avail-java-ffi"))
 }
 
 avail {

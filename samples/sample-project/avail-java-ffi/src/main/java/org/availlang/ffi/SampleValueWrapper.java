@@ -1,5 +1,5 @@
 /*
- * Versions.kt
+ * SampleFFIUtility.java
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,54 +29,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import org.gradle.api.Project
-import java.io.FileInputStream
-import java.util.Properties
+
+package org.availlang.ffi;
 /**
- * The central source of all versions. This ranges from dependency versions
- * to language level versions.
+ * A {@code SampleValueWrapper} is a sample class that wraps a value.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object Versions
+public class SampleValueWrapper
 {
-	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.21"
-
-	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "16"
-
-	/** The language level version of Kotlin. */
-	const val kotlinLanguage = "1.5"
+	/**
+	 * The wrapped value.
+	 */
+	public final int value;
 
 	/**
-	 * The stripe release version of avail jars:
-	 *  * `avail-core`
-	 *  * `avail-workbench`
-	 *  * `avail-stdlib`
+	 * Answer a new {@link SampleValueWrapper} that wraps a new value that is
+	 * the sum of the {@link SampleValueWrapper#value} and the provided
+	 * {@code addend}.
 	 *
-	 *  This represents the version of this plugin.
+	 * @param addend
+	 *   The value to add to the wrapped value.
+	 * @return
+	 *   A new {@code SampleValueWrapper} that wraps the sum.
 	 */
-	const val availStripeVersion = "1.6.0.20211017.182336"
-
-	/**
-	 * The location of the properties file that contains the last published
-	 * release of the avail libraries.
-	 */
-	const val releaseVersionFile =
-		"src/main/resources/releaseVersion.properties"
-
-	/**
-	 * Answer the version id for the `avail-plugin`.
-	 *
-	 * @param project
-	 *   The running Gradle [Project].
-	 */
-	fun getReleaseVersion (project: Project): String
+	public SampleValueWrapper add (final int addend)
 	{
-		val propsFile = FileInputStream(releaseVersionFile)
-		val props = Properties()
-		props.load(propsFile)
-		return props.getProperty("releaseVersion")
+		return new SampleValueWrapper(value + addend);
+	}
+
+	/**
+	 * Construct a new {@link SampleValueWrapper}.
+	 *
+	 * @param value
+	 *   The value to wrap.
+	 */
+	public SampleValueWrapper (final int value)
+	{
+		this.value = value;
 	}
 }

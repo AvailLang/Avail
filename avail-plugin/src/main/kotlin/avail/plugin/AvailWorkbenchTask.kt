@@ -37,7 +37,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
@@ -129,9 +128,16 @@ open class AvailWorkbenchTask: DefaultTask()
 		localConfig.dependencies.add(project.dependencies.create(dependency))
 	}
 
-	fun projectDependency (dependency: String)
+	/**
+	 * Add a dependency to be included in the jar.
+	 *
+	 * @param dependency
+	 *   The [Dependency] to add.
+	 */
+	@Suppress("unused")
+	fun dependency (dependency: Dependency)
 	{
-//		val dep = ProjectDependency
+		localConfig.dependencies.add(dependency)
 	}
 
 	/**
