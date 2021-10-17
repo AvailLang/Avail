@@ -49,12 +49,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import com.avail.AvailRuntimeConfiguration
+import avail.AvailRuntimeConfiguration
 import avail.anvil.themes.anvilDarkTheme
 import avail.anvil.themes.anvilLightTheme
 import avail.anvil.themes.moduleRootColor
 import avail.anvil.themes.versionNumberColor
-import com.avail.builder.ModuleRoot
+import avail.builder.ModuleRoot
 import java.net.URI
 
 ////////////////////////////////////////////////////////////////////////////////

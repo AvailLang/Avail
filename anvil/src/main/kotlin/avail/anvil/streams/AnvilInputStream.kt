@@ -33,7 +33,7 @@
 package avail.anvil.streams
 
 import androidx.compose.ui.text.AnnotatedString
-import com.avail.utility.javaWait
+import avail.utility.javaWait
 import java.io.ByteArrayInputStream
 import kotlin.math.min
 

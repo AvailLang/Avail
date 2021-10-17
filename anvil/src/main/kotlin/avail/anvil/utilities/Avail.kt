@@ -35,12 +35,12 @@ package avail.anvil.utilities
 import avail.anvil.Anvil
 import avail.anvil.Anvil.defaults
 import avail.anvil.Anvil.userHome
-import com.avail.AvailRuntime
-import com.avail.builder.ModuleNameResolver
-import com.avail.builder.ModuleRoots
-import com.avail.builder.RenamesFileParser
-import com.avail.files.FileManager
-import com.avail.persistence.cache.Repository
+import avail.AvailRuntime
+import avail.builder.ModuleNameResolver
+import avail.builder.ModuleRoots
+import avail.builder.RenamesFileParser
+import avail.files.FileManager
+import avail.persistence.cache.Repository
 
 ////////////////////////////////////////////////////////////////////////////////
 //                         Avail runtime management.                          //

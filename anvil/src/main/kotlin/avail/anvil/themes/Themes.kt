@@ -43,7 +43,7 @@ import androidx.compose.ui.text.font.FontStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import avail.anvil.components.Tooltip
-import com.avail.builder.ModuleRoot
+import avail.builder.ModuleRoot
 
 ////////////////////////////////////////////////////////////////////////////////
 //                              Standard themes.                              //

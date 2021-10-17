@@ -40,11 +40,11 @@ import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.models.ProjectState
 import avail.anvil.utilities.Defaults
-import com.avail.utility.json.JSONFriendly
-import com.avail.utility.json.JSONObject
-import com.avail.utility.json.JSONReader
-import com.avail.utility.json.JSONValue
-import com.avail.utility.json.JSONWriter
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONReader
+import org.availlang.json.JSONValue
+import org.availlang.json.JSONWriter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob

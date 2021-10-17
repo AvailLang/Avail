@@ -81,12 +81,12 @@ import avail.anvil.themes.AlternatingRowColor.*
 import avail.anvil.themes.AvailColors
 import avail.anvil.themes.ImageResources
 import avail.anvil.themes.LoadedStyle
-import com.avail.builder.AvailBuilder
-import com.avail.builder.ModuleRoot
-import com.avail.builder.ResolvedModuleName
-import com.avail.resolver.ModuleRootResolver
-import com.avail.resolver.ResolverReference
-import com.avail.resolver.ResourceType
+import avail.builder.AvailBuilder
+import avail.builder.ModuleRoot
+import avail.builder.ResolvedModuleName
+import avail.resolver.ModuleRootResolver
+import avail.resolver.ResolverReference
+import avail.resolver.ResourceType
 
 /**
  * A node in the file tree.
