@@ -29,17 +29,17 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package com.avail.anvil.test.io
+package avail.anvil.test.io
 
-import com.avail.anvil.AcceptedVersionMessage
-import com.avail.anvil.AcknowledgedMessage
-import com.avail.anvil.AcknowledgmentCode.OK
-import com.avail.anvil.DisconnectMessage
-import com.avail.anvil.Message
-import com.avail.anvil.MessageOrigin.CLIENT
-import com.avail.anvil.MessageTag
-import com.avail.anvil.NegotiateVersionMessage
-import com.avail.anvil.RebuttedVersionsMessage
+import avail.anvil.AcceptedVersionMessage
+import avail.anvil.AcknowledgedMessage
+import avail.anvil.AcknowledgmentCode.OK
+import avail.anvil.DisconnectMessage
+import avail.anvil.Message
+import avail.anvil.MessageOrigin.CLIENT
+import avail.anvil.MessageTag
+import avail.anvil.NegotiateVersionMessage
+import avail.anvil.RebuttedVersionsMessage
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.params.ParameterizedTest

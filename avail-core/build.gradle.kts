@@ -30,13 +30,13 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import com.avail.build.cleanupAllJars
-import com.avail.build.cleanupJars
-import com.avail.build.computeAvailRootsForTest
-import com.avail.build.generateBuildTime
-import com.avail.build.modules.AvailCoreModule
-import com.avail.build.releaseAvail
-import com.avail.build.scrubReleases
+import avail.build.cleanupAllJars
+import avail.build.cleanupJars
+import avail.build.computeAvailRootsForTest
+import avail.build.generateBuildTime
+import avail.build.modules.AvailCoreModule
+import avail.build.releaseAvail
+import avail.build.scrubReleases
 
 plugins {
 	java
@@ -51,6 +51,8 @@ repositories {
 }
 
 dependencies {
+	api(project(":avail-json"))
+	api(project(":avail-storage"))
 	testApi(project(":avail-test-utility"))
 	AvailCoreModule.addDependencies(this)
 }
@@ -72,9 +74,9 @@ tasks {
 		// Un-Windows the path, if necessary.
 		val pathAvailBuildMain =
 			"$buildDir/classes/kotlin/main".replace("\\\\", "/")
-		val allPrimitives = fileTree("$pathAvailBuildMain/com/avail/interpreter")
+		val allPrimitives = fileTree("$pathAvailBuildMain/avail/interpreter")
 		val pathToPrimitivesList =
-			file("$pathAvailBuildMain/com/avail/interpreter/All_Primitives.txt")
+			file("$pathAvailBuildMain/avail/interpreter/All_Primitives.txt")
 		allPrimitives.include("**/P_*.class")
 		allPrimitives.exclude("**/*$*.class")
 		allPrimitives.builtBy("compileKotlin")
@@ -188,4 +190,11 @@ tasks {
 			Publish.checkCredentials()
 		}
 	}
+
+//	publishToMavenLocal {
+//		// Copy updated version to `avail-plugin`. This only provides
+//		// `avail-plugin` with the new version, it does not publish
+//		// `avail-plugin`.
+//		dependsOn(rootProject.tasks.getByName("updatePluginPublishVersion"))
+//	}
 }

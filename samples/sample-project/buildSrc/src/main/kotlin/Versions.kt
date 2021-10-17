@@ -1,8 +1,3 @@
-import org.gradle.api.Project
-import java.io.FileInputStream
-import java.io.FileOutputStream
-import java.util.Properties
-
 /*
  * Versions.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
@@ -34,7 +29,9 @@ import java.util.Properties
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-
+import org.gradle.api.Project
+import java.io.FileInputStream
+import java.util.Properties
 /**
  * The central source of all versions. This ranges from dependency versions
  * to language level versions.
@@ -44,7 +41,7 @@ import java.util.Properties
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.30"
+	const val kotlin = "1.5.21"
 
 	/** The JVM target version for Kotlin. */
 	const val jvmTarget = "16"
@@ -60,7 +57,7 @@ object Versions
 	 *
 	 *  This represents the version of this plugin.
 	 */
-	const val availStripeVersion = "1.6.0.20210910.181950"
+	const val availStripeVersion = "1.6.0.20211017.182336"
 
 	/**
 	 * The location of the properties file that contains the last published

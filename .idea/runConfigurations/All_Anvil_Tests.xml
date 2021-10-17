@@ -2,7 +2,7 @@
   <configuration default="false" name="All Anvil Tests" type="JUnit" factoryName="JUnit" singleton="false">
     <useClassPathOnly />
     <option name="ALTERNATIVE_JRE_PATH" value="8" />
-    <option name="PACKAGE_NAME" value="com.avail.anvil.test" />
+    <option name="PACKAGE_NAME" value="avail.anvil.test" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />

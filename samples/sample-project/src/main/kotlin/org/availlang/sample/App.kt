@@ -31,7 +31,7 @@
  */
 package org.availlang.sample
 
-import com.avail.AvailRuntime
+import avail.AvailRuntime
 import java.util.concurrent.Semaphore
 import kotlin.system.exitProcess
 

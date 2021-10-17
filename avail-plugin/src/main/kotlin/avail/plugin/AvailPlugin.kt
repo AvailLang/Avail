@@ -111,6 +111,8 @@ class AvailPlugin : Plugin<Project>
 			target.configurations.getByName(WORKBENCH_INTERNAL_CONFIG)
 		val implementationConfig =
 			target.configurations.getByName(IMPLEMENTATION)
+//		val apiConfig =
+//			target.configurations.getByName(API)
 
 		// Add Dependencies
 		workbenchConfig.dependencies.add(workbenchDependency)
@@ -127,6 +129,8 @@ class AvailPlugin : Plugin<Project>
 			if (extension.useAvailStdLib)
 			{
 				availLibConfig.dependencies.add(stdlibDependency)
+				extension.root(extension.availStandardLibrary!!.root(
+					extension.rootsDirectory))
 			}
 			// Putting the call into a `doLast` block forces this to only be
 			// executed when explicitly run.
@@ -135,8 +139,17 @@ class AvailPlugin : Plugin<Project>
 				project.mkdir(extension.repositoryDirectory)
 
 				availLibConfig.resolve().forEach {
-					val targetFile = File(
-						"${extension.rootsDirectory}/${it.name}")
+					val targetFile =
+						if (extension.useAvailStdLib
+							&& it.name.contains(AVAIL_STDLIB_BASE_JAR_NAME))
+						{
+							extension.availStandardLibrary!!.jar(
+								extension.rootsDirectory)
+						}
+						else
+						{
+							File("${extension.rootsDirectory}/$it.name")
+						}
 					it.copyTo(targetFile, true)
 				}
 				extension.createRoots.values.forEach {
@@ -187,26 +200,32 @@ class AvailPlugin : Plugin<Project>
 		 * published Avail Workbench Jar. This is absent the version.
 		 */
 		private const val WORKBENCH_DEP: String =
-			"org.availlang:avail-workbench"
+			"avail:avail-workbench"
 
 		/**
 		 * The dependency group-artifact String dependency that points to the
 		 * published Avail Standard Library Jar. This is absent the version.
 		 */
 		internal const val AVAIL_STDLIB_DEP: String =
-			"org.availlang:avail-stdlib"
+			"avail:avail-stdlib"
 
 		/**
 		 * The dependency group-artifact String dependency that points to the
 		 * published Avail Core Jar. This is absent the version.
 		 */
-		private const val AVAIL_CORE: String = "org.availlang:avail-core"
+		private const val AVAIL_CORE: String = "avail:avail-core"
 
 		/**
 		 * The name of the [Project] [Configuration] where `implementation`
 		 * dependencies are added.
 		 */
 		private const val IMPLEMENTATION: String = "implementation"
+
+		/**
+		 * The name of the [Project] [Configuration] where `api`
+		 * dependencies are added.
+		 */
+		private const val API: String = "api"
 
 		/**
 		 * The name of the custom [Project] [Configuration], `availLibrary`,

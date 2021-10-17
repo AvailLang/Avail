@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.generateBuildTime
+import avail.build.generateBuildTime
 import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
@@ -39,7 +39,7 @@ plugins {
 	id("org.jetbrains.compose")
 }
 
-group = "com.avail"
+group = "avail"
 version = "1.0"
 
 repositories {

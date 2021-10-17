@@ -9,7 +9,7 @@
 	<key>CFBundleIconFile</key>
 	<string>AvailHammer.icns</string>
 	<key>CFBundleIdentifier</key>
-	<string>com.avail.environment.AvailWorkbench</string>
+	<string>avail.environment.AvailWorkbench</string>
 	<key>CFBundleDisplayName</key>
 	<string>Workbench</string>
 	<key>CFBundleInfoDictionaryVersion</key>
@@ -27,7 +27,7 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>Copyright © 1993-2021, The Avail Foundation, LLC.</string>
 	<key>JVMMainClassName</key>
-	<string>com.avail.environment.AvailWorkbench</string>
+	<string>avail.environment.AvailWorkbench</string>
 	<key>NSJavaPath</key>
 	<array>
 		<string>%@/Java</string>

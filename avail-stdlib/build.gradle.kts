@@ -29,7 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.AvailSetupContext.distroLib
+import avail.build.AvailSetupContext.distroLib
 
 plugins {
 	java
@@ -100,7 +100,7 @@ publishing {
 	}
 
 	publications {
-		create<MavenPublication>("workbench") {
+		create<MavenPublication>("avail-stdlib") {
 			val jar = tasks.jar
 			artifact(jar)
 		}

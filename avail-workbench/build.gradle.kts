@@ -29,11 +29,11 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import com.avail.build.cleanupAllJars
-import com.avail.build.cleanupJars
-import com.avail.build.generateBuildTime
-import com.avail.build.modules.AvailWorkbenchModule
-import com.avail.build.releaseSubproject
+import avail.build.cleanupAllJars
+import avail.build.cleanupJars
+import avail.build.generateBuildTime
+import avail.build.modules.AvailWorkbenchModule
+import avail.build.releaseSubproject
 
 plugins {
 	java
@@ -52,6 +52,8 @@ repositories {
 
 dependencies {
 	// Avail.
+	implementation(project(":avail-json"))
+	implementation(project(":avail-storage"))
 	implementation(project(":avail-core"))
 	AvailWorkbenchModule.addDependencies(this)
 }
@@ -84,7 +86,7 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] =
-			"com.avail.environment.AvailWorkbench"
+			"avail.environment.AvailWorkbench"
 		manifest.attributes["Implementation-Version"] =
 			project.version
 	}

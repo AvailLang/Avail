@@ -1,0 +1,24 @@
+/*
+ * Foreign Functions.avail
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Foreign Functions"
+Versions
+	"Avail-1.6.0"
+Uses
+	"Avail"
+Body
+
+/**
+ * A {@type "integer"} value wrapper {@type SampleValueWrapper}.
+ *
+ * @type "sample value wrapper"
+ */
+Public stable method "sample value wrapper" is
+	[org.availlang.ffi.SampleValueWrapper];
+
+sampleWrapper1 ::= constructor sample value wrapper (4);
+
+sampleWrapper2 ::= method sample value wrapper sampleWrapper1.add (6)

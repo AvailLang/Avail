@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+import avail.build.generateBuildTime
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -52,7 +53,7 @@ plugins {
 	id("org.jetbrains.compose") version Versions.compose apply false
 }
 allprojects {
-	group = "org.availlang"
+	group = "avail"
 	version = versionToPublish
 
 	tasks {
@@ -89,6 +90,27 @@ tasks {
 			"./gradlew", "updateVersion", "-PversionStripe=$versionToPublish")
 		println("Sending `avail-plugin` (${project.projectDir}/avail-plugin) " +
 			"gradle command, `updateVersion` with version, $versionToPublish")
+	}
+
+	publishToMavenLocal {
+		doFirst { generateBuildTime(this, versionToPublish) }
+		// Copy updated version to `avail-plugin`. This only provides
+		// `avail-plugin` with the new version, it does not publish
+		// `avail-plugin`.
+		finalizedBy(rootProject.tasks.getByName("updatePluginPublishVersion"))
+	}
+	publish {
+		doFirst { generateBuildTime(this, versionToPublish) }
+		// Copy updated version to `avail-plugin`. This only provides
+		// `avail-plugin` with the new version, it does not publish
+		// `avail-plugin`.
+		finalizedBy(rootProject.tasks.getByName("updatePluginPublishVersion"))
+	}
+
+	build {
+		doLast {
+			generateBuildTime(this, versionToPublish)
+		}
 	}
 }
 
