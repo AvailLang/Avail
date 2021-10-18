@@ -32,6 +32,7 @@
 
 package org.availlang.ffi;
 import java.util.Objects;
+import java.util.UUID;
 
 /**
  * A {@code SampleValueWrapper} is a sample class that wraps a value.
@@ -45,6 +46,11 @@ public class SampleValueWrapper
 	 * The wrapped value.
 	 */
 	private final int value;
+
+	/**
+	 * The unique id of this {@link SampleValueWrapper}.
+	 */
+	public final String id = UUID.randomUUID().toString();
 
 	/**
 	 * @return

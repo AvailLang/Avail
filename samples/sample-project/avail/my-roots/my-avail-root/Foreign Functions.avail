@@ -7,51 +7,124 @@
 Module "Foreign Functions"
 Versions
 	"Avail-1.6.0"
-Extends
+Uses
 	"Avail"
+Extends
+	/* This is necessary to enable the parsing and running of Entry Points */
+	"Avail" =
+	(
+		"whitespace lexer",
+		"comment lexer",
+		"string token lexer",
+		"whole number lexer",
+		"keyword lexer",
+		"operator lexer",
+		"…#",
+		"$…#"
+	)
 Names
 	"_+_",
+	"_'s⁇id",
 	"_'s⁇value",
 	"Run all sample tests",
 	"sample value wrapper",
 	"wrap_"
 Entries
+	/* The Entry Point to run our tests */
 	"Run all sample tests"
 Body
 
+// The contents of this file represents creating a link to Java POJOs that exist
+// on the JVM classpath of the Avail Runtime.
+// Note: As with any FFI bindings, the native source must be re-compiled each
+// time a change is made to the POJOs in order for Avail to pick up the changes.
+
 /**
- * A {@type "integer"} value wrapper {@type SampleValueWrapper}.
+ * A {@type "integer"} value wrapper {@type "SampleValueWrapper"}.
+ *
+ * This creates a link to the Java class SampleValueWrapper. It is accessible as
+ * long as the project, avail-java-ffi, is on the JVM classpath when the Avail
+ * Runtime is started.
  *
  * @type "sample value wrapper"
  */
 Public stable method "sample value wrapper" is
 	[org.availlang.ffi.SampleValueWrapper];
 
-// Local functions for interacting with the Java class, SampleValueWrapper.
-sampleWrapperConstructor ::= constructor sample value wrapper (Java int);
-sampleWrapperAddMethod ::= method sample value wrapper.add (Java int);
-sampleWrapperValueMethod ::= method sample value wrapper.getValue ();
-
+/**
+ * Create a {@type "SampleValueWrapper"} wrapping the provided value.
+ *
+ * Though not necessary, this method wraps the FFI Pojo constructor binding for
+ * the purpose of establishing a method for constructing a SampleValueWrapper
+ * that is more natural in Avail code.
+ *
+ * @category "FFI" "POJO"
+ * @method "wrap_"
+ * @param "value" "Java int"
+ *       A Java integer to wrap.
+ * @returns "sample value wrapper"
+ *       The POJO wrapping the provided value.
+ * @raises "Java-field-not-available exception"
+ * @raises "Java-field-reference-is-ambiguous exception"
+ */
 Public method "wrap_" is
 [
 	value: Java int
 |
-	sampleWrapperConstructor(value)
+	// This is how a Pojo's constructor is called from Avail.
+	constructor sample value wrapper (Java int)(value)
 ]: sample value wrapper;
 
-Public method "_'s⁇value" is
+/**
+ * Answer the {@type "sample value wrapper"}'s wrapped value.
+ *
+ * @category "FFI" "POJO"
+ * @method "_'s⁇value"
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the value for.
+ * @returns "Java int"
+ *       The wrapped value.
+ */
+Public method "_'s⁇value" is method sample value wrapper.getValue ();
+
+/**
+ * Answer the {@type "sample value wrapper"}'s id.
+ *
+ * @category "FFI" "POJO"
+ * @method "_'s⁇id"
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the id for.
+ * @returns "string"
+ *       The wrapper's id.
+ */
+Public method "_'s⁇id" is
 [
 	wrapper: sample value wrapper
 |
-	sampleWrapperValueMethod(wrapper)
-]: Java int;
+	↓field wrapper.id
+]: string;
 
+/**
+ * Answer a new {@type "sample value wrapper"} that wraps the sum of the given
+ * wrapper's value and the provided Java int.
+ *
+ * @category "FFI" "POJO"
+ * @method "_+_"
+ * @param "value" "Java int"
+ *       A Java integer to add to the wrapped value.
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the value for summing with the provided value.
+ * @returns "Java int"
+ *       The wrapped sum.
+ */
 Public method "_+_" is
 [
 	value: Java int,
 	wrapper: sample value wrapper
 |
-	sampleWrapperAddMethod(wrapper, value)
+	// This is how a Pojo's method is called from Avail. You must pass the
+	// pojo into the fuction as the first argument.
+	method sample value wrapper.add (Java int)(wrapper, value)
 ]: sample value wrapper;
 
 /**
@@ -75,10 +148,21 @@ Test "ffi java add" in sample test suite is
 	Require: v2's value = 11;
 ];
 
+// Create another test and add it to the sample test suite.
+Test "ffi java wrapper id" in sample test suite is
+[
+	v ::= wrap 5;
+	id ::= v's id;
+	length ::= |id|;
+	// The length of the UUID 32 byte characters plus the interleaved "_"'s.
+	Require: length = 36;
+];
 
 /**
  * Generate a test suite-oriented report for the specified test suite. Emit it
  * to standard output.
+ *
+ * The purpose of this
  *
  * @entry
  * @method "Run all sample tests"
