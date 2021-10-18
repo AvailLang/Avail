@@ -31,17 +31,29 @@
  */
 
 package org.availlang.ffi;
+import java.util.Objects;
+
 /**
  * A {@code SampleValueWrapper} is a sample class that wraps a value.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
+@SuppressWarnings("unused")
 public class SampleValueWrapper
 {
 	/**
 	 * The wrapped value.
 	 */
-	public final int value;
+	private final int value;
+
+	/**
+	 * @return
+	 *   Answer the wrapped value.
+	 */
+	public int getValue ()
+	{
+		return value;
+	}
 
 	/**
 	 * Answer a new {@link SampleValueWrapper} that wraps a new value that is
@@ -67,5 +79,26 @@ public class SampleValueWrapper
 	public SampleValueWrapper (final int value)
 	{
 		this.value = value;
+	}
+
+	@Override
+	public boolean equals (final Object o)
+	{
+		if (this == o)
+		{
+			return true;
+		}
+		if (!(o instanceof SampleValueWrapper))
+		{
+			return false;
+		}
+		final SampleValueWrapper that = (SampleValueWrapper) o;
+		return value == that.value;
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return Objects.hash(value);
 	}
 }

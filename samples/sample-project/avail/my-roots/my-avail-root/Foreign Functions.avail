@@ -7,8 +7,16 @@
 Module "Foreign Functions"
 Versions
 	"Avail-1.6.0"
-Uses
+Extends
 	"Avail"
+Names
+	"_+_",
+	"_'s⁇value",
+	"Run all sample tests",
+	"sample value wrapper",
+	"wrap_"
+Entries
+	"Run all sample tests"
 Body
 
 /**
@@ -19,6 +27,66 @@ Body
 Public stable method "sample value wrapper" is
 	[org.availlang.ffi.SampleValueWrapper];
 
-sampleWrapper1 ::= constructor sample value wrapper (4);
+// Local functions for interacting with the Java class, SampleValueWrapper.
+sampleWrapperConstructor ::= constructor sample value wrapper (Java int);
+sampleWrapperAddMethod ::= method sample value wrapper.add (Java int);
+sampleWrapperValueMethod ::= method sample value wrapper.getValue ();
 
-sampleWrapper2 ::= method sample value wrapper sampleWrapper1.add (6)
+Public method "wrap_" is
+[
+	value: Java int
+|
+	sampleWrapperConstructor(value)
+]: sample value wrapper;
+
+Public method "_'s⁇value" is
+[
+	wrapper: sample value wrapper
+|
+	sampleWrapperValueMethod(wrapper)
+]: Java int;
+
+Public method "_+_" is
+[
+	value: Java int,
+	wrapper: sample value wrapper
+|
+	sampleWrapperAddMethod(wrapper, value)
+]: sample value wrapper;
+
+/**
+ * Answer the test test suite identifier.
+ *
+ * @method "Sample|sample test suite"
+ * @returns "atom"
+ *    The requested test suite identifier.
+ */
+Method "Sample|sample test suite" is [$"sample test suite"];
+
+// Create the test suite.
+Sample test suite is a new test suite;
+
+// Create a test and add it to the sample test suite.
+Test "ffi java add" in sample test suite is
+[
+	v ::= wrap 5;
+	Require: v's value = 5;
+	v2 ::= 6 + v;
+	Require: v2's value = 11;
+];
+
+
+/**
+ * Generate a test suite-oriented report for the specified test suite. Emit it
+ * to standard output.
+ *
+ * @entry
+ * @method "Run all sample tests"
+ * @returns "⊤"
+ */
+Public method "Run all sample tests" is
+[
+	report ::= report on all tests in sample test suite;
+	Print: test suite-oriented “report”;
+	|bad results of report's metrics| = 0
+];
