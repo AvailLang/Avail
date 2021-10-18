@@ -45,12 +45,17 @@ public class SampleValueWrapper
 	/**
 	 * The wrapped value.
 	 */
-	private final int value;
+	public final int value;
 
 	/**
 	 * The unique id of this {@link SampleValueWrapper}.
 	 */
 	public final String id = UUID.randomUUID().toString();
+
+	/**
+	 * The time in milliseconds since the Unix Epoch when this created.
+	 */
+	public final Long created = System.currentTimeMillis();
 
 	/**
 	 * @return
@@ -74,6 +79,13 @@ public class SampleValueWrapper
 	public SampleValueWrapper add (final int addend)
 	{
 		return new SampleValueWrapper(value + addend);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "SampleValueWrapper{" + value +
+			", " + id + "}";
 	}
 
 	/**

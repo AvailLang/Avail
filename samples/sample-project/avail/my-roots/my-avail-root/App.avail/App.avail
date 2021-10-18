@@ -38,5 +38,8 @@ Extends
 	"Configurations",
 	"Network"
 Entries
+	/* An example of exposing an Entry Point through which an application can be
+	 * run.
+	 */
 	"_+_"
 Body

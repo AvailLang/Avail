@@ -1,5 +1,29 @@
 OVERVIEW
 --------------------------------------------------------------------------------
+Avail is a multi-paradigmatic general purpose programming language whose feature
+set emphasizes support for articulate programming. Avail is an open-source 
+project that comprises a 
+[language virtual machine](https://en.wikipedia.org/wiki/Virtual_machine) and a 
+standard library. Both are released under the [3-clause BSD license](https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29).
+
+ * [Before Getting Started](#before-getting-started)
+ * [Before Obtaining Avail](#before-obtaining-avail)
+ * [Obtaining Avail](#obtaining-avail)
+ * [Before Installing](#before-installing)
+ * [Building Avail](#building)
+ * [After Building Avail](#after-building)
+ * [Running Avail](#running-avail)
+ * [Developing Avail](#developing-avail)
+ * [Staying Current](#staying-current)
+ * [Publishing Avail](#publishing-avail)
+ * [Reporting Problems](#reporting-problems)
+ * [Avail Gradle Plugin](/avail-plugin/README.md)
+ * [Avail Sample Project](/samples/sample-project)
+ * [JSON Utility](/avail-json/README.md)
+ * [Avail Storage Utility](/avail-storage/README.md)
+
+BEFORE GETTING STARTED
+--------------------------------------------------------------------------------
 
 If you would simply like to use Avail in a JVM project, you can import a
 prebuilt version of Avail as a dependency. See the
@@ -12,7 +36,6 @@ configuring, and running the Avail development workbench. Depending on how you
 obtained Avail, whether it is a first time installation, and what utilities are
 already installed on your system, you may be able to skip some of the sections
 of this document.
-
 
 BEFORE OBTAINING AVAIL
 --------------------------------------------------------------------------------
@@ -323,6 +346,38 @@ With some shame, I am forced to confess that the website does not undergo much
 maintenance. Our active team has shrunk in recent years, and the website suffers
 for it. Development of Avail itself is quite active, however, so GitHub might be
 your best source of Avail news.
+
+PUBLISHING AVAIL
+--------------------------------------------------------------------------------
+At the time of writing, Avail provides six distinct publishable 
+libraries/utilities one of which is a Gradle plugin used to simplify the 
+start and development of a new Avail project. 
+
+The Avail Foundation is in the process of working towards making the Avail 
+Gradle plugin available in Gradle's plugin repository as well as making the 
+other four libraries available on Maven Central.
+
+In the meantime, all of these libraries/utilities can be published to a local 
+Maven repository using the Avail top level Gradle task, `publishToLocalMaven`.
+
+Publishing Avail to local Maven will publish five jars:
+ * `avail-core` - *The core Avail language*
+   (see [Avail](/avail-core/README.md))
+ * `avail-stdlib` - *The Avail standard library*
+   (see [Standard Library](/avail-stdlib/README.md))
+ * `avail-workbench` - *The Avail development tool for developing Avail* 
+   (see [Workbench](/avail-workbench/README.md))
+ * `avail-json` - *A stand-alone general JSON building utility written in 
+   Kotlin*
+   (see [JSON](/avail-json/README.md))
+ * `avail-storage` - *A stand-alone general utility for data storage written in 
+   Kotlin*
+   (see [Storage](/avail-storage/README.md))
+
+Publishing Avail automatically updates the Avail version being used by the 
+[Avail Gradle Plugin](/avail-plugin/README.md). All that is necessary to have a 
+functional Avail Gradle plugin to match the above mentioned builds is to run the 
+`publishToLocalMaven` in `avail-plugin`.
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------

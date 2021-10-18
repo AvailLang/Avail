@@ -20,6 +20,13 @@ The directory `avail/` is created by the Avail Gradle task, `initializeAvail`
 in the task group, `avail`. Delete the `avail` directory and run 
 `initializeAvail` to simulate setting up the Avail project from scratch.
 
+### Avail Gradle Plugin Note
+At the time of writing this, the Avail Gradle Plugin has yet to be made 
+accessible from Gradle's repository. Additionally, the Avail libraries are not
+yet available on Maven Central. Until such time as these become published 
+publicly, users of this should publish Avail to Maven Local and then publish 
+the Avail Gradle Plugin to Maven Local. 
+
 RUNNING
 --------------------------------------------------------------------------------
 Use the Avail Gradle task, `printAvailConfig` in the task group, `avail` to 
@@ -39,6 +46,10 @@ Avail Root, `my-avail-root`.
  * `AvailContext` - This contains functionality used to create your Avail 
    `Project`. The `Project` gives you access to an `AvailRuntime` and also 
    allows you to build a module. 
+ * `Foreign Functions.avail` - This contains example functionality for using
+   POJOs, code written in Java in the module `avail-java-ffi` module, inside 
+   Avail code. It also contains examples for writing tests. At the time of
+   writing, this is the most interesting module in this example.
 
 The `main` function provides an example as to how one can set up their own 
 Avail project inside their own JVM project.

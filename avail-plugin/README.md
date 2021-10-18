@@ -4,6 +4,13 @@ Avail Gradle Plugin
 The Avail Gradle Plugin, `avail-plugin`, provides Avail-based project setup 
 using a Gradle Plugin. It can be found on [Github](https://github.com/orgs/AvailLang/packages?repo_name=Avail).
 
+ * [Overview](#overview)
+ * [Setup](#setup)
+ * [Configuration](#configuration)
+ * [Plugin Tasks](#plugin-tasks)
+ * [Example](#example)
+ * [Publishing](#local-publishing)
+
 ## Overview
 The plugin provides:
  * The inclusion of the `avail:avail-core` dependency in the 
@@ -17,7 +24,6 @@ The plugin provides:
  * Provides access to Gradle task that will launch an Avail Workbench.
  
 ## Setup
-
 To make the plugin accessible you must insure you include the following in the 
 repositories' area of your Gradle settings.gradle.kts: 
 
@@ -315,7 +321,7 @@ task group when the plugin is applied.
 
 ## Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
-You can see a full project in [sample-project](/samples/sample-project).
+You can see a full project example in [sample-project](/samples/sample-project).
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -548,3 +554,11 @@ pluginManagement {
 }
 rootProject.name = "plugin-test"
 ```
+### Publish Version
+The publish version is specified in 
+[releaseVersion.properties](/src/main/resources/releaseVersion.properties). It
+must match the version of the Avail library builds assigned during the Avail 
+publishing process. The Avail project Gradle tasks, `publish` and 
+`publishToMavenLocal` update `releaseVersion.properties` automatically. It is 
+only necessary to run either Gradle task, `publish` or `publishToMavenLocal` to
+have a plugin build that matches the most recently published Avail libraries.
