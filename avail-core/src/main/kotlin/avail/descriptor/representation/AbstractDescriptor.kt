@@ -37,6 +37,7 @@ import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -3836,22 +3837,22 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_RecordBlockPhrase(
 		self: AvailObject,
 		blockPhrase: A_Phrase
-	): A_Number
+	): Int
 
 	abstract fun o_GetAndSetTupleOfBlockPhrases(
 		self: AvailObject,
 		newValue: AvailObject
 	): AvailObject
 
-	abstract fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject
+	abstract fun o_OriginatingPhraseIndex(self: AvailObject): Int
 
 	abstract fun o_DeclarationNames(self: AvailObject): A_Tuple
 
 	abstract fun o_PackedDeclarationNames(self: AvailObject): A_String
 
-	abstract fun o_SetOriginatingPhraseOrIndex(
+	abstract fun o_SetOriginatingPhraseIndex(
 		self: AvailObject,
-		phraseOrIndex: AvailObject)
+		index: Int)
 
 	abstract fun o_LexerApplicability(
 		self: AvailObject,
@@ -3888,6 +3889,17 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_InstanceTag(self: AvailObject): TypeTag
 
 	abstract fun o_ComputeInstanceTag(self: AvailObject): TypeTag
+
+	abstract fun o_GetAndSetManifestEntries(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject
+
+	abstract fun o_ManifestEntries(
+		self: AvailObject
+	): List<ModuleManifestEntry>
+
+	abstract fun o_SynthesizeCurrentLexingState(self: AvailObject): LexingState
 
 	companion object
 	{

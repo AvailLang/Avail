@@ -56,6 +56,7 @@ import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
@@ -66,11 +67,11 @@ import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.nybbles
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseOrIndex
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.packedDeclarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.newCompiledCode
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
@@ -258,6 +259,7 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassWithTypeArguments
 import avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Companion.extractOrdinal
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.ReadWriteVariableTypeDescriptor
 import avail.descriptor.types.SelfPojoTypeDescriptor.Companion.pojoFromSerializationProxy
 import avail.descriptor.types.SelfPojoTypeDescriptor.Companion.pojoSerializationProxy
@@ -267,7 +269,6 @@ import avail.descriptor.types.TokenTypeDescriptor
 import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
@@ -1250,7 +1251,7 @@ enum class SerializerOperation constructor(
 		OBJECT_REFERENCE.named("Module name"),
 		UNSIGNED_INT.named("Line number"),
 		COMPRESSED_INT_TUPLE.named("Encoded line number deltas"),
-		OBJECT_REFERENCE.named("Originating phrase"),
+		OBJECT_REFERENCE.named("Originating phrase or index"),
 		OBJECT_REFERENCE.named("Packed declaration names"))
 	{
 		override fun decompose(
@@ -1258,7 +1259,7 @@ enum class SerializerOperation constructor(
 			serializer: Serializer
 		): Array<out A_BasicObject>
 		{
-			val originatingPhraseOrIndex = obj.originatingPhraseOrIndex
+			val originatingPhraseIndex = obj.originatingPhraseIndex
 			val module = obj.module
 			val phraseOrIndex = when
 			{
@@ -1266,15 +1267,13 @@ enum class SerializerOperation constructor(
 					|| module.moduleState != Loading
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
-					|| originatingPhraseOrIndex.isNil
-					|| originatingPhraseOrIndex.isInt
-				-> originatingPhraseOrIndex
+					|| originatingPhraseIndex == -1
+				-> obj.originatingPhrase
 				else ->
 				{
-					val index = module.recordBlockPhrase(
-						originatingPhraseOrIndex.makeShared())
-					obj.originatingPhraseOrIndex = index as AvailObject
-					index
+					val index = module.recordBlockPhrase(obj.originatingPhrase)
+					obj.originatingPhraseIndex = index
+					fromInt(index)
 				}
 			}
 
@@ -1332,7 +1331,7 @@ enum class SerializerOperation constructor(
 			val moduleName = subobjects[9]
 			val lineNumberInteger = subobjects[10]
 			val lineNumberEncodedDeltas = subobjects[11]
-			val originatingPhrase = subobjects[12]
+			val originatingPhraseOrIndex = subobjects[12]
 			val packedDeclarationNames = subobjects[13]
 
 			val numArgsRange = functionType.argsTupleType.sizeRange
@@ -1344,6 +1343,12 @@ enum class SerializerOperation constructor(
 			val module =
 				if (moduleName.tupleSize == 0) nil
 				else deserializer.moduleNamed(moduleName)
+			val (phrase, phraseIndex) = when
+			{
+				originatingPhraseOrIndex.isInt ->
+					nil to originatingPhraseOrIndex.extractInt
+				else -> originatingPhraseOrIndex to -1
+			}
 			return newCompiledCode(
 				nybbles,
 				numSlots - numConstants - numLocals - numArgs,
@@ -1357,7 +1362,8 @@ enum class SerializerOperation constructor(
 				module,
 				lineNumberInteger.extractInt,
 				lineNumberEncodedDeltas,
-				originatingPhrase,
+				phraseIndex,
+				phrase,
 				packedDeclarationNames)
 		}
 	},

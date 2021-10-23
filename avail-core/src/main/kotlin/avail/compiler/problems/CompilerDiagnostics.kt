@@ -34,7 +34,6 @@ package avail.compiler.problems
 
 import avail.AvailRuntime.Companion.currentRuntime
 import avail.builder.ModuleName
-import avail.compiler.ParserState
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.ProblemType.PARSE
@@ -101,7 +100,7 @@ import kotlin.math.min
  * @param problemHandler
  *   A [ProblemHandler] for, well, handling problems during compilation.
  */
-class CompilerDiagnostics(
+class CompilerDiagnostics constructor(
 	private val source: A_String,
 	private val moduleName: ModuleName,
 	val pollForAbort: () -> Boolean,
@@ -111,7 +110,7 @@ class CompilerDiagnostics(
 	 * The position in the source at which the current top-level statement
 	 * starts.
 	 */
-	private var startOfStatement: ParserState? = null
+	private var startOfStatement: LexingState? = null
 
 	/**
 	 * The non-silent expectations collected during a top-level expression
@@ -659,10 +658,10 @@ class CompilerDiagnostics(
 	 * expectations.
 	 *
 	 * @param initialPositionInSource
-	 *   The [ParserState] at the earliest source position for which we should
+	 *   The [LexingState] at the earliest source position for which we should
 	 *   record problem information.
 	 */
-	fun startParsingAt(initialPositionInSource: ParserState)
+	fun startParsingAt(initialPositionInSource: LexingState)
 	{
 		startOfStatement = initialPositionInSource
 		expectationsList.clear()
@@ -830,7 +829,7 @@ class CompilerDiagnostics(
 							"to be able to parse a top-level statement here, "
 							+ "but undescribed impediments were encountered.")
 					},
-					startOfStatement!!.lexingState)
+					startOfStatement!!)
 			}
 		}
 		assert(!list.isEmpty)

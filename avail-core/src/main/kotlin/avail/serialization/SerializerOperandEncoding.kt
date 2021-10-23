@@ -172,7 +172,7 @@ internal enum class SerializerOperandEncoding
 	},
 
 	/**
-	 * This is an [AvailObject] that's always a positive
+	 * This is an [AvailObject] that's always a non-negative
 	 * [integer][IntegerDescriptor] in the range 0 through 2<sup>32</sup>-1.
 	 * Some system limits fall within this range, allowing this compact
 	 * representation to be used.

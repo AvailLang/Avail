@@ -32,6 +32,8 @@
 package avail.interpreter.execution
 
 import avail.AvailRuntime
+import avail.compiler.ModuleManifestEntry
+import avail.compiler.ModuleManifestEntry.Kind
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -66,7 +68,9 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -88,8 +92,11 @@ import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Method.Companion.removeDefinition
 import avail.descriptor.methods.A_SemanticRestriction
+import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
+import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
+import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
 import avail.descriptor.methods.DefinitionDescriptor
@@ -133,6 +140,8 @@ import avail.descriptor.parsing.A_Lexer.Companion.setLexerApplicability
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
+import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -672,6 +681,22 @@ class AvailLoader(
 	fun rootBundleTree(): A_BundleTree = rootBundleTree
 
 	/**
+	 * During module compilation, this holds the top-level zero-argument block
+	 * phrase that wraps the parsed statement, and is in the process of being
+	 * evaluated.
+	 */
+	var topLevelStatementBeingCompiled: A_Phrase? = null
+
+	/**
+	 * A stream on which to serialize each [ModuleManifestEntry] when the
+	 * definition actually occurs during compilation.  After compilation, the
+	 * bytes of this stream are written to a record whose index is captured in
+	 * the [A_Module]'s [ModuleDescriptor.ObjectSlots.ALL_MANIFEST_ENTRIES], and
+	 * fetched from the repository and decoded into a pojo array when needed.
+	 */
+	var manifestEntries: MutableList<ModuleManifestEntry>? = null
+
+	/**
 	 * A flag that is cleared before executing each top-level statement of a
 	 * module, and set whenever execution of the statement causes behavior that
 	 * can't simply be summarized by a sequence of [LoadingEffect]s.
@@ -1072,6 +1097,40 @@ class AvailLoader(
 					}
 				}
 				module.moduleAddDefinition(newDefinition)
+				module.lock {
+					val topStart = topLevelStatementBeingCompiled!!
+						.startingLineNumber
+					manifestEntries!!.add(
+						when
+						{
+							newDefinition.isMethodDefinition() ->
+							{
+								val body = newDefinition.bodyBlock().code()
+								ModuleManifestEntry(
+									Kind.METHOD_DEFINITION_KIND,
+									methodName.atomName.asNativeString(),
+									topStart,
+									body.codeStartingLineNumber,
+									body.originatingPhraseIndex)
+							}
+							newDefinition.isForwardDefinition() ->
+								ModuleManifestEntry(
+									Kind.FORWARD_METHOD_DEFINITION_KIND,
+									methodName.atomName.asNativeString(),
+									topStart,
+									topStart,
+									-1)
+							newDefinition.isAbstractDefinition() ->
+								ModuleManifestEntry(
+									Kind.ABSTRACT_METHOD_DEFINITION_KIND,
+									methodName.atomName.asNativeString(),
+									topStart,
+									topStart,
+									-1)
+							else -> throw UnsupportedOperationException(
+								"Unknown definition kind")
+						})
+				}
 			}
 		}
 		else
@@ -1151,6 +1210,13 @@ class AvailLoader(
 		{
 			recordEffect(LoadingEffectToAddMacro(bundle, macroDefinition))
 			module.lock {
+				manifestEntries!!.add(
+					ModuleManifestEntry(
+						Kind.MACRO_DEFINITION_KIND,
+						methodName.atomName.asNativeString(),
+						topLevelStatementBeingCompiled!!.startingLineNumber,
+						macroCode.codeStartingLineNumber,
+						macroCode.originatingPhraseIndex))
 				val plan: A_DefinitionParsingPlan =
 					bundle.definitionParsingPlans.mapAt(macroDefinition)
 				val planInProgress = newPlanInProgress(plan, 1)
@@ -1172,18 +1238,33 @@ class AvailLoader(
 	fun addSemanticRestriction(restriction: A_SemanticRestriction)
 	{
 		val method = restriction.definitionMethod()
-		if (restriction.function().code().numArgs() != method.numArgs)
+		val function = restriction.function()
+		if (function.code().numArgs() != method.numArgs)
 		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
 		runtime.addSemanticRestriction(restriction)
+		val atom = method.chooseBundle(module).message
 		recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SEMANTIC_RESTRICTION.bundle,
-				method.chooseBundle(module).message,
-				restriction.function()))
+				atom,
+				function))
 		val theModule = module
-		theModule.lock { theModule.moduleAddSemanticRestriction(restriction) }
+		val code = function.code()
+		theModule.lock {
+			theModule.moduleAddSemanticRestriction(restriction)
+			if (phase == EXECUTING_FOR_COMPILE)
+			{
+				manifestEntries!!.add(
+					ModuleManifestEntry(
+						Kind.SEMANTIC_RESTRICTION_KIND,
+						atom.atomName.asNativeString(),
+						topLevelStatementBeingCompiled!!.startingLineNumber,
+						code.codeStartingLineNumber,
+						code.originatingPhraseIndex))
+			}
+		}
 	}
 
 	/**
@@ -1410,7 +1491,22 @@ class AvailLoader(
 				0 ->
 				{
 					val trueName = createAtom(stringName, module)
-					if (isExplicitSubclassAtom) {
+					if (phase == EXECUTING_FOR_COMPILE)
+					{
+						val topStart = topLevelStatementBeingCompiled!!
+							.startingLineNumber
+						module.lock {
+							manifestEntries!!.add(
+								ModuleManifestEntry(
+									Kind.ATOM_DEFINITION_KIND,
+									stringName.asNativeString(),
+									topStart,
+									topStart,
+									-1))
+						}
+					}
+					if (isExplicitSubclassAtom)
+					{
 						trueName.setAtomProperty(
 							EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
 					}

@@ -71,8 +71,9 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
 		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
 		val productReg = instruction.operand<L2WriteIntOperand>(2)
-		//		final L2PcOperand outOfRange = instruction.operand(3);
-//		final L2PcOperand inRange = instruction.operand(4);
+		//val outOfRange = instruction.operand<L2WriteIntOperand>(3)
+		//val inRange = instruction.operand<L2WriteIntOperand>(4)
+
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(productReg.registerString())

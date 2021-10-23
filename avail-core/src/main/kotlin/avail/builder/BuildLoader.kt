@@ -50,6 +50,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapSize
+import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.removeFrom
@@ -59,6 +60,7 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
+import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -68,18 +70,18 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import org.availlang.persistence.IndexedFile
-import org.availlang.persistence.IndexedFile.Companion.appendCRC
-import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
 import avail.serialization.Deserializer
-import org.availlang.persistence.MalformedSerialStreamException
 import avail.serialization.Serializer
 import avail.utility.evaluation.Combinator.recurse
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile.Companion.appendCRC
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
+import org.availlang.persistence.MalformedSerialStreamException
 import java.lang.String.format
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
@@ -571,13 +573,18 @@ internal class BuildLoader constructor(
 							blockPhraseSerializer.serialize(
 								module.getAndSetTupleOfBlockPhrases(nil))
 							appendCRC(blockPhrasesOutputStream)
+							val manifestEntries = compiler.compilationContext
+								.loader.manifestEntries!!
+							module.getAndSetManifestEntries(
+								identityPojo(manifestEntries))
 
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()
 							val compilation = repository.ModuleCompilation(
 								compilationTime,
 								stream.toByteArray(),
-								blockPhrasesOutputStream.toByteArray())
+								blockPhrasesOutputStream.toByteArray(),
+								manifestEntries)
 							archive.putCompilation(
 								versionKey, compilationKey, compilation)
 
@@ -592,6 +599,9 @@ internal class BuildLoader constructor(
 							module.getAndSetTupleOfBlockPhrases(
 								fromLong(
 									compilation.recordNumberOfBlockPhrases))
+							module.getAndSetManifestEntries(
+								fromLong(
+									compilation.recordNumberOfManifestEntries))
 							appendCRC(out)
 
 							val version = archive.getVersion(versionKey)!!

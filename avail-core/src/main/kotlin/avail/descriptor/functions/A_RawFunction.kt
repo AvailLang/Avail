@@ -34,7 +34,6 @@ package avail.descriptor.functions
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.methods.A_Method
 import avail.descriptor.module.A_Module
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -324,17 +323,13 @@ interface A_RawFunction : A_BasicObject {
 			get() = dispatch { o_OriginatingPhrase(it) }
 
 		/**
-		 * Answer/set either
-		 *   1. the [block&#32;phrase][BlockPhraseDescriptor] from which this
-		 *      raw function was constructed,
-		 *   2. the index ([A_Number]) that can fetch and reconstruct the phrase
-		 *      from the repository, or
-		 *   3. [nil] if this information is not available for this raw
-		 *      function.
+		 * The index into the [module]'s lazily-loaded tuple of phrases, or -1
+		 * if the phrase was not written to a module, in which case the
+		 * [originatingPhrase] must already contain the [A_Phrase].
 		 */
-		var A_RawFunction.originatingPhraseOrIndex: AvailObject
-			get() = dispatch { o_OriginatingPhraseOrIndex(it) }
-			set(value) = dispatch { o_SetOriginatingPhraseOrIndex(it, value) }
+		var A_RawFunction.originatingPhraseIndex: Int
+			get() = dispatch { o_OriginatingPhraseIndex(it) }
+			set(value) = dispatch { o_SetOriginatingPhraseIndex(it, value) }
 
 		/**
 		 * Answer the [type][A_Type] of the `index`-th outer variable.

@@ -721,7 +721,7 @@ Method "_÷_" is
 	if numeratorRange = ⊥ ∨ denominator = 0 then [⊥]
 	else
 	[
-		/* ±∞ divided by any finite nonzero value is 0. */
+		/* dividing by ±∞ yields 0. */
 		if denominator is infinite then
 		[
 			0's type

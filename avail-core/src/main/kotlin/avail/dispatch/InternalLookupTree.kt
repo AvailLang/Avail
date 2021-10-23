@@ -190,15 +190,12 @@ internal constructor(
 	{
 		assert(!isExpanded)
 		val numArgs = knownArgumentRestrictions.size
-
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
 
 		// To reduce duplication of the same tests, any argument that has the
 		// same type in all definitions, but has not been proven yet, should be
 		// selected first.
-		if (adaptor.testsArgumentPositions()
-			&& positiveElements.isEmpty()
-			&& undecidedElements.size > 1)
+		if (adaptor.testsArgumentPositions() && undecidedElements.size > 1)
 		{
 			val iterator = undecidedElements.iterator()
 			val firstElement = iterator.next()
@@ -231,25 +228,6 @@ internal constructor(
 				}
 			}
 
-			// See if everybody requires the same type for an argument, but
-			// doesn't guarantee it's satisfied yet.
-			for (argNumber in 1..numArgs)
-			{
-				val commonType = commonArgTypes[argNumber - 1]
-				if (commonType !== null
-						&& !knownArgumentRestrictions[argNumber - 1]
-							.containedByType(commonType))
-				{
-					// Everybody needs this argument to satisfy this exact type,
-					// but the argument isn't known to satisfy it yet.  This
-					// test will be required by every traversal, so rather than
-					// have duplicates near the leaves, test it as early as
-					// possible.
-					return buildTestArgument(
-						adaptor, memento, argNumber, commonType)
-				}
-			}
-
 			for (argNumber in 1..numArgs)
 			{
 				if (commonTags[argNumber - 1] === null
@@ -276,6 +254,31 @@ internal constructor(
 						adaptor, memento, argNumber)
 				}
 			}
+
+			// See if everybody requires the same type for an argument, but
+			// doesn't guarantee it's satisfied yet.
+			if (positiveElements.isEmpty())
+			{
+				for (argNumber in 1 .. numArgs)
+				{
+					val commonType = commonArgTypes[argNumber - 1]
+					if (commonType !== null
+						&& !knownArgumentRestrictions[argNumber - 1]
+							.containedByType(commonType)
+					)
+					{
+						// Everybody needs this argument to satisfy this exact type,
+						// but the argument isn't known to satisfy it yet.  This
+						// test will be required by every traversal, so rather than
+						// have duplicates near the leaves, test it as early as
+						// possible.
+						return buildTestArgument(
+							adaptor, memento, argNumber, commonType
+						)
+					}
+				}
+			}
+
 			// TODO MvG: If we reach here, each argument position has a known
 			//  type tag.  This may be the ideal time to choose a Covariant
 			//  relation of one of the type tags, and follow it to augment the
@@ -528,20 +531,22 @@ internal constructor(
 	{
 		val tagToElements = mutableMapOf<TypeTag, MutableSet<Element>>()
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
-		undecidedElements.forEach { element ->
-			val commonArgType = adaptor.restrictedSignature(element, bound)
-				.typeAtIndex(argumentIndex)
-			val tag = commonArgType.instanceTag
-			val subset = tagToElements.computeIfAbsent(tag) { mutableSetOf() }
-			subset.add(element)
-			if (tag.isSubtagOf(TOP_TYPE_TAG))
-			{
-				// It's a type, so pump BOTTOM_TYPE_TAG as well.
-				val bottomTypeSubset =
-					tagToElements.computeIfAbsent(BOTTOM_TYPE_TAG) {
-						mutableSetOf()
-					}
-				bottomTypeSubset.add(element)
+		listOf(undecidedElements, positiveElements).forEach { list ->
+			list.forEach { element ->
+				val commonArgType = adaptor.restrictedSignature(element, bound)
+					.typeAtIndex(argumentIndex)
+				val tag = commonArgType.instanceTag
+				val subset = tagToElements.computeIfAbsent(tag) { mutableSetOf() }
+				subset.add(element)
+				if (tag.isSubtagOf(TOP_TYPE_TAG))
+				{
+					// It's a type, so pump BOTTOM_TYPE_TAG as well.
+					val bottomTypeSubset =
+						tagToElements.computeIfAbsent(BOTTOM_TYPE_TAG) {
+							mutableSetOf()
+						}
+					bottomTypeSubset.add(element)
+				}
 			}
 		}
 		// For each TypeTag that's present in the map, add in the elements
@@ -576,7 +581,10 @@ internal constructor(
 			restrictions[argumentIndex - 1] = restriction
 
 			val boundForTag = adaptor.extractBoundingType(restrictions)
-			val positive = positiveElements.toMutableList()
+			// The positive elements were processed along with the undecided
+			// elements, so they're already represented in the tag-specific
+			// subsets.
+			val positive = mutableListOf<Element>()
 			val undecided = mutableListOf<Element>()
 			elements.forEach { element ->
 				val positiveComparison = adaptor.compareTypes(
@@ -586,8 +594,8 @@ internal constructor(
 				positiveComparison.applyEffect(element, positive, undecided)
 			}
 			adaptor.createTree(
-				positive,
-				undecided,
+				positive.distinct(),
+				undecided.distinct(),
 				restrictions,
 				alreadyTested,
 				alreadyVariantTestedArguments,

@@ -36,6 +36,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -79,11 +80,16 @@ import avail.interpreter.levelTwo.L2Chunk
  *   The type that will be returned by the nybblecodes, if they run.
  * @param module
  *   The [module][A_Module] creating this primitive function.
- * @param originatingPhraseOrIndex
- *   Usually a one-based index into the module's tuple of block phrases.  This
- *   mechanism allows the tuple to be loaded from a repository on demand,
- *   reducing the memory footprint when this information is not in use.  If the
- *   module is [nil], the value should be the originating phrase itself.
+ * @param originatingPhraseIndex
+ *   A one-based index into the module's tuple of block phrases.  If the module
+ *   is unavailable or did not store such a phrase, this is -1 and the
+ *   [originatingPhrase] contains the phrase from which this code was
+ *   constructed.
+ * @param originatingPhrase
+ *   Either [nil] or the [A_Phrase] that this code was built from.  If it's nil,
+ *   it can be reconstructed by asking the [module] to look up the phrase it has
+ *   stored under the [originatingPhraseIndex], which may then be cached in this
+ *   field.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -97,14 +103,16 @@ class PrimitiveCompiledCodeDescriptor constructor(
 	private val primitive: Primitive,
 	private val returnTypeIfPrimitiveFails: A_Type,
 	module: A_Module,
-	originatingPhraseOrIndex: AvailObject,
+	originatingPhraseIndex: Int,
+	originatingPhrase: A_Phrase,
 	packedDeclarationNames: A_String,
 	lineNumber: Int,
 	lineNumberEncodedDeltas: A_Tuple
 ) : CompiledCodeDescriptor(
 	mutability,
 	module,
-	originatingPhraseOrIndex,
+	originatingPhraseIndex,
+	originatingPhrase,
 	packedDeclarationNames,
 	lineNumber,
 	lineNumberEncodedDeltas

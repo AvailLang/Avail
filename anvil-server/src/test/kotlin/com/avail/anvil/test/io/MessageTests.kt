@@ -96,6 +96,5 @@ class MessageTests
 				add(RebuttedVersionsMessage(CLIENT, 0, setOf(4, 5)))
 				add(AcknowledgedMessage(CLIENT, 0, OK))
 			}.stream()
-
 	}
 }

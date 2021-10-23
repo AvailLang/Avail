@@ -71,8 +71,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operation.L2_BIT_LOGIC_OP
 import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT
-import avail.interpreter.levelTwo.operation.L2_MULTIPLY_INT_BY_INT_MOD_32_BITS
 import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2Generator.Companion.edgeTo
@@ -123,22 +123,18 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 			if (aValues.setSize * bValues.setSize.toLong() < 100)
 			{
 				var answers = emptySet
-				for (aValue in aValues)
-				{
-					for (bValue in bValues)
-					{
+				aValues.forEach { aValue ->
+					bValues.forEach { bValue ->
 						try
 						{
 							answers = answers.setWithElementCanDestroy(
 								aValue.timesCanDestroy(bValue, false),
 								false)
-						}
-						catch (e: ArithmeticException)
+						} catch (e: ArithmeticException)
 						{
 							// Ignore that combination of inputs, as it will
 							// fail rather than return a value.
 						}
-
 					}
 				}
 				return enumerationWith(answers)
@@ -294,8 +290,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: CallSiteHelper
-		): Boolean
+		callSiteHelper: CallSiteHelper): Boolean
 	{
 		val (a, b) = arguments
 		val (aType, bType) = argumentTypes
@@ -336,10 +331,7 @@ object P_Multiplication : Primitive(2, CanFold, CanInline)
 				// synonym, so subsequent uses of the result might use either
 				// register, depending whether an unboxed value is desired.
 				translator.addInstruction(
-					L2_MULTIPLY_INT_BY_INT_MOD_32_BITS,
-					intA,
-					intB,
-					tempWriter)
+					L2_BIT_LOGIC_OP.wrappedMultiply, intA, intB, tempWriter)
 			}
 			else
 			{

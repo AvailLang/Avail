@@ -83,7 +83,6 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
@@ -436,7 +435,8 @@ class AvailCodeGenerator private constructor(
 			module,
 			startingLineNumber,
 			tupleFromIntegerList(encodedLineNumberDeltas),
-			originatingBlockPhrase as AvailObject,
+			-1,
+			originatingBlockPhrase,
 			stringFrom(packedDeclarationNames))
 		return code.makeShared()
 	}

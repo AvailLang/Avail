@@ -36,6 +36,7 @@ import avail.AvailRuntimeConfiguration
 import avail.AvailRuntimeSupport.captureNanos
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
+import avail.compiler.ModuleManifestEntry.Kind
 import avail.compiler.ParsingOperation.CHECK_ARGUMENT
 import avail.compiler.ParsingOperation.Companion.decode
 import avail.compiler.ParsingOperation.Companion.distinctInstructions
@@ -94,6 +95,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -263,9 +265,9 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRA
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.dispatch.LookupStatistics
@@ -344,7 +346,7 @@ import kotlin.math.min
  * @param problemHandler
  *   The [ProblemHandler] used for reporting compilation problems.
  */
-class AvailCompiler(
+class AvailCompiler constructor(
 	moduleHeader: ModuleHeader?,
 	module: A_Module,
 	source: A_String,
@@ -853,9 +855,9 @@ class AvailCompiler(
 	 * module's scope.
 	 *
 	 * @param startState
-	 *   The start [ParserState], for line number reporting.
+	 *   The start [LexingState], for line number reporting.
 	 * @param afterStatement
-	 *   The [ParserState] just after the statement.
+	 *   The [LexingState] just after the statement.
 	 * @param expression
 	 *   The expression to compile and evaluate as a top-level statement in the
 	 *   module.
@@ -871,8 +873,8 @@ class AvailCompiler(
 	 *   continuation.
 	 */
 	internal fun evaluateModuleStatementThen(
-		startState: ParserState,
-		afterStatement: ParserState,
+		startState: LexingState,
+		afterStatement: LexingState,
 		expression: A_Phrase,
 		declarationRemap: MutableMap<A_Phrase, A_Phrase>,
 		onSuccess: ()->Unit)
@@ -914,7 +916,7 @@ class AvailCompiler(
 			// reachable from the module's methods.
 			compilationContext.evaluatePhraseThen(
 				replacement,
-				afterStatement.lexingState,
+				startState,
 				true,
 				false,
 				{ onSuccess() },
@@ -954,7 +956,7 @@ class AvailCompiler(
 				loader.startRecordingEffects()
 				compilationContext.evaluatePhraseThen(
 					replacement.initializationExpression,
-					afterStatement.lexingState,
+					afterStatement,
 					false,
 					false,
 					{ value ->
@@ -1011,6 +1013,13 @@ class AvailCompiler(
 							replacement.token.lineNumber())
 						compilationContext.serializeWithoutSummary(
 							assignFunction)
+						loader.manifestEntries!!.add(
+							ModuleManifestEntry(
+								Kind.MODULE_CONSTANT_KIND,
+								name.asNativeString(),
+								startState.lineNumber,
+								replacement.token.lineNumber(),
+								assignFunction.code().originatingPhraseIndex))
 						variable.setValue(value)
 						onSuccess()
 					},
@@ -1067,13 +1076,23 @@ class AvailCompiler(
 						assign, module, replacement.token.lineNumber())
 					compilationContext.evaluatePhraseThen(
 						replacement.initializationExpression,
-						afterStatement.lexingState,
+						afterStatement,
 						false,
 						false,
 						{ value ->
 							variable.setValue(value)
 							compilationContext.serializeWithoutSummary(
 								assignFunction)
+							module.lock {
+								loader.manifestEntries!!.add(
+									ModuleManifestEntry(
+										Kind.MODULE_VARIABLE_KIND,
+										name.asNativeString(),
+										startState.lineNumber,
+										replacement.token.lineNumber(),
+										assignFunction.code()
+											.originatingPhraseIndex))
+							}
 							onSuccess()
 						},
 						phraseFailure)
@@ -3041,7 +3060,7 @@ class AvailCompiler(
 	 * Check a property of the Avail virtual machine.
 	 *
 	 * @param state
-	 *   The [ParserState] at which the pragma was found.
+	 *   The [LexingState] at which the pragma was found.
 	 * @param propertyName
 	 *   The name of the property that is being checked.
 	 * @param propertyValue
@@ -3050,7 +3069,7 @@ class AvailCompiler(
 	 *   What to do after the check completes successfully.
 	 */
 	internal fun pragmaCheckThen(
-		state: ParserState,
+		state: LexingState,
 		propertyName: String,
 		propertyValue: String,
 		success: ()->Unit)
@@ -3105,7 +3124,7 @@ class AvailCompiler(
 	 * [method][MethodDescriptor]'s [bundle][A_BundleTree]).
 	 *
 	 * @param state
-	 *   The [state][ParserState] following a parse of the
+	 *   The [state][LexingState] following a parse of the
 	 *   [module&#32;header][ModuleHeader].
 	 * @param token
 	 *   A token with which to associate the definition of the function. Since
@@ -3120,7 +3139,7 @@ class AvailCompiler(
 	 *   What to do after the method is bootstrapped successfully.
 	 */
 	internal fun bootstrapMethodThen(
-		state: ParserState,
+		state: LexingState,
 		token: A_Token,
 		methodName: String,
 		primitiveName: String,
@@ -3142,7 +3161,11 @@ class AvailCompiler(
 			newListNode(tuple(nameLiteral, syntheticLiteralNodeFor(function))),
 			TOP.o)
 		evaluateModuleStatementThen(
-			state, state, send, mutableMapOf(), success)
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**
@@ -3152,7 +3175,7 @@ class AvailCompiler(
 	 * [CRASH]'s [method's][MethodDescriptor] [bundle][A_BundleTree]).
 	 *
 	 * @param state
-	 *   The [state][ParserState] following a parse of the
+	 *   The [state][LexingState] following a parse of the
 	 *   [module&#32;header][ModuleHeader].
 	 * @param token
 	 *   A token with which to associate the definition of the function(s).
@@ -3168,7 +3191,7 @@ class AvailCompiler(
 	 *   What to do after the macro is defined successfully.
 	 */
 	internal fun bootstrapMacroThen(
-		state: ParserState,
+		state: LexingState,
 		token: A_Token,
 		macroName: String,
 		primitiveNames: Array<String>,
@@ -3218,7 +3241,12 @@ class AvailCompiler(
 					newListNode(tupleFromList(functionLiterals)),
 					bodyLiteral)),
 			TOP.o)
-		evaluateModuleStatementThen(state, state, send, mutableMapOf(), success)
+		evaluateModuleStatementThen(
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**
@@ -3239,7 +3267,7 @@ class AvailCompiler(
 	 * give specific diagnostics about what went wrong.
 	 *
 	 * @param state
-	 *   The [state][ParserState] following a parse of the
+	 *   The [state][LexingState] following a parse of the
 	 *   [module&#32;header][ModuleHeader].
 	 * @param token
 	 *   A token with which to associate the definition of the lexer function.
@@ -3257,7 +3285,7 @@ class AvailCompiler(
 	 *   What to do after the method is bootstrapped successfully.
 	 */
 	internal fun bootstrapLexerThen(
-		state: ParserState,
+		state: LexingState,
 		token: A_Token,
 		lexerAtom: A_Atom,
 		filterPrimitiveName: String,
@@ -3329,7 +3357,7 @@ class AvailCompiler(
 					syntheticLiteralNodeFor(bodyFunction))),
 			TOP.o)
 		evaluateModuleStatementThen(
-			ParserState(token.nextLexingState(), emptyMap),
+			token.synthesizeCurrentLexingState(),
 			state,
 			send,
 			mutableMapOf(),
@@ -3341,12 +3369,11 @@ class AvailCompiler(
 	 * [module&#32;header][ModuleHeader].
 	 *
 	 * @param state
-	 *   The [parse&#32;state][ParserState] following a parse of the module
-	 *   header.
+	 *   The [state][LexingState] following a parse of the module header.
 	 * @param success
 	 *   What to do after the pragmas have been applied successfully.
 	 */
-	private fun applyPragmasThen(state: ParserState, success: ()->Unit)
+	private fun applyPragmasThen(state: LexingState, success: ()->Unit)
 	{
 		val iterator = moduleHeader.pragmas.iterator()
 		compilationContext.loader.setPhase(EXECUTING_FOR_COMPILE)
@@ -3393,8 +3420,7 @@ class AvailCompiler(
 				pragmaValue,
 				state
 			) {
-				state.lexingState.compilationContext.eventuallyDo(
-					state.lexingState, recurse!!)
+				state.compilationContext.eventuallyDo(state, recurse!!)
 			}
 		}
 		recurse()
@@ -3431,7 +3457,7 @@ class AvailCompiler(
 				return@parseModuleHeader
 			}
 			compilationContext.loader.prepareForCompilingModuleBody()
-			applyPragmasThen(afterHeader) {
+			applyPragmasThen(afterHeader.lexingState) {
 				parseAndExecuteOutermostStatements(afterHeader)
 			}
 		}
@@ -3521,9 +3547,17 @@ class AvailCompiler(
 							+ ':'.toString() + start.lineNumber
 							+ " Running statement:\n" + statement)
 				}
+				val beforeFirstNonwhiteToken =
+					afterStatement.lexingState.allTokens.firstOrNull {
+						it.tokenType().let {
+							it != WHITESPACE
+								&& it != COMMENT
+								&& it != END_OF_FILE
+						}
+					}?.synthesizeCurrentLexingState() ?: startLexingState
 				evaluateModuleStatementThen(
-					start,
-					afterStatement,
+					beforeFirstNonwhiteToken,
+					afterStatement.lexingState,
 					statement,
 					declarationRemap,
 					recurse!!)
@@ -3565,11 +3599,11 @@ class AvailCompiler(
 	 * [ParserState].
 	 *
 	 * @param positionInSource
-	 *   The [ParserState] at the earliest source position for which we should
+	 *   The [LexingState] at the earliest source position for which we should
 	 *   record problem information.
 	 */
 	@Synchronized
-	private fun recordExpectationsRelativeTo(positionInSource: ParserState) =
+	private fun recordExpectationsRelativeTo(positionInSource: LexingState) =
 		compilationContext.diagnostics.startParsingAt(positionInSource)
 
 	/**
@@ -3656,7 +3690,7 @@ class AvailCompiler(
 			}
 			onSuccess(solutions, this::rollbackModuleTransaction)
 		}
-		recordExpectationsRelativeTo(start)
+		recordExpectationsRelativeTo(start.lexingState)
 		if (loader.lexicalScanner().allVisibleLexers.isEmpty())
 		{
 			start.expected(
@@ -3955,7 +3989,7 @@ class AvailCompiler(
 		val state = ParserState(
 			LexingState(compilationContext, 1, 1, emptyList()), clientData)
 
-		recordExpectationsRelativeTo(state)
+		recordExpectationsRelativeTo(state.lexingState)
 
 		// Parse an invocation of the special module header macro.
 		parseOutermostStatement(state) { endState, headerPhrase ->
@@ -4079,7 +4113,7 @@ class AvailCompiler(
 	{
 		// If a parsing error happens during parsing of this outermost
 		// statement, only show the section of the file starting here.
-		recordExpectationsRelativeTo(start)
+		recordExpectationsRelativeTo(start.lexingState)
 		tryIfUnambiguousThen(start, continuation)
 	}
 
@@ -4616,14 +4650,11 @@ class AvailCompiler(
 			continuation: (List<ParserState>)->Unit)
 		{
 			val ran = AtomicBoolean(false)
-			skipWhitespaceAndComments(
-				start,
-				{ list ->
-					val old = ran.getAndSet(true)
-					assert(!old) { "Completed skipping whitespace twice." }
-					continuation(list)
-				},
-				AtomicBoolean(false))
+			skipWhitespaceAndComments(start, AtomicBoolean(false)) { list ->
+				val old = ran.getAndSet(true)
+				assert(!old) { "Completed skipping whitespace twice." }
+				continuation(list)
+			}
 		}
 
 		/**
@@ -4651,8 +4682,8 @@ class AvailCompiler(
 		 */
 		private fun skipWhitespaceAndComments(
 			start: ParserState,
-			continuation: (List<ParserState>)->Unit,
-			ambiguousWhitespace: AtomicBoolean)
+			ambiguousWhitespace: AtomicBoolean,
+			continuation: (List<ParserState>)->Unit)
 		{
 			if (ambiguousWhitespace.get())
 			{
@@ -4745,8 +4776,8 @@ class AvailCompiler(
 					skipWhitespaceAndComments(
 						ParserState(
 							token.nextLexingState(), start.clientDataMap),
-						continuation,
-						ambiguousWhitespace)
+						ambiguousWhitespace,
+						continuation)
 					return@withTokensDo
 				}
 				// Rarer, more complicated cases with at least two
@@ -4764,22 +4795,20 @@ class AvailCompiler(
 					// Common case of an unambiguous whitespace/comment token.
 					val after = ParserState(
 						tokenToSkip.nextLexingState(), start.clientDataMap)
-					skipWhitespaceAndComments(
-						after,
-						{ partialList ->
-							synchronized(countdown) {
-								result.addAll(partialList)
-								countdown--
-								assert(countdown >= 0)
-								if (countdown == 0)
-								{
-									start.lexingState.workUnitDo {
-										continuation(result)
-									}
+					skipWhitespaceAndComments(after, ambiguousWhitespace) {
+							partialList ->
+						synchronized(countdown) {
+							result.addAll(partialList)
+							countdown--
+							assert(countdown >= 0)
+							if (countdown == 0)
+							{
+								start.lexingState.workUnitDo {
+									continuation(result)
 								}
 							}
-						},
-						ambiguousWhitespace)
+						}
+					}
 				}
 			}
 		}

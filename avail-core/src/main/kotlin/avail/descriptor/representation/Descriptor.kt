@@ -33,6 +33,7 @@ package avail.descriptor.representation
 
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -2669,14 +2670,14 @@ protected constructor (
 	override fun o_RecordBlockPhrase(
 		self: AvailObject,
 		blockPhrase: A_Phrase
-	): A_Number = unsupported
+	): Int = unsupported
 
 	override fun o_GetAndSetTupleOfBlockPhrases(
 		self: AvailObject,
 		newValue: AvailObject
 	): AvailObject = unsupported
 
-	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
+	override fun o_OriginatingPhraseIndex(self: AvailObject): Int =
 		unsupported
 
 	override fun o_DeclarationNames(self: AvailObject): A_Tuple = unsupported
@@ -2684,9 +2685,9 @@ protected constructor (
 	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
 		unsupported
 
-	override fun o_SetOriginatingPhraseOrIndex(
+	override fun o_SetOriginatingPhraseIndex(
 		self: AvailObject,
-		phraseOrIndex: AvailObject
+		index: Int
 	): Unit = unsupported
 
 	override fun o_LexerApplicability(
@@ -2728,4 +2729,17 @@ protected constructor (
 	override fun o_InstanceTag(self: AvailObject): TypeTag = unsupported
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
+
+	override fun o_GetAndSetManifestEntries(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject = unsupported
+
+	override fun o_ManifestEntries(
+		self: AvailObject
+	): List<ModuleManifestEntry> = unsupported
+
+	override fun o_SynthesizeCurrentLexingState(
+		self: AvailObject
+	): LexingState = unsupported
 }

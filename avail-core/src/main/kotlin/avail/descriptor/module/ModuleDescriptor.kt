@@ -36,6 +36,7 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleManifestEntry
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
@@ -101,6 +102,7 @@ import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.versions
 import avail.descriptor.module.A_Module.Companion.visibleNames
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_BLOCK_PHRASES
+import avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_MANIFEST_ENTRIES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.ALL_TOP_PHRASE_STYLES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.BUNDLES
 import avail.descriptor.module.ModuleDescriptor.ObjectSlots.CACHED_EXPORTED_NAMES
@@ -121,11 +123,12 @@ import avail.descriptor.module.ModuleDescriptor.State.Unloaded
 import avail.descriptor.module.ModuleDescriptor.State.Unloading
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.pojos.RawPojoDescriptor
+import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -170,12 +173,13 @@ import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.LexicalScanner
-import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.serialization.Deserializer
 import avail.serialization.SerializerOperation
-import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
 import avail.utility.structures.BloomFilter
+import org.availlang.json.JSONWriter
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
+import java.io.DataInputStream
 import java.util.IdentityHashMap
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -330,7 +334,19 @@ class ModuleDescriptor private constructor(
 		 * environment will request this style tuple at the same time that the
 		 * source code is requested and displayed.
 		 */
-		ALL_TOP_PHRASE_STYLES
+		ALL_TOP_PHRASE_STYLES,
+
+		/**
+		 * A raw [pojo][RawPojoDescriptor] containing an [Array`[]`][Array] of
+		 * all module manifest [entries][ModuleManifestEntry] created during
+		 * compilation of this module.  Immediately after compilation, the
+		 * entries are written to a DataOutputStream, converted to a
+		 * [ByteArray], and written directly as a record to the repository.
+		 * This field is then replaced by that record's [Long] index.  When a
+		 * request is made for the manifest entries, the record is read and
+		 * decoded into an [Array], wrapped in a pojo, and placed in this field.
+		 */
+		ALL_MANIFEST_ENTRIES
 	}
 
 	/**
@@ -1082,16 +1098,43 @@ class ModuleDescriptor private constructor(
 		return phrases.tupleAt(index)
 	}
 
+	override fun o_ManifestEntries(
+		self: AvailObject
+	): List<ModuleManifestEntry>
+	{
+		var entries = self.volatileSlot(ALL_MANIFEST_ENTRIES)
+		if (entries.isLong)
+		{
+			val recordNumber = entries.extractLong
+			val runtime = AvailRuntime.currentRuntime()
+			val moduleName = ModuleName(self.moduleName.asNativeString())
+			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
+			val record = resolved.repository.run {
+				reopenIfNecessary()
+				lock.withLock { repository!![recordNumber] }
+			}
+			val bytes = DataInputStream(validatedBytesFrom(record))
+			val entriesList = mutableListOf<ModuleManifestEntry>()
+			while (bytes.available() > 0)
+			{
+				entriesList.add(ModuleManifestEntry(bytes))
+			}
+			entries = identityPojo(entriesList.toTypedArray())
+			self.setVolatileSlot(ALL_MANIFEST_ENTRIES, entries)
+		}
+		return entries.javaObjectNotNull()
+	}
+
 	override fun o_RecordBlockPhrase(
 		self: AvailObject,
 		blockPhrase: A_Phrase
-	): A_Number = lock.safeWrite {
+	): Int = lock.safeWrite {
 		assertState(Loading)
 		val newTuple = self.atomicUpdateSlot(ALL_BLOCK_PHRASES) {
 			assert(isTuple)
-			appendCanDestroy(blockPhrase, false)
+			appendCanDestroy(blockPhrase.makeShared(), false)
 		}
-		fromInt(newTuple.tupleSize)
+		newTuple.tupleSize
 	}
 
 	override fun o_RemoveFrom(
@@ -1206,6 +1249,7 @@ class ModuleDescriptor private constructor(
 		self.setSlot(STYLERS, nil)
 		self.setSlot(ALL_BLOCK_PHRASES, nil)
 		self.setSlot(ALL_TOP_PHRASE_STYLES, nil)
+		self.setSlot(ALL_MANIFEST_ENTRIES, nil)
 	}
 
 	/**
@@ -1400,6 +1444,11 @@ class ModuleDescriptor private constructor(
 		newValue: AvailObject
 	): AvailObject = self.getAndSetVolatileSlot(ALL_BLOCK_PHRASES, newValue)
 
+	override fun o_GetAndSetManifestEntries(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject = self.getAndSetVolatileSlot(ALL_MANIFEST_ENTRIES, newValue)
+
 	override fun o_HasAncestor(
 		self: AvailObject,
 		potentialAncestor: A_Module
@@ -1449,6 +1498,7 @@ class ModuleDescriptor private constructor(
 				setSlot(STYLERS, emptySet)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				setSlot(ALL_TOP_PHRASE_STYLES, emptyTuple)
+				setSlot(ALL_MANIFEST_ENTRIES, nil)
 				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))
 			}
 
