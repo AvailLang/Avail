@@ -32,6 +32,7 @@
 package avail.descriptor.module
 
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleManifestEntry
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_BundleTree
@@ -43,7 +44,6 @@ import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Styler
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.BlockPhraseDescriptor
@@ -426,7 +426,7 @@ interface A_Module : A_BasicObject
 		 * answering the unique one-based Avail integer index at which it can
 		 * later be retrieved.
 		 */
-		fun A_Module.recordBlockPhrase(blockPhrase: A_Phrase): A_Number =
+		fun A_Module.recordBlockPhrase(blockPhrase: A_Phrase): Int =
 			dispatch { o_RecordBlockPhrase(it, blockPhrase) }
 
 		/**
@@ -467,5 +467,22 @@ interface A_Module : A_BasicObject
 		var A_Module.moduleState
 			get() = dispatch { o_ModuleState(it) }
 			set(value) = dispatch { o_SetModuleState(it, value) }
+
+		/**
+		 * Atomically get and set this module's manifest entries.  The input
+		 * and output may be an integer indicating a record in the repository, a
+		 * pojo containing a [List] of [ModuleManifestEntry], or [nil].
+		 */
+		fun A_Module.getAndSetManifestEntries(
+			newValue: AvailObject
+		): AvailObject = dispatch { o_GetAndSetManifestEntries(it, newValue) }
+
+		/**
+		 * Atomically get and set this module's manifest entries.  The input
+		 * and output may be an integer indicating a record in the repository, a
+		 * pojo containing an [Array] of [ModuleManifestEntry], or [nil].
+		 */
+		fun A_Module.manifestEntries(): List<ModuleManifestEntry> =
+			dispatch { o_ManifestEntries(it) }
 	}
 }

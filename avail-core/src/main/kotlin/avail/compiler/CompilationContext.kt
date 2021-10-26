@@ -166,7 +166,9 @@ class CompilationContext constructor(
 	 * [compiler][AvailCompiler] to facilitate the loading of
 	 * [modules][ModuleDescriptor].
 	 */
-	val loader = AvailLoader(module, textInterface)
+	val loader = AvailLoader(module, textInterface).also {
+		it.manifestEntries = mutableListOf()
+	}
 
 	/** The number of work units that have been queued. */
 	private val atomicWorkUnitsQueued = AtomicLong(0)
@@ -614,9 +616,15 @@ class CompilationContext constructor(
 		onSuccess: (AvailObject)->Unit,
 		onFailure: (Throwable)->Unit)
 	{
+		val function = createFunctionForPhrase(
+			expressionNode, module, lexingState.lineNumber)
+		if (shouldSerialize)
+		{
+			loader.topLevelStatementBeingCompiled =
+				function.code().originatingPhrase
+		}
 		evaluateFunctionThen(
-			createFunctionForPhrase(
-				expressionNode, module, lexingState.lineNumber),
+			function,
 			lexingState,
 			emptyList(),
 			emptyMap,

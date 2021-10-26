@@ -39,7 +39,7 @@ import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseOrIndex
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.functions.FunctionDescriptor.ObjectSlots.CODE
 import avail.descriptor.functions.FunctionDescriptor.ObjectSlots.OUTER_VAR_AT_
 import avail.descriptor.methods.A_Method
@@ -129,8 +129,8 @@ class FunctionDescriptor private constructor(
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
 		indent: Int)
 	{
-		var phrase: A_BasicObject = self.code().originatingPhraseOrIndex
-		if (phrase.isNil || phrase.isInt)
+		var phrase = self.code().originatingPhrase
+		if (phrase.isNil)
 		{
 			phrase = decompile(self.code())
 		}

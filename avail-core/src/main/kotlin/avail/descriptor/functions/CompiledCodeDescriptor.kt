@@ -167,11 +167,16 @@ import kotlin.math.max
  *   [Mutability.SHARED] for normal instances.
  * @param module
  *   The [module][A_Module] creating this raw function.
- * @param originatingPhraseOrIndex
- *   Usually a one-based index into the module's tuple of block phrases.  This
- *   mechanism allows the tuple to be loaded from a repository on demand,
- *   reducing the memory footprint when this information is not in use.  If the
- *   module is [nil], the value should be the originating phrase itself.
+ * @param originatingPhraseIndex
+ *   A one-based index into the module's tuple of block phrases.  If the module
+ *   is unavailable or did not store such a phrase, this is -1 and the
+ *   [originatingPhrase] contains the phrase from which this code was
+ *   constructed.
+ * @param originatingPhrase
+ *   Either [nil] or the [A_Phrase] that this code was built from.  If it's nil,
+ *   it can be reconstructed by asking the [module] to look up the phrase it has
+ *   stored under the [originatingPhraseIndex], which may then be cached in this
+ *   field.
  * @param lineNumber
  *   The starting [lineNumber] of this function, if known, otherwise `0`.
  * @param lineNumberEncodedDeltas
@@ -183,7 +188,8 @@ import kotlin.math.max
 open class CompiledCodeDescriptor protected constructor(
 	mutability: Mutability,
 	private val module: A_Module,
-	@Volatile private var originatingPhraseOrIndex: AvailObject,
+	private var originatingPhraseIndex: Int,
+	@Volatile private var originatingPhrase: A_Phrase,
 	private val packedDeclarationNames: A_String,
 	private val lineNumber: Int,
 	private val lineNumberEncodedDeltas: A_Tuple
@@ -842,17 +848,18 @@ open class CompiledCodeDescriptor protected constructor(
 
 	override fun o_OriginatingPhrase(self: AvailObject): A_Phrase
 	{
-		if (originatingPhraseOrIndex.isInt)
+		var phrase = originatingPhrase
+		if (phrase.isNil && originatingPhraseIndex != -1)
 		{
-			originatingPhraseOrIndex = module.originatingPhraseAtIndex(
-				originatingPhraseOrIndex.extractInt
-			) as AvailObject
+			phrase = module.originatingPhraseAtIndex(originatingPhraseIndex)
+			// This volatile write is idempotent, so no lock is needed.
+			originatingPhrase = phrase
 		}
-		return originatingPhraseOrIndex
+		return phrase
 	}
 
-	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
-		originatingPhraseOrIndex
+	override fun o_OriginatingPhraseIndex(self: AvailObject): Int =
+		originatingPhraseIndex
 
 	override fun o_OuterTypeAt(self: AvailObject, index: Int): A_Type
 	{
@@ -965,11 +972,11 @@ open class CompiledCodeDescriptor protected constructor(
 		}
 	}
 
-	override fun o_SetOriginatingPhraseOrIndex(
+	override fun o_SetOriginatingPhraseIndex(
 		self: AvailObject,
-		phraseOrIndex: AvailObject)
+		index: Int)
 	{
-		originatingPhraseOrIndex = phraseOrIndex
+		originatingPhraseIndex = index
 	}
 
 	override fun o_SetStartingChunkAndReoptimizationCountdown(
@@ -1244,7 +1251,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 *   delta magnitude, and the low bit is zero for a positive delta, and
 		 *   one for a negative delta.  May be nil if line number information is
 		 *   not intended to be captured.
-		 * @param originatingPhraseOrIndex
+		 * @param originatingPhraseIndex
 		 *   Either the block [A_Phrase] from which this is built, an integer
 		 *   ([A_Number]) that can be used to fetch the phrase from the module,
 		 *   or [nil] if such a phrase does not exist.
@@ -1267,7 +1274,8 @@ open class CompiledCodeDescriptor protected constructor(
 			module: A_Module,
 			lineNumber: Int,
 			lineNumberEncodedDeltas: A_Tuple,
-			originatingPhraseOrIndex: AvailObject,
+			originatingPhraseIndex: Int,
+			originatingPhrase: A_Phrase,
 			packedDeclarationNames: A_String
 		): AvailObject
 		{
@@ -1355,7 +1363,8 @@ open class CompiledCodeDescriptor protected constructor(
 						primitive,
 						returnTypeIfPrimitiveFails,
 						module.makeShared(),
-						originatingPhraseOrIndex,
+						originatingPhraseIndex,
+						originatingPhrase,
 						packedDeclarationNames,
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
@@ -1366,7 +1375,8 @@ open class CompiledCodeDescriptor protected constructor(
 					CompiledCodeDescriptor(
 						Mutability.SHARED,
 						module.makeShared(),
-						originatingPhraseOrIndex,
+						originatingPhraseIndex,
+						originatingPhrase,
 						packedDeclarationNames,
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
@@ -1382,8 +1392,8 @@ open class CompiledCodeDescriptor protected constructor(
 		 * The sole [mutable][Mutability.MUTABLE] descriptor, used only
 		 * while initializing a new [A_RawFunction].
 		 */
-		private val initialMutableDescriptor =
-			CompiledCodeDescriptor(Mutability.MUTABLE, nil, nil, nil, -1, nil)
+		private val initialMutableDescriptor = CompiledCodeDescriptor(
+			Mutability.MUTABLE, nil, -1, nil, nil, -1, nil)
 
 		/**
 		 * A [ConcurrentMap] from A_String to Statistic, used to record type

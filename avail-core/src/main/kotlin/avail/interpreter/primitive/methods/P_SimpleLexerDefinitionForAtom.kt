@@ -32,15 +32,20 @@
 
 package avail.interpreter.primitive.methods
 
+import avail.compiler.ModuleManifestEntry
+import avail.compiler.ModuleManifestEntry.Kind
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
+import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -116,6 +121,14 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			if (loader.phase() == EXECUTING_FOR_COMPILE)
 			{
 				loader.lexicalScanner().addLexer(lexer)
+				loader.manifestEntries!!.add(
+					ModuleManifestEntry(
+						Kind.LEXER_KIND,
+						atom.atomName.asNativeString(),
+						loader.topLevelStatementBeingCompiled!!
+							.startingLineNumber,
+						bodyFunction.code().codeStartingLineNumber,
+						bodyFunction.code().originatingPhraseIndex))
 			}
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(

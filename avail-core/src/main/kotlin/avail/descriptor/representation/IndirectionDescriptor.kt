@@ -33,6 +33,7 @@ package avail.descriptor.representation
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -111,7 +112,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numNybbles
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseOrIndex
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.packedDeclarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
@@ -202,10 +203,12 @@ import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.A_Module.Companion.exportedNames
+import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
 import avail.descriptor.module.A_Module.Companion.introduceNewName
+import avail.descriptor.module.A_Module.Companion.manifestEntries
 import avail.descriptor.module.A_Module.Companion.methodDefinitions
 import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
@@ -520,7 +523,6 @@ import avail.descriptor.types.A_Type.Companion.upperInclusive
 import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
@@ -3714,15 +3716,15 @@ class IndirectionDescriptor private constructor(
 	override fun o_RecordBlockPhrase(
 		self: AvailObject,
 		blockPhrase: A_Phrase
-	): A_Number = self .. { recordBlockPhrase(blockPhrase) }
+	): Int = self .. { recordBlockPhrase(blockPhrase) }
 
 	override fun o_GetAndSetTupleOfBlockPhrases(
 		self: AvailObject,
 		newValue: AvailObject
 	): AvailObject = self .. { getAndSetTupleOfBlockPhrases(newValue) }
 
-	override fun o_OriginatingPhraseOrIndex(self: AvailObject): AvailObject =
-		self .. { originatingPhraseOrIndex }
+	override fun o_OriginatingPhraseIndex(self: AvailObject): Int =
+		self .. { originatingPhraseIndex }
 
 	override fun o_DeclarationNames(self: AvailObject): A_Tuple =
 		self .. { declarationNames }
@@ -3730,10 +3732,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_PackedDeclarationNames(self: AvailObject): A_String =
 		self .. { packedDeclarationNames }
 
-	override fun o_SetOriginatingPhraseOrIndex(
+	override fun o_SetOriginatingPhraseIndex(
 		self: AvailObject,
-		phraseOrIndex: AvailObject
-	) = self .. { originatingPhraseOrIndex = phraseOrIndex }
+		index: Int
+	) = self .. { originatingPhraseIndex = index }
 
 	override fun o_LexerApplicability(
 		self: AvailObject,
@@ -3791,4 +3793,17 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
 		self .. { computeInstanceTag() }
+
+	override fun o_GetAndSetManifestEntries(
+		self: AvailObject,
+		newValue: AvailObject
+	): AvailObject = self .. { getAndSetManifestEntries(newValue) }
+
+	override fun o_ManifestEntries(
+		self: AvailObject
+	): List<ModuleManifestEntry> = self .. { manifestEntries() }
+
+	override fun o_SynthesizeCurrentLexingState(
+		self: AvailObject
+	): LexingState = self .. { synthesizeCurrentLexingState() }
 }

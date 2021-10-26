@@ -423,7 +423,8 @@ class L1InstructionWriter constructor(
 			module,
 			startingLineNumber,
 			tupleFromIntegerList(lineNumberEncodedDeltas),
-			phrase as AvailObject,
+			-1,
+			phrase,
 			stringFrom(packedDeclarationNames))
 	}
 }

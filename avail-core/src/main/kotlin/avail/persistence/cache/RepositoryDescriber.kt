@@ -33,12 +33,14 @@
 package avail.persistence.cache
 
 import avail.AvailRuntime
+import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.DeserializerDescriber
 import org.availlang.persistence.MalformedSerialStreamException
+import java.io.DataInputStream
 
 /**
  * An `RepositoryDescriber` provides a textual representation of
@@ -79,9 +81,12 @@ class RepositoryDescriber constructor(
 				builder.append(versionKey.shortString)
 				builder.append('\n')
 				version.allCompilations.forEach { compilation ->
-					builder.append("\t\t")
-					builder.append("Rec #")
+					builder.append("\t\tCompilation #")
 					builder.append(compilation.recordNumber)
+					builder.append("\n\t\tPhrases #")
+					builder.append(compilation.recordNumberOfBlockPhrases)
+					builder.append("\n\t\tManifest #")
+					builder.append(compilation.recordNumberOfManifestEntries)
 					builder.append("\n")
 				}
 			}
@@ -112,6 +117,22 @@ class RepositoryDescriber constructor(
 		{
 			"Serialized record is malformed"
 		}
+	}
 
+	fun describeManifest(recordNumberOfManifestEntries: Long): String
+	{
+		val record = repository.repository!![recordNumberOfManifestEntries]
+		return buildString {
+			val input = DataInputStream(validatedBytesFrom(record))
+			while (input.available() > 0)
+			{
+				ModuleManifestEntry(input).run {
+					append("$kind $summaryText\n")
+					append("\ttopLevel = $topLevelStartingLine\n")
+					append("\tdefBody = $definitionStartingLine\n")
+					append("\tbodyPhrase# = $bodyPhraseIndexNumber\n")
+				}
+			}
+		}
 	}
 }

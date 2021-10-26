@@ -38,19 +38,22 @@ package avail.persistence.cache
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
 import avail.compiler.ModuleHeader
+import avail.compiler.ModuleManifestEntry
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.tokens.CommentTokenDescriptor
 import avail.descriptor.tuples.TupleDescriptor
 import avail.error.ErrorCode
-import org.availlang.persistence.IndexedFile
-import org.availlang.persistence.IndexedFileBuilder
-import org.availlang.persistence.IndexedFileException
 import avail.resolver.ResolverReference
 import avail.serialization.Serializer
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile.ByteArrayOutputStream
+import org.availlang.persistence.IndexedFile.Companion.appendCRC
+import org.availlang.persistence.IndexedFileBuilder
+import org.availlang.persistence.IndexedFileException
 import java.io.ByteArrayInputStream
-import java.io.ByteArrayOutputStream
 import java.io.Closeable
 import java.io.DataInputStream
 import java.io.DataOutputStream
@@ -994,13 +997,17 @@ class Repository constructor(
 		 */
 		val recordNumberOfBlockPhrases: Long
 
+		/**
+		 * The record number at which a [ByteArray] was recorded for this
+		 * module. That record should be fetched as needed and decoded into an
+		 * array of module manifest [entries][ModuleManifestEntry] and stored
+		 * in the [A_Module]'s [ModuleDescriptor.o_ManifestEntries].
+		 */
+		val recordNumberOfManifestEntries: Long
+
 		/** The byte array containing a serialization of this compilation. */
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
-
-		/** The byte array containing a serialization of this block phrase. */
-		val blockPhraseBytes: ByteArray
-			get() = lock.withLock { repository!![recordNumberOfBlockPhrases] }
 
 		/**
 		 * Output this module compilation to the provided [DataOutputStream].
@@ -1018,14 +1025,16 @@ class Repository constructor(
 			binaryStream.writeLong(compilationTime)
 			binaryStream.writeLong(recordNumber)
 			binaryStream.writeLong(recordNumberOfBlockPhrases)
+			binaryStream.writeLong(recordNumberOfManifestEntries)
 		}
 
 		override fun toString(): String =
 			String.format(
-				"Compilation(%tFT%<tTZ, rec=%d, phrases=%d)",
+				"Compilation(%tFT%<tTZ, rec=%d, phrases=%d, manifest=%d)",
 				compilationTime,
 				recordNumber,
-				recordNumberOfBlockPhrases)
+				recordNumberOfBlockPhrases,
+				recordNumberOfManifestEntries)
 
 		/**
 		 * Reconstruct a `ModuleCompilation`, having previously been written via
@@ -1042,6 +1051,7 @@ class Repository constructor(
 			compilationTime = binaryStream.readLong()
 			recordNumber = binaryStream.readLong()
 			recordNumberOfBlockPhrases = binaryStream.readLong()
+			recordNumberOfManifestEntries = binaryStream.readLong()
 		}
 
 		/**
@@ -1054,23 +1064,38 @@ class Repository constructor(
 		 *   The [serialized][Serializer] form of the compiled module.
 		 * @param serializedBlockPhrases
 		 *   The [serialized][Serializer] form of the module's block phrases.
+		 * @param manifestEntries
+		 *   The [List] of [entries][ModuleManifestEntry] captured for this
+		 *   module during this just-completed compilation.
 		 */
 		constructor(
 			compilationTime: Long,
 			serializedBody: ByteArray,
-			serializedBlockPhrases: ByteArray)
+			serializedBlockPhrases: ByteArray,
+			manifestEntries: List<ModuleManifestEntry>)
 		{
 			// No need to hold a lock during initialization.
 			this.compilationTime = compilationTime
 			val repo = repository!!
 			var indexOfRecord: Long
 			var indexOfBlockPhrasesRecord: Long
+			var indexOfManifestEntries: Long
+			val innerSerializedManifestEntries = ByteArrayOutputStream(4096)
+			val serializedManifestEntries =
+				DataOutputStream(innerSerializedManifestEntries)
+			manifestEntries.forEach { entry ->
+				entry.write(serializedManifestEntries)
+			}
+			appendCRC(innerSerializedManifestEntries)
 			lock.withLock {
 				indexOfRecord = repo.add(serializedBody)
 				indexOfBlockPhrasesRecord = repo.add(serializedBlockPhrases)
+				indexOfManifestEntries = repo.add(
+					innerSerializedManifestEntries.toByteArray())
 			}
 			this.recordNumber = indexOfRecord
 			this.recordNumberOfBlockPhrases = indexOfBlockPhrasesRecord
+			this.recordNumberOfManifestEntries = indexOfManifestEntries
 		}
 	}
 

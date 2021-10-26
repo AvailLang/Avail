@@ -931,6 +931,17 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 			callSiteHelper: CallSiteHelper
 		): List<Pair<L2BasicBlock, LookupTree<A_Definition, A_Tuple>>>
 		{
+			// For simplicity, let super-lookups via object layout variant
+			// always fall back.  They're *very* difficult to reason about.
+			if (!callSiteHelper.superUnionType
+					.typeAtIndex((argumentPositionToTest))
+					.isBottom)
+			{
+				callSiteHelper.generator().jumpTo(
+					callSiteHelper.onFallBackToSlowLookup)
+				return emptyList()
+			}
+
 			// Create a multi-way branch using an object's variant.  Any variant
 			// that wasn't present during generation will jump to the slower,
 			// general lookup.  The slow lookup will populate the map with a new
@@ -1214,6 +1225,17 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 			callSiteHelper: CallSiteHelper
 		): List<Pair<L2BasicBlock, LookupTree<A_Definition, A_Tuple>>>
 		{
+			// For simplicity, let super-lookups via type tags always fall back.
+			//  They're *very* difficult to reason about.
+			if (!callSiteHelper.superUnionType
+					.typeAtIndex((argumentPositionToTest))
+					.isBottom)
+			{
+				callSiteHelper.generator().jumpTo(
+					callSiteHelper.onFallBackToSlowLookup)
+				return emptyList()
+			}
+
 			// Convert the tags' ordinal ranges into a flat list of runs.
 			// Use a stack to keep track of which ordinal ranges are still
 			// outstanding, to know when to resume or finish them.

@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.compiler.ModuleManifestEntry
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.maps.A_Map
 import avail.descriptor.numbers.A_Number
@@ -391,7 +392,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	override fun o_ComputeTypeTag(self: AvailObject): TypeTag = unsupported
 
 	override fun o_InstanceTag(self: AvailObject): TypeTag =
-		TypeTag.NIL_TAG  // Shouldn't
+		TypeTag.NIL_TAG  // Shouldn't happen.
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 

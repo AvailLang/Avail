@@ -136,4 +136,10 @@ interface A_Token : A_BasicObject
 	 *   A TokenType.
 	 */
 	fun tokenType(): TokenDescriptor.TokenType
+
+	/**
+	 * Create and answer a [LexingState] corresponding to the *start* of this
+	 * token.  It should *not* be used for subsequent parsing/lexing.
+	 */
+	fun synthesizeCurrentLexingState(): LexingState
 }

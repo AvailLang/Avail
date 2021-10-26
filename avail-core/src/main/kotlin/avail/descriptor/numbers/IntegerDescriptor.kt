@@ -257,7 +257,7 @@ class IntegerDescriptor private constructor(
 	override fun o_EqualsInt(
 		self: AvailObject,
 		theInt: Int
-	) = intCount(self) == 1 && self.intSlot(RAW_LONG_SLOTS_, 1) == theInt
+	) = self.intSlot(RAW_LONG_SLOTS_, 1) == theInt && intCount(self) == 1
 
 	override fun o_IsInstanceOfKind(
 		self: AvailObject,

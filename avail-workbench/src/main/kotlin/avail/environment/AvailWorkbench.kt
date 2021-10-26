@@ -58,6 +58,7 @@ import avail.environment.actions.CleanModuleAction
 import avail.environment.actions.ClearTranscriptAction
 import avail.environment.actions.CreateProgramAction
 import avail.environment.actions.ExamineCompilationAction
+import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
@@ -460,6 +461,9 @@ class AvailWorkbench internal constructor (
 
 	/** The [ExamineCompilationAction]. */
 	private val examineCompilationAction: ExamineCompilationAction
+
+	/** The [ExamineModuleManifest]. */
+	private val examineModuleManifestAction: ExamineModuleManifest
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -883,7 +887,10 @@ class AvailWorkbench internal constructor (
 				!= null)
 		examineRepositoryAction.isEnabled =
 			!busy && selectedModuleRootNode() !== null
-		examineCompilationAction.isEnabled = !busy && selectedModule() !== null
+		examineCompilationAction.isEnabled =
+			!busy && selectedModule() !== null
+		examineModuleManifestAction.isEnabled =
+			!busy && selectedModule() !== null
 		buildEntryPointModuleAction.isEnabled =
 			!busy && selectedEntryPointModule() !== null
 		inputLabel.text = if (isRunning) "Console Input:" else "Command:"
@@ -1587,6 +1594,7 @@ class AvailWorkbench internal constructor (
 		parserIntegrityCheckAction = ParserIntegrityCheckAction(this, runtime)
 		examineRepositoryAction = ExamineRepositoryAction(this, runtime)
 		examineCompilationAction = ExamineCompilationAction(this, runtime)
+		examineModuleManifestAction = ExamineModuleManifest(this, runtime)
 		if (showDeveloperTools)
 		{
 			menuBar.add(
@@ -1616,6 +1624,7 @@ class AvailWorkbench internal constructor (
 					parserIntegrityCheckAction,
 					examineRepositoryAction,
 					examineCompilationAction,
+					examineModuleManifestAction,
 					null,
 					graphAction))
 		}

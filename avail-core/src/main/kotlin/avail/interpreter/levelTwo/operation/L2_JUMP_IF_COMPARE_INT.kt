@@ -32,9 +32,9 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -46,6 +46,10 @@ import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.optimizer.L2Generator
 import avail.optimizer.L2ValueManifest
 import avail.optimizer.jvm.JVMTranslator
@@ -87,8 +91,8 @@ import kotlin.math.min
 class L2_JUMP_IF_COMPARE_INT private constructor(
 		private val opcode: Int,
 		private val opcodeName: String,
-		private val computeRestrictions: (Long, Long, Long, Long) ->
-			Tuple4<A_Type, A_Type, A_Type, A_Type>
+		private val computeRestrictions: (Long, Long, Long, Long) -> Tuple4<
+			TypeRestriction, TypeRestriction, TypeRestriction, TypeRestriction>
 	) : L2ConditionalJump(
 		READ_INT.named("int1"),
 		READ_INT.named("int2"),
@@ -116,32 +120,32 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		val high2 = restriction2.type.upperBound.extractLong
 
 		// Restrict both values along both branches.
-		val (type1, type2, type3, type4) =
+		val (rest1, rest2, rest3, rest4) =
 			computeRestrictions(low1, high1, low2, high2)
 		when
 		{
-			type1.isBottom || type2.isBottom ->
+			rest1.type.isBottom || rest2.type.isBottom ->
 			{
 				// One of the registers would have an impossible value if the
 				// ifTrue branch is taken, so always jump to the ifFalse case.
-				ifFalse.manifest().setRestriction(
+				generator.currentManifest.setRestriction(
 					int1Reg.semanticValue(),
-					restriction1.intersectionWithType(type3))
-				ifFalse.manifest().setRestriction(
+					restriction1.intersection(rest3))
+				generator.currentManifest.setRestriction(
 					int2Reg.semanticValue(),
-					restriction2.intersectionWithType(type4))
+					restriction2.intersection(rest4))
 				generator.addInstruction(L2_JUMP, ifFalse)
 			}
-			type3.isBottom || type4.isBottom ->
+			rest3.type.isBottom || rest4.type.isBottom ->
 			{
 				// One of the registers would have an impossible value if the
 				// ifFalse branch is taken, so always jump to the ifTrue case.
-				ifTrue.manifest().setRestriction(
+				generator.currentManifest.setRestriction(
 					int1Reg.semanticValue(),
-					restriction1.intersectionWithType(type1))
-				ifTrue.manifest().setRestriction(
+					restriction1.intersection(rest1))
+				generator.currentManifest.setRestriction(
 					int2Reg.semanticValue(),
-					restriction2.intersectionWithType(type2))
+					restriction2.intersection(rest2))
 				generator.addInstruction(L2_JUMP, ifTrue)
 			}
 			else -> generator.addInstruction(
@@ -172,16 +176,16 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 			computeRestrictions(low1, high1, low2, high2)
 		ifTrue.manifest().setRestriction(
 			int1Reg.semanticValue(),
-			restriction1.intersectionWithType(type1))
+			restriction1.intersection(type1))
 		ifTrue.manifest().setRestriction(
 			int2Reg.semanticValue(),
-			restriction2.intersectionWithType(type2))
+			restriction2.intersection(type2))
 		ifFalse.manifest().setRestriction(
 			int1Reg.semanticValue(),
-			restriction1.intersectionWithType(type3))
+			restriction1.intersection(type3))
 		ifFalse.manifest().setRestriction(
 			int2Reg.semanticValue(),
-			restriction2.intersectionWithType(type4))
+			restriction2.intersection(type4))
 	}
 
 	override fun appendToWithWarnings(
@@ -243,7 +247,8 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		@Suppress("UNUSED_PARAMETER")
 		private fun lessHelper(
 			low1: Long, high1: Long, low2: Long, high2: Long
-		) = inclusive(low1, min(high1, high2 - 1)).narrow()
+		) = restrictionForType(
+			inclusive(low1, min(high1, high2 - 1)).narrow(), UNBOXED_INT_FLAG)
 
 		/**
 		 * Given two [int32] subranges, answer the range that a value from the
@@ -253,7 +258,8 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		@Suppress("UNUSED_PARAMETER")
 		private fun lessOrEqualHelper(
 			low1: Long, high1: Long, low2: Long, high2: Long
-		) = inclusive(low1, min(high1, high2)).narrow()
+		) = restrictionForType(
+			inclusive(low1, min(high1, high2)).narrow(), UNBOXED_INT_FLAG)
 
 		/**
 		 * Given two [int32] subranges, answer the range that a value from the
@@ -263,7 +269,8 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		@Suppress("UNUSED_PARAMETER")
 		private fun greaterHelper(
 			low1: Long, high1: Long, low2: Long, high2: Long
-		) = inclusive(max(low1, low2 + 1), high1).narrow()
+		) = restrictionForType(
+			inclusive(max(low1, low2 + 1), high1).narrow(), UNBOXED_INT_FLAG)
 
 		/**
 		 * Given two [int32] subranges, answer the range that a value from the
@@ -273,7 +280,8 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		@Suppress("UNUSED_PARAMETER")
 		private fun greaterOrEqualHelper(
 			low1: Long, high1: Long, low2: Long, high2: Long
-		) = inclusive(max(low1, low2), high1).narrow()
+		) = restrictionForType(
+			inclusive(max(low1, low2), high1).narrow(), UNBOXED_INT_FLAG)
 
 		/**
 		 * Given two [int32] subranges, answer the range that a value from the
@@ -282,7 +290,9 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		 */
 		private fun equalHelper(
 			low1: Long, high1: Long, low2: Long, high2: Long
-		) = inclusive(max(low1, low2), min(high1, high2)).narrow()
+		) = restrictionForType(
+			inclusive(max(low1, low2), min(high1, high2)).narrow(),
+			UNBOXED_INT_FLAG)
 
 		/**
 		 * Given two [int32] subranges, answer the range that a value from the
@@ -291,10 +301,23 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		 */
 		private fun unequalHelper(
 			low1: Long, high1: Long, low2: Long, high2: Long
-		) : A_Type =
-			lessHelper(low1, high1, low2, high2).typeUnion(
-				greaterHelper(low1, high1, low2, high2)
-			).narrow()
+		): TypeRestriction
+		{
+			if (low2 == high2)
+			{
+				// The second value is a particular constant which we can
+				// exclude in the event the values are unequal.
+				return restriction(
+					inclusive(fromLong(low1), fromLong(high1)),
+					null,
+					givenExcludedValues = setOf(fromLong(low2)),
+					isBoxed = false,
+					isUnboxedInt = true)
+			}
+			return lessHelper(low1, high1, low2, high2).union(
+				greaterHelper(low1, high1, low2, high2))
+		}
+
 
 		/** An instance for testing whether a < b. */
 		val less = L2_JUMP_IF_COMPARE_INT(Opcodes.IF_ICMPLT, "<") {

@@ -1297,6 +1297,9 @@ class AvailObject private constructor(
 	override fun fiberHelper(): FiberDescriptor.FiberHelper =
 		descriptor().o_FiberHelper(this)
 
+	override fun synthesizeCurrentLexingState(): LexingState =
+		descriptor().o_SynthesizeCurrentLexingState(this)
+
 	companion object {
 		/**
 		 * A good multiplier for a multiplicative random generator.  This

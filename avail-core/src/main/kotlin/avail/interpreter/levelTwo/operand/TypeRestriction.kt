@@ -390,6 +390,8 @@ class TypeRestriction private constructor(
 	 */
 	fun union(other: TypeRestriction): TypeRestriction
 	{
+		if (type.isBottom) return other
+		if (other.type.isBottom) return this
 		if (constantOrNull !== null && other.constantOrNull !== null
 			&& constantOrNull!!.equals(other.constantOrNull!!)
 			&& flags == other.flags)
@@ -1115,6 +1117,7 @@ class TypeRestriction private constructor(
 		{
 			assert(possibleVariants == null || excludedVariants == null)
 			assert(BottomTypeDescriptor.bottom !in givenExcludedTypes)
+			givenConstantOrNull?.run(A_BasicObject::makeImmutable)
 			var type: A_Type = givenType.makeImmutable()
 			givenExcludedTypes.forEach(A_Type::makeImmutable)
 			givenExcludedValues.forEach(A_BasicObject::makeImmutable)
@@ -1143,7 +1146,7 @@ class TypeRestriction private constructor(
 						|| (excludedValue as A_Type).isBottom)
 					{
 						type = type.trimType(
-							instanceTypeOrMetaOn(excludedValue))
+							instanceTypeOrMetaOn(excludedValue)).makeImmutable()
 					}
 				}
 				val anyTrimsThisPass = !type.equals(typeBefore)
@@ -1349,6 +1352,10 @@ class TypeRestriction private constructor(
 			givenExcludedValues: Set<A_BasicObject>,
 			flags: Int): TypeRestriction
 		{
+			type.makeImmutable()
+			constantOrNull?.run(A_BasicObject::makeImmutable)
+			givenExcludedTypes.forEach(A_BasicObject::makeImmutable)
+			givenExcludedValues.forEach(A_BasicObject::makeImmutable)
 			if (constantOrNull === null && type.isEnumeration
 				&& (!type.isInstanceMeta || type.instance.isBottom))
 			{

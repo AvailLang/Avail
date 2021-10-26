@@ -113,13 +113,6 @@ avail {
                 uses = listOf("Avail")
                 moduleHeaderCommentBody = customHeader
             }
-            // Add a module to the top level of the created root.
-            module("Foreign Functions").apply {
-                versions = listOf("Avail-1.6.0")
-                uses = listOf("Avail")
-                moduleHeaderCommentBody = customHeader
-            }
-
             // Add a module package to this module package.
             addModulePackage("Network").apply {
                 println("Setting up Network.avail")
@@ -149,9 +142,7 @@ tasks {
     assembleAndRunWorkbench {
         // This task is customizable in the same manner as any
         // AvailWorkbenchTask.
-        dependsOn(jar)
         dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
-        dependency(project.dependencies.project(":avail-java-ffi"))
     }
 
     // Add your own custom task to assemble and launch an Avail workbench.

@@ -337,6 +337,19 @@ open class TokenDescriptor protected constructor(
 
 	override fun o_String(self: AvailObject): A_String = self.slot(STRING)
 
+	override fun o_SynthesizeCurrentLexingState(
+		self: AvailObject
+	): LexingState
+	{
+		val next: LexingState =
+			self.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull()
+		return LexingState(
+			next.compilationContext,
+			self.slot(START),
+			self.slot(LINE_NUMBER),
+			emptyList())
+	}
+
 	override fun o_TokenType(self: AvailObject): TokenType =
 		lookupTokenType(self.slot(TOKEN_TYPE_CODE))
 
