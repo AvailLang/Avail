@@ -255,10 +255,10 @@ task group when the plugin is applied.
 * ***initializeAvail*** - Initializes the Avail project. It will create both 
   the roots' and repositories' directories if they don't exist. It will also 
   move the `avail-stdlib` jar into the roots' directory if `useAvailStdLib` is 
-  set to `true` (*see Configuration section*). It creates the roots specified
-  in the `avail` extension through the `createRoot` function. It will also 
-  run the arbitrary lambdas included with the `root` functions (*see 
-  Configuration section*). This is only run if a user explicitly runs it.
+  set configured (*see [Configuration](#configuration) section*). It creates the 
+  roots specified in the `avail` extension through the `createRoot` function.
+  It will also run the arbitrary lambdas included with the `root` functions 
+  (*see Configuration section*). This is only run if a user explicitly runs it.
   The following is the result of running `initializeAvail` for the
   [example](#Example) included at the end of this README.
    
@@ -349,9 +349,18 @@ dependencies {
 }
 
 avail {
-    // Indicates whether the Avail Standard Library, `avail-stdlib` should 
-    // be imported into the roots directory. Defaults to `true`.
-    useAvailStdLib = true
+    useStdAvailLib {
+      // The name of the root for the standard library actually defaults to
+      // "avail", so it is not necessary to include this line.
+      name = "avail"
+  
+      // The base name the `avail-stdlib` jar file that should be named
+      // without the `.jar` extension. This will be used to construct the
+      // [AvailRoot.uri]. Not setting this will default jar name to be the
+      // jar as it is retrieved from maven:
+      //    `avail-stdlib-<AVAIL BUILD VERSION>.jar
+      jarLibBaseName = "avail-stdlib"
+    }
 
     // Specify the roots directory where the roots should be located. This will
     // default to `"$projectDir/.avail/roots"` if not specified.
@@ -361,16 +370,13 @@ avail {
     // Avail roots. This will default to `"$projectDir/.avail/repositories"` if
     // not specified.
     repositoryDirectory = "$projectDir/avail/my-repos"
-
-    // Provides a custom name for the workbench jar created and run from
-    // the `assembleAndRunWorkbench` task. Defaults to "workbench". 
-    workbenchName = "sample-workbench"
     
     // Point to a file that contains the file header comment body to be used
     // by all generated modules.
     moduleHeaderCommentBodyFile = "$projectDir/copyright.txt"
 
-    // Add this new root to the roots directory and create it.
+    // Add this new root to the roots directory and create it. Will only create
+    // files in this root that do not already exist.
     createRoot("my-avail-root").apply {
       // Create module file header text.
       val customHeader =
@@ -391,9 +397,9 @@ avail {
         // Creates a module package and package representative
         modulePackage("App").apply { 
           // The versions to list in the Avail header
-          versions = listOf("Avail-1.0.6")
+          versions = listOf("Avail-1.6.0")
           // The modules to extend in the Avail header.
-          extends = listOf("Avail")
+          extends = listOf("Avail", "Configurations", "Network")
           // Add a module inside the `App` module package.
           addModule("Configurations").apply {
           // The versions to list in the Avail header
@@ -404,20 +410,21 @@ avail {
           // moduleHeaderCommentBodyFile
           moduleHeaderCommentBody = customHeader
         }
-          
-          // Add a module representative package inside `App`.
-          addModulePackage("Network").apply {
+
+        // Add a module package to this module package.
+        addModulePackage("Network").apply {
+          println("Setting up Network.avail")
+          versions = listOf("Avail-1.6.0")
+          uses = listOf("Avail")
+          extends = listOf("Server")
+          moduleHeaderCommentBody = customHeader
+          addModule("Server").apply {
             versions = listOf("Avail-1.6.0")
             uses = listOf("Avail")
-            extends = listOf("Server")
             moduleHeaderCommentBody = customHeader
-            addModule("Server").apply {
-              versions = listOf("Avail-1.6.0")
-              uses = listOf("Avail")
-              moduleHeaderCommentBody = customHeader
-            }
           }
         }
+      }
     
         // Creates a module at the top level of the root.
         module("Scripts").apply {
@@ -482,6 +489,8 @@ tasks {
         // workbench is run.
         dependency("com.google.crypto.tink:tink:1.6.1")
         dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        // A project module dependency
+        dependency(project.dependencies.project(":avail-java-ffi"))
         
         // The Avail roots to start the workbench with.
         root("my-avail-root", "$projectDir/avail/roots/my-avail-root")

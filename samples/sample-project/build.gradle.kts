@@ -105,12 +105,16 @@ avail {
         modulePackage("App").apply{
             // Specify module header for package representative.
             versions = listOf("Avail-1.6.0")
+            // The modules to extend in the Avail header.
             extends = listOf("Avail", "Configurations", "Network")
             // Add a module to this module package.
             addModule("Configurations").apply {
                 // Specify module header for this module..
                 versions = listOf("Avail-1.6.0")
+                // The modules to list in the uses section in the Avail header.
                 uses = listOf("Avail")
+                // Override the module header comment from
+                // moduleHeaderCommentBodyFile
                 moduleHeaderCommentBody = customHeader
             }
             // Add a module package to this module package.
