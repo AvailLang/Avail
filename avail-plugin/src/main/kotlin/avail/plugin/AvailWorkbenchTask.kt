@@ -135,6 +135,18 @@ open class AvailWorkbenchTask: DefaultTask()
 	}
 
 	/**
+	 * Add a dependency to be included in the jar.
+	 *
+	 * @param dependency
+	 *   The [Dependency] to add.
+	 */
+	@Suppress("unused")
+	fun dependency (dependency: Dependency)
+	{
+		localConfig.dependencies.add(dependency)
+	}
+
+	/**
 	 * The set of VM Options that will be used when the Avail Workbench jar is
 	 * run.
 	 */

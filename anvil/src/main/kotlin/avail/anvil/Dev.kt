@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * Dev.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,52 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import avail.build.generateBuildTime
-import org.jetbrains.compose.compose
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 
-plugins {
-	java
-	kotlin("jvm")
-	id("org.jetbrains.compose")
-}
+package avail.anvil
 
-group = "avail"
-version = "1.0"
+import androidx.compose.desktop.DesktopMaterialTheme
+import androidx.compose.ui.window.singleWindowApplication
+import androidx.compose.foundation.ContextMenuDataProvider
+import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.mouseClickable
+import androidx.compose.material.Text
+import androidx.compose.material.TextField
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.ui.ExperimentalComposeUiApi
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ContextMenuItem
 
-repositories {
-	google()
-	mavenCentral()
-	maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-}
-
-dependencies {
-	// Avail.
-	implementation(project(":avail-core"))
-	implementation(compose.desktop.currentOs)
-	implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
-}
-
-tasks {
-//	jar {
-//		from("src/main/kotlin") {
-//			include("src/main/resources/*.*")
-//		}
-//	}
-
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-}
-compose.desktop {
-	application {
-		mainClass = "avail.anvil.MainKt"
-		nativeDistributions {
-			targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-			packageName = "anvil"
-			packageVersion = "1.0.0"
+// DEVELOPMENT USE ONLY
+// This main entry is present to allow for running small portions of UI to test
+// things out.
+@OptIn(ExperimentalComposeUiApi::class,
+	androidx.compose.foundation.ExperimentalDesktopApi::class)
+@ExperimentalFoundationApi
+fun main() = singleWindowApplication(title = "Context menu") {
+	DesktopMaterialTheme { //it is mandatory for Context Menu
+		val text = remember {mutableStateOf("Hello!")}
+		ContextMenuDataProvider(
+			items = {
+				listOf(ContextMenuItem("Clear") { text.value = "" })
+			}
+		) {
+			TextField(
+				value = text.value,
+				onValueChange = { text.value = it },
+				label = { Text(text = "Input", modifier = Modifier.mouseClickable(
+					onClick = {
+						if (buttons.isPrimaryPressed)
+//								&& keyboardModifiers.isShiftPressed
+//								&& keyboardModifiers.value == Key.B.nativeKeyCode)
+						{
+							println("I clicked it!")
+						}
+					})) }
+			)
 		}
 	}
 }

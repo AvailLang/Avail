@@ -46,6 +46,10 @@ repositories {
 }
 
 dependencies {
+    // The module that is the foreign function interface that provides Pojos
+    // written in Java that is usable by Avail.
+    implementation(project(":avail-java-ffi"))
+
     // Dependency prevents SLF4J warning from being printed
     // see: http://www.slf4j.org/codes.html#noProviders
     implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
@@ -57,14 +61,6 @@ dependencies {
 }
 
 avail {
-//    // Indicate "avail-std-lib-${Versions.availStripeVersion}.jar" should be
-//    // added to the roots directory. Defaults to true.
-//    useAvailStdLib = true
-//
-//    // If `useAvailStdLib` is true, can rename standard library jar file to
-//    // this value when it is copied to the roots directory.
-//    availStdlibRename = "avail-stdlib"
-
     useStdAvailLib {
         // The name of the root for the standard library actually defaults to
         // "avail", so it is not necessary to include this line.
@@ -109,12 +105,16 @@ avail {
         modulePackage("App").apply{
             // Specify module header for package representative.
             versions = listOf("Avail-1.6.0")
+            // The modules to extend in the Avail header.
             extends = listOf("Avail", "Configurations", "Network")
             // Add a module to this module package.
             addModule("Configurations").apply {
                 // Specify module header for this module..
                 versions = listOf("Avail-1.6.0")
+                // The modules to list in the uses section in the Avail header.
                 uses = listOf("Avail")
+                // Override the module header comment from
+                // moduleHeaderCommentBodyFile
                 moduleHeaderCommentBody = customHeader
             }
             // Add a module package to this module package.
@@ -158,10 +158,14 @@ tasks {
         workbenchJarBaseName = "myCustomWorkbench"
         rebuildWorkbenchJar = true
         maximumJavaHeap = "6g"
+        dependsOn(jar)
+        // Can specify a directly accessible jar
         workbenchLocalJarDependency("$buildDir/libs/sample-project.jar")
+
         // Dependency prevents SLF4J warning from being printed
         // see: http://www.slf4j.org/codes.html#noProviders
         dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        dependency(project.dependencies.project(":avail-java-ffi"))
         root("my-avail-root", "$projectDir/avail/my-roots/my-avail-root")
         root(
             "avail",

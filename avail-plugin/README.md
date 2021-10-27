@@ -4,6 +4,13 @@ Avail Gradle Plugin
 The Avail Gradle Plugin, `avail-plugin`, provides Avail-based project setup 
 using a Gradle Plugin. It can be found on [Github](https://github.com/orgs/AvailLang/packages?repo_name=Avail).
 
+ * [Overview](#overview)
+ * [Setup](#setup)
+ * [Configuration](#configuration)
+ * [Plugin Tasks](#plugin-tasks)
+ * [Example](#example)
+ * [Publishing](#local-publishing)
+
 ## Overview
 The plugin provides:
  * The inclusion of the `avail:avail-core` dependency in the 
@@ -17,7 +24,6 @@ The plugin provides:
  * Provides access to Gradle task that will launch an Avail Workbench.
  
 ## Setup
-
 To make the plugin accessible you must insure you include the following in the 
 repositories' area of your Gradle settings.gradle.kts: 
 
@@ -229,6 +235,10 @@ standard out. Here are the options for configuring `AvailWorkbenchTask`.
   as `org.package:myLibrary:2.3.1`.
 
 
+* ***dependency*** (`Dependency`) - The `Dependency` to include such as 
+  `dependency(project.dependencies.project(":avail-java-ffi"))`.
+
+
 * ***vmOption*** (`option: string`) - A function that adds a VM option for 
   running the jar.
 
@@ -245,10 +255,10 @@ task group when the plugin is applied.
 * ***initializeAvail*** - Initializes the Avail project. It will create both 
   the roots' and repositories' directories if they don't exist. It will also 
   move the `avail-stdlib` jar into the roots' directory if `useAvailStdLib` is 
-  set to `true` (*see Configuration section*). It creates the roots specified
-  in the `avail` extension through the `createRoot` function. It will also 
-  run the arbitrary lambdas included with the `root` functions (*see 
-  Configuration section*). This is only run if a user explicitly runs it.
+  set configured (*see [Configuration](#configuration) section*). It creates the 
+  roots specified in the `avail` extension through the `createRoot` function.
+  It will also run the arbitrary lambdas included with the `root` functions 
+  (*see Configuration section*). This is only run if a user explicitly runs it.
   The following is the result of running `initializeAvail` for the
   [example](#Example) included at the end of this README.
    
@@ -311,7 +321,7 @@ task group when the plugin is applied.
 
 ## Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
-You can see a full project in [sample-project](/samples/sample-project).
+You can see a full project example in [sample-project](/samples/sample-project).
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -335,12 +345,22 @@ dependencies {
     // This adds the listed dependency to the custom build of the workbench fat
     // jar.
     availWorkbench("org.some.dependency:someProject:9.8.7")
+    implementation(project(":avail-java-ffi"))
 }
 
 avail {
-    // Indicates whether the Avail Standard Library, `avail-stdlib` should 
-    // be imported into the roots directory. Defaults to `true`.
-    useAvailStdLib = true
+    useStdAvailLib {
+      // The name of the root for the standard library actually defaults to
+      // "avail", so it is not necessary to include this line.
+      name = "avail"
+  
+      // The base name the `avail-stdlib` jar file that should be named
+      // without the `.jar` extension. This will be used to construct the
+      // [AvailRoot.uri]. Not setting this will default jar name to be the
+      // jar as it is retrieved from maven:
+      //    `avail-stdlib-<AVAIL BUILD VERSION>.jar
+      jarLibBaseName = "avail-stdlib"
+    }
 
     // Specify the roots directory where the roots should be located. This will
     // default to `"$projectDir/.avail/roots"` if not specified.
@@ -350,16 +370,13 @@ avail {
     // Avail roots. This will default to `"$projectDir/.avail/repositories"` if
     // not specified.
     repositoryDirectory = "$projectDir/avail/my-repos"
-
-    // Provides a custom name for the workbench jar created and run from
-    // the `assembleAndRunWorkbench` task. Defaults to "workbench". 
-    workbenchName = "sample-workbench"
     
     // Point to a file that contains the file header comment body to be used
     // by all generated modules.
     moduleHeaderCommentBodyFile = "$projectDir/copyright.txt"
 
-    // Add this new root to the roots directory and create it.
+    // Add this new root to the roots directory and create it. Will only create
+    // files in this root that do not already exist.
     createRoot("my-avail-root").apply {
       // Create module file header text.
       val customHeader =
@@ -380,9 +397,9 @@ avail {
         // Creates a module package and package representative
         modulePackage("App").apply { 
           // The versions to list in the Avail header
-          versions = listOf("Avail-1.0.6")
+          versions = listOf("Avail-1.6.0")
           // The modules to extend in the Avail header.
-          extends = listOf("Avail")
+          extends = listOf("Avail", "Configurations", "Network")
           // Add a module inside the `App` module package.
           addModule("Configurations").apply {
           // The versions to list in the Avail header
@@ -393,20 +410,21 @@ avail {
           // moduleHeaderCommentBodyFile
           moduleHeaderCommentBody = customHeader
         }
-          
-          // Add a module representative package inside `App`.
-          addModulePackage("Network").apply {
+
+        // Add a module package to this module package.
+        addModulePackage("Network").apply {
+          println("Setting up Network.avail")
+          versions = listOf("Avail-1.6.0")
+          uses = listOf("Avail")
+          extends = listOf("Server")
+          moduleHeaderCommentBody = customHeader
+          addModule("Server").apply {
             versions = listOf("Avail-1.6.0")
             uses = listOf("Avail")
-            extends = listOf("Server")
             moduleHeaderCommentBody = customHeader
-            addModule("Server").apply {
-              versions = listOf("Avail-1.6.0")
-              uses = listOf("Avail")
-              moduleHeaderCommentBody = customHeader
-            }
           }
         }
+      }
     
         // Creates a module at the top level of the root.
         module("Scripts").apply {
@@ -471,6 +489,8 @@ tasks {
         // workbench is run.
         dependency("com.google.crypto.tink:tink:1.6.1")
         dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        // A project module dependency
+        dependency(project.dependencies.project(":avail-java-ffi"))
         
         // The Avail roots to start the workbench with.
         root("my-avail-root", "$projectDir/avail/roots/my-avail-root")
@@ -543,3 +563,11 @@ pluginManagement {
 }
 rootProject.name = "plugin-test"
 ```
+### Publish Version
+The publish version is specified in 
+[releaseVersion.properties](/src/main/resources/releaseVersion.properties). It
+must match the version of the Avail library builds assigned during the Avail 
+publishing process. The Avail project Gradle tasks, `publish` and 
+`publishToMavenLocal` update `releaseVersion.properties` automatically. It is 
+only necessary to run either Gradle task, `publish` or `publishToMavenLocal` to
+have a plugin build that matches the most recently published Avail libraries.

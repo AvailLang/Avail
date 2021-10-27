@@ -1,5 +1,5 @@
 /*
- * Versions.kt
+ * SampleFFIUtility.java
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,54 +29,94 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import org.gradle.api.Project
-import java.io.FileInputStream
-import java.util.Properties
+
+package org.availlang.ffi;
+import java.util.Objects;
+import java.util.UUID;
+
 /**
- * The central source of all versions. This ranges from dependency versions
- * to language level versions.
+ * A {@code SampleValueWrapper} is a sample class that wraps a value.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object Versions
+@SuppressWarnings("unused")
+public class SampleValueWrapper
 {
-	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.21"
-
-	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "16"
-
-	/** The language level version of Kotlin. */
-	const val kotlinLanguage = "1.5"
+	/**
+	 * The wrapped value.
+	 */
+	public final int value;
 
 	/**
-	 * The stripe release version of avail jars:
-	 *  * `avail-core`
-	 *  * `avail-workbench`
-	 *  * `avail-stdlib`
-	 *
-	 *  This represents the version of this plugin.
+	 * The unique id of this {@link SampleValueWrapper}.
 	 */
-	const val availStripeVersion = "1.6.0.20211017.182336"
+	public final String id = UUID.randomUUID().toString();
 
 	/**
-	 * The location of the properties file that contains the last published
-	 * release of the avail libraries.
+	 * The time in milliseconds since the Unix Epoch when this created.
 	 */
-	const val releaseVersionFile =
-		"src/main/resources/releaseVersion.properties"
+	public final Long created = System.currentTimeMillis();
 
 	/**
-	 * Answer the version id for the `avail-plugin`.
-	 *
-	 * @param project
-	 *   The running Gradle [Project].
+	 * @return
+	 *   Answer the wrapped value.
 	 */
-	fun getReleaseVersion (project: Project): String
+	public int getValue ()
 	{
-		val propsFile = FileInputStream(releaseVersionFile)
-		val props = Properties()
-		props.load(propsFile)
-		return props.getProperty("releaseVersion")
+		return value;
+	}
+
+	/**
+	 * Answer a new {@link SampleValueWrapper} that wraps a new value that is
+	 * the sum of the {@link SampleValueWrapper#value} and the provided
+	 * {@code addend}.
+	 *
+	 * @param addend
+	 *   The value to add to the wrapped value.
+	 * @return
+	 *   A new {@code SampleValueWrapper} that wraps the sum.
+	 */
+	public SampleValueWrapper add (final int addend)
+	{
+		return new SampleValueWrapper(value + addend);
+	}
+
+	@Override
+	public String toString ()
+	{
+		return "SampleValueWrapper{" + value +
+			", " + id + "}";
+	}
+
+	/**
+	 * Construct a new {@link SampleValueWrapper}.
+	 *
+	 * @param value
+	 *   The value to wrap.
+	 */
+	public SampleValueWrapper (final int value)
+	{
+		this.value = value;
+	}
+
+	@Override
+	public boolean equals (final Object o)
+	{
+		if (this == o)
+		{
+			return true;
+		}
+		if (!(o instanceof SampleValueWrapper))
+		{
+			return false;
+		}
+		final SampleValueWrapper that = (SampleValueWrapper) o;
+		return value == that.value;
+	}
+
+	@Override
+	public int hashCode ()
+	{
+		return Objects.hash(value);
 	}
 }
