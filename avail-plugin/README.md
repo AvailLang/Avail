@@ -260,7 +260,7 @@ task group when the plugin is applied.
   It will also run the arbitrary lambdas included with the `root` functions 
   (*see Configuration section*). This is only run if a user explicitly runs it.
   The following is the result of running `initializeAvail` for the
-  [example](#Example) included at the end of this README.
+  [example](#example) included at the end of this README.
    
     ![Generated Output](readme-resources/generated.jpg?raw=true)
    
@@ -321,7 +321,7 @@ task group when the plugin is applied.
 
 ## Example
 The following is an example `build.gradle.kts` file that uses the Avail Plugin.
-You can see a full project example in [sample-project](/samples/sample-project).
+You can see a full project example in [sample-project](../samples/sample-project).
 
 ```kotlin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -565,7 +565,7 @@ rootProject.name = "plugin-test"
 ```
 ### Publish Version
 The publish version is specified in 
-[releaseVersion.properties](/src/main/resources/releaseVersion.properties). It
+[releaseVersion.properties](src/main/resources/releaseVersion.properties). It
 must match the version of the Avail library builds assigned during the Avail 
 publishing process. The Avail project Gradle tasks, `publish` and 
 `publishToMavenLocal` update `releaseVersion.properties` automatically. It is 

@@ -27,8 +27,8 @@ BEFORE GETTING STARTED
 
 If you would simply like to use Avail in a JVM project, you can import a
 prebuilt version of Avail as a dependency. See the
-[Avail Gradle Plugin](/avail-plugin/README.md) for more details on how to
-accomplish this. You can also refer to our [sample project](/samples/sample-project)
+[Avail Gradle Plugin](avail-plugin/README.md) for more details on how to
+accomplish this. You can also refer to our [sample project](samples/sample-project)
 to see how Avail can be incorporated into a JVM project.
 
 This document describes the entire process of obtaining, installing,
@@ -362,20 +362,20 @@ Maven repository using the Avail top level Gradle task, `publishToLocalMaven`.
 
 Publishing Avail to local Maven will publish five jars:
  * `avail-core` - *The core Avail language*
-   (see [Avail](/avail-core/README.md))
+   (see [Avail](avail-core/README.md))
  * `avail-stdlib` - *The Avail standard library*
-   (see [Standard Library](/avail-stdlib/README.md))
+   (see [Standard Library](avail-stdlib/README.md))
  * `avail-workbench` - *The Avail development tool for developing Avail* 
-   (see [Workbench](/avail-workbench/README.md))
+   (see [Workbench](avail-workbench/README.md))
  * `avail-json` - *A stand-alone general JSON building utility written in 
    Kotlin*
-   (see [JSON](/avail-json/README.md))
+   (see [JSON](avail-json/README.md))
  * `avail-storage` - *A stand-alone general utility for data storage written in 
    Kotlin*
-   (see [Storage](/avail-storage/README.md))
+   (see [Storage](avail-storage/README.md))
 
 Publishing Avail automatically updates the Avail version being used by the 
-[Avail Gradle Plugin](/avail-plugin/README.md). All that is necessary to have a 
+[Avail Gradle Plugin](avail-plugin/README.md). All that is necessary to have a 
 functional Avail Gradle plugin to match the above mentioned builds is to run the 
 `publishToLocalMaven` in `avail-plugin`.
 
