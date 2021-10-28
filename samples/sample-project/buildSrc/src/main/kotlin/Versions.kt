@@ -29,9 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import org.gradle.api.Project
-import java.io.FileInputStream
-import java.util.Properties
+
 /**
  * The central source of all versions. This ranges from dependency versions
  * to language level versions.
@@ -46,37 +44,15 @@ object Versions
 	/** The JVM target version for Kotlin. */
 	const val jvmTarget = "16"
 
-	/** The language level version of Kotlin. */
-	const val kotlinLanguage = "1.5"
-
 	/**
 	 * The stripe release version of avail jars:
 	 *  * `avail-core`
 	 *  * `avail-workbench`
 	 *  * `avail-stdlib`
+	 *  * `avail-storage`
+	 *  * `avail-json`
 	 *
-	 *  This represents the version of this plugin.
+	 *  This represents the version of the `avail-plugin`.
 	 */
-	const val availStripeVersion = "1.6.0.20211017.182336"
-
-	/**
-	 * The location of the properties file that contains the last published
-	 * release of the avail libraries.
-	 */
-	const val releaseVersionFile =
-		"src/main/resources/releaseVersion.properties"
-
-	/**
-	 * Answer the version id for the `avail-plugin`.
-	 *
-	 * @param project
-	 *   The running Gradle [Project].
-	 */
-	fun getReleaseVersion (project: Project): String
-	{
-		val propsFile = FileInputStream(releaseVersionFile)
-		val props = Properties()
-		props.load(propsFile)
-		return props.getProperty("releaseVersion")
-	}
+	const val avail = "1.6.0.20211017.182336"
 }

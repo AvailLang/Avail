@@ -59,7 +59,7 @@ gradlePlugin {
 }
 
 group = "avail"
-version = Versions.getReleaseVersion(project)
+version = Versions.getReleaseVersion()
 
 repositories {
 	mavenCentral()

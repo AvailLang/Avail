@@ -34,7 +34,7 @@ import avail.plugin.AvailWorkbenchTask
 
 plugins {
     kotlin("jvm") version Versions.kotlin
-    id("avail.avail-plugin") version Versions.availStripeVersion
+    id("avail.avail-plugin") version Versions.avail
 }
 
 group = "org.availlang.sample"
@@ -169,7 +169,7 @@ tasks {
         root("my-avail-root", "$projectDir/avail/my-roots/my-avail-root")
         root(
             "avail",
-            "jar:$projectDir/avail/roots/avail-stdlib-${Versions.availStripeVersion}.jar")
+            "jar:$projectDir/avail/roots/avail-stdlib-${Versions.avail}.jar")
         vmOption("-ea")
         vmOption("-XX:+UseCompressedOops")
         vmOption("-DavailDeveloper=true")

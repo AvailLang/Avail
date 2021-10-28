@@ -1,6 +1,4 @@
-import org.gradle.api.Project
 import java.io.FileInputStream
-import java.io.FileOutputStream
 import java.util.Properties
 
 /*
@@ -53,29 +51,20 @@ object Versions
 	const val kotlinLanguage = "1.5"
 
 	/**
-	 * The stripe release version of avail jars:
-	 *  * `avail-core`
-	 *  * `avail-workbench`
-	 *  * `avail-stdlib`
-	 *
-	 *  This represents the version of this plugin.
-	 */
-	const val availStripeVersion = "1.6.0.20210910.181950"
-
-	/**
 	 * The location of the properties file that contains the last published
 	 * release of the avail libraries.
 	 */
+	@Suppress("MemberVisibilityCanBePrivate")
 	const val releaseVersionFile =
 		"src/main/resources/releaseVersion.properties"
 
 	/**
 	 * Answer the version id for the `avail-plugin`.
 	 *
-	 * @param project
-	 *   The running Gradle [Project].
+	 * @return
+	 *   The release version id for a publishable plugin.
 	 */
-	fun getReleaseVersion (project: Project): String
+	fun getReleaseVersion (): String
 	{
 		val propsFile = FileInputStream(releaseVersionFile)
 		val props = Properties()
