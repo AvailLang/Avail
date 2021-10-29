@@ -32,7 +32,11 @@
 
 package avail.compiler
 
+import avail.compiler.ModuleManifestEntry.Kind
+import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
 import java.io.DataInputStream
 import java.io.DataOutputStream
 import java.io.IOException
@@ -56,9 +60,17 @@ import java.io.IOException
  * @property definitionStartingLine
  *   The location within this module of the start of the body function for this
  *   definition, or 0 if inapplicable.
+ * @property bodyFunction
+ *   The [A_Function] that best acts as the body of this entry, such as a method
+ *   definition's body function, or a lexer definition's body function. This is
+ *   null if a body is inapplicable or unavailable.  It is always null after
+ *   reading a [ModuleManifestEntry] from the repository.
  * @property bodyPhraseIndexNumber
  *   The index into the current module's tuple of phrases, accessible via
- *   [A_Module.originatingPhraseAtIndex].
+ *   [A_Module.originatingPhraseAtIndex].  If this has not yet been computed,
+ *   it will be `-1`, and the [bodyFunction] will be some [A_Function].  If there
+ *   is no suitable body, or if it's not something that was serialized with the
+ *   module, it will also be `-1`, but the [bodyFunction] will be `null`.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -67,7 +79,8 @@ class ModuleManifestEntry constructor(
 	val summaryText: String,
 	val topLevelStartingLine: Int,
 	val definitionStartingLine: Int,
-	val bodyPhraseIndexNumber: Int)
+	private var bodyFunction: A_Function? = null,
+	var bodyPhraseIndexNumber: Int = -1)
 {
 	/**
 	 * The kinds of manifest entries that can be recorded.  If this changes in a
@@ -123,6 +136,14 @@ class ModuleManifestEntry constructor(
 	@Throws(IOException::class)
 	fun write(binaryStream: DataOutputStream)
 	{
+		bodyFunction?.let {
+			bodyPhraseIndexNumber = it.code().originatingPhraseIndex
+			// This was only being held to ask about the index, *after* the
+			// function had already been executed and serialized, and its phrase
+			// added to the module's tuple of phrases.  Otherwise the function's
+			// phrase wouldn't have an index yet.
+			bodyFunction = null
+		}
 		binaryStream.write(kind.ordinal)
 		binaryStream.writeUTF(summaryText)
 		binaryStream.writeInt(topLevelStartingLine)
@@ -144,5 +165,6 @@ class ModuleManifestEntry constructor(
 		binaryStream.readUTF(),
 		binaryStream.readInt(),
 		binaryStream.readInt(),
+		null,
 		binaryStream.readInt())
 }

@@ -95,7 +95,6 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -1020,7 +1019,7 @@ class AvailCompiler constructor(
 								name.asNativeString(),
 								startState.lineNumber,
 								replacement.token.lineNumber(),
-								assignFunction.code().originatingPhraseIndex))
+								assignFunction))
 						variable.setValue(value)
 						onSuccess()
 					},
@@ -1091,8 +1090,7 @@ class AvailCompiler constructor(
 										name.asNativeString(),
 										startState.lineNumber,
 										replacement.token.lineNumber(),
-										assignFunction.code()
-											.originatingPhraseIndex))
+										assignFunction))
 							}
 							onSuccess()
 						},
@@ -3550,10 +3548,10 @@ class AvailCompiler constructor(
 				}
 				val beforeFirstNonwhiteToken =
 					afterStatement.lexingState.allTokens.firstOrNull {
-						it.tokenType().let {
-							it != WHITESPACE
-								&& it != COMMENT
-								&& it != END_OF_FILE
+						it.tokenType().let { type ->
+							type != WHITESPACE
+								&& type != COMMENT
+								&& type != END_OF_FILE
 						}
 					}?.synthesizeCurrentLexingState() ?: startLexingState
 				evaluateModuleStatementThen(

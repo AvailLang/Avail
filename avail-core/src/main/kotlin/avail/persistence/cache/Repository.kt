@@ -149,10 +149,13 @@ class Repository constructor(
 	 * `IndexedRepositoryBuilder` is a builder for opening the [IndexedFile]s
 	 * used to hold a collection of compiled Avail [modules][ModuleDescriptor].
 	 *
+	 * NOTE: Update the version number at the end, to ensure all existing
+	 * repositories will be discarded and rebuilt upon next use.
+	 *
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository")
+		"Avail compiled module repository V1")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe

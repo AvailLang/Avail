@@ -70,7 +70,6 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
@@ -1105,28 +1104,26 @@ class AvailLoader(
 						{
 							newDefinition.isMethodDefinition() ->
 							{
-								val body = newDefinition.bodyBlock().code()
+								val body = newDefinition.bodyBlock()
 								ModuleManifestEntry(
 									Kind.METHOD_DEFINITION_KIND,
 									methodName.atomName.asNativeString(),
 									topStart,
-									body.codeStartingLineNumber,
-									body.originatingPhraseIndex)
+									body.code().codeStartingLineNumber,
+									body)
 							}
 							newDefinition.isForwardDefinition() ->
 								ModuleManifestEntry(
 									Kind.FORWARD_METHOD_DEFINITION_KIND,
 									methodName.atomName.asNativeString(),
 									topStart,
-									topStart,
-									-1)
+									topStart)
 							newDefinition.isAbstractDefinition() ->
 								ModuleManifestEntry(
 									Kind.ABSTRACT_METHOD_DEFINITION_KIND,
 									methodName.atomName.asNativeString(),
 									topStart,
-									topStart,
-									-1)
+									topStart)
 							else -> throw UnsupportedOperationException(
 								"Unknown definition kind")
 						})
@@ -1216,7 +1213,7 @@ class AvailLoader(
 						methodName.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
-						macroCode.originatingPhraseIndex))
+						macroBody))
 				val plan: A_DefinitionParsingPlan =
 					bundle.definitionParsingPlans.mapAt(macroDefinition)
 				val planInProgress = newPlanInProgress(plan, 1)
@@ -1262,7 +1259,7 @@ class AvailLoader(
 						atom.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
-						code.originatingPhraseIndex))
+						function))
 			}
 		}
 	}
@@ -1501,8 +1498,7 @@ class AvailLoader(
 									Kind.ATOM_DEFINITION_KIND,
 									stringName.asNativeString(),
 									topStart,
-									topStart,
-									-1))
+									topStart))
 						}
 					}
 					if (isExplicitSubclassAtom)

@@ -98,7 +98,7 @@ import avail.interpreter.levelTwo.L2Chunk
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class PrimitiveCompiledCodeDescriptor constructor(
+class PrimitiveCompiledCodeDescriptor internal constructor(
 	mutability: Mutability,
 	private val primitive: Primitive,
 	private val returnTypeIfPrimitiveFails: A_Type,

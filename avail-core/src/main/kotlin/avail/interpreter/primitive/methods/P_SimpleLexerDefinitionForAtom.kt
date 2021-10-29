@@ -40,7 +40,6 @@ import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
@@ -128,7 +127,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 						loader.topLevelStatementBeingCompiled!!
 							.startingLineNumber,
 						bodyFunction.code().codeStartingLineNumber,
-						bodyFunction.code().originatingPhraseIndex))
+						bodyFunction))
 			}
 			loader.recordEffect(
 				LoadingEffectToRunPrimitive(
