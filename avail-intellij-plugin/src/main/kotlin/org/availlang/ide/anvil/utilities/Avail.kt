@@ -38,9 +38,6 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.files.FileManager
 import avail.persistence.cache.Repository
-import org.availlang.ide.anvil.Anvil
-import org.availlang.ide.anvil.Anvil.defaults
-import org.availlang.ide.anvil.Anvil.userHome
 
 ////////////////////////////////////////////////////////////////////////////////
 //                         Avail runtime management.                          //
@@ -57,9 +54,9 @@ import org.availlang.ide.anvil.Anvil.userHome
  *   The [FileManager] for locating all Avail modules and resources.
  */
 fun createAvailRuntime (
-	moduleRootsPath: String = defaults.defaultModuleRootsPath,
-	renamesFileBody: String = defaults.defaultRenamesFileBody,
-	fileManager: FileManager = defaults.defaultFileManager
+	moduleRootsPath: String = Defaults.instance.defaultModuleRootsPath,
+	renamesFileBody: String = Defaults.instance.defaultRenamesFileBody,
+	fileManager: FileManager = Defaults.instance.defaultFileManager
 ): AvailRuntime
 {
 	val moduleRootResolutionErrors = mutableListOf<String>()
@@ -83,8 +80,10 @@ fun createAvailRuntime (
  *   The new [AvailRuntime].
  */
 fun createAvailRuntime (
-	moduleNameResolver: ModuleNameResolver = defaults.defaultModuleNameResolver,
-	fileManager: FileManager = defaults.defaultFileManager
+	moduleNameResolver: ModuleNameResolver =
+		Defaults.instance.defaultModuleNameResolver,
+	fileManager: FileManager =
+		Defaults.instance.defaultFileManager
 ): AvailRuntime = AvailRuntime(moduleNameResolver, fileManager)
 
 ////////////////////////////////////////////////////////////////////////////////
@@ -183,5 +182,19 @@ class Defaults
 	 * The default directory where Avail [Repository]s are written to.
 	 */
 	val defaultRepositoryPath: String =
-		"$userHome/${Anvil.REPOS_DEFAULT}"
+		"$userHome/$REPOS_DEFAULT"
+
+	companion object
+	{
+		/**
+		 * The default repositories directory located in the `user.home` directory.
+		 */
+		internal const val REPOS_DEFAULT = ".avail/repositories"
+
+		internal val userHome: String get() = System.getProperty("user.home")
+
+		val instance by lazy {
+			Defaults()
+		}
+	}
 }

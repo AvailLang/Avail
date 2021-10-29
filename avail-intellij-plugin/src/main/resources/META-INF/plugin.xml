@@ -16,7 +16,10 @@
                   implementationClass="org.availlang.ide.anvil.langauge.file.AvailFileType"
                   fieldName="INSTANCE" language="Avail" extensions="avail"/>
     </extensions>
-
+    <applicationListeners>
+        <listener class="org.availlang.ide.anvil.listeners.AvailProjectOpenListener"
+                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+    </applicationListeners>
     <actions>
         <!-- Add your actions here -->
     </actions>

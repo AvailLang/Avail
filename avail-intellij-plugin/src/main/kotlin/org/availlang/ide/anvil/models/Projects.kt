@@ -45,19 +45,26 @@ import avail.compiler.problems.Problem
 import avail.compiler.problems.SimpleProblemHandler
 import avail.descriptor.module.ModuleDescriptor
 import avail.files.FileManager
+import avail.persistence.cache.Repository
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
-import org.availlang.ide.anvil.Anvil.defaults
+import com.intellij.openapi.components.Service
+import com.intellij.openapi.project.Project
 import org.availlang.ide.anvil.streams.AnvilOutputStream
 import org.availlang.ide.anvil.streams.StreamStyle
 import org.availlang.ide.anvil.streams.StyledStreamEntry
+import org.availlang.ide.anvil.utilities.Defaults
 import org.availlang.ide.anvil.utilities.createAvailRuntime
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
+import org.availlang.json.JSONReader
 import org.availlang.json.JSONWriter
+import java.io.File
+import java.io.IOException
 import java.net.URI
+import java.nio.file.Files
 import java.util.UUID
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicBoolean
@@ -68,7 +75,7 @@ import java.util.concurrent.atomic.AtomicInteger
 ////////////////////////////////////////////////////////////////////////////////
 
 /**
- * Represents a [ModuleRootResolver] in a [ProjectDescriptor].
+ * Represents a [ModuleRootResolver] in a [AvailProjectDescriptor].
  *
  * @author Richard Arriaga
  *
@@ -77,13 +84,13 @@ import java.util.concurrent.atomic.AtomicInteger
  * @property uri
  *   The [ModuleRootResolver.uri]
  * @property id
- *   The immutable id that uniquely identifies this [ProjectRoot].
+ *   The immutable id that uniquely identifies this [AvailProjectRoot].
  */
-data class ProjectRoot constructor(
+data class AvailProjectRoot constructor(
 	var name: String,
 	var uri: String,
 	val id: String = UUID.randomUUID().toString()
-): JSONFriendly, Comparable<ProjectRoot>
+): JSONFriendly, Comparable<AvailProjectRoot>
 {
 	/**
 	 * The Avail [module][ModuleDescriptor] path. It takes the form:
@@ -93,7 +100,7 @@ data class ProjectRoot constructor(
 	val modulePath: String = "$name=$uri"
 
 	/**
-	 * Answer a [ModuleRootResolver] for this [ProjectRoot].
+	 * Answer a [ModuleRootResolver] for this [AvailProjectRoot].
 	 *
 	 * @param fileManager
 	 *   The [FileManager] used to manage the files accessed via the
@@ -109,7 +116,7 @@ data class ProjectRoot constructor(
 		writer.at(URI) { write(uri) }
 	}
 
-	override fun compareTo(other: ProjectRoot): Int =
+	override fun compareTo(other: AvailProjectRoot): Int =
 		if (name == other.name)
 		{
 			uri.compareTo(other.uri)
@@ -122,20 +129,20 @@ data class ProjectRoot constructor(
 	companion object
 	{
 		/**
-		 * Generic "name" config file key. Used for: [ProjectRoot.uri].
+		 * Generic "name" config file key. Used for: [AvailProjectRoot.uri].
 		 */
 		internal const val URI = "uri"
 
 		/**
-		 * Extract and build a [ProjectRoot] from the provided [JSONObject].
+		 * Extract and build a [AvailProjectRoot] from the provided [JSONObject].
 		 *
 		 * @param jsonObject
 		 *   The `JSONObject` that contains the `ProjectRoot` data.
 		 * @return
 		 *   The extracted `ProjectRoot`.
 		 */
-		fun from (jsonObject: JSONObject): ProjectRoot =
-			ProjectRoot(
+		fun from (jsonObject: JSONObject): AvailProjectRoot =
+			AvailProjectRoot(
 				jsonObject.getString(NAME),
 				jsonObject.getString(URI),
 				jsonObject.getString(ID))
@@ -143,60 +150,62 @@ data class ProjectRoot constructor(
 }
 
 /**
- * Describes the makeup of an Avail [Project].
+ * Describes the makeup of an Avail [AvailProject].
  *
  * @author Richard Arriaga
  *
  * @property name
- *   The [Project] name.
- * @property renamesFileBody
+ *   The [AvailProject] name.
+ * @property repositoryPath
+ *   The [Repository] location.
+ * @property renamesFilePath
  *   The path to the [renames file][RenamesFileParser].
  * @property renamesFileBody
  *   The contents of a [renames file][RenamesFileParser].
  * @property roots
- *   The map of [ProjectRoot.name] to [ProjectRoot].
+ *   The map of [AvailProjectRoot.name] to [AvailProjectRoot].
  * @param id
  *   The id that uniquely identifies the project.
  */
-data class ProjectDescriptor constructor(
+data class AvailProjectDescriptor constructor(
 	var name: String,
-	var repositoryPath: String = defaults.defaultRepositoryPath,
+	var repositoryPath: String = Defaults.instance.defaultRepositoryPath,
 	var renamesFilePath: String = "",
 	var renamesFileBody: String = "",
-	val roots: MutableMap<String, ProjectRoot> = mutableMapOf(),
+	val roots: MutableMap<String, AvailProjectRoot> = mutableMapOf(),
 	val id: String = UUID.randomUUID().toString()
-): JSONFriendly, Comparable<ProjectDescriptor>
+): JSONFriendly, Comparable<AvailProjectDescriptor>
 {
 	/**
-	 * The list of [ProjectRoot]s in this [ProjectDescriptor].
+	 * The list of [AvailProjectRoot]s in this [AvailProjectDescriptor].
 	 */
-	val projectRoots: List<ProjectRoot> get() =
+	val availProjectRoots: List<AvailProjectRoot> get() =
 		roots.values.toList().sorted()
 
 	/**
-	 * Add the [ProjectRoot] to this [ProjectDescriptor].
+	 * Add the [AvailProjectRoot] to this [AvailProjectDescriptor].
 	 *
-	 * @param projectRoot
+	 * @param availProjectRoot
 	 *   The `ProjectRoot` to add.
 	 */
-	fun addRoot (projectRoot: ProjectRoot)
+	fun addRoot (availProjectRoot: AvailProjectRoot)
 	{
-		roots[projectRoot.id] = projectRoot
+		roots[availProjectRoot.id] = availProjectRoot
 	}
 
 	/**
-	 * Remove the [ProjectRoot] from this [ProjectDescriptor].
+	 * Remove the [AvailProjectRoot] from this [AvailProjectDescriptor].
 	 *
 	 * @param projectRoot
-	 *   The [ProjectRoot.id] to remove.
+	 *   The [AvailProjectRoot.id] to remove.
 	 * @return
 	 *   The `ProjectRoot` removed or `null` if not found.
 	 */
-	fun removeRoot (projectRoot: String): ProjectRoot? =
+	fun removeRoot (projectRoot: String): AvailProjectRoot? =
 		roots.remove(projectRoot)
 
 	/**
-	 * Create a new [Project] from this [ProjectDescriptor] with the given
+	 * Create a new [AvailProject] from this [AvailProjectDescriptor] with the given
 	 * [FileManager].
 	 *
 	 * @param fileManager
@@ -206,9 +215,9 @@ data class ProjectDescriptor constructor(
 	 */
 	fun project (
 		fileManager: FileManager = FileManager(),
-		then: (Project) -> Unit = {}
-	): Project =
-		Project(this, fileManager).apply {
+		then: (AvailProject) -> Unit = {}
+	): AvailProject =
+		AvailProject(this, fileManager).apply {
 			initializeRootsThen({
 				walkRoots(then)
 			},
@@ -227,7 +236,7 @@ data class ProjectDescriptor constructor(
 		writer.at(RENAMES_FILE_BODY) { write(renamesFileBody) }
 		writer.at(ROOTS) {
 			startArray()
-			projectRoots.forEach {
+			availProjectRoots.forEach {
 				startObject()
 				it.writeTo(writer)
 				endObject()
@@ -236,21 +245,21 @@ data class ProjectDescriptor constructor(
 		}
 	}
 
-	override fun compareTo(other: ProjectDescriptor): Int =
+	override fun compareTo(other: AvailProjectDescriptor): Int =
 		name.compareTo(other.name)
 
 	companion object
 	{
 		/**
 		 * The current JSON serialization/deserialization version of
-		 * [ProjectDescriptor].
+		 * [AvailProjectDescriptor].
 		 */
 		const val CURRENT_SERIALIZATION_VERSION = 1
 
-		val EMPTY_PROJECT = ProjectDescriptor("EMPTY")
+		val EMPTY_PROJECT = AvailProjectDescriptor("EMPTY")
 
 		/**
-		 * Extract and build a [ProjectDescriptor] from the provided
+		 * Extract and build a [AvailProjectDescriptor] from the provided
 		 * [JSONObject].
 		 *
 		 * @param jsonObject
@@ -258,23 +267,72 @@ data class ProjectDescriptor constructor(
 		 * @return
 		 *   The extracted `ProjectDescriptor`.
 		 */
-		fun from (jsonObject: JSONObject): ProjectDescriptor
+		fun from (jsonObject: JSONObject): AvailProjectDescriptor
 		{
 			val id = jsonObject.getString(ID)
 			val name = jsonObject.getString(NAME)
 			val repos = jsonObject.getString(REPOS_FILE_PATH)
 			val renamesPath = jsonObject.getString(RENAMES_FILE_PATH)
-			val roots = mutableMapOf<String, ProjectRoot>()
+			val roots = mutableMapOf<String, AvailProjectRoot>()
 			jsonObject.getArray(ROOTS).forEach {
 				val rootObj = it as? JSONObject ?:
 					error("Malformed Anvil config file; malformed Project " +
 						"Root in `knownProjects` - `$ROOTS`: $it")
-				val root = ProjectRoot.from(rootObj)
+				val root = AvailProjectRoot.from(rootObj)
 				roots[root.id] = root
 			}
 			val renames = jsonObject.getString(RENAMES_FILE_BODY)
-			return ProjectDescriptor(
+			return AvailProjectDescriptor(
 				name, repos, renamesPath, renames, roots, id)
+		}
+	}
+}
+
+@Service
+class AvailProjectService constructor(val project: Project)
+{
+	private val descriptorFilePath = project.basePath?.let {
+		"$it/.idea/avail.json"
+	} ?: ".idea/avail.json"
+	val availProject: AvailProject = project.basePath?.let {
+		val descriptorFile = File("$it/.idea/avail.json")
+		if (descriptorFile.exists())
+		{
+			val reader = JSONReader(descriptorFile.bufferedReader())
+			val obj = reader.read()  as? JSONObject
+				?: error("Malformed Anvil config file: ${descriptorFile.absolutePath}")
+			val descriptor = AvailProjectDescriptor.from(obj)
+			 descriptor.project { println("====== Created Project!") }
+		}
+		else
+		{
+			AvailProjectDescriptor.EMPTY_PROJECT.project {  }
+		}
+	} ?: AvailProjectDescriptor.EMPTY_PROJECT.project {  }
+
+	/**
+	 * Save the current Anvil configuration to disk.
+	 */
+	fun saveConfigToDisk ()
+	{
+		val writer = JSONWriter()
+		writer.startObject()
+		availProject.descriptor.writeTo(writer)
+		writer.endObject()
+		try
+		{
+			project.basePath?.let {
+				val descriptorFile = File("$it/.idea/avail.json")
+				Files.newBufferedWriter(descriptorFile.toPath()).use { bw ->
+					bw.write(writer.toString())
+				}
+			}
+		}
+		catch (e: IOException)
+		{
+			throw IOException(
+				"Save Anvil config to file failed: $descriptorFilePath",
+				e)
 		}
 	}
 }
@@ -285,17 +343,17 @@ data class ProjectDescriptor constructor(
  * @author Richard Arriaga
  *
  * @property descriptor
- *   The [ProjectDescriptor] that describes and identifies this [Project].
+ *   The [AvailProjectDescriptor] that describes and identifies this [AvailProject].
  * @property fileManager
- *   The [FileManager] that manages files for this [Project].
+ *   The [FileManager] that manages files for this [AvailProject].
  */
-data class Project constructor(
-	val descriptor: ProjectDescriptor,
-	val fileManager: FileManager = defaults.defaultFileManager
-): Comparable<Project>, JSONFriendly
+data class AvailProject constructor(
+	val descriptor: AvailProjectDescriptor,
+	val fileManager: FileManager = Defaults.instance.defaultFileManager
+): Comparable<AvailProject>, JSONFriendly
 {
 	/**
-	 * The [ProjectDescriptor.id] that uniquely represents this [Project].
+	 * The [AvailProjectDescriptor.id] that uniquely represents this [AvailProject].
 	 */
 	val id: String get() = descriptor.id
 
@@ -321,7 +379,7 @@ data class Project constructor(
 	}
 
 	/**
-	 * Add a [ProjectRoot] to this [Project].
+	 * Add a [AvailProjectRoot] to this [AvailProject].
 	 *
 	 * @param root
 	 *   The `ProjectRoot` to add.
@@ -332,7 +390,7 @@ data class Project constructor(
 	 *   fails.
 	 */
 	internal fun addRoot (
-		root: ProjectRoot,
+		root: AvailProjectRoot,
 		successHandler: () -> Unit,
 		failureHandler: (List<String>)->Unit)
 	{
@@ -349,7 +407,7 @@ data class Project constructor(
 	}
 
 	/**
-	 * Initialize this [Project]'s [ModuleRoots] with all the [ProjectRoot]s
+	 * Initialize this [AvailProject]'s [ModuleRoots] with all the [AvailProjectRoot]s
 	 * listed in its [descriptor].
 	 *
 	 * @param successHandler
@@ -399,7 +457,7 @@ data class Project constructor(
 	}
 
 	/**
-	 * The [ModuleRoots] for this [Project].
+	 * The [ModuleRoots] for this [AvailProject].
 	 */
 	private val moduleRoots: ModuleRoots =
 		ModuleRoots(fileManager, "") {
@@ -426,7 +484,7 @@ data class Project constructor(
 	}
 
 	/**
-	 * Stop this [Project]'s runtime.
+	 * Stop this [AvailProject]'s runtime.
 	 */
 	fun stopRuntime ()
 	{
@@ -505,7 +563,7 @@ data class Project constructor(
 	}
 
 	/**
-	 * The [RootNode]s in this [Project].
+	 * The [RootNode]s in this [AvailProject].
 	 */
 	val rootNodes = ConcurrentHashMap<String, RootNode>()
 
@@ -517,13 +575,13 @@ data class Project constructor(
 
 	/**
 	 * Walk all the [ModuleRoot]s populating all the [AvailNode]s ([nodes]) for
-	 * this [Project].
+	 * this [AvailProject].
 	 *
 	 * @param then
 	 *   The lambda that accepts this project that is run after the entire
 	 *   project is walked.
 	 */
-	fun walkRoots (then: (Project) -> Unit)
+	fun walkRoots (then: (AvailProject) -> Unit)
 	{
 		nodes.clear()
 		rootNodes.clear()
@@ -547,7 +605,7 @@ data class Project constructor(
 	/**
 	 * Walk the provided roots.
 	 */
-	private fun walkRoot(root: ModuleRoot, then: (Project) -> Unit)
+	private fun walkRoot(root: ModuleRoot, then: (AvailProject) -> Unit)
 	{
 		root.resolver.provideModuleRootTree({ refRoot ->
 			val rootNode = RootNode(this, refRoot, root)
@@ -651,44 +709,44 @@ data class Project constructor(
 		}
 	}
 
-	override fun compareTo(other: Project): Int =
+	override fun compareTo(other: AvailProject): Int =
 		descriptor.compareTo(other.descriptor)
 }
 
 /**
  * Generic "name" config file key. Used for:
- *  * [ProjectDescriptor.name]
- *  * [ProjectRoot.name]
+ *  * [AvailProjectDescriptor.name]
+ *  * [AvailProjectRoot.name]
  */
 private const val NAME = "name"
 
 /**
  * Generic "id" config file key. Used for:
- *  * [ProjectRoot.id]
+ *  * [AvailProjectRoot.id]
  */
 private const val ID = "id"
 
 /**
- * [ProjectDescriptor.repositoryPath] config file key.
+ * [AvailProjectDescriptor.repositoryPath] config file key.
  */
 private const val REPOS_FILE_PATH = "repositoriesPath"
 
 /**
- * [ProjectDescriptor.renamesFileBody] config file key.
+ * [AvailProjectDescriptor.renamesFileBody] config file key.
  */
 private const val RENAMES_FILE_BODY = "renamesFileBody"
 
 /**
- * [ProjectDescriptor.renamesFileBody] config file key.
+ * [AvailProjectDescriptor.renamesFileBody] config file key.
  */
 private const val RENAMES_FILE_PATH = "renamesFilePath"
 
 /**
- * The [ProjectDescriptor.roots] config file key.
+ * The [AvailProjectDescriptor.roots] config file key.
  */
 private const val ROOTS = "roots"
 
 /**
- * The [ProjectDescriptor.roots] config file key.
+ * The [AvailProjectDescriptor.roots] config file key.
  */
 private const val EXPANDED = "expanded"

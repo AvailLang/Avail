@@ -1,0 +1,15 @@
+{
+	"version": 1,
+	"id": "8997b122-04ff-43e4-b02a-7ac7c84e7ca8",
+	"name": "Avail Standard Library",
+	"repositoriesPath": "/Users/Rich/.avail/anvil/.avail/repositories",
+	"renamesFilePath": "",
+	"renamesFileBody": "",
+	"roots": [
+		{
+			"id": "9f46cd9f-658e-4e61-a0e1-edd02f43425d",
+			"name": "avail",
+			"uri": "file:///Users/Rich/Development/Avail/distro/src/avail"
+		}
+	]
+}
