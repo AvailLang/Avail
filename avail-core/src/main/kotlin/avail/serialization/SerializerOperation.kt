@@ -1263,11 +1263,11 @@ enum class SerializerOperation constructor(
 			val module = obj.module
 			val phraseOrIndex = when
 			{
+				originatingPhraseIndex != -1 -> fromInt(originatingPhraseIndex)
 				module.isNil
 					|| module.moduleState != Loading
 					|| serializer.module === null
 					|| !serializer.module.hasAncestor(module)
-					|| originatingPhraseIndex == -1
 				-> obj.originatingPhrase
 				else ->
 				{
