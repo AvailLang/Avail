@@ -1,7 +1,6 @@
 plugins {
-    kotlin("jvm") version Versions.kotlin
-    id("org.jetbrains.intellij") version Versions.intellij
-    id("avail.avail-plugin") version Versions.avail
+    kotlin("jvm")
+    id("org.jetbrains.intellij")
 }
 
 group = "avail.plugin"
@@ -14,6 +13,9 @@ repositories {
 
 dependencies {
     implementation(kotlin("stdlib"))
+    implementation(project(":avail-json"))
+    implementation(project(":avail-storage"))
+    implementation(project(":avail-core"))
     implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
 }
 

@@ -51,6 +51,7 @@ plugins {
 	`maven-publish`
 	publishing
 	id("org.jetbrains.compose") version Versions.compose apply false
+	id("org.jetbrains.intellij") version Versions.intellij apply false
 }
 allprojects {
 	group = "avail"
