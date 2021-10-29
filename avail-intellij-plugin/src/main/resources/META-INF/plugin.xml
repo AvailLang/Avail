@@ -1,0 +1,23 @@
+<idea-plugin>
+    <id>avail.plugin.avail-intellij-plugin</id>
+    <name>Avail</name>
+    <vendor email="avail@availlang.org" url="http://www.availlang.org">
+        Avail</vendor>
+
+    <description><![CDATA[The IntelliJ plugin for supporting
+    the Avail language.]]></description>
+
+    <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
+         on how to target different products -->
+    <depends>com.intellij.modules.platform</depends>
+
+    <extensions defaultExtensionNs="com.intellij">
+        <fileType name="Avail File"
+                  implementationClass="org.availlang.ide.anvil.langauge.file.AvailFileType"
+                  fieldName="INSTANCE" language="Avail" extensions="avail"/>
+    </extensions>
+
+    <actions>
+        <!-- Add your actions here -->
+    </actions>
+</idea-plugin>
