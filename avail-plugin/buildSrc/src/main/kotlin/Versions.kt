@@ -45,7 +45,7 @@ object Versions
 	const val kotlin = "1.5.21"
 
 	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "16"
+	const val jvmTarget = "11"
 
 	/** The language level version of Kotlin. */
 	const val kotlinLanguage = "1.5"

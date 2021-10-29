@@ -156,7 +156,8 @@ import org.objectweb.asm.Opcodes.LCONST_1
 import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
 import org.objectweb.asm.Opcodes.SIPUSH
-import org.objectweb.asm.Opcodes.V16
+import org.objectweb.asm.Opcodes.V11
+//import org.objectweb.asm.Opcodes.V16
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -1882,7 +1883,7 @@ class JVMTranslator constructor(
 	fun translate()
 	{
 		classNode.visit(
-			V16,
+			V11,
 			ACC_PUBLIC or ACC_FINAL,
 			classInternalName,
 			null,

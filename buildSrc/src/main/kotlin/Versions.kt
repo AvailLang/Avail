@@ -75,7 +75,7 @@ object Versions
 	const val kotlinLanguage = "1.5"
 
 	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "16"
+	const val jvmTarget = "11"
 
 	/**
 	 * The list of compile-time arguments to be used during Kotlin compilation.
