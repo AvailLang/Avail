@@ -313,6 +313,7 @@ import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors.toList
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.streams.toList
 
 /**
  * The compiler for Avail code.
