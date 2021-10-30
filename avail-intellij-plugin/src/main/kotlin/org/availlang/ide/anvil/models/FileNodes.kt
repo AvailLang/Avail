@@ -180,6 +180,21 @@ class RootNode constructor(
 }
 
 /**
+ * An [AvailNode] that represents a [ResourceType.DIRECTORY] node.
+ *
+ * @author Richard Arriaga.
+ */
+class DirectoryNode constructor(
+	override val parentNode: AvailNode,
+	reference: ResolverReference,
+	availProject: AvailProject
+): AvailNode(availProject, reference)
+{
+	override val isDirectory: Boolean = true
+	override val resolver: ModuleRootResolver get() = parentNode.resolver
+}
+
+/**
  * An [AvailNode] that represents a [ResourceType.PACKAGE] node.
  *
  * @author Richard Arriaga.
@@ -211,21 +226,6 @@ class ModulePackageNode constructor(
 		get() = synchronized(builder) {
 			return builder.getLoadedModule(resolved) !== null
 		}
-}
-
-/**
- * An [AvailNode] that represents a [ResourceType.DIRECTORY] node.
- *
- * @author Richard Arriaga.
- */
-class DirectoryNode constructor(
-	override val parentNode: AvailNode,
-	reference: ResolverReference,
-	availProject: AvailProject
-): AvailNode(availProject, reference)
-{
-	override val isDirectory: Boolean = true
-	override val resolver: ModuleRootResolver get() = parentNode.resolver
 }
 
 /**

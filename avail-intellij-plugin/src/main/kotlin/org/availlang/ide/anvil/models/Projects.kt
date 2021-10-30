@@ -52,6 +52,7 @@ import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.project.Project
+import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
 import org.availlang.ide.anvil.streams.AnvilOutputStream
 import org.availlang.ide.anvil.streams.StreamStyle
 import org.availlang.ide.anvil.streams.StyledStreamEntry
@@ -288,12 +289,34 @@ data class AvailProjectDescriptor constructor(
 	}
 }
 
+/**
+ * The primary [Service] that maintains the [AvailProject].
+ *
+ * @property project
+ *   The opened IntelliJ [Project] this [Service] is assigned to.
+ *
+ * @constructor
+ * Construct an [AvailProjectService]. This should not be done manually, but
+ * instead use [Project.getService] to create the [Project]. This is done using
+ * the [AvailProjectOpenListener].
+ *
+ * @param project
+ *   The opened IntelliJ [Project] this [Service] is assigned to.
+ */
 @Service
 class AvailProjectService constructor(val project: Project)
 {
+	/**
+	 * The path to the JSON file for this project that contains information
+	 * about the  [AvailProjectDescriptor]; `.idea/avail.json`
+	 */
 	private val descriptorFilePath = project.basePath?.let {
 		"$it/.idea/avail.json"
 	} ?: ".idea/avail.json"
+
+	/**
+	 * Yhe [AvailProject] that maintains the [AvailRuntime] and [AvailBuilder].
+	 */
 	val availProject: AvailProject = project.basePath?.let {
 		val descriptorFile = File("$it/.idea/avail.json")
 		if (descriptorFile.exists())
@@ -571,7 +594,7 @@ data class AvailProject constructor(
 	 * The map of [ResolverReference.qualifiedName] to the corresponding
 	 * [AvailNode].
 	 */
-	private val nodes = ConcurrentHashMap<String, AvailNode>()
+	internal val nodes = ConcurrentHashMap<String, AvailNode>()
 
 	/**
 	 * Walk all the [ModuleRoot]s populating all the [AvailNode]s ([nodes]) for
