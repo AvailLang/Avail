@@ -52,7 +52,7 @@ dependencies {
 	// Avail.
 	implementation(project(":avail-core"))
 	implementation(compose.desktop.currentOs)
-	implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
+//	implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
 }
 
 tasks {

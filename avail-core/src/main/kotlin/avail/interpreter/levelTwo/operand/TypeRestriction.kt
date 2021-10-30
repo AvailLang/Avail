@@ -355,16 +355,15 @@ class TypeRestriction private constructor(
 			// We're a constant, so the metaRestriction is also a constant type.
 			return restrictionForConstant(type, BOXED_FLAG)
 		}
-		val resultExcludedValues = mutableSetOf<A_BasicObject>()
 		// No object has exact type ⊥ or ⊤.
-		resultExcludedValues.add(TOP.o)
+		val resultExcludedValues = mutableSetOf<A_BasicObject>(
+			TOP.o,
+			BottomTypeDescriptor.bottom)
 		for (v in excludedValues)
 		{
-			resultExcludedValues.add(
-				instanceTypeOrMetaOn(v))
+			resultExcludedValues.add(instanceTypeOrMetaOn(v))
 		}
-		val resultExcludedTypes = mutableSetOf<A_Type>()
-		resultExcludedTypes.add(BottomTypeDescriptor.bottomMeta)
+		val resultExcludedTypes = mutableSetOf(BottomTypeDescriptor.bottomMeta)
 		for (t in excludedTypes)
 		{
 			resultExcludedTypes.add(InstanceMetaDescriptor.instanceMeta(t))

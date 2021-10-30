@@ -334,7 +334,7 @@ class L1Disassembler constructor(
 					val (print2, _) = simplePrintable(instance)
 					if (print2 !== null)
 					{
-						nameBuilder.append(" = $print2")
+						nameBuilder.append(" = $print2's type")
 					}
 					else if (instance.isInstanceMeta)
 					{
@@ -342,7 +342,7 @@ class L1Disassembler constructor(
 						val (print3, _) = simplePrintable(instanceInstance)
 						if (print3 !== null)
 						{
-							nameBuilder.append(" = $print3")
+							nameBuilder.append(" = $print3's type's type")
 						}
 					}
 				}

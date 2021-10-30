@@ -16,7 +16,7 @@ dependencies {
     implementation(project(":avail-json"))
     implementation(project(":avail-storage"))
     implementation(project(":avail-core"))
-    implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
+//    implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/

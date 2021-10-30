@@ -1076,6 +1076,17 @@ class ModuleDescriptor private constructor(
 		var phrases = self.volatileSlot(ALL_BLOCK_PHRASES)
 		if (phrases.isLong)
 		{
+			if (serializedObjects.isNil)
+			{
+				// The module is in the process of being loaded.  The phrase
+				// serialization has to be pumped by the complete tuple of
+				// serializedObjects, because it must be allowed to refer to
+				// module constants and variables in an accurate way.  However,
+				// we can't have the complete tuple of serializedObjects yet,
+				// because we're in the process of loading them!  Answer nil to
+				// indicate the phrase is temporarily unavailable.
+				return nil
+			}
 			val phrasesKey = phrases.extractLong
 			val runtime = AvailRuntime.currentRuntime()
 			val moduleName = ModuleName(self.moduleName.asNativeString())
@@ -1228,7 +1239,7 @@ class ModuleDescriptor private constructor(
 		macroDefinitions = nil
 		grammaticalRestrictions = nil
 		semanticRestrictions = nil
-		serializedObjects = nil
+//		serializedObjects = nil
 		serializedObjectsMap = nil
 		ancestorOffsetMap = nil
 		unionFilter = null

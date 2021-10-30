@@ -238,7 +238,10 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				Level.FINER,
 				"{0}Started L1 run: {1}",
 				interpreter.debugModeString,
-				whitespaces.matcher(function.toString()).replaceAll(" "))
+				object {
+					override fun toString(): String =
+						whitespaces.matcher(function.toString()).replaceAll(" ")
+				})
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
 		while (!instructionDecoder.atEnd())

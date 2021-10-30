@@ -115,7 +115,7 @@ class Serializer constructor (
 	/**
 	 * The actual sequence of objects that have been serialized so far.  This is
 	 * not needed by serialization itself, but it's useful to collect the
-	 * objects to allow a [tuple][A_Tuple]] built from this [List] to be
+	 * objects to allow a [tuple][A_Tuple] built from this [List] to be
 	 * extracted after.
 	 */
 	private val serializedObjectsList = mutableListOf<A_BasicObject>()

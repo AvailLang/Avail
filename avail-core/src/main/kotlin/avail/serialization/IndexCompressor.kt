@@ -47,12 +47,11 @@ interface IndexCompressor
 	fun compress(index: Int): Int
 
 	/**
-	 * Given an encoded index that was produced by
-	 * [compress()][IndexCompressor.compress] from the same state that the
-	 * compressor is now in, answer the original [Int] that was provided to
-	 * `compress` to get the encoded [Int].  Also ensure the compressor is
-	 * updated in the exact same way that the original `compress` call would
-	 * have done.
+	 * Given an encoded index that was produced by [compress] from the same
+	 * state that the compressor is now in, answer the original [Int] that was
+	 * provided to `compress` to get the encoded [Int].  Also ensure the
+	 * compressor is updated in the exact same way that the original `compress`
+	 * call would have done.
 	 */
 	fun decompress(index: Int): Int
 
