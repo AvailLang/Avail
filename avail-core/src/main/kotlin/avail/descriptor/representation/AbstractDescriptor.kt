@@ -96,6 +96,7 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -164,9 +165,9 @@ import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
-import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
 import avail.utility.visitor.AvailSubobjectVisitor
+import org.availlang.json.JSONWriter
 import java.lang.reflect.Modifier
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -3688,6 +3689,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_FieldAt (self: AvailObject, field: A_Atom): AvailObject
 
+	abstract fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject
+
 	abstract fun o_FieldAtOrNull (
 		self: AvailObject,
 		field: A_Atom): AvailObject?
@@ -3900,6 +3903,10 @@ abstract class AbstractDescriptor protected constructor (
 	): List<ModuleManifestEntry>
 
 	abstract fun o_SynthesizeCurrentLexingState(self: AvailObject): LexingState
+
+	abstract fun o_ObjectVariant(self: AvailObject): ObjectLayoutVariant
+
+	abstract fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant
 
 	companion object
 	{

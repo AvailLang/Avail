@@ -163,7 +163,8 @@ class L2PcOperand constructor (
 		counter = null
 	}
 
-	override fun operandType(): L2OperandType = L2OperandType.PC
+	override val operandType: L2OperandType
+		get() = L2OperandType.PC
 
 	/**
 	 * Answer the [L2ValueManifest] for this edge, which describes which
@@ -191,7 +192,7 @@ class L2PcOperand constructor (
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		instruction().basicBlock().addSuccessorEdge(this)
+		instruction.basicBlock().addSuccessorEdge(this)
 		this.manifest = L2ValueManifest(manifest)
 		targetBlock.addPredecessorEdge(this)
 	}
@@ -207,10 +208,10 @@ class L2PcOperand constructor (
 
 	override fun instructionWasRemoved()
 	{
-		val sourceBlock = instruction().basicBlock()
+		val sourceBlock = instruction.basicBlock()
 		sourceBlock.removeSuccessorEdge(this)
 		targetBlock.removePredecessorEdge(this)
-		if (instruction().operation().altersControlFlow())
+		if (instruction.operation.altersControlFlow)
 		{
 			sourceBlock.removedControlFlowInstruction()
 		}
@@ -257,7 +258,7 @@ class L2PcOperand constructor (
 	 * @return
 	 *   The source basic block.
 	 */
-	fun sourceBlock(): L2BasicBlock = instruction().basicBlock()
+	fun sourceBlock(): L2BasicBlock = instruction.basicBlock()
 
 	override fun appendTo(builder: StringBuilder)
 	{
@@ -283,10 +284,10 @@ class L2PcOperand constructor (
 	 */
 	fun splitEdgeWith(controlFlowGraph: L2ControlFlowGraph): L2BasicBlock
 	{
-		assert(instructionHasBeenEmitted())
+		assert(instructionHasBeenEmitted)
 
 		// Capture where this edge originated.
-		val source = instruction()
+		val source = instruction
 
 		// Create a new intermediary block that initially just contains a jump
 		// to itself.
@@ -369,13 +370,13 @@ class L2PcOperand constructor (
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
-		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
+		assert(targetInstruction.operation === L2_ENTER_L2_CHUNK)
 		val liveMap = enumMap { _: RegisterKind -> mutableListOf<Int>() }
 		val liveRegistersList =
 			(alwaysLiveInRegisters + sometimesLiveInRegisters)
 				.sortedBy(L2Register::finalIndex)
 		liveRegistersList.forEach {
-			liveMap[it.registerKind()]!!.add(
+			liveMap[it.registerKind]!!.add(
 				translator.localNumberFromRegister(it))
 		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =

@@ -529,6 +529,28 @@ class TypeRestriction private constructor(
 			flags)
 
 	/**
+	 * Create the intersection of the receiver with the given
+	 * [ObjectLayoutVariant].  This is the restriction that a register would
+	 * have if it were already known to satisfy the receiver restriction, and
+	 * has had its variant tested positively against the given variant.
+	 *
+	 * @param variantToIntersect
+	 *   The [ObjectLayoutVariant] to combine with the receiver to produce an
+	 *   intersected restriction.
+	 * @return
+	 *   The new type restriction.
+	 */
+	fun intersectionWithVariant(variantToIntersect: ObjectLayoutVariant) =
+		fromCanonical(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			setOf(variantToIntersect),
+			null,
+			flags)
+
+	/**
 	 * Answer true if this `TypeRestriction` contains every possible
 	 * element of the given type.
 	 *
@@ -897,6 +919,14 @@ class TypeRestriction private constructor(
 			if (excludedTypes.isNotEmpty()) append(", ex.t=$excludedTypes")
 			if (excludedValues.isNotEmpty()) append(", ex.v=$excludedValues")
 		}
+		positiveGroup.objectTypeVariants?.let {
+			append(", typeVariants=${it.first()}") }
+		positiveGroup.objectVariants?.let {
+			append(", variants=${it.first()}") }
+		negativeGroup.objectTypeVariants?.let {
+			append(", ex.typeVariants=${it.first()}") }
+		negativeGroup.objectVariants?.let {
+			append(", ex.variants=${it.first()}") }
 		if (isImmutable) append(", imm")
 		if (isBoxed) append(", box")
 		if (isUnboxedInt) append(", int")

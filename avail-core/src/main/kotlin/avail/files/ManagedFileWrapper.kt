@@ -75,7 +75,7 @@ abstract class AbstractFileWrapper constructor(
 	/**
 	 * `true` indicates that there was an error; `false` otherwise.
 	 */
-	open val isError = false
+	open val isError get() = false
 
 	/**
 	 * The associated [ErrorCode] if [error] is not `null`; `null`
@@ -512,24 +512,20 @@ class NullFileWrapper constructor(
  *   The [reference] of the target file.
  * @param fileManager
  *   The [FileManager] this [ManagedFileWrapper] belongs to.
- * @param e
- *   The [Throwable] that was encountered.
  */
 class ErrorFileWrapper constructor(
 	id: UUID,
 	resolverReference: ResolverReference,
 	fileManager: FileManager,
-	e: Throwable,
-	errorCode: ErrorCode
+	override val error: Throwable,
+	override val errorCode: ErrorCode
 ): AbstractFileWrapper(id, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
 	override val file: AvailFile
 		get() = throw UnsupportedOperationException("File is not available")
 
-	override val isError = true
-	override val error: Throwable = e
-	override val errorCode: ErrorCode = errorCode
+	override val isError get() = true
 
 	override fun delete(
 		success: (UUID?)->Unit,

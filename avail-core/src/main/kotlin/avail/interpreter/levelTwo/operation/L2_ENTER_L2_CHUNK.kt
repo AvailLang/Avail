@@ -69,7 +69,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -77,7 +77,7 @@ object L2_ENTER_L2_CHUNK : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		//		final L2IntImmediateOperand offsetInDefaultChunk =
 //			instruction.operand(0);
 //		final L2CommentOperand comment = instruction.operand(1);

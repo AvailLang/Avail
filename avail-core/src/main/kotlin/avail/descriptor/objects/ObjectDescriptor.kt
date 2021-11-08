@@ -52,6 +52,7 @@ import avail.descriptor.objects.ObjectDescriptor.ObjectSlots.TYPE_VETTINGS_CACHE
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypesForObjectType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
@@ -253,10 +254,8 @@ class ObjectDescriptor internal constructor(
 		anObject: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObject)) return true
-		val otherDescriptor = anObject.descriptor() as ObjectDescriptor
-		if (variant !== otherDescriptor.variant) {
-			return false
-		}
+		val otherVariant = anObject.objectVariant
+		if (variant !== otherVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
@@ -277,7 +276,8 @@ class ObjectDescriptor internal constructor(
 			} -> return false
 			!isShared && self.slot(KIND).isNil ->
 				self.becomeIndirectionTo(anObject)
-			!otherDescriptor.isShared -> anObject.becomeIndirectionTo(self)
+			!anObject.descriptor().isShared ->
+				anObject.becomeIndirectionTo(self)
 		}
 		return true
 	}
@@ -288,6 +288,10 @@ class ObjectDescriptor internal constructor(
 			0 -> field as AvailObject
 			else -> self.slot(FIELD_VALUES_, slotIndex!!)
 		}
+
+	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
+		// One-based index must specify a real field, and be in range.
+		self.slot(FIELD_VALUES_, index)
 
 	override fun o_FieldAtOrNull(
 		self: AvailObject,
@@ -473,6 +477,8 @@ class ObjectDescriptor internal constructor(
 			self.setSlot(KIND, if (isShared) it.makeShared() else it)
 		}
 	}
+
+	override fun o_ObjectVariant(self: AvailObject) = variant
 
 	@ThreadSafe
 	override fun o_SerializerOperation(self: AvailObject) =
@@ -708,8 +714,7 @@ class ObjectDescriptor internal constructor(
 		@ReferencedInGeneratedCode
 		@JvmStatic
 		fun staticObjectVariantId(anObject: AvailObject): Int =
-			(anObject.traversed().descriptor() as ObjectDescriptor)
-				.variant.variantId
+			anObject.objectVariant.variantId
 
 		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
 		val staticObjectVariantIdMethod = staticMethod(

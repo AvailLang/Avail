@@ -156,7 +156,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		super.instructionWasAdded(instruction, manifest)
 		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
 		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
@@ -194,7 +194,7 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val int1Reg = instruction.operand<L2ReadIntOperand>(0)
 		val int2Reg = instruction.operand<L2ReadIntOperand>(1)
 		//		final L2PcOperand ifTrue = instruction.operand(2);

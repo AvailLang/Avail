@@ -54,7 +54,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * is only populated for instructions that have already been emitted to an
 	 * [L2BasicBlock].
 	 */
-	private var instruction: L2Instruction? = null
+	private var instructionOrNull: L2Instruction? = null
 
 	/**
 	 * Answer the [L2Instruction] containing this operand.
@@ -62,7 +62,8 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @return
 	 *   An [L2Instruction]
 	 */
-	fun instruction(): L2Instruction = instruction!!
+	val instruction: L2Instruction
+		get() = instructionOrNull!!
 
 	/**
 	 * Answer whether this write operand has been written yet as the destination
@@ -72,7 +73,8 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 *   `true` if this operand has been written inside an [L2Instruction],
 	 *   otherwise `false`.
 	 */
-	fun instructionHasBeenEmitted(): Boolean = instruction !== null
+	val instructionHasBeenEmitted: Boolean
+		get() = instructionOrNull !== null
 
 	/**
 	 * Assert that this operand knows its instruction, which should always be
@@ -81,7 +83,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	@OverridingMethodsMustInvokeSuper
 	open fun assertHasBeenEmitted()
 	{
-		assert(instruction !== null)
+		assert(instructionOrNull !== null)
 	}
 
 	/**
@@ -90,7 +92,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	 * @return
 	 *   An `L2OperandType`.
 	 */
-	abstract fun operandType(): L2OperandType
+	abstract val operandType: L2OperandType
 
 	/**
 	 * Dispatch this `L2Operand` to the provided [L2OperandDispatcher].
@@ -112,7 +114,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	open fun instructionWasAdded(
 		manifest: L2ValueManifest)
 	{
-		assert(instruction !== null)
+		assert(instructionOrNull !== null)
 	}
 
 	/**
@@ -245,7 +247,7 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 		indent: Int,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		if (instruction === null)
+		if (instructionOrNull === null)
 		{
 			warningStyleChange(true)
 			builder.append("DEAD-OPERAND: ")
@@ -272,14 +274,14 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	val isMisconnected: Boolean
 		get()
 		{
-			if (instruction === null)
+			if (instructionOrNull === null)
 			{
 				return true
 			}
-			val operands = instruction!!.operands()
+			val operands = instructionOrNull!!.operands
 
 			operands.indices.forEach { i ->
-				when(val operand = operands[i])
+				when (val operand = operands[i])
 				{
 					this -> return false
 					is L2PcVectorOperand ->
@@ -327,26 +329,15 @@ abstract class L2Operand : PublicCloneable<L2Operand>()
 	}
 
 	/**
-	 * Set the [instruction] field.
+	 * Set the [instructionOrNull] field.
 	 *
 	 * @param theInstruction
 	 *   The [L2Instruction] or `null`.
 	 */
 	open fun setInstruction(theInstruction: L2Instruction?)
 	{
-		instruction = theInstruction
+		instructionOrNull = theInstruction
 	}
-
-	/**
-	 * Destructively replace any constant-valued reads of registers with reads
-	 * of a fresh constant-valued register that has no writes.
-	 *
-	 * This pattern is recognized in later optimization passes.  It reduces the
-	 * register pressure for coloring, and eliminates pointless moves.
-	 *
-	 * Subclasses implement this as needed.
-	 */
-	open fun replaceConstantRegisters() { }
 
 	/**
 	 * Now that chunk optimization has completed, remove information from this

@@ -249,7 +249,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 *
 	 * @return The [RegisterKind].
 	 */
-	abstract fun registerKind(): RegisterKind
+	abstract val registerKind: RegisterKind
 
 	/**
 	 * A coloring number to be used by the [interpreter][Interpreter] at runtime
@@ -410,7 +410,7 @@ abstract class L2Register constructor (val uniqueValue: Int) : L2Entity
 	 * @return
 	 *   The prefix.
 	 */
-	fun namePrefix(): String = registerKind().prefix
+	fun namePrefix(): String = registerKind.prefix
 
 	override fun toString(): String
 	{

@@ -61,7 +61,7 @@ object L2_CREATE_MAP : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val keys =
 			instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val values =

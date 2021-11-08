@@ -181,7 +181,7 @@ private constructor(
 		instruction: L2Instruction,
 		updater: (MutableList<RR>) -> Unit)
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		val block = instruction.basicBlock()
 		val instructionIndex = block.instructions().indexOf(instruction)
 		val vectorOperand: L2ReadVectorOperand<R, RR> = instruction.operand(0)
@@ -213,7 +213,7 @@ private constructor(
 		instruction: L2Instruction,
 		usedRegister: L2Register): List<L2BasicBlock>
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val sources: L2ReadVectorOperand<R, RR> = instruction.operand(0)
 		assert(sources.elements().size
 					== instruction.basicBlock().predecessorEdges().size)
@@ -244,7 +244,7 @@ private constructor(
 	fun <W : L2WriteOperand<R>> destinationRegisterWrite(
 		instruction: L2Instruction): W
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		return instruction.operand(1)
 	}
 
@@ -276,7 +276,7 @@ private constructor(
 		predecessorManifest: L2ValueManifest,
 		instruction: L2Instruction)
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		val semanticValue = sourceRegisterReads(instruction)[0].semanticValue()
 		val kind = moveOperation.kind
 		val readOperand: RR = kind.readOperand(
@@ -338,7 +338,7 @@ private constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val vector = instruction.operand<L2Operand>(0)
 		val target = instruction.operand<L2Operand>(1)
 		builder.append("ϕ ")

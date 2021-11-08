@@ -50,7 +50,7 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 class L2IntRegister constructor(debugValue: Int) : L2Register(debugValue)
 {
-	override fun registerKind() = INTEGER_KIND
+	override val registerKind get() = INTEGER_KIND
 
 	override fun copyForTranslator(generator: L2Generator): L2IntRegister =
 		L2IntRegister(generator.nextUnique())

@@ -32,14 +32,12 @@
 
 package avail.dispatch
 
-import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import java.lang.String.format
 
@@ -102,13 +100,6 @@ internal constructor(private val finalResult: Result)
 		else
 		{
 			return format("Result: %s", finalResult)
-		}
-	}
-
-	companion object
-	{
-		val emptyMethodLeaf by lazy {
-			LeafLookupTree<A_Definition, A_Tuple>(emptyTuple)
 		}
 	}
 }

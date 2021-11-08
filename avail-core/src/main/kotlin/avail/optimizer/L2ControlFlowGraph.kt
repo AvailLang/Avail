@@ -242,7 +242,7 @@ class L2ControlFlowGraph
 		{
 			for (instruction in block.instructions())
 			{
-				allRegisters.addAll(instruction.destinationRegisters())
+				allRegisters.addAll(instruction.destinationRegisters)
 			}
 		}
 		return allRegisters.toMutableList()

@@ -819,23 +819,23 @@ class L2Generator internal constructor(
 			sourceSemanticValue, moveOperation.kind)
 		val sourceWritesInBlock = sourceRegisters
 			.flatMap(L2Register::definitions)
-			.filter { it.instruction().basicBlock() == block }
+			.filter { it.instruction.basicBlock() == block }
 			.map(L2WriteOperand<*>::cast)
 		if (sourceWritesInBlock.isNotEmpty())
 		{
 			// Find the latest equivalent write in this block.
 			val latestWrite = sourceWritesInBlock.maxByOrNull {
-				it!!.instruction().basicBlock().instructions()
-					.indexOf(it.instruction())
+				it!!.instruction.basicBlock().instructions()
+					.indexOf(it.instruction)
 			}!!
-			if (!latestWrite.instruction().operation().isPhi)
+			if (!latestWrite.instruction.operation.isPhi)
 			{
 				// Walk backward through instructions until the latest
 				// equivalent write, watching for disqualifying pitfalls.
 				for (i in block.instructions().indices.reversed())
 				{
 					val eachInstruction = block.instructions()[i]
-					if (eachInstruction == latestWrite.instruction())
+					if (eachInstruction == latestWrite.instruction)
 					{
 						// We reached the writing instruction without trouble.
 						// Augment the write's semantic values retroactively to
@@ -1046,7 +1046,7 @@ class L2Generator internal constructor(
 		tupleReg: L2ReadBoxedOperand,
 		index: Int): L2ReadBoxedOperand
 	{
-		return tupleReg.definition().instruction().operation()
+		return tupleReg.definition().instruction.operation
 			.extractTupleElement(tupleReg, index, this)
 	}
 
@@ -1228,7 +1228,7 @@ class L2Generator internal constructor(
 				val predecessorEdge = block.predecessorEdges()[0]
 				val predecessorBlock = predecessorEdge.sourceBlock()
 				val jump = predecessorBlock.finalInstruction()
-				if (jump.operation() === L2_JUMP)
+				if (jump.operation === L2_JUMP)
 				{
 					// The new block has only one predecessor, which
 					// unconditionally jumps to it.  Remove the jump and
@@ -1371,7 +1371,7 @@ class L2Generator internal constructor(
 		controlFlowGraph.generateOn(instructions)
 		val registerCounter = RegisterCounter()
 		instructions.forEach { instruction ->
-			instruction.operands().forEach {
+			instruction.operands.forEach {
 				it.dispatchOperand(registerCounter)
 			}
 		}

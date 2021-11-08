@@ -184,10 +184,10 @@ class L2ValueManifest
 		{
 			postponedInstructions = enumMap()
 		}
-		for (write in sourceInstruction.writeOperands())
+		for (write in sourceInstruction.writeOperands)
 		{
 			val submap =
-				postponedInstructions!!.getOrPut(write.registerKind()) {
+				postponedInstructions!!.getOrPut(write.registerKind) {
 					mutableMapOf()
 				}
 			write.semanticValues().forEach {
@@ -230,9 +230,9 @@ class L2ValueManifest
 		val sourceInstructions =
 			postponedInstructions!![registerKind]!![semanticValue]!!
 		val sourceInstruction = sourceInstructions.last()
-		for (write in sourceInstruction.writeOperands())
+		for (write in sourceInstruction.writeOperands)
 		{
-			val submap = postponedInstructions!![write.registerKind()]!!
+			val submap = postponedInstructions!![write.registerKind]!!
 			write.semanticValues().forEach {
 				val instructions = submap[it]!!
 				val lastInstruction = instructions.removeLast()
@@ -651,7 +651,7 @@ class L2ValueManifest
 	{
 		val constraint = constraint(semanticValue)
 		var definition = constraint.definitions.find { reg ->
-			reg.registerKind() === registerKind &&
+			reg.registerKind === registerKind &&
 				reg.definitions().all { write ->
 					write.semanticValues().contains(semanticValue)
 				}
@@ -662,7 +662,7 @@ class L2ValueManifest
 			// doesn't have the specified semanticValue in all of its
 			// definitions.
 			definition = constraint.definitions.find { reg ->
-				reg.registerKind() === registerKind
+				reg.registerKind === registerKind
 			}
 		}
 		assert(definition != null) {
@@ -692,7 +692,7 @@ class L2ValueManifest
 	): List<R> =
 		constraint(semanticValue).definitions
 			.filter { reg ->
-				reg.registerKind() === registerKind &&
+				reg.registerKind === registerKind &&
 					reg.definitions().all { write ->
 						write.semanticValues().contains(semanticValue)
 					}
@@ -845,7 +845,7 @@ class L2ValueManifest
 	 */
 	fun recordDefinitionNoCheck(writer: L2WriteOperand<*>)
 	{
-		assert(writer.instructionHasBeenEmitted())
+		assert(writer.instructionHasBeenEmitted)
 		val pickSemanticValue = writer.pickSemanticValue()
 		val synonym: L2Synonym
 		if (hasSemanticValue(pickSemanticValue))
@@ -855,9 +855,9 @@ class L2ValueManifest
 			constraints[synonym]!!.run {
 				// There shouldn't already be a register for this kind.
 				//assert(!restriction.hasFlag(
-				//	writer.registerKind().restrictionFlag))
+				//	writer.registerKind.restrictionFlag))
 				restriction = restriction.withFlag(
-					writer.registerKind().restrictionFlag)
+					writer.registerKind.restrictionFlag)
 			}
 		}
 		else
@@ -887,7 +887,7 @@ class L2ValueManifest
 		writer: L2WriteOperand<*>,
 		sourceSemanticValue: L2SemanticValue)
 	{
-		assert(writer.instructionHasBeenEmitted())
+		assert(writer.instructionHasBeenEmitted)
 		for (semanticValue in writer.semanticValues())
 		{
 			@Suppress("ControlFlowWithEmptyBody")
@@ -950,7 +950,7 @@ class L2ValueManifest
 		forgetBoxedRegistersFor(sourceSynonym)
 		val sourceConstraint = Constraint(constraints[sourceSynonym]!!)
 		assert(sourceConstraint.definitions
-			.none { it.registerKind() == BOXED_KIND }
+			.none { it.registerKind == BOXED_KIND }
 		) { "This should not contain boxed registers" }
 		// Rebuild the synonym based on the writer.
 		forget(sourceSynonym)
@@ -1021,7 +1021,7 @@ class L2ValueManifest
 			in suitableSemanticValues -> semanticValue
 			else -> suitableSemanticValues.first()
 		}
-		assert(register.definitions().all { it.instructionHasBeenEmitted() })
+		assert(register.definitions().all { it.instructionHasBeenEmitted })
 		return L2ReadBoxedOperand(suitableSemanticValue, restriction, this)
 	}
 
@@ -1050,7 +1050,7 @@ class L2ValueManifest
 			in suitableSemanticValues -> semanticValue
 			else -> suitableSemanticValues.first()
 		}
-		assert(register.definitions().all { it.instructionHasBeenEmitted() })
+		assert(register.definitions().all { it.instructionHasBeenEmitted })
 		return L2ReadIntOperand(suitableSemanticValue, restriction, this)
 	}
 
@@ -1079,7 +1079,7 @@ class L2ValueManifest
 			in suitableSemanticValues -> semanticValue
 			else -> suitableSemanticValues.first()
 		}
-		assert(register.definitions().all { it.instructionHasBeenEmitted() })
+		assert(register.definitions().all { it.instructionHasBeenEmitted })
 		return L2ReadFloatOperand(suitableSemanticValue, restriction, this)
 	}
 
@@ -1414,7 +1414,7 @@ class L2ValueManifest
 					// disappeared.
 					val oldKinds = constraint.restriction.kinds()
 					val newKinds = EnumSet.noneOf(RegisterKind::class.java)
-					definitionList.mapTo(newKinds) { it.registerKind() }
+					definitionList.mapTo(newKinds) { it.registerKind }
 					if (oldKinds != newKinds)
 					{
 						constraint.restriction =
@@ -1494,7 +1494,7 @@ class L2ValueManifest
 		// Even if there are no unboxed definitions, keep the synonym, but make
 		// the boxed definitions inaccessible.
 		constraint.definitions = constraint.definitions.filter {
-			it.registerKind() !== BOXED_KIND
+			it.registerKind !== BOXED_KIND
 		}
 		check()
 	}

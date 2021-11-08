@@ -61,7 +61,7 @@ object L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val first = instruction.operand<L2ReadBoxedOperand>(0)
 		val second = instruction.operand<L2ReadBoxedOperand>(1)
 		//		final L2PcOperand ifLessOrEqual = instruction.operand(2);

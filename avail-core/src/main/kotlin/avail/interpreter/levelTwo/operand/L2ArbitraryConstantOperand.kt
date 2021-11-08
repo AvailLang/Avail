@@ -52,7 +52,8 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2ArbitraryConstantOperand(val constant: Any) : L2Operand()
 {
-	override fun operandType(): L2OperandType = L2OperandType.ARBITRARY_CONSTANT
+	override val operandType: L2OperandType
+		get() = L2OperandType.ARBITRARY_CONSTANT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

@@ -57,7 +57,7 @@ enum class VerbosityLevel
 	 */
 	GLOBAL_PROGRESS
 	{
-		override val displayGlobalProgress = true
+		override val displayGlobalProgress get() = true
 	},
 
 	/**
@@ -66,15 +66,15 @@ enum class VerbosityLevel
 	 */
 	GLOBAL_LOCAL_PROGRESS
 	{
-		override val displayGlobalProgress = true
-		override val displayLocalProgress = true
+		override val displayGlobalProgress get() = true
+		override val displayLocalProgress get() = true
 	};
 
 	/** `true` iff verbosity level 1 or 2 is selected. */
-	open val displayGlobalProgress = false
+	open val displayGlobalProgress get() = false
 
 	/** `true` only when verbosity level 2 is selected. */
-	open val displayLocalProgress = false
+	open val displayLocalProgress get() = false
 
 	companion object
 	{

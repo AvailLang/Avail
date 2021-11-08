@@ -34,6 +34,7 @@ package avail.descriptor.types
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.maps.A_Map
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -43,7 +44,9 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.types.A_Type.Companion.computeSuperkind
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -498,6 +501,12 @@ protected constructor(
 	override fun o_IsTop(self: AvailObject): Boolean = false
 
 	abstract override fun o_ComputeTypeTag(self: AvailObject): TypeTag
+
+	//TODO - This probably isn't correct.  Dispatching on an enumeration
+	// of objects of different shape should probably best be done by
+	// duplicating subtrees for each variant.
+	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
+		self.computeSuperkind().objectTypeVariant
 
 	companion object
 	{

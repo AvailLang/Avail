@@ -176,7 +176,7 @@ abstract class AvailServerChannel constructor(
 	inner class ServerInputNotificationChannel
 		: AbstractServerOutputChannel(this)
 	{
-		override val channelTag = "in"
+		override val channelTag get() = "in"
 	}
 
 	/**

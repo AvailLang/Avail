@@ -34,6 +34,7 @@ package avail.descriptor.types
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.BlockPhraseDescriptor
@@ -449,6 +450,12 @@ interface A_Type : A_BasicObject
 		 */
 		val A_Type.lowerInclusive: Boolean
 			get() = dispatch { o_LowerInclusive(it) }
+
+		/**
+		 * Extract the [ObjectLayoutVariant] from an object type.
+		 */
+		val A_Type.objectTypeVariant: ObjectLayoutVariant
+			get() = dispatch { o_ObjectTypeVariant(it) }
 
 		/**
 		 * Dispatch to the descriptor.

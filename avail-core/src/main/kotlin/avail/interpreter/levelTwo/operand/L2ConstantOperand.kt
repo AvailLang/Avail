@@ -58,7 +58,8 @@ class L2ConstantOperand(constant: A_BasicObject) : L2Operand()
 	 */
 	val constant: AvailObject = constant.makeShared()
 
-	override fun operandType(): L2OperandType = L2OperandType.CONSTANT
+	override val operandType: L2OperandType
+		get() = L2OperandType.CONSTANT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

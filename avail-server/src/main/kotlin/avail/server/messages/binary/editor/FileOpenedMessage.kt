@@ -65,7 +65,7 @@ internal class FileOpenedMessage constructor(
 	fileSize: Long,
 	mime: String): BinaryMessage()
 {
-	override val command = BinaryCommand.FILE_OPENED
+	override val command get() = BinaryCommand.FILE_OPENED
 	override val message: Message
 
 	init

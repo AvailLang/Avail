@@ -56,11 +56,12 @@ import org.objectweb.asm.Opcodes
 	STACK_REIFIER::class)
 object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 {
-	override fun hasSideEffect(): Boolean
-	{
-		// Never remove this.
-		return true
-	}
+	override val hasSideEffect: Boolean
+		get()
+		{
+			// Never remove this.
+			return true
+		}
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -68,7 +69,7 @@ object L2_RETURN_FROM_REIFICATION_HANDLER : L2ControlFlowOperation()
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		renderPreamble(instruction, builder)
 	}
 

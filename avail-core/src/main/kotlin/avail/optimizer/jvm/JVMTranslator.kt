@@ -512,7 +512,7 @@ class JVMTranslator constructor(
 	 *   Its position in the JVM frame.
 	 */
 	fun localNumberFromRegister(register: L2Register): Int =
-		locals[register.registerKind()]!![register.finalIndex()]!!
+		locals[register.registerKind]!![register.finalIndex()]!!
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
@@ -526,7 +526,7 @@ class JVMTranslator constructor(
 	fun load(method: MethodVisitor, register: L2Register)
 	{
 		method.visitVarInsn(
-			register.registerKind().loadInstruction,
+			register.registerKind.loadInstruction,
 			localNumberFromRegister(register))
 	}
 
@@ -544,7 +544,7 @@ class JVMTranslator constructor(
 	fun store(method: MethodVisitor, register: L2Register)
 	{
 		method.visitVarInsn(
-			register.registerKind().storeInstruction,
+			register.registerKind.storeInstruction,
 			localNumberFromRegister(register))
 	}
 	/**
@@ -795,15 +795,15 @@ class JVMTranslator constructor(
 				// we include every basic block's first instruction for extra
 				// clarity.
 				include =
-					instruction.offset() == instruction.basicBlock().offset()
+					instruction.offset == instruction.basicBlock().offset()
 			}
 			if (include)
 			{
 				val label = Label()
-				entryPoints[instruction.offset()] = label
-				labels[instruction.offset()] = label
+				entryPoints[instruction.offset] = label
+				labels[instruction.offset] = label
 			}
-			instruction.operands().forEach { it.dispatchOperand(preparer) }
+			instruction.operands.forEach { it.dispatchOperand(preparer) }
 		}
 	}
 
@@ -1211,7 +1211,7 @@ class JVMTranslator constructor(
 	{
 		// If the jump target is the very next instruction, then don't emit a
 		// jump at all; just fall through.
-		if (operand.offset() != instruction.offset() + 1)
+		if (operand.offset() != instruction.offset + 1)
 		{
 			jump(method, operand)
 		}
@@ -1312,7 +1312,7 @@ class JVMTranslator constructor(
 		successCounter: LongAdder,
 		failureCounter: LongAdder)
 	{
-		val offset = instruction.offset()
+		val offset = instruction.offset
 		if (offset + 1 == failure.offset())
 		{
 			// Note that *both* paths might lead to the next instruction.  This
@@ -1614,17 +1614,17 @@ class JVMTranslator constructor(
 		// Translate the instructions.
 		for (instruction in instructions)
 		{
-			val label = labels[instruction.offset()]
+			val label = labels[instruction.offset]
 			if (label !== null)
 			{
 				method.visitLabel(label)
-				method.visitLineNumber(instruction.offset(), label)
+				method.visitLineNumber(instruction.offset, label)
 			}
 			@Suppress("ConstantConditionIf")
 			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver(method) // this, the executable chunk.
-				intConstant(method, instruction.offset())
+				intConstant(method, instruction.offset)
 				// First line of the instruction toString
 				method.visitLdcInsn(
 					instruction.toString()
@@ -1633,7 +1633,7 @@ class JVMTranslator constructor(
 				// Output the first read operand's value, as an Object, or null.
 				run pushOneObject@
 				{
-					for (operand in instruction.operands())
+					for (operand in instruction.operands)
 					{
 						if (operand is L2ReadBoxedOperand)
 						{

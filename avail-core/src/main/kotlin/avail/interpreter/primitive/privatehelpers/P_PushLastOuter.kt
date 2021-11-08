@@ -97,7 +97,7 @@ object P_PushLastOuter : Primitive(
 		val functionCreationInstruction =
 			functionToCallReg.definitionSkippingMoves(true)
 		val returnType = functionToCallReg.type().returnType
-		val outerReg = functionCreationInstruction.operation()
+		val outerReg = functionCreationInstruction.operation
 			.extractFunctionOuter(
 				functionCreationInstruction,
 				functionToCallReg,

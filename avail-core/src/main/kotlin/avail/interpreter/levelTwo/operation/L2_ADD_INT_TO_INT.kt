@@ -63,7 +63,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		//		final L2ReadIntOperand augendReg = instruction.operand(0);
 //		final L2ReadIntOperand addendReg = instruction.operand(1);
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)
@@ -75,7 +75,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 	}
 
 	// It jumps if the result doesn't fit in an int.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -83,7 +83,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val augend = instruction.operand<L2ReadIntOperand>(0)
 		val addend = instruction.operand<L2ReadIntOperand>(1)
 		val sum = instruction.operand<L2WriteIntOperand>(2)

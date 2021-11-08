@@ -120,7 +120,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	override fun hasSideEffect(instruction: L2Instruction): Boolean
 	{
 		// It depends on the primitive.
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		//		final L2ConstantOperand rawFunction = instruction.operand(0);
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		//		final L2ReadBoxedVectorOperand arguments = instruction.operand(2);
@@ -138,7 +138,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 	override fun primitiveResultRegister(
 		instruction: L2Instruction): L2WriteBoxedOperand?
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		return instruction.operand(3)
 	}
 
@@ -148,7 +148,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this === instruction.operation())
+		assert(this === instruction.operation)
 		//		final L2ConstantOperand rawFunction = instruction.operand(0);
 		val primitive = instruction.operand<L2PrimitiveOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
@@ -236,7 +236,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		@JvmStatic
 		fun primitiveOf(instruction: L2Instruction): Primitive
 		{
-			assert(instruction.operation() is L2_RUN_INFALLIBLE_PRIMITIVE)
+			assert(instruction.operation is L2_RUN_INFALLIBLE_PRIMITIVE)
 			val primitive = instruction.operand<L2PrimitiveOperand>(1)
 			return primitive.primitive
 		}
@@ -254,7 +254,7 @@ abstract class L2_RUN_INFALLIBLE_PRIMITIVE private constructor()
 		@JvmStatic
 		fun argsOf(instruction: L2Instruction): List<L2ReadBoxedOperand>
 		{
-			assert(instruction.operation() is L2_RUN_INFALLIBLE_PRIMITIVE)
+			assert(instruction.operation is L2_RUN_INFALLIBLE_PRIMITIVE)
 			val vector = instruction.operand<L2ReadBoxedVectorOperand>(2)
 			return vector.elements()
 		}

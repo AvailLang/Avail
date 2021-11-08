@@ -60,7 +60,7 @@ import java.util.logging.Level
  */
 object L2_REENTER_L1_CHUNK_FROM_INTERRUPT : L2Operation()
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

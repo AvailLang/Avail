@@ -62,7 +62,7 @@ object L2_EXTRACT_TAG_ORDINAL : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val tagOrdinal = instruction.operand<L2WriteIntOperand>(1)
 		renderPreamble(instruction, builder)

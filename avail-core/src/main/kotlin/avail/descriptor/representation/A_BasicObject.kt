@@ -39,6 +39,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.objects.ObjectDescriptor
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
@@ -1047,6 +1048,19 @@ interface A_BasicObject : JSONFriendly
 	fun fieldAt(field: A_Atom): AvailObject
 
 	/**
+	 * Extract a field from an [object][ObjectDescriptor], using a one-based
+	 * index into the field slots.  This requires knowledge of the
+	 * [ObjectLayoutVariant], since the same field is at different indices in
+	 * different variants.
+	 *
+	 * @param index
+	 *   The one-based index of the field in this object.
+	 * @return
+	 *   The field's value.
+	 */
+	fun fieldAtIndex(index: Int): AvailObject
+
+	/**
 	 * Extract a field from an [object][ObjectDescriptor], or answer null if
 	 * it's not present.
 	 *
@@ -1091,7 +1105,8 @@ interface A_BasicObject : JSONFriendly
 	 */
 	fun fieldTypeAtOrNull(field: A_Atom): A_Type?
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Dispatcher helper function for routing messages to the descriptor.
 		 *
@@ -1126,6 +1141,13 @@ interface A_BasicObject : JSONFriendly
 			syncCondition -> synchronized(this) { body() }
 			else -> body()
 		}
+
+		/**
+		 * Extract the [ObjectLayoutVariant] from an [object][ObjectDescriptor].
+		 */
+		val A_BasicObject.objectVariant: ObjectLayoutVariant
+			get() = descriptor().o_ObjectVariant(this as AvailObject)
+
 
 		/** The [CheckedMethod] for [.equals]. */
 		val equalsMethod = instanceMethod(

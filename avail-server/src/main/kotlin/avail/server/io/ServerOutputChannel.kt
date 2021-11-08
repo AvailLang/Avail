@@ -49,5 +49,5 @@ package avail.server.io
 class ServerOutputChannel constructor(channel: AvailServerChannel)
 	: AbstractServerOutputChannel(channel)
 {
-	override val channelTag = "out"
+	override val channelTag get() = "out"
 }

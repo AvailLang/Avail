@@ -68,7 +68,7 @@ abstract class L2ControlFlowOperation protected constructor(
 	 */
 	private val labelVectorOperandIndices: IntArray
 
-	override fun altersControlFlow() = true
+	override val altersControlFlow get() = true
 
 	/**
 	 * Extract the operands which are [L2PcOperand]s.  These are what lead to

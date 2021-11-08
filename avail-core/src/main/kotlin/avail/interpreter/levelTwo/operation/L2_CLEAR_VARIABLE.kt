@@ -49,10 +49,8 @@ import org.objectweb.asm.MethodVisitor
 object L2_CLEAR_VARIABLE : L2Operation(
 	L2OperandType.READ_BOXED.named("variable"))
 {
-	override fun hasSideEffect(): Boolean
-	{
-		return true
-	}
+	override val hasSideEffect: Boolean
+		get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -60,7 +58,7 @@ object L2_CLEAR_VARIABLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val variableReg = instruction.operand<L2Operand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

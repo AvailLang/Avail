@@ -64,7 +64,7 @@ object L2_GET_VARIABLE : L2ControlFlowOperation(
 	PC.named("read failed", Purpose.OFF_RAMP))
 {
 	// Subtle. Reading from a variable can fail, so don't remove this.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override val isVariableGet: Boolean get() = true
 
@@ -74,7 +74,7 @@ object L2_GET_VARIABLE : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
 		val value = instruction.operand<L2WriteBoxedOperand>(1)
 		//		final L2PcOperand success = instruction.operand(2);

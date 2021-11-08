@@ -44,7 +44,6 @@ import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.TypeTag
-import avail.dispatch.DecisionStep.ObjectLayoutVariantDecisionStep
 import avail.interpreter.levelTwo.operand.TypeRestriction
 
 /**
@@ -72,8 +71,7 @@ abstract class LookupTreeAdaptor<
 	abstract val emptyLeaf: LeafLookupTree<Element, Result>
 
 	/**
-	 * Convert from an [Element] to a suitable [A_Type] for
-	 * organizing the tree.
+	 * Convert from an [Element] to a suitable [A_Type] for organizing the tree.
 	 *
 	 * @param element
 	 *   The [Element].
@@ -362,11 +360,12 @@ abstract class LookupTreeAdaptor<
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			extraValues = step.updateExtraValuesByTypes(
+				argumentTypesList, extraValues)
 			tree = step.lookupStepByTypes(
 				argumentTypesList, extraValues, this, memento)
 			solution = tree.solutionOrNull
@@ -401,11 +400,12 @@ abstract class LookupTreeAdaptor<
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			extraValues = step.updateExtraValuesByTypes(
+				argumentTypesTuple, extraValues)
 			tree = step.lookupStepByTypes(
 				argumentTypesTuple, extraValues, this, memento)
 			solution = tree.solutionOrNull
@@ -443,11 +443,12 @@ abstract class LookupTreeAdaptor<
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			extraValues = step.updateExtraValuesByValues(
+				argValues, extraValues)
 			tree = step.lookupStepByValues(
 				argValues, extraValues, this, memento)
 			solution = tree.solutionOrNull
@@ -485,11 +486,12 @@ abstract class LookupTreeAdaptor<
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			extraValues = step.updateExtraValuesByValues(
+				argValues, extraValues)
 			tree = step.lookupStepByValues(
 				argValues, extraValues, this, memento)
 			solution = tree.solutionOrNull
@@ -525,11 +527,11 @@ abstract class LookupTreeAdaptor<
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			extraValues = step.updateExtraValuesByValue(argValue, extraValues)
 			tree = step.lookupStepByValue(argValue, extraValues, this, memento)
 			solution = tree.solutionOrNull
 			depth++

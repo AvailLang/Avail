@@ -52,7 +52,7 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 class L2BoxedRegister constructor(debugValue: Int) : L2Register(debugValue)
 {
-	override fun registerKind() = BOXED_KIND
+	override val registerKind get() = BOXED_KIND
 
 	override fun copyForTranslator(generator: L2Generator): L2BoxedRegister =
 		L2BoxedRegister(generator.nextUnique())

@@ -349,8 +349,7 @@ class AvailRuntime constructor(
 	/**
 	 * Schedule the specified [task][AvailTask] for eventual execution. The
 	 * implementation is free to run the task immediately or delay its execution
-	 * arbitrarily. The task is guaranteed to execute on an [Avail
-	 * thread][AvailThread].
+	 * arbitrarily. The task is guaranteed to execute on an [AvailThread].
 	 *
 	 * @param task
 	 *   A task.

@@ -64,6 +64,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -101,10 +102,10 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
-import org.availlang.json.JSONWriter
 import avail.utility.visitor.AvailSubobjectVisitor
 import avail.utility.visitor.BeImmutableSubobjectVisitor
 import avail.utility.visitor.BeSharedSubobjectVisitor
+import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
@@ -2490,6 +2491,9 @@ protected constructor (
 		self: AvailObject,
 		field: A_Atom): AvailObject = unsupported
 
+	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
+		unsupported
+
 	override fun o_FieldAtOrNull (
 		self: AvailObject,
 		field: A_Atom): AvailObject? = unsupported
@@ -2742,4 +2746,12 @@ protected constructor (
 	override fun o_SynthesizeCurrentLexingState(
 		self: AvailObject
 	): LexingState = unsupported
+
+	override fun o_ObjectVariant(
+		self: AvailObject
+	): ObjectLayoutVariant = unsupported
+
+	override fun o_ObjectTypeVariant(
+		self: AvailObject
+	): ObjectLayoutVariant = unsupported
 }

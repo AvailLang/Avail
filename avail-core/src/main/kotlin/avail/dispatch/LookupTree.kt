@@ -34,6 +34,7 @@ package avail.dispatch
 
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.tuples.A_Tuple
 
 /**
  * `LookupTree` is used to look up method definitions by argument types,
@@ -67,6 +68,12 @@ abstract class LookupTree<
 	 * @return The solution or null.
 	 */
 	abstract val solutionOrNull: Result?
+
+	/**
+	 * Strengthen the type to a lookup tree suitable for method lookups.
+	 */
+	@Suppress("UNCHECKED_CAST")
+	fun castForGenerator() = this as LookupTree<A_Definition, A_Tuple>
 
 	/**
 	 * Describe this `LookupTree` at a given indent level.

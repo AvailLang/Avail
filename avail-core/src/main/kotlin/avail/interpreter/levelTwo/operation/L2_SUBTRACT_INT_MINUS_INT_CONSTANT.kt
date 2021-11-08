@@ -57,7 +57,7 @@ object L2_SUBTRACT_INT_MINUS_INT_CONSTANT : L2ControlFlowOperation(
 	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS),
 	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -65,7 +65,7 @@ object L2_SUBTRACT_INT_MINUS_INT_CONSTANT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val minuend = instruction.operand<L2ReadIntOperand>(0)
 		val subtrahend = instruction.operand<L2IntImmediateOperand>(1)
 		val difference = instruction.operand<L2WriteIntOperand>(2)

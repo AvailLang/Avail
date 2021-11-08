@@ -61,7 +61,7 @@ object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val typeToCheck = instruction.operand<L2ReadBoxedOperand>(0)
 		val constantType = instruction.operand<L2ConstantOperand>(1)
 		//		final L2PcOperand isSubtype = instruction.operand(2);

@@ -53,7 +53,7 @@ object L2_NEGATE_INT_NO_CHECK : L2Operation(
 	L2OperandType.READ_INT.named("value"),
 	L2OperandType.WRITE_INT.named("negation"))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -61,7 +61,7 @@ object L2_NEGATE_INT_NO_CHECK : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val source = instruction.operand<L2ReadIntOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
 		renderPreamble(instruction, builder)

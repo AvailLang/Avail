@@ -64,11 +64,9 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 	PC.named("if undefined", Purpose.OFF_RAMP),
 	PC.named("success", Purpose.SUCCESS))
 {
-	override fun hasSideEffect(): Boolean
-	{
+	override val hasSideEffect: Boolean
 		// It jumps for division by zero.
-		return true
-	}
+		get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -76,7 +74,7 @@ object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val dividend = instruction.operand<L2ReadBoxedOperand>(0)
 		val divisor = instruction.operand<L2ReadBoxedOperand>(1)
 		val quotient = instruction.operand<L2WriteBoxedOperand>(2)

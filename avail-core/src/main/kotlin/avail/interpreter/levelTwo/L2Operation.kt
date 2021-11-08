@@ -196,16 +196,7 @@ protected constructor(
 	 * Initialize the name from the constructor argument, or produce a default
 	 * if it was unspecified or null.
 	 */
-	private val name: String = name ?: computeDefaultName()
-
-	/**
-	 * Answer the name of this `L2Operation`.
-	 *
-	 * @return
-	 *   The operation name, suitable for symbolic debugging of level two
-	 *   generated code.
-	 */
-	fun name(): String = name
+	val name: String = name ?: computeDefaultName()
 
 	/**
 	 * Answer a suitable default symbolic name for this operation.
@@ -239,7 +230,8 @@ protected constructor(
 	 *
 	 * @return Whether this operation has any side effect.
 	 */
-	open fun hasSideEffect(): Boolean = false
+	open val hasSideEffect: Boolean
+		get() = false
 
 	/**
 	 * Answer whether the given [L2Instruction] (whose operation must be the
@@ -258,8 +250,8 @@ protected constructor(
 	 */
 	open fun hasSideEffect(instruction: L2Instruction): Boolean
 	{
-		assert(instruction.operation() === this)
-		return hasSideEffect()
+		assert(instruction.operation === this)
+		return hasSideEffect
 	}
 
 	/**
@@ -270,7 +262,8 @@ protected constructor(
 	 * @return
 	 *   Whether this operation alters the flow of control.
 	 */
-	open fun altersControlFlow(): Boolean = false
+	open val altersControlFlow: Boolean
+		get() = false
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -292,7 +285,8 @@ protected constructor(
 	 *   Whether multiple branches may be taken following the circumstance of
 	 *   arriving at this instruction.
 	 */
-	open fun goesMultipleWays(): Boolean = false
+	open val goesMultipleWays: Boolean
+		get() = false
 
 	/**
 	 * Answer whether execution of this instruction causes a
@@ -301,7 +295,8 @@ protected constructor(
 	 * @return
 	 *   Whether the instruction causes a variable to be read.
 	 */
-	open val isVariableGet: Boolean get() = false
+	open val isVariableGet: Boolean
+		get() = false
 
 	/**
 	 * Answer whether execution of this instruction causes a
@@ -346,7 +341,7 @@ protected constructor(
 	 *   Whether the [L2Instruction] using this operation is a placeholder,
 	 *   subject to later substitution.
 	 */
-	open fun isPlaceholder(instruction: L2Instruction) = false
+	open val isPlaceholder get() = false
 
 	/**
 	 * Answer whether this operation causes unconditional control flow jump to
@@ -378,7 +373,7 @@ protected constructor(
 		manifest: L2ValueManifest)
 	{
 		val edgeIndexOrder = mutableListOf<Int>()
-		val operands = instruction.operands()
+		val operands = instruction.operands
 		operands.forEachIndexed { i, operand ->
 			val namedOperandType = namedOperandTypes[i]
 			val purpose = namedOperandType.purpose()
@@ -430,10 +425,12 @@ protected constructor(
 	 */
 	fun instructionWasInserted(instruction: L2Instruction)
 	{
-		assert(!isEntryPoint(instruction)
-				|| instruction.basicBlock().instructions()[0] == instruction)
+		assert(
+			!isEntryPoint(instruction)
+				|| instruction.basicBlock().instructions()[0] == instruction
+		)
 		{ "Entry point instruction must be at start of a block" }
-		instruction.operands().forEach {
+		instruction.operands.forEach {
 			it.instructionWasInserted(instruction)
 		}
 	}
@@ -484,7 +481,7 @@ protected constructor(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		val writer = generator.boxedWriteTemp(
 			restrictionForType(outerType, BOXED_FLAG))
 		generator.addInstruction(
@@ -507,7 +504,7 @@ protected constructor(
 	 */
 	open fun getConstantCodeFrom(instruction: L2Instruction): A_RawFunction?
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		return null
 	}
 
@@ -526,7 +523,7 @@ protected constructor(
 	open fun primitiveResultRegister(
 		instruction: L2Instruction): L2WriteBoxedOperand?
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		return null
 	}
 
@@ -547,7 +544,7 @@ protected constructor(
 		emptyList()
 
 	// Skip the L2_ prefix, as it is redundant in context.
-	override fun toString(): String = name()
+	override fun toString(): String = name
 
 	/**
 	 * Produce a sensible preamble for the textual rendition of the specified
@@ -562,11 +559,11 @@ protected constructor(
 	protected fun renderPreamble(
 		instruction: L2Instruction, builder: StringBuilder)
 	{
-		assert(this === instruction.operation())
-		val offset = instruction.offset()
+		assert(this === instruction.operation)
+		val offset = instruction.offset
 		if (offset != -1)
 		{
-			builder.append(instruction.offset())
+			builder.append(instruction.offset)
 			builder.append(". ")
 		}
 		builder.append(this)
@@ -592,7 +589,7 @@ protected constructor(
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder)
 	{
-		val operands = instruction.operands()
+		val operands = instruction.operands
 		val types = operandTypes()
 		var i = start
 		val limit = operands.size
@@ -603,7 +600,7 @@ protected constructor(
 			{
 				val operand = instruction.operand<L2Operand>(i)
 				builder.append("\n\t")
-				assert(operand.operandType() == type.operandType())
+				assert(operand.operandType == type.operandType())
 				builder.append(type.name())
 				builder.append(" = ")
 				builder.append(increaseIndentation(operand.toString(), 1))
@@ -633,10 +630,10 @@ protected constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this === instruction.operation())
+		assert(this === instruction.operation)
 		renderPreamble(instruction, builder)
 		val types = operandTypes()
-		val operands = instruction.operands()
+		val operands = instruction.operands
 		var i = 0
 		val limit = operands.size
 		while (i < limit)
@@ -646,7 +643,7 @@ protected constructor(
 			{
 				val operand = instruction.operand<L2Operand>(i)
 				builder.append("\n\t")
-				assert(operand.operandType() == type.operandType())
+				assert(operand.operandType == type.operandType())
 				builder.append(type.name())
 				builder.append(" = ")
 				operand.appendWithWarningsTo(builder, 1, warningStyleChange)
@@ -660,10 +657,10 @@ protected constructor(
 	 */
 	fun simpleAppendTo(instruction: L2Instruction, builder: StringBuilder)
 	{
-		assert(this === instruction.operation())
+		assert(this === instruction.operation)
 		renderPreamble(instruction, builder)
 		builder.append(": ")
-		val operands = instruction.operands()
+		val operands = instruction.operands
 		val targets = mutableListOf<String>()
 		val sources = mutableListOf<String>()
 		val commands = mutableListOf<String>()
@@ -677,9 +674,11 @@ protected constructor(
 							if (length > 20) substring(0, 20) + "…"
 							else this
 						}).run { substring(1, length - 1) })
-				is L2ConstantOperand -> {
+				is L2ConstantOperand ->
+				{
 					val value = operand.constant
-					when {
+					when
+					{
 						value.isFunction ->
 						{
 							val code: A_RawFunction = value.code()

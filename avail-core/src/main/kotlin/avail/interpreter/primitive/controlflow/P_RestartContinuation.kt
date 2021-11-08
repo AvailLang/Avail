@@ -155,8 +155,8 @@ object P_RestartContinuation : Primitive(
 					generator, setOf(temp), read.restriction())
 				generator.addInstruction(L2_MOVE.boxed, read, tempWrite)
 				val move = generator.currentBlock().instructions().last()
-				assert(move.operation() == L2_MOVE.boxed)
-				tempRegisters.addAll(move.destinationRegisters())
+				assert(move.operation == L2_MOVE.boxed)
+				tempRegisters.addAll(move.destinationRegisters)
 				tempReads.add(
 					L2ReadBoxedOperand(
 						temp, read.restriction(), tempWrite.register()))
@@ -212,10 +212,10 @@ object P_RestartContinuation : Primitive(
 			{
 				liveEntities.add(
 					L2EntityAndKind(
-						newRead.semanticValue(), newRead.registerKind()))
+						newRead.semanticValue(), newRead.registerKind))
 				liveEntities.add(
 					L2EntityAndKind(
-						newRead.register(), newRead.registerKind()))
+						newRead.register(), newRead.registerKind))
 			}
 			generator.currentBlock().successorEdges()[0].forcedClampedEntities =
 				liveEntities

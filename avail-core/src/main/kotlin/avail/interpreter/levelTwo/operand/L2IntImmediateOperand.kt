@@ -52,7 +52,8 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2IntImmediateOperand constructor(val value: Int) : L2Operand()
 {
-	override fun operandType(): L2OperandType = L2OperandType.INT_IMMEDIATE
+	override val operandType: L2OperandType
+		get() = L2OperandType.INT_IMMEDIATE
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

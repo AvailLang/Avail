@@ -31,7 +31,6 @@
  */
 package avail.descriptor.types
 
-import avail.compiler.ModuleManifestEntry
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.maps.A_Map
 import avail.descriptor.numbers.A_Number

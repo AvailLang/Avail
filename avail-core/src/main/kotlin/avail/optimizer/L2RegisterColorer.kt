@@ -137,11 +137,11 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			registerBeingTraced = reg
 			for (read in reg.uses())
 			{
-				val instruction = read.instruction()
-				if (instruction.operation().isPhi)
+				val instruction = read.instruction
+				if (instruction.operation.isPhi)
 				{
 					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-						instruction.operation().cast()
+						instruction.operation.cast()
 					for (predBlock in phiOperation.predecessorBlocksForUseOf(
 						instruction, reg))
 					{
@@ -197,7 +197,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 			// Process live-out for this instruction.
 			val instruction = instructions[index]
 			var definesCurrentRegister = false
-			for (written in instruction.destinationRegisters())
+			for (written in instruction.destinationRegisters)
 			{
 				if (written === registerBeingTraced)
 				{
@@ -212,8 +212,7 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				// Register banks are numbered independently, so the notion
 				// of interference between registers in different banks is
 				// moot (i.e., they don't interfere).
-				if (registerBeingTraced!!.registerKind()
-					!== written.registerKind())
+				if (registerBeingTraced!!.registerKind !== written.registerKind)
 				{
 					continue
 				}
@@ -221,8 +220,8 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 				// interest (registerBeingTraced) and the destination of the
 				// move, but only if the live-out variable isn't also the source
 				// of the move.
-				if (instruction.operation().isMove
-					&& instruction.sourceRegisters()[0] === registerBeingTraced)
+				if (instruction.operation.isMove
+					&& instruction.sourceRegisters[0] === registerBeingTraced)
 				{
 					continue
 				}
@@ -259,14 +258,14 @@ class L2RegisterColorer constructor(controlFlowGraph: L2ControlFlowGraph)
 		{
 			for (write in reg.definitions())
 			{
-				val instruction = write.instruction()
-				if (instruction.operation().isMove)
+				val instruction = write.instruction
+				if (instruction.operation.isMove)
 				{
 					// The source and destination registers shouldn't be
 					// considered interfering if they'll hold the same value.
 					val group1 = registerGroups[reg]
 					val group2 =
-						registerGroups[instruction.sourceRegisters()[0]]
+						registerGroups[instruction.sourceRegisters[0]]
 					if (group1 !== group2)
 					{
 						if (!interferences.includesEdge(group1!!, group2!!))

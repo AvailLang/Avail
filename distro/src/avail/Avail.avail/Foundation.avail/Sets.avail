@@ -828,9 +828,8 @@ Method "count of_where_" is
 	|
 		$loop : whole number;
 		Exit loop with count if index > end;
-		test ::= predicate(aTuple[index]);
-		Restart loop
-			with <index + 1, end, if test then [count + 1] else [count]>
+		newCount ::= if predicate(aTuple[index]) then [count + 1] else [count];
+		Restart loop with <index + 1, end, newCount>
 	](1, |aTuple|, 0)
 ] : whole number;
 

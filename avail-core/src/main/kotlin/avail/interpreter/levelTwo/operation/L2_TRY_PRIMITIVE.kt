@@ -71,10 +71,8 @@ object L2_TRY_PRIMITIVE : L2Operation(
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 
-	/**
-	 * It could fail and jump.
-	 */
-	override fun hasSideEffect() = true
+	// It could fail and jump.
+	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

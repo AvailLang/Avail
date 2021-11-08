@@ -62,6 +62,7 @@ import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -102,9 +103,9 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
 import avail.utility.cast
-import org.availlang.json.JSONWriter
 import avail.utility.visitor.AvailSubobjectVisitor
 import avail.utility.visitor.MarkUnreachableSubobjectVisitor
+import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
 import java.util.Spliterator
@@ -1230,6 +1231,10 @@ class AvailObject private constructor(
 	@ReferencedInGeneratedCode
 	override fun fieldAt(field: A_Atom) = descriptor().o_FieldAt(this, field)
 
+	@ReferencedInGeneratedCode
+	override fun fieldAtIndex(index: Int): AvailObject =
+		descriptor().o_FieldAtIndex(this, index)
+
 	override fun fieldAtOrNull(field: A_Atom) =
 		descriptor().o_FieldAtOrNull(this, field)
 
@@ -1527,5 +1532,12 @@ class AvailObject private constructor(
 			AvailObject::fieldAt.name,
 			AvailObject::class.java,
 			A_Atom::class.java)
+
+		/** Access the [fieldAtIndex] method. */
+		val fieldAtIndexMethod = instanceMethod(
+			AvailObject::class.java,
+			AvailObject::fieldAtIndex.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
 	}
 }

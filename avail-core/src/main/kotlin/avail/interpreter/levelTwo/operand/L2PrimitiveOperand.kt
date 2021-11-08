@@ -53,7 +53,8 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2PrimitiveOperand constructor(val primitive: Primitive) : L2Operand()
 {
-	override fun operandType(): L2OperandType = L2OperandType.PRIMITIVE
+	override val operandType: L2OperandType
+		get() = L2OperandType.PRIMITIVE
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

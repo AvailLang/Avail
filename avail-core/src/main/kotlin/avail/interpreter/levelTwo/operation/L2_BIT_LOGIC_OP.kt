@@ -71,7 +71,7 @@ class L2_BIT_LOGIC_OP(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val input1 = instruction.operand<L2ReadIntOperand>(0)
 		val input2 = instruction.operand<L2ReadIntOperand>(1)
 		val output = instruction.operand<L2WriteIntOperand>(2)
@@ -80,7 +80,7 @@ class L2_BIT_LOGIC_OP(
 		builder.append(output.registerString())
 		builder.append(" ← ")
 		builder.append(input1.registerString())
-		builder.append(" ${name()} ")
+		builder.append(" $name ")
 		builder.append(input2.registerString())
 	}
 

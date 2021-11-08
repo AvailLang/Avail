@@ -62,7 +62,7 @@ internal class FileStreamMessage constructor(
 	fileId: Int,
 	file: ByteArray): BinaryMessage()
 {
-	override val command = BinaryCommand.FILE_STREAM
+	override val command get() = BinaryCommand.FILE_STREAM
 	override val message: Message
 
 	init

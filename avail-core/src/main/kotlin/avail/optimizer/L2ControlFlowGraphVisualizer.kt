@@ -214,7 +214,7 @@ class L2ControlFlowGraphVisualizer constructor(
 				{
 					!started -> "#202080/303000" to "#ffffff/e0e0e0"
 					basicBlock.instructions().any {
-						it.operation() === L2_UNREACHABLE_CODE
+						it.operation === L2_UNREACHABLE_CODE
 					} -> "#400000/600000" to "#ffffff/ffffff"
 					basicBlock.isLoopHead ->
 						"#9070ff/302090" to "#000000/f0f0f0"
@@ -333,13 +333,13 @@ class L2ControlFlowGraphVisualizer constructor(
 		edgeCounter: AtomicInteger)
 	{
 		val sourceBlock = edge.sourceBlock()
-		val sourceInstruction = edge.instruction()
+		val sourceInstruction = edge.instruction
 		val targetBlock = edge.targetBlock()
 		val isTargetTheUnreachableBlock = targetBlock.instructions()
-			.any { it.operation() === L2_UNREACHABLE_CODE }
+			.any { it.operation === L2_UNREACHABLE_CODE }
 		val types: Array<out L2NamedOperandType> =
-			sourceInstruction.operation().operandTypes()
-		val operands = sourceInstruction.operands()
+			sourceInstruction.operation.operandTypes()
+		val operands = sourceInstruction.operands
 		val operandIndex = operands.indexOfFirst {
 			it == edge
 				|| (it is L2PcVectorOperand && it.edges.contains(edge))
@@ -443,54 +443,54 @@ class L2ControlFlowGraphVisualizer constructor(
 				else
 				{
 					node(basicBlockName(targetBlock))
-				})
-				{ attr: AttributeWriter ->
-					// Number each edge uniquely, to allow a multigraph.
+				}
+			) { attr: AttributeWriter ->
+				// Number each edge uniquely, to allow a multigraph.
+				attr.attribute(
+					"id", (edgeCounter.getAndIncrement()).toString())
+				if (!started)
+				{
+					attr.attribute("color", "#4040ff/8080ff")
+					attr.attribute("style", "dotted")
+				}
+				else if (isTargetTheUnreachableBlock)
+				{
+					attr.attribute("color", "#804040/c06060")
+					attr.attribute("style", "dotted")
+				}
+				else if (edge.isBackward)
+				{
+					attr.attribute("constraint", "false")
 					attr.attribute(
-						"id", (edgeCounter.getAndIncrement()).toString())
-					if (!started)
+						"color",
+						if (sourceBlock.zone === null) "#9070ff/6050ff"
+						else "#90f0a0/60ff70")
+					attr.attribute("style", "dashed")
+				}
+				else
+				{
+					when (type.purpose()!!)
 					{
-						attr.attribute("color", "#4040ff/8080ff")
-						attr.attribute("style", "dotted")
-					}
-					else if (isTargetTheUnreachableBlock)
-					{
-						attr.attribute("color", "#804040/c06060")
-						attr.attribute("style", "dotted")
-					}
-					else if (edge.isBackward)
-					{
-						attr.attribute("constraint", "false")
-						attr.attribute(
-							"color",
-							if (sourceBlock.zone === null) "#9070ff/6050ff"
-							else "#90f0a0/60ff70")
-						attr.attribute("style", "dashed")
-					}
-					else
-					{
-						when (type.purpose()!!)
+						// Nothing. The default styling will be fine.
+						L2NamedOperandType.Purpose.SUCCESS -> Unit
+						L2NamedOperandType.Purpose.FAILURE ->
+							attr.attribute("color", "#e54545/c03030")
+						L2NamedOperandType.Purpose.OFF_RAMP ->
+							attr.attribute("style", "dashed")
+						L2NamedOperandType.Purpose.ON_RAMP ->
 						{
-							// Nothing. The default styling will be fine.
-							L2NamedOperandType.Purpose.SUCCESS -> Unit
-							L2NamedOperandType.Purpose.FAILURE ->
-								attr.attribute("color", "#e54545/c03030")
-							L2NamedOperandType.Purpose.OFF_RAMP ->
-								attr.attribute("style", "dashed")
-							L2NamedOperandType.Purpose.ON_RAMP ->
-							{
-								attr.attribute("style", "dashed")
-								attr.attribute("color", "#6aaf6a")
-							}
-							L2NamedOperandType.Purpose.REFERENCED_AS_INT ->
-							{
-								attr.attribute("style", "dashed")
-								attr.attribute("color", "#6080ff")
-							}
+							attr.attribute("style", "dashed")
+							attr.attribute("color", "#6aaf6a")
+						}
+						L2NamedOperandType.Purpose.REFERENCED_AS_INT ->
+						{
+							attr.attribute("style", "dashed")
+							attr.attribute("color", "#6080ff")
 						}
 					}
-					attr.attribute("label", edgeLabel)
 				}
+				attr.attribute("label", edgeLabel)
+			}
 		}
 		catch (e: IOException)
 		{
@@ -523,8 +523,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					EnumSet.noneOf(RegisterKind::class.java)
 				for (register in defs)
 				{
-					kindsOfRegisters.add(
-						register.registerKind())
+					kindsOfRegisters.add(register.registerKind)
 				}
 				val body: StringBuilder.()->Unit = {
 					append("<br/>")
@@ -536,9 +535,7 @@ class L2ControlFlowGraphVisualizer constructor(
 					append(escape(restriction))
 					append("<br/>")
 					append(repeated("&nbsp;", 8))
-					defs.joinTo(this, ", ", "in {", "}") {
-						it.toString()
-					}
+					defs.joinTo(this, ", ", "in {", "}") { it.toString() }
 				}
 				if (restriction.kinds() == kindsOfRegisters)
 					body()
@@ -751,8 +748,8 @@ class L2ControlFlowGraphVisualizer constructor(
 		writer: GraphWriter
 	): String = buildString {
 		// Hoist a comment operand, if one is present.
-		instruction.operands().forEach { operand: L2Operand ->
-			if (operand.operandType() === L2OperandType.COMMENT)
+		instruction.operands.forEach { operand: L2Operand ->
+			if (operand.operandType === L2OperandType.COMMENT)
 			{
 				// The selection of Helvetica as the font is important. Some
 				// renderers, like Viz.js, only seem to fully support a
@@ -768,7 +765,8 @@ class L2ControlFlowGraphVisualizer constructor(
 					"color" to writer.adjust(
 						operand.isMisconnected,
 						errorTextColor,
-						commentTextColor)) {
+						commentTextColor)
+				) {
 					tag("i") {
 						append(escape(operand))
 					}
@@ -782,10 +780,10 @@ class L2ControlFlowGraphVisualizer constructor(
 		val desiredTypes: Set<L2OperandType> =
 			EnumSet.complementOf(
 				EnumSet.of(L2OperandType.PC, L2OperandType.COMMENT))
-		if (instruction.operation() === L2_JUMP
-			&& instruction.offset() != -1
+		if (instruction.operation === L2_JUMP
+			&& instruction.offset != -1
 			&& (L2_JUMP.jumpTarget(instruction).offset()
-				== instruction.offset()))
+				== instruction.offset))
 		{
 			// Show fall-through jumps in grey.
 			val edge = L2_JUMP.jumpTarget(instruction)
@@ -794,18 +792,19 @@ class L2ControlFlowGraphVisualizer constructor(
 				"color" to writer.adjust(
 					edge.isMisconnected,
 					errorTextColor,
-					"#404040/808080")) {
+					"#404040/808080")
+			) {
 				tag("i") {
 					val escapableStart = length
 					if (visualizeRegisterDescriptions)
 					{
-						instruction.operation().appendToWithWarnings(
+						instruction.operation.appendToWithWarnings(
 							instruction, desiredTypes, this) { }
 					}
 					else
 					{
 						// Use a simplified instruction output.
-						instruction.operation().simpleAppendTo(
+						instruction.operation.simpleAppendTo(
 							instruction, this)
 					}
 					replace(
@@ -829,7 +828,7 @@ class L2ControlFlowGraphVisualizer constructor(
 			else
 			{
 				// Use a simplified instruction output.
-				instruction.operation().simpleAppendTo(instruction, this)
+				instruction.operation.simpleAppendTo(instruction, this)
 			}
 			// Escape everything since the saved position.  Add a final sentinel
 			// to avoid duplicating code below.

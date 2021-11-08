@@ -59,7 +59,7 @@ object L2_TUPLE_SIZE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
 		val size = instruction.operand<L2WriteIntOperand>(1)
 		renderPreamble(instruction, builder)

@@ -74,7 +74,7 @@ sealed class CloseReason
  */
 object OrderlyClientCloseReason: CloseReason()
 {
-	override val origin = CLIENT
+	override val origin get() = CLIENT
 }
 
 /**
@@ -85,7 +85,7 @@ object OrderlyClientCloseReason: CloseReason()
  */
 object OrderlyServerCloseReason: CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -97,7 +97,7 @@ object OrderlyServerCloseReason: CloseReason()
  */
 object DisorderlyClientCloseReason : CloseReason()
 {
-	override val origin = CLIENT
+	override val origin get() = CLIENT
 }
 
 /**
@@ -187,7 +187,7 @@ data class BadEndFlowCloseReason constructor (
 	private val message: Message
 ) : CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -213,7 +213,7 @@ data class WrongConversationCloseReason constructor (
 	private val badId: Long
 ) : CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -282,7 +282,7 @@ data class SocketIOErrorReason constructor (
 	private val cause: Throwable
 ) : CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -303,7 +303,7 @@ data class BadMessageCloseReason constructor (
 	private val badTag: Int
 ): CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -324,7 +324,7 @@ data class BadAcknowledgmentCodeReason constructor (
 	private val badCode: Int
 ): CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -335,7 +335,7 @@ data class BadAcknowledgmentCodeReason constructor (
  */
 object BadProtocolVersion : CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }
 
 /**
@@ -356,5 +356,5 @@ object BadProtocolVersion : CloseReason()
  */
 class InternalErrorCloseReason (private val cause: Throwable) : CloseReason()
 {
-	override val origin = SERVER
+	override val origin get() = SERVER
 }

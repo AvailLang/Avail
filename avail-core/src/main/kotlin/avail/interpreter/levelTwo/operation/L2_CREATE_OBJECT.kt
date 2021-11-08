@@ -64,7 +64,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val variantOperand = instruction.operand<L2ArbitraryConstantOperand>(0)
 		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val newObject = instruction.operand<L2WriteBoxedOperand>(2)
@@ -86,7 +86,7 @@ object L2_CREATE_OBJECT : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val variantOperand = instruction.operand<L2ArbitraryConstantOperand>(0)
 		val fieldsVector = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val newObject = instruction.operand<L2WriteBoxedOperand>(2)

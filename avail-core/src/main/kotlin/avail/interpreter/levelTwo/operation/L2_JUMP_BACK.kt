@@ -56,7 +56,7 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED_VECTOR.named("registers to keep"))
 {
 	// It jumps, which counts as a side effect.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override val isUnconditionalJump get() = true
 
@@ -104,7 +104,7 @@ object L2_JUMP_BACK : L2ControlFlowOperation(
 	@JvmStatic
 	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		return instruction.operand(0)
 	}
 }

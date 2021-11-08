@@ -135,7 +135,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		val (functionTypeRead, _) = arguments
 		val (functionMeta, indexType) = argumentTypes
 
-		val functionTypeDefinition = functionTypeRead.definition().instruction()
+		val functionTypeDefinition = functionTypeRead.definition().instruction
 		val exactIndex = indexType.lowerBound
 		if (!indexType.upperBound.equals(exactIndex)) return false
 		// The exact index is known.
@@ -143,7 +143,7 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 		val minArgs = argsRange.lowerBound
 		if (!minArgs.isInt || exactIndex.greaterThan(minArgs)) return false
 		// The exact index will always be in range.
-		if (functionTypeDefinition.operation() !is L2_GET_TYPE) return false
+		if (functionTypeDefinition.operation !is L2_GET_TYPE) return false
 		// This is the pattern "x's type [y]".  Since x is some actual
 		// function, the resulting argument type can't be top or bottom.
 		val function = L2_GET_TYPE.sourceValueOf(functionTypeDefinition)

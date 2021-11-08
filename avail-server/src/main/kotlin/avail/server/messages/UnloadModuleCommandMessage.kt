@@ -55,7 +55,7 @@ import avail.server.io.AvailServerChannel
 class UnloadModuleCommandMessage constructor(
 	val target: ModuleName) : CommandMessage()
 {
-	override val command = TextCommand.UNLOAD_MODULE
+	override val command get() = TextCommand.UNLOAD_MODULE
 
 	override fun processThen(
 		channel: AvailServerChannel,

@@ -67,7 +67,8 @@ class L2PcVectorOperand constructor(
 		edges.forEach { it.adjustCloneForInstruction(theInstruction) }
 	}
 
-	override fun operandType(): L2OperandType = L2OperandType.PC_VECTOR
+	override val operandType: L2OperandType
+		get() = L2OperandType.PC_VECTOR
 
 	override fun setInstruction(theInstruction: L2Instruction?)
 	{

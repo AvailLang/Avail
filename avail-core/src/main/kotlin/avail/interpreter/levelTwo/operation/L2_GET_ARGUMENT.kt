@@ -59,7 +59,7 @@ object L2_GET_ARGUMENT : L2Operation(
 	L2OperandType.WRITE_BOXED.named("argument"))
 {
 	// Keep this instruction pinned in place for safety during inlining.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -67,7 +67,7 @@ object L2_GET_ARGUMENT : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val subscript = instruction.operand<L2IntImmediateOperand>(0)
 		val argument = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)

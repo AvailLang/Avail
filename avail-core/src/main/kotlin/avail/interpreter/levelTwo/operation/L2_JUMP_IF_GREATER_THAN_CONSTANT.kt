@@ -61,7 +61,7 @@ object L2_JUMP_IF_GREATER_THAN_CONSTANT : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val constant = instruction.operand<L2ConstantOperand>(1)
 		//		final L2PcOperand ifGreater = instruction.operand(2);

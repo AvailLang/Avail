@@ -77,7 +77,7 @@ import org.objectweb.asm.Opcodes
  */
 object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

@@ -61,6 +61,7 @@ import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -95,6 +96,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfObjectType
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeIntersectionOfObjectType
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -266,8 +268,8 @@ class ObjectTypeDescriptor internal constructor(
 		anObjectType: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObjectType)) return true
-		val otherDescriptor = anObjectType.descriptor() as ObjectTypeDescriptor
-		if (variant !== otherDescriptor.variant) return false
+		val otherVariant = anObjectType.objectTypeVariant
+		if (variant !== otherVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
@@ -286,7 +288,8 @@ class ObjectTypeDescriptor internal constructor(
 					anObjectType.slot(FIELD_TYPES_, it))
 			} -> return false
 			!isShared -> self.becomeIndirectionTo(anObjectType)
-			!otherDescriptor.isShared -> anObjectType.becomeIndirectionTo(self)
+			!anObjectType.descriptor().isShared ->
+				anObjectType.becomeIndirectionTo(self)
 		}
 		return true
 	}
@@ -345,9 +348,7 @@ class ObjectTypeDescriptor internal constructor(
 		self: AvailObject,
 		potentialInstance: AvailObject
 	): Boolean {
-		val instanceDescriptor =
-			potentialInstance.descriptor() as ObjectDescriptor
-		val instanceVariant = instanceDescriptor.variant
+		val instanceVariant = potentialInstance.objectVariant
 		if (instanceVariant == variant) {
 			// The instance and I share a variant, so blast through the fields
 			// in lock-step doing instance checks.
@@ -384,9 +385,7 @@ class ObjectTypeDescriptor internal constructor(
 		anObjectType: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObjectType)) return true
-		val subtypeDescriptor =
-			anObjectType.descriptor() as ObjectTypeDescriptor
-		val subtypeVariant = subtypeDescriptor.variant
+		val subtypeVariant = anObjectType.objectTypeVariant
 		if (subtypeVariant == variant) {
 			// The potential subtype and I share a variant, so blast through the
 			// fields in lock-step doing subtype checks.
@@ -462,6 +461,8 @@ class ObjectTypeDescriptor internal constructor(
 		return canonical
 	}
 
+	override fun o_ObjectTypeVariant(self: AvailObject) = variant
+
 	override fun o_TypeIntersection(
 		self: AvailObject,
 		another: A_Type
@@ -479,8 +480,7 @@ class ObjectTypeDescriptor internal constructor(
 		self: AvailObject,
 		anObjectType: AvailObject
 	): A_Type {
-		val otherDescriptor = anObjectType.descriptor() as ObjectTypeDescriptor
-		val otherVariant = otherDescriptor.variant
+		val otherVariant = anObjectType.objectTypeVariant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
 			return variant.mutableObjectTypeDescriptor.create(
@@ -556,8 +556,7 @@ class ObjectTypeDescriptor internal constructor(
 		self: AvailObject,
 		anObjectType: AvailObject
 	): A_Type {
-		val otherDescriptor = anObjectType.descriptor() as ObjectTypeDescriptor
-		val otherVariant = otherDescriptor.variant
+		val otherVariant = anObjectType.objectTypeVariant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
 			return variant.mutableObjectTypeDescriptor.create(
@@ -1076,8 +1075,7 @@ class ObjectTypeDescriptor internal constructor(
 							styleType))),
 				TOP.o)
 
-			private val variant =
-				(styleType.descriptor() as ObjectTypeDescriptor).variant
+			private val variant = styleType.objectTypeVariant
 
 			private val semanticClassifierIndex =
 				variant.fieldToSlotIndex[semanticClassifierAtom]!!

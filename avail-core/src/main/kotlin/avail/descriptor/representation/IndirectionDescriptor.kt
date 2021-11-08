@@ -287,6 +287,7 @@ import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -348,6 +349,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.validateLocally
 import avail.descriptor.phrases.A_Phrase.Companion.variable
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.asTuple
@@ -466,6 +468,7 @@ import avail.descriptor.types.A_Type.Companion.keyType
 import avail.descriptor.types.A_Type.Companion.literalType
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.lowerInclusive
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.parent
 import avail.descriptor.types.A_Type.Companion.phraseKind
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
@@ -542,8 +545,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
-import org.availlang.json.JSONWriter
 import avail.utility.visitor.AvailSubobjectVisitor
+import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
@@ -3460,6 +3463,9 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject, field: A_Atom
 	): AvailObject = self .. { fieldAt(field) }
 
+	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
+		self .. { fieldAtIndex(index) }
+
 	override fun o_FieldAtOrNull(
 		self: AvailObject, field: A_Atom
 	): AvailObject? = self .. { fieldAtOrNull(field) }
@@ -3806,4 +3812,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_SynthesizeCurrentLexingState(
 		self: AvailObject
 	): LexingState = self .. { synthesizeCurrentLexingState() }
+
+	override fun o_ObjectVariant(self: AvailObject): ObjectLayoutVariant =
+		self .. { objectVariant }
+
+	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
+		self .. { objectTypeVariant }
 }

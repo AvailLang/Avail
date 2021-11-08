@@ -51,7 +51,7 @@ import org.objectweb.asm.Opcodes
 object L2_RETURN : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED.named("return value"))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -59,7 +59,7 @@ object L2_RETURN : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

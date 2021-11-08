@@ -107,15 +107,14 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralCo
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.TypeDescriptor
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.dispatch.InternalLookupTree
 import avail.dispatch.LeafLookupTree
-import avail.dispatch.LookupTree
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.exceptions.MethodDefinitionException
@@ -983,13 +982,14 @@ class L1Translator private constructor(
 		// indicate a singular answer, keeping only those that are possible at
 		// this call site.
 		val applicableExpandedLeaves = mutableListOf<A_Definition>()
-		val workList = mutableListOf(tree)
+		val workList = mutableListOf(tree to emptyList<L2SemanticValue>())
 		while (workList.isNotEmpty())
 		{
-			when (val node = workList.removeLast())
+			val (node, extraSemanticValues) = workList.removeLast()
+			when (node)
 			{
-				is InternalLookupTree ->
-					node.decisionStepOrNull?.addChildrenTo(workList)
+				is InternalLookupTree -> node.decisionStepOrNull?.addChildrenTo(
+					workList, semanticArguments, extraSemanticValues)
 				is LeafLookupTree ->
 				{
 					val lookupResult = node.solutionOrNull
@@ -1010,12 +1010,14 @@ class L1Translator private constructor(
 			L2Generator.maxPolymorphismToInlineDispatch)
 		{
 			// Generate all the branches and corresponding target blocks.
-			val edges = mutableListOf<
-				Pair<L2BasicBlock?, LookupTree<A_Definition, A_Tuple>>>()
-			edges.add(null to tree)
+			val edges = mutableListOf(
+				Triple(
+					null as L2BasicBlock?,
+					tree,
+					emptyList<L2SemanticValue>()))
 			while (edges.isNotEmpty())
 			{
-				val (block, node) = edges.removeLast()
+				val (block, node, extraSemanticArguments) = edges.removeLast()
 				if (block != null) generator.startBlock(block)
 				if (!generator.currentlyReachable()) continue
 				when (node)
@@ -1028,7 +1030,9 @@ class L1Translator private constructor(
 								callSiteHelper.onFallBackToSlowLookup)
 							else -> edges.addAll(
 								step.generateEdgesFor(
-									semanticArguments, callSiteHelper))
+									semanticArguments,
+									extraSemanticArguments,
+									callSiteHelper))
 						}
 					}
 					is LeafLookupTree -> leafVisit(
@@ -1317,7 +1321,9 @@ class L1Translator private constructor(
 			val boolSource = registerToTest.definitionSkippingMoves(true)
 			when
 			{
-				boolSource.operation() !is L2_RUN_INFALLIBLE_PRIMITIVE -> { }
+				boolSource.operation !is L2_RUN_INFALLIBLE_PRIMITIVE ->
+				{
+				}
 				primitiveOf(boolSource) === P_Equality ->
 				{
 					val (read1, read2) = argsOf(boolSource)
@@ -1356,7 +1362,7 @@ class L1Translator private constructor(
 						edgeTo(if (constantBool) failBlock else passBlock))
 					return
 				}
-				boolSource.operation() === L2_JUMP_IF_SUBTYPE_OF_CONSTANT ->
+				boolSource.operation === L2_JUMP_IF_SUBTYPE_OF_CONSTANT ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1367,7 +1373,7 @@ class L1Translator private constructor(
 						boolSource.operand<L2ConstantOperand>(1)
 					val firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves(true)
-					if (firstTypeSource.operation() === L2_GET_TYPE)
+					if (firstTypeSource.operation === L2_GET_TYPE)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
@@ -1391,7 +1397,7 @@ class L1Translator private constructor(
 						edgeTo(if (constantBool) failBlock else passBlock))
 					return
 				}
-				boolSource.operation() === L2_JUMP_IF_SUBTYPE_OF_OBJECT ->
+				boolSource.operation === L2_JUMP_IF_SUBTYPE_OF_OBJECT ->
 				{
 					// Instance-of testing is done by extracting the type and
 					// testing if it's a subtype.  See if the operand to the
@@ -1402,7 +1408,7 @@ class L1Translator private constructor(
 						boolSource.operand<L2ReadBoxedOperand>(0)
 					val firstTypeSource =
 						firstTypeOperand.definitionSkippingMoves(true)
-					if (firstTypeSource.operation() === L2_GET_TYPE)
+					if (firstTypeSource.operation === L2_GET_TYPE)
 					{
 						// There's a get-type followed by an is-subtype
 						// followed by a compare-and-branch of the result
@@ -2581,7 +2587,7 @@ class L1Translator private constructor(
 			generator.startBlock(unreachableBlock)
 			addInstruction(L2_UNREACHABLE_CODE)
 			// Now make it a loop head, just so code generated later from
-			// placeholders (L2Operation#isPlaceholder()) can still connect to
+			// placeholders (L2Operation#isPlaceholder) can still connect to
 			// it, as long as it uses a back-edge.
 			unreachableBlock.isLoopHead = true
 		}
@@ -3036,7 +3042,7 @@ class L1Translator private constructor(
 			// was created from.
 			val functionDefinition =
 				functionToCallReg.definitionSkippingMoves(true)
-			return functionDefinition.operation().getConstantCodeFrom(
+			return functionDefinition.operation.getConstantCodeFrom(
 				functionDefinition)
 		}
 

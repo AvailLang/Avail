@@ -37,25 +37,24 @@ import avail.descriptor.numbers.A_Number.Companion.bitSet
 import avail.descriptor.numbers.A_Number.Companion.bitTest
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
-import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.descriptor.types.TypeTag.OBJECT_TAG
 import avail.descriptor.types.TypeTag.TOP_TYPE_TAG
-import avail.dispatch.DecisionStep.ObjectLayoutVariantDecisionStep
-import avail.dispatch.DecisionStep.TestArgumentDecisionStep
-import avail.dispatch.DecisionStep.TypeTagDecisionStep
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.utility.Strings.increaseIndentation
 import avail.utility.notNullAnd
 import java.lang.String.format
 import kotlin.math.max
@@ -244,14 +243,24 @@ internal constructor(
 			for (argNumber in 1..numArgs)
 			{
 				if (commonTags[argNumber - 1] === OBJECT_TAG
-					&& !alreadyVariantTestedArguments.bitTest(argNumber - 1)
-					&& knownArgumentRestrictions[argNumber - 1].type
-						.isSubtypeOf(mostGeneralObjectType))
+					&& !alreadyVariantTestedArguments.bitTest(argNumber - 1))
 				{
-					// A type tag dispatch here is guaranteed to reduce the
-					// number of undecided elements in every subtree.
-					return buildObjectLayoutVariantStep(
-						adaptor, memento, argNumber)
+					// All the elements expect an object to be present.
+					if (!knownArgumentRestrictions[argNumber - 1]
+							.type.isSubtypeOf(mostGeneralObjectType))
+					{
+						// The value hasn't been proven to be an object yet.
+						// Introduce a tag dispatch, and the next layer will be
+						// able to do the object dispatch safely.
+						return buildTypeTagTest(adaptor, memento, argNumber)
+					}
+					else
+					{
+						// The value is also already known to be an object.
+						// Dispatching on the variant here
+						return buildObjectLayoutVariantStep(
+							adaptor, memento, argNumber)
+					}
 				}
 			}
 
@@ -536,7 +545,8 @@ internal constructor(
 				val commonArgType = adaptor.restrictedSignature(element, bound)
 					.typeAtIndex(argumentIndex)
 				val tag = commonArgType.instanceTag
-				val subset = tagToElements.computeIfAbsent(tag) { mutableSetOf() }
+				val subset =
+					tagToElements.computeIfAbsent(tag) { mutableSetOf() }
 				subset.add(element)
 				if (tag.isSubtagOf(TOP_TYPE_TAG))
 				{
@@ -621,7 +631,7 @@ internal constructor(
 	 */
 	private fun <AdaptorMemento> buildObjectLayoutVariantStep(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento,
+		@Suppress("UNUSED_PARAMETER") memento: AdaptorMemento,
 		argumentIndex: Int,
 	): ObjectLayoutVariantDecisionStep<Element, Result>
 	{
@@ -638,8 +648,7 @@ internal constructor(
 					// some specific objects.  Add this element under each
 					// instance's variant.
 					commonArgType.instances.forEach { instance ->
-						val descriptor = instance.traversed().descriptor()
-						val variant = (descriptor as ObjectDescriptor).variant
+						val variant = instance.objectVariant
 						variantToElementsSet.getOrPut(variant) {
 							mutableSetOf()
 						}.add(element)
@@ -647,8 +656,7 @@ internal constructor(
 				}
 				else -> {
 					// Store the element under the object type's variant.
-					val descriptor = commonArgType.traversed().descriptor()
-					val variant = (descriptor as ObjectTypeDescriptor).variant
+					val variant = commonArgType.objectTypeVariant
 					variantToElementsSet.getOrPut(variant) {
 						mutableSetOf()
 					}.add(element)
@@ -665,11 +673,13 @@ internal constructor(
 
 	override fun toString(indent: Int): String = when (val step = decisionStep)
 	{
-		null -> format(
-			"Lazy internal node: (u=%d, p=%d) known=%s",
-			undecidedElements.size,
-			positiveElements.size,
-			knownArgumentRestrictions)
+		null -> increaseIndentation(
+			format(
+				"Lazy internal node: (u=%d, p=%d) known=%s",
+				undecidedElements.size,
+				positiveElements.size,
+				knownArgumentRestrictions),
+			indent + 1)
 		else -> buildString {
 			step.describe(this@InternalLookupTree, indent, this@buildString)
 		}

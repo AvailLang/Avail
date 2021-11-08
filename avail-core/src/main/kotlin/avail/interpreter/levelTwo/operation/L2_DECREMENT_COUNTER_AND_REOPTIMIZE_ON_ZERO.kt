@@ -65,10 +65,8 @@ object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
 	L2OperandType.INT_IMMEDIATE.named("new optimization level"),
 	L2OperandType.INT_IMMEDIATE.named("is entry point"))
 {
-	override fun hasSideEffect(): Boolean
-	{
-		return true
-	}
+	override val hasSideEffect: Boolean
+		get() = true
 
 	override fun isEntryPoint(instruction: L2Instruction): Boolean
 	{

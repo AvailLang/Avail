@@ -34,11 +34,15 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
+import avail.utility.notNullAnd
 import org.objectweb.asm.MethodVisitor
 
 /**
@@ -51,9 +55,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_GET_OBJECT_FIELD : L2Operation(
-	L2OperandType.READ_BOXED.named("object"),
-	L2OperandType.CONSTANT.named("field atom"),
-	L2OperandType.WRITE_BOXED.named("field value"))
+	READ_BOXED.named("object"),
+	CONSTANT.named("field atom"),
+	WRITE_BOXED.named("field value"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -61,7 +65,7 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
@@ -80,10 +84,24 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val objectRead = instruction.operand<L2ReadBoxedOperand>(0)
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
+
+		val variants = objectRead.restriction().positiveGroup.objectVariants
+		if (variants.notNullAnd { map { it.variantId }.toSet().size == 1 })
+		{
+			// The field index is the same for every variant possible at this
+			// point.  Get the field by index.
+			val variant = variants!!.first()
+			val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
+			translator.load(method, objectRead.register())
+			translator.intConstant(method, fieldIndex)
+			AvailObject.fieldAtIndexMethod.generateCall(method)
+			translator.store(method, fieldValue.register())
+			return
+		}
 		translator.load(method, objectRead.register())
 		translator.literal(method, fieldAtom.constant)
 		AvailObject.fieldAtMethod.generateCall(method)

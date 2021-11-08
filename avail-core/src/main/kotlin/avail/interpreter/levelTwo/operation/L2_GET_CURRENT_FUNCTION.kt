@@ -55,7 +55,7 @@ import org.objectweb.asm.Type
 object L2_GET_CURRENT_FUNCTION : L2Operation(
 	L2OperandType.WRITE_BOXED.named("current function"))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -63,7 +63,7 @@ object L2_GET_CURRENT_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function =
 			instruction.operand<L2WriteBoxedOperand>(0)
 		renderPreamble(instruction, builder)

@@ -76,7 +76,7 @@ object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
 	PC.named("swap failed", Purpose.FAILURE),
 	PC.named("variable set exception", Purpose.FAILURE))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override val isVariableSet: Boolean
 		get() = true
@@ -90,7 +90,7 @@ object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
 		val reference = instruction.operand<L2ReadBoxedOperand>(1)
 		val newValue = instruction.operand<L2ReadBoxedOperand>(2)
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		renderPreamble(instruction, builder)
 		builder.append(" ↓")
 		builder.append(variable.registerString())
