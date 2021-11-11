@@ -487,10 +487,6 @@ protected constructor (
 	override fun o_SetHashOrZero (self: AvailObject, value: Int): Unit =
 		unsupported
 
-	override fun o_HasKey (
-		self: AvailObject,
-		keyObject: A_BasicObject): Boolean = unsupported
-
 	override fun o_DefinitionsAtOrBelow (
 			self: AvailObject,
 			argRestrictions: List<TypeRestriction>): List<A_Definition> =
@@ -596,9 +592,9 @@ protected constructor (
 			argumentList: List<A_BasicObject>): A_Definition =
 		unsupported
 
-	override fun o_MapAt (
+	override fun o_MapAtOrNull (
 		self: AvailObject,
-		keyObject: A_BasicObject): AvailObject = unsupported
+		keyObject: A_BasicObject): AvailObject? = unsupported
 
 	override fun o_MapAtPuttingCanDestroy (
 		self: AvailObject,
@@ -2708,11 +2704,6 @@ protected constructor (
 	override fun o_SerializedObjects(
 		self: AvailObject,
 		serializedObjects: A_Tuple
-	): Unit = unsupported
-
-	override fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map
 	): Unit = unsupported
 
 	override fun o_ApplyModuleHeader(

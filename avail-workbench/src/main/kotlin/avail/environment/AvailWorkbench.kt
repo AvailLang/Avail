@@ -60,6 +60,7 @@ import avail.environment.actions.CreateProgramAction
 import avail.environment.actions.ExamineCompilationAction
 import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
+import avail.environment.actions.ExamineSerializedPhrasesAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
 import avail.environment.actions.InsertEntryPointAction
@@ -398,10 +399,10 @@ class AvailWorkbench internal constructor (
 	private val resetVMReportDataAction = ResetVMReportDataAction(this)
 
 	/** The [show CC report action][ShowCCReportAction]. */
-	private val showCCReportAction: ShowCCReportAction
+	private val showCCReportAction = ShowCCReportAction(this, runtime)
 
 	/** The [reset CC report data action][ResetCCReportDataAction]. */
-	private val resetCCReportDataAction: ResetCCReportDataAction
+	private val resetCCReportDataAction = ResetCCReportDataAction(this, runtime)
 
 	/** The [toggle trace macros action][TraceMacrosAction]. */
 	private val debugMacroExpansionsAction = TraceMacrosAction(this)
@@ -454,16 +455,23 @@ class AvailWorkbench internal constructor (
 		TraceLoadedStatementsAction(this)
 
 	/** The [ParserIntegrityCheckAction]. */
-	private val parserIntegrityCheckAction: ParserIntegrityCheckAction
+	private val parserIntegrityCheckAction =
+		ParserIntegrityCheckAction(this, runtime)
 
 	/** The [ExamineRepositoryAction]. */
-	private val examineRepositoryAction: ExamineRepositoryAction
+	private val examineRepositoryAction = ExamineRepositoryAction(this, runtime)
 
 	/** The [ExamineCompilationAction]. */
-	private val examineCompilationAction: ExamineCompilationAction
+	private val examineCompilationAction =
+		ExamineCompilationAction(this, runtime)
+
+	/** The [ExamineSerializedPhrasesAction]. */
+	private val examinePhrasesAction =
+		ExamineSerializedPhrasesAction(this, runtime)
 
 	/** The [ExamineModuleManifest]. */
-	private val examineModuleManifestAction: ExamineModuleManifest
+	private val examineModuleManifestAction =
+		ExamineModuleManifest(this, runtime)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -888,6 +896,8 @@ class AvailWorkbench internal constructor (
 		examineRepositoryAction.isEnabled =
 			!busy && selectedModuleRootNode() !== null
 		examineCompilationAction.isEnabled =
+			!busy && selectedModule() !== null
+		examinePhrasesAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineModuleManifestAction.isEnabled =
 			!busy && selectedModule() !== null
@@ -1589,12 +1599,6 @@ class AvailWorkbench internal constructor (
 				setDocumentationPathAction))
 		menuBar.add(
 			menu("Run", insertEntryPointAction, null, clearTranscriptAction))
-		showCCReportAction = ShowCCReportAction(this, runtime)
-		resetCCReportDataAction = ResetCCReportDataAction(this, runtime)
-		parserIntegrityCheckAction = ParserIntegrityCheckAction(this, runtime)
-		examineRepositoryAction = ExamineRepositoryAction(this, runtime)
-		examineCompilationAction = ExamineCompilationAction(this, runtime)
-		examineModuleManifestAction = ExamineModuleManifest(this, runtime)
 		if (showDeveloperTools)
 		{
 			menuBar.add(
@@ -1624,6 +1628,7 @@ class AvailWorkbench internal constructor (
 					parserIntegrityCheckAction,
 					examineRepositoryAction,
 					examineCompilationAction,
+					examinePhrasesAction,
 					examineModuleManifestAction,
 					null,
 					graphAction))

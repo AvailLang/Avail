@@ -460,49 +460,6 @@ abstract class LookupTreeAdaptor<
 	}
 
 	/**
-	 * Given a [tuple][A_Tuple] of [A_BasicObject]s, use their types to traverse
-	 * the [LookupTree].  Answer the solution, a [Result]. Uses iteration rather
-	 * than recursion to limit stack depth.
-	 *
-	 * @param root
-	 *   The [LookupTree] to search.
-	 * @param argValues
-	 *   The input tuple of [A_BasicObject]s.
-	 * @param memento
-	 *   A value potentially used for constructing [Result]s in parts of the
-	 *   tree that have not yet been constructed.
-	 * @param lookupStats
-	 *   The [LookupStatistics] in which to record the lookup.
-	 * @return
-	 *   The [Result].
-	 */
-	fun lookupByValues(
-		root: LookupTree<Element, Result>,
-		argValues: A_Tuple,
-		memento: Memento,
-		lookupStats: LookupStatistics): Result
-	{
-		val before = captureNanos()
-		var depth = 0
-		var tree = root
-		var solution = tree.solutionOrNull
-		var extraValues = emptyList<Element>()
-		while (solution === null)
-		{
-			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValuesByValues(
-				argValues, extraValues)
-			tree = step.lookupStepByValues(
-				argValues, extraValues, this, memento)
-			solution = tree.solutionOrNull
-			depth++
-		}
-		lookupStats.recordDynamicLookup(
-			(captureNanos() - before).toDouble(), depth)
-		return solution
-	}
-
-	/**
 	 * Use the given singular value to traverse the tree.  Answer the solution,
 	 * a [Result].  Uses iteration rather than recursion to limit stack depth.
 	 *

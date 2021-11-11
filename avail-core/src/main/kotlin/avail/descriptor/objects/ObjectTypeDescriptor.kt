@@ -45,9 +45,9 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KE
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -789,12 +789,8 @@ class ObjectTypeDescriptor internal constructor(
 				}
 				if (keyAtomWithLeastNames !== null)
 				{
-					var namesSet = when
-					{
-						keyAtomNamesMap!!.hasKey(anObjectType) ->
-							keyAtomNamesMap.mapAt(anObjectType)
-						else -> emptySet
-					}
+					var namesSet =
+						keyAtomNamesMap!!.mapAtOrNull(anObjectType) ?: emptySet
 					namesSet = namesSet.setWithElementCanDestroy(aString, false)
 					keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
 						anObjectType, namesSet, true)
@@ -825,27 +821,29 @@ class ObjectTypeDescriptor internal constructor(
 					if (!atom.isAtomSpecial)
 					{
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
-						if (namesMap.notNil
-							&& namesMap.hasKey(anObjectType))
+						if (namesMap.notNil)
 						{
-							// In theory the user can give this type multiple
-							// names, so only remove the one that we've been
-							// told to.
-							var namesSet: A_Set = namesMap.mapAt(anObjectType)
-							namesSet = namesSet.setWithoutElementCanDestroy(
-								aString, false)
-							namesMap = when(namesSet.setSize)
-							{
-								0 -> namesMap.mapWithoutKeyCanDestroy(
-									anObjectType, false)
-								else -> namesMap.mapAtPuttingCanDestroy(
-									anObjectType, namesSet, false)
-							}
-							when (namesMap.mapSize)
-							{
-								0 -> atom.setAtomProperty(propertyKey, nil)
-								else -> atom.setAtomProperty(
-									propertyKey, namesMap)
+							namesMap.mapAtOrNull(anObjectType)?.let {
+									oldNamesSet ->
+								// In theory the user can give this type
+								// multiple names, so only remove the one that
+								// we've been told to.
+								val namesSet =
+									oldNamesSet.setWithoutElementCanDestroy(
+										aString, false)
+								namesMap = when(namesSet.setSize)
+								{
+									0 -> namesMap.mapWithoutKeyCanDestroy(
+										anObjectType, false)
+									else -> namesMap.mapAtPuttingCanDestroy(
+										anObjectType, namesSet, false)
+								}
+								when (namesMap.mapSize)
+								{
+									0 -> atom.setAtomProperty(propertyKey, nil)
+									else -> atom.setAtomProperty(
+										propertyKey, namesMap)
+								}
 							}
 						}
 					}
@@ -877,10 +875,9 @@ class ObjectTypeDescriptor internal constructor(
 						map.forEach { namedType, innerValue ->
 							if (anObjectType.isSubtypeOf(namedType)) {
 								var nameSet: A_Set = innerValue
-								if (applicable.hasKey(namedType)) {
+								applicable.mapAtOrNull(namedType)?.let { more ->
 									nameSet = nameSet.setUnionCanDestroy(
-										applicable.mapAt(namedType),
-										true)
+										more, true)
 								}
 								applicable = applicable.mapAtPuttingCanDestroy(
 									namedType, nameSet, true)

@@ -557,7 +557,7 @@ class MethodDescriptor private constructor(
 			dynamicLookupStats()))
 
 	/**
-	 * Look up the definition to invoke, given an array of argument values. Use
+	 * Look up the definition to invoke, given a [List] of argument values. Use
 	 * the [methodTestingTree] to find the definition to invoke.  Answer
 	 * [nil][NilDescriptor.nil] if a lookup error occurs.
 	 */

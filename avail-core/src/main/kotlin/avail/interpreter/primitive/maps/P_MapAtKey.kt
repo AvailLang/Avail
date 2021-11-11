@@ -33,8 +33,7 @@ package avail.interpreter.primitive.maps
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -64,11 +63,10 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 		interpreter.checkArgumentCount(2)
 		val map = interpreter.argument(0)
 		val key = interpreter.argument(1)
-		return if (!map.hasKey(key))
-		{
-			interpreter.primitiveFailure(E_KEY_NOT_FOUND)
+		map.mapAtOrNull(key)?.let {
+			return interpreter.primitiveSuccess(it)
 		}
-		else interpreter.primitiveSuccess(map.mapAt(key))
+		return interpreter.primitiveFailure(E_KEY_NOT_FOUND)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -86,11 +84,8 @@ object P_MapAtKey : Primitive(2, CanFold, CanInline)
 			{
 				for (keyInstance in keyTypeInstances)
 				{
-					if (mapInstance.hasKey(keyInstance))
-					{
-						values = values.setWithElementCanDestroy(
-							mapInstance.mapAt(keyInstance),
-							true)
+					mapInstance.mapAtOrNull(keyInstance)?.let { value ->
+						values = values.setWithElementCanDestroy(value, true)
 					}
 				}
 			}

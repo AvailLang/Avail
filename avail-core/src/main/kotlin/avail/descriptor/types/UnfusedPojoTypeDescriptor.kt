@@ -33,9 +33,9 @@ package avail.descriptor.types
 
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -175,12 +175,9 @@ constructor(
 		}
 		for (ancestor in ancestors.keysAsSet)
 		{
-			if (!otherAncestors.hasKey(ancestor))
-			{
+			val otherParams: A_Tuple = otherAncestors.mapAtOrNull(ancestor) ?:
 				return false
-			}
 			val params: A_Tuple = ancestors.mapAt(ancestor)
-			val otherParams: A_Tuple = otherAncestors.mapAt(ancestor)
 			val limit = params.tupleSize
 			assert(limit == otherParams.tupleSize)
 			for (i in 1 .. limit)

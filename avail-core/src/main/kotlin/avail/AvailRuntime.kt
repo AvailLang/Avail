@@ -1450,7 +1450,6 @@ class AvailRuntime constructor(
 	{
 		assert(moduleName.isString)
 		return runtimeLock.read {
-			assert(modules.hasKey(moduleName))
 			modules.mapAt(moduleName)
 		}
 	}

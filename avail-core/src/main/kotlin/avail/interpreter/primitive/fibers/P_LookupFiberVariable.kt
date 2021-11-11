@@ -35,8 +35,7 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -68,13 +67,10 @@ object P_LookupFiberVariable : Primitive(1, CanInline)
 				fiber.fiberGlobals()
 			else -> fiber.heritableFiberGlobals()
 		}
-		return when
-		{
-			!globals.hasKey(key) ->
-				interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
-			else ->
-				interpreter.primitiveSuccess(globals.mapAt(key).makeImmutable())
+		globals.mapAtOrNull(key)?.let {
+			return interpreter.primitiveSuccess(it.makeImmutable())
 		}
+		return interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

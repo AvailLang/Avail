@@ -74,8 +74,8 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionMethod
@@ -1528,24 +1528,15 @@ class AvailLoader(
 	 *   Every [atom][AtomDescriptor] associated with the name.
 	 */
 	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock {
-		val newNames = when
+		val newNames = when (val name = module.newNames.mapAtOrNull(stringName))
 		{
-			module.newNames.hasKey(stringName) ->
-				singletonSet(module.newNames.mapAt(stringName))
-			else -> emptySet
+			null -> emptySet
+			else -> singletonSet(name)
 		}
-		val publicNames = when
-		{
-			module.importedNames.hasKey(stringName) ->
-				module.importedNames.mapAt(stringName)
-			else -> emptySet
-		}
-		val privateNames = when
-		{
-			module.privateNames.hasKey(stringName) ->
-				module.privateNames.mapAt(stringName)
-			else -> emptySet
-		}
+		val publicNames =
+			module.importedNames.mapAtOrNull(stringName) ?: emptySet
+		val privateNames =
+			module.privateNames.mapAtOrNull(stringName) ?: emptySet
 		newNames
 			.setUnionCanDestroy(publicNames, true)
 			.setUnionCanDestroy(privateNames, true)

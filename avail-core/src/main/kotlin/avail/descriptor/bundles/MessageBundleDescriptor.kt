@@ -336,7 +336,7 @@ class MessageBundleDescriptor private constructor(
 			self.bundleMethod.traversed().descriptor() as MethodDescriptor
 		return MethodDescriptor.runtimeDispatcher.lookupByValues(
 			macroTestingTree(self),
-			argumentPhraseTuple,
+			argumentPhraseTuple.toList(),
 			Unit,
 			methodDescriptor.dynamicLookupStats())
 	}

@@ -40,6 +40,8 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_Tuple
+import avail.exceptions.AvailErrorCode
+import avail.exceptions.MapException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -82,7 +84,7 @@ interface A_Map : A_BasicObject
 		 *   Whether the potential key was found in this map.
 		 */
 		fun A_Map.hasKey(keyObject: A_BasicObject): Boolean =
-			dispatch { o_HasKey(it, keyObject) }
+			mapAtOrNull(keyObject) !== null
 
 		/**
 		 * Answer the [set][A_Set] of keys in this map.  Since keys of maps and
@@ -105,9 +107,28 @@ interface A_Map : A_BasicObject
 		 *   The key to look up.
 		 * @return
 		 *   The value associated with that key in the map.
+		 * @throws MapException
+		 *   If the key was not found.
 		 */
 		fun A_Map.mapAt(keyObject: A_BasicObject): AvailObject =
-			dispatch { o_MapAt(it, keyObject) }
+			mapAtOrNull(keyObject) ?:
+				throw MapException(AvailErrorCode.E_KEY_NOT_FOUND)
+
+		/**
+		 * Find the key/value pair in this map which has the specified key and
+		 * answer the value.  Answer null if the specified key is not present in
+		 * the map. The result is *not* forced to be immutable, as it's up to
+		 * the caller whether the new reference would leak beyond a usage that
+		 * conserves its reference count.
+		 *
+		 * @param keyObject
+		 *   The key to look up.
+		 * @return
+		 *   The value associated with that key in the map, or null if it was
+		 *   not present.
+		 */
+		fun A_Map.mapAtOrNull(keyObject: A_BasicObject): AvailObject? =
+			dispatch { o_MapAtOrNull(it, keyObject) }
 
 		/**
 		 * Create a new map like this map, but with a new key/value pair as

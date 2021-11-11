@@ -33,8 +33,7 @@
 package avail.interpreter.primitive.maps
 
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -53,9 +52,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_NEGATIVE_SIZE
@@ -238,11 +237,8 @@ object P_MapReplaceRangeNAryKey : Primitive(5, CanInline, CanFold)
 			throw AvailException(E_INCORRECT_ARGUMENT_TYPE)
 		}
 		val targetIndex = pathTuple.tupleAt(pathIndex)
-		if (!targetMap.hasKey(targetIndex))
-		{
+		val targetElement = targetMap.mapAtOrNull(targetIndex) ?:
 			throw AvailException(E_KEY_NOT_FOUND)
-		}
-		val targetElement = targetMap.mapAt(targetIndex)
 		when
 		{
 			targetElement.isTuple ->

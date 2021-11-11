@@ -84,12 +84,10 @@ import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
-import avail.exceptions.AvailErrorCode
-import avail.exceptions.MapException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -389,11 +387,10 @@ class MapDescriptor private constructor(
 	 * Answer the value of the map at the specified key. Fail if the key is not
 	 * present.
 	 */
-	override fun o_MapAt(
+	override fun o_MapAtOrNull(
 		self: AvailObject,
 		keyObject: A_BasicObject
 	) = rootBin(self).mapBinAtHash(keyObject, keyObject.hash())
-		?: throw MapException(AvailErrorCode.E_KEY_NOT_FOUND)
 
 	/**
 	 * Answer a map like this one but with [keyObject] associated with
@@ -506,9 +503,6 @@ class MapDescriptor private constructor(
 		}
 		return createFromBin(root)
 	}
-
-	override fun o_HasKey(self: AvailObject, keyObject: A_BasicObject) =
-		rootBin(self).mapBinAtHash(keyObject, keyObject.hash()) !== null
 
 	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize
 

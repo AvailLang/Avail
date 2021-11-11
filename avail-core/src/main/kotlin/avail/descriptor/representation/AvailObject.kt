@@ -62,7 +62,6 @@ import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.A_Number
-import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress

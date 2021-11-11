@@ -43,6 +43,7 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import avail.descriptor.phrases.A_Phrase
@@ -152,37 +153,28 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		val optionalExceptionTypes = interpreter.argument(6)
 
 		var fiberGlobals = interpreter.fiber().fiberGlobals()
-		if (!fiberGlobals.hasKey(clientDataKey))
-		{
+		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		}
-		var clientData: A_Map = fiberGlobals.mapAt(clientDataKey)
 		if (!clientData.hasKey(scopeMapKey))
 		{
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
-		if (!clientData.hasKey(staticTokensKey))
-		{
+		val tokens = clientData.mapAtOrNull(staticTokensKey) ?:
 			// It looks like somebody removed the used tokens information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
-		}
 		// Primitive P_BootstrapPrefixEndOfBlockBody already popped the scope
 		// stack to the map, then pushed the map with the block's local
 		// declarations back onto the stack.  So we can simply look up the local
 		// declarations in the top map of the stack, then pop it to nowhere when
 		// we're done.
-		if (!clientData.hasKey(scopeStackKey))
-		{
+		var scopeStack: A_Tuple = clientData.mapAtOrNull(scopeStackKey) ?:
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
-		}
-		var scopeStack: A_Tuple = clientData.mapAt(scopeStackKey)
 		if (!scopeStack.isTuple || scopeStack.tupleSize == 0)
 		{
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
 		}
 		val scopeMap = scopeStack.tupleAt(scopeStack.tupleSize)
-		val tokens = clientData.mapAt(staticTokensKey)
 
 		assert(optionalArgumentDeclarations.expressionsSize <= 1)
 
@@ -197,19 +189,15 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		// Look up the names of the arguments that were declared in the first
 		// prefix function.
 		val argumentDeclarationsList = mutableListOf<A_Phrase>()
-		run {
-			for (declarationPair in argumentDeclarationPairs)
-			{
-				val declarationName =
-					declarationPair.expressionAt(1).token.string()
-				if (!scopeMap.hasKey(declarationName))
-				{
-					// The argument binding is missing.
-					return interpreter.primitiveFailure(
-						E_INCONSISTENT_PREFIX_FUNCTION)
-				}
-				argumentDeclarationsList.add(scopeMap.mapAt(declarationName))
-			}
+		for (declarationPair in argumentDeclarationPairs)
+		{
+			val declarationName =
+				declarationPair.expressionAt(1).token.string()
+			val declaration = scopeMap.mapAtOrNull(declarationName) ?:
+				// The argument binding is missing.
+				return interpreter.primitiveFailure(
+					E_INCONSISTENT_PREFIX_FUNCTION)
+			argumentDeclarationsList.add(declaration)
 		}
 
 		// Deal with the primitive declaration if present.
@@ -253,14 +241,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 				val failurePair = optionalFailurePair.expressionAt(1)
 				val failureToken = failurePair.expressionAt(1).token
 				val failureDeclarationName = failureToken.literal().string()
-				if (!scopeMap.hasKey(failureDeclarationName))
-				{
+				val failureDeclaration =
+						scopeMap.mapAtOrNull(failureDeclarationName) ?:
 					// The primitive failure variable binding is missing.
 					return interpreter.primitiveFailure(
 						E_INCONSISTENT_PREFIX_FUNCTION)
-				}
-				val failureDeclaration =
-					scopeMap.mapAt(failureDeclarationName)
 				allStatements.add(failureDeclaration)
 			}
 			primitiveReturnType = primitive.blockTypeRestriction().returnType
@@ -279,15 +264,11 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			val presentLabel = optionalLabel.expressionAt(1)
 			val labelToken = presentLabel.expressionAt(1).token
 			val labelDeclarationName = labelToken.literal().string()
-			if (!scopeMap.hasKey(labelDeclarationName))
-			{
+			val label = scopeMap.mapAtOrNull(labelDeclarationName) ?:
 				// The label binding is missing.
 				return interpreter.primitiveFailure(
 					E_INCONSISTENT_PREFIX_FUNCTION)
-			}
-			val optionalLabelReturnTypePhrase =
-				presentLabel.expressionAt(2)
-			val label = scopeMap.mapAt(labelDeclarationName)
+			val optionalLabelReturnTypePhrase = presentLabel.expressionAt(2)
 			allStatements.add(label)
 			if (optionalLabelReturnTypePhrase.expressionsSize == 1)
 			{

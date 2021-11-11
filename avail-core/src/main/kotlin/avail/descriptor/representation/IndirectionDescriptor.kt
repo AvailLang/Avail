@@ -124,9 +124,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -224,7 +223,6 @@ import avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
-import avail.descriptor.module.A_Module.Companion.serializedObjectsMap
 import avail.descriptor.module.A_Module.Companion.stylers
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
@@ -1308,11 +1306,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetHashOrZero(self: AvailObject, value: Int) =
 		self .. { setHashOrZero(value) }
 
-	override fun o_HasKey(
-		self: AvailObject,
-		keyObject: A_BasicObject
-	): Boolean = self .. { hasKey(keyObject) }
-
 	override fun o_HasObjectInstance(
 		self: AvailObject,
 		potentialInstance: AvailObject
@@ -1497,10 +1490,10 @@ class IndirectionDescriptor private constructor(
 		argumentList: List<A_BasicObject>
 	): A_Definition = self .. { lookupByValuesFromList(argumentList) }
 
-	override fun o_MapAt(
+	override fun o_MapAtOrNull(
 		self: AvailObject,
 		keyObject: A_BasicObject
-	): AvailObject = self .. { mapAt(keyObject) }
+	): AvailObject? = self .. { mapAtOrNull(keyObject) }
 
 	override fun o_MapAtPuttingCanDestroy(
 		self: AvailObject,
@@ -3758,11 +3751,6 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		serializedObjects: A_Tuple
 	) = self .. { serializedObjects(serializedObjects) }
-
-	override fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map
-	) = self .. { serializedObjectsMap(serializedObjectsMap) }
 
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,

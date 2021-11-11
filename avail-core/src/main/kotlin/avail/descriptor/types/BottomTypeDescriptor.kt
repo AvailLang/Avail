@@ -327,7 +327,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	override fun o_ReturnType(self: AvailObject): A_Type = self
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		SerializerOperation.BOTTOM_TYPE
+		SerializerOperation.SPECIAL_OBJECT
 
 	// Answer what sizes my instances can be. Since I'm a degenerate
 	// map type, answer ⊥, a degenerate integer type.

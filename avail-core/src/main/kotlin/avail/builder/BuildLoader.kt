@@ -47,24 +47,20 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
-import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
-import avail.descriptor.module.A_Module.Companion.serializedObjectsMap
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
-import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
+import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
@@ -270,8 +266,8 @@ internal class BuildLoader constructor(
 					val compilation = version.getCompilation(compilationKey)
 					if (compilation !== null)
 					{
-						// The current version of the module is already compiled, so
-						// load the repository's version.
+						// The current version of the module is already
+						// compiled, so load the repository's version.
 						loadRepositoryModule(
 							moduleName,
 							version,
@@ -551,23 +547,25 @@ internal class BuildLoader constructor(
 							// tuple of block phrases.
 							val blockPhrasesOutputStream =
 								IndexedFile.ByteArrayOutputStream(5000)
+							val bodyObjectsTuple = compiler.compilationContext
+								.serializer.serializedObjectsTuple()
 							val bodyObjectsMap =
-								compiler.compilationContext.serializer
-									.serializedObjectsMap()
+								mutableMapOf<AvailObject, Int>()
+							bodyObjectsTuple.forEachIndexed {
+									zeroIndex, element ->
+								bodyObjectsMap[element] = zeroIndex + 1
+							}
 							// Ensure the primed objects are always at strictly
 							// negative indices.
-							val delta = bodyObjectsMap.mapSize + 1
+							val delta = bodyObjectsMap.size + 1
 							val blockPhraseSerializer = Serializer(
 								blockPhrasesOutputStream,
 								module
 							) { obj ->
-								when (bodyObjectsMap.hasKey(obj))
+								when (val i = bodyObjectsMap[obj])
 								{
-									true ->
-										bodyObjectsMap
-											.mapAt(obj)
-											.extractInt - delta
-									else -> 0
+									null -> 0
+									else -> i - delta
 								}
 							}
 							blockPhraseSerializer.serialize(
@@ -593,27 +591,23 @@ internal class BuildLoader constructor(
 							// TODO MvG - Capture "/**" comments for Stacks.
 							//		final A_Tuple comments = fromList(
 							//         module.commentTokens());
-							val comments = emptyTuple
-							val serializer = Serializer(out, module)
-							serializer.serialize(comments)
+							//val comments = emptyTuple
+							//val stacksSerializer = Serializer(out, module)
+							//stacksSerializer.serialize(comments)
+							appendCRC(out)
+							val version = archive.getVersion(versionKey)!!
+							version.putComments(out.toByteArray())
+
 							module.getAndSetTupleOfBlockPhrases(
 								fromLong(
 									compilation.recordNumberOfBlockPhrases))
 							module.getAndSetManifestEntries(
 								fromLong(
 									compilation.recordNumberOfManifestEntries))
-							appendCRC(out)
-
-							val version = archive.getVersion(versionKey)!!
-							version.putComments(out.toByteArray())
-
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)
 							postLoad(moduleName, lastPosition)
-							module.serializedObjects(
-								serializer.serializedObjects())
-							module.serializedObjectsMap(
-								serializer.serializedObjectsMap())
+							module.serializedObjects(bodyObjectsTuple)
 							availBuilder.putLoadedModule(
 								moduleName,
 								LoadedModule(

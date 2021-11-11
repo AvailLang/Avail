@@ -82,18 +82,6 @@ constructor(
 	 *
 	 * By default, simply return the input.
 	 */
-	open fun updateExtraValuesByValues(
-		argValues: A_Tuple,
-		extraValues: List<Element>
-	): List<Element> = extraValues
-
-	/**
-	 * Given an optional list of values used to supplement the lookup, answer
-	 * the updated list of values that takes this step into account. The given
-	 * and resulting lists must not be modified by subsequent steps.
-	 *
-	 * By default, simply return the input.
-	 */
 	open fun updateExtraValuesByTypes(
 		types: List<A_Type>,
 		extraValues: List<Element>
@@ -144,31 +132,6 @@ constructor(
 	 */
 	abstract fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
-		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-
-	/**
-	 * Perform one step of looking up the most-specific [Result] that matches
-	 * the provided tuple of arguments.  Answer another [LookupTree] with which
-	 * to continue the search.
-	 *
-	 * @param argValues
-	 *   The [tuple][A_Tuple] of arguments being looked up.
-	 * @param extraValues
-	 *   An optional immutable [List] of additional values, only created when
-	 *   needed.
-	 * @param adaptor
-	 *   The adaptor for interpreting the values in the tree, and deciding how
-	 *   to narrow the elements that are still applicable at each internal node
-	 *   of the tree.
-	 * @param memento
-	 *   A memento for the adaptor to use.
-	 * @return
-	 *   The next [LookupTree] to search.
-	 */
-	abstract fun <AdaptorMemento> lookupStepByValues(
-		argValues: A_Tuple,
 		extraValues: List<Element>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
@@ -258,15 +221,6 @@ constructor(
 	) = when
 	{
 		argumentPositionToTest > 0 -> argValues[argumentPositionToTest - 1]
-		else -> extraValues[-1 -argumentPositionToTest]
-	} as AvailObject
-
-	fun extractArgument(
-		argValues: A_Tuple,
-		extraValues: List<Element>
-	) = when
-	{
-		argumentPositionToTest > 0 -> argValues.tupleAt(argumentPositionToTest)
 		else -> extraValues[-1 -argumentPositionToTest]
 	} as AvailObject
 

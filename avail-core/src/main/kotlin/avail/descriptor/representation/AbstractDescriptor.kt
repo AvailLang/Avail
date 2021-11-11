@@ -1488,10 +1488,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		value: Int)
 
-	abstract fun o_HasKey (
-		self: AvailObject,
-		keyObject: A_BasicObject): Boolean
-
 	abstract fun o_DefinitionsAtOrBelow (
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>): List<A_Definition>
@@ -1594,9 +1590,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		argumentList: List<A_BasicObject>): A_Definition
 
-	abstract fun o_MapAt (
+	abstract fun o_MapAtOrNull (
 		self: AvailObject,
-		keyObject: A_BasicObject): AvailObject
+		keyObject: A_BasicObject): AvailObject?
 
 	abstract fun o_MapAtPuttingCanDestroy (
 		self: AvailObject,
@@ -3870,10 +3866,6 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_SerializedObjects(
 		self: AvailObject,
 		serializedObjects: A_Tuple)
-
-	abstract fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map)
 
 	abstract fun o_ApplyModuleHeader(
 		self: AvailObject,

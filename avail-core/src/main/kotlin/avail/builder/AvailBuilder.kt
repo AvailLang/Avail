@@ -49,7 +49,6 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -74,8 +73,6 @@ import avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import avail.io.TextInterface
-import org.availlang.persistence.IndexedFile
-import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleArchive
 import avail.persistence.cache.Repository.ModuleCompilation
@@ -84,6 +81,8 @@ import avail.serialization.Serializer
 import avail.utility.Graph
 import avail.utility.StackPrinter.Companion.trace
 import avail.utility.safeWrite
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import java.io.File
 import java.lang.String.format
 import java.nio.file.Path
@@ -282,8 +281,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		for (graphModuleName in moduleGraph.vertices.toList())
 		{
 			val qualifiedAvailName = stringFrom(graphModuleName.qualifiedName)
-			assert(allLoadedModules.containsKey(graphModuleName))
-			assert(loadedRuntimeModules.hasKey(qualifiedAvailName))
 			assert(allLoadedModules[graphModuleName]!!.module.equals(
 				loadedRuntimeModules.mapAt(qualifiedAvailName)))
 		}

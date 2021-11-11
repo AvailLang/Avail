@@ -118,21 +118,6 @@ constructor(
 		}
 	}
 
-	override fun <AdaptorMemento> lookupStepByValues(
-		argValues: A_Tuple,
-		extraValues: List<Element>,
-		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
-		val argument = extractArgument(argValues, extraValues)
-		var tag = argument.typeTag
-		while (true)
-		{
-			tagToSubtree[tag]?.let { return it }
-			tag = tag.parent ?: return adaptor.emptyLeaf
-		}
-	}
-
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		extraValues: List<Element>,

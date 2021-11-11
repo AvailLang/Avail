@@ -79,6 +79,8 @@ class Deserializer constructor(
 	private val subobjectsBuffer =
 		Array(SerializerOperation.maxSubobjects) { nil }
 
+	private val serializedObjects = mutableListOf<AvailObject>()
+
 	/**
 	 * The [IndexCompressor] used to convert compressed indices into absolute
 	 * indices into previously deserialized objects.  This must be of the same
@@ -130,6 +132,10 @@ class Deserializer constructor(
 				val newObject = operation.compose(subobjectsBuffer, this)
 				newObject.makeImmutable()
 				addObject(newObject as AvailObject)
+				if (operation.shouldCaptureObject)
+				{
+					serializedObjects.add(newObject)
+				}
 				operation.deserializeStat.record(System.nanoTime() - before)
 			}
 			val temp = producedObject
@@ -143,7 +149,11 @@ class Deserializer constructor(
 	}
 
 	override fun fromCompressedObjectIndex(compressedIndex: Int): AvailObject =
-		assembledObjects[compressor.decompress(compressedIndex)]
+		when (val index = compressor.decompress(compressedIndex))
+		{
+			in Int.MIN_VALUE..-1 -> lookupPumpedObject(index) as AvailObject
+			else -> assembledObjects[index]
+		}
 
 	/**
 	 * Record the provided object as an end product of deserialization.
@@ -163,7 +173,8 @@ class Deserializer constructor(
 	 * been deserialized by this [Deserializer].  This is the same sequence of
 	 * objects that the [Serializer] generated.
 	 */
-	fun serializedObjects(): A_Tuple = tupleFromList(assembledObjects)
+	fun serializedObjects(): A_Tuple =
+		tupleFromList(serializedObjects).makeShared()
 
 	companion object
 	{

@@ -1,5 +1,5 @@
 /*
- * ExamineModuleManifest.kt
+ * ExamineSerializedPhrasesAction.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -42,24 +42,25 @@ import javax.swing.Action
 import javax.swing.JOptionPane
 
 /**
- * A `ExamineModuleManifest` presents information about a specific
- * compilation of the selected module.
+ * A [ExamineSerializedPhrasesAction] presents information about the block
+ * phrases that were captured separately (but with a pumping dependence) from
+ * a specific compilation of the selected module.
  *
  * @property runtime
  *   The active [AvailRuntime].
  *
  * @constructor
- * Construct a new `ExamineModuleManifest`.
+ * Construct a new [ExamineSerializedPhrasesAction].
  *
  * @param workbench
  *   The owning [AvailWorkbench].
  * @param runtime
  *   The active [AvailRuntime].
  */
-class ExamineModuleManifest constructor (
+class ExamineSerializedPhrasesAction constructor (
 	workbench: AvailWorkbench,
 	private val runtime: AvailRuntime
-) : AbstractWorkbenchAction(workbench, "Examine module manifest")
+) : AbstractWorkbenchAction(workbench, "Examine phrases")
 {
 	override fun actionPerformed(event: ActionEvent?)
 	{
@@ -76,8 +77,8 @@ class ExamineModuleManifest constructor (
 				val compilationsArray = compilations.toTypedArray()
 				val selectedCompilation = JOptionPane.showInputDialog(
 					workbench,
-					"Select module manifest to examine",
-					"Examine module manifest",
+					"Select module compilation to examine block phrases",
+					"Examine block phrases",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
@@ -94,8 +95,8 @@ class ExamineModuleManifest constructor (
 					is ModuleCompilation ->
 					{
 						val describer = RepositoryDescriber(repository)
-						val description = describer.describeManifest(
-							selectedCompilation.recordNumberOfManifestEntries)
+						val description = describer.describeCompilation(
+							selectedCompilation.recordNumberOfBlockPhrases)
 						workbench.outputStream.println(description)
 					}
 					is Any -> assert(false) { "Unknown type selected" }
@@ -108,6 +109,6 @@ class ExamineModuleManifest constructor (
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Disassemble an existing module compilation's manifest")
+			"Disassemble an existing module's serialized block phrases")
 	}
 }

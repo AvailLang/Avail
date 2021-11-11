@@ -68,6 +68,7 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -885,12 +886,8 @@ class MessageBundleTreeDescriptor private constructor(
 			val plan = planInProgress.parsingPlan
 			val bundle = plan.bundle
 			val definition = plan.definition
-			var submap =
-				if (outerMap.hasKey(bundle)) outerMap.mapAt(bundle)
-				else emptyMap
-			var inProgressSet =
-				if (submap.hasKey(definition)) submap.mapAt(definition)
-				else emptySet
+			var submap = outerMap.mapAtOrNull(bundle) ?: emptyMap
+			var inProgressSet = submap.mapAtOrNull(definition) ?: emptySet
 			inProgressSet =
 				inProgressSet.setWithElementCanDestroy(planInProgress, true)
 			submap =
@@ -948,14 +945,9 @@ class MessageBundleTreeDescriptor private constructor(
 			val plan = planInProgress.parsingPlan
 			val bundle = plan.bundle
 			val definition = plan.definition
-			if (!outerMap.hasKey(bundle)) {
-				return outerMap
-			}
-			var submap: A_Map = outerMap.mapAt(bundle)
-			if (!submap.hasKey(definition)) {
-				return outerMap
-			}
-			var inProgressSet: A_Set = submap.mapAt(definition)
+			var submap: A_Map = outerMap.mapAtOrNull(bundle) ?: return outerMap
+			var inProgressSet: A_Set =
+				submap.mapAtOrNull(definition) ?: return outerMap
 			if (!inProgressSet.hasElement(planInProgress)) {
 				return outerMap
 			}
@@ -1123,14 +1115,8 @@ class MessageBundleTreeDescriptor private constructor(
 					newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 					val instructionObject: A_Number = fromInt(instruction)
 					var successors: A_Tuple =
-						if (actionMap.value.hasKey(instructionObject))
-						{
-							actionMap.value.mapAt(instructionObject)
-						}
-						else
-						{
+						actionMap.value.mapAtOrNull(instructionObject) ?:
 							emptyTuple
-						}
 					successors = successors.appendCanDestroy(newTarget, true)
 					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
 						instructionObject, successors, true)
@@ -1155,21 +1141,20 @@ class MessageBundleTreeDescriptor private constructor(
 					// It's a checkArgument instruction.
 					val checkArgumentIndex = op.checkArgumentIndex(instruction)
 					// Add it to the action map.
-					val successor: A_BundleTree
 					val instructionObject: A_Number = fromInt(instruction)
-					if (actionMap.value.hasKey(instructionObject))
+					val successors: A_Tuple? =
+						actionMap.value.mapAtOrNull(instructionObject)
+					val successor: A_BundleTree = when (successors)
 					{
-						val successors: A_Tuple =
-							actionMap.value.mapAt(instructionObject)
-						assert(successors.tupleSize == 1)
-						successor = successors.tupleAt(1)
-					}
-					else
-					{
-						successor = newBundleTree(latestBackwardJump)
-						actionMap.value =
-							actionMap.value.mapAtPuttingCanDestroy(
-								instructionObject, tuple(successor), true)
+						null -> newBundleTree(latestBackwardJump).also {
+							actionMap.value =
+								actionMap.value.mapAtPuttingCanDestroy(
+									instructionObject, tuple(it), true)
+						}
+						else -> {
+							assert(successors.tupleSize == 1)
+							successors.tupleAt(1)
+						}
 					}
 					var forbiddenBundles = emptySet
 					plan.bundle.grammaticalRestrictions.forEach {
@@ -1244,21 +1229,20 @@ class MessageBundleTreeDescriptor private constructor(
 			// instructions should have been dealt with in a prior case.
 			val nextPcs = op.successorPcs(instruction, pc)
 			assert(nextPcs.size == 1 && nextPcs[0] == pc + 1)
-			val successor: A_BundleTree
 			val instructionObject: A_Number = fromInt(instruction)
-			if (actionMap.value.hasKey(instructionObject))
+			val successors: A_Tuple? =
+				actionMap.value.mapAtOrNull(instructionObject)
+			val successor: A_BundleTree = if (successors !== null)
 			{
-				val successors: A_Tuple =
-					actionMap.value.mapAt(instructionObject)
 				assert(successors.tupleSize == 1)
-				successor = successors.tupleAt(1)
+				successors.tupleAt(1)
 			}
 			else
 			{
-				successor = newBundleTree(latestBackwardJump)
-				val successors = tuple(successor)
-				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-					instructionObject, successors, true)
+				newBundleTree(latestBackwardJump).also {
+					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
+						instructionObject, tuple(it), true)
+				}
 			}
 			successor.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 		}

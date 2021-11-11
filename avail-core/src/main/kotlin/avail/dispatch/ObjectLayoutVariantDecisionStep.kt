@@ -157,27 +157,6 @@ constructor(
 		}
 	}
 
-	override fun <AdaptorMemento> lookupStepByValues(
-		argValues: A_Tuple,
-		extraValues: List<Element>,
-		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
-		val argument = extractArgument(argValues, extraValues)
-		val variant = argument.objectVariant
-		return variantToSubtree.getOrPut(variant) {
-			thisInternalLookupTree.run {
-				adaptor.createTree(
-					positiveElements,
-					elementsForVariant(variant),
-					knownArgumentRestrictions,
-					alreadyTypeTestedArguments,
-					alreadyVariantTestedArgumentsForChildren,
-					memento)
-			}
-		}
-	}
-
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		extraValues: List<Element>,

@@ -56,7 +56,7 @@ inline fun <I, O : I?> I.cast (): O = this as O
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 inline fun <T> T?.notNullAnd (body: T.() -> Boolean): Boolean =
-	this !== null && this.body()
+	this !== null && body()
 
 /**
  * If the receiver is `null`, answer `true`. Otherwise run the body with the
@@ -69,4 +69,4 @@ inline fun <T> T?.notNullAnd (body: T.() -> Boolean): Boolean =
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 inline fun <T> T?.isNullOr (body: T.() -> Boolean): Boolean =
-	this === null || this.body()
+	this === null || body()

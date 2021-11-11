@@ -64,7 +64,7 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -454,14 +454,6 @@ class ModuleDescriptor private constructor(
 	var serializedObjects: A_Tuple = nil
 
 	/**
-	 * When set to non-[nil], this is the [A_Map] of objects that were
-	 * serialized or deserialized for the body of this module.  The values are
-	 * the one-based indices of the objects.
-	 */
-	@Volatile
-	var serializedObjectsMap: A_Map = nil
-
-	/**
 	 * A map of the negative offsets of the ancestor modules'
 	 * [serializedObjects].  The ancestors should first be ordered in a stable,
 	 * reproducible way, and then the offsets should be assigned such that the
@@ -605,26 +597,21 @@ class ModuleDescriptor private constructor(
 			var atomsToImport = emptySet
 			for (string in stringsToImport)
 			{
-				if (!importedNamesMultimap.hasKey(string))
-				{
+				val names: A_Set = importedNamesMultimap.mapAtOrNull(string) ?:
 					return (
 						"module \"${ref.qualifiedName}\" to export $string")
-				}
-				atomsToImport = atomsToImport.setUnionCanDestroy(
-					importedNamesMultimap.mapAt(string), true)
+				atomsToImport = atomsToImport.setUnionCanDestroy(names, true)
 			}
 
 			// Perform renames.
 			for ((newString, oldString) in moduleImport.renames.mapIterable)
 			{
 				// Find the old atom.
-				if (!importedNamesMultimap.hasKey(oldString))
-				{
-					return (
-						"module \"${ref.qualifiedName}\" to export "
-							+ "$oldString for renaming to $newString")
-				}
-				val oldCandidates = importedNamesMultimap.mapAt(oldString)
+				val oldCandidates: A_Set =
+					importedNamesMultimap.mapAtOrNull(oldString) ?:
+						return (
+							"module \"${ref.qualifiedName}\" to export "
+								+ "$oldString for renaming to $newString")
 				if (oldCandidates.setSize != 1)
 				{
 					return (
@@ -633,21 +620,10 @@ class ModuleDescriptor private constructor(
 				}
 				val oldAtom = oldCandidates.single()
 				// Find or create the new atom.
-				val newAtom: A_Atom
-				val newNames = self.newNames
-				if (newNames.hasKey(newString))
-				{
-					// Use it.  It must have been declared in the
-					// "Names" clause.
-					newAtom = self.newNames.mapAt(newString)
-				}
-				else
-				{
-					// Create it.
-					newAtom = AtomWithPropertiesSharedDescriptor.shared
+				val newAtom: A_Atom = self.newNames.mapAtOrNull(newString) ?:
+					AtomWithPropertiesSharedDescriptor.shared
 						.createInitialized(newString, self, nil, 0)
-					self.introduceNewName(newAtom)
-				}
+						.also { self.introduceNewName(it) }
 				// Now tie the bundles together.
 				assert(newAtom.bundleOrNil.isNil)
 				val newBundle: A_Bundle
@@ -854,13 +830,11 @@ class ModuleDescriptor private constructor(
 	) = lock.safeWrite {
 		assertState(Loading)
 		self.updateSlotShared(SEALS) {
-			var tuple: A_Tuple = when
-			{
-				hasKey(methodName) -> mapAt(methodName)
-				else -> emptyTuple
-			}
-			tuple = tuple.appendCanDestroy(argumentTypes, true)
-			mapAtPuttingCanDestroy(methodName, tuple, true)
+			mapAtPuttingCanDestroy(
+				methodName,
+				(mapAtOrNull(methodName) ?: emptyTuple).appendCanDestroy(
+					argumentTypes, true),
+				true)
 		}
 	}
 
@@ -899,12 +873,11 @@ class ModuleDescriptor private constructor(
 			}
 		}
 		var privateNames: A_Map = self.slot(PRIVATE_NAMES)
-		if (privateNames.hasKey(string)
-			&& privateNames.mapAt(string).hasElement(trueName))
+		val set: A_Set? = privateNames.mapAtOrNull(string)
+		if (set !== null && set.hasElement(trueName))
 		{
 			// Inclusion has priority over exclusion, even along a
 			// different chain of modules.
-			val set: A_Set = privateNames.mapAt(string)
 			privateNames = if (set.setSize == 1)
 			{
 				privateNames.mapWithoutKeyCanDestroy(string, true)
@@ -939,12 +912,11 @@ class ModuleDescriptor private constructor(
 			) { _, set: A_Set ->
 				set.setWithElementCanDestroy(trueName, true)
 			}
-			if (privateNames.hasKey(string)
-				&& privateNames.mapAt(string).hasElement(trueName))
+			val set: A_Set? = privateNames.mapAtOrNull(string)
+			if (set !== null && set.hasElement(trueName))
 			{
 				// Inclusion has priority over exclusion, even along a
 				// different chain of modules.
-				val set: A_Set = privateNames.mapAt(string)
 				privateNames = if (set.setSize == 1)
 				{
 					privateNames.mapWithoutKeyCanDestroy(string, true)
@@ -1098,7 +1070,7 @@ class ModuleDescriptor private constructor(
 			val bytes = validatedBytesFrom(record)
 			val delta = serializedObjects.tupleSize + 1
 			val deserializer = Deserializer(bytes, runtime) {
-				serializedObjects.tupleAt(it - delta)
+				serializedObjects.tupleAt(it + delta)
 			}
 			deserializer.currentModule = self
 			phrases = deserializer.deserialize()!!.makeShared()
@@ -1174,13 +1146,6 @@ class ModuleDescriptor private constructor(
 		this.serializedObjects = serializedObjects.makeShared()
 	}
 
-	override fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map)
-	{
-		this.serializedObjectsMap = serializedObjectsMap.makeShared()
-	}
-
 	/**
 	 * Now that the unload functions have completed, perform any other unloading
 	 * actions necessary for this module.
@@ -1240,7 +1205,6 @@ class ModuleDescriptor private constructor(
 		grammaticalRestrictions = nil
 		semanticRestrictions = nil
 //		serializedObjects = nil
-		serializedObjectsMap = nil
 		ancestorOffsetMap = nil
 		unionFilter = null
 		localFilter = null
@@ -1310,35 +1274,24 @@ class ModuleDescriptor private constructor(
 	{
 		lock.read {
 			self.slot(NEW_NAMES).let { newNames ->
-				if (newNames.hasKey(stringName))
-				{
-					return singletonSet(self.slot(NEW_NAMES).mapAt(stringName))
+				newNames.mapAtOrNull(stringName)?.let {
+					return singletonSet(it)
 				}
 			}
 		}
 		lock.safeWrite {
 			self.slot(NEW_NAMES).let { newNames ->
-				if (newNames.hasKey(stringName))
-				{
-					return singletonSet(self.slot(NEW_NAMES).mapAt(stringName))
+				newNames.mapAtOrNull(stringName)?.let {
+					return singletonSet(it)
 				}
 			}
-			val publicNames: A_Set = self.slot(IMPORTED_NAMES).let { imported ->
-				when
+			val publicNames: A_Set =
+				self.slot(IMPORTED_NAMES).mapAtOrNull(stringName) ?: emptySet
+			self.slot(PRIVATE_NAMES).mapAtOrNull(stringName)?.let { privates ->
+				return when (publicNames.setSize)
 				{
-					imported.hasKey(stringName) -> imported.mapAt(stringName)
-					else -> emptySet
-				}
-			}
-			self.slot(PRIVATE_NAMES).let { privateNames ->
-				if (privateNames.hasKey(stringName))
-				{
-					val privates: A_Set = privateNames.mapAt(stringName)
-					return when (publicNames.setSize)
-					{
-						0 -> privates
-						else -> publicNames.setUnionCanDestroy(privates, false)
-					}
+					0 -> privates
+					else -> publicNames.setUnionCanDestroy(privates, false)
 				}
 			}
 			return publicNames

@@ -34,8 +34,7 @@ package avail.serialization
 
 import avail.AvailRuntime
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.ModuleDescriptor
@@ -162,11 +161,8 @@ abstract class AbstractDeserializer constructor(
 		{
 			return current
 		}
-		if (!loadedModules.hasKey(moduleName))
-		{
+		return loadedModules.mapAtOrNull(moduleName) ?:
 			throw RuntimeException("Cannot locate module named $moduleName")
-		}
-		return loadedModules.mapAt(moduleName)
 	}
 
 	/**

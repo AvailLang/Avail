@@ -96,20 +96,6 @@ constructor(
 		else ifCheckFails
 	}
 
-	override fun <AdaptorMemento> lookupStepByValues(
-		argValues: A_Tuple,
-		extraValues: List<Element>,
-		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
-		val argument = extractArgument(argValues, extraValues)
-		return if (argument.isInstanceOf(argumentTypeToTest))
-		{
-			ifCheckHolds
-		}
-		else ifCheckFails
-	}
-
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
 		extraValues: List<Element>,

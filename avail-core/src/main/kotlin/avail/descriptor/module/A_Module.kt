@@ -451,15 +451,6 @@ interface A_Module : A_BasicObject
 			dispatch { o_SerializedObjects(it, serializedObjects) }
 
 		/**
-		 * Serialization has completed, and this is the [A_Map] from the newly
-		 * serialized objects to their local one-based index.  This map can be
-		 * inverted to form a [tuple][A_Tuple], if needed, or vice-versa.
-		 * Either can be used to populate the [filter]
-		 */
-		fun A_Module.serializedObjectsMap(serializedObjects: A_Map) =
-			dispatch { o_SerializedObjectsMap(it, serializedObjects) }
-
-		/**
 		 * Read the current [state][ModuleDescriptor.State] of the module, which
 		 * indicates whether the module is loading, unloading, or in a stable
 		 * state.

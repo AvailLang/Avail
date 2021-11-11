@@ -104,6 +104,7 @@ import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -1498,9 +1499,7 @@ class AvailCompiler constructor(
 					val argumentBundle =
 						latestArgument.apparentSendName.bundleOrNil
 					assert(argumentBundle.notNil)
-					if (prefilter.hasKey(argumentBundle))
-					{
-						val successor = prefilter.mapAt(argumentBundle)
+					prefilter.mapAtOrNull(argumentBundle)?.let { successor ->
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							println(
@@ -1692,12 +1691,8 @@ class AvailCompiler constructor(
 						{
 							continue
 						}
-						if (!tokenMap.hasKey(string))
-						{
-							continue
-						}
+						val successor = tokenMap.mapAtOrNull(string) ?: continue
 						val timeBefore = captureNanos()
-						val successor = tokenMap.mapAt(string)
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							val insensitive =

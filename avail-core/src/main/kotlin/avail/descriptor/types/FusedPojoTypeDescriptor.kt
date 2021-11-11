@@ -34,9 +34,9 @@ package avail.descriptor.types
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor
@@ -171,12 +171,9 @@ constructor (
 		}
 		for (ancestor in ancestors.keysAsSet)
 		{
-			if (!otherAncestors.hasKey(ancestor))
-			{
+			val otherParams: A_Tuple = otherAncestors.mapAtOrNull(ancestor) ?:
 				return false
-			}
 			val params: A_Tuple = ancestors.mapAt(ancestor)
-			val otherParams: A_Tuple = otherAncestors.mapAt(ancestor)
 			val limit = params.tupleSize
 			assert(limit == otherParams.tupleSize)
 			for (i in 1 .. limit)
@@ -453,9 +450,7 @@ constructor (
 			}
 			firstChildless = false
 			builder.append(javaClass.javaObjectNotNull<Class<*>>().name)
-			val params: A_Tuple =
-				if (ancestors.hasKey(javaClass)) ancestors.mapAt(javaClass)
-				else emptyTuple
+			val params: A_Tuple = ancestors.mapAtOrNull(javaClass) ?: emptyTuple
 			if (params.tupleSize != 0)
 			{
 				builder.append('<')

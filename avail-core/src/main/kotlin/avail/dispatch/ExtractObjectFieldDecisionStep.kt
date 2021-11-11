@@ -105,21 +105,6 @@ constructor(
 		return extraValues.append(newValue.cast())
 	}
 
-	override fun updateExtraValuesByValues(
-		argValues: A_Tuple,
-		extraValues: List<Element>
-	): List<Element>
-	{
-		val i = argumentPositionToTest
-		val baseValue = when
-		{
-			i > 0 -> argValues.tupleAt(i)
-			else -> extraValues[-i]
-		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
-		return extraValues.append(newValue.cast())
-	}
-
 	override fun updateExtraValuesByTypes(
 		types: List<A_Type>,
 		extraValues: List<Element>
@@ -166,15 +151,6 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
-		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
-	{
-		return childNode
-	}
-
-	override fun <AdaptorMemento> lookupStepByValues(
-		argValues: A_Tuple,
 		extraValues: List<Element>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
