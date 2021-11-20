@@ -45,7 +45,6 @@ import avail.anvil.NegotiateVersionMessage
 import avail.anvil.io.AnvilServerChannel.ProtocolState.TERMINATED
 import avail.anvil.io.AnvilServerChannel.ProtocolState.VERSION_NEGOTIATION
 import avail.io.SimpleCompletionHandler
-import avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import avail.utility.IO
 import avail.utility.evaluation.Combinator.recurse
 import java.nio.ByteBuffer
@@ -591,7 +590,7 @@ class AnvilServerChannel constructor (
 					// Transmission did not completely exhaust the buffer, so we
 					// need to continue transmission before writing new content
 					// into the buffer.
-					transport.write(writeBuffer, dummy, handler)
+					transport.write(writeBuffer, Unit, handler)
 					return@SimpleCompletionHandler
 				}
 				// This will continue the encoding process if it's still
@@ -623,7 +622,7 @@ class AnvilServerChannel constructor (
 					assert(!writeBuffer.hasRemaining())
 					afterWriting = proceed
 					writeBuffer.flip()
-					transport.write(writeBuffer, dummy, handler)
+					transport.write(writeBuffer, Unit, handler)
 				}
 			) {
 				// We completed encoding, but need to transmit the remainder of
@@ -640,7 +639,7 @@ class AnvilServerChannel constructor (
 					success()
 				}
 				writeBuffer.flip()
-				transport.write(writeBuffer, dummy, handler)
+				transport.write(writeBuffer, Unit, handler)
 			}
 		}
 	}
@@ -711,7 +710,7 @@ class AnvilServerChannel constructor (
 					assert(!readBuffer.hasRemaining())
 					readBuffer.clear()
 					continueDecoding = proceed
-					transport.read(readBuffer, dummy, handler)
+					transport.read(readBuffer, Unit, handler)
 				},
 				failed = { e, _ ->
 					close(

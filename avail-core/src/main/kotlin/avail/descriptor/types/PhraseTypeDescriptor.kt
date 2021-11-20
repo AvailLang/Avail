@@ -172,15 +172,15 @@ open class PhraseTypeDescriptor protected constructor(
 		/** The root phrase kind. */
 		PARSE_PHRASE("phrase type", null, TypeTag.PHRASE_TAG),
 
-		/** The kind of a parse marker. */
-		MARKER_PHRASE(
-			"marker phrase type", PARSE_PHRASE, TypeTag.MARKER_PHRASE_TAG),
-
 		/** The abstract parent kind of all expression phrases. */
 		EXPRESSION_PHRASE(
 			"expression phrase type",
 			PARSE_PHRASE,
 			TypeTag.EXPRESSION_PHRASE_TAG),
+
+		/** The kind of a parse marker. */
+		MARKER_PHRASE(
+			"marker phrase type", EXPRESSION_PHRASE, TypeTag.MARKER_PHRASE_TAG),
 
 		/**
 		 * The kind of an [assignment&#32;phrase][AssignmentPhraseDescriptor].

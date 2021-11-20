@@ -918,7 +918,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							{ handleGeneric(problem, decider) }
 						).guardedDo {
 							textInterface.errorChannel.write(
-								problem.toString(), dummy, handler)
+								problem.toString(), Unit, handler)
 						}
 					}
 
@@ -933,7 +933,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							{ handleGeneric(problem, decider) }
 						).guardedDo {
 							textInterface.errorChannel.write(
-								problem.toString(), dummy, handler)
+								problem.toString(), Unit, handler)
 						}
 					}
 				})
@@ -1124,7 +1124,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					{ onFailure() }  /* Ignore I/O error */
 				).guardedDo {
 					textInterface.errorChannel.write(
-						"Action was cancelled by user", dummy, handler)
+						"Action was cancelled by user", Unit, handler)
 				}
 				else -> unambiguous(choice)
 			}

@@ -42,7 +42,8 @@ Extends
 		"Ignore:_",
 		"bootstrap restricted send_with_:_",
 		"(_)",
-		"((_))"
+		"((_))",
+		"_`?→_†"
 	)
 Uses
 	"Bootstrap",

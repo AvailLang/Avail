@@ -2418,7 +2418,7 @@ class AvailWorkbench internal constructor (
 
 			// Display the UI.
 			val bench = AvailWorkbench(runtime, fileManager, resolver)
-			bench.createBufferStrategy(2)
+			bench.createBufferStrategy(3)
 			bench.ignoreRepaint = true
 			invokeLater {
 				val initialRefreshTask =

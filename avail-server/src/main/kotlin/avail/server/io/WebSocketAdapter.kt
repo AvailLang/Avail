@@ -360,7 +360,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						if (bytes.hasRemaining())
 						{
 							handler.guardedDo {
-								transport.write(bytes, dummy, handler)
+								transport.write(bytes, Unit, handler)
 							}
 						}
 						else
@@ -376,7 +376,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						channel.closeImmediately(
 							CommunicationErrorDisconnect(throwable))
 					}
-				).guardedDo { transport.write(bytes, dummy, handler) }
+				).guardedDo { transport.write(bytes, Unit, handler) }
 			}
 
 			/**
@@ -529,7 +529,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 							{
 								buffer.clear()
 								handler.guardedDo {
-									transport.read(buffer, dummy, handler)
+									transport.read(buffer, Unit, handler)
 								}
 							}
 							else
@@ -555,7 +555,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						channel.closeImmediately(
 							CommunicationErrorDisconnect(throwable))
 					}
-				).guardedDo { transport.read(buffer, dummy, handler) }
+				).guardedDo { transport.read(buffer, Unit, handler) }
 			}
 		}
 	}
@@ -727,7 +727,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						if (bytes.hasRemaining())
 						{
 							handler.guardedDo {
-								transport.write(bytes, dummy, handler)
+								transport.write(bytes, Unit, handler)
 							}
 						}
 						else
@@ -743,7 +743,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						channel.closeImmediately(
 							CommunicationErrorDisconnect(throwable))
 					}
-				).guardedDo { transport.write(bytes, dummy, handler) }
+				).guardedDo { transport.write(bytes, Unit, handler) }
 			}
 		}
 	}
@@ -868,7 +868,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (bytes.hasRemaining())
 					{
 						handler.guardedDo {
-							channel.write(bytes, dummy, handler)
+							channel.write(bytes, Unit, handler)
 						}
 					}
 					else
@@ -883,7 +883,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						throwable)
 					IO.close(channel)
 				}
-			).guardedDo { channel.write(bytes, dummy, handler) }
+			).guardedDo { channel.write(bytes, Unit, handler) }
 }
 	}
 
@@ -895,7 +895,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 		SimpleCompletionHandler<AsynchronousSocketChannel>(
 			{
 				// Asynchronously accept a subsequent connection.
-				handler.guardedDo { serverChannel.accept(dummy, handler) }
+				handler.guardedDo { serverChannel.accept(Unit, handler) }
 				val channel =
 					WebSocketChannel(
 						this@WebSocketAdapter,
@@ -922,7 +922,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					close()
 				}
 			}
-		).guardedDo { serverChannel.accept(dummy, handler) }
+		).guardedDo { serverChannel.accept(Unit, handler) }
 	}
 
 	/**
@@ -1610,7 +1610,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}
 					}
 					else
@@ -1631,7 +1631,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 
 		/**
@@ -1660,7 +1660,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}
 					}
 					else
@@ -1700,7 +1700,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 
 		/**
@@ -1729,7 +1729,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}
 					}
 					else
@@ -1769,7 +1769,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 
 		/**
@@ -1798,7 +1798,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}
 					}
 					else
@@ -1850,7 +1850,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 
 		/**
@@ -1879,7 +1879,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}}
 					else
 					{
@@ -1896,7 +1896,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 
 		/**
@@ -1925,7 +1925,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					}
 					if (buffer.hasRemaining()) {
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}
 					}
 					else
@@ -1954,7 +1954,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 
 		/**
@@ -1994,7 +1994,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.write(buffer, dummy, handler)
+							transport.write(buffer, Unit, handler)
 						}
 					}
 					else success?.invoke()
@@ -2008,7 +2008,7 @@ class WebSocketAdapter @Throws(IOException::class) constructor(
 						CommunicationErrorDisconnect(throwable))
 					failure?.invoke(throwable)
 				}
-			).guardedDo { transport.write(buffer, dummy, handler) }
+			).guardedDo { transport.write(buffer, Unit, handler) }
 		}
 
 		/**

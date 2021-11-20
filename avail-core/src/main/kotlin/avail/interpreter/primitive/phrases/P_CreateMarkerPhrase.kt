@@ -1,5 +1,5 @@
 /*
- * P_ReadFromStandardInput.kt
+ * P_CreateMarkerPhrase.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,52 +29,46 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.primitive.general
 
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState
-import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+package avail.interpreter.primitive.phrases
+
+import avail.descriptor.phrases.MarkerPhraseDescriptor
+import avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.exceptions.AvailErrorCode.E_IO_ERROR
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MARKER_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.Primitive.Flag.CanFold
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.io.SimpleCompletionHandler
-import java.nio.CharBuffer
 
 /**
- * **Primitive:** Read one character from the standard input stream,
- * [suspending][ExecutionState.SUSPENDED] the [fiber][Interpreter.fiber] until
- * data becomes available.
+* **Primitive:** Create a [marker][MarkerPhraseDescriptor] phrase from the
+ * specified value and yield type (which don't have to agree).
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
+object P_CreateMarkerPhrase : Primitive(2, CannotFail, CanFold, CanInline)
 {
-	@Suppress("RedundantLambdaArrow")
-	override fun attempt (interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(0)
-		val fiber = interpreter.fiber()
-		return interpreter.suspendThen {
-			val buffer = CharBuffer.allocate(1)
-			SimpleCompletionHandler<Int>(
-				{ succeed(fromCodePoint(buffer.get(0).code)) },
-				{ fail(E_IO_ERROR) }
-			).guardedDo {
-				fiber.textInterface().inputChannel.read(
-					buffer, Unit, handler)
-			}
-		}
+		interpreter.checkArgumentCount(2)
+		val value = interpreter.argument(0)
+		val expressionType = interpreter.argument(1)
+		return interpreter.primitiveSuccess(
+			newMarkerNode(value, expressionType))
 	}
 
-	override fun privateBlockTypeRestriction (): A_Type =
-		functionType(emptyTuple, CHARACTER.o)
-
-	override fun privateFailureVariableType (): A_Type =
-		enumerationWith(set(E_IO_ERROR))
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				ANY.o,
+				topMeta()
+			),
+			MARKER_PHRASE.mostGeneralType)
 }

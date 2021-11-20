@@ -75,7 +75,6 @@ import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
-import avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.net.Inet4Address
 import java.net.InetAddress.getByAddress
 import java.net.InetSocketAddress
@@ -162,7 +161,7 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 		{
 			socket.connect(
 				address,
-				dummy,
+				Unit,
 				SimpleCompletionHandler(
 					{
 						runOutermostFunction(

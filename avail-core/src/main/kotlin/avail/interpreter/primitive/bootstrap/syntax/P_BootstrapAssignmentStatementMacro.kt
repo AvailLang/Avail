@@ -106,8 +106,7 @@ object P_BootstrapAssignmentStatementMacro
 				"variable name for assignment to be alphanumeric, not $variableNameString")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
-		val clientData =
-			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module
 		val declaration = scopeMap.mapAtOrNull(variableNameString) ?:

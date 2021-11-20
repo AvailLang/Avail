@@ -283,9 +283,9 @@ class BuildDirectoryTracer constructor(
 							problem: Problem,
 							decider: (Boolean)->Unit)
 						{
-							// Simply ignore all problems when all we're doing is trying
-							// to locate the entry points within any syntactically valid
-							// modules.
+							// Simply ignore all problems when all we're doing
+							// is trying to locate the entry points within any
+							// syntactically valid modules.
 							decider(false)
 						}
 					}
@@ -297,9 +297,7 @@ class BuildDirectoryTracer constructor(
 						val importNames = header.importedModuleNames
 						val entryPoints = header.entryPointNames
 						val newVersion = repository.ModuleVersion(
-							sourceReference.size,
-							importNames,
-							entryPoints)
+							sourceReference.size, importNames, entryPoints)
 
 						availBuilder.serialize(header, newVersion)
 						archive.putVersion(versionKey, newVersion)

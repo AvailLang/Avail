@@ -81,7 +81,7 @@ Semantic restriction "_'s⁇parameters'type" is
 					++ <if param = ⊥ then [any] else [param]>;
 				true
 			];
-			leading ::= cast params into [t : tuple of any meta | t];
+			leading ::= params ?→ tuple of any meta;
 			<leading, leading[size]… | [size..size]>'s type
 		]
 	]

@@ -61,7 +61,7 @@ object AvailRuntimeConfiguration
 	 *   A short [String].
 	 */
 	val activeVersionSummary: String
-		get() = activeVersions[activeVersions.size - 1].split(" ".toRegex(), 2)
+		get() = activeVersions.last().split(" ".toRegex(), 2)
 			.toTypedArray()[0]
 
 	/** The number of available processors. */

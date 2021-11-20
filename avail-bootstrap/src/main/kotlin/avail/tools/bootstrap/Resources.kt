@@ -48,7 +48,7 @@ internal object Resources
 	 * The path to the Kotlin source directory, relative to the current working
 	 * directory.
 	 */
-	const val sourceBaseName = "src/main/kotlin"
+	const val sourceBaseName = "src/main/resources"
 
 	/**
 	 * The base name of the [resource bundle][ResourceBundle] that contains the

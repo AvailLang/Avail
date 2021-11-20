@@ -258,7 +258,7 @@ class ServerInputChannel constructor(
 					}
 				).guardedDo {
 					channel.inputNotificationChannel?.write(
-						"", dummy, this.handler)
+						"", Unit, this.handler)
 				}
 				return
 			}

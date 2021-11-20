@@ -160,7 +160,7 @@ Private method "_is constant expression" is
 	[
 		index : natural number
 	|
-		element ::= cast expressions[index] into [t : expression phrase | t];
+		element ::= expressions[index] ?→ expression phrase;
 		if element is constant expression then [true]
 		else
 		[

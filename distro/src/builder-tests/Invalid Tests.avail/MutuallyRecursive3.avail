@@ -34,6 +34,6 @@ Module "MutuallyRecursive3"
 Versions
 	"Avail-1.6.0"
 Uses
-	"UsedByMutuallyRecursive3",
+	"Avail",
 	"MutuallyRecursive1"
 Body

@@ -135,6 +135,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.A_Phrase.Companion.list
 import avail.descriptor.phrases.A_Phrase.Companion.literalObject
 import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+import avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -163,6 +164,8 @@ import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
+import avail.descriptor.phrases.MarkerPhraseDescriptor
+import avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
@@ -2620,6 +2623,34 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
+	 * A [marker][MarkerPhraseDescriptor] phrase.  These should not be created
+	 * during normal parsing, and must be transformed into other phrases by some
+	 * means before code generation.
+	 */
+	MARKER_PHRASE(
+		74,
+		OBJECT_REFERENCE.named("value"),
+		OBJECT_REFERENCE.named("yield type"))
+	{
+		override fun decompose(
+			obj: AvailObject,
+			serializer: Serializer): Array<out A_BasicObject>
+		{
+			return array(
+				obj.markerValue,
+				obj.phraseExpressionType)
+		}
+
+		override fun compose(
+			subobjects: Array<AvailObject>,
+			deserializer: Deserializer): A_BasicObject
+		{
+			val (value, yieldType) = subobjects
+			return newMarkerNode(value, yieldType)
+		}
+	},
+
+	/**
 	 * An arbitrary primitive type that is not already a special object. Exists
 	 * primarily to support hidden types that are not exposed directly to an
 	 * Avail programmer but which must still be visible to the serialization
@@ -2627,7 +2658,7 @@ enum class SerializerOperation constructor(
 	 */
 	ARBITRARY_PRIMITIVE_TYPE(
 		false,
-		74,
+		75,
 		BYTE.named("primitive type ordinal"))
 	{
 		override fun decompose(
@@ -2649,7 +2680,7 @@ enum class SerializerOperation constructor(
 	 * A [variable][A_Variable] bound to a `static` Java field.
 	 */
 	STATIC_POJO_FIELD(
-		75,
+		76,
 		OBJECT_REFERENCE.named("class name"),
 		OBJECT_REFERENCE.named("field name"))
 	{
@@ -2694,26 +2725,6 @@ enum class SerializerOperation constructor(
 				throw RuntimeException(e)
 			}
 
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	@Suppress("unused") RESERVED_76(76)
-	{
-		override fun decompose(
-			obj: AvailObject,
-			serializer: Serializer): Array<out A_BasicObject>
-		{
-			throw RuntimeException("Reserved serializer operation")
-		}
-
-		override fun compose(
-			subobjects: Array<AvailObject>,
-			deserializer: Deserializer): A_BasicObject
-		{
-			throw RuntimeException("Reserved serializer operation")
 		}
 	},
 

@@ -331,7 +331,7 @@ data class ProjectDescriptor constructor(
  * @author Richard Arriaga
  *
  * @property windowState
- *   The [WindowState] of hte project window.
+ *   The [WindowState] of the project window.
  */
 data class ProjectState constructor(var windowState: WindowState): JSONFriendly
 {

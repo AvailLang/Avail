@@ -1,5 +1,5 @@
 /*
- * UsedByMutuallyRecursive3.avail
+ * P_SendBundle.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,8 +30,41 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-Module "UsedByMutuallyRecursive3"
-Versions
-	"Avail-1.6.0"
-Uses
-Body
+package avail.interpreter.primitive.phrases
+
+import avail.descriptor.bundles.A_Bundle
+import avail.descriptor.phrases.A_Phrase.Companion.bundle
+import avail.descriptor.phrases.SendPhraseDescriptor
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanFold
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.execution.Interpreter
+
+/**
+* **Primitive:** Answer the [send][SendPhraseDescriptor] expression's target
+* [bundle][A_Bundle].
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+@Suppress("unused")
+object P_SendBundle : Primitive(1, CannotFail, CanFold, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(1)
+		val send = interpreter.argument(0)
+		return interpreter.primitiveSuccess(send.bundle)
+	}
+
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				SEND_PHRASE.mostGeneralType),
+			MESSAGE_BUNDLE.o)
+}

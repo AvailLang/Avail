@@ -114,7 +114,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 			{
 				// Asynchronously accept a subsequent connection.
 				handler.guardedDo {
-					serverChannel.accept(dummy, handler)
+					serverChannel.accept(Unit, handler)
 				}
 				val channel = SocketChannel(this@SocketAdapter, value)
 				server.newChannels[channel.id] = channel
@@ -132,7 +132,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					close()
 				}
 			}
-		).guardedDo { serverChannel.accept(dummy, handler) }
+		).guardedDo { serverChannel.accept(Unit, handler) }
 	}
 
 	/**
@@ -155,7 +155,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				}
 				if (buffer.hasRemaining())
 				{
-					handler.guardedDo { transport.read(buffer, dummy, handler) }
+					handler.guardedDo { transport.read(buffer, Unit, handler) }
 				}
 				else
 				{
@@ -197,7 +197,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				strongChannel.closeImmediately(
 					CommunicationErrorDisconnect(throwable))
 			}
-		).guardedDo { transport.read(buffer, dummy, handler) }
+		).guardedDo { transport.read(buffer, Unit, handler) }
 	}
 
 	override fun sendUserData(
@@ -219,7 +219,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				if (buffer.hasRemaining())
 				{
 					handler.guardedDo {
-						transport.write(buffer, dummy, handler)
+						transport.write(buffer, Unit, handler)
 					}
 				}
 				else success()
@@ -233,7 +233,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					CommunicationErrorDisconnect(throwable))
 				failure(throwable)
 			}
-		).guardedDo { transport.write(buffer, dummy, handler) }
+		).guardedDo { transport.write(buffer, Unit, handler) }
 	}
 
 	override fun sendClose(
@@ -249,7 +249,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				if (buffer.hasRemaining())
 				{
 					handler.guardedDo {
-						transport.write(buffer, dummy, handler)
+						transport.write(buffer, Unit, handler)
 					}
 				}
 				else
@@ -265,7 +265,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				strongChannel.closeImmediately(
 					CommunicationErrorDisconnect(throwable))
 			}
-		).guardedDo { transport.write(buffer, dummy, handler) }
+		).guardedDo { transport.write(buffer, Unit, handler) }
 	}
 
 	override fun sendClose(
@@ -282,7 +282,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				if (buffer.hasRemaining())
 				{
 					handler.guardedDo {
-						transport.write(buffer, dummy, handler)
+						transport.write(buffer, Unit, handler)
 					}
 				}
 				else
@@ -298,7 +298,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 				strongChannel.closeImmediately(
 					CommunicationErrorDisconnect(throwable))
 			}
-		).guardedDo { transport.write(buffer, dummy, handler) }
+		).guardedDo { transport.write(buffer, Unit, handler) }
 	}
 
 	override fun receiveClose(
@@ -377,7 +377,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					if (buffer.hasRemaining())
 					{
 						handler.guardedDo {
-							transport.read(buffer, dummy, handler)
+							transport.read(buffer, Unit, handler)
 						}
 					}
 					else
@@ -394,7 +394,7 @@ class SocketAdapter @Throws(IOException::class) constructor(
 					channel.closeImmediately(
 						CommunicationErrorDisconnect(throwable))
 				}
-			).guardedDo { transport.read(buffer, dummy, handler) }
+			).guardedDo { transport.read(buffer, Unit, handler) }
 		}
 	}
 }

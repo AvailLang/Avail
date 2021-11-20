@@ -479,7 +479,7 @@ Extends
 		"invalid-special-object-number code",
 		"key-not-found code",
 		"loading-is-over code",
-		"lookup macro_for arguments_",
+		"lookup macro_with phrases_",
 		"macro-argument-must-be-a-phrase code",
 		"macro-must-return-a-phrase code",
 		"macro-prefix-function-argument-must-be-a-phrase code",
@@ -519,7 +519,6 @@ Extends
 	),
 	"Casts" =
 	(
-		"_`?→_†",
 		"_`?→_†else_",
 		"Cast|cast each of_into_",
 		"Cast|cast each of_into_else_",
@@ -641,7 +640,8 @@ Extends
 		"While_do_alternate with_",
 		"here",
 		"(_)",
-		"((_))"
+		"((_))",
+		"_`?→_†"
 	),
 	"Early Conditionals" =
 	(
@@ -1109,6 +1109,8 @@ Extends
 		"`«<«_‡,»>`»",
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»",
+		"⟦§_!⟧",
+		"⦊§_⦉",
 		"_token",
 		"_'s⁇classifier"
 	),

@@ -35,7 +35,9 @@ import avail.compiler.AvailCodeGenerator
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.markerValue
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
+import avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.EXPRESSION_TYPE
 import avail.descriptor.phrases.MarkerPhraseDescriptor.ObjectSlots.MARKER_VALUE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -49,6 +51,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
+import avail.serialization.SerializerOperation.MARKER_PHRASE
 import java.util.IdentityHashMap
 
 /**
@@ -79,12 +82,18 @@ class MarkerPhraseDescriptor private constructor(
 		 * The [marker][MarkerPhraseDescriptor] being wrapped in a form suitable
 		 * for the parse stack.
 		 */
-		MARKER_VALUE
+		MARKER_VALUE,
+
+		/**
+		 * The marker phrase's expression type.  This is useful when a marker is
+		 * produced for quoting/unquoting phrases.
+		 */
+		EXPRESSION_TYPE
 	}
 
 	/**
 	 * An [Enum] whose ordinals can be used as marker values in
-	 * [marker&#32;phrases][MarkerPhraseDescriptor].
+	 * [marker&#32;phrases][MarkerPhraseDescriptor] during decompilation.
 	 */
 	enum class MarkerTypes {
 		/**
@@ -102,7 +111,8 @@ class MarkerPhraseDescriptor private constructor(
 		/**
 		 * A pre-built marker for this enumeration value.
 		 */
-		val marker: A_Phrase = newMarkerNode(fromInt(ordinal))
+		val marker: A_Phrase =
+			newMarkerNode(fromInt(ordinal), TOP.o).makeShared()
 	}
 
 	override fun printObjectOnAvoidingIndent(
@@ -113,6 +123,8 @@ class MarkerPhraseDescriptor private constructor(
 	) {
 		builder.append("Marker(")
 		builder.append(self.markerValue)
+		builder.append(" → ")
+		builder.append(self.phraseExpressionType)
 		builder.append(")")
 	}
 
@@ -138,8 +150,8 @@ class MarkerPhraseDescriptor private constructor(
 		&& self.phraseKind == aPhrase.phraseKind
 		&& self.markerValue.equals(aPhrase.markerValue))
 
-	/** This shouldn't make a difference. */
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
+		self.slot(EXPRESSION_TYPE)
 
 	override fun o_Hash(self: AvailObject): Int =
 		combine2(self.markerValue.hash(), -0x34353534)
@@ -155,7 +167,7 @@ class MarkerPhraseDescriptor private constructor(
 	 * change at some point.
 	 */
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		 unsupported
+		 MARKER_PHRASE
 
 	override fun o_StatementsDo(
 		self: AvailObject,
@@ -179,13 +191,20 @@ class MarkerPhraseDescriptor private constructor(
 		 *
 		 * @param markerValue
 		 *   The arbitrary value to wrap.
+		 * @param expressionType
+		 *   The type that this marker ostensibly yields, although a marker
+		 *   phrase has to be replaced by some other phrase before code
+		 *   generation.
 		 * @return
 		 *   A new immutable marker phrase.
 		 */
-		fun newMarkerNode(markerValue: A_BasicObject?): AvailObject =
-			mutable.createShared {
-				setSlot(MARKER_VALUE, markerValue!!)
-			}
+		fun newMarkerNode(
+			markerValue: A_BasicObject,
+			expressionType: A_Type
+		): AvailObject = mutable.createShared {
+			setSlot(MARKER_VALUE, markerValue)
+			setSlot(EXPRESSION_TYPE, expressionType)
+		}
 
 		/** The mutable [MarkerPhraseDescriptor]. */
 		private val mutable = MarkerPhraseDescriptor(Mutability.MUTABLE)

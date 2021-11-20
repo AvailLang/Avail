@@ -3435,8 +3435,8 @@ class AvailCompiler constructor(
 				source.tupleSize.toLong(),
 				afterHeader.position.toLong(),
 				afterHeader.lineNumber)
-			// Run any side effects implied by this module header against
-			// the module.
+			// Run any side effects implied by this module header against the
+			// module.
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.loader)
 			if (errorString !== null)
@@ -3452,6 +3452,10 @@ class AvailCompiler constructor(
 			}
 			compilationContext.loader.prepareForCompilingModuleBody()
 			applyPragmasThen(afterHeader.lexingState) {
+				compilationContext.diagnostics.run {
+					positionsToTrack = 3
+					silentPositionsToTrack = 3
+				}
 				parseAndExecuteOutermostStatements(afterHeader)
 			}
 		}
@@ -3661,6 +3665,10 @@ class AvailCompiler constructor(
 		startModuleTransaction()
 		val loader = compilationContext.loader
 		loader.prepareForCompilingModuleBody()
+		compilationContext.diagnostics.run {
+			positionsToTrack = 3
+			silentPositionsToTrack = 3
+		}
 		val clientData = mapFromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap,
@@ -4617,7 +4625,10 @@ class AvailCompiler constructor(
 
 		/** Marker phrase to signal cleanly reaching the end of the input. */
 		private val endOfFileMarkerPhrase =
-			newMarkerNode(stringFrom("End of file marker")).makeShared()
+			newMarkerNode(
+				stringFrom("End of file marker"),
+				TOP.o
+			).makeShared()
 
 		/**
 		 * Skip over whitespace and comment tokens, collecting the latter.

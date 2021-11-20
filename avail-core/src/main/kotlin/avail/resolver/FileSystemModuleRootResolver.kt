@@ -510,7 +510,7 @@ class FileSystemModuleRootResolver constructor(
 						content += data
 						buffer.clear()
 						handler.guardedDo {
-							file.read(buffer, filePosition, dummy, handler)
+							file.read(buffer, filePosition, Unit, handler)
 						}
 					}
 					else
@@ -545,7 +545,7 @@ class FileSystemModuleRootResolver constructor(
 					IOException("Failed to read: ${reference.uri}", throwable)
 				ex.printStackTrace()
 				failureHandler(StandardErrorCode.IO_EXCEPTION, ex)
-			}).guardedDo { file.read(buffer, 0L, dummy, handler) }
+			}).guardedDo { file.read(buffer, 0L, Unit, handler) }
 	}
 
 	/**

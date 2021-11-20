@@ -35,5 +35,5 @@ Versions
 	"Avail-1.6.0"
 Uses
 	"UsesMutuallyRecursive1",
-	"UsedByMutuallyRecursive3"
+	"Avail"
 Body

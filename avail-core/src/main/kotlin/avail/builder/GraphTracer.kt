@@ -363,13 +363,13 @@ internal class GraphTracer constructor(
 				position += value
 				if (buffer.hasRemaining()) {
 					handler.guardedDo {
-						channel.write(buffer, position.toLong(), dummy, handler)
+						channel.write(buffer, position.toLong(), Unit, handler)
 					}
 				}
 			},
 			{ }
 		).guardedDo {
-			channel.write(buffer, 0L, dummy, handler)
+			channel.write(buffer, 0L, Unit, handler)
 		}
 	}
 }

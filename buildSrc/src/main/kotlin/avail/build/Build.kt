@@ -51,7 +51,7 @@ object BuildContext
 	const val buildClassesPath = "classes/kotlin/main"
 
 	/**
-	 * [Project.getProjectDir]-relative location of hte `build-time.txt` file.
+	 * [Project.getProjectDir]-relative location of the `build-time.txt` file.
 	 */
 	const val buildTimePath = "resources/main/resources"
 

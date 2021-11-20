@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/26/21, 10:06 PM
+ * * Last Generated: 11/19/21, 8:39 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -96,6 +96,7 @@ Names
 	"_'s⁇arity",
 	"_'s⁇atom",
 	"_'s⁇bindings",
+	"_'s⁇bundle",
 	"_'s⁇caller",
 	"_'s⁇character type number",
 	"_'s⁇code point",
@@ -241,6 +242,7 @@ Names
 	"`«_:_:=_`»",
 	"`«_:_`»",
 	"`«`↑_`»",
+	"`«marker phrase_⇒_`»",
 	"`«module variable_(_)`»",
 	"`«supercast(_::_)`»",
 	"`«↓_`»",
@@ -270,7 +272,7 @@ Names
 	"invoke_with_,⁇forked at priority_",
 	"literal token⇒_",
 	"ln_",
-	"lookup macro_for arguments_",
+	"lookup macro_with phrases_",
 	"message_contains groups",
 	"method definition of_for_",
 	"method exists named_",

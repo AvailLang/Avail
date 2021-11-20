@@ -331,6 +331,9 @@ class MacroSubstitutionPhraseDescriptor(
 	override fun o_Primitive(self: AvailObject): Primitive? =
 		self.slot(OUTPUT_PHRASE).codePrimitive()
 
+	override fun o_ResultType(self: AvailObject): A_Type =
+		self.slot(OUTPUT_PHRASE).resultType()
+
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MACRO_SUBSTITUTION_PHRASE
 

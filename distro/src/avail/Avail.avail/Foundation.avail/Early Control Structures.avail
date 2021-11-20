@@ -49,7 +49,8 @@ Names
 	"Ignore:_",
 	"bootstrap restricted send_with_:_",
 	"(_)",
-	"((_))"
+	"((_))",
+	"_`?→_†"
 Body
 
 /**
@@ -283,6 +284,75 @@ Invoke
 ]
 with <>;
 
+
+/**
+ * Cast the value into the specified <em>statically evaluated</em> type.  If the
+ * value at runtime does not comply with this type, fail the same way any call
+ * overly strengthened by a semantic restriction would fail.
+ *
+ * @method "_`?→_†"
+ * @param "value" "any"
+ *        The value whose type is to be strengthened.
+ * @param "strongerType" "type"
+ *        Evaluated at compile time to produce the strengthened type of this
+ *        call.
+ * @returns "any"
+ *          Restricted to the {@param "strongerType"}.
+ * @category "Casts"
+ */
+Public method "_`?→_†" is
+[
+	value : any,
+	strongerType : type
+|
+	value
+];
+
+/**
+ * Cast the value into the specified <em>statically evaluated</em> type.  If the
+ * value at runtime does not comply with this type, fail the same way any call
+ * overly strengthened by a semantic restriction would fail.
+ *
+ * The value's static type and the provided type must have a non-⊥ intersection.
+ * Additionally, the value's static type must not already be sufficiently strong
+ * by being a subtype of the provided type.  The resulting type of the call site
+ * is the intersection of the value's static type and the provided type.
+ *
+ * @method "_`?→_†"
+ * @restricts "valueType" "any's type"
+ *        The static type of the expression whose type is to be strengthened.
+ * @restricts "strongerMeta" "type's type"
+ *        Evaluated at compile time to produce the strengthened type of this
+ *        call.  The actual type is passed at runtime, but the metatype is what
+ *        gets provided to this semantic restriction.
+ */
+Semantic restriction "_`?→_†" is
+[
+	valueType : any's type,
+	strongerMeta : type's type
+|
+	strongerType ::= strongerMeta's instance;
+	If valueType ∩ strongerType = ⊥ then
+	[
+		Immediately reject parse, expected:
+			cast
+				concatenate <
+					"cast value's type (",
+					“valueType”,
+					") and target type (",
+					“strongerType”,
+					") to be related.">
+			into [s : string | s]
+	];
+	If valueType ⊆ strongerType then
+	[
+		Immediately reject parse, expected:
+			"a necessary cast expression, but the value will always be an \
+			\|instance of the specified type."
+	];
+	valueType ∩ strongerType
+];
+
 /**
  * The parenthesis method "(_)" is not allowed to nest syntactically, which is
  * dealt with by a grammatical restriction.  However, this can lead to confusing
@@ -385,13 +455,12 @@ Public method "bootstrap restricted send_with_:_" is
 	basicReturnType : type
 |
 	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= cast pair[1] into [opt : optionalSendPhraseType | opt];
+	optionalPhrase ::= pair[1] ?→ optionalSendPhraseType;
 	If optionalPhrase = <> then
 	[
-		report ::= cast pair[2] into [s : string | s];
-		Immediately reject parse strongly, expected: report
+		Immediately reject parse strongly, expected: pair[2] ?→ string
 	];
-	cast optionalPhrase[1] into [p : send phrase | p]
+	optionalPhrase[1] ?→ send phrase
 ] : send phrase;
 
 

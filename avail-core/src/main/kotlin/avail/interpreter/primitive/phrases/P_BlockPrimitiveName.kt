@@ -1,5 +1,5 @@
 /*
- * P_ReadFromStandardInput.kt
+ * P_BlockPrimitiveName.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,52 +29,49 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.interpreter.primitive.general
 
-import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState
-import avail.descriptor.sets.SetDescriptor.Companion.set
+package avail.interpreter.primitive.phrases
+
+import avail.descriptor.phrases.A_Phrase.Companion.primitive
+import avail.descriptor.phrases.BlockPhraseDescriptor
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.CHARACTER
-import avail.exceptions.AvailErrorCode.E_IO_ERROR
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
-import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.Primitive.Flag.CanFold
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
-import avail.io.SimpleCompletionHandler
-import java.nio.CharBuffer
 
 /**
- * **Primitive:** Read one character from the standard input stream,
- * [suspending][ExecutionState.SUSPENDED] the [fiber][Interpreter.fiber] until
- * data becomes available.
+ * **Primitive:** Answer the [String] which names the primitive referenced by
+ * this [block][BlockPhraseDescriptor] phrase.  Answer the empty string if no
+ * primitive was specified.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
+object P_BlockPrimitiveName : Primitive(1, CannotFail, CanFold, CanInline)
 {
-	@Suppress("RedundantLambdaArrow")
-	override fun attempt (interpreter: Interpreter): Result
+	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(0)
-		val fiber = interpreter.fiber()
-		return interpreter.suspendThen {
-			val buffer = CharBuffer.allocate(1)
-			SimpleCompletionHandler<Int>(
-				{ succeed(fromCodePoint(buffer.get(0).code)) },
-				{ fail(E_IO_ERROR) }
-			).guardedDo {
-				fiber.textInterface().inputChannel.read(
-					buffer, Unit, handler)
-			}
-		}
+		interpreter.checkArgumentCount(1)
+		val block = interpreter.argument(0)
+		return interpreter.primitiveSuccess(
+			when (val primitive = block.primitive)
+			{
+				null -> emptyTuple
+				else -> stringFrom(primitive.name)
+			})
 	}
 
-	override fun privateBlockTypeRestriction (): A_Type =
-		functionType(emptyTuple, CHARACTER.o)
-
-	override fun privateFailureVariableType (): A_Type =
-		enumerationWith(set(E_IO_ERROR))
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				BLOCK_PHRASE.mostGeneralType),
+			stringType)
 }
