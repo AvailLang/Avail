@@ -1,5 +1,5 @@
 /*
- * AvailIcons.kt
+ * AvailParserDefinition.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,20 +30,56 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.langauge
+package org.availlang.ide.anvil.language
 
-import com.intellij.openapi.util.IconLoader
+import com.intellij.lang.ASTNode
+import com.intellij.lang.ParserDefinition
+import com.intellij.lang.PsiParser
+import com.intellij.lexer.EmptyLexer
+import com.intellij.lexer.Lexer
+import com.intellij.openapi.project.Project
+import com.intellij.psi.FileViewProvider
+import com.intellij.psi.PsiElement
+import com.intellij.psi.PsiFile
+import com.intellij.psi.tree.IFileElementType
+import com.intellij.psi.tree.TokenSet
+import org.availlang.ide.anvil.language.psi.AvailFile
 
 /**
- * A {@code AvailIcons} is TODO: Document this!
+ * A `AvailParserDefinition` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object AvailIcons
+class AvailParserDefinition: ParserDefinition
 {
-	/**
-	 * The image file used to represent an Avail Module file.
-	 */
-	val moduleFileImage =
-		IconLoader.getIcon("/icons/ModuleInTree.png", AvailIcons.javaClass)
+	lateinit var f: AvailFile
+	// TODO
+	override fun createLexer(project: Project?): Lexer =
+		EmptyLexer()
+
+	override fun createParser(project: Project?): PsiParser =
+		AvailPsiParser()
+
+	override fun getFileNodeType(): IFileElementType = FILE
+
+	override fun getCommentTokens(): TokenSet = TokenSet.EMPTY
+
+	override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
+
+	override fun createElement(node: ASTNode?): PsiElement
+	{
+		TODO("Not yet implemented CREATE ELEMENTS")
+	}
+
+	override fun createFile(viewProvider: FileViewProvider): PsiFile
+	{
+		val c = AvailFile(viewProvider)
+		f = c
+		return c
+	}
+
+	companion object
+	{
+		val FILE = IFileElementType(AvailLanguage)
+	}
 }

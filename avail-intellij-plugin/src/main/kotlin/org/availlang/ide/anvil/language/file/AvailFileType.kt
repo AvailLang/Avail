@@ -1,8 +1,8 @@
-package org.availlang.ide.anvil.langauge.file
+package org.availlang.ide.anvil.language.file
 
 import com.intellij.openapi.fileTypes.LanguageFileType
-import org.availlang.ide.anvil.langauge.AvailIcons
-import org.availlang.ide.anvil.langauge.AvailLanguage
+import org.availlang.ide.anvil.language.AvailIcons
+import org.availlang.ide.anvil.language.AvailLanguage
 import javax.swing.Icon
 
 /**

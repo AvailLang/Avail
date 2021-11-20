@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.langauge
+package org.availlang.ide.anvil.language
 
 import avail.compiler.ModuleManifestEntry
 import com.intellij.ide.projectView.PresentationData
@@ -39,7 +39,7 @@ import com.intellij.ide.util.treeView.smartTree.SortableTreeElement
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.navigation.ItemPresentation
 import com.intellij.psi.NavigatablePsiElement
-import org.availlang.ide.anvil.langauge.psi.AvailFile
+import org.availlang.ide.anvil.language.psi.AvailFile
 import javax.swing.Icon
 
 /**
@@ -59,8 +59,10 @@ class AvailStructureViewElement constructor(
 	{
 		if (myElement is AvailFile)
 		{
-			return myElement.manifest.map {
-				AvailItemPresentationTreeElement(it) }.toTypedArray()
+
+			val list = myElement.manifest.map {
+				AvailItemPresentationTreeElement(it) }
+			return list.toTypedArray()
 		}
 		return arrayOf()
 	}
@@ -80,6 +82,9 @@ class AvailStructureViewElement constructor(
 
 	override fun getAlphaSortKey(): String =
 		myElement.name ?: ""
+
+	override fun toString(): String =
+		myElement.name ?: super.toString()
 }
 
 /**
@@ -114,4 +119,7 @@ class AvailItemPresentationTreeElement constructor(
 		itemPresentation
 
 	override fun getChildren(): Array<TreeElement> = arrayOf()
+
+	override fun toString(): String =
+		itemPresentation.entry.summaryText
 }

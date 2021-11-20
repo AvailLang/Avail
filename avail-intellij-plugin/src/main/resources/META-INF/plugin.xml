@@ -12,13 +12,21 @@
     <depends>com.intellij.modules.platform</depends>
 
     <extensions defaultExtensionNs="com.intellij">
-        <fileType name="Avail File"
-                  implementationClass="org.availlang.ide.anvil.langauge.file.AvailFileType"
-                  fieldName="INSTANCE" language="Avail" extensions="avail"/>
+        <fileType
+            name="Avail File"
+            implementationClass="org.availlang.ide.anvil.language.file.AvailFileType"
+            fieldName="INSTANCE" language="Avail" extensions="avail"/>
+        <lang.parserDefinition
+            language="Avail"
+            implementationClass="org.availlang.ide.anvil.language.AvailParserDefinition"/>
+        <lang.psiStructureViewFactory
+            language="Avail"
+            implementationClass="org.availlang.ide.anvil.language.AvailStructureViewFactory"/>
     </extensions>
     <applicationListeners>
-        <listener class="org.availlang.ide.anvil.listeners.AvailProjectOpenListener"
-                  topic="com.intellij.openapi.project.ProjectManagerListener"/>
+        <listener
+            class="org.availlang.ide.anvil.listeners.AvailProjectOpenListener"
+            topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
     <actions>
         <!-- Add your actions here -->

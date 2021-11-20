@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.langauge.psi
+package org.availlang.ide.anvil.language.psi
 
 import avail.compiler.ModuleManifestEntry
 import avail.persistence.cache.Repository
@@ -38,8 +38,8 @@ import avail.persistence.cache.RepositoryDescriber
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
-import org.availlang.ide.anvil.langauge.AvailLanguage
-import org.availlang.ide.anvil.langauge.file.AvailFileType
+import org.availlang.ide.anvil.language.AvailLanguage
+import org.availlang.ide.anvil.language.file.AvailFileType
 import org.availlang.ide.anvil.models.AvailNode
 import org.availlang.ide.anvil.models.AvailProjectService
 import org.availlang.ide.anvil.models.ModuleNode
@@ -55,6 +55,12 @@ class AvailFile constructor(
 {
 	override fun getFileType(): FileType = AvailFileType
 
+	init
+	{
+		println("==================================================================Oh yeah!")
+		println("sure, like we got here....")
+	}
+
 	/**
 	 * The associated [AvailNode].
 	 */
@@ -63,7 +69,11 @@ class AvailFile constructor(
 		val service =
 			project.getService(AvailProjectService::class.java)
 		val path = viewProvider.virtualFile.path
-		return service.availProject.nodes[path] as? ModuleNode
+		val uri = viewProvider.virtualFile.url
+		val p = service.availProject
+		val n = p.nodesURI
+		val g = service.availProject.nodesURI[path] as? ModuleNode
+		return service.availProject.nodesURI[path] as? ModuleNode
 	}
 
 	/**
@@ -102,4 +112,7 @@ class AvailFile constructor(
 		}
 		return listOf()
 	}
+
+	override fun toString(): String =
+		this.node?.resolved?.qualifiedName ?: "Unknown Avail File"
 }

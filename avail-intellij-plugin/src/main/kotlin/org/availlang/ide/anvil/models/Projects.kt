@@ -315,7 +315,7 @@ class AvailProjectService constructor(val project: Project)
 	} ?: ".idea/avail.json"
 
 	/**
-	 * Yhe [AvailProject] that maintains the [AvailRuntime] and [AvailBuilder].
+	 * The [AvailProject] that maintains the [AvailRuntime] and [AvailBuilder].
 	 */
 	val availProject: AvailProject = project.basePath?.let {
 		val descriptorFile = File("$it/.idea/avail.json")
@@ -358,6 +358,8 @@ class AvailProjectService constructor(val project: Project)
 				e)
 		}
 	}
+
+	override fun toString(): String = availProject.descriptor.name
 }
 
 /**
@@ -597,6 +599,13 @@ data class AvailProject constructor(
 	internal val nodes = ConcurrentHashMap<String, AvailNode>()
 
 	/**
+	 * The map of [ResolverReference.qualifiedName] to the corresponding
+	 * [AvailNode].
+	 */
+	internal val nodesURI = ConcurrentHashMap<String, AvailNode>()
+
+
+	/**
 	 * Walk all the [ModuleRoot]s populating all the [AvailNode]s ([nodes]) for
 	 * this [AvailProject].
 	 *
@@ -607,6 +616,7 @@ data class AvailProject constructor(
 	fun walkRoots (then: (AvailProject) -> Unit)
 	{
 		nodes.clear()
+		nodesURI.clear()
 		rootNodes.clear()
 		val moduleRootsCount = AtomicInteger(runtime.moduleRoots().roots.size)
 		if (moduleRootsCount.get() == 0)
@@ -626,6 +636,15 @@ data class AvailProject constructor(
 	}
 
 	/**
+	 * Populate the [node].
+	 */
+	private fun setNode (reference: ResolverReference, node: AvailNode)
+	{
+		nodes[reference.qualifiedName] = node
+		nodesURI[reference.uri.path] = node
+	}
+
+	/**
 	 * Walk the provided roots.
 	 */
 	private fun walkRoot(root: ModuleRoot, then: (AvailProject) -> Unit)
@@ -633,7 +652,8 @@ data class AvailProject constructor(
 		root.resolver.provideModuleRootTree({ refRoot ->
 			val rootNode = RootNode(this, refRoot, root)
 			rootNodes[rootNode.reference.qualifiedName] = rootNode
-			nodes[refRoot.qualifiedName] = rootNode
+			// TODO
+			setNode(refRoot, rootNode)
 			refRoot.walkChildrenThen(true, { visited ->
 				when(visited.type)
 				{
@@ -642,7 +662,7 @@ data class AvailProject constructor(
 						val parent =
 							nodes[visited.parentName]!!
 						val node = ModuleNode(parent, visited, this)
-						nodes[visited.qualifiedName] = node
+						setNode(visited, node)
 						parent.addChild(node)
 					}
 					ResourceType.REPRESENTATIVE ->
@@ -650,7 +670,7 @@ data class AvailProject constructor(
 						val parent =
 							nodes[visited.parentName]!!
 						val node = ModuleNode(parent, visited, this)
-						nodes[visited.qualifiedName] = node
+						setNode(visited, node)
 						parent.addChild(node)
 					}
 					ResourceType.PACKAGE ->
@@ -659,7 +679,7 @@ data class AvailProject constructor(
 							nodes[visited.parentName]!!
 						val node =
 							ModulePackageNode(parent, visited, this)
-						nodes[visited.qualifiedName] = node
+						setNode(visited, node)
 						parent.addChild(node)
 					}
 					ResourceType.ROOT ->
@@ -672,7 +692,7 @@ data class AvailProject constructor(
 							nodes[visited.parentName]!!
 						val node =
 							DirectoryNode(parent, visited, this)
-						nodes[visited.qualifiedName] = node
+						setNode(visited, node)
 						parent.addChild(node)
 					}
 					ResourceType.RESOURCE ->
@@ -681,7 +701,7 @@ data class AvailProject constructor(
 							nodes[visited.parentName]!!
 						val node =
 							ResourceNode(parent, visited, this)
-						nodes[visited.qualifiedName] = node
+						setNode(visited, node)
 						parent.addChild(node)
 					}
 				}
