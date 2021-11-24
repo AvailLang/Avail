@@ -537,7 +537,7 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 	 *   If anything goes wrong.
 	 */
 	@Throws(JSONException::class)
-	fun read(): JSONData?
+	fun read(): JSONData
 	{
 		try
 		{
@@ -554,7 +554,6 @@ class JSONReader @Throws(IllegalArgumentException::class) constructor(
 		{
 			throw JSONIOException(e)
 		}
-
 	}
 
 	@Throws(IOException::class)
