@@ -38,6 +38,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
@@ -686,7 +687,7 @@ protected constructor(
 							val mod = code.module
 							if (mod.notNil)
 							{
-								val modName = mod.moduleName.asNativeString()
+								val modName = mod.moduleNameNative
 								val shortName = modName.split("/").last()
 								val line = code.codeStartingLineNumber
 								str += "@$shortName:$line"
@@ -700,7 +701,7 @@ protected constructor(
 							val mod = code.module
 							if (mod.notNil)
 							{
-								val modName = mod.moduleName.asNativeString()
+								val modName = mod.moduleNameNative
 								val shortName = modName.split("/").last()
 								val line = code.codeStartingLineNumber
 								str += "@$shortName:$line"

@@ -40,6 +40,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor
@@ -2025,7 +2026,7 @@ class JVMTranslator constructor(
 			}
 			else
 			{
-				moduleNameStripper.matcher(module.moduleName.asNativeString())
+				moduleNameStripper.matcher(module.moduleNameNative)
 					.replaceAll("$1")
 			}
 

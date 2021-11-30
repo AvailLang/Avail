@@ -104,7 +104,7 @@ Method "Require:_is public" is
 				[
 					messageString : string
 				|
-					Immediately reject parse, expected: messageString
+					Reject parse, expected: messageString
 				]
 				with <messageTuple>;
 			]
@@ -153,7 +153,7 @@ Method "Require:_is public" is
 					[
 						messageString : string
 					|
-						Immediately reject parse, expected: messageString
+						Reject parse, expected: messageString
 					]
 					with <messageTuple>;
 				]
@@ -195,7 +195,7 @@ Method "Require:_is private" is
 				[
 					messageString : string
 				|
-					Immediately reject parse, expected: messageString
+					Reject parse, expected: messageString
 				]
 				with <messageTuple>;
 			]
@@ -245,7 +245,7 @@ Method "Require:_is private" is
 					[
 						messageString : string
 					|
-						Immediately reject parse, expected: messageString
+						Reject parse, expected: messageString
 					]
 					with <messageTuple>;
 				]

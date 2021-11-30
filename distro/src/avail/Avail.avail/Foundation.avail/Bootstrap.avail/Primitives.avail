@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/19/21, 8:39 PM
+ * * Last Generated: 11/29/21, 4:58 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -65,7 +65,6 @@ Names
 	"Forward method_is_",
 	"Grammatical restriction_is_",
 	"Immediately accept parse",
-	"Immediately reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"In_millisecond|milliseconds,⁇invoke_with_,⁇forked at priority_",
 	"Invoke_with_,⁇forked at priority_",
 	"Invoke|invoke_with_",

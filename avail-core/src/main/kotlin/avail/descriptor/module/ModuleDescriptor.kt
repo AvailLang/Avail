@@ -350,50 +350,56 @@ class ModuleDescriptor private constructor(
 	}
 
 	/**
+	 * A Kotlin [String] holding this module's name (converted from an
+	 * [A_String]), to reduce the need for conversions.
+	 */
+	private val moduleNameNative = moduleName.asNativeString()
+
+	/**
 	 * The [set][A_Set] of all ancestor modules of this module, but *not*
 	 * including the module itself.  The provided set must always be [SHARED].
 	 */
-	val allAncestors = AtomicReference(emptySet)
+	private val allAncestors = AtomicReference(emptySet)
 
 	/**
 	 * The [set][A_Set] of [versions][A_String] that this module alleges to
 	 * support.
 	 */
 	@Volatile
-	var versions: A_Set = emptySet
+	private var versions: A_Set = emptySet
 
 	/**
 	 * An [A_Map] from the [textual&#32;names][StringDescriptor] of entry point
 	 * [methods][MethodDescriptor] to their [true&#32;names][AtomDescriptor].
 	 */
 	@Volatile
-	var entryPoints: A_Map = emptyMap
+	private var entryPoints: A_Map = emptyMap
 
 	/**
 	 * An [A_Set] of [macros][A_Macro] which implement macros defined in this
 	 * module.
 	 */
 	@Volatile
-	var macroDefinitions: A_Set = emptySet
+	private var macroDefinitions: A_Set = emptySet
 
 	/**
 	 * The [A_Set] of [grammatical&#32;restrictions][A_GrammaticalRestriction]
 	 * defined within this module.
 	 */
 	@Volatile
-	var grammaticalRestrictions: A_Set = emptySet
+	private var grammaticalRestrictions: A_Set = emptySet
 
 	/**
 	 * The [A_Set] of [semantic&#32;restrictions][SemanticRestrictionDescriptor]
 	 * defined within this module.
 	 */
 	@Volatile
-	var semanticRestrictions: A_Set = emptySet
+	private var semanticRestrictions: A_Set = emptySet
 
 	/**
 	 * The lock used to control access to this module's modifiable parts.
 	 */
-	val lock = ReentrantReadWriteLock()
+	private val lock = ReentrantReadWriteLock()
 
 	/**
 	 * An enumeration describing the loading state of a module.  Modules are
@@ -451,7 +457,7 @@ class ModuleDescriptor private constructor(
 	 * serialized or deserialized for the body of this module.
 	 */
 	@Volatile
-	var serializedObjects: A_Tuple = nil
+	private var serializedObjects: A_Tuple = nil
 
 	/**
 	 * A map of the negative offsets of the ancestor modules'
@@ -467,14 +473,14 @@ class ModuleDescriptor private constructor(
 	 * be -1.
 	 */
 	@Volatile
-	var ancestorOffsetMap: A_Map = nil
+	private var ancestorOffsetMap: A_Map = nil
 
 	/**
 	 * The union of all ancestor filters.  If there are no ancestors, this is
 	 * simply [nil].
 	 */
 	@Volatile
-	var unionFilter: BloomFilter? = null
+	private var unionFilter: BloomFilter? = null
 
 	/**
 	 * A filter to detect uses of objects defined in this module.  A miss of the
@@ -485,13 +491,13 @@ class ModuleDescriptor private constructor(
 	 * This filter is lazily constructed only when needed.
 	 */
 	@Volatile
-	var localFilter: BloomFilter? = null
+	private var localFilter: BloomFilter? = null
 
 	/**
 	 * The union of [unionFilter] and [localFilter].  This is created lazily.
 	 */
 	@Volatile
-	var aggregateFilter: BloomFilter? = null
+	private var aggregateFilter: BloomFilter? = null
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
@@ -729,10 +735,12 @@ class ModuleDescriptor private constructor(
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		(super.o_NameForDebugger(self) + " = "
-			+ self.moduleName.asNativeString())
+		super.o_NameForDebugger(self) + " = " + moduleNameNative
 
 	override fun o_ModuleName(self: AvailObject): A_String = moduleName
+
+	override fun o_ModuleNameNative(self: AvailObject): String =
+		moduleNameNative
 
 	override fun o_Versions(self: AvailObject): A_Set =
 		lock.read { versions }
@@ -1061,7 +1069,7 @@ class ModuleDescriptor private constructor(
 			}
 			val phrasesKey = phrases.extractLong
 			val runtime = AvailRuntime.currentRuntime()
-			val moduleName = ModuleName(self.moduleName.asNativeString())
+			val moduleName = ModuleName(moduleNameNative)
 			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
@@ -1090,7 +1098,7 @@ class ModuleDescriptor private constructor(
 		{
 			val recordNumber = entries.extractLong
 			val runtime = AvailRuntime.currentRuntime()
-			val moduleName = ModuleName(self.moduleName.asNativeString())
+			val moduleName = ModuleName(moduleNameNative)
 			val resolved = runtime.moduleNameResolver.resolve(moduleName, null)
 			val record = resolved.repository.run {
 				reopenIfNecessary()
@@ -1209,22 +1217,24 @@ class ModuleDescriptor private constructor(
 		unionFilter = null
 		localFilter = null
 		aggregateFilter = null
-		self.setSlot(NEW_NAMES, nil)
-		self.setSlot(IMPORTED_NAMES, nil)
-		self.setSlot(PRIVATE_NAMES, nil)
-		self.setSlot(VISIBLE_NAMES, nil)
-		self.setSlot(CACHED_EXPORTED_NAMES, nil)
-		self.setSlot(BUNDLES, nil)
-		self.setSlot(METHOD_DEFINITIONS_SET, nil)
-		self.setSlot(VARIABLE_BINDINGS, nil)
-		self.setSlot(CONSTANT_BINDINGS, nil)
-		self.setSlot(SEALS, nil)
-		self.setSlot(UNLOAD_FUNCTIONS, nil)
-		self.setSlot(LEXERS, nil)
-		self.setSlot(STYLERS, nil)
-		self.setSlot(ALL_BLOCK_PHRASES, nil)
-		self.setSlot(ALL_TOP_PHRASE_STYLES, nil)
-		self.setSlot(ALL_MANIFEST_ENTRIES, nil)
+		self.run {
+			setSlot(NEW_NAMES, nil)
+			setSlot(IMPORTED_NAMES, nil)
+			setSlot(PRIVATE_NAMES, nil)
+			setSlot(VISIBLE_NAMES, nil)
+			setSlot(CACHED_EXPORTED_NAMES, nil)
+			setSlot(BUNDLES, nil)
+			setSlot(METHOD_DEFINITIONS_SET, nil)
+			setSlot(VARIABLE_BINDINGS, nil)
+			setSlot(CONSTANT_BINDINGS, nil)
+			setSlot(SEALS, nil)
+			setSlot(UNLOAD_FUNCTIONS, nil)
+			setSlot(LEXERS, nil)
+			setSlot(STYLERS, nil)
+			setSlot(ALL_BLOCK_PHRASES, nil)
+			setSlot(ALL_TOP_PHRASE_STYLES, nil)
+			setSlot(ALL_MANIFEST_ENTRIES, nil)
+		}
 	}
 
 	/**

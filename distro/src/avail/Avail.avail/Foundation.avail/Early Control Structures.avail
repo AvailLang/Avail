@@ -88,7 +88,7 @@ Public macro "(_)" is
 |
 	If expr ∈ super cast phrase then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"argument of parentheses not to be a supercast"
 	];
 	expr
@@ -208,7 +208,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Immediately reject parse, expected: message
+			Reject parse, expected: message
 		];
 	];
 	If accept[1] ∩ value = ⊥ then
@@ -223,7 +223,7 @@ Semantic restriction "Cast|cast_into_else_" is
 		[
 			message : string
 		|
-			Immediately reject parse, expected: message
+			Reject parse, expected: message
 		];
 	];
 	accept's return type ∪ reject's return type
@@ -254,7 +254,7 @@ Semantic restriction "Cast|cast_into_" is
 		[
 			message : string
 		|
-			Immediately reject parse, expected: message
+			Reject parse, expected: message
 		];
 	];
 	If value ∩ accept[1] = ⊥ then
@@ -268,7 +268,7 @@ Semantic restriction "Cast|cast_into_" is
 		[
 			message : string
 		|
-			Immediately reject parse, expected: message
+			Reject parse, expected: message
 		];
 	];
 	accept's return type
@@ -334,7 +334,7 @@ Semantic restriction "_`?→_†" is
 	strongerType ::= strongerMeta's instance;
 	If valueType ∩ strongerType = ⊥ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			cast
 				concatenate <
 					"cast value's type (",
@@ -346,7 +346,7 @@ Semantic restriction "_`?→_†" is
 	];
 	If valueType ⊆ strongerType then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a necessary cast expression, but the value will always be an \
 			\|instance of the specified type."
 	];
@@ -368,7 +368,7 @@ Public macro "((_))" is
 [
 	expr : expression phrase
 |
-	Immediately reject parse,
+	Reject parse,
 		expected: "something other than directly nested parentheses"
 ];
 
@@ -458,7 +458,7 @@ Public method "bootstrap restricted send_with_:_" is
 	optionalPhrase ::= pair[1] ?→ optionalSendPhraseType;
 	If optionalPhrase = <> then
 	[
-		Immediately reject parse strongly, expected: pair[2] ?→ string
+		Reject parse strongly, expected: pair[2] ?→ string
 	];
 	optionalPhrase[1] ?→ send phrase
 ] : send phrase;
@@ -481,7 +481,7 @@ Semantic restriction "Exit_with_if_" is
 	functionType ::= continuationType's function type;
 	Unless exitType ⊆ functionType's return type then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			cast concatenate <
 				"continuation (",
 				“continuationType”,
@@ -562,7 +562,7 @@ Semantic restriction "Exit_with_" is
 	functionType ::= continuationType's function type;
 	Unless exitType ⊆ functionType's return type then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			cast concatenate <
 				"continuation (",
 				“continuationType”,
@@ -645,7 +645,7 @@ Semantic restriction "From_to_do_" is
 			[
 				message : string
 			|
-				Immediately reject parse, expected: message
+				Reject parse, expected: message
 			]
 		];
 	];
@@ -684,7 +684,7 @@ Semantic restriction "Restart_with_" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Immediately reject parse, expected: sizesIncompatibleMessage
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 	];
 	⊥

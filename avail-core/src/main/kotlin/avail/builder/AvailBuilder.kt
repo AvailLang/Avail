@@ -58,6 +58,7 @@ import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.phrases.A_Phrase
@@ -862,8 +863,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		{
 			val module = newModule(
 				stringFrom(
-					loadedModule.module.moduleName.asNativeString() +
-						" (command)"))
+					loadedModule.module.moduleNameNative + " (command)"))
 			val loader = AvailLoader(module, runtime.textInterface())
 			val moduleImport = ModuleImport.extend(loadedModule.module)
 			val header = ModuleHeader(loadedModule.name)

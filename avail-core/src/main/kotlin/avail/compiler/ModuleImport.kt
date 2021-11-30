@@ -42,7 +42,7 @@ import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.versions
 import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -246,7 +246,7 @@ class ModuleImport
 		{
 			try
 			{
-				val name = ModuleName(module.moduleName.asNativeString())
+				val name = ModuleName(module.moduleNameNative)
 				return ModuleImport(
 					stringFrom(name.localName),
 					module.versions,

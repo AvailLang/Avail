@@ -54,12 +54,14 @@
       <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
+      <w>noncanonical</w>
       <w>noninline</w>
       <w>nonlocal</w>
       <w>nonprimitive</w>
       <w>nulled</w>
       <w>nullness</w>
       <w>observerless</w>
+      <w>parameters'type</w>
       <w>postinvoke</w>
       <w>precompute</w>
       <w>preinvoke</w>

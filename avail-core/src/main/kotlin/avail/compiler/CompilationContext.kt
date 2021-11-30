@@ -62,6 +62,7 @@ import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.PhraseDescriptor
@@ -242,7 +243,7 @@ class CompilationContext constructor(
 	 * compilation.
 	 */
 	internal val moduleName get() =
-		ModuleName(module.moduleName.asNativeString())
+		ModuleName(module.moduleNameNative)
 
 	/** The current number of work units that have been queued. */
 	val workUnitsQueued get() = atomicWorkUnitsQueued.get()
@@ -711,7 +712,7 @@ class CompilationContext constructor(
 				if (AvailLoader.debugUnsummarizedStatements)
 				{
 					println(
-						module.moduleName.asNativeString()
+						module.moduleNameNative
 							+ ':'.toString() + startingLineNumber
 							+ " Summary -- \n"
 							+ L1Decompiler.decompile(summaryFunction.code())
@@ -726,7 +727,7 @@ class CompilationContext constructor(
 			if (AvailLoader.debugUnsummarizedStatements)
 			{
 				println(
-					module.moduleName.asNativeString()
+					module.moduleNameNative
 						+ ":" + startingLineNumber
 						+ " Unsummarized -- \n" + function)
 			}
@@ -748,7 +749,7 @@ class CompilationContext constructor(
 		if (AvailLoader.debugUnsummarizedStatements)
 		{
 			println(
-				module.moduleName.asNativeString()
+				module.moduleNameNative
 					+ ":" + function.code().codeStartingLineNumber
 					+ " Forced -- \n" + function)
 		}

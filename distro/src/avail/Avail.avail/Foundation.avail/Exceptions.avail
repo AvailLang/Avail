@@ -109,7 +109,6 @@ Names
 
 	/* Rejecting/accepting parses safely. */
 	"Accept parse",
-	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Unwind fiber and run_"
 
 	/* Quite a few names are introduced, but all dynamically by the
@@ -178,7 +177,7 @@ Public method "_'s⁇stack summary" is
  */
 Public method "current fiber's unhandled exception handler" is
 [
-	cast current fiber[unhandled exception handler] into [t : [exception]→⊥ | t]
+	current fiber[unhandled exception handler] ?→ [exception]→⊥
 ] : [exception]→⊥;
 
 /**
@@ -453,7 +452,7 @@ Public method "_caused by_" is
 	originalException : exception
 |
 	fields ::= newException→map + causal exception→originalException;
-	cast fields→object into [t : cascade exception | t]
+	fields→object ?→ cascade exception
 ] : cascade exception;
 
 /**
@@ -572,7 +571,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 	unwindCount ::= ⌊unwindType⌋;
 	If handlerCount = 0 ∧ unwindCount = 0 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"at least one exception handler or an unwind handler"
 	];
 	For each index from 1 to handlerCount do
@@ -581,14 +580,14 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		argType ::= handlerType[1];
 		If argType = ⊥ then
 		[
-			Immediately reject parse, expected: format
+			Reject parse, expected: format
 				"exception handler #“①”'s parameter type to be \
 				\|statically known"
 				with index
 		];
 		If ¬argType ⊆ exception then
 		[
-			Immediately reject parse, expected: format
+			Reject parse, expected: format
 				"exception handler to accept only exceptions (not “①”)"
 				with argType
 		];
@@ -603,7 +602,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		];
 		If ¬hidingArgTypes is empty then
 		[
-			Immediately reject parse, expected: format
+			Reject parse, expected: format
 			"exception handler for “①” to be reachable \
 			\|(but it is hidden by each of: “②”)"
 			with argType, hidingArgTypes
@@ -804,11 +803,10 @@ Private method "System exception_(_)extends_" is
 			error code : code's type,
 			error name : exceptionName's type;
 	Export exceptionName as a new name;
-	site ::= cast method definition of atom for exceptionName for <>
-		into [t : method definition | t];
-	implementation ::= cast site's function into [t : []→object meta | t];
-	exceptionType ::= cast implementation()
-		into  [t : system exception's type | t];
+	site ::= method definition of atom for exceptionName for <>
+		?→ method definition;
+	implementation ::= site's function ?→ []→object meta;
+	exceptionType ::= implementation() ?→ system exception's type;
 	↑exceptionsByCode [code] := exceptionType;
 ];
 
@@ -1539,7 +1537,7 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 	];
 	If |missingSystemExceptions| ≠ 0 ∨ |missingExceptionClasses| ≠ 0 then
 	[
-		Immediately reject parse, expected: problem
+		Reject parse, expected: problem
 	];
 	⊤
 ];
@@ -2118,7 +2116,7 @@ noUnhandledExceptionHandler :=
 		 */
 		If current fiber can reject a parse then
 		[
-			Immediately reject parse, expected: msg
+			Reject parse, expected: msg
 		];
 		/* If the unhandled exception is a termination-requested exception, then
 		 * arrange to exit the current fiber cleanly. Note that this will only
@@ -2186,7 +2184,7 @@ Set stability failure function to
 	[
 		e : exception
 	|
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"stable method not to fail during macro evaluation:\n"
 			++ “e” (stack summary)
 	]
@@ -2246,10 +2244,9 @@ Public method "Unwind fiber and run_" is
 
 
 /**
- * This function rejects the current parse immediately, exiting the fiber.  It
- * should only be used in the early bootstrapping (i.e., before this point, via
- * the "Immediately reject..." form), or with proper unwinding of the stack
- * first, which is what we're about to define.
+ * This primitive rejects the current parse immediately, exiting the fiber.  It
+ * should only be used in early bootstrapping (i.e., before this point), or with
+ * automatic unwinding of the stack, which is about to be defined below.
  */
 privateReject ::=
 [
@@ -2262,17 +2259,21 @@ privateReject ::=
 ] : ⊥;
 
 /**
- * Define a new method for rejecting a parse.  The "Immediately reject..."
- * form was fine for bootstrapping, but now we're ready to honor unwinds.
+ * Define a new method for rejecting a parse.  The raw primitive form was fine
+ * for bootstrapping, but now we're ready to honor unwinds.
  */
-Public method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
-is
+oldRejectionFunction ::= Replace parse rejection function with
+	[
+		level : parse rejection level,
+		expected : string
+	|
+		Unwind fiber and run [privateReject(level, expected)]
+	] : ⊥;
+
+After the current module is unloaded, do
 [
-	level : parse rejection level,
-	expected : string
-|
-	Unwind fiber and run [privateReject(level, expected)]
-] : ⊥;
+	Ignore: Replace parse rejection function with oldRejectionFunction;
+];
 
 /**
  * This function accepts the current parse immediately, exiting the fiber.  It
@@ -2309,11 +2310,6 @@ Public method "Accept parse" is
 
 
 /**
- * Implement the non-bootstrap version of "restricted send_with_:_".  The
- * bootstrap version doesn't respect the unwind mechanism, and uses
- * "Immediate reject parse..." instead of the "Reject parse..." that we just
- * implemented above.  Use that instead.
- *
  * Create a send phrase from the supplied message name (atom), list phrase of
  * arguments, and return type.  Strengthen the return type based on the
  * applicable method definitions.  Also launch a fiber for each applicable
@@ -2365,7 +2361,7 @@ Public method "restricted send_with_:_" is
 	optionalPhrase ::= pair[1];
 	If optionalPhrase = <> then
 	[
-		Immediately reject parse strongly, expected: pair[2]
+		Reject parse strongly, expected: pair[2]
 	];
 	optionalPhrase[1]
 ] : send phrase;

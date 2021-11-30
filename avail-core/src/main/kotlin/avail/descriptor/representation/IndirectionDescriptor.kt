@@ -215,6 +215,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
@@ -3806,4 +3807,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
 		self .. { objectTypeVariant }
+
+	override fun o_ModuleNameNative(self: AvailObject): String =
+		self .. { moduleNameNative }
 }

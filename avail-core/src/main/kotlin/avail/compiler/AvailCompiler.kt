@@ -143,6 +143,7 @@ import avail.descriptor.module.A_Module.Companion.exportedNames
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.variableBindings
@@ -393,7 +394,7 @@ class AvailCompiler constructor(
 	 *   The module name.
 	 */
 	private val moduleName get() = ModuleName(
-		compilationContext.module.moduleName.asNativeString())
+		compilationContext.module.moduleNameNative)
 
 	/**
 	 * A list of subexpressions being parsed, represented by

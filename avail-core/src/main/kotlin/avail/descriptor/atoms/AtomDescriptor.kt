@@ -53,6 +53,7 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -197,7 +198,7 @@ open class AtomDescriptor protected constructor (
 		}
 		val issuer: A_Module = self.slot(ISSUING_MODULE)
 		if (issuer.notNil) {
-			val issuerName = issuer.moduleName.asNativeString()
+			val issuerName = issuer.moduleNameNative
 			val localIssuer =
 				issuerName.substring(issuerName.lastIndexOf('/') + 1)
 			append(" (from $localIssuer)")

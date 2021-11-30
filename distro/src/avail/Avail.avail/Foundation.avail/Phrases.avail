@@ -856,7 +856,7 @@ Macro "⟦§_!⟧" is
 	/* Allow embedded "⦊§_⦉" unquoting to produce marker phrases herein. */
 	If parsing quoted phrase ∈ scope map then
 	[
-		Immediately reject parse strongly, expected:
+		Reject parse strongly, expected:
 			"Invocations of \"quoted phrase`«§_`»\" not to be nested."
 	];
 	/*
@@ -911,13 +911,13 @@ Macro "⦊§_⦉" is
 	 */
 	Unless parsing quoted phrase ∈ parse map then
 	[
-		Immediately reject parse strongly, expected:
+		Reject parse strongly, expected:
 			"The unquote (\"⦊§_⦉\") macro to occur only inside \
 				\|a quoted (\"⟦§_!⟧\") phrase."
 	];
 	Unless scope map = empty map then
 	[
-		Immediately reject parse strongly, expected:
+		Reject parse strongly, expected:
 			"The scope inside a quoted (\"⟦§_!⟧\") phrase to be empty."
 	];
 	/*

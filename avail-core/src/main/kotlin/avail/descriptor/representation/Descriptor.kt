@@ -2745,4 +2745,6 @@ protected constructor (
 	override fun o_ObjectTypeVariant(
 		self: AvailObject
 	): ObjectLayoutVariant = unsupported
+
+	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
 }

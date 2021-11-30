@@ -195,12 +195,12 @@ Method "_mod_" is type promotion function for
 |
 	If b = 0 ∧ a ∈ extended integer then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
 	If a ∈ infinities ∧ b ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	a mod b
 ];
@@ -228,13 +228,13 @@ Method "_mod_" is
 	denominatorSet ::= {⌊b⌋, ⌈b⌉};
 	If denominatorSet = {0} then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	numeratorSet ::= {⌊a⌋, ⌈a⌉};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	if ⌊b⌋ = ⌈b⌉
 		∧ ⌊a⌋ is finite
@@ -503,7 +503,7 @@ Method "_×_" is
 	};
 	If bounds = {{0}, {∞}} ∨ bounds = {{0}, {-∞}} then
 	[
-		Immediately reject parse, expected: cannotMultiplyMessage
+		Reject parse, expected: cannotMultiplyMessage
 	]
 	else
 	[
@@ -653,7 +653,7 @@ Semantic restriction "_+_" is
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
-		Immediately reject parse, expected: cannotAddMessage
+		Reject parse, expected: cannotAddMessage
 	];
 	a + b
 ];
@@ -679,7 +679,7 @@ Semantic restriction "_-_" is
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
-		Immediately reject parse, expected: cannotSubtractMessage
+		Reject parse, expected: cannotSubtractMessage
 	];
 	a + negated
 ];
@@ -770,13 +770,13 @@ Method "_÷_" is
 	denominatorSet ::= {⌊b⌋, ⌈b⌉};
 	If denominatorSet = {0} then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	numeratorSet ::= {⌊a⌋, ⌈a⌉};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	union : extended integer's type := ⊥;
 	negativeDenominators ::= b ∩ [-∞..-1];
@@ -920,7 +920,7 @@ Semantic restriction "`|_`|" is
 |
 	If a ∩ [0..∞] = a then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"argument of absolute value (\"`|_`|\") to be potentially negative."
 	];
 	⊤
@@ -995,7 +995,7 @@ Public method "comparison chain semantic restriction function" is
 	[
 		args : <<any, [1..1]…|1..2>…|3..∞>'s type
 	|
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"inequality chain to include at least one inequality"
 	]
 ];

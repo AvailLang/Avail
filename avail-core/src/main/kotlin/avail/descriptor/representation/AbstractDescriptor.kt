@@ -3900,6 +3900,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant
 
+	abstract fun o_ModuleNameNative(self: AvailObject): String
+
 	companion object
 	{
 		/**

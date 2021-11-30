@@ -63,6 +63,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.FUNCTION_TY
 import avail.descriptor.functions.CompiledCodeDescriptor.ObjectSlots.LITERAL_AT_
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -705,7 +706,7 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			val moduleName = module.run {
 				if (isNil) "No module"
-				else moduleName.asNativeString().split("/").last()
+				else moduleNameNative.split("/").last()
 			}
 			fields.add(
 				AvailObjectFieldHelper(
@@ -1194,7 +1195,7 @@ open class CompiledCodeDescriptor protected constructor(
 						descriptor.invocationStatistic.hasRun,
 						descriptor.startingChunk != L2Chunk.unoptimizedChunk,
 						descriptor.lineNumber,
-						module.moduleName.asNativeString(),
+						module.moduleNameNative,
 						descriptor.methodName.asNativeString())
 					if (!reports.contains(report))
 					{

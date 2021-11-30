@@ -180,7 +180,7 @@ Semantic restriction "⌊_⌋" is
 [
 	bottom : ⊥'s type's type
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"a value other than ⊥'s type for ⌊_⌋."
 ];
 
@@ -192,7 +192,7 @@ Semantic restriction "⌈_⌉" is
 [
 	bottom : ⊥'s type's type
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"a value other than ⊥'s type for ⌈_⌉."
 ];
 
@@ -390,12 +390,12 @@ Public macro "¢…!" is
 	lexeme ::= tokenPhrase's token's lexeme;
 	If |lexeme| ≠ 1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a single-character token or single-character literal string"
 	];
 	If lexeme = "[" then
 	[
-		Immediately reject parse silently, expected:
+		Reject parse silently, expected:
 			"open square bracket ([) to be quoted when used in a character \
 				\|literal"
 	];
@@ -471,7 +471,7 @@ Semantic restriction "_[_]" is
 			“⌈aTupleType⌉”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
-		Immediately reject parse, expected: message
+		Reject parse, expected: message
 	];
 	union : type := ⊥;
 	limit ::= |aTupleType's leading types| + 1;
@@ -517,7 +517,7 @@ Semantic restriction "_[_]" is
 			“⌈aTupleType⌉”,
 			")">;
 		message ::= cast messageTuple into [ t : string | t ];
-		Immediately reject parse, expected: message
+		Reject parse, expected: message
 	];
 	union : type := ⊥;
 	limit ::= |aTupleType's leading types| + 1;

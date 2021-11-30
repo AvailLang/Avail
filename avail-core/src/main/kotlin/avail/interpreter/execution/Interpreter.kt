@@ -66,6 +66,7 @@ import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.c
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -3230,7 +3231,7 @@ class Interpreter(
 						"Outermost %s @ %s:%d",
 						methodName.asNativeString(),
 						if (module.isNil) "«vm»"
-						else module.moduleName.asNativeString(),
+						else module.moduleNameNative,
 						codeStartingLineNumber)
 				}
 			}

@@ -58,12 +58,12 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor
-import avail.descriptor.types.InstanceMetaDescriptor
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
-import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
@@ -186,15 +186,15 @@ class TypeRestriction private constructor(
 		/** Ensure all referenced [AvailObject]s are at least Immutable. */
 		fun makeImmutable()
 		{
-			constants?.forEach { it.makeImmutable() }
-			types.forEach { it.makeImmutable() }
+			constants?.forEach(A_BasicObject::makeImmutable)
+			types.forEach(A_Type::makeImmutable)
 		}
 
 		/** Ensure all referenced [AvailObject]s are Shared. */
 		fun makeShared()
 		{
-			constants?.forEach { it.makeImmutable() }
-			types.forEach { it.makeImmutable() }
+			constants?.forEach(A_BasicObject::makeShared)
+			types.forEach(A_Type::makeShared)
 		}
 	}
 
@@ -366,10 +366,10 @@ class TypeRestriction private constructor(
 		val resultExcludedTypes = mutableSetOf(BottomTypeDescriptor.bottomMeta)
 		for (t in excludedTypes)
 		{
-			resultExcludedTypes.add(InstanceMetaDescriptor.instanceMeta(t))
+			resultExcludedTypes.add(instanceMeta(t))
 		}
 		return restriction(
-			InstanceMetaDescriptor.instanceMeta(type),
+			instanceMeta(type),
 			null,
 			resultExcludedTypes,
 			resultExcludedValues,
@@ -1183,19 +1183,15 @@ class TypeRestriction private constructor(
 			}
 			while (anyTrimsThisPass)
 
-			if (anyTrimsAtAll)
+			return when
 			{
 				// Recanonicalize if any trimming happened.
-				return restriction(
+				anyTrimsAtAll -> restriction(
 					type,
 					givenConstantOrNull,
 					givenExcludedTypes,
 					givenExcludedValues,
 					flags)
-			}
-
-			return when
-			{
 				// A constant was specified.  Use it if it satisfies the
 				// main type constraint and isn't specifically excluded,
 				// otherwise use the bottomRestriction, which is the

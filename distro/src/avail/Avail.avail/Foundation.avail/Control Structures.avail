@@ -421,7 +421,7 @@ Semantic restriction "From_to_by_do_" is
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
 			++ “subscripts”
 			++ ", but it only accepts "
@@ -575,7 +575,7 @@ Public method "Require:_accepts subscripts from_to_by_" is
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
 			++ “subscripts”
 			++ ", but it only accepts "
@@ -925,7 +925,7 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Immediately reject parse, expected: sizesIncompatibleMessage
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
 		From 1 to ⌊argumentsSizes⌋ do
@@ -934,7 +934,7 @@ Semantic restriction "_(«_‡,»)" is
 		|
 			If ¬argumentsType[index] ⊆ parametersType[index] then
 			[
-				Immediately reject parse, expected:
+				Reject parse, expected:
 					"argument #"
 					++ “index”
 					++ " of type ("
@@ -974,7 +974,7 @@ Public method "Require:_'s⁇keeper is valid" is
 	expectedType ::= [⊥]→⊤;
 	If ¬action[parametersSize] ⊆ expectedType then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"last argument ⊆ "
 			++ “expectedType”
 			++ " (but instead it was "
@@ -2243,7 +2243,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		functionType ::= caseTuple[index];
 		If valueType ⊆ functionType[1] then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"necessary cast expression, but "
 				++ “valueType”
 				++ " is a subtype of "
@@ -2251,7 +2251,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		];
 		If valueType ∩ (functionType[1]) = ⊥ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"allowed cast expression, but "
 				++ “valueType”
 				++ " is not a supertype of "
@@ -2351,11 +2351,11 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 	$body : type;
 	If |meta| ≠ 1 ∨ ¬0 < |meta's instance| < ∞ then
 	[
-		Immediately reject parse, expected: "enumeration to be statically known"
+		Reject parse, expected: "enumeration to be statically known"
 	];
 	If ¬valueType ∈ meta then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"case selector ("
 			++ “valueType”
 			++ ") to be an instance of "
@@ -2371,14 +2371,14 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		case ::= caseTuple[index];
 		If |case[1]| ≠ 1 then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"all cases to be statically known values, but discovered "
 				++ “case[1]”
 		];
 		instance ::= case[1]'s instance;
 		If ¬instance ∈ enum then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"all cases to be instances of "
 				++ “enum”
 				++ ", but "
@@ -2387,7 +2387,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		];
 		If case[1] ⊆ caseEnum then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"each case to be unique, but "
 				++ “instance”
 				++ " occurs more than once"
@@ -2407,7 +2407,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;
 		unhandledCases ::= allCases \ handledCases;
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"all cases to be handled, but these cases are not: "
 			++ “unhandledCases”
 	];
@@ -2430,10 +2430,10 @@ Macro "If|if__«else|;|]»#" is
 |
 	bodyTokens ::= body's tokens;
 	openSquare ::= bodyTokens[1] else [
-		Immediately reject parse strongly,
+		Reject parse strongly,
 			expected: "You may have forgotten the word \"then\" above."
 	];
-	Immediately reject parse strongly,
+	Reject parse strongly,
 		expected: "You may have forgotten \"then\" between the condition \
 			\|expression and the \"[\" on line " ++ “openSquare's line number”
 ];

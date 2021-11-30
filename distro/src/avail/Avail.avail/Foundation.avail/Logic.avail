@@ -900,7 +900,7 @@ Public macro "¬_≠_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"use of \"_=_\", instead of \"¬_≠_\""
 ];
 
@@ -921,6 +921,6 @@ Public macro "¬_=_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"use of \"_≠_\", instead of \"¬_=_\""
 ];

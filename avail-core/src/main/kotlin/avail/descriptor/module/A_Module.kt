@@ -352,6 +352,15 @@ interface A_Module : A_BasicObject
 		val A_Module.moduleName: A_String get() = dispatch { o_ModuleName(it) }
 
 		/**
+		 * Answer the name of this module as a native Kotlin [String].
+		 *
+		 * @return
+		 *   A [String] naming this module.
+		 */
+		val A_Module.moduleNameNative: String
+			get() = dispatch { o_ModuleNameNative(it) }
+
+		/**
 		 * Answer a [map][A_Map] from [strings][A_String] to [atoms][A_Atom].
 		 * These atoms prevent or at least clarify name conflicts. These names
 		 * are those introduced by the module's `"Names"` section or

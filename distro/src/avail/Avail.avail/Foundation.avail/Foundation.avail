@@ -689,9 +689,6 @@ Extends
 		"Java-method-not-available exception",
 		"Java-method-reference-is-ambiguous exception",
 		"Raise_",
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
-			→ "Reject parse(confidence=_),expected:_",
 		"Unwind fiber and run_",
 		"a Java exception caused by_",
 		"abstract-method-definition exception",
@@ -1344,6 +1341,11 @@ Extends
 		"↓_else_",
 		"`↑_↑",
 		"«…‡,»::=_;"
+	),
+	"Very Early Definers" =
+	(
+		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
+		"Reject parse(confidence=_),expected:_"
 	)
 Body
 
