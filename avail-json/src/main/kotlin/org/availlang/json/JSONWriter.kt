@@ -672,7 +672,7 @@ class JSONWriter : AutoCloseable
 							// Line feed.
 							'\n'.code -> privateWrite("\\n")
 							// Form feed.
-							"\\f".toInt() -> privateWrite("\\f")
+							'\u000C'.code -> privateWrite("\\f")
 							// Carriage return.
 							'\r'.code -> privateWrite("\\r")
 							else -> privateWrite(
@@ -1025,6 +1025,153 @@ class JSONWriter : AutoCloseable
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
 	fun writeArray(vararg values: JSONFriendly)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of integer values.
+	 *
+	 * @param values
+	 *   A collection of int values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeInts(values: Collection<Int>)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of long values.
+	 *
+	 * @param values
+	 *   A collection of long values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeLongs(values: Collection<Long>)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of float values.
+	 *
+	 * @param values
+	 *   A collection of float values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeFloats(values: Collection<Float>)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of double values.
+	 *
+	 * @param values
+	 *   A collection of double values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeDoubles(values: Collection<Double>)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of boolean values.
+	 *
+	 * @param values
+	 *   A collection of boolean values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeBooleans(values: Collection<Boolean>)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of string values.
+	 *
+	 * @param values
+	 *   A collection of string values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeStrings(values: Collection<String>)
+	{
+		startArray()
+		for (value in values)
+		{
+			write(value)
+		}
+		endArray()
+	}
+
+	/**
+	 * Write an array of [JSON-friendly][JSONFriendly] values.
+	 *
+	 * @param values
+	 *   A collection of JSON-friendly values.
+	 * @throws JSONIOException
+	 *   If an I/O exception occurs.
+	 * @throws IllegalStateException
+	 *   If an array cannot be written.
+	 */
+	@Throws(JSONIOException::class, IllegalStateException::class)
+	fun writeArray(values: Collection<JSONFriendly>)
 	{
 		startArray()
 		for (value in values)

@@ -33,6 +33,7 @@
 package org.availlang.json
 
 import java.io.Reader
+import java.io.StringReader
 
 /**
  * Answer a [JSONWriter] that has had the provided [writerAction] applied to it.
@@ -48,28 +49,70 @@ fun jsonWriter (writerAction: JSONWriter.() -> Unit): JSONWriter =
 /**
  * Answer a [JSONData] that has had the provided [dataAction] applied to it.
  *
+ * @param reader
+ *   The [Reader] that contains the JSON content.
  * @param dataAction
  *   A lambda that accepts the created and returned [JSONData].
  * @return
  *   A [JSONData].
  */
-fun jsonData (reader: Reader, dataAction: JSONData.() -> Unit): JSONData =
+fun jsonData (
+	reader: Reader,
+	dataAction: JSONData.() -> Unit ={}
+): JSONData =
 	JSONReader(reader).read().apply(dataAction)
 
 /**
  * Answer a [JSONObject] that has had the provided [objectAction] applied to it.
  *
+ * @param reader
+ *   The [Reader] that contains the JSON content.
  * @param objectAction
  *   A lambda that accepts the created and returned [JSONObject].
  * @return
  *   A [JSONObject].
  */
-fun jsonObject (reader: Reader, objectAction: JSONObject.() -> Unit): JSONObject =
+fun jsonObject (
+	reader: Reader,
+	objectAction: JSONObject.() -> Unit = {}
+): JSONObject =
 	(JSONReader(reader).read() as JSONObject).apply(objectAction)
+
+
+/**
+ * Answer a [JSONObject] that has had the provided [objectAction] applied to it.
+ *
+ * @param raw
+ *   The raw JSON as a string.
+ * @param objectAction
+ *   A lambda that accepts the created and returned [JSONObject].
+ * @return
+ *   A [JSONObject].
+ */
+fun jsonObject (
+	raw: String,
+	objectAction: JSONObject.() -> Unit = {}
+): JSONObject =
+	(JSONReader(StringReader(raw)).read() as JSONObject).apply(objectAction)
 
 /**
  * Answer a [JSONArray] that has had the provided [arrayAction] applied to it.
  *
+ * @param raw
+ *   The raw JSON as a string.
+ * @param arrayAction
+ *   A lambda that accepts the created and returned [JSONArray].
+ * @return
+ *   A [JSONArray].
+ */
+fun jsonArray (raw: String, arrayAction: JSONArray.() -> Unit): JSONArray =
+	(JSONReader(StringReader(raw)).read() as JSONArray).apply(arrayAction)
+
+/**
+ * Answer a [JSONArray] that has had the provided [arrayAction] applied to it.
+ *
+ * @param reader
+ *   The [Reader] that contains the JSON content.
  * @param arrayAction
  *   A lambda that accepts the created and returned [JSONArray].
  * @return
@@ -77,3 +120,19 @@ fun jsonObject (reader: Reader, objectAction: JSONObject.() -> Unit): JSONObject
  */
 fun jsonArray (reader: Reader, arrayAction: JSONArray.() -> Unit): JSONArray =
 	(JSONReader(reader).read() as JSONArray).apply(arrayAction)
+
+/**
+ * Answer a [JSONReader] that has had the provided [readerAction] applied to it.
+ *
+ * @param raw
+ *   The raw JSON as a string.
+ * @param readerAction
+ *   A lambda that accepts the created and returned [JSONReader].
+ * @return
+ *   A [JSONReader].
+ */
+fun jsonReader (
+	raw: String,
+	readerAction: JSONReader.() -> Unit = {}
+): JSONReader =
+	JSONReader(StringReader(raw)).apply(readerAction)
