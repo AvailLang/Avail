@@ -125,7 +125,7 @@ object P_BootstrapAssignmentStatementMacro
 			throw AvailRejectedParseException(STRONG)
 			{
 				formatString(
-					"a name of a variable, not a %s",
+					"a name of a variable, not a(n) %s",
 					declaration.declarationKind().nativeKindName())
 			}
 		}

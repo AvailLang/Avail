@@ -35,8 +35,6 @@ package avail.environment.actions
 import avail.environment.AvailWorkbench
 import avail.environment.tasks.BuildTask
 import java.awt.event.ActionEvent
-import java.awt.event.InputEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
 import javax.swing.KeyStroke
 
@@ -64,7 +62,6 @@ class CancelAction constructor(workbench: AvailWorkbench)
 			Action.SHORT_DESCRIPTION, "Cancel the current build process.")
 		putValue(
 			Action.ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(
-				KeyEvent.VK_ESCAPE, InputEvent.CTRL_DOWN_MASK))
+			KeyStroke.getKeyStroke("control ESCAPE"))
 	}
 }

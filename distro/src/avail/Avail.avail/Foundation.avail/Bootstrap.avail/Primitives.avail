@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/29/21, 4:58 PM
+ * * Last Generated: 11/30/21, 12:34 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -115,6 +115,7 @@ Names
 	"_'s⁇genuine upper bound",
 	"_'s⁇hash",
 	"_'s⁇implementation",
+	"_'s⁇initializing expression",
 	"_'s⁇instances",
 	"_'s⁇issuing module",
 	"_'s⁇key type",
@@ -181,6 +182,7 @@ Names
 	"_bit∨_",
 	"_bit⊕_",
 	"_has definition for_",
+	"_has initializing expression",
 	"_has public name_",
 	"_has result",
 	"_has terminated",

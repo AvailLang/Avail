@@ -1231,9 +1231,9 @@ class ModuleDescriptor private constructor(
 			setSlot(UNLOAD_FUNCTIONS, nil)
 			setSlot(LEXERS, nil)
 			setSlot(STYLERS, nil)
-			setSlot(ALL_BLOCK_PHRASES, nil)
-			setSlot(ALL_TOP_PHRASE_STYLES, nil)
-			setSlot(ALL_MANIFEST_ENTRIES, nil)
+			//setSlot(ALL_BLOCK_PHRASES, nil)
+			//setSlot(ALL_TOP_PHRASE_STYLES, nil)
+			//setSlot(ALL_MANIFEST_ENTRIES, nil)
 		}
 	}
 
@@ -1465,11 +1465,10 @@ class ModuleDescriptor private constructor(
 				setSlot(METHOD_DEFINITIONS_SET, emptySet)
 				setSlot(VARIABLE_BINDINGS, emptyMap)
 				setSlot(CONSTANT_BINDINGS, emptyMap)
-				setSlot(VARIABLE_BINDINGS, emptyMap)
 				setSlot(SEALS, emptyMap)
-				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(LEXERS, emptySet)
 				setSlot(STYLERS, emptySet)
+				setSlot(UNLOAD_FUNCTIONS, emptyTuple)
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				setSlot(ALL_TOP_PHRASE_STYLES, emptyTuple)
 				setSlot(ALL_MANIFEST_ENTRIES, nil)

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/29/21, 4:58 PM
+ * * Last Generated: 11/30/21, 12:34 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -77,6 +77,7 @@ Uses
 		"Semantic restriction_is_",
 		"Style_with_",
 		"_'s⁇_field",
+		"_'s⁇initializing expression",
 		"_'s⁇instances",
 		"_'s⁇issuing module",
 		"_'s⁇result",
@@ -3341,6 +3342,29 @@ Primitive "_(_)@_:_" is
 		exceeds-VM-limit code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : token;
+
+/**
+ * Answer this declaration's initializing expression, or fail if it doesn't
+ * have one.  Its presence can be checked with {@code 
+ * "_has initializing expression"}.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇initializing expression"
+ * @param "decl" "declaration phrase⇒⊤"
+ *        The declaration.
+ * @returns "expression phrase⇒any"
+ *    The declaration's initializing expression.
+ * @raises "declaration-does-not-have-initializer exception"
+ *    If the declaration does not have an initializing expression.
+ */
+Primitive "_'s⁇initializing expression" is
+[
+	decl : declaration phrase
+|
+	Primitive DeclarationInitializingExpression (failureCode : {
+		declaration-does-not-have-initializer code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : expression yielding any;
 
 /**
  * Look up the macro under the given atom, using the provided phrases to

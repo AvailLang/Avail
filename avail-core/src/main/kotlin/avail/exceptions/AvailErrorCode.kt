@@ -243,7 +243,12 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_STYLER_ALREADY_SET_BY_THIS_MODULE(27),
 
-	// E_?? (28)
+	/**
+	 * An attempt was made to extract the initialization expression from a
+	 * declaration, but the declaration doesn't happen to have one.
+	 */
+	E_DECLARATION_DOES_NOT_HAVE_INITIALIZER(28),
+
 	// E_?? (29)
 
 	/** A computation would produce a value too large to represent. */

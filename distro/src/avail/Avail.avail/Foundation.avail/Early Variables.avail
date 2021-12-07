@@ -49,7 +49,6 @@ Names
 	"unsafely atomically read_↑and store_",
 	"unsafely atomically compare_↑to_and,⁇if equal,⁇store_",
 	"_↑`?=_",
-	"_↑`?=_'s⁇initialization",
 	"`↑_↑",
 
 	"Clear_",
@@ -61,7 +60,6 @@ Names
 	"unsafely atomically read_and store_",
 	"unsafely atomically compare_to_and,⁇if equal,⁇store_",
 	"_`?=_",
-	"_`?=_'s⁇initialization",
 
 	/* These are bootstrapping methods, and should not leak out of
 	 * Foundation.
@@ -484,42 +482,6 @@ Invoke
 		] : extended integer;
 	Public method "atomically read_↑and add_" is f;
 	Alias "atomically read_and add_" to atom for "atomically read_↑and add_";
-]
-with <>;
-
-/**
- * If the specified declaration has an initialization expression, then store it
- * into {@param "var"}.
- *
- * @category "Primitives" "Variables" "Phrases" "Queries" "Mutators"
- * @method "_↑`?=_'s⁇initialization"
- * @param "var" "write-only variable"
- *        A variable.
- * @param "aDeclaration" "declaration phrase"
- *        A declaration.
- * @returns "boolean"
- *    {@method "true"} if {@param "aDeclaration"} has an initialization
- *    expression and it was written into {@param "var"}, {@method "false"}
- *    otherwise.
- */
-Invoke
-[
-	f : function;
-	f :=
-		[
-			var : write-only variable,
-			aDeclaration : declaration phrase
-		|
-			Primitive DeclarationInitializingExpression
-				(failureCode : enumeration of {
-					cannot-store-incorrectly-typed-value code,
-					observed-variable-written-while-untraced code});
-			invoke variableFailureFunction
-			with <failureCode, f, <var, aDeclaration>>
-			expecting boolean
-		] : boolean;
-	Public method "_↑`?=_'s⁇initialization" is f;
-	Alias "_`?=_'s⁇initialization" to atom for "_↑`?=_'s⁇initialization";
 ]
 with <>;
 

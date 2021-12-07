@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/29/21, 4:58 PM
+ * * Last Generated: 11/30/21, 12:34 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -79,6 +79,7 @@ Names
 	/*   8 */ "cannot-swap-contents-of-differently-typed-variables code",
 	/*  51 */ "case-insensitive-expression-canonization code",
 	/*  14 */ "continuation-expected-stronger-type code",
+	/*  28 */ "declaration-does-not-have-initializer code",
 	/*  36 */ "declaration-kind-does-not-support-assignment code",
 	/*  37 */ "declaration-kind-does-not-support-reference code",
 	/*  97 */ "deserialization-failed code",
@@ -290,6 +291,11 @@ Primitive "invalid-primitive-name code" is
 Primitive "styler-already-set-by-this-module code" is
 [
 	27
+];
+
+Primitive "declaration-does-not-have-initializer code" is
+[
+	28
 ];
 
 Primitive "too-large-to-represent code" is

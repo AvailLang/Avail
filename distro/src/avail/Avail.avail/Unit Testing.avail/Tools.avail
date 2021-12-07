@@ -211,7 +211,7 @@ Semantic restriction "Require:_=_" is
 	[
 		Reject parse, expected:
 			format "a predicate that could ever be true (because \
-				\|(“①”) doesn't intersect (“②”)"
+				\|\n\t\t\t(“①”)\n\t\tdoesn't intersect\n\t\t\t(“②”)"
 			with actual, expected
 	];
 	⊤
@@ -254,7 +254,7 @@ Public macro "Require:_=_(_)" is
 	[
 		Reject parse, expected:
 			format "a predicate that could ever be true (because \
-				\|(“①”) doesn't intersect (“②”)"
+				\|\n\t\t\t(“①”)\n\t\tdoesn't intersect\n\t\t\t(“②”)"
 			with actual's semantic type, expected's semantic type
 	];
 	restricted send $"Require:_=__" with

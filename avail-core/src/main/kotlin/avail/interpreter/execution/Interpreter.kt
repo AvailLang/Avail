@@ -400,6 +400,18 @@ class Interpreter(
 				forcedName = "L2 offset = $offset",
 				forcedChildren = emptyArray<Any>()))
 
+		// Extract the current arguments, which may or may not have been
+		// consumed already, or may be in the process of being populated for the
+		// next call...
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil,
+				DebuggerObjectSlots("argsBuffer"),
+				-1,
+				argsBuffer,
+				forcedName = "argsBuffer(${argsBuffer.size})",
+				forcedChildren = argsBuffer.toTypedArray()))
+
 		// Produce the current chunk's L2 instructions...
 		helpers.add(
 			AvailObjectFieldHelper(

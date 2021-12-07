@@ -827,8 +827,7 @@ Grammatical restriction
 
 	"atomically read_and store_",
 	"atomically read_and add_",
-	"_`?=_",
-	"_`?=_'s⁇initialization"
+	"_`?=_"
 } is <{"`↑_↑"}, ∅>;
 
 Grammatical restriction

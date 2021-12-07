@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 11/29/21, 4:58 PM
+ * * Last Generated: 11/30/21, 12:34 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -140,6 +140,7 @@ Uses
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
+		"_has initializing expression",
 		"_has public name_",
 		"_has result",
 		"_has terminated",
@@ -2731,6 +2732,23 @@ Primitive "`«↓_`»(_)" is
 |
 	Primitive CreateVariableUse;
 ] : variable use phrase;
+
+/**
+ * Answer whether this declaration has an initializing expression.
+ *
+ * @category "Primitives"
+ * @method "_has initializing expression"
+ * @param "decl" "declaration phrase⇒⊤"
+ *        The declaration.
+ * @returns "boolean"
+ *    True if the declaration has an initializing expression, false otherwise.
+ */
+Primitive "_has initializing expression" is
+[
+	decl : declaration phrase
+|
+	Primitive DeclarationHasInitializingExpression;
+] : boolean;
 
 /**
  * Answer the token that names the entity introduced by the specified
