@@ -73,9 +73,9 @@ object P_LookupAtomsForName : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		 functionType(
-			 tuple(stringType),
-			 setTypeForSizesContentType(wholeNumbers, ATOM.o))
+		functionType(
+			tuple(stringType),
+			setTypeForSizesContentType(wholeNumbers, ATOM.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_LOADING_IS_OVER))

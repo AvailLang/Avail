@@ -554,7 +554,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 								|| !newContinuation.caller().descriptor()
 							.isMutable) {
 							("Caller should freeze because two "
-							 + "continuations can see it")
+								+ "continuations can see it")
 						}
 						push(newContinuation)
 						interpreter.returnNow = false

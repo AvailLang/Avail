@@ -173,8 +173,8 @@ private constructor(
 	override fun o_EqualsMapType(self: AvailObject, aMapType: A_Type): Boolean =
 		if (self.sameAddressAs(aMapType)) true
 		else self.slot(SIZE_RANGE).equals(aMapType.sizeRange)
-			 && self.slot(KEY_TYPE).equals(aMapType.keyType)
-			 && self.slot(VALUE_TYPE).equals(aMapType.valueType)
+			&& self.slot(KEY_TYPE).equals(aMapType.keyType)
+			&& self.slot(VALUE_TYPE).equals(aMapType.valueType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.

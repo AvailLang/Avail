@@ -162,7 +162,7 @@ class ListPhraseTypeDescriptor internal constructor(
 	// Only the hash part may change (be set lazily), not other bit fields.
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
-			 e === IntegerSlots.HASH_AND_MORE
+			e === IntegerSlots.HASH_AND_MORE
 
 	/**
 	 * {@inheritDoc}

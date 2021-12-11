@@ -953,8 +953,8 @@ protected constructor(
 						else ->
 						{
 							assert(false) {
-								("There should only be three contexts that can define a "
-								 + "type variable!")
+								("There should only be three contexts that can "
+									+ "define a type variable!")
 							}
 							throw RuntimeException()
 						}

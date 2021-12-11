@@ -342,7 +342,7 @@ Semantic restriction "_'s⁇vertices" is
  * @param "aGraph" "graph"
  *        A graph.
  * @returns "{edge|}"
- * 		 The {@type "set"} of {@type "edge"}s.
+ *          The {@type "set"} of {@type "edge"}s.
  * @category "Data Abstractions" "Graphs"
  */
 Public abstract method "_'s⁇edges" is [graph]→{edge|};

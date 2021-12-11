@@ -234,8 +234,7 @@ abstract class TupleDescriptor protected constructor(
 			strings.add(localBuilder.toString())
 		}
 		builder.append('<')
-		val breakElements = (strings.size > 1
-							 && (anyBreaks || totalChars > 60))
+		val breakElements = strings.size > 1 && (anyBreaks || totalChars > 60)
 		for (i in strings.indices)
 		{
 			if (i > 0)

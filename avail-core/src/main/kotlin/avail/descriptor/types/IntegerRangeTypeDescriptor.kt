@@ -242,8 +242,8 @@ private constructor(
 			false
 		}
 		else !superMaxObject.equals(subMaxObject)
-			 || !anIntegerRangeType.upperInclusive
-			 || upperInclusive
+			|| !anIntegerRangeType.upperInclusive
+			|| upperInclusive
 	}
 
 	override fun o_LowerBound(self: AvailObject): A_Number =

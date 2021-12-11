@@ -80,7 +80,7 @@ object P_FiberResult : Primitive(
 		functionType(tuple(mostGeneralFiberType()), ANY.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		 enumerationWith(set(
+		enumerationWith(set(
 			E_FIBER_RESULT_UNAVAILABLE,
 			E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT))
 }

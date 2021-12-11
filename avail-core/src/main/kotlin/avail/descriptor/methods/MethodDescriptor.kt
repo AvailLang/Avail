@@ -819,7 +819,7 @@ class MethodDescriptor private constructor(
 			"vm alias new name_to_",
 			P_Alias),
 
-		/** The special atom for	 function application. */
+		/** The special atom for function application. */
 		APPLY(
 			"vm function apply_with tuple_",
 			P_InvokeWithTuple),

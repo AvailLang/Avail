@@ -98,7 +98,7 @@ Test "map and filter" in map test suite is
 		s : string,
 		n : natural number,
 		accept : [natural number]→⊤
-	 |
+	|
 		m ::= n + 2;
 		If m mod 2 = 0 then
 		[
@@ -134,7 +134,7 @@ Test "for each of do" in map test suite is
 	[
 		s : string,
 		n : natural number
-	 |
+	|
 		b := b + s→n;
 	];
 	Require: a = b;

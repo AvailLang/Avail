@@ -776,8 +776,9 @@ Macro "_↚_" is
  * 	"_=_" "_≠_"
  */
 Grammatical restriction "¬_" is
-	<{"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
-	 "_=_", "_≠_"}>;
+	<{
+		"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
+		"_=_", "_≠_"}>;
 
 /**
  * AND operation is second highest precedence among logical operators, after

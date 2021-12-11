@@ -88,7 +88,7 @@ internal class Alternation constructor(
 		}
 	}
 
-	 override fun checkType(argumentType: A_Type, sectionNumber: Int)
+	override fun checkType(argumentType: A_Type, sectionNumber: Int)
 	{
 		assert(false) {
 			"checkType() should not be called for Alternation expressions"

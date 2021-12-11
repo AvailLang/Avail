@@ -45,7 +45,6 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor

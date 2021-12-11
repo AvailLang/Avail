@@ -771,5 +771,5 @@ class NybbleTupleDescriptor private constructor(
 
 	override fun shared(): NybbleTupleDescriptor =
 		descriptors[(16 - unusedNybblesOfLastLong and 15) * 3
-			 + SHARED.ordinal]!!
+			+ SHARED.ordinal]!!
 }

@@ -77,7 +77,7 @@ fun AsyncImageBitmap(
 		load = {
 			val input = ImageResources.resource(resource)
 			loadImageBitmap(input)
-	   },
+		},
 		painterFor = { remember { BitmapPainter(it) } },
 		contentDescription = contentDescription,
 		modifier = modifier,
@@ -110,11 +110,7 @@ fun AsyncSvg(
 			val input = ImageResources.resource(resource)
 			loadSvgPainter(input, density)
 		},
-		painterFor = {
-			remember {
-				it
-			}
-					 },
+		painterFor = { remember { it } },
 		contentDescription = contentDescription,
 		modifier = modifier,
 		contentScale = contentScale)

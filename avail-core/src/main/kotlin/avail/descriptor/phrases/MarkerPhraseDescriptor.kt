@@ -167,7 +167,7 @@ class MarkerPhraseDescriptor private constructor(
 	 * change at some point.
 	 */
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		 MARKER_PHRASE
+		MARKER_PHRASE
 
 	override fun o_StatementsDo(
 		self: AvailObject,

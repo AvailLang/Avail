@@ -1092,7 +1092,7 @@ Private method "concurrent set body function(_,_)" is
 					<cast declaration into [d : argument phrase | d]>
 				|
 					statements
-				 ] : blockReturnType»
+				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
 ];
@@ -1283,7 +1283,7 @@ Private method "concurrent map body function(_,_)" is
 					<keyDeclaration, valueDeclaration>
 				|
 					statements
-				 ] : blockReturnType»
+				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
 ];

@@ -434,8 +434,8 @@ td {
 		page-break-inside: avoid;
 	}
 
-	 /* h5bp.com/t */
-	 thead {
+	/* h5bp.com/t */
+	thead {
 		display: table-header-group;
 	}
 

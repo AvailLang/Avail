@@ -128,6 +128,8 @@ Method "“_”" is
 	t : tuple meta
 |
 	if |t| < ∞ then [“(t :: nontype's type)”]
+	else if t = tuple then ["tuple"]
+	else if t = string then ["string"]
 	else
 	[
 		s : nonempty string := "<";
@@ -410,7 +412,7 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 			indexingType ::= (0 .. ⌈aTupleType⌉+1);
 			[elementType, indexingType]→(action's semantic type's return type)
 		] else [
-		    [elementType, elementType]→(action's semantic type's return type)
+			[elementType, elementType]→(action's semantic type's return type)
 		]
 	] else
 	[
@@ -456,7 +458,7 @@ Public method "tuple body function(_,_)" is
 				aTuple,
 				«[
 					<cast declaration into [d : argument phrase | d]>
-				 |
+				|
 					statements
 				] : blockReturnType»
 			>» : returnType
@@ -493,8 +495,8 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 				two input indexed return type(
 					aTuple, action, baseReturnType, anAtom)
 			] else [
-			    two input return type(
-			    	aTuple, action, baseReturnType, anAtom)
+				two input return type(
+					aTuple, action, baseReturnType, anAtom)
 			];
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
@@ -934,7 +936,7 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 			aTuple,
 			«[
 				<cast declaration into [d : argument phrase | d]>
-			 |
+			|
 				newStatements
 			] : blockReturnType»
 		>» : returnType
@@ -4702,7 +4704,7 @@ Method "first index of_in_" is
 		first index of aTuple where
 		[
 			a : any
-		 |
+		|
 			a = subtuple[1]
 		]
 	]
@@ -4801,7 +4803,7 @@ Method "all indices of_in_" is
 		all indices of aTuple where
 		[
 			a : any
-		 |
+		|
 			a = subtuple[1]
 		]
 	]

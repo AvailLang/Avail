@@ -283,10 +283,10 @@ Private method "body function(_,_)" is
 			«<
 				aMap,
 				«[
-				  	<keyDeclaration, valueDeclaration>
-				 |
+					<keyDeclaration, valueDeclaration>
+				|
 					statements
-				 ] : blockReturnType»
+				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, literal phrase ⇒ token, expression phrase ⇒ map,

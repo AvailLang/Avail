@@ -197,7 +197,7 @@ private constructor(
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean
 	{
 		val equal = (another.isInstanceMeta
-			 && getInstance(self).equals((another as A_Type).instance))
+			&& getInstance(self).equals((another as A_Type).instance))
 		when
 		{
 			!equal -> return false

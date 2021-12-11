@@ -70,9 +70,8 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 		val string = interpreter.argument(0)
 		val blockSignature = interpreter.argument(1)
 		val fiber = interpreter.fiber()
-		val loader =
-			fiber.availLoader()
-				 ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		val loader = fiber.availLoader()
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(

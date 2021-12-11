@@ -302,7 +302,7 @@ class AvailProjectService constructor(val project: Project)
 			val obj = reader.read()  as? JSONObject
 				?: error("Malformed Anvil config file: ${descriptorFile.absolutePath}")
 			val descriptor = AvailProjectDescriptor.from(obj)
-			 descriptor.project { println("====== Created Project!") }
+			descriptor.project { println("====== Created Project!") }
 		}
 		else
 		{

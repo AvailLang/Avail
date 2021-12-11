@@ -393,7 +393,7 @@ class ManagedFileWrapper constructor(
 		when
 		{
 			resolverReference.type == ResourceType.MODULE
-			 || resolverReference.mimeType == AvailFile.availMimeType ->
+				|| resolverReference.mimeType == AvailFile.availMimeType ->
 					AvailModuleFile(this)
 			AvailFile.isTextFile(resolverReference.mimeType) ->
 				AvailTextFile(this)

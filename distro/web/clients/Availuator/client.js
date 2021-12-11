@@ -501,12 +501,12 @@ function placeCursor(textArea, index)
  */
 function resetSelectedText(initialSize, newSize, start, end, shift)
 {
-	 var carretOffset = initialSize - newSize;
-	 var expression = $("#expression");
+	var carretOffset = initialSize - newSize;
+	var expression = $("#expression");
 
-	 // put caret at right position again
-	 expression.get(0).selectionStart = start + shift;
-	 expression.get(0).selectionEnd = end - carretOffset;
+	// put caret at right position again
+	expression.get(0).selectionStart = start + shift;
+	expression.get(0).selectionEnd = end - carretOffset;
 }
 
 /**

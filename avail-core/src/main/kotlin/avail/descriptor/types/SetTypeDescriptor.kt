@@ -162,8 +162,8 @@ private constructor(
 	override fun o_EqualsSetType(self: AvailObject, aSetType: A_Type): Boolean =
 		if (self.sameAddressAs(aSetType)) true
 		else self.slot(SIZE_RANGE).equals(aSetType.sizeRange)
-			 && self.slot(CONTENT_TYPE)
-				 .equals(aSetType.contentType)
+			&& self.slot(CONTENT_TYPE)
+				.equals(aSetType.contentType)
 
 	// Answer a 32-bit integer that is always the same for equal objects,
 	// but statistically different for different objects.

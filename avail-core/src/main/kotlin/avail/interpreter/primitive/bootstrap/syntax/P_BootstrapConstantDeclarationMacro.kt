@@ -90,16 +90,13 @@ object P_BootstrapConstantDeclarationMacro
 		}
 		val constantDeclaration =
 			newConstant(nameToken, initializationExpression)
-		val conflictingDeclaration =
-			FiberDescriptor.addDeclaration(constantDeclaration)
-		if (conflictingDeclaration !== null)
-		{
+		FiberDescriptor.addDeclaration(constantDeclaration)?.let {
 			throw AvailRejectedParseException(
 				STRONG,
 				"local constant $nameString to have a name that doesn't "
-				 + "shadow an existing "
-				 + "${conflictingDeclaration.declarationKind().nativeKindName()} "
-				 + "(from line ${conflictingDeclaration.token.lineNumber()})")
+					+ "shadow an existing "
+					+ "${it.declarationKind().nativeKindName()} "
+					+ "(from line ${it.token.lineNumber()})")
 		}
 		return interpreter.primitiveSuccess(constantDeclaration)
 	}

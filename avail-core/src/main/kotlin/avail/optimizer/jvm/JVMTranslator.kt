@@ -2046,7 +2046,7 @@ class JVMTranslator constructor(
 		val safeUID = UUID.randomUUID().toString().replace('-', '_')
 		className = (
 			"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
-				 + " - $safeUID.$moduleName - $cleanFunctionName")
+				+ " - $safeUID.$moduleName - $cleanFunctionName")
 		classInternalName = className.replace('.', '/')
 	}
 }

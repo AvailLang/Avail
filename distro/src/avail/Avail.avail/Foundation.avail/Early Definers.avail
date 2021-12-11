@@ -49,23 +49,41 @@ Names
 	"Public method_is_",
 	"Public macro_is«_,»_",
 	"Require:_is public",
-	"Require:_is private"
+	"Require:_is private",
+	"_'s⁇instance"
 Body
 
-Method "_'⁇s instance" is
+/**
+ * Answer the sole instance of the specified enumeration.
+ *
+ * @method "_'s⁇instance"
+ * @param "enum" "type"
+ *        An enumeration. Anything answered by {@method "_'s⁇type"} satisfies
+ *        this criterion.
+ * @returns "any"
+ *          The sole instance of the argument.
+ * @category "Enumerations" "Types" "Queries"
+ */
+Method "_'s⁇instance" is
 [
-	t : any's type
+	t : type
 |
 	Assert: |t| = 1 ("Expected single instance type");
 	t's instances→tuple[1]
 ];
 
-Semantic restriction "_'⁇s instance" is
+/**
+ * Improve the static bounds.
+ *
+ * @method "_'s⁇instance"
+ * @restricts "type's type"
+ */
+Semantic restriction "_'s⁇instance" is
 [
-	tt : any's type's type
+	tt : type's type
 |
-	result : any's type;
-	Cast tt's instance into [t : any's type | result := t;] else [];
+	result : type;
+	Cast tt's instance into [t : type | result := t;] else [];
 	result
 ];
 

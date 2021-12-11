@@ -82,7 +82,7 @@ object P_FileRealPath : Primitive(2, CanInline, HasSideEffect)
 		val realPath: Path =
 			try
 			{
-				 path.toRealPath(*options)
+				path.toRealPath(*options)
 			}
 			catch (e: SecurityException)
 			{

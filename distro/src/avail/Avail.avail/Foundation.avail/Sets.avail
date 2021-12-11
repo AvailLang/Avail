@@ -332,10 +332,10 @@ Public method "set body function(_,_)" is
 			«<
 				aSet,
 				«[
-				  	<cast declaration into [d : argument phrase | d]>
-				 |
+					<cast declaration into [d : argument phrase | d]>
+				|
 					statements
-				 ] : blockReturnType»
+				] : blockReturnType»
 			>» : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ set,
@@ -583,7 +583,7 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 			aSet,
 			«[
 				<cast declaration into [d : argument phrase | d]>
-			 |
+			|
 				newStatements
 			] : blockReturnType»
 		>» : returnType

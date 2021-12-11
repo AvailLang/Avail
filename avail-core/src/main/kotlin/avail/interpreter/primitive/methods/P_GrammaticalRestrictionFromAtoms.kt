@@ -76,7 +76,7 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 		val atomSet = interpreter.argument(0)
 		val exclusionsTuple = interpreter.argument(1)
 		val loader = interpreter.fiber().availLoader()
-					 ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(

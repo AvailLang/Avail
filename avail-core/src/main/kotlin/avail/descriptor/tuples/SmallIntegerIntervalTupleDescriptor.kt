@@ -283,7 +283,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 				val newSize = self.slot(SIZE) + otherDirect.slot(SIZE).toLong()
 				// and the other's start is one delta away from my end,
 				if ((self.slot(END) + delta == otherDirect.slot(START).toLong()
-					 && newSize == newSize.toInt().toLong()))
+					&& newSize == newSize.toInt().toLong()))
 				{
 					// then we're adjacent.
 
