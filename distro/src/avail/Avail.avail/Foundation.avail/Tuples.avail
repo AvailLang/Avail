@@ -1597,6 +1597,20 @@ Private method "zip function" is
 	] : tuple
 ] : [tuple+]→tuple;
 
+/*
+ * Answer a function like {@code "zip function"}, but that requires at least
+ * two tuples to be supplied.  In theory this avoids pointless parsing attempts
+ * for the inline {@code "«_‡zip»"} operation.
+ */
+Private method "zip function for two or more" is
+[
+	[
+		tuples : <tuple…|2..>
+	|
+		zip function(tuples)
+	]
+];
+
 /**
  * Compute and answer the zip of the specified tuples. Given N input tuples, the
  * output is the tuple whose i-th element contains the i-th element from each
@@ -1627,7 +1641,7 @@ Public method "zip_" is zip function;
  *          The zip of the input tuples.
  * @category "Tuples" "Transformers"
  */
-Public method "«_‡zip»" is zip function;
+Public method "«_‡zip»" is zip function for two or more;
 
 /**
  * Don't parse {@param "«_‡zip»"} recursively.

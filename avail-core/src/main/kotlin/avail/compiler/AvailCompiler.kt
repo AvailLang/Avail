@@ -2018,15 +2018,21 @@ class AvailCompiler constructor(
 		superexpressions: PartialSubexpressionList?,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
+		val code = prefixFunction.code()
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
+			start.expected(
+				STRONG,
+				FormattingDescriber(
+					"macro prefix function %s to accept the given argument " +
+						"types.",
+					code.methodName))
 			return
 		}
 		val fiber = newLoaderFiber(
 			prefixFunction.kind().returnType,
 			compilationContext.loader
 		) {
-			val code = prefixFunction.code()
 			formatString(
 				"Macro prefix %s, in %s:%d",
 				code.methodName,

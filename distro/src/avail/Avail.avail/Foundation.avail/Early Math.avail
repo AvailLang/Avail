@@ -450,6 +450,20 @@ Private method "minimum function" is
 	] : number
 ];
 
+/*
+ * Answer a function like {@code "minimum function"}, but that requires at least
+ * two values to be supplied.  In theory this avoids pointless parsing attempts
+ * for the inline {@code "«_‡min»"} operation.
+ */
+Private method "minimum function for two or more" is
+[
+	[
+		numbers : <<>, number…|[2..∞)>
+	|
+		invoke minimum function with <numbers>
+	]
+];
+
 /**
  * Answer the minimum of the specified numbers.
  *
@@ -472,7 +486,7 @@ Public method "min_" is minimum function;
  *          The minimum of the specified numbers.
  * @category "Mathematics" "Relations" "Numbers"
  */
-Public method "«_‡min»" is minimum function;
+Public method "«_‡min»" is minimum function for two or more;
 
 /* Don't parse «_‡min» recursively. */
 Invoke
@@ -509,6 +523,20 @@ Private method "maximum function" is
 	] : number
 ];
 
+/*
+ * Answer a function like {@code "maximum function"}, but that requires at least
+ * two values to be supplied.  In theory this avoids pointless parsing attempts
+ * for the inline {@code "«_‡max»"} operation.
+ */
+Private method "maximum function for two or more" is
+[
+	[
+		numbers : <<>, number…|[2..∞)>
+	|
+		invoke maximum function with <numbers>
+	]
+];
+
 /**
  * Answer the maximum of the specified numbers.
  *
@@ -531,7 +559,7 @@ Public method "max_" is maximum function;
  *          The maximum of the specified numbers.
  * @category "Mathematics" "Relations" "Numbers"
  */
-Public method "«_‡max»" is maximum function;
+Public method "«_‡max»" is maximum function for two or more;
 
 /* Don't parse «_‡max» recursively. */
 Invoke

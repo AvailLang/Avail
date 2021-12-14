@@ -101,15 +101,13 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		for (prefixFunction in prefixFunctions)
-		{
+		prefixFunctions.forEach { prefixFunction ->
 			val numArgs = prefixFunction.code().numArgs()
 			val kind = prefixFunction.kind()
 			val argsKind = kind.argsTupleType
-			for (argIndex in 1 .. numArgs)
-			{
-				if (!argsKind.typeAtIndex(argIndex).isSubtypeOf(
-						PARSE_PHRASE.mostGeneralType))
+			(1 .. numArgs).forEach { argIndex ->
+				if (!argsKind.typeAtIndex(argIndex)
+						.isSubtypeOf(PARSE_PHRASE.mostGeneralType))
 				{
 					return interpreter.primitiveFailure(
 						E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE)
@@ -152,6 +150,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		{
 			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
+
 		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
