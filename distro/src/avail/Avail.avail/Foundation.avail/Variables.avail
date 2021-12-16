@@ -656,8 +656,11 @@ Public macro "«…‡,»::=_;" is
 	If |nameTokens| > ⌊tupleType⌋ then
 	[
 		Reject parse, expected:
-			"local constants in destructuring tuple binding not to exceed the
-			\|minimum size of the source tuple"
+			concatenate <
+				"local constants in destructuring tuple binding not to exceed ",
+				"the minimum size of the source tuple (",
+				 “⌊tupleType⌋”,
+				 ")"> ?→ string
 	];
 	strongNameTokens ::=
 		cast nameTokens into [t : <<>, token…|natural number> | t];
@@ -741,8 +744,11 @@ Public macro "«…‡,»::=_;" is
 	If |nameTokens| > ⌊tupleType⌋ then
 	[
 		Reject parse, expected:
-			"local constants in destructuring tuple type binding not to exceed \
-			\|the minimum size of the source tuple"
+			concatenate <
+				"local constants in destructuring tuple type binding not to ",
+				"exceed the minimum size of the source tuple type (",
+				 “⌊tupleType⌋”,
+				 ")"> ?→ string
 	];
 	strongNameTokens ::=
 		cast nameTokens into [t : <<>, token…|natural number> | t];
