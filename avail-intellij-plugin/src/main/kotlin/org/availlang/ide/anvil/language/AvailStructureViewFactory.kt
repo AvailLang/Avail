@@ -38,23 +38,22 @@ import com.intellij.ide.structureView.TreeBasedStructureViewBuilder
 import com.intellij.lang.PsiStructureViewFactory
 import com.intellij.openapi.editor.Editor
 import com.intellij.psi.PsiFile
+import org.availlang.ide.anvil.language.psi.AvailFile
 
 /**
- * A `AvailStructureViewFactory` is TODO: Document this!
+ * `AvailStructureViewFactory` is the [PsiStructureViewFactory] for creating
+ * [AvailStructureViewModel]s for [AvailFile]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 class AvailStructureViewFactory: PsiStructureViewFactory
 {
-	init
-	{
-		println("++++++++++++++++++++++++++++++++++AvailStructureViewFactory++++++++++++++++++++++++++++++++++")
-	}
 	override fun getStructureViewBuilder(psiFile: PsiFile): StructureViewBuilder =
 		object : TreeBasedStructureViewBuilder()
 		{
 			override fun createStructureViewModel(editor: Editor?): StructureViewModel
 			{
+				require(psiFile is AvailFile)
 				return AvailStructureViewModel(psiFile)
 			}
 		}

@@ -35,23 +35,20 @@ package avail.anvil
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import avail.anvil.models.Project
 import avail.anvil.models.ProjectDescriptor
 import avail.anvil.models.ProjectState
 import avail.anvil.utilities.Defaults
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
-import org.availlang.json.JSONReader
-import org.availlang.json.JSONValue
 import org.availlang.json.JSONWriter
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import org.availlang.json.jsonObject
 import java.io.File
 import java.io.IOException
 import java.nio.file.Files
-import kotlin.coroutines.CoroutineContext
 
 /**
  * `Anvil` is the application context for the running Anvil application. It
@@ -181,34 +178,34 @@ object Anvil: JSONFriendly
 	 */
 	private fun readConfig (configFile: File)
 	{
-		val reader = JSONReader(configFile.bufferedReader())
-		val obj = reader.read()  as? JSONObject
-			?: error("Malformed Anvil config file: ${configFile.absolutePath}")
-		obj.getArray(KNOWN_PROJECTS).forEach {
-			val projObj = it as? JSONObject ?:
+		jsonObject(configFile.bufferedReader())
+		{
+			getArray(KNOWN_PROJECTS).forEach {
+				val projObj = it as? JSONObject ?:
 				error("Malformed Anvil config file: " +
 					"${configFile.absolutePath}: malformed Project object in " +
 					"`knownProjects`.")
-			val descriptor = ProjectDescriptor.from(projObj)
-			knownProjectMap[descriptor.id] = descriptor
-		}
-		val opens = obj.getArray(OPEN_PROJECTS)
-		if (opens.size() == 0)
-		{
-			isSufficientlyLoadedFromDisk.value = true
-			projectManagerIsOpen.value = true
-		}
-		else
-		{
-			opens.forEach { data ->
-				(data as? JSONObject)?.let { openObj ->
-					val key = openObj.getString("id")
-					val projectState = ProjectState.fromJson(openObj)
-					knownProjectMap[key]?.let { descriptor ->
-						descriptor.project(projectState)
-						{ project ->
-							openProjects[project.id] = project
-							isSufficientlyLoadedFromDisk.value = true
+				val descriptor = ProjectDescriptor.from(projObj)
+				knownProjectMap[descriptor.id] = descriptor
+			}
+			val opens = getArray(OPEN_PROJECTS)
+			if (opens.size() == 0)
+			{
+				isSufficientlyLoadedFromDisk.value = true
+				projectManagerIsOpen.value = true
+			}
+			else
+			{
+				opens.forEach { data ->
+					(data as? JSONObject)?.let { openObj ->
+						val key = openObj.getString("id")
+						val projectState = ProjectState.fromJson(openObj)
+						knownProjectMap[key]?.let { descriptor ->
+							descriptor.project(projectState)
+							{ project ->
+								openProjects[project.id] = project
+								isSufficientlyLoadedFromDisk.value = true
+							}
 						}
 					}
 				}

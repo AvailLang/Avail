@@ -50,8 +50,14 @@ import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
+import com.intellij.configurationStore.serializeObjectInto
+import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.diagnostic.Logger
+import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.util.xmlb.XmlSerializer
 import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
 import org.availlang.ide.anvil.streams.AnvilOutputStream
 import org.availlang.ide.anvil.streams.StreamStyle
@@ -62,6 +68,7 @@ import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONReader
 import org.availlang.json.JSONWriter
+import org.jdom.Element
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -175,13 +182,23 @@ data class AvailProjectDescriptor constructor(
 	var renamesFileBody: String = "",
 	val roots: MutableMap<String, AvailProjectRoot> = mutableMapOf(),
 	val id: String = UUID.randomUUID().toString()
-): JSONFriendly, Comparable<AvailProjectDescriptor>
+): JSONFriendly, Comparable<AvailProjectDescriptor>, PersistentStateComponent<Element>
 {
 	/**
 	 * The list of [AvailProjectRoot]s in this [AvailProjectDescriptor].
 	 */
 	val availProjectRoots: List<AvailProjectRoot> get() =
 		roots.values.toList().sorted()
+
+	override fun getState(): Element?
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun loadState(state: Element)
+	{
+		TODO("Not yet implemented")
+	}
 
 	/**
 	 * Add the [AvailProjectRoot] to this [AvailProjectDescriptor].
@@ -304,8 +321,25 @@ data class AvailProjectDescriptor constructor(
  *   The opened IntelliJ [Project] this [Service] is assigned to.
  */
 @Service
-class AvailProjectService constructor(val project: Project)
+class AvailProjectService constructor(
+	val project: Project
+)//: PersistentStateComponent<Element>
 {
+	private lateinit var descriptor: AvailProjectDescriptor
+
+//	override fun getState(): Element
+//	{
+//		val element = Element(serviceName)
+//		serializeObjectInto(descriptor, element)
+//		return element
+//	}
+//
+//	override fun loadState(state: Element)
+//	{
+//		val rawState = state.clone()
+//		XmlSerializer.deserializeInto(descriptor, rawState)
+//	}
+
 	/**
 	 * The path to the JSON file for this project that contains information
 	 * about the  [AvailProjectDescriptor]; `.idea/avail.json`
@@ -325,7 +359,15 @@ class AvailProjectService constructor(val project: Project)
 			val obj = reader.read()  as? JSONObject
 				?: error("Malformed Anvil config file: ${descriptorFile.absolutePath}")
 			val descriptor = AvailProjectDescriptor.from(obj)
-			 descriptor.project { println("====== Created Project!") }
+			 descriptor.project {
+				 LOG.info(buildString {
+					 append("Created Avail Project with roots:")
+					 descriptor.availProjectRoots.forEach {
+						 append("\n\t")
+						 append(it.uri)
+					 }
+				 })
+			 }
 		}
 		else
 		{
@@ -360,6 +402,11 @@ class AvailProjectService constructor(val project: Project)
 	}
 
 	override fun toString(): String = availProject.descriptor.name
+
+	companion object
+	{
+		val LOG: Logger = logger<AvailProjectService>()
+	}
 }
 
 /**
@@ -479,6 +526,27 @@ data class AvailProject constructor(
 					}
 				})
 		}
+	}
+
+	/**
+	 * Answer the [RootNode] of the [ModuleRoot] the given
+	 * [ModuleName.qualifiedName] (URI).
+	 *
+	 * @param moduleUri
+	 *   The [URI] that identifies the module.
+	 * @return
+	 *   The [RootNode] if the Avail module is in one of the included
+	 *   [moduleRoots]; `null` otherwise.
+	 */
+	fun rootForModuleUri (moduleUri: String): RootNode?
+	{
+		moduleRoots.roots.forEach {
+			if (moduleUri.startsWith(it.resolver.uri.path))
+			{
+				return rootNodes[it.name]!!
+			}
+		}
+		return null
 	}
 
 	/**
@@ -604,6 +672,16 @@ data class AvailProject constructor(
 	 */
 	internal val nodesURI = ConcurrentHashMap<String, AvailNode>()
 
+	/**
+	 * Answer the [ModuleNode] for the given [VirtualFile].
+	 *
+	 * @param virtualFile
+	 *   The [VirtualFile] that represents the target Avail module.
+	 * @return
+	 *   A [ModuleNode] if it exits in the project; `null` otherwise.
+	 */
+	fun getModuleNode (virtualFile: VirtualFile): ModuleNode? =
+		nodesURI[virtualFile.path] as? ModuleNode
 
 	/**
 	 * Walk all the [ModuleRoot]s populating all the [AvailNode]s ([nodes]) for
@@ -755,6 +833,8 @@ data class AvailProject constructor(
 	override fun compareTo(other: AvailProject): Int =
 		descriptor.compareTo(other.descriptor)
 }
+
+private const val serviceName: String = "AvailProjectSettings"
 
 /**
  * Generic "name" config file key. Used for:

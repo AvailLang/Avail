@@ -40,6 +40,7 @@ import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.navigation.ItemPresentation
 import com.intellij.psi.NavigatablePsiElement
 import org.availlang.ide.anvil.language.psi.AvailFile
+import org.availlang.ide.anvil.language.psi.AvailPsiElement
 import javax.swing.Icon
 
 /**
@@ -47,21 +48,29 @@ import javax.swing.Icon
  * statements from the [ModuleManifestEntry]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property myElement
  */
-class AvailStructureViewElement constructor(
+open class AvailStructureViewElement constructor(
 	val myElement: NavigatablePsiElement
 ): StructureViewTreeElement, SortableTreeElement
 {
-	override fun getPresentation(): ItemPresentation =
-		myElement.presentation ?: PresentationData()
+	override fun getPresentation(): ItemPresentation = myElement.presentation
+		?: PresentationData("NO PRESENTATION", null, null, null)
 
 	override fun getChildren(): Array<TreeElement>
 	{
 		if (myElement is AvailFile)
 		{
-
-			val list = myElement.manifest.map {
-				AvailItemPresentationTreeElement(it) }
+			val list = myElement.manifest.mapIndexed { i, it->
+				AvailItemPresentationTreeElement(
+					it,
+					AvailPsiElement(
+						myElement,
+						it,
+						i,
+						myElement.manager))
+			}
 			return list.toTypedArray()
 		}
 		return arrayOf()
@@ -99,7 +108,12 @@ class AvailItemPresentation constructor(
 {
 	override fun getPresentableText(): String = entry.summaryText
 
-	override fun getIcon(unused: Boolean): Icon? = null
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.moduleFileImage
+
+	override fun getLocationString(): String?
+	{
+		return entry.topLevelStartingLine.toString()
+	}
 }
 
 /**
@@ -107,13 +121,25 @@ class AvailItemPresentation constructor(
  * [ModuleManifestEntry].
  */
 class AvailItemPresentationTreeElement constructor(
-	entry: ModuleManifestEntry
-): TreeElement
+	val entry: ModuleManifestEntry,
+	myElement: NavigatablePsiElement
+): AvailStructureViewElement(myElement)
 {
 	/**
 	 * The [AvailItemPresentation] of the [ModuleManifestEntry].
 	 */
 	val itemPresentation = AvailItemPresentation(entry)
+
+	override fun navigate(requestFocus: Boolean)
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun canNavigate(): Boolean = false
+
+	override fun canNavigateToSource(): Boolean = false
+
+	override fun getValue(): Any = entry
 
 	override fun getPresentation(): ItemPresentation =
 		itemPresentation

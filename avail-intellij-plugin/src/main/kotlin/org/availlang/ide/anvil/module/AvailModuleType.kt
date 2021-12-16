@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailModuleType.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,27 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.module
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import com.intellij.openapi.module.ModuleType
+import org.availlang.ide.anvil.language.AvailIcons
+import javax.swing.Icon
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * `AvailModuleType` is the [ModuleType] of an Avail IntelliJ project module.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+object AvailModuleType: ModuleType<AvailModuleTypeBuilder>("AVAIL_MODULE")
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
-	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
-	}
+	override fun createModuleBuilder(): AvailModuleTypeBuilder =
+		AvailModuleTypeBuilder()
 
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
-	{
-		return AvailFileElement(text, file)
-	}
+	override fun getName(): String = "Avail"
+
+	override fun getDescription(): String =
+		"IntelliJ Avail project module"
+
+	override fun getNodeIcon(isOpened: Boolean): Icon =
+		AvailIcons.projectModuleFileImage
 }

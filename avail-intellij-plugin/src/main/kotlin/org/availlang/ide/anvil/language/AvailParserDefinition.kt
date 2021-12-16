@@ -43,6 +43,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiFile
 import com.intellij.psi.tree.IFileElementType
 import com.intellij.psi.tree.TokenSet
+import org.availlang.ide.anvil.language.psi.AvailFileElementType
 import org.availlang.ide.anvil.language.psi.AvailFile
 
 /**
@@ -52,15 +53,15 @@ import org.availlang.ide.anvil.language.psi.AvailFile
  */
 class AvailParserDefinition: ParserDefinition
 {
-	lateinit var f: AvailFile
-	// TODO
 	override fun createLexer(project: Project?): Lexer =
 		EmptyLexer()
 
 	override fun createParser(project: Project?): PsiParser =
 		AvailPsiParser()
 
-	override fun getFileNodeType(): IFileElementType = FILE
+	// TODO build own IFileElementType as can do my own custom parsing
+	override fun getFileNodeType(): IFileElementType =
+		AvailFileElementType
 
 	override fun getCommentTokens(): TokenSet = TokenSet.EMPTY
 
@@ -68,18 +69,16 @@ class AvailParserDefinition: ParserDefinition
 
 	override fun createElement(node: ASTNode?): PsiElement
 	{
-		TODO("Not yet implemented CREATE ELEMENTS")
+		if (node is AvailFileElement)
+		{
+			return node.availFile
+		}
+		else
+		{
+			error("$node not AvailFileElement")
+		}
 	}
 
-	override fun createFile(viewProvider: FileViewProvider): PsiFile
-	{
-		val c = AvailFile(viewProvider)
-		f = c
-		return c
-	}
-
-	companion object
-	{
-		val FILE = IFileElementType(AvailLanguage)
-	}
+	override fun createFile(viewProvider: FileViewProvider): PsiFile =
+		AvailFile(viewProvider)
 }

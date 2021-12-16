@@ -32,27 +32,25 @@
 
 package avail.anvil
 
-import androidx.compose.desktop.DesktopMaterialTheme
 import androidx.compose.ui.window.singleWindowApplication
 import androidx.compose.foundation.ContextMenuDataProvider
+import androidx.compose.foundation.ContextMenuItem
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.mouseClickable
+import androidx.compose.material.MaterialTheme
 import androidx.compose.material.Text
 import androidx.compose.material.TextField
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.ContextMenuItem
+import androidx.compose.ui.input.pointer.isPrimaryPressed
 
 // DEVELOPMENT USE ONLY
 // This main entry is present to allow for running small portions of UI to test
 // things out.
-@OptIn(ExperimentalComposeUiApi::class,
-	androidx.compose.foundation.ExperimentalDesktopApi::class)
 @ExperimentalFoundationApi
 fun main() = singleWindowApplication(title = "Context menu") {
-	DesktopMaterialTheme { //it is mandatory for Context Menu
+	MaterialTheme { //it is mandatory for Context Menu
 		val text = remember {mutableStateOf("Hello!")}
 		ContextMenuDataProvider(
 			items = {

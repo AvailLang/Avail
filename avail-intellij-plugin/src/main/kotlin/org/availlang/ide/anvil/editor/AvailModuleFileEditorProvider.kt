@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailModuleFileEditorProvider.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.editor
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.FileEditorPolicy
+import com.intellij.openapi.fileEditor.FileEditorProvider
+import com.intellij.openapi.fileEditor.impl.text.TextEditorProvider
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.project.stateStore
+import com.intellij.psi.PsiManager
+import org.availlang.ide.anvil.language.file.AvailFileType
+import org.availlang.ide.anvil.models.AvailProjectService
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * `AvailModuleFileEditorProvider` is the [FileEditorProvider] for
+ * [AvailModuleFileEditor]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+class AvailModuleFileEditorProvider: TextEditorProvider()
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
+	override fun accept(project: Project, file: VirtualFile): Boolean =
+		PsiManager.getInstance(project).findFile(file)?.fileType == AvailFileType
+
+	override fun createEditor(project: Project, file: VirtualFile): FileEditor
 	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
+		val service =
+			project.getService(AvailProjectService::class.java)
+		val isProjFile = project.stateStore.isProjectFile(file)
+		return AvailModuleFileEditor(
+			project,
+			this,
+			file,
+			service.availProject,
+			service.availProject.getModuleNode(file))
 	}
 
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
-	{
-		return AvailFileElement(text, file)
-	}
+	override fun getEditorTypeId(): String = "avail-editor"
+
+	override fun getPolicy(): FileEditorPolicy = FileEditorPolicy.NONE
 }

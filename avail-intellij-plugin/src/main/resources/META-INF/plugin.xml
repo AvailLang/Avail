@@ -22,6 +22,14 @@
         <lang.psiStructureViewFactory
             language="Avail"
             implementationClass="org.availlang.ide.anvil.language.AvailStructureViewFactory"/>
+<!--        <fileEditorProvider-->
+<!--            implementation="org.availlang.ide.anvil.editor.AvailModuleFileEditorProvider"/>-->
+        <lang.fileViewProviderFactory
+            implementationClass="org.availlang.ide.anvil.language.psi.AvailFileViewProviderFactory"/>
+        <moduleBuilder
+            builderClass="org.availlang.ide.anvil.module.AvailModuleTypeBuilder"/>
+        <moduleType id="AVAIL_MODULE"
+            implementationClass="org.availlang.ide.anvil.module.AvailModuleType"/>
     </extensions>
     <applicationListeners>
         <listener

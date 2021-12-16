@@ -16,4 +16,6 @@ object AvailLanguage: Language("Avail")
 	override fun isCaseSensitive(): Boolean = true
 
 	override fun getDisplayName() = "Avail"
+
+
 }

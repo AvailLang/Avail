@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailFileViewProviderFactory.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,26 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.language.psi
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import com.intellij.lang.Language
+import com.intellij.openapi.vfs.VirtualFile
+import com.intellij.psi.FileViewProvider
+import com.intellij.psi.FileViewProviderFactory
+import com.intellij.psi.PsiManager
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * `AvailFileViewProviderFactory` is the [FileViewProviderFactory] for
+ * [AvailFileViewProvider]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+class AvailFileViewProviderFactory: FileViewProviderFactory
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
-	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
-	}
-
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
-	{
-		return AvailFileElement(text, file)
-	}
+	override fun createFileViewProvider(
+		file: VirtualFile,
+		language: Language?,
+		manager: PsiManager,
+		eventSystemEnabled: Boolean): FileViewProvider =
+			AvailFileViewProvider(manager, file, eventSystemEnabled)
 }

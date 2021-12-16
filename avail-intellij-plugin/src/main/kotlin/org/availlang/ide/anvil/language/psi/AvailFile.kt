@@ -32,17 +32,24 @@
 
 package org.availlang.ide.anvil.language.psi
 
+import avail.builder.ModuleRoot
 import avail.compiler.ModuleManifestEntry
 import avail.persistence.cache.Repository
 import avail.persistence.cache.RepositoryDescriber
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
+import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
+import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.TreeElement
+import org.availlang.ide.anvil.language.AvailFileElement
 import org.availlang.ide.anvil.language.AvailLanguage
 import org.availlang.ide.anvil.language.file.AvailFileType
 import org.availlang.ide.anvil.models.AvailNode
+import org.availlang.ide.anvil.models.AvailProject
 import org.availlang.ide.anvil.models.AvailProjectService
 import org.availlang.ide.anvil.models.ModuleNode
+import org.availlang.ide.anvil.models.RootNode
 
 /**
  * `AvailFile` is the [PsiFileBase] for an Avail file.
@@ -55,33 +62,53 @@ class AvailFile constructor(
 {
 	override fun getFileType(): FileType = AvailFileType
 
-	init
-	{
-		println("==================================================================Oh yeah!")
-		println("sure, like we got here....")
-	}
+	/**
+	 * The running [AvailProjectService].
+	 */
+	val projectService: AvailProjectService get() =
+		project.getService(AvailProjectService::class.java)
 
 	/**
-	 * The associated [AvailNode].
+	 * The active [AvailProject].
+	 */
+	val availProject: AvailProject get() = projectService.availProject
+
+	/**
+	 * The [RootNode] of the [ModuleRoot] this [AvailFile] belongs to or `null`
+	 * if not an Avail module in any of the [AvailProject]'s [ModuleRoot]s.
+	 */
+	val rootNode: RootNode? get() =
+		availProject.rootForModuleUri(viewProvider.virtualFile.path)
+
+	/**
+	 * `true` indicates that this [AvailFile] represents an Avail module that is
+	 * a module in a [ModuleRoot] that is included the active [AvailProject];
+	 * `false` otherwise.
+	 */
+	val isIncludedProject: Boolean get() = rootNode != null
+
+	/**
+	 * The associated [AvailNode] in the active [AvailProject]; or `null` if
+	 * not found in the project.
 	 */
 	val node: ModuleNode? get()
 	{
 		val service =
 			project.getService(AvailProjectService::class.java)
 		val path = viewProvider.virtualFile.path
-		val uri = viewProvider.virtualFile.url
-		val p = service.availProject
-		val n = p.nodesURI
-		val g = service.availProject.nodesURI[path] as? ModuleNode
 		return service.availProject.nodesURI[path] as? ModuleNode
 	}
 
 	/**
-	 * Answer the [List] of [ModuleManifestEntry]s for this [AvailFile].
+	 * Answer the [List] of [ModuleManifestEntry]s for this [AvailFile]. An
+	 * empty list indicates that either
+	 *  * The module has not been built
+	 *  * The module is [not included][isIncludedProject] in the active
+	 *  [AvailProject].
 	 */
-	val manifest: List<ModuleManifestEntry> get()
-	{
+	val manifest: List<ModuleManifestEntry> by lazy {
 		val moduleName = node?.resolved
+		var tempList: List<ModuleManifestEntry>? = null
 		moduleName?.repository?.use { repository ->
 			repository.reopenIfNecessary()
 			val archive =
@@ -104,15 +131,49 @@ class AvailFile constructor(
 				is Repository.ModuleCompilation ->
 				{
 					val describer = RepositoryDescriber(repository)
-					return describer.manifestEntries(
+					tempList= describer.manifestEntries(
 						selectedCompilation.recordNumberOfManifestEntries)
 				}
 				is Any -> assert(false) { "Unknown type selected" }
 			}
 		}
-		return listOf()
+		tempList ?: listOf()
+	}
+
+	override fun getFirstChild(): PsiElement?
+	{
+		if (manifest.isEmpty())
+		{
+			return null
+		}
+		val manifestEntry = manifest[0]
+		return AvailPsiElement(this, manifestEntry, 0, manager)
+	}
+
+	override fun getLastChild(): PsiElement?
+	{
+		if (manifest.isEmpty())
+		{
+			return null
+		}
+		val manifestEntry = manifest.last()
+		return AvailPsiElement(
+			this, manifestEntry, manifest.size - 1, manager)
+	}
+
+	val availChildPsiElements: Array<PsiElement> by lazy {
+		manifest.mapIndexed { i, it ->
+			AvailPsiElement(this, it, i, manager)
+		}.toTypedArray()
+	}
+
+	override fun getChildren(): Array<PsiElement> = availChildPsiElements
+
+	override fun createContentLeafElement(leafText: CharSequence?): TreeElement
+	{
+		return AvailFileElement(leafText!!, this)
 	}
 
 	override fun toString(): String =
-		this.node?.resolved?.qualifiedName ?: "Unknown Avail File"
+		this.node?.resolved?.qualifiedName ?: viewProvider.virtualFile.path
 }

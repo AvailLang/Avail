@@ -33,6 +33,7 @@
 package avail.anvil.components
 
 import androidx.compose.foundation.BoxWithTooltip
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.TooltipPlacement
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -76,7 +77,7 @@ import java.time.Duration
  * @param content
  *   The content that is decorated with the tooltip.
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun Tooltip (
 	modifier: Modifier = Modifier.shadow(4.dp),
@@ -127,7 +128,7 @@ fun Tooltip (
  * @param content
  *   The content that is decorated with the tooltip.
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun Tooltip (
 	text: AnnotatedString,
@@ -177,7 +178,7 @@ fun Tooltip (
  * @param content
  *   The content that is decorated with the tooltip.
  */
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun Tooltip (
 	text: String,
@@ -214,7 +215,7 @@ fun Tooltip (
  * @author &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-@OptIn(ExperimentalComposeUiApi::class)
+@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 object StandardTooltipPlacement
 {
 	/** The top-start position. */

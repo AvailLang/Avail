@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailNewProjectPanel.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,19 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.create
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import com.intellij.openapi.Disposable
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * A `AvailNewProjectPanel` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+class AvailNewProjectPanel : Disposable
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
+	override fun dispose()
 	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
-	}
-
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
-	{
-		return AvailFileElement(text, file)
+		TODO("Not yet implemented")
 	}
 }

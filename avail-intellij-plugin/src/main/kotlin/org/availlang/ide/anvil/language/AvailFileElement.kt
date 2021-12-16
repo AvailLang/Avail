@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailFileElement.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,29 +32,31 @@
 
 package org.availlang.ide.anvil.language
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
+import com.intellij.psi.impl.source.tree.FileElement
+import com.intellij.psi.impl.source.tree.TreeElement
+import org.availlang.ide.anvil.language.psi.AvailFileElementType
 import org.availlang.ide.anvil.language.psi.AvailFile
+import org.availlang.ide.anvil.language.psi.AvailPsiElement
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * A `AvailFileElement` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+class AvailFileElement constructor(text: CharSequence, val availFile: AvailFile):
+	FileElement(AvailFileElementType, text)
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
+	override fun getFirstChildNode(): TreeElement?
 	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
+		val node = availFile.firstChild ?: return null
+		node as AvailPsiElement
+		return AvailTreeElement(node, node.manifestEntry)
 	}
 
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
+	override fun getLastChildNode(): TreeElement?
 	{
-		return AvailFileElement(text, file)
+		val node = availFile.lastChild ?: return null
+		node as AvailPsiElement
+		return AvailTreeElement(node, node.manifestEntry)
 	}
 }

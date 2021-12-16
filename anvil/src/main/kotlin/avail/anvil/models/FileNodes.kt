@@ -32,11 +32,9 @@
 
 package avail.anvil.models
 
-import androidx.compose.foundation.ExperimentalDesktopApi
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.InteractionSource
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -46,7 +44,6 @@ import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.layout.wrapContentHeight
 import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.mouseClickable
 import androidx.compose.foundation.text.BasicTextField
@@ -54,12 +51,8 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.CircularProgressIndicator
 import androidx.compose.material.LocalTextStyle
 import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.material.TextFieldColors
-import androidx.compose.material.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -69,13 +62,13 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.input.pointer.isPrimaryPressed
+import androidx.compose.ui.input.pointer.isShiftPressed
 import androidx.compose.ui.input.pointer.pointerMoveFilter
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import avail.anvil.components.AsyncImageBitmap
 import avail.anvil.components.AsyncSvg
-import avail.anvil.models.Project
 import avail.anvil.themes.AlternatingRowColor
 import avail.anvil.themes.AlternatingRowColor.*
 import avail.anvil.themes.AvailColors
@@ -212,7 +205,7 @@ sealed class AvailNode constructor(
 	 * Answer a [Composable] lambda that accepts a [AlternatingRowColor].
 	 */
 	@ExperimentalComposeUiApi
-	@OptIn(ExperimentalFoundationApi::class, ExperimentalDesktopApi::class)
+	@OptIn(ExperimentalFoundationApi::class)
 	@Composable
 	open fun draw ()
 	{
@@ -395,7 +388,6 @@ class ModulePackageNode constructor(
 
 	private val isbuilding = mutableStateOf(false)
 
-	@OptIn(ExperimentalDesktopApi::class)
 	@Composable
 	override fun FileIcon()
 	{
@@ -413,8 +405,7 @@ class ModulePackageNode constructor(
 //					}))
 	}
 
-	@OptIn(ExperimentalDesktopApi::class,
-		androidx.compose.foundation.ExperimentalFoundationApi::class)
+	@OptIn(ExperimentalFoundationApi::class)
 	@Composable
 	@ExperimentalComposeUiApi
 	override fun draw()
@@ -577,7 +568,7 @@ class ModuleNode constructor(
 
 	private val isbuilding = mutableStateOf(false)
 
-	@OptIn(ExperimentalComposeUiApi::class, ExperimentalDesktopApi::class)
+	@OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 	@Composable
 	override fun draw()
 	{
@@ -618,8 +609,8 @@ class ModuleNode constructor(
 								println("FEED ME")
 								val primary = buttons.isPrimaryPressed
 								val shift = keyboardModifiers.isShiftPressed
-								val modifiers = keyboardModifiers.value
-								val buttonstuff = buttons.value
+								val modifiers = keyboardModifiers
+								val buttonstuff = buttons
 								println("primary: $primary\nshift: $shift\nmodifiers: $modifiers\nbuttons: $buttonstuff")
 								if (buttons.isPrimaryPressed
 									&& keyboardModifiers.isShiftPressed)

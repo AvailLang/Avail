@@ -35,17 +35,22 @@ package org.availlang.ide.anvil.language
 import com.intellij.ide.structureView.StructureViewModel.ElementInfoProvider
 import com.intellij.ide.structureView.StructureViewModelBase
 import com.intellij.ide.structureView.StructureViewTreeElement
-import com.intellij.psi.PsiFile
+import com.intellij.ide.util.treeView.smartTree.NodeProvider
+import com.intellij.ide.util.treeView.smartTree.TreeElement
 import org.availlang.ide.anvil.language.psi.AvailFile
 
 /**
- * A `AvailStructureViewModel` is TODO: Document this!
+ * `AvailStructureViewModel` is the [StructureViewModelBase] for
+ * [AvailStructureViewElement]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property availFile
+ *   The associated [AvailFile].
  */
 class AvailStructureViewModel constructor(
-	psiFile: PsiFile
-): StructureViewModelBase(psiFile, AvailStructureViewElement(psiFile)),
+	private val availFile: AvailFile
+): StructureViewModelBase(availFile, AvailStructureViewElement(availFile)),
 	ElementInfoProvider
 {
 	override fun isAlwaysShowsPlus(element: StructureViewTreeElement?): Boolean
@@ -53,8 +58,28 @@ class AvailStructureViewModel constructor(
 		return false
 	}
 
-	override fun isAlwaysLeaf(element: StructureViewTreeElement?): Boolean
+	override fun isAlwaysLeaf(element: StructureViewTreeElement?): Boolean =
+		when (element)
+		{
+			null -> true
+			is AvailItemPresentationTreeElement ->
+			{
+				true
+			}
+			is AvailStructureViewElement ->
+			{
+				element.myElement !is AvailFile
+			}
+			else -> true
+		}
+
+	override fun isEnabled(provider: NodeProvider<*>): Boolean
 	{
-		return (element as AvailStructureViewElement).myElement !is AvailFile
+		return true
+	}
+
+	override fun getNodeProviders(): MutableCollection<NodeProvider<TreeElement>>
+	{
+		return super.getNodeProviders()
 	}
 }

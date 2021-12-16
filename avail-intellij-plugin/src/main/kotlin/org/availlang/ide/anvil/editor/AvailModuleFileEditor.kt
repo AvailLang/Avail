@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailModuleFileEditor.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.editor
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
+import com.intellij.openapi.fileEditor.FileEditor
+import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl
+import com.intellij.openapi.project.Project
+import com.intellij.openapi.vfs.VirtualFile
 import org.availlang.ide.anvil.language.psi.AvailFile
+import org.availlang.ide.anvil.models.AvailProject
+import org.availlang.ide.anvil.models.ModuleNode
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * `AvailModuleFileEditor` is the [FileEditor] for [AvailFile]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property availProject
+ *   The active [AvailProject].
+ * @property moduleNode
+ *   The [ModuleNode] associated with the [AvailFile] or `null` if it does not
+ *   exist.
  */
-class AvailPsiParser: PsiParser
+class AvailModuleFileEditor constructor(
+	project: Project,
+	provider: AvailModuleFileEditorProvider,
+	file: VirtualFile,
+	private val availProject: AvailProject,
+	private val moduleNode: ModuleNode?)
+: PsiAwareTextEditorImpl(project, file, provider)
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
-	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
-	}
 
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
-	{
-		return AvailFileElement(text, file)
-	}
 }

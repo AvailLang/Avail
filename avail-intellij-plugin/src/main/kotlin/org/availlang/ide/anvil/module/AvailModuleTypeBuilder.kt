@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailModuleTypeBuilder.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,34 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.module
 
-import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
-import com.intellij.psi.tree.IElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import com.intellij.ide.util.projectWizard.ModuleBuilder
+import com.intellij.ide.util.projectWizard.ModuleWizardStep
+import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.openapi.Disposable
+import com.intellij.openapi.module.ModuleType
+import com.intellij.openapi.roots.ModifiableRootModel
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ * `AvailModuleTypeBuilder` is the [ModuleBuilder] for IntelliJ Avail project
+ * modules.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+class AvailModuleTypeBuilder: ModuleBuilder()
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
+	override fun getModuleType(): ModuleType<*> = AvailModuleType
+
+	override fun setupRootModel(modifiableRootModel: ModifiableRootModel)
 	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
+		super.setupRootModel(modifiableRootModel)
 	}
 
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
+	override fun getCustomOptionsStep(
+		context: WizardContext,
+		parentDisposable: Disposable): ModuleWizardStep
 	{
-		return AvailFileElement(text, file)
+		TODO("IMPLEMENT ME!")
 	}
 }

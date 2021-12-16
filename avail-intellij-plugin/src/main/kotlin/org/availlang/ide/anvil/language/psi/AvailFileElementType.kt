@@ -1,5 +1,5 @@
 /*
- * AvailPsiParser.kt
+ * AvailParseableElementType.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,31 +30,52 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.language.psi
 
 import com.intellij.lang.ASTNode
-import com.intellij.lang.PsiBuilder
-import com.intellij.lang.PsiParser
-import com.intellij.psi.impl.source.DummyHolderElement
+import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import com.intellij.psi.tree.IFileElementType
+import org.availlang.ide.anvil.language.AvailLanguage
+import org.availlang.ide.anvil.language.AvailPsiParser
 
 /**
- * A `AvailPsiParser` is TODO: Document this!
+ *
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailPsiParser: PsiParser
+object AvailFileElementType: IFileElementType("AVAIL FILE", AvailLanguage)
 {
-	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
+	/**
+	 * Parses the contents of the specified chameleon node and returns the AST tree
+	 * representing the parsed contents.
+	 *
+	 * @param chameleon the node to parse.
+	 * @return the parsed contents of the node.
+	 */
+	override fun parseContents(chameleon: ASTNode): ASTNode?
 	{
-		val text = builder.originalText
-//		return AvailFileElement(text)
-		return DummyHolderElement(text)
+		val parentElement = chameleon.psi
+			?: error("parent psi is null: $chameleon")
+		return doParseContents(chameleon, parentElement)
 	}
 
-	fun parse(text: CharSequence, file: AvailFile): ASTNode
+	override fun doParseContents(chameleon: ASTNode, psi: PsiElement): ASTNode?
 	{
-		return AvailFileElement(text, file)
+		val project = psi.project
+//		val builder = PsiBuilderFactory.getInstance().createBuilder(
+//			project,
+//			chameleon,
+//			null,
+//			AvailLanguage,
+//			chameleon.chars)
+		val parser = AvailPsiParser()
+		val node = parser.parse(chameleon.chars, psi as AvailFile)
+		return node.firstChildNode
 	}
+}
+
+object AvailElementType: IElementType("AVAIL ELEMENT", AvailLanguage)
+{
+
 }
