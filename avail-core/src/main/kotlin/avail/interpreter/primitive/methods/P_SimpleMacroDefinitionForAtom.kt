@@ -186,7 +186,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(
-				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE,

@@ -870,10 +870,10 @@ class CompilerDiagnostics constructor(
 	 *   The message text for this problem.
 	 */
 	fun reportError(
-			lexingState: LexingState,
-			headerMessagePattern: String,
-			message: String) =
-		expectationsList.reportError(lexingState, headerMessagePattern, message)
+		lexingState: LexingState,
+		headerMessagePattern: String,
+		message: String
+	) = expectationsList.reportError(lexingState, headerMessagePattern, message)
 
 	companion object
 	{

@@ -301,7 +301,6 @@ import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
-import java.lang.String.format
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
@@ -3062,6 +3061,8 @@ class AvailCompiler constructor(
 	 *
 	 * @param state
 	 *   The [LexingState] at which the pragma was found.
+	 * @param token
+	 *   The token containing the pragma check information.
 	 * @param propertyName
 	 *   The name of the property that is being checked.
 	 * @param propertyValue
@@ -3071,48 +3072,43 @@ class AvailCompiler constructor(
 	 */
 	internal fun pragmaCheckThen(
 		state: LexingState,
+		token: A_Token,
 		propertyName: String,
 		propertyValue: String,
 		success: ()->Unit)
 	{
-		if ("version" == propertyName)
-		{
-			// Split the versions at commas.
-			val versions = propertyValue.split(",").toTypedArray()
-			for (i in versions.indices)
-			{
-				versions[i] = versions[i].trim { it <= ' ' }
-			}
-			// Put the required versions into a set.
-			val requiredVersions = generateSetFrom(versions, ::stringFrom)
-			// Ask for the guaranteed versions.
-			val activeVersions = generateSetFrom(
-				AvailRuntimeConfiguration.activeVersions, ::stringFrom)
-			// If the intersection of the sets is empty, then the module and
-			// the virtual machine are incompatible.
-			if (!requiredVersions.setIntersects(activeVersions))
-			{
-				state.expected(
-					STRONG,
-					format(
-						"Module and virtual machine are not compatible; "
-						+ "the virtual machine guarantees versions %s, "
-						+ "but the current module requires %s",
-						activeVersions,
-						requiredVersions))
-				return
-			}
-		}
-		else
+		if ("version" != propertyName)
 		{
 			val viableAssertions = mutableSetOf<String>()
 			viableAssertions.add("version")
-			state.expected(
-				STRONG,
-				format(
-					"Expected check pragma to assert one of the following "
-					+ "properties: %s",
-					viableAssertions))
+			state.compilationContext.diagnostics.reportError(
+				token.synthesizeCurrentLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Expected check pragma to assert one of the following "
+					+ "properties: $viableAssertions")
+			return
+		}
+		// Split the versions at commas.
+		val versions = propertyValue.split(",").toTypedArray()
+		for (i in versions.indices)
+		{
+			versions[i] = versions[i].trim { it <= ' ' }
+		}
+		// Put the required versions into a set.
+		val requiredVersions = generateSetFrom(versions, ::stringFrom)
+		// Ask for the guaranteed versions.
+		val activeVersions = generateSetFrom(
+			AvailRuntimeConfiguration.activeVersions, ::stringFrom)
+		// If the intersection of the sets is empty, then the module and
+		// the virtual machine are incompatible.
+		if (!requiredVersions.setIntersects(activeVersions))
+		{
+			state.compilationContext.diagnostics.reportError(
+				token.synthesizeCurrentLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Module and virtual machine are not compatible; the virtual "
+					+ "machine guarantees versions $activeVersions, but the "
+					+ "current module requires $requiredVersions")
 			return
 		}
 		success()
@@ -3297,18 +3293,21 @@ class AvailCompiler constructor(
 		val filterPrimitive = primitiveByName(filterPrimitiveName)
 		if (filterPrimitive === null)
 		{
-			state.expected(STRONG, "a valid primitive for the lexer filter")
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's filter function $filterPrimitiveName is not "
+					+ "a valid primitive")
 			return
 		}
 		val filterFunctionType = filterPrimitive.blockTypeRestriction()
 		if (!filterFunctionType.equals(lexerFilterFunctionType()))
 		{
-			state.expected(
-				STRONG,
-				"a primitive lexer filter function with type "
-				+ lexerFilterFunctionType()
-				+ ", not "
-				+ filterFunctionType)
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's filter function $filterPrimitiveName does not "
+					+ "have a suitable signature")
 			return
 		}
 		val filterFunction = createFunction(
@@ -3322,20 +3321,22 @@ class AvailCompiler constructor(
 		val bodyPrimitive = primitiveByName(bodyPrimitiveName)
 		if (bodyPrimitive === null)
 		{
-			state.expected(
-				STRONG,
-				"a valid primitive for the lexer body")
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's body function $bodyPrimitiveName is not "
+					+ "a valid primitive")
 			return
 		}
 		val bodyFunctionType = bodyPrimitive.blockTypeRestriction()
 		if (!bodyFunctionType.equals(lexerBodyFunctionType()))
 		{
-			state.expected(
-				STRONG,
-				"a primitive lexer body function with type "
-				+ lexerBodyFunctionType()
-				+ ", not "
-				+ bodyFunctionType)
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's body function $bodyPrimitive does not have "
+					+ "a suitable signature")
+			return
 		}
 		val bodyFunction = createFunction(
 			newPrimitiveRawFunction(
@@ -3937,9 +3938,7 @@ class AvailCompiler constructor(
 					compilationContext.diagnostics.reportError(
 						nameToken.nextLexingState(),
 						"Duplicate declared name detected at %s on line %d:",
-						format(
-							"Declared name %s should be unique",
-							nameString))
+						"Declared name $nameString should be unique")
 					return false
 				}
 				moduleHeader.exportedNames.add(nameString)

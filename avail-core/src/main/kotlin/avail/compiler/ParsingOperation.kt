@@ -502,8 +502,7 @@ enum class ParsingOperation constructor(
 			) { afterUse, variableUse ->
 				assert(successorTrees.tupleSize == 1)
 				val rawVariableUse = variableUse.stripMacro
-				if (!rawVariableUse.phraseKindIsUnder(
-						VARIABLE_USE_PHRASE))
+				if (!rawVariableUse.phraseKindIsUnder(VARIABLE_USE_PHRASE))
 				{
 					if (consumedAnything)
 					{
@@ -530,7 +529,7 @@ enum class ParsingOperation constructor(
 						// we've parsed something besides the variable
 						// reference argument.
 						afterUse.expected(
-							STRONG,
+							WEAK,
 							"variable for reference argument to be "
 							+ "assignable, not "
 							+ declarationKind.nativeKindName())

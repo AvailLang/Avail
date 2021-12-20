@@ -806,13 +806,13 @@ Method "new Tdecl(_,_)" is
 |
 	if p has initializing expression then
 	[
-	restricted send $"`«_:_:=_`»"
-		with <
-			`p's token` → literal phrase,
-			`p's declared type` → literal phrase,
-			T(p's initializing expression, decls)
-		> → list phrase
-		: local variable phrase
+		restricted send $"`«_:_:=_`»"
+			with <
+				`p's token` → literal phrase,
+				`p's declared type` → literal phrase,
+				T(p's initializing expression, decls)
+			> → list phrase
+			: local variable phrase
 	]
 	else
 	[

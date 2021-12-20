@@ -32,23 +32,19 @@
 
 package avail.compiler
 
-import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.scanning.LexingState
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.DECLARE_STRINGIFIER
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.phrases.ListPhraseDescriptor.Companion.newListNode
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
-import avail.descriptor.sets.A_Set.Companion.asTuple
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.interpreter.Primitive.Companion.primitiveByName
-import java.lang.String.format
 
 /**
  * These are the tokens that are understood directly by the Avail compiler.
@@ -83,20 +79,16 @@ enum class PragmaKind constructor(val lexeme: String)
 			val parts = pragmaValue.split("=".toRegex(), 2).toTypedArray()
 			if (parts.size != 2)
 			{
-				state.expected(
-					STRONG,
-					format(
-						"pragma on line %d to have the form"
-							+ " '%1\$s=<property>=<value>'",
-						pragmaToken.lineNumber(),
-						name))
-				state.compilationContext.diagnostics.reportError()
+				state.compilationContext.diagnostics.reportError(
+					pragmaToken.nextLexingState(),
+					"Malformed pragma at %s on line %d:",
+					"Pragma should have the form 'check=version=<version>")
 				return
 			}
 			val propertyName = parts[0].trim { it <= ' ' }
 			val propertyValue = parts[1].trim { it <= ' ' }
 			compiler.pragmaCheckThen(
-				state, propertyName, propertyValue, success)
+				state, pragmaToken, propertyName, propertyValue, success)
 		}
 	},
 
@@ -115,17 +107,25 @@ enum class PragmaKind constructor(val lexeme: String)
 			val parts = pragmaValue.split("=".toRegex(), 2).toTypedArray()
 			if (parts.size != 2)
 			{
-				state.expected(
-					STRONG,
-					format(
-						"method pragma on line %d to have the form "
-							+ "'method=<primitiveName>=<name>'",
-						pragmaToken.lineNumber()))
-				state.compilationContext.diagnostics.reportError()
+				state.compilationContext.diagnostics.reportError(
+					pragmaToken.nextLexingState(),
+					"Malformed pragma at %s on line %d:",
+					"method pragma to have the form "
+						+ "'method=<primitiveName>=<name>'")
 				return
 			}
 			val primName = parts[0].trim { it <= ' ' }
 			val methodName = parts[1].trim { it <= ' ' }
+			val prim = primitiveByName(primName)
+			if (prim === null)
+			{
+				state.compilationContext.diagnostics.reportError(
+					pragmaToken.nextLexingState(),
+					"Malformed pragma at %s on line %d:",
+					"method pragma to reference a valid primitive, " +
+						"not '$primName'")
+				return
+			}
 			compiler.bootstrapMethodThen(
 				state, pragmaToken, methodName, primName, success)
 		}
@@ -146,14 +146,12 @@ enum class PragmaKind constructor(val lexeme: String)
 			val parts = pragmaValue.split("=".toRegex(), 2).toTypedArray()
 			if (parts.size != 2)
 			{
-				state.expected(
-					STRONG,
-					format(
-						"macro pragma on line %d to have the form "
-							+ "'macro=<comma-separated prefix and body "
-							+ "primitive names>=<macro name>",
-						pragmaToken.lineNumber()))
-				state.compilationContext.diagnostics.reportError()
+				state.compilationContext.diagnostics.reportError(
+					pragmaToken.nextLexingState(),
+					"Malformed pragma at %s on line %d:",
+					"macro pragma should have the form "
+						+ "'macro=<comma-separated prefix and body "
+						+ "primitive names>=<macro name>")
 				return
 			}
 			val pragmaPrim = parts[0].trim { it <= ' ' }
@@ -166,14 +164,11 @@ enum class PragmaKind constructor(val lexeme: String)
 				val prim = primitiveByName(primName)
 				if (prim === null)
 				{
-					state.expected(
-						STRONG,
-						format(
-							"macro pragma on line %d to reference a valid "
-								+ "primitive, not %s",
-							pragmaToken.lineNumber(),
-							primName))
-					state.compilationContext.diagnostics.reportError()
+					state.compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Malformed pragma at %s on line %d:",
+						"macro pragma to reference a valid primitive, " +
+							"not '$primName'")
 					return
 				}
 				primNames[i] = primName
@@ -205,35 +200,21 @@ enum class PragmaKind constructor(val lexeme: String)
 			val availName = stringFrom(pragmaValue)
 			val atoms =
 				compilationContext.module.trueNamesForStringName(availName)
-			when
+			when (atoms.setSize)
 			{
-				atoms.setSize == 0 ->
+				0 ->
 				{
-					state.expected(
-						STRONG,
-						format(
-							"this module to introduce or import the "
-								+ "stringification atom having the name "
-								+ "%s, specified on line %d",
-							availName,
-							pragmaToken.lineNumber()))
-					state.compilationContext.diagnostics.reportError()
+					state.compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Malformed pragma at %s on line %d:",
+						"This module should have introduced or imported the "
+							+ "stringification atom named $availName.")
+					return
 
 				}
-				atoms.setSize > 1 ->
+				1 ->
 				{
-					state.expected(
-						STRONG,
-						format(
-							"the stringification atom name (%s) specified "
-								+ "on line %d to be unambiguous",
-							availName,
-							pragmaToken.lineNumber()))
-					state.compilationContext.diagnostics.reportError()
-				}
-				else ->
-				{
-					val atom = atoms.asTuple.tupleAt(1)
+					val atom = atoms.single()
 					val send = newSendNode(
 						emptyTuple,
 						DECLARE_STRINGIFIER.bundle,
@@ -241,6 +222,15 @@ enum class PragmaKind constructor(val lexeme: String)
 						TOP.o)
 					compiler.evaluateModuleStatementThen(
 						state, state, send, mutableMapOf(), success)
+				}
+				else ->
+				{
+					state.compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Malformed pragma at %s on line %d:",
+						"The stringification name $availName should have been"
+							+ " unambiguous")
+					return
 				}
 			}
 		}
@@ -261,30 +251,27 @@ enum class PragmaKind constructor(val lexeme: String)
 			val parts = pragmaValue.split("=".toRegex(), 2).toTypedArray()
 			if (parts.size != 2)
 			{
-				state.expected(
-					STRONG,
-					format(
-						"lexer pragma on line %d to have the form "
-							+ "'lexer="
-							+ "<filter primitive>,<body primitive>=<name>', "
-							+ "but the second '=' was not found",
-						pragmaToken.lineNumber()))
-				state.compilationContext.diagnostics.reportError()
+				state.compilationContext.diagnostics.reportError(
+					pragmaToken.nextLexingState(),
+					"Malformed pragma at %s on line %d:",
+					"lexer pragma should have the form "
+						+ "'lexer="
+						+ "<filter primitive>,<body primitive>=<name>'"
+						+ ", but the wrong number of '=' signs were "
+						+ "encountered")
 				return
 			}
 			val primNames = parts[0].trim { it <= ' ' }
 			val primParts = primNames.split(",".toRegex(), 2).toTypedArray()
 			if (primParts.size != 2)
 			{
-				state.expected(
-					STRONG,
-					format(
-						"lexer pragma on line %d to have the form "
-							+ "'lexer="
-							+ "<filter primitive>,<body primitive>=<name>', "
-							+ "but the comma was not found",
-						pragmaToken.lineNumber()))
-				state.compilationContext.diagnostics.reportError()
+				state.compilationContext.diagnostics.reportError(
+					pragmaToken.nextLexingState(),
+					"Malformed pragma at %s on line %d:",
+					"lexer pragma should have the form "
+						+ "'lexer="
+						+ "<filter primitive>,<body primitive>=<name>', "
+						+ "but the wrong number of commas were encountered")
 				return
 			}
 			val (filterPrimitiveName, bodyPrimitiveName) = primParts
@@ -296,14 +283,12 @@ enum class PragmaKind constructor(val lexeme: String)
 			{
 				0 ->
 				{
-					state.expected(
-						STRONG,
-						format(
-							"lexer name %s (on line %d) to be introduced in "
-								+ "this module",
-							availName,
-							pragmaToken.lineNumber()))
-					state.compilationContext.diagnostics.reportError()
+					state.compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Malformed pragma at %s on line %d:",
+						"lexer name $availName should have been introduced in "
+							+ "this module")
+					return
 				}
 				1 -> compiler.bootstrapLexerThen(
 					state,
@@ -314,14 +299,12 @@ enum class PragmaKind constructor(val lexeme: String)
 					success)
 				else ->
 				{
-					state.expected(
-						STRONG,
-						format(
-							"lexer name %s on line %d to be unambiguous in "
-								+ "this module",
-							availName,
-							pragmaToken.lineNumber()))
-					state.compilationContext.diagnostics.reportError()
+					state.compilationContext.diagnostics.reportError(
+						pragmaToken.nextLexingState(),
+						"Malformed pragma at %s on line %d:",
+						"lexer name $availName should have been unambiguous in "
+							+ "this module")
+					return
 				}
 			}
 		}
