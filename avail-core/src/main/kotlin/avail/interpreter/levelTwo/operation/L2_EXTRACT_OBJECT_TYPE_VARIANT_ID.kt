@@ -1,5 +1,5 @@
 /*
- * L2_EXTRACT_OBJECT_VARIANT_ID.kt
+ * L2_EXTRACT_OBJECT_TYPE_VARIANT_ID.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
-import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.staticObjectTypeVariantIdMethod
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -47,13 +47,13 @@ import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Extract the [ObjectLayoutVariant] of the given object, then extract its
+ * Extract the [ObjectLayoutVariant] of the given object type, then extract its
  * [variantId][ObjectLayoutVariant.variantId] as an [Int].
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
-	READ_BOXED.named("object"),
+object L2_EXTRACT_OBJECT_TYPE_VARIANT_ID : L2Operation(
+	READ_BOXED.named("object type"),
 	WRITE_INT.named("variantId"))
 {
 	override fun appendToWithWarnings(
@@ -69,7 +69,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 		builder
 			.append(' ')
 			.append(variantId.registerString())
-			.append(" ← VARIANT_ID(")
+			.append(" ← OBJECT TYPE VARIANT_ID(")
 			.append(value.registerString())
 			.append(")")
 	}
@@ -88,7 +88,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			generator.currentManifest.restrictionFor(value.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
-			val variant = constant.objectVariant
+			val variant = constant.objectTypeVariant
 			generator.addInstruction(
 				L2_MOVE_CONSTANT.unboxedInt,
 				L2IntImmediateOperand(variant.variantId),
@@ -108,7 +108,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 
 		// :: variantId = staticObjectVariantId(value);
 		translator.load(method, value.register())
-		staticObjectVariantIdMethod.generateCall(method)
+		staticObjectTypeVariantIdMethod.generateCall(method)
 		translator.store(method, variantId.register())
 	}
 }

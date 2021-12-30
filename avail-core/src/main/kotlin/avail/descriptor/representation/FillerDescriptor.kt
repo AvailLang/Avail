@@ -48,7 +48,7 @@ import java.util.IdentityHashMap
  *
  */
 class FillerDescriptor private constructor() : Descriptor(
-	Mutability.SHARED, TypeTag.UNKNOWN_TAG, null, null
+	Mutability.MUTABLE, TypeTag.UNKNOWN_TAG, null, null
 ) {
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -59,20 +59,31 @@ class FillerDescriptor private constructor() : Descriptor(
 		builder.append("(*** a destroyed object ***)")
 	}
 
+	override fun o_MakeImmutable(self: AvailObject): AvailObject = unsupported
+
+	override fun o_MakeShared(self: AvailObject): AvailObject = unsupported
+
+	override fun o_MakeSubobjectsImmutable(self: AvailObject): AvailObject =
+		unsupported
+
+	override fun o_MakeSubobjectsShared(self: AvailObject): AvailObject =
+		unsupported
+
 	override fun mutable(): FillerDescriptor {
-		return shared
+		return mutable
 	}
 
-	override fun immutable(): FillerDescriptor {
-		return shared
-	}
+	override fun immutable(): FillerDescriptor = unsupported
 
-	override fun shared(): FillerDescriptor {
-		return shared
-	}
+	override fun shared(): FillerDescriptor  = unsupported
 
 	companion object {
-		/** The sole [FillerDescriptor], which is [Mutability.SHARED]. */
-		val shared = FillerDescriptor()
+		/**
+		 * The sole [FillerDescriptor], which is [Mutability.MUTABLE].  There
+		 * are no immutable or shared filler descriptors, because if a filler is
+		 * embedded in some other object structure which is being made immutable
+		 * or shared, it's always an error.
+		 */
+		val mutable = FillerDescriptor()
 	}
 }

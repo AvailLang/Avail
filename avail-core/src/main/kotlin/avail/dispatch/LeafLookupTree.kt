@@ -38,6 +38,7 @@ import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import java.lang.String.format
 
@@ -72,6 +73,7 @@ internal constructor(private val finalResult: Result)
 		get() = finalResult
 
 	override fun <AdaptorMemento> expandIfNecessary(
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): DecisionStep<Element, Result>
 	{

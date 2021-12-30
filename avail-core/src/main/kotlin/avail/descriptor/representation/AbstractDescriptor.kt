@@ -168,7 +168,7 @@ import avail.utility.cast
 import avail.utility.safeWrite
 import avail.utility.visitor.AvailSubobjectVisitor
 import org.availlang.json.JSONWriter
-import java.lang.reflect.Modifier
+import java.lang.reflect.InvocationTargetException
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
@@ -182,13 +182,17 @@ import java.util.stream.Stream
 import kotlin.concurrent.read
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.valueParameters
+import kotlin.reflect.jvm.javaGetter
 
 /**
  * [AbstractDescriptor] is the base descriptor type.  An [AvailObject] contains
@@ -571,12 +575,8 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun create (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit = { }): AvailObject
-	{
-		val value = newIndexedDescriptor(indexedSlotCount, this)
-		value.init()
-		return value
-	}
+		init: AvailObject.()->Unit = { }
+	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).apply(init)
 
 	/**
 	 * Create a new [object][AvailObject] whose [descriptor][AbstractDescriptor]
@@ -590,11 +590,10 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun createImmutable (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit): AvailObject
-	{
-		val value = newIndexedDescriptor(indexedSlotCount, this)
-		value.init()
-		return value.makeImmutable().apply { makeSubobjectsImmutable() }
+		init: AvailObject.()->Unit
+	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).run {
+		init()
+		makeImmutable()
 	}
 
 	/**
@@ -609,11 +608,10 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun createShared (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit): AvailObject
-	{
-		val value = newIndexedDescriptor(indexedSlotCount, this)
-		value.init()
-		return value.makeShared().apply { makeSubobjectsShared() }
+		init: AvailObject.()->Unit
+	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).run {
+		init()
+		makeShared()
 	}
 
 	/**
@@ -758,52 +756,45 @@ abstract class AbstractDescriptor protected constructor (
 		}
 	}
 
-	override fun toString () = buildString {
-		val thisClass = this@AbstractDescriptor.javaClass
-		append(thisClass.simpleName)
-		val supers = mutableListOf<Class<*>>()
-		var cls: Class<*> = thisClass
-		while (cls != Any::class.java)
+	override fun toString (): String
+	{
+		val members = mutableListOf<KProperty1<out AbstractDescriptor, *>>()
+		var cls: KClass<*> = this::class
+		do
 		{
-			supers.add(0, cls) // top-down
-			cls = cls.superclass
+			members.addAll(0, cls.declaredMemberProperties.cast()) // top-down
+			cls = cls.supertypes.map { it.classifier }
+				.filterIsInstance<KClass<*>>()
+				.single()
 		}
-		var fieldCount = 0
-		supers.forEach { sup ->
-			sup.declaredFields.forEach { f ->
-				if (!Modifier.isStatic(f.modifiers))
-				{
-					fieldCount++
-					if (fieldCount == 1)
-					{
-						append("(")
-					}
-					else
-					{
-						append(", ")
-					}
-					append(f.name)
-					append("=")
+		while (cls != Any::class)
+		members.remove(AbstractDescriptor::unsupported)
+		members.remove(AbstractDescriptor::allocationStat)
+		members.remove(AbstractDescriptor::debugIntegerSlots)
+		members.remove(AbstractDescriptor::debugObjectSlots)
+		members.remove(AbstractDescriptor::hasVariableIntegerSlots)
+		members.remove(AbstractDescriptor::hasVariableObjectSlots)
+		members.remove(AbstractDescriptor::numberOfFixedIntegerSlots)
+		members.remove(AbstractDescriptor::numberOfFixedObjectSlots)
+		members.remove(AbstractDescriptor::isMutable)
+		members.remove(AbstractDescriptor::isShared)
+		return this::class.simpleName +
+			members.joinToString(", ", "(", ")") { m ->
+				"${m.name}=" +
 					try
 					{
-						append(f[this])
-					}
-					catch (e: IllegalArgumentException)
+						m.javaGetter?.invoke(this)
+					} catch (e: IllegalArgumentException)
 					{
-						append("(inaccessible)")
-					}
-					catch (e: IllegalAccessException)
+						"(inaccessible)"
+					} catch (e: IllegalAccessException)
 					{
-						append("(inaccessible)")
+						"(inaccessible)"
+					} catch (e: InvocationTargetException)
+					{
+						"$e: TRACE=${e.stackTraceToString()}"
 					}
-				}
 			}
-		}
-		if (fieldCount > 0)
-		{
-			append(")")
-		}
-		return toString()
 	}
 
 	/**
@@ -3806,6 +3797,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_DefinitionBundle (self: AvailObject): A_Bundle
 
+	@Throws(SignatureException::class)
 	abstract fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,

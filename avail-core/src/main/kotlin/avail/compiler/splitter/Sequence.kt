@@ -58,8 +58,10 @@ import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.emptyListPhraseType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PERMUTED_LIST_PHRASE
 import avail.descriptor.types.TupleTypeDescriptor
@@ -364,6 +366,7 @@ internal class Sequence constructor(
 	 *   A tuple type containing the expected phrase types for this entire
 	 *   sequence.  Indexed by the seconds of the run pairs.
 	 */
+	@Throws(SignatureException::class)
 	private fun emitRunOn(
 		run: List<Pair<Expression, Int>>,
 		positionInRun: Int,
@@ -417,12 +420,27 @@ internal class Sequence constructor(
 	 * ([WrapState.NEEDS_TO_PUSH_LIST]), or concatenated onto an existing list
 	 * ([WrapState.PUSHED_LIST]).
 	 */
+	@Throws(SignatureException::class)
 	override fun emitOn(
 		phraseType: A_Type,
 		generator: InstructionGenerator,
 		wrapState: WrapState): WrapState
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType
+		// The phrase type might not be guaranteed to be a list type at this
+		// point.
+		val intersected = phraseType
+			.makeImmutable()
+			.typeIntersection(LIST_PHRASE.mostGeneralType)
+			.makeShared()
+		if (intersected.isBottom)
+		{
+			// If a list is supplied, it won't match the type, and if a non-list
+			// is supplied, it can't be parsed.  Note that this doesn't affect
+			// the ability to invoke such a method/macro body with, say, a
+			// literal phrase yielding a suitable tuple.
+			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+		}
+		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		var argIndex = 0
 		var ungroupedArguments = 0
 		var listIsPushed = wrapState === PUSHED_LIST

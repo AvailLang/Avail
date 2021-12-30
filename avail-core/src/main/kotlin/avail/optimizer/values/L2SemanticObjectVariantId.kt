@@ -33,13 +33,15 @@ package avail.optimizer.values
 
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.register.L2BoxedRegister
 
 /**
  * A semantic value which represents the variantId of the [ObjectLayoutVariant]
- * extracted from some [object][ObjectDescriptor] in the [base] semantic value.
- * To keep unboxed ints homogenous, this will always be wrapped inside an
+ * extracted from some [object][ObjectDescriptor] or object
+ * [type][ObjectTypeDescriptor] in the [base] semantic value. To keep unboxed
+ * ints homogenous, this will always be wrapped inside an
  * [L2SemanticUnboxedInt], even though the boxed value generally will not occur
  * in any [L2BoxedRegister].
  *
@@ -61,10 +63,10 @@ class L2SemanticObjectVariantId constructor(val base: L2SemanticValue)
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			semanticValueTransformer(base).let {
-				if (it == base) this else L2SemanticObjectVariantId(it)
-		}
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticValue = semanticValueTransformer(base).let {
+		if (it == base) this else L2SemanticObjectVariantId(it)
+	}
 
 	override fun toString(): String = "Variant($base)"
 }

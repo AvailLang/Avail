@@ -105,7 +105,7 @@ abstract class AbstractAvailObject protected constructor(
 	 * definition.
 	 */
 	fun destroy() {
-		currentDescriptor = FillerDescriptor.shared
+		currentDescriptor = FillerDescriptor.mutable
 	}
 
 	/**
@@ -117,7 +117,7 @@ abstract class AbstractAvailObject protected constructor(
 	protected val isDestroyed: Boolean
 		get() {
 			checkValidAddress()
-			return currentDescriptor === FillerDescriptor.shared
+			return currentDescriptor === FillerDescriptor.mutable
 		}
 
 	/**

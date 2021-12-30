@@ -1062,9 +1062,8 @@ class MethodDescriptor private constructor(
 		val runtimeDispatcher =
 			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
-				override val emptyLeaf by lazy {
+				override val emptyLeaf =
 					LeafLookupTree<A_Definition, A_Tuple>(emptyTuple)
-				}
 
 				override fun extractSignature(element: A_Definition) =
 					element.bodySignature().argsTupleType

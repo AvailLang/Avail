@@ -82,7 +82,7 @@ abstract class TypeDescriptor
 protected constructor(
 	mutability: Mutability,
 	typeTag: TypeTag,
-	protected val instanceTag: TypeTag,
+	val instanceTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>?
 ) : AbstractTypeDescriptor(

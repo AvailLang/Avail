@@ -380,12 +380,12 @@ Method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	Stable method $"_converted to_" is function for scaling
+	Method $"_converted to_" is function for scaling
 		from metricA
 		to metricB
 		by scaleFactor
 		using $"_×_";
-	Stable method $"_converted to_" is function for scaling
+	Method $"_converted to_" is function for scaling
 		from metricB
 		to metricA
 		by scaleFactor

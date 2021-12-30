@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.annotations.HideFieldInDebugger
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor
@@ -129,6 +130,7 @@ open class PhraseTypeDescriptor protected constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
+			@HideFieldInDebugger
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}

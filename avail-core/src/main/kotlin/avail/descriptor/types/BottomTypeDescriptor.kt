@@ -37,6 +37,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
@@ -315,6 +316,11 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	// Pretend we go from +∞ to -∞ exclusive. That should be a nice empty
 	// range.
 	override fun o_LowerInclusive(self: AvailObject): Boolean = false
+
+	// This case should have been eliminated explicitly by dispatch logic in
+	// LookupTree.
+	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
+		unsupported
 
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{

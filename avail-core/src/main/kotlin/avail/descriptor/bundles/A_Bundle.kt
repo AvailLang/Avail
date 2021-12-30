@@ -95,7 +95,11 @@ interface A_Bundle : A_BasicObject {
 		) = dispatch { o_AddGrammaticalRestriction(it, grammaticalRestriction) }
 
 		/**
-		 *
+		 * Add the [A_Macro] definition to this bundle, respecting seals if
+		 * requested.  Throw a [SignatureException] (without making changes), if
+		 * the macro body's signature is incompatible with the bundle's name.
+		 * See [MessageSplitter] and its related classes for information about
+		 * how the message name is related to argument structure.
 		 */
 		@Throws(SignatureException::class)
 		fun A_Bundle.bundleAddMacro(macro: A_Macro, ignoreSeals: Boolean) =

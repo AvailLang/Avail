@@ -126,6 +126,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TypeTag
 import avail.dispatch.LeafLookupTree
 import avail.dispatch.LookupTree
@@ -844,7 +845,7 @@ class MessageBundleTreeDescriptor private constructor(
 			// Extract the phrase type from the pair, and use it directly as
 			// the signature type for the tree.
 			override fun extractSignature(element: A_Tuple): A_Type =
-				element.tupleAt(1)
+				tupleTypeForTypes(element.tupleAt(1))
 
 			override fun constructResult(
 				elements: List<A_Tuple>,

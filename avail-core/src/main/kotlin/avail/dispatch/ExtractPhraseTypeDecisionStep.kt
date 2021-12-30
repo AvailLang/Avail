@@ -1,5 +1,5 @@
 /*
- * ExtractObjectFieldDecisionStep.kt
+ * ExtractPhraseTypeDecisionStep.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,19 +32,21 @@
 
 package avail.dispatch
 
-import avail.descriptor.atoms.A_Atom
-import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.methods.A_Definition
+import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
+import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
-import avail.interpreter.levelTwo.operation.L2_GET_OBJECT_FIELD
-import avail.interpreter.primitive.objects.P_GetObjectField
+import avail.interpreter.levelTwo.operation.L2_GET_PHRASE_EXPRESSION_TYPE
+import avail.interpreter.primitive.phrases.P_PhraseExpressionType
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
 import avail.optimizer.values.L2SemanticValue
@@ -55,34 +57,27 @@ import avail.utility.cast
 import java.lang.String.format
 
 /**
- * This is a [DecisionStep] which extracts one field from an argument or extra,
- * and adds it to the list of extras, for subsequent dispatching.  This new
- * value should have a useful subsequent dispatching power, otherwise there
- * would be no point in extracting it.
+ * This is a [DecisionStep] which takes a phrase from an argument or extra, and
+ * adds it to the list of extras, for subsequent dispatching.  This new value
+ * should have a useful subsequent dispatching power, otherwise there would be
+ * no point in extracting it.
  *
  * The [InternalLookupTree] containing this step will have exactly one child.
  *
  * @constructor
  * Construct the new instance.
  *
- * @property argumentPositionToTest
- *   The 1-based index of the argument from which to extract a field.
- * @property field
- *   The [name][A_Atom] of the field to traverse.  Note that the [fieldIndex]
- *   is actually used for the traversal, for performance.
- * @property fieldIndex
- *   The one-based index of the field to extract from the object.  It's safe to
- *   use the numeric index, since the exact variant has already been determined.
+ * @param argumentPositionToTest
+ *   The 1-based index of the argument (or negative index for an extra) from
+ *   which to extract a field.
  * @property childNode
  *   The sole child of the node using this step.
  */
-class ExtractObjectFieldDecisionStep<
+class ExtractPhraseTypeDecisionStep<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 constructor(
 	argumentPositionToTest: Int,
-	private val field: A_Atom,
-	private val fieldIndex: Int,
 	val childNode: InternalLookupTree<Element, Result>
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
@@ -92,12 +87,13 @@ constructor(
 	): List<Element>
 	{
 		val i = argumentPositionToTest
+		val inExtras = i - argValues.size
 		val baseValue = when
 		{
-			i > 0 -> argValues[i - 1]
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argValues[i - 1]
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = (baseValue as A_Phrase).phraseExpressionType
 		return extraValues.append(newValue.cast())
 	}
 
@@ -107,12 +103,13 @@ constructor(
 	): List<Element>
 	{
 		val i = argumentPositionToTest
+		val inExtras = i - types.size
 		val baseValue = when
 		{
-			i > 0 -> types[i - 1]
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> types[i - 1]
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = (baseValue as A_Phrase).phraseExpressionType
 		return extraValues.append(newValue.cast())
 	}
 
@@ -122,12 +119,13 @@ constructor(
 	): List<Element>
 	{
 		val i = argumentPositionToTest
+		val inExtras = i - argTypes.tupleSize
 		val baseValue = when
 		{
-			i > 0 -> argTypes.tupleAt(i)
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argTypes.tupleAt(i)
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = (baseValue as A_Phrase).phraseExpressionType
 		return extraValues.append(newValue.cast())
 	}
 
@@ -136,13 +134,45 @@ constructor(
 		extraValues: List<Element>
 	): List<Element>
 	{
-		val baseValue = when (val i = argumentPositionToTest)
+		val i = argumentPositionToTest
+		val inExtras = i - 1
+		val baseValue = when
 		{
-			0 -> probeValue
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> probeValue
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = (baseValue as A_Phrase).phraseExpressionType
 		return extraValues.append(newValue.cast())
+	}
+
+	override fun <Memento> updateSignatureExtrasExtractor(
+		adaptor: LookupTreeAdaptor<Element, Result, Memento>,
+		extrasTypeExtractor: (Element)->Pair<A_Type?, List<A_Type>>,
+		numArgs: Int
+	): (Element)->Pair<A_Type?, List<A_Type>>
+	{
+		val inExtras = argumentPositionToTest - numArgs
+		return when
+		{
+			inExtras > 0 -> { element ->
+				val (optionalBaseType, extrasList) =
+					extrasTypeExtractor(element)
+				val phraseType = extrasList[inExtras - 1]
+				val expressionType =
+					instanceMeta(phraseType.phraseTypeExpressionType)
+				optionalBaseType to extrasList.append(expressionType)
+			}
+			else -> { element ->
+				val (optionalBaseType, extrasList) =
+					extrasTypeExtractor(element)
+				val baseType =
+					optionalBaseType ?: adaptor.extractSignature(element)
+				val phraseType = baseType.typeAtIndex(argumentPositionToTest)
+				val expressionType =
+					instanceMeta(phraseType.phraseTypeExpressionType)
+				baseType to extrasList.append(expressionType)
+			}
+		}
 	}
 
 	override fun <AdaptorMemento> lookupStepByValues(
@@ -190,11 +220,10 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d extract field (%s) : known=%s",
+					"(u=%d, p=%d) #%d extract phrase yield type : known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,
-					field.atomName.asNativeString(),
 					node.knownArgumentRestrictions),
 				indent + 1))
 		newlineTab(indent + 1)
@@ -205,10 +234,9 @@ constructor(
 		semanticValues: List<L2SemanticValue>,
 		extraSemanticValues: List<L2SemanticValue>
 	) = L2SemanticValue.primitiveInvocation(
-		P_GetObjectField,
+		P_PhraseExpressionType,
 		listOf(
-			sourceSemanticValue(semanticValues, extraSemanticValues),
-			L2SemanticValue.constant(field)))
+			sourceSemanticValue(semanticValues, extraSemanticValues)))
 
 	override fun addChildrenTo(
 		list: MutableList<
@@ -234,17 +262,19 @@ constructor(
 		val generator = callSiteHelper.generator()
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val fieldSemanticValue =
-			newSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction =
 			generator.currentManifest.restrictionFor(baseSemanticValue)
-		val fieldRestriction = restrictionForType(
-			baseRestriction.type.fieldTypeAt(field), BOXED_FLAG)
+		val expressionTypeRestriction = restrictionForType(
+			instanceMeta(baseRestriction.type.phraseTypeExpressionType),
+			BOXED_FLAG)
+		val expressionTypeSemanticValue = L2SemanticValue.primitiveInvocation(
+			P_PhraseExpressionType,
+			listOf(baseSemanticValue))
 		generator.addInstruction(
-			L2_GET_OBJECT_FIELD,
+			L2_GET_PHRASE_EXPRESSION_TYPE,
 			generator.readBoxed(baseSemanticValue),
-			L2ConstantOperand(field),
-			generator.boxedWrite(fieldSemanticValue, fieldRestriction))
+			generator.boxedWrite(
+				expressionTypeSemanticValue, expressionTypeRestriction))
 		val target = L2BasicBlock("after extracting field")
 		generator.jumpTo(target)
 		return listOf(

@@ -51,6 +51,7 @@
       <w>mersenne</w>
       <w>metainvariance</w>
       <w>metametatype</w>
+      <w>metatype's</w>
       <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
@@ -69,6 +70,7 @@
       <w>primfail</w>
       <w>printability</w>
       <w>pseudoprimes</w>
+      <w>recanonicalize</w>
       <w>recurses</w>
       <w>regenerator's</w>
       <w>regenerators</w>
@@ -99,6 +101,8 @@
       <w>subtable</w>
       <w>subtags</w>
       <w>subtyped</w>
+      <w>subvalue</w>
+      <w>subvariant</w>
       <w>supercast's</w>
       <w>supernode</w>
       <w>superunion</w>

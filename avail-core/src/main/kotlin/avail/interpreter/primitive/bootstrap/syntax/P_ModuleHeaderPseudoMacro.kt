@@ -104,39 +104,38 @@ object P_ModuleHeaderPseudoMacro
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tupleFromArray(
-				/* Module name */
+				// Module name.
 				stringLiteralType,
-				/* Optional versions */
+				// Optional versions.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
-				/* All imports */
+				// All imports.
 				zeroOrMoreList(
 					list(
-						LITERAL_PHRASE.create(
-							inclusive(1, 2)),
+						// 1 = Extends, 2 = Uses.
+						LITERAL_PHRASE.create(inclusive(1, 2)),
 						zeroOrMoreList(
 							list(
-								// Imported module name
+								// Imported module name.
 								stringLiteralType,
-								// Imported module versions
+								// Imported module versions.
 								zeroOrOneList(
 									zeroOrMoreList(stringLiteralType)),
-								// Imported names
+								// Imported names.
 								zeroOrOneList(list(
 									zeroOrMoreList(list(
-										// Negated import
+										// Negated import.
 										LITERAL_PHRASE.create(booleanType),
-										// Name
+										// Original name.
 										stringLiteralType,
-										// Replacement name
+										// Replacement name.
 										zeroOrOneList(stringLiteralType))),
-									// Final ellipsis (import all the rest)
-									LITERAL_PHRASE.create(
-										booleanType))))))),
-				/* Optional names */
+									// Final ellipsis (import all the rest).
+									LITERAL_PHRASE.create(booleanType))))))),
+				// Optional names.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
-				/* Optional entries */
+				// Optional entries.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType)),
-				/* Optional pragma */
+				// Optional pragma.
 				zeroOrOneList(zeroOrMoreList(stringLiteralType))),
 			/* Shouldn't be invoked, so always fail. */
 			STATEMENT_PHRASE.mostGeneralType)

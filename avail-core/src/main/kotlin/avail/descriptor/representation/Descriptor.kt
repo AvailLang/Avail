@@ -2619,6 +2619,7 @@ protected constructor (
 
 	override fun o_DefinitionBundle(self: AvailObject): A_Bundle = unsupported
 
+	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,

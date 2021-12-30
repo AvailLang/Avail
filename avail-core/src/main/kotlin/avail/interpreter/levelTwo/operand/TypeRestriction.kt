@@ -37,7 +37,10 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.representation.NilDescriptor
@@ -52,6 +55,7 @@ import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.trimType
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -65,6 +69,8 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeDescriptor.Companion.isProperSubtype
 import avail.descriptor.types.TypeTag
+import avail.descriptor.types.TypeTag.OBJECT_TAG
+import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
@@ -116,6 +122,7 @@ class TypeRestriction private constructor(
 	val flags: Int)
 {
 	init {
+		assert(negativeGroup.constants != null)
 		// Mixing boxed/unboxed in a restriction is now forbidden (Feb 2021).
 		assert(flags == BOXED_FLAG.mask
 			|| flags == (BOXED_FLAG.mask + IMMUTABLE_FLAG.mask)
@@ -129,59 +136,65 @@ class TypeRestriction private constructor(
 		negativeGroup.makeImmutable()
 	}
 
+	/**
+	 * A collection of all positive or all negative constraints.  A
+	 * TypeRestriction uses one for positive constraints, and one for negative
+	 * constraints, and canonicalization keeps them from being contradictory or
+	 * nonsensical.
+	 *
+	 * @property constants
+	 *
+	 *   When used in a positive group, this is either null or a set of size one
+	 *   containing the exact value under test.
+	 *
+	 *   When used in the negative group, this is a set of values that the value
+	 *   under test is known *not* to be.  Canonicalization ensures each such
+	 *   element is an instance of a type in the positive group.
+	 *
+	 * @property types
+	 *
+	 *   When used in the positive group, this is a size one set containing a
+	 *   type that includes the value under test.
+	 *
+	 *   When used in the negative group, this is a set of types, none of which
+	 *   includes the value under test.  Canonicalization ensures each such type
+	 *   is a subtype of a type in the positive group.
+	 *
+	 * @property objectVariants
+	 *
+	 *   When used in the positive group, this set, if present, indicates that
+	 *   the value under test must be an [object][ObjectDescriptor], and that
+	 *   object must use one of the specified [ObjectLayoutVariant]s.
+	 *
+	 *   When used in the negative group, *if* the value under test is an
+	 *   [object][ObjectDescriptor], it must not use an [ObjectLayoutVariant]
+	 *   that occurs in this set.
+	 *
+	 * @property objectTypeVariants
+	 *
+	 *   When used in the positive group, this set, if present, indicates that
+	 *   the value under test must be an object [type][ObjectTypeDescriptor],
+	 *   and that object type must use one of the specified
+	 *   [ObjectLayoutVariant]s.
+	 *
+	 *   When used in the negative group, *if* the value under test is an object
+	 *   [type][ObjectTypeDescriptor], it must not use an [ObjectLayoutVariant]
+	 *   that occurs in this set.
+	 *
+	 * @property tags
+	 *
+	 *   When used in the positive group, this set, if present, must contain the
+	 *   [typeTag][AvailObjectRepresentation.typeTag] of the value under test.
+	 *
+	 *   When used in the negative group, the value under test must *not* have a
+	 *   [typeTag][AvailObjectRepresentation.typeTag] in this set.
+	 */
 	data class RestrictionGroup(
-		/**
-		 * When used in a positive group, this is either null or a set of size
-		 * one containing the exact value under test.
-		 *
-		 * When used in the negative group, this is a set of values that the
-		 * value under test is known *not* to be.  Canonicalization ensures each
-		 * such element is an instance of a type in the positive group.
-		 */
-		var constants: Set<A_BasicObject>?,
-
-		/**
-		 * When used in the positive group, this is a size one set containing
-		 * a type that includes the value under test.
-		 *
-		 * When used in the negative group, this is a set of types, none of
-		 * which includes the value under test.  Canonicalization ensures each
-		 * such type is a subtype of a type in the positive group.
-		 */
-		var types: Set<A_Type>,
-
-		/**
-		 * When used in the positive group, this set, if present, indicates that
-		 * the value under test must be an [object][ObjectDescriptor], and that
-		 * object must use one of the specified [ObjectLayoutVariant]s.
-		 *
-		 * When used in the negative group, *if* the value under test is an
-		 * [object][ObjectDescriptor], it must not use an [ObjectLayoutVariant]
-		 * that occurs in this set.
- 		 */
-		var objectVariants: Set<ObjectLayoutVariant>?,
-
-		/**
-		 * When used in the positive group, this set, if present, indicates that
-		 * the value under test must be an
-		 * [object&#32;type][ObjectTypeDescriptor], and that object type must
-		 * use one of the specified [ObjectLayoutVariant]s.
-		 *
-		 * When used in the negative group, *if* the value under test is an
-		 * [object&#32;type][ObjectTypeDescriptor], it must not use an
-		 * [ObjectLayoutVariant] that occurs in this set.
-		 */
-		var objectTypeVariants: Set<ObjectLayoutVariant>?,
-
-		/**
-		 * When used in the positive group, this set, if present, must contain
-		 * the [typeTag][AvailObjectRepresentation.typeTag] of the value under
-		 * test.
-		 *
-		 * When used in the negative group, the value under test must *not* have
-		 * a [typeTag][AvailObjectRepresentation.typeTag] in this set.
-		 */
-		var tags: Set<TypeTag>?)
+		val constants: Set<A_BasicObject>?,
+		val types: Set<A_Type>,
+		val objectVariants: Set<ObjectLayoutVariant>?,
+		val objectTypeVariants: Set<ObjectLayoutVariant>?,
+		val tags: Set<TypeTag>?)
 	{
 		/** Ensure all referenced [AvailObject]s are at least Immutable. */
 		fun makeImmutable()
@@ -321,7 +334,7 @@ class TypeRestriction private constructor(
 	 * Answer the base type of this restriction.
 	 */
 	val type: A_Type
-		get() = positiveGroup.types.first()
+		get() = positiveGroup.types.single()
 
 	/**
 	 * The set of types that are specifically excluded.  A value that satisfies
@@ -373,7 +386,11 @@ class TypeRestriction private constructor(
 			null,
 			resultExcludedTypes,
 			resultExcludedValues,
-			BOXED_FLAG.mask)
+			null,
+			null,
+			null,
+			null,
+			flags = BOXED_FLAG.mask)
 	}
 
 	/**
@@ -416,26 +433,34 @@ class TypeRestriction private constructor(
 		// Figure out which excluded constants are also excluded in the other
 		// restriction.
 		val newExcludedValues = mutableSetOf<A_BasicObject>()
-		for (value in excludedValues)
-		{
-			if (other.excludedValues.contains(value)
-				|| other.excludedTypes.any(value::isInstanceOf))
-			{
-				newExcludedValues.add(value)
-			}
+		excludedValues.filterTo(newExcludedValues) {
+			other.excludedValues.contains(it)
+				|| other.excludedTypes.any(it::isInstanceOf)
 		}
-		for (value in other.excludedValues)
-		{
-			if (excludedTypes.any(value::isInstanceOf))
-			{
-				newExcludedValues.add(value)
-			}
+		other.excludedValues.filterTo(newExcludedValues) {
+			excludedTypes.any(it::isInstanceOf)
 		}
+		val positiveVariants = positiveGroup.objectVariants?.let { v1 ->
+			other.positiveGroup.objectVariants?.let(v1::union)
+		}
+		val positiveTypeVariants = positiveGroup.objectTypeVariants?.let { v1 ->
+			other.positiveGroup.objectTypeVariants?.let(v1::union)
+		}
+		val excludedVariants = negativeGroup.objectVariants?.let { v1 ->
+			other.negativeGroup.objectVariants?.let(v1::intersect)
+		}?.ifEmpty { return bottomRestriction }
+		val excludedTypeVariants = negativeGroup.objectTypeVariants?.let { v1 ->
+			other.negativeGroup.objectTypeVariants?.let(v1::intersect)
+		}?.ifEmpty { null }
 		return restriction(
 			type.typeUnion(other.type),
 			null,
 			mutualTypeIntersections,
 			newExcludedValues,
+			positiveVariants,
+			excludedVariants,
+			positiveTypeVariants,
+			excludedTypeVariants,
 			flags and other.flags)
 	}
 
@@ -461,11 +486,39 @@ class TypeRestriction private constructor(
 			// intersection is empty.
 			return bottomRestriction
 		}
+		val positiveVariants = positiveGroup.objectVariants.let { v1 ->
+			other.positiveGroup.objectVariants.let { v2 ->
+				if (v1 == null || v2 == null) v1 ?: v2
+				else v2.intersect(v2).ifEmpty { return bottomRestriction }
+			}
+		}
+		val positiveTypeVariants = positiveGroup.objectTypeVariants.let { v1 ->
+			other.positiveGroup.objectTypeVariants.let { v2 ->
+				if (v1 == null || v2 == null) v1 ?: v2
+				else v2.intersect(v2).ifEmpty { return bottomRestriction }
+			}
+		}
+		val excludedVariants = negativeGroup.objectVariants.let { v1 ->
+			other.negativeGroup.objectVariants.let { v2 ->
+				if (v1 == null || v2 == null) v1 ?: v2
+				else v1.union(v2)
+			}
+		}
+		val excludedTypeVariants = negativeGroup.objectTypeVariants.let { v1 ->
+			other.negativeGroup.objectTypeVariants.let { v2 ->
+				if (v1 == null || v2 == null) v1 ?: v2
+				else v1.union(v2)
+			}
+		}
 		return restriction(
 			type.typeIntersection(other.type),
 			c1 ?: c2,
 			excludedTypes + other.excludedTypes,
 			excludedValues + other.excludedValues,
+			positiveVariants,
+			excludedVariants,
+			positiveTypeVariants,
+			excludedTypeVariants,
 			flags or other.flags)
 	}
 
@@ -487,6 +540,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
 			flags)
 
 	/**
@@ -506,6 +563,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes + typeToExclude,
 			excludedValues,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
 			flags)
 
 	/**
@@ -526,10 +587,14 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues + valueToExclude,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
 			flags)
 
 	/**
-	 * Create the intersection of the receiver with the given
+	 * Create the intersection of the receiver with the given object variant
 	 * [ObjectLayoutVariant].  This is the restriction that a register would
 	 * have if it were already known to satisfy the receiver restriction, and
 	 * has had its variant tested positively against the given variant.
@@ -538,17 +603,111 @@ class TypeRestriction private constructor(
 	 *   The [ObjectLayoutVariant] to combine with the receiver to produce an
 	 *   intersected restriction.
 	 * @return
-	 *   The new type restriction.
+	 *   The new [TypeRestriction].
 	 */
-	fun intersectionWithVariant(variantToIntersect: ObjectLayoutVariant) =
-		fromCanonical(
-			type,
-			constantOrNull,
-			excludedTypes,
-			excludedValues,
-			setOf(variantToIntersect),
-			null,
-			flags)
+	fun intersectionWithObjectVariant(
+		variantToIntersect: ObjectLayoutVariant
+	): TypeRestriction = intersection(
+		TypeRestriction(
+			RestrictionGroup(
+				null,
+				setOf(variantToIntersect.mostGeneralObjectType),
+				setOf(variantToIntersect),
+				null,
+				setOf(OBJECT_TAG)),
+			RestrictionGroup(emptySet(), emptySet(), null, null, null),
+			flags))
+
+	/**
+	 * Create the intersection of the receiver with the given object type
+	 * variant [ObjectLayoutVariant].  This is the restriction that a register
+	 * would have if it were already known to satisfy the receiver restriction,
+	 * and has had its object type variant tested positively against the given
+	 * variant.
+	 *
+	 * @param variantToIntersect
+	 *   The [ObjectLayoutVariant] to combine with the receiver to produce an
+	 *   intersected restriction.
+	 * @return
+	 *   The new [TypeRestriction].
+	 */
+	fun intersectionWithObjectTypeVariant(
+		variantToIntersect: ObjectLayoutVariant
+	): TypeRestriction = intersection(
+		TypeRestriction(
+			RestrictionGroup(
+				null,
+				setOf(variantToIntersect.mostGeneralObjectMeta),
+				null,
+				setOf(variantToIntersect),
+				setOf(OBJECT_TYPE_TAG)),
+			RestrictionGroup(emptySet(), emptySet(), null, null, null),
+			flags))
+
+	/**
+	 * Create the difference between the receiver and the given object variant
+	 * [ObjectLayoutVariant].  This is the restriction that a register would
+	 * have if it were already known to satisfy the receiver restriction, and
+	 * has had its variant tested negatively against the supplied variant.
+	 *
+	 * @param variantToRemove
+	 *   The [ObjectLayoutVariant]s to exclude from the receiver to produce a
+	 *   difference restriction.
+	 * @return
+	 *   The new [TypeRestriction].
+	 */
+	fun minusObjectVariant(variantToRemove: ObjectLayoutVariant) = when
+	{
+		positiveGroup.objectVariants == null ->
+			TypeRestriction(
+				positiveGroup,
+				negativeGroup.copy(
+					objectVariants =
+						(negativeGroup.objectVariants ?: emptySet())
+							+ variantToRemove),
+				flags)
+		positiveGroup.objectVariants.contains(variantToRemove) ->
+			TypeRestriction(
+				positiveGroup.copy(
+					objectVariants =
+						(positiveGroup.objectVariants - variantToRemove)
+							.ifEmpty { return bottomRestriction }),
+				negativeGroup,
+				flags)
+		else -> this
+	}
+	/**
+	 * Create the difference between the receiver and the given object type
+	 * variant [ObjectLayoutVariant].  This is the restriction that a register
+	 * would have if it were already known to satisfy the receiver restriction,
+	 * and has had its variant tested negatively against the supplied variant.
+	 *
+	 * @param variantToRemove
+	 *   The [ObjectLayoutVariant]s to exclude from the receiver to produce a
+	 *   difference restriction.
+	 * @return
+	 *   The new [TypeRestriction].
+	 */
+	fun minusObjectTypeVariant(variantToRemove: ObjectLayoutVariant) = when
+	{
+		positiveGroup.objectTypeVariants == null ->
+			TypeRestriction(
+				positiveGroup,
+				negativeGroup.copy(
+					objectTypeVariants =
+						(negativeGroup.objectTypeVariants ?: emptySet())
+							+ variantToRemove),
+				flags)
+		positiveGroup.objectTypeVariants.contains(variantToRemove) ->
+			TypeRestriction(
+				positiveGroup.copy(
+					objectTypeVariants =
+						(positiveGroup.objectTypeVariants - variantToRemove)
+							.ifEmpty { return bottomRestriction }),
+				negativeGroup,
+				flags)
+		else -> this
+	}
 
 	/**
 	 * Answer true if this `TypeRestriction` contains every possible
@@ -648,6 +807,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
 			flags or flagEncoding.mask)
 	}
 
@@ -667,6 +830,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
 			BOXED_FLAG.mask)
 	}
 
@@ -685,6 +852,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
+			null,
+			null,
+			null,
+			null,
 			UNBOXED_INT_FLAG.mask)
 	}
 
@@ -703,6 +874,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
+			null,
+			null,
+			null,
+			null,
 			UNBOXED_FLOAT_FLAG.mask)
 	}
 
@@ -728,6 +903,10 @@ class TypeRestriction private constructor(
 			constantOrNull,
 			excludedTypes,
 			excludedValues,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
 			flags and flagEncoding.mask.inv())
 		}
 
@@ -755,7 +934,15 @@ class TypeRestriction private constructor(
 		}
 		if (newFlags == flags) return this
 		return restriction(
-			type, constantOrNull, excludedTypes, excludedValues, newFlags)
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
+			newFlags)
 	}
 
 	/**
@@ -784,17 +971,16 @@ class TypeRestriction private constructor(
 	 * @return
 	 *   The [A_Set] of possible instances or `null`.
 	 */
-	fun enumerationValuesOrNull(maximumCount: Int): A_Set? =
-		when
-		{
-			maximumCount >= 0 && this === bottomRestriction -> emptySet
-			maximumCount >= 1 && constantOrNull !== null ->
-				set(constantOrNull!!)
-			type.isEnumeration && !type.isInstanceMeta
-				&& type.instanceCount.lessOrEqual(fromInt(maximumCount)) ->
-					type.instances
-			else -> null
-		}
+	fun enumerationValuesOrNull(maximumCount: Int): A_Set? = when
+	{
+		maximumCount >= 0 && this === bottomRestriction -> emptySet
+		maximumCount >= 1 && constantOrNull !== null ->
+			set(constantOrNull!!)
+		type.isEnumeration && !type.isInstanceMeta
+			&& type.instanceCount.lessOrEqual(fromInt(maximumCount)) ->
+				type.instances
+		else -> null
+	}
 
 	/**
 	 * Answer an [EnumSet] indicating which [RegisterKind]s are present in this
@@ -809,23 +995,19 @@ class TypeRestriction private constructor(
 			(flags and it.restrictionFlag.mask) != 0
 		}
 
-	override fun equals(other: Any?): Boolean
+	override fun equals(other: Any?): Boolean = when
 	{
-		if (other !is TypeRestriction)
-		{
-			return false
-		}
-		return (this === other
-			|| (type.equals(other.type)
-				&& constantOrNull === other.constantOrNull
-				&& excludedTypes == other.excludedTypes
-				&& excludedValues == other.excludedValues
-				&& flags == other.flags))
+		(other !is TypeRestriction) -> false
+		this === other -> true
+		else -> type.equals(other.type)
+			&& constantOrNull === other.constantOrNull
+			&& excludedTypes == other.excludedTypes
+			&& excludedValues == other.excludedValues
+			&& flags == other.flags
 	}
 
 	override fun hashCode(): Int =
-		Objects.hash(
-			type, constantOrNull, excludedTypes, excludedValues, flags)
+		Objects.hash(type, constantOrNull, excludedTypes, excludedValues, flags)
 
 	/**
 	 * Answer whether this `TypeRestriction` is a specialization of the given
@@ -920,13 +1102,13 @@ class TypeRestriction private constructor(
 			if (excludedValues.isNotEmpty()) append(", ex.v=$excludedValues")
 		}
 		positiveGroup.objectTypeVariants?.let {
-			append(", typeVariants=${it.first()}") }
+			append(", typeVariants=$it") }
 		positiveGroup.objectVariants?.let {
-			append(", variants=${it.first()}") }
+			append(", variants=$it") }
 		negativeGroup.objectTypeVariants?.let {
-			append(", ex.typeVariants=${it.first()}") }
+			append(", ex.typeVariants=$it") }
 		negativeGroup.objectVariants?.let {
-			append(", ex.variants=${it.first()}") }
+			append(", ex.variants=$it") }
 		if (isImmutable) append(", imm")
 		if (isBoxed) append(", box")
 		if (isUnboxedInt) append(", int")
@@ -1123,13 +1305,21 @@ class TypeRestriction private constructor(
 		 * @param givenExcludedValues
 		 *   A set of values to consider excluded.
 		 * @param possibleVariants
-		 *   Either the set of all [ObjectLayoutVariant]s that values with this
+		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
 		 *   restriction may have, or nil if unknown.  This must not be
 		 *   populated if [excludedVariants] is also populated.
 		 * @param excludedVariants
-		 *   Either the set of all [ObjectLayoutVariant]s that values with this
+		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
 		 *   restriction definitely do not have, or nil if unknown.  This must
 		 *   not be populated if [possibleVariants] is also populated.
+		 * @param possibleTypeVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that object types with
+		 *   this restriction may have, or nil if unknown.  This must not be
+		 *   populated if [excludedTypeVariants] is also populated.
+		 * @param excludedTypeVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that object types with
+		 *   this restriction definitely do not have, or nil if unknown.  This
+		 *   must not be populated if [possibleTypeVariants] is also populated.
 		 * @param flags
 		 *   The encoded [flags] [Int].
 		 * @return
@@ -1142,14 +1332,22 @@ class TypeRestriction private constructor(
 			givenExcludedValues: Set<A_BasicObject>,
 			possibleVariants: Set<ObjectLayoutVariant>?,
 			excludedVariants: Set<ObjectLayoutVariant>?,
+			possibleTypeVariants: Set<ObjectLayoutVariant>?,
+			excludedTypeVariants: Set<ObjectLayoutVariant>?,
 			flags: Int): TypeRestriction
 		{
 			assert(possibleVariants == null || excludedVariants == null)
+			assert(possibleTypeVariants == null || excludedTypeVariants == null)
 			assert(BottomTypeDescriptor.bottom !in givenExcludedTypes)
 			givenConstantOrNull?.run(A_BasicObject::makeImmutable)
 			var type: A_Type = givenType.makeImmutable()
 			givenExcludedTypes.forEach(A_Type::makeImmutable)
 			givenExcludedValues.forEach(A_BasicObject::makeImmutable)
+			val anyVariantsMentioned =
+				possibleVariants != null
+					|| excludedVariants != null
+					|| possibleTypeVariants != null
+					|| excludedTypeVariants != null
 
 			// Reduce the base type, if it knows how to trim itself for the
 			// excluded types and instances.  For example, if the base type is
@@ -1191,6 +1389,10 @@ class TypeRestriction private constructor(
 					givenConstantOrNull,
 					givenExcludedTypes,
 					givenExcludedValues,
+					possibleVariants,
+					excludedVariants,
+					possibleTypeVariants,
+					excludedTypeVariants,
 					flags)
 				// A constant was specified.  Use it if it satisfies the
 				// main type constraint and isn't specifically excluded,
@@ -1214,14 +1416,14 @@ class TypeRestriction private constructor(
 								constants = setOf(givenConstantOrNull),
 								types = setOf(
 									instanceTypeOrMetaOn(givenConstantOrNull)),
-								objectVariants = null,
-								objectTypeVariants = null,
+								objectVariants = possibleVariants,
+								objectTypeVariants = possibleTypeVariants,
 								tags = null),
 							negativeGroup = RestrictionGroup(
 								constants = emptySet(),
 								types = emptySet(),
-								objectVariants = null,
-								objectTypeVariants = null,
+								objectVariants = excludedVariants,
+								objectTypeVariants = excludedTypeVariants,
 								tags = null),
 							flags)
 					}
@@ -1230,13 +1432,13 @@ class TypeRestriction private constructor(
 				givenExcludedTypes.isEmpty() && givenExcludedValues.isEmpty() ->
 					when
 					{
-						type.equals(TOP.o) -> when
+						!anyVariantsMentioned && type.equals(TOP.o) -> when
 						{
 							flags and IMMUTABLE_FLAG.mask != 0 ->
 								topRestrictionImmutable
 							else -> topRestriction
 						}
-						type.equals(ANY.o) -> when
+						!anyVariantsMentioned && type.equals(ANY.o) -> when
 						{
 							flags and IMMUTABLE_FLAG.mask != 0 ->
 								anyRestrictionImmutable
@@ -1257,14 +1459,16 @@ class TypeRestriction private constructor(
 									positiveGroup = RestrictionGroup(
 										constants = setOf(instance),
 										types = setOf(type),
-										objectVariants = null,
-										objectTypeVariants = null,
+										objectVariants = possibleVariants,
+										objectTypeVariants =
+											possibleTypeVariants,
 										tags = null),
 									negativeGroup = RestrictionGroup(
 										constants = emptySet(),
 										types = emptySet(),
-										objectVariants = null,
-										objectTypeVariants = null,
+										objectVariants = excludedVariants,
+										objectTypeVariants =
+											excludedTypeVariants,
 										tags = null),
 									flags)
 							}
@@ -1273,14 +1477,14 @@ class TypeRestriction private constructor(
 							positiveGroup = RestrictionGroup(
 								constants = null,
 								types = setOf(type),
-								objectVariants = null,
-								objectTypeVariants = null,
+								objectVariants = possibleVariants,
+								objectTypeVariants = possibleTypeVariants,
 								tags = null),
 							negativeGroup = RestrictionGroup(
 								constants = givenExcludedValues,
 								types = givenExcludedTypes,
-								objectVariants = null,
-								objectTypeVariants = null,
+								objectVariants = excludedVariants,
+								objectTypeVariants = excludedTypeVariants,
 								tags = null),
 							flags)
 					}
@@ -1288,14 +1492,14 @@ class TypeRestriction private constructor(
 					positiveGroup = RestrictionGroup(
 						constants = null,
 						types = setOf(type),
-						objectVariants = null,
-						objectTypeVariants = null,
+						objectVariants = possibleVariants,
+						objectTypeVariants = possibleTypeVariants,
 						tags = null),
 					negativeGroup = RestrictionGroup(
 						constants = givenExcludedValues,
 						types = givenExcludedTypes,
-						objectVariants = null,
-						objectTypeVariants = null,
+						objectVariants = excludedVariants,
+						objectTypeVariants = excludedTypeVariants,
 						tags = null),
 					flags)
 			}
@@ -1314,6 +1518,22 @@ class TypeRestriction private constructor(
 		 *   A set of [A_Type]s to consider excluded.
 		 * @param givenExcludedValues
 		 *   A set of values to consider excluded.
+		 * @param possibleVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
+		 *   restriction may have, or nil if unknown.  This must not be
+		 *   populated if [excludedVariants] is also populated.
+		 * @param excludedVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
+		 *   restriction definitely do not have, or nil if unknown.  This must
+		 *   not be populated if [possibleVariants] is also populated.
+		 * @param possibleTypeVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that object types with
+		 *   this restriction may have, or nil if unknown.  This must not be
+		 *   populated if [excludedTypeVariants] is also populated.
+		 * @param excludedTypeVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that object types with
+		 *   this restriction definitely do not have, or nil if unknown.  This
+		 *   must not be populated if [possibleTypeVariants] is also populated.
 		 * @param isImmutable
 		 *   Whether the value is known to be immutable.
 		 * @param isBoxed
@@ -1334,6 +1554,10 @@ class TypeRestriction private constructor(
 			constantOrNull: A_BasicObject?,
 			givenExcludedTypes: Set<A_Type> = emptySet(),
 			givenExcludedValues: Set<A_BasicObject> = emptySet(),
+			possibleVariants: Set<ObjectLayoutVariant>? = null,
+			excludedVariants: Set<ObjectLayoutVariant>? = null,
+			possibleTypeVariants: Set<ObjectLayoutVariant>? = null,
+			excludedTypeVariants: Set<ObjectLayoutVariant>? = null,
 			isImmutable: Boolean = false,
 			isBoxed: Boolean = true,
 			isUnboxedInt: Boolean = false,
@@ -1349,6 +1573,10 @@ class TypeRestriction private constructor(
 				constantOrNull,
 				givenExcludedTypes,
 				givenExcludedValues,
+				possibleVariants,
+				excludedVariants,
+				possibleTypeVariants,
+				excludedTypeVariants,
 				flags)
 		}
 
@@ -1365,6 +1593,22 @@ class TypeRestriction private constructor(
 		 *   A set of [A_Type]s to consider excluded.
 		 * @param givenExcludedValues
 		 *   A set of values to consider excluded.
+		 * @param possibleVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
+		 *   restriction may have, or nil if unknown.  This must not be
+		 *   populated if [excludedVariants] is also populated.
+		 * @param excludedVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that objects with this
+		 *   restriction definitely do not have, or nil if unknown.  This must
+		 *   not be populated if [possibleVariants] is also populated.
+		 * @param possibleTypeVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that object types with
+		 *   this restriction may have, or nil if unknown.  This must not be
+		 *   populated if [excludedTypeVariants] is also populated.
+		 * @param excludedTypeVariants
+		 *   Either the set of all [ObjectLayoutVariant]s that object types with
+		 *   this restriction definitely do not have, or nil if unknown.  This
+		 *   must not be populated if [possibleTypeVariants] is also populated.
 		 * @param flags
 		 *   The encoded [flags] [Int].
 		 * @return
@@ -1375,6 +1619,10 @@ class TypeRestriction private constructor(
 			constantOrNull: A_BasicObject?,
 			givenExcludedTypes: Set<A_Type>,
 			givenExcludedValues: Set<A_BasicObject>,
+			possibleVariants: Set<ObjectLayoutVariant>?,
+			excludedVariants: Set<ObjectLayoutVariant>?,
+			possibleTypeVariants: Set<ObjectLayoutVariant>?,
+			excludedTypeVariants: Set<ObjectLayoutVariant>?,
 			flags: Int): TypeRestriction
 		{
 			type.makeImmutable()
@@ -1400,8 +1648,10 @@ class TypeRestriction private constructor(
 							instance,
 							emptySet(),
 							emptySet(),
-							null,
-							null,
+							possibleVariants,
+							excludedVariants,
+							possibleTypeVariants,
+							excludedTypeVariants,
 							flags)
 					}
 					else ->
@@ -1414,14 +1664,14 @@ class TypeRestriction private constructor(
 								types = setOf(
 									enumerationWith(
 										setFromCollection(instances))),
-								objectVariants = null,
-								objectTypeVariants = null,
+								objectVariants = possibleVariants,
+								objectTypeVariants = possibleTypeVariants,
 								tags = null),
 							negativeGroup = RestrictionGroup(
 								constants = emptySet(),
 								types = emptySet(),
-								objectVariants = null,
-								objectTypeVariants = null,
+								objectVariants = excludedVariants,
+								objectTypeVariants = excludedTypeVariants,
 								tags = null),
 							flags)
 					}
@@ -1454,9 +1704,22 @@ class TypeRestriction private constructor(
 					positiveGroup = RestrictionGroup(
 						constants = setOf(constantOrNull),
 						types = setOf(instanceTypeOrMetaOn(constantOrNull)),
-						objectVariants = null,
-						objectTypeVariants = null,
-						tags = null),
+						objectVariants = when
+						{
+							constantOrNull.isInstanceOf(mostGeneralObjectType)
+								-> setOf(constantOrNull.objectVariant)
+							else -> null
+						},
+						objectTypeVariants = when
+						{
+							constantOrNull.equals(BottomTypeDescriptor.bottom)
+								-> null
+							constantOrNull.isInstanceOf(mostGeneralObjectMeta)
+								-> setOf((constantOrNull as A_Type)
+									.objectTypeVariant)
+							else -> null
+						},
+						tags = setOf((constantOrNull as AvailObject).typeTag)),
 					negativeGroup = RestrictionGroup(
 						constants = emptySet(),
 						types = emptySet(),
@@ -1510,8 +1773,10 @@ class TypeRestriction private constructor(
 					null,
 					excludedTypes,
 					excludedValues,
-					null,
-					null,
+					possibleVariants,
+					excludedVariants,
+					possibleTypeVariants,
+					excludedTypeVariants,
 					flags)
 			}
 		}
@@ -1533,11 +1798,15 @@ class TypeRestriction private constructor(
 			type: A_Type,
 			encoding: RestrictionFlagEncoding
 		): TypeRestriction = restriction(
-			type,
-			null,
-			emptySet(),
-			emptySet(),
-			encoding.mask)
+			type = type,
+			constantOrNull = null,
+			givenExcludedTypes = emptySet(),
+			givenExcludedValues = emptySet(),
+			possibleVariants = null,
+			excludedVariants = null,
+			possibleTypeVariants = null,
+			excludedTypeVariants = null,
+			flags = encoding.mask)
 
 		/**
 		 * Create or reuse a `TypeRestriction`, for which no constant
@@ -1572,6 +1841,21 @@ class TypeRestriction private constructor(
 				constant,
 				emptySet(),
 				emptySet(),
+				when
+				{
+					constant.isInstanceOf(mostGeneralObjectType) ->
+						setOf(constant.objectVariant)
+					else -> null
+				},
+				null,
+				when
+				{
+					constant.equals(BottomTypeDescriptor.bottom) -> null
+					constant.isInstanceOf(mostGeneralObjectMeta) ->
+						setOf((constant as A_Type).objectTypeVariant)
+					else -> null
+				},
+				null,
 				when (encoding)
 				{
 					BOXED_FLAG -> encoding.mask or IMMUTABLE_FLAG.mask

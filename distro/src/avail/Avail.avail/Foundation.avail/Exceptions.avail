@@ -2012,16 +2012,18 @@ invalid method send function :=
 	|
 		exceptionType ::= exceptionsByCode[code];
 		name ::= exceptionType's error name's instance;
+		/* Safety, to prevent recursive printing errors. */
+		methodString ::=
+			guard [“theMethod”]
+			intercept [e : exception | "(Exception while printing)"];
+		argumentsString ::=
+			guard [“arguments”]
+			intercept [e : exception | "(Exception while printing)"];
 		e ::= an exceptionType with
 			error code ::= code,
 			error name ::= name,
-			error message ::=
-				format
-					"method:  “①”
-					\|\targuments:  “②”"
-				with
-					theMethod,
-					arguments,
+			error message ::= "method:  " ++ methodString ++
+				"\n\targuments:  " ++ argumentsString,
 			looked up method ::= theMethod,
 			looked up arguments ::= arguments;
 		Raise e

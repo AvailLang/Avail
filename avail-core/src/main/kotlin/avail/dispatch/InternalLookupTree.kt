@@ -37,23 +37,32 @@ import avail.descriptor.numbers.A_Number.Companion.bitSet
 import avail.descriptor.numbers.A_Number.Companion.bitTest
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObjectRepresentation
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
+import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.descriptor.types.TypeTag.OBJECT_TAG
+import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
 import avail.descriptor.types.TypeTag.TOP_TYPE_TAG
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.Strings.increaseIndentation
 import avail.utility.notNullAnd
 import java.lang.String.format
@@ -86,19 +95,27 @@ import kotlin.math.min
  *   [TypeTag] extracted and dispatched on by an ancestor.  Argument #n is
  *   indicated by a set bit in the n-1st bit position, the one whose value in
  *   the integer is 2^(n-1).
- * @param alreadyVariantTestedArguments
+ * @property alreadyVariantTestedArguments
  *   An Avail [integer][A_Number] coding whether the arguments (and extras
  *   that may have been generated during traversal of ancestors) have been
  *   proven to be an [object][ObjectDescriptor], and was already dispatched
  *   via an [ObjectLayoutVariantDecisionStep] in an ancestor.  Argument #n
  *   is indicated by a set bit in the n-1st bit position, the one whose
  *   value in the integer is 2^(n-1).
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @property alreadyPhraseTypeExtractArguments
+ *   An Avail [integer][A_Number] coding which arguments (and extras that may
+ *   have been generated during traversal of ancestors) were known to be phrase
+ *   types, and have had their yield type extracted already into another field
+ *   via an [ExtractPhraseTypeDecisionStep] in an ancestor.  Argument #n is
+ *   indicated by a set bit in the n-1st bit position, the one whose value in
+ *   the integer is 2^(n-1).
  *
  * @constructor
  *
  * Construct a new [InternalLookupTree].  It is constructed lazily at first.  An
  * attempted lookup that reaches this node will cause it to be expanded locally.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class InternalLookupTree<
 	Element : A_BasicObject,
@@ -108,7 +125,8 @@ internal constructor(
 	val undecidedElements: List<Element>,
 	val knownArgumentRestrictions: List<TypeRestriction>,
 	val alreadyTypeTestedArguments: A_Number,
-	private val alreadyVariantTestedArguments: A_Number)
+	private val alreadyVariantTestedArguments: A_Number,
+	val alreadyPhraseTypeExtractArguments: A_Number)
 : LookupTree<Element, Result>()
 {
 	override val solutionOrNull: Result? get() = null
@@ -126,7 +144,7 @@ internal constructor(
 	private var decisionStep: DecisionStep<Element, Result>? = null
 
 	/** `true` if this node has been expanded, otherwise `false`. */
-	internal val isExpanded: Boolean get() = decisionStep !== null
+	private val isExpanded: Boolean get() = decisionStep !== null
 
 	/** Access the [decisionStep] if available, otherwise answer `null`. */
 	val decisionStepOrNull get() = decisionStep
@@ -136,6 +154,7 @@ internal constructor(
 	 * to use for making progress at this [InternalLookupTree].
 	 */
 	override fun <AdaptorMemento> expandIfNecessary(
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento
 	): DecisionStep<Element, Result> =
@@ -146,7 +165,8 @@ internal constructor(
 			// and its internal fields should be final (val), ensuring Java's
 			// infamous double-check problem won't bite us.
 			decisionStep ?: run {
-				val step = createDecisionStep(adaptor, memento)
+				val step = createDecisionStep(
+					signatureExtrasExtractor, adaptor, memento)
 				decisionStep = step
 				step
 			}
@@ -183,6 +203,7 @@ internal constructor(
 	 *   The [LookupTreeAdaptor] to use for expanding the tree.
 	 */
 	private fun <AdaptorMemento> createDecisionStep(
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento
 	): DecisionStep<Element, Result>
@@ -194,73 +215,105 @@ internal constructor(
 		// To reduce duplication of the same tests, any argument that has the
 		// same type in all definitions, but has not been proven yet, should be
 		// selected first.
-		if (adaptor.testsArgumentPositions() && undecidedElements.size > 1)
+		if (undecidedElements.size > 1)
 		{
-			val iterator = undecidedElements.iterator()
-			val firstElement = iterator.next()
-			val commonArgTypes =
-				adaptor.restrictedSignature(firstElement, bound)
-					.tupleOfTypesFromTo(1, numArgs)
-					.toMutableList<A_Type?>()
+			val commonArgTypes = MutableList<A_Type?>(numArgs) { null }
 			// See if the type tags differ for any of the values.  Assume type
 			// tag dispatch is always more efficient than type testing.
-			val commonTags = commonArgTypes
-				.map { it!!.instanceTag }
-				.toMutableList<TypeTag?>()
+			val commonTags = MutableList<TypeTag?>(numArgs) { null }
 			// Check for any tag variations.  Also check for common types that
 			// have not yet been verified at this point.
-			iterator.forEachRemaining { element ->
-				val argTypes = adaptor.restrictedSignature(element, bound)
+			undecidedElements.forEachIndexed { elementIndex, element ->
+				val argTypes = adaptor
+					.restrictedSignature(
+						element, signatureExtrasExtractor, bound)
 					.tupleOfTypesFromTo(1, numArgs)
 				for (i in 0 until numArgs)
 				{
 					val argType = argTypes.tupleAt(i + 1)
-					if (commonArgTypes[i].notNullAnd { !equals(argType) })
+					if (elementIndex == 0)
 					{
-						commonArgTypes[i] = null
+						commonArgTypes[i] = argType
+						commonTags[i] = argType.instanceTag
 					}
-					if (commonTags[i].notNullAnd {
-							!equals(argType.instanceTag) })
+					else
 					{
-						commonTags[i] = null
+						if (commonArgTypes[i].notNullAnd { !equals(argType) })
+						{
+							commonArgTypes[i] = null
+						}
+						if (commonTags[i].notNullAnd {
+								!equals(argType.instanceTag) })
+						{
+							commonTags[i] = null
+						}
 					}
 				}
 			}
 
-			for (argNumber in 1..numArgs)
+			for (argNumber in 1 .. numArgs)
 			{
 				if (commonTags[argNumber - 1] === null
 					&& !alreadyTypeTestedArguments.bitTest(argNumber - 1))
 				{
 					// A type tag dispatch here is guaranteed to reduce the
 					// number of undecided elements in every subtree.
-					return buildTypeTagTest(adaptor, memento, argNumber)
+					return buildTypeTagTest(
+						adaptor, memento, argNumber, signatureExtrasExtractor)
 				}
 			}
 
 			// If an argument is known to have the OBJECT_TAG and hasn't been
 			// dispatched via a ObjectLayoutVariantDecisionStep, do so now.
-			for (argNumber in 1..numArgs)
+			for (argNumber in numArgs downTo 1)
 			{
 				if (commonTags[argNumber - 1] === OBJECT_TAG
 					&& !alreadyVariantTestedArguments.bitTest(argNumber - 1))
 				{
 					// All the elements expect an object to be present.
-					if (!knownArgumentRestrictions[argNumber - 1]
+					if (knownArgumentRestrictions[argNumber - 1]
 							.type.isSubtypeOf(mostGeneralObjectType))
 					{
-						// The value hasn't been proven to be an object yet.
-						// Introduce a tag dispatch, and the next layer will be
-						// able to do the object dispatch safely.
-						return buildTypeTagTest(adaptor, memento, argNumber)
-					}
-					else
-					{
-						// The value is also already known to be an object.
-						// Dispatching on the variant here
+						// The value is already known to be an object. Dispatch
+						// on the variant.
 						return buildObjectLayoutVariantStep(
-							adaptor, memento, argNumber)
+							adaptor,
+							memento,
+							argNumber,
+							signatureExtrasExtractor)
 					}
+					// The value hasn't been proven to be an object yet.
+					// Introduce a tag dispatch, and the next layer will be
+					// able to do the object dispatch safely.
+					return buildTypeTagTest(
+						adaptor,
+						memento,
+						argNumber,
+						signatureExtrasExtractor)
+				}
+				if (commonTags[argNumber - 1] === OBJECT_TYPE_TAG
+					&& !alreadyVariantTestedArguments.bitTest(argNumber - 1))
+				{
+					// All the elements expect an object type to be present.
+					if (knownArgumentRestrictions[argNumber - 1]
+							.type.isSubtypeOf(mostGeneralObjectMeta))
+					{
+						// The value is already known to be an object type.
+						// Dispatch on the variant.
+						return buildObjectTypeLayoutVariantStep(
+							adaptor,
+							memento,
+							argNumber,
+							signatureExtrasExtractor)
+					}
+					// The value hasn't been proven to be an object type yet.
+					// Introduce a tag dispatch, and the next layer will be
+					// able to do the object type dispatch safely.
+					return buildTypeTagTest(
+						adaptor,
+						memento,
+						argNumber,
+						signatureExtrasExtractor)
 				}
 			}
 
@@ -273,28 +326,42 @@ internal constructor(
 					val commonType = commonArgTypes[argNumber - 1]
 					if (commonType !== null
 						&& !knownArgumentRestrictions[argNumber - 1]
-							.containedByType(commonType)
-					)
+							.containedByType(commonType))
 					{
-						// Everybody needs this argument to satisfy this exact type,
-						// but the argument isn't known to satisfy it yet.  This
-						// test will be required by every traversal, so rather than
-						// have duplicates near the leaves, test it as early as
-						// possible.
+						// Everybody needs this argument to satisfy this exact
+						// type, but the argument isn't known to satisfy it yet.
+						// This test will be required by every traversal, so
+						// rather than have duplicates near the leaves, test it
+						// as early as possible.
 						return buildTestArgument(
-							adaptor, memento, argNumber, commonType
-						)
+							adaptor,
+							memento,
+							argNumber,
+							commonType,
+							signatureExtrasExtractor)
 					}
 				}
 			}
 
-			// TODO MvG: If we reach here, each argument position has a known
-			//  type tag.  This may be the ideal time to choose a Covariant
-			//  relation of one of the type tags, and follow it to augment the
-			//  arguments list. The assumption is that checking the covariant
-			//  value is cheaper than checking the whole argument, and may also
-			//  lead to an opportunity to use a type tag (or object layout
-			//  variant) to dispatch on the subobject.
+			// Make fast (tag or variant) dispatching available on a phrase's
+			// expression type, by extracting it here, if possible.
+			for (argNumber in 1 .. numArgs)
+			{
+				if (alreadyTypeTestedArguments.bitTest(argNumber - 1)
+					|| alreadyPhraseTypeExtractArguments.bitTest(argNumber - 1))
+					continue
+				if (knownArgumentRestrictions[argNumber - 1].type.isSubtypeOf(
+						PARSE_PHRASE.mostGeneralType))
+				{
+					// Extract the yield type of the phrase types, and dispatch
+					// on that.  This is a relatively quick step to perform
+					// during actual lookup, so don't bother optimizing away the
+					// case that it doesn't lead to an interesting, more
+					// efficient subtree.
+					return buildExtractPhraseType(adaptor, memento, argNumber)
+				}
+				// TODO: Other covariant relationships can be traversed here...
+			}
 		}
 
 		// Choose a signature to test that guarantees it eliminates the most
@@ -307,28 +374,19 @@ internal constructor(
 		var smallestMax = Integer.MAX_VALUE
 		var smallestMin = Integer.MAX_VALUE
 		val undecidedCount = undecidedElements.size
-		for (criterionIndex in 0 until undecidedCount)
+		for (criterionIndex in undecidedCount - 1 downTo 0)
 		{
 			val criterion = undecidedElements[criterionIndex]
 			val criterionRestrictions =
 				knownArgumentRestrictions.toMutableList()
-			val boundedCriterionSignature =
-				adaptor.restrictedSignature(criterion, bound)
+			val boundedCriterionSignature = adaptor.restrictedSignature(
+				criterion, signatureExtrasExtractor, bound)
 			assert(!boundedCriterionSignature.isBottom)
-			if (adaptor.testsArgumentPositions())
+			for (i in 1..numArgs)
 			{
-				for (i in 1..numArgs)
-				{
-					criterionRestrictions[i - 1] =
-						criterionRestrictions[i - 1].intersectionWithType(
-							boundedCriterionSignature.typeAtIndex(i))
-				}
-			}
-			else
-			{
-				criterionRestrictions[0] =
-					criterionRestrictions[0].intersectionWithType(
-						boundedCriterionSignature)
+				criterionRestrictions[i - 1] =
+					criterionRestrictions[i - 1].intersectionWithType(
+						boundedCriterionSignature.typeAtIndex(i))
 			}
 			var undecidedCountIfTrue = 0
 			var undecidedCountIfFalse = 0
@@ -339,7 +397,8 @@ internal constructor(
 				if (eachIndex != criterionIndex)
 				{
 					val each = undecidedElements[eachIndex]
-					val eachSignature = adaptor.restrictedSignature(each, bound)
+					val eachSignature = adaptor.restrictedSignature(
+						each, signatureExtrasExtractor, bound)
 					val comparison = adaptor.compareTypes(
 						criterionRestrictions, eachSignature)
 					when (comparison)
@@ -349,6 +408,7 @@ internal constructor(
 							// This might occur if the projection of two
 							// elements under call-site-specific type bounds
 							// yields the same type.  Or something unforeseen.
+							undecidedCountIfTrue++
 						}
 						TypeComparison.PROPER_ANCESTOR_TYPE,
 						TypeComparison.DISJOINT_TYPE ->
@@ -365,8 +425,10 @@ internal constructor(
 			}
 			val maxCount = max(undecidedCountIfTrue, undecidedCountIfFalse)
 			val minCount = min(undecidedCountIfTrue, undecidedCountIfFalse)
-			// The criterion should not have been used to evaluate itself.
 			assert(maxCount < undecidedElements.size)
+			// Ties go to the higher numbered argument index, so that the
+			// extracted extras will be used in preference to the values that
+			// they were extracted from.
 			if (maxCount < smallestMax
 				|| (maxCount == smallestMax && minCount < smallestMin))
 			{
@@ -378,36 +440,42 @@ internal constructor(
 		assert(bestSignature !== null)
 
 		// We have chosen one of the best signatures to test.  However, we still
-		// need to decide which argument position to test.  Use the leftmost one
-		// which is not already guaranteed by tests that have already been
+		// need to decide which argument position to test.  Use the rightmost
+		// one which is not already guaranteed by tests that have already been
 		// performed.  In particular, ignore arguments whose knownArgumentTypes
 		// information is a subtype of the chosen signature's argument type at
 		// that position.
 		var selectedTypeToTest: A_Type? = null
 		var positionToTest: Int
-		if (adaptor.testsArgumentPositions())
+		// Must be replaced in the loop below.
+		positionToTest = -999
+		// Use the reverse order, so that usable variations found in extras
+		// will be preferred to variations found in the base arguments.
+		for (i in numArgs downTo 1)
 		{
-			positionToTest = -999  // Must be replaced in the loop below.
-			for (i in 1..numArgs)
+			val knownRestriction = knownArgumentRestrictions[i - 1]
+			val criterionArgumentType = bestSignature!!.typeAtIndex(i)
+			if (knownRestriction.containedByType(criterionArgumentType))
 			{
-				val knownRestriction = knownArgumentRestrictions[i - 1]
-				val criterionArgumentType = bestSignature!!.typeAtIndex(i)
-				if (!knownRestriction.containedByType(criterionArgumentType))
-				{
-					positionToTest = i
-					selectedTypeToTest = criterionArgumentType
-					break
-				}
+				// Don't use this position, because it will always be true.
+				continue
 			}
-			assert(positionToTest >= 1)
+			if (!knownRestriction.intersectsType(criterionArgumentType))
+			{
+				// Don't use this position, because it will always be false.
+				continue
+			}
+			positionToTest = i
+			selectedTypeToTest = criterionArgumentType
+			break
 		}
-		else
-		{
-			positionToTest = 0
-			selectedTypeToTest = bestSignature
-		}
+		assert(positionToTest >= 1)
 		return buildTestArgument(
-			adaptor, memento, positionToTest, selectedTypeToTest!!)
+			adaptor,
+			memento,
+			positionToTest,
+			selectedTypeToTest!!,
+			signatureExtrasExtractor)
 	}
 
 	/**
@@ -421,6 +489,10 @@ internal constructor(
 	 *   The one-based index of the argument being tested.
 	 * @param typeToTest
 	 *   The [A_Type] that this node should test for.
+	 * @param signatureExtrasExtractor
+	 *   A function that extracts a [List] of [A_Type]s from an [Element],
+	 *   corresponding with the extras that have been extracted from the value
+	 *   being looked up at this point.
 	 * @return
 	 *   The resulting [DecisionStep].
 	 */
@@ -428,21 +500,12 @@ internal constructor(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento,
 		argumentIndex: Int,
-		typeToTest: A_Type
+		typeToTest: A_Type,
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 	): TestArgumentDecisionStep<Element, Result>
 	{
-		val zeroBasedIndex: Int
-		val oldRestriction: TypeRestriction
-		if (adaptor.testsArgumentPositions())
-		{
-			zeroBasedIndex = argumentIndex - 1
-			oldRestriction = knownArgumentRestrictions[zeroBasedIndex]
-		}
-		else
-		{
-			zeroBasedIndex = 0
-			oldRestriction = knownArgumentRestrictions[0]
-		}
+		val zeroBasedIndex = argumentIndex - 1
+		val oldRestriction = knownArgumentRestrictions[zeroBasedIndex]
 
 		val positiveKnownRestrictions =
 			knownArgumentRestrictions.toMutableList()
@@ -470,10 +533,12 @@ internal constructor(
 		{
 			val positiveComparison = adaptor.compareTypes(
 				positiveKnownRestrictions,
-				adaptor.restrictedSignature(undecidedElement, positiveBound))
+				adaptor.restrictedSignature(
+					undecidedElement, signatureExtrasExtractor, positiveBound))
 			val negativeComparison = adaptor.compareTypes(
 				negativeKnownRestrictions,
-				adaptor.restrictedSignature(undecidedElement, negativeBound))
+				adaptor.restrictedSignature(
+					undecidedElement, signatureExtrasExtractor, negativeBound))
 			positiveComparison.applyEffect(
 				undecidedElement,
 				positiveIfTrue,
@@ -489,6 +554,7 @@ internal constructor(
 			positiveKnownRestrictions,
 			alreadyTypeTestedArguments,
 			alreadyVariantTestedArguments,
+			alreadyPhraseTypeExtractArguments,
 			memento)
 		// Since we're using TypeRestrictions, there are cases with instance
 		// enumerations in which a failed test can actually certify a new
@@ -500,6 +566,7 @@ internal constructor(
 			negativeKnownRestrictions,
 			alreadyTypeTestedArguments,
 			alreadyVariantTestedArguments,
+			alreadyPhraseTypeExtractArguments,
 			memento)
 		// This is a volatile write, so all previous writes had to precede it.
 		// If another process runs expandIfNecessary(), it will either see null
@@ -529,6 +596,10 @@ internal constructor(
 	 *   The memento to be provided to the adaptor.
 	 * @param argumentIndex
 	 *   The one-based index of the argument being tested.
+	 * @param signatureExtrasExtractor
+	 *   A function that extracts a [List] of [A_Type]s from an [Element],
+	 *   corresponding with the extras that have been extracted from the value
+	 *   being looked up at this point.
 	 * @return
 	 *   The resulting [DecisionStep].
 	 */
@@ -536,13 +607,16 @@ internal constructor(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento,
 		argumentIndex: Int,
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 	): TypeTagDecisionStep<Element, Result>
 	{
 		val tagToElements = mutableMapOf<TypeTag, MutableSet<Element>>()
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
 		listOf(undecidedElements, positiveElements).forEach { list ->
 			list.forEach { element ->
-				val commonArgType = adaptor.restrictedSignature(element, bound)
+				val commonArgType = adaptor
+					.restrictedSignature(
+						element, signatureExtrasExtractor, bound)
 					.typeAtIndex(argumentIndex)
 				val tag = commonArgType.instanceTag
 				val subset =
@@ -599,7 +673,8 @@ internal constructor(
 			elements.forEach { element ->
 				val positiveComparison = adaptor.compareTypes(
 					restrictions,
-					adaptor.restrictedSignature(element, boundForTag))
+					adaptor.restrictedSignature(
+						element, signatureExtrasExtractor, boundForTag))
 				//assert (positiveComparison != TypeComparison.DISJOINT_TYPE)
 				positiveComparison.applyEffect(element, positive, undecided)
 			}
@@ -609,6 +684,7 @@ internal constructor(
 				restrictions,
 				alreadyTested,
 				alreadyVariantTestedArguments,
+				alreadyPhraseTypeExtractArguments,
 				memento)
 		}
 		return TypeTagDecisionStep(argumentIndex, tagToSubtree)
@@ -626,6 +702,10 @@ internal constructor(
 	 *   The memento to be provided to the adaptor.
 	 * @param argumentIndex
 	 *   The one-based index of the argument being tested.
+	 * @param signatureExtrasExtractor
+	 *   A function that extracts a [List] of [A_Type]s from an [Element],
+	 *   corresponding with the extras that have been extracted from the value
+	 *   being looked up at this point.
 	 * @return
 	 *   The resulting [DecisionStep].
 	 */
@@ -633,13 +713,15 @@ internal constructor(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		@Suppress("UNUSED_PARAMETER") memento: AdaptorMemento,
 		argumentIndex: Int,
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 	): ObjectLayoutVariantDecisionStep<Element, Result>
 	{
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
 		val variantToElementsSet =
 			mutableMapOf<ObjectLayoutVariant, MutableSet<Element>>()
 		undecidedElements.forEach { element ->
-			val commonArgType = adaptor.restrictedSignature(element, bound)
+			val commonArgType = adaptor
+				.restrictedSignature(element, signatureExtrasExtractor, bound)
 				.typeAtIndex(argumentIndex)
 			when
 			{
@@ -666,9 +748,97 @@ internal constructor(
 		return ObjectLayoutVariantDecisionStep(
 			this,
 			argumentIndex,
+			signatureExtrasExtractor,
 			variantToElementsSet.mapValues { it.value.toList() },
 			alreadyVariantTestedArguments.bitSet(argumentIndex - 1, true, false)
 				.makeShared())
+	}
+
+	/**
+	 * Create an [ObjectTypeLayoutVariantDecisionStep] for the given tree.  The
+	 * idea is that we have already proven that the indicated argument is an
+	 * object type, so maintain a map from the exact argument variant to
+	 * subtree, and populate it lazily.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param memento
+	 *   The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *   The one-based index of the argument being tested.
+	 * @param signatureExtrasExtractor
+	 *   A function that extracts a [List] of [A_Type]s from an [Element],
+	 *   corresponding with the extras that have been extracted from the value
+	 *   being looked up at this point.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildObjectTypeLayoutVariantStep(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		@Suppress("UNUSED_PARAMETER") memento: AdaptorMemento,
+		argumentIndex: Int,
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
+	): ObjectTypeLayoutVariantDecisionStep<Element, Result>
+	{
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		val variantToElementsSet =
+			mutableMapOf<ObjectLayoutVariant, MutableSet<Element>>()
+		undecidedElements.forEach { element ->
+			val commonArgType = adaptor
+				.restrictedSignature(element, signatureExtrasExtractor, bound)
+				.typeAtIndex(argumentIndex)
+			val variant = commonArgType.instance.objectTypeVariant
+			variantToElementsSet.getOrPut(variant) {
+				mutableSetOf()
+			}.add(element)
+		}
+		return ObjectTypeLayoutVariantDecisionStep(
+			this,
+			argumentIndex,
+			signatureExtrasExtractor,
+			variantToElementsSet.mapValues { it.value.toList() },
+			alreadyVariantTestedArguments.bitSet(argumentIndex - 1, true, false)
+				.makeShared())
+	}
+
+	/**
+	 * Create an [ExtractPhraseTypeDecisionStep] for the given tree.  We've
+	 * already selected a particular argument known to contain a phrase, and we
+	 * wish to extract its yield type to expose faster dispatching, such as by
+	 * tag or object variant.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param memento
+	 *   The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *   The one-based index of the phrase argument having its yield type
+	 *   extracted.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildExtractPhraseType(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		@Suppress("UNUSED_PARAMETER") memento: AdaptorMemento,
+		argumentIndex: Int,
+	): ExtractPhraseTypeDecisionStep<Element, Result>
+	{
+		// While this step extracts a covariant subobject (the expression type
+		// of a phrase), it doesn't make any decisions itself.
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		val phraseType = bound.typeAtIndex(argumentIndex)
+		val expressionType = instanceMeta(phraseType.phraseTypeExpressionType)
+		val child = InternalLookupTree<Element, Result>(
+			positiveElements,
+			undecidedElements,
+			knownArgumentRestrictions.append(
+				restrictionForType(expressionType, BOXED_FLAG)),
+			alreadyTypeTestedArguments,
+			// Phrases don't have variants, but set this for good measure.
+			alreadyVariantTestedArguments,
+			alreadyPhraseTypeExtractArguments
+				.bitSet(argumentIndex - 1, true, false).makeShared())
+		return ExtractPhraseTypeDecisionStep(argumentIndex, child)
 	}
 
 	override fun toString(indent: Int): String = when (val step = decisionStep)

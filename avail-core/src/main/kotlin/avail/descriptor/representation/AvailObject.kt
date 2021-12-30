@@ -330,7 +330,8 @@ class AvailObject private constructor(
 	 * uses of this object.
 	 */
 	override fun setToInvalidDescriptor() {
-		currentDescriptor = FillerDescriptor.shared
+		assert(currentDescriptor.isMutable)
+		currentDescriptor = FillerDescriptor.mutable
 	}
 
 	/**

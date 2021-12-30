@@ -52,7 +52,6 @@ import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.share
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.representation.A_BasicObject

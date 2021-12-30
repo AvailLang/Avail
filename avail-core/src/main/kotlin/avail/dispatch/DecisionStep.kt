@@ -54,8 +54,9 @@ import avail.utility.removeLast
  * Create this [DecisionStep].
  *
  * @property argumentPositionToTest
- *   The argument position to test.  If the index is negative, `-1-x` is its
- *   index into the passed extraValues.
+ *   The argument position to test.  If the index is within bounds for the
+ *   arguments, use the indicated argument, otherwise index the extraValues as
+ *   though they were concatenated to the end of the arguments.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
@@ -63,6 +64,11 @@ sealed class DecisionStep<Element : A_BasicObject, Result : A_BasicObject>
 constructor(
 	val argumentPositionToTest: Int)
 {
+	init
+	{
+		assert(argumentPositionToTest > 0)
+	}
+
 	/**
 	 * Given an optional list of values used to supplement the lookup, answer
 	 * the updated list of values that takes this step into account. The given
@@ -110,6 +116,32 @@ constructor(
 		probeValue: A_BasicObject,
 		extraValues: List<Element>
 	): List<Element> = extraValues
+
+	/**
+	 * Given a function that produces a list of types from an [Element] due to
+	 * an ancestor tree node, produce a new function for producing a lists of
+	 * types that takes this [DecisionStep] into account.  The function also
+	 * optionally produces the type signature of the element, for reuse by
+	 * subsequent wrapped functions.
+	 *
+	 * Most [DecisionStep]s return the original function, but steps that extract
+	 * subobjects will append an entry to the given list.
+	 *
+	 * Since this function is only used when expanding the lazy [LookupTree],
+	 * the extra effort of repeatedly extracting covariant subobjects from the
+	 * elements' types won't be a significant ongoing cost.
+	 *
+	 * @param extrasTypeExtractor
+	 *   The function to return or wrap.
+	 * @param numArgs
+	 *   The number of argument positions that an [Element] produces, not
+	 *   counting the extras extracted from it.
+	 */
+	open fun <Memento> updateSignatureExtrasExtractor(
+		adaptor: LookupTreeAdaptor<Element, Result, Memento>,
+		extrasTypeExtractor: (Element)->Pair<A_Type?, List<A_Type>>,
+		numArgs: Int
+	): (Element)->Pair<A_Type?, List<A_Type>> = extrasTypeExtractor
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -218,37 +250,49 @@ constructor(
 	fun extractArgument(
 		argValues: List<A_BasicObject>,
 		extraValues: List<Element>
-	) = when
+	): AvailObject
 	{
-		argumentPositionToTest > 0 -> argValues[argumentPositionToTest - 1]
-		else -> extraValues[-1 -argumentPositionToTest]
-	} as AvailObject
+		val inExtras = argumentPositionToTest - argValues.size
+		return when
+		{
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argValues[argumentPositionToTest - 1]
+		} as AvailObject
+	}
 
 	fun extractArgumentType(
 		argTypes: List<A_Type>,
 		extraValues: List<Element>
-	) = when
+	): AvailObject
 	{
-		argumentPositionToTest > 0 -> argTypes[argumentPositionToTest - 1]
-		else -> extraValues[-1 -argumentPositionToTest]
-	} as AvailObject
+		val inExtras = argumentPositionToTest - argTypes.size
+		return when
+		{
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argTypes[argumentPositionToTest - 1]
+		} as AvailObject
+	}
 
 	fun extractArgumentType(
 		argTypes: A_Tuple,
 		extraValues: List<Element>
-	) = when
+	): AvailObject
 	{
-		argumentPositionToTest > 0 -> argTypes.tupleAt(argumentPositionToTest)
-		else -> extraValues[-1 -argumentPositionToTest]
-	} as AvailObject
+		val inExtras = argumentPositionToTest - argTypes.tupleSize
+		return when
+		{
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argTypes.tupleAt(argumentPositionToTest)
+		} as AvailObject
+	}
 
 	fun extractValue(
 		probeValue: A_BasicObject,
 		extraValues: List<Element>
-	) = when (argumentPositionToTest)
+	): AvailObject = when (argumentPositionToTest)
 	{
-		0 -> probeValue
-		else -> extraValues[-1 -argumentPositionToTest]
+		1 -> probeValue
+		else -> extraValues[argumentPositionToTest - 2]
 	} as AvailObject
 
 	/**
@@ -265,11 +309,14 @@ constructor(
 	 */
 	fun sourceSemanticValue(
 		semanticValues: List<L2SemanticValue>,
-		extraSemanticValues: List<L2SemanticValue>) = when
+		extraSemanticValues: List<L2SemanticValue>): L2SemanticValue
 	{
-		argumentPositionToTest >= 0 ->
-			semanticValues[argumentPositionToTest - 1]
-		else -> extraSemanticValues[-1 - argumentPositionToTest]
+		val inExtras = argumentPositionToTest - semanticValues.size
+		return when
+		{
+			inExtras > 0 -> extraSemanticValues[inExtras - 1]
+			else -> semanticValues[argumentPositionToTest - 1]
+		}
 	}
 
 	/**

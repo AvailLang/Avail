@@ -1201,6 +1201,8 @@ class AvailLoader(
 		{
 			throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 		}
+		// This may throw a SignatureException prior to making semantic changes
+		// to the runtime.
 		bundle.bundleAddMacro(macroDefinition, ignoreSeals)
 		module.moduleAddMacro(macroDefinition)
 		if (phase == EXECUTING_FOR_COMPILE)

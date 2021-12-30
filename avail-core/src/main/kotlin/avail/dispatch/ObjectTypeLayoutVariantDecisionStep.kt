@@ -1,5 +1,5 @@
 /*
- * ObjectLayoutVariantDecisionStep.kt
+ * ObjectTypeLayoutVariantDecisionStep.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -36,12 +36,11 @@ import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.objects.ObjectLayoutVariant
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
@@ -50,7 +49,7 @@ import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
-import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
+import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_TYPE_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_STRENGTHEN_TYPE
@@ -68,21 +67,17 @@ import java.util.concurrent.ConcurrentHashMap
 
 /**
  * This is a [DecisionStep] which dispatches to subtrees by looking up the
- * argument's [ObjectLayoutVariant].  It can only be used when the argument
- * has been constrained to an [object][mostGeneralObjectType].
+ * [ObjectLayoutVariant] of the argument, which has already been proven to be an
+ * object type.
  *
  * The idea is to filter out most variants based on the fields that they
  * define, *and* the fields they specifically don't define.  If variant #1
- * has fields {x, y}, and variant #2 has fields {y, z}, then an object with
- * variant #1 can't ever be an instance of an object type using variant #2.
+ * has fields {x, y}, and variant #2 has fields {y, z}, then an object type with
+ * variant #1 can't ever be a subtype of an object type using variant #2.
  *
- * Note that only the variants which have occurred have entries in this
- * step; new variants arriving will be dynamically added to this step.
- *
- * Also note that when an argument position is specified with a type that is
- * an enumeration of multiple objects, the corresponding [Result] is
- * duplicated for each of the objects' variants, ensuring a lookup of any of
- * those actual objects can reach the correct solution.
+ * Note that only the variants which have actually been dispatched have entries
+ * in this step; new variants arriving to be dispatched will be dynamically
+ * added to this step.
  *
  * @constructor
  * Construct the new instance.
@@ -91,7 +86,7 @@ import java.util.concurrent.ConcurrentHashMap
  *   A reference to the [InternalLookupTree] in which this has been
  *   installed as the [DecisionStep].
  * @property argumentPositionToTest
- *   The 1-based index of the argument for which to test by
+ *   The 1-based index of the argument for which to test by the object type's
  *   [ObjectLayoutVariant].
  * @property signatureExtrasExtractor
  *   A function to extract the extra types from an element that are needed at
@@ -100,7 +95,7 @@ import java.util.concurrent.ConcurrentHashMap
  *   A [Map] grouping this step's [Element]s by their [ObjectLayoutVariant]
  *   at the indicated [argumentPositionToTest].
  */
-class ObjectLayoutVariantDecisionStep<
+class ObjectTypeLayoutVariantDecisionStep<
 	Element : A_BasicObject,
 	Result : A_BasicObject>
 constructor(
@@ -113,10 +108,10 @@ constructor(
 ) : DecisionStep<Element, Result>(argumentPositionToTest)
 {
 	/**
-	 * A [Map] from [ObjectLayoutVariant.variantId] to the child
-	 * [LookupTree] that should be visited if the given
-	 * [ObjectLayoutVariant] occurs during lookup.  If the provided variant
-	 * is not present, it will be added dynamically.
+	 * A [Map] from [ObjectLayoutVariant.variantId] to the child [LookupTree]
+	 * that should be visited if the given [ObjectLayoutVariant] occurs during
+	 * lookup.  If the provided variant is not present, it will be added
+	 * dynamically.
 	 */
 	private val variantToSubtree: ConcurrentHashMap
 			<ObjectLayoutVariant, LookupTree<Element, Result>> =
@@ -148,7 +143,7 @@ constructor(
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		val argument = extractArgument(argValues, extraValues)
-		return getSubtree(argument.objectVariant, adaptor, memento)
+		return getSubtree(argument.objectTypeVariant, adaptor, memento)
 	}
 
 	override fun <AdaptorMemento> lookupStepByTypes(
@@ -158,7 +153,8 @@ constructor(
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		val argumentType = extractArgumentType(argTypes, extraValues)
-		return getSubtree(argumentType.objectTypeVariant, adaptor, memento)
+		return getSubtree(
+			argumentType.instance.objectTypeVariant, adaptor, memento)
 	}
 
 	override fun <AdaptorMemento> lookupStepByTypes(
@@ -168,7 +164,8 @@ constructor(
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
 		val argumentType = extractArgumentType(argTypes, extraValues)
-		return getSubtree(argumentType.objectTypeVariant, adaptor, memento)
+		return getSubtree(
+			argumentType.instance.objectTypeVariant, adaptor, memento)
 	}
 
 	override fun <AdaptorMemento> lookupStepByValue(
@@ -177,8 +174,8 @@ constructor(
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
-		val argument = extractValue(probeValue, extraValues).traversed()
-		return getSubtree(argument.objectVariant, adaptor, memento)
+		val argument = extractValue(probeValue, extraValues)
+		return getSubtree(argument.objectTypeVariant, adaptor, memento)
 	}
 
 	/**
@@ -202,7 +199,7 @@ constructor(
 			val restrictions = knownArgumentRestrictions.toMutableList()
 			restrictions[argumentPositionToTest - 1] =
 				restrictions[argumentPositionToTest - 1]
-					.intersectionWithObjectVariant(variant)
+					.intersectionWithObjectTypeVariant(variant)
 			val newPositive = positiveElements.toMutableList()
 			val newUndecided = mutableListOf<Element>()
 			val bound = adaptor.extractBoundingType(restrictions)
@@ -233,7 +230,7 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d object variants : known=%s",
+					"(u=%d, p=%d) #%d object type variants : known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,
@@ -271,7 +268,7 @@ constructor(
 			LookupTree<A_Definition, A_Tuple>,
 			List<L2SemanticValue>>>
 	{
-		// For simplicity, let super-lookups via object layout variant
+		// For simplicity, let super-lookups via object type layout variant
 		// always fall back.  They're *very* difficult to reason about.
 		if (!callSiteHelper.superUnionType
 				.typeAtIndex(argumentPositionToTest)
@@ -293,7 +290,7 @@ constructor(
 		val currentRestriction =
 			generator.currentManifest.restrictionFor(semanticSource)
 		val restrictionType = currentRestriction.type.traversed()
-		val restrictionVariant = restrictionType.objectTypeVariant
+		val restrictionVariant = restrictionType.instance.objectTypeVariant
 		// Only keep relevant variants, and only if they lead to at least
 		// one success.
 		val applicableEntries = variantToSubtree.entries
@@ -313,7 +310,7 @@ constructor(
 		val semanticVariantId = L2SemanticUnboxedInt(
 			L2SemanticObjectVariantId(semanticSource))
 		generator.addInstruction(
-			L2_EXTRACT_OBJECT_VARIANT_ID,
+			L2_EXTRACT_OBJECT_TYPE_VARIANT_ID,
 			generator.readBoxed(semanticSource),
 			generator.intWrite(
 				setOf(semanticVariantId),
@@ -343,7 +340,8 @@ constructor(
 				generator.readBoxed(semanticSource),
 				generator.boxedWrite(
 					semanticSource,
-					currentRestriction.intersectionWithObjectVariant(variant)))
+					currentRestriction.intersectionWithObjectTypeVariant(
+						variant)))
 			generator.jumpTo(soleTarget)
 			return listOf(
 				Triple(
@@ -401,7 +399,8 @@ constructor(
 				generator.readBoxed(semanticSource),
 				generator.boxedWrite(
 					semanticSource,
-					currentRestriction.intersectionWithObjectVariant(variant)))
+					currentRestriction.intersectionWithObjectTypeVariant(
+						variant)))
 			generator.jumpTo(strengthenedTarget)
 			Triple(strengthenedTarget, subtree, extraSemanticArguments)
 		}

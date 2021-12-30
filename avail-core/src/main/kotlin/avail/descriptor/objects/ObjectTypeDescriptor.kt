@@ -62,6 +62,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
+import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -119,6 +120,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.ifZero
@@ -1110,5 +1113,26 @@ class ObjectTypeDescriptor internal constructor(
 				setField(style, lineNumberIndex, fromInt(lineNumber))
 			}
 		}
+
+		/**
+		 * Produce the given object type's [ObjectLayoutVariant]'s variantId.
+		 *
+		 * @param anObjectType
+		 *   The object [type][ObjectTypeDescriptor] to examine.
+		 * @return
+		 *   The object type's variantId, which is an [Int].
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticObjectTypeVariantId(anObjectType: AvailObject): Int =
+			anObjectType.objectTypeVariant.variantId
+
+		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
+		val staticObjectTypeVariantIdMethod = CheckedMethod.staticMethod(
+			ObjectTypeDescriptor::class.java,
+			::staticObjectTypeVariantId.name,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java
+		)
 	}
 }

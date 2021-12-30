@@ -119,6 +119,7 @@ import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
+import avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_UNREACHABLE_CODE
 import avail.interpreter.levelTwo.register.L2BoxedRegister
@@ -661,8 +662,26 @@ class L2Generator internal constructor(
 			// It already exists in an unboxed int register.
 			return currentManifest.readInt(semanticUnboxed)
 		}
-		// It's not available as an unboxed int, so generate code to unbox it.
+		// Because of the way synonyms work, the boxed form might have
+		// synonymous boxed semantic values, without the unboxed form having all
+		// the same corresponding unboxed values.  Do a slower check for this
+		// case.
 		val semanticBoxed = semanticUnboxed.base
+		currentManifest.semanticValueToSynonym(semanticBoxed).semanticValues()
+			.forEach { equivalentBoxedSemanticValue ->
+				val equivalentUnboxed =
+					L2SemanticUnboxedInt(equivalentBoxedSemanticValue)
+				if (currentManifest.hasSemanticValue(equivalentUnboxed))
+				{
+					moveRegister(
+						L2_MOVE.unboxedInt,
+						equivalentUnboxed,
+						semanticUnboxed)
+					return currentManifest.readInt(semanticUnboxed)
+				}
+			}
+
+		// It's not available as an unboxed int, so generate code to unbox it.
 		val restriction = currentManifest.restrictionFor(semanticBoxed)
 		if (!restriction.intersectsType(int32))
 		{
@@ -763,7 +782,7 @@ class L2Generator internal constructor(
 		val boxedRead = currentManifest.readBoxed(semanticBoxed)
 		if (restriction.containedByType(Types.DOUBLE.o))
 		{
-			addInstruction(L2_UNBOX_INT, boxedRead, floatWrite)
+			addInstruction(L2_UNBOX_FLOAT, boxedRead, floatWrite)
 		}
 		else
 		{

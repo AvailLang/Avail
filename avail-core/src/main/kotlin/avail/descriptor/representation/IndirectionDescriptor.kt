@@ -2908,7 +2908,7 @@ class IndirectionDescriptor private constructor(
 		self .. { methodName }
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		"IND→" + (self .. { nameForDebugger() })
+		"IND" + mutability.suffix + "→" + (self .. { nameForDebugger() })
 
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
@@ -3657,6 +3657,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
 		self .. { registerDump() }
 
+	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,

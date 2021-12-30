@@ -74,8 +74,10 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import avail.descriptor.types.TypeTag
+import avail.exceptions.SignatureException
 import avail.utility.StackPrinter
 import java.util.IdentityHashMap
+import kotlin.jvm.Throws
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -253,7 +255,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 		 *   The definition for this plan.
 		 * @return
 		 *   A new [A_DefinitionParsingPlan].
+		 * @throws SignatureException
+		 *   If the bundle name is unparseable for the given definition body.
 		 */
+		@Throws(SignatureException::class)
 		fun newParsingPlan(
 			bundle: A_Bundle,
 			definition: A_Sendable

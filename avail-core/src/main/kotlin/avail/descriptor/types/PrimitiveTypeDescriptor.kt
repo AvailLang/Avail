@@ -437,6 +437,9 @@ private constructor(
 
 	companion object
 	{
+		/** The total count of [Types] enum values. */
+		const val typesEnumCount = 22
+
 		/**
 		 * Extract the [Types] enum value from this primitive
 		 * type.
@@ -840,6 +843,3 @@ private constructor(
 		val intersectionTypes = arrayOfNulls<A_Type>(typesEnumCount)
 	}
 }
-
-/** The total count of [Types] enum values. */
-const val typesEnumCount = 22

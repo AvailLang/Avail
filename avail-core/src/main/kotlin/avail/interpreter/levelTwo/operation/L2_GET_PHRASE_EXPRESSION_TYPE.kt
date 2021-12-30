@@ -1,5 +1,5 @@
 /*
- * L2_EXTRACT_OBJECT_VARIANT_ID.kt
+ * L2_GET_PHRASE_EXPRESSION_TYPE.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,30 +31,25 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
-import avail.descriptor.objects.ObjectLayoutVariant
-import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
+import avail.descriptor.phrases.A_Phrase
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
-import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
-import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
-import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
-import avail.optimizer.reoptimizer.L2Regenerator
 import org.objectweb.asm.MethodVisitor
 
 /**
- * Extract the [ObjectLayoutVariant] of the given object, then extract its
- * [variantId][ObjectLayoutVariant.variantId] as an [Int].
+ * Given a phrase, extract its expression type.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
-	READ_BOXED.named("object"),
-	WRITE_INT.named("variantId"))
+object L2_GET_PHRASE_EXPRESSION_TYPE : L2Operation(
+	READ_BOXED.named("phrase"),
+	WRITE_BOXED.named("expression type"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -63,39 +58,13 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 		warningStyleChange: (Boolean) -> Unit)
 	{
 		assert(this == instruction.operation)
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
+		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
+		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
-		builder
-			.append(' ')
-			.append(variantId.registerString())
-			.append(" ← VARIANT_ID(")
-			.append(value.registerString())
-			.append(")")
-	}
-
-	override fun generateReplacement(
-		instruction: L2Instruction,
-		regenerator: L2Regenerator)
-	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
-
-		// If the variantId is statically deducible at this point, use the
-		// constant.
-		val generator = regenerator.targetGenerator
-		val restriction =
-			generator.currentManifest.restrictionFor(value.semanticValue())
-		restriction.constantOrNull?.let { constant ->
-			// Extract the variantId from the actual constant right now.
-			val variant = constant.objectVariant
-			generator.addInstruction(
-				L2_MOVE_CONSTANT.unboxedInt,
-				L2IntImmediateOperand(variant.variantId),
-				variantId)
-			return
-		}
-		super.generateReplacement(instruction, regenerator)
+		builder.append(' ')
+		builder.append(expressionType.registerString())
+		builder.append(" ← yield type of ")
+		builder.append(phraseRead)
 	}
 
 	override fun translateToJVM(
@@ -103,12 +72,13 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val value = instruction.operand<L2ReadBoxedOperand>(0)
-		val variantId = instruction.operand<L2WriteIntOperand>(1)
+		assert(this == instruction.operation)
+		val phraseRead = instruction.operand<L2ReadBoxedOperand>(0)
+		val expressionType = instruction.operand<L2WriteBoxedOperand>(1)
 
-		// :: variantId = staticObjectVariantId(value);
-		translator.load(method, value.register())
-		staticObjectVariantIdMethod.generateCall(method)
-		translator.store(method, variantId.register())
+		// :: phrase.
+		translator.load(method, phraseRead.register())
+		A_Phrase.phraseExpressionTypeMethod.generateCall(method)
+		translator.store(method, expressionType.register())
 	}
 }

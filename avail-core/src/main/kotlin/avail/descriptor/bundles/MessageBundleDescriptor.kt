@@ -277,12 +277,15 @@ class MessageBundleDescriptor private constructor(
 				}
 			}
 		}
+		// Throws SignatureException if the combination of macro name and body
+		// are unparseable.
+		val plan = newParsingPlan(self, macro)
 		// Install the macro.
 		self.updateSlotShared(MACROS_TUPLE) { appendCanDestroy(macro, true) }
 		// It's only a macro change, so don't invalidate dependent L2Chunks.
 		synchronized(self) {
 			macroTestingTree = null
-			addDefinitionParsingPlan(self, newParsingPlan(self, macro))
+			addDefinitionParsingPlan(self, plan)
 		}
 	}
 

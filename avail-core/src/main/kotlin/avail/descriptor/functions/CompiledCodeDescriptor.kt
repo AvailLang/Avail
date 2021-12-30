@@ -1362,11 +1362,11 @@ open class CompiledCodeDescriptor protected constructor(
 					PrimitiveCompiledCodeDescriptor(
 						Mutability.SHARED,
 						primitive,
-						returnTypeIfPrimitiveFails,
+						returnTypeIfPrimitiveFails.makeShared(),
 						module.makeShared(),
 						originatingPhraseIndex,
-						originatingPhrase,
-						packedDeclarationNames,
+						originatingPhrase.makeShared(),
+						packedDeclarationNames.makeShared(),
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
 			}
@@ -1377,8 +1377,8 @@ open class CompiledCodeDescriptor protected constructor(
 						Mutability.SHARED,
 						module.makeShared(),
 						originatingPhraseIndex,
-						originatingPhrase,
-						packedDeclarationNames,
+						originatingPhrase.makeShared(),
+						packedDeclarationNames.makeShared(),
 						lineNumber,
 						lineNumberEncodedDeltas.makeShared()))
 			}
