@@ -61,6 +61,6 @@ object P_ContinuationFunction : Primitive(1, CannotFail, CanFold, CanInline)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralContinuationType()),
+				mostGeneralContinuationType),
 			mostGeneralFunctionType())
 }

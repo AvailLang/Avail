@@ -250,7 +250,7 @@ Method "`«↓_`»" is
 [
 	decl : declaration phrase
 |
-	«↓decl» (`decl's token's lexeme`)
+	«↓decl» (keyword(decl's token's lexeme)@0:0)
 ] : variable use phrase;
 
 /**

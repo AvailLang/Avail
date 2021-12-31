@@ -619,7 +619,7 @@ class L1Translator private constructor(
 		// this reification handler.
 		val zone = generator.currentBlock().zone
 		val newContinuationWrite = generator.boxedWriteTemp(
-			restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+			restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 		val onReturnIntoReified =
 			generator.createBasicBlock("Return into reified continuation")
 
@@ -674,7 +674,7 @@ class L1Translator private constructor(
 		// contain the reified caller.
 		val writeReifiedCaller = generator.boxedWrite(
 			topFrame().reifiedCaller(),
-			restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+			restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 		addInstruction(
 			L2_GET_CURRENT_CONTINUATION,
 			writeReifiedCaller)
@@ -1315,6 +1315,20 @@ class L1Translator private constructor(
 		passBlock: L2BasicBlock,
 		failBlock: L2BasicBlock)
 	{
+		val restriction = registerToTest.restriction()
+		when (restriction.constantOrNull)
+		{
+			constantValue -> {
+				// Always true.
+				generator.jumpTo(passBlock)
+				return
+			}
+			is Any -> {
+				// Always false.
+				generator.jumpTo(failBlock)
+				return
+			}
+		}
 		if (constantValue.isBoolean)
 		{
 			val constantBool = constantValue.equals(trueObject)

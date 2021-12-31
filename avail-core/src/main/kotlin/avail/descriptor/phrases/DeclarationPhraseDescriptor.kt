@@ -70,9 +70,9 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.ContinuationTypeDescriptor
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -397,9 +397,9 @@ class DeclarationPhraseDescriptor(
 			}
 		};
 
-		override fun fieldName(): String = name
+		override val fieldName get() = name
 
-		override fun fieldOrdinal(): Int = ordinal
+		override val fieldOrdinal get() = ordinal
 
 		/**
 		 * An Avail [string][StringDescriptor] describing this kind of

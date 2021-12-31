@@ -101,8 +101,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 			throw AvailRejectedParseException(
 				STRONG, "label name to be alphanumeric")
 		}
-		val optionalLabelReturnTypePhrase =
-			labelPairPhrase.expressionAt(2)
+		val optionalLabelReturnTypePhrase = labelPairPhrase.expressionAt(2)
 		val labelReturnTypePhrase: A_Phrase
 		val labelReturnType: A_Type =
 			if (optionalLabelReturnTypePhrase.expressionsSize == 1)
@@ -143,8 +142,7 @@ object P_BootstrapPrefixLabelDeclaration : Primitive(3, CanInline, Bootstrap)
 		}
 		val functionType =
 			functionType(tupleFromList(blockArgumentTypes), labelReturnType)
-		val continuationType =
-			continuationTypeForFunctionType(functionType)
+		val continuationType = continuationTypeForFunctionType(functionType)
 		val labelDeclaration =
 			newLabel(labelName, labelReturnTypePhrase, continuationType)
 		val conflictingDeclaration =

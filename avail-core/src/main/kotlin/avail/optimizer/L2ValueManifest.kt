@@ -1502,34 +1502,6 @@ class L2ValueManifest
 	companion object
 	{
 		/** Perform deep, slow checks every time a manifest changes. */
-		var deepManifestDebugCheck = true // TODO false
-
-		/**
-		 * Compute the intersection of these manifests.  The intersection is a
-		 * manifest that holds semantic values and registers that are only
-		 * available in *all* of the manifests.
-		 *
-		 * Also, ensure [TypeRestriction]s are properly trimmed to include only
-		 * flags for those [RegisterKind]s that are present in all of the
-		 * manifests.
-		 *
-		 * @param manifests
-		 *   The [List] of [L2ValueManifest]s for which to compute the
-		 *   intersection.
-		 */
-		fun intersectionOfManifests(
-			manifests: List<L2ValueManifest>
-		): L2ValueManifest
-		{
-			val iterator = manifests.iterator()
-			if (!iterator.hasNext()) return L2ValueManifest()
-			val manifest = L2ValueManifest(iterator.next())
-			iterator.forEachRemaining {
-				manifest.retainRegisters(it.allRegisters())
-				manifest.retainSemanticValues(it.semanticValueToSynonym.keys)
-			}
-			manifest.check()
-			return manifest
-		}
+		var deepManifestDebugCheck = false
 	}
 }

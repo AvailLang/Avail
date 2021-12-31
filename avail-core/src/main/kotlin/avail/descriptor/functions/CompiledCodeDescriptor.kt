@@ -38,19 +38,19 @@ import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailRejectedParseException
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.FRAME_SLOTS
 import avail.descriptor.functions.CompiledCodeDescriptor.IntegerSlots.Companion.HASH
@@ -72,6 +72,7 @@ import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.ARGUMENT
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -698,9 +699,10 @@ open class CompiledCodeDescriptor protected constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("Descriptor"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				this@CompiledCodeDescriptor))
+				this@CompiledCodeDescriptor,
+				slotName = "Descriptor"))
 		val disassembled = L1Disassembler(self).disassembledAsSlots()
 		if (variableIntegerSlotsCount() > 0)
 		{
@@ -711,9 +713,10 @@ open class CompiledCodeDescriptor protected constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("Disassembly"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
 					null,
+					slotName = "Disassembly",
 					forcedName = "L1 Disassembly ($moduleName)",
 					forcedChildren = disassembled.toTypedArray()))
 		}
@@ -722,30 +725,44 @@ open class CompiledCodeDescriptor protected constructor(
 			numLiterals - numConstants - numLocals - numOuters
 		(1 .. baseLiterals).mapTo(literalFields) {
 			AvailObjectFieldHelper(
-				self, DebuggerObjectSlots("Base literal"), it, literalAt(it))
+				self,
+				DUMMY_DEBUGGER_SLOT,
+				it,
+				literalAt(it),
+				slotName = "Base literal")
 		}
 		(1 .. numOuters).mapTo(literalFields) {
 			AvailObjectFieldHelper(
-				self, DebuggerObjectSlots("Outer type"), it, outerTypeAt(it))
+				self,
+				DUMMY_DEBUGGER_SLOT,
+				it,
+				outerTypeAt(it),
+				slotName = "Outer type")
 		}
 		(1 .. numLocals).mapTo(literalFields) {
 			AvailObjectFieldHelper(
-				self, DebuggerObjectSlots("Local type"), it, localTypeAt(it))
+				self,
+				DUMMY_DEBUGGER_SLOT,
+				it,
+				localTypeAt(it),
+				slotName = "Local type")
 		}
 		(1 .. numConstants).mapTo(literalFields) {
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("Constant type"),
+				DUMMY_DEBUGGER_SLOT,
 				it,
-				constantTypeAt(it))
+				constantTypeAt(it),
+				slotName = "Constant type")
 		}
 		val allLiterals = (1 .. numLiterals).map { literalAt(it) }
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("All literals"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				tupleFromList(allLiterals),
+				slotName = "All literals",
 				forcedName = "Literals",
 				forcedChildren = literalFields.toTypedArray()))
 		return fields.toTypedArray()

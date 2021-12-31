@@ -102,6 +102,7 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
@@ -320,7 +321,7 @@ abstract class AbstractDescriptor protected constructor (
 				emptyDebugObjectSlots
 		hasVariableObjectSlots =
 			objectSlots.isNotEmpty()
-				&& objectSlots[objectSlots.size - 1].fieldName().endsWith("_")
+				&& objectSlots[objectSlots.size - 1].fieldName.endsWith("_")
 		numberOfFixedObjectSlots =
 			objectSlots.size - if (hasVariableObjectSlots) 1 else 0
 		val integerSlots: Array<out IntegerSlotsEnum> =
@@ -336,30 +337,21 @@ abstract class AbstractDescriptor protected constructor (
 				emptyDebugIntegerSlots
 		hasVariableIntegerSlots =
 			integerSlots.isNotEmpty()
-				&& integerSlots[integerSlots.size - 1].fieldName().endsWith("_")
+				&& integerSlots[integerSlots.size - 1].fieldName.endsWith("_")
 		numberOfFixedIntegerSlots =
 			integerSlots.size - if (hasVariableIntegerSlots()) 1 else 0
 	}
 
 	/**
-	 * A non-enum [ObjectSlotsEnum] that can be instantiated at will.
-	 * Useful for customizing debugger views of objects.
-	 *
-	 * @property
-	 *   The slot name.
-	 *
-	 * @constructor
-	 *
-	 * Create a new artificial slot with the given name.
-	 *
-	 * @param name
-	 *   The name of the slot.
+	 * An [ObjectSlotsEnum] that can be passed as a dummy, with explicit ordinal
+	 * and name when constructing debugger views of objects.
 	 */
-	class DebuggerObjectSlots (
-		val name: String
-	) : ObjectSlotsEnum {
-		override fun fieldName(): String = name
-		override fun fieldOrdinal(): Int = 0
+	enum class DebuggerObjectSlots : ObjectSlotsEnum {
+		/**
+		 * The debugger view is the only place this occurs, and an explicit
+		 * ordinal and name should be passed when instantiating the helpers.
+		 */
+		DUMMY_DEBUGGER_SLOT
 	}
 
 	/**
@@ -686,7 +678,7 @@ abstract class AbstractDescriptor protected constructor (
 			{
 				val intSlot = slot as IntegerSlotsEnum
 				newlineTab(indent)
-				val slotName = intSlot.fieldName()
+				val slotName = intSlot.fieldName
 				val bitFields = bitFieldsFor(intSlot)
 				if (slotName[slotName.length - 1] == '_')
 				{
@@ -734,7 +726,7 @@ abstract class AbstractDescriptor protected constructor (
 			{
 				newlineTab(indent)
 				val objectSlot = slot as ObjectSlotsEnum
-				val slotName = objectSlot.fieldName()
+				val slotName = objectSlot.fieldName
 				if (slotName[slotName.length - 1] == '_')
 				{
 					val subscript = i - objectSlots.size + 1
@@ -4050,7 +4042,7 @@ abstract class AbstractDescriptor protected constructor (
 		{
 			try
 			{
-				val slotName = slot.fieldName()
+				val slotName = slot.fieldName
 				if (bitFields.isEmpty())
 				{
 					val slotMirror = slot.javaClass.getField(slotName)
@@ -4195,7 +4187,7 @@ abstract class AbstractDescriptor protected constructor (
 						describingClass.enumConstants.cast()!!
 					if (value in allValues.indices)
 					{
-						append(allValues[value.toInt()].fieldName())
+						append(allValues[value.toInt()].fieldName)
 					}
 					else
 					{
@@ -4214,7 +4206,7 @@ abstract class AbstractDescriptor protected constructor (
 					when (val lookedUp = lookupMethod(null, value.toInt()))
 					{
 						is IntegerEnumSlotDescriptionEnum ->
-							append(lookedUp.fieldName())
+							append(lookedUp.fieldName)
 						else -> append("null")
 					}
 				}

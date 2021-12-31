@@ -62,5 +62,5 @@ object P_FunctionTypeToContinuationType
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(functionMeta()), continuationMeta())
+		functionType(tuple(functionMeta()), continuationMeta)
 }

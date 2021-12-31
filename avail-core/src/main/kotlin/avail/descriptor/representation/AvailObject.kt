@@ -66,7 +66,7 @@ import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
@@ -245,16 +245,18 @@ class AvailObject private constructor(
 			arrayOf(
 				AvailObjectFieldHelper(
 					this,
-					DebuggerObjectSlots("Error"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
 					e,
+					slotName = "Error",
 					forcedName = e.toString(),
 					forcedChildren = arrayOf(
 						AvailObjectFieldHelper(
 							this,
-							DebuggerObjectSlots("Stack trace"),
+							DUMMY_DEBUGGER_SLOT,
 							-1,
 							arrayOf(traceFor(e)),
+							slotName = "Stack trace",
 							forcedName = "Stack trace"))))
 		}
 

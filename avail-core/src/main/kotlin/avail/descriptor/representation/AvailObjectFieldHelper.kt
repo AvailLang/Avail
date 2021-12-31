@@ -33,6 +33,7 @@ package avail.descriptor.representation
 
 import avail.descriptor.representation.AbstractDescriptor.Companion.bitFieldsFor
 import avail.descriptor.representation.AbstractDescriptor.Companion.describeIntegerSlot
+import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.utility.StackPrinter
 import avail.utility.cast
 import org.jetbrains.annotations.Debug.Renderer
@@ -108,6 +109,8 @@ import org.jetbrains.annotations.Debug.Renderer
  *   not a repeating slot.
  * @param value
  *   The value being presented in that slot.
+ * @param slotName
+ *   The optional overridden name of the slot to be presented.
  * @param forcedName
  *   When set to non-`null`, forces this exact name to be presented, regardless
  *   of the [value].
@@ -125,6 +128,7 @@ class AvailObjectFieldHelper(
 	val slot: AbstractSlotsEnum,
 	val subscript: Int,
 	val value: Any?,
+	val slotName: String = slot.fieldName,
 	val forcedName: String? = null,
 	val forcedChildren: Array<*>? = null
 ) {
@@ -153,12 +157,11 @@ class AvailObjectFieldHelper(
 		}
 		when {
 			subscript != -1 -> {
-				val name = slot.fieldName()
-				append(name)
-				if (name.endsWith("_")) setLength(length - 1)
+				append(slotName)
+				if (slotName.endsWith("_")) setLength(length - 1)
 				append("[$subscript]")
 			}
-			else -> append(slot.fieldName())
+			else -> append(slotName)
 		}
 		when (value) {
 			null -> append(" = Java null")

@@ -206,12 +206,12 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			generator.startBlock(reificationOfframp)
 			val tempCaller = generator.boxedWrite(
 				generator.topFrame.reifiedCaller(),
-				restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 			val tempFunction = generator.boxedWrite(
 				generator.topFrame.function(),
 				restrictionForType(mostGeneralFunctionType(), BOXED_FLAG))
 			val dummyContinuation = generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 			generator.addInstruction(
 				L2_GET_CURRENT_CONTINUATION,
 				tempCaller)
@@ -250,7 +250,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		}
 		// Caller has been reified, or is known to already be reified.
 		val tempCallerWrite = generator.boxedWriteTemp(
-			restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+			restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 		generator.addInstruction(L2_GET_CURRENT_CONTINUATION, tempCallerWrite)
 
 		val fallThrough = generator.createBasicBlock(

@@ -130,6 +130,7 @@ import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -728,9 +729,10 @@ class ModuleDescriptor private constructor(
 			0,
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("Descriptor"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				this@ModuleDescriptor))
+				this,
+				slotName = "Descriptor"))
 		return fields.toTypedArray()
 	}
 

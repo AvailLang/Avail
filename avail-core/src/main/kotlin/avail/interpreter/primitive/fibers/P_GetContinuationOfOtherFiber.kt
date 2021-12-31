@@ -85,5 +85,7 @@ object P_GetContinuationOfOtherFiber : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralFiberType()), mostGeneralContinuationType())
+			tuple(
+				mostGeneralFiberType()),
+			mostGeneralContinuationType)
 }

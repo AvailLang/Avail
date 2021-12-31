@@ -116,7 +116,7 @@ object P_RestartContinuation : Primitive(
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
-		functionType(tuple(mostGeneralContinuationType()), bottom)
+		functionType(tuple(mostGeneralContinuationType), bottom)
 
 	override fun tryToGenerateSpecialPrimitiveInvocation(
 		functionToCallReg: L2ReadBoxedOperand,

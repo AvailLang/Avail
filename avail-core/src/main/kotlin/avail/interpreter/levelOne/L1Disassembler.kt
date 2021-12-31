@@ -36,15 +36,15 @@ import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.functions.A_RawFunction
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -273,9 +273,10 @@ class L1Disassembler constructor(
 				}
 				slots.add(AvailObjectFieldHelper(
 					code,
-					DebuggerObjectSlots("Instruction"),
+					DUMMY_DEBUGGER_SLOT,
 					currentOperationPc,
 					tupleFromList(operandValues),
+					slotName = "Instruction",
 					forcedName = nameBuilder.toString(),
 					forcedChildren = operandValues.toTypedArray()))
 			}

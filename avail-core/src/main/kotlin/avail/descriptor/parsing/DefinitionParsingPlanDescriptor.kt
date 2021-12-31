@@ -62,6 +62,7 @@ import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.BUND
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -77,7 +78,6 @@ import avail.descriptor.types.TypeTag
 import avail.exceptions.SignatureException
 import avail.utility.StackPrinter
 import java.util.IdentityHashMap
-import kotlin.jvm.Throws
 
 /**
  * A definition parsing plan describes the sequence of parsing operations that
@@ -179,9 +179,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("Symbolic instructions"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					descriptionsList.toTypedArray()))
+					descriptionsList.toTypedArray(),
+					slotName = "Symbolic instructions"))
 		}
 		catch (e: Exception)
 		{
@@ -189,9 +190,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 			stackStrings.mapIndexedTo(fields) { lineNumber, line ->
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("ERROR while producing instructions"),
+					DUMMY_DEBUGGER_SLOT,
 					lineNumber + 1,
-					line)
+					line,
+					"ERROR while producing instructions")
 			}
 		}
 		return fields.toTypedArray()

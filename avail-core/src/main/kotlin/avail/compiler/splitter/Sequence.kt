@@ -672,7 +672,9 @@ internal class Sequence constructor(
 				if (!phrase.phraseKindIsUnder(PERMUTED_LIST_PHRASE))
 					return false
 				// Check that the permutation agrees with what's required.
-				if (permutation != phrase.permutation.toList()) return false
+				if (!tupleFromIntegerList(permutation)
+						.equals(phrase.permutation))
+					return false
 			}
 			else ->
 			{

@@ -61,9 +61,9 @@ enum class ReportingUnit (private vararg val ranges: Range)
 {
 	/** The number of nanoseconds taken by some activity. */
 	NANOSECONDS(
-		Range(999_999_500.0, POSITIVE_INFINITY, 1.0e-9, "%, 8.3f s "),
-		Range(999_999.5, 999_999_500.0, 1.0e-6, "%, 8.3f ms"),
-		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "%, 8.3f µs")),
+		Range(999_999_500.0, POSITIVE_INFINITY, 1.0e-9, "%, 8.3f s         "),
+		Range(999_999.5, 999_999_500.0, 1.0e-6, "    %, 8.3f ms    "),
+		Range(NEGATIVE_INFINITY, 999_999.5, 1.0e-3, "        %, 8.3f µs")),
 
 	/** The number of bytes consumed or produced by some activity. */
 	@Suppress("unused")

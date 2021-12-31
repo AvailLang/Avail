@@ -92,16 +92,10 @@ annotation class EnumField(
 	class Converter private constructor (val string: String)
 		: IntegerEnumSlotDescriptionEnum
 	{
-		override fun fieldName(): String
-		{
-			return string
-		}
+		override val fieldName get() = string
 
-		override fun fieldOrdinal(): Int
-		{
-			// Shouldn't be used.
-			return -1
-		}
+		// Shouldn't be used.
+		override val fieldOrdinal get() = -1
 
 		companion object
 		{

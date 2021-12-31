@@ -482,6 +482,12 @@ open class AtomDescriptor protected constructor (
 		) = AtomWithPropertiesSharedDescriptor.sharedSpecial.createInitialized(
 			stringFrom(name), nil, nil, 0)
 
+		/** The atom representing the Avail concept "true". */
+		val trueObject get () = TRUE.atom
+
+		/** The atom representing the Avail concept "false". */
+		val falseObject get () = FALSE.atom
+
 		/**
 		 * Convert a Kotlin [Boolean] into an Avail boolean.  There are exactly
 		 * two Avail booleans, which are just ordinary atoms, [trueObject] and
@@ -493,12 +499,6 @@ open class AtomDescriptor protected constructor (
 		 *   An Avail boolean.
 		 */
 		fun objectFromBoolean (aBoolean: Boolean): A_Atom =
-			if (aBoolean) TRUE.atom else FALSE.atom
-
-		/** The atom representing the Avail concept "true". */
-		val trueObject get () = TRUE.atom
-
-		/** The atom representing the Avail concept "false". */
-		val falseObject get () = FALSE.atom
+			if (aBoolean) trueObject else falseObject
 	}
 }

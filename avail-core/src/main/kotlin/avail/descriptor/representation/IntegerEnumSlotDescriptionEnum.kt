@@ -51,7 +51,7 @@ interface IntegerEnumSlotDescriptionEnum
 	 * @return
 	 *   A string that names this enumeration value.
 	 */
-	fun fieldName(): String
+	val fieldName: String
 
 	/**
 	 * Answer an integer that identifies this enumeration value uniquely within
@@ -62,5 +62,5 @@ interface IntegerEnumSlotDescriptionEnum
 	 * @return
 	 *   The enumeration value's ordinal number.
 	 */
-	fun fieldOrdinal(): Int
+	val fieldOrdinal: Int
 }

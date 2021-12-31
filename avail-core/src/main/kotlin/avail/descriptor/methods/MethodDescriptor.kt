@@ -74,6 +74,7 @@ import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -475,22 +476,25 @@ class MethodDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("owningBundles"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				owningBundles))
+				owningBundles,
+				slotName = "owningBundles"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("methodTestingTree"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(methodTestingTree)))
+				arrayOf(methodTestingTree),
+				slotName = "methodTestingTree"))
 		dependentChunksWeakSet?.let {
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("dependentChunks"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					it.toTypedArray()))
+					it.toTypedArray(),
+					slotName = "dependentChunks"))
 		}
 		return fields.toTypedArray()
 	}

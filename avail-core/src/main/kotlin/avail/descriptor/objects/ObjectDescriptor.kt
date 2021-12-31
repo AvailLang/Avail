@@ -54,6 +54,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.namesAndBaseTypes
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -229,9 +230,10 @@ class ObjectDescriptor internal constructor(
 				else -> fields.add(
 					AvailObjectFieldHelper(
 						self,
-						DebuggerObjectSlots("FIELD " + fieldKey.atomName),
+						DUMMY_DEBUGGER_SLOT,
 						-1,
-						self.slot(FIELD_VALUES_, index)))
+						self.slot(FIELD_VALUES_, index),
+						slotName = "FIELD " + fieldKey.atomName))
 			}
 		}
 		fields.sortBy(AvailObjectFieldHelper::nameForDebugger)
@@ -239,9 +241,10 @@ class ObjectDescriptor internal constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("SUBCLASS_FIELDS"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					tupleFromList(otherAtoms)))
+					tupleFromList(otherAtoms),
+					slotName = "SUBCLASS_FIELDS"))
 		}
 		return fields.toTypedArray()
 	}

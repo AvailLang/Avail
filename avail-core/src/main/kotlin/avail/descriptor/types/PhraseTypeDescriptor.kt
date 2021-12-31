@@ -392,9 +392,9 @@ open class PhraseTypeDescriptor protected constructor(
 			PARSE_PHRASE,
 			TypeTag.UNKNOWN_TAG);
 
-		override fun fieldName(): String = name
+		override val fieldName get() = name
 
-		override fun fieldOrdinal(): Int = ordinal
+		override val fieldOrdinal get() = ordinal
 
 		/**
 		 * Answer the kind of phrase of which this object is the type.

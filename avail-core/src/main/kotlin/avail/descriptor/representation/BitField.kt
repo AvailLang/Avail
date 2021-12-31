@@ -32,6 +32,7 @@
 package avail.descriptor.representation
 
 import avail.annotations.EnumField
+import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 
 /**
  * A `BitField` is constructed at class loading time and contains any cached
@@ -64,7 +65,7 @@ class BitField (
 	 * The zero-based [integer&#32;slot][IntegerSlotsEnum] within which this
 	 * bit field occurs.
 	 */
-	val integerSlotIndex = integerSlot.fieldOrdinal()
+	val integerSlotIndex = integerSlot.fieldOrdinal
 
 	/**
 	 * A string of 1's of length [bits], right aligned in the `long`.  Even

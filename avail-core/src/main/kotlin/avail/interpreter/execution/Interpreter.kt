@@ -71,7 +71,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -86,8 +86,8 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
@@ -388,15 +388,16 @@ class Interpreter(
 		// Produce the current function being executed...
 		helpers.add(
 			AvailObjectFieldHelper(
-				nil, DebuggerObjectSlots("Current function"), -1, function))
+				nil, DUMMY_DEBUGGER_SLOT, -1, function, "Current function"))
 
 		// Extract the current L2 offset...
 		helpers.add(
 			AvailObjectFieldHelper(
 				nil,
-				DebuggerObjectSlots("L2 offset"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				offset.toLong(),
+				slotName = "L2 offset",
 				forcedName = "L2 offset = $offset",
 				forcedChildren = emptyArray<Any>()))
 
@@ -406,9 +407,10 @@ class Interpreter(
 		helpers.add(
 			AvailObjectFieldHelper(
 				nil,
-				DebuggerObjectSlots("argsBuffer"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				argsBuffer,
+				slotName = "argsBuffer",
 				forcedName = "argsBuffer(${argsBuffer.size})",
 				forcedChildren = argsBuffer.toTypedArray()))
 
@@ -416,9 +418,10 @@ class Interpreter(
 		helpers.add(
 			AvailObjectFieldHelper(
 				nil,
-				DebuggerObjectSlots("L2 instructions"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				if (chunk !== null) chunk!!.instructions else emptyList<Any>()))
+				if (chunk !== null) chunk!!.instructions else emptyList<Any>(),
+				slotName = "L2 instructions"))
 
 		// Build the stack frames...
 		var frame: A_Continuation? = getReifiedContinuation()
@@ -433,18 +436,23 @@ class Interpreter(
 			helpers.add(
 				AvailObjectFieldHelper(
 					nil,
-					DebuggerObjectSlots("Frames"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					tupleFromList(frames)))
+					tupleFromList(frames),
+					slotName = "Frames"))
 		}
 
 		helpers.add(
 			AvailObjectFieldHelper(
-				nil, DebuggerObjectSlots("Loader"), -1, availLoaderOrNull()))
+				nil,
+				DUMMY_DEBUGGER_SLOT,
+				-1,
+				availLoaderOrNull(),
+				slotName = "Loader"))
 
 		helpers.add(
 			AvailObjectFieldHelper(
-				nil, DebuggerObjectSlots("Fiber"), -1, fiber))
+				nil, DUMMY_DEBUGGER_SLOT, -1, fiber, slotName = "Fiber"))
 
 		return helpers.toTypedArray()
 	}

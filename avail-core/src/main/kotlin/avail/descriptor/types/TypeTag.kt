@@ -57,6 +57,7 @@ import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
+import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.falseType
@@ -131,7 +132,7 @@ constructor(
 	BUNDLE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE.o }),
 	BUNDLE_TREE_TAG(NONTYPE_TAG, null, Sup { Types.MESSAGE_BUNDLE_TREE.o }),
 	CHARACTER_TAG(NONTYPE_TAG, null, Sup { Types.CHARACTER.o }),
-	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType() }),
+	CONTINUATION_TAG(NONTYPE_TAG, null, Sup { mostGeneralContinuationType }),
 	DEFINITION_TAG(NONTYPE_TAG, null, Sup { Types.DEFINITION.o }),
 	FIBER_TAG(NONTYPE_TAG, null, Sup { mostGeneralFiberType() }),
 	FUNCTION_TAG(NONTYPE_TAG, null, Sup { mostGeneralFunctionType() }),
@@ -355,7 +356,7 @@ constructor(
 	CONTINUATION_TYPE_TAG(
 		NONTYPE_TYPE_TAG,
 		instance = CONTINUATION_TAG,
-		Sup { instanceMeta(mostGeneralContinuationType()) },
+		Sup { continuationMeta },
 		Contra("arguments") { functionType.argsTupleType },
 		Contra("result") { functionType.returnType }),
 	RAW_FUNCTION_TYPE_TAG(

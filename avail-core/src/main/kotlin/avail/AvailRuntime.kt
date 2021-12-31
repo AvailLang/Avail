@@ -1016,10 +1016,10 @@ class AvailRuntime constructor(
 			put(mostGeneralCompiledCodeType())
 			put(mostGeneralVariableType)
 			put(mostGeneralVariableMeta)
-			put(mostGeneralContinuationType())
+			put(mostGeneralContinuationType)
 
 			at(10)
-			put(continuationMeta())
+			put(continuationMeta)
 			put(Types.ATOM.o)
 			put(Types.DOUBLE.o)
 			put(extendedIntegers)
@@ -1119,7 +1119,7 @@ class AvailRuntime constructor(
 			at(90)
 			put(functionType(emptyTuple(), Types.TOP.o))
 			put(functionType(emptyTuple(), booleanType))
-			put(variableTypeFor(mostGeneralContinuationType()))
+			put(variableTypeFor(mostGeneralContinuationType))
 			put(
 				mapTypeForSizesKeyTypeValueType(
 					wholeNumbers, Types.ATOM.o, Types.ANY.o))

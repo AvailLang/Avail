@@ -221,38 +221,26 @@ class MapDescriptor private constructor(
 			val mapIterable = self.mapIterable
 			return Array(self.mapSize) { counter ->
 				val (key, value) = mapIterable.next()
+				val keyStringSize = key.tupleSize
+				val keyString = when (keyStringSize > 50) {
+					true ->
+						tuple(
+							key.copyTupleFromToCanDestroy(1, 25, false),
+							stringFrom(" … "),
+							key.copyTupleFromToCanDestroy(
+								keyStringSize - 24,
+								keyStringSize,
+								false)
+						).concatenateTuplesCanDestroy(false)
+					else -> key
+				}
+				val name = ("Key#$counter $keyString")
 				AvailObjectFieldHelper(
 					self,
-					object : ObjectSlotsEnum {
-						/** The cached entry name. */
-						private var name: String? = null
-
-						override fun fieldName(): String {
-							name?.run { return this }
-							// Truncate large key strings.
-							val keyStringSize = key.tupleSize
-							val keyString = if (keyStringSize > 50) {
-								tuple(
-									key.copyTupleFromToCanDestroy(1, 25, false),
-									stringFrom(" … "),
-									key.copyTupleFromToCanDestroy(
-										keyStringSize - 24,
-										keyStringSize,
-										false)
-								).concatenateTuplesCanDestroy(false)
-							}
-							else
-							{
-								key
-							}
-							name = ("Key#$counter $keyString")
-							return name!!
-						}
-
-						override fun fieldOrdinal() = counter
-					},
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
 					-1,
-					value)
+					value,
+					slotName = name)
 			}
 		}
 		val fields = arrayOfNulls<AvailObjectFieldHelper>(self.mapSize shl 1)

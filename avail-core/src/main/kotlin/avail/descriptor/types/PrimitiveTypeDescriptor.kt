@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
@@ -156,6 +157,7 @@ private constructor(
 			/**
 			 * The hash, populated during construction.
 			 */
+			@HideFieldInDebugger
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}

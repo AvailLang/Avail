@@ -1831,7 +1831,7 @@ class TypeRestriction private constructor(
 			assert(encoding == BOXED_FLAG
 					|| encoding == UNBOXED_INT_FLAG
 					|| encoding == UNBOXED_FLOAT_FLAG)
-			constant.makeImmutable()
+			val strongConstant = constant.makeImmutable()
 			return restriction(
 				when
 				{
@@ -1843,7 +1843,7 @@ class TypeRestriction private constructor(
 				emptySet(),
 				when
 				{
-					constant.isInstanceOf(mostGeneralObjectType) ->
+					strongConstant.typeTag.isSubtagOf(OBJECT_TAG) ->
 						setOf(constant.objectVariant)
 					else -> null
 				},
@@ -1851,8 +1851,8 @@ class TypeRestriction private constructor(
 				when
 				{
 					constant.equals(BottomTypeDescriptor.bottom) -> null
-					constant.isInstanceOf(mostGeneralObjectMeta) ->
-						setOf((constant as A_Type).objectTypeVariant)
+					strongConstant.typeTag.isSubtagOf(OBJECT_TYPE_TAG) ->
+						setOf(strongConstant.objectTypeVariant)
 					else -> null
 				},
 				null,

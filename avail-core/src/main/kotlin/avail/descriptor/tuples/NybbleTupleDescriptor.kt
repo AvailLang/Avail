@@ -43,11 +43,14 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.Mutability.*
+import avail.descriptor.representation.Mutability.IMMUTABLE
+import avail.descriptor.representation.Mutability.MUTABLE
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithNybbleTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyAsMutableIntTuple
@@ -56,6 +59,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.extractNybbleFromTupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteStringDescriptor.Companion.generateByteString
 import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
@@ -83,6 +87,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import java.nio.ByteBuffer
+import kotlin.math.min
 
 /**
  * `NybbleTupleDescriptor` represents a tuple of integers that happen to fall in
@@ -128,6 +133,7 @@ class NybbleTupleDescriptor private constructor(
 		 * The raw 64-bit machine words that constitute the representation of
 		 * the [nybble tuple][NybbleTupleDescriptor].
 		 */
+		@HideFieldInDebugger
 		RAW_LONG_AT_;
 
 		companion object
@@ -148,6 +154,40 @@ class NybbleTupleDescriptor private constructor(
 					HASH_OR_ZERO))
 			}
 		}
+	}
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper> = with(self) {
+		val nybblesCount = tupleSize
+		val fields = mutableListOf(*super.o_DescribeForDebugger(self))
+		val longsCount = variableIntegerSlotsCount()
+		(1 .. longsCount).mapTo(fields) { longIndex ->
+			val value = slot(RAW_LONG_AT_, longIndex)
+			val lowIndex = longIndex * 16 - 15
+			val highIndex = min(longIndex * 16, nybblesCount)
+			val text = buildString {
+				append("Nybbles[$lowIndex..$highIndex] ")
+				append(String.format(
+					"0x%04X_%04X_%04X_%04X  :  ",
+					value ushr 48 and 0xFFFF,
+					value ushr 32 and 0xFFFF,
+					value ushr 16 and 0xFFFF,
+					value and 0xFFFF))
+				(lowIndex .. highIndex).forEach { i ->
+					if (i and 3 == 1) append(" ")
+					append(" ")
+					append("0123456789ABCDEF"[tupleIntAt(i)])
+				}
+			}
+			AvailObjectFieldHelper(
+				self,
+				RAW_LONG_AT_,
+				-1,
+				value,
+				forcedName = text)
+		}
+		return fields.toTypedArray()
 	}
 
 	override fun o_AppendCanDestroy(

@@ -150,7 +150,7 @@ object P_RestartContinuationWithArguments : Primitive(
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType(), mostGeneralTupleType),
+			tuple(mostGeneralContinuationType, mostGeneralTupleType),
 			bottom)
 
 	override fun privateFailureVariableType(): A_Type =

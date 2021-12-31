@@ -58,6 +58,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -651,9 +652,10 @@ class FiberDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("(HELPER)"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				helper))
+				helper,
+				slotName = "(HELPER)"))
 		return fields.toTypedArray()
 	}
 

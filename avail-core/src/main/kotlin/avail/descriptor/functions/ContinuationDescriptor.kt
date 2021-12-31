@@ -57,6 +57,7 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_R
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
@@ -316,9 +317,10 @@ class ContinuationDescriptor private constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots(name),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					self.frameAt(i)))
+					self.frameAt(i),
+					slotName = name))
 		}
 		val moduleName = code.module.run {
 			if (isNil) "No module"
@@ -345,9 +347,10 @@ class ContinuationDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("Disassembly"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				null,
+				slotName = "Disassembly",
 				forcedName = "L1 Disassembly ($moduleName)",
 				forcedChildren = disassembled.toTypedArray()))
 		return fields.toTypedArray()

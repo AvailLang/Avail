@@ -67,6 +67,7 @@ import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -94,8 +95,8 @@ import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TypeTag
 import avail.dispatch.LookupTree
 import avail.exceptions.AvailErrorCode
@@ -302,16 +303,18 @@ class MessageBundleDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("messageSplitter"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				arrayOf(messageSplitter),
+				slotName = "messageSplitter",
 				forcedName = "messageSplitter"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("macroTestingTree"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				arrayOf(macroTestingTree),
+				slotName = "macroTestingTree",
 				forcedName = "macroTestingTree"))
 		return fields.toTypedArray()
 	}

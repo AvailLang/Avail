@@ -112,7 +112,7 @@ object P_ExitContinuationWithResultIf : Primitive(
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				mostGeneralContinuationType(),
+				mostGeneralContinuationType,
 				ANY.o,
 				booleanType),
 			TOP.o)
@@ -155,7 +155,11 @@ object P_ExitContinuationWithResultIf : Primitive(
 				L2_RETURN,
 				valueReg)
 			generator.startBlock(dontExit)
-			callSiteHelper.useAnswer(translator.generator.boxedConstant(nil))
+			if (generator.currentlyReachable())
+			{
+				callSiteHelper.useAnswer(
+					translator.generator.boxedConstant(nil))
+			}
 			return true
 		}
 		return false

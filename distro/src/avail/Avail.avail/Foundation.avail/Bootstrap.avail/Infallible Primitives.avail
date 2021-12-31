@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 12/20/21, 3:30 PM
+ * * Last Generated: 12/30/21, 4:17 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2549,7 +2549,7 @@ Primitive "`«_:_:=_`»" is
  * @method "`«$_:_`»"
  * @param "name" "token"
  *        The name of the new constant.
- * @param "declaredType" "$[…]→⊥"
+ * @param "declaredType" "($[…]→⊥)'s type"
  *        The declared type of the named constant.
  * @returns "label phrase⇒⊤"
  *    The requested label declaration.
@@ -2557,7 +2557,7 @@ Primitive "`«_:_:=_`»" is
 Primitive "`«$_:_`»" is
 [
 	name : token,
-	declaredType : continuation
+	declaredType : continuation meta
 |
 	Primitive CreateLabelDeclaration;
 ] : label phrase;

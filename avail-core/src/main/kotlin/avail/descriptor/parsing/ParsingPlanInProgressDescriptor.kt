@@ -45,6 +45,7 @@ import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstruc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
+import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.IntegerSlots.Companion.HASH
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.IntegerSlots.Companion.PARSING_PC
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.ObjectSlots.PARSING_PLAN
 import avail.descriptor.representation.A_BasicObject
@@ -98,11 +99,13 @@ class ParsingPlanInProgressDescriptor private constructor(
 		/**
 		 * [BitField]s for the hash and the parsing pc.  See below.
 		 */
-		PARSING_PC_AND_MORE;
+		PARSING_PC_AND_HASH;
 
 		companion object {
 			/** The subscript into my parsing plan's parsing instructions. */
-			val PARSING_PC = BitField(PARSING_PC_AND_MORE, 0, 32)
+			val PARSING_PC = BitField(PARSING_PC_AND_HASH, 0, 32)
+
+			val HASH = BitField(PARSING_PC_AND_HASH, 32, 32)
 		}
 	}
 
@@ -131,10 +134,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 			&& self.slot(PARSING_PC) == strongAnother.parsingPc)
 	}
 
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(PARSING_PC),
-		self.slot(PARSING_PLAN).hash(),
-		-0x37f29658)
+	override fun o_Hash(self: AvailObject): Int = self.slot(HASH)
 
 	override fun o_Kind(self: AvailObject): A_Type =
 		PARSING_PLAN_IN_PROGRESS.o
@@ -208,6 +208,7 @@ class ParsingPlanInProgressDescriptor private constructor(
 		): A_ParsingPlanInProgress = mutable.createShared {
 			setSlot(PARSING_PLAN, plan)
 			setSlot(PARSING_PC, pc)
+			setSlot(HASH, combine3(plan.hash(), pc, -0x37f29658))
 		}
 
 		/** The mutable [ParsingPlanInProgressDescriptor]. */
