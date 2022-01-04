@@ -89,6 +89,7 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 		val fieldAtom = instruction.operand<L2ConstantOperand>(1)
 		val fieldValue = instruction.operand<L2WriteBoxedOperand>(2)
 
+		translator.load(method, objectRead.register())
 		val variants = objectRead.restriction().positiveGroup.objectVariants
 		if (variants.notNullAnd { map { it.variantId }.toSet().size == 1 })
 		{
@@ -96,15 +97,14 @@ object L2_GET_OBJECT_FIELD : L2Operation(
 			// point.  Get the field by index.
 			val variant = variants!!.first()
 			val fieldIndex = variant.fieldToSlotIndex[fieldAtom.constant]!!
-			translator.load(method, objectRead.register())
 			translator.intConstant(method, fieldIndex)
 			AvailObject.fieldAtIndexMethod.generateCall(method)
-			translator.store(method, fieldValue.register())
-			return
 		}
-		translator.load(method, objectRead.register())
-		translator.literal(method, fieldAtom.constant)
-		AvailObject.fieldAtMethod.generateCall(method)
+		else
+		{
+			translator.literal(method, fieldAtom.constant)
+			AvailObject.fieldAtMethod.generateCall(method)
+		}
 		translator.store(method, fieldValue.register())
 	}
 }

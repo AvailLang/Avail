@@ -43,8 +43,10 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type.Companion.computeSuperkind
+import avail.descriptor.types.A_Type.Companion.instances
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -507,6 +509,14 @@ protected constructor(
 	// duplicating subtrees for each variant.
 	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
 		self.computeSuperkind().objectTypeVariant
+
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		instanceTypeOrMetaOn(
+			setFromCollection(
+				self.instances.mapTo(mutableSetOf()) { instance ->
+					instance.fieldAtIndex(index)
+				}))
+
 
 	companion object
 	{

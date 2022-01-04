@@ -306,6 +306,9 @@ class ObjectTypeDescriptor internal constructor(
 			else -> self.slot(FIELD_TYPES_, slotIndex!!)
 		}
 
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		self.slot(FIELD_TYPES_, index)
+
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
 		field: A_Atom

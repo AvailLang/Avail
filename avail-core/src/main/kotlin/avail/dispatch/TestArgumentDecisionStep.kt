@@ -84,7 +84,7 @@ constructor(
 {
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -98,7 +98,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -112,7 +112,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -126,7 +126,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -157,6 +157,13 @@ constructor(
 		append(ifCheckHolds.toString(indent + 1))
 		newlineTab(indent + 1)
 		append(ifCheckFails.toString(indent + 1))
+	}
+
+	override fun simplyAddChildrenTo(
+		list: MutableList<LookupTree<Element, Result>>)
+	{
+		list.add(ifCheckHolds)
+		list.add(ifCheckFails)
 	}
 
 	override fun addChildrenTo(

@@ -35,11 +35,16 @@ package avail.dispatch
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.methods.A_Definition
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
@@ -92,42 +97,45 @@ constructor(
 	): List<Element>
 	{
 		val i = argumentPositionToTest
+		val inExtras = i - argValues.size
 		val baseValue = when
 		{
-			i > 0 -> argValues[i - 1]
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argValues[i - 1]
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = baseValue.fieldAtIndex(fieldIndex)
 		return extraValues.append(newValue.cast())
 	}
 
 	override fun updateExtraValuesByTypes(
 		types: List<A_Type>,
-		extraValues: List<Element>
-	): List<Element>
+		extraValues: List<A_Type>
+	): List<A_Type>
 	{
 		val i = argumentPositionToTest
-		val baseValue = when
+		val inExtras = i - types.size
+		val baseType = when
 		{
-			i > 0 -> types[i - 1]
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> types[i - 1]
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY.o
 		return extraValues.append(newValue.cast())
 	}
 
 	override fun updateExtraValuesByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>
-	): List<Element>
+		extraValues: List<A_Type>
+	): List<A_Type>
 	{
 		val i = argumentPositionToTest
-		val baseValue = when
+		val inExtras = i - argTypes.tupleSize
+		val baseType = when
 		{
-			i > 0 -> argTypes.tupleAt(i)
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> argTypes.tupleAt(i)
 		}
-		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
+		val newValue = baseType.fieldTypeAtOrNull(field) ?: ANY.o
 		return extraValues.append(newValue.cast())
 	}
 
@@ -136,18 +144,59 @@ constructor(
 		extraValues: List<Element>
 	): List<Element>
 	{
-		val baseValue = when (val i = argumentPositionToTest)
+		val i = argumentPositionToTest
+		val inExtras = i - 1
+		val baseValue = when
 		{
-			0 -> probeValue
-			else -> extraValues[-i]
+			inExtras > 0 -> extraValues[inExtras - 1]
+			else -> probeValue
 		}
 		val newValue = (baseValue as AvailObject).fieldAtIndex(fieldIndex)
 		return extraValues.append(newValue.cast())
 	}
 
+	override fun <Memento> updateSignatureExtrasExtractor(
+		adaptor: LookupTreeAdaptor<Element, Result, Memento>,
+		extrasTypeExtractor: (Element)->Pair<A_Type?, List<A_Type>>,
+		numArgs: Int
+	): (Element)->Pair<A_Type?, List<A_Type>>
+	{
+		val inExtras = argumentPositionToTest - numArgs
+		return when
+		{
+			inExtras > 0 -> { element ->
+				val (optionalBaseType, extrasList) =
+					extrasTypeExtractor(element)
+				val theObjectType = extrasList[inExtras - 1]
+					.typeIntersection(mostGeneralObjectType)
+				// Any *value* is guaranteed to have this field at the indicated
+				// position at this point, but the *type* might be talking about
+				// a super-variant which does not have that field.  Handle that
+				// here.
+				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY.o
+				optionalBaseType to extrasList.append(fieldType)
+			}
+			else -> { element ->
+				val (optionalBaseType, extrasList) =
+					extrasTypeExtractor(element)
+				val baseType =
+					optionalBaseType ?: adaptor.extractSignature(element)
+				val theObjectType = baseType.typeAtIndex(argumentPositionToTest)
+					.typeIntersection(mostGeneralObjectType)
+				// Any *value* is guaranteed to have this field at the indicated
+				// position at this point, but the *type* might be talking about
+				// a super-variant which does not have that field.  Handle that
+				// here.
+				val fieldType = theObjectType.fieldTypeAtOrNull(field) ?: ANY.o
+				optionalBaseType to extrasList.append(fieldType)
+				baseType to extrasList.append(fieldType)
+			}
+		}
+	}
+
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -156,7 +205,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -165,7 +214,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -174,7 +223,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -190,11 +239,12 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d extract field (%s) : known=%s",
+					"(u=%d, p=%d) #%d extract field %s (@ %d) : known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,
-					field.atomName.asNativeString(),
+					field.atomName,
+					fieldIndex,
 					node.knownArgumentRestrictions),
 				indent + 1))
 		newlineTab(indent + 1)
@@ -209,6 +259,12 @@ constructor(
 		listOf(
 			sourceSemanticValue(semanticValues, extraSemanticValues),
 			L2SemanticValue.constant(field)))
+
+	override fun simplyAddChildrenTo(
+		list: MutableList<LookupTree<Element, Result>>)
+	{
+		list.add(childNode)
+	}
 
 	override fun addChildrenTo(
 		list: MutableList<
@@ -234,12 +290,12 @@ constructor(
 		val generator = callSiteHelper.generator()
 		val baseSemanticValue =
 			sourceSemanticValue(semanticArguments, extraSemanticArguments)
-		val fieldSemanticValue =
-			newSemanticValue(semanticArguments, extraSemanticArguments)
 		val baseRestriction =
 			generator.currentManifest.restrictionFor(baseSemanticValue)
 		val fieldRestriction = restrictionForType(
 			baseRestriction.type.fieldTypeAt(field), BOXED_FLAG)
+		val fieldSemanticValue =
+			newSemanticValue(semanticArguments, extraSemanticArguments)
 		generator.addInstruction(
 			L2_GET_OBJECT_FIELD,
 			generator.readBoxed(baseSemanticValue),
@@ -249,6 +305,8 @@ constructor(
 		generator.jumpTo(target)
 		return listOf(
 			Triple(
-				target, childNode.castForGenerator(), extraSemanticArguments))
+				target,
+				childNode.castForGenerator(),
+				extraSemanticArguments + fieldSemanticValue))
 	}
 }

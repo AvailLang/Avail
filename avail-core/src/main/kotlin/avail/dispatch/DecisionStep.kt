@@ -90,8 +90,8 @@ constructor(
 	 */
 	open fun updateExtraValuesByTypes(
 		types: List<A_Type>,
-		extraValues: List<Element>
-	): List<Element> = extraValues
+		extraValues: List<A_Type>
+	): List<A_Type> = extraValues
 
 	/**
 	 * Given an optional list of values used to supplement the lookup, answer
@@ -102,8 +102,8 @@ constructor(
 	 */
 	open fun updateExtraValuesByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>
-	): List<Element> = extraValues
+		extraValues: List<A_Type>
+	): List<A_Type> = extraValues
 
 	/**
 	 * Given an optional list of values used to supplement the lookup, answer
@@ -164,7 +164,7 @@ constructor(
 	 */
 	abstract fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 
@@ -189,9 +189,10 @@ constructor(
 	 */
 	abstract fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
+		memento: AdaptorMemento
+	): LookupTree<Element, Result>
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -214,9 +215,10 @@ constructor(
 	 */
 	abstract fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
+		memento: AdaptorMemento
+	): LookupTree<Element, Result>
 
 	/**
 	 * Perform one step of looking up the most-specific [Result] that matches
@@ -238,9 +240,10 @@ constructor(
 	 */
 	abstract fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
-		memento: AdaptorMemento): LookupTree<Element, Result>
+		memento: AdaptorMemento
+	): LookupTree<Element, Result>
 
 
 	//////////////////////////////////
@@ -249,7 +252,7 @@ constructor(
 
 	fun extractArgument(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>
+		extraValues: List<A_BasicObject>
 	): AvailObject
 	{
 		val inExtras = argumentPositionToTest - argValues.size
@@ -262,7 +265,7 @@ constructor(
 
 	fun extractArgumentType(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>
+		extraValues: List<A_Type>
 	): AvailObject
 	{
 		val inExtras = argumentPositionToTest - argTypes.size
@@ -275,7 +278,7 @@ constructor(
 
 	fun extractArgumentType(
 		argTypes: A_Tuple,
-		extraValues: List<Element>
+		extraValues: List<A_Type>
 	): AvailObject
 	{
 		val inExtras = argumentPositionToTest - argTypes.tupleSize
@@ -288,7 +291,7 @@ constructor(
 
 	fun extractValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>
+		extraValues: List<A_BasicObject>
 	): AvailObject = when (argumentPositionToTest)
 	{
 		1 -> probeValue
@@ -320,10 +323,24 @@ constructor(
 	}
 
 	/**
-	 * Add the children [LookupTree]s to the given [list].
+	 * Add the children [LookupTree]s to the given [list].  This can be used for
+	 * scanning the tree for some condition, without recursion.
 	 *
 	 * @param list
-	 *   The list in which to add the children, in an arbitrary order.  Each
+	 *   The list in which to add the children, in an arbitrary order.
+	 */
+	abstract fun simplyAddChildrenTo(
+		list: MutableList<LookupTree<Element, Result>>)
+
+	/**
+	 * Add the children [LookupTree]s, coupled with the available
+	 * [L2SemanticValue]s at that point, to the given [list].
+	 *
+	 * Note that the correct [extraSemanticValues] must be passed, which can be
+	 * ensured by starting at the root and passing an [emptyList].
+	 *
+	 * @param list
+	 *   The [List] in which to add the children, in an arbitrary order.  Each
 	 *   entry also contains the list of [L2SemanticValue]s that are available
 	 *   upon reaching the corresponding position in the lookup tree.
 	 * @param semanticValues
@@ -377,23 +394,23 @@ constructor(
 		 *   Whether any such leaf node was found.
 		 */
 		fun containsAnyValidLookup(
-			subtree: LookupTree<A_Definition, A_Tuple>,
-			semanticValues: List<L2SemanticValue>
+			subtree: LookupTree<A_Definition, A_Tuple>
 		): Boolean
 		{
-			val nodes = mutableListOf(subtree to emptyList<L2SemanticValue>())
+			val nodes = mutableListOf(subtree)
 			while (nodes.isNotEmpty())
 			{
-				val (node, extraSemanticValues) = nodes.removeLast()
-				if (node is LeafLookupTree)
+				when (val node = nodes.removeLast())
 				{
-					if (node.solutionOrNull.notNullAnd { tupleSize == 1 })
-						return true
-				}
-				else if (node is InternalLookupTree)
-				{
-					node.decisionStepOrNull?.addChildrenTo(
-						nodes, semanticValues, extraSemanticValues)
+					is LeafLookupTree ->
+					{
+						if (node.solutionOrNull.notNullAnd { tupleSize == 1 })
+							return true
+					}
+					is InternalLookupTree ->
+					{
+						node.decisionStepOrNull?.simplyAddChildrenTo(nodes)
+					}
 				}
 			}
 			// We exhausted the tree.

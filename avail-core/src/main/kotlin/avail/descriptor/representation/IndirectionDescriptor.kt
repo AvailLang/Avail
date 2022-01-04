@@ -3476,6 +3476,9 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject, field: A_Atom
 	): A_Type = self .. { fieldTypeAt(field) }
 
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		self .. { fieldTypeAtIndex(index) }
+
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject, field: A_Atom
 	): A_Type? = self .. { fieldTypeAtOrNull(field) }

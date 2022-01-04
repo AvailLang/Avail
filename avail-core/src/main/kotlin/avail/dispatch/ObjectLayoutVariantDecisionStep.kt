@@ -143,7 +143,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -153,7 +153,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -163,7 +163,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -173,7 +173,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -216,9 +216,10 @@ constructor(
 				newPositive,
 				newUndecided,
 				restrictions,
-				alreadyTypeTestedArguments,
+				alreadyTagTestedArguments,
 				alreadyVariantTestedArgumentsForChildren,
 				alreadyPhraseTypeExtractArguments,
+				alreadyExtractedFields,
 				memento)
 		}
 	}
@@ -248,6 +249,12 @@ constructor(
 				.joinTo(this, ", ", " (", "): ")
 			append(child.toString(indent + 1))
 		}
+	}
+
+	override fun simplyAddChildrenTo(
+		list: MutableList<LookupTree<Element, Result>>)
+	{
+		list.addAll(variantToSubtree.values)
 	}
 
 	override fun addChildrenTo(
@@ -299,8 +306,7 @@ constructor(
 		val applicableEntries = variantToSubtree.entries
 			.filter { (key, subtree) ->
 				key.isSubvariantOf(restrictionVariant)
-					&& containsAnyValidLookup(
-						subtree.castForGenerator(), semanticArguments)
+					&& containsAnyValidLookup(subtree.castForGenerator())
 			}
 			.sortedBy { (key, _) -> key.variantId }
 		if (applicableEntries.isEmpty())

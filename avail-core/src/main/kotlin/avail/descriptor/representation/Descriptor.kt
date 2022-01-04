@@ -2504,6 +2504,9 @@ protected constructor (
 		self: AvailObject,
 		field: A_Atom): A_Type = unsupported
 
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		unsupported
+
 	override fun o_FieldTypeAtOrNull (
 		self: AvailObject,
 		field: A_Atom): A_Type? = unsupported

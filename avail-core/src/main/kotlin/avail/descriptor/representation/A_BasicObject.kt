@@ -63,9 +63,9 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
+import avail.utility.visitor.AvailSubobjectVisitor
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONWriter
-import avail.utility.visitor.AvailSubobjectVisitor
 import java.util.IdentityHashMap
 import java.util.function.Supplier
 
@@ -1093,6 +1093,18 @@ interface A_BasicObject : JSONFriendly
 	 *   The field's type.
 	 */
 	fun fieldTypeAt(field: A_Atom): A_Type
+
+	/**
+	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor],
+	 * using the given field index, which is specific to an
+	 * [ObjectLayoutVariant].
+	 *
+	 * @param index
+	 *   The index of the field to look up.
+	 * @return
+	 *   The field's type.
+	 */
+	fun fieldTypeAtIndex(index: Int): A_Type
 
 	/**
 	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor],

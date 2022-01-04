@@ -105,7 +105,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -120,7 +120,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -135,7 +135,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -150,7 +150,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -183,6 +183,12 @@ constructor(
 			append("$k(${k.ordinal}): ")
 			append(v.toString(indent + 1))
 		}
+	}
+
+	override fun simplyAddChildrenTo(
+		list: MutableList<LookupTree<Element, Result>>)
+	{
+		list.addAll(tagToSubtree.values)
 	}
 
 	override fun addChildrenTo(
@@ -280,13 +286,12 @@ constructor(
 		// reachable (tags could actually occur).
 		val reducedMap = strongTagToSubtree
 			.filterKeys {
-				restrictionTag.isSubtagOf(it)
-					|| it.isSubtagOf(restrictionTag)
+				restrictionTag.isSubtagOf(it) || it.isSubtagOf(restrictionTag)
 			}
 			.mapValuesTo(mutableMapOf()) { (tag, subtree) ->
 				when
 				{
-					!containsAnyValidLookup(subtree, semanticArguments) -> null
+					!containsAnyValidLookup(subtree) -> null
 					restrictionTag.isSubtagOf(tag) -> subtree
 					tag.isSubtagOf(restrictionTag) &&
 							currentRestriction.intersectsType(tag.supremum)

@@ -3682,6 +3682,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_FieldTypeAt (self: AvailObject, field: A_Atom): A_Type
 
+	abstract fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type
+
 	abstract fun o_FieldTypeAtOrNull (self: AvailObject, field: A_Atom): A_Type?
 
 	abstract fun o_ParsingPlan (self: AvailObject): A_DefinitionParsingPlan

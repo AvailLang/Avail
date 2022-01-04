@@ -33,6 +33,8 @@
 package avail.dispatch
 
 import avail.AvailRuntimeSupport.captureNanos
+import avail.descriptor.maps.A_Map
+import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -217,6 +219,7 @@ abstract class LookupTreeAdaptor<
 			zero,
 			zero,
 			zero,
+			emptyMap,
 			memento)
 	}
 
@@ -272,6 +275,12 @@ abstract class LookupTreeAdaptor<
 	 *   via an [ExtractPhraseTypeDecisionStep] in an ancestor.  Argument #n is
 	 *   indicated by a set bit in the n-1st bit position, the one whose value in
 	 *   the integer is 2^(n-1).
+	 * @param alreadyExtractedFields
+	 *   An [A_Map] from Avail integer to Avail integer.  They key integer is
+	 *   the one-based argument (or extras) subscript of the source object, and
+	 *   the value integer is an encoding of which fields have been extracted,
+	 *   where bit 2^(N-1) indicates the Nth field (one-based) has been
+	 *   extracted already.
 	 * @param memento
 	 *   A memento for this adaptor to use.
 	 * @return
@@ -284,6 +293,7 @@ abstract class LookupTreeAdaptor<
 		alreadyTypeTestedArguments: A_Number,
 		alreadyVariantTestedArguments: A_Number,
 		alreadyPhraseTypeExtractArguments: A_Number,
+		alreadyExtractedFields: A_Map,
 		memento: Memento): LookupTree<Element, Result>
 	{
 		if (undecided.isEmpty())
@@ -324,7 +334,8 @@ abstract class LookupTreeAdaptor<
 			knownArgumentRestrictions,
 			alreadyTypeTestedArguments,
 			alreadyVariantTestedArguments,
-			alreadyPhraseTypeExtractArguments)
+			alreadyPhraseTypeExtractArguments,
+			alreadyExtractedFields)
 	}
 
 	/**
@@ -371,9 +382,9 @@ abstract class LookupTreeAdaptor<
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues = emptyList<Element>()
-		var signatureExtrasExtractor = { _ : Element ->
-			defaultSignatureExtrasValue }
+		var extraValues = emptyList<A_Type>()
+		var signatureExtrasExtractor =
+			{ _ : Element -> defaultSignatureExtrasValue }
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(

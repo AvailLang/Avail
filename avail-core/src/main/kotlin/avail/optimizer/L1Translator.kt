@@ -982,14 +982,13 @@ class L1Translator private constructor(
 		// indicate a singular answer, keeping only those that are possible at
 		// this call site.
 		val applicableExpandedLeaves = mutableListOf<A_Definition>()
-		val workList = mutableListOf(tree to emptyList<L2SemanticValue>())
+		val workList = mutableListOf(tree)
 		while (workList.isNotEmpty())
 		{
-			val (node, extraSemanticValues) = workList.removeLast()
-			when (node)
+			when (val node = workList.removeLast())
 			{
-				is InternalLookupTree -> node.decisionStepOrNull?.addChildrenTo(
-					workList, semanticArguments, extraSemanticValues)
+				is InternalLookupTree ->
+					node.decisionStepOrNull?.simplyAddChildrenTo(workList)
 				is LeafLookupTree ->
 				{
 					val lookupResult = node.solutionOrNull

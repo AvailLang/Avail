@@ -99,33 +99,33 @@ constructor(
 
 	override fun updateExtraValuesByTypes(
 		types: List<A_Type>,
-		extraValues: List<Element>
-	): List<Element>
+		extraValues: List<A_Type>
+	): List<A_Type>
 	{
 		val i = argumentPositionToTest
 		val inExtras = i - types.size
-		val baseValue = when
+		val baseType = when
 		{
 			inExtras > 0 -> extraValues[inExtras - 1]
 			else -> types[i - 1]
 		}
-		val newValue = (baseValue as A_Phrase).phraseExpressionType
+		val newValue = baseType.phraseTypeExpressionType
 		return extraValues.append(newValue.cast())
 	}
 
 	override fun updateExtraValuesByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>
-	): List<Element>
+		extraValues: List<A_Type>
+	): List<A_Type>
 	{
 		val i = argumentPositionToTest
 		val inExtras = i - argTypes.tupleSize
-		val baseValue = when
+		val baseType = when
 		{
 			inExtras > 0 -> extraValues[inExtras - 1]
 			else -> argTypes.tupleAt(i)
 		}
-		val newValue = (baseValue as A_Phrase).phraseExpressionType
+		val newValue = baseType.phraseTypeExpressionType
 		return extraValues.append(newValue.cast())
 	}
 
@@ -177,7 +177,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValues(
 		argValues: List<A_BasicObject>,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -186,7 +186,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: List<A_Type>,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -195,7 +195,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByTypes(
 		argTypes: A_Tuple,
-		extraValues: List<Element>,
+		extraValues: List<A_Type>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -204,7 +204,7 @@ constructor(
 
 	override fun <AdaptorMemento> lookupStepByValue(
 		probeValue: A_BasicObject,
-		extraValues: List<Element>,
+		extraValues: List<A_BasicObject>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
 		memento: AdaptorMemento): LookupTree<Element, Result>
 	{
@@ -237,6 +237,12 @@ constructor(
 		P_PhraseExpressionType,
 		listOf(
 			sourceSemanticValue(semanticValues, extraSemanticValues)))
+
+	override fun simplyAddChildrenTo(
+		list: MutableList<LookupTree<Element, Result>>)
+	{
+		list.add(childNode)
+	}
 
 	override fun addChildrenTo(
 		list: MutableList<
@@ -279,6 +285,8 @@ constructor(
 		generator.jumpTo(target)
 		return listOf(
 			Triple(
-				target, childNode.castForGenerator(), extraSemanticArguments))
+				target,
+				childNode.castForGenerator(),
+				extraSemanticArguments + expressionTypeSemanticValue))
 	}
 }

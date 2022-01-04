@@ -1249,6 +1249,9 @@ class AvailObject private constructor(
 	override fun fieldTypeAt(field: A_Atom) =
 		descriptor().o_FieldTypeAt(this, field)
 
+	override fun fieldTypeAtIndex(index: Int): A_Type =
+		descriptor().o_FieldTypeAtIndex(this, index)
+
 	override fun fieldTypeAtOrNull(field: A_Atom) =
 		descriptor().o_FieldTypeAtOrNull(this, field)
 
