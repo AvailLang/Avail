@@ -3347,6 +3347,7 @@ class Interpreter(
 				setReifiedContinuation(continuation)
 				setLatestResult(result)
 				returningFunction = aFiber.suspendingFunction()
+				aFiber.setSuspendingFunction(nil)
 				exitNow = false
 				if (continuation.isNil)
 				{
@@ -3407,6 +3408,7 @@ class Interpreter(
 				assert(getReifiedContinuation() === null)
 				setReifiedContinuation(aFiber.continuation())
 				aFiber.setContinuation(nil)
+				aFiber.setSuspendingFunction(nil)
 				function = failureFunction
 				argsBuffer.clear()
 				argsBuffer.addAll(args)
