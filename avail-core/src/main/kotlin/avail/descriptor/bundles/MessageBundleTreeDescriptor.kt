@@ -37,6 +37,7 @@ import avail.compiler.ParsingOperation
 import avail.compiler.ParsingOperation.BRANCH_FORWARD
 import avail.compiler.ParsingOperation.CHECK_ARGUMENT
 import avail.compiler.ParsingOperation.Companion.decode
+import avail.compiler.ParsingOperation.Companion.operand
 import avail.compiler.ParsingOperation.JUMP_BACKWARD
 import avail.compiler.ParsingOperation.JUMP_FORWARD
 import avail.compiler.ParsingOperation.PARSE_PART
@@ -51,6 +52,7 @@ import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
 import avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
+import avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.IS_SOURCE_OF_CYCLE
@@ -67,6 +69,7 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSI
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
@@ -80,6 +83,7 @@ import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
@@ -97,6 +101,7 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -311,6 +316,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 * not present as a key (or the argument isn't a send), then the
 		 * instruction is looked up normally in the lazy actions map.
 		 */
+		@HideFieldInDebugger
 		LAZY_ACTIONS,
 
 		/**
@@ -463,6 +469,38 @@ class MessageBundleTreeDescriptor private constructor(
 			append("$bundleCount entries")
 		}
 		append(")")
+	}
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
+	{
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		val actions = self.lazyActions
+		val actionEntries = actions.keysAsSet
+			.sortedBy { it.extractInt }
+			.map { key ->
+				val keyInt = key.extractInt
+				val operation = decode(keyInt)
+				val operand = operand(keyInt)
+				val description = operation.describe(operand)
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					actions.mapAt(key).toList().toTypedArray(),
+					slotName = description,
+					forcedName = description)
+			}
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+				-1,
+				actionEntries.toTypedArray(),
+				slotName = "lazyActions",
+				forcedName = "lazyActions"))
+		return fields.toTypedArray()
 	}
 
 	/**

@@ -134,7 +134,7 @@ object P_ExitContinuationIf : Primitive(
 			// We're conditionally exiting the current frame.
 			val exit = generator.createBasicBlock("Exit")
 			val dontExit = generator.createBasicBlock("Don't exit")
-			translator.jumpIfEqualsConstant(
+			generator.jumpIfEqualsConstant(
 				generator.readBoxed(
 					conditionReg.originalBoxedWriteSkippingMoves(true)),
 				trueObject,

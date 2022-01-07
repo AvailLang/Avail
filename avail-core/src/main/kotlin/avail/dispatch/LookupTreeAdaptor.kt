@@ -219,6 +219,8 @@ abstract class LookupTreeAdaptor<
 			zero,
 			zero,
 			zero,
+			zero,
+			zero,
 			emptyMap,
 			memento)
 	}
@@ -268,13 +270,25 @@ abstract class LookupTreeAdaptor<
 	 *   via an [ObjectLayoutVariantDecisionStep] in an ancestor.  Argument #n
 	 *   is indicated by a set bit in the n-1st bit position, the one whose
 	 *   value in the integer is 2^(n-1).
+	 * @param alreadyMetaInstanceExtractArguments
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) were known to be
+	 *   a meta, and had their instance (which is itself a type) extracted
+	 *   already  into another field via an [ExtractMetaInstanceDecisionStep] in
+	 *   an ancestor. Argument #n is indicated by a set bit in the n-1st bit
+	 *   position, the one whose value in the integer is 2^(n-1).
 	 * @param alreadyPhraseTypeExtractArguments
-	 *   An Avail [integer][A_Number] coding which arguments (and extras that may
-	 *   have been generated during traversal of ancestors) were known to be phrase
-	 *   types, and have had their yield type extracted already into another field
-	 *   via an [ExtractPhraseTypeDecisionStep] in an ancestor.  Argument #n is
-	 *   indicated by a set bit in the n-1st bit position, the one whose value in
-	 *   the integer is 2^(n-1).
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) were known to be
+	 *   phrase types, and have had their yield type extracted already into
+	 *   another field via an [ExtractPhraseTypeDecisionStep] in an ancestor.
+	 *   Argument #n is indicated by a set bit in the n-1st bit position, the
+	 *   one whose value in the integer is 2^(n-1).
+	 * @param alreadyTestedConstants
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) have already
+	 *   been tested for constants.  Argument #n is indicated by a set bit in
+	 *   the n-1st bit position, the one whose value in the integer is 2^(n-1).
 	 * @param alreadyExtractedFields
 	 *   An [A_Map] from Avail integer to Avail integer.  They key integer is
 	 *   the one-based argument (or extras) subscript of the source object, and
@@ -292,7 +306,9 @@ abstract class LookupTreeAdaptor<
 		knownArgumentRestrictions: List<TypeRestriction>,
 		alreadyTypeTestedArguments: A_Number,
 		alreadyVariantTestedArguments: A_Number,
+		alreadyMetaInstanceExtractArguments: A_Number,
 		alreadyPhraseTypeExtractArguments: A_Number,
+		alreadyTestedConstants: A_Number,
 		alreadyExtractedFields: A_Map,
 		memento: Memento): LookupTree<Element, Result>
 	{
@@ -334,7 +350,9 @@ abstract class LookupTreeAdaptor<
 			knownArgumentRestrictions,
 			alreadyTypeTestedArguments,
 			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
 			alreadyExtractedFields)
 	}
 

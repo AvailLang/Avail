@@ -120,10 +120,11 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		// :: intSum = (int) longSum;
 		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.DUP)
-		val intSumLocal = translator.nextLocal(Type.INT_TYPE)
 		val intSumStart = Label()
-		method.visitLabel(intSumStart)
+		val intSumEnd = Label()
+		val intSumLocal = translator.nextLocal(Type.INT_TYPE)
 		method.visitVarInsn(Opcodes.ISTORE, intSumLocal)
+		method.visitLabel(intSumStart)
 		// :: if (longSum != intSum) goto outOfRange;
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LCMP)
@@ -133,7 +134,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.ILOAD, intSumLocal)
-		val intSumEnd = Label()
+		translator.store(method, sumReg.register())
 		method.visitLabel(intSumEnd)
 		method.visitLocalVariable(
 			"intSum",
@@ -142,7 +143,6 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 			intSumStart,
 			intSumEnd,
 			intSumLocal)
-		translator.store(method, sumReg.register())
 		translator.jump(method, instruction, inRange)
 	}
 }

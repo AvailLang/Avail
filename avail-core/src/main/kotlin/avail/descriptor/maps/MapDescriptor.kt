@@ -34,6 +34,8 @@ package avail.descriptor.maps
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.maps.A_Map.Companion.keysAsSet
+import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -218,30 +220,32 @@ class MapDescriptor private constructor(
 					wholeNumbers, stringType, ANY.o))
 		) {
 			// The keys are all strings.
-			val mapIterable = self.mapIterable
-			return Array(self.mapSize) { counter ->
-				val (key, value) = mapIterable.next()
-				val keyStringSize = key.tupleSize
-				val keyString = when (keyStringSize > 50) {
-					true ->
-						tuple(
-							key.copyTupleFromToCanDestroy(1, 25, false),
-							stringFrom(" … "),
-							key.copyTupleFromToCanDestroy(
-								keyStringSize - 24,
-								keyStringSize,
-								false)
-						).concatenateTuplesCanDestroy(false)
-					else -> key
+			return self.keysAsSet
+				.sortedBy { it.asNativeString() }
+				.map { key ->
+					val value = self.mapAt(key)
+					val keyStringSize = key.tupleSize
+					val keyString = when (keyStringSize > 50) {
+						true ->
+							tuple(
+								key.copyTupleFromToCanDestroy(1, 25, false),
+								stringFrom(" … "),
+								key.copyTupleFromToCanDestroy(
+									keyStringSize - 24,
+									keyStringSize,
+									false)
+							).concatenateTuplesCanDestroy(false)
+						else -> key
+					}
+					val name = ("Key: $keyString")
+					AvailObjectFieldHelper(
+						self,
+						DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+						-1,
+						value,
+						slotName = name)
 				}
-				val name = ("Key#$counter $keyString")
-				AvailObjectFieldHelper(
-					self,
-					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
-					-1,
-					value,
-					slotName = name)
-			}
+				.toTypedArray()
 		}
 		val fields = arrayOfNulls<AvailObjectFieldHelper>(self.mapSize shl 1)
 		var arrayIndex = 0

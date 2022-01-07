@@ -81,6 +81,7 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.InstanceTypeDescriptor.ObjectSlots.INSTANCE
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
@@ -399,27 +400,20 @@ private constructor(
 		else instanceTypeOrMetaOn(tuple.tupleAt(tupleSize))
 	}
 
-	override fun o_SizeRange(self: AvailObject): A_Type
-	{
-		val instance: AvailObject = getInstance(self)
-		return when
-		{
-			instance.isTuple ->
-				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).tupleSize)
-			instance.isSet ->
-				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).setSize)
-			instance.isMap ->
-				IntegerRangeTypeDescriptor.singleInt(
-					getInstance(self).mapSize)
-			else ->
+	override fun o_SizeRange(self: AvailObject): A_Type =
+		getInstance(self).run {
+			when
 			{
-				assert(false) { "Unexpected instance for sizeRange" }
-				NilDescriptor.nil
+				isTuple -> singleInt(tupleSize)
+				isSet -> singleInt(setSize)
+				isMap -> singleInt(mapSize)
+				else ->
+				{
+					assert(false) { "Unexpected instance for sizeRange" }
+					NilDescriptor.nil
+				}
 			}
 		}
-	}
 
 	override fun o_TypeTuple(self: AvailObject): A_Tuple
 	{
@@ -531,11 +525,8 @@ private constructor(
 	override fun o_PhraseTypeExpressionType(self: AvailObject): A_Type =
 		getInstance(self).phraseExpressionType
 
-	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
-	{
-		val instance = getInstance(self)
-		return instance.isLong && instance.extractLong == aLong
-	}
+	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
+		getInstance(self).run { isLong && extractLong == aLong }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.INSTANCE_TYPE

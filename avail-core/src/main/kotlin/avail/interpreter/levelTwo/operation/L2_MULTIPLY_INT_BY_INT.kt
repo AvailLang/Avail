@@ -107,8 +107,9 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		method.visitInsn(Opcodes.DUP)
 		val intProductLocal = translator.nextLocal(Type.INT_TYPE)
 		val intProductStart = Label()
-		method.visitLabel(intProductStart)
+		val intProductEnd = Label()
 		method.visitVarInsn(Opcodes.ISTORE, intProductLocal)
+		method.visitLabel(intProductStart)
 		// :: if (longProduct != intProduct) goto outOfRange;
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LCMP)
@@ -119,7 +120,7 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.ILOAD, intProductLocal)
-		val intProductEnd = Label()
+		translator.store(method, productReg.register())
 		method.visitLabel(intProductEnd)
 		method.visitLocalVariable(
 			"intProduct",
@@ -128,7 +129,6 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 			intProductStart,
 			intProductEnd,
 			intProductLocal)
-		translator.store(method, productReg.register())
 		translator.jump(method, instruction, inRange)
 	}
 }

@@ -1,6 +1,6 @@
 /*
- * Bootstrap.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * L2_HASH.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,39 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.interpreter.levelTwo.operation
 
-/*
- * GENERATED FILE
- * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/6/22, 1:23 AM
+import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.hashMethod
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
+import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteIntOperand
+import avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+
+/**
+ * Answer the [hash][A_BasicObject.hash] of the specified value.
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
+object L2_HASH : L2Operation(
+	READ_BOXED.named("value"),
+	WRITE_INT.named("hash"))
+{
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
+	{
+		val value = instruction.operand<L2ReadBoxedOperand>(0)
+		val hash = instruction.operand<L2WriteIntOperand>(1)
 
-Module "Bootstrap"
-Versions
-	"Avail-1.6.0"
-Extends
-	"Origin",
-	"Special Objects",
-	"Error Codes",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
-Uses
-Names
-Body
-
+		// :: hash = tuple.hash();
+		translator.load(method, value.register())
+		hashMethod.generateCall(method)
+		translator.store(method, hash.register())
+	}
+}

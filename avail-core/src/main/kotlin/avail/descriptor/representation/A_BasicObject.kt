@@ -226,6 +226,7 @@ interface A_BasicObject : JSONFriendly
 	 *
 	 * @return An [Int] hash value.
 	 */
+	@ReferencedInGeneratedCode
 	fun hash(): Int
 	override fun hashCode(): Int
 
@@ -1205,5 +1206,11 @@ interface A_BasicObject : JSONFriendly
 			A_BasicObject::class.java,
 			A_BasicObject::isDouble.name,
 			Boolean::class.javaPrimitiveType!!)
+
+		/** The [CheckedMethod] for [hash]. */
+		val hashMethod = instanceMethod(
+			A_BasicObject::class.java,
+			A_BasicObject::hash.name,
+			Int::class.javaPrimitiveType!!)
 	}
 }

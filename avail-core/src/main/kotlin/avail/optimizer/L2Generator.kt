@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
@@ -111,13 +112,25 @@ import avail.interpreter.levelTwo.operation.L2_BOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_BOX_INT
 import avail.interpreter.levelTwo.operation.L2_CREATE_TUPLE
 import avail.interpreter.levelTwo.operation.L2_FUNCTION_PARAMETER_TYPE
+import avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import avail.interpreter.levelTwo.operation.L2_GET_TYPE.sourceValueOf
 import avail.interpreter.levelTwo.operation.L2_JUMP
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_EQUALS_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_KIND_OF_OBJECT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_OBJECTS_EQUAL
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_CONSTANT
+import avail.interpreter.levelTwo.operation.L2_JUMP_IF_SUBTYPE_OF_OBJECT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_UNBOX_INT
 import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MOVE_CONSTANT
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.argsOf
+import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE.Companion.primitiveOf
 import avail.interpreter.levelTwo.operation.L2_TUPLE_AT_UPDATE
 import avail.interpreter.levelTwo.operation.L2_UNBOX_FLOAT
 import avail.interpreter.levelTwo.operation.L2_UNBOX_INT
@@ -127,11 +140,13 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 import avail.interpreter.levelTwo.register.L2IntRegister
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.primitive.controlflow.P_RestartContinuation
+import avail.interpreter.primitive.general.P_Equality
 import avail.optimizer.L2Generator.OptimizationLevel
 import avail.optimizer.L2Generator.SpecialBlock.AFTER_OPTIONAL_PRIMITIVE
 import avail.optimizer.L2Generator.SpecialBlock.UNREACHABLE
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.Frame
+import avail.optimizer.values.L2SemanticConstant
 import avail.optimizer.values.L2SemanticUnboxedFloat
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
@@ -1327,6 +1342,299 @@ class L2Generator internal constructor(
 	fun jumpTo(targetBlock: L2BasicBlock)
 	{
 		addInstruction(L2_JUMP, edgeTo(targetBlock))
+	}
+	/**
+	 * Generate a conditional branch to either `passBlock` or `failBlock`, based
+	 * on whether the given register equals the given constant value.
+	 *
+	 * If the constant to compare against is a boolean, check the provenance
+	 * of the register.  If it's the result of a suitable comparison primitive,
+	 * generate a more efficient compare-and-branch instruction instead of
+	 * creating the boolean only to have it compared to a boolean constant.
+	 *
+	 * If the value of the boolean-producing instruction is not used, it will
+	 * eventually be removed as dead code.
+	 *
+	 * @param registerToTest
+	 *   The register whose content should be compared.
+	 * @param constantValue
+	 *   The constant value to compare against.
+	 * @param passBlock
+	 *   Where to go if the register's value equals the constant.
+	 * @param failBlock
+	 *   Where to go if the register's value does not equal the constant.
+	 */
+	fun jumpIfEqualsConstant(
+		registerToTest: L2ReadBoxedOperand,
+		constantValue: A_BasicObject,
+		passBlock: L2BasicBlock,
+		failBlock: L2BasicBlock)
+	{
+		val restriction = registerToTest.restriction()
+		when (restriction.constantOrNull)
+		{
+			constantValue -> {
+				// Always true.
+				jumpTo(passBlock)
+				return
+			}
+			is Any -> {
+				// Always false.
+				jumpTo(failBlock)
+				return
+			}
+		}
+		if (constantValue.isBoolean)
+		{
+			val constantBool = constantValue.equals(trueObject)
+			val boolSource = registerToTest.definitionSkippingMoves(true)
+			when
+			{
+				boolSource.operation !is L2_RUN_INFALLIBLE_PRIMITIVE ->
+				{
+				}
+				primitiveOf(boolSource) === P_Equality ->
+				{
+					val (read1, read2) = argsOf(boolSource)
+					// If either operand of P_Equality is a constant, recurse to
+					// allow deeper replacement.
+					var previousConstant = read1.constantOrNull()
+					val previousRegister: L2ReadBoxedOperand
+					if (previousConstant !== null)
+					{
+						previousRegister = read2
+					}
+					else
+					{
+						previousConstant = read2.constantOrNull()
+						previousRegister = read1
+					}
+					if (previousConstant !== null)
+					{
+						// It's a comparison against a constant.  Recurse to
+						// deal with comparing the result of a prior comparison
+						// to some boolean.
+						jumpIfEqualsConstant(
+							previousRegister,
+							previousConstant,
+							if (constantBool) passBlock else failBlock,
+							if (constantBool) failBlock else passBlock)
+						return
+					}
+					// Neither value is a constant, but we can still do the
+					// compare-and-branch without involving Avail booleans.
+					addInstruction(
+						L2_JUMP_IF_OBJECTS_EQUAL,
+						read1,
+						read2,
+						edgeTo(if (constantBool) passBlock else failBlock),
+						edgeTo(if (constantBool) failBlock else passBlock))
+					return
+				}
+				boolSource.operation === L2_JUMP_IF_SUBTYPE_OF_CONSTANT ->
+				{
+					// Instance-of testing is done by extracting the type and
+					// testing if it's a subtype.  See if the operand to the
+					// is-subtype test is a get-type instruction.
+					val firstTypeOperand =
+						boolSource.operand<L2ReadBoxedOperand>(0)
+					val secondConstantOperand =
+						boolSource.operand<L2ConstantOperand>(1)
+					val firstTypeSource =
+						firstTypeOperand.definitionSkippingMoves(true)
+					if (firstTypeSource.operation === L2_GET_TYPE)
+					{
+						// There's a get-type followed by an is-subtype
+						// followed by a compare-and-branch of the result
+						// against a constant boolean.  Replace with a
+						// branch-if-kind.
+						val valueSource = sourceValueOf(firstTypeSource)
+						jumpIfKindOfConstant(
+							valueSource,
+							secondConstantOperand.constant,
+							if (constantBool) passBlock else failBlock,
+							if (constantBool) failBlock else passBlock)
+						return
+					}
+					// Perform a branch-if-is-subtype-of instead of checking
+					// whether the Avail boolean is true or false.
+					addInstruction(
+						L2_JUMP_IF_SUBTYPE_OF_CONSTANT,
+						firstTypeOperand,
+						secondConstantOperand,
+						edgeTo(if (constantBool) passBlock else failBlock),
+						edgeTo(if (constantBool) failBlock else passBlock))
+					return
+				}
+				boolSource.operation === L2_JUMP_IF_SUBTYPE_OF_OBJECT ->
+				{
+					// Instance-of testing is done by extracting the type and
+					// testing if it's a subtype.  See if the operand to the
+					// is-subtype test is a get-type instruction.
+					val firstTypeOperand =
+						boolSource.operand<L2ReadBoxedOperand>(0)
+					val secondTypeOperand =
+						boolSource.operand<L2ReadBoxedOperand>(0)
+					val firstTypeSource =
+						firstTypeOperand.definitionSkippingMoves(true)
+					if (firstTypeSource.operation === L2_GET_TYPE)
+					{
+						// There's a get-type followed by an is-subtype
+						// followed by a compare-and-branch of the result
+						// against a constant boolean.  Replace with a
+						// branch-if-kind.
+						val valueSource = sourceValueOf(firstTypeSource)
+						addInstruction(
+							L2_JUMP_IF_KIND_OF_OBJECT,
+							valueSource,
+							secondTypeOperand,
+							edgeTo(if (constantBool) passBlock else failBlock),
+							edgeTo(if (constantBool) failBlock else passBlock))
+						return
+					}
+					// Perform a branch-if-is-subtype-of instead of checking
+					// whether the Avail boolean is true or false.
+					addInstruction(
+						L2_JUMP_IF_SUBTYPE_OF_OBJECT,
+						firstTypeOperand,
+						secondTypeOperand,
+						edgeTo(if (constantBool) passBlock else failBlock),
+						edgeTo(if (constantBool) failBlock else passBlock))
+					return
+				}
+				// TODO MvG - We could check for other special cases here, like
+				// numeric less-than.  For now, fall through to compare the
+				// value against the constant.
+			}
+		}
+		// Generate the general case.  In the pass case, flow through an
+		// intermediate block that uses a move to a temp to force the constant
+		// value to be visible in a register.
+		val innerPass = L2BasicBlock("strengthen to constant")
+		if (constantValue.isInt
+			&& registerToTest.restriction().containedByType(int32))
+		{
+			// The constant and the value are both int32s.  Use the quicker int
+			// test, unboxing the int register if needed.
+			val trulyUnreachable = L2BasicBlock("truly unreachable")
+			L2_JUMP_IF_COMPARE_INT.equal.compareAndBranch(
+				this,
+				readInt(
+					L2SemanticUnboxedInt(registerToTest.semanticValue()),
+					trulyUnreachable),
+				unboxedIntConstant(
+					(constantValue as AvailObject).extractInt),
+				edgeTo(innerPass),
+				edgeTo(failBlock))
+			assert(trulyUnreachable.predecessorEdges().isEmpty())
+		}
+		else
+		{
+			addInstruction(
+				L2_JUMP_IF_EQUALS_CONSTANT,
+				registerToTest,
+				L2ConstantOperand(constantValue),
+				edgeTo(innerPass),
+				edgeTo(failBlock))
+		}
+		startBlock(innerPass)
+		val semanticConstant = L2SemanticConstant(constantValue)
+		if (!currentManifest.hasSemanticValue(semanticConstant))
+		{
+			moveRegister(
+				L2_MOVE.boxed,
+				registerToTest.semanticValue(),
+				semanticConstant)
+		}
+		jumpTo(passBlock)
+	}
+
+	/**
+	 * Generate code to test the value in `valueRead` against the constant
+	 * `expectedType`, jumping to `passedCheck` if it conforms, or `failedCheck`
+	 * otherwise.
+	 *
+	 * @param valueRead
+	 *   The [L2ReadBoxedOperand] that provides the value to check.
+	 * @param expectedType
+	 *   The exact [A_Type] to check the value against.
+	 * @param passedCheck
+	 *   Where to jump if the value's type is of the expected type.
+	 * @param failedCheck
+	 *   Where to jump if the value's type is not of the expected type.
+	 */
+	fun jumpIfKindOfConstant(
+		valueRead: L2ReadBoxedOperand,
+		expectedType: A_Type,
+		passedCheck: L2BasicBlock,
+		failedCheck: L2BasicBlock)
+	{
+		// Check for special cases.
+		if (valueRead.restriction().containedByType(expectedType))
+		{
+			jumpTo(passedCheck)
+			return
+		}
+		if (!valueRead.restriction().intersectsType(expectedType))
+		{
+			jumpTo(failedCheck)
+			return
+		}
+		// Trace back to the definition of the read's register, to see if it's
+		// a function that's created in the current chunk.
+		val rawFunction = determineRawFunction(valueRead)
+		if (rawFunction !== null)
+		{
+			val exactKind = rawFunction.functionType()
+			if (exactKind.isSubtypeOf(expectedType))
+			{
+				jumpTo(passedCheck)
+				return
+			}
+			if (!expectedType.isEnumeration)
+			{
+				// Don't check for vacuous type intersection here.  We know the
+				// exact kind, and it's specifically *not* a subtype of the
+				// expectedType, which is also a kind (i.e., not an
+				// enumeration).
+				jumpTo(failedCheck)
+				return
+			}
+		}
+		// We can't pin it down statically, so do the dynamic check.
+		addInstruction(
+			L2_JUMP_IF_KIND_OF_CONSTANT,
+			valueRead,
+			L2ConstantOperand(expectedType),
+			edgeTo(passedCheck),
+			edgeTo(failedCheck))
+	}
+
+	/**
+	 * Given a register that holds the function to invoke, answer either the
+	 * [A_RawFunction] it will be known to run, or `null`.
+	 *
+	 * @param functionToCallReg
+	 *   The [L2ReadBoxedOperand] containing the function to invoke.
+	 * @return
+	 *   Either `null` or the function's [A_RawFunction].
+	 */
+	fun determineRawFunction(
+		functionToCallReg: L2ReadBoxedOperand): A_RawFunction?
+	{
+		val functionIfKnown: A_Function? =
+			functionToCallReg.constantOrNull()
+		if (functionIfKnown !== null)
+		{
+			// The exact function is known.
+			return functionIfKnown.code()
+		}
+		// See if we can at least find out the raw function that the function
+		// was created from.
+		val functionDefinition =
+			functionToCallReg.definitionSkippingMoves(true)
+		return functionDefinition.operation.getConstantCodeFrom(
+			functionDefinition)
 	}
 
 	/**

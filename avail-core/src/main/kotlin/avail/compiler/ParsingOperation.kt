@@ -1236,6 +1236,10 @@ enum class ParsingOperation constructor(
 					}
 				})
 		}
+		override fun describe(operand: Int): String
+		{
+			return super.describe(operand) + " = " + ruleNumber(operand)
+		}
 	},
 
 	/**
@@ -1395,6 +1399,11 @@ enum class ParsingOperation constructor(
 				marksSoFar,
 				superexpressions,
 				continuation)
+		}
+
+		override fun describe(operand: Int): String
+		{
+			return super.describe(operand) + " = " + permutationAtIndex(operand)
 		}
 	},
 
@@ -1608,6 +1617,11 @@ enum class ParsingOperation constructor(
 				superexpressions,
 				continuation)
 		}
+
+		override fun describe(operand: Int): String
+		{
+			return super.describe(operand) + " = " + constantForIndex(operand)
+		}
 	},
 
 	/**
@@ -1680,6 +1694,15 @@ enum class ParsingOperation constructor(
 			}
 			return modulus
 		}
+
+	/**
+	 * Describe the operation for the debugger, using the supplied operand.
+	 */
+	open fun describe(operand: Int) = when (operand)
+	{
+		0 -> name
+		else -> "$name (#$operand)"
+	}
 
 	/**
 	 * Answer the instruction coding of the receiver for the given operand. The

@@ -256,7 +256,7 @@ constructor(
 				{
 					val nextCheckOrFail = generator.createBasicBlock(
 						"test next case of enumeration")
-					translator.jumpIfEqualsConstant(
+					generator.jumpIfEqualsConstant(
 						argRead,
 						instance,
 						passBlock,
@@ -264,7 +264,7 @@ constructor(
 					generator.startBlock(nextCheckOrFail)
 					instance = iterator.next()
 				}
-				translator.jumpIfEqualsConstant(
+				generator.jumpIfEqualsConstant(
 					argRead,
 					instance,
 					passBlock,
@@ -272,7 +272,7 @@ constructor(
 				return result
 			}
 			// A runtime test is needed, and it's not a small enumeration.
-			translator.jumpIfKindOfConstant(
+			generator.jumpIfKindOfConstant(
 				argRead,
 				argumentTypeToTest,
 				passBlock,

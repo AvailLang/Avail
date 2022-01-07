@@ -989,8 +989,7 @@ Public macro "«_‡«=|≤|<»!»" is
 			else [
 				if operatorIndex = 2 then [⟦⦊get1⦉ ≤ ⦊get2⦉⟧]
 				else [⟦⦊get1⦉ < ⦊get2⦉⟧]];
-		negation ::= send $"¬_" with <comparison> → list phrase : boolean;
-		statements ++= <⟦ Exit ⦊getExit⦉ with false if ⦊negation⦉; ⟧>;
+		statements ++= <⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧>;
 		true
 	];
 	statements ++= <⟦true⟧>;

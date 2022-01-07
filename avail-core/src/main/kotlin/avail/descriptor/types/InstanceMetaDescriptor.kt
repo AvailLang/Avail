@@ -469,11 +469,32 @@ private constructor(
 		}
 
 		/**
+		 * Extract a meta's instance, which is itself a type.
+		 *
+		 * @param meta
+		 *   A metatype.
+		 * @return
+		 *   The argument's instance, a type.
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun instanceOfMeta(meta: A_Type): A_Type = meta.instance
+
+		/**
 		 * The [CheckedMethod] for [instanceMeta].
 		 */
 		val instanceMetaMethod = staticMethod(
 			InstanceMetaDescriptor::class.java,
 			::instanceMeta.name,
+			A_Type::class.java,
+			A_Type::class.java)
+
+		/**
+		 * The [CheckedMethod] for [instanceOfMeta].
+		 */
+		val instanceOfMetaMethod = staticMethod(
+			InstanceMetaDescriptor::class.java,
+			::instanceOfMeta.name,
 			A_Type::class.java,
 			A_Type::class.java)
 	}

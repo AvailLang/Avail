@@ -48,6 +48,8 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObjectRepresentation
+import avail.descriptor.sets.SetDescriptor
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceTag
@@ -57,13 +59,21 @@ import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
+import avail.descriptor.types.TypeTag.META_TAG
+import avail.descriptor.types.TypeTag.OBJECT_TAG
+import avail.descriptor.types.TypeTag.OBJECT_TYPE_TAG
+import avail.descriptor.types.TypeTag.PHRASE_TAG
 import avail.descriptor.types.TypeTag.TOP_TYPE_TAG
 import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.utility.PrefixSharingList.Companion.append
@@ -106,6 +116,13 @@ import kotlin.math.min
  *   via an [ObjectLayoutVariantDecisionStep] in an ancestor.  Argument #n
  *   is indicated by a set bit in the n-1st bit position, the one whose
  *   value in the integer is 2^(n-1).
+ * @property alreadyMetaInstanceExtractArguments
+ *   An Avail [integer][A_Number] coding which arguments (and extras that may
+ *   have been generated during traversal of ancestors) were known to be
+ *   metatypes, and have had their instance (a type) extracted already into
+ *   another field via an [ExtractMetaInstanceDecisionStep] in an ancestor.
+ *   Argument #n is indicated by a set bit in the n-1st bit position, the one
+ *   whose value in the integer is 2^(n-1).
  * @property alreadyPhraseTypeExtractArguments
  *   An Avail [integer][A_Number] coding which arguments (and extras that may
  *   have been generated during traversal of ancestors) were known to be phrase
@@ -135,7 +152,9 @@ internal constructor(
 	val knownArgumentRestrictions: List<TypeRestriction>,
 	val alreadyTagTestedArguments: A_Number,
 	private val alreadyVariantTestedArguments: A_Number,
+	val alreadyMetaInstanceExtractArguments: A_Number,
 	val alreadyPhraseTypeExtractArguments: A_Number,
+	val alreadyTestedConstants: A_Number,
 	val alreadyExtractedFields: A_Map)
 : LookupTree<Element, Result>()
 {
@@ -144,6 +163,11 @@ internal constructor(
 	init
 	{
 		assert(alreadyTagTestedArguments.descriptor().isShared)
+		assert(alreadyVariantTestedArguments.descriptor().isShared)
+		assert(alreadyMetaInstanceExtractArguments.descriptor().isShared)
+		assert(alreadyPhraseTypeExtractArguments.descriptor().isShared)
+		assert(alreadyTestedConstants.descriptor().isShared)
+		assert(alreadyExtractedFields.descriptor().isShared)
 	}
 
 	/**
@@ -231,6 +255,10 @@ internal constructor(
 			// See if the type tags differ for any of the values.  Assume type
 			// tag dispatch is always more efficient than type testing.
 			val commonTags = arrayOfNulls<TypeTag>(numArgs)
+			// Collect the constants that are available for dispatch in each
+			// argument position.  Enumerations (not metas, other than
+			// bottomMeta) may provide multiple values.
+			val constantSets = Array(numArgs) { mutableSetOf<A_BasicObject>() }
 			// Collect the (element, restrictedSignatureTupleType) pairs.
 			val restrictedElements = undecidedElements.map { element ->
 				element to adaptor.restrictedSignature(
@@ -246,6 +274,14 @@ internal constructor(
 				val argType = firstRestricted.typeAtIndex(argNumber + 1)
 				commonArgTypes[argNumber] = argType
 				commonTags[argNumber] = argType.instanceTag
+				if (!alreadyTestedConstants.bitTest(argNumber))
+				{
+					if (argType.isEnumeration &&
+						(!argType.isInstanceMeta || argType.equals(bottomMeta)))
+					{
+						constantSets[argNumber].addAll(argType.instances)
+					}
+				}
 			}
 			iterator.forEachRemaining { (_, argsType) ->
 				repeat(numArgs) { argNumber ->
@@ -263,11 +299,40 @@ internal constructor(
 					}
 				}
 			}
+			val mostConstants =
+				constantSets.withIndex().maxByOrNull { (_, set) -> set.size }!!
+			if (mostConstants.value.size >= 3)
+			{
+				// At least 3 constants can be used to dispatch this argument.
+				// Save computation time for building this up in subtrees by
+				// figuring out which argument positions have less than 3
+				// constants, and pretending those have already done their
+				// constant-dispatch.
+				var testedFlags = alreadyTestedConstants
+					.bitSet(mostConstants.index, true, true)
+				constantSets.forEachIndexed { i, set ->
+					if (set.size < 3)
+					{
+						testedFlags = testedFlags.bitSet(i, true, true)
+					}
+				}
+				return buildTestConstants(
+					adaptor,
+					memento,
+					mostConstants.index + 1,
+					testedFlags.makeShared(),
+					signatureExtrasExtractor)
+			}
 
 			for (argNumber in numArgs downTo 1)
 			{
-				if (commonTags[argNumber - 1] === null
-					&& !alreadyTagTestedArguments.bitTest(argNumber - 1))
+				val commonTag = commonTags[argNumber - 1]
+				if (!alreadyTagTestedArguments.bitTest(argNumber - 1) &&
+					(commonTag === null
+						|| commonTag === OBJECT_TAG
+						|| commonTag === OBJECT_TYPE_TAG
+						|| commonTag.isSubtagOf(PHRASE_TAG)
+						|| commonTag === META_TAG))
 				{
 					// A type tag dispatch here reduces the number of undecided
 					// elements in subtrees.
@@ -279,6 +344,20 @@ internal constructor(
 			for (argNumber in numArgs downTo 1)
 			{
 				val restriction = knownArgumentRestrictions[argNumber - 1]
+				if (restriction.type.isSubtypeOf(instanceMeta(topMeta()))
+					&& !restriction.type.isSubtypeOf(bottomMeta))
+				{
+					// Extract the meta's instance, itself a type.  The instance
+					// covaries with the meta due to metacovariance.
+					// First, however, make sure the meta isn't the degenerate
+					// type ⊥.  ⊥'s type is fine, however.
+					assert(alreadyTagTestedArguments.bitTest(argNumber - 1))
+					if (!alreadyMetaInstanceExtractArguments
+							.bitTest(argNumber - 1))
+					{
+						return buildExtractMetaInstance(adaptor, argNumber)
+					}
+				}
 				if (restriction.type.isSubtypeOf(mostGeneralObjectType)
 					&& !restriction.type.isBottom)
 				{
@@ -314,9 +393,10 @@ internal constructor(
 						if (bestCount > 1)
 						{
 							// For this argument, we've found the field with the
-							// most distinct types (over the elements). There's more
-							// than one such type for this field, so extract it and
-							// let subsequent steps differentiate them efficiently.
+							// most distinct types (over the elements). There's
+							// more than one such type for this field, so
+							// extract it and let subsequent steps differentiate
+							// them efficiently.
 							return buildExtractObjectField(
 								adaptor, argNumber, best.key, best.value)
 						}
@@ -592,7 +672,9 @@ internal constructor(
 			positiveKnownRestrictions,
 			alreadyTagTestedArguments,
 			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
 			alreadyExtractedFields,
 			memento)
 		// Since we're using TypeRestrictions, there are cases with instance
@@ -605,7 +687,9 @@ internal constructor(
 			negativeKnownRestrictions,
 			alreadyTagTestedArguments,
 			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
 			alreadyExtractedFields,
 			memento)
 		// This is a volatile write, so all previous writes had to precede it.
@@ -731,7 +815,9 @@ internal constructor(
 				restrictions,
 				alreadyTested,
 				alreadyVariantTestedArguments,
+				alreadyMetaInstanceExtractArguments,
 				alreadyPhraseTypeExtractArguments,
+				alreadyTestedConstants,
 				alreadyExtractedFields,
 				memento)
 		}
@@ -856,6 +942,49 @@ internal constructor(
 	}
 
 	/**
+	 * Create an [ExtractMetaInstanceDecisionStep] for the given tree.  We've
+	 * already selected a particular argument known to contain a metatype, and
+	 * we wish to extract its instance, itself a type, to expose faster
+	 * dispatching, such as by tag or object variant.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param argumentIndex
+	 *   The one-based index of the metatype argument having its instance
+	 *   extracted.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildExtractMetaInstance(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		argumentIndex: Int,
+	): ExtractMetaInstanceDecisionStep<Element, Result>
+	{
+		// While this step extracts a covariant subobject (the meta's instance),
+		// it doesn't make any decisions itself.
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		val typeOfMeta = bound.typeAtIndex(argumentIndex)
+		val typeOfInstance = typeOfMeta.instance
+		// Note: We can't reapply the source's restrictions in any way here,
+		// because it's a restriction on which metatypes could occur, not which
+		// types could be instances of them.
+		val newRestriction = restrictionForType(typeOfInstance, BOXED_FLAG)
+		val child = InternalLookupTree<Element, Result>(
+			positiveElements,
+			undecidedElements,
+			knownArgumentRestrictions.append(newRestriction),
+			alreadyTagTestedArguments,
+			// Phrases don't have variants, but set this for good measure.
+			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments
+				.bitSet(argumentIndex - 1, true, false).makeShared(),
+			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
+			alreadyExtractedFields)
+		return ExtractMetaInstanceDecisionStep(argumentIndex, child)
+	}
+
+	/**
 	 * Create an [ExtractPhraseTypeDecisionStep] for the given tree.  We've
 	 * already selected a particular argument known to contain a phrase, and we
 	 * wish to extract its yield type to expose faster dispatching, such as by
@@ -887,8 +1016,10 @@ internal constructor(
 			alreadyTagTestedArguments,
 			// Phrases don't have variants, but set this for good measure.
 			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments
 				.bitSet(argumentIndex - 1, true, false).makeShared(),
+			alreadyTestedConstants,
 			alreadyExtractedFields)
 		return ExtractPhraseTypeDecisionStep(argumentIndex, child)
 	}
@@ -936,10 +1067,118 @@ internal constructor(
 				restrictionForType(fieldType, BOXED_FLAG)),
 			alreadyTagTestedArguments,
 			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
 			newExtractedMap)
 		return ExtractObjectFieldDecisionStep(
 			argumentIndex, fieldName, fieldIndex, child)
+	}
+
+	/**
+	 * Create a [TestForConstantsDecisionStep] for the given tree.  The idea is
+	 * that we know there are at least a threshold number of constants being
+	 * looked for in the given argument position, so use them to dispatch this
+	 * method.  If the value doesn't happen to be one of those constants, use a
+	 * fall-through subtree.  Also, because looking up by type won't work the
+	 * same way, create a pass-through tree with all elements for type-based
+	 * lookups.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param memento
+	 *   The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *   The one-based index of the argument being constant-tested.
+	 * @param testedFlags
+	 *   An Avail integer that indicates which arguments have already had
+	 *   constant testing performed in super-trees, or have been permanently
+	 *   disqualified by having too few constants (further dispatching won't
+	 *   increase this number).
+	 * @param signatureExtrasExtractor
+	 *   A function that extracts a [List] of [A_Type]s from an [Element],
+	 *   corresponding with the extras that have been extracted from the value
+	 *   being looked up at this point.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildTestConstants(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		memento: AdaptorMemento,
+		argumentIndex: Int,
+		testedFlags: A_Number,
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
+	): TestForConstantsDecisionStep<Element, Result>
+	{
+		val elementsByConstant =
+			mutableMapOf<A_BasicObject, MutableSet<Element>>()
+		val noMatches = mutableSetOf<Element>()
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		val restrictedElements = undecidedElements.map {
+			it to adaptor.restrictedSignature(
+				it, signatureExtrasExtractor, bound)
+		}
+		restrictedElements.forEach { (element, tupleType) ->
+			val argType = tupleType.typeAtIndex(argumentIndex)
+			if (argType.isEnumeration &&
+				(!argType.isInstanceMeta || argType.equals(bottomMeta)))
+			{
+				argType.instances.forEach { instance ->
+					elementsByConstant.compute(instance) { _, setOrNull ->
+						(setOrNull ?: mutableSetOf()).apply { add(element) }
+					}
+				}
+			}
+			else
+			{
+				noMatches.add(element)
+			}
+		}
+		return TestForConstantsDecisionStep(
+			argumentIndex,
+			elementsByConstant.mapValues { (constant, elements) ->
+				adaptor.createTree(
+					positiveElements,
+					elements.toList(),
+					knownArgumentRestrictions.toMutableList().also {
+						it[argumentIndex - 1] =
+							restrictionForConstant(constant, BOXED_FLAG)
+					},
+					alreadyTagTestedArguments,
+					alreadyVariantTestedArguments,
+					alreadyMetaInstanceExtractArguments,
+					alreadyPhraseTypeExtractArguments,
+					testedFlags,
+					alreadyExtractedFields,
+					memento)
+			},
+			noMatchSubtree = adaptor.createTree(
+				positiveElements,
+				noMatches.toList(),
+				knownArgumentRestrictions.toMutableList().also {
+					it[argumentIndex - 1] = it[argumentIndex - 1].minusType(
+						enumerationWith(
+							setFromCollection(elementsByConstant.keys)))
+				},
+				alreadyTagTestedArguments,
+				alreadyVariantTestedArguments,
+				alreadyMetaInstanceExtractArguments,
+				alreadyPhraseTypeExtractArguments,
+				testedFlags,
+				alreadyExtractedFields,
+				memento),
+			bypassForTypeLookup = adaptor.createTree(
+				positiveElements,
+				undecidedElements,
+				knownArgumentRestrictions,
+				alreadyTagTestedArguments,
+				alreadyVariantTestedArguments,
+				alreadyMetaInstanceExtractArguments,
+				alreadyPhraseTypeExtractArguments,
+				testedFlags,
+				alreadyExtractedFields,
+				memento)
+		)
 	}
 
 	override fun toString(indent: Int): String = when (val step = decisionStep)

@@ -183,7 +183,7 @@ object P_CastInto : Primitive(2, Invokes, CanInline)
 			passedTest === null ->
 				// Couldn't prove or disprove type test, but we know statically
 				// the cast block's exact argument type.
-				translator.jumpIfKindOfConstant(
+				generator.jumpIfKindOfConstant(
 					valueRead, typeTest, castBlock, elseBlock)
 			else ->
 				// We proved the test always passes or always fails.

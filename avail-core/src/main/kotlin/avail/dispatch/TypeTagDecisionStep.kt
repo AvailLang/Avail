@@ -43,7 +43,6 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceTag
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.lowerBound
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
@@ -260,9 +259,7 @@ constructor(
 	{
 		// For simplicity, let super-lookups via type tags always fall back.
 		//  They're *very* difficult to reason about.
-		if (!callSiteHelper.superUnionType
-				.typeAtIndex(argumentPositionToTest)
-				.isBottom)
+		if (callSiteHelper.isSuper)
 		{
 			callSiteHelper.generator().jumpTo(
 				callSiteHelper.onFallBackToSlowLookup)

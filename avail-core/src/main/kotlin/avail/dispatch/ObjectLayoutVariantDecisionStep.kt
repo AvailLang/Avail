@@ -43,7 +43,6 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.objectTypeVariant
-import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -218,7 +217,9 @@ constructor(
 				restrictions,
 				alreadyTagTestedArguments,
 				alreadyVariantTestedArgumentsForChildren,
+				alreadyMetaInstanceExtractArguments,
 				alreadyPhraseTypeExtractArguments,
+				alreadyTestedConstants,
 				alreadyExtractedFields,
 				memento)
 		}
@@ -280,9 +281,7 @@ constructor(
 	{
 		// For simplicity, let super-lookups via object layout variant
 		// always fall back.  They're *very* difficult to reason about.
-		if (!callSiteHelper.superUnionType
-				.typeAtIndex(argumentPositionToTest)
-				.isBottom)
+		if (callSiteHelper.isSuper)
 		{
 			callSiteHelper.generator().jumpTo(
 				callSiteHelper.onFallBackToSlowLookup)

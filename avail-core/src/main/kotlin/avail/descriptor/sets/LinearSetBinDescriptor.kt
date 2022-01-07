@@ -200,7 +200,8 @@ class LinearSetBinDescriptor private constructor(
 		elementObject: A_BasicObject,
 		elementObjectHash: Int
 	): Boolean = (1..self.variableObjectSlotsCount()).any {
-		elementObject.equals(self.slot(BIN_ELEMENT_AT_, it))
+		val element = self.slot(BIN_ELEMENT_AT_, it)
+		element.hash() == elementObjectHash && elementObject.equals(element)
 	}
 
 	/**

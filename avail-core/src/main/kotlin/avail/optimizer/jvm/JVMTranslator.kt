@@ -39,7 +39,6 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -47,8 +46,8 @@ import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.JavaLibrary.getClassLoader
 import avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import avail.interpreter.JavaLibrary.longAdderIncrement
@@ -158,7 +157,6 @@ import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
 import org.objectweb.asm.Opcodes.SIPUSH
 import org.objectweb.asm.Opcodes.V11
-//import org.objectweb.asm.Opcodes.V16
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -1030,17 +1028,11 @@ class JVMTranslator constructor(
 			3 -> method.visitInsn(ICONST_3)
 			4 -> method.visitInsn(ICONST_4)
 			5 -> method.visitInsn(ICONST_5)
-			else ->
-			{
-				when (value)
-				{
-					in Byte.MIN_VALUE..Byte.MAX_VALUE ->
-						method.visitIntInsn(BIPUSH, value)
-					in Short.MIN_VALUE..Short.MAX_VALUE ->
-						method.visitIntInsn(SIPUSH, value)
-					else -> method.visitLdcInsn(value)
-				}
-			}
+			in Byte.MIN_VALUE..Byte.MAX_VALUE ->
+				method.visitIntInsn(BIPUSH, value)
+			in Short.MIN_VALUE..Short.MAX_VALUE ->
+				method.visitIntInsn(SIPUSH, value)
+			else -> method.visitLdcInsn(value)
 		}
 	}
 
@@ -1565,6 +1557,7 @@ class JVMTranslator constructor(
 				annotation.visitEnd()
 			}
 		}
+		val endLabel = Label()
 		method.visitAnnotation(
 			Type.getDescriptor(Nullable::class.java),
 			true)
@@ -1574,10 +1567,39 @@ class JVMTranslator constructor(
 			// back to the main switch, the verifier can no longer prove that
 			// variables are set before use.  Explicitly initialize them here
 			// instead, before the methodHead.
-			for ((kind, localsOfKind) in locals)
-			{
-				for ((_, localIndex) in localsOfKind)
-				{
+			method.visitLocalVariable(
+				"interpreter",
+				Type.getDescriptor(Interpreter::class.java),
+				null,
+				methodHead,
+				endLabel,
+				interpreterLocal())
+			method.visitLocalVariable(
+				"offset",
+				Type.INT_TYPE.descriptor,
+				null,
+				methodHead,
+				endLabel,
+				offsetLocal())
+			// Also initialize the stackReifier local.
+			method.visitInsn(ACONST_NULL)
+			method.visitVarInsn(ASTORE, reifierLocal())
+			method.visitLocalVariable(
+				"reifier",
+				Type.getDescriptor(StackReifier::class.java),
+				null,
+				labelHere(method),
+				endLabel,
+				reifierLocal())
+			// Initialize the register locals.
+			locals
+				.flatMap { (kind, value) ->
+					value.map { (finalIndex, localIndex) ->
+						Triple(kind, finalIndex, localIndex)
+					}
+				}
+				.sortedBy(Triple<*, *, Int>::third)
+				.forEach { (kind, finalIndex, localIndex) ->
 					when (kind)
 					{
 						BOXED_KIND -> {
@@ -1593,11 +1615,14 @@ class JVMTranslator constructor(
 							method.visitVarInsn(DSTORE, localIndex)
 						}
 					}
+					method.visitLocalVariable(
+						kind.prefix + finalIndex,
+						kind.jvmTypeString,
+						null,
+						labelHere(method),
+						endLabel,
+						localIndex)
 				}
-			}
-			// Also initialize the stackReifier local.
-			method.visitInsn(ACONST_NULL)
-			method.visitVarInsn(ASTORE, reifierLocal())
 		}
 		method.visitLabel(methodHead)
 		// Emit the lookupswitch instruction to select among the entry points.
@@ -1678,44 +1703,12 @@ class JVMTranslator constructor(
 		// register names. At present, we just claim that every variable is live
 		// from the methodHead until the endLabel, but we can always tighten
 		// this up later if we care.
-		val endLabel = Label()
 		method.visitLabel(endLabel)
-		for ((kind, value) in locals)
-		{
-			for ((finalIndex, localIndex) in value)
-			{
-				method.visitLocalVariable(
-					kind.prefix + finalIndex,
-					kind.jvmTypeString,
-					null,
-					methodHead,
-					endLabel,
-					localIndex)
-			}
-		}
-		method.visitLocalVariable(
-			"interpreter",
-			Type.getDescriptor(Interpreter::class.java),
-			null,
-			methodHead,
-			endLabel,
-			interpreterLocal())
-		method.visitLocalVariable(
-			"offset",
-			Type.INT_TYPE.descriptor,
-			null,
-			methodHead,
-			endLabel,
-			offsetLocal())
-		method.visitLocalVariable(
-			"reifier",
-			Type.getDescriptor(StackReifier::class.java),
-			null,
-			methodHead,
-			endLabel,
-			reifierLocal())
 		finishMethod(method)
 	}
+
+	private fun labelHere(method: MethodVisitor): Label =
+		Label().also { method.visitLabel(it) }
 
 	/** The final phase of JVM code generation. */
 	fun classVisitEnd()
@@ -1920,7 +1913,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = false
+		const val debugNicerJavaDecompilation = true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to

@@ -105,8 +105,9 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		method.visitInsn(Opcodes.DUP)
 		val intDifferenceLocal = translator.nextLocal(Type.INT_TYPE)
 		val intDifferenceStart = Label()
-		method.visitLabel(intDifferenceStart)
+		val intDifferenceEnd = Label()
 		method.visitVarInsn(Opcodes.ISTORE, intDifferenceLocal)
+		method.visitLabel(intDifferenceStart)
 		// :: if (longDifference != intDifference) goto outOfRange;
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LCMP)
@@ -117,7 +118,7 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		// ::    goto inRange;
 		// :: }
 		method.visitVarInsn(Opcodes.ILOAD, intDifferenceLocal)
-		val intDifferenceEnd = Label()
+		translator.store(method, difference.register())
 		method.visitLabel(intDifferenceEnd)
 		method.visitLocalVariable(
 			"intDifference",
@@ -126,7 +127,6 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 			intDifferenceStart,
 			intDifferenceEnd,
 			intDifferenceLocal)
-		translator.store(method, difference.register())
 		translator.jump(method, instruction, inRange)
 	}
 }

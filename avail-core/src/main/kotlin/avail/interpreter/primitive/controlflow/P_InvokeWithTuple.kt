@@ -288,7 +288,7 @@ object P_InvokeWithTuple : Primitive(2, Invokes, CanInline)
 				if (constantExactArgType !== null)
 				{
 					// We have a known exact type to compare against.
-					translator.jumpIfKindOfConstant(
+					generator.jumpIfKindOfConstant(
 						argReg,
 						constantExactArgType,
 						passedAnother,

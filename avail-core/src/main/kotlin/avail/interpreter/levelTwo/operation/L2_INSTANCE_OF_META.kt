@@ -1,6 +1,6 @@
 /*
- * Bootstrap.avail
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * L2_GET_TYPE.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -29,26 +29,37 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+package avail.interpreter.levelTwo.operation
 
-/*
- * GENERATED FILE
- * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/6/22, 1:23 AM
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceOfMetaMethod
+import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.optimizer.jvm.JVMTranslator
+import org.objectweb.asm.MethodVisitor
+
+/**
+ * Extract the sole instance, itself a type, of the specified metatype.
  *
- * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
+object L2_INSTANCE_OF_META : L2Operation(
+	L2OperandType.READ_BOXED.named("meta"),
+	L2OperandType.WRITE_BOXED.named("meta's instance"))
+{
+	override fun translateToJVM(
+		translator: JVMTranslator,
+		method: MethodVisitor,
+		instruction: L2Instruction)
+	{
+		val meta = instruction.operand<L2ReadBoxedOperand>(0)
+		val instance = instruction.operand<L2WriteBoxedOperand>(1)
 
-Module "Bootstrap"
-Versions
-	"Avail-1.6.0"
-Extends
-	"Origin",
-	"Special Objects",
-	"Error Codes",
-	"Primitives",
-	"Infallible Primitives",
-	"Fallible Primitives"
-Uses
-Names
-Body
-
+		translator.load(method, meta.register())
+		instanceOfMetaMethod.generateCall(method)
+		translator.store(method, instance.register())
+	}
+}

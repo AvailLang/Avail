@@ -162,13 +162,15 @@ constructor(
 		null,
 		Abstract,
 		Sup { PhraseKind.PARSE_PHRASE.mostGeneralType }),
-	MARKER_PHRASE_TAG(
-		PHRASE_TAG, null, Sup { PhraseKind.MARKER_PHRASE.mostGeneralType }),
 	EXPRESSION_PHRASE_TAG(
 		PHRASE_TAG,
 		null,
 		Abstract,
 		Sup { PhraseKind.EXPRESSION_PHRASE.mostGeneralType}),
+	MARKER_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.MARKER_PHRASE.mostGeneralType }),
 	ASSIGNMENT_PHRASE_TAG(
 		EXPRESSION_PHRASE_TAG,
 		null,
