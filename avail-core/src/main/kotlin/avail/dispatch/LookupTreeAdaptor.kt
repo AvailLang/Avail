@@ -242,9 +242,11 @@ abstract class LookupTreeAdaptor<
 	 *   The type that acts as an upper bound for comparisons within these
 	 *   restrictions.
 	 */
-	fun extractBoundingType(argumentRestrictions: List<TypeRestriction>) =
-		tupleTypeForTypesList(
-			argumentRestrictions.map(TypeRestriction::type)).makeImmutable()
+	fun extractBoundingType(
+		argumentRestrictions: List<TypeRestriction>
+	): A_Type =
+		tupleTypeForTypesList(argumentRestrictions.map(TypeRestriction::type))
+			.makeImmutable()
 
 	/**
 	 * Create a [LookupTree] suitable for deciding which [Result] applies when
@@ -319,28 +321,13 @@ abstract class LookupTreeAdaptor<
 			{
 				return LeafLookupTree(constructResult(positive, memento))
 			}
-			val size = positive.size
-			val mostSpecific = mutableListOf<Element>()
-			outer@ for (outer in 0 until size)
-			{
+			val mostSpecific = positive.filterIndexed { outerIndex, outer ->
 				// Use the actual signatures for dominance checking, since using
 				// the restrictedSignature would break method lookup rules.
-				val outerType = extractSignature(positive[outer])
-				for (inner in 0 until size)
-				{
-					if (outer != inner)
-					{
-						val innerType = extractSignature(positive[inner])
-						if (innerType.isSubtypeOf(outerType))
-						{
-							// A more specific definition was found (i.e., inner
-							// was more specific than outer). This disqualifies
-							// outer from being considered most specific.
-							continue@outer
-						}
-					}
+				val outerType = extractSignature(outer)
+				positive.indices.filterNot(outerIndex::equals).none { inner ->
+					extractSignature(positive[inner]).isSubtypeOf(outerType)
 				}
-				mostSpecific.add(positive[outer])
 			}
 			return LeafLookupTree(constructResult(mostSpecific, memento))
 		}

@@ -48,7 +48,6 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObjectRepresentation
-import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
@@ -59,7 +58,6 @@ import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
@@ -1114,18 +1112,16 @@ internal constructor(
 			mutableMapOf<A_BasicObject, MutableSet<Element>>()
 		val noMatches = mutableSetOf<Element>()
 		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
-		val restrictedElements = undecidedElements.map {
-			it to adaptor.restrictedSignature(
-				it, signatureExtrasExtractor, bound)
-		}
-		restrictedElements.forEach { (element, tupleType) ->
-			val argType = tupleType.typeAtIndex(argumentIndex)
+		undecidedElements.forEach { element ->
+			val type = adaptor.restrictedSignature(
+				element, signatureExtrasExtractor, bound)
+			val argType = type.typeAtIndex(argumentIndex)
 			if (argType.isEnumeration &&
 				(!argType.isInstanceMeta || argType.equals(bottomMeta)))
 			{
 				argType.instances.forEach { instance ->
-					elementsByConstant.compute(instance) { _, setOrNull ->
-						(setOrNull ?: mutableSetOf()).apply { add(element) }
+					elementsByConstant.compute(instance) { _, set ->
+						(set ?: mutableSetOf()).apply { add(element) }
 					}
 				}
 			}
@@ -1137,13 +1133,28 @@ internal constructor(
 		return TestForConstantsDecisionStep(
 			argumentIndex,
 			elementsByConstant.mapValues { (constant, elements) ->
+				val newRestrictions = knownArgumentRestrictions.toMutableList()
+				newRestrictions[argumentIndex - 1] =
+					restrictionForConstant(constant, BOXED_FLAG)
+				val newBound = adaptor.extractBoundingType(newRestrictions)
+				// The positive elements were processed along with the undecided
+				// elements, so they're already represented in the tag-specific
+				// subsets.
+				val positives = positiveElements.toMutableList()
+				val undecided = mutableListOf<Element>()
+				elements.forEach { element ->
+					val comparison = adaptor.compareTypes(
+						newRestrictions,
+						adaptor.restrictedSignature(
+							element,
+							signatureExtrasExtractor,
+							newBound))
+					comparison.applyEffect(element, positives, undecided)
+				}
 				adaptor.createTree(
-					positiveElements,
-					elements.toList(),
-					knownArgumentRestrictions.toMutableList().also {
-						it[argumentIndex - 1] =
-							restrictionForConstant(constant, BOXED_FLAG)
-					},
+					positives,
+					undecided,
+					newRestrictions,
 					alreadyTagTestedArguments,
 					alreadyVariantTestedArguments,
 					alreadyMetaInstanceExtractArguments,

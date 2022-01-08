@@ -259,11 +259,12 @@ class PerInterpreterStatistic internal constructor(
 				val newCount = target.count + count
 				val delta = mean - target.mean
 				// Be careful of the order of overwrites.
-				target.mean = (target.count * target.mean + count * mean) / newCount
-				target.sumOfDeltaSquares =
-					target.sumOfDeltaSquares +
-						sumOfDeltaSquares +
-						delta * delta / newCount * target.count.toDouble() * count.toDouble()
+				target.mean =
+					(target.count * target.mean + count * mean) / newCount
+				target.sumOfDeltaSquares +=
+					sumOfDeltaSquares +
+					delta * delta / newCount *
+						target.count.toDouble() * count.toDouble()
 				// Now overwrite the target.
 				target.count = newCount
 				target.min = min(target.min, min)

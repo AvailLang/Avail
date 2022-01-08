@@ -268,15 +268,14 @@ class Interpreter(
 		val f: A_Function? = function
 		return when
 		{
-			f === null || f === nil ->
-				// Don't replace ===nil with .isNil, since that might have to
-				// dispatch on an object whose descriptor is in flux.  It's not
-				// the case as of 2021-06-17, but this is maintenance-proofing.
-				null
-			else ->
-				// A running A_RawFunction is always shared, so safe to access
-				// from this polling thread.
-				f.code()
+			f === null -> null
+			// Don't replace ===nil with .isNil, since that might have to
+			// dispatch on an object whose descriptor is in flux.  It's not the
+			// case as of 2021-06-17, but this is maintenance-proofing.
+			f === nil -> null
+			// A running A_RawFunction is always shared, so safe to access from
+			// this polling thread.
+			else -> f.code()
 		}
 	}
 
