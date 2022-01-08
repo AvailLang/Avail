@@ -110,7 +110,7 @@ Private method "SI scaling function for_" is
 	juxtapositionSend ::=
 	⟦
 		(⦊getArg1⦉'s extent ×
-			10 ^ ⦊getArg1⦉'s metric's scale factor - ⦊getArg2⦉'s scale factor)
+			10 ^ (⦊getArg1⦉'s metric's scale factor - ⦊getArg2⦉'s scale factor))
 		/* Juxtaposition */
 		⦊getArg2⦉
 	⟧;
