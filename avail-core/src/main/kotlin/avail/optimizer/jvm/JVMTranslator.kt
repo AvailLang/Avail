@@ -502,6 +502,21 @@ class JVMTranslator constructor(
 	}
 
 	/**
+	 * A local variable has just ended scope.  Ensure it was the most recently
+	 * allocated local, and deallocate the slot(s) that were used for it.
+	 *
+	 * @param
+	 *   The slot index of the most recently allocated JVM local.
+	 * @param type
+	 *   The [type][Type] of that local.
+	 */
+	fun endLocal(localNumber: Int, type: Type)
+	{
+		nextLocal -= type.size
+		assert(nextLocal == localNumber)
+	}
+
+	/**
 	 * Answer the JVM local number for this register.  This is the position
 	 * within the actual JVM stack frame layout.
 	 *

@@ -101,34 +101,34 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		translator.load(method, multiplierReg.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LMUL)
-		method.visitInsn(Opcodes.DUP2)
-		// :: intProduct = (int) longProduct;
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.DUP)
-		val intProductLocal = translator.nextLocal(Type.INT_TYPE)
-		val intProductStart = Label()
-		val intProductEnd = Label()
-		method.visitVarInsn(Opcodes.ISTORE, intProductLocal)
-		method.visitLabel(intProductStart)
+		val longProductStart = Label()
+		val longProductEnd = Label()
+		val longProductLocal = translator.nextLocal(Type.LONG_TYPE)
+		method.visitLocalVariable(
+			"longProduct",
+			Type.LONG_TYPE.descriptor,
+			null,
+			longProductStart,
+			longProductEnd,
+			longProductLocal)
+		method.visitVarInsn(Opcodes.LSTORE, longProductLocal)
+		method.visitLabel(longProductStart)
 		// :: if (longProduct != intProduct) goto outOfRange;
+		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
+		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.I2L)
+		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(
-			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// :: else {
-		// ::    product = intProduct;
+		// ::    product = (int)longProduct;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(Opcodes.ILOAD, intProductLocal)
+		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
+		method.visitInsn(Opcodes.L2I)
 		translator.store(method, productReg.register())
-		method.visitLabel(intProductEnd)
-		method.visitLocalVariable(
-			"intProduct",
-			Type.INT_TYPE.descriptor,
-			null,
-			intProductStart,
-			intProductEnd,
-			intProductLocal)
 		translator.jump(method, instruction, inRange)
+		method.visitLabel(longProductEnd)
+		translator.endLocal(longProductLocal, Type.LONG_TYPE)
 	}
 }

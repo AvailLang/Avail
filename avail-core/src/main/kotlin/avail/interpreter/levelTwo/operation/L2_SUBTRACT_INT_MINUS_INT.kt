@@ -99,34 +99,34 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		translator.load(method, subtrahend.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LSUB)
-		method.visitInsn(Opcodes.DUP2)
-		// :: intDifference = (int) longDifference;
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.DUP)
-		val intDifferenceLocal = translator.nextLocal(Type.INT_TYPE)
-		val intDifferenceStart = Label()
-		val intDifferenceEnd = Label()
-		method.visitVarInsn(Opcodes.ISTORE, intDifferenceLocal)
-		method.visitLabel(intDifferenceStart)
+		val longDifferenceStart = Label()
+		val longDifferenceEnd = Label()
+		val longDifferenceLocal = translator.nextLocal(Type.LONG_TYPE)
+		method.visitLocalVariable(
+			"longDifference",
+			Type.LONG_TYPE.descriptor,
+			null,
+			longDifferenceStart,
+			longDifferenceEnd,
+			longDifferenceLocal)
+		method.visitVarInsn(Opcodes.LSTORE, longDifferenceLocal)
+		method.visitLabel(longDifferenceStart)
 		// :: if (longDifference != intDifference) goto outOfRange;
+		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
+		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.I2L)
+		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(
-			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// :: else {
-		// ::    sum = intDifference;
+		// ::    sum = (int)longDifference;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(Opcodes.ILOAD, intDifferenceLocal)
+		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
+		method.visitInsn(Opcodes.L2I)
 		translator.store(method, difference.register())
-		method.visitLabel(intDifferenceEnd)
-		method.visitLocalVariable(
-			"intDifference",
-			Type.INT_TYPE.descriptor,
-			null,
-			intDifferenceStart,
-			intDifferenceEnd,
-			intDifferenceLocal)
 		translator.jump(method, instruction, inRange)
+		method.visitLabel(longDifferenceEnd)
+		translator.endLocal(longDifferenceLocal, Type.LONG_TYPE)
 	}
 }

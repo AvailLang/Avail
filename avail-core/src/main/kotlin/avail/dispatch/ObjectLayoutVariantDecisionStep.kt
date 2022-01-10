@@ -35,6 +35,7 @@ package avail.dispatch
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.representation.A_BasicObject
@@ -47,10 +48,12 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeIn
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_EXTRACT_OBJECT_VARIANT_ID
 import avail.interpreter.levelTwo.operation.L2_JUMP_IF_COMPARE_INT
+import avail.interpreter.levelTwo.operation.L2_MOVE
 import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_STRENGTHEN_TYPE
 import avail.optimizer.L1Translator.CallSiteHelper
@@ -317,12 +320,26 @@ constructor(
 		}
 		val semanticVariantId = L2SemanticUnboxedInt(
 			L2SemanticObjectVariantId(semanticSource))
-		generator.addInstruction(
-			L2_EXTRACT_OBJECT_VARIANT_ID,
-			generator.readBoxed(semanticSource),
-			generator.intWrite(
-				setOf(semanticVariantId),
-				restrictionForType(nonnegativeInt32, UNBOXED_INT_FLAG)))
+
+		when (val exactVariantId = currentRestriction
+			.positiveGroup.objectVariants?.single()?.variantId)
+		{
+			null -> generator.addInstruction(
+				L2_EXTRACT_OBJECT_VARIANT_ID,
+				generator.readBoxed(semanticSource),
+				generator.intWrite(
+					setOf(semanticVariantId),
+					restrictionForType(nonnegativeInt32, UNBOXED_INT_FLAG)))
+			// The exact variant is known, which can make dispatching
+			// particularly fast.
+			else -> generator.addInstruction(
+				L2_MOVE.unboxedInt,
+				generator.unboxedIntConstant(exactVariantId),
+				generator.intWrite(
+					setOf(semanticVariantId),
+					restrictionForConstant(
+						fromInt(exactVariantId), UNBOXED_INT_FLAG)))
+		}
 		if (applicableEntries.size == 1)
 		{
 			// Check for the only variant that leads to a solution.
