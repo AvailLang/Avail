@@ -511,11 +511,9 @@ protected constructor(
 		self.computeSuperkind().objectTypeVariant
 
 	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
-		instanceTypeOrMetaOn(
+		enumerationWith(
 			setFromCollection(
-				self.instances.mapTo(mutableSetOf()) { instance ->
-					instance.fieldAtIndex(index)
-				}))
+				self.instances.map { it.fieldAtIndex(index) }))
 
 
 	companion object

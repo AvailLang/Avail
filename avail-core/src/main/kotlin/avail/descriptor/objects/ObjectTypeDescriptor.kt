@@ -220,7 +220,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 		}
 		var first = true
-		self.fieldTypeMap.forEach { key, type ->
+		myFieldTypeMap.forEach { key, type ->
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false

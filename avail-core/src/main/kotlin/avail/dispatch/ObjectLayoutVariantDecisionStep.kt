@@ -223,6 +223,7 @@ constructor(
 				alreadyMetaInstanceExtractArguments,
 				alreadyPhraseTypeExtractArguments,
 				alreadyTestedConstants,
+				alreadyEnumerationOfNontypeTested,
 				alreadyExtractedFields,
 				memento)
 		}

@@ -1246,9 +1246,11 @@ class AvailObject private constructor(
 		canDestroy: Boolean
 	) = descriptor().o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
 
+	@ReferencedInGeneratedCode
 	override fun fieldTypeAt(field: A_Atom) =
 		descriptor().o_FieldTypeAt(this, field)
 
+	@ReferencedInGeneratedCode
 	override fun fieldTypeAtIndex(index: Int): A_Type =
 		descriptor().o_FieldTypeAtIndex(this, index)
 
@@ -1538,11 +1540,25 @@ class AvailObject private constructor(
 			AvailObject::class.java,
 			A_Atom::class.java)
 
-		/** Access the [fieldAtIndex] method. */
+		/** Access the [fieldAtIndex] method for objects. */
 		val fieldAtIndexMethod = instanceMethod(
 			AvailObject::class.java,
 			AvailObject::fieldAtIndex.name,
 			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		/** Access the [fieldTypeAt] method. */
+		val fieldTypeAtMethod = instanceMethod(
+			AvailObject::class.java,
+			AvailObject::fieldTypeAt.name,
+			A_Type::class.java,
+			A_Atom::class.java)
+
+		/** Access the [fieldTypeAtIndex] method for object types. */
+		val fieldTypeAtIndexMethod = instanceMethod(
+			AvailObject::class.java,
+			AvailObject::fieldTypeAtIndex.name,
+			A_Type::class.java,
 			Int::class.javaPrimitiveType!!)
 	}
 }

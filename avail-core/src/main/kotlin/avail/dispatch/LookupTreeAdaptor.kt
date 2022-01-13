@@ -221,6 +221,7 @@ abstract class LookupTreeAdaptor<
 			zero,
 			zero,
 			zero,
+			zero,
 			emptyMap,
 			memento)
 	}
@@ -291,6 +292,16 @@ abstract class LookupTreeAdaptor<
 	 *   may have been generated during traversal of ancestors) have already
 	 *   been tested for constants.  Argument #n is indicated by a set bit in
 	 *   the n-1st bit position, the one whose value in the integer is 2^(n-1).
+	 * @property alreadyEnumerationOfNontypeTested
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) were known to
+	 *   contain at least one enumeration of non-types.  Those actual values can
+	 *   be used to look up subtrees for which that value is a possible instance
+	 *   of an actual provided type.  See
+	 *   [TestForEnumerationOfNontypeDecisionStep].  The flag for argument #n is
+	 *   indicated by a set bit in the n-1st bit position, and serves to
+	 *   suppress subsequent attempts to dispatch this way on this argument in
+	 *   subtrees.
 	 * @param alreadyExtractedFields
 	 *   An [A_Map] from Avail integer to Avail integer.  They key integer is
 	 *   the one-based argument (or extras) subscript of the source object, and
@@ -311,6 +322,7 @@ abstract class LookupTreeAdaptor<
 		alreadyMetaInstanceExtractArguments: A_Number,
 		alreadyPhraseTypeExtractArguments: A_Number,
 		alreadyTestedConstants: A_Number,
+		alreadyEnumerationOfNontypeTested: A_Number,
 		alreadyExtractedFields: A_Map,
 		memento: Memento): LookupTree<Element, Result>
 	{
@@ -340,6 +352,7 @@ abstract class LookupTreeAdaptor<
 			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
 			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
 			alreadyExtractedFields)
 	}
 

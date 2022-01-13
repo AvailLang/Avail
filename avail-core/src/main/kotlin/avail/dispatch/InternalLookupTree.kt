@@ -62,7 +62,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
+import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.TypeTag.BOTTOM_TYPE_TAG
 import avail.descriptor.types.TypeTag.META_TAG
@@ -128,11 +130,22 @@ import kotlin.math.min
  *   via an [ExtractPhraseTypeDecisionStep] in an ancestor.  Argument #n is
  *   indicated by a set bit in the n-1st bit position, the one whose value in
  *   the integer is 2^(n-1).
+ * @property alreadyEnumerationOfNontypeTested
+ *   An Avail [integer][A_Number] coding which arguments (and extras that may
+ *   have been generated during traversal of ancestors) were known to contain at
+ *   least one enumeration of non-types.  Those actual values can be used to
+ *   look up subtrees for which that value is a possible instance of an actual
+ *   provided type.  See [TestForEnumerationOfNontypeDecisionStep].  The flag
+ *   for argument #n is indicated by a set bit in the n-1st bit position, and
+ *   serves to suppress subsequent attempts to dispatch this way on this
+ *   argument in subtrees.
  * @property alreadyExtractedFields
  *   An [A_Map] from Avail integer to Avail integer.  They key integer is the
  *   one-based argument (or extras) subscript of the source object, and the
  *   value integer is an encoding of which fields have been extracted, where bit
  *   2^(N-1) indicates the Nth field (one-based) has been extracted already.
+ *   Since objects and object types are disjoint, this same map is used for both
+ *   purposes without ambiguity.
  *
  * @constructor
  *
@@ -153,6 +166,7 @@ internal constructor(
 	val alreadyMetaInstanceExtractArguments: A_Number,
 	val alreadyPhraseTypeExtractArguments: A_Number,
 	val alreadyTestedConstants: A_Number,
+	val alreadyEnumerationOfNontypeTested: A_Number,
 	val alreadyExtractedFields: A_Map)
 : LookupTree<Element, Result>()
 {
@@ -299,17 +313,17 @@ internal constructor(
 			}
 			val mostConstants =
 				constantSets.withIndex().maxByOrNull { (_, set) -> set.size }!!
-			if (mostConstants.value.size >= 3)
+			if (mostConstants.value.size >= 2)
 			{
-				// At least 3 constants can be used to dispatch this argument.
+				// At least 2 constants can be used to dispatch this argument.
 				// Save computation time for building this up in subtrees by
-				// figuring out which argument positions have less than 3
+				// figuring out which argument positions have less than 2
 				// constants, and pretending those have already done their
 				// constant-dispatch.
 				var testedFlags = alreadyTestedConstants
 					.bitSet(mostConstants.index, true, true)
 				constantSets.forEachIndexed { i, set ->
-					if (set.size < 3)
+					if (set.size < 2)
 					{
 						testedFlags = testedFlags.bitSet(i, true, true)
 					}
@@ -324,8 +338,9 @@ internal constructor(
 
 			for (argNumber in numArgs downTo 1)
 			{
-				val commonTag = commonTags[argNumber - 1]
-				if (!alreadyTagTestedArguments.bitTest(argNumber - 1) &&
+				val zeroArgNumber = argNumber - 1
+				val commonTag = commonTags[zeroArgNumber]
+				if (!alreadyTagTestedArguments.bitTest(zeroArgNumber) &&
 					(commonTag === null
 						|| commonTag === OBJECT_TAG
 						|| commonTag === OBJECT_TYPE_TAG
@@ -341,7 +356,8 @@ internal constructor(
 
 			for (argNumber in numArgs downTo 1)
 			{
-				val restriction = knownArgumentRestrictions[argNumber - 1]
+				val zeroArgNumber = argNumber - 1
+				val restriction = knownArgumentRestrictions[zeroArgNumber]
 				if (restriction.type.isSubtypeOf(instanceMeta(topMeta()))
 					&& !restriction.type.isSubtypeOf(bottomMeta))
 				{
@@ -349,11 +365,55 @@ internal constructor(
 					// covaries with the meta due to metacovariance.
 					// First, however, make sure the meta isn't the degenerate
 					// type ⊥.  ⊥'s type is fine, however.
-					assert(alreadyTagTestedArguments.bitTest(argNumber - 1))
+					assert(alreadyTagTestedArguments.bitTest(zeroArgNumber))
 					if (!alreadyMetaInstanceExtractArguments
-							.bitTest(argNumber - 1))
+							.bitTest(zeroArgNumber))
 					{
 						return buildExtractMetaInstance(adaptor, argNumber)
+					}
+				}
+				if (!alreadyEnumerationOfNontypeTested.bitTest(zeroArgNumber)
+					&& restriction.type.isSubtypeOf(topMeta())
+					&& !restriction.type.isSubtypeOf(bottomMeta))
+				{
+					// If at least one of the elements expect a meta, *and* that
+					// meta's instance is an enumeration, but *not* of other
+					// types, then we can extract that enumeration's values and
+					// use each one wrapped in a singular instance type as keys
+					// in a lookup map.  When we later go to look up an
+					// argument, if it's a key of the map, we use the associated
+					// subtree.  All other cases use a fallThrough subtree.
+					val instanceTypes = restrictedElements
+						.flatMap { restricted ->
+							val (_, tupleType) = restricted
+							val argMeta = tupleType.typeAtIndex(argNumber)
+							when
+							{
+								!argMeta.isInstanceMeta -> emptyList()
+								argMeta.instance.run {
+									!isEnumeration
+										|| isBottom
+										|| !isSubtypeOf(NONTYPE.o)
+								} -> emptyList()
+								else -> argMeta.instance.instances
+							}
+						}
+						.map(::instanceType)
+						.distinct<A_Type>()
+					if (instanceTypes.isNotEmpty())
+					{
+						val elementsByInstanceType =
+							instanceTypes.associateWith { instanceType ->
+								restrictedElements
+									.filter { (_, tupleType) ->
+										instanceType.isInstanceOf(
+											tupleType.typeAtIndex(argNumber))
+									}
+									.map { it.first }
+									.toSet()
+							}
+						return buildDispatchByEnumerationOfNontype(
+							adaptor, memento, argNumber, elementsByInstanceType)
 					}
 				}
 				if (restriction.type.isSubtypeOf(mostGeneralObjectType)
@@ -361,7 +421,7 @@ internal constructor(
 				{
 					// The argument is an object.  Do a variant dispatch if we
 					// haven't already.
-					if (!alreadyVariantTestedArguments.bitTest(argNumber - 1))
+					if (!alreadyVariantTestedArguments.bitTest(zeroArgNumber))
 					{
 						return buildObjectLayoutVariantStep(
 							adaptor, argNumber,signatureExtrasExtractor)
@@ -404,12 +464,13 @@ internal constructor(
 					continue
 				}
 
-				if (restriction.type.isSubtypeOf(mostGeneralObjectMeta))
+				if (restriction.type.isSubtypeOf(mostGeneralObjectMeta)
+					&& !restriction.type.isSubtypeOf(bottomMeta))
 				{
 					// It's definitely an object type, but it might be the
 					// degenerate type bottom.  Fall back to comparison testing
 					// if bottom is still possible here.
-					if (!alreadyTagTestedArguments.bitTest(argNumber - 1)
+					if (!alreadyTagTestedArguments.bitTest(zeroArgNumber)
 						&& restriction.intersectsType(bottomMeta))
 					{
 						return buildTypeTagTest(
@@ -425,16 +486,52 @@ internal constructor(
 					// we haven't already.
 					if (!restriction.intersectsType(bottomMeta)
 						&& !alreadyVariantTestedArguments.bitTest(
-							argNumber - 1))
+							zeroArgNumber))
 					{
 						return buildObjectTypeLayoutVariantStep(
 							adaptor, argNumber, signatureExtrasExtractor)
 					}
+					// We know the argument is an object type, and we know it
+					// has been narrowed down to one variant.  See if extracting
+					// a field type will be productive.
+					val variant =
+						restriction.positiveGroup.objectTypeVariants!!.single()
+					val withCounts = variant.fieldToSlotIndex.entries
+						.filter { (_, index) ->
+							index > 0 &&
+								!(alreadyExtractedFields
+									.mapAtOrNull(fromInt(argNumber)) ?: zero)
+									.bitTest(index - 1)
+						}
+						.map { entry ->
+							entry to restrictedElements.distinctBy {
+								it.second.typeAtIndex(argNumber).instance
+									.fieldTypeAtIndex(entry.value)
+							}.size
+						}
+					if (withCounts.isNotEmpty())
+					{
+						val (best, bestCount) =
+							withCounts.maxByOrNull(Pair<*, Int>::second)!!
+						if (bestCount > 1)
+						{
+							// For this argument, an object type, we've found
+							// the field with the most distinct field types
+							// (over the elements). There's more than one such
+							// type for this field, so extract it and let
+							// subsequent steps differentiate them efficiently.
+							return buildExtractObjectTypeField(
+								adaptor, argNumber, best.key, best.value)
+						}
+					}
+					// None of the fields of this argument had more than one
+					// expected type across the remaining elements.
+					continue
 				}
 
 				if (restriction.type.isSubtypeOf(PARSE_PHRASE.mostGeneralType)
 					&& !alreadyPhraseTypeExtractArguments
-						.bitTest(argNumber - 1))
+						.bitTest(zeroArgNumber))
 				{
 					// The argument is a phrase.  Extract its expression type if
 					// it hasn't been extracted yet, and if the elements differ
@@ -673,6 +770,7 @@ internal constructor(
 			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
 			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
 			alreadyExtractedFields,
 			memento)
 		// Since we're using TypeRestrictions, there are cases with instance
@@ -688,6 +786,7 @@ internal constructor(
 			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
 			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
 			alreadyExtractedFields,
 			memento)
 		// This is a volatile write, so all previous writes had to precede it.
@@ -816,6 +915,7 @@ internal constructor(
 				alreadyMetaInstanceExtractArguments,
 				alreadyPhraseTypeExtractArguments,
 				alreadyTestedConstants,
+				alreadyEnumerationOfNontypeTested,
 				alreadyExtractedFields,
 				memento)
 		}
@@ -978,6 +1078,7 @@ internal constructor(
 				.bitSet(argumentIndex - 1, true, false).makeShared(),
 			alreadyPhraseTypeExtractArguments,
 			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
 			alreadyExtractedFields)
 		return ExtractMetaInstanceDecisionStep(argumentIndex, child)
 	}
@@ -1018,6 +1119,7 @@ internal constructor(
 			alreadyPhraseTypeExtractArguments
 				.bitSet(argumentIndex - 1, true, false).makeShared(),
 			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
 			alreadyExtractedFields)
 		return ExtractPhraseTypeDecisionStep(argumentIndex, child)
 	}
@@ -1068,8 +1170,63 @@ internal constructor(
 			alreadyMetaInstanceExtractArguments,
 			alreadyPhraseTypeExtractArguments,
 			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
 			newExtractedMap)
 		return ExtractObjectFieldDecisionStep(
+			argumentIndex, fieldName, fieldIndex, child)
+	}
+
+	/**
+	 * Create an [ExtractObjectTypeFieldDecisionStep] for the given tree.  We've
+	 * already selected a particular argument known to contain an object type
+	 * with a particular variant, as well as the field and its known index that
+	 * we wish to extract.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param argumentIndex
+	 *   The one-based index of the object type argument having a field
+	 *   extracted.
+	 * @param fieldName
+	 *   The field (an [A_Atom]) to extract.
+	 * @param fieldIndex
+	 *   The slot index of the field type to extract.  Note that this requires
+	 *   the exact [ObjectLayoutVariant] to be known.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildExtractObjectTypeField(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		argumentIndex: Int,
+		fieldName: A_Atom,
+		fieldIndex: Int
+	): ExtractObjectTypeFieldDecisionStep<Element, Result>
+	{
+		// While this step extracts a covariant subobject (an object type's
+		// field type), it doesn't make any decisions itself.
+		val bound = adaptor.extractBoundingType(knownArgumentRestrictions)
+		val objectMeta = bound.typeAtIndex(argumentIndex)
+		val fieldType = objectMeta.instance.fieldTypeAtIndex(fieldIndex)
+		val fieldMeta = instanceMeta(fieldType)
+		val newExtractedMap = alreadyExtractedFields
+			.mapAtReplacingCanDestroy(fromInt(argumentIndex), zero, false) {
+					_, bits -> bits.bitSet(fieldIndex - 1, true, false)
+			}
+			.makeShared()
+		assert(!newExtractedMap.equals(alreadyExtractedFields))
+		val child = InternalLookupTree<Element, Result>(
+			positiveElements,
+			undecidedElements,
+			knownArgumentRestrictions.append(
+				restrictionForType(fieldMeta, BOXED_FLAG)),
+			alreadyTagTestedArguments,
+			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
+			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
+			newExtractedMap)
+		return ExtractObjectTypeFieldDecisionStep(
 			argumentIndex, fieldName, fieldIndex, child)
 	}
 
@@ -1160,6 +1317,7 @@ internal constructor(
 					alreadyMetaInstanceExtractArguments,
 					alreadyPhraseTypeExtractArguments,
 					testedFlags,
+					alreadyEnumerationOfNontypeTested,
 					alreadyExtractedFields,
 					memento)
 			},
@@ -1176,6 +1334,7 @@ internal constructor(
 				alreadyMetaInstanceExtractArguments,
 				alreadyPhraseTypeExtractArguments,
 				testedFlags,
+				alreadyEnumerationOfNontypeTested,
 				alreadyExtractedFields,
 				memento),
 			bypassForTypeLookup = adaptor.createTree(
@@ -1187,10 +1346,91 @@ internal constructor(
 				alreadyMetaInstanceExtractArguments,
 				alreadyPhraseTypeExtractArguments,
 				testedFlags,
+				alreadyEnumerationOfNontypeTested,
 				alreadyExtractedFields,
 				memento)
 		)
 	}
+
+	/**
+	 * Create a [TestForEnumerationOfNontypeDecisionStep] for the given tree. We
+	 * know that some of the elements are expecting a type to be passed in the
+	 * indicated argument, and that the type is an enumeration over non-types.
+	 * We are provided a map from instanceType (a singular enumeration over a
+	 * non-type) to the [Element]s that can accept that singular enumeration as
+	 * an argument.  This includes [Element]s that have kinds (non-enumerations)
+	 * that subsume the particular non-type.
+	 *
+	 * Lookup for singular instance types is as fast as a map lookup for those
+	 * cases where the instance type is a key of the map.  For all other cases,
+	 * a separate subtree is used, which contains all of the current node's
+	 * [Element]s, and which uses other techniques for dispatch.  This handles
+	 * the case of enumerations of other values, enumerations of more than one
+	 * non-type value, or the bottom type.
+	 *
+	 * @param adaptor
+	 *   The [LookupTreeAdaptor] to use for expanding the tree.
+	 * @param memento
+	 *   The memento to be provided to the adaptor.
+	 * @param argumentIndex
+	 *   The one-based index of the argument being tested.  This decision step
+	 *   is expected to be useful when the argument is an enumeration type
+	 *   containing exactly one non-type value, which is also present as an
+	 *   instance of at least one of the [Element]s.
+	 * @param elementsByInstanceType
+	 *   A map from instance types to the [Element]s that will accept that
+	 *   instance type.  The included [Element]s may accept more than that one
+	 *   value, either by being enumerations with multiple instances or by being
+	 *   non-enumerations.
+	 * @return
+	 *   The resulting [DecisionStep].
+	 */
+	private fun <AdaptorMemento> buildDispatchByEnumerationOfNontype(
+		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		memento: AdaptorMemento,
+		argumentIndex: Int,
+		elementsByInstanceType: Map<A_Type, Set<Element>>
+	): TestForEnumerationOfNontypeDecisionStep<Element, Result>
+	{
+		// Avoid duplicating this type of test in all children, including the
+		// fallThrough.
+		val testedFlags = alreadyEnumerationOfNontypeTested
+			.bitSet(argumentIndex - 1, true, true).makeShared()
+		val subtreesByInstanceType = elementsByInstanceType.mapValues {
+				(instanceType, elements) ->
+			adaptor.createTree(
+				positiveElements,
+				elements.toList(),
+				knownArgumentRestrictions.toMutableList().also {
+					it[argumentIndex - 1] =
+						it[argumentIndex - 1].intersectionWithType(
+							instanceMeta(instanceType))
+				},
+				alreadyTagTestedArguments,
+				alreadyVariantTestedArguments,
+				alreadyMetaInstanceExtractArguments,
+				alreadyPhraseTypeExtractArguments,
+				alreadyTestedConstants,
+				testedFlags,
+				alreadyExtractedFields,
+				memento)
+		}
+		val fallThrough = adaptor.createTree(
+			positiveElements,
+			undecidedElements,
+			knownArgumentRestrictions,
+			alreadyTagTestedArguments,
+			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
+			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
+			testedFlags,
+			alreadyExtractedFields,
+			memento)
+		return TestForEnumerationOfNontypeDecisionStep(
+			argumentIndex, subtreesByInstanceType, fallThrough)
+	}
+
 
 	override fun toString(indent: Int): String = when (val step = decisionStep)
 	{

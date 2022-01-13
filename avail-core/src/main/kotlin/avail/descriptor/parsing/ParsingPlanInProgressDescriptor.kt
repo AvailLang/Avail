@@ -31,6 +31,7 @@
  */
 package avail.descriptor.parsing
 
+import avail.annotations.HideFieldInDebugger
 import avail.compiler.AvailCompilerFragmentCache
 import avail.compiler.ParsingOperation
 import avail.compiler.ParsingOperation.Companion.decode

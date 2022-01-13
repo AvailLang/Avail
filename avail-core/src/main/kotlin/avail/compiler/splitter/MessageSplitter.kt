@@ -698,8 +698,9 @@ constructor(messageName: A_String) {
 	fun highlightedNameFor(phraseType: A_Type, pc: Int): String {
 		val string = messageName.asNativeString()
 		val expressions = originExpressionsFor(phraseType)
-		val zeroBasedPosition = if (pc == expressions.size + 1) string.length
-		else expressions[pc - 1].positionInName - 1
+		val zeroBasedPosition =
+			if (pc == expressions.size + 1) string.length
+			else expressions[pc - 1].positionInName - 1
 		val annotatedString = string.replaceRange(
 			zeroBasedPosition until zeroBasedPosition,
 			CompilerDiagnostics.errorIndicatorSymbol)
