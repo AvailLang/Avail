@@ -54,5 +54,5 @@ object Versions
 	 *
 	 *  This represents the version of the `avail-plugin`.
 	 */
-	const val avail = "1.6.0.20211017.182336"
+	const val avail = "1.6.0.20220114.042712"
 }

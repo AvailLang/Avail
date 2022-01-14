@@ -147,6 +147,7 @@ tasks {
         // This task is customizable in the same manner as any
         // AvailWorkbenchTask.
         dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        dependency(project.dependencies.project(":avail-java-ffi"))
     }
 
     // Add your own custom task to assemble and launch an Avail workbench.

@@ -271,7 +271,7 @@ class Repository constructor(
 		 */
 		internal fun provideDigest (reference: ResolverReference): ByteArray?
 		{
-			require(rootRelativeName == reference.qualifiedName) {
+			require(rootRelativeName == reference.moduleName.rootRelativeName) {
 				"${reference.qualifiedName} attempted to access archive for " +
 					rootRelativeName
 			}
@@ -1114,6 +1114,7 @@ class Repository constructor(
 	 */
 	fun getArchive(rootRelativeName: String): ModuleArchive =
 		lock.withLock {
+			assert(!rootRelativeName.startsWith("/"))
 			moduleMap.computeIfAbsent(
 				rootRelativeName, this::ModuleArchive)
 		}

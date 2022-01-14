@@ -195,7 +195,7 @@ class ResolverReference constructor(
 	 * [ResolverReference] points to.
 	 */
 	private val archive: Repository.ModuleArchive get() =
-		repository.getArchive(qualifiedName)
+		repository.getArchive(moduleName.rootRelativeName)
 
 	/**
 	 * The file MIME type of the associated resource or empty String if

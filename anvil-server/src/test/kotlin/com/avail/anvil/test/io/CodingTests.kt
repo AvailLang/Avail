@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.test.io
+package com.avail.anvil.test.io
 
 import avail.anvil.io.decodeList
 import avail.anvil.io.decodeString
