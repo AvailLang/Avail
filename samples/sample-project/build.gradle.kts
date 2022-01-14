@@ -170,7 +170,7 @@ tasks {
         root("my-avail-root", "$projectDir/avail/my-roots/my-avail-root")
         root(
             "avail",
-            "jar:$projectDir/avail/roots/avail-stdlib-${Versions.avail}.jar")
+            "jar:$projectDir/avail/my-roots/avail-stdlib.jar")
         vmOption("-ea")
         vmOption("-XX:+UseCompressedOops")
         vmOption("-DavailDeveloper=true")
