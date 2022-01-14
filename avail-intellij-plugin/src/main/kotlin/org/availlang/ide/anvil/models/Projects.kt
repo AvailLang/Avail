@@ -45,19 +45,18 @@ import avail.compiler.problems.Problem
 import avail.compiler.problems.SimpleProblemHandler
 import avail.descriptor.module.ModuleDescriptor
 import avail.files.FileManager
+import avail.persistence.cache.Repositories
 import avail.persistence.cache.Repository
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
-import com.intellij.configurationStore.serializeObjectInto
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import com.intellij.util.xmlb.XmlSerializer
 import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
 import org.availlang.ide.anvil.streams.AnvilOutputStream
 import org.availlang.ide.anvil.streams.StreamStyle
@@ -424,6 +423,12 @@ data class AvailProject constructor(
 	val fileManager: FileManager = Defaults.instance.defaultFileManager
 ): Comparable<AvailProject>, JSONFriendly
 {
+	init
+	{
+		val file = File(URI(descriptor.repositoryPath))
+		Repositories.setDirectoryLocation(file)
+	}
+
 	/**
 	 * The [AvailProjectDescriptor.id] that uniquely represents this [AvailProject].
 	 */
