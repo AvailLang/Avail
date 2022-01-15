@@ -62,14 +62,35 @@ class AvailPsiElement constructor(
 	val myManager: PsiManager
 ): PsiElementBase()
 {
+	override fun getName(): String =
+		manifestEntry.summaryText
+
 	override fun getLanguage(): Language = AvailLanguage
 
 	override fun getChildren(): Array<PsiElement> = arrayOf()
 
 	override fun getParent(): PsiElement = availFile
 
-	override fun getTextRange(): TextRange =
-		TextRange(manifestEntry.definitionStartingLine, manifestEntry.definitionStartingLine)
+	private var range: TextRange? = null
+
+	override fun getTextRange(): TextRange
+	{
+		if (range == null)
+		{
+			var i = manifestEntry.topLevelStartingLine - 1
+			val t = availFile.text
+			var pos = 0
+			while (i > 0)
+			{
+				if (t[pos++] == '\n')
+				{
+					i--
+				}
+			}
+			range = TextRange(pos, pos)
+		}
+		return range!!
+	}
 
 	override fun getStartOffsetInParent(): Int =
 		manifestEntry.definitionStartingLine
@@ -78,12 +99,11 @@ class AvailPsiElement constructor(
 
 	override fun findElementAt(offset: Int): PsiElement? = null
 
-	override fun getTextOffset(): Int
-	{
-		TODO("Not yet implemented")
-	}
+	override fun getTextOffset(): Int = textRange.startOffset
 
-	override fun getText(): String = manifestEntry.summaryText
+
+	override fun getText(): String =
+		"${manifestEntry.summaryText} (${manifestEntry.kind})"
 
 	override fun textToCharArray(): CharArray =
 		manifestEntry.summaryText.toCharArray()

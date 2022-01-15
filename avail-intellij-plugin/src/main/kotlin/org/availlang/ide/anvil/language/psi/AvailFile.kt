@@ -34,11 +34,9 @@ package org.availlang.ide.anvil.language.psi
 
 import avail.builder.ModuleRoot
 import avail.compiler.ModuleManifestEntry
-import avail.persistence.cache.Repository
 import avail.persistence.cache.RepositoryDescriber
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
-import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
@@ -67,6 +65,11 @@ class AvailFile constructor(
 	 */
 	val projectService: AvailProjectService get() =
 		project.getService(AvailProjectService::class.java)
+
+	/**
+	 * Provide the file contents.
+	 */
+	val text: CharSequence get() = viewProvider.contents
 
 	/**
 	 * The active [AvailProject].
@@ -106,9 +109,33 @@ class AvailFile constructor(
 	 *  * The module is [not included][isIncludedProject] in the active
 	 *  [AvailProject].
 	 */
-	val manifest: List<ModuleManifestEntry> by lazy {
+	val manifest: MutableList<ModuleManifestEntry> by lazy {
+		calculateManifest()
+	}
+
+	/**
+	 * Refresh the [manifest].
+	 *
+	 * @return
+	 *   Answer a [MutableList] of the [ModuleManifestEntry]'s that have been
+	 *   produced by a previous compilation of this module.
+	 */
+	fun refreshAndGetManifest (): MutableList<ModuleManifestEntry>
+	{
+		manifest.clear()
+		manifest.addAll(calculateManifest())
+		return manifest
+	}
+
+	/**
+	 * @return
+	 *   Answer a [MutableList] of the [ModuleManifestEntry]'s that have been
+	 *   produced by a previous compilation of this module.
+	 */
+	private fun calculateManifest (): MutableList<ModuleManifestEntry>
+	{
 		val moduleName = node?.resolved
-		var tempList: List<ModuleManifestEntry>? = null
+		val tempList = mutableListOf<ModuleManifestEntry>()
 		moduleName?.repository?.use { repository ->
 			repository.reopenIfNecessary()
 			val archive =
@@ -124,20 +151,13 @@ class AvailFile constructor(
 				}
 				else
 				{
-					null
+					return mutableListOf()
 				}
-			when (selectedCompilation)
-			{
-				is Repository.ModuleCompilation ->
-				{
-					val describer = RepositoryDescriber(repository)
-					tempList= describer.manifestEntries(
-						selectedCompilation.recordNumberOfManifestEntries)
-				}
-				is Any -> assert(false) { "Unknown type selected" }
-			}
+			val describer = RepositoryDescriber(repository)
+			tempList.addAll(describer.manifestEntries(
+				selectedCompilation.recordNumberOfManifestEntries))
 		}
-		tempList ?: listOf()
+		return tempList
 	}
 
 	override fun getFirstChild(): PsiElement?

@@ -38,5 +38,51 @@
     </applicationListeners>
     <actions>
         <!-- Add your actions here -->
+<!--        <group id="org.intellij.sdk.action.GroupedActions"-->
+<!--               text="Avail"-->
+<!--               description="Avail actions"-->
+<!--               popup="true">-->
+<!--            <add-to-group-->
+<!--                group-id="ToolsMenu"-->
+<!--                anchor="last"/>-->
+<!--            <action-->
+<!--                id="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
+<!--                class="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
+<!--                text="Report Avail Project Problems"-->
+<!--                description="Reports avail project problems">-->
+<!--            </action>-->
+<!--        </group>-->
+<!--        <group id="org.availlang.ide.anvil.actions.AvailActionGroup"-->
+<!--               class="org.availlang.ide.anvil.actions.AvailActionGroup"-->
+<!--               text="Avail"-->
+<!--               description="Avail actions">-->
+<!--            <add-to-group-->
+<!--                group-id="ToolsMenu"-->
+<!--                anchor="after"-->
+<!--                relative-to-action="JShell.Console"/>-->
+<!--&lt;!&ndash;            <action&ndash;&gt;-->
+<!--&lt;!&ndash;                id="org.availlang.ide.anvil.actions.ReportProblemsAction"&ndash;&gt;-->
+<!--&lt;!&ndash;                class="org.availlang.ide.anvil.actions.ReportProblemsAction"&ndash;&gt;-->
+<!--&lt;!&ndash;                text="Report Avail Project Problems"&ndash;&gt;-->
+<!--&lt;!&ndash;                description="Reports avail project problems">&ndash;&gt;-->
+<!--&lt;!&ndash;            </action>&ndash;&gt;-->
+<!--        </group>-->
+
+<!--        <action id="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
+<!--                class="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
+<!--                text="Avvv"-->
+<!--                description="AAAA">-->
+<!--            <add-to-group group-id="ToolsMenu"-->
+<!--                          anchor="after"-->
+<!--                          relative-to-action="JShell.Console"/>-->
+<!--        </action>-->
+        <group id="org.availlang.ide.anvil.actions.AvailActionGroup"
+               class="org.availlang.ide.anvil.actions.AvailActionGroup"
+               text="Avail"
+               description="Avail actions."
+               popup="true"
+               icon="/icons/AvailHammer-small.png">
+            <add-to-group group-id="ToolsMenu" anchor="last"/>
+        </group>
     </actions>
 </idea-plugin>

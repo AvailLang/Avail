@@ -1,6 +1,6 @@
 /*
- * AvailFileElement.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * ReportProblemsAction.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,44 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language
+package org.availlang.ide.anvil.actions
 
-import com.intellij.psi.impl.source.tree.FileElement
-import com.intellij.psi.impl.source.tree.TreeElement
-import org.availlang.ide.anvil.language.psi.AvailFileElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.language.psi.AvailPsiElement
+import com.intellij.openapi.actionSystem.AnAction
+import com.intellij.openapi.actionSystem.AnActionEvent
+import org.availlang.ide.anvil.models.AvailProjectService
 
 /**
- * A `AvailFileElement` is TODO: Document this!
+ * A `ReportProblemsAction` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailFileElement constructor(
-	text: CharSequence, val availFile: AvailFile
-): FileElement(AvailFileElementType, text)
+class ReportProblemsAction: AnAction
 {
-	override fun getFirstChildNode(): TreeElement?
+	constructor(): super()
+	constructor(name: String, description: String): super(name, description, null)
+	override fun actionPerformed(e: AnActionEvent)
 	{
-		val node = availFile.firstChild ?: return null
-		node as AvailPsiElement
-		return AvailTreeElement(node, node.manifestEntry)
+		val project = e.project
+		if (project != null)
+		{
+			val service = project.getService(AvailProjectService::class.java)
+			service.exportProblemsToDisk()
+		}
 	}
 
-	override fun getLastChildNode(): TreeElement?
+	override fun update(e: AnActionEvent)
 	{
-		val node = availFile.lastChild ?: return null
-		node as AvailPsiElement
-		return AvailTreeElement(node, node.manifestEntry)
+		val project = e.project
+		if (project != null)
+		{
+			val service = project.getService(AvailProjectService::class.java)
+			e.presentation.isEnabled = service.problems.isNotEmpty()
+			e.presentation.text = "Export Problems (${service.problems.size})"
+		}
+		else
+		{
+			e.presentation.isEnabled = false
+		}
+		super.update(e)
 	}
 }

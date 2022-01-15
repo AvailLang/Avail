@@ -59,7 +59,14 @@ class AvailProjectOpenListener: ProjectManagerListener
 
 	override fun projectClosing(project: Project)
 	{
-		project.getService(AvailProjectService::class.java).saveConfigToDisk()
+		project.basePath?.let {
+			val descriptorFile = File("$it/.idea/avail.json")
+			if (descriptorFile.exists())
+			{
+				project.getService(
+					AvailProjectService::class.java).saveConfigToDisk()
+			}
+		}
 		super.projectClosing(project)
 	}
 

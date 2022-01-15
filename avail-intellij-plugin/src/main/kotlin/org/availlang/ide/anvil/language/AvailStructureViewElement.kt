@@ -55,6 +55,7 @@ open class AvailStructureViewElement constructor(
 	val myElement: NavigatablePsiElement
 ): StructureViewTreeElement, SortableTreeElement
 {
+
 	override fun getPresentation(): ItemPresentation = myElement.presentation
 		?: PresentationData("NO PRESENTATION", null, null, null)
 
@@ -62,7 +63,7 @@ open class AvailStructureViewElement constructor(
 	{
 		if (myElement is AvailFile)
 		{
-			val list = myElement.manifest.mapIndexed { i, it->
+			val list = myElement.refreshAndGetManifest().mapIndexed { i, it->
 				AvailItemPresentationTreeElement(
 					it,
 					AvailPsiElement(
@@ -102,13 +103,35 @@ open class AvailStructureViewElement constructor(
  * @property entry
  *   The [ModuleManifestEntry] to present.
  */
-class AvailItemPresentation constructor(
+class AvailItemPresentation constructor (
 	val entry: ModuleManifestEntry
 ): ItemPresentation
 {
-	override fun getPresentableText(): String = entry.summaryText
+	override fun getPresentableText(): String =
+		entry.run { "$summaryText ($kind)" }
 
-	override fun getIcon(unused: Boolean): Icon = AvailIcons.moduleFileImage
+	override fun getIcon(unused: Boolean): Icon =
+		when (entry.kind)
+		{
+			ModuleManifestEntry.Kind.ATOM_DEFINITION_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.METHOD_DEFINITION_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.ABSTRACT_METHOD_DEFINITION_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.FORWARD_METHOD_DEFINITION_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.MACRO_DEFINITION_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.SEMANTIC_RESTRICTION_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.LEXER_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.MODULE_CONSTANT_KIND ->
+				AvailIcons.moduleFileImage
+			ModuleManifestEntry.Kind.MODULE_VARIABLE_KIND ->
+				AvailIcons.moduleFileImage
+		}
 
 	override fun getLocationString(): String?
 	{
@@ -132,12 +155,13 @@ class AvailItemPresentationTreeElement constructor(
 
 	override fun navigate(requestFocus: Boolean)
 	{
-		TODO("Not yet implemented")
+		myElement.navigate(requestFocus)
 	}
 
-	override fun canNavigate(): Boolean = false
+	override fun canNavigate(): Boolean = true
 
-	override fun canNavigateToSource(): Boolean = false
+	override fun canNavigateToSource(): Boolean = true
+
 
 	override fun getValue(): Any = entry
 
@@ -147,5 +171,5 @@ class AvailItemPresentationTreeElement constructor(
 	override fun getChildren(): Array<TreeElement> = arrayOf()
 
 	override fun toString(): String =
-		itemPresentation.entry.summaryText
+		"${entry.summaryText} (${entry.kind})"
 }

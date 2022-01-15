@@ -36,6 +36,7 @@ import com.intellij.ide.structureView.StructureViewModel.ElementInfoProvider
 import com.intellij.ide.structureView.StructureViewModelBase
 import com.intellij.ide.structureView.StructureViewTreeElement
 import com.intellij.ide.util.treeView.smartTree.NodeProvider
+import com.intellij.ide.util.treeView.smartTree.Sorter
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import org.availlang.ide.anvil.language.psi.AvailFile
 
@@ -81,5 +82,10 @@ class AvailStructureViewModel constructor(
 	override fun getNodeProviders(): MutableCollection<NodeProvider<TreeElement>>
 	{
 		return super.getNodeProviders()
+	}
+
+	override fun getSorters(): Array<Sorter>
+	{
+		return arrayOf(Sorter.ALPHA_SORTER)
 	}
 }

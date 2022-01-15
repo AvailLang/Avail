@@ -38,6 +38,8 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.files.FileManager
 import avail.persistence.cache.Repository
+import org.availlang.ide.anvil.models.ProjectLocation
+import org.availlang.ide.anvil.models.UserHome
 
 ////////////////////////////////////////////////////////////////////////////////
 //                         Avail runtime management.                          //
@@ -179,10 +181,10 @@ class Defaults
 			defaultModuleRoots)
 
 	/**
-	 * The default directory where Avail [Repository]s are written to.
+	 * The default [ProjectLocation] where Avail [Repository]s are written to.
 	 */
-	val defaultRepositoryPath: String =
-		"$userHome/$REPOS_DEFAULT"
+	val defaultRepositoryPath: ProjectLocation = UserHome(REPOS_DEFAULT)
+
 
 	companion object
 	{
