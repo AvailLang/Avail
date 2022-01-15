@@ -84,5 +84,19 @@
                icon="/icons/AvailHammer-small.png">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </group>
-    </actions>
+<!--		<action id="org.availlang.ide.anvil.actions.BuildAction"-->
+<!--				class="org.availlang.ide.anvil.actions.BuildAction"-->
+<!--				text="Build"-->
+<!--				description="Build Avail file.">-->
+<!--			<add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
+<!--		</action>-->
+		<action id="org.availlang.ide.anvil.actions.BuildAction"
+				class="org.availlang.ide.anvil.actions.BuildAction"
+				text="Build"
+				description="Build this Avail file.">
+			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
+			<keyboard-shortcut keymap="$default"
+							   first-keystroke="shift meta B"/>
+		</action>
+	</actions>
 </idea-plugin>

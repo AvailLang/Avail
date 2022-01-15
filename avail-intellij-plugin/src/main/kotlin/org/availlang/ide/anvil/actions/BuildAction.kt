@@ -34,7 +34,9 @@ package org.availlang.ide.anvil.actions
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.availlang.ide.anvil.language.AvailIcons
+import com.intellij.openapi.actionSystem.CommonDataKeys
+import com.intellij.openapi.editor.Editor
+import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.models.AvailProjectService
 
 /**
@@ -42,7 +44,7 @@ import org.availlang.ide.anvil.models.AvailProjectService
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class ReportProblemsAction: AnAction
+class BuildAction: AnAction
 {
 	constructor(): super()
 	constructor(name: String, description: String): super(name, description, null)
@@ -52,7 +54,15 @@ class ReportProblemsAction: AnAction
 		if (project != null)
 		{
 			val service = project.getService(AvailProjectService::class.java)
-			service.exportProblemsToDisk()
+
+			// Enable/disable depending on whether user is editing
+			val editor: Editor? = e.getData<Editor>(CommonDataKeys.EDITOR)
+			val file = e.getData(CommonDataKeys.PSI_FILE)
+			if (file is AvailFile)
+			{
+				file.build { println("I built ${file.node?.reference?.qualifiedName}") }
+			}
+			val i = 5
 		}
 	}
 
@@ -61,21 +71,8 @@ class ReportProblemsAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.getService(AvailProjectService::class.java)
-			if(service.problems.isNotEmpty())
-			{
-				e.presentation.isEnabled = true
-				e.presentation.icon = AvailIcons.error16
-				e.presentation.text =
-					"Export Problems (${service.problems.size})"
-			}
-			else
-			{
-				e.presentation.isEnabled = false
-				e.presentation.text =
-					"No Project Problems"
-
-			}
+			e.presentation.isEnabledAndVisible =
+				e.getData(CommonDataKeys.PSI_FILE) is AvailFile
 		}
 		else
 		{

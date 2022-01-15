@@ -76,6 +76,16 @@ class AvailFile constructor(
 	 */
 	val availProject: AvailProject get() = projectService.availProject
 
+	fun build (then: () -> Unit): Boolean =
+		node?.let {
+			availProject.build(it.reference.qualifiedName)
+			{
+				refreshAndGetManifest()
+				then()
+			}
+		} ?: false
+
+
 	/**
 	 * The [RootNode] of the [ModuleRoot] this [AvailFile] belongs to or `null`
 	 * if not an Avail module in any of the [AvailProject]'s [ModuleRoot]s.

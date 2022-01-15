@@ -32,6 +32,7 @@
 
 package org.availlang.ide.anvil.models
 
+import org.availlang.ide.anvil.utilities.localTimestamp
 import java.io.BufferedWriter
 import java.io.PrintWriter
 
@@ -97,8 +98,8 @@ class UnexplainedProblem constructor (
 
 	override fun writeTo(writer: BufferedWriter)
 	{
-		val border = "-----------------------------"
-		writer.write("$border Unexplained Problem $border\n\n")
+		val border = "----------------"
+		writer.write("$border Unexplained Problem (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n------- Stack Trace -------\n")
 		exception!!.printStackTrace(PrintWriter(writer))
@@ -123,8 +124,8 @@ class LocationProblem constructor(
 
 	override fun writeTo(writer: BufferedWriter)
 	{
-		val border = "-------------------------------"
-		writer.write("$border LocationProblem $border\n\n")
+		val border = "------------------"
+		writer.write("$border LocationProblem (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n")
 	}
@@ -141,8 +142,8 @@ class ModuleRootScanProblem constructor(
 {
 	override fun writeTo(writer: BufferedWriter)
 	{
-		val border = "----------------------------"
-		writer.write("$border ModuleRootScanProblem $border\n\n")
+		val border = "----------------"
+		writer.write("$border ModuleRootScanProblem (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n")
 	}
@@ -159,8 +160,8 @@ class ConfigFileProblem constructor(
 {
 	override fun writeTo(writer: BufferedWriter)
 	{
-		val border = "------------------------------"
-		writer.write("$border ConfigFileProblem $border\n\n")
+		val border = "-----------------"
+		writer.write("$border ConfigFileProblem (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n")
 	}

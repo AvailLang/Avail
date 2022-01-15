@@ -52,4 +52,10 @@ object AvailIcons
 	 */
 	val projectModuleFileImage =
 		IconLoader.getIcon("/icons/AvailHammer.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image file used to represent an Avail Module file.
+	 */
+	val error16 =
+		IconLoader.getIcon("/icons/error_red_16dp.svg", AvailIcons.javaClass)
 }
