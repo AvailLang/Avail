@@ -78,7 +78,7 @@ object Versions
 	const val jvmTarget = "11"
 
 	/** The JVM target version for Kotlin. */
-	const val intellij = "1.2.0"
+	const val intellij = "1.3.0"
 
 	/**
 	 * The list of compile-time arguments to be used during Kotlin compilation.
