@@ -1,10 +1,12 @@
+import avail.build.cleanupAllJars
+
 plugins {
     kotlin("jvm")
     id("org.jetbrains.intellij")
+    id("com.github.johnrengelman.shadow")
 }
 
 group = "avail.plugin"
-version = "1.0-SNAPSHOT"
 
 repositories {
     mavenLocal()
@@ -37,5 +39,12 @@ tasks {
     withType<JavaCompile>() {
         sourceCompatibility = "11"
         targetCompatibility = "11"
+    }
+
+    jar {
+        manifest.attributes["Implementation-Title"] = "Avail IntelliJ Plugin"
+        manifest.attributes["Implementation-Version"] = project.version
+        doFirst { cleanupAllJars() }
+        duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }

@@ -114,26 +114,26 @@ class AvailItemPresentation constructor (
 		when (entry.kind)
 		{
 			ModuleManifestEntry.Kind.ATOM_DEFINITION_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.atom
 			ModuleManifestEntry.Kind.METHOD_DEFINITION_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.method
 			ModuleManifestEntry.Kind.ABSTRACT_METHOD_DEFINITION_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.method
 			ModuleManifestEntry.Kind.FORWARD_METHOD_DEFINITION_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.forwardMethod
 			ModuleManifestEntry.Kind.MACRO_DEFINITION_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.macro
 			ModuleManifestEntry.Kind.SEMANTIC_RESTRICTION_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.semanticRestriction
 			ModuleManifestEntry.Kind.LEXER_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.lexer
 			ModuleManifestEntry.Kind.MODULE_CONSTANT_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.constant
 			ModuleManifestEntry.Kind.MODULE_VARIABLE_KIND ->
-				AvailIcons.moduleFileImage
+				AvailIcons.variable
 		}
 
-	override fun getLocationString(): String?
+	override fun getLocationString(): String
 	{
 		return entry.topLevelStartingLine.toString()
 	}

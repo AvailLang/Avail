@@ -37,6 +37,8 @@ Entries
 	"Run all sample tests"
 Body
 
+myValue : integer := 12;
+
 // The contents of this file represents creating a link to Java POJOs that exist
 // on the JVM classpath of the Avail Runtime.
 // Note: As with any FFI bindings, the native source must be re-compiled each

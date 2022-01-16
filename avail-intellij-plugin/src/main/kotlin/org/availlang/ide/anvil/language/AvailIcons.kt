@@ -58,4 +58,82 @@ object AvailIcons
 	 */
 	val error16 =
 		IconLoader.getIcon("/icons/error_red_16dp.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail module file.
+	 */
+	val availFile =
+		IconLoader.getIcon("/icons/avail-file.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail repo file.
+	 */
+	val repoFile =
+		IconLoader.getIcon("/icons/repo-file.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail repo file.
+	 */
+	val availLogoHammerSmall =
+		IconLoader.getIcon("/icons/AvailHammer-16px.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail atom.
+	 */
+	val atom =
+		IconLoader.getIcon("/icons/atom.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail method.
+	 */
+	val method =
+		IconLoader.getIcon("/icons/method.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail forward method.
+	 */
+	val forwardMethod =
+		IconLoader.getIcon("/icons/forward-method.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail forward method.
+	 */
+	val abstractMethod =
+		IconLoader.getIcon("/icons/abstract-method.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail macro.
+	 */
+	val macro =
+		IconLoader.getIcon("/icons/macro.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail lexer.
+	 */
+	val lexer =
+		IconLoader.getIcon("/icons/lexer.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail semantic restriction.
+	 */
+	val semanticRestriction =
+		IconLoader.getIcon("/icons/semantic-restriction.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail variable.
+	 */
+	val variable =
+		IconLoader.getIcon("/icons/variable.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail constant.
+	 */
+	val constant =
+		IconLoader.getIcon("/icons/constant.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail grammatical restriction.
+	 */
+	val grammaticalRestriction =
+		IconLoader.getIcon("/icons/grammatical-restriction.svg", AvailIcons.javaClass)
 }

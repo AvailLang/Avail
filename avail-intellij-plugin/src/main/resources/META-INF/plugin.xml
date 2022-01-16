@@ -1,11 +1,10 @@
 <idea-plugin>
     <id>avail.plugin.avail-intellij-plugin</id>
     <name>Avail</name>
-    <vendor email="avail@availlang.org" url="http://www.availlang.org">
-        Avail</vendor>
+    <vendor email="avail@availlang.org" url="http://www.availlang.org">Avail</vendor>
 
     <description><![CDATA[The IntelliJ plugin for supporting
-    the Avail language.]]></description>
+    the Avail programming language.]]></description>
 
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
@@ -16,6 +15,11 @@
             name="Avail File"
             implementationClass="org.availlang.ide.anvil.language.file.AvailFileType"
             fieldName="INSTANCE" language="Avail" extensions="avail"/>
+		<fileType
+			name="Avail Repo"
+			implementationClass="org.availlang.ide.anvil.language.file.AvailRepoFileType"
+			fieldName="INSTANCE"
+			extensions="repo"/>
         <lang.parserDefinition
             language="Avail"
             implementationClass="org.availlang.ide.anvil.language.AvailParserDefinition"/>
@@ -37,66 +41,22 @@
             topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
     <actions>
-        <!-- Add your actions here -->
-<!--        <group id="org.intellij.sdk.action.GroupedActions"-->
-<!--               text="Avail"-->
-<!--               description="Avail actions"-->
-<!--               popup="true">-->
-<!--            <add-to-group-->
-<!--                group-id="ToolsMenu"-->
-<!--                anchor="last"/>-->
-<!--            <action-->
-<!--                id="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
-<!--                class="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
-<!--                text="Report Avail Project Problems"-->
-<!--                description="Reports avail project problems">-->
-<!--            </action>-->
-<!--        </group>-->
-<!--        <group id="org.availlang.ide.anvil.actions.AvailActionGroup"-->
-<!--               class="org.availlang.ide.anvil.actions.AvailActionGroup"-->
-<!--               text="Avail"-->
-<!--               description="Avail actions">-->
-<!--            <add-to-group-->
-<!--                group-id="ToolsMenu"-->
-<!--                anchor="after"-->
-<!--                relative-to-action="JShell.Console"/>-->
-<!--&lt;!&ndash;            <action&ndash;&gt;-->
-<!--&lt;!&ndash;                id="org.availlang.ide.anvil.actions.ReportProblemsAction"&ndash;&gt;-->
-<!--&lt;!&ndash;                class="org.availlang.ide.anvil.actions.ReportProblemsAction"&ndash;&gt;-->
-<!--&lt;!&ndash;                text="Report Avail Project Problems"&ndash;&gt;-->
-<!--&lt;!&ndash;                description="Reports avail project problems">&ndash;&gt;-->
-<!--&lt;!&ndash;            </action>&ndash;&gt;-->
-<!--        </group>-->
-
-<!--        <action id="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
-<!--                class="org.availlang.ide.anvil.actions.ReportProblemsAction"-->
-<!--                text="Avvv"-->
-<!--                description="AAAA">-->
-<!--            <add-to-group group-id="ToolsMenu"-->
-<!--                          anchor="after"-->
-<!--                          relative-to-action="JShell.Console"/>-->
-<!--        </action>-->
         <group id="org.availlang.ide.anvil.actions.AvailActionGroup"
                class="org.availlang.ide.anvil.actions.AvailActionGroup"
                text="Avail"
                description="Avail actions."
                popup="true"
-               icon="/icons/AvailHammer-small.png">
+               icon="/icons/AvailHammer-16px.svg">
             <add-to-group group-id="ToolsMenu" anchor="last"/>
         </group>
-<!--		<action id="org.availlang.ide.anvil.actions.BuildAction"-->
-<!--				class="org.availlang.ide.anvil.actions.BuildAction"-->
-<!--				text="Build"-->
-<!--				description="Build Avail file.">-->
-<!--			<add-to-group group-id="EditorPopupMenu" anchor="last"/>-->
-<!--		</action>-->
 		<action id="org.availlang.ide.anvil.actions.BuildAction"
 				class="org.availlang.ide.anvil.actions.BuildAction"
 				text="Build"
 				description="Build this Avail file.">
 			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
-			<keyboard-shortcut keymap="$default"
-							   first-keystroke="shift meta B"/>
+			<keyboard-shortcut
+				keymap="$default"
+				first-keystroke="shift meta B"/>
 		</action>
 	</actions>
 </idea-plugin>

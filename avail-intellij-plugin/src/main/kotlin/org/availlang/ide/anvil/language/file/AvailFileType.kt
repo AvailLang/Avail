@@ -19,5 +19,5 @@ object AvailFileType: LanguageFileType(AvailLanguage)
 
 	override fun getDefaultExtension(): String = "avail"
 
-	override fun getIcon(): Icon = AvailIcons.moduleFileImage
+	override fun getIcon(): Icon = AvailIcons.availFile
 }
