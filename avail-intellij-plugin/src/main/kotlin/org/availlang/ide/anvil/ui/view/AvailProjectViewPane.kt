@@ -1,6 +1,6 @@
 /*
- * AvailModuleFileEditor.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * AvailProjectViewPane.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,59 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.editor
+package org.availlang.ide.anvil.ui.view
 
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl
+import com.intellij.ide.SelectInTarget
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.openapi.project.Project
+import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.models.project.AvailProject
-import org.availlang.ide.anvil.models.ModuleNode
+import org.availlang.ide.anvil.language.AvailIcons
+import java.util.jar.JarFile
+import javax.swing.Icon
+import javax.swing.JComponent
 
 /**
- * `AvailModuleFileEditor` is the [FileEditor] for [AvailFile]s.
+ * A `AvailProjectViewPane` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property availProject
- *   The active [AvailProject].
- * @property moduleNode
- *   The [ModuleNode] associated with the [AvailFile] or `null` if it does not
- *   exist.
  */
-class AvailModuleFileEditor constructor(
-	project: Project,
-	provider: AvailModuleFileEditorProvider,
-	file: VirtualFile,
-	private val availProject: AvailProject,
-	private val moduleNode: ModuleNode?)
-: PsiAwareTextEditorImpl(project, file, provider)
+class AvailProjectViewPane constructor (
+	project: Project
+): AbstractProjectViewPane (project)
 {
+	override fun getTitle(): String = "Avail"
 
+	override fun getIcon(): Icon = AvailIcons.logoSmall
+
+	override fun getId(): String = "Avail Project View"
+
+	override fun createComponent(): JComponent
+	{
+		JarFile("").manifest
+		TODO("Not yet implemented")
+	}
+
+	override fun updateFromRoot(restoreExpandedPaths: Boolean): ActionCallback
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun select(
+		element: Any?,
+		file: VirtualFile?,
+		requestFocus: Boolean)
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getWeight(): Int
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun createSelectInTarget(): SelectInTarget
+	{
+		TODO("Not yet implemented")
+	}
 }

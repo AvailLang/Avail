@@ -35,6 +35,7 @@ package org.availlang.json
 import org.availlang.json.JSONWriter.JSONState.EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END
 import org.availlang.json.JSONWriter.JSONState.EXPECTING_FIRST_VALUE_OR_ARRAY_END
 import org.availlang.json.JSONWriter.JSONState.EXPECTING_SINGLE_VALUE
+import org.availlang.json.JSONWriter.JSONState.EXPECTING_VALUE_OR_ARRAY_END
 import java.io.IOException
 import java.io.StringWriter
 import java.io.Writer
@@ -49,13 +50,89 @@ import java.util.LinkedList
  * ECMA 404: "The JSON Data Interchange Format".
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Richard Arriaga
  * @see [ECMA&#32;404:&#32;"The&#32;JSON&#32;Data&#32;Interchange&#32;Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
+ * 
+ * @property writer
+ *   The [target][Writer] for the raw JSON document.
+ * @property prettyPrint
+ *   `true` indicates the JSON should be pretty-printed; `false` indicates the
+ *   JSON should be minified. 
+ *   
+ * @constructor
+ * Construct a new [JSONWriter].
+ * 
+ * @param writer
+ *   The [target][Writer] for the raw JSON document.
+ * @param prettyPrint
+ *   `true` indicates the JSON should be pretty-printed; `false` indicates the
+ *   JSON should be minified.
  */
 @Suppress("unused")
-class JSONWriter : AutoCloseable
+open class JSONWriter constructor(
+	private val writer: Writer = StringWriter(),
+	private val prettyPrint: Boolean = false
+) : AutoCloseable
 {
-	/** The [target][Writer] for the raw JSON document. */
-	private val writer: Writer
+	/**
+	 * The number of indentations there should be on each new line. Each
+	 * indentation is represented by a tab `\t` character.
+	 */
+	private var currentIndentationLevel = 0
+
+	/**
+	 * The prefix indentation each time a new line is to be inserted.
+	 */
+	private var newLineAndIndentation: String = ""
+	
+	/** `true` indicates in an array; `false` otherwise. */
+	private var inArray = false
+	private var addedArrayObjectValue = false
+
+	/**
+	 * Update the [newLineAndIndentation] String according to the
+	 * [currentIndentationLevel].
+	 */
+	private fun updateIndentation()
+	{
+		if (prettyPrint)
+		{
+			newLineAndIndentation =
+				"\n${String(CharArray(currentIndentationLevel) { i -> '\t' })}"
+		}
+	}
+
+	/**
+	 * Reduce the [currentIndentationLevel] by 1.
+	 */
+	private fun reduceIndentation()
+	{
+		if (prettyPrint)
+		{
+			currentIndentationLevel =
+				0.coerceAtLeast(currentIndentationLevel - 1)
+			updateIndentation()
+		}
+	}
+
+	/**
+	 * Increase the currentIndentationLevel by 1.
+	 */
+	private fun increaseIndentation()
+	{
+		currentIndentationLevel =
+			0.coerceAtLeast(currentIndentationLevel + 1)
+		updateIndentation()
+	}
+
+	/**
+	 * If [prettyPrint] is `true`, [write][privateWrite] a 
+	 * [new line and indentation][newLineAndIndentation].
+	 */
+	private fun insertNewLine()
+	{
+		privateWrite(newLineAndIndentation)
+	}
 
 	/**
 	 * The [stack][Deque] of [states][JSONState], to ensure correct usage of the
@@ -70,25 +147,6 @@ class JSONWriter : AutoCloseable
 	 *   A String.
 	 */
 	fun contents(): String = writer.toString()
-
-	/**
-	 * Construct a new [JSONWriter].
-	 */
-	constructor()
-	{
-		this.writer = StringWriter()
-	}
-
-	/**
-	 * Construct a new [JSONWriter].
-	 *
-	 * @param writer
-	 *   The [target][Writer] for the raw JSON document.
-	 */
-	constructor(writer: Writer)
-	{
-		this.writer = writer
-	}
 
 	/**
 	 * Write the specified character to the underlying document
@@ -209,6 +267,8 @@ class JSONWriter : AutoCloseable
 			@Throws(IllegalStateException::class)
 			override fun checkCanWriteArrayStart() =
 				throw IllegalStateException()
+
+			override val newlineBeforeWrite: Boolean = true
 		},
 
 		/**
@@ -236,6 +296,8 @@ class JSONWriter : AutoCloseable
 			@Throws(IllegalStateException::class)
 			override fun checkCanWriteArrayStart() =
 				throw IllegalStateException()
+
+			override val newlineBeforeWrite: Boolean = true
 		},
 
 		/**
@@ -266,7 +328,16 @@ class JSONWriter : AutoCloseable
 
 			@Throws(JSONIOException::class)
 			override fun writePrologueTo(writer: JSONWriter) =
-				writer.privateWrite(',')
+				if (writer.prettyPrint)
+				{
+					writer.privateWrite(", ")
+				}
+				else
+				{
+					writer.privateWrite(',')
+				}
+
+			override val newlineBeforeWrite: Boolean = true
 		},
 
 		/**
@@ -279,7 +350,14 @@ class JSONWriter : AutoCloseable
 
 			@Throws(JSONIOException::class)
 			override fun writePrologueTo(writer: JSONWriter) =
-				writer.privateWrite(':')
+				if (writer.prettyPrint)
+				{
+					writer.privateWrite(": ")
+				}
+				else
+				{
+					writer.privateWrite(':')
+				}
 		},
 
 		/**
@@ -425,6 +503,14 @@ class JSONWriter : AutoCloseable
 		{
 			// Do nothing.
 		}
+
+		/**
+		 * When pretty-printing, can this element be started on the next line?
+		 *
+		 * @return 
+		 *   `true` indicates yes; `false` indicates must be on same line.
+		 */
+		open val newlineBeforeWrite: Boolean = false
 	}
 
 	init
@@ -444,11 +530,17 @@ class JSONWriter : AutoCloseable
 	 *   If an arbitrary value cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	fun writeNull()
+	open fun writeNull()
 	{
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		// Without this cast to Object, the compiler apparently RANDOMLY chooses
 		// which overload to compile. Yeah…
 		privateWrite((null as Any?).toString())
@@ -467,11 +559,17 @@ class JSONWriter : AutoCloseable
 	 *   If an arbitrary value cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	fun write(value: Boolean)
+	open fun write(value: Boolean)
 	{
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		privateWrite(java.lang.Boolean.toString(value))
 		stack.addFirst(state.nextStateAfterValue())
 	}
@@ -488,11 +586,17 @@ class JSONWriter : AutoCloseable
 	 *   If an arbitrary value cannot be written.
 	 */
 	@Throws(JSONIOException::class, IllegalStateException::class)
-	fun write(value: BigDecimal)
+	open fun write(value: BigDecimal)
 	{
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		privateWrite(value.toString())
 		stack.addFirst(state.nextStateAfterValue())
 	}
@@ -514,6 +618,12 @@ class JSONWriter : AutoCloseable
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		privateWrite(value.toString())
 		stack.addFirst(state.nextStateAfterValue())
 	}
@@ -535,6 +645,12 @@ class JSONWriter : AutoCloseable
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		privateWrite(String.format("%d", value))
 		stack.addFirst(state.nextStateAfterValue())
 	}
@@ -556,6 +672,12 @@ class JSONWriter : AutoCloseable
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		privateWrite(String.format("%d", value))
 		stack.addFirst(state.nextStateAfterValue())
 	}
@@ -577,6 +699,12 @@ class JSONWriter : AutoCloseable
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		when
 		{
 			java.lang.Float.isInfinite(value) ->
@@ -611,6 +739,12 @@ class JSONWriter : AutoCloseable
 		val state = stack.removeFirst()
 		state.checkCanWriteAnyValue()
 		state.writePrologueTo(this)
+		if (prettyPrint
+			&& state.newlineBeforeWrite
+			&& state != EXPECTING_VALUE_OR_ARRAY_END)
+		{
+			insertNewLine()
+		}
 		when
 		{
 			java.lang.Double.isInfinite(value) ->
@@ -651,6 +785,12 @@ class JSONWriter : AutoCloseable
 			val state = stack.removeFirst()
 			state.checkCanWriteStringValue()
 			state.writePrologueTo(this)
+			if (prettyPrint
+				&& state.newlineBeforeWrite
+				&& state != EXPECTING_VALUE_OR_ARRAY_END)
+			{
+				insertNewLine()
+			}
 			val value = String.format(pattern, *args)
 			privateWrite('"')
 			var codePoint: Int
@@ -779,7 +919,16 @@ class JSONWriter : AutoCloseable
 		val state = currentState
 		state.checkCanWriteObjectStart()
 		state.writePrologueTo(this)
+		if (prettyPrint && inArray)
+		{
+			insertNewLine()
+			addedArrayObjectValue = true
+		}
 		privateWrite('{')
+		if (prettyPrint)
+		{
+			increaseIndentation()
+		}
 		stack.addFirst(EXPECTING_FIRST_OBJECT_KEY_OR_OBJECT_END)
 	}
 
@@ -796,6 +945,11 @@ class JSONWriter : AutoCloseable
 	{
 		val state = stack.removeFirst()
 		state.checkCanWriteObjectEnd()
+		if (prettyPrint)
+		{
+			reduceIndentation()
+			insertNewLine()
+		}
 		privateWrite('}')
 		stack.addFirst(stack.removeFirst().nextStateAfterValue())
 	}
@@ -843,6 +997,12 @@ class JSONWriter : AutoCloseable
 		state.checkCanWriteArrayStart()
 		state.writePrologueTo(this)
 		privateWrite('[')
+		if (prettyPrint)
+		{
+			increaseIndentation()
+			inArray = true
+			addedArrayObjectValue = false
+		}
 		stack.addFirst(EXPECTING_FIRST_VALUE_OR_ARRAY_END)
 	}
 
@@ -859,8 +1019,18 @@ class JSONWriter : AutoCloseable
 	{
 		val state = stack.removeFirst()
 		state.checkCanWriteArrayEnd()
+		if (prettyPrint)
+		{
+			reduceIndentation()
+			if (addedArrayObjectValue) { insertNewLine() }
+		}
 		privateWrite(']')
 		stack.addFirst(stack.removeFirst().nextStateAfterValue())
+		if (prettyPrint)
+		{
+			addedArrayObjectValue = false
+			inArray = false
+		}
 	}
 
 	/**
@@ -1271,5 +1441,15 @@ class JSONWriter : AutoCloseable
 		 *   A `JSONWriter`.
 		 */
 		fun newWriter(): JSONWriter = JSONWriter(StringWriter())
+
+		/**
+		 * Answer a [JSONWriter] that targets an internal [StringWriter] and
+		 * pretty-prints the content..
+		 *
+		 * @return
+		 *   A `JSONWriter`.
+		 */
+		fun newPrettyPrinterWriter(): JSONWriter =
+			JSONWriter(prettyPrint = true)
 	}
 }

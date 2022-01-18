@@ -41,13 +41,16 @@ import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.TreeElement
 import org.availlang.ide.anvil.language.AvailFileElement
+import org.availlang.ide.anvil.language.AvailIcons
 import org.availlang.ide.anvil.language.AvailLanguage
 import org.availlang.ide.anvil.language.file.AvailFileType
 import org.availlang.ide.anvil.models.AvailNode
-import org.availlang.ide.anvil.models.AvailProject
-import org.availlang.ide.anvil.models.AvailProjectService
+import org.availlang.ide.anvil.models.project.AvailProject
+import org.availlang.ide.anvil.models.project.AvailProjectService
 import org.availlang.ide.anvil.models.ModuleNode
 import org.availlang.ide.anvil.models.RootNode
+import org.availlang.ide.anvil.models.project.availProjectService
+import javax.swing.Icon
 
 /**
  * `AvailFile` is the [PsiFileBase] for an Avail file.
@@ -60,11 +63,17 @@ class AvailFile constructor(
 {
 	override fun getFileType(): FileType = AvailFileType
 
+	override fun getBaseIcon(): Icon =
+		if (isModified) { AvailIcons.availFileDirty }
+		else { super.getBaseIcon() }
+
+
 	/**
 	 * The running [AvailProjectService].
 	 */
-	val projectService: AvailProjectService get() =
-		project.getService(AvailProjectService::class.java)
+	val projectService: AvailProjectService
+		get() =
+		project.availProjectService
 
 	/**
 	 * Provide the file contents.
@@ -85,6 +94,13 @@ class AvailFile constructor(
 			}
 		} ?: false
 
+	/**
+	 * Has this file been modified since it was loaded?
+	 */
+	val isModified get() =
+		node?.let {
+			this.modificationStamp > it.reference.lastModified
+		} ?: false
 
 	/**
 	 * The [RootNode] of the [ModuleRoot] this [AvailFile] belongs to or `null`
@@ -106,8 +122,7 @@ class AvailFile constructor(
 	 */
 	val node: ModuleNode? get()
 	{
-		val service =
-			project.getService(AvailProjectService::class.java)
+		val service = project.availProjectService
 		val path = viewProvider.virtualFile.path
 		return service.availProject.nodesURI[path] as? ModuleNode
 	}

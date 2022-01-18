@@ -47,6 +47,18 @@ fun jsonWriter (writerAction: JSONWriter.() -> Unit): JSONWriter =
 	JSONWriter.newWriter().apply(writerAction)
 
 /**
+ * Answer a pretty-print [JSONWriter] that has had the provided [writerAction]
+ * applied to it.
+ *
+ * @param writerAction
+ *   A lambda that accepts the created and returned [JSONWriter].
+ * @return
+ *   A [JSONWriter].
+ */
+fun jsonPrettyPrintWriter (writerAction: JSONWriter.() -> Unit): JSONWriter =
+	JSONWriter.newPrettyPrinterWriter().apply(writerAction)
+
+/**
  * Answer a [JSONData] that has had the provided [dataAction] applied to it.
  *
  * @param reader

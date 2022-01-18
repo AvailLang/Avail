@@ -32,6 +32,7 @@
 
 package org.availlang.ide.anvil.language
 
+//import com.intellij.icons.AllIcons
 import com.intellij.openapi.util.IconLoader
 
 /**
@@ -46,6 +47,12 @@ object AvailIcons
 	 */
 	val moduleFileImage =
 		IconLoader.getIcon("/icons/ModuleInTree.png", AvailIcons.javaClass)
+
+	/**
+	 * The image file of a 16x16 Avail logo.
+	 */
+	val logoSmall =
+		IconLoader.getIcon("/icons/AvailLogo-small", AvailIcons.javaClass)
 
 	/**
 	 * The image file used to represent an Avail Module file.
@@ -66,10 +73,22 @@ object AvailIcons
 		IconLoader.getIcon("/icons/avail-file.svg", AvailIcons.javaClass)
 
 	/**
+	 * The image used to represent an Avail module file.
+	 */
+	val availFileDirty =
+		IconLoader.getIcon("/icons/avail-file-dirty.svg", AvailIcons.javaClass)
+
+	/**
 	 * The image used to represent an Avail repo file.
 	 */
 	val repoFile =
-		IconLoader.getIcon("/icons/repo-file.svg", AvailIcons.javaClass)
+		IconLoader.getIcon("/icons/repo-file-v2.svg", AvailIcons.javaClass)
+
+	/**
+	 * The image used to represent an Avail library.
+	 */
+	val availLibrary =
+		IconLoader.getIcon("/icons/avail-library.svg", AvailIcons.javaClass)
 
 	/**
 	 * The image used to represent an Avail repo file.

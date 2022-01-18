@@ -33,7 +33,7 @@
 package org.availlang.ide.anvil.settings
 
 import com.intellij.openapi.Disposable
-import org.availlang.ide.anvil.models.AvailProjectDescriptor
+import org.availlang.ide.anvil.models.project.AvailProjectDescriptor
 
 /**
  * A `AvailProjectSettingsPanel` is TODO: Document this!

@@ -34,7 +34,15 @@ package org.availlang.ide.anvil.module
 
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
+import com.intellij.openapi.ui.ComboBox
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.components.JBTextField
+import com.intellij.ui.dsl.builder.Cell
+import com.intellij.ui.dsl.builder.RowLayout
+import com.intellij.ui.dsl.builder.panel
 import javax.swing.JComponent
+import com.intellij.ui.layout.selectedValueIs
+import org.availlang.ide.anvil.ui.components.localTextFieldWithBrowseButton
 
 /**
  * A `AvailRootConfigurationStep` is TODO: Document this!
@@ -45,10 +53,100 @@ class AvailRootConfigurationStep constructor(
 	private val context: WizardContext
 ): ModuleWizardStep()
 {
-	override fun getComponent(): JComponent
+	private lateinit var nameField: Cell<JBTextField>
+	private var projectLocation: String = ""
+	private lateinit var projectLocationField: Cell<TextFieldWithBrowseButton>
+	private var repoLocationType = RepoLocationType.DEFAULT
+	private var repoLocation = ""
+	enum class RepoLocationType
 	{
-		TODO("Not yet implemented")
+		DEFAULT,
+		PROJECT,
+		CUSTOM
 	}
+
+
+	override fun getComponent(): JComponent =
+		panel {
+			row("Project Name:    ") {
+				contextHelp("", "The name of this project.")
+				nameField = cell(JBTextField(45))
+
+			}
+			row("Project Location:") {
+				contextHelp("The project will be created at this location.")
+				projectLocationField =
+					cell(localTextFieldWithBrowseButton( 45) {
+						projectLocation = projectLocationField.component.text
+					})
+			}.layout(RowLayout.INDEPENDENT)
+
+			group ("Repository")
+			{
+				val selections = listOf(
+					"Store in default repository location",
+					"Store in project",
+					"Store in custom location")
+				val explanations = listOf(
+					"All repository (.repo) files will be stored in this " +
+						"location:<br/>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;" +
+						"[USER_HOME]/.avail/repositories<br/>" +
+						"This directory will be created if it doesn't " +
+						"already exist.",
+					"All repository (.repo) files will be stored within the " +
+						"project directory",
+					"All repository (.repo) files will be stored in a " +
+						"location specified by the user.")
+				lateinit var combo: ComboBox<String>
+				row {
+					combo = ComboBox(selections.toTypedArray(), 300)
+					combo.addActionListener {
+						when (combo.item)
+						{
+							selections[0] ->
+							{
+								repoLocationType = RepoLocationType.DEFAULT
+							}
+							selections[1] ->
+							{
+								repoLocationType = RepoLocationType.PROJECT
+							}
+							selections[2] ->
+							{
+								repoLocationType = RepoLocationType.CUSTOM
+							}
+							else ->
+							{
+								repoLocationType = RepoLocationType.DEFAULT
+							}
+						}
+					}
+					cell(combo)
+				}
+				indent {
+					lateinit var repoCell: Cell<TextFieldWithBrowseButton>
+					row {
+						comment(explanations[0])
+						visibleIf(combo.selectedValueIs(selections[0]))
+					}
+					row {
+						comment(explanations[1])
+						visibleIf(combo.selectedValueIs(selections[1]))
+					}
+					row {
+						comment(explanations[2])
+						visibleIf(combo.selectedValueIs(selections[2]))
+					}
+					row("Repository Location:") {
+						repoCell = cell(localTextFieldWithBrowseButton( 42) {
+							repoLocation = repoCell.component.text
+							repoLocationType = RepoLocationType.CUSTOM
+						})
+						visibleIf(combo.selectedValueIs(selections[2]))
+					}
+				}
+			}
+		}
 
 	override fun updateDataModel()
 	{

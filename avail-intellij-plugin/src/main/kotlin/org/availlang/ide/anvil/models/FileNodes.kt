@@ -38,6 +38,7 @@ import avail.builder.ResolvedModuleName
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
+import org.availlang.ide.anvil.models.project.AvailProject
 
 /**
  * A node in the file tree.
@@ -98,9 +99,8 @@ sealed class AvailNode constructor(
 	val sortedChildren : List<AvailNode> get() =
 		children.values.toList().sorted()
 
-	override fun compareTo(other: AvailNode): Int
-	{
-		return when (this)
+	override fun compareTo(other: AvailNode): Int =
+		when (this)
 		{
 			is DirectoryNode ->
 			{
@@ -158,7 +158,6 @@ sealed class AvailNode constructor(
 				}
 			}
 		}
-	}
 
 	override fun toString(): String = reference.localName
 }

@@ -36,7 +36,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.availlang.ide.anvil.language.AvailIcons
-import org.availlang.ide.anvil.models.AvailProjectService
+import org.availlang.ide.anvil.models.project.availProjectService
 import java.io.File
 
 /**
@@ -57,8 +57,7 @@ class AvailActionGroup : ActionGroup()
 			val descriptorFile = File("$it/.idea/avail.json")
 			if (descriptorFile.exists())
 			{
-				project.getService(
-					AvailProjectService::class.java).hasAvailProject
+				project.availProjectService.hasAvailProject
 			}
 			else
 			{

@@ -1,6 +1,6 @@
 /*
  * Projects.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.models
+package org.availlang.ide.anvil.models.project
 
 import avail.AvailRuntime
 import avail.builder.AvailBuilder
@@ -51,13 +51,31 @@ import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
+import com.intellij.ide.projectView.ProjectView
+import com.intellij.ide.projectView.impl.AbstractProjectViewPane
+import com.intellij.ide.projectView.impl.ProjectViewPane
 import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
+import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
+import org.availlang.ide.anvil.models.AvailNode
+import org.availlang.ide.anvil.models.ConfigFileProblem
+import org.availlang.ide.anvil.models.DirectoryNode
+import org.availlang.ide.anvil.models.EntryPointNode
+import org.availlang.ide.anvil.models.InvalidLocation
+import org.availlang.ide.anvil.models.LocationProblem
+import org.availlang.ide.anvil.models.ModuleNode
+import org.availlang.ide.anvil.models.ModulePackageNode
+import org.availlang.ide.anvil.models.ModuleRootScanProblem
+import org.availlang.ide.anvil.models.ProjectLocation
+import org.availlang.ide.anvil.models.ProjectProblem
+import org.availlang.ide.anvil.models.ResourceNode
+import org.availlang.ide.anvil.models.RootNode
+import org.availlang.ide.anvil.models.UnexplainedProblem
 import org.availlang.ide.anvil.streams.AnvilOutputStream
 import org.availlang.ide.anvil.streams.StreamStyle
 import org.availlang.ide.anvil.streams.StyledStreamEntry
@@ -68,6 +86,7 @@ import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONReader
 import org.availlang.json.JSONWriter
+import org.availlang.json.jsonPrettyPrintWriter
 import org.jdom.Element
 import java.io.File
 import java.io.IOException
@@ -145,6 +164,28 @@ class AvailProjectRoot constructor(
 		{
 			if (editable) { 1 } else { -1 }
 		}
+
+	override fun equals(other: Any?): Boolean
+	{
+		if (this === other) return true
+		if (other !is AvailProjectRoot) return false
+
+		if (name != other.name) return false
+		if (location != other.location) return false
+		if (id != other.id) return false
+		if (modulePath != other.modulePath) return false
+
+		return true
+	}
+
+	override fun hashCode(): Int
+	{
+		var result = name.hashCode()
+		result = 31 * result + location.hashCode()
+		result = 31 * result + id.hashCode()
+		result = 31 * result + modulePath.hashCode()
+		return result
+	}
 
 	companion object
 	{
@@ -387,14 +428,25 @@ data class AvailProjectDescriptor constructor(
  *   The opened IntelliJ [Project] this [Service] is assigned to.
  */
 @Service
-class AvailProjectService constructor(
-	val project: Project
-)//: PersistentStateComponent<Element>
+class AvailProjectService constructor(val project: Project)
 {
 	/**
 	 * The list of active [ProjectProblem]s.
 	 */
 	val problems = mutableListOf<ProjectProblem>()
+
+	/**
+	 * The [ProjectView].
+	 */
+	val projectView: ProjectView get() = ProjectView.getInstance(project)
+
+	/**
+	 * Answer the [AbstractProjectViewPane] that represents the [projectView].
+	 */
+	val projectViewPane: AbstractProjectViewPane get() =
+		projectView.getProjectViewPaneById(ProjectViewPane.ID).apply {
+			updateFromRoot(false)
+		}
 
 	/**
 	 * The active [AvailProjectDescriptor].
@@ -406,7 +458,8 @@ class AvailProjectService constructor(
 			val reader = JSONReader(descriptorFile.bufferedReader())
 			val obj = reader.read()  as? JSONObject
 				?: run {
-					problems.add(ConfigFileProblem(
+					problems.add(
+						ConfigFileProblem(
 						"Malformed Anvil config file: " +
 							descriptorFile.absolutePath))
 					return@let AvailProjectDescriptor.EMPTY_PROJECT
@@ -418,7 +471,8 @@ class AvailProjectService constructor(
 				}
 				catch (e: Throwable)
 				{
-					problems.add(UnexplainedProblem(
+					problems.add(
+						UnexplainedProblem(
 						e,
 						"Failed to load configuration file: " +
 							descriptorFile.absolutePath))
@@ -471,10 +525,10 @@ class AvailProjectService constructor(
 	fun saveConfigToDisk ()
 	{
 		if (!hasAvailProject) { return }
-		val writer = JSONWriter()
-		writer.startObject()
-		availProject.descriptor.writeTo(writer)
-		writer.endObject()
+		val writer =
+			jsonPrettyPrintWriter {
+				writeObject { availProject.descriptor.writeTo(this) }
+			}
 		try
 		{
 			val descriptorFile = File("$projectDirectory/.idea/avail.json")
@@ -521,6 +575,11 @@ class AvailProjectService constructor(
 }
 
 /**
+ * Provides the [AvailProjectService] from this [Project].
+ */
+val Project.availProjectService: AvailProjectService get() = service()
+
+/**
  * Represents an actively open and running project.
  *
  * @author Richard Arriaga
@@ -541,8 +600,20 @@ data class AvailProject constructor(
 	init
 	{
 		val fullPath = descriptor.repositoryLocation.fullPath(service)
-		val file = File(URI(fullPath))
-		Repositories.setDirectoryLocation(file)
+		try
+		{
+
+			val file = File(URI(fullPath))
+			Repositories.setDirectoryLocation(file)
+		}
+		catch (e: Throwable)
+		{
+			service.problems.add(
+				LocationProblem(InvalidLocation(
+					service,
+					fullPath,
+					"Could not locate repository location.\n${e.message?:""}")))
+		}
 	}
 
 	/**
@@ -589,20 +660,34 @@ data class AvailProject constructor(
 	 *   fails.
 	 */
 	internal fun addRoot (
+		service: AvailProjectService,
 		root: AvailProjectRoot,
 		successHandler: () -> Unit,
 		failureHandler: (List<String>)->Unit)
 	{
-		moduleRoots.addRoot(root.name, root.location.fullPath(service))
+		try
 		{
-			if (it.isEmpty())
+			moduleRoots.addRoot(root.name, root.location.fullPath(service))
 			{
-				successHandler()
+				if (it.isEmpty())
+				{
+					successHandler()
+				}
+				else
+				{
+					failureHandler(it)
+				}
 			}
-			else
-			{
-				failureHandler(it)
-			}
+		}
+		catch (e: IOException)
+		{
+			service.problems.add(LocationProblem(
+				InvalidLocation(
+					service,
+					root.location.fullPath(service),
+					"Could not locate root, ${root.name}, path: " +
+						"${root.modulePath}.\n${e.message ?: ""}")
+			))
 		}
 	}
 
@@ -623,7 +708,7 @@ data class AvailProject constructor(
 		val rootCount = AtomicInteger(descriptor.roots.size)
 		val errorList = mutableListOf<String>()
 		descriptor.roots.values.forEach { root ->
-			addRoot(root,
+			addRoot(service, root,
 				{
 					if (rootCount.decrementAndGet() == 0)
 					{

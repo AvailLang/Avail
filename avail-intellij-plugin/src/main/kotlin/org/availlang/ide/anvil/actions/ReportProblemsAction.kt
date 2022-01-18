@@ -35,7 +35,8 @@ package org.availlang.ide.anvil.actions
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.availlang.ide.anvil.language.AvailIcons
-import org.availlang.ide.anvil.models.AvailProjectService
+import org.availlang.ide.anvil.models.project.availProjectService
+import org.availlang.ide.anvil.ui.dialog.ProjectProblemDialog
 
 /**
  * A `ReportProblemsAction` is TODO: Document this!
@@ -51,8 +52,12 @@ class ReportProblemsAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.getService(AvailProjectService::class.java)
-			service.exportProblemsToDisk()
+			val service = project.availProjectService
+
+			if ((ProjectProblemDialog(service)).showAndGet())
+			{
+				// user pressed OK
+			}
 		}
 	}
 
@@ -61,7 +66,7 @@ class ReportProblemsAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.getService(AvailProjectService::class.java)
+			val service = project.availProjectService
 			if(service.problems.isNotEmpty())
 			{
 				e.presentation.isEnabled = true

@@ -1,1 +1,33 @@
-{"id":"8997b122-04ff-43e4-b02a-7ac7c84e7ca8","version":1,"name":"Sample Project","repositoryLocation":{"locationType":"project","path":"avail/my-repos"},"renamesFilePath":"","renamesFileBody":"","roots":[{"id":"9f46cd9f-658e-4e61-a0e1-edd02f43425d","name":"avail","editable":true,"location":{"locationType":"project","path":"avail/my-roots/avail-stdlib.jar"}},{"id":"af46cd9f-658e-4e61-a0e1-edd02f434251","name":"my-avail-root","editable":true,"location":{"locationType":"project","path":"avail/my-roots/my-avail-root"}}]}
+{
+	"id": "8997b122-04ff-43e4-b02a-7ac7c84e7ca8", 
+	"version": 1, 
+	"name": "Sample Project", 
+	"repositoryLocation": {
+		"locationType": "project",
+		"path": "avail/my-repos"
+	}, 
+	"renamesFilePath": "", 
+	"renamesFileBody": "", 
+	"roots": [
+		{
+			"id": "9f46cd9f-658e-4e61-a0e1-edd02f43425d", 
+			"name": "avail", 
+			"editable": true,
+			"location": 
+			{
+				"locationType": "project", 
+				"path": "avail/my-roots/avail-stdlib.jar"
+			}
+		},
+		{
+			"id": "af46cd9f-658e-4e61-a0e1-edd02f434251", 
+			"name": "my-avail-root", 
+			"editable": true, 
+			"location": 
+			{
+				"locationType": "project", 
+				"path": "avail/my-roots/my-avail-root"
+			}
+		}
+	]
+}

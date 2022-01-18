@@ -52,5 +52,5 @@ object AvailModuleType: ModuleType<AvailModuleTypeBuilder>("AVAIL_MODULE")
 		"IntelliJ Avail project module"
 
 	override fun getNodeIcon(isOpened: Boolean): Icon =
-		AvailIcons.projectModuleFileImage
+		AvailIcons.logoSmall
 }

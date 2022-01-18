@@ -33,6 +33,8 @@
 package org.availlang.ide.anvil.language
 
 import avail.compiler.ModuleManifestEntry
+import avail.compiler.ModuleManifestEntry.Kind.*
+import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.structureView.StructureViewTreeElement
 import com.intellij.ide.util.treeView.smartTree.SortableTreeElement
@@ -55,7 +57,6 @@ open class AvailStructureViewElement constructor(
 	val myElement: NavigatablePsiElement
 ): StructureViewTreeElement, SortableTreeElement
 {
-
 	override fun getPresentation(): ItemPresentation = myElement.presentation
 		?: PresentationData("NO PRESENTATION", null, null, null)
 
@@ -63,16 +64,25 @@ open class AvailStructureViewElement constructor(
 	{
 		if (myElement is AvailFile)
 		{
-			val list = myElement.refreshAndGetManifest().mapIndexed { i, it->
-				AvailItemPresentationTreeElement(
-					it,
-					AvailPsiElement(
-						myElement,
+			val grouped: Array<TreeElement> = myElement.refreshAndGetManifest()
+				.mapIndexed { i, it->
+					AvailSingleModuleManifestItemPresentationTreeElement(
 						it,
-						i,
-						myElement.manager))
-			}
-			return list.toTypedArray()
+						AvailPsiElement(
+							myElement,
+							it,
+							i,
+							myElement.manager))
+				}
+				.groupBy { it.entry.summaryText }
+				.map {
+					if (it.value.size == 1) it.value[0]
+					else AvailModuleManifestGroupItemPresentationTreeElement(
+						it.key,
+						it.value,
+						myElement)
+				}.toTypedArray()
+			return grouped
 		}
 		return arrayOf()
 	}
@@ -98,40 +108,32 @@ open class AvailStructureViewElement constructor(
 }
 
 /**
+ * [ItemPresentation] that represents a group.
+ *
+ * @property text
+ *   The presentable text.
+ */
+class GroupItemPresentation constructor(
+	val text: String
+): ItemPresentation
+{
+	override fun getPresentableText(): String = text
+
+	override fun getIcon(unused: Boolean): Icon = AllIcons.Actions.GroupBy
+}
+
+/**
  * An [ItemPresentation] that presents an [ModuleManifestEntry].
  *
  * @property entry
  *   The [ModuleManifestEntry] to present.
  */
-class AvailItemPresentation constructor (
+abstract class AvailManifestItemPresentation constructor (
 	val entry: ModuleManifestEntry
 ): ItemPresentation
 {
-	override fun getPresentableText(): String =
-		entry.run { "$summaryText ($kind)" }
-
-	override fun getIcon(unused: Boolean): Icon =
-		when (entry.kind)
-		{
-			ModuleManifestEntry.Kind.ATOM_DEFINITION_KIND ->
-				AvailIcons.atom
-			ModuleManifestEntry.Kind.METHOD_DEFINITION_KIND ->
-				AvailIcons.method
-			ModuleManifestEntry.Kind.ABSTRACT_METHOD_DEFINITION_KIND ->
-				AvailIcons.method
-			ModuleManifestEntry.Kind.FORWARD_METHOD_DEFINITION_KIND ->
-				AvailIcons.forwardMethod
-			ModuleManifestEntry.Kind.MACRO_DEFINITION_KIND ->
-				AvailIcons.macro
-			ModuleManifestEntry.Kind.SEMANTIC_RESTRICTION_KIND ->
-				AvailIcons.semanticRestriction
-			ModuleManifestEntry.Kind.LEXER_KIND ->
-				AvailIcons.lexer
-			ModuleManifestEntry.Kind.MODULE_CONSTANT_KIND ->
-				AvailIcons.constant
-			ModuleManifestEntry.Kind.MODULE_VARIABLE_KIND ->
-				AvailIcons.variable
-		}
+	override fun getPresentableText(): String = entry.summaryText
+//		entry.run { "$summaryText ($kind)" }
 
 	override fun getLocationString(): String
 	{
@@ -139,19 +141,36 @@ class AvailItemPresentation constructor (
 	}
 }
 
+abstract class AvailModuleManifestItemPresentationTreeElement constructor(
+	myElement: NavigatablePsiElement
+): AvailStructureViewElement(myElement)
+
+
 /**
  * A [TreeElement] that is a leaf that is used to display a
  * [ModuleManifestEntry].
  */
-class AvailItemPresentationTreeElement constructor(
+class AvailSingleModuleManifestItemPresentationTreeElement constructor(
 	val entry: ModuleManifestEntry,
 	myElement: NavigatablePsiElement
-): AvailStructureViewElement(myElement)
+): AvailModuleManifestItemPresentationTreeElement(myElement)
 {
 	/**
-	 * The [AvailItemPresentation] of the [ModuleManifestEntry].
+	 * The [AvailManifestItemPresentation] of the [ModuleManifestEntry].
 	 */
-	val itemPresentation = AvailItemPresentation(entry)
+	val itemPresentation =
+		when (entry.kind)
+		{
+			ATOM_DEFINITION_KIND -> AtomTreeElement(entry)
+			METHOD_DEFINITION_KIND -> MethodTreeElement(entry)
+			ABSTRACT_METHOD_DEFINITION_KIND -> AbstractMethodTreeElement(entry)
+			FORWARD_METHOD_DEFINITION_KIND -> ForwardMethodTreeElement(entry)
+			MACRO_DEFINITION_KIND -> MacroTreeElement(entry)
+			SEMANTIC_RESTRICTION_KIND -> SemanticRestrictionTreeElement(entry)
+			LEXER_KIND -> LexerTreeElement(entry)
+			MODULE_CONSTANT_KIND -> ModuleConstantTreeElement(entry)
+			MODULE_VARIABLE_KIND -> ModuleVariableTreeElement(entry)
+		}
 
 	override fun navigate(requestFocus: Boolean)
 	{
@@ -162,14 +181,93 @@ class AvailItemPresentationTreeElement constructor(
 
 	override fun canNavigateToSource(): Boolean = true
 
-
 	override fun getValue(): Any = entry
 
-	override fun getPresentation(): ItemPresentation =
-		itemPresentation
+	override fun getPresentation(): ItemPresentation = itemPresentation
 
 	override fun getChildren(): Array<TreeElement> = arrayOf()
 
 	override fun toString(): String =
 		"${entry.summaryText} (${entry.kind})"
 }
+
+class AvailModuleManifestGroupItemPresentationTreeElement constructor (
+	summaryText: String,
+	val entries: List<AvailSingleModuleManifestItemPresentationTreeElement>,
+	myElement: NavigatablePsiElement
+): AvailModuleManifestItemPresentationTreeElement(myElement)
+{
+	/**
+	 * The [AvailManifestItemPresentation] of the [ModuleManifestEntry].
+	 */
+	val itemPresentation = GroupItemPresentation(summaryText)
+	override fun canNavigate(): Boolean = true
+	override fun canNavigateToSource(): Boolean = true
+	override fun getValue(): Any = entries
+	override fun getPresentation(): ItemPresentation = itemPresentation
+	override fun getChildren(): Array<TreeElement> = entries.toTypedArray()
+}
+
+class AtomTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.atom
+}
+
+class AbstractMethodTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.abstractMethod
+}
+
+class MethodTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.method
+}
+
+class ForwardMethodTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.forwardMethod
+}
+
+class MacroTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.macro
+}
+
+class SemanticRestrictionTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.semanticRestriction
+}
+
+class LexerTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.lexer
+}
+
+class ModuleConstantTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon =AvailIcons.constant
+}
+
+class ModuleVariableTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.variable
+}
+

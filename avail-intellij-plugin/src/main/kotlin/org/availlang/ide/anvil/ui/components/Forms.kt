@@ -1,6 +1,6 @@
 /*
- * AvailModuleFileEditor.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Forms.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.editor
+package org.availlang.ide.anvil.ui.components
 
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl
-import com.intellij.openapi.project.Project
-import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.models.project.AvailProject
-import org.availlang.ide.anvil.models.ModuleNode
+//import com.intellij.openapi.Disposable
+//import com.intellij.openapi.fileChooser.FileChooserDescriptor
+import com.intellij.openapi.fileChooser.FileChooserDescriptorFactory
+import com.intellij.openapi.ui.TextComponentAccessor
+import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.DocumentAdapter
+import com.intellij.ui.components.fields.ExtendableTextField
+import javax.swing.event.DocumentEvent
 
-/**
- * `AvailModuleFileEditor` is the [FileEditor] for [AvailFile]s.
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property availProject
- *   The active [AvailProject].
- * @property moduleNode
- *   The [ModuleNode] associated with the [AvailFile] or `null` if it does not
- *   exist.
- */
-class AvailModuleFileEditor constructor(
-	project: Project,
-	provider: AvailModuleFileEditorProvider,
-	file: VirtualFile,
-	private val availProject: AvailProject,
-	private val moduleNode: ModuleNode?)
-: PsiAwareTextEditorImpl(project, file, provider)
-{
-
-}
+fun localTextFieldWithBrowseButton(
+	minColumns: Int,
+	onTextChanged: () -> Unit = {}
+): TextFieldWithBrowseButton =
+	TextFieldWithBrowseButton(ExtendableTextField(minColumns)).apply {
+		addBrowseFolderListener(
+			null, null, null,
+			FileChooserDescriptorFactory.createSingleFolderDescriptor(),
+			TextComponentAccessor.TEXT_FIELD_WHOLE_TEXT)
+		childComponent.document.addDocumentListener(
+			object : DocumentAdapter()
+			{
+				override fun textChanged(e: DocumentEvent) {
+					onTextChanged()
+				}
+			})
+	}

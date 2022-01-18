@@ -56,8 +56,6 @@ class AvailModuleTypeBuilder: ModuleBuilder()
 
 	override fun getCustomOptionsStep(
 		context: WizardContext,
-		parentDisposable: Disposable): ModuleWizardStep
-	{
-		TODO("IMPLEMENT ME!")
-	}
+		parentDisposable: Disposable): ModuleWizardStep =
+			AvailRootConfigurationStep(context)
 }

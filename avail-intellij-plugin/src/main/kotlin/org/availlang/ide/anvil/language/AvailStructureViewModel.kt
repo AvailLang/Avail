@@ -63,7 +63,7 @@ class AvailStructureViewModel constructor(
 		when (element)
 		{
 			null -> true
-			is AvailItemPresentationTreeElement ->
+			is AvailSingleModuleManifestItemPresentationTreeElement ->
 			{
 				true
 			}

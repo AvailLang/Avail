@@ -44,6 +44,11 @@ import java.io.PrintWriter
 sealed class ProjectProblem
 {
 	/**
+	 * The name of this type of [ProjectProblem].
+	 */
+	abstract val type: String
+
+	/**
 	 * A description of the problem.
 	 */
 	abstract val description: String
@@ -91,6 +96,8 @@ class UnexplainedProblem constructor (
 	override val description: String = exception.message ?: "No error message."
 ): ProjectProblem()
 {
+	override val type: String = "Unexplained Problem"
+
 	init
 	{
 		this.exception = exception
@@ -99,7 +106,7 @@ class UnexplainedProblem constructor (
 	override fun writeTo(writer: BufferedWriter)
 	{
 		val border = "----------------"
-		writer.write("$border Unexplained Problem (${localTimestamp(created)}) $border\n\n")
+		writer.write("$border $type (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n------- Stack Trace -------\n")
 		exception!!.printStackTrace(PrintWriter(writer))
@@ -119,13 +126,15 @@ class LocationProblem constructor(
 	val invalidLocation: InvalidLocation
 ): ProjectProblem()
 {
+	override val type: String = "Location Problem"
+
 	override val description: String
 		get() = invalidLocation.problem
 
 	override fun writeTo(writer: BufferedWriter)
 	{
 		val border = "------------------"
-		writer.write("$border LocationProblem (${localTimestamp(created)}) $border\n\n")
+		writer.write("$border $type (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n")
 	}
@@ -140,10 +149,11 @@ class ModuleRootScanProblem constructor(
 	override val description: String
 ): ProjectProblem()
 {
+	override val type: String = "Module Root Scan Problem"
 	override fun writeTo(writer: BufferedWriter)
 	{
 		val border = "----------------"
-		writer.write("$border ModuleRootScanProblem (${localTimestamp(created)}) $border\n\n")
+		writer.write("$border $type (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n")
 	}
@@ -158,10 +168,12 @@ class ConfigFileProblem constructor(
 	override val description: String
 ): ProjectProblem()
 {
+	override val type: String = "Config File Problem"
+
 	override fun writeTo(writer: BufferedWriter)
 	{
 		val border = "-----------------"
-		writer.write("$border ConfigFileProblem (${localTimestamp(created)}) $border\n\n")
+		writer.write("$border $type (${localTimestamp(created)}) $border\n\n")
 		writer.write("Message: $description\n")
 		writer.write("\n")
 	}

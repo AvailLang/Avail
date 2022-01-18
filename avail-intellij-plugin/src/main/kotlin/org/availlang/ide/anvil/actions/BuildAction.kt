@@ -35,9 +35,9 @@ package org.availlang.ide.anvil.actions
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
-import com.intellij.openapi.editor.Editor
+import com.intellij.openapi.application.ApplicationManager
 import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.models.AvailProjectService
+import org.availlang.ide.anvil.models.project.availProjectService
 
 /**
  * A `ReportProblemsAction` is TODO: Document this!
@@ -53,14 +53,17 @@ class BuildAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.getService(AvailProjectService::class.java)
+			val service = project.availProjectService
 
-			// Enable/disable depending on whether user is editing
-			val editor: Editor? = e.getData<Editor>(CommonDataKeys.EDITOR)
+//			val editor: Editor? = e.getData<Editor>(CommonDataKeys.EDITOR)
 			val file = e.getData(CommonDataKeys.PSI_FILE)
 			if (file is AvailFile)
 			{
-				file.build { println("I built ${file.node?.reference?.qualifiedName}") }
+				ApplicationManager.getApplication().executeOnPooledThread {
+					file.build {
+						println("I built ${file.node?.reference?.qualifiedName}")
+					}
+				}
 			}
 			val i = 5
 		}

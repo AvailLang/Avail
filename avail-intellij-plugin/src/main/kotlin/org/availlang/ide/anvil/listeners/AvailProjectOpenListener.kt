@@ -34,7 +34,8 @@ package org.availlang.ide.anvil.listeners
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
-import org.availlang.ide.anvil.models.AvailProjectService
+import org.availlang.ide.anvil.models.project.AvailProjectService
+import org.availlang.ide.anvil.models.project.availProjectService
 import java.io.File
 
 /**
@@ -52,7 +53,7 @@ class AvailProjectOpenListener: ProjectManagerListener
 			val descriptorFile = File("$it/.idea/avail.json")
 			if (descriptorFile.exists())
 			{
-				project.getService(AvailProjectService::class.java)
+				project.availProjectService
 			}
 		}
 	}
@@ -63,8 +64,7 @@ class AvailProjectOpenListener: ProjectManagerListener
 			val descriptorFile = File("$it/.idea/avail.json")
 			if (descriptorFile.exists())
 			{
-				project.getService(
-					AvailProjectService::class.java).saveConfigToDisk()
+				project.availProjectService.saveConfigToDisk()
 			}
 		}
 		super.projectClosing(project)

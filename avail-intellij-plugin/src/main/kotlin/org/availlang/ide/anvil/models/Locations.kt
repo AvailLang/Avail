@@ -32,6 +32,7 @@
 
 package org.availlang.ide.anvil.models
 
+import org.availlang.ide.anvil.models.project.AvailProjectService
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
@@ -70,6 +71,21 @@ sealed class ProjectLocation constructor(
 			at(ProjectLocation::locationType.name) { write(locationType.name) }
 			at(ProjectLocation::path.name) { write(path) }
 		}
+	}
+
+	override fun equals(other: Any?): Boolean
+	{
+		if (this === other) return true
+		if (other !is ProjectLocation) return false
+
+		if (path != other.path) return false
+
+		return true
+	}
+
+	override fun hashCode(): Int
+	{
+		return path.hashCode()
 	}
 
 	/**

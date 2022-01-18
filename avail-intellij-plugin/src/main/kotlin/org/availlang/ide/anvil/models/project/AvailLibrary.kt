@@ -1,6 +1,6 @@
 /*
- * AvailModuleFileEditor.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * AvailLibrary.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,50 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.editor
+package org.availlang.ide.anvil.models.project
 
-import com.intellij.openapi.fileEditor.FileEditor
-import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl
-import com.intellij.openapi.project.Project
+import com.intellij.navigation.ItemPresentation
+import com.intellij.openapi.roots.SyntheticLibrary
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.models.project.AvailProject
-import org.availlang.ide.anvil.models.ModuleNode
+import org.availlang.ide.anvil.language.AvailIcons
+import javax.swing.Icon
 
 /**
- * `AvailModuleFileEditor` is the [FileEditor] for [AvailFile]s.
+ * A `AvailLibrary` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property availProject
- *   The active [AvailProject].
- * @property moduleNode
- *   The [ModuleNode] associated with the [AvailFile] or `null` if it does not
- *   exist.
  */
-class AvailModuleFileEditor constructor(
-	project: Project,
-	provider: AvailModuleFileEditorProvider,
-	file: VirtualFile,
-	private val availProject: AvailProject,
-	private val moduleNode: ModuleNode?)
-: PsiAwareTextEditorImpl(project, file, provider)
+class AvailLibrary constructor(
+	val root: AvailProjectRoot,
+	private val sourceRoots: Set<VirtualFile>,
+	private val excludedRoots: Set<VirtualFile>,
+	private val icon: Icon
+)
+: SyntheticLibrary(), ItemPresentation
 {
+	override fun getSourceRoots(): Collection<VirtualFile> = sourceRoots
 
+	override fun getExcludedRoots(): Set<VirtualFile> = excludedRoots
+
+	override fun getPresentableText(): String = root.name
+
+	override fun getIcon(unused: Boolean): Icon = AvailIcons.logoSmall
+
+	override fun equals(other: Any?): Boolean
+	{
+		if (this === other) return true
+		if (other !is AvailLibrary) return false
+		if (!super.equals(other)) return false
+
+		if (root != other.root) return false
+
+		return true
+	}
+
+	override fun hashCode(): Int
+	{
+		var result = super.hashCode()
+		result = 31 * result + root.hashCode()
+		return result
+	}
 }
