@@ -39,6 +39,7 @@ import avail.builder.ModuleRootErrorCode
 import avail.builder.ModuleRoots
 import avail.error.ErrorCode
 import avail.error.StandardErrorCode
+import avail.files.AvailFile
 import avail.files.FileErrorCode
 import avail.files.FileManager
 import avail.io.SimpleCompletionHandler
@@ -55,7 +56,7 @@ import io.methvin.watcher.DirectoryChangeEvent
 import io.methvin.watcher.DirectoryChangeEvent.EventType
 import io.methvin.watcher.DirectoryWatcher
 import io.methvin.watcher.hashing.FileHasher
-import org.apache.tika.Tika
+import org.slf4j.helpers.NOPLogger
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -190,7 +191,7 @@ class FileSystemModuleRootResolver constructor(
 		{
 			isPackage -> ""
 			file.extension == "avail" -> "text/plain"  // For performance.
-			else -> tika.detect(path)
+			else -> AvailFile.mimeType(path)
 		}
 		val qname = qualifiedName.replace(availExtension, "")
 		return ResolverReference(
@@ -714,11 +715,6 @@ class FileSystemModuleRootResolver constructor(
 	companion object
 	{
 		/**
-		 * Create the [Tika] mime detector once, lazily.
-		 */
-		val tika: Tika by lazy { Tika() }
-
-		/**
 		 * Answer a [Path] for a given [ModuleRootResolver.uri] and
 		 * [ResolverReference.qualifiedName], transforming the package names to
 		 * include the [availExtension].
@@ -760,6 +756,7 @@ class FileSystemModuleRootResolver constructor(
 		 * the [AvailRuntime] loaded [ModuleRoot]s are stored.
 		 */
 		private val directoryWatcher = DirectoryWatcher.builder()
+			.logger(NOPLogger.NOP_LOGGER)
 			.fileHasher(FileHasher.LAST_MODIFIED_TIME)
 			.listener { e -> resolveEvent(e) }
 			.path(Paths.get(moduleRoot.resolver.uri))

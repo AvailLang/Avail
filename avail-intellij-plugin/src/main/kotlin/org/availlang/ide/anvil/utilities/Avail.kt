@@ -124,44 +124,52 @@ class Defaults
 	 * and `$AVAIL_HOME` is the standard Avail home environment variable.
 	 */
 	val defaultModuleRootsPath: String =
-		buildString {
-			val system = System.getProperty("avail.roots")
-			if (system !== null)
-			{
-				append(system)
-				return@buildString
-			}
-			val availRoots = System.getenv("AVAIL_ROOTS")
-			if (availRoots !== null)
-			{
-				append(availRoots)
-				return@buildString
-			}
-			append("avail=")
-			val availHome = System.getenv("AVAIL_HOME")
-			if (availHome !== null)
-			{
-				append(availHome)
-				append("/src/avail")
-				return@buildString
-			}
-			val classPath = System.getProperty("java.class.path")
-			if (classPath !== null)
-			{
-				val bundled = classPath.splitToSequence(":").first {
-					it.contains("avail-stdlib", ignoreCase = true)
+		try
+		{
+			buildString {
+				val system = System.getProperty("avail.roots")
+				if (system !== null)
+				{
+					append(system)
+					return@buildString
 				}
-				append("jar:")
-				append(bundled)
-				return@buildString
+				val availRoots = System.getenv("AVAIL_ROOTS")
+				if (availRoots !== null)
+				{
+					append(availRoots)
+					return@buildString
+				}
+				append("avail=")
+				val availHome = System.getenv("AVAIL_HOME")
+				if (availHome !== null)
+				{
+					append(availHome)
+					append("/src/avail")
+					return@buildString
+				}
+				val classPath = System.getProperty("java.class.path")
+				if (classPath !== null)
+				{
+					val bundled = classPath.splitToSequence(":").first {
+						it.contains("avail-stdlib", ignoreCase = true)
+					}
+					append("jar:")
+					append(bundled)
+					return@buildString
+				}
+				error("cannot determine default module roots path")
 			}
-			error("cannot determine default module roots path")
+		}
+		catch (e: Throwable)
+		{
+			e.printStackTrace()
+			""
 		}
 
 	/**
 	 * The default [ModuleRoots], using the default module roots path.
 	 */
-	val defaultModuleRoots =
+	val defaultModuleRoots by lazy {
 		ModuleRoots(
 			defaultFileManager,
 			defaultModuleRootsPath)
@@ -171,14 +179,16 @@ class Defaults
 				System.err.println("module root resolution failure: $it")
 			}
 		}
+	}
 
 	/**
 	 * The default [RenamesFileParser], using an empty renames file.
 	 */
-	val defaultRenamesFileParser =
+	val defaultRenamesFileParser by lazy {
 		RenamesFileParser(
 			defaultRenamesFileBody.reader(),
 			defaultModuleRoots)
+	}
 
 	/**
 	 * The default [ProjectLocation] where Avail [Repository]s are written to.

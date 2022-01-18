@@ -54,7 +54,6 @@ import avail.resolver.ResourceType
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.ide.projectView.impl.ProjectViewPane
-import com.intellij.openapi.components.PersistentStateComponent
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -87,7 +86,6 @@ import org.availlang.json.JSONObject
 import org.availlang.json.JSONReader
 import org.availlang.json.JSONWriter
 import org.availlang.json.jsonPrettyPrintWriter
-import org.jdom.Element
 import java.io.File
 import java.io.IOException
 import java.net.URI
@@ -231,7 +229,7 @@ class AvailProjectRoot constructor(
  * @param id
  *   The id that uniquely identifies the project.
  */
-data class AvailProjectDescriptor constructor(
+class AvailProjectDescriptor constructor(
 	var name: String,
 	var repositoryLocation: ProjectLocation =
 		Defaults.instance.defaultRepositoryPath,
@@ -240,23 +238,13 @@ data class AvailProjectDescriptor constructor(
 	val roots: MutableMap<String, AvailProjectRoot> = mutableMapOf(),
 	val id: String = UUID.randomUUID().toString(),
 	val isActiveProject: Boolean = true
-): JSONFriendly, Comparable<AvailProjectDescriptor>, PersistentStateComponent<Element>
+): JSONFriendly, Comparable<AvailProjectDescriptor> //PersistentStateComponent<Element>
 {
 	/**
 	 * The list of [AvailProjectRoot]s in this [AvailProjectDescriptor].
 	 */
 	val availProjectRoots: List<AvailProjectRoot> get() =
 		roots.values.toList().sorted()
-
-	override fun getState(): Element?
-	{
-		TODO("Not yet implemented")
-	}
-
-	override fun loadState(state: Element)
-	{
-		TODO("Not yet implemented")
-	}
 
 	/**
 	 * Add the [AvailProjectRoot] to this [AvailProjectDescriptor].

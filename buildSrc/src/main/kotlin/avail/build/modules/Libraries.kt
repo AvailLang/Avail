@@ -125,10 +125,6 @@ internal object Libraries
 			"io.methvin:directory-watcher")
 			{ Versions.directoryWatcherVersion }
 
-	/** https://tika.apache.org for file MIME type detection. */
-	internal val tikka =
-		Dependency("org.apache.tika:tika-core") { Versions.tikaVersion }
-
 //	org.junit.jupiter:junit-jupiter:5.7.0
 	/** The JUnit 5 Jupiter engine. */
 	internal val junitJupiter =

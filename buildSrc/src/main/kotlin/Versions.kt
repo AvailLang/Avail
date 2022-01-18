@@ -42,7 +42,7 @@ object Versions
 	const val kotlin = "1.5.31"
 
 	/** The Kotlin Desktop Compose version [org.jetbrains.compose]. */
-	const val compose = "1.0.1"
+	const val compose = "1.0.0"
 
 	/** The Avail version. */
 	const val avail = "1.6.0"
@@ -67,9 +67,6 @@ object Versions
 
 	/** The `org.junit.jupiter:junit-jupiter` version. */
 	const val junitVersion = "5.7.2"
-
-	/** The `org.apache.tika:tika-core` version. */
-	const val tikaVersion = "2.2.1"
 
 	/** The language level version of Kotlin. */
 	const val kotlinLanguage = "1.5"

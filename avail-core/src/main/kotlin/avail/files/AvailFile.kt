@@ -33,6 +33,7 @@ package avail.files
 
 import avail.builder.ModuleRoot
 import avail.io.AvailClient
+import java.nio.file.Path
 import java.util.UUID
 
 /**
@@ -187,5 +188,35 @@ abstract class AvailFile constructor(
 		 */
 		fun isTextFile (mimeType: String) =
 			knownTextMimeTypes.contains(mimeType)
+
+		private const val defaultMimeType = "application/octet-stream"
+
+		private val mimeTypeMap = mapOf(
+			"avail" to "text/plain",
+			"java" to "text/plain",
+			"kt" to "text/plain",
+			"kts" to "text/plain",
+			"txt" to "text/plain",
+			"css" to "text/css",
+			"csv" to "text/csv",
+			"html" to "text/html",
+			"js" to "text/javascript",
+			"bin" to "application/octet-stream",
+			"gz" to "application/gzip",
+			"jar" to "application/java-archive",
+			"json" to "application/json",
+			"jpg" to "image/jpeg",
+			"jpeg" to "image/jpeg",
+			"png" to "image/png",
+			"pdf" to "application/pdf",
+			"svg" to "image/svg+xml",
+			"xml" to "application/xml",
+			"zip" to "application/zip")
+
+		fun mimeType (path: Path): String
+		{
+			val extension = path.toUri().rawPath.split(".").last()
+			return mimeTypeMap[extension] ?: defaultMimeType
+		}
 	}
 }

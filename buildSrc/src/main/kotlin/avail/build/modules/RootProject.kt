@@ -13,8 +13,7 @@ object RootProject: ModuleDependencies(
 		Libraries.asmAnalysis,
 		Libraries.asmTree,
 		Libraries.asmUtil,
-		Libraries.fileWatcher,
-		Libraries.tikka),
+		Libraries.fileWatcher),
 	apis = listOf(Libraries.kotlinReflection),
 	testImplementations = listOf(
 		Libraries.junitJupiterParams, Libraries.junitJupiterEngine),

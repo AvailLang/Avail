@@ -52,7 +52,7 @@ dependencies {
 	// Avail.
 	implementation(project(":avail-core"))
 	implementation(compose.desktop.currentOs)
-	implementation("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
+//	implementation("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
 }
 
 tasks {
