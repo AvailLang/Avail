@@ -72,7 +72,7 @@ class ReportProblemsAction: AnAction
 				e.presentation.isEnabled = true
 				e.presentation.icon = AvailIcons.error16
 				e.presentation.text =
-					"Export Problems (${service.problems.size})"
+					"Project Problems (${service.problems.size})"
 			}
 			else
 			{

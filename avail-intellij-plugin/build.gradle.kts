@@ -19,13 +19,13 @@ dependencies {
     implementation(project(":avail-storage"))
     implementation(project(":avail-core"))
     implementation(project(":avail-stdlib"))
-    implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
+    implementation("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
 }
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
     pluginName.set("Avail IntelliJ Plugin")
-    version.set("2021.3")
+    version.set("2021.3.1")
 }
 tasks {
     patchPluginXml {

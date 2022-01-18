@@ -52,7 +52,7 @@ dependencies {
 
     // Dependency prevents SLF4J warning from being printed
     // see: http://www.slf4j.org/codes.html#noProviders
-    implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
+    implementation("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
 
     // Can add an Avail library dependency as a jar available in one of the
     // repositories listed in the repository section
@@ -147,7 +147,7 @@ tasks {
     assembleAndRunWorkbench {
         // This task is customizable in the same manner as any
         // AvailWorkbenchTask.
-        dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        dependency("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
         dependency(project.dependencies.project(":avail-java-ffi"))
     }
 
@@ -166,7 +166,7 @@ tasks {
 
         // Dependency prevents SLF4J warning from being printed
         // see: http://www.slf4j.org/codes.html#noProviders
-        dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        dependency("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
         dependency(project.dependencies.project(":avail-java-ffi"))
         root("my-avail-root", "$projectDir/avail/my-roots/my-avail-root")
         root(

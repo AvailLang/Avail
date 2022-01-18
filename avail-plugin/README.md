@@ -488,7 +488,7 @@ tasks {
         // These are the dependencies that should be resolved and used when the
         // workbench is run.
         dependency("com.google.crypto.tink:tink:1.6.1")
-        dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        dependency("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
         // A project module dependency
         dependency(project.dependencies.project(":avail-java-ffi"))
         
