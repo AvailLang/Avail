@@ -65,7 +65,6 @@ class BuildAction: AnAction
 					}
 				}
 			}
-			val i = 5
 		}
 	}
 

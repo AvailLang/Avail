@@ -10,3 +10,7 @@ Versions
 Uses
 	"Avail"
 Body
+
+myVarValue : integer := 12;
+
+myConstValue ::= 52;

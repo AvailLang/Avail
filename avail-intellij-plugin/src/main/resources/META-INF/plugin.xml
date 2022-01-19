@@ -53,11 +53,12 @@
 		<action id="org.availlang.ide.anvil.actions.BuildAction"
 				class="org.availlang.ide.anvil.actions.BuildAction"
 				text="Build"
-				description="Build this Avail file.">
+				description="Build this Avail file."
+				icon="/icons/AvailHammer-16px.svg">
 			<add-to-group group-id="EditorPopupMenu" anchor="first"/>
 			<keyboard-shortcut
 				keymap="$default"
-				first-keystroke="shift meta B"/>
+				first-keystroke="shift ctrl B"/>
 		</action>
 	</actions>
 </idea-plugin>

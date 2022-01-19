@@ -807,7 +807,7 @@ data class AvailProject constructor(
 		val resolvedModuleName =
 			builder.runtime.moduleNameResolver.resolve(
 				ModuleName(qualifiedModuleName), null)
-
+		resolvedModuleName.repository.reopenIfNecessary()
 		val progressReporter: CompilerProgressReporter =
 			{   moduleName,
 				moduleSizeInBytes,
