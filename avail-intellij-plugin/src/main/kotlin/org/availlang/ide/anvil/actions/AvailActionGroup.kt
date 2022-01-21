@@ -54,7 +54,7 @@ class AvailActionGroup : ActionGroup()
 	{
 		val project = e.project ?: return
 		e.presentation.isEnabledAndVisible = project.basePath?.let {
-			val descriptorFile = File("$it/.idea/avail.json")
+			val descriptorFile = File("$it/.idea/project.availconfig")
 			if (descriptorFile.exists())
 			{
 				project.availProjectService.hasAvailProject
@@ -70,7 +70,7 @@ class AvailActionGroup : ActionGroup()
 	{
 		val project = e?.project ?: return arrayOf()
 		return project.basePath?.let {
-			val descriptorFile = File("$it/.idea/avail.json")
+			val descriptorFile = File("$it/.idea/project.availconfig")
 			if (descriptorFile.exists())
 			{
 				arrayOf(ReportProblemsAction(

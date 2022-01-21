@@ -194,7 +194,7 @@ sealed class ProjectLocation constructor(
 				catch (e: Throwable)
 				{
 					System.err.println(
-						"Malformed .idea/avail.json file: no 'path' specified")
+						"Malformed .idea/project.availconfig file: no 'path' specified")
 					e.printStackTrace()
 					return InvalidLocation(
 						service, "", "missing path")
@@ -205,7 +205,7 @@ sealed class ProjectLocation constructor(
 				}
 				catch (e: Throwable)
 				{
-					System.err.println("Malformed .idea/avail.json file.")
+					System.err.println("Malformed .idea/project.availconfig file.")
 					e.printStackTrace()
 					return InvalidLocation(
 						service,
@@ -215,7 +215,7 @@ sealed class ProjectLocation constructor(
 				if (!validNames.contains(raw))
 				{
 					System.err.println(
-						"Malformed .idea/avail.json file: $raw is not a " +
+						"Malformed .idea/project.availconfig file: $raw is not a " +
 							"valid ${ProjectLocation::locationType.name} value")
 					return InvalidLocation(
 						service,

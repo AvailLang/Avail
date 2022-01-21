@@ -9,6 +9,7 @@
     <!-- please see https://plugins.jetbrains.com/docs/intellij/plugin-compatibility.html
          on how to target different products -->
     <depends>com.intellij.modules.platform</depends>
+	<depends>com.intellij.java</depends>
 
     <extensions defaultExtensionNs="com.intellij">
         <fileType
@@ -20,9 +21,18 @@
 			implementationClass="org.availlang.ide.anvil.language.file.AvailRepoFileType"
 			fieldName="INSTANCE"
 			extensions="repo"/>
+		<fileType
+			name="Avail Project Configuration"
+			implementationClass="org.availlang.ide.anvil.language.file.AvailConfigFileType"
+			fieldName="INSTANCE"
+			language="AvailConfig"
+			extensions="availconfig"/>
         <lang.parserDefinition
             language="Avail"
             implementationClass="org.availlang.ide.anvil.language.AvailParserDefinition"/>
+		<lang.parserDefinition
+			language="AvailConfig"
+			implementationClass="org.availlang.ide.anvil.language.AvailConfigParserDefinition"/>
         <lang.psiStructureViewFactory
             language="Avail"
             implementationClass="org.availlang.ide.anvil.language.AvailStructureViewFactory"/>
@@ -35,6 +45,12 @@
             builderClass="org.availlang.ide.anvil.module.AvailModuleTypeBuilder"/>
         <moduleType id="AVAIL_MODULE"
             implementationClass="org.availlang.ide.anvil.module.AvailModuleType"/>
+		<annotator
+			language="Avail"
+			implementationClass="org.availlang.ide.anvil.language.AvailAnnotator"/>
+		<annotator
+			language="AvailConfig"
+			implementationClass="org.availlang.ide.anvil.language.AvailConfigAnnotator"/>
     </extensions>
     <applicationListeners>
         <listener

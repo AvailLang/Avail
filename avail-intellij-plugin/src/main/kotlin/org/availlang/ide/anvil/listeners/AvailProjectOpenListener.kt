@@ -50,7 +50,7 @@ class AvailProjectOpenListener: ProjectManagerListener
 	{
 		super.projectOpened(project)
 		project.basePath?.let {
-			val descriptorFile = File("$it/.idea/avail.json")
+			val descriptorFile = File("$it/.idea/project.availconfig")
 			if (descriptorFile.exists())
 			{
 				project.availProjectService
@@ -61,7 +61,7 @@ class AvailProjectOpenListener: ProjectManagerListener
 	override fun projectClosing(project: Project)
 	{
 		project.basePath?.let {
-			val descriptorFile = File("$it/.idea/avail.json")
+			val descriptorFile = File("$it/.idea/project.availconfig")
 			if (descriptorFile.exists())
 			{
 				project.availProjectService.saveConfigToDisk()

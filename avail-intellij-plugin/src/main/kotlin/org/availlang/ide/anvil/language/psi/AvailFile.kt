@@ -35,10 +35,13 @@ package org.availlang.ide.anvil.language.psi
 import avail.builder.ModuleRoot
 import avail.compiler.ModuleManifestEntry
 import avail.persistence.cache.RepositoryDescriber
+import com.intellij.codeInspection.ProblemsHolder
 import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
+import com.intellij.psi.impl.source.tree.Factory
+import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import com.intellij.psi.impl.source.tree.TreeElement
 import org.availlang.ide.anvil.language.AvailFileElement
 import org.availlang.ide.anvil.language.AvailIcons
@@ -67,13 +70,20 @@ class AvailFile constructor(
 		if (isModified) { AvailIcons.availFileDirty }
 		else { super.getBaseIcon() }
 
+	/**
+	 * This [AvailFile]'s [ProblemsHolder] used to report problems with the
+	 * represented Avail module.
+	 */
+	val problemsHolder = ProblemsHolder(
+		projectService.inspectionManager,
+		this,
+		true) // This does a thing...on the fly? TODO
 
 	/**
 	 * The running [AvailProjectService].
 	 */
 	val projectService: AvailProjectService
-		get() =
-		project.availProjectService
+		get() = project.availProjectService
 
 	/**
 	 * Provide the file contents.
@@ -147,6 +157,7 @@ class AvailFile constructor(
 	 */
 	fun refreshAndGetManifest (): MutableList<ModuleManifestEntry>
 	{
+		postProblem()
 		manifest.clear()
 		manifest.addAll(calculateManifest())
 		return manifest
@@ -207,9 +218,11 @@ class AvailFile constructor(
 	}
 
 	val availChildPsiElements: Array<PsiElement> by lazy {
-		manifest.mapIndexed { i, it ->
+		val list: MutableList<PsiElement> = manifest.mapIndexed { i, it ->
 			AvailPsiElement(this, it, i, manager)
-		}.toTypedArray()
+		}.toMutableList()
+		list.add(Factory.createErrorElement("Yo my error!") as PsiErrorElementImpl)
+		list.toTypedArray()
 	}
 
 	override fun getChildren(): Array<PsiElement> = availChildPsiElements
@@ -221,4 +234,32 @@ class AvailFile constructor(
 
 	override fun toString(): String =
 		this.node?.resolved?.qualifiedName ?: viewProvider.virtualFile.path
+
+	var posted = false
+	private fun postProblem ()
+	{
+		if (!posted)
+		{
+			posted = true
+			availProject.service.reportAvailFileProblem(
+				virtualFile,
+				"Who is the problem now foo!",
+				2,
+				5)
+		}
+//		if (availChildPsiElements.isNotEmpty())
+//		{
+//			val eee= Factory.createErrorElement("Yo my error!")
+//			problemsHolder.registerProblem(ProblemDescriptorBase(
+//				availChildPsiElements[0],
+//				availChildPsiElements[1],
+//				"This is the error that Jack built!",
+//				null,
+//				ProblemHighlightType.ERROR,
+//				false,
+//				null,
+//				true,
+//				false))
+//		}
+	}
 }

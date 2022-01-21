@@ -23,13 +23,13 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    pluginName.set("Avail IntelliJ Plugin")
+    pluginName.set("avail")
+    plugins.set(listOf("com.intellij.java"))
     version.set("2021.3.1")
 }
 tasks {
     patchPluginXml {
-        changeNotes.set("""
-            Initial Development        """.trimIndent())
+        changeNotes.set("""Initial Development""".trimIndent())
     }
 
     withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>() {

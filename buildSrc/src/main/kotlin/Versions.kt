@@ -84,11 +84,4 @@ object Versions
 
 	/** The language level version of Kotlin. */
 	const val languageVersion = kotlinLanguage
-
-	/**
-	 * The SLF4J No-Op package used to prevent SLF4J warning from being printed.
-	 *
-	 * See: [http://www.slf4j.org/codes.html#noProviders]
-	 */
-	const val slf4jnop = "1.7.33"
 }

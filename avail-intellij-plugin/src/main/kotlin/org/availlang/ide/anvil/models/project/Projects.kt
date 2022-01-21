@@ -51,6 +51,12 @@ import avail.resolver.ModuleRootResolver
 import avail.resolver.ModuleRootResolverRegistry
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
+import com.intellij.analysis.problemsView.ProblemsCollector
+import com.intellij.analysis.problemsView.ProblemsProvider
+//import com.intellij.analysis.problemsView.toolWindow.ProblemsView
+//import com.intellij.analysis.problemsView.toolWindow.ProblemsViewStateManager
+import com.intellij.codeInspection.InspectionManager
+import com.intellij.codeInspection.ex.InspectionManagerEx
 import com.intellij.ide.projectView.ProjectView
 import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.ide.projectView.impl.ProjectViewPane
@@ -60,6 +66,8 @@ import com.intellij.openapi.diagnostic.Logger
 import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
+import org.availlang.ide.anvil.language.AvailFileProblem
+import org.availlang.ide.anvil.language.AvailProjectProblem
 import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
 import org.availlang.ide.anvil.models.AvailNode
 import org.availlang.ide.anvil.models.ConfigFileProblem
@@ -416,12 +424,38 @@ class AvailProjectDescriptor constructor(
  *   The opened IntelliJ [Project] this [Service] is assigned to.
  */
 @Service
-class AvailProjectService constructor(val project: Project)
+class AvailProjectService constructor(
+	override val project: Project
+): ProblemsProvider
 {
 	/**
 	 * The list of active [ProjectProblem]s.
 	 */
 	val problems = mutableListOf<ProjectProblem>()
+
+	fun reportProjectProblem (text: String)
+	{
+		val problem = AvailProjectProblem(this, text)
+		problemsCollector.problemAppeared(problem)
+	}
+
+	fun reportAvailFileProblem (
+		file: VirtualFile,
+		text: String,
+		line: Int,
+		column: Int)
+	{
+		val problem = AvailFileProblem(file, this, text, line, column)
+		problemsCollector.problemAppeared(problem)
+	}
+
+	val problemsCollector = ProblemsCollector.getInstance(project)
+
+	/**
+	 * Provide the [InspectionManagerEx] that does....TODO
+	 */
+	val inspectionManager get() =
+		InspectionManager.getInstance(project) as InspectionManagerEx
 
 	/**
 	 * The [ProjectView].
@@ -440,9 +474,10 @@ class AvailProjectService constructor(val project: Project)
 	 * The active [AvailProjectDescriptor].
 	 */
 	private var descriptor: AvailProjectDescriptor = project.basePath?.let {
-		val descriptorFile = File("$it/.idea/avail.json")
+		val descriptorFile = File("$it/.idea/project.availconfig")
 		if (descriptorFile.exists())
 		{
+//			project.getService(ProblemsViewStateManager::class.java).state
 			val reader = JSONReader(descriptorFile.bufferedReader())
 			val obj = reader.read()  as? JSONObject
 				?: run {
@@ -496,11 +531,11 @@ class AvailProjectService constructor(val project: Project)
 
 	/**
 	 * The path to the JSON file for this project that contains information
-	 * about the  [AvailProjectDescriptor]; `.idea/avail.json`
+	 * about the  [AvailProjectDescriptor]; `.idea/project.availconfig`
 	 */
 	private val descriptorFilePath = project.basePath?.let {
-		"$it/.idea/avail.json"
-	} ?: ".idea/avail.json"
+		"$it/.idea/project.availconfig"
+	} ?: ".idea/project.availconfig"
 
 	/**
 	 * The [AvailProject] that maintains the [AvailRuntime] and [AvailBuilder].
@@ -512,14 +547,14 @@ class AvailProjectService constructor(val project: Project)
 	 */
 	fun saveConfigToDisk ()
 	{
-		if (!hasAvailProject) { return }
+		if (!hasAvailProject || problems.isNotEmpty()) { return }
 		val writer =
 			jsonPrettyPrintWriter {
 				writeObject { availProject.descriptor.writeTo(this) }
 			}
 		try
 		{
-			val descriptorFile = File("$projectDirectory/.idea/avail.json")
+			val descriptorFile = File("$projectDirectory/.idea/project.availconfig")
 			Files.newBufferedWriter(descriptorFile.toPath()).use { bw ->
 				bw.write(writer.toString())
 			}
