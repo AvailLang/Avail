@@ -1,6 +1,6 @@
 /*
- * AvailFileProblem.kt
- * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * AvailTreeElement.kt
+ * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,19 +32,34 @@
 
 package org.availlang.ide.anvil.language
 
-import com.intellij.analysis.problemsView.FileProblem
-import com.intellij.analysis.problemsView.ProblemsProvider
-import com.intellij.openapi.vfs.VirtualFile
+import avail.compiler.ModuleManifestEntry
+import com.intellij.psi.PsiElement
+import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
 
 /**
- * A `AvailFileProblem` is TODO: Document this!
+ * A `AvailTreeElement` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailFileProblem constructor(
-	override val file: VirtualFile,
-	override val provider: ProblemsProvider,
-	override val text: String,
-	override val line: Int,
-	override val column: Int
-) : FileProblem
+class AvailManifestEntryTreeElement constructor(
+	val psiElement: AvailManifestEntryPsiElement,
+	val manifestEntry: ModuleManifestEntry
+): AvailTreeElement()
+{
+	override fun getText(): String = manifestEntry.summaryText
+
+	override fun getChars(): CharSequence = manifestEntry.summaryText
+
+	override fun textContains(c: Char): Boolean =
+		manifestEntry.summaryText.contains(c)
+
+	override fun getTextLength(): Int = manifestEntry.summaryText.length
+
+	override fun getPsi(): PsiElement = psiElement
+
+	override fun textToCharArray(): CharArray =
+		manifestEntry.summaryText.toCharArray()
+
+	override fun getCachedLength(): Int =
+		manifestEntry.summaryText.length
+}

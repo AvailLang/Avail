@@ -74,18 +74,12 @@ class AvailStructureViewModel constructor(
 			else -> true
 		}
 
-	override fun isEnabled(provider: NodeProvider<*>): Boolean
-	{
-		return true
-	}
+	override fun isEnabled(provider: NodeProvider<*>): Boolean = true
 
 	override fun getNodeProviders(): MutableCollection<NodeProvider<TreeElement>>
 	{
 		return super.getNodeProviders()
 	}
 
-	override fun getSorters(): Array<Sorter>
-	{
-		return arrayOf(Sorter.ALPHA_SORTER)
-	}
+	override fun getSorters(): Array<Sorter> = arrayOf(Sorter.ALPHA_SORTER)
 }

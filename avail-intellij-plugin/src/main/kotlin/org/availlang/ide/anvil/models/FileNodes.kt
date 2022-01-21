@@ -77,8 +77,8 @@ sealed class AvailNode constructor(
 	 */
 	protected val hasChildren get() = children.isNotEmpty()
 
-	protected fun build (then: () -> Unit): Boolean =
-		availProject.build(reference.qualifiedName, then)
+//	protected fun build (then: () -> Unit): Boolean =
+//		availProject.build(reference.qualifiedName, then)
 
 	/**
 	 * The [ModuleRootResolver] used for the [draw] this node is part of.

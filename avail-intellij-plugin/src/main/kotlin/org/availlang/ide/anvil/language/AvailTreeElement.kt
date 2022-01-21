@@ -32,7 +32,6 @@
 
 package org.availlang.ide.anvil.language
 
-import avail.compiler.ModuleManifestEntry
 import com.intellij.lang.ASTNode
 import com.intellij.psi.PsiElement
 import com.intellij.psi.impl.source.tree.LeafElement
@@ -41,27 +40,15 @@ import com.intellij.psi.impl.source.tree.TreeElementVisitor
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.TokenSet
 import org.availlang.ide.anvil.language.psi.AvailElementType
-import org.availlang.ide.anvil.language.psi.AvailPsiElement
+import org.availlang.ide.anvil.language.psi.AvailErrorPsiElement
 
 /**
  * A `AvailTreeElement` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailTreeElement constructor(
-	val psiElement: AvailPsiElement,
-	val manifestEntry: ModuleManifestEntry
-): TreeElement(AvailElementType)
+abstract class AvailTreeElement: TreeElement(AvailElementType)
 {
-	override fun getText(): String = manifestEntry.summaryText
-
-	override fun getChars(): CharSequence = manifestEntry.summaryText
-
-	override fun textContains(c: Char): Boolean =
-		manifestEntry.summaryText.contains(c)
-
-	override fun getTextLength(): Int = manifestEntry.summaryText.length
-
 	override fun getFirstChildNode(): TreeElement? = null
 
 	override fun getLastChildNode(): TreeElement? = null
@@ -128,18 +115,10 @@ class AvailTreeElement constructor(
 	override fun findChildByType(
 		typesSet: TokenSet, anchor: ASTNode?): ASTNode? = null
 
-	override fun getPsi(): PsiElement = psiElement
-
 	override fun <T : PsiElement?> getPsi(clazz: Class<T>): T
 	{
 		TODO("Not yet implemented")
 	}
-
-	override fun textToCharArray(): CharArray =
-		manifestEntry.summaryText.toCharArray()
-
-	override fun getCachedLength(): Int =
-		manifestEntry.summaryText.length
 
 	override fun textMatches(buffer: CharSequence, start: Int): Int
 	{
@@ -155,4 +134,31 @@ class AvailTreeElement constructor(
 	{
 		TODO("Not yet implemented")
 	}
+}
+
+/**
+ * A `AvailTreeElement` is TODO: Document this!
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+class AvailProblemTreeElement constructor(
+	val psiElement: AvailErrorPsiElement
+): AvailTreeElement()
+{
+	override fun getText(): String = psiElement.rawText
+
+	override fun getChars(): CharSequence = psiElement.rawText
+
+	override fun textContains(c: Char): Boolean =
+		psiElement.rawText.contains(c)
+
+	override fun getTextLength(): Int = psiElement.rawText.length
+
+	override fun getPsi(): PsiElement = psiElement
+
+	override fun textToCharArray(): CharArray =
+		psiElement.rawText.toCharArray()
+
+	override fun getCachedLength(): Int =
+		psiElement.rawText.length
 }

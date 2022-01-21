@@ -68,6 +68,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.availlang.ide.anvil.language.AvailFileProblem
 import org.availlang.ide.anvil.language.AvailProjectProblem
+import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
 import org.availlang.ide.anvil.models.AvailNode
 import org.availlang.ide.anvil.models.ConfigFileProblem
@@ -830,7 +831,10 @@ data class AvailProject constructor(
 	 *   The lambda to run after build is complete.
 	 * @return
 	 */
-	fun build (qualifiedModuleName: String, done: () -> Unit): Boolean
+	fun build (
+		availFile: AvailFile,
+		qualifiedModuleName: String,
+		done: () -> Unit): Boolean
 	{
 		if (isBuilding.getAndSet(true))
 		{
@@ -871,6 +875,7 @@ data class AvailProject constructor(
 					problem: Problem,
 					decider: (Boolean) -> Unit)
 				{
+					availFile.problems.add(problem)
 					builder.stopBuildReason = "Build failed"
 					val problemText = with(problem) {
 						val adjustedLine = lineNumber - 5

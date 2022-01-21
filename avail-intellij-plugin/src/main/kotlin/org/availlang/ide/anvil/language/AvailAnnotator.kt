@@ -36,7 +36,9 @@ import com.intellij.lang.annotation.AnnotationHolder
 import com.intellij.lang.annotation.Annotator
 import com.intellij.lang.annotation.HighlightSeverity
 import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
+import org.availlang.ide.anvil.language.psi.AvailErrorPsiElement
+import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
+import org.availlang.ide.anvil.language.psi.AvailPsiElement
 
 /**
  * A `AvailAnnotator` is TODO: Document this!
@@ -47,9 +49,18 @@ class AvailAnnotator: Annotator
 {
 	override fun annotate(element: PsiElement, holder: AnnotationHolder)
 	{
-		if (element is PsiErrorElementImpl)
+		if (element is AvailPsiElement)
 		{
-			holder.newAnnotation(HighlightSeverity.ERROR, element.text).create()
+			when (element)
+			{
+				is AvailManifestEntryPsiElement -> {}
+
+				is AvailErrorPsiElement ->
+					holder.newAnnotation(
+						HighlightSeverity.ERROR,
+						element.text
+					).create()
+			}
 		}
 	}
 }

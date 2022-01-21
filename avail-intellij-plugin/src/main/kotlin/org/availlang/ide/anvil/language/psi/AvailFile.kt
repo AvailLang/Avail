@@ -40,8 +40,6 @@ import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
-import com.intellij.psi.impl.source.tree.Factory
-import com.intellij.psi.impl.source.tree.PsiErrorElementImpl
 import com.intellij.psi.impl.source.tree.TreeElement
 import org.availlang.ide.anvil.language.AvailFileElement
 import org.availlang.ide.anvil.language.AvailIcons
@@ -54,6 +52,7 @@ import org.availlang.ide.anvil.models.ModuleNode
 import org.availlang.ide.anvil.models.RootNode
 import org.availlang.ide.anvil.models.project.availProjectService
 import javax.swing.Icon
+import avail.compiler.problems.Problem as AvailCompilerProblem
 
 /**
  * `AvailFile` is the [PsiFileBase] for an Avail file.
@@ -69,6 +68,8 @@ class AvailFile constructor(
 	override fun getBaseIcon(): Icon =
 		if (isModified) { AvailIcons.availFileDirty }
 		else { super.getBaseIcon() }
+
+	val problems = mutableListOf<AvailCompilerProblem>()
 
 	/**
 	 * This [AvailFile]'s [ProblemsHolder] used to report problems with the
@@ -97,7 +98,7 @@ class AvailFile constructor(
 
 	fun build (then: () -> Unit): Boolean =
 		node?.let {
-			availProject.build(it.reference.qualifiedName)
+			availProject.build(this, it.reference.qualifiedName)
 			{
 				refreshAndGetManifest()
 				then()
@@ -157,7 +158,6 @@ class AvailFile constructor(
 	 */
 	fun refreshAndGetManifest (): MutableList<ModuleManifestEntry>
 	{
-		postProblem()
 		manifest.clear()
 		manifest.addAll(calculateManifest())
 		return manifest
@@ -203,7 +203,7 @@ class AvailFile constructor(
 			return null
 		}
 		val manifestEntry = manifest[0]
-		return AvailPsiElement(this, manifestEntry, 0, manager)
+		return AvailManifestEntryPsiElement(this, manifestEntry, 0, manager)
 	}
 
 	override fun getLastChild(): PsiElement?
@@ -213,16 +213,14 @@ class AvailFile constructor(
 			return null
 		}
 		val manifestEntry = manifest.last()
-		return AvailPsiElement(
+		return AvailManifestEntryPsiElement(
 			this, manifestEntry, manifest.size - 1, manager)
 	}
 
 	val availChildPsiElements: Array<PsiElement> by lazy {
-		val list: MutableList<PsiElement> = manifest.mapIndexed { i, it ->
-			AvailPsiElement(this, it, i, manager)
-		}.toMutableList()
-		list.add(Factory.createErrorElement("Yo my error!") as PsiErrorElementImpl)
-		list.toTypedArray()
+		manifest.mapIndexed { i, it ->
+			AvailManifestEntryPsiElement(this, it, i, manager)
+		}.toTypedArray()
 	}
 
 	override fun getChildren(): Array<PsiElement> = availChildPsiElements
@@ -241,11 +239,11 @@ class AvailFile constructor(
 		if (!posted)
 		{
 			posted = true
-			availProject.service.reportAvailFileProblem(
-				virtualFile,
-				"Who is the problem now foo!",
-				2,
-				5)
+//			availProject.service.reportAvailFileProblem(
+//				virtualFile,
+//				"Who is the problem now foo!",
+//				-1,
+//				-1)
 		}
 //		if (availChildPsiElements.isNotEmpty())
 //		{

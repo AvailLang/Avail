@@ -1,6 +1,6 @@
 /*
  * AvailPsiElement.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,6 @@
 
 package org.availlang.ide.anvil.language.psi
 
-import avail.compiler.ModuleManifestEntry
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import com.intellij.openapi.util.TextRange
@@ -40,101 +39,54 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.PsiElementBase
 import org.availlang.ide.anvil.language.AvailLanguage
-import org.availlang.ide.anvil.language.AvailTreeElement
+import avail.compiler.problems.Problem
+import org.availlang.ide.anvil.language.AvailProblemTreeElement
 
 /**
- * A `AvailPsiElement` is a [PsiElementBase] that represents a
- * [ModuleManifestEntry] from an Avail module.
+ * A `AvailPsiElement` is TODO: Document this!
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
- *
- * @property availFile
- *   The [AvailFile] the [manifestEntry] comes from.
- * @property manifestEntry
- *   The [ModuleManifestEntry] that this [AvailPsiElement] represents.
- * @property myManager
- *   The active [PsiManager] for the active project.
  */
-class AvailPsiElement constructor(
+sealed class AvailPsiElement constructor(
 	val availFile: AvailFile,
-	val manifestEntry: ModuleManifestEntry,
-	val manifestEntryIndex: Int,
 	val myManager: PsiManager
 ): PsiElementBase()
 {
-	override fun getName(): String =
-		manifestEntry.summaryText
-
 	override fun getLanguage(): Language = AvailLanguage
 
-	override fun getChildren(): Array<PsiElement> = arrayOf()
-
 	override fun getParent(): PsiElement = availFile
+}
 
-	private var range: TextRange? = null
+class AvailErrorPsiElement constructor(
+	availFile: AvailFile,
+	myManager: PsiManager,
+	val problem: Problem,
+	val rawText: String
+): AvailPsiElement(availFile, myManager)
+{
+	override fun getText(): String = rawText
+	override fun getChildren(): Array<PsiElement> = arrayOf()
+	private var range: TextRange =
+		TextRange(problem.characterInFile.toInt(),
+			problem.characterInFile.toInt())
 
-	override fun getTextRange(): TextRange
+	override fun getTextRange(): TextRange = range
+
+	override fun getStartOffsetInParent(): Int
 	{
-		if (range == null)
-		{
-			var i = manifestEntry.topLevelStartingLine - 1
-			val t = availFile.text
-			var pos = 0
-			while (i > 0)
-			{
-				if (t[pos++] == '\n')
-				{
-					i--
-				}
-			}
-			range = TextRange(pos, pos)
-		}
-		return range!!
+		TODO("Not yet implemented")
 	}
 
-	override fun getStartOffsetInParent(): Int =
-		manifestEntry.definitionStartingLine
+	override fun getTextLength(): Int = rawText.length
 
-	override fun getTextLength(): Int = manifestEntry.summaryText.length
-
-	override fun findElementAt(offset: Int): PsiElement? = null
-
-	override fun getTextOffset(): Int = textRange.startOffset
-
-
-	override fun getText(): String =
-		"${manifestEntry.summaryText} (${manifestEntry.kind})"
-
-	override fun textToCharArray(): CharArray =
-		manifestEntry.summaryText.toCharArray()
-
-	override fun getNode(): ASTNode
+	override fun findElementAt(offset: Int): PsiElement?
 	{
-		return AvailTreeElement(this, manifestEntry)
+		TODO("Not yet implemented")
 	}
 
-	override fun getManager(): PsiManager
-	{
-		return myManager
-	}
+	override fun getTextOffset(): Int = problem.characterInFile.toInt()
 
-	override fun getNextSibling(): PsiElement?
-	{
-		if (manifestEntryIndex < availFile.manifest.size - 1)
-		{
-			return availFile.availChildPsiElements[manifestEntryIndex + 1]
-		}
-		return null
-	}
+	override fun textToCharArray(): CharArray = rawText.toCharArray()
 
-	override fun getPrevSibling(): PsiElement?
-	{
-		if (manifestEntryIndex > 0)
-		{
-			return availFile.availChildPsiElements[manifestEntryIndex - 1]
-		}
-		return null
-	}
-
-	override fun toString(): String = manifestEntry.summaryText
+	override fun getNode(): ASTNode = AvailProblemTreeElement(this)
 }
