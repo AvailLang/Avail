@@ -32,7 +32,7 @@
 
 package org.availlang.ide.anvil.models
 
-import org.availlang.ide.anvil.models.project.AvailProjectService
+import org.availlang.ide.anvil.models.project.AnvilProjectService
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONWriter
@@ -57,7 +57,7 @@ sealed class ProjectLocation constructor(
 	/**
 	 * Answer the full path to the location.
 	 */
-	abstract fun fullPath(service: AvailProjectService): String
+	abstract fun fullPath(service: AnvilProjectService): String
 
 	/**
 	 * Are the contents of this location editable by this project? `true`
@@ -104,7 +104,7 @@ sealed class ProjectLocation constructor(
 		invalid
 		{
 			override fun location(
-				service: AvailProjectService,
+				service: AnvilProjectService,
 				path: String,
 				jsonObject: JSONObject
 			): ProjectLocation =
@@ -118,7 +118,7 @@ sealed class ProjectLocation constructor(
 		home
 		{
 			override fun location(
-				service: AvailProjectService,
+				service: AnvilProjectService,
 				path: String,
 				jsonObject: JSONObject
 			): ProjectLocation = UserHome(path)
@@ -128,7 +128,7 @@ sealed class ProjectLocation constructor(
 		project
 		{
 			override fun location(
-				service: AvailProjectService,
+				service: AnvilProjectService,
 				path: String,
 				jsonObject: JSONObject
 			): ProjectLocation = ProjectHome(path)
@@ -140,7 +140,7 @@ sealed class ProjectLocation constructor(
 		network
 		{
 			override fun location(
-				service: AvailProjectService,
+				service: AnvilProjectService,
 				path: String,
 				jsonObject: JSONObject
 			): ProjectLocation = NetworkLocation(path)
@@ -151,14 +151,14 @@ sealed class ProjectLocation constructor(
 		 * [jsonObject].
 		 *
 		 * @param service
-		 *   The running [AvailProjectService].
+		 *   The running [AnvilProjectService].
 		 * @param path
 		 *   The already extracted path.
 		 * @param jsonObject
 		 *   The [JSONObject] to extract the rest of the data from.
 		 */
 		protected abstract fun location (
-			service: AvailProjectService,
+			service: AnvilProjectService,
 			path: String,
 			jsonObject: JSONObject
 		): ProjectLocation
@@ -175,7 +175,7 @@ sealed class ProjectLocation constructor(
 			 * Read a [ProjectLocation] from the provided JSON.
 			 *
 			 * @param service
-			 *   The running [AvailProjectService].
+			 *   The running [AnvilProjectService].
 			 * @param obj
 			 *   The [JSONObject] to read from.
 			 * @return
@@ -183,7 +183,7 @@ sealed class ProjectLocation constructor(
 			 *   [InvalidLocation] will be answered.
 			 */
 			fun from (
-				service: AvailProjectService,
+				service: AnvilProjectService,
 				obj: JSONObject
 			): ProjectLocation
 			{
@@ -234,7 +234,7 @@ sealed class ProjectLocation constructor(
 		 * Read a [ProjectLocation] from the provided JSON.
 		 *
 		 * @param service
-		 *   The running [AvailProjectService].
+		 *   The running [AnvilProjectService].
 		 * @param obj
 		 *   The [JSONObject] to read from.
 		 * @return
@@ -242,7 +242,7 @@ sealed class ProjectLocation constructor(
 		 *   [InvalidLocation] will be answered.
 		 */
 		fun from (
-			service: AvailProjectService,
+			service: AnvilProjectService,
 			obj: JSONObject
 		): ProjectLocation = LocationType.from(service, obj)
 	}
@@ -260,19 +260,19 @@ sealed class ProjectLocation constructor(
  * Construct an [InvalidLocation].
  *
  * @param service
- *   The running [AvailProjectService].
+ *   The running [AnvilProjectService].
  * @param path
  *   The [ProjectLocation.path].
  * @param problem
  *   Text explaining the reason the location is invalid.
  */
 class InvalidLocation constructor (
-	service: AvailProjectService,
+	service: AnvilProjectService,
 	path: String,
 	val problem: String
 ): ProjectLocation(LocationType.invalid, path)
 {
-	override fun fullPath(service: AvailProjectService): String = path
+	override fun fullPath(service: AnvilProjectService): String = path
 
 	init
 	{
@@ -293,7 +293,7 @@ class UserHome constructor (
 		if (path.endsWith(".jar")) { "jar:" }
 		else { "file://" }
 
-	override fun fullPath(service: AvailProjectService): String =
+	override fun fullPath(service: AnvilProjectService): String =
 		"$scheme${System.getProperty("user.home")}/$path"
 }
 
@@ -312,7 +312,7 @@ class ProjectHome constructor (
 		if (path.endsWith(".jar")) { "jar:" }
 		else { "file://" }
 
-	override fun fullPath(service: AvailProjectService): String =
+	override fun fullPath(service: AnvilProjectService): String =
 		"$scheme${service.projectDirectory}/$path"
 
 	override val editable: Boolean = true
@@ -329,5 +329,5 @@ class NetworkLocation constructor (
 	path: String
 ): ProjectLocation(LocationType.project, path)
 {
-	override fun fullPath(service: AvailProjectService): String = path
+	override fun fullPath(service: AnvilProjectService): String = path
 }

@@ -37,7 +37,7 @@ import com.intellij.psi.PsiElement
 import com.intellij.psi.tree.IElementType
 import com.intellij.psi.tree.IFileElementType
 import org.availlang.ide.anvil.language.AvailLanguage
-import org.availlang.ide.anvil.language.AvailPsiParser
+import org.availlang.ide.anvil.language.AnvilPsiParser
 
 /**
  *
@@ -69,8 +69,8 @@ object AvailFileElementType: IFileElementType("AVAIL FILE", AvailLanguage)
 //			null,
 //			AvailLanguage,
 //			chameleon.chars)
-		val parser = AvailPsiParser()
-		val node = parser.parse(chameleon.chars, psi as AvailFile)
+		val parser = AnvilPsiParser()
+		val node = parser.parse(chameleon.chars, psi as AnvilFile)
 		return node.firstChildNode
 	}
 }

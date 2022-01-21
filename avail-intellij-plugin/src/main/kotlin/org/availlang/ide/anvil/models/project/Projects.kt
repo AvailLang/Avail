@@ -53,13 +53,8 @@ import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
 import com.intellij.analysis.problemsView.ProblemsCollector
 import com.intellij.analysis.problemsView.ProblemsProvider
-//import com.intellij.analysis.problemsView.toolWindow.ProblemsView
-//import com.intellij.analysis.problemsView.toolWindow.ProblemsViewStateManager
 import com.intellij.codeInspection.InspectionManager
 import com.intellij.codeInspection.ex.InspectionManagerEx
-import com.intellij.ide.projectView.ProjectView
-import com.intellij.ide.projectView.impl.AbstractProjectViewPane
-import com.intellij.ide.projectView.impl.ProjectViewPane
 import com.intellij.openapi.components.Service
 import com.intellij.openapi.components.service
 import com.intellij.openapi.diagnostic.Logger
@@ -67,9 +62,9 @@ import com.intellij.openapi.diagnostic.logger
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.availlang.ide.anvil.language.AvailFileProblem
-import org.availlang.ide.anvil.language.AvailProjectProblem
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.listeners.AvailProjectOpenListener
+import org.availlang.ide.anvil.language.AnvilProjectProblem
+import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.listeners.AnvilProjectOpenListener
 import org.availlang.ide.anvil.models.AvailNode
 import org.availlang.ide.anvil.models.ConfigFileProblem
 import org.availlang.ide.anvil.models.DirectoryNode
@@ -108,7 +103,7 @@ import java.util.concurrent.atomic.AtomicInteger
 //                                Projects.                                   //
 ////////////////////////////////////////////////////////////////////////////////
 /**
- * Represents a [ModuleRootResolver] in a [AvailProjectDescriptor].
+ * Represents a [ModuleRootResolver] in a [AnvilProjectDescriptor].
  *
  * @author Richard Arriaga
  *
@@ -119,15 +114,15 @@ import java.util.concurrent.atomic.AtomicInteger
  * @property editable
  *   `true` indicates this root is editable by the project; `false` otherwise.
  * @property id
- *   The immutable id that uniquely identifies this [AvailProjectRoot].
+ *   The immutable id that uniquely identifies this [AnvilProjectRoot].
  */
-class AvailProjectRoot constructor(
-	service: AvailProjectService,
+class AnvilProjectRoot constructor(
+	service: AnvilProjectService,
 	var name: String,
 	var location: ProjectLocation,
 	var editable: Boolean = location.editable,
 	val id: String = UUID.randomUUID().toString()
-): JSONFriendly, Comparable<AvailProjectRoot>
+): JSONFriendly, Comparable<AnvilProjectRoot>
 {
 	/**
 	 * The Avail [module][ModuleDescriptor] path. It takes the form:
@@ -137,7 +132,7 @@ class AvailProjectRoot constructor(
 	val modulePath: String = "$name=${location.fullPath(service)}"
 
 	/**
-	 * Answer a [ModuleRootResolver] for this [AvailProjectRoot].
+	 * Answer a [ModuleRootResolver] for this [AnvilProjectRoot].
 	 *
 	 * @param fileManager
 	 *   The [FileManager] used to manage the files accessed via the
@@ -149,13 +144,13 @@ class AvailProjectRoot constructor(
 
 	override fun writeTo(writer: JSONWriter)
 	{
-		writer.at(AvailProjectRoot::id.name) { write(id) }
-		writer.at(AvailProjectRoot::name.name) { write(name) }
-		writer.at(AvailProjectRoot::editable.name) { write(editable) }
-		writer.at(AvailProjectRoot::location.name) { write(location) }
+		writer.at(AnvilProjectRoot::id.name) { write(id) }
+		writer.at(AnvilProjectRoot::name.name) { write(name) }
+		writer.at(AnvilProjectRoot::editable.name) { write(editable) }
+		writer.at(AnvilProjectRoot::location.name) { write(location) }
 	}
 
-	override fun compareTo(other: AvailProjectRoot): Int =
+	override fun compareTo(other: AnvilProjectRoot): Int =
 		if (editable == other.editable)
 		{
 			if(name == other.name)
@@ -175,7 +170,7 @@ class AvailProjectRoot constructor(
 	override fun equals(other: Any?): Boolean
 	{
 		if (this === other) return true
-		if (other !is AvailProjectRoot) return false
+		if (other !is AnvilProjectRoot) return false
 
 		if (name != other.name) return false
 		if (location != other.location) return false
@@ -197,36 +192,36 @@ class AvailProjectRoot constructor(
 	companion object
 	{
 		/**
-		 * Extract and build a [AvailProjectRoot] from the provided [JSONObject].
+		 * Extract and build a [AnvilProjectRoot] from the provided [JSONObject].
 		 *
 		 * @param service
-		 *   The running [AvailProjectService].
+		 *   The running [AnvilProjectService].
 		 * @param jsonObject
 		 *   The `JSONObject` that contains the `ProjectRoot` data.
 		 * @return
 		 *   The extracted `ProjectRoot`.
 		 */
 		fun from (
-			service: AvailProjectService,
+			service: AnvilProjectService,
 			jsonObject: JSONObject
-		): AvailProjectRoot =
-			AvailProjectRoot(
+		): AnvilProjectRoot =
+			AnvilProjectRoot(
 				service,
-				jsonObject.getString(AvailProjectRoot::name.name),
+				jsonObject.getString(AnvilProjectRoot::name.name),
 				ProjectLocation.from(service, jsonObject.getObject(
-					AvailProjectRoot::location.name)),
-				jsonObject.getBoolean(AvailProjectRoot::editable.name),
-				jsonObject.getString(AvailProjectRoot::id.name))
+					AnvilProjectRoot::location.name)),
+				jsonObject.getBoolean(AnvilProjectRoot::editable.name),
+				jsonObject.getString(AnvilProjectRoot::id.name))
 	}
 }
 
 /**
- * Describes the makeup of an Avail [AvailProject].
+ * Describes the makeup of an Avail [AnvilProject].
  *
  * @author Richard Arriaga
  *
  * @property name
- *   The [AvailProject] name.
+ *   The [AnvilProject] name.
  * @property repositoryLocation
  *   The [Repository] [ProjectLocation].
  * @property renamesFilePath
@@ -234,55 +229,55 @@ class AvailProjectRoot constructor(
  * @property renamesFileBody
  *   The contents of a [renames file][RenamesFileParser].
  * @property roots
- *   The map of [AvailProjectRoot.name] to [AvailProjectRoot].
+ *   The map of [AnvilProjectRoot.name] to [AnvilProjectRoot].
  * @param id
  *   The id that uniquely identifies the project.
  */
-class AvailProjectDescriptor constructor(
+class AnvilProjectDescriptor constructor(
 	var name: String,
 	var repositoryLocation: ProjectLocation =
 		Defaults.instance.defaultRepositoryPath,
 	var renamesFilePath: String = "",
 	var renamesFileBody: String = "",
-	val roots: MutableMap<String, AvailProjectRoot> = mutableMapOf(),
+	val roots: MutableMap<String, AnvilProjectRoot> = mutableMapOf(),
 	val id: String = UUID.randomUUID().toString(),
 	val isActiveProject: Boolean = true
-): JSONFriendly, Comparable<AvailProjectDescriptor> //PersistentStateComponent<Element>
+): JSONFriendly, Comparable<AnvilProjectDescriptor>
 {
 	/**
-	 * The list of [AvailProjectRoot]s in this [AvailProjectDescriptor].
+	 * The list of [AnvilProjectRoot]s in this [AnvilProjectDescriptor].
 	 */
-	val availProjectRoots: List<AvailProjectRoot> get() =
+	val anvilProjectRoots: List<AnvilProjectRoot> get() =
 		roots.values.toList().sorted()
 
 	/**
-	 * Add the [AvailProjectRoot] to this [AvailProjectDescriptor].
+	 * Add the [AnvilProjectRoot] to this [AnvilProjectDescriptor].
 	 *
-	 * @param availProjectRoot
+	 * @param anvilProjectRoot
 	 *   The `ProjectRoot` to add.
 	 */
-	fun addRoot (availProjectRoot: AvailProjectRoot)
+	fun addRoot (anvilProjectRoot: AnvilProjectRoot)
 	{
-		roots[availProjectRoot.id] = availProjectRoot
+		roots[anvilProjectRoot.id] = anvilProjectRoot
 	}
 
 	/**
-	 * Remove the [AvailProjectRoot] from this [AvailProjectDescriptor].
+	 * Remove the [AnvilProjectRoot] from this [AnvilProjectDescriptor].
 	 *
 	 * @param projectRoot
-	 *   The [AvailProjectRoot.id] to remove.
+	 *   The [AnvilProjectRoot.id] to remove.
 	 * @return
 	 *   The `ProjectRoot` removed or `null` if not found.
 	 */
-	fun removeRoot (projectRoot: String): AvailProjectRoot? =
+	fun removeRoot (projectRoot: String): AnvilProjectRoot? =
 		roots.remove(projectRoot)
 
 	/**
-	 * Create a new [AvailProject] from this [AvailProjectDescriptor] with the given
+	 * Create a new [AnvilProject] from this [AnvilProjectDescriptor] with the given
 	 * [FileManager].
 	 *
 	 * @param service
-	 *   The running [AvailProjectService].
+	 *   The running [AnvilProjectService].
 	 * @param fileManager
 	 *   The `FileManager` to use.
 	 * @param then
@@ -291,11 +286,11 @@ class AvailProjectDescriptor constructor(
 	 *   A new `Project`.
 	 */
 	fun project (
-		service: AvailProjectService,
+		service: AnvilProjectService,
 		fileManager: FileManager = FileManager(),
-		then: (AvailProject) -> Unit = {}
-	): AvailProject =
-		AvailProject(this, service, fileManager).apply {
+		then: (AnvilProject) -> Unit = {}
+	): AnvilProject =
+		AnvilProject(this, service, fileManager).apply {
 			initializeRootsThen({
 				walkRoots(then)
 			},
@@ -309,25 +304,25 @@ class AvailProjectDescriptor constructor(
 
 	override fun writeTo(writer: JSONWriter)
 	{
-		writer.at(AvailProjectDescriptor::id.name) { write(id) }
+		writer.at(AnvilProjectDescriptor::id.name) { write(id) }
 		writer.at("version") { write(CURRENT_SERIALIZATION_VERSION) }
-		writer.at(AvailProjectDescriptor::name.name) { write(name) }
-		writer.at(AvailProjectDescriptor::repositoryLocation.name)
+		writer.at(AnvilProjectDescriptor::name.name) { write(name) }
+		writer.at(AnvilProjectDescriptor::repositoryLocation.name)
 		{
 			write(repositoryLocation)
 		}
-		writer.at(AvailProjectDescriptor::renamesFilePath.name)
+		writer.at(AnvilProjectDescriptor::renamesFilePath.name)
 		{
 			write(renamesFilePath)
 		}
-		writer.at(AvailProjectDescriptor::renamesFileBody.name)
+		writer.at(AnvilProjectDescriptor::renamesFileBody.name)
 		{
 			write(renamesFileBody)
 		}
-		writer.at(AvailProjectDescriptor::roots.name)
+		writer.at(AnvilProjectDescriptor::roots.name)
 		{
 			startArray()
-			availProjectRoots.forEach {
+			anvilProjectRoots.forEach {
 				startObject()
 				it.writeTo(writer)
 				endObject()
@@ -336,99 +331,107 @@ class AvailProjectDescriptor constructor(
 		}
 	}
 
-	override fun compareTo(other: AvailProjectDescriptor): Int =
+	override fun compareTo(other: AnvilProjectDescriptor): Int =
 		name.compareTo(other.name)
 
 	companion object
 	{
 		/**
 		 * The current JSON serialization/deserialization version of
-		 * [AvailProjectDescriptor].
+		 * [AnvilProjectDescriptor].
 		 */
 		const val CURRENT_SERIALIZATION_VERSION = 1
 
-		val EMPTY_PROJECT = AvailProjectDescriptor(
+		val EMPTY_PROJECT = AnvilProjectDescriptor(
 			"EMPTY", isActiveProject = false)
 
 		/**
-		 * Extract and build a [AvailProjectDescriptor] from the provided
+		 * Extract and build a [AnvilProjectDescriptor] from the provided
 		 * [JSONObject].
 		 *
 		 * @param service
-		 *   The running [AvailProjectService].
+		 *   The running [AnvilProjectService].
 		 * @param jsonObject
 		 *   The `JSONObject` that contains the `ProjectDescriptor` data.
 		 * @return
 		 *   The extracted `ProjectDescriptor`.
 		 */
 		fun from (
-			service: AvailProjectService,
+			service: AnvilProjectService,
 			jsonObject: JSONObject
-		): AvailProjectDescriptor
+		): AnvilProjectDescriptor
 		{
-			val id = jsonObject.getString(AvailProjectDescriptor::id.name)
-			val name = jsonObject.getString(AvailProjectDescriptor::name.name)
+			val id = jsonObject.getString(AnvilProjectDescriptor::id.name)
+			val name = jsonObject.getString(AnvilProjectDescriptor::name.name)
 			val repoLocation = ProjectLocation.from(
 				service,
 				jsonObject.getObject(
-					AvailProjectDescriptor::repositoryLocation.name))
+					AnvilProjectDescriptor::repositoryLocation.name))
 			val renamesPath = jsonObject.getString(
-				AvailProjectDescriptor::renamesFilePath.name)
-			val roots = mutableMapOf<String, AvailProjectRoot>()
-			jsonObject.getArray(AvailProjectDescriptor::roots.name)
+				AnvilProjectDescriptor::renamesFilePath.name)
+			val roots = mutableMapOf<String, AnvilProjectRoot>()
+			jsonObject.getArray(AnvilProjectDescriptor::roots.name)
 				.forEachIndexed { i, it ->
 					val rootObj = it as? JSONObject ?: run {
 						service.problems.add(
 							ConfigFileProblem(
 								"Malformed Anvil config file; malformed " +
-									AvailProjectDescriptor::roots.name +
+									AnvilProjectDescriptor::roots.name +
 									" object at position $i: $it"))
 						return@forEachIndexed
 					}
 					val root =
 						try
 						{
-							AvailProjectRoot.from(service, rootObj)
+							AnvilProjectRoot.from(service, rootObj)
 						}
 						catch (e: Throwable)
 						{
 							service.problems.add(
 								ConfigFileProblem(
 									"Malformed Anvil config file; malformed " +
-										AvailProjectDescriptor::roots.name +
+										AnvilProjectDescriptor::roots.name +
 										" object at position $i: $it"))
 							return@forEachIndexed
 						}
 					roots[root.id] = root
 				}
 			val renames = jsonObject.getString(
-				AvailProjectDescriptor::renamesFileBody.name
+				AnvilProjectDescriptor::renamesFileBody.name
 			)
-			return AvailProjectDescriptor(
+			return AnvilProjectDescriptor(
 				name, repoLocation, renamesPath, renames, roots, id)
 		}
 	}
 }
 
 /**
- * The primary [Service] that maintains the [AvailProject].
+ * The primary [Service] that maintains the [AnvilProject].
  *
  * @property project
  *   The opened IntelliJ [Project] this [Service] is assigned to.
  *
  * @constructor
- * Construct an [AvailProjectService]. This should not be done manually, but
+ * Construct an [AnvilProjectService]. This should not be done manually, but
  * instead use [Project.getService] to create the [Project]. This is done using
- * the [AvailProjectOpenListener].
+ * the [AnvilProjectOpenListener].
  *
  * @param project
  *   The opened IntelliJ [Project] this [Service] is assigned to.
  */
 @Service
-class AvailProjectService constructor(
+class AnvilProjectService constructor(
 	override val project: Project
 ): ProblemsProvider
 {
+	/**
+	 * The path to the JSON file for this project that contains information
+	 * about the  [AnvilProjectDescriptor]; `.idea/project.availconfig`
+	 */
+	private val descriptorFilePath = project.basePath?.let {
+		"$it/.idea/$CONFIG_FILE_NAME"
+	} ?: ".idea/$CONFIG_FILE_NAME"
+
 	/**
 	 * The list of active [ProjectProblem]s.
 	 */
@@ -436,7 +439,7 @@ class AvailProjectService constructor(
 
 	fun reportProjectProblem (text: String)
 	{
-		val problem = AvailProjectProblem(this, text)
+		val problem = AnvilProjectProblem(this, text)
 		problemsCollector.problemAppeared(problem)
 	}
 
@@ -459,89 +462,82 @@ class AvailProjectService constructor(
 		InspectionManager.getInstance(project) as InspectionManagerEx
 
 	/**
-	 * The [ProjectView].
+	 * The active [AnvilProjectDescriptor].
 	 */
-	val projectView: ProjectView get() = ProjectView.getInstance(project)
+	private fun readDescriptor (): AnvilProjectDescriptor =
+		project.basePath?.let {
+			val descriptorFile = File("$it/.idea/$CONFIG_FILE_NAME")
+			if (descriptorFile.exists())
+			{
+				val reader = JSONReader(descriptorFile.bufferedReader())
+				val obj = reader.read()  as? JSONObject
+					?: run {
+						problems.add(
+							ConfigFileProblem(
+								"Malformed Anvil config file: " +
+									descriptorFile.absolutePath))
+						return@let AnvilProjectDescriptor.EMPTY_PROJECT
+					}
+				val descriptor =
+					try
+					{
+						AnvilProjectDescriptor.from(this, obj)
+					}
+					catch (e: Throwable)
+					{
+						problems.add(
+							UnexplainedProblem(
+								e,
+								"Failed to load configuration file: " +
+									descriptorFile.absolutePath))
+						return@let AnvilProjectDescriptor.EMPTY_PROJECT
+					}
+				return@let descriptor
+			}
+			else
+			{
+				return@let AnvilProjectDescriptor.EMPTY_PROJECT
+			}
+		} ?: AnvilProjectDescriptor.EMPTY_PROJECT
 
 	/**
-	 * Answer the [AbstractProjectViewPane] that represents the [projectView].
+	 * The active [AnvilProjectDescriptor].
 	 */
-	val projectViewPane: AbstractProjectViewPane get() =
-		projectView.getProjectViewPaneById(ProjectViewPane.ID).apply {
-			updateFromRoot(false)
-		}
+	private var descriptor: AnvilProjectDescriptor = readDescriptor()
 
-	/**
-	 * The active [AvailProjectDescriptor].
-	 */
-	private var descriptor: AvailProjectDescriptor = project.basePath?.let {
-		val descriptorFile = File("$it/.idea/project.availconfig")
-		if (descriptorFile.exists())
-		{
-//			project.getService(ProblemsViewStateManager::class.java).state
-			val reader = JSONReader(descriptorFile.bufferedReader())
-			val obj = reader.read()  as? JSONObject
-				?: run {
-					problems.add(
-						ConfigFileProblem(
-						"Malformed Anvil config file: " +
-							descriptorFile.absolutePath))
-					return@let AvailProjectDescriptor.EMPTY_PROJECT
+	fun refreshDescriptor ()
+	{
+		val reread = readDescriptor()
+		descriptor.roots.clear()
+		descriptor.roots.putAll(reread.roots)
+		descriptor.name = reread.name
+		descriptor.renamesFileBody = reread.renamesFileBody
+		descriptor.renamesFilePath = reread.renamesFilePath
+		descriptor.repositoryLocation = reread.repositoryLocation
+
+		anvilProject.initialize()
+		problems.clear()
+		anvilProject.initializeRootsThen({
+			anvilProject.walkRoots { /* TODO build after walking the roots */}
+		},
+			{ errors ->
+				errors.forEach {
+					problems.add(ModuleRootScanProblem(it))
 				}
-			val descriptor =
-				try
-				{
-					AvailProjectDescriptor.from(this, obj)
-				}
-				catch (e: Throwable)
-				{
-					problems.add(
-						UnexplainedProblem(
-						e,
-						"Failed to load configuration file: " +
-							descriptorFile.absolutePath))
-					return@let AvailProjectDescriptor.EMPTY_PROJECT
-				}
-			return@let descriptor
-		}
-		else
-		{
-			return@let AvailProjectDescriptor.EMPTY_PROJECT
-		}
-	} ?: AvailProjectDescriptor.EMPTY_PROJECT
+			})
+	}
 
 	/**
 	 * `true` indicates there is an active Avail project; `false` otherwise.
 	 */
 	val hasAvailProject get() = descriptor.isActiveProject
 
-//	override fun getState(): Element
-//	{
-//		val element = Element(serviceName)
-//		serializeObjectInto(descriptor, element)
-//		return element
-//	}
-//
-//	override fun loadState(state: Element)
-//	{
-//		val rawState = state.clone()
-//		XmlSerializer.deserializeInto(descriptor, rawState)
-//	}
-
 	val projectDirectory: String get() = project.basePath!!
 
 	/**
-	 * The path to the JSON file for this project that contains information
-	 * about the  [AvailProjectDescriptor]; `.idea/project.availconfig`
+	 * The [AnvilProject] that maintains the [AvailRuntime] and [AvailBuilder].
 	 */
-	private val descriptorFilePath = project.basePath?.let {
-		"$it/.idea/project.availconfig"
-	} ?: ".idea/project.availconfig"
-
-	/**
-	 * The [AvailProject] that maintains the [AvailRuntime] and [AvailBuilder].
-	 */
-	val availProject: AvailProject = descriptor.project(this)
+	val anvilProject: AnvilProject = descriptor.project(this)
 
 	/**
 	 * Save the current Anvil configuration to disk.
@@ -551,11 +547,12 @@ class AvailProjectService constructor(
 		if (!hasAvailProject || problems.isNotEmpty()) { return }
 		val writer =
 			jsonPrettyPrintWriter {
-				writeObject { availProject.descriptor.writeTo(this) }
+				writeObject { anvilProject.descriptor.writeTo(this) }
 			}
 		try
 		{
-			val descriptorFile = File("$projectDirectory/.idea/project.availconfig")
+			val descriptorFile =
+				File("$projectDirectory/.idea/project.availconfig")
 			Files.newBufferedWriter(descriptorFile.toPath()).use { bw ->
 				bw.write(writer.toString())
 			}
@@ -590,18 +587,20 @@ class AvailProjectService constructor(
 		}
 	}
 
-	override fun toString(): String = availProject.descriptor.name
+	override fun toString(): String = anvilProject.descriptor.name
 
 	companion object
 	{
-		val LOG: Logger = logger<AvailProjectService>()
+		val LOG: Logger = logger<AnvilProjectService>()
+
+		val CONFIG_FILE_NAME = "anvil.config"
 	}
 }
 
 /**
- * Provides the [AvailProjectService] from this [Project].
+ * Provides the [AnvilProjectService] from this [Project].
  */
-val Project.availProjectService: AvailProjectService get() = service()
+val Project.anvilProjectService: AnvilProjectService get() = service()
 
 /**
  * Represents an actively open and running project.
@@ -609,24 +608,26 @@ val Project.availProjectService: AvailProjectService get() = service()
  * @author Richard Arriaga
  *
  * @property descriptor
- *   The [AvailProjectDescriptor] that describes and identifies this [AvailProject].
+ *   The [AnvilProjectDescriptor] that describes and identifies this [AnvilProject].
  * @property service
- *   The running [AvailProjectService].
+ *   The running [AnvilProjectService].
  * @property fileManager
- *   The [FileManager] that manages files for this [AvailProject].
+ *   The [FileManager] that manages files for this [AnvilProject].
  */
-data class AvailProject constructor(
-	val descriptor: AvailProjectDescriptor,
-	val service: AvailProjectService,
+data class AnvilProject constructor(
+	val descriptor: AnvilProjectDescriptor,
+	val service: AnvilProjectService,
 	val fileManager: FileManager = Defaults.instance.defaultFileManager
-): Comparable<AvailProject>, JSONFriendly
+): Comparable<AnvilProject>, JSONFriendly
 {
-	init
+	/**
+	 * Initialize the project.
+	 */
+	internal fun initialize ()
 	{
 		val fullPath = descriptor.repositoryLocation.fullPath(service)
 		try
 		{
-
 			val file = File(URI(fullPath))
 			Repositories.setDirectoryLocation(file)
 		}
@@ -640,9 +641,14 @@ data class AvailProject constructor(
 		}
 	}
 
+	init
+	{
+		initialize()
+	}
+
 	/**
-	 * The [AvailProjectDescriptor.id] that uniquely represents this
-	 * [AvailProject].
+	 * The [AnvilProjectDescriptor.id] that uniquely represents this
+	 * [AnvilProject].
 	 */
 	val id: String get() = descriptor.id
 
@@ -669,11 +675,11 @@ data class AvailProject constructor(
 
 	override fun writeTo(writer: JSONWriter)
 	{
-		writer.at(AvailProject::id.name) { write(id) }
+		writer.at(AnvilProject::id.name) { write(id) }
 	}
 
 	/**
-	 * Add a [AvailProjectRoot] to this [AvailProject].
+	 * Add a [AnvilProjectRoot] to this [AnvilProject].
 	 *
 	 * @param root
 	 *   The `ProjectRoot` to add.
@@ -684,8 +690,8 @@ data class AvailProject constructor(
 	 *   fails.
 	 */
 	internal fun addRoot (
-		service: AvailProjectService,
-		root: AvailProjectRoot,
+		service: AnvilProjectService,
+		root: AnvilProjectRoot,
 		successHandler: () -> Unit,
 		failureHandler: (List<String>)->Unit)
 	{
@@ -716,7 +722,7 @@ data class AvailProject constructor(
 	}
 
 	/**
-	 * Initialize this [AvailProject]'s [ModuleRoots] with all the [AvailProjectRoot]s
+	 * Initialize this [AnvilProject]'s [ModuleRoots] with all the [AnvilProjectRoot]s
 	 * listed in its [descriptor].
 	 *
 	 * @param successHandler
@@ -787,7 +793,7 @@ data class AvailProject constructor(
 	}
 
 	/**
-	 * The [ModuleRoots] for this [AvailProject].
+	 * The [ModuleRoots] for this [AnvilProject].
 	 */
 	private val moduleRoots: ModuleRoots =
 		ModuleRoots(fileManager, "") {
@@ -814,7 +820,7 @@ data class AvailProject constructor(
 	}
 
 	/**
-	 * Stop this [AvailProject]'s runtime.
+	 * Stop this [AnvilProject]'s runtime.
 	 */
 	fun stopRuntime ()
 	{
@@ -832,7 +838,7 @@ data class AvailProject constructor(
 	 * @return
 	 */
 	fun build (
-		availFile: AvailFile,
+		availFile: AnvilFile,
 		qualifiedModuleName: String,
 		done: () -> Unit): Boolean
 	{
@@ -897,7 +903,7 @@ data class AvailProject constructor(
 	}
 
 	/**
-	 * The [RootNode]s in this [AvailProject].
+	 * The [RootNode]s in this [AnvilProject].
 	 */
 	val rootNodes = ConcurrentHashMap<String, RootNode>()
 
@@ -926,13 +932,13 @@ data class AvailProject constructor(
 
 	/**
 	 * Walk all the [ModuleRoot]s populating all the [AvailNode]s ([nodes]) for
-	 * this [AvailProject].
+	 * this [AnvilProject].
 	 *
 	 * @param then
 	 *   The lambda that accepts this project that is run after the entire
 	 *   project is walked.
 	 */
-	fun walkRoots (then: (AvailProject) -> Unit)
+	fun walkRoots (then: (AnvilProject) -> Unit)
 	{
 		nodes.clear()
 		nodesURI.clear()
@@ -967,7 +973,7 @@ data class AvailProject constructor(
 	/**
 	 * Walk the provided roots.
 	 */
-	private fun walkRoot(root: ModuleRoot, then: (AvailProject) -> Unit)
+	private fun walkRoot(root: ModuleRoot, then: (AnvilProject) -> Unit)
 	{
 		root.resolver.provideModuleRootTree({ refRoot ->
 			val rootNode = RootNode(this, refRoot, root)
@@ -1072,6 +1078,6 @@ data class AvailProject constructor(
 		}
 	}
 
-	override fun compareTo(other: AvailProject): Int =
+	override fun compareTo(other: AnvilProject): Int =
 		descriptor.compareTo(other.descriptor)
 }

@@ -35,7 +35,7 @@ package org.availlang.ide.anvil.models.project
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.roots.SyntheticLibrary
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.AvailIcons
+import org.availlang.ide.anvil.language.AnvilIcons
 import javax.swing.Icon
 
 /**
@@ -44,7 +44,7 @@ import javax.swing.Icon
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 class AvailLibrary constructor(
-	val root: AvailProjectRoot,
+	val root: AnvilProjectRoot,
 	private val sourceRoots: Set<VirtualFile>,
 	private val excludedRoots: Set<VirtualFile>,
 	private val icon: Icon
@@ -57,7 +57,7 @@ class AvailLibrary constructor(
 
 	override fun getPresentableText(): String = root.name
 
-	override fun getIcon(unused: Boolean): Icon = AvailIcons.logoSmall
+	override fun getIcon(unused: Boolean): Icon = AnvilIcons.logoSmall
 
 	override fun equals(other: Any?): Boolean
 	{

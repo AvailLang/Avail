@@ -33,7 +33,7 @@
 package org.availlang.ide.anvil.settings
 
 import com.intellij.openapi.Disposable
-import org.availlang.ide.anvil.models.project.AvailProjectDescriptor
+import org.availlang.ide.anvil.models.project.AnvilProjectDescriptor
 
 /**
  * A `AvailProjectSettingsPanel` is TODO: Document this!
@@ -41,7 +41,7 @@ import org.availlang.ide.anvil.models.project.AvailProjectDescriptor
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 class AvailProjectSettingsPanel constructor(
-	val descriptor: AvailProjectDescriptor
+	val descriptor: AnvilProjectDescriptor
 ): Disposable
 {
 	override fun dispose()

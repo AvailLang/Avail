@@ -1,6 +1,6 @@
 <idea-plugin>
     <id>avail.plugin.avail-intellij-plugin</id>
-    <name>Avail</name>
+    <name>Anvil</name>
     <vendor email="avail@availlang.org" url="http://www.availlang.org">Avail</vendor>
 
     <description><![CDATA[The IntelliJ plugin for supporting
@@ -21,21 +21,18 @@
 			implementationClass="org.availlang.ide.anvil.language.file.AvailRepoFileType"
 			fieldName="INSTANCE"
 			extensions="repo"/>
+		<!--	Make the file name pattern "avail.config" be a JSON file.	-->
 		<fileType
-			name="Avail Project Configuration"
-			implementationClass="org.availlang.ide.anvil.language.file.AvailConfigFileType"
-			fieldName="INSTANCE"
-			language="AvailConfig"
-			extensions="availconfig"/>
+			patterns="anvil.config"
+			language="JSON"
+			name="JSON"/>
         <lang.parserDefinition
             language="Avail"
-            implementationClass="org.availlang.ide.anvil.language.AvailParserDefinition"/>
-		<lang.parserDefinition
-			language="AvailConfig"
-			implementationClass="org.availlang.ide.anvil.language.AvailConfigParserDefinition"/>
+            implementationClass="org.availlang.ide.anvil.language.AnvilParserDefinition"/>
+
         <lang.psiStructureViewFactory
             language="Avail"
-            implementationClass="org.availlang.ide.anvil.language.AvailStructureViewFactory"/>
+            implementationClass="org.availlang.ide.anvil.language.AnvilStructureViewFactory"/>
 <!--        <fileEditorProvider-->
 <!--            implementation="org.availlang.ide.anvil.editor.AvailModuleFileEditorProvider"/>-->
 <!--        <lang.fileViewProviderFactory-->
@@ -48,18 +45,16 @@
 		<annotator
 			language="Avail"
 			implementationClass="org.availlang.ide.anvil.language.AvailAnnotator"/>
-		<annotator
-			language="AvailConfig"
-			implementationClass="org.availlang.ide.anvil.language.AvailConfigAnnotator"/>
+
     </extensions>
     <applicationListeners>
         <listener
-            class="org.availlang.ide.anvil.listeners.AvailProjectOpenListener"
+            class="org.availlang.ide.anvil.listeners.AnvilProjectOpenListener"
             topic="com.intellij.openapi.project.ProjectManagerListener"/>
     </applicationListeners>
     <actions>
-        <group id="org.availlang.ide.anvil.actions.AvailActionGroup"
-               class="org.availlang.ide.anvil.actions.AvailActionGroup"
+        <group id="org.availlang.ide.anvil.actions.AnvilActionGroup"
+               class="org.availlang.ide.anvil.actions.AnvilActionGroup"
                text="Avail"
                description="Avail actions."
                popup="true"

@@ -33,7 +33,7 @@
 package org.availlang.ide.anvil.language.file
 
 import com.intellij.openapi.fileTypes.FileType
-import org.availlang.ide.anvil.language.AvailIcons
+import org.availlang.ide.anvil.language.AnvilIcons
 import javax.swing.Icon
 
 /**
@@ -50,7 +50,7 @@ object AvailRepoFileType: FileType
 
 	override fun getDefaultExtension(): String = ".repo"
 
-	override fun getIcon(): Icon = AvailIcons.repoFile
+	override fun getIcon(): Icon = AnvilIcons.repoFile
 
 	override fun isBinary(): Boolean = true
 }

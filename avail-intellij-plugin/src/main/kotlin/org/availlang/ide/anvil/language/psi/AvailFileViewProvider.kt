@@ -51,7 +51,7 @@ import org.availlang.ide.anvil.language.AvailLanguage
 import org.availlang.ide.anvil.language.file.AvailFileType
 
 /**
- * `AvailFileViewProvider` is the [AbstractFileViewProvider] for [AvailFile]s.
+ * `AvailFileViewProvider` is the [AbstractFileViewProvider] for [AnvilFile]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
@@ -68,9 +68,9 @@ class AvailFileViewProvider constructor(
 {
 	// TODO can these get dirty? need to be recreated?
 	/**
-	 * The [AvailFile] this provider will provide.
+	 * The [AnvilFile] this provider will provide.
 	 */
-	private var myPsiFile: AvailFile = AvailFile(this)
+	private var myPsiFile: AnvilFile = AnvilFile(this)
 
 	override fun getBaseLanguage(): Language = AvailLanguage
 

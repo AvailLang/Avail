@@ -33,7 +33,7 @@
 package org.availlang.ide.anvil.module
 
 import com.intellij.openapi.module.ModuleType
-import org.availlang.ide.anvil.language.AvailIcons
+import org.availlang.ide.anvil.language.AnvilIcons
 import javax.swing.Icon
 
 /**
@@ -52,5 +52,5 @@ object AvailModuleType: ModuleType<AvailModuleTypeBuilder>("AVAIL_MODULE")
 		"IntelliJ Avail project module"
 
 	override fun getNodeIcon(isOpened: Boolean): Icon =
-		AvailIcons.logoSmall
+		AnvilIcons.logoSmall
 }

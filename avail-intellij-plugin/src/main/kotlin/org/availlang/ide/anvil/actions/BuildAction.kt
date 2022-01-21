@@ -36,8 +36,8 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.models.project.availProjectService
+import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.models.project.anvilProjectService
 
 /**
  * A `ReportProblemsAction` is TODO: Document this!
@@ -53,11 +53,11 @@ class BuildAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.availProjectService
+			val service = project.anvilProjectService
 
 //			val editor: Editor? = e.getData<Editor>(CommonDataKeys.EDITOR)
 			val file = e.getData(CommonDataKeys.PSI_FILE)
-			if (file is AvailFile)
+			if (file is AnvilFile)
 			{
 				ApplicationManager.getApplication().executeOnPooledThread {
 					file.build {
@@ -74,7 +74,7 @@ class BuildAction: AnAction
 		if (project != null)
 		{
 			e.presentation.isEnabledAndVisible =
-				e.getData(CommonDataKeys.PSI_FILE) is AvailFile
+				e.getData(CommonDataKeys.PSI_FILE) is AnvilFile
 		}
 		else
 		{

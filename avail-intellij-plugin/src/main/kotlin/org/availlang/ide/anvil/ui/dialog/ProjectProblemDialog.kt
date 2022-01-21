@@ -37,7 +37,7 @@ import com.intellij.ui.dsl.builder.BottomGap
 import com.intellij.ui.dsl.builder.TopGap
 import com.intellij.ui.dsl.builder.panel
 import org.availlang.ide.anvil.models.ProjectProblem
-import org.availlang.ide.anvil.models.project.AvailProjectService
+import org.availlang.ide.anvil.models.project.AnvilProjectService
 import org.availlang.ide.anvil.utilities.localTimestamp
 import javax.swing.JComponent
 
@@ -47,7 +47,7 @@ import javax.swing.JComponent
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 class ProjectProblemDialog constructor(
-	val service: AvailProjectService
+	val service: AnvilProjectService
 ): DialogWrapper(true)
 {
 	val problems: List<ProjectProblem> get() = service.problems

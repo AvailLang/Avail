@@ -23,7 +23,7 @@ dependencies {
 
 // See https://github.com/JetBrains/gradle-intellij-plugin/
 intellij {
-    pluginName.set("avail")
+    pluginName.set("anvil")
     plugins.set(listOf("com.intellij.java"))
     version.set("2021.3.1")
 }

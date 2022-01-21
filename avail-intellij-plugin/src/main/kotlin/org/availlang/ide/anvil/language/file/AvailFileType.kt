@@ -1,7 +1,7 @@
 package org.availlang.ide.anvil.language.file
 
 import com.intellij.openapi.fileTypes.LanguageFileType
-import org.availlang.ide.anvil.language.AvailIcons
+import org.availlang.ide.anvil.language.AnvilIcons
 import org.availlang.ide.anvil.language.AvailLanguage
 import javax.swing.Icon
 
@@ -20,5 +20,5 @@ object AvailFileType: LanguageFileType(AvailLanguage)
 	override fun getDefaultExtension(): String = "avail"
 
 	override fun getIcon(): Icon =
-		AvailIcons.availFile
+		AnvilIcons.availFile
 }

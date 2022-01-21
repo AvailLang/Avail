@@ -34,14 +34,11 @@ package org.availlang.ide.anvil.language.psi
 
 import avail.compiler.ModuleManifestEntry
 import com.intellij.lang.ASTNode
-import com.intellij.lang.Language
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.PsiElementBase
-import org.availlang.ide.anvil.language.AvailLanguage
-import org.availlang.ide.anvil.language.AvailManifestEntryTreeElement
-import org.availlang.ide.anvil.language.AvailTreeElement
+import org.availlang.ide.anvil.language.AnvilManifestEntryTreeElement
 
 /**
  * A `AvailPsiElement` is a [PsiElementBase] that represents a
@@ -50,14 +47,14 @@ import org.availlang.ide.anvil.language.AvailTreeElement
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property availFile
- *   The [AvailFile] the [manifestEntry] comes from.
+ *   The [AnvilFile] the [manifestEntry] comes from.
  * @property manifestEntry
  *   The [ModuleManifestEntry] that this [AvailManifestEntryPsiElement] represents.
  * @property myManager
  *   The active [PsiManager] for the active project.
  */
 class AvailManifestEntryPsiElement constructor(
-	availFile: AvailFile,
+	availFile: AnvilFile,
 	val manifestEntry: ModuleManifestEntry,
 	val manifestEntryIndex: Int,
 	myManager: PsiManager
@@ -107,7 +104,7 @@ class AvailManifestEntryPsiElement constructor(
 
 	override fun getNode(): ASTNode
 	{
-		return AvailManifestEntryTreeElement(this, manifestEntry)
+		return AnvilManifestEntryTreeElement(this, manifestEntry)
 	}
 
 	override fun getManager(): PsiManager

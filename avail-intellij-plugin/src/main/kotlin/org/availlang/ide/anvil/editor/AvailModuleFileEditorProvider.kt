@@ -41,7 +41,7 @@ import com.intellij.openapi.vfs.VirtualFile
 import com.intellij.project.stateStore
 import com.intellij.psi.PsiManager
 import org.availlang.ide.anvil.language.file.AvailFileType
-import org.availlang.ide.anvil.models.project.availProjectService
+import org.availlang.ide.anvil.models.project.anvilProjectService
 
 /**
  * `AvailModuleFileEditorProvider` is the [FileEditorProvider] for
@@ -56,14 +56,14 @@ class AvailModuleFileEditorProvider: TextEditorProvider()
 
 	override fun createEditor(project: Project, file: VirtualFile): FileEditor
 	{
-		val service = project.availProjectService
+		val service = project.anvilProjectService
 		val isProjFile = project.stateStore.isProjectFile(file)
 		return AvailModuleFileEditor(
 			project,
 			this,
 			file,
-			service.availProject,
-			service.availProject.getModuleNode(file))
+			service.anvilProject,
+			service.anvilProject.getModuleNode(file))
 	}
 
 	override fun getEditorTypeId(): String = "avail-editor"

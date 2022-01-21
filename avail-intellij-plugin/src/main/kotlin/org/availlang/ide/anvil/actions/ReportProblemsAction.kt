@@ -34,8 +34,8 @@ package org.availlang.ide.anvil.actions
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.availlang.ide.anvil.language.AvailIcons
-import org.availlang.ide.anvil.models.project.availProjectService
+import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.models.project.anvilProjectService
 import org.availlang.ide.anvil.ui.dialog.ProjectProblemDialog
 
 /**
@@ -52,7 +52,7 @@ class ReportProblemsAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.availProjectService
+			val service = project.anvilProjectService
 
 			if ((ProjectProblemDialog(service)).showAndGet())
 			{
@@ -66,11 +66,11 @@ class ReportProblemsAction: AnAction
 		val project = e.project
 		if (project != null)
 		{
-			val service = project.availProjectService
+			val service = project.anvilProjectService
 			if(service.problems.isNotEmpty())
 			{
 				e.presentation.isEnabled = true
-				e.presentation.icon = AvailIcons.error16
+				e.presentation.icon = AnvilIcons.error16
 				e.presentation.text =
 					"Project Problems (${service.problems.size})"
 			}

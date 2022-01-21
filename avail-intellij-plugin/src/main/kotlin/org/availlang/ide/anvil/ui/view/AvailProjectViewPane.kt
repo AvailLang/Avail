@@ -37,7 +37,7 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.AvailIcons
+import org.availlang.ide.anvil.language.AnvilIcons
 import java.util.jar.JarFile
 import javax.swing.Icon
 import javax.swing.JComponent
@@ -53,7 +53,7 @@ class AvailProjectViewPane constructor (
 {
 	override fun getTitle(): String = "Avail"
 
-	override fun getIcon(): Icon = AvailIcons.logoSmall
+	override fun getIcon(): Icon = AnvilIcons.logoSmall
 
 	override fun getId(): String = "Avail Project View"
 

@@ -36,26 +36,26 @@ import com.intellij.openapi.fileEditor.FileEditor
 import com.intellij.openapi.fileEditor.impl.text.PsiAwareTextEditorImpl
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.models.project.AvailProject
+import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.models.project.AnvilProject
 import org.availlang.ide.anvil.models.ModuleNode
 
 /**
- * `AvailModuleFileEditor` is the [FileEditor] for [AvailFile]s.
+ * `AvailModuleFileEditor` is the [FileEditor] for [AnvilFile]s.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property availProject
- *   The active [AvailProject].
+ * @property anvilProject
+ *   The active [AnvilProject].
  * @property moduleNode
- *   The [ModuleNode] associated with the [AvailFile] or `null` if it does not
+ *   The [ModuleNode] associated with the [AnvilFile] or `null` if it does not
  *   exist.
  */
 class AvailModuleFileEditor constructor(
 	project: Project,
 	provider: AvailModuleFileEditorProvider,
 	file: VirtualFile,
-	private val availProject: AvailProject,
+	private val anvilProject: AnvilProject,
 	private val moduleNode: ModuleNode?)
 : PsiAwareTextEditorImpl(project, file, provider)
 {

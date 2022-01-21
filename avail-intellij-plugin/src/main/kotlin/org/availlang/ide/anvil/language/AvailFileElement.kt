@@ -35,7 +35,7 @@ package org.availlang.ide.anvil.language
 import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.psi.impl.source.tree.TreeElement
 import org.availlang.ide.anvil.language.psi.AvailFileElementType
-import org.availlang.ide.anvil.language.psi.AvailFile
+import org.availlang.ide.anvil.language.psi.AnvilFile
 import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
 
 /**
@@ -45,20 +45,20 @@ import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
  */
 class AvailFileElement constructor(
 	text: CharSequence,
-	val availFile: AvailFile
+	val availFile: AnvilFile
 ): FileElement(AvailFileElementType, text)
 {
 	override fun getFirstChildNode(): TreeElement?
 	{
 		val node = availFile.firstChild ?: return null
 		node as AvailManifestEntryPsiElement
-		return AvailManifestEntryTreeElement(node, node.manifestEntry)
+		return AnvilManifestEntryTreeElement(node, node.manifestEntry)
 	}
 
 	override fun getLastChildNode(): TreeElement?
 	{
 		val node = availFile.lastChild ?: return null
 		node as AvailManifestEntryPsiElement
-		return AvailManifestEntryTreeElement(node, node.manifestEntry)
+		return AnvilManifestEntryTreeElement(node, node.manifestEntry)
 	}
 }

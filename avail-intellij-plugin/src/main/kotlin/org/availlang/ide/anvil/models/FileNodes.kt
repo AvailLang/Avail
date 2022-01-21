@@ -38,7 +38,7 @@ import avail.builder.ResolvedModuleName
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
 import avail.resolver.ResourceType
-import org.availlang.ide.anvil.models.project.AvailProject
+import org.availlang.ide.anvil.models.project.AnvilProject
 
 /**
  * A node in the file tree.
@@ -46,15 +46,15 @@ import org.availlang.ide.anvil.models.project.AvailProject
  * @author Richard Arriaga.
  *
  * @property builder
- *   The [AvailBuilder] for the represented [AvailProject].
+ *   The [AvailBuilder] for the represented [AnvilProject].
  * @property reference
  *   The [ResolverReference] that this [AvailNode] points to.
  */
 sealed class AvailNode constructor(
-	val availProject: AvailProject,
+	val anvilProject: AnvilProject,
 	val reference: ResolverReference): Comparable<AvailNode>
 {
-	val builder: AvailBuilder get() = availProject.builder
+	val builder: AvailBuilder get() = anvilProject.builder
 
 	/**
 	 * This [AvailNode]'s immediate parent node.
@@ -168,10 +168,10 @@ sealed class AvailNode constructor(
  * @author Richard Arriaga.
  */
 class RootNode constructor(
-	availProject: AvailProject,
+	anvilProject: AnvilProject,
 	reference: ResolverReference,
 	val root: ModuleRoot
-): AvailNode(availProject, reference)
+): AvailNode(anvilProject, reference)
 {
 	override val isDirectory: Boolean = true
 	override val parentNode: AvailNode? = null
@@ -186,8 +186,8 @@ class RootNode constructor(
 class DirectoryNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	availProject: AvailProject
-): AvailNode(availProject, reference)
+	anvilProject: AnvilProject
+): AvailNode(anvilProject, reference)
 {
 	override val isDirectory: Boolean = true
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
@@ -201,8 +201,8 @@ class DirectoryNode constructor(
 class ModulePackageNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	availProject: AvailProject
-): AvailNode(availProject, reference)
+	anvilProject: AnvilProject
+): AvailNode(anvilProject, reference)
 {
 	override val isDirectory: Boolean = true
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
@@ -213,7 +213,7 @@ class ModulePackageNode constructor(
 	 * The [ResolvedModuleName] this node represents.
 	 */
 	val resolved: ResolvedModuleName =
-		availProject.moduleNameResolver.resolve(reference.moduleName)
+		anvilProject.moduleNameResolver.resolve(reference.moduleName)
 
 	/**
 	 * Is the module loaded?
@@ -236,8 +236,8 @@ class ModulePackageNode constructor(
 class ModuleNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	availProject: AvailProject
-): AvailNode(availProject, reference)
+	anvilProject: AnvilProject
+): AvailNode(anvilProject, reference)
 {
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
 	val entryPointNodes =
@@ -247,7 +247,7 @@ class ModuleNode constructor(
 	 * The [ResolvedModuleName] this node represents.
 	 */
 	val resolved: ResolvedModuleName =
-		availProject.moduleNameResolver.resolve(reference.moduleName)
+		anvilProject.moduleNameResolver.resolve(reference.moduleName)
 
 	/**
 	 * Is the module loaded?
@@ -269,8 +269,8 @@ class ModuleNode constructor(
 class ResourceNode constructor(
 	override val parentNode: AvailNode,
 	reference: ResolverReference,
-	availProject: AvailProject
-): AvailNode(availProject, reference)
+	anvilProject: AnvilProject
+): AvailNode(anvilProject, reference)
 {
 	override val resolver: ModuleRootResolver get() = parentNode.resolver
 }
