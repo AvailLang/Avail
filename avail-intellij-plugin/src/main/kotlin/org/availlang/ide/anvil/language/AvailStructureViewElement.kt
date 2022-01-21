@@ -34,6 +34,7 @@ package org.availlang.ide.anvil.language
 
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.ModuleManifestEntry.Kind.*
+import avail.compiler.problems.Problem
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
 import com.intellij.ide.structureView.StructureViewTreeElement
@@ -41,8 +42,9 @@ import com.intellij.ide.util.treeView.smartTree.SortableTreeElement
 import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.navigation.ItemPresentation
 import com.intellij.psi.NavigatablePsiElement
+import org.availlang.ide.anvil.language.psi.AvailErrorPsiElement
 import org.availlang.ide.anvil.language.psi.AvailFile
-import org.availlang.ide.anvil.language.psi.AvailPsiElement
+import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
 import javax.swing.Icon
 
 /**
@@ -64,25 +66,14 @@ open class AvailStructureViewElement constructor(
 	{
 		if (myElement is AvailFile)
 		{
-			val grouped: Array<TreeElement> = myElement.refreshAndGetManifest()
-				.mapIndexed { i, it->
-					AvailSingleModuleManifestItemPresentationTreeElement(
-						it,
-						AvailPsiElement(
-							myElement,
-							it,
-							i,
-							myElement.manager))
-				}
-				.groupBy { it.entry.summaryText }
-				.map {
-					if (it.value.size == 1) it.value[0]
-					else AvailModuleManifestGroupItemPresentationTreeElement(
-						it.key,
-						it.value,
-						myElement)
-				}.toTypedArray()
-			return grouped
+			return if (myElement.problems.isNotEmpty())
+			{
+				getCompilerErrors(myElement)
+			}
+			else
+			{
+				getPsiManifestEntries(myElement)
+			}
 		}
 		return arrayOf()
 	}
@@ -105,6 +96,55 @@ open class AvailStructureViewElement constructor(
 
 	override fun toString(): String =
 		myElement.name ?: super.toString()
+
+	fun getPsiManifestEntries (availFile: AvailFile): Array<TreeElement> =
+		availFile.refreshAndGetManifest()
+			.mapIndexed { i, it->
+				AvailSingleModuleManifestItemPresentationTreeElement(
+					it,
+					AvailManifestEntryPsiElement(
+						availFile,
+						it,
+						i,
+						availFile.manager))
+			}
+			.groupBy { it.entry.summaryText }
+			.map {
+				if (it.value.size == 1) it.value[0]
+				else AvailModuleManifestGroupItemPresentationTreeElement(
+					it.key,
+					it.value,
+					availFile)
+			}.toTypedArray()
+
+	fun getCompilerErrors (availFile: AvailFile): Array<TreeElement> =
+		availFile.problems
+			.map {
+				val psi =  AvailErrorPsiElement(
+					availFile,
+					availFile.manager,
+					it,
+					"$it")
+				AvailStructureViewElement(psi)
+			}.toTypedArray()
+}
+
+/**
+ * An [ItemPresentation] that presents an [ModuleManifestEntry].
+ *
+ * @property entry
+ *   The [ModuleManifestEntry] to present.
+ */
+class AvailProblemItemPresentation constructor (
+	val problem: Problem
+): ItemPresentation
+{
+	override fun getPresentableText(): String = problem.type.toString()
+
+	override fun getLocationString(): String =
+		problem.lineNumber.toString()
+
+	override fun getIcon(unused: Boolean): Icon = AllIcons.General.Error
 }
 
 /**
@@ -133,18 +173,43 @@ abstract class AvailManifestItemPresentation constructor (
 ): ItemPresentation
 {
 	override fun getPresentableText(): String = entry.summaryText
-//		entry.run { "$summaryText ($kind)" }
 
-	override fun getLocationString(): String
-	{
-		return entry.topLevelStartingLine.toString()
-	}
+	override fun getLocationString(): String =
+		entry.topLevelStartingLine.toString()
 }
 
 abstract class AvailModuleManifestItemPresentationTreeElement constructor(
 	myElement: NavigatablePsiElement
 ): AvailStructureViewElement(myElement)
 
+/**
+ * A [TreeElement] that is a leaf that is used to display a
+ * [ModuleManifestEntry].
+ */
+class AvailSingleModuleErrorItemPresentationTreeElement constructor(
+	val problem: Problem,
+	myElement: NavigatablePsiElement
+): AvailModuleManifestItemPresentationTreeElement(myElement)
+{
+	val itemPresentation = AvailProblemItemPresentation(problem)
+	override fun navigate(requestFocus: Boolean)
+	{
+		myElement.navigate(requestFocus)
+	}
+
+	override fun canNavigate(): Boolean = true
+
+	override fun canNavigateToSource(): Boolean = true
+
+	override fun getValue(): Any = problem
+
+	override fun getPresentation(): ItemPresentation = itemPresentation
+
+	override fun getChildren(): Array<TreeElement> = arrayOf()
+
+	override fun toString(): String =
+		"${problem.type}"
+}
 
 /**
  * A [TreeElement] that is a leaf that is used to display a
