@@ -32,15 +32,15 @@
 
 package org.availlang.ide.anvil.language.psi
 
+import avail.compiler.problems.Problem
 import com.intellij.lang.ASTNode
 import com.intellij.lang.Language
 import com.intellij.openapi.util.TextRange
 import com.intellij.psi.PsiElement
 import com.intellij.psi.PsiManager
 import com.intellij.psi.impl.PsiElementBase
-import org.availlang.ide.anvil.language.AvailLanguage
-import avail.compiler.problems.Problem
 import org.availlang.ide.anvil.language.AnvilProblemTreeElement
+import org.availlang.ide.anvil.language.AvailLanguage
 
 /**
  * A `AvailPsiElement` is TODO: Document this!
@@ -48,7 +48,7 @@ import org.availlang.ide.anvil.language.AnvilProblemTreeElement
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 sealed class AvailPsiElement constructor(
-	val availFile: AnvilFile,
+	val availFile: AvailFile,
 	val myManager: PsiManager
 ): PsiElementBase()
 {
@@ -58,7 +58,7 @@ sealed class AvailPsiElement constructor(
 }
 
 class AvailErrorPsiElement constructor(
-	availFile: AnvilFile,
+	availFile: AvailFile,
 	myManager: PsiManager,
 	val problem: Problem,
 	val rawText: String
@@ -88,5 +88,5 @@ class AvailErrorPsiElement constructor(
 
 	override fun textToCharArray(): CharArray = rawText.toCharArray()
 
-	override fun getNode(): ASTNode = AnvilProblemTreeElement(this)
+	override fun getNode(): ASTNode = AnvilProblemTreeElement(ETInvalid, this)
 }

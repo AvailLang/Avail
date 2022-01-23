@@ -38,7 +38,7 @@ import com.intellij.ide.structureView.StructureViewTreeElement
 import com.intellij.ide.util.treeView.smartTree.NodeProvider
 import com.intellij.ide.util.treeView.smartTree.Sorter
 import com.intellij.ide.util.treeView.smartTree.TreeElement
-import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.language.psi.AvailFile
 
 /**
  * `AvailStructureViewModel` is the [StructureViewModelBase] for
@@ -47,10 +47,10 @@ import org.availlang.ide.anvil.language.psi.AnvilFile
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property availFile
- *   The associated [AnvilFile].
+ *   The associated [AvailFile].
  */
 class AnvilStructureViewModel constructor(
-	private val availFile: AnvilFile
+	private val availFile: AvailFile
 ): StructureViewModelBase(availFile, AnvilStructureViewElement(availFile)),
 	ElementInfoProvider
 {
@@ -69,7 +69,7 @@ class AnvilStructureViewModel constructor(
 			}
 			is AnvilStructureViewElement ->
 			{
-				element.myElement !is AnvilFile
+				element.myElement !is AvailFile
 			}
 			else -> true
 		}

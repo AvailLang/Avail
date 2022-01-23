@@ -1,5 +1,5 @@
 /*
- * Dev.kt
+ * AvailPsiParser.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,46 +30,31 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil
+package org.availlang.ide.anvil.language
 
-import androidx.compose.ui.window.singleWindowApplication
-import androidx.compose.foundation.ContextMenuDataProvider
-import androidx.compose.foundation.ContextMenuItem
-import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.mouseClickable
-import androidx.compose.material.MaterialTheme
-import androidx.compose.material.Text
-import androidx.compose.material.TextField
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.isPrimaryPressed
+import com.intellij.lang.ASTNode
+import com.intellij.lang.PsiBuilder
+import com.intellij.lang.PsiParser
+import com.intellij.psi.impl.source.DummyHolderElement
+import com.intellij.psi.tree.IElementType
+import org.availlang.ide.anvil.language.psi.AvailFile
 
-// DEVELOPMENT USE ONLY
-// This main entry is present to allow for running small portions of UI to test
-// things out.
-@ExperimentalFoundationApi
-fun main() = singleWindowApplication(title = "Context menu") {
-	MaterialTheme { //it is mandatory for Context Menu
-		val text = remember {mutableStateOf("Hello!")}
-		ContextMenuDataProvider(
-			items = {
-				listOf(ContextMenuItem("Clear") { text.value = "" })
-			}
-		) {
-			TextField(
-				value = text.value,
-				onValueChange = { text.value = it },
-				label = { Text(text = "Input", modifier = Modifier.mouseClickable(
-					onClick = {
-						if (buttons.isPrimaryPressed)
-//								&& keyboardModifiers.isShiftPressed
-//								&& keyboardModifiers.value == Key.B.nativeKeyCode)
-						{
-							println("I clicked it!")
-						}
-					})) }
-			)
-		}
+/**
+ * A `AvailPsiParser` is TODO: Document this!
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+class AnvilParser: PsiParser
+{
+	override fun parse(root: IElementType, builder: PsiBuilder): ASTNode
+	{
+		val text = builder.originalText
+//		return AvailFileElement(text)
+		return DummyHolderElement(text)
+	}
+
+	fun parse(text: CharSequence, file: AvailFile): ASTNode
+	{
+		return AvailFileElement(text, file)
 	}
 }

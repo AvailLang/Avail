@@ -33,7 +33,7 @@
 package avail.interpreter.primitive.methods
 
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.ModuleManifestEntry.Kind
+import avail.compiler.SideEffectKind
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -122,7 +122,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 				loader.lexicalScanner().addLexer(lexer)
 				loader.manifestEntries!!.add(
 					ModuleManifestEntry(
-						Kind.LEXER_KIND,
+						SideEffectKind.LEXER_KIND,
 						atom.atomName.asNativeString(),
 						loader.topLevelStatementBeingCompiled!!
 							.startingLineNumber,

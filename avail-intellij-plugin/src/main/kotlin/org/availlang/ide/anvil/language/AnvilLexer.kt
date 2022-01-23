@@ -1,6 +1,6 @@
 /*
- * Errors.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * AnvilLexer.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,13 +30,68 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.anvil.utilities
+package org.availlang.ide.anvil.language
+
+import com.intellij.lexer.LexerBase
+import com.intellij.openapi.project.Project
+import org.availlang.ide.anvil.language.psi.AvailElementType
 
 /**
- * This call site should be unreachable in the control flow graph of the caller,
- * so raise an exception if execution reaches here.
+ * A adapter between IntelliJ and Avail to mediate lexical analysis.
  *
- * @throws IllegalStateException
- *   Always thrown.
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ *
+ * Construct an adapter configured for the specified [project][Project].
+ *
+ * @param project
+ *   The enclosing project.
  */
-fun unreachable (): Nothing = error("unreachable")
+class AnvilLexer constructor(private val project: Project): LexerBase()
+{
+	override fun start(
+		buffer: CharSequence,
+		startOffset: Int,
+		endOffset: Int,
+		initialState: Int
+	)
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getState(): Int
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getTokenType(): AvailElementType?
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getTokenStart(): Int
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getTokenEnd(): Int
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun advance()
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getBufferSequence(): CharSequence
+	{
+		TODO("Not yet implemented")
+	}
+
+	override fun getBufferEnd(): Int
+	{
+		TODO("Not yet implemented")
+	}
+}

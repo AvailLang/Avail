@@ -38,6 +38,7 @@ import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.phrases.FirstOfSequencePhraseDescriptor
 import avail.descriptor.phrases.ListPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor
+import avail.descriptor.phrases.MarkerPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
@@ -172,7 +173,7 @@ open class PhraseTypeDescriptor protected constructor(
 		/** The root phrase kind. */
 		PARSE_PHRASE("phrase type", null, TypeTag.PHRASE_TAG),
 
-		/** The kind of a parse marker. */
+		/** The kind of a [parse&#32;marker][MarkerPhraseDescriptor]. */
 		MARKER_PHRASE(
 			"marker phrase type", PARSE_PHRASE, TypeTag.MARKER_PHRASE_TAG),
 

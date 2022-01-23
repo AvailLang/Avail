@@ -33,7 +33,7 @@
 package org.availlang.ide.anvil.language
 
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.ModuleManifestEntry.Kind.*
+import avail.compiler.SideEffectKind.*
 import avail.compiler.problems.Problem
 import com.intellij.icons.AllIcons
 import com.intellij.ide.projectView.PresentationData
@@ -43,7 +43,7 @@ import com.intellij.ide.util.treeView.smartTree.TreeElement
 import com.intellij.navigation.ItemPresentation
 import com.intellij.psi.NavigatablePsiElement
 import org.availlang.ide.anvil.language.psi.AvailErrorPsiElement
-import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
 import javax.swing.Icon
 
@@ -64,7 +64,7 @@ open class AnvilStructureViewElement constructor(
 
 	override fun getChildren(): Array<TreeElement>
 	{
-		if (myElement is AnvilFile)
+		if (myElement is AvailFile)
 		{
 			return if (myElement.problems.isNotEmpty())
 			{
@@ -97,7 +97,7 @@ open class AnvilStructureViewElement constructor(
 	override fun toString(): String =
 		myElement.name ?: super.toString()
 
-	fun getPsiManifestEntries (availFile: AnvilFile): Array<TreeElement> =
+	fun getPsiManifestEntries (availFile: AvailFile): Array<TreeElement> =
 		availFile.refreshAndGetManifest()
 			.mapIndexed { i, it->
 				AnvilSingleModuleManifestItemPresentationTreeElement(
@@ -117,7 +117,7 @@ open class AnvilStructureViewElement constructor(
 					availFile)
 			}.toTypedArray()
 
-	fun getCompilerErrors (availFile: AnvilFile): Array<TreeElement> =
+	fun getCompilerErrors (availFile: AvailFile): Array<TreeElement> =
 		availFile.problems
 			.map {
 				val psi =  AvailErrorPsiElement(
@@ -235,6 +235,8 @@ class AnvilSingleModuleManifestItemPresentationTreeElement constructor(
 			LEXER_KIND -> LexerTreeElement(entry)
 			MODULE_CONSTANT_KIND -> ModuleConstantTreeElement(entry)
 			MODULE_VARIABLE_KIND -> ModuleVariableTreeElement(entry)
+			GRAMMATICAL_RESTRICTION_KIND -> GrammaticalRestrictionTreeElement(entry)
+			SEAL_KIND -> SealTreeElement(entry)
 		}
 
 	override fun navigate(requestFocus: Boolean)
@@ -277,62 +279,75 @@ class AtomTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.atom
+	override fun getIcon(unused: Boolean) = AnvilIcons.atom
 }
 
 class AbstractMethodTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.abstractMethod
+	override fun getIcon(unused: Boolean) = AnvilIcons.abstractMethod
 }
 
 class MethodTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.method
+	override fun getIcon(unused: Boolean) = AnvilIcons.method
 }
 
 class ForwardMethodTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.forwardMethod
+	override fun getIcon(unused: Boolean) = AnvilIcons.forwardMethod
 }
 
 class MacroTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.macro
+	override fun getIcon(unused: Boolean) = AnvilIcons.macro
 }
 
 class SemanticRestrictionTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.semanticRestriction
+	override fun getIcon(unused: Boolean) = AnvilIcons.semanticRestriction
 }
 
 class LexerTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.lexer
+	override fun getIcon(unused: Boolean) = AnvilIcons.lexer
 }
 
 class ModuleConstantTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon =AnvilIcons.constant
+	override fun getIcon(unused: Boolean) =AnvilIcons.constant
 }
 
 class ModuleVariableTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean): Icon = AnvilIcons.variable
+	override fun getIcon(unused: Boolean) = AnvilIcons.variable
 }
 
+class GrammaticalRestrictionTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean) = AnvilIcons.grammaticalRestriction
+}
+
+class SealTreeElement constructor(
+	entry: ModuleManifestEntry
+): AvailManifestItemPresentation(entry)
+{
+	override fun getIcon(unused: Boolean): Icon = AnvilIcons.grammaticalRestriction
+}

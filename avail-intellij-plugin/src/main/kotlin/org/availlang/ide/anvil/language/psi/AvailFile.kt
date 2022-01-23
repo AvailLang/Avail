@@ -33,6 +33,8 @@
 package org.availlang.ide.anvil.language.psi
 
 import avail.builder.ModuleRoot
+import avail.compiler.CompilerProgressReporter
+import avail.compiler.GlobalProgressReporter
 import avail.compiler.ModuleManifestEntry
 import avail.persistence.cache.RepositoryDescriber
 import com.intellij.codeInspection.ProblemsHolder
@@ -59,7 +61,7 @@ import avail.compiler.problems.Problem as AvailCompilerProblem
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AnvilFile constructor(
+class AvailFile constructor(
 	viewProvider: FileViewProvider
 ): PsiFileBase(viewProvider, AvailLanguage)
 {
@@ -72,7 +74,7 @@ class AnvilFile constructor(
 	val problems = mutableListOf<AvailCompilerProblem>()
 
 	/**
-	 * This [AnvilFile]'s [ProblemsHolder] used to report problems with the
+	 * This [AvailFile]'s [ProblemsHolder] used to report problems with the
 	 * represented Avail module.
 	 */
 	val problemsHolder = ProblemsHolder(
@@ -96,14 +98,33 @@ class AnvilFile constructor(
 	 */
 	val anvilProject: AnvilProject get() = projectService.anvilProject
 
-	fun build (then: () -> Unit): Boolean =
+	/**
+	 * Build the Avail module associated with this file.
+	 *
+	 * @param globalReporter
+	 *   A [global&#32;progress&#32;reporter][GlobalProgressReporter].
+	 * @param moduleReporter
+	 *   A
+	 *   [module&#32;compilation&#32;progress&#32;reporter][CompilerProgressReporter].
+	 * @param done
+	 *   What to do when the whole build is complete.
+	 */
+	fun build (
+		globalReporter: GlobalProgressReporter = { _, _ -> },
+		moduleReporter: CompilerProgressReporter = { _, _, _, _, _ -> },
+		done: () -> Unit
+	) =
 		node?.let {
-			anvilProject.build(this, it.reference.qualifiedName)
-			{
+			anvilProject.build(
+				this,
+				it.reference.qualifiedName,
+				globalReporter,
+				moduleReporter
+			) {
 				refreshAndGetManifest()
-				then()
+				done()
 			}
-		} ?: false
+		}
 
 	/**
 	 * Has this file been modified since it was loaded?
@@ -114,14 +135,14 @@ class AnvilFile constructor(
 		} ?: false
 
 	/**
-	 * The [RootNode] of the [ModuleRoot] this [AnvilFile] belongs to or `null`
+	 * The [RootNode] of the [ModuleRoot] this [AvailFile] belongs to or `null`
 	 * if not an Avail module in any of the [AnvilProject]'s [ModuleRoot]s.
 	 */
 	val rootNode: RootNode? get() =
 		anvilProject.rootForModuleUri(viewProvider.virtualFile.path)
 
 	/**
-	 * `true` indicates that this [AnvilFile] represents an Avail module that is
+	 * `true` indicates that this [AvailFile] represents an Avail module that is
 	 * a module in a [ModuleRoot] that is included the active [AnvilProject];
 	 * `false` otherwise.
 	 */
@@ -139,7 +160,7 @@ class AnvilFile constructor(
 	}
 
 	/**
-	 * Answer the [List] of [ModuleManifestEntry]s for this [AnvilFile]. An
+	 * Answer the [List] of [ModuleManifestEntry]s for this [AvailFile]. An
 	 * empty list indicates that either
 	 *  * The module has not been built
 	 *  * The module is [not included][isIncludedProject] in the active
@@ -225,10 +246,8 @@ class AnvilFile constructor(
 
 	override fun getChildren(): Array<PsiElement> = availChildPsiElements
 
-	override fun createContentLeafElement(leafText: CharSequence?): TreeElement
-	{
-		return AvailFileElement(leafText!!, this)
-	}
+	override fun createContentLeafElement(leafText: CharSequence?) =
+		AvailFileElement(leafText!!, this)
 
 	override fun toString(): String =
 		this.node?.resolved?.qualifiedName ?: viewProvider.virtualFile.path

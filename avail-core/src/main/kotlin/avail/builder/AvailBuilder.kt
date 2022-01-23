@@ -518,11 +518,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
 	 *   A [GlobalProgressReporter].
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
 	 * @param originalAfterAll
 	 *   What to do after building everything.  This may run in another
 	 *   [Thread], possibly long after this method returns.
-	 * @param problemHandler
-	 *   How to handle or report [Problem]s that arise during the build.
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	fun buildTargetThen(
@@ -603,7 +603,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			target,
 			localTracker,
 			globalTracker,
-			problemHandler) { semaphore.release() }
+			problemHandler
+		) { semaphore.release() }
 		semaphore.acquireUninterruptibly()
 	}
 
@@ -880,7 +881,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				stringFrom(command),
 				textInterface,
 				pollForAbort,
-				{ _, _, _, _ -> },
+				{ _, _, _, _, _ -> },
 				object : BuilderProblemHandler(this, "«collection only»")
 				{
 					override fun handleGeneric(

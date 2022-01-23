@@ -1,6 +1,6 @@
 /*
- * AvailParseableElementType.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * SideEffectKind.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,52 +30,55 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package org.availlang.ide.anvil.language.psi
-
-import com.intellij.lang.ASTNode
-import com.intellij.psi.PsiElement
-import com.intellij.psi.tree.IElementType
-import com.intellij.psi.tree.IFileElementType
-import org.availlang.ide.anvil.language.AvailLanguage
-import org.availlang.ide.anvil.language.AnvilPsiParser
+package avail.compiler
 
 /**
- *
- *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * The kinds of manifest entries that can be recorded.  If this changes in a
+ * way other than adding enum values at the end, you must rebuild your
+ * repository files.
  */
-object AvailFileElementType: IFileElementType("AVAIL FILE", AvailLanguage)
+enum class SideEffectKind
 {
+	/** An atom has been defined.  The summaryText will be the atom name. */
+	ATOM_DEFINITION_KIND,
+
+	/** The summaryText will be the method name. */
+	METHOD_DEFINITION_KIND,
+
+	/** The summaryText will be the method name. */
+	ABSTRACT_METHOD_DEFINITION_KIND,
+
+	/** The summaryText will be the method name. */
+	FORWARD_METHOD_DEFINITION_KIND,
+
+	/** The summaryText will be the macro name. */
+	MACRO_DEFINITION_KIND,
+
+	/** The summaryText will be the method name being restricted. */
+	SEMANTIC_RESTRICTION_KIND,
+
 	/**
-	 * Parses the contents of the specified chameleon node and returns the AST tree
-	 * representing the parsed contents.
-	 *
-	 * @param chameleon the node to parse.
-	 * @return the parsed contents of the node.
+	 * The summaryText will be the method name being restricted.
 	 */
-	override fun parseContents(chameleon: ASTNode): ASTNode?
+	GRAMMATICAL_RESTRICTION_KIND,
+
+	/**
+	 * The summaryText will be the method name being sealed.
+	 */
+	SEAL_KIND,
+
+	/** The summaryText will be the lexer's name. */
+	LEXER_KIND,
+
+	/** The summaryText will be the module constant's name. */
+	MODULE_CONSTANT_KIND,
+
+	/** The summaryText will be the module variable's name. */
+	MODULE_VARIABLE_KIND;
+
+	companion object
 	{
-		val parentElement = chameleon.psi
-			?: error("parent psi is null: $chameleon")
-		return doParseContents(chameleon, parentElement)
+		/** All of the [Kind]s. */
+		val all = values().toList()
 	}
-
-	override fun doParseContents(chameleon: ASTNode, psi: PsiElement): ASTNode?
-	{
-		val project = psi.project
-//		val builder = PsiBuilderFactory.getInstance().createBuilder(
-//			project,
-//			chameleon,
-//			null,
-//			AvailLanguage,
-//			chameleon.chars)
-		val parser = AnvilPsiParser()
-		val node = parser.parse(chameleon.chars, psi as AnvilFile)
-		return node.firstChildNode
-	}
-}
-
-object AvailElementType: IElementType("AVAIL ELEMENT", AvailLanguage)
-{
-
 }

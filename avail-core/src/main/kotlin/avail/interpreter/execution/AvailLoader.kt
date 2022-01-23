@@ -33,7 +33,7 @@ package avail.interpreter.execution
 
 import avail.AvailRuntime
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.ModuleManifestEntry.Kind
+import avail.compiler.SideEffectKind
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -1106,7 +1106,7 @@ class AvailLoader(
 							{
 								val body = newDefinition.bodyBlock()
 								ModuleManifestEntry(
-									Kind.METHOD_DEFINITION_KIND,
+									SideEffectKind.METHOD_DEFINITION_KIND,
 									methodName.atomName.asNativeString(),
 									topStart,
 									body.code().codeStartingLineNumber,
@@ -1114,13 +1114,13 @@ class AvailLoader(
 							}
 							newDefinition.isForwardDefinition() ->
 								ModuleManifestEntry(
-									Kind.FORWARD_METHOD_DEFINITION_KIND,
+									SideEffectKind.FORWARD_METHOD_DEFINITION_KIND,
 									methodName.atomName.asNativeString(),
 									topStart,
 									topStart)
 							newDefinition.isAbstractDefinition() ->
 								ModuleManifestEntry(
-									Kind.ABSTRACT_METHOD_DEFINITION_KIND,
+									SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND,
 									methodName.atomName.asNativeString(),
 									topStart,
 									topStart)
@@ -1209,7 +1209,7 @@ class AvailLoader(
 			module.lock {
 				manifestEntries!!.add(
 					ModuleManifestEntry(
-						Kind.MACRO_DEFINITION_KIND,
+						SideEffectKind.MACRO_DEFINITION_KIND,
 						methodName.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
@@ -1255,7 +1255,7 @@ class AvailLoader(
 			{
 				manifestEntries!!.add(
 					ModuleManifestEntry(
-						Kind.SEMANTIC_RESTRICTION_KIND,
+						SideEffectKind.SEMANTIC_RESTRICTION_KIND,
 						atom.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
@@ -1298,6 +1298,12 @@ class AvailLoader(
 		recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SEAL.bundle, methodName, seal))
+		manifestEntries!!.add(
+			ModuleManifestEntry(
+				SideEffectKind.SEAL_KIND,
+				methodName.atomName.asNativeString(),
+				topLevelStatementBeingCompiled!!.startingLineNumber,
+				topLevelStatementBeingCompiled!!.startingLineNumber))
 	}
 
 	/**
@@ -1368,6 +1374,12 @@ class AvailLoader(
 							planInProgress, treesToVisit)
 					}
 				}
+				manifestEntries!!.add(
+					ModuleManifestEntry(
+						SideEffectKind.GRAMMATICAL_RESTRICTION_KIND,
+						parentAtom.atomName.asNativeString(),
+						topLevelStatementBeingCompiled!!.startingLineNumber,
+						topLevelStatementBeingCompiled!!.startingLineNumber))
 			}
 		}
 		recordEffect(
@@ -1495,7 +1507,7 @@ class AvailLoader(
 						module.lock {
 							manifestEntries!!.add(
 								ModuleManifestEntry(
-									Kind.ATOM_DEFINITION_KIND,
+									SideEffectKind.ATOM_DEFINITION_KIND,
 									stringName.asNativeString(),
 									topStart,
 									topStart))

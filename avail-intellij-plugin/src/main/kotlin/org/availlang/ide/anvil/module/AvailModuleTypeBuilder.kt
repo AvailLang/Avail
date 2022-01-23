@@ -36,8 +36,6 @@ import com.intellij.ide.util.projectWizard.ModuleBuilder
 import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.Disposable
-import com.intellij.openapi.module.ModuleType
-import com.intellij.openapi.roots.ModifiableRootModel
 
 /**
  * `AvailModuleTypeBuilder` is the [ModuleBuilder] for IntelliJ Avail project
@@ -45,17 +43,12 @@ import com.intellij.openapi.roots.ModifiableRootModel
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailModuleTypeBuilder: ModuleBuilder()
+class AvailModuleTypeBuilder : ModuleBuilder()
 {
-	override fun getModuleType(): ModuleType<*> = AvailModuleType
+	override fun getModuleType () = AvailModuleType
 
-	override fun setupRootModel(modifiableRootModel: ModifiableRootModel)
-	{
-		super.setupRootModel(modifiableRootModel)
-	}
-
-	override fun getCustomOptionsStep(
+	override fun getCustomOptionsStep (
 		context: WizardContext,
-		parentDisposable: Disposable): ModuleWizardStep =
-			AvailRootConfigurationStep(context)
+		parentDisposable: Disposable
+	): ModuleWizardStep = AvailRootConfigurationStep(context)
 }

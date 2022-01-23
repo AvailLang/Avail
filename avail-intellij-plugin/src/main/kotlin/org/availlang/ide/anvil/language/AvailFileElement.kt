@@ -34,8 +34,10 @@ package org.availlang.ide.anvil.language
 
 import com.intellij.psi.impl.source.tree.FileElement
 import com.intellij.psi.impl.source.tree.TreeElement
-import org.availlang.ide.anvil.language.psi.AvailFileElementType
-import org.availlang.ide.anvil.language.psi.AnvilFile
+import com.intellij.psi.util.elementType
+import org.availlang.ide.anvil.language.psi.AvailElementType
+import org.availlang.ide.anvil.language.psi.AvailRootElementType
+import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
 
 /**
@@ -45,20 +47,28 @@ import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
  */
 class AvailFileElement constructor(
 	text: CharSequence,
-	val availFile: AnvilFile
-): FileElement(AvailFileElementType, text)
+	val availFile: AvailFile
+) : FileElement(AvailRootElementType, text)
 {
 	override fun getFirstChildNode(): TreeElement?
 	{
 		val node = availFile.firstChild ?: return null
-		node as AvailManifestEntryPsiElement
-		return AnvilManifestEntryTreeElement(node, node.manifestEntry)
+		return AnvilManifestEntryTreeElement(
+			(node as AvailManifestEntryPsiElement).elementType
+				as AvailElementType,
+			node,
+			node.manifestEntry
+		)
 	}
 
 	override fun getLastChildNode(): TreeElement?
 	{
 		val node = availFile.lastChild ?: return null
-		node as AvailManifestEntryPsiElement
-		return AnvilManifestEntryTreeElement(node, node.manifestEntry)
+		return AnvilManifestEntryTreeElement(
+			(node as AvailManifestEntryPsiElement).elementType
+				as AvailElementType,
+			node,
+			node.manifestEntry
+		)
 	}
 }
