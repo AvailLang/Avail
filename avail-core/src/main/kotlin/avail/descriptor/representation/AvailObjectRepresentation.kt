@@ -43,7 +43,6 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.TypeTag
-import avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.VarHandle
 import java.util.Arrays
@@ -135,7 +134,28 @@ abstract class AvailObjectRepresentation protected constructor(
 		}
 		if (currentDescriptor.isMutable)
 		{
-			scanSubobjects(MarkUnreachableSubobjectVisitor(anotherObject))
+			lateinit var marker: (AvailObject) -> AvailObject
+			marker = { childObject: AvailObject ->
+				when
+				{
+					!childObject.descriptor().isMutable -> childObject
+					// The excluded object was reached.
+					childObject.sameAddressAs(anotherObject) -> childObject
+					else ->
+					{
+						// Recursively invoke the iterator on the subobjects of
+						// subobject... Indicate the object is no longer valid
+						// and should not ever be used again.
+						childObject.scanSubobjects(marker)
+						// Indicate the object is no longer valid and should not
+						// ever be used again.
+						childObject.destroy()
+						childObject
+					}
+				}
+			}
+
+			scanSubobjects(marker)
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
 			objectSlots[0] = anotherTraversed

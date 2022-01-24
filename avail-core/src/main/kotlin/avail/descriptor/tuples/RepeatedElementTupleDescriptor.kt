@@ -549,7 +549,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 		 * @return
 		 *   The new repeated element tuple.
 		 */
-		fun forceCreate(
+		private fun forceCreate(
 			size: Int,
 			element: A_BasicObject?
 		): A_Tuple = mutable.create {

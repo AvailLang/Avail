@@ -234,24 +234,18 @@ private constructor(
 
 	override fun o_TypeIntersectionOfPojoType(
 		self: AvailObject,
-		aPojoType: A_Type): A_Type
+		aPojoType: A_Type
+	): A_Type = when
 	{
-		if (aPojoType.isPojoSelfType)
-		{
-			return self.pojoSelfType().typeIntersectionOfPojoType(aPojoType)
-		}
-		// A Java array type is effectively final, so the type intersection with
-		// of a pojo array type and a singleton pojo type is pojo bottom.
-		return if (!aPojoType.isPojoArrayType)
-		{
-			BottomPojoTypeDescriptor.pojoBottom()
-		}
-		else arrayPojoType(
-			self.slot(CONTENT_TYPE).typeIntersection(
-				aPojoType.traversed().slot(CONTENT_TYPE)),
-			self.slot(SIZE_RANGE).typeIntersection(
-				aPojoType.traversed().slot(SIZE_RANGE)))
+		aPojoType.isPojoSelfType ->
+			self.pojoSelfType().typeIntersectionOfPojoType(aPojoType)
 		// Compute the type intersection of the two pojo array types.
+		aPojoType.isPojoArrayType -> arrayPojoType(
+			self.slot(CONTENT_TYPE).typeIntersection(aPojoType.contentType),
+			self.slot(SIZE_RANGE).typeIntersection(aPojoType.sizeRange))
+		// A Java array type is effectively final, so the type intersection of a
+		// pojo array type and a singleton pojo type is pojo bottom.
+		else -> BottomPojoTypeDescriptor.pojoBottom()
 	}
 
 	override fun o_TypeIntersectionOfPojoFusedType(

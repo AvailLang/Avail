@@ -720,10 +720,12 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_SUPERCAST_MUST_BE_STRICT_SUPERTYPE_OF_EXPRESSION_TYPE(108),
 
-	//	E_??? (109),
+	//	E_??? (109..149),
 
 	/** An external [process][Process] could not be launched. */
 	E_NO_EXTERNAL_PROCESS(150),
+
+	//	E_??? (151..199),
 
 	/** The specified [path][Path] does not name an existing file. */
 	E_NO_FILE(200),
@@ -745,6 +747,8 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/** A [path][Path] expression was invalid. */
 	E_INVALID_PATH(205),
+
+	//	E_??? (206-499),
 
 	/**
 	 * A Java [class][Class] specified by name was either not found by the

@@ -1286,9 +1286,9 @@ class L2ValueManifest
 							(semanticValues, mutableRestriction) ->
 								semanticValues.retainAll(
 									synonym.semanticValues())
-								mutableRestriction.value =
-									mutableRestriction.value.union(
-										constraint.restriction)
+								mutableRestriction.update {
+									union(constraint.restriction)
+								}
 								if (semanticValues.isEmpty())
 								{
 									// The register was present in all incoming

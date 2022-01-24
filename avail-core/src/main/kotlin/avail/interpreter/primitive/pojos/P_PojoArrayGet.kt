@@ -50,6 +50,7 @@ import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
 import avail.exceptions.MarshalingException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import java.lang.reflect.Array
 
@@ -59,7 +60,7 @@ import java.lang.reflect.Array
  * [pojo&#32;array&#32;type][PojoTypeDescriptor].
  */
 @Suppress("unused")
-object P_PojoArrayGet : Primitive(2, CanInline)
+object P_PojoArrayGet : Primitive(2, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

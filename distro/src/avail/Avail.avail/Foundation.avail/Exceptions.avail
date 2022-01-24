@@ -91,6 +91,7 @@ Names
 	"general-I/O exception",
 	"instantiation exception",
 	"invocation exception",
+	"recursive exception",
 	"security exception",
 	"system exception",
 	"trace exception",
@@ -405,7 +406,7 @@ Private method "Private guard_intercept_ensure_" is
  * @type "cascade exception"
  * @supertype "exception"
  * @field "causal exception" "exception"
- * 		The original exception that lead to the current exception
+ * 		The original exception that led to the current exception
  * @category "Exceptions"
  */
 Public class "cascade exception" extends exception
@@ -1998,6 +1999,26 @@ After the current module is unloaded, do
 		] : ⊥;
 ];
 
+/**
+ * This is added as a fiber variable while assembling details about a lookup
+ * exception.  The value of the fiber variable is unused.  If the fiber variable
+ * is present when another lookup exception occurs, a {@type
+ * "recursive exception"} is reported instead, containing no further detail.
+ */
+"recursiveError" is a new atom;
+
+/**
+ * A recursive exception is raised when a lookup error happens, and while
+ * collecting information to present with that error, another lookup error
+ * happens.  The {@code "recursiveError"} fiber variable is introduced by the
+ * original problem, and removed just before raising the assembled exception.
+ *
+ * @type "recursive exception"
+ * @supertype "exception"
+ * @category "Exceptions"
+ */
+Public explicit class "recursive exception" extends exception;
+
 /* Raise the appropriate exception whenever a message send fails dynamically. */
 invalid method send function :=
 	[
@@ -2010,22 +2031,46 @@ invalid method send function :=
 		theMethod : method,
 		arguments : tuple
 	|
-		exceptionType ::= exceptionsByCode[code];
-		name ::= exceptionType's error name's instance;
-		/* Safety, to prevent recursive printing errors. */
-		methodString ::=
-			guard [“theMethod”]
-			intercept [e : exception | "(Exception while printing)"];
-		argumentsString ::=
-			guard [“arguments”]
-			intercept [e : exception | "(Exception while printing)"];
-		e ::= an exceptionType with
-			error code ::= code,
-			error name ::= name,
-			error message ::= "method:  " ++ methodString ++
-				"\n\targuments:  " ++ argumentsString,
-			looked up method ::= theMethod,
-			looked up arguments ::= arguments;
+		/*
+		 * Be careful to handle recursive exceptions that are raised while
+		 * assembling the original exception.
+		 */
+		If recursiveError ∈ current fiber then
+		[
+			/*
+			 * Do the bare minimum here, since we're already handling a
+			 * recursive problem.
+			 */
+			Raise a recursive exception
+		];
+		e ::= guard
+		[
+			current fiber[recursiveError] := recursiveError;
+			exceptionType ::= exceptionsByCode[code];
+			name ::= exceptionType's error name's instance;
+			/* Safety, to prevent recursive printing errors. */
+			methodString ::=
+				guard [“theMethod”]
+				intercept [e : exception | "(Exception while printing)"];
+			argumentsString ::= map arguments through
+			[
+				argument : any
+			|
+				guard [“argument”]
+				intercept [e : exception | "(Exception while printing)"]
+			];
+			an exceptionType with
+				error code ::= code,
+				error name ::= name,
+				error message ::= "method:  " ++ methodString ++
+					"\n\targuments:  " ++ argumentsString,
+				looked up method ::= theMethod,
+				looked up arguments ::= arguments
+		]
+		ensure
+		[
+			Remove current fiber[recursiveError];
+		];
 		Raise e
 	] : ⊥;
 

@@ -4514,15 +4514,15 @@ class AvailCompiler constructor(
 						{
 							// The originals were the same.  Drill into the
 							// transformed phrases.
-							phrase1.value = phrase1.value.outputPhrase
-							phrase2.value = phrase2.value.outputPhrase
+							phrase1.update { outputPhrase }
+							phrase2.update { outputPhrase }
 							continue
 						}
 						else
 						{
 							// The originals differed.  Drill into them.
-							phrase1.value = phrase1.value.macroOriginalSendNode
-							phrase2.value = phrase2.value.macroOriginalSendNode
+							phrase1.update { macroOriginalSendNode }
+							phrase2.update { macroOriginalSendNode }
 							continue
 						}
 					}

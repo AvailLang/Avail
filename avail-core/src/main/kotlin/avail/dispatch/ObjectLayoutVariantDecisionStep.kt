@@ -268,8 +268,8 @@ constructor(
 		semanticValues: List<L2SemanticValue>,
 		extraSemanticValues: List<L2SemanticValue>)
 	{
-		variantToSubtree.values.forEach { subtree ->
-			list.add(subtree to extraSemanticValues)
+		variantToSubtree.values.mapTo(list) { subtree ->
+			subtree to extraSemanticValues
 		}
 	}
 
@@ -392,8 +392,7 @@ constructor(
 			if (variantId == lastSplit)
 			{
 				// Two adjacent variantIds occurred, so we save a split.
-				assert(targets.last()
-					== callSiteHelper.onFallBackToSlowLookup)
+				assert(targets.last() == callSiteHelper.onFallBackToSlowLookup)
 				targets.removeLast()
 				splits.removeLast()
 			}
@@ -412,7 +411,16 @@ constructor(
 			L2_MULTIWAY_JUMP,
 			generator.currentManifest.readInt(semanticVariantId),
 			L2ConstantOperand(tupleFromIntegerList(splits)),
-			L2PcVectorOperand(targets.map { L2PcOperand(it, false) }))
+			L2PcVectorOperand(
+				targets.mapIndexed { index, target ->
+					val low = if (index == 0) "-∞" else splits[index - 1]
+					val high = if (index == splits.size) "∞" else splits[index]
+					L2PcOperand(
+						target,
+						false,
+						null,
+						"$low..$high")
+				}))
 		return edges.map { (block, subtree, variant) ->
 			// We need to strengthen the restriction to correspond with the fact
 			// that it now has this variant.

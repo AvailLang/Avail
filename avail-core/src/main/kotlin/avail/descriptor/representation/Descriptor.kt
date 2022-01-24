@@ -102,9 +102,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
-import avail.utility.visitor.AvailSubobjectVisitor
-import avail.utility.visitor.BeImmutableSubobjectVisitor
-import avail.utility.visitor.BeSharedSubobjectVisitor
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -710,7 +707,7 @@ protected constructor (
 	 */
 	override fun o_ScanSubobjects (
 		self: AvailObject,
-		visitor: AvailSubobjectVisitor)
+		visitor: (AvailObject) -> AvailObject)
 	{
 		val limit = self.objectSlotsCount()
 		for (i in 1 .. limit)
@@ -1374,7 +1371,7 @@ protected constructor (
 	 */
 	override fun o_MakeSubobjectsImmutable (self: AvailObject): AvailObject
 	{
-		self.scanSubobjects(BeImmutableSubobjectVisitor)
+		self.scanSubobjects(AvailObject::makeImmutable)
 		return self
 	}
 
@@ -1390,7 +1387,7 @@ protected constructor (
 	 */
 	override fun o_MakeSubobjectsShared (self: AvailObject): AvailObject
 	{
-		self.scanSubobjects(BeSharedSubobjectVisitor)
+		self.scanSubobjects(AvailObject::makeShared)
 		return self
 	}
 

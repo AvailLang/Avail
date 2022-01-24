@@ -114,7 +114,7 @@ Private method "block from_" is
 	sendPhrase : send phrase ⇒ ⊤
 |
 	returnType ::= sendPhrase's return type;
-	cast «[<sendPhrase>]:returnType» into [b: block phrase ⇒ []→⊤| b]
+	«[<sendPhrase>]:returnType» ?→ block phrase ⇒ []→⊤
 ] : expression phrase ⇒ []→⊤;
 
 Private method "basic send phrase_conditional_then_else_" is
@@ -148,11 +148,12 @@ Method "for_nest_in_" is
 	elseBlock : expression phrase ⇒ []→⊤,
 	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
 |
-	elseConditionalPair ::= elseConditionalPairTuple[1]'s expressions;
-	predicate ::= elseConditionalPair[1];
-	thenBlock ::= elseConditionalPair[2];
-	block from basic send phrase anAtom conditional predicate then
-		thenBlock else elseBlock
+	predicate, thenBlock ::= elseConditionalPairTuple[1]'s expressions;
+	block from
+		basic send phrase anAtom
+		conditional predicate
+		then thenBlock
+		else elseBlock
 ] : expression phrase ⇒ []→⊤;
 
 Method "for_nest_in_" is
@@ -199,14 +200,14 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 	elseIfPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
 	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
 |
-	elseBlock ::= if |optionalElseBlock's expressions| = 1 then
-		[optionalElseBlock's expressions[1]]
-		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
-	elseIfPairTuple ::= cast elseIfPairTuplePhrase's expressions into
-		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+	elseBlock ::= optionalElseBlock's expressions[1] else [‘[]’];
+	elseIfPairTuple ::= elseIfPairTuplePhrase's expressions
+		?→ <list phrase⇒<boolean, []→⊤…|2>…|1..∞>;
 	anAtom ::= $"If|if_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseIfPairTuple;
-	basic send phrase anAtom conditional firstPredicate then firstThenBlock
+	basic send phrase anAtom
+		conditional firstPredicate
+		then firstThenBlock
 		else finalElseBlock
 ] : send phrase ⇒ ⊤;
 
@@ -1280,17 +1281,15 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
 	elseUnlessPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
 	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
 |
-	elseBlock ::= if |optionalElseBlock's expressions| = 1 then
-		[optionalElseBlock's expressions[1]]
-		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
-	elseUnlessPairTuple ::= cast elseUnlessPairTuplePhrase's expressions into
-		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
-
+	elseBlock ::= optionalElseBlock's expressions[1] else [‘[]’];
+	elseUnlessPairTuple ::= elseUnlessPairTuplePhrase's expressions
+		?→ <list phrase⇒<boolean, []→⊤…|2>…|1..∞>;
 	anAtom ::= $"Unless|unless_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseUnlessPairTuple;
-
-	basic send phrase anAtom conditional firstPredicate
-		then firstThenBlock else finalElseBlock
+	basic send phrase anAtom
+		conditional firstPredicate
+		then firstThenBlock
+		else finalElseBlock
 ]: send phrase ⇒ ⊤;
 
 /**
@@ -1730,10 +1729,7 @@ Macro "Until_do_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	action : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Until_do_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean», action
-		>» : ⊤
+	⟦Until [⦊expressionPhrase⦉] do ⦊action⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1797,10 +1793,7 @@ Macro "Do_while_" is
 	action : block phrase ⇒ []→⊤,
 	expressionPhrase : expression phrase ⇒ boolean
 |
-	bootstrap restricted send $"Do_while_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean»
-		>» : ⊤
+	⟦Do ⦊action⦉ while [⦊expressionPhrase⦉]⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1874,10 +1867,7 @@ Macro "Do_while_alternate with_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Do_while_alternate with_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean», between
-		>» : ⊤
+	⟦Do ⦊action⦉ while [⦊expressionPhrase⦉] alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1951,10 +1941,7 @@ Macro "While_do_alternate with_" is
 	action : block phrase ⇒ []→⊤,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"While_do_alternate with_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean», action, between
-		>» : ⊤
+	⟦While [⦊expressionPhrase⦉] do ⦊action⦉ alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2018,10 +2005,7 @@ Macro "Do_until_" is
 	action : block phrase ⇒ []→⊤,
 	expressionPhrase : expression phrase ⇒ boolean
 |
-	bootstrap restricted send $"Do_until_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean»
-		>» : ⊤
+	⟦Do ⦊action⦉ until [⦊expressionPhrase⦉]⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2095,10 +2079,7 @@ Macro "Do_until_alternate with_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Do_until_alternate with_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean», between
-		>» : ⊤
+	⟦Do ⦊action⦉ until [⦊expressionPhrase⦉] alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2172,10 +2153,7 @@ Macro "Until_do_alternate with_" is
 	action : block phrase ⇒ []→⊤,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Until_do_alternate with_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean», action, between
-		>» : ⊤
+	⟦Until [⦊expressionPhrase⦉] do ⦊action⦉ alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**

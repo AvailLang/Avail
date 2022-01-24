@@ -544,7 +544,6 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
-import avail.utility.visitor.AvailSubobjectVisitor
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
 import java.nio.ByteBuffer
@@ -652,8 +651,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ScanSubobjects(
 		self: AvailObject,
-		visitor: AvailSubobjectVisitor
-	) {
+		visitor: (AvailObject) -> AvailObject)
+	{
 		visitor(self.slot(INDIRECTION_TARGET))
 	}
 

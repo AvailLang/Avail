@@ -929,7 +929,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 * @return
 	 *   A [StackReifier] if reification is needed, otherwise `null`.
 	 */
-	private fun checkReturnType(
+	internal fun checkReturnType(
 		result: AvailObject,
 		expectedReturnType: A_Type,
 		returnee: A_Function): StackReifier?
@@ -979,7 +979,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier, ChunkEntryPoint.UNREACHABLE,
+					reifier,
+					ChunkEntryPoint.UNREACHABLE,
 					"{0}Push reified continuation for L1 check "
 						+ "return type failure: {1}")
 			}

@@ -301,7 +301,7 @@ Private method "function for scaling from_to_by_using_" is
 		: qB;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast newBlock→function into [t : unit conversion function | t]
+	newBlock→function ?→ unit conversion function
 ] : unit conversion function;
 
 /**

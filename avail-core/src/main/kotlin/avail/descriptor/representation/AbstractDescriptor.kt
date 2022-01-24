@@ -167,7 +167,6 @@ import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
 import avail.utility.safeWrite
-import avail.utility.visitor.AvailSubobjectVisitor
 import org.availlang.json.JSONWriter
 import java.lang.reflect.InvocationTargetException
 import java.math.BigInteger
@@ -2735,7 +2734,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ScanSubobjects (
 		self: AvailObject,
-		visitor: AvailSubobjectVisitor)
+		visitor: (AvailObject) -> AvailObject)
 
 	/**
 	 * Answer an [iterator][Iterator] suitable for traversing the elements of

@@ -148,8 +148,8 @@ object P_FileMetadata : Primitive(2, CanInline, HasSideEffect)
 					attributes.isDirectory -> 2
 					attributes.isSymbolicLink -> 3
 					else -> 4
-				}), fromLong(
-			attributes.creationTime().toMillis()),
+				}),
+			fromLong(attributes.creationTime().toMillis()),
 			fromLong(attributes.lastModifiedTime().toMillis()),
 			fromLong(attributes.lastAccessTime().toMillis()),
 			fromLong(attributes.size()))

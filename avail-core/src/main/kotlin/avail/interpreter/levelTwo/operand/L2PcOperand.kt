@@ -77,22 +77,21 @@ import java.util.concurrent.atomic.LongAdder
  * Set [isBackward] to true if this is a back-link to a
  * [loop&#32;head][L2BasicBlock.isLoopHead],
  *
- * @param targetBlock
+ * @property targetBlock
  *   The [L2BasicBlock] The target basic block.
- * @param isBackward
+ * @property isBackward
  *   Whether this edge is a back-link to a loop head.
+ * @property manifest
+ *   If supplied, the [L2ValueManifest] linking semantic values and registers at
+ *   this control flow edge.
  */
 class L2PcOperand constructor (
 	private var targetBlock: L2BasicBlock,
-	var isBackward: Boolean
+	var isBackward: Boolean,
+	private var manifest: L2ValueManifest? = null,
+	val optionalName: String? = null
 ) : L2Operand()
 {
-	/**
-	 * The manifest linking semantic values and registers at this control flow
-	 * edge.
-	 */
-	private var manifest: L2ValueManifest? = null
-
 	/**
 	 * The [Set] of [L2Register]s that are written in all pasts, and are
 	 * consumed along all future paths after the start of this block.  This is
@@ -135,27 +134,6 @@ class L2PcOperand constructor (
 	 * form has no need for any counters, so this field can be `null`.
 	 */
 	var counter: LongAdder? = null
-
-	/**
-	 * Create a remapped `L2PcOperand` from the original operand, the new target
-	 * [L2BasicBlock], and the transformed [L2ValueManifest]. Set [isBackward]
-	 * to true if this is a back-link to a
-	 * [loop&#32;head][L2BasicBlock.isLoopHead].
-	 *
-	 * @param newTargetBlock
-	 *   The transformed target [L2BasicBlock] of the new edge.
-	 * @param isBackward
-	 *   Whether this edge is a back-link to a loop head.
-	 * @param newManifest
-	 *   The transformed [L2ValueManifest] for the new edge.
-	 */
-	constructor(
-		newTargetBlock: L2BasicBlock,
-		isBackward: Boolean,
-		newManifest: L2ValueManifest) : this(newTargetBlock, isBackward)
-	{
-		manifest = newManifest
-	}
 
 	override fun adjustCloneForInstruction(theInstruction: L2Instruction)
 	{
@@ -344,7 +322,7 @@ class L2PcOperand constructor (
 	/**
 	 * Write JVM bytecodes to the JVMTranslator which will push:
 	 *
-	 *  1. An [Array] of [AvailObject] containing the value of each live boxed
+	 *  1. An [Array] of [AvailObject]s containing the value of each live boxed
 	 *     register, and
 	 *  1. A [LongArray] containing encoded data from each live unboxed
 	 *     register.

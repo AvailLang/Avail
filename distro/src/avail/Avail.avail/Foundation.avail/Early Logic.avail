@@ -197,11 +197,7 @@ Macro "_∧_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_∧_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ∧ [⦊b⦉]⟧
 ];
 
 /**
@@ -320,33 +316,29 @@ Macro "_∨_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_∨_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ∨ [⦊b⦉]⟧
 ];
 
 /**
  * Are the arguments unequal?
  *
- * @method "_≠_"
- * @param "a" "any"
- *        A value.
- * @param "b" "any"
- *        A value.
- * @returns "boolean"
- *          {@method "true"} if the arguments are not equal, {@method "false"}
- *          otherwise.
+ * @macro "_≠_"
+ * @param "a" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yield a value to compare.
+ * @param "b" "expression phrase ⇒ any"
+ *        An {@type "expression phrase"} that yield another value to compare.
+ * @returns "send phrase ⇒ boolean"
+ *          An expression yielding {@method "true"} if the arguments are not
+ *          equal, {@method "false"} otherwise.
  * @category "Mathematics" "Relations"
  */
-Public stable method "_≠_" is
+Public macro "_≠_" is
 [
-	a : any,
-	b : any
+	a : expression phrase ⇒ any,
+	b : expression phrase ⇒ any
 |
-	¬a = b
-] : boolean;
+	⟦¬⦊a⦉ = ⦊b⦉⟧
+] : expression phrase ⇒ boolean;
 
 /*
  * Make logical operators left-associative.  Even though the right-associative

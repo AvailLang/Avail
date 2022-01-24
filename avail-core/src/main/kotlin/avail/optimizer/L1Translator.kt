@@ -143,6 +143,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_FLOAT_FLAG
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.interpreter.levelTwo.operation.L2_CREATE_CONTINUATION
@@ -505,7 +506,12 @@ class L1Translator private constructor(
 			return generator.boxedConstant(outerType.instance)
 		}
 		val functionRead = currentFunction
-		val restriction = restrictionForType(outerType, BOXED_FLAG)
+		var restriction = restrictionForType(outerType, BOXED_FLAG)
+		if (functionRead.restriction().isImmutable)
+		{
+			// An immutable function has immutable captured outers.
+			restriction = restriction.withFlag(IMMUTABLE_FLAG)
+		}
 		val outerWrite = generator.boxedWrite(semanticOuter, restriction)
 		addInstruction(
 			L2_MOVE_OUTER_VARIABLE,

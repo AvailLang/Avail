@@ -153,7 +153,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	 * @param capacity
 	 *   The capacity of the [map][StrongCacheMap].
 	 */
-	private inner class StrongCacheMap internal constructor(
+	private inner class StrongCacheMap constructor(
 		private val capacity: Int) : LinkedHashMap<K, V>(capacity, 0.75f, true)
 	{
 		override fun removeEldestEntry(
@@ -238,12 +238,8 @@ class LRUCache<K, V> @JvmOverloads constructor(
 	 * unsupported operations.
 	 *
 	 * @author Todd L Smith &lt;todd@availlang.org&gt;
-	 *
-	 * @constructor
-	 *
-	 * Construct a new [ValueFuture].
 	 */
-	private inner class ValueFuture internal constructor() : Future<V>
+	private inner class ValueFuture : Future<V>
 	{
 		/**
 		 * The [lock][ReentrantLock] that guards access to this
@@ -263,7 +259,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		private var isDone: Boolean = false
 
 		/** The result of the computation of the [ValueFuture]. */
-		internal var result: V? = null
+		var result: V? = null
 			set (result)
 			{
 				computationLock.withLock {
@@ -278,7 +274,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 		 * during execution of the user-supplied [Function].
 		 */
 		@Volatile
-		internal var exception: RuntimeException? = null
+		var exception: RuntimeException? = null
 			set (exception)
 			{
 				computationLock.withLock {

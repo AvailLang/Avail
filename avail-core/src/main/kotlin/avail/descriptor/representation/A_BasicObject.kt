@@ -63,7 +63,6 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
-import avail.utility.visitor.AvailSubobjectVisitor
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -693,7 +692,7 @@ interface A_BasicObject : JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun scanSubobjects(visitor: AvailSubobjectVisitor)
+	fun scanSubobjects(visitor: (AvailObject) -> AvailObject)
 
 	/**
 	 * Dispatch to the descriptor.

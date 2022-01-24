@@ -551,12 +551,10 @@ class AvailRuntime constructor(
 			throw AvailRuntimeException(
 				AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE)
 		}
-		// Look up the raw Java class using the interpreter's runtime's
-		// class loader.
+		// Look up the raw Java class using the runtime's class loader.
 		return try
 		{
-			Class.forName(
-				className.asNativeString(), true, classLoader)
+			Class.forName(className.asNativeString(), true, classLoader)
 		}
 		catch (e: ClassNotFoundException)
 		{

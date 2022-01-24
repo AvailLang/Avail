@@ -513,14 +513,16 @@ abstract class AbstractNumberDescriptor protected constructor(
 				}
 				false
 			}
-			type.isIntegerRangeType -> {
+			type.isIntegerRangeType ->
+			{
 				min.value = type.lowerBound
 				max.value = type.upperBound
 				minInclusive.value = type.lowerInclusive
 				maxInclusive.value = type.upperInclusive
 				false
 			}
-			else -> {
+			else ->
+			{
 				possibleResults.add(LESS)
 				possibleResults.add(MORE)
 				possibleResults.add(EQUAL)
@@ -534,8 +536,9 @@ abstract class AbstractNumberDescriptor protected constructor(
 		 * those which are comparable.
 		 */
 		private val numericComparator: Comparator<A_Number> = Comparator {
-			n1: A_Number, n2: A_Number ->
-			when (n1.numericCompare(n2)) {
+				n1, n2 ->
+			when (n1.numericCompare(n2))
+			{
 				LESS -> -1
 				MORE -> 1
 				EQUAL -> 0

@@ -908,21 +908,20 @@ open class CompiledCodeDescriptor protected constructor(
 	 */
 	override fun o_ReturnerCheckStat(self: AvailObject): Statistic
 	{
-		var returnerStat = invocationStatistic.returnerCheckStat
-		if (returnerStat === null)
-		{
+		invocationStatistic.returnerCheckStat?.let { return it }
+		synchronized(invocationStatistic) {
+			invocationStatistic.returnerCheckStat?.let { return it }
 			// Look it up by name, creating it if necessary.
 			val name = self.methodName
-			returnerStat = returnerCheckStatisticsByName.computeIfAbsent(
-				name
-			) {
-				Statistic(
-					NON_PRIMITIVE_RETURNER_TYPE_CHECKS,
-					"Checked return from " + name.asNativeString())
-			}
+			val returnerStat =
+				returnerCheckStatisticsByName.computeIfAbsent(name) {
+					Statistic(
+						NON_PRIMITIVE_RETURNER_TYPE_CHECKS,
+						"Checked return from " + name.asNativeString())
+				}
 			invocationStatistic.returnerCheckStat = returnerStat
+			return returnerStat
 		}
-		return returnerStat!!
 	}
 
 	/**
@@ -938,21 +937,20 @@ open class CompiledCodeDescriptor protected constructor(
 	 */
 	override fun o_ReturneeCheckStat(self: AvailObject): Statistic
 	{
-		var returneeStat = invocationStatistic.returneeCheckStat
-		if (returneeStat === null)
-		{
+		invocationStatistic.returneeCheckStat?.let { return it }
+		synchronized(invocationStatistic) {
+			invocationStatistic.returneeCheckStat?.let { return it }
 			// Look it up by name, creating it if necessary.
 			val name = self.methodName
-			returneeStat = returneeCheckStatisticsByName.computeIfAbsent(
-				name
-			) {
-				Statistic(
-					NON_PRIMITIVE_RETURNEE_TYPE_CHECKS,
-					"Checked return into " + name.asNativeString())
-			}
+			val returneeStat =
+				returneeCheckStatisticsByName.computeIfAbsent(name) {
+					Statistic(
+						NON_PRIMITIVE_RETURNEE_TYPE_CHECKS,
+						"Checked return into " + name.asNativeString())
+				}
 			invocationStatistic.returneeCheckStat = returneeStat
+			return returneeStat
 		}
-		return returneeStat!!
 	}
 
 	override fun o_ReturnTypeIfPrimitiveFails(self: AvailObject): A_Type =

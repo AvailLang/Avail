@@ -60,10 +60,17 @@ import avail.interpreter.levelTwo.register.L2IntRegister
  * fully specify how the operand is used, but it does say whether the associated
  * register is being read or written or both.
  *
+ * @constructor
+ *
+ * @property canHavePurpose
+ *   Whether this kind of operand can have a [Purpose].
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 enum class L2OperandType
+constructor(
+	val canHavePurpose: Boolean = false)
 {
 	/**
 	 * An [L2ConstantOperand] holds a Java object of any type, except
@@ -174,28 +181,6 @@ enum class L2OperandType
 	 * only.
 	 */
 	COMMENT;
-
-	/**
-	 * Whether this kind of operand can have a [Purpose] associated with it.
-	 */
-	val canHavePurpose: Boolean
-
-	/**
-	 * Create an instance of the enum.
-	 *
-	 * @param canHavePurpose
-	 *   Whether this kind of operand can have a [Purpose].
-	 */
-	constructor(canHavePurpose: Boolean)
-	{
-		this.canHavePurpose = canHavePurpose
-	}
-
-	/** Create an instance of the enum, disallowing a [Purpose] for it. */
-	constructor()
-	{
-		canHavePurpose = false
-	}
 
 	/**
 	 * Create a [L2NamedOperandType] from the receiver and a [String] naming its

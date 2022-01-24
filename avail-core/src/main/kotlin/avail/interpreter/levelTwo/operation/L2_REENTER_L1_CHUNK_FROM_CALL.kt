@@ -37,11 +37,14 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Operation
+import avail.optimizer.StackReifier
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.JVMTranslator
 import avail.optimizer.jvm.ReferencedInGeneratedCode
+import org.objectweb.asm.Label
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import java.util.logging.Level
 
 /**
@@ -74,9 +77,16 @@ object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		// :: L2_REENTER_L1_CHUNK_FROM_CALL.reenter(interpreter);
+		// :: if ((temp = reenter(interpreter)) != null) return temp;
+		val okLabel = Label()
 		translator.loadInterpreter(method)
 		reenterMethod.generateCall(method)
+		method.visitInsn(Opcodes.DUP)
+		method.visitJumpInsn(Opcodes.IFNULL, okLabel)
+		method.visitInsn(Opcodes.ARETURN)
+		// :: else { }
+		method.visitLabel(okLabel)
+		method.visitInsn(Opcodes.POP)
 	}
 
 	/**
@@ -87,7 +97,7 @@ object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 	 */
 	@ReferencedInGeneratedCode
 	@JvmStatic
-	fun reenter(interpreter: Interpreter)
+	fun reenter(interpreter: Interpreter): StackReifier?
 	{
 		if (Interpreter.debugL1)
 		{
@@ -119,14 +129,30 @@ object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 		returneeFunction.code().setUpInstructionDecoder(
 			stepper.instructionDecoder)
 		stepper.instructionDecoder.pc(continuation.pc())
-		stepper.stackp = continuation.stackp()
-		stepper.pointerAtPut(stepper.stackp, returnValue)
+		val stackp = continuation.stackp()
+		stepper.stackp = stackp
+		val expectedReturnType = stepper.pointerAt(stackp)
+		// Perform a redundant check, since the mechanism for handling failure
+		// should stay off the critical HotSpot path.
+		if (!returnValue.isInstanceOf(expectedReturnType))
+		{
+			val returnCheckReifier = stepper.checkReturnType(
+				returnValue, expectedReturnType, returneeFunction)
+			assert (returnCheckReifier !== null) {
+				"The second return type check unexpectedly passed!"
+			}
+			// The reifier already contains what's needed to synthesize the
+			// returnee's frame.
+			return returnCheckReifier
+		}
+		stepper.pointerAtPut(stackp, returnValue)
+		return null
 	}
 
 	/** The [CheckedMethod] for [reenter]. */
 	private val reenterMethod = staticMethod(
 		L2_REENTER_L1_CHUNK_FROM_CALL::class.java,
 		::reenter.name,
-		Void.TYPE,
+		StackReifier::class.java,
 		Interpreter::class.java)
 }

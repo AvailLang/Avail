@@ -193,7 +193,8 @@ abstract class L2Regenerator internal constructor(
 			val edge = L2PcOperand(
 				mapBlock(operand.targetBlock()),
 				operand.isBackward,
-				targetGenerator.currentManifest)
+				targetGenerator.currentManifest,
+				operand.optionalName)
 			// Generate clamped entities based on the originals.
 			operand.forcedClampedEntities?.let { oldClamped ->
 				val manifest = targetGenerator.currentManifest
@@ -518,7 +519,13 @@ abstract class L2Regenerator internal constructor(
 					// to ensure any blocks that are reachable from it in the
 					// source, but *also* from other blocks in the source, can
 					// proceed with generation if all the other blocks have been
-					// completed.
+					// completed.  We also have to keep walking through any
+					// successor edges, since there may be a whole subgraph that
+					// has become inaccessible, and we must ensure paths that
+					// eventually join with it (i.e., where it *would* have been
+					// merging control flow) can continue code generation with
+					// only some predecessors having produced code.
+					block.successorEdges().forEach(this::transformOperand)
 					break@instructions
 				}
 				processInstruction(instruction)

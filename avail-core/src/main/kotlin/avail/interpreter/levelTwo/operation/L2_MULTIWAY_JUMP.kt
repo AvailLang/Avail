@@ -140,6 +140,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		firstSplit: Int,
 		lastSplit: Int)
 	{
+		if (!generator.currentlyReachable()) return
 		if (firstSplit > lastSplit)
 		{
 			assert(firstSplit == lastSplit + 1)

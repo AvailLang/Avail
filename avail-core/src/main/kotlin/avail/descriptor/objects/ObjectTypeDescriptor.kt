@@ -441,7 +441,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
 		if (isShared) return self
-		self.setDescriptor(self.descriptor().shared())
+		self.setDescriptor(variant.sharedObjectTypeDescriptor)
 		self.makeSubobjectsShared()
 		var canonical: AvailObject?
 		do

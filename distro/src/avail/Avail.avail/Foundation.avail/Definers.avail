@@ -343,16 +343,15 @@ Public method "Method_is stable at_«compute with_»?" is
 	[
 		index : natural number
 	|
-		argName ::=
-			cast concatenate <"argument", “index”> into [t : string | t];
+		argName ::= concatenate <"argument", “index”> ?→ string;
 		argType ::= functionType[index];
 		argToken ::= `argName` (argName);
 		argDecl ::= arg «argToken : expression phrase ⇒ argType»;
-		argDecls := cast concatenate <eject argDecls, <argDecl>>
-			into [t : <<>, argument phrase…|whole number> | t];
+		argDecls := concatenate <eject argDecls, <argDecl>>
+			?→ <<>, argument phrase…|whole number>;
 		argUse ::= «↓argDecl»;
-		argUses := cast concatenate <eject argUses, <argUse>>
-			into [t : <<>, variable use phrase…|whole number> | t];
+		argUses := concatenate <eject argUses, <argUse>>
+			?→ <<>, variable use phrase…|whole number>;
 		true
 	];
 	sendGetCurrentMacro ::=
@@ -405,7 +404,7 @@ Public method "Method_is stable at_«compute with_»?" is
 	]
 	else
 	[
-		evaluator ::= cast optionalEvaluator[1] into [f : […]→any | f];
+		evaluator ::= optionalEvaluator[1] ?→ […]→any;
 		Method methodAtom is stable at functionType compute with evaluator;
 	];
 ] : ⊤;

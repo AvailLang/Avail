@@ -410,7 +410,16 @@ constructor(
 			L2_MULTIWAY_JUMP,
 			generator.currentManifest.readInt(semanticVariantId),
 			L2ConstantOperand(tupleFromIntegerList(splits)),
-			L2PcVectorOperand(targets.map { L2PcOperand(it, false) }))
+			L2PcVectorOperand(
+				targets.mapIndexed { index, target ->
+					val low = if (index == 0) "-∞" else splits[index - 1]
+					val high = if (index == splits.size) "∞" else splits[index]
+					L2PcOperand(
+						target,
+						false,
+						null,
+						"$low..$high")
+				}))
 		return edges.map { (block, subtree, variant) ->
 			// We need to strengthen the restriction to correspond with the fact
 			// that it now has this variant.

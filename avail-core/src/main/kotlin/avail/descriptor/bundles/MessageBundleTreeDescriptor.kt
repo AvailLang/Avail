@@ -612,9 +612,9 @@ class MessageBundleTreeDescriptor private constructor(
 						if (pc == instructions.tupleSize + 1) {
 							// Just reached the end of these instructions.
 							// It's past the end of the parsing instructions.
-							complete.value =
-								complete.value.setWithElementCanDestroy(
-									bundle, true)
+							complete.update {
+								setWithElementCanDestroy(bundle, true)
+							}
 						}
 						else
 						{
@@ -1082,8 +1082,7 @@ class MessageBundleTreeDescriptor private constructor(
 			val instructions = plan.parsingInstructions
 			if (pc == instructions.tupleSize + 1)
 			{
-				complete.value =
-					complete.value.setWithElementCanDestroy(plan.bundle, true)
+				complete.update { setWithElementCanDestroy(plan.bundle, true) }
 				return
 			}
 			val instruction = plan.parsingInstructions.tupleIntAt(pc)
@@ -1131,8 +1130,8 @@ class MessageBundleTreeDescriptor private constructor(
 					val map =
 						if (op === PARSE_PART) incomplete
 						else caseInsensitive
-					map.value = map.value
-						.mapAtReplacingCanDestroy(part, nil, true) { _, v ->
+					map.update {
+						mapAtReplacingCanDestroy(part, nil, true) { _, v ->
 							val subtree = when
 							{
 								v.isNil -> newBundleTree(latestBackwardJump)
@@ -1141,6 +1140,7 @@ class MessageBundleTreeDescriptor private constructor(
 							subtree.addPlanInProgress(
 								newPlanInProgress(plan, pc + 1))
 							subtree
+						}
 					}
 					return
 				}
@@ -1157,8 +1157,10 @@ class MessageBundleTreeDescriptor private constructor(
 						actionMap.value.mapAtOrNull(instructionObject) ?:
 							emptyTuple
 					successors = successors.appendCanDestroy(newTarget, true)
-					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-						instructionObject, successors, true)
+					actionMap.update {
+						mapAtPuttingCanDestroy(
+							instructionObject, successors, true)
+					}
 					// We added it to the actions, so don't fall through.
 					return
 				}
@@ -1171,8 +1173,7 @@ class MessageBundleTreeDescriptor private constructor(
 					val phraseType: A_Type = constantForIndex(typeIndex)
 					val planInProgress = newPlanInProgress(plan, pc + 1)
 					val pair = tuple(phraseType, planInProgress)
-					typeFilterTuples.value =
-						typeFilterTuples.value.appendCanDestroy(pair, true)
+					typeFilterTuples.update { appendCanDestroy(pair, true) }
 					return
 				}
 				CHECK_ARGUMENT ->
@@ -1185,10 +1186,11 @@ class MessageBundleTreeDescriptor private constructor(
 						actionMap.value.mapAtOrNull(instructionObject)
 					val successor: A_BundleTree = when (successors)
 					{
-						null -> newBundleTree(latestBackwardJump).also {
-							actionMap.value =
-								actionMap.value.mapAtPuttingCanDestroy(
-									instructionObject, tuple(it), true)
+						null -> newBundleTree(latestBackwardJump).also { tree ->
+							actionMap.update {
+								mapAtPuttingCanDestroy(
+									instructionObject, tuple(tree), true)
+							}
 						}
 						else -> {
 							assert(successors.tupleSize == 1)
@@ -1241,9 +1243,10 @@ class MessageBundleTreeDescriptor private constructor(
 									}
 								}
 							}
-							prefilterMap.value =
-								prefilterMap.value.mapAtPuttingCanDestroy(
+							prefilterMap.update {
+								mapAtPuttingCanDestroy(
 									restrictedBundle, newTarget, true)
+							}
 						}
 					}
 					// Finally, add it to the action map.  This had to be
@@ -1278,9 +1281,11 @@ class MessageBundleTreeDescriptor private constructor(
 			}
 			else
 			{
-				newBundleTree(latestBackwardJump).also {
-					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-						instructionObject, tuple(it), true)
+				newBundleTree(latestBackwardJump).also { tree ->
+					actionMap.update {
+						mapAtPuttingCanDestroy(
+							instructionObject, tuple(tree), true)
+					}
 				}
 			}
 			successor.addPlanInProgress(newPlanInProgress(plan, pc + 1))

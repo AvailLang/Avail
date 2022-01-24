@@ -313,7 +313,7 @@ internal constructor(
 			}
 			val mostConstants =
 				constantSets.withIndex().maxByOrNull { (_, set) -> set.size }!!
-			if (mostConstants.value.size >= 2)
+			if (mostConstants.value.size >= 3)
 			{
 				// At least 2 constants can be used to dispatch this argument.
 				// Save computation time for building this up in subtrees by
@@ -323,7 +323,7 @@ internal constructor(
 				var testedFlags = alreadyTestedConstants
 					.bitSet(mostConstants.index, true, true)
 				constantSets.forEachIndexed { i, set ->
-					if (set.size < 2)
+					if (set.size < 3)
 					{
 						testedFlags = testedFlags.bitSet(i, true, true)
 					}

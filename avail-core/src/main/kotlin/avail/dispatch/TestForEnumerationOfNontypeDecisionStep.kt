@@ -42,6 +42,7 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instan
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2PcVectorOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
@@ -53,7 +54,6 @@ import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.primitive.general.P_Hash
 import avail.optimizer.L1Translator.CallSiteHelper
 import avail.optimizer.L2BasicBlock
-import avail.optimizer.L2Generator.Companion.edgeTo
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.optimizer.values.L2SemanticValue.Companion.primitiveInvocation
@@ -332,9 +332,11 @@ constructor(
 			L2ConstantOperand(createSmallInterval(1, mask, 1)),
 			L2PcVectorOperand(
 				(0..mask).map { index ->
-					targetsByShiftedHash[index]?.let {
-						edgeTo(it.first)
-					} ?: edgeTo(fallThroughBlock)
+					L2PcOperand(
+						targetsByShiftedHash[index]?.first ?: fallThroughBlock,
+						false,
+						null,
+						"masked = $$${Integer.toHexString(index)}")
 				}))
 		// At each of the targets of the multi-way jump, we still have to
 		// test for the exact object(s).  The successful paths from those tests

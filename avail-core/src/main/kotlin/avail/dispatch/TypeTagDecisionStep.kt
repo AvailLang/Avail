@@ -38,6 +38,8 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleFromIntegerList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instanceTag
@@ -455,7 +457,20 @@ constructor(
 				L2_MULTIWAY_JUMP,
 				currentManifest.readInt(semanticTag),
 				L2ConstantOperand(splitsTuple),
-				L2PcVectorOperand(edges.map { L2PcOperand(it, false) }))
+				L2PcVectorOperand(
+					edges.mapIndexed { index, target ->
+						val low =
+							if (index == 0) "-∞"
+							else splitsTuple.tupleAt(index).toString()
+						val high =
+							if (index == splitsTuple.tupleSize) "∞"
+							else splitsTuple.tupleAt(index + 1).toString()
+						L2PcOperand(
+							target,
+							false,
+							null,
+							"$low..$high")
+					}))
 			// Generate type strengthening clauses along every non-fallback
 			// path.
 			reducedSpans.mapIndexedNotNull {

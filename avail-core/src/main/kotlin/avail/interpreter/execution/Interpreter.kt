@@ -1300,8 +1300,9 @@ class Interpreter(
 		isReifying = true
 		return StackReifier(true, primitive.reificationForNoninlineStat!!)
 		{
-			assert(unreifiedCallDepth() == 0)
-			{ "Should have reified stack for non-inlineable primitive" }
+			assert(unreifiedCallDepth() == 0) {
+				"Should have reified stack for non-inlineable primitive"
+			}
 			chunk = savedChunk
 			setOffset(savedOffset)
 			stepper.pointers = savedPointers
@@ -1337,8 +1338,7 @@ class Interpreter(
 				}
 				READY_TO_INVOKE ->
 				{
-					assert(false)
-					{ "Invoking primitives should be inlineable" }
+					assert(false) { "Invoking primitives should be inlineable" }
 				}
 				CONTINUATION_CHANGED ->
 				{

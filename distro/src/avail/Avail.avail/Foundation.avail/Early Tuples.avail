@@ -898,9 +898,7 @@ Public macro "_[.._]" is
 	aTuple : expression phrase ⇒ tuple,
 	sliceEnd : expression phrase ⇒ whole number
 |
-	bootstrap restricted send $"_[_.._]"
-		with «<aTuple, ‘1’, sliceEnd>»
-		: tuple
+	⟦⦊aTuple⦉[1..⦊sliceEnd⦉]⟧
 ] : expression phrase ⇒ tuple;
 
 /**

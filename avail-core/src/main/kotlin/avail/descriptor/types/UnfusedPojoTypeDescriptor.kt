@@ -440,15 +440,14 @@ constructor(
 				for (i in vars.indices)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
-						stringFrom(
-							ancestor.name + "." + vars[i].name),
+						stringFrom(ancestor.name + "." + vars[i].name),
 						typeArgs.tupleAt(i + 1),
 						true)
 				}
 			}
 			if (isShared)
 			{
-				typeVars = typeVars.traversed().makeShared()
+				typeVars = typeVars.makeShared()
 			}
 			self.setSlot(TYPE_VARIABLES, typeVars)
 		}
@@ -459,7 +458,7 @@ constructor(
 	{
 		if (isShared)
 		{
-			synchronized(self) { return typeVariables(self) }
+			return synchronized(self) { typeVariables(self) }
 		}
 		return typeVariables(self)
 	}

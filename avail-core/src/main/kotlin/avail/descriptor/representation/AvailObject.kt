@@ -67,7 +67,6 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
-import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
@@ -102,8 +101,6 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
 import avail.utility.cast
-import avail.utility.visitor.AvailSubobjectVisitor
-import avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
@@ -312,18 +309,30 @@ class AvailObject private constructor(
 	 * Set up the object to report nice obvious errors if anyone ever accesses
 	 * it again.
 	 */
-	fun assertObjectUnreachableIfMutable() {
+	fun assertObjectUnreachableIfMutable()
+	{
 		checkValidAddress()
-		when {
-			!descriptor().isMutable -> return
-			sameAddressAs(nil) ->
-				error("What happened?  This object is also the excluded one.")
-			else -> {
-				// Recursively invoke the iterator on the subobjects of self...
-				scanSubobjects(MarkUnreachableSubobjectVisitor(nil))
-				destroy()
+		if (!descriptor().isMutable) return
+		// Recursively invoke the iterator on the subobjects of self...
+		lateinit var marker: (AvailObject) -> AvailObject
+		marker = { childObject: AvailObject ->
+			when
+			{
+				!childObject.descriptor().isMutable -> childObject
+				else ->
+				{
+					// Recursively invoke the iterator on the subobjects of
+					// subobject.
+					childObject.scanSubobjects(marker)
+					// Indicate the object is no longer valid and should not
+					// ever be used again.
+					childObject.destroy()
+					childObject
+				}
 			}
 		}
+		scanSubobjects(marker)
+		destroy()
 	}
 
 	/**
@@ -859,7 +868,7 @@ class AvailObject private constructor(
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
-	override fun scanSubobjects(visitor: AvailSubobjectVisitor) =
+	override fun scanSubobjects(visitor: (AvailObject) -> AvailObject) =
 		descriptor().o_ScanSubobjects(this, visitor)
 
 	@Throws(VariableSetException::class)

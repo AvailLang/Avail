@@ -62,6 +62,7 @@ import avail.interpreter.levelTwo.operand.L2WriteOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.interpreter.levelTwo.operation.L2ControlFlowOperation
 import avail.interpreter.levelTwo.operation.L2_MOVE_OUTER_VARIABLE
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
@@ -482,8 +483,13 @@ protected constructor(
 		generator: L2Generator): L2ReadBoxedOperand
 	{
 		assert(instruction.operation === this)
-		val writer = generator.boxedWriteTemp(
-			restrictionForType(outerType, BOXED_FLAG))
+		var restriction = restrictionForType(outerType, BOXED_FLAG)
+		if (functionRegister.restriction().isImmutable)
+		{
+			// An immutable function has immutable captured outers.
+			restriction = restriction.withFlag(IMMUTABLE_FLAG)
+		}
+		val writer = generator.boxedWriteTemp(restriction)
 		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE,
 			L2IntImmediateOperand(outerIndex),

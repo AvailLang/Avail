@@ -53,4 +53,18 @@ package avail.utility
 class Mutable<T> constructor (var value: T)
 {
 	override fun toString (): String = value?.toString() ?: "null"
+
+	/**
+	 * Update the [Mutable] via an extension function.  Within the function, the
+	 * receiver will be the old value of the Mutable, and the function must
+	 * return a replacement value.
+	 *
+	 * @param updater
+	 *   An extension function taking a receiver T, the old value, and
+	 *   returning the replacement value.
+	 */
+	inline fun update(updater: T.()->T)
+	{
+		value = value.updater()
+	}
 }
