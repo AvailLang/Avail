@@ -135,4 +135,23 @@ class RepositoryDescriber constructor(
 			}
 		}
 	}
+
+	/**
+	 * Answer the list of [ModuleManifestEntry]s.
+	 *
+	 * @param recordNumberOfManifestEntries
+	 *   The record number to use to look up the manifest entries.
+	 */
+	fun manifestEntries(recordNumberOfManifestEntries: Long): List<ModuleManifestEntry>
+	{
+		val record =
+			repository.repository!![recordNumberOfManifestEntries]
+		val input = DataInputStream(validatedBytesFrom(record))
+		val entries = mutableListOf<ModuleManifestEntry>()
+		while (input.available() > 0)
+		{
+			entries.add(ModuleManifestEntry(input))
+		}
+		return entries
+	}
 }

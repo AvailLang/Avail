@@ -96,6 +96,7 @@
       <w>enum</w>
       <w>epilogue</w>
       <w>eviscerated</w>
+      <w>exprstmt</w>
       <w>extrema</w>
       <w>fallback</w>
       <w>fiat</w>
@@ -135,15 +136,19 @@
       <w>iterable</w>
       <w>juxtaposition</w>
       <w>keyhole</w>
+      <w>lconst</w>
       <w>lexeme</w>
+      <w>lexer's</w>
       <w>lineage</w>
       <w>liveness</w>
       <w>locale</w>
       <w>locales</w>
       <w>lookupswitch</w>
       <w>lowercase</w>
+      <w>lvar</w>
       <w>magenta</w>
       <w>malformed</w>
+      <w>mconst</w>
       <w>memento</w>
       <w>mementos</w>
       <w>memoization</w>
@@ -157,6 +162,7 @@
       <w>misparsing</w>
       <w>moduli</w>
       <w>monomorphic</w>
+      <w>msub</w>
       <w>multigraph</w>
       <w>multigraphs</w>
       <w>multilingual</w>
@@ -164,6 +170,7 @@
       <w>multimap</w>
       <w>multimethod</w>
       <w>multimethods</w>
+      <w>mvar</w>
       <w>myers</w>
       <w>na</w>
       <w>namespace</w>
@@ -172,6 +179,7 @@
       <w>noncontradiction</w>
       <w>nonfinal</w>
       <w>nonnegative</w>
+      <w>nonterminal</w>
       <w>nullary</w>
       <w>nulling</w>
       <w>nullprimitiveholder</w>
@@ -192,6 +200,7 @@
       <w>parsable</w>
       <w>penultimate</w>
       <w>personed</w>
+      <w>pfail</w>
       <w>phony</w>
       <w>pilcrow</w>
       <w>plethora</w>
@@ -239,7 +248,9 @@
       <w>repurposed</w>
       <w>rethrown</w>
       <w>returnee</w>
+      <w>rgram</w>
       <w>rollback</w>
+      <w>rsem</w>
       <w>runtimes</w>
       <w>scavenge</w>
       <w>schedulable</w>
@@ -322,6 +333,7 @@
       <w>upgrader</w>
       <w>uppercased</w>
       <w>varargs</w>
+      <w>varuse</w>
       <w>ve</w>
       <w>veneer</w>
       <w>verbosity</w>

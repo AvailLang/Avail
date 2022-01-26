@@ -33,6 +33,7 @@
 package avail.compiler
 
 import avail.builder.ModuleName
+import avail.descriptor.phrases.A_Phrase
 
 /**
  * The [compiler][AvailCompiler] notifies a `CompilerProgressReporter`
@@ -41,7 +42,10 @@ import avail.builder.ModuleName
  * The arguments are
  * * the module name,
  * * the module size in bytes,
- * * the current parse position in bytes within the module, and
- * * the line number, or [Int.MAX_VALUE] if completed.
+ * * the current parse position in bytes within the module,
+ * * the line number, or [Int.MAX_VALUE] if completed, and
+ * * the compiled [top-level&#32;statement][A_Phrase], or `null` if no phrase is
+ *   available.
  */
-typealias CompilerProgressReporter = (ModuleName, Long, Long, Int)->Unit
+typealias CompilerProgressReporter =
+		(ModuleName, Long, Long, Int, A_Phrase?)->Unit

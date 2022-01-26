@@ -44,6 +44,7 @@ import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.phrases.A_Phrase
 import avail.environment.LayoutConfiguration.Companion.basePreferences
 import avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
 import avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
@@ -1378,9 +1379,16 @@ class AvailWorkbench internal constructor (
 	 *   The line number at which a top-level statement is being parsed, or
 	 *   where the parsed statement being executed begins.  [Int.MAX_VALUE]
 	 *   indicates a completed module.
+	 * @param phrase
+	 *   The compiled [top-level&#32;statement][A_Phrase], or `null` if no
+	 *   phrase is available.
 	 */
 	fun eventuallyUpdatePerModuleProgress(
-		moduleName: ModuleName, moduleSize: Long, position: Long, line: Int)
+		moduleName: ModuleName,
+		moduleSize: Long,
+		position: Long,
+		line: Int,
+		@Suppress("UNUSED_PARAMETER") phrase: A_Phrase?)
 	{
 		perModuleProgressLock.safeWrite {
 			if (position == moduleSize)

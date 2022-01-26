@@ -50,5 +50,4 @@ include(
 	"avail-workbench",
 	"indexed-file-analyzer",
 	"unicode-catalog",
-	"anvil",
 	"avail-intellij-plugin")

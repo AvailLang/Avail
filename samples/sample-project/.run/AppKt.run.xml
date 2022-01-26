@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="AppKt" type="JetRunConfigurationType" nameIsGenerated="true">
-    <option name="MAIN_CLASS_NAME" value="org.availlang.sample.AppKt" />
+  <configuration default="false" name="MainKt" type="JetRunConfigurationType" nameIsGenerated="true">
+    <option name="MAIN_CLASS_NAME" value="avail.anvil.MainKt" />
     <module name="avail.anvil.main" />
     <option name="PROGRAM_PARAMETERS" value="&quot;My Avail Project&quot;" />
     <shortenClasspath name="NONE" />

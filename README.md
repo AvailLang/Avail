@@ -102,11 +102,11 @@ installing it from OpenJDK (or some other vendor). You can do so like this:
 
 And hopefully you get back something like this:
 
-	javac 16.0.2
+	javac 11.0.2
 
 Otherwise, the latest version of the JDK can be obtained at:
 
-	https://jdk.java.net/16/index.html
+	https://jdk.java.net/11/index.html
 
 Please follow any installation directions provided by the website or included
 with the JDK.

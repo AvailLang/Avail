@@ -40,6 +40,7 @@ import avail.builder.ModuleRoots
 import avail.builder.RenamesFileParser
 import avail.builder.RenamesFileParserException
 import avail.builder.UnresolvedDependencyException
+import avail.descriptor.phrases.A_Phrase
 import avail.files.FileManager
 import avail.io.TextInterface
 import avail.io.TextOutputChannel
@@ -248,6 +249,9 @@ class AvailRuntimeTestHelper constructor (
 	 * @param position
 	 *   The number of bytes of the module source that have been parsed and
 	 *   executed so far.
+	 * @param phrase
+	 *   The compiled [top-level&#32;statement][A_Phrase], or `null` if no
+	 *   phrase is available.
 	 * @return
 	 *   A local tracker.
 	 */
@@ -255,7 +259,8 @@ class AvailRuntimeTestHelper constructor (
 		moduleName: ModuleName,
 		moduleSize: Long,
 		position: Long,
-		line: Int)
+		line: Int,
+		@Suppress("UNUSED_PARAMETER") phrase: A_Phrase?)
 	{
 		// Skip non-final per-module updates if they're too frequent.
 		if (position < moduleSize

@@ -97,14 +97,13 @@ class JSONValue : JSONData
 
 	override fun writeTo(writer: JSONWriter)
 	{
-		val valueClass = value.javaClass
-		if (valueClass == Boolean::class.java)
+		if (value is Boolean)
 		{
 			writer.write(boolean)
 		}
 		else
 		{
-			assert(valueClass == String::class.java)
+			assert(value is String)
 			writer.write(string)
 		}
 	}

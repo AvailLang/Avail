@@ -275,7 +275,7 @@ class BuildDirectoryTracer constructor(
 					availBuilder.runtime,
 					availBuilder.textInterface,
 					availBuilder.pollForAbort,
-					{ _, _, _, _ -> },
+					{ _, _, _, _, _ -> },
 					completedAction,
 					object : BuilderProblemHandler(availBuilder, "")
 					{

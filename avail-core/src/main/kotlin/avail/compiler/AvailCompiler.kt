@@ -36,7 +36,6 @@ import avail.AvailRuntimeConfiguration
 import avail.AvailRuntimeSupport.captureNanos
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
-import avail.compiler.ModuleManifestEntry.Kind
 import avail.compiler.ParsingOperation.CHECK_ARGUMENT
 import avail.compiler.ParsingOperation.Companion.decode
 import avail.compiler.ParsingOperation.Companion.distinctInstructions
@@ -1016,7 +1015,7 @@ class AvailCompiler constructor(
 							assignFunction)
 						loader.manifestEntries!!.add(
 							ModuleManifestEntry(
-								Kind.MODULE_CONSTANT_KIND,
+								SideEffectKind.MODULE_CONSTANT_KIND,
 								name.asNativeString(),
 								startState.lineNumber,
 								replacement.token.lineNumber(),
@@ -1087,7 +1086,7 @@ class AvailCompiler constructor(
 							module.lock {
 								loader.manifestEntries!!.add(
 									ModuleManifestEntry(
-										Kind.MODULE_VARIABLE_KIND,
+										SideEffectKind.MODULE_VARIABLE_KIND,
 										name.asNativeString(),
 										startState.lineNumber,
 										replacement.token.lineNumber(),
@@ -3442,9 +3441,10 @@ class AvailCompiler constructor(
 				moduleName,
 				source.tupleSize.toLong(),
 				afterHeader.position.toLong(),
-				afterHeader.lineNumber)
-			// Run any side effects implied by this module header against the
-			// module.
+				afterHeader.lineNumber,
+				null)
+			// Run any side effects implied by this module header against
+			// the module.
 			val errorString = moduleHeader.applyToModule(
 				compilationContext.loader)
 			if (errorString !== null)
@@ -3453,7 +3453,8 @@ class AvailCompiler constructor(
 					moduleName,
 					source.tupleSize.toLong(),
 					source.tupleSize.toLong(),
-					afterHeader.lineNumber)
+					afterHeader.lineNumber,
+					null)
 				afterHeader.expected(STRONG, errorString)
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
@@ -3529,7 +3530,8 @@ class AvailCompiler constructor(
 					moduleName,
 					source.tupleSize.toLong(),
 					afterStatement.position.toLong(),
-					afterStatement.lineNumber)
+					afterStatement.lineNumber,
+					unambiguousStatement)
 				parseAndExecuteOutermostStatements(
 					afterStatement.withMap(start.clientDataMap))
 			}

@@ -52,12 +52,13 @@ dependencies {
 
     // Dependency prevents SLF4J warning from being printed
     // see: http://www.slf4j.org/codes.html#noProviders
-//    implementation("org.slf4j:slf4j-nop:2.0.0-alpha5")
+//    implementation("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
 
     // Can add an Avail library dependency as a jar available in one of the
     // repositories listed in the repository section
     // availLibrary("avail:example-lib:1.2.3")
     testImplementation(kotlin("test"))
+    implementation("avail:avail-stdlib:${Versions.avail}")
 }
 
 avail {
@@ -146,7 +147,7 @@ tasks {
     assembleAndRunWorkbench {
         // This task is customizable in the same manner as any
         // AvailWorkbenchTask.
-//        dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+        dependency(project.dependencies.project(":avail-java-ffi"))
     }
 
     // Add your own custom task to assemble and launch an Avail workbench.
@@ -164,24 +165,24 @@ tasks {
 
         // Dependency prevents SLF4J warning from being printed
         // see: http://www.slf4j.org/codes.html#noProviders
-//        dependency("org.slf4j:slf4j-nop:2.0.0-alpha5")
+//        dependency("org.slf4j:slf4j-nop:${Versions.slf4jnop}")
         dependency(project.dependencies.project(":avail-java-ffi"))
         root("my-avail-root", "$projectDir/avail/my-roots/my-avail-root")
         root(
             "avail",
-            "jar:$projectDir/avail/roots/avail-stdlib-${Versions.avail}.jar")
+            "jar:$projectDir/avail/my-roots/avail-stdlib.jar")
         vmOption("-ea")
         vmOption("-XX:+UseCompressedOops")
         vmOption("-DavailDeveloper=true")
     }
 
     withType<KotlinCompile>() {
-        kotlinOptions.jvmTarget = "16"
+        kotlinOptions.jvmTarget = "11"
     }
 
     withType<JavaCompile>() {
-        sourceCompatibility = "16"
-        targetCompatibility = "16"
+        sourceCompatibility = "11"
+        targetCompatibility = "11"
     }
     jar {
         archiveVersion.set("")

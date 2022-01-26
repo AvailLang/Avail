@@ -32,7 +32,6 @@
 
 package avail.compiler
 
-import avail.compiler.ModuleManifestEntry.Kind
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
 import avail.descriptor.module.A_Module
@@ -75,54 +74,13 @@ import java.io.IOException
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class ModuleManifestEntry constructor(
-	val kind: Kind,
+	val kind: SideEffectKind,
 	val summaryText: String,
 	val topLevelStartingLine: Int,
 	val definitionStartingLine: Int,
 	private var bodyFunction: A_Function? = null,
 	var bodyPhraseIndexNumber: Int = -1)
 {
-	/**
-	 * The kinds of manifest entries that can be recorded.  If this changes in a
-	 * way other than adding enum values at the end, you must rebuild your
-	 * repository files.
-	 */
-	enum class Kind
-	{
-		/** An atom has been defined.  The summaryText will be the atom name. */
-		ATOM_DEFINITION_KIND,
-
-		/** The summaryText will be the method name. */
-		METHOD_DEFINITION_KIND,
-
-		/** The summaryText will be the method name. */
-		ABSTRACT_METHOD_DEFINITION_KIND,
-
-		/** The summaryText will be the method name. */
-		FORWARD_METHOD_DEFINITION_KIND,
-
-		/** The summaryText will be the macro name. */
-		MACRO_DEFINITION_KIND,
-
-		/** The summaryText will be the method name being restricted. */
-		SEMANTIC_RESTRICTION_KIND,
-
-		/** The summaryText will be the lexer's name. */
-		LEXER_KIND,
-
-		/** The summaryText will be the module constant's name. */
-		MODULE_CONSTANT_KIND,
-
-		/** The summaryText will be the module variable's name. */
-		MODULE_VARIABLE_KIND;
-
-		companion object
-		{
-			/** All of the [Kind]s. */
-			val all = values().toList()
-		}
-	}
-
 	/**
 	 * Write this entry to the provided [DataOutputStream], in a way that is
 	 * naturally delimited for subsequent reading via the secondary constructor
@@ -161,7 +119,7 @@ class ModuleManifestEntry constructor(
 	 */
 	@Throws(IOException::class)
 	internal constructor(binaryStream: DataInputStream) : this(
-		Kind.all[binaryStream.read()],
+		SideEffectKind.all[binaryStream.read()],
 		binaryStream.readUTF(),
 		binaryStream.readInt(),
 		binaryStream.readInt(),

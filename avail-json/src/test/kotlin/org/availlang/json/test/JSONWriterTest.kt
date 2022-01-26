@@ -50,6 +50,7 @@ import org.availlang.json.JSONException
 import org.availlang.json.JSONObject
 import org.availlang.json.JSONReader
 import org.availlang.json.JSONWriter
+import org.availlang.json.test.TestJSONKeyValue.IMATERMINATEDSTRING
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Assertions.fail
 import org.junit.jupiter.api.DisplayName
@@ -132,14 +133,14 @@ class JSONWriterTest
 		writer.startObject()
 		addToWriter(
 			writer, IMASTRING, IMANINT, IMALONG, IMAFLOAT, IMATRUE,
-			IMAFALSE, IMANULL, IMACOMPACTARRAY)
+			IMAFALSE, IMANULL, IMACOMPACTARRAY, IMATERMINATEDSTRING)
 		IMASTRING.addValueToWriter(writer)
 		addObjectToWriter(IMANOBJECT.key, writer, OBJSTRING, OBJINT)
 		writer.endObject()
 		val content = getJsonData(writer)
 		test(
-			content!!, IMASTRING, IMANINT, IMALONG, IMAFLOAT,
-			IMATRUE, IMAFALSE, IMANULL, IMACOMPACTARRAY, IMANOBJECT)
+			content!!, IMASTRING, IMANINT, IMALONG, IMAFLOAT, IMATRUE,
+			IMAFALSE, IMANULL, IMACOMPACTARRAY, IMANOBJECT, IMATERMINATEDSTRING)
 		val objContent = content.getObject(IMANOBJECT.key)
 		test(objContent, OBJSTRING, OBJINT)
 		displayTestPayload(writer, false)

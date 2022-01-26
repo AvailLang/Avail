@@ -78,6 +78,28 @@ enum class TestJSONKeyValue constructor(val key: String)
 		}
 	},
 
+	/** For testing a String. */
+	IMATERMINATEDSTRING("imaterminatedstring")
+	{
+		/** The test value. */
+		private val value = "foo\r\n"
+
+		override fun addValueToBuilder(sb: StringBuilder)
+		{
+			sb.append('"').append(value).append('"')
+		}
+
+		override fun equalityCheck(content: JSONObject)
+		{
+			assertEquals(value, content.getString(key))
+		}
+
+		override fun addValueToWriter(writer: JSONWriter)
+		{
+			writer.at(key) { write(value) }
+		}
+	},
+
 	/** For testing an integer. */
 	IMANINT("imanint")
 	{
