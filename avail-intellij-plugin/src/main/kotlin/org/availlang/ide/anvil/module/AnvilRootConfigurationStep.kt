@@ -36,28 +36,43 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.ui.ComboBox
 import com.intellij.openapi.ui.TextFieldWithBrowseButton
+import com.intellij.ui.components.JBCheckBox
 import com.intellij.ui.components.JBTextField
 import com.intellij.ui.dsl.builder.Cell
 import com.intellij.ui.dsl.builder.RowLayout
+import com.intellij.ui.dsl.builder.bindIntText
+import com.intellij.ui.dsl.builder.bindSelected
+import com.intellij.ui.dsl.builder.bindText
 import com.intellij.ui.dsl.builder.panel
+import com.intellij.ui.dsl.gridLayout.HorizontalAlign
+import com.intellij.ui.layout.PropertyBinding
+import com.intellij.ui.layout.selected
 import javax.swing.JComponent
 import com.intellij.ui.layout.selectedValueIs
+import org.availlang.ide.anvil.Anvil
 import org.availlang.ide.anvil.ui.components.localTextFieldWithBrowseButton
 
 /**
- * A `AvailRootConfigurationStep` is TODO: Document this!
+ * The [ModuleWizardStep] for configuring a new Anvil project.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property context
+ *   The [WizardContext].
  */
-class AvailRootConfigurationStep constructor(
+class AnvilRootConfigurationStep constructor(
 	private val context: WizardContext
 ): ModuleWizardStep()
 {
 	private lateinit var nameField: Cell<JBTextField>
 	private var projectLocation: String = ""
+	private lateinit var createModuleNameField: JBTextField
 	private lateinit var projectLocationField: Cell<TextFieldWithBrowseButton>
 	private var repoLocationType = RepoLocationType.DEFAULT
 	private var repoLocation = ""
+	private var standardLibVersion = ""
+	private lateinit var createRootCheckbox: JBCheckBox
+	private lateinit var stdLibCheckbox: JBCheckBox
 	enum class RepoLocationType
 	{
 		DEFAULT,
@@ -65,23 +80,34 @@ class AvailRootConfigurationStep constructor(
 		CUSTOM
 	}
 
+	val data = ModuleSetupData("Fooey", true)
 
-	override fun getComponent(): JComponent =
+	init
+	{
+		Anvil.initializeAvailHome()
+		Anvil.identifyAvailableLibraries()
+		Anvil.conditionallyAddStandardLib()
+	}
+	private val availableVersions = Anvil.stdLibVersionsAvailable
+
+	private val componentPanel: JComponent =
 		panel {
 			row("Project Name:    ") {
 				contextHelp("", "The name of this project.")
-				nameField = cell(JBTextField(45))
-
+//				nameField = cell(JBTextField(45))
+				nameField = textField()
+					.horizontalAlign(HorizontalAlign.FILL)
+					.bindText({ data.name }, { data.name = it})
 			}
 			row("Project Location:") {
 				contextHelp("The project will be created at this location.")
 				projectLocationField =
-					cell(localTextFieldWithBrowseButton( 45) {
+					cell(localTextFieldWithBrowseButton(45) {
 						projectLocation = projectLocationField.component.text
 					})
 			}.layout(RowLayout.INDEPENDENT)
 
-			group ("Repository")
+			group("Repository")
 			{
 				val selections = listOf(
 					"Store in default repository location",
@@ -109,6 +135,7 @@ class AvailRootConfigurationStep constructor(
 							}
 							selections[1] ->
 							{
+								val d = this@AnvilRootConfigurationStep.data
 								repoLocationType = RepoLocationType.PROJECT
 							}
 							selections[2] ->
@@ -138,7 +165,7 @@ class AvailRootConfigurationStep constructor(
 						visibleIf(combo.selectedValueIs(selections[2]))
 					}
 					row("Repository Location:") {
-						repoCell = cell(localTextFieldWithBrowseButton( 42) {
+						repoCell = cell(localTextFieldWithBrowseButton(42) {
 							repoLocation = repoCell.component.text
 							repoLocationType = RepoLocationType.CUSTOM
 						})
@@ -146,10 +173,57 @@ class AvailRootConfigurationStep constructor(
 					}
 				}
 			}
+
+			group("Avail Standard Library")
+			{
+				lateinit var libCombo: ComboBox<String>
+				row {
+					stdLibCheckbox = JBCheckBox("Use Avail Standard Library")
+					cell(stdLibCheckbox).bindSelected({ data.useSDK }, { data.useSDK = it})
+				}
+				indent {
+					row {
+						libCombo = ComboBox(availableVersions, 300)
+						label("Choose Avail Standard Library Version")
+						cell(libCombo)
+						visibleIf(stdLibCheckbox.selected)
+						libCombo.addActionListener {
+							standardLibVersion = libCombo.item
+						}
+					}
+				}
+			}
+
+			group("Module Roots")
+			{
+				row {
+					createRootCheckbox = JBCheckBox("Create Module Root")
+					cell(createRootCheckbox)
+				}
+				indent {
+					row {
+						createModuleNameField = JBTextField(45)
+						label("Root Name:")
+						cell(createModuleNameField)
+						visibleIf(createRootCheckbox.selected)
+					}
+				}
+			}
+			group {
+				row {
+					label("foo")
+					textField().horizontalAlign(HorizontalAlign.FILL)
+				}
+			}
 		}
+
+	override fun getComponent(): JComponent = componentPanel
 
 	override fun updateDataModel()
 	{
+		data.name = nameField.component.text
 		TODO("Not yet implemented")
 	}
 }
+
+data class ModuleSetupData constructor(var name: String = "", var useSDK: Boolean = false)

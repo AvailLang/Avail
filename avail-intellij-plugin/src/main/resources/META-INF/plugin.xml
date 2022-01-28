@@ -39,9 +39,9 @@
 <!--			language="Avail"-->
 <!--            implementationClass="org.availlang.ide.anvil.language.psi.AvailFileViewProviderFactory"/>-->
         <moduleBuilder
-            builderClass="org.availlang.ide.anvil.module.AvailModuleTypeBuilder"/>
-        <moduleType id="AVAIL_MODULE"
-            implementationClass="org.availlang.ide.anvil.module.AvailModuleType"/>
+            builderClass="org.availlang.ide.anvil.module.AnvilModuleTypeBuilder"/>
+        <moduleType id="ANVIL_MODULE"
+            implementationClass="org.availlang.ide.anvil.module.AnvilModuleType"/>
 		<annotator
 			language="Avail"
 			implementationClass="org.availlang.ide.anvil.language.AvailAnnotator"/>

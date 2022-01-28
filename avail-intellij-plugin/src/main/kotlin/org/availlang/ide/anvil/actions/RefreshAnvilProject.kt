@@ -49,6 +49,6 @@ class RefreshAnvilProject: AnAction
 	override fun actionPerformed(e: AnActionEvent)
 	{
 		val project = e.project
-		project?.anvilProjectService?.refreshDescriptor()
+		project?.anvilProjectService?.refreshConfiguration()
 	}
 }

@@ -37,25 +37,23 @@ import com.intellij.ide.util.projectWizard.ModuleWizardStep
 import com.intellij.ide.util.projectWizard.WizardContext
 import com.intellij.openapi.Disposable
 import com.intellij.openapi.module.ModuleType
-import com.intellij.openapi.roots.ModifiableRootModel
 
 /**
- * `AvailModuleTypeBuilder` is the [ModuleBuilder] for IntelliJ Avail project
+ * `AnvilModuleTypeBuilder` is the [ModuleBuilder] for IntelliJ Avail project
  * modules.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class AvailModuleTypeBuilder: ModuleBuilder()
+class AnvilModuleTypeBuilder: ModuleBuilder()
 {
-	override fun getModuleType(): ModuleType<*> = AvailModuleType
-
-	override fun setupRootModel(modifiableRootModel: ModifiableRootModel)
-	{
-		super.setupRootModel(modifiableRootModel)
-	}
+	override fun getModuleType(): ModuleType<*> = AnvilModuleType
 
 	override fun getCustomOptionsStep(
 		context: WizardContext,
 		parentDisposable: Disposable): ModuleWizardStep =
-			AvailRootConfigurationStep(context)
+			AnvilRootConfigurationStep(context)
+
+
+
+//	data class NewProjectData constructor()
 }

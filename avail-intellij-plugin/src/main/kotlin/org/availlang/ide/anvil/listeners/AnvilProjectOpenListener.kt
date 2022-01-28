@@ -34,6 +34,7 @@ package org.availlang.ide.anvil.listeners
 
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.project.ProjectManagerListener
+import org.availlang.ide.anvil.models.project.AnvilConfiguration
 import org.availlang.ide.anvil.models.project.AnvilProjectService
 import org.availlang.ide.anvil.models.project.anvilProjectService
 import java.io.File
@@ -51,7 +52,7 @@ class AnvilProjectOpenListener: ProjectManagerListener
 		super.projectOpened(project)
 		project.basePath?.let {
 			val descriptorFile =
-				File("$it/.idea/${AnvilProjectService.CONFIG_FILE_NAME}")
+				File("$it/${AnvilConfiguration.configFileLocation}")
 			if (descriptorFile.exists())
 			{
 				project.anvilProjectService
@@ -63,7 +64,7 @@ class AnvilProjectOpenListener: ProjectManagerListener
 	{
 		project.basePath?.let {
 			val descriptorFile =
-				File("$it/.idea/${AnvilProjectService.CONFIG_FILE_NAME}")
+				File("$it/${AnvilConfiguration.configFileLocation}")
 			if (descriptorFile.exists())
 			{
 				project.anvilProjectService.saveConfigToDisk()

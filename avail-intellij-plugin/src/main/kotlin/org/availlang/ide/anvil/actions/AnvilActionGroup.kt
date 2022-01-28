@@ -36,7 +36,7 @@ import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import org.availlang.ide.anvil.language.AnvilIcons
-import org.availlang.ide.anvil.models.project.AnvilProjectService
+import org.availlang.ide.anvil.models.project.AnvilConfiguration
 import org.availlang.ide.anvil.models.project.anvilProjectService
 import java.io.File
 
@@ -56,7 +56,7 @@ class AnvilActionGroup : ActionGroup()
 		val project = e.project ?: return
 		e.presentation.isEnabledAndVisible = project.basePath?.let {
 			val descriptorFile = File(
-				"$it/.idea/${AnvilProjectService.CONFIG_FILE_NAME}")
+				"$it/${AnvilConfiguration.configFileLocation}")
 
 			if (descriptorFile.exists())
 			{
@@ -74,7 +74,7 @@ class AnvilActionGroup : ActionGroup()
 	{
 		val project = e?.project ?: return arrayOf()
 		return project.basePath?.let {
-			val descriptorFile = File("$it/.idea/${AnvilProjectService.CONFIG_FILE_NAME}")
+			val descriptorFile = File("$it/${AnvilConfiguration.configFileLocation}")
 			if (descriptorFile.exists())
 			{
 				arrayOf(

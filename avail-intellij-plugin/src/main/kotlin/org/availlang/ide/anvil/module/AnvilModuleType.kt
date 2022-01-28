@@ -37,19 +37,19 @@ import org.availlang.ide.anvil.language.AnvilIcons
 import javax.swing.Icon
 
 /**
- * `AvailModuleType` is the [ModuleType] of an Avail IntelliJ project module.
+ * `AnvilModuleType` is the [ModuleType] of an Avail IntelliJ project module.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object AvailModuleType: ModuleType<AvailModuleTypeBuilder>("AVAIL_MODULE")
+object AnvilModuleType: ModuleType<AnvilModuleTypeBuilder>("ANVIL_MODULE")
 {
-	override fun createModuleBuilder(): AvailModuleTypeBuilder =
-		AvailModuleTypeBuilder()
+	override fun createModuleBuilder(): AnvilModuleTypeBuilder =
+		AnvilModuleTypeBuilder()
 
 	override fun getName(): String = "Avail"
 
 	override fun getDescription(): String =
-		"IntelliJ Avail project module"
+		"IntelliJ Anvil project module"
 
 	override fun getNodeIcon(isOpened: Boolean): Icon =
 		AnvilIcons.logoSmall

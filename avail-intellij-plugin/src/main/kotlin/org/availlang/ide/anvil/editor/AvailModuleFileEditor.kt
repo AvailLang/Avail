@@ -59,5 +59,8 @@ class AvailModuleFileEditor constructor(
 	private val moduleNode: ModuleNode?)
 : PsiAwareTextEditorImpl(project, file, provider)
 {
-
+	init
+	{
+		println("dgfs")
+	}
 }

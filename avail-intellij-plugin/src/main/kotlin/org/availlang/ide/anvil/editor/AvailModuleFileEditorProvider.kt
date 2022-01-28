@@ -51,6 +51,10 @@ import org.availlang.ide.anvil.models.project.anvilProjectService
  */
 class AvailModuleFileEditorProvider: TextEditorProvider()
 {
+	init
+	{
+		println("fff")
+	}
 	override fun accept(project: Project, file: VirtualFile): Boolean =
 		PsiManager.getInstance(project).findFile(file)?.fileType == AvailFileType
 
