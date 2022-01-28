@@ -116,7 +116,13 @@ class CompilerDiagnostics constructor(
 	 * The non-silent expectations collected during a top-level expression
 	 * parsing.
 	 */
-	private val expectationsList = ExpectationsList()
+	private val expectationsList = ExpectationsList(1)
+
+	/**
+	 * Allow the positionsToTrack to be adjusted.  Only do this when there is
+	 * no compilation active for the receiver.
+	 */
+	var positionsToTrack: Int by expectationsList::positionsToTrack
 
 	/**
 	 * The [ParseNotificationLevel.SILENT] expectations collected during a
@@ -124,7 +130,14 @@ class CompilerDiagnostics constructor(
 	 * other expectations, and are only presented if there are no non-silent
 	 * expectations at all, anywhere in the top-level expression being parsed.
 	 */
-	private val silentExpectationsList = ExpectationsList()
+	private val silentExpectationsList = ExpectationsList(2)
+
+	/**
+	 * Allow the positionsToTrack for [ParseNotificationLevel.SILENT] entries to
+	 * be adjusted.  Only do this when there is no compilation active for the
+	 * receiver.
+	 */
+	var silentPositionsToTrack: Int by silentExpectationsList::positionsToTrack
 
 	/**
 	 * A collection of tokens that have been encountered during parsing since
@@ -279,8 +292,15 @@ class CompilerDiagnostics constructor(
 	 * source to an [ExpectationsAtPosition] structure, and a [PriorityQueue]
 	 * that keeps track of the N rightmost positions for which an expectation
 	 * has been recorded.
+	 *
+	 * @property positionsToTrack
+	 *   The number of distinct (rightmost) positions for which to record
+	 *   expectations.  Note that [ParseNotificationLevel.SILENT] entries are
+	 *   recorded in their own `ExpectationsList`, and they are only presented
+	 *   if there are no non-silent expectations recorded.
 	 */
-	private inner class ExpectationsList
+	private inner class ExpectationsList constructor(
+		var positionsToTrack: Int)
 	{
 		/** Guard access to [expectations] and [expectationsIndexHeap]. */
 		val expectationsLock = ReentrantReadWriteLock()
@@ -496,7 +516,7 @@ class CompilerDiagnostics constructor(
 								this@run.toString().replace("\t", "    ")) {
 									override fun abortCompilation()
 									{
-										failureReporter!!()
+										failureReporter?.invoke()
 									}
 								})
 							// Generate the footer that indicates the module and
@@ -821,7 +841,7 @@ class CompilerDiagnostics constructor(
 			{
 				// No expectations of any strength were record.  Synthesize
 				// something to say about it.
-				list = ExpectationsList()
+				list = ExpectationsList(1)
 				list.expectedAt(
 					STRONG,
 					{ then ->
@@ -850,10 +870,10 @@ class CompilerDiagnostics constructor(
 	 *   The message text for this problem.
 	 */
 	fun reportError(
-			lexingState: LexingState,
-			headerMessagePattern: String,
-			message: String) =
-		expectationsList.reportError(lexingState, headerMessagePattern, message)
+		lexingState: LexingState,
+		headerMessagePattern: String,
+		message: String
+	) = expectationsList.reportError(lexingState, headerMessagePattern, message)
 
 	companion object
 	{
@@ -864,14 +884,6 @@ class CompilerDiagnostics constructor(
 		/** The 26 letters of the English alphabet, inside circles. */
 		private const val circledLetters =
 			"ⒶⒷⒸⒹⒺⒻⒼⒽⒾⒿⓀⓁⓂⓃⓄⓅⓆⓇⓈⓉⓊⓋⓌⓍⓎⓏ"
-
-		/**
-		 * The number of distinct (rightmost) positions for which to record
-		 * expectations.  Note that [ParseNotificationLevel.SILENT] entries are
-		 * recorded in their own `ExpectationsList`, and they are only presented
-		 * if there are no non-silent expectations recorded.
-		 */
-		private const val positionsToTrack = 3
 
 		/**
 		 * Despite, what, a hundred thousand employees(?), Microsoft seems

@@ -73,7 +73,7 @@ enum class StreamStyle constructor(
 	ERR(
 		"error",
 		light = Color.RED,
-		dark = Color(231, 70, 68)),
+		dark = Color(255, 100, 88)),
 
 	/** The stream style used to display informational text. */
 	INFO(

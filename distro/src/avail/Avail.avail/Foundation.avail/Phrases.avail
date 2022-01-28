@@ -38,12 +38,12 @@ Uses
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Definers",
-	"Early Enumeration Support",
 	"Early Literals",
 	"Early Macro Support",
 	"Early Variables"
 Names
 	"Evaluate|evaluate_",
+	"restricted send_with_:_",
 	"this token:…",
 	"_compiled",
 	"‘_’",
@@ -52,6 +52,8 @@ Names
 	"`«<«_‡,»>`»",
 	"`«[_`|_]:_`»",
 	"`«[_]:_`»",
+	"⟦§_!⟧",
+	"⦊§_⦉",
 	"_token",
 	"_'s⁇classifier"
 Body
@@ -62,12 +64,7 @@ Body
  * @method "_⇒_"
  * @returns "⊤"
  */
-Invoke
-[
-	exclusions ::= cast {"_'s⁇type"} into [t : {string|natural number} | t];
-	Grammatical restriction "_⇒_" is <∅, exclusions>;
-]
-with <>;
+Grammatical restriction "_⇒_" is <∅, {"_'s⁇type"} ?→ {string|natural number}>;
 
 Semantic restriction "_'s⁇value" is
 [
@@ -253,7 +250,7 @@ Method "`«↓_`»" is
 [
 	decl : declaration phrase
 |
-	«↓decl» (`decl's token's lexeme`)
+	«↓decl» (keyword(decl's token's lexeme)@0:0)
 ] : variable use phrase;
 
 /**
@@ -284,16 +281,15 @@ Semantic restriction "`«<«_‡,»>`»" is
 	[
 		i : natural number
 	|
-		phraseType ::= cast tTuple[i] into [x : phrase meta | x];
+		phraseType ::= tTuple[i] ?→ phrase meta;
 		semanticType ::= phraseType's semantic type;
 		semanticTypes :=
-			cast concatenate <semanticTypes, <semanticType>>
-			into [x : tuple of any meta | x];
+			concatenate <semanticTypes, <semanticType>> ?→ tuple of any meta;
 		true
 	];
-	defaultType ::= cast semanticTypes[defaultTypeIndex] into [x : any meta|x];
+	defaultType ::= semanticTypes[defaultTypeIndex] ?→ any meta;
 	leadingSemanticTypes ::=
-		cast semanticTypes[1..leadingTypesSize] into [x : tuple of any meta|x];
+		semanticTypes[1..leadingTypesSize] ?→ tuple of any meta;
 	list phrase ⇒ <leadingSemanticTypes, defaultType… | ||tTuple||>
 ];
 
@@ -398,6 +394,76 @@ Semantic restriction "send_with_:_" is
 	send phrase ⇒ returnType's instance
 ];
 
+/**
+ * Create a send phrase from the supplied message name (atom), list phrase of
+ * arguments, and return type.  Strengthen the return type based on the
+ * applicable method definitions.  Also launch a fiber for each applicable
+ * semantic restriction and strengthen the return type with their eventual
+ * results.
+ *
+ * If any semantic restrictions reject parsing, reject it again immediately in
+ * the current fiber.  This ignores unwind blocks, so don't export this
+ * mechanism past Exceptions, where a safer form is created.
+ *
+ * @method "restricted send_with_:_"
+ * @param "message" "atom"
+ *        The atom that names the method to be invoked by the send phrase.
+ * @param "args" "list phrase"
+ *        The list phrase of phrases that are supplied as arguments of the send
+ *        phrase.
+ * @param "basicReturnType" "type"
+ *        The return type of the send phrase, prior to strengthening by
+ *        applicable method definitions and semantic restrictions.
+ * @returns "send phrase⇒⊤"
+ *        The strengthened send phrase.
+ * @raises "incorrect-number-of-arguments exception"
+ * @raises "incorrect-argument-type exception"
+ * @raises "incorrect-type-for-group exception"
+ * @raises "exclamation-mark-must-follow-an-alternation-group exception"
+ * @raises "incorrect-type-for-complex-group exception"
+ * @raises "incorrect-use-of-double-dagger exception"
+ * @raises "unbalanced-guillemets exception"
+ * @raises "method-name-is-not-canonical exception"
+ * @raises "expected-operator-after-backquote exception"
+ * @raises "incorrect-type-for-boolean-group exception"
+ * @raises "incorrect-type-for-counting-group exception"
+ * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
+ * @raises "question-mark-must-follow-a-simple-group exception"
+ * @raises "case-insensitive-expression-canonization exception"
+ * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
+ * @raises "alternative-must-not-contain-arguments exception"
+ * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
+ * @raises "incorrect-type-for-numbered-choice exception"
+ * @raises "loading-is-over exception"
+ */
+Public method "restricted send_with_:_" is
+[
+	message : atom,
+	args : list phrase,
+	basicReturnType : type
+|
+	pair ::= restricted report and send message with args : basicReturnType;
+	optionalPhrase ::= pair[1] ?→ tuple;
+	If optionalPhrase = <> then
+	[
+		Reject parse strongly, expected: (pair[2] ?→ string)
+	];
+	optionalPhrase[1] ?→ send phrase
+] : send phrase;
+
+/**
+ * Restrict the resulting send node to have a yield type at least as strong as
+ * the supplied yield type constraint.
+ */
+Semantic restriction "restricted send_with_:_" is
+[
+	messageType : atom's type,
+	argsType : list phrase's type,
+	basicReturnMeta : type's type
+|
+	send phrase ⇒ basicReturnMeta's instance
+];
+
 Semantic restriction "_'s⁇semantic type" is
 [
 	expressionType : expression phrase's type
@@ -409,7 +475,7 @@ Semantic restriction "_'s⁇semantic type" is
  * A block type's semantic type is always a function type.
  *
  * @method "_'s⁇semantic type"
- * @restricts "block phrases's type"
+ * @restricts "block phrase's type"
  */
 Semantic restriction "_'s⁇semantic type" is
 [
@@ -514,7 +580,7 @@ Semantic restriction "_'s⁇expressions" is
 	strongLeadingTypes ::=
 		cast leadingTypes
 		into [t : <<>, any meta… | whole number> | t];
-	defaultType ::= cast strongLeadingTypes[upper] into [t : any meta | t];
+	defaultType ::= strongLeadingTypes[upper] ?→ any meta;
 	<strongLeadingTypes, defaultType… | ||semanticType||>
 ];
 
@@ -591,3 +657,507 @@ Method "“_”" is
 |
 	“lit's token”
 ];
+
+
+/**
+ * A local helper for bootstrapping.  This will also be defined publicly in a
+ * downstream module.
+ */
+Macro "$…#" is
+[
+	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
+|
+	s ::= tokenPhrase's token's value's value;
+	a ::= atom for s;
+	`a` → literal phrase
+] : literal phrase ⇒ atom;
+
+
+
+declarationsMapType ::=
+	{declaration phrase → (phrase ⇒ declaration phrase)|whole number};
+
+/**
+ * Transform phrases into expressions that build those phrases, but with any
+ * marker phrases replaced by the marker values... which must also be phrases.
+ */
+Abstract method "T(_,_)" is
+	function accepting <phrase, ↑declarationsMapType>
+	and returning (phrase ⇒ phrase);
+
+/**
+ * First, define a one-argument transformation for phrase *types*.
+ */
+Method "T'(_)" is
+[
+	pT : phrase's type
+|
+	if pT ⊆ marker phrase then
+	[
+		expression phrase ⇒ (expression phrase ⇒ (pT's semantic type))
+	]
+	else
+	[
+		/* It may contain marker phrases deep inside, so keep just the basic
+		 * kind and the yield type.
+		 */
+		expression phrase ⇒ pT
+	]
+];
+
+Semantic restriction "T(_,_)" is
+[
+	pT : phrase's type,
+	decls : (↑declarationsMapType)'s type
+|
+	T'(pT)
+];
+
+/**
+ * Because iteration is still awkward at this point in the bootstrap, define
+ * transformation on a tuple of phrases as a convenience.
+ */
+Method "T*(_,_)" is
+[
+	phrases : phrase tuple,
+	decls : ↑declarationsMapType
+|
+	copy : <<>, phrase ⇒ phrase…|whole number> := <>;
+	From 1 to |phrases| do
+	[
+		i : natural number
+	|
+		p : phrase;
+		p ?= phrases[i];
+		copy ?= concatenate <eject copy, <T(p, decls)>>;
+		true
+	];
+	copy
+];
+
+Semantic restriction "T*(_,_)" is
+[
+	phrasesT : phrase tuple's type,
+	decls : (↑declarationsMapType)'s type
+|
+	sizes ::= ||phrasesT||;
+	leading ::= phrasesT's leading types;
+	default ::= phrasesT's default type ?→ (phrase's type);
+	leadingCopy : <<>, (phrase ⇒ phrase)'s type…|whole number> := <>;
+	From 1 to |leading| do
+	[
+		i : natural number
+	|
+		p ::= leading[i] ?→ (phrase's type);
+		leadingCopy ?= concatenate <eject leadingCopy, <T'(p)>>;
+		true
+	];
+	defaultCopy ::= T'(default);
+	<leadingCopy, defaultCopy…|sizes>
+		?→ <<>, phrase ⇒ phrase…|whole number>'s type
+];
+
+Method "T(_,_)" is
+[
+	p : assignment phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"`«_:=_`»"
+		with <T(p's target, decls), T(p's value, decls)> → list phrase
+		: assignment phrase
+];
+
+Method "T(_,_)" is
+[
+	p : block phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"`«[_`|Primitive__]:_^_`»"
+		with <
+			T*(p's arguments, decls) → list phrase,
+			`p's primitive name` → literal phrase,
+			T*(p's statements, decls) → list phrase,
+			`p's return type` → literal phrase,
+			`p's declared exceptions` → literal phrase
+		> → list phrase
+		: block phrase
+];
+
+/**
+ * Construct but do not register a copy of the given declaration phrase.  The
+ * declarations map is only provided for transforming any initialization
+ * expressions.  Type expressions aren't updated, because they already ran to
+ * produce the type.
+ *
+ * By default, don't copy the declaration at all.
+ */
+Method "new Tdecl(_,_)" is
+[
+	p : declaration phrase,
+	decls : ↑declarationsMapType
+|
+	`p` → literal phrase
+] : expression phrase ⇒ declaration phrase;
+
+Method "new Tdecl(_,_)" is
+[
+	p : local variable phrase,
+	decls : ↑declarationsMapType
+|
+	if p has initializing expression then
+	[
+		restricted send $"`«_:_:=_`»"
+			with <
+				`p's token` → literal phrase,
+				`p's declared type` → literal phrase,
+				T(p's initializing expression, decls)
+			> → list phrase
+			: local variable phrase
+	]
+	else
+	[
+		`p` → literal phrase
+	]
+] : expression phrase ⇒ local variable phrase;
+
+Method "new Tdecl(_,_)" is
+[
+	p : local constant phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"`«_::=_`»"
+		with <
+			`p's token` → literal phrase,
+			T(p's initializing expression, decls)
+		> → list phrase
+		: local constant phrase
+] : expression phrase ⇒ local constant phrase;
+
+Method "T(_,_)" is
+[
+	p : declaration phrase,
+	decls : ↑declarationsMapType
+|
+	strongMap ::= (↓decls)
+		?→ {declaration phrase → (phrase ⇒ declaration phrase)|whole number};
+	decl : phrase ⇒ declaration phrase;
+	If p ∈ strongMap then
+	[
+		decl := strongMap[p] ?→ (phrase ⇒ declaration phrase);
+	]
+	else
+	[
+		decl := new Tdecl(p, decls);
+		decls ?= strongMap + p → decl;
+	];
+	decl
+] : phrase ⇒ declaration phrase;
+
+Method "T(_,_)" is
+[
+	p : expression as statement phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"_→statement phrase"
+		with <
+			T(p's expression, decls)
+		> → list phrase
+		: expression as statement phrase
+];
+
+Method "T(_,_)" is
+[
+	p : first of sequence phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"first-of-seq`«_`»"
+		with <
+			T*(p's statements, decls) → list phrase
+		> → list phrase
+		: first of sequence phrase
+];
+
+Method "T(_,_)" is
+[
+	p : list phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"_→list phrase"
+		with <
+			T*(p's expressions, decls) → list phrase
+		> → list phrase
+		: list phrase
+];
+
+Method "T(_,_)" is
+[
+	p : literal phrase,
+	decls : ↑declarationsMapType
+|
+	`p`(“p”) → literal phrase
+];
+
+Method "T(_,_)" is
+[
+	p : permuted list phrase,
+	decls : ↑declarationsMapType
+|
+	permutation ::= p's permutation;
+	restricted send $"_permuted by_"
+		with <
+			T(p's list, decls),
+			(`permutation`(“permutation”) → literal phrase)
+		> → list phrase
+		: permuted list phrase
+];
+
+Method "T(_,_)" is
+[
+	p : variable reference phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"`«↑_`»"
+		with <
+			T(«↓p», decls)
+		> → list phrase
+		: variable reference phrase
+];
+
+Method "T(_,_)" is
+[
+	p : send phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"restricted send_with_:_"
+		with <
+			`p's bundle's atom` → literal phrase,
+			T(p's arguments, decls),
+			`p's return type` → literal phrase
+		> → list phrase
+		: send phrase
+];
+
+Method "T(_,_)" is
+[
+	p : sequence phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"seq`«_`»"
+		with <
+			T*(p's statements, decls) → list phrase
+		> → list phrase
+		: sequence phrase
+];
+
+Method "T(_,_)" is
+[
+	p : super cast phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"`«supercast(_::_)`»"
+		with <
+			T(p's expression, decls),
+			`p's lookup type` → literal phrase
+		> → list phrase
+		: super cast phrase
+];
+
+Method "T(_,_)" is
+[
+	p : variable use phrase,
+	decls : ↑declarationsMapType
+|
+	restricted send $"`«↓_`»(_)"
+		with <
+			T(p's declaration, decls),
+			`p's token` → literal phrase
+		> → list phrase
+		: variable use phrase
+];
+
+Method "T(_,_)" is
+[
+	p : marker phrase,
+	decls : ↑declarationsMapType
+|
+	/*
+	 * The general semantic restriction on T(_) will ensure the marker value is
+	 * itself a phrase with appropriate yield type.
+	 */
+	p's value ?→ (phrase ⇒ phrase)
+];
+
+/**
+ * An atom whose presence in the fiber's parsing client data indicates that
+ * "⦊§_⦉" unquoting may be used to back-quote a subexpression.  The value
+ * associated with this key is the entire scope stack that was removed from the
+ * fiber variable when quoted parsing began (via "⟦§_!⟧"), and should be
+ * restored during parsing of back-quoted expressions (at which time this entry
+ * should also be removed from the fiber variable).
+ */
+Method "scope outside quote" is [$"scope outside quote"];
+
+/**
+ * An atom whose presence in the fiber's parsing client data indicates that
+ * "⦊§_⦉" unquoting is currently in use, inside a "⟦§_!⟧" quoted section.  The
+ * value associated with this key is the entire scope stack that was active when
+ * the unquoting macro was encountered.  Completion of the unquoted macro should
+ * remove this atom entirely from the fiber's parsing client data.
+ */
+Method "scope outside unquote" is [$"scope outside unquote"];
+
+/**
+ * Take an arbitrary phrase as the argument.  Before parsing it, move the scope
+ * stack into the {@code "scope outside quote"} parsing variable  in the
+ * fiber's parsing client data, while also emptying the scope stack.  This is an
+ * indication that unquoting via "⦊§_⦉" may occur, which produces a marker
+ * phrase. After parsing, recursively convert the literal phrase into a
+ * back-quoted phrase-building expression, with the markers' values, which must
+ * themselves be ordinary phrases, substituted in place of the markers.
+ */
+Macro "⟦§_!⟧" is
+[
+	/* Allow embedded "⦊§_⦉" unquoting to produce marker phrases herein. */
+	If scope outside quote ∈ scope map then
+	[
+		Reject parse strongly, expected:
+			"Invocations of the quote (\"⟦§_!⟧\") macro not to be nested."
+	];
+	/*
+	 * Capture the scope so that unquoted sections can use local variables
+	 * defined outside the quoted phrase.
+	 */
+	scope ::= parse map + scope outside quote → scope map;
+	parse map := scope ?→ {atom → any | whole number};
+	/*
+	 * Hide the current scope, since the unquoted portion *must not* have access
+	 * to local variables.
+	 */
+	scope map := empty map;
+],
+[
+	originalPhrase : literal phrase ⇒ (phrase ⇒ ⊤)
+|
+	declsMap : declarationsMapType := empty map;
+	/*
+	 * Transform the phrase into a phrase that will generate the original
+	 * phrase, but with each marker replaced by its unquoted expression.
+	 */
+	result ::= T(
+		originalPhrase's token's value,
+		↑declsMap);
+	/*
+	 * Now restore the scope map and remove the saved scope information from the
+	 * "scope outside quote" key.
+	 */
+	scope map := parse map[scope outside quote]
+		?→ {nonempty string → declaration phrase | whole number};
+	parse map := parse map - scope outside quote
+		?→ {atom → any | whole number};
+	result
+];
+
+/**
+ * The unquoting macro.  This may occur any number of times within the argument
+ * of the "⟦§_!⟧" quoting macro.  The quoting macro converts its argument phrase
+ * into a phrase-building phrase, but any parts that were within unquotes are
+ * treated as expressions that can be directly embedded (to produce the final
+ * subphrases).  The unquote macro converts its argument into marker phrase
+ * whose value is the argument phrase itself, and the quoting macro recursively
+ * scans and transforms such markers.
+ *
+ * Quoted regions are parsed with no scope initially available, but the unquoted
+ * regions have the same scope as just outside the quoted region.
+ */
+Macro "⦊§_⦉" is
+[
+	/*
+	 * We're at the section marker (§).  Restore the scope that was removed and
+	 * stashed when parsing reached the section marker in {@code "⟦§_!⟧"}.
+	 * Quietly fail if such an entry wasn't stashed.
+	 */
+	Unless scope outside quote ∈ parse map then
+	[
+		Reject parse strongly, expected:
+			"The unquote (\"⦊§_⦉\") macro to occur only inside \
+				\|a quoted (\"⟦§_!⟧\") phrase."
+	];
+	If scope outside unquote ∈ scope map then
+	[
+		Reject parse strongly, expected:
+			"Invocations of the unquote (\"⦊§_⦉\") macro not to be nested."
+	];
+	/*
+	 * The quoted phrase can have introduced scope entries, which must be saved
+	 * here and restored at the end of unquoting.  This also serves to indicate
+	 * we're inside an unquote.
+	 */
+	parse map := parse map + scope outside unquote → scope map
+		?→ {atom → any | whole number};
+	/*
+	 * Restore the scope map just within the unquoted section, so it can
+	 * reference local variables from outside the *quote*.
+	 */
+	scope map := parse map[scope outside quote]
+		?→ {nonempty string → declaration phrase | whole number};
+],
+[
+	p : phrase ⇒ phrase
+|
+	yield ::= (p's semantic type) ?→ phrase's type;
+	valueType ::= yield's semantic type;
+	result ::= «marker phrase p ⇒ valueType»;
+	/*
+	 * To continue parsing the outer quoted expression, we must remove the
+	 * "scope outside unquote" and make it the active scope map.
+	 */
+	scope map := parse map[scope outside unquote]
+		?→ {nonempty string → declaration phrase | whole number};
+	parse map := parse map - scope outside unquote
+		?→ {atom → any | whole number};
+	result
+];
+
+
+/*
+ * This is an example of usage of the quoting and unquoting operations.
+ *
+ *
+ *  1:  Macro "incrementer by_†" is
+ *  2:  [
+ *  3:      t : literal phrase ⇒ integer
+ *  4:  |
+ *  5:      ⟦
+ *  6:          [y : integer | y + ⦊t⦉]
+ *  7:      ⟧
+ *  8:  ];
+ *  9:
+ * 10:  Print: “incrementer by 5”;
+ * 11:  Print: "\n";
+ * 12:  Print: “Invoke incrementer by 3 with <5>”;
+ * 13:  Print: "\n";
+ *
+ * First, a macro is defined for creating incrementer functions.  The amount to
+ * increment by must be specified as a literal phrase, ensuring the quantity is
+ * known at compile time.
+ *
+ * Line 5 begins a ⟦⟧ quoted section, which ends on line 7.  Line 6 is a regular
+ * block expression, other than the unquoted portion ⦊t⦉.  The unquoted part is
+ * evaluated when encountered, which produces a phrase to use in place of the
+ * unquoted part of the surrounding quoted expression.  That phrase is wrapped
+ * inside a marker phrase, to be processed later.  When the quoted section has
+ * been fully parsed, it is transformed from a phrase (potentially containing
+ * marker phrases inside it) into a phrase that *yields* another phrase.  This
+ * recursive transformation plugs in the values of the previously constructed
+ * marker phrases (the markers' values are phrases).  The result of the entire
+ * quoted expression is a phrase that produces a phrase similar to what was in
+ * quotes.  This occurred inside a macro body (lines 2-8), which is expected to
+ * return a phrase to use in place of an invocation of that macro.
+ *
+ * When "incrementer by_†" is called on line 10, it produces a block phrase with
+ * the compile-time-fixed constant 5 plugged in as the right operand of the
+ * addition operation inside the block's sole statement.
+ *
+ * On line 12, it statically creates an incrementer block with 3 as the
+ * increment, then at runtime invokes it with the argument 5 (producing 8).
+ */

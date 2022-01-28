@@ -76,8 +76,8 @@ class ExamineModuleManifest constructor (
 				val compilationsArray = compilations.toTypedArray()
 				val selectedCompilation = JOptionPane.showInputDialog(
 					workbench,
-					"Select module compilation to examine",
-					"Examine compilation",
+					"Select module manifest to examine",
+					"Examine module manifest",
 					JOptionPane.PLAIN_MESSAGE,
 					null,
 					compilationsArray,
@@ -108,6 +108,6 @@ class ExamineModuleManifest constructor (
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Disassemble an existing module compilation")
+			"Disassemble an existing module compilation's manifest")
 	}
 }

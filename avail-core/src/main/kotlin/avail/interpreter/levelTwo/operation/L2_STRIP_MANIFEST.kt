@@ -32,7 +32,6 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -54,7 +53,7 @@ object L2_STRIP_MANIFEST : L2Operation(
 {
 	// Prevent this instruction from being removed, because it constrains
 	// the manifest along a back-edge, even after optimization.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

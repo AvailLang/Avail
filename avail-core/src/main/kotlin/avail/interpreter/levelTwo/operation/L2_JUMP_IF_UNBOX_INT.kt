@@ -64,7 +64,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
 		//		final L2PcOperand ifNotUnboxed = instruction.operand(2);
@@ -81,7 +81,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		val destination = instruction.operand<L2WriteIntOperand>(1)
 		val ifNotUnboxed = instruction.operand<L2PcOperand>(2)

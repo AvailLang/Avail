@@ -45,9 +45,9 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KE
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -61,6 +61,9 @@ import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
+import avail.descriptor.representation.AbstractDescriptor.Companion.staticTypeTagOrdinal
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -95,6 +98,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfObjectType
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeIntersectionOfObjectType
 import avail.descriptor.types.A_Type.Companion.typeUnion
@@ -117,6 +121,8 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.ifZero
@@ -214,7 +220,7 @@ class ObjectTypeDescriptor internal constructor(
 			}
 		}
 		var first = true
-		self.fieldTypeMap.forEach { key, type ->
+		myFieldTypeMap.forEach { key, type ->
 			if (!ignoreKeys.hasElement(key)) {
 				append(if (first) " with:" else ",")
 				first = false
@@ -240,10 +246,10 @@ class ObjectTypeDescriptor internal constructor(
 				else -> fields.add(
 					AvailObjectFieldHelper(
 						self,
-						DebuggerObjectSlots(
-							"FIELD TYPE ${fieldKey.atomName}"),
+						DUMMY_DEBUGGER_SLOT,
 						-1,
-						self.slot(FIELD_TYPES_, index)))
+						self.slot(FIELD_TYPES_, index),
+						slotName = "FIELD TYPE ${fieldKey.atomName}"))
 			}
 		}
 		fields.sortBy(AvailObjectFieldHelper::nameForDebugger)
@@ -251,9 +257,10 @@ class ObjectTypeDescriptor internal constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("SUBCLASS_FIELDS"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					tupleFromList(otherAtoms)))
+					tupleFromList(otherAtoms),
+					slotName = "SUBCLASS_FIELDS"))
 		}
 		return fields.toTypedArray()
 	}
@@ -266,8 +273,8 @@ class ObjectTypeDescriptor internal constructor(
 		anObjectType: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObjectType)) return true
-		val otherDescriptor = anObjectType.descriptor() as ObjectTypeDescriptor
-		if (variant !== otherDescriptor.variant) return false
+		val otherVariant = anObjectType.objectTypeVariant
+		if (variant !== otherVariant) return false
 		// If one of the hashes is already computed, compute the other if
 		// necessary, then compare the hashes to eliminate the vast majority of
 		// the unequal cases.
@@ -286,7 +293,8 @@ class ObjectTypeDescriptor internal constructor(
 					anObjectType.slot(FIELD_TYPES_, it))
 			} -> return false
 			!isShared -> self.becomeIndirectionTo(anObjectType)
-			!otherDescriptor.isShared -> anObjectType.becomeIndirectionTo(self)
+			!anObjectType.descriptor().isShared ->
+				anObjectType.becomeIndirectionTo(self)
 		}
 		return true
 	}
@@ -297,6 +305,9 @@ class ObjectTypeDescriptor internal constructor(
 			0 -> instanceType(field)
 			else -> self.slot(FIELD_TYPES_, slotIndex!!)
 		}
+
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		self.slot(FIELD_TYPES_, index)
 
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject,
@@ -345,9 +356,7 @@ class ObjectTypeDescriptor internal constructor(
 		self: AvailObject,
 		potentialInstance: AvailObject
 	): Boolean {
-		val instanceDescriptor =
-			potentialInstance.descriptor() as ObjectDescriptor
-		val instanceVariant = instanceDescriptor.variant
+		val instanceVariant = potentialInstance.objectVariant
 		if (instanceVariant == variant) {
 			// The instance and I share a variant, so blast through the fields
 			// in lock-step doing instance checks.
@@ -384,9 +393,7 @@ class ObjectTypeDescriptor internal constructor(
 		anObjectType: AvailObject
 	): Boolean {
 		if (self.sameAddressAs(anObjectType)) return true
-		val subtypeDescriptor =
-			anObjectType.descriptor() as ObjectTypeDescriptor
-		val subtypeVariant = subtypeDescriptor.variant
+		val subtypeVariant = anObjectType.objectTypeVariant
 		if (subtypeVariant == variant) {
 			// The potential subtype and I share a variant, so blast through the
 			// fields in lock-step doing subtype checks.
@@ -434,7 +441,7 @@ class ObjectTypeDescriptor internal constructor(
 	override fun o_MakeShared(self: AvailObject): AvailObject
 	{
 		if (isShared) return self
-		self.setDescriptor(self.descriptor().shared())
+		self.setDescriptor(variant.sharedObjectTypeDescriptor)
 		self.makeSubobjectsShared()
 		var canonical: AvailObject?
 		do
@@ -462,6 +469,8 @@ class ObjectTypeDescriptor internal constructor(
 		return canonical
 	}
 
+	override fun o_ObjectTypeVariant(self: AvailObject) = variant
+
 	override fun o_TypeIntersection(
 		self: AvailObject,
 		another: A_Type
@@ -479,8 +488,7 @@ class ObjectTypeDescriptor internal constructor(
 		self: AvailObject,
 		anObjectType: AvailObject
 	): A_Type {
-		val otherDescriptor = anObjectType.descriptor() as ObjectTypeDescriptor
-		val otherVariant = otherDescriptor.variant
+		val otherVariant = anObjectType.objectTypeVariant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
 			return variant.mutableObjectTypeDescriptor.create(
@@ -556,8 +564,7 @@ class ObjectTypeDescriptor internal constructor(
 		self: AvailObject,
 		anObjectType: AvailObject
 	): A_Type {
-		val otherDescriptor = anObjectType.descriptor() as ObjectTypeDescriptor
-		val otherVariant = otherDescriptor.variant
+		val otherVariant = anObjectType.objectTypeVariant
 		if (otherVariant == variant) {
 			// Field slot indices agree, so blast through the slots in order.
 			return variant.mutableObjectTypeDescriptor.create(
@@ -790,12 +797,8 @@ class ObjectTypeDescriptor internal constructor(
 				}
 				if (keyAtomWithLeastNames !== null)
 				{
-					var namesSet = when
-					{
-						keyAtomNamesMap!!.hasKey(anObjectType) ->
-							keyAtomNamesMap.mapAt(anObjectType)
-						else -> emptySet
-					}
+					var namesSet =
+						keyAtomNamesMap!!.mapAtOrNull(anObjectType) ?: emptySet
 					namesSet = namesSet.setWithElementCanDestroy(aString, false)
 					keyAtomNamesMap = keyAtomNamesMap.mapAtPuttingCanDestroy(
 						anObjectType, namesSet, true)
@@ -826,27 +829,29 @@ class ObjectTypeDescriptor internal constructor(
 					if (!atom.isAtomSpecial)
 					{
 						var namesMap: A_Map = atom.getAtomProperty(propertyKey)
-						if (namesMap.notNil
-							&& namesMap.hasKey(anObjectType))
+						if (namesMap.notNil)
 						{
-							// In theory the user can give this type multiple
-							// names, so only remove the one that we've been
-							// told to.
-							var namesSet: A_Set = namesMap.mapAt(anObjectType)
-							namesSet = namesSet.setWithoutElementCanDestroy(
-								aString, false)
-							namesMap = when(namesSet.setSize)
-							{
-								0 -> namesMap.mapWithoutKeyCanDestroy(
-									anObjectType, false)
-								else -> namesMap.mapAtPuttingCanDestroy(
-									anObjectType, namesSet, false)
-							}
-							when (namesMap.mapSize)
-							{
-								0 -> atom.setAtomProperty(propertyKey, nil)
-								else -> atom.setAtomProperty(
-									propertyKey, namesMap)
+							namesMap.mapAtOrNull(anObjectType)?.let {
+									oldNamesSet ->
+								// In theory the user can give this type
+								// multiple names, so only remove the one that
+								// we've been told to.
+								val namesSet =
+									oldNamesSet.setWithoutElementCanDestroy(
+										aString, false)
+								namesMap = when(namesSet.setSize)
+								{
+									0 -> namesMap.mapWithoutKeyCanDestroy(
+										anObjectType, false)
+									else -> namesMap.mapAtPuttingCanDestroy(
+										anObjectType, namesSet, false)
+								}
+								when (namesMap.mapSize)
+								{
+									0 -> atom.setAtomProperty(propertyKey, nil)
+									else -> atom.setAtomProperty(
+										propertyKey, namesMap)
+								}
 							}
 						}
 					}
@@ -878,10 +883,9 @@ class ObjectTypeDescriptor internal constructor(
 						map.forEach { namedType, innerValue ->
 							if (anObjectType.isSubtypeOf(namedType)) {
 								var nameSet: A_Set = innerValue
-								if (applicable.hasKey(namedType)) {
+								applicable.mapAtOrNull(namedType)?.let { more ->
 									nameSet = nameSet.setUnionCanDestroy(
-										applicable.mapAt(namedType),
-										true)
+										more, true)
 								}
 								applicable = applicable.mapAtPuttingCanDestroy(
 									namedType, nameSet, true)
@@ -1076,8 +1080,7 @@ class ObjectTypeDescriptor internal constructor(
 							styleType))),
 				TOP.o)
 
-			private val variant =
-				(styleType.descriptor() as ObjectTypeDescriptor).variant
+			private val variant = styleType.objectTypeVariant
 
 			private val semanticClassifierIndex =
 				variant.fieldToSlotIndex[semanticClassifierAtom]!!
@@ -1115,5 +1118,26 @@ class ObjectTypeDescriptor internal constructor(
 				setField(style, lineNumberIndex, fromInt(lineNumber))
 			}
 		}
+
+		/**
+		 * Produce the given object type's [ObjectLayoutVariant]'s variantId.
+		 *
+		 * @param anObjectType
+		 *   The object [type][ObjectTypeDescriptor] to examine.
+		 * @return
+		 *   The object type's variantId, which is an [Int].
+		 */
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun staticObjectTypeVariantId(anObjectType: AvailObject): Int =
+			anObjectType.objectTypeVariant.variantId
+
+		/** The [CheckedMethod] for [staticTypeTagOrdinal]. */
+		val staticObjectTypeVariantIdMethod = CheckedMethod.staticMethod(
+			ObjectTypeDescriptor::class.java,
+			::staticObjectTypeVariantId.name,
+			Int::class.javaPrimitiveType!!,
+			AvailObject::class.java
+		)
 	}
 }

@@ -48,11 +48,9 @@ import org.objectweb.asm.MethodVisitor
 object L2_JUMP : L2ControlFlowOperation(
 	L2OperandType.PC.named("target", L2NamedOperandType.Purpose.SUCCESS))
 {
-	override fun hasSideEffect(): Boolean
-	{
-		// It jumps, which counts as a side effect.
-		return true
-	}
+	// It jumps, which counts as a side effect.
+	override val hasSideEffect: Boolean
+		get() = true
 
 	override val isUnconditionalJump: Boolean
 		get() = true
@@ -79,7 +77,7 @@ object L2_JUMP : L2ControlFlowOperation(
 	@JvmStatic
 	fun jumpTarget(instruction: L2Instruction): L2PcOperand
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		return instruction.operand(0)
 	}
 }

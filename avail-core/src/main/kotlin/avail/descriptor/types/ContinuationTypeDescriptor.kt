@@ -50,6 +50,8 @@ import avail.descriptor.types.A_Type.Companion.typeUnionOfContinuationType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.ContinuationTypeDescriptor.ObjectSlots.FUNCTION_TYPE
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeFromArgumentTupleType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.serialization.SerializerOperation
@@ -70,7 +72,7 @@ import java.util.IdentityHashMap
  * to [exit][P_ExitContinuationWithResultIf] a continuation with a specific
  * value.
  *
- * TODO: MvG If/when function types support checked exceptions we won't need to
+ * Note: If/when function types support checked exceptions we won't need to
  * mention them in continuation types, since invoking a continuation in any way
  * (restart, exit, resume) causes exception obligations/permissions to be
  * instantly voided.
@@ -283,32 +285,15 @@ class ContinuationTypeDescriptor private constructor(mutability: Mutability)
 		 * (i.e., not specific enough to be able to call it), and having the
 		 * return type bottom.
 		 */
-		private val mostGeneralType: A_Type = continuationTypeForFunctionType(
-			FunctionTypeDescriptor.functionTypeReturning(bottom)).makeShared()
-
-		/**
-		 * Answer the most general continuation type}.
-		 *
-		 * @return
-		 *   A continuation type which has no supertypes that are themselves
-		 *   continuation types.
-		 */
-		fun mostGeneralContinuationType(): A_Type = mostGeneralType
+		val mostGeneralContinuationType: A_Type =
+			continuationTypeForFunctionType(functionTypeReturning(bottom))
+				.makeShared()
 
 		/**
 		 * The metatype for all continuation types.  In particular, it's just
-		 * the [instance&#32;type][InstanceTypeDescriptor] for the
-		 * [mostGeneralContinuationType].
+		 * the [instanceMeta] for the [mostGeneralContinuationType].
 		 */
-		private val meta: A_Type =
-			InstanceMetaDescriptor.instanceMeta(mostGeneralType).makeShared()
-
-		/**
-		 * Answer the metatype for all continuation types.
-		 *
-		 * @return
-		 *   The statically referenced metatype.
-		 */
-		fun continuationMeta(): A_Type = meta
+		val continuationMeta: A_Type =
+			instanceMeta(mostGeneralContinuationType).makeShared()
 	}
 }

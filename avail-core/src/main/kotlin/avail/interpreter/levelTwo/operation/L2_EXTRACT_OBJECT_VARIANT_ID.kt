@@ -31,9 +31,9 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.objects.ObjectDescriptor.Companion.staticObjectVariantIdMethod
 import avail.descriptor.objects.ObjectLayoutVariant
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -53,7 +53,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
-	READ_BOXED.named("value"),
+	READ_BOXED.named("object"),
 	WRITE_INT.named("variantId"))
 {
 	override fun appendToWithWarnings(
@@ -62,7 +62,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val variantId = instruction.operand<L2WriteIntOperand>(1)
 		renderPreamble(instruction, builder)
@@ -88,8 +88,7 @@ object L2_EXTRACT_OBJECT_VARIANT_ID : L2Operation(
 			generator.currentManifest.restrictionFor(value.semanticValue())
 		restriction.constantOrNull?.let { constant ->
 			// Extract the variantId from the actual constant right now.
-			val descriptor = constant.descriptor() as ObjectDescriptor
-			val variant = descriptor.variant
+			val variant = constant.objectVariant
 			generator.addInstruction(
 				L2_MOVE_CONSTANT.unboxedInt,
 				L2IntImmediateOperand(variant.variantId),

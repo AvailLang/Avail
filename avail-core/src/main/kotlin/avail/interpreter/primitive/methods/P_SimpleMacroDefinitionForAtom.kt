@@ -158,19 +158,13 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		return interpreter.suspendInLevelOneSafeThen {
 			try
 			{
-				loader.addMacroBody(
-					atom,
-					function,
-					prefixFunctions,
-					false)
-				val atomName = atom.atomName
-				for ((zeroIndex, prefixFunction) in prefixFunctions.withIndex())
-				{
+				loader.addMacroBody(atom, function, prefixFunctions, false)
+				val string = atom.atomName
+				prefixFunctions.forEachIndexed { zeroIndex, prefixFunction ->
 					prefixFunction.code().methodName =
-						stringFrom("Macro prefix #${zeroIndex + 1} of $atomName")
+						stringFrom("Macro prefix #${zeroIndex + 1} of $string")
 				}
-				function.code().methodName =
-					stringFrom("Macro body of $atomName")
+				function.code().methodName = stringFrom("Macro body of $string")
 				succeed(nil)
 			}
 			catch (e: AvailException)
@@ -192,7 +186,8 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(
-				E_LOADING_IS_OVER, E_CANNOT_DEFINE_DURING_COMPILATION,
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION,
 				E_INCORRECT_NUMBER_OF_ARGUMENTS,
 				E_REDEFINED_WITH_SAME_ARGUMENT_TYPES,
 				E_MACRO_PREFIX_FUNCTION_ARGUMENT_MUST_BE_A_PHRASE,

@@ -37,12 +37,8 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.issuingModule
 import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_String
@@ -99,23 +95,10 @@ class Serializer constructor (
 	private val encounteredObjects =
 		mutableMapOf<A_BasicObject, SerializerInstruction>()
 
-
-	/**
-	 * The [map][A_Map] from objects that were serialized by this serializer, to
-	 * their one-based index.  This is only valid after serialization completes.
-	 */
-	private val serializedObjectsMap by lazy {
-		var m = emptyMap
-		serializedObjectsList.forEachIndexed { zeroIndex, obj ->
-			m = m.mapAtPuttingCanDestroy(obj, fromInt(zeroIndex + 1), true)
-		}
-		m.makeShared()
-	}
-
 	/**
 	 * The actual sequence of objects that have been serialized so far.  This is
 	 * not needed by serialization itself, but it's useful to collect the
-	 * objects to allow a [tuple][A_Tuple]] built from this [List] to be
+	 * objects to allow a [tuple][A_Tuple] built from this [List] to be
 	 * extracted after.
 	 */
 	private val serializedObjectsList = mutableListOf<A_BasicObject>()
@@ -124,9 +107,8 @@ class Serializer constructor (
 	 * The [tuple][A_Tuple] of objects that were serialized by this serializer.
 	 * This is only valid after serialization completes.
 	 */
-	private val serializedObjects by lazy {
-		tupleFromList(serializedObjectsList)
-	}
+	fun serializedObjectsTuple() =
+		tupleFromList(serializedObjectsList).makeShared()
 
 	/**
 	 * All variables that must have their values assigned to them upon
@@ -233,14 +215,14 @@ class Serializer constructor (
 
 	/**
 	 * Look up the object and return the existing instruction that produces it.
-	 * The instruction must have an index other than -1, which indicates that
-	 * the instruction has not yet been written; that is, the instruction must
-	 * already have been written.
+	 * The instruction must have an index other than [Int.MIN_VALUE], which
+	 * indicates that the instruction has not yet been written; that is, the
+	 * instruction must already have been written.
 	 *
 	 * @param obj
 	 *   The object to look up.
 	 * @return
-	 *   The (non-negative) index of the instruction that produced the object.
+	 *   The index of the instruction that produced the object.
 	 */
 	internal fun compressedObjectIndex(obj: A_BasicObject): Int
 	{
@@ -288,8 +270,15 @@ class Serializer constructor (
 	{
 		val before = System.nanoTime()
 		// Build but don't yet emit the instruction.
-		val instruction = encounteredObjects.computeIfAbsent(
-			obj, this::newInstruction)
+		val instruction = encounteredObjects.computeIfAbsent(obj) {
+			newInstruction(obj).also {
+				val existingIndex = lookupPumpedObject(obj)
+				if (existingIndex != 0)
+				{
+					it.index = existingIndex
+				}
+			}
+		}
 		// Do nothing if the object's instruction has already been emitted.
 		if (!instruction.hasBeenWritten)
 		{
@@ -304,6 +293,7 @@ class Serializer constructor (
 				{
 					instruction.index = compressor.currentIndex()
 					instruction.writeTo(this@Serializer)
+					instruction.newObject?.let(serializedObjectsList::add)
 					assert(instruction.hasBeenWritten)
 					compressor.incrementIndex()
 				}
@@ -315,9 +305,9 @@ class Serializer constructor (
 			for (i in instruction.subobjectsCount - 1 downTo 0)
 			{
 				val operand = operands[i]
-				val operandValue = instruction.getSubobject(i)
+				val operandValue = instruction.getSubobject(i) as AvailObject
 				workStack.addLast {
-					operand.trace(operandValue as AvailObject, this)
+					operand.trace(operandValue, this)
 				}
 			}
 			if (instruction.operation.isVariableCreation
@@ -378,17 +368,6 @@ class Serializer constructor (
 			compressor.incrementIndex()
 		}
 	}
-
-	/**
-	 * Answer an [A_Tuple] of objects that were serialized.
-	 */
-	fun serializedObjects(): A_Tuple = serializedObjects
-
-	/**
-	 * Answer an [A_Map] from objects that were serialized to their one-based
-	 * indices.
-	 */
-	fun serializedObjectsMap(): A_Map = serializedObjectsMap
 
 	companion object
 	{

@@ -158,7 +158,7 @@ private constructor(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this === instruction.operation())
+		assert(this === instruction.operation)
 		val source = instruction.operand<L2ReadOperand<R>>(0)
 		val destination = instruction.operand<L2WriteOperand<R>>(1)
 
@@ -169,15 +169,15 @@ private constructor(
 
 	override fun getConstantCodeFrom(instruction: L2Instruction): A_RawFunction?
 	{
-		assert(instruction.operation() === boxed)
+		assert(instruction.operation === boxed)
 		val source = sourceOf(instruction)
-		val producer = source.definition().instruction()
-		return producer.operation().getConstantCodeFrom(producer)
+		val producer = source.definition().instruction
+		return producer.operation.getConstantCodeFrom(producer)
 	}
 
 	override fun shouldEmit(instruction: L2Instruction): Boolean
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		val source = instruction.operand<L2ReadOperand<R>>(0)
 		val destination = instruction.operand<L2WriteOperand<R>>(1)
 		return source.finalIndex() != destination.finalIndex()
@@ -197,7 +197,7 @@ private constructor(
 	fun sourceOf(
 		instruction: L2Instruction): RR
 	{
-		assert(instruction.operation() is L2_MOVE<*, *, *, *>)
+		assert(instruction.operation is L2_MOVE<*, *, *, *>)
 		return instruction.operand(0)
 	}
 
@@ -213,7 +213,7 @@ private constructor(
 	fun destinationOf(
 		instruction: L2Instruction): WR
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		return instruction.operand(1)
 	}
 
@@ -221,9 +221,9 @@ private constructor(
 		instruction: L2Instruction,
 		desiredTypes: Set<L2OperandType>,
 		builder: StringBuilder,
-		warningStyleChange: (Boolean) -> Unit)
+		warningStyleChange: (Boolean)->Unit)
 	{
-		assert(this === instruction.operation())
+		assert(this === instruction.operation)
 		val source = instruction.operand<L2ReadOperand<R>>(0)
 		val destination = instruction.operand<L2WriteOperand<R>>(1)
 		renderPreamble(instruction, builder)
@@ -233,7 +233,7 @@ private constructor(
 		source.appendWithWarningsTo(builder, 0, warningStyleChange)
 	}
 
-	override fun toString(): String = name()
+	override fun toString(): String = name
 
 	override fun extractTupleElement(
 		tupleReg: L2ReadBoxedOperand,
@@ -241,7 +241,7 @@ private constructor(
 		generator: L2Generator
 	): L2ReadBoxedOperand
 	{
-		val instruction = tupleReg.definition().instruction()
+		val instruction = tupleReg.definition().instruction
 		val source = instruction.operand<L2ReadBoxedOperand>(0)
 		// val destination = instruction.operand<L2WriteOperand<R>>(1)
 

@@ -185,7 +185,7 @@ class L2BasicBlock @JvmOverloads constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				val operation = instruction.operation()
+				val operation = instruction.operation
 				if (!operation.isPhi)
 				{
 					// All the phi instructions are at the start, so we've
@@ -218,13 +218,13 @@ class L2BasicBlock @JvmOverloads constructor(
 			for (i in instructions.indices)
 			{
 				val instruction = instructions[i]
-				if (!instruction.operation().isPhi)
+				if (!instruction.operation.isPhi)
 				{
 					// Phi functions are always at the start of a block.
 					break
 				}
 				val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-					instruction.operation().cast()
+					instruction.operation.cast()
 				val replacement = phiOperation.withoutIndex(instruction, index)
 				instruction.justRemoved()
 				instructions[i] = replacement
@@ -342,7 +342,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	{
 		assert(!hasControlFlowAtEnd)
 		assert(instruction.basicBlock() == this)
-		if (instruction.operation().isPhi)
+		if (instruction.operation.isPhi)
 		{
 			// For simplicity, phi functions are routed to the *start* of the
 			// block.
@@ -367,7 +367,7 @@ class L2BasicBlock @JvmOverloads constructor(
 	fun indexAfterEntryPointAndPhis(): Int
 	{
 		instructions.forEachIndexed { i, instruction ->
-			if (!instruction.isEntryPoint && !instruction.operation().isPhi)
+			if (!instruction.isEntryPoint && !instruction.operation.isPhi)
 			{
 				return i
 			}
@@ -462,7 +462,7 @@ class L2BasicBlock @JvmOverloads constructor(
 			if (output.isNotEmpty())
 			{
 				val previousInstruction = output[output.size - 1]
-				if (previousInstruction.operation() === L2_JUMP)
+				if (previousInstruction.operation === L2_JUMP)
 				{
 					if (L2_JUMP.jumpTarget(previousInstruction).targetBlock()
 						== this)
@@ -480,7 +480,7 @@ class L2BasicBlock @JvmOverloads constructor(
 		{
 			if (instruction.shouldEmit)
 			{
-				instruction.setOffset(counter++)
+				instruction.offset = counter++
 				output.add(instruction)
 			}
 		}
@@ -491,8 +491,8 @@ class L2BasicBlock @JvmOverloads constructor(
 		var suffix = ""
 		if (instructions.size > 0)
 		{
-			val firstOffset = instructions[0].offset()
-			val lastOffset = instructions.last().offset()
+			val firstOffset = instructions[0].offset
+			val lastOffset = instructions.last().offset
 			if (firstOffset != -1 && lastOffset != -1)
 			{
 				suffix = " [$firstOffset..$lastOffset]"

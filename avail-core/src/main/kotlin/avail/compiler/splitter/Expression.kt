@@ -215,6 +215,8 @@ internal abstract class Expression constructor(val positionInName: Int)
 	 *   the desired stack structure is.
 	 * @return
 	 *   The resulting [WrapState], indicating the state of the stack.
+	 * @throws SignatureException
+	 *   If the signature and phrase type are inconsistent.
 	 */
 	internal abstract fun emitOn(
 		phraseType: A_Type,

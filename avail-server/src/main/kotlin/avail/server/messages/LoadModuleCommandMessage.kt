@@ -56,7 +56,7 @@ import avail.server.io.AvailServerChannel
 class LoadModuleCommandMessage constructor(
 	val target: ModuleName) : CommandMessage()
 {
-	override val command = TextCommand.LOAD_MODULE
+	override val command get() = TextCommand.LOAD_MODULE
 
 	override fun processThen(
 		channel: AvailServerChannel,

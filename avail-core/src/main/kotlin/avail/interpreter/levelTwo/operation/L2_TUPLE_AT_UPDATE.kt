@@ -65,7 +65,7 @@ object L2_TUPLE_AT_UPDATE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val inputTuple = instruction.operand<L2ReadBoxedOperand>(0)
 		val index = instruction.operand<L2IntImmediateOperand>(1)
 		val newElement = instruction.operand<L2ReadBoxedOperand>(2)
@@ -87,7 +87,7 @@ object L2_TUPLE_AT_UPDATE : L2Operation(
 		generator: L2Generator
 	): L2ReadBoxedOperand
 	{
-		val instruction = tupleReg.definition().instruction()
+		val instruction = tupleReg.definition().instruction
 		val inputTuple = instruction.operand<L2ReadBoxedOperand>(0)
 		val updateIndex = instruction.operand<L2IntImmediateOperand>(1)
 		val newElement = instruction.operand<L2ReadBoxedOperand>(2)

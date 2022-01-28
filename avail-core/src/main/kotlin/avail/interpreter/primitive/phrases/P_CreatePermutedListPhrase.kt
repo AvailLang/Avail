@@ -80,7 +80,7 @@ object P_CreatePermutedListPhrase : Primitive(2, CanInline)
 		return when
 		{
 			// Permutation is empty, or different size than list.
-			size == 0 || size != list.expressionsTuple.tupleSize ->
+			size <= 1 || size != list.expressionsTuple.tupleSize ->
 				interpreter.primitiveFailure(E_INCONSISTENT_ARGUMENT_REORDERING)
 			// Permutation values are not all int32.
 			permutation.any { !it.isInt } ->

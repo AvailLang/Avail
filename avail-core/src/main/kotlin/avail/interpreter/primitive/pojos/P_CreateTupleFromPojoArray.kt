@@ -45,6 +45,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import java.lang.reflect.Array
 
@@ -56,7 +57,8 @@ import java.lang.reflect.Array
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateTupleFromPojoArray : Primitive(1, CanInline, CannotFail)
+object P_CreateTupleFromPojoArray : Primitive(
+	1, CanInline, CannotFail, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

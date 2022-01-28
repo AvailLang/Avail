@@ -57,7 +57,8 @@ import avail.optimizer.values.L2SemanticValue
  */
 class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 {
-	override fun operandType(): L2OperandType = L2OperandType.READ_BOXED
+	override val operandType: L2OperandType
+		get() = L2OperandType.READ_BOXED
 
 	/**
 	 * Construct a new `L2ReadBoxedOperand` for the specified [L2SemanticValue]
@@ -116,7 +117,7 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 		dispatcher.doOperand(this)
 	}
 
-	override fun registerKind() = BOXED_KIND
+	override val registerKind get() = BOXED_KIND
 
 	/**
 	 * See if we can determine the exact type of this register, which holds a
@@ -134,13 +135,13 @@ class L2ReadBoxedOperand : L2ReadOperand<L2BoxedRegister>
 			return constantFunction.code().functionType()
 		}
 		val originOfFunction = definitionSkippingMoves(true)
-		if (originOfFunction.operation() === L2_MOVE_CONSTANT.boxed)
+		if (originOfFunction.operation === L2_MOVE_CONSTANT.boxed)
 		{
 			// Function came from a constant (although the TypeRestriction
 			// should have ensured the clause above caught it).
 			return constantOf(originOfFunction).code().functionType()
 		}
-		if (originOfFunction.operation() === L2_CREATE_FUNCTION)
+		if (originOfFunction.operation === L2_CREATE_FUNCTION)
 		{
 			// We found where the function was closed from a raw function,
 			// which knows the exact function type that it'll be.  Use that.

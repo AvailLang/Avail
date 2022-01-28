@@ -1,8 +1,5 @@
 import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.Exec
-import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskAction
-import org.gradle.jvm.tasks.Jar
 
 /*
  * RunPluginPublish.kt

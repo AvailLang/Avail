@@ -37,8 +37,7 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -56,13 +55,13 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.STATEMENT_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_INCONSISTENT_PREFIX_FUNCTION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
@@ -103,24 +102,19 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 
 		val fiber = interpreter.fiber()
 		var fiberGlobals = fiber.fiberGlobals()
-		if (!fiberGlobals.hasKey(clientDataKey))
-		{
+		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		}
-		var clientData: A_Map = fiberGlobals.mapAt(clientDataKey)
-		if (!clientData.hasKey(scopeMapKey))
-		{
+		val currentScopeMap = clientData.mapAtOrNull(scopeMapKey) ?:
 			// It looks like somebody removed all the scope information.
 			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
-		}
 
 		// Save the current scope map to a temp, pop the scope stack to replace
 		// the scope map, then push the saved scope map onto the stack.  This
 		// just exchanges the top of stack and current scope map.  The block
 		// macro body will do its local declaration lookups in the top of stack,
 		// then discard it when complete.
-		val currentScopeMap = clientData.mapAt(scopeMapKey)
-		var stack: A_Tuple = clientData.mapAt(scopeStackKey)
+		var stack: A_Tuple = clientData.mapAtOrNull(scopeStackKey) ?:
+			return interpreter.primitiveFailure(E_INCONSISTENT_PREFIX_FUNCTION)
 		val poppedScopeMap = stack.tupleAt(stack.tupleSize)
 		stack = stack.tupleAtPuttingCanDestroy(
 			stack.tupleSize, currentScopeMap, true)

@@ -96,11 +96,13 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.numbers.InfinityDescriptor
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
@@ -164,10 +166,9 @@ import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
-import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
-import avail.utility.visitor.AvailSubobjectVisitor
-import java.lang.reflect.Modifier
+import org.availlang.json.JSONWriter
+import java.lang.reflect.InvocationTargetException
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
@@ -181,13 +182,17 @@ import java.util.stream.Stream
 import kotlin.concurrent.read
 import kotlin.math.max
 import kotlin.math.min
+import kotlin.reflect.KClass
+import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObject
+import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
 import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.valueParameters
+import kotlin.reflect.jvm.javaGetter
 
 /**
  * [AbstractDescriptor] is the base descriptor type.  An [AvailObject] contains
@@ -315,7 +320,7 @@ abstract class AbstractDescriptor protected constructor (
 				emptyDebugObjectSlots
 		hasVariableObjectSlots =
 			objectSlots.isNotEmpty()
-				&& objectSlots[objectSlots.size - 1].fieldName().endsWith("_")
+				&& objectSlots[objectSlots.size - 1].fieldName.endsWith("_")
 		numberOfFixedObjectSlots =
 			objectSlots.size - if (hasVariableObjectSlots) 1 else 0
 		val integerSlots: Array<out IntegerSlotsEnum> =
@@ -331,30 +336,21 @@ abstract class AbstractDescriptor protected constructor (
 				emptyDebugIntegerSlots
 		hasVariableIntegerSlots =
 			integerSlots.isNotEmpty()
-				&& integerSlots[integerSlots.size - 1].fieldName().endsWith("_")
+				&& integerSlots[integerSlots.size - 1].fieldName.endsWith("_")
 		numberOfFixedIntegerSlots =
 			integerSlots.size - if (hasVariableIntegerSlots()) 1 else 0
 	}
 
 	/**
-	 * A non-enum [ObjectSlotsEnum] that can be instantiated at will.
-	 * Useful for customizing debugger views of objects.
-	 *
-	 * @property
-	 *   The slot name.
-	 *
-	 * @constructor
-	 *
-	 * Create a new artificial slot with the given name.
-	 *
-	 * @param name
-	 *   The name of the slot.
+	 * An [ObjectSlotsEnum] that can be passed as a dummy, with explicit ordinal
+	 * and name when constructing debugger views of objects.
 	 */
-	class DebuggerObjectSlots (
-		val name: String
-	) : ObjectSlotsEnum {
-		override fun fieldName(): String = name
-		override fun fieldOrdinal(): Int = 0
+	enum class DebuggerObjectSlots : ObjectSlotsEnum {
+		/**
+		 * The debugger view is the only place this occurs, and an explicit
+		 * ordinal and name should be passed when instantiating the helpers.
+		 */
+		DUMMY_DEBUGGER_SLOT
 	}
 
 	/**
@@ -570,12 +566,8 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun create (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit = { }): AvailObject
-	{
-		val value = newIndexedDescriptor(indexedSlotCount, this)
-		value.init()
-		return value
-	}
+		init: AvailObject.()->Unit = { }
+	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).apply(init)
 
 	/**
 	 * Create a new [object][AvailObject] whose [descriptor][AbstractDescriptor]
@@ -589,11 +581,10 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun createImmutable (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit): AvailObject
-	{
-		val value = newIndexedDescriptor(indexedSlotCount, this)
-		value.init()
-		return value.makeImmutable().apply { makeSubobjectsImmutable() }
+		init: AvailObject.()->Unit
+	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).run {
+		init()
+		makeImmutable()
 	}
 
 	/**
@@ -608,11 +599,10 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	inline fun createShared (
 		indexedSlotCount: Int = 0,
-		init: AvailObject.()->Unit): AvailObject
-	{
-		val value = newIndexedDescriptor(indexedSlotCount, this)
-		value.init()
-		return value.makeShared().apply { makeSubobjectsShared() }
+		init: AvailObject.()->Unit
+	): AvailObject = newIndexedDescriptor(indexedSlotCount, this).run {
+		init()
+		makeShared()
 	}
 
 	/**
@@ -687,7 +677,7 @@ abstract class AbstractDescriptor protected constructor (
 			{
 				val intSlot = slot as IntegerSlotsEnum
 				newlineTab(indent)
-				val slotName = intSlot.fieldName()
+				val slotName = intSlot.fieldName
 				val bitFields = bitFieldsFor(intSlot)
 				if (slotName[slotName.length - 1] == '_')
 				{
@@ -735,7 +725,7 @@ abstract class AbstractDescriptor protected constructor (
 			{
 				newlineTab(indent)
 				val objectSlot = slot as ObjectSlotsEnum
-				val slotName = objectSlot.fieldName()
+				val slotName = objectSlot.fieldName
 				if (slotName[slotName.length - 1] == '_')
 				{
 					val subscript = i - objectSlots.size + 1
@@ -757,52 +747,45 @@ abstract class AbstractDescriptor protected constructor (
 		}
 	}
 
-	override fun toString () = buildString {
-		val thisClass = this@AbstractDescriptor.javaClass
-		append(thisClass.simpleName)
-		val supers = mutableListOf<Class<*>>()
-		var cls: Class<*> = thisClass
-		while (cls != Any::class.java)
+	override fun toString (): String
+	{
+		val members = mutableListOf<KProperty1<out AbstractDescriptor, *>>()
+		var cls: KClass<*> = this::class
+		do
 		{
-			supers.add(0, cls) // top-down
-			cls = cls.superclass
+			members.addAll(0, cls.declaredMemberProperties.cast()) // top-down
+			cls = cls.supertypes.map { it.classifier }
+				.filterIsInstance<KClass<*>>()
+				.single()
 		}
-		var fieldCount = 0
-		supers.forEach { sup ->
-			sup.declaredFields.forEach { f ->
-				if (!Modifier.isStatic(f.modifiers))
-				{
-					fieldCount++
-					if (fieldCount == 1)
-					{
-						append("(")
-					}
-					else
-					{
-						append(", ")
-					}
-					append(f.name)
-					append("=")
+		while (cls != Any::class)
+		members.remove(AbstractDescriptor::unsupported)
+		members.remove(AbstractDescriptor::allocationStat)
+		members.remove(AbstractDescriptor::debugIntegerSlots)
+		members.remove(AbstractDescriptor::debugObjectSlots)
+		members.remove(AbstractDescriptor::hasVariableIntegerSlots)
+		members.remove(AbstractDescriptor::hasVariableObjectSlots)
+		members.remove(AbstractDescriptor::numberOfFixedIntegerSlots)
+		members.remove(AbstractDescriptor::numberOfFixedObjectSlots)
+		members.remove(AbstractDescriptor::isMutable)
+		members.remove(AbstractDescriptor::isShared)
+		return this::class.simpleName +
+			members.joinToString(", ", "(", ")") { m ->
+				"${m.name}=" +
 					try
 					{
-						append(f[this])
-					}
-					catch (e: IllegalArgumentException)
+						m.javaGetter?.invoke(this)
+					} catch (e: IllegalArgumentException)
 					{
-						append("(inaccessible)")
-					}
-					catch (e: IllegalAccessException)
+						"(inaccessible)"
+					} catch (e: IllegalAccessException)
 					{
-						append("(inaccessible)")
+						"(inaccessible)"
+					} catch (e: InvocationTargetException)
+					{
+						"$e: TRACE=${e.stackTraceToString()}"
 					}
-				}
 			}
-		}
-		if (fieldCount > 0)
-		{
-			append(")")
-		}
-		return toString()
 	}
 
 	/**
@@ -1487,10 +1470,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		value: Int)
 
-	abstract fun o_HasKey (
-		self: AvailObject,
-		keyObject: A_BasicObject): Boolean
-
 	abstract fun o_DefinitionsAtOrBelow (
 		self: AvailObject,
 		argRestrictions: List<TypeRestriction>): List<A_Definition>
@@ -1593,9 +1572,9 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		argumentList: List<A_BasicObject>): A_Definition
 
-	abstract fun o_MapAt (
+	abstract fun o_MapAtOrNull (
 		self: AvailObject,
-		keyObject: A_BasicObject): AvailObject
+		keyObject: A_BasicObject): AvailObject?
 
 	abstract fun o_MapAtPuttingCanDestroy (
 		self: AvailObject,
@@ -2755,7 +2734,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ScanSubobjects (
 		self: AvailObject,
-		visitor: AvailSubobjectVisitor)
+		visitor: (AvailObject) -> AvailObject)
 
 	/**
 	 * Answer an [iterator][Iterator] suitable for traversing the elements of
@@ -3688,6 +3667,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_FieldAt (self: AvailObject, field: A_Atom): AvailObject
 
+	abstract fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject
+
 	abstract fun o_FieldAtOrNull (
 		self: AvailObject,
 		field: A_Atom): AvailObject?
@@ -3699,6 +3680,8 @@ abstract class AbstractDescriptor protected constructor (
 		canDestroy: Boolean): A_BasicObject
 
 	abstract fun o_FieldTypeAt (self: AvailObject, field: A_Atom): A_Type
+
+	abstract fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type
 
 	abstract fun o_FieldTypeAtOrNull (self: AvailObject, field: A_Atom): A_Type?
 
@@ -3807,6 +3790,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_DefinitionBundle (self: AvailObject): A_Bundle
 
+	@Throws(SignatureException::class)
 	abstract fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,
@@ -3868,10 +3852,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		serializedObjects: A_Tuple)
 
-	abstract fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map)
-
 	abstract fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -3900,6 +3880,12 @@ abstract class AbstractDescriptor protected constructor (
 	): List<ModuleManifestEntry>
 
 	abstract fun o_SynthesizeCurrentLexingState(self: AvailObject): LexingState
+
+	abstract fun o_ObjectVariant(self: AvailObject): ObjectLayoutVariant
+
+	abstract fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant
+
+	abstract fun o_ModuleNameNative(self: AvailObject): String
 
 	companion object
 	{
@@ -4057,7 +4043,7 @@ abstract class AbstractDescriptor protected constructor (
 		{
 			try
 			{
-				val slotName = slot.fieldName()
+				val slotName = slot.fieldName
 				if (bitFields.isEmpty())
 				{
 					val slotMirror = slot.javaClass.getField(slotName)
@@ -4202,7 +4188,7 @@ abstract class AbstractDescriptor protected constructor (
 						describingClass.enumConstants.cast()!!
 					if (value in allValues.indices)
 					{
-						append(allValues[value.toInt()].fieldName())
+						append(allValues[value.toInt()].fieldName)
 					}
 					else
 					{
@@ -4221,7 +4207,7 @@ abstract class AbstractDescriptor protected constructor (
 					when (val lookedUp = lookupMethod(null, value.toInt()))
 					{
 						is IntegerEnumSlotDescriptionEnum ->
-							append(lookedUp.fieldName())
+							append(lookedUp.fieldName)
 						else -> append("null")
 					}
 				}

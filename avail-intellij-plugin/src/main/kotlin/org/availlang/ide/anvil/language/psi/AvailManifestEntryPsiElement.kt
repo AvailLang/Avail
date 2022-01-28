@@ -47,18 +47,18 @@ import org.availlang.ide.anvil.language.AnvilManifestEntryTreeElement
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
  * @property availFile
- *   The [AnvilFile] the [manifestEntry] comes from.
+ *   The [AvailFile] the [manifestEntry] comes from.
  * @property manifestEntry
  *   The [ModuleManifestEntry] that this [AvailManifestEntryPsiElement] represents.
  * @property myManager
  *   The active [PsiManager] for the active project.
  */
 class AvailManifestEntryPsiElement constructor(
-	availFile: AnvilFile,
+	availFile: AvailFile,
 	val manifestEntry: ModuleManifestEntry,
 	val manifestEntryIndex: Int,
 	myManager: PsiManager
-): AvailPsiElement(availFile, myManager)
+) : AvailPsiElement(availFile, myManager)
 {
 	override fun getName(): String =
 		manifestEntry.summaryText
@@ -95,7 +95,6 @@ class AvailManifestEntryPsiElement constructor(
 
 	override fun getTextOffset(): Int = textRange.startOffset
 
-
 	override fun getText(): String =
 		"${manifestEntry.summaryText} (${manifestEntry.kind})"
 
@@ -104,7 +103,7 @@ class AvailManifestEntryPsiElement constructor(
 
 	override fun getNode(): ASTNode
 	{
-		return AnvilManifestEntryTreeElement(this, manifestEntry)
+		return AnvilManifestEntryTreeElement(ETInvalid, this, manifestEntry)
 	}
 
 	override fun getManager(): PsiManager

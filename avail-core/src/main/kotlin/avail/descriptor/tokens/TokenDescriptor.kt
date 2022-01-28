@@ -205,9 +205,9 @@ open class TokenDescriptor protected constructor(
 		 */
 		WHITESPACE;
 
-		override fun fieldName(): String = name
+		override val fieldName get() = name
 
-		override fun fieldOrdinal(): Int = ordinal
+		override val fieldOrdinal get() = ordinal
 
 		/** The associated special atom. */
 		val atom: A_Atom =

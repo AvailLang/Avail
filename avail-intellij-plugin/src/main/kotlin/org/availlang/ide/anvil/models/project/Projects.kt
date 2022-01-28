@@ -857,75 +857,71 @@ data class AnvilProject constructor(
 	/**
 	 * Build the indicated Avail [module][ModuleDescriptor].
 	 *
+	 * @param availFile
+	 *   The [AnvilFile].
 	 * @param qualifiedModuleName
-	 *   The [fully qualified module name][ModuleName.qualifiedName].
+	 *   The
+	 *   [fully&#32;qualified&#32;module&#32;name][ModuleName.qualifiedName].
+	 * @param globalReporter
+	 *   A [global&#32;progress&#32;reporter][GlobalProgressReporter].
+	 * @param moduleReporter
+	 *   A
+	 *   [module&#32;compilation&#32;progress&#32;reporter][CompilerProgressReporter].
 	 * @param done
-	 *   The lambda to run after build is complete.
-	 * @return
+	 *   What to do when the whole build is complete.
 	 */
 	fun build (
 		availFile: AnvilFile,
 		qualifiedModuleName: String,
-		done: () -> Unit): Boolean
+		globalReporter: GlobalProgressReporter = { _, _ -> },
+		moduleReporter: CompilerProgressReporter = { _, _, _, _, _ -> },
+		done: () -> Unit = {}
+	)
 	{
-		if (isBuilding.getAndSet(true))
+		if (isBuilding.getAndSet(false))
 		{
-			return false
-		}
-		output.write(
-			StyledStreamEntry(
-			StreamStyle.COMMAND, "Build $qualifiedModuleName\n"))
-		val resolvedModuleName =
-			builder.runtime.moduleNameResolver.resolve(
+			output.write(
+				StyledStreamEntry(
+					StreamStyle.COMMAND, "Build $qualifiedModuleName\n"
+				)
+			)
+			val resolvedModuleName = builder.runtime.moduleNameResolver.resolve(
 				ModuleName(qualifiedModuleName), null)
-		resolvedModuleName.repository.reopenIfNecessary()
-		val progressReporter: CompilerProgressReporter =
-			{   moduleName,
-				moduleSizeInBytes,
-				currentByteProcessing,
-				lineNumber ->
-
-				// Add behavior to present compiler progress on module currently
-				// being compiled. This can be used to present the compilation
-				// progress on the currently compiling file.
-			}
-		val globalProgressReporter: GlobalProgressReporter =
-			{ bytesCompiled, totalBytesToCompile ->
-				// Add behavior to present total compiler progress on all
-				// modules being compiled in the course of compiling target
-				// module. This can be used to show a counter counting up:
-				// "$bytesCompiled / $totalBytesToCompile"
-			}
-		val start = System.currentTimeMillis()
-		builder.buildTargetThen(
-			resolvedModuleName,
-			progressReporter,
-			globalProgressReporter,
-			object : SimpleProblemHandler
-			{
-				override fun handleGeneric(
-					problem: Problem,
-					decider: (Boolean) -> Unit)
+			resolvedModuleName.repository.reopenIfNecessary()
+			val start = System.currentTimeMillis()
+			builder.buildTargetThen(
+				resolvedModuleName,
+				moduleReporter,
+				globalReporter,
+				object : SimpleProblemHandler
 				{
-					availFile.problems.add(problem)
-					builder.stopBuildReason = "Build failed"
-					val problemText = with(problem) {
-						val adjustedLine = lineNumber - 5
-						"$moduleName, line $adjustedLine:\n$this"
+					override fun handleGeneric(
+						problem: Problem,
+						decider: (Boolean)->Unit
+					)
+					{
+						availFile.problems.add(problem)
+						builder.stopBuildReason = "Build failed"
+						val problemText = with(problem) {
+							val adjustedLine = lineNumber - 5
+							"$moduleName, line $adjustedLine:\n$this"
+						}
+						output.write(StyledStreamEntry(
+							StreamStyle.ERR, problemText))
+						decider(false)
 					}
-					output.write(
-						StyledStreamEntry(StreamStyle.ERR, problemText))
-					decider(false)
 				}
+			) {
+				done()
+				output.write(
+					StyledStreamEntry(
+						StreamStyle.INFO,
+						"Build ended $qualifiedModuleName " +
+							"(${System.currentTimeMillis() - start} ms)")
+				)
+				isBuilding.set(false)
 			}
-		) {
-			done()
-			output.write(StyledStreamEntry(
-				StreamStyle.INFO,
-				"Build ended $qualifiedModuleName\n (${System.currentTimeMillis() - start} ms)"))
-			isBuilding.set(false)
 		}
-		return true
 	}
 
 	/**

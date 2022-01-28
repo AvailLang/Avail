@@ -539,7 +539,7 @@ class TypeConsistencyTest
 			 * The metatype for continuation types.
 			 */
 			private val CONTINUATION_META = Node(
-				"CONTINUATION_META", continuationMeta(), NONTYPE_META)
+				"CONTINUATION_META", continuationMeta, NONTYPE_META)
 
 			/**
 			 * The metatype for integer types.

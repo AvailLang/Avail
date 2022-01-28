@@ -51,7 +51,8 @@ import avail.utility.cast
  */
 class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 {
-	override fun operandType(): L2OperandType = L2OperandType.READ_FLOAT
+	override val operandType: L2OperandType
+		get() = L2OperandType.READ_FLOAT
 
 	/**
 	 * Construct a new `L2ReadFloatOperand` for the specified [L2SemanticValue]
@@ -70,13 +71,13 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 	 *   instruction.
 	 */
 	constructor(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			manifest: L2ValueManifest)
-		: super(
-			semanticValue,
-			restriction,
-			manifest.getDefinition<L2FloatRegister>(semanticValue, FLOAT_KIND))
+		semanticValue: L2SemanticValue,
+		restriction: TypeRestriction,
+		manifest: L2ValueManifest
+	) : super(
+		semanticValue,
+		restriction,
+		manifest.getDefinition<L2FloatRegister>(semanticValue, FLOAT_KIND))
 	{
 		assert(restriction.isUnboxedFloat)
 	}
@@ -94,10 +95,10 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 	 *   The [L2FloatRegister] being read by this operand.
 	 */
 	constructor(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			register: L2FloatRegister)
-		: super(semanticValue, restriction, register)
+		semanticValue: L2SemanticValue,
+		restriction: TypeRestriction,
+		register: L2FloatRegister
+	) : super(semanticValue, restriction, register)
 
 	override fun semanticValue(): L2SemanticUnboxedFloat =
 		super.semanticValue().cast()
@@ -113,5 +114,5 @@ class L2ReadFloatOperand : L2ReadOperand<L2FloatRegister>
 		dispatcher.doOperand(this)
 	}
 
-	override fun registerKind() = FLOAT_KIND
+	override val registerKind get() = FLOAT_KIND
 }

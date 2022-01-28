@@ -145,7 +145,7 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	 * @return
 	 *   The [RegisterKind].
 	 */
-	abstract fun registerKind(): RegisterKind
+	abstract val registerKind: RegisterKind
 
 	/**
 	 * Answer the [L2WriteOperand] that provided the value that this operand is
@@ -258,21 +258,20 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 	fun definitionSkippingMoves(
 		bypassImmutables: Boolean): L2Instruction
 	{
-		var other = definition().instruction()
+		var other = definition().instruction
 		while (true)
 		{
-			val op = other.operation()
+			val op = other.operation
 			other = when
 			{
-				op is L2_MOVE<*,*,*, *> ->
+				op is L2_MOVE<*, *, *, *> ->
 				{
-					op.sourceOf(other).definition().instruction()
+					op.sourceOf(other).definition().instruction
 				}
 				bypassImmutables && op is L2_MAKE_IMMUTABLE ->
 				{
 					L2_MAKE_IMMUTABLE.sourceOfImmutable(other).definition()
-						.instruction()
-
+						.instruction
 				}
 				else -> return other
 			}
@@ -303,14 +302,14 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 		// Either the write must happen inside the block we're moving from, or
 		// it must have come in along the edges, and is therefore in each
 		// incoming edge's manifest.
-		val thisBlock = instruction().basicBlock()
+		val thisBlock = instruction.basicBlock()
 		for (def in register.definitions())
 		{
-			if (def.instruction().basicBlock() == thisBlock)
+			if (def.instruction.basicBlock() == thisBlock)
 			{
 				// Ignore ghost instructions that haven't been fully removed
 				// yet, during placeholder substitution.
-				if (thisBlock.instructions().contains(def.instruction()))
+				if (thisBlock.instructions().contains(def.instruction))
 				{
 					return def.semanticValues() to def.restriction()
 				}
@@ -371,49 +370,23 @@ abstract class L2ReadOperand<R : L2Register> protected constructor(
 			{
 				earliestBoxed = def
 			}
-			val instruction = def.instruction()
-			if (instruction.operation().isMove)
+			val instruction = def.instruction
+			if (instruction.operation.isMove)
 			{
-				val operation = instruction.operation()
+				val operation = instruction.operation
 					.cast<L2Operation?, L2_MOVE<*, *, *, *>>()
 				def = operation.sourceOf(instruction).definition()
 				continue
 			}
 			//TODO: Trace back through L2_[BOX|UNBOX]_[INT|FLOAT], etc.
 			if (bypassImmutables
-				&& instruction.operation() === L2_MAKE_IMMUTABLE)
+				&& instruction.operation === L2_MAKE_IMMUTABLE)
 			{
 				def = L2_MAKE_IMMUTABLE.sourceOfImmutable(instruction)
 					.definition()
 				continue
 			}
 			return earliestBoxed!!
-		}
-	}
-
-	/**
-	 * To accommodate code motion, deletion, and replacement, we sometimes have
-	 * to adjust the [semanticValue] to one we know is in scope.
-	 *
-	 * @param replacementSemanticValue
-	 *   The [L2SemanticValue] that should replace the current [semanticValue].
-	 */
-	fun updateSemanticValue(replacementSemanticValue: L2SemanticValue)
-	{
-		semanticValue = replacementSemanticValue
-	}
-
-	/**
-	 * Replace my register with a fresh one that has no writers.
-	 */
-	override fun replaceConstantRegisters()
-	{
-		if (restriction().constantOrNull !== null)
-		{
-			val oldRegister = register()
-			oldRegister.removeUse(this)
-			register = createNewRegister()
-			register.addUse(this)
 		}
 	}
 

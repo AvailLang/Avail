@@ -53,7 +53,7 @@ import avail.server.io.AvailServerChannel
 class VersionCommandMessage constructor(
 	val version: Int) : CommandMessage()
 {
-	override val command = TextCommand.VERSION
+	override val command get() = TextCommand.VERSION
 
 	override fun processThen(
 		channel: AvailServerChannel,

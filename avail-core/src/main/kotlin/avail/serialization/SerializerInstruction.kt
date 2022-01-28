@@ -59,6 +59,12 @@ internal class SerializerInstruction constructor(
 	obj: A_BasicObject,
 	serializer: Serializer)
 {
+	val newObject: AvailObject? = when
+	{
+		operation.shouldCaptureObject -> obj as AvailObject
+		else -> null
+	}
+
 	/**
 	 * An array of subobjects resulting from decomposing the object.  These
 	 * correspond to the operation's [SerializerOperation.operands].
@@ -69,10 +75,10 @@ internal class SerializerInstruction constructor(
 	 * The index of this instruction in the list of instructions produced by a
 	 * [Serializer].
 	 */
-	internal var index = -1
+	internal var index = Int.MIN_VALUE
 		set (newValue)
 		{
-			assert(field == -1)
+			assert(field == Int.MIN_VALUE)
 			field = newValue
 		}
 
@@ -80,7 +86,7 @@ internal class SerializerInstruction constructor(
 	 * Whether this instruction has been assigned an instruction index, which
 	 * happens when the instruction is written.
 	 */
-	val hasBeenWritten: Boolean get() = index >= 0
+	val hasBeenWritten: Boolean get() = index != Int.MIN_VALUE
 
 	/**
 	 * The number of subobjects that this instruction has.

@@ -34,38 +34,31 @@ package org.availlang.ide.anvil.language
 
 import com.intellij.lang.ASTNode
 import com.intellij.lang.ParserDefinition
-import com.intellij.lang.PsiParser
-import com.intellij.lexer.EmptyLexer
-import com.intellij.lexer.Lexer
 import com.intellij.openapi.project.Project
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
-import com.intellij.psi.PsiFile
-import com.intellij.psi.tree.IFileElementType
-import com.intellij.psi.tree.TokenSet
-import org.availlang.ide.anvil.language.psi.AvailFileElementType
-import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.language.psi.AvailFile
+import org.availlang.ide.anvil.language.psi.AvailRootElementType
+import org.availlang.ide.anvil.language.psi.commentTokenTypes
+import org.availlang.ide.anvil.language.psi.stringLiteralTokenTypes
 
 /**
- * A `AvailParserDefinition` is TODO: Document this!
+ * An [AnvilParserDefinition] provides facilities for constructing an
+ * [AvailFile], [AnvilLexer], and [AnvilParser].
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
-class AnvilParserDefinition: ParserDefinition
+class AnvilParserDefinition : ParserDefinition
 {
-	override fun createLexer(project: Project?): Lexer =
-		EmptyLexer()
+	override fun getFileNodeType() = AvailRootElementType
+	override fun getCommentTokens() = commentTokenTypes
+	override fun getStringLiteralElements() = stringLiteralTokenTypes
 
-	override fun createParser(project: Project?): PsiParser =
-		AnvilPsiParser()
+	override fun createFile(viewProvider: FileViewProvider) =
+		AvailFile(viewProvider)
 
-	// TODO build own IFileElementType as can do my own custom parsing
-	override fun getFileNodeType(): IFileElementType =
-		AvailFileElementType
-
-	override fun getCommentTokens(): TokenSet = TokenSet.EMPTY
-
-	override fun getStringLiteralElements(): TokenSet = TokenSet.EMPTY
+	override fun createLexer(project: Project?) = AnvilLexer(project!!)
+	override fun createParser(project: Project?) = AnvilParser()
 
 	override fun createElement(node: ASTNode?): PsiElement
 	{
@@ -78,7 +71,4 @@ class AnvilParserDefinition: ParserDefinition
 			error("$node not AvailFileElement")
 		}
 	}
-
-	override fun createFile(viewProvider: FileViewProvider): PsiFile =
-		AnvilFile(viewProvider)
 }

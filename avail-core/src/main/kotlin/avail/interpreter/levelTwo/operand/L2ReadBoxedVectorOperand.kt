@@ -60,15 +60,11 @@ class L2ReadBoxedVectorOperand constructor(
 	override fun clone(replacementElements: List<L2ReadBoxedOperand>) =
 		L2ReadBoxedVectorOperand(replacementElements)
 
-	override fun operandType(): L2OperandType = L2OperandType.READ_BOXED_VECTOR
+	override val operandType: L2OperandType
+		get() = L2OperandType.READ_BOXED_VECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{
 		dispatcher.doOperand(this)
-	}
-
-	override fun replaceConstantRegisters()
-	{
-		elements.forEach(L2Operand::replaceConstantRegisters)
 	}
 }

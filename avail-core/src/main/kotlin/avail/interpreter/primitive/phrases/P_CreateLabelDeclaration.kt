@@ -38,7 +38,7 @@ import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.ContinuationTypeDescriptor
-import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
+import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LABEL_PHRASE
@@ -70,6 +70,6 @@ object P_CreateLabelDeclaration : Primitive(2, CanInline, CannotFail)
 		functionType(
 			tuple(
 				TOKEN.o,
-				mostGeneralContinuationType()),
+				continuationMeta),
 			LABEL_PHRASE.mostGeneralType)
 }

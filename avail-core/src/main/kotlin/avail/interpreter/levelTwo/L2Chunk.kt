@@ -45,7 +45,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.methods.A_ChunkDependable
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.AvailObject
@@ -768,8 +768,7 @@ class L2Chunk private constructor(
 						val resolved =
 							AvailRuntime.currentRuntime().moduleNameResolver
 								.resolve(
-									ModuleName(
-										module.moduleName.asNativeString()),
+									ModuleName(module.moduleNameNative),
 									null)
 						sourceFileName =
 							resolved.resolverReference.uri.toString()

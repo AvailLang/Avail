@@ -135,7 +135,7 @@ internal class DeadCodeAnalyzer constructor(
 			while (--index >= 0)
 			{
 				val instruction = instructions[index]
-				if (instruction.operation().isPhi)
+				if (instruction.operation.isPhi)
 				{
 					break
 				}
@@ -162,22 +162,26 @@ internal class DeadCodeAnalyzer constructor(
 				{
 					val phiInstruction = instructions[index]
 					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-						phiInstruction.operation().cast()
+						phiInstruction.operation.cast()
 					val readOperands =
 						phiOperation.sourceRegisterReads(phiInstruction)
 					for (predecessorIndex in 0 until predecessorCount)
 					{
 						val entities = entitiesByPredecessor[predecessorIndex]
 						if (entities.removeAll(
-								dataCouplingMode.writeEntitiesOf(phiInstruction))
-							|| phiInstruction.hasSideEffect)
+								dataCouplingMode.writeEntitiesOf(phiInstruction)
+							)
+							|| phiInstruction.hasSideEffect
+						)
 						{
 							liveInstructions.add(phiInstruction)
 							val readOperand = readOperands[predecessorIndex]
 							dataCouplingMode.addEntitiesFromRead(
-								readOperand, entities)
+								readOperand, entities
+							)
 							entities.addAll(
-								dataCouplingMode.readEntitiesOf(readOperand))
+								dataCouplingMode.readEntitiesOf(readOperand)
+							)
 						}
 					}
 					index--
@@ -206,7 +210,7 @@ internal class DeadCodeAnalyzer constructor(
 				{
 					edgeNeeds[predecessor] = entities
 					val predecessorBlock =
-						predecessor.instruction().basicBlock()
+						predecessor.instruction.basicBlock()
 					if (predecessorBlock.successorEdges()
 							.all(edgeNeeds::containsKey))
 					{

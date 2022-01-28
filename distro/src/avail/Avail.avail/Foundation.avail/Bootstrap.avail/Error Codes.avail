@@ -1,6 +1,6 @@
 /*
  * Error Codes.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/26/21, 10:06 PM
+ * * Last Generated: 1/6/22, 1:23 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -79,6 +79,7 @@ Names
 	/*   8 */ "cannot-swap-contents-of-differently-typed-variables code",
 	/*  51 */ "case-insensitive-expression-canonization code",
 	/*  14 */ "continuation-expected-stronger-type code",
+	/*  28 */ "declaration-does-not-have-initializer code",
 	/*  36 */ "declaration-kind-does-not-support-assignment code",
 	/*  37 */ "declaration-kind-does-not-support-reference code",
 	/*  97 */ "deserialization-failed code",
@@ -290,6 +291,11 @@ Primitive "invalid-primitive-name code" is
 Primitive "styler-already-set-by-this-module code" is
 [
 	27
+];
+
+Primitive "declaration-does-not-have-initializer code" is
+[
+	28
 ];
 
 Primitive "too-large-to-represent code" is

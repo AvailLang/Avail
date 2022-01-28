@@ -82,8 +82,8 @@ object P_Type : Primitive(1, CannotFail, CanFold, CanInline)
 	{
 		// Note that we exclude the values ⊥ and ⊤, as these are not the exact
 		// types of any objects.
-		val writer = translator.generator.boxedWriteTemp(
-			arguments[0].restriction().metaRestriction())
+		val restriction = arguments[0].restriction().metaRestriction()
+		val writer = translator.generator.boxedWriteTemp(restriction)
 		translator.addInstruction(
 			L2_GET_TYPE,
 			arguments[0],

@@ -93,8 +93,14 @@ Public method "_'s⁇subphrases" is
 [
 	value : declaration phrase
 |
-	expr : expression phrase;
-	if expr ?= value's initialization then [<expr>] else [<>]
+	if value has initializing expression then
+	[
+		<value's initializing expression>
+	]
+	else
+	[
+		<>
+	]
 ];
 
 Public method "_'s⁇subphrases" is

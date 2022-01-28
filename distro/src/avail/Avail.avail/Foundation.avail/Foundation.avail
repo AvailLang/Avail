@@ -295,6 +295,7 @@ Extends
 		"_bit∨_",
 		"_bit⊕_",
 		"_has definition for_",
+		"_has initializing expression",
 		"_has public name_",
 		"_has result",
 		"_has terminated",
@@ -334,6 +335,7 @@ Extends
 		"_'s⁇genuine upper bound",
 		"_'s⁇hash",
 		"_'s⁇implementation",
+		"_'s⁇initializing expression",
 		"_'s⁇instances",
 		"_'s⁇issuing module",
 		"_'s⁇key type",
@@ -479,7 +481,7 @@ Extends
 		"invalid-special-object-number code",
 		"key-not-found code",
 		"loading-is-over code",
-		"lookup macro_for arguments_",
+		"lookup macro_with phrases_",
 		"macro-argument-must-be-a-phrase code",
 		"macro-must-return-a-phrase code",
 		"macro-prefix-function-argument-must-be-a-phrase code",
@@ -519,7 +521,6 @@ Extends
 	),
 	"Casts" =
 	(
-		"_`?→_†",
 		"_`?→_†else_",
 		"Cast|cast each of_into_",
 		"Cast|cast each of_into_else_",
@@ -641,7 +642,8 @@ Extends
 		"While_do_alternate with_",
 		"here",
 		"(_)",
-		"((_))"
+		"((_))",
+		"_`?→_†"
 	),
 	"Early Conditionals" =
 	(
@@ -689,9 +691,6 @@ Extends
 		"Java-method-not-available exception",
 		"Java-method-reference-is-ambiguous exception",
 		"Raise_",
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
-			→ "Reject parse(confidence=_),expected:_",
 		"Unwind fiber and run_",
 		"a Java exception caused by_",
 		"abstract-method-definition exception",
@@ -820,7 +819,6 @@ Extends
 		"primitive-fallibility-disagrees-with-failure-variable exception",
 		"question-mark-must-follow-a-simple-group exception",
 		"redefined-with-same-argument-types exception",
-		"restricted send_with_:_",
 		"result-disagreed-with-expected-type exception",
 		"result-type-should-covary-with-arguments exception",
 		"runaway-format-variable exception",
@@ -1101,6 +1099,7 @@ Extends
 	"Phrases" =
 	(
 		"Evaluate|evaluate_",
+		"restricted send_with_:_",
 		"this token:…",
 		"_compiled",
 		"‘_’",
@@ -1109,6 +1108,8 @@ Extends
 		"`«<«_‡,»>`»",
 		"`«[_`|_]:_`»",
 		"`«[_]:_`»",
+		"⟦§_!⟧",
+		"⦊§_⦉",
 		"_token",
 		"_'s⁇classifier"
 	),
@@ -1336,12 +1337,16 @@ Extends
 		"(_↑--)", "(_--)",
 		"(--_↑)", "(--_)",
 		"_↑`?=_", "_`?=_",
-		"_↑`?=_'s⁇initialization", "_`?=_'s⁇initialization",
 		"_↑is assigned", "_is assigned",
 		"_is unassigned",
 		"↓_else_",
 		"`↑_↑",
 		"«…‡,»::=_;"
+	),
+	"Very Early Definers" =
+	(
+		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
+		"Reject parse(confidence=_),expected:_"
 	)
 Body
 

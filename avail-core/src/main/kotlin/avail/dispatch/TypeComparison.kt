@@ -139,6 +139,21 @@ enum class TypeComparison
 				}
 				allBelow = allBelow and restriction.containsEntireType(argType)
 				allAbove = allAbove and restriction.containedByType(argType)
+				//val knownRestriction = knownArgumentRestrictions[i - 1]
+				//val criterionArgumentType = bestSignature!!.typeAtIndex(i)
+				//if (knownRestriction.containedByType(criterionArgumentType))
+				//{
+				//	// Don't use this position, because it will always be true.
+				//	continue
+				//}
+				//if (!knownRestriction.intersectsType(criterionArgumentType))
+				//{
+				//	// Don't use this position, because it will always be true.
+				//	continue
+				//}
+				//positionToTest = i
+				//selectedTypeToTest = criterionArgumentType
+				//break
 			}
 			return if (allBelow)
 				if (allAbove) SAME_TYPE else PROPER_DESCENDANT_TYPE
@@ -165,9 +180,9 @@ enum class TypeComparison
 			argumentRestrictions: List<TypeRestriction>,
 			someType: A_Type): TypeComparison
 		{
-			assert(argumentRestrictions.size == 1)
 			val restriction = argumentRestrictions[0]
-			val intersection = restriction.intersectionWithType(someType)
+			val elementType = someType.typeAtIndex(1)
+			val intersection = restriction.intersectionWithType(elementType)
 			if (intersection.type.phraseTypeExpressionType.isBottom)
 			{
 				// For the purpose of parsing, if the intersection of these
@@ -176,8 +191,8 @@ enum class TypeComparison
 				// allowed to yield ⊥.
 				return DISJOINT_TYPE
 			}
-			val below = restriction.containsEntireType(someType)
-			val above = restriction.containedByType(someType)
+			val below = restriction.containsEntireType(elementType)
+			val above = restriction.containedByType(elementType)
 			return if (below)
 				if (above) SAME_TYPE else PROPER_DESCENDANT_TYPE
 			else

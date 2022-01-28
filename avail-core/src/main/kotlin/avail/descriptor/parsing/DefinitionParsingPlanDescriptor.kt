@@ -62,6 +62,7 @@ import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.BUND
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.DEFINITION
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.ObjectSlots.PARSING_INSTRUCTIONS
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -74,6 +75,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION_PARSING_PLAN
 import avail.descriptor.types.TypeTag
+import avail.exceptions.SignatureException
 import avail.utility.StackPrinter
 import java.util.IdentityHashMap
 
@@ -177,9 +179,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("Symbolic instructions"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					descriptionsList.toTypedArray()))
+					descriptionsList.toTypedArray(),
+					slotName = "Symbolic instructions"))
 		}
 		catch (e: Exception)
 		{
@@ -187,9 +190,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 			stackStrings.mapIndexedTo(fields) { lineNumber, line ->
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("ERROR while producing instructions"),
+					DUMMY_DEBUGGER_SLOT,
 					lineNumber + 1,
-					line)
+					line,
+					"ERROR while producing instructions")
 			}
 		}
 		return fields.toTypedArray()
@@ -253,7 +257,10 @@ class DefinitionParsingPlanDescriptor private constructor(
 		 *   The definition for this plan.
 		 * @return
 		 *   A new [A_DefinitionParsingPlan].
+		 * @throws SignatureException
+		 *   If the bundle name is unparseable for the given definition body.
 		 */
+		@Throws(SignatureException::class)
 		fun newParsingPlan(
 			bundle: A_Bundle,
 			definition: A_Sendable

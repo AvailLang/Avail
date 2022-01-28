@@ -650,7 +650,10 @@ constructor(messageName: A_String) {
 	 * @return
 	 *   The tuple of integers encoding parse instructions for this message and
 	 *   argument types.
+	 * @throws SignatureException
+	 *   If a plan cannot be constructed for this name and phrase type.
 	 */
+	@Throws(SignatureException::class)
 	fun instructionsTupleFor(phraseType: A_Type): A_Tuple {
 		val generator = InstructionGenerator()
 		rootSequence.emitOn(phraseType, generator, WrapState.PUSHED_LIST)
@@ -695,8 +698,9 @@ constructor(messageName: A_String) {
 	fun highlightedNameFor(phraseType: A_Type, pc: Int): String {
 		val string = messageName.asNativeString()
 		val expressions = originExpressionsFor(phraseType)
-		val zeroBasedPosition = if (pc == expressions.size + 1) string.length
-		else expressions[pc - 1].positionInName - 1
+		val zeroBasedPosition =
+			if (pc == expressions.size + 1) string.length
+			else expressions[pc - 1].positionInName - 1
 		val annotatedString = string.replaceRange(
 			zeroBasedPosition until zeroBasedPosition,
 			CompilerDiagnostics.errorIndicatorSymbol)

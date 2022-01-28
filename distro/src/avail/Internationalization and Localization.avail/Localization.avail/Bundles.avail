@@ -171,10 +171,7 @@ is
 					[
 						s : nonempty string
 					|
-						keyDecls ++= <
-							send $"«Public»?_is a new localization key"
-							with «<‘false’, ‘s’>» : ⊤ → statement phrase
-						>;
+						keyDecls ++= <⟦⦊‘s’⦉ is a new localization key;⟧>;
 						atom for s
 					]’,      /* field name */
 				‘valueType’, /* field value */

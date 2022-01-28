@@ -73,7 +73,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
 		// val write: L2WriteBoxedOperand = instruction.operand(1)
 
@@ -81,7 +81,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		// the function is still mutable, since the generated JVM code will make
 		// the outer variable immutable.
 		val earlierInstruction = read.definitionSkippingMoves(true)
-		return earlierInstruction.operation().extractFunctionOuter(
+		return earlierInstruction.operation.extractFunctionOuter(
 			earlierInstruction,
 			functionRegister,
 			outerIndex,
@@ -105,7 +105,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
 		val write = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
@@ -140,9 +140,9 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	 */
 	fun sourceOfImmutable(instruction: L2Instruction): L2ReadBoxedOperand
 	{
-		assert(instruction.operation() is L2_MAKE_IMMUTABLE)
+		assert(instruction.operation is L2_MAKE_IMMUTABLE)
 		{
-			"$instruction is an  ${instruction.operation()}"
+			"$instruction is an  ${instruction.operation}"
 		}
 		return instruction.operand<L2ReadBoxedOperand>(0).cast()
 	}
@@ -159,7 +159,7 @@ object L2_MAKE_IMMUTABLE : L2Operation(
 	 */
 	fun destinationOfImmutable(instruction: L2Instruction): L2WriteBoxedOperand
 	{
-		assert(instruction.operation() is L2_MAKE_IMMUTABLE)
+		assert(instruction.operation is L2_MAKE_IMMUTABLE)
 		return instruction.operand<L2WriteBoxedOperand>(1).cast()
 	}
 }

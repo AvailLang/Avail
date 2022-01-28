@@ -94,7 +94,7 @@ private constructor(
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val source: C = instruction.operand(0)
 		val destination: WR = instruction.operand(1)
 
@@ -123,7 +123,7 @@ private constructor(
 		generator: L2Generator): L2ReadBoxedOperand
 	{
 		// The exact function is known statically.
-		assert(this == instruction.operation() && this == boxed)
+		assert(this == instruction.operation && this == boxed)
 		val constantFunction: A_Function = constantOf(instruction)
 		return generator.boxedConstant(constantFunction.outerVarAt(outerIndex))
 	}
@@ -134,7 +134,7 @@ private constructor(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val constant: C = instruction.operand(0)
 		val destination: WR = instruction.operand(1)
 		renderPreamble(instruction, builder)
@@ -152,7 +152,7 @@ private constructor(
 		generator: L2Generator
 	): L2ReadBoxedOperand
 	{
-		val instruction = tupleReg.definition().instruction()
+		val instruction = tupleReg.definition().instruction
 		val source: L2ConstantOperand = instruction.operand(0)
 		// val destination: WR = instruction.operand(1)
 
@@ -240,7 +240,7 @@ private constructor(
 		 */
 		fun constantOf(instruction: L2Instruction): AvailObject
 		{
-			assert(instruction.operation() === boxed)
+			assert(instruction.operation === boxed)
 			val constant = instruction.operand<L2ConstantOperand>(0)
 			return constant.constant
 		}

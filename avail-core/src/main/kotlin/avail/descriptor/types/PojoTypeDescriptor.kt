@@ -36,9 +36,9 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -67,6 +67,7 @@ import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
+import avail.descriptor.tuples.RepeatedElementTupleDescriptor.Companion.createRepeatedElementTuple
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
@@ -82,12 +83,13 @@ import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FusedPojoTypeDescriptor.Companion.createFusedPojoType
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.nonnegativeInt32
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.exceptions.MarshalingException
-import org.availlang.cache.LRUCache
 import avail.utility.Mutable
 import avail.utility.cast
+import org.availlang.cache.LRUCache
 import java.lang.reflect.Constructor
 import java.lang.reflect.Executable
 import java.lang.reflect.Method
@@ -197,11 +199,9 @@ protected constructor(
 	{
 		init
 		{
-//			val vars: Array<TypeVariable<*>> = javaClass.getTypeParameters()
 			val vars = javaClass.typeParameters
-			for (i in vars.indices)
-			{
-				put(vars[i].name, i)
+			vars.forEachIndexed { i, param ->
+				put(param.name, i)
 			}
 		}
 	}
@@ -559,8 +559,10 @@ protected constructor(
 			// ancestry with java.lang.Object.
 			val canon = Canon()
 			val ancestors = Mutable(emptyMap)
-			ancestors.value = ancestors.value.mapAtPuttingCanDestroy(
-				canon[Any::class.java]!!, emptyTuple, true)
+			ancestors.update {
+				mapAtPuttingCanDestroy(
+					canon[Any::class.java]!!, emptyTuple, true)
+			}
 			computeAncestry(key.javaClass, key.typeArgs, ancestors, canon)
 			return UnfusedPojoTypeDescriptor.createUnfusedPojoType(
 				canon[key.javaClass]!!, ancestors.value)
@@ -601,24 +603,11 @@ protected constructor(
 			var unionAncestors = emptyMap
 			for (javaClass in union)
 			{
-				val params: A_Tuple =
-					if (ancestors.hasKey(javaClass))
-					{
-						ancestors.mapAt(javaClass)
-					}
-					else
-					{
-						otherAncestors.mapAt(javaClass)
-					}
+				val params: A_Tuple = ancestors.mapAtOrNull(javaClass) ?:
+					otherAncestors.mapAt(javaClass)
 				val otherParams: A_Tuple =
-					if (otherAncestors.hasKey(javaClass))
-					{
-						otherAncestors.mapAt(javaClass)
-					}
-					else
-					{
+					otherAncestors.mapAtOrNull(javaClass) ?:
 						ancestors.mapAt(javaClass)
-					}
 				val limit = params.tupleSize
 				assert(limit == otherParams.tupleSize)
 				val intersectionParams = mutableListOf<A_Type>()
@@ -904,10 +893,8 @@ protected constructor(
 						Void.TYPE -> Types.TOP.o
 						java.lang.Boolean::class.javaPrimitiveType ->
 							booleanType
-						java.lang.Byte::class.javaPrimitiveType ->
-							byteRange()
-						java.lang.Short::class.javaPrimitiveType ->
-							shortRange()
+						java.lang.Byte::class.javaPrimitiveType -> byteRange()
+						java.lang.Short::class.javaPrimitiveType -> shortRange()
 						java.lang.Integer::class.javaPrimitiveType -> intRange()
 						java.lang.Long::class.javaPrimitiveType -> longRange()
 						java.lang.Float::class.javaPrimitiveType ->
@@ -954,11 +941,8 @@ protected constructor(
 			// variables.
 			if (type is TypeVariable<*>)
 			{
-				val decl = type.genericDeclaration
-				val javaClass: Class<*>
 				// class Foo<X> { ... }
-				javaClass =
-					when (decl)
+				val javaClass = when (val decl = type.genericDeclaration)
 					{
 						is Class<*> -> decl
 						is Constructor<*> -> decl.declaringClass
@@ -966,30 +950,22 @@ protected constructor(
 						else ->
 						{
 							assert(false) {
-								("There should only be three contexts that can define a "
-								 + "type variable!")
+								"There should only be three contexts that " +
+									"can define a type variable!"
 							}
 							throw RuntimeException()
 						}
 					}
-				val name =
-					stringFrom("${javaClass.name}.${type.name}")
-				if (typeVars.hasKey(name))
-				{
-					// The type variable was bound, so answer the binding.
-					return typeVars.mapAt(name)
-				}
+				val name = stringFrom("${javaClass.name}.${type.name}")
+				// If the type variable is bound, answer the binding.
+				typeVars.mapAtOrNull(name)?.let { return it }
 				// The type variable was unbound, so compute the upper bound.
-				var union = bottom
-				for (bound in type.bounds)
-				{
-					union = union.typeIntersection(resolvePojoType(
-						bound, typeVars))
+				return type.bounds.fold(bottom) { union, bound ->
+					union.typeIntersection(resolvePojoType(bound, typeVars))
 				}
-				return union
 			}
-			// If type is a parameterized type, then recursively resolve it using
-			// the map of type variables.
+			// If type is a parameterized type, then recursively resolve it
+			// using the map of type variables.
 			if (type is ParameterizedType)
 			{
 				val unresolved = type.actualTypeArguments
@@ -1056,8 +1032,8 @@ protected constructor(
 		 *   A Java class or interface (encountered during processing of the
 		 *   reference type's ancestry).
 		 * @param vars
-		 *   The reference type's type variable map. Indices are specified
-		 *   relative to ...
+		 *   The reference type's type variable map. Indices are the order in
+		 *   which new type variables are introduced in [target].
 		 * @param typeArgs
 		 *   The reference type's type arguments.
 		 * @param canon
@@ -1188,8 +1164,9 @@ protected constructor(
 			canon: Canon)
 		{
 			val javaClass = canon.canonize(target)
-			ancestry.value = ancestry.value.mapAtPuttingCanDestroy(
-				javaClass, typeArgs, true)
+			ancestry.update {
+				mapAtPuttingCanDestroy(javaClass, typeArgs, true)
+			}
 			// Recursively accumulate the class ancestry.
 			val superclass = target.superclass
 			if (superclass !== null)
@@ -1259,21 +1236,16 @@ protected constructor(
 		 */
 		fun pojoTypeForClass(target: Class<*>): AvailObject
 		{
-			val paramCount = target.typeParameters.size
-			val params: List<AvailObject> =
-				if (paramCount > 0)
-				{
-					Array(paramCount)
-					{
-						Types.ANY.o
-					}.toList()
-				}
-				else
-				{
-					emptyList()
-				}
+			if (target.isArray)
+			{
+				return arrayPojoType(
+					resolvePojoType(target.componentType!!, emptyMap),
+					nonnegativeInt32)
+			}
 			return pojoTypeForClassWithTypeArguments(
-				target, tupleFromList(params))
+				target,
+				createRepeatedElementTuple(
+					target.typeParameters.size, Types.ANY.o))
 		}
 
 		/**

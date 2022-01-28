@@ -62,9 +62,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -278,7 +278,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					}
 				).guardedDo {
 					fileChannel.write(
-						currentBuffer, nextPosition, dummy, handler)
+						currentBuffer, nextPosition, Unit, handler)
 				}
 			}
 			else

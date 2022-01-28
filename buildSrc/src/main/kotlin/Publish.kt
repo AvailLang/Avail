@@ -31,7 +31,6 @@
  */
 
 import avail.build.Utility.formattedNow
-import org.gradle.api.DefaultTask
 
 /**
  * Contains state and functionality relative to publish Avail.

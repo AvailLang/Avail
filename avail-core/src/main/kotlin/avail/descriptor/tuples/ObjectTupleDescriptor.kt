@@ -392,7 +392,6 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 	private class ObjectTupleIterator constructor(
 		private val tuple: AvailObject) : Iterator<AvailObject>
 	{
-
 		/**
 		 * The size of the tuple.
 		 */

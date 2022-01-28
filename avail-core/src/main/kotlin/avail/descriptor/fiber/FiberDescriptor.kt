@@ -49,8 +49,8 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.phrases.A_Phrase
@@ -58,6 +58,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -651,9 +652,10 @@ class FiberDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("(HELPER)"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				helper))
+				helper,
+				slotName = "(HELPER)"))
 		return fields.toTypedArray()
 	}
 
@@ -1026,10 +1028,7 @@ class FiberDescriptor private constructor(
 				fiberGlobals.mapAt(SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom)
 			val bindings: A_Map =
 				clientData.mapAt(SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom)
-			return if (bindings.hasKey(name)) {
-				bindings.mapAt(name)
-			}
-			else null
+			return bindings.mapAtOrNull(name)
 		}
 
 		/**
@@ -1055,9 +1054,7 @@ class FiberDescriptor private constructor(
 			var bindings: A_Map = clientData.mapAt(compilerScopeMapKey)
 			val declarationName = declaration.token.string()
 			assert(declarationName.isString)
-			if (bindings.hasKey(declarationName)) {
-				return bindings.mapAt(declarationName)
-			}
+			bindings.mapAtOrNull(declarationName)?.let { return it }
 			bindings = bindings.mapAtPuttingCanDestroy(
 				declarationName, declaration, true)
 			clientData = clientData.mapAtPuttingCanDestroy(

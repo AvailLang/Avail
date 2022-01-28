@@ -32,7 +32,6 @@
 
 package avail.io
 
-import avail.io.SimpleCompletionHandler.Dummy
 import java.nio.channels.CompletionHandler
 
 /**
@@ -51,20 +50,12 @@ import java.nio.channels.CompletionHandler
 class SimpleCompletionHandler<V> constructor (
 	private val completed: SuccessHelper<V>.() -> Unit,
 	private val failed: FailureHelper<V>.() -> Unit
-) : CompletionHandler<V, Dummy>
+) : CompletionHandler<V, Unit>
 {
-	/** A dummy class to automatically provide as the attachment. */
-	class Dummy {
-		companion object {
-			/** The singleton dummy value. */
-			val dummy = Dummy()
-		}
-	}
-
-	override fun completed(result: V, attachment: Dummy) =
+	override fun completed(result: V, attachment: Unit) =
 		SuccessHelper(result, this).completed()
 
-	override fun failed(exc: Throwable, attachment: Dummy) =
+	override fun failed(exc: Throwable, attachment: Unit) =
 		FailureHelper(exc, this).failed()
 
 	/**
@@ -120,10 +111,6 @@ class SimpleCompletionHandler<V> constructor (
 		 *   The current [SimpleCompletionHandler] itself.
 		 */
 		class GuardHelper<V>(
-			val handler: SimpleCompletionHandler<V>
-		) {
-			/** The singleton dummy, for use as the attachment. */
-			val dummy get() = Dummy.dummy
-		}
+			val handler: SimpleCompletionHandler<V>)
 	}
 }

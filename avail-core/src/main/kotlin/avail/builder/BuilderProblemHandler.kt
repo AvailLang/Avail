@@ -86,7 +86,7 @@ internal open class BuilderProblemHandler constructor(
 			{ decider(false) }
 		).guardedDo {
 			availBuilder.textInterface.errorChannel.write(
-				formatted, dummy, handler)
+				formatted, Unit, handler)
 		}
 	}
 }

@@ -72,7 +72,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadIntOperand>(0)
 		val splitPoints = instruction.operand<L2ConstantOperand>(1)
 		//val edges = instruction.operand<L2PcVectorOperand>(2)
@@ -85,7 +85,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		renderOperandsStartingAt(instruction, 2, desiredTypes, builder)
 	}
 
-	override fun isPlaceholder(instruction: L2Instruction): Boolean = true
+	override val isPlaceholder get() = true
 
 	override fun generateReplacement(
 		instruction: L2Instruction,
@@ -95,7 +95,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		// search mechanism, we could just do a super call to leave this
 		// instruction intact, and then alter translateToJVM to generate the
 		// lookupswitch instruction.
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val generator = regenerator.targetGenerator
 		val value = regenerator.transformOperand(
 			instruction.operand<L2ReadIntOperand>(0))
@@ -140,6 +140,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		firstSplit: Int,
 		lastSplit: Int)
 	{
+		if (!generator.currentlyReachable()) return
 		if (firstSplit > lastSplit)
 		{
 			assert(firstSplit == lastSplit + 1)

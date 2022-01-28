@@ -110,8 +110,8 @@ object P_CreateContinuation : Primitive(5, CanFold, CanInline)
 				mostGeneralTupleType,
 				naturalNumbers,
 				variableTypeFor(
-					mostGeneralContinuationType())),
-			mostGeneralContinuationType())
+					mostGeneralContinuationType)),
+			mostGeneralContinuationType)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(

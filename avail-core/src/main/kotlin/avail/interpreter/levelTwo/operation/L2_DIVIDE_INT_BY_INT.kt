@@ -66,12 +66,12 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 	L2OperandType.PC.named("success", L2NamedOperandType.Purpose.SUCCESS))
 {
 	// It jumps for division by zero or out-of-range.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		//		final L2ReadIntOperand dividend = instruction.operand(0);
 		val divisor =
 			instruction.operand<L2ReadIntOperand>(1)
@@ -95,7 +95,7 @@ object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val dividend = instruction.operand<L2ReadIntOperand>(0)
 		val divisor = instruction.operand<L2ReadIntOperand>(1)
 		val quotient = instruction.operand<L2WriteIntOperand>(2)

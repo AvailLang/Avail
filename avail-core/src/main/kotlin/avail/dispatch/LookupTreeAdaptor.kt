@@ -33,18 +33,24 @@
 package avail.dispatch
 
 import avail.AvailRuntimeSupport.captureNanos
+import avail.descriptor.maps.A_Map
+import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.sizeRange
+import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.TypeTag
-import avail.dispatch.DecisionStep.ObjectLayoutVariantDecisionStep
 import avail.interpreter.levelTwo.operand.TypeRestriction
 
 /**
@@ -72,8 +78,7 @@ abstract class LookupTreeAdaptor<
 	abstract val emptyLeaf: LeafLookupTree<Element, Result>
 
 	/**
-	 * Convert from an [Element] to a suitable [A_Type] for
-	 * organizing the tree.
+	 * Convert from an [Element] to a suitable [A_Type] for organizing the tree.
 	 *
 	 * @param element
 	 *   The [Element].
@@ -129,6 +134,10 @@ abstract class LookupTreeAdaptor<
 	 *
 	 * @param element
 	 *   The element providing a signature.
+	 * @param signatureExtrasExtractor
+	 *   A function that extracts a list of [A_Type]s from the [Element], which
+	 *   should correspond with the extra values extracted from the value being
+	 *   looked up.
 	 * @param signatureBound
 	 *   The tuple type with which to intersect the result.
 	 * @return
@@ -136,9 +145,20 @@ abstract class LookupTreeAdaptor<
 	 */
 	fun restrictedSignature(
 		element: Element,
-		signatureBound: A_Type): A_Type
+		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
+		signatureBound: A_Type
+	): A_Type
 	{
-		return extractSignature(element).typeIntersection(signatureBound)
+		var signature = extractSignature(element)
+		val (_, extraTypes) = signatureExtrasExtractor(element)
+		if (extraTypes.isNotEmpty())
+		{
+			signature = tupleTypeForTypesList(
+				signature.tupleOfTypesFromTo(
+					1, signature.sizeRange.lowerBound.extractInt
+				) + extraTypes)
+		}
+		return signature.typeIntersection(signatureBound).makeImmutable()
 	}
 
 	/**
@@ -165,40 +185,24 @@ abstract class LookupTreeAdaptor<
 		val undecided = mutableListOf<Element>()
 		for (element in allElements)
 		{
-			val signatureType = restrictedSignature(element, bound)
+			val signatureType = restrictedSignature(
+				element, { defaultSignatureExtrasValue }, bound)
 			var allComply = true
 			var impossible = false
-			if (testsArgumentPositions())
+			val numArgs = knownArgumentRestrictions.size
+			for (i in 1..numArgs)
 			{
-				val numArgs = knownArgumentRestrictions.size
-				for (i in 1..numArgs)
-				{
-					val knownRestriction = knownArgumentRestrictions[i - 1]
-					val definitionArgType = signatureType.typeAtIndex(i)
-					if (!knownRestriction.containedByType(definitionArgType))
-					{
-						allComply = false
-					}
-					if (!knownRestriction.intersectsType(definitionArgType))
-					{
-						impossible = true
-					}
-				}
-			}
-			else
-			{
-				assert(knownArgumentRestrictions.size == 1)
-				val knownRestriction = knownArgumentRestrictions[0]
-				if (!knownRestriction.containedByType(signatureType))
+				val knownRestriction = knownArgumentRestrictions[i - 1]
+				val definitionArgType = signatureType.typeAtIndex(i)
+				if (!knownRestriction.containedByType(definitionArgType))
 				{
 					allComply = false
 				}
-				if (!knownRestriction.intersectsType(signatureType))
+				if (!knownRestriction.intersectsType(definitionArgType))
 				{
 					impossible = true
 				}
 			}
-
 			if (allComply)
 			{
 				prequalified.add(element)
@@ -214,6 +218,11 @@ abstract class LookupTreeAdaptor<
 			knownArgumentRestrictions,
 			zero,
 			zero,
+			zero,
+			zero,
+			zero,
+			zero,
+			emptyMap,
 			memento)
 	}
 
@@ -234,15 +243,11 @@ abstract class LookupTreeAdaptor<
 	 *   The type that acts as an upper bound for comparisons within these
 	 *   restrictions.
 	 */
-	fun extractBoundingType(argumentRestrictions: List<TypeRestriction>): A_Type
-	{
-		return if (testsArgumentPositions())
-		{
-			tupleTypeForTypesList(
-				argumentRestrictions.map(TypeRestriction::type))
-		}
-		else argumentRestrictions[0].type
-	}
+	fun extractBoundingType(
+		argumentRestrictions: List<TypeRestriction>
+	): A_Type =
+		tupleTypeForTypesList(argumentRestrictions.map(TypeRestriction::type))
+			.makeImmutable()
 
 	/**
 	 * Create a [LookupTree] suitable for deciding which [Result] applies when
@@ -268,6 +273,43 @@ abstract class LookupTreeAdaptor<
 	 *   via an [ObjectLayoutVariantDecisionStep] in an ancestor.  Argument #n
 	 *   is indicated by a set bit in the n-1st bit position, the one whose
 	 *   value in the integer is 2^(n-1).
+	 * @param alreadyMetaInstanceExtractArguments
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) were known to be
+	 *   a meta, and had their instance (which is itself a type) extracted
+	 *   already  into another field via an [ExtractMetaInstanceDecisionStep] in
+	 *   an ancestor. Argument #n is indicated by a set bit in the n-1st bit
+	 *   position, the one whose value in the integer is 2^(n-1).
+	 * @param alreadyPhraseTypeExtractArguments
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) were known to be
+	 *   phrase types, and have had their yield type extracted already into
+	 *   another field via an [ExtractPhraseTypeDecisionStep] in an ancestor.
+	 *   Argument #n is indicated by a set bit in the n-1st bit position, the
+	 *   one whose value in the integer is 2^(n-1).
+	 * @param alreadyTestedConstants
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) have already
+	 *   been tested for constants.  Argument #n is indicated by a set bit in
+	 *   the n-1st bit position, the one whose value in the integer is 2^(n-1).
+	 * @property alreadyEnumerationOfNontypeTested
+	 *   An Avail [integer][A_Number] coding which arguments (and extras that
+	 *   may have been generated during traversal of ancestors) were known to
+	 *   contain at least one enumeration of non-types.  Those actual values can
+	 *   be used to look up subtrees for which that value is a possible instance
+	 *   of an actual provided type.  See
+	 *   [TestForEnumerationOfNontypeDecisionStep].  The flag for argument #n is
+	 *   indicated by a set bit in the n-1st bit position, and serves to
+	 *   suppress subsequent attempts to dispatch this way on this argument in
+	 *   subtrees.
+	 * @param alreadyExtractedFields
+	 *   An [A_Map] from Avail integer to Avail integer.  They key integer is
+	 *   the one-based argument (or extras) subscript of the source object, and
+	 *   the value integer is an encoding of which fields have been extracted,
+	 *   where bit 2^(N-1) indicates the Nth field (one-based) has been
+	 *   extracted already.
+	 * @param memento
+	 *   A memento for this adaptor to use.
 	 * @return
 	 *   A (potentially lazy) LookupTree used to look up Elements.
 	 */
@@ -277,6 +319,11 @@ abstract class LookupTreeAdaptor<
 		knownArgumentRestrictions: List<TypeRestriction>,
 		alreadyTypeTestedArguments: A_Number,
 		alreadyVariantTestedArguments: A_Number,
+		alreadyMetaInstanceExtractArguments: A_Number,
+		alreadyPhraseTypeExtractArguments: A_Number,
+		alreadyTestedConstants: A_Number,
+		alreadyEnumerationOfNontypeTested: A_Number,
+		alreadyExtractedFields: A_Map,
 		memento: Memento): LookupTree<Element, Result>
 	{
 		if (undecided.isEmpty())
@@ -286,28 +333,13 @@ abstract class LookupTreeAdaptor<
 			{
 				return LeafLookupTree(constructResult(positive, memento))
 			}
-			val size = positive.size
-			val mostSpecific = mutableListOf<Element>()
-			outer@ for (outer in 0 until size)
-			{
+			val mostSpecific = positive.filterIndexed { outerIndex, outer ->
 				// Use the actual signatures for dominance checking, since using
 				// the restrictedSignature would break method lookup rules.
-				val outerType = extractSignature(positive[outer])
-				for (inner in 0 until size)
-				{
-					if (outer != inner)
-					{
-						val innerType = extractSignature(positive[inner])
-						if (innerType.isSubtypeOf(outerType))
-						{
-							// A more specific definition was found (i.e., inner
-							// was more specific than outer). This disqualifies
-							// outer from being considered most specific.
-							continue@outer
-						}
-					}
+				val outerType = extractSignature(outer)
+				positive.indices.filterNot(outerIndex::equals).none { inner ->
+					extractSignature(positive[inner]).isSubtypeOf(outerType)
 				}
-				mostSpecific.add(positive[outer])
 			}
 			return LeafLookupTree(constructResult(mostSpecific, memento))
 		}
@@ -316,7 +348,12 @@ abstract class LookupTreeAdaptor<
 			simplifyList(undecided),
 			knownArgumentRestrictions,
 			alreadyTypeTestedArguments,
-			alreadyVariantTestedArguments)
+			alreadyVariantTestedArguments,
+			alreadyMetaInstanceExtractArguments,
+			alreadyPhraseTypeExtractArguments,
+			alreadyTestedConstants,
+			alreadyEnumerationOfNontypeTested,
+			alreadyExtractedFields)
 	}
 
 	/**
@@ -339,45 +376,6 @@ abstract class LookupTreeAdaptor<
 		}
 
 	/**
-	 * Use the list of types to traverse the tree.  Answer the solution, a
-	 * [Result].  Uses iteration rather than recursion to limit stack depth.
-	 *
-	 * @param root
-	 *   The [LookupTree] to search.
-	 * @param argumentTypesList
-	 *   The input [List] of [types][A_Type].
-	 * @param memento
-	 *   A value potentially used for constructing [Result]s in parts of the
-	 *   tree that have not yet been constructed.
-	 * @return The [Result].
-	 */
-	@Suppress("unused")
-	fun lookupByTypes(
-		root: LookupTree<Element, Result>,
-		argumentTypesList: List<A_Type>,
-		memento: Memento,
-		lookupStats: LookupStatistics): Result
-	{
-		val before = captureNanos()
-		var depth = 0
-		var tree = root
-		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
-		while (solution === null)
-		{
-			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
-			tree = step.lookupStepByTypes(
-				argumentTypesList, extraValues, this, memento)
-			solution = tree.solutionOrNull
-			depth++
-		}
-		lookupStats.recordDynamicLookup(
-			(captureNanos() - before).toDouble(), depth)
-		return solution
-	}
-
-	/**
 	 * Use the tuple of types to traverse the tree.  Answer the solution, a
 	 * [Result].  Uses iteration rather than recursion to limit stack depth.
 	 *
@@ -398,14 +396,21 @@ abstract class LookupTreeAdaptor<
 		lookupStats: LookupStatistics): Result
 	{
 		val before = captureNanos()
+		val numArgs = argumentTypesTuple.tupleSize
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<A_Type>()
+		var signatureExtrasExtractor =
+			{ _ : Element -> defaultSignatureExtrasValue }
 		while (solution === null)
 		{
-			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			val step = tree.expandIfNecessary(
+				signatureExtrasExtractor, this, memento)
+			extraValues = step.updateExtraValuesByTypes(
+				argumentTypesTuple, extraValues)
+			signatureExtrasExtractor = step.updateSignatureExtrasExtractor(
+				this, signatureExtrasExtractor, numArgs)
 			tree = step.lookupStepByTypes(
 				argumentTypesTuple, extraValues, this, memento)
 			solution = tree.solutionOrNull
@@ -440,56 +445,20 @@ abstract class LookupTreeAdaptor<
 		lookupStats: LookupStatistics): Result
 	{
 		val before = captureNanos()
+		val numArgs = argValues.size
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
+		var signatureExtrasExtractor = { _ : Element ->
+			defaultSignatureExtrasValue }
 		while (solution === null)
 		{
-			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
-			tree = step.lookupStepByValues(
-				argValues, extraValues, this, memento)
-			solution = tree.solutionOrNull
-			depth++
-		}
-		lookupStats.recordDynamicLookup(
-			(captureNanos() - before).toDouble(), depth)
-		return solution
-	}
-
-	/**
-	 * Given a [tuple][A_Tuple] of [A_BasicObject]s, use their types to traverse
-	 * the [LookupTree].  Answer the solution, a [Result]. Uses iteration rather
-	 * than recursion to limit stack depth.
-	 *
-	 * @param root
-	 *   The [LookupTree] to search.
-	 * @param argValues
-	 *   The input tuple of [A_BasicObject]s.
-	 * @param memento
-	 *   A value potentially used for constructing [Result]s in parts of the
-	 *   tree that have not yet been constructed.
-	 * @param lookupStats
-	 *   The [LookupStatistics] in which to record the lookup.
-	 * @return
-	 *   The [Result].
-	 */
-	fun lookupByValues(
-		root: LookupTree<Element, Result>,
-		argValues: A_Tuple,
-		memento: Memento,
-		lookupStats: LookupStatistics): Result
-	{
-		val before = captureNanos()
-		var depth = 0
-		var tree = root
-		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
-		while (solution === null)
-		{
-			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			val step = tree.expandIfNecessary(
+				signatureExtrasExtractor, this, memento)
+			extraValues = step.updateExtraValuesByValues(argValues, extraValues)
+			signatureExtrasExtractor = step.updateSignatureExtrasExtractor(
+				this, signatureExtrasExtractor, numArgs)
 			tree = step.lookupStepByValues(
 				argValues, extraValues, this, memento)
 			solution = tree.solutionOrNull
@@ -522,14 +491,20 @@ abstract class LookupTreeAdaptor<
 		lookupStats: LookupStatistics): Result
 	{
 		val before = captureNanos()
+		val numArgs = 1
 		var depth = 0
 		var tree = root
 		var solution = tree.solutionOrNull
-		var extraValues: Array<Element?>? = null
+		var extraValues = emptyList<Element>()
+		var signatureExtrasExtractor = { _ : Element ->
+			defaultSignatureExtrasValue }
 		while (solution === null)
 		{
-			val step = tree.expandIfNecessary(this, memento)
-			extraValues = step.updateExtraValues(extraValues)
+			val step = tree.expandIfNecessary(
+				signatureExtrasExtractor, this, memento)
+			extraValues = step.updateExtraValuesByValue(argValue, extraValues)
+			signatureExtrasExtractor = step.updateSignatureExtrasExtractor(
+				this, signatureExtrasExtractor, numArgs)
 			tree = step.lookupStepByValue(argValue, extraValues, this, memento)
 			solution = tree.solutionOrNull
 			depth++
@@ -537,5 +512,11 @@ abstract class LookupTreeAdaptor<
 		lookupStats.recordDynamicLookup(
 			(captureNanos() - before).toDouble(), depth)
 		return solution
+	}
+
+	companion object
+	{
+		val defaultSignatureExtrasValue: Pair<A_Type?, List<A_Type>> =
+			null to emptyList()
 	}
 }

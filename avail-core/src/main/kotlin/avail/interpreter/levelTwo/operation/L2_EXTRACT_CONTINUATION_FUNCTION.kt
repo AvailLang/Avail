@@ -57,7 +57,7 @@ object L2_EXTRACT_CONTINUATION_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val continuation =
 			instruction.operand<L2ReadBoxedOperand>(0)
 		val function =

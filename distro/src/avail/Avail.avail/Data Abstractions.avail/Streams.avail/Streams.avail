@@ -149,10 +149,10 @@ Private method "body function(_,_)" is
 		«<
 			aStream,
 			«[
-			  	<cast declaration into [d : argument phrase | d]>
-			 |
+				<cast declaration into [d : argument phrase | d]>
+			|
 				statements
-			 ] : blockReturnType»
+			] : blockReturnType»
 		>» : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ stream,
@@ -324,7 +324,7 @@ Macro "reject each…from_§where_" is a stream prefix function,
 		«<
 			aStream,
 			«[
-			  	<cast declaration into [d : argument phrase | d]>
+				<cast declaration into [d : argument phrase | d]>
 			|
 				newStatements
 			] : blockReturnType»

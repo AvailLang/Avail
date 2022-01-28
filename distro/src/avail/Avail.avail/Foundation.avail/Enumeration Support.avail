@@ -34,7 +34,9 @@ Module "Enumeration Support"
 Versions
 	"Avail-1.6.0"
 Extends
-	"Early Enumeration Support"
+	"Early Definers" = (
+		"_'s⁇instance"
+	)
 Uses
 	"Bootstrap",
 	"Early Assertions",

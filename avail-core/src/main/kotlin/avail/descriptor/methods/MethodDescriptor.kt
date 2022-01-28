@@ -74,6 +74,7 @@ import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.DefinitionParsingPlanDescriptor.Companion.newParsingPlan
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
@@ -475,22 +476,25 @@ class MethodDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("owningBundles"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				owningBundles))
+				owningBundles,
+				slotName = "owningBundles"))
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("methodTestingTree"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				arrayOf(methodTestingTree)))
+				arrayOf(methodTestingTree),
+				slotName = "methodTestingTree"))
 		dependentChunksWeakSet?.let {
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots("dependentChunks"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					it.toTypedArray()))
+					it.toTypedArray(),
+					slotName = "dependentChunks"))
 		}
 		return fields.toTypedArray()
 	}
@@ -557,7 +561,7 @@ class MethodDescriptor private constructor(
 			dynamicLookupStats()))
 
 	/**
-	 * Look up the definition to invoke, given an array of argument values. Use
+	 * Look up the definition to invoke, given a [List] of argument values. Use
 	 * the [methodTestingTree] to find the definition to invoke.  Answer
 	 * [nil][NilDescriptor.nil] if a lookup error occurs.
 	 */
@@ -819,7 +823,7 @@ class MethodDescriptor private constructor(
 			"vm alias new name_to_",
 			P_Alias),
 
-		/** The special atom for	 function application. */
+		/** The special atom for function application. */
 		APPLY(
 			"vm function apply_with tuple_",
 			P_InvokeWithTuple),
@@ -1062,9 +1066,8 @@ class MethodDescriptor private constructor(
 		val runtimeDispatcher =
 			object : LookupTreeAdaptor<A_Definition, A_Tuple, Unit>()
 			{
-				override val emptyLeaf by lazy {
+				override val emptyLeaf =
 					LeafLookupTree<A_Definition, A_Tuple>(emptyTuple)
-				}
 
 				override fun extractSignature(element: A_Definition) =
 					element.bodySignature().argsTupleType

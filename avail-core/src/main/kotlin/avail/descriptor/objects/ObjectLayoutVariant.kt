@@ -41,8 +41,10 @@ import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantsLock
 import avail.descriptor.representation.Mutability
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.isSubsetOf
+import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.utility.safeWrite
-import java.lang.ref.WeakReference
+import java.lang.ref.SoftReference
 import java.util.WeakHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
@@ -55,13 +57,17 @@ import kotlin.concurrent.read
  * within the object or object type.  All objects or object types with a
  * particular set of field atoms have the same variant.
  *
- * @constructor
- *
  * @property variantId
  *   A unique int suitable for distinguishing variants.  This may become more
  *   useful when Level Two code needs to track metrics and create variant
  *   specific versions of code without garbage collection complexity.  It's
  *   allocated from the [variantsCounter] while holding the [variantsLock].
+ *
+ * @constructor
+ *
+ * @param allFieldsSet
+ *   The set of fields for which to produce an [ObjectLayoutVariant].  Only one
+ *   variant may exist for each set of fields, so this constructor is private.
  *
  * @see ObjectDescriptor
  * @see ObjectTypeDescriptor
@@ -69,7 +75,7 @@ import kotlin.concurrent.read
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 class ObjectLayoutVariant private constructor(
-	allFields: A_Set,
+	allFieldsSet: A_Set,
 	val variantId: Int)
 {
 	/**
@@ -77,7 +83,7 @@ class ObjectLayoutVariant private constructor(
 	 * the real fields that can hold multiple potential values, but also the
 	 * fields that were created solely for the purpose of explicit subclassing.
 	 */
-	val allFields: A_Set = allFields.makeShared()
+	val allFields: A_Set = allFieldsSet.makeShared()
 
 	/**
 	 * The [List] of [A_Atom]s for which to allocate slots in an object or
@@ -117,6 +123,14 @@ class ObjectLayoutVariant private constructor(
 		realSlotCount = slotCount
 	}
 
+	override fun toString(): String
+	{
+		return allFields
+			.map { it.atomName.asNativeString() }
+			.sorted()
+			.joinToString(", ", "var#$variantId(", ")")
+	}
+
 	/** The mutable object descriptor for this variant. */
 	val mutableObjectDescriptor = ObjectDescriptor(Mutability.MUTABLE, this)
 
@@ -147,13 +161,32 @@ class ObjectLayoutVariant private constructor(
 		return another.allFields.isSubsetOf(allFields)
 	}
 
+	/** The most general object type using this variant. */
+	val mostGeneralObjectType by lazy {
+		ObjectTypeDescriptor.createUninitializedObjectType(this).let { type ->
+			type.fillSlots(
+				ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_,
+				1,
+				type.variableObjectSlotsCount(),
+				ANY.o)
+			type.makeShared()
+		}
+	}
+
+	/**
+	 * The [instanceMeta] of the most general object type using this variant.
+	 */
+	val mostGeneralObjectMeta by lazy {
+		instanceMeta(mostGeneralObjectType)
+	}
+
 	companion object {
 		/**
 		 * The collection of all variants, indexed by the set of field atoms.
 		 */
 		@GuardedBy("variantsLock")
 		private val allVariants =
-			WeakHashMap<A_Set, WeakReference<ObjectLayoutVariant>>()
+			WeakHashMap<A_Set, SoftReference<ObjectLayoutVariant>>()
 
 		/** The lock used to protect access to the [allVariants] map. */
 		private val variantsLock = ReentrantReadWriteLock()
@@ -187,7 +220,7 @@ class ObjectLayoutVariant private constructor(
 			return variantsLock.safeWrite {
 				when (val theirVariant = allVariants[allFields]?.get()) {
 					null -> ObjectLayoutVariant(allFields, ++variantsCounter)
-						.also { allVariants[allFields] = WeakReference(it) }
+						.also { allVariants[allFields] = SoftReference(it) }
 					else -> theirVariant
 				}
 			}

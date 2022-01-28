@@ -47,7 +47,8 @@ import org.availlang.ide.anvil.language.psi.AvailErrorPsiElement
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-abstract class AnvilTreeElement: TreeElement(AvailElementType)
+abstract class AnvilTreeElement(val elementType: AvailElementType) :
+	TreeElement(elementType)
 {
 	override fun getFirstChildNode(): TreeElement? = null
 
@@ -68,7 +69,8 @@ abstract class AnvilTreeElement: TreeElement(AvailElementType)
 	override fun addLeaf(
 		leafType: IElementType,
 		leafText: CharSequence,
-		anchorBefore: ASTNode?)
+		anchorBefore: ASTNode?
+	)
 	{
 		// cannot be done
 	}
@@ -80,7 +82,8 @@ abstract class AnvilTreeElement: TreeElement(AvailElementType)
 
 	override fun removeRange(
 		firstNodeToRemove: ASTNode,
-		firstNodeToKeep: ASTNode?)
+		firstNodeToKeep: ASTNode?
+	)
 	{
 		// cannot be done
 	}
@@ -98,7 +101,8 @@ abstract class AnvilTreeElement: TreeElement(AvailElementType)
 	override fun addChildren(
 		firstChild: ASTNode,
 		firstChildToNotAdd: ASTNode?,
-		anchorBefore: ASTNode?)
+		anchorBefore: ASTNode?
+	)
 	{
 		// cannot be done
 	}
@@ -108,12 +112,14 @@ abstract class AnvilTreeElement: TreeElement(AvailElementType)
 	override fun findChildByType(type: IElementType): ASTNode? = null
 
 	override fun findChildByType(
-		type: IElementType, anchor: ASTNode?): ASTNode? = null
+		type: IElementType, anchor: ASTNode?
+	): ASTNode? = null
 
 	override fun findChildByType(typesSet: TokenSet): ASTNode? = null
 
 	override fun findChildByType(
-		typesSet: TokenSet, anchor: ASTNode?): ASTNode? = null
+		typesSet: TokenSet, anchor: ASTNode?
+	): ASTNode? = null
 
 	override fun <T : PsiElement?> getPsi(clazz: Class<T>): T
 	{
@@ -142,8 +148,9 @@ abstract class AnvilTreeElement: TreeElement(AvailElementType)
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 class AnvilProblemTreeElement constructor(
+	elementType: AvailElementType,
 	val psiElement: AvailErrorPsiElement
-): AnvilTreeElement()
+) : AnvilTreeElement(elementType)
 {
 	override fun getText(): String = psiElement.rawText
 

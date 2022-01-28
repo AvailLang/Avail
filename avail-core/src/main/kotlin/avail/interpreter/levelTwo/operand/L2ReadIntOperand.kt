@@ -51,7 +51,8 @@ import avail.utility.cast
  */
 class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 {
-	override fun operandType(): L2OperandType = L2OperandType.READ_INT
+	override val operandType: L2OperandType
+		get() = L2OperandType.READ_INT
 
 	/**
 	 * Construct a new `L2ReadIntOperand` for the specified [L2SemanticValue]
@@ -70,13 +71,13 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 	 *   instruction.
 	 */
 	constructor(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			manifest: L2ValueManifest)
-		: super(
-			semanticValue,
-			restriction,
-			manifest.getDefinition<L2IntRegister>(semanticValue, INTEGER_KIND))
+		semanticValue: L2SemanticValue,
+		restriction: TypeRestriction,
+		manifest: L2ValueManifest
+	) : super(
+		semanticValue,
+		restriction,
+		manifest.getDefinition<L2IntRegister>(semanticValue, INTEGER_KIND))
 	{
 		assert(restriction.isUnboxedInt)
 	}
@@ -94,10 +95,10 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 	 *   The [L2IntRegister] being read by this operand.
 	 */
 	constructor(
-			semanticValue: L2SemanticValue,
-			restriction: TypeRestriction,
-			register: L2IntRegister)
-		: super(semanticValue, restriction, register)
+		semanticValue: L2SemanticValue,
+		restriction: TypeRestriction,
+		register: L2IntRegister
+	) : super(semanticValue, restriction, register)
 
 	override fun semanticValue(): L2SemanticUnboxedInt =
 		super.semanticValue().cast()
@@ -113,5 +114,5 @@ class L2ReadIntOperand : L2ReadOperand<L2IntRegister>
 		dispatcher.doOperand(this)
 	}
 
-	override fun registerKind() = INTEGER_KIND
+	override val registerKind get() = INTEGER_KIND
 }

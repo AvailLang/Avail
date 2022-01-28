@@ -33,7 +33,7 @@ package avail.interpreter.execution
 
 import avail.AvailRuntime
 import avail.compiler.ModuleManifestEntry
-import avail.compiler.ModuleManifestEntry.Kind
+import avail.compiler.SideEffectKind
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.atoms.A_Atom
@@ -74,8 +74,8 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionMethod
@@ -1096,38 +1096,36 @@ class AvailLoader(
 					}
 				}
 				module.moduleAddDefinition(newDefinition)
-				module.lock {
-					val topStart = topLevelStatementBeingCompiled!!
-						.startingLineNumber
-					manifestEntries!!.add(
-						when
+				val topStart = topLevelStatementBeingCompiled!!
+					.startingLineNumber
+				manifestEntries!!.add(
+					when
+					{
+						newDefinition.isMethodDefinition() ->
 						{
-							newDefinition.isMethodDefinition() ->
-							{
-								val body = newDefinition.bodyBlock()
-								ModuleManifestEntry(
-									Kind.METHOD_DEFINITION_KIND,
-									methodName.atomName.asNativeString(),
-									topStart,
-									body.code().codeStartingLineNumber,
-									body)
-							}
-							newDefinition.isForwardDefinition() ->
-								ModuleManifestEntry(
-									Kind.FORWARD_METHOD_DEFINITION_KIND,
-									methodName.atomName.asNativeString(),
-									topStart,
-									topStart)
-							newDefinition.isAbstractDefinition() ->
-								ModuleManifestEntry(
-									Kind.ABSTRACT_METHOD_DEFINITION_KIND,
-									methodName.atomName.asNativeString(),
-									topStart,
-									topStart)
-							else -> throw UnsupportedOperationException(
-								"Unknown definition kind")
-						})
-				}
+							val body = newDefinition.bodyBlock()
+							ModuleManifestEntry(
+								SideEffectKind.METHOD_DEFINITION_KIND,
+								methodName.atomName.asNativeString(),
+								topStart,
+								body.code().codeStartingLineNumber,
+								body)
+						}
+						newDefinition.isForwardDefinition() ->
+							ModuleManifestEntry(
+								SideEffectKind.FORWARD_METHOD_DEFINITION_KIND,
+								methodName.atomName.asNativeString(),
+								topStart,
+								topStart)
+						newDefinition.isAbstractDefinition() ->
+							ModuleManifestEntry(
+								SideEffectKind.ABSTRACT_METHOD_DEFINITION_KIND,
+								methodName.atomName.asNativeString(),
+								topStart,
+								topStart)
+						else -> throw UnsupportedOperationException(
+							"Unknown definition kind")
+					})
 			}
 		}
 		else
@@ -1201,6 +1199,8 @@ class AvailLoader(
 		{
 			throw SignatureException(E_REDEFINED_WITH_SAME_ARGUMENT_TYPES)
 		}
+		// This may throw a SignatureException prior to making semantic changes
+		// to the runtime.
 		bundle.bundleAddMacro(macroDefinition, ignoreSeals)
 		module.moduleAddMacro(macroDefinition)
 		if (phase == EXECUTING_FOR_COMPILE)
@@ -1209,7 +1209,7 @@ class AvailLoader(
 			module.lock {
 				manifestEntries!!.add(
 					ModuleManifestEntry(
-						Kind.MACRO_DEFINITION_KIND,
+						SideEffectKind.MACRO_DEFINITION_KIND,
 						methodName.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						macroCode.codeStartingLineNumber,
@@ -1255,7 +1255,7 @@ class AvailLoader(
 			{
 				manifestEntries!!.add(
 					ModuleManifestEntry(
-						Kind.SEMANTIC_RESTRICTION_KIND,
+						SideEffectKind.SEMANTIC_RESTRICTION_KIND,
 						atom.atomName.asNativeString(),
 						topLevelStatementBeingCompiled!!.startingLineNumber,
 						code.codeStartingLineNumber,
@@ -1298,6 +1298,15 @@ class AvailLoader(
 		recordEffect(
 			LoadingEffectToRunPrimitive(
 				SpecialMethodAtom.SEAL.bundle, methodName, seal))
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
+			manifestEntries!!.add(
+				ModuleManifestEntry(
+					SideEffectKind.SEAL_KIND,
+					methodName.atomName.asNativeString(),
+					topLevelStatementBeingCompiled!!.startingLineNumber,
+					topLevelStatementBeingCompiled!!.startingLineNumber))
+		}
 	}
 
 	/**
@@ -1367,6 +1376,15 @@ class AvailLoader(
 						tree.updateForNewGrammaticalRestriction(
 							planInProgress, treesToVisit)
 					}
+				}
+				if (phase == EXECUTING_FOR_COMPILE)
+				{
+					manifestEntries!!.add(
+						ModuleManifestEntry(
+							SideEffectKind.GRAMMATICAL_RESTRICTION_KIND,
+							parentAtom.atomName.asNativeString(),
+							topLevelStatementBeingCompiled!!.startingLineNumber,
+							topLevelStatementBeingCompiled!!.startingLineNumber))
 				}
 			}
 		}
@@ -1479,41 +1497,37 @@ class AvailLoader(
 	fun lookupName(
 		stringName: A_String,
 		isExplicitSubclassAtom: Boolean = false
-	): A_Atom {
+	): A_Atom = module.lock {
 		//  Check if it's already defined somewhere...
-		return module.lock {
-			val who = module.trueNamesForStringName(stringName)
-			return@lock when (who.setSize)
+		val who = module.trueNamesForStringName(stringName)
+		when (who.setSize)
+		{
+			1 -> who.single()
+			0 ->
 			{
-				0 ->
+				val trueName = createAtom(stringName, module)
+				if (phase == EXECUTING_FOR_COMPILE)
 				{
-					val trueName = createAtom(stringName, module)
-					if (phase == EXECUTING_FOR_COMPILE)
-					{
-						val topStart = topLevelStatementBeingCompiled!!
-							.startingLineNumber
-						module.lock {
-							manifestEntries!!.add(
-								ModuleManifestEntry(
-									Kind.ATOM_DEFINITION_KIND,
-									stringName.asNativeString(),
-									topStart,
-									topStart))
-						}
-					}
-					if (isExplicitSubclassAtom)
-					{
-						trueName.setAtomProperty(
-							EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
-					}
-					trueName.makeShared()
-					module.addPrivateName(trueName)
-					trueName
+					val topStart = topLevelStatementBeingCompiled!!
+						.startingLineNumber
+					manifestEntries!!.add(
+						ModuleManifestEntry(
+							SideEffectKind.ATOM_DEFINITION_KIND,
+							stringName.asNativeString(),
+							topStart,
+							topStart))
 				}
-				1 -> who.single()
-				else -> null
+				if (isExplicitSubclassAtom)
+				{
+					trueName.setAtomProperty(
+						EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
+				}
+				trueName.makeShared()
+				module.addPrivateName(trueName)
+				trueName
 			}
-		} ?: throw AmbiguousNameException()
+			else -> throw AmbiguousNameException()
+		}
 	}
 
 	/**
@@ -1528,24 +1542,15 @@ class AvailLoader(
 	 *   Every [atom][AtomDescriptor] associated with the name.
 	 */
 	fun lookupAtomsForName(stringName: A_String): A_Set = module.lock {
-		val newNames = when
+		val newNames = when (val name = module.newNames.mapAtOrNull(stringName))
 		{
-			module.newNames.hasKey(stringName) ->
-				singletonSet(module.newNames.mapAt(stringName))
-			else -> emptySet
+			null -> emptySet
+			else -> singletonSet(name)
 		}
-		val publicNames = when
-		{
-			module.importedNames.hasKey(stringName) ->
-				module.importedNames.mapAt(stringName)
-			else -> emptySet
-		}
-		val privateNames = when
-		{
-			module.privateNames.hasKey(stringName) ->
-				module.privateNames.mapAt(stringName)
-			else -> emptySet
-		}
+		val publicNames =
+			module.importedNames.mapAtOrNull(stringName) ?: emptySet
+		val privateNames =
+			module.privateNames.mapAtOrNull(stringName) ?: emptySet
 		newNames
 			.setUnionCanDestroy(publicNames, true)
 			.setUnionCanDestroy(privateNames, true)

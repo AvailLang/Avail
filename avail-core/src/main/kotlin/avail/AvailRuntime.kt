@@ -349,8 +349,7 @@ class AvailRuntime constructor(
 	/**
 	 * Schedule the specified [task][AvailTask] for eventual execution. The
 	 * implementation is free to run the task immediately or delay its execution
-	 * arbitrarily. The task is guaranteed to execute on an [Avail
-	 * thread][AvailThread].
+	 * arbitrarily. The task is guaranteed to execute on an [AvailThread].
 	 *
 	 * @param task
 	 *   A task.
@@ -552,12 +551,10 @@ class AvailRuntime constructor(
 			throw AvailRuntimeException(
 				AvailErrorCode.E_JAVA_CLASS_NOT_AVAILABLE)
 		}
-		// Look up the raw Java class using the interpreter's runtime's
-		// class loader.
+		// Look up the raw Java class using the runtime's class loader.
 		return try
 		{
-			Class.forName(
-				className.asNativeString(), true, classLoader)
+			Class.forName(className.asNativeString(), true, classLoader)
 		}
 		catch (e: ClassNotFoundException)
 		{
@@ -1017,10 +1014,10 @@ class AvailRuntime constructor(
 			put(mostGeneralCompiledCodeType())
 			put(mostGeneralVariableType)
 			put(mostGeneralVariableMeta)
-			put(mostGeneralContinuationType())
+			put(mostGeneralContinuationType)
 
 			at(10)
-			put(continuationMeta())
+			put(continuationMeta)
 			put(Types.ATOM.o)
 			put(Types.DOUBLE.o)
 			put(extendedIntegers)
@@ -1120,7 +1117,7 @@ class AvailRuntime constructor(
 			at(90)
 			put(functionType(emptyTuple(), Types.TOP.o))
 			put(functionType(emptyTuple(), booleanType))
-			put(variableTypeFor(mostGeneralContinuationType()))
+			put(variableTypeFor(mostGeneralContinuationType))
 			put(
 				mapTypeForSizesKeyTypeValueType(
 					wholeNumbers, Types.ATOM.o, Types.ANY.o))
@@ -1280,8 +1277,9 @@ class AvailRuntime constructor(
 						TokenType.KEYWORD.atom,
 						TokenType.END_OF_FILE.atom)))
 			put(zeroOrMoreOf(Types.TOKEN.o))
+			put(PhraseKind.MARKER_PHRASE.mostGeneralType)
 
-			at(174)
+			at(175)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1451,7 +1449,6 @@ class AvailRuntime constructor(
 	{
 		assert(moduleName.isString)
 		return runtimeLock.read {
-			assert(modules.hasKey(moduleName))
 			modules.mapAt(moduleName)
 		}
 	}

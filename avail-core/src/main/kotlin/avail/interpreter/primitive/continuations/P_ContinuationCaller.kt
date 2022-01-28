@@ -59,7 +59,7 @@ object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 		val con = interpreter.argument(0)
 		val caller = con.caller()
 		val callerHolder = newVariableWithContentType(
-			mostGeneralContinuationType())
+			mostGeneralContinuationType)
 		if (caller.notNil)
 		{
 			callerHolder.setValueNoCheck(caller)
@@ -69,6 +69,6 @@ object P_ContinuationCaller : Primitive(1, CannotFail, CanFold, CanInline)
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
-			tuple(mostGeneralContinuationType()),
-			variableTypeFor(mostGeneralContinuationType()))
+			tuple(mostGeneralContinuationType),
+			variableTypeFor(mostGeneralContinuationType))
 }

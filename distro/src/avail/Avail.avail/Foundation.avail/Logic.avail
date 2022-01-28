@@ -232,11 +232,7 @@ Macro "_`↑_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_`↑_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↑ [⦊b⦉]⟧
 ];
 
 /**
@@ -442,11 +438,7 @@ Macro "_→_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_→_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ → [⦊b⦉]⟧
 ];
 
 /**
@@ -529,11 +521,7 @@ Macro "_←_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_←_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ← [⦊b⦉]⟧
 ];
 
 /**
@@ -655,11 +643,7 @@ Macro "_↛_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_↛_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↛ [⦊b⦉]⟧
 ];
 
 /**
@@ -761,11 +745,7 @@ Macro "_↚_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_↚_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↚ [⦊b⦉]⟧
 ];
 
 /**
@@ -776,8 +756,9 @@ Macro "_↚_" is
  * 	"_=_" "_≠_"
  */
 Grammatical restriction "¬_" is
-	<{"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
-	 "_=_", "_≠_"}>;
+	<{
+		"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
+		"_=_", "_≠_"}>;
 
 /**
  * AND operation is second highest precedence among logical operators, after
@@ -900,7 +881,7 @@ Public macro "¬_≠_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"use of \"_=_\", instead of \"¬_≠_\""
 ];
 
@@ -921,6 +902,6 @@ Public macro "¬_=_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"use of \"_≠_\", instead of \"¬_=_\""
 ];

@@ -66,8 +66,7 @@ import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
-import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_SetBin
 import avail.descriptor.sets.SetDescriptor
@@ -103,8 +102,6 @@ import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
 import avail.utility.cast
 import org.availlang.json.JSONWriter
-import avail.utility.visitor.AvailSubobjectVisitor
-import avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
 import java.util.Spliterator
@@ -245,16 +242,18 @@ class AvailObject private constructor(
 			arrayOf(
 				AvailObjectFieldHelper(
 					this,
-					DebuggerObjectSlots("Error"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
 					e,
+					slotName = "Error",
 					forcedName = e.toString(),
 					forcedChildren = arrayOf(
 						AvailObjectFieldHelper(
 							this,
-							DebuggerObjectSlots("Stack trace"),
+							DUMMY_DEBUGGER_SLOT,
 							-1,
 							arrayOf(traceFor(e)),
+							slotName = "Stack trace",
 							forcedName = "Stack trace"))))
 		}
 
@@ -310,18 +309,30 @@ class AvailObject private constructor(
 	 * Set up the object to report nice obvious errors if anyone ever accesses
 	 * it again.
 	 */
-	fun assertObjectUnreachableIfMutable() {
+	fun assertObjectUnreachableIfMutable()
+	{
 		checkValidAddress()
-		when {
-			!descriptor().isMutable -> return
-			sameAddressAs(nil) ->
-				error("What happened?  This object is also the excluded one.")
-			else -> {
-				// Recursively invoke the iterator on the subobjects of self...
-				scanSubobjects(MarkUnreachableSubobjectVisitor(nil))
-				destroy()
+		if (!descriptor().isMutable) return
+		// Recursively invoke the iterator on the subobjects of self...
+		lateinit var marker: (AvailObject) -> AvailObject
+		marker = { childObject: AvailObject ->
+			when
+			{
+				!childObject.descriptor().isMutable -> childObject
+				else ->
+				{
+					// Recursively invoke the iterator on the subobjects of
+					// subobject.
+					childObject.scanSubobjects(marker)
+					// Indicate the object is no longer valid and should not
+					// ever be used again.
+					childObject.destroy()
+					childObject
+				}
 			}
 		}
+		scanSubobjects(marker)
+		destroy()
 	}
 
 	/**
@@ -330,7 +341,8 @@ class AvailObject private constructor(
 	 * uses of this object.
 	 */
 	override fun setToInvalidDescriptor() {
-		currentDescriptor = FillerDescriptor.shared
+		assert(currentDescriptor.isMutable)
+		currentDescriptor = FillerDescriptor.mutable
 	}
 
 	/**
@@ -856,7 +868,7 @@ class AvailObject private constructor(
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
-	override fun scanSubobjects(visitor: AvailSubobjectVisitor) =
+	override fun scanSubobjects(visitor: (AvailObject) -> AvailObject) =
 		descriptor().o_ScanSubobjects(this, visitor)
 
 	@Throws(VariableSetException::class)
@@ -1230,6 +1242,10 @@ class AvailObject private constructor(
 	@ReferencedInGeneratedCode
 	override fun fieldAt(field: A_Atom) = descriptor().o_FieldAt(this, field)
 
+	@ReferencedInGeneratedCode
+	override fun fieldAtIndex(index: Int): AvailObject =
+		descriptor().o_FieldAtIndex(this, index)
+
 	override fun fieldAtOrNull(field: A_Atom) =
 		descriptor().o_FieldAtOrNull(this, field)
 
@@ -1239,8 +1255,13 @@ class AvailObject private constructor(
 		canDestroy: Boolean
 	) = descriptor().o_FieldAtPuttingCanDestroy(this, field, value, canDestroy)
 
+	@ReferencedInGeneratedCode
 	override fun fieldTypeAt(field: A_Atom) =
 		descriptor().o_FieldTypeAt(this, field)
+
+	@ReferencedInGeneratedCode
+	override fun fieldTypeAtIndex(index: Int): A_Type =
+		descriptor().o_FieldTypeAtIndex(this, index)
 
 	override fun fieldTypeAtOrNull(field: A_Atom) =
 		descriptor().o_FieldTypeAtOrNull(this, field)
@@ -1527,5 +1548,26 @@ class AvailObject private constructor(
 			AvailObject::fieldAt.name,
 			AvailObject::class.java,
 			A_Atom::class.java)
+
+		/** Access the [fieldAtIndex] method for objects. */
+		val fieldAtIndexMethod = instanceMethod(
+			AvailObject::class.java,
+			AvailObject::fieldAtIndex.name,
+			AvailObject::class.java,
+			Int::class.javaPrimitiveType!!)
+
+		/** Access the [fieldTypeAt] method. */
+		val fieldTypeAtMethod = instanceMethod(
+			AvailObject::class.java,
+			AvailObject::fieldTypeAt.name,
+			A_Type::class.java,
+			A_Atom::class.java)
+
+		/** Access the [fieldTypeAtIndex] method for object types. */
+		val fieldTypeAtIndexMethod = instanceMethod(
+			AvailObject::class.java,
+			AvailObject::fieldTypeAtIndex.name,
+			A_Type::class.java,
+			Int::class.javaPrimitiveType!!)
 	}
 }

@@ -592,6 +592,6 @@ Public method "temporary directory" is
 	./${TMPDIR}
 		/* Windows. */
 		else [${TEMP}
-		    else [${TMP}
-			    else [Raise a no-file exception]]]
+			else [${TMP}
+				else [Raise a no-file exception]]]
 ] : file name;

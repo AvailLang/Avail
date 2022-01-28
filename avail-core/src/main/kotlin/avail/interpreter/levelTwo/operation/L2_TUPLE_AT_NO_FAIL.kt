@@ -59,7 +59,7 @@ object L2_TUPLE_AT_NO_FAIL : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val tuple = instruction.operand<L2ReadBoxedOperand>(0)
 		val subscript = instruction.operand<L2ReadIntOperand>(1)
 		val destination = instruction.operand<L2WriteBoxedOperand>(2)

@@ -81,9 +81,9 @@ internal class WebSocketChannel constructor(
 	closeAction: (DisconnectReason, AvailServerChannel) -> Unit = {_,_->})
 : AbstractTransportChannel<AsynchronousSocketChannel>(closeAction)
 {
-	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumSendQueueDepth get() = MAX_QUEUE_DEPTH
 	override val isOpen get() = transport.isOpen
-	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumReceiveQueueDepth get() = MAX_QUEUE_DEPTH
 	override val heartbeat: Heartbeat =
 		WebSocketChannelHeartbeat(
 			this,

@@ -158,11 +158,11 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 	/** Perform an orderly shutdown of the connection. */
 	DISCONNECT(0)
 	{
-		override val mustStartConversation = true
+		override val mustStartConversation get() = true
 		override val allowedOrigins = setOf(CLIENT, SERVER)
 		override val allowedStates =
 			setOf(READY, VERSION_NEGOTIATION, VERSION_REBUTTED)
-		override val closeAfterSending = true
+		override val closeAfterSending get() = true
 
 		override fun encodeContent(
 			message: Message,
@@ -189,7 +189,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 	NEGOTIATE_VERSION(1)
 	{
 		override fun availableInVersion (version: Int) = true
-		override val canStartConversation = true
+		override val canStartConversation get() = true
 		override val allowedOrigins = setOf(CLIENT)
 		override val allowedStates =
 			setOf(VERSION_NEGOTIATION, VERSION_REBUTTED)
@@ -336,7 +336,7 @@ enum class MessageTag constructor (ordinalCheck: Int) : BasicMessage
 	IDENTIFY_CHANNEL(5)
 	{
 		override fun availableInVersion (version: Int) = true
-		override val mustStartConversation = true
+		override val mustStartConversation get() = true
 		override val allowedOrigins = setOf(SERVER)
 		override val allowedStates =
 			setOf(VERSION_NEGOTIATION, VERSION_REBUTTED, READY)

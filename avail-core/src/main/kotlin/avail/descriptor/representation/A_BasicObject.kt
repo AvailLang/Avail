@@ -39,6 +39,7 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.objects.ObjectDescriptor
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
@@ -64,7 +65,6 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONFriendly
 import org.availlang.json.JSONWriter
-import avail.utility.visitor.AvailSubobjectVisitor
 import java.util.IdentityHashMap
 import java.util.function.Supplier
 
@@ -225,6 +225,7 @@ interface A_BasicObject : JSONFriendly
 	 *
 	 * @return An [Int] hash value.
 	 */
+	@ReferencedInGeneratedCode
 	fun hash(): Int
 	override fun hashCode(): Int
 
@@ -691,7 +692,7 @@ interface A_BasicObject : JSONFriendly
 	/**
 	 * Dispatch to the descriptor.
 	 */
-	fun scanSubobjects(visitor: AvailSubobjectVisitor)
+	fun scanSubobjects(visitor: (AvailObject) -> AvailObject)
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1047,6 +1048,19 @@ interface A_BasicObject : JSONFriendly
 	fun fieldAt(field: A_Atom): AvailObject
 
 	/**
+	 * Extract a field from an [object][ObjectDescriptor], using a one-based
+	 * index into the field slots.  This requires knowledge of the
+	 * [ObjectLayoutVariant], since the same field is at different indices in
+	 * different variants.
+	 *
+	 * @param index
+	 *   The one-based index of the field in this object.
+	 * @return
+	 *   The field's value.
+	 */
+	fun fieldAtIndex(index: Int): AvailObject
+
+	/**
 	 * Extract a field from an [object][ObjectDescriptor], or answer null if
 	 * it's not present.
 	 *
@@ -1082,6 +1096,18 @@ interface A_BasicObject : JSONFriendly
 
 	/**
 	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor],
+	 * using the given field index, which is specific to an
+	 * [ObjectLayoutVariant].
+	 *
+	 * @param index
+	 *   The index of the field to look up.
+	 * @return
+	 *   The field's type.
+	 */
+	fun fieldTypeAtIndex(index: Int): A_Type
+
+	/**
+	 * Extract a field type from an [object&#32;type][ObjectTypeDescriptor],
 	 * or `null` if it's not present.
 	 *
 	 * @param field
@@ -1091,7 +1117,8 @@ interface A_BasicObject : JSONFriendly
 	 */
 	fun fieldTypeAtOrNull(field: A_Atom): A_Type?
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Dispatcher helper function for routing messages to the descriptor.
 		 *
@@ -1127,49 +1154,62 @@ interface A_BasicObject : JSONFriendly
 			else -> body()
 		}
 
-		/** The [CheckedMethod] for [.equals]. */
+		/**
+		 * Extract the [ObjectLayoutVariant] from an [object][ObjectDescriptor].
+		 */
+		val A_BasicObject.objectVariant: ObjectLayoutVariant
+			get() = descriptor().o_ObjectVariant(this as AvailObject)
+
+
+		/** The [CheckedMethod] for [equals]. */
 		val equalsMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::equals.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_BasicObject::class.java)
 
-		/** The [CheckedMethod] for [.isInstanceOf]. */
+		/** The [CheckedMethod] for [isInstanceOf]. */
 		val isInstanceOfMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInstanceOf.name,
 			Boolean::class.javaPrimitiveType!!,
 			A_Type::class.java)
 
-		/** The [CheckedMethod] for [.makeImmutable]. */
+		/** The [CheckedMethod] for [makeImmutable]. */
 		val makeImmutableMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::makeImmutable.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.makeSubobjectsImmutable]. */
+		/** The [CheckedMethod] for [makeSubobjectsImmutable]. */
 		@Suppress("unused")
 		val makeSubobjectsImmutableMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::makeSubobjectsImmutable.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.traversed]. */
+		/** The [CheckedMethod] for [traversed]. */
 		val traversedMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::traversed.name,
 			AvailObject::class.java)
 
-		/** The [CheckedMethod] for [.isInt]. */
+		/** The [CheckedMethod] for [isInt]. */
 		val isIntMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isInt.name,
 			Boolean::class.javaPrimitiveType!!)
 
-		/** The [CheckedMethod] for [.isDouble]. */
+		/** The [CheckedMethod] for [isDouble]. */
 		val isDoubleMethod = instanceMethod(
 			A_BasicObject::class.java,
 			A_BasicObject::isDouble.name,
 			Boolean::class.javaPrimitiveType!!)
+
+		/** The [CheckedMethod] for [hash]. */
+		val hashMethod = instanceMethod(
+			A_BasicObject::class.java,
+			A_BasicObject::hash.name,
+			Int::class.javaPrimitiveType!!)
 	}
 }

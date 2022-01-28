@@ -135,7 +135,10 @@ object AnvilIcons
 	 * The image used to represent an Avail semantic restriction.
 	 */
 	val semanticRestriction =
-		IconLoader.getIcon("/icons/semantic-restriction.svg", AnvilIcons.javaClass)
+		IconLoader.getIcon(
+			"/icons/semantic-restriction.svg",
+			AnvilIcons.javaClass
+		)
 
 	/**
 	 * The image used to represent an Avail variable.
@@ -153,5 +156,18 @@ object AnvilIcons
 	 * The image used to represent an Avail grammatical restriction.
 	 */
 	val grammaticalRestriction =
-		IconLoader.getIcon("/icons/grammatical-restriction.svg", AnvilIcons.javaClass)
+		IconLoader.getIcon(
+			"/icons/grammatical-restriction.svg",
+			AnvilIcons.javaClass
+		)
+
+	/**
+	 * The image used to represent an Avail seal.
+	 */
+	val seal =
+		IconLoader.getIcon(
+			// TODO: [LAS] Need a real icon here.
+			"/icons/grammatical-restriction.svg",
+			AnvilIcons.javaClass
+		)
 }

@@ -32,10 +32,15 @@
 
 package avail.interpreter.primitive.general
 
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.instances
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
@@ -44,6 +49,11 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
+import avail.interpreter.levelTwo.operation.L2_HASH
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Answer the [hash&#32;value][A_BasicObject.hash] of the
@@ -59,6 +69,40 @@ object P_Hash : Primitive(1, CannotFail, CanFold, CanInline)
 		interpreter.checkArgumentCount(1)
 		val value = interpreter.argument(0)
 		return interpreter.primitiveSuccess(fromInt(value.hash()))
+	}
+
+	override fun returnTypeGuaranteedByVM(
+		rawFunction: A_RawFunction,
+		argumentTypes: List<A_Type>
+	): A_Type = argumentTypes[0].run {
+		when
+		{
+			// Well-behaved enumerations produce a tight bound for the hash
+			// values, by asking the instances for their hash values.
+			isEnumeration && (!isInstanceMeta || equals(bottomMeta)) ->
+				enumerationWith(
+					setFromCollection(instances.map { fromInt(it.hash()) }))
+			else -> int32
+		}
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+	{
+		val valueReg = arguments[0]
+		val generator = translator.generator
+		val returnType = returnTypeGuaranteedByVM(rawFunction, argumentTypes)
+		val restriction = restrictionForType(returnType, UNBOXED_INT_FLAG)
+		val writer = generator.intWriteTemp(restriction)
+		generator.addInstruction(L2_HASH, valueReg, writer)
+		callSiteHelper.useAnswer(
+			generator.readBoxed(writer.onlySemanticValue().base))
+		return true
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

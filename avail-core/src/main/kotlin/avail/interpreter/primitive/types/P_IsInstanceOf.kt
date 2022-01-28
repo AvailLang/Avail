@@ -112,7 +112,7 @@ object P_IsInstanceOf : Primitive(2, CannotFail, CanFold, CanInline)
 		val constantYType = yTypeReg.constantOrNull()
 		if (constantYType !== null)
 		{
-			translator.jumpIfKindOfConstant(
+			generator.jumpIfKindOfConstant(
 				xReg,
 				constantYType.typeIntersection(xReg.type()),
 				ifInstance,

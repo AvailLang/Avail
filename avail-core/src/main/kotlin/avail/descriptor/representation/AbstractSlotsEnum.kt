@@ -53,25 +53,30 @@ package avail.descriptor.representation
  */
 interface AbstractSlotsEnum
 {
-	/**
-	 * In Java it was possible to define this interface in such a way that the
-	 * `name` method was abstract and implemented by each specific [Enum], but
-	 * Kotlin breaks this mechanism.  BUT – we're able to cast `this` to [Enum]
-	 * to get to that field.  I believe this code gets copied down into each
-	 * specific Enum subclass, so the dynamic type check for the cast is
-	 * trivially eliminated in each case.  And worst case, Hotspot will be able
-	 * to inline calls to this from sites that are known to be Enums.
-	 */
-	fun fieldName() = (this as Enum<*>).name
+	companion object
+	{
+		/**
+		 * In Java it was possible to define this interface in such a way that
+		 * the `name` method was abstract and implemented by each specific
+		 * [Enum], but Kotlin breaks this mechanism.  BUT – we're able to cast
+		 * `this` to [Enum] to get to that field.  I believe this code gets
+		 * copied down into each specific Enum subclass, so the dynamic type
+		 * check for the cast is trivially eliminated in each case.  And worst
+		 * case, Hotspot will be able to inline calls to this from sites that
+		 * are known to be Enums.
+		 */
+		val AbstractSlotsEnum.fieldName get() = (this as Enum<*>).name
 
-	/**
-	 * In Java it was possible to define this interface in such a way that the
-	 * `ordinal()` method was abstract and implemented by each specific [Enum],
-	 * but Kotlin breaks this mechanism.  BUT – we're able to cast `this` to
-	 * [Enum] to get to that field.  I believe this code gets copied down into
-	 * each specific Enum subclass, so the dynamic type check for the cast is
-	 * trivially eliminated in each case.  And worst case, Hotspot will be able
-	 * to inline calls to this from sites that are known to be Enums.
-	 */
-	fun fieldOrdinal() = (this as Enum<*>).ordinal
+		/**
+		 * In Java it was possible to define this interface in such a way that
+		 * the `ordinal()` method was abstract and implemented by each specific
+		 * [Enum], but Kotlin breaks this mechanism.  BUT – we're able to cast
+		 * `this` to [Enum] to get to that field.  I believe this code gets
+		 * copied down into each specific Enum subclass, so the dynamic type
+		 * check for the cast is trivially eliminated in each case.  And worst
+		 * case, Hotspot will be able to inline calls to this from sites that
+		 * are known to be Enums.
+		 */
+		val AbstractSlotsEnum.fieldOrdinal get() = (this as Enum<*>).ordinal
+	}
 }

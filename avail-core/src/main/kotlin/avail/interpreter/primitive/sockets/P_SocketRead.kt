@@ -60,9 +60,9 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -73,7 +73,6 @@ import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
-import avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.lang.Integer.MAX_VALUE
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
@@ -139,7 +138,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 		{
 			socket.read(
 				buffer,
-				dummy,
+				Unit,
 				SimpleCompletionHandler(
 					{
 						buffer.flip()

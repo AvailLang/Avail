@@ -33,11 +33,10 @@
 package avail.build
 
 import avail.build.AvailSetupContext.distroSrc
+import avail.plugins.gradle.AvailRoot
 import org.gradle.api.Project
-import org.gradle.api.Task
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Copy
-import avail.plugins.gradle.AvailRoot
 import java.net.URI
 
 /// Herein lies utility functions and state for use in gradle-related operations
@@ -156,13 +155,13 @@ fun Project.relocateGeneratedPropertyFiles (task: Copy)
  */
 fun Project.generateBootStrap(task: Copy)
 {
-	val source = "$projectDir/src/main/kotlin"
+	val source = "$projectDir/src/main/resources"
 	val lang = System.getProperty("user.language")
 	val pathBootstrap = fileTree(
 		"$source/avail/tools/bootstrap/generated/$lang/Bootstrap.avail")
 	task.inputs.files + pathBootstrap
 	val distroBootstrap =
-	file("$distroSrc/avail/Avail.avail/Foundation.avail/Bootstrap.avail")
+		file("${rootProject.projectDir}/$distroSrc/avail/Avail.avail/Foundation.avail/Bootstrap.avail")
 	task.outputs.dir(distroBootstrap)
 
 	group = "bootstrap"

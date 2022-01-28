@@ -75,7 +75,7 @@ object L2_TRY_OPTIONAL_PRIMITIVE : L2Operation()
 	/**
 	 * It could fail and jump.
 	 */
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

@@ -33,8 +33,7 @@
 package avail.interpreter.primitive.maps
 
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -50,8 +49,8 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.MapTypeDescriptor.Companion.mostGeneralMapType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_KEY_NOT_FOUND
 import avail.exceptions.AvailErrorCode.E_SUBSCRIPT_OUT_OF_BOUNDS
@@ -148,16 +147,13 @@ object P_MapReplacingNAryKey : Primitive(3, CanInline, CanFold)
 		newValue: A_BasicObject): A_Map
 	{
 		val targetIndex = pathTuple.tupleAt(pathIndex)
-		if (!targetMap.hasKey(targetIndex))
-		{
+		val targetElement = targetMap.mapAtOrNull(targetIndex) ?:
 			throw AvailException(E_KEY_NOT_FOUND)
-		}
 		if (pathIndex == pathTuple.tupleSize)
 		{
 			return targetMap.mapAtPuttingCanDestroy(
 				targetIndex, newValue, true)
 		}
-		val targetElement = targetMap.mapAt(targetIndex)
 		when
 		{
 			targetElement.isTuple ->

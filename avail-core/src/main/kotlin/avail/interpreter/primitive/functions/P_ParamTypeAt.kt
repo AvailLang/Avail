@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.functions
 
+import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
@@ -58,6 +59,9 @@ import avail.interpreter.Primitive.Fallibility.CallSiteMustFail
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operation.L2_GET_TYPE
+import avail.optimizer.L1Translator
 
 /**
  * **Primitive:** Answer the type of the parameter at the given index within the
@@ -117,5 +121,36 @@ object P_ParamTypeAt : Primitive(2, CanFold, CanInline)
 			return CallSiteMustFail
 		}
 		return CallSiteCannotFail
+	}
+
+	override fun tryToGenerateSpecialPrimitiveInvocation(
+		functionToCallReg: L2ReadBoxedOperand,
+		rawFunction: A_RawFunction,
+		arguments: List<L2ReadBoxedOperand>,
+		argumentTypes: List<A_Type>,
+		translator: L1Translator,
+		callSiteHelper: L1Translator.CallSiteHelper
+	): Boolean
+	{
+		val (functionTypeRead, _) = arguments
+		val (functionMeta, indexType) = argumentTypes
+
+		val functionTypeDefinition = functionTypeRead.definition().instruction
+		val exactIndex = indexType.lowerBound
+		if (!indexType.upperBound.equals(exactIndex)) return false
+		// The exact index is known.
+		val argsRange = functionMeta.instance.argsTupleType.sizeRange
+		val minArgs = argsRange.lowerBound
+		if (!minArgs.isInt || exactIndex.greaterThan(minArgs)) return false
+		// The exact index will always be in range.
+		if (functionTypeDefinition.operation !is L2_GET_TYPE) return false
+		// This is the pattern "x's type [y]".  Since x is some actual
+		// function, the resulting argument type can't be top or bottom.
+		val function = L2_GET_TYPE.sourceValueOf(functionTypeDefinition)
+		val generator = translator.generator
+		val read = generator.extractParameterTypeFromFunction(
+			function, exactIndex.extractInt)
+		callSiteHelper.useAnswer(read)
+		return true
 	}
 }

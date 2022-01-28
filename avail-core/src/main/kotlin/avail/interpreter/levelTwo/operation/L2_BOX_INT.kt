@@ -58,7 +58,7 @@ object L2_BOX_INT : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val source = instruction.operand<L2ReadIntOperand>(0)
 		val destination = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)

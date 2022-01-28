@@ -61,7 +61,7 @@ object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val parameterIndex = instruction.operand<L2IntImmediateOperand>(1)
 		val parameterType = instruction.operand<L2WriteBoxedOperand>(2)

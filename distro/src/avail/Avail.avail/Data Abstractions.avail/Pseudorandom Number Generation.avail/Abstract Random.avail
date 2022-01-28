@@ -110,8 +110,7 @@ Public method "_'s⁇next«value in»⁇_" is
 	/* The following algorithm is used to uniformly map values from the range
 	 * onto pRNG's element type.  The algorithm
 	 */
-	rangeSize : natural number := cast ⌈range⌉ - ⌊range⌋ + 1
-		into [n : natural number | n];
+	rangeSize : natural number := ⌈range⌉ - ⌊range⌋ + 1 ?→ natural number;
 
 	rngSize ::= cast ⌈rng's element type⌉ - ⌊rng's element type⌋ + 1
 		into [n : natural number | n];

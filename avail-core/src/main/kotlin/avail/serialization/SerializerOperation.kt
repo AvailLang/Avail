@@ -80,6 +80,7 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
@@ -134,6 +135,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.A_Phrase.Companion.list
 import avail.descriptor.phrases.A_Phrase.Companion.literalObject
 import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+import avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -162,6 +164,8 @@ import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.literalNodeFromToken
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor.Companion.newMacroSubstitution
+import avail.descriptor.phrases.MarkerPhraseDescriptor
+import avail.descriptor.phrases.MarkerPhraseDescriptor.Companion.newMarkerNode
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermutedListNode
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
@@ -230,7 +234,6 @@ import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.A_Type.Companion.writeType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
-import avail.descriptor.types.BottomTypeDescriptor
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.compiledCodeTypeForFunctionType
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationTypeForFunctionType
 import avail.descriptor.types.EnumerationTypeDescriptor
@@ -326,6 +329,10 @@ import java.lang.reflect.Modifier
  *
  * Construct a new `SerializerOperation`.
  *
+ * @param shouldCaptureObject
+ *   Whether, during serialization, this operation should record the
+ *   provided object as a value to capture for use in pumping other serializers
+ *   and deserializers.
  * @param ordinal
  *   The ordinal of this enum value, supplied as a cross-check to reduce the
  *   chance of accidental incompatibility due to the addition of new categories
@@ -335,6 +342,7 @@ import java.lang.reflect.Modifier
  *   written with this `SerializerOperation`.
  */
 enum class SerializerOperation constructor(
+	val shouldCaptureObject: Boolean,
 	ordinal: Int,
 	vararg operands: SerializerOperand)
 {
@@ -342,7 +350,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 0.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	ZERO_INTEGER(0)
+	ZERO_INTEGER(false, 0)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -363,7 +371,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 1.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	ONE_INTEGER(1)
+	ONE_INTEGER(false, 1)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -384,7 +392,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 2.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	TWO_INTEGER(2)
+	TWO_INTEGER(false, 2)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -405,7 +413,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 3.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	THREE_INTEGER(3)
+	THREE_INTEGER(false, 3)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -426,7 +434,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 4.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	FOUR_INTEGER(4)
+	FOUR_INTEGER(false, 4)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -447,7 +455,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 5.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	FIVE_INTEGER(5)
+	FIVE_INTEGER(false, 5)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -468,7 +476,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 6.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	SIX_INTEGER(6)
+	SIX_INTEGER(false, 6)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -489,7 +497,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 7.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	SEVEN_INTEGER(7)
+	SEVEN_INTEGER(false, 7)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -510,7 +518,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 8.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	EIGHT_INTEGER(8)
+	EIGHT_INTEGER(false, 8)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -531,7 +539,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 9.  Note that there are no operands, since the value is
 	 * encoded in the choice of instruction itself.
 	 */
-	NINE_INTEGER(9)
+	NINE_INTEGER(false, 9)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -552,7 +560,7 @@ enum class SerializerOperation constructor(
 	 * The Avail integer 10.  Note that there are no operands, since the value
 	 * is encoded in the choice of instruction itself.
 	 */
-	TEN_INTEGER(10)
+	TEN_INTEGER(false, 10)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -573,7 +581,7 @@ enum class SerializerOperation constructor(
 	 * An Avail integer in the range 11..255.  Note that 0..10 have their own
 	 * special cases already which require very little space.
 	 */
-	BYTE_INTEGER(11, BYTE.named("only byte"))
+	BYTE_INTEGER(false, 11, BYTE.named("only byte"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -602,7 +610,7 @@ enum class SerializerOperation constructor(
 	 * own special cases already which require less space.  Don't try to
 	 * compress the short value for this reason.
 	 */
-	SHORT_INTEGER(12, UNCOMPRESSED_SHORT.named("the unsigned short"))
+	SHORT_INTEGER(false, 12, UNCOMPRESSED_SHORT.named("the unsigned short"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -627,10 +635,10 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * An Avail integer in the range -2<sup>31</sup> through 2<sup>31</sup>-1,
-	 * except the range 0..65535 which have their own special cases already.
+	 * An Avail integer in the range -2<sup>31</sup> through `2^31-1`, except
+	 * the range 0..65535 which have their own special cases already.
 	 */
-	INT_INTEGER(13, SIGNED_INT.named("int's value"))
+	INT_INTEGER(false, 13, SIGNED_INT.named("int's value"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -684,7 +692,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * Produce the Avail [nil][NilDescriptor.nil] during deserialization.
 	 */
-	NIL(15)
+	NIL(false, 15)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -705,7 +713,7 @@ enum class SerializerOperation constructor(
 	 * This special opcode causes a previously built object to be produced as an
 	 * actual checkpoint output from the [Deserializer].
 	 */
-	CHECKPOINT(16, OBJECT_REFERENCE.named("object to checkpoint"))
+	CHECKPOINT(false, 16, OBJECT_REFERENCE.named("object to checkpoint"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -728,7 +736,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * One of the special objects that the [AvailRuntime] maintains.
 	 */
-	SPECIAL_OBJECT(17, COMPRESSED_SHORT.named("special object number"))
+	SPECIAL_OBJECT(false, 17, COMPRESSED_SHORT.named("special object number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -760,7 +768,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * One of the special atoms that the [AvailRuntime] maintains.
 	 */
-	SPECIAL_ATOM(18, COMPRESSED_SHORT.named("special atom number"))
+	SPECIAL_ATOM(false, 18, COMPRESSED_SHORT.named("special atom number"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -793,7 +801,7 @@ enum class SerializerOperation constructor(
 	 * A [character][CharacterDescriptor] whose code point fits in an
 	 * unsigned byte (0..255).
 	 */
-	BYTE_CHARACTER(19, BYTE.named("Latin-1 code point"))
+	BYTE_CHARACTER(false, 19, BYTE.named("Latin-1 code point"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -814,7 +822,7 @@ enum class SerializerOperation constructor(
 	 * A [character][CharacterDescriptor] whose code point requires an
 	 * unsigned short (256..65535).
 	 */
-	SHORT_CHARACTER(20, UNCOMPRESSED_SHORT.named("BMP code point"))
+	SHORT_CHARACTER(false, 20, UNCOMPRESSED_SHORT.named("BMP code point"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -836,6 +844,7 @@ enum class SerializerOperation constructor(
 	 * to represent (0..16777215, but technically only 0..1114111).
 	 */
 	LARGE_CHARACTER(
+		false,
 		21,
 		BYTE.named("SMP codepoint high byte"),
 		BYTE.named("SMP codepoint middle byte"),
@@ -867,7 +876,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * A [float][FloatDescriptor].  Convert the raw bits to an int for writing.
 	 */
-	FLOAT(22, SIGNED_INT.named("raw bits"))
+	FLOAT(false, 22, SIGNED_INT.named("raw bits"))
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -902,6 +911,7 @@ enum class SerializerOperation constructor(
 	 * it in big endian.
 	 */
 	DOUBLE(
+		false,
 		23,
 		SIGNED_INT.named("upper raw bits"),
 		SIGNED_INT.named("lower raw bits"))
@@ -1036,7 +1046,7 @@ enum class SerializerOperation constructor(
 
 	/**
 	 * A [tuple][TupleDescriptor] of integers whose values all fall in the range
-	 * 0..2^31-1.
+	 * `0..2^31-1`.
 	 */
 	INT_TUPLE(28, COMPRESSED_INT_TUPLE.named("tuple of ints"))
 	{
@@ -1639,6 +1649,7 @@ enum class SerializerOperation constructor(
 	 * deserialization.
 	 */
 	ASSIGN_TO_VARIABLE(
+		false,
 		45,
 		OBJECT_REFERENCE.named("variable to assign"),
 		OBJECT_REFERENCE.named("value to assign"))
@@ -2021,7 +2032,7 @@ enum class SerializerOperation constructor(
 	/**
 	 * The [raw&#32;pojo][RawPojoDescriptor] for the Java `null` value.
 	 */
-	RAW_POJO_NULL(55)
+	RAW_POJO_NULL(false, 55)
 	{
 		override fun decompose(
 			obj: AvailObject,
@@ -2612,13 +2623,42 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
+	 * A [marker][MarkerPhraseDescriptor] phrase.  These should not be created
+	 * during normal parsing, and must be transformed into other phrases by some
+	 * means before code generation.
+	 */
+	MARKER_PHRASE(
+		74,
+		OBJECT_REFERENCE.named("value"),
+		OBJECT_REFERENCE.named("yield type"))
+	{
+		override fun decompose(
+			obj: AvailObject,
+			serializer: Serializer): Array<out A_BasicObject>
+		{
+			return array(
+				obj.markerValue,
+				obj.phraseExpressionType)
+		}
+
+		override fun compose(
+			subobjects: Array<AvailObject>,
+			deserializer: Deserializer): A_BasicObject
+		{
+			val (value, yieldType) = subobjects
+			return newMarkerNode(value, yieldType)
+		}
+	},
+
+	/**
 	 * An arbitrary primitive type that is not already a special object. Exists
 	 * primarily to support hidden types that are not exposed directly to an
 	 * Avail programmer but which must still be visible to the serialization
 	 * mechanism.
 	 */
 	ARBITRARY_PRIMITIVE_TYPE(
-		74,
+		false,
+		75,
 		BYTE.named("primitive type ordinal"))
 	{
 		override fun decompose(
@@ -2640,7 +2680,7 @@ enum class SerializerOperation constructor(
 	 * A [variable][A_Variable] bound to a `static` Java field.
 	 */
 	STATIC_POJO_FIELD(
-		75,
+		76,
 		OBJECT_REFERENCE.named("class name"),
 		OBJECT_REFERENCE.named("field name"))
 	{
@@ -2685,26 +2725,6 @@ enum class SerializerOperation constructor(
 				throw RuntimeException(e)
 			}
 
-		}
-	},
-
-	/**
-	 * Reserved for future use.
-	 */
-	@Suppress("unused") RESERVED_76(76)
-	{
-		override fun decompose(
-			obj: AvailObject,
-			serializer: Serializer): Array<out A_BasicObject>
-		{
-			throw RuntimeException("Reserved serializer operation")
-		}
-
-		override fun compose(
-			subobjects: Array<AvailObject>,
-			deserializer: Deserializer): A_BasicObject
-		{
-			throw RuntimeException("Reserved serializer operation")
 		}
 	},
 
@@ -3431,28 +3451,17 @@ enum class SerializerOperation constructor(
 			val (read, write) = subobjects
 			return variableReadWriteType(read, write)
 		}
-	},
+	};
 
 	/**
-	 * The [bottom&#32;type][BottomTypeDescriptor], more specific than all other
-	 * types.
+	 * A secondary constructor used for defaulting the [shouldCaptureObject]
+	 * parameter to true.
 	 */
-	BOTTOM_TYPE(102)
-	{
-		override fun decompose(
-			obj: AvailObject,
-			serializer: Serializer): Array<out A_BasicObject>
-		{
-			return array()
-		}
+	constructor(
+		ordinal: Int,
+		vararg operands: SerializerOperand
+	) : this(true, ordinal, *operands)
 
-		override fun compose(
-			subobjects: Array<AvailObject>,
-			deserializer: Deserializer): A_BasicObject
-		{
-			return pojoBottom()
-		}
-	};
 
 	/**
 	 * The operands that this operation expects to see encoded after the tag.
@@ -3608,14 +3617,9 @@ enum class SerializerOperation constructor(
 			// An atom in an imported module.
 			val module = deserializer.moduleNamed(moduleName)
 			val newNames = module.newNames
-			if (newNames.hasKey(atomName))
-			{
-				return newNames.mapAt(atomName)
-			}
+			newNames.mapAtOrNull(atomName)?.let { return it }
 			val privateNames = module.privateNames
-			if (privateNames.hasKey(atomName))
-			{
-				val candidates = privateNames.mapAt(atomName)
+			privateNames.mapAtOrNull(atomName)?.let { candidates ->
 				if (candidates.setSize == 1) return candidates.single()
 				if (candidates.setSize > 1)
 				{

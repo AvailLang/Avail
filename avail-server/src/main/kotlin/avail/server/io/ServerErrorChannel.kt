@@ -49,5 +49,5 @@ package avail.server.io
 class ServerErrorChannel constructor(channel: AvailServerChannel)
 	: AbstractServerOutputChannel(channel)
 {
-	override val channelTag = "err"
+	override val channelTag get() = "err"
 }

@@ -99,7 +99,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 				}
 			}
 			else if (bRange.lowerBound.greaterOrEqual(zero)
-					 && bRange.upperBound.isLong)
+				&& bRange.upperBound.isLong)
 			{
 				bRange.upperBound.extractLong
 			}

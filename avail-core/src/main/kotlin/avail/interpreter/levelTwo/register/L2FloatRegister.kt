@@ -50,7 +50,7 @@ import avail.optimizer.reoptimizer.L2Regenerator
  */
 class L2FloatRegister constructor(debugValue: Int) : L2Register(debugValue)
 {
-	override fun registerKind() = FLOAT_KIND
+	override val registerKind get() = FLOAT_KIND
 
 	override fun copyForTranslator(
 		generator: L2Generator): L2FloatRegister

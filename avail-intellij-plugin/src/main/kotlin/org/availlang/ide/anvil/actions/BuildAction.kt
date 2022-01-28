@@ -36,7 +36,7 @@ import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
 import com.intellij.openapi.actionSystem.CommonDataKeys
 import com.intellij.openapi.application.ApplicationManager
-import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.models.project.anvilProjectService
 
 /**
@@ -44,10 +44,8 @@ import org.availlang.ide.anvil.models.project.anvilProjectService
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-class BuildAction: AnAction
+class BuildAction: AnAction()
 {
-	constructor(): super()
-	constructor(name: String, description: String): super(name, description, null)
 	override fun actionPerformed(e: AnActionEvent)
 	{
 		val project = e.project
@@ -57,7 +55,7 @@ class BuildAction: AnAction
 
 //			val editor: Editor? = e.getData<Editor>(CommonDataKeys.EDITOR)
 			val file = e.getData(CommonDataKeys.PSI_FILE)
-			if (file is AnvilFile)
+			if (file is AvailFile)
 			{
 				ApplicationManager.getApplication().executeOnPooledThread {
 					file.build {
@@ -74,7 +72,7 @@ class BuildAction: AnAction
 		if (project != null)
 		{
 			e.presentation.isEnabledAndVisible =
-				e.getData(CommonDataKeys.PSI_FILE) is AnvilFile
+				e.getData(CommonDataKeys.PSI_FILE) is AvailFile
 		}
 		else
 		{

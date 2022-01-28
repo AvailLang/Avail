@@ -238,7 +238,10 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				Level.FINER,
 				"{0}Started L1 run: {1}",
 				interpreter.debugModeString,
-				whitespaces.matcher(function.toString()).replaceAll(" "))
+				object {
+					override fun toString(): String =
+						whitespaces.matcher(function.toString()).replaceAll(" ")
+				})
 		}
 		code.setUpInstructionDecoder(instructionDecoder)
 		while (!instructionDecoder.atEnd())
@@ -551,7 +554,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 								|| !newContinuation.caller().descriptor()
 							.isMutable) {
 							("Caller should freeze because two "
-							 + "continuations can see it")
+								+ "continuations can see it")
 						}
 						push(newContinuation)
 						interpreter.returnNow = false
@@ -926,7 +929,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	 * @return
 	 *   A [StackReifier] if reification is needed, otherwise `null`.
 	 */
-	private fun checkReturnType(
+	internal fun checkReturnType(
 		result: AvailObject,
 		expectedReturnType: A_Type,
 		returnee: A_Function): StackReifier?
@@ -976,7 +979,8 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (reifier.actuallyReify())
 			{
 				reifyCurrentFrame(
-					reifier, ChunkEntryPoint.UNREACHABLE,
+					reifier,
+					ChunkEntryPoint.UNREACHABLE,
 					"{0}Push reified continuation for L1 check "
 						+ "return type failure: {1}")
 			}

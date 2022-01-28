@@ -57,7 +57,7 @@ object L2_CREATE_SET : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val values =
 			instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val set =

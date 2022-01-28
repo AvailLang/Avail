@@ -76,7 +76,7 @@ object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
 {
 	// Keep this instruction from being removed, since it's only used by the
 	// default chunk.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

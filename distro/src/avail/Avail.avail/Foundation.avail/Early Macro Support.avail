@@ -285,7 +285,7 @@ Method "Require:_named_does not shadow" is
 |
 	If varName ∈ scope map then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			private concatenate
 			<
 				varRole,

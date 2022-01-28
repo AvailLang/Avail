@@ -1,6 +1,6 @@
 /*
  * Special Objects.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/26/21, 10:06 PM
+ * * Last Generated: 1/6/22, 1:23 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -118,6 +118,7 @@ Names
 	/* 153 */ "map from string to atom",
 	/*  19 */ "map meta",
 	/* 156 */ "map variable",
+	/* 174 */ "marker phrase",
 	/*  40 */ "message bundle",
 	/*  41 */ "message bundle tree",
 	/*  42 */ "method",
@@ -1096,7 +1097,7 @@ Special object "macro definition" is special object 47;
 Special object "tuple of function" is special object 48;
 
 /**
- * The {@code atom} under which the stack is captured within an
+ * The {@code atom} under which the stack is captured within an 
  * {@code exception} when it is raised.
  *
  * @category "Primitives" "Constants"
@@ -2312,4 +2313,16 @@ Special object "token classifiers" is special object 172;
  * @alias "token tuple"
  */
 Special object "token tuple" is special object 173;
+
+/**
+ * The marker phrase type, instances of which are generally produced by an
+ * explicit construction primitive.  A marker phrase type has a yield type.
+ * An actual marker phrase contains both a value and a yield type, which do not
+ * need to agree with each other.
+ *
+ * @category "Primitives" "Types"
+ * @type "marker phrase⇒⊤"
+ * @alias "marker phrase"
+ */
+Special object "marker phrase" is special object 174;
 

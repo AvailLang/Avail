@@ -38,9 +38,9 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.variableBindings
@@ -54,12 +54,14 @@ import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.asTuple
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
@@ -68,7 +70,6 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -79,7 +80,7 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapVariableUseMacro
-	: Primitive(1, CannotFail, CanInline, Bootstrap)
+	: Primitive(1, CanInline, Bootstrap)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -102,12 +103,9 @@ object P_BootstrapVariableUseMacro
 				STRONG, "variable $variableNameString to be alphanumeric")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
-		val clientData =
-			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
-		if (scopeMap.hasKey(variableNameString))
-		{
-			val localDeclaration = scopeMap.mapAt(variableNameString)
+		scopeMap.mapAtOrNull(variableNameString)?.let { localDeclaration ->
 			// If the local constant is initialized by a literal, then treat a
 			// mention of that constant as though it were the literal itself.
 			if (localDeclaration.declarationKind() === LOCAL_CONSTANT
@@ -117,59 +115,56 @@ object P_BootstrapVariableUseMacro
 				return interpreter.primitiveSuccess(
 					localDeclaration.initializationExpression)
 			}
-
-			val variableUse =
-				newUse(actualToken, scopeMap.mapAt(variableNameString))
+			val variableUse = newUse(actualToken, localDeclaration)
 			variableUse.makeImmutable()
 			return interpreter.primitiveSuccess(variableUse)
 		}
 		// Not in a block scope. See if it's a module variable or module
 		// constant...
 		val module = loader.module
-		if (module.variableBindings.hasKey(variableNameString))
-		{
-			val variableObject =
-				module.variableBindings.mapAt(variableNameString)
+		module.variableBindings.mapAtOrNull(variableNameString)?.let {
+				variableObject ->
 			val moduleVarDecl =
 				newModuleVariable(actualToken, variableObject, nil, nil)
 			val variableUse = newUse(actualToken, moduleVarDecl)
-			variableUse.makeImmutable()
-			return interpreter.primitiveSuccess(variableUse)
+			return interpreter.primitiveSuccess(variableUse.makeImmutable())
 		}
-		if (!module.constantBindings.hasKey(variableNameString))
+		module.constantBindings.mapAtOrNull(variableNameString)?.let {
+				variableObject ->
+			val moduleConstDecl =
+				newModuleConstant(actualToken, variableObject, nil)
+			val variableUse = newUse(actualToken, moduleConstDecl)
+			return interpreter.primitiveSuccess(variableUse.makeImmutable())
+		}
+		throw AvailRejectedParseException(
+			// Almost any theory is better than guessing that we want the
+			// value of some variable that doesn't exist.
+			if (scopeMap.mapSize == 0) SILENT else WEAK)
 		{
-			throw AvailRejectedParseException(
-				// Almost any theory is better than guessing that we want the
-				// value of some variable that doesn't exist.
-				if (scopeMap.mapSize == 0) SILENT else WEAK)
-			{
-				stringFrom(
-					buildString {
-						val scope =
-							toList<A_String>(scopeMap.keysAsSet.asTuple)
-								.map(A_String::asNativeString)
-						append("potential variable ")
-						append(variableNameString)
-						append(" to be in scope (local scope is")
-						when
-						{
-							scope.isEmpty() -> append(" empty)")
-							else -> append(
-								scope.sorted().joinToString(
-									prefix = ": ",
-									postfix = ")"))
-						}
-					})
-			}
+			stringFrom(
+				buildString {
+					val scope =
+						toList<A_String>(scopeMap.keysAsSet.asTuple)
+							.map(A_String::asNativeString)
+					append("potential variable ")
+					append(variableNameString)
+					append(" to be in scope (local scope is")
+					when
+					{
+						scope.isEmpty() -> append(" empty)")
+						else -> append(
+							scope.sorted().joinToString(
+								prefix = ": ",
+								postfix = ")"))
+					}
+				})
 		}
-		val variableObject =
-			module.constantBindings.mapAt(variableNameString)
-		val moduleConstDecl =
-			newModuleConstant(actualToken, variableObject, nil)
-		val variableUse =
-			newUse(actualToken, moduleConstDecl)
-		return interpreter.primitiveSuccess(variableUse)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER))
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

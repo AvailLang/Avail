@@ -57,11 +57,8 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE),
 	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
-	override fun hasSideEffect(): Boolean
-	{
-		// It jumps if the result doesn't fit in an int.
-		return true
-	}
+	// It jumps if the result doesn't fit in an int.
+	override val hasSideEffect: Boolean get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -69,7 +66,7 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val minuend = instruction.operand<L2ReadIntOperand>(0)
 		val subtrahend = instruction.operand<L2ReadIntOperand>(1)
 		val difference = instruction.operand<L2WriteIntOperand>(2)
@@ -102,34 +99,34 @@ object L2_SUBTRACT_INT_MINUS_INT : L2ControlFlowOperation(
 		translator.load(method, subtrahend.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LSUB)
-		method.visitInsn(Opcodes.DUP2)
-		// :: intDifference = (int) longDifference;
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.DUP)
-		val intDifferenceLocal = translator.nextLocal(Type.INT_TYPE)
-		val intDifferenceStart = Label()
-		method.visitLabel(intDifferenceStart)
-		method.visitVarInsn(Opcodes.ISTORE, intDifferenceLocal)
+		val longDifferenceStart = Label()
+		val longDifferenceEnd = Label()
+		val longDifferenceLocal = translator.nextLocal(Type.LONG_TYPE)
+		method.visitLocalVariable(
+			"longDifference",
+			Type.LONG_TYPE.descriptor,
+			null,
+			longDifferenceStart,
+			longDifferenceEnd,
+			longDifferenceLocal)
+		method.visitVarInsn(Opcodes.LSTORE, longDifferenceLocal)
+		method.visitLabel(longDifferenceStart)
 		// :: if (longDifference != intDifference) goto outOfRange;
+		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
+		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.I2L)
+		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(
-			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// :: else {
-		// ::    sum = intDifference;
+		// ::    sum = (int)longDifference;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(Opcodes.ILOAD, intDifferenceLocal)
-		val intDifferenceEnd = Label()
-		method.visitLabel(intDifferenceEnd)
-		method.visitLocalVariable(
-			"intDifference",
-			Type.INT_TYPE.descriptor,
-			null,
-			intDifferenceStart,
-			intDifferenceEnd,
-			intDifferenceLocal)
+		method.visitVarInsn(Opcodes.LLOAD, longDifferenceLocal)
+		method.visitInsn(Opcodes.L2I)
 		translator.store(method, difference.register())
 		translator.jump(method, instruction, inRange)
+		method.visitLabel(longDifferenceEnd)
+		translator.endLocal(longDifferenceLocal, Type.LONG_TYPE)
 	}
 }

@@ -34,6 +34,7 @@ package org.availlang.ide.anvil.language
 
 import avail.compiler.ModuleManifestEntry
 import com.intellij.psi.PsiElement
+import org.availlang.ide.anvil.language.psi.AvailElementType
 import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
 
 /**
@@ -42,9 +43,10 @@ import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 class AnvilManifestEntryTreeElement constructor(
+	elementType: AvailElementType,
 	val psiElement: AvailManifestEntryPsiElement,
 	val manifestEntry: ModuleManifestEntry
-): AnvilTreeElement()
+): AnvilTreeElement(elementType)
 {
 	override fun getText(): String = manifestEntry.summaryText
 

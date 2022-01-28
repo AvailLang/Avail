@@ -62,7 +62,8 @@ class L2ReadIntVectorOperand constructor(elements: List<L2ReadIntOperand>)
 	override fun clone(replacementElements: List<L2ReadIntOperand>) =
 		L2ReadIntVectorOperand(replacementElements)
 
-	override fun operandType(): L2OperandType = L2OperandType.READ_INT_VECTOR
+	override val operandType: L2OperandType
+		get() = L2OperandType.READ_INT_VECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

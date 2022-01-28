@@ -52,7 +52,7 @@ object L2_SET_CONTINUATION : L2Operation(
 	L2OperandType.READ_BOXED.named("replacement continuation"))
 {
 	// It updates the current continuation of the interpreter.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -60,7 +60,7 @@ object L2_SET_CONTINUATION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

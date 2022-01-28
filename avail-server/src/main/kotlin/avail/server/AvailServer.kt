@@ -666,7 +666,7 @@ class AvailServer constructor(
 		builder.textInterface = ioChannel.textInterface!!
 		builder.buildTarget(
 			command.target,
-			{ name, size, position, line ->
+			{ name, size, position, line, _ ->
 				val writer = JSONWriter()
 				writer.writeObject {
 					at("module") { write(name.qualifiedName) }

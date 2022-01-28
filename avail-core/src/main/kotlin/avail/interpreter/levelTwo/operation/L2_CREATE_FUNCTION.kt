@@ -49,6 +49,7 @@ import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.IMMUTABLE_FLAG
 import avail.optimizer.L2Generator
 import avail.optimizer.jvm.JVMTranslator
 import avail.utility.Strings.increaseIndentation
@@ -74,7 +75,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		// val function = instruction.operand<L2WriteBoxedOperand>(2)
@@ -82,7 +83,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		val originalRead = outers.elements()[outerIndex - 1]
 		// Intersect the read's restriction, the given type, and the type that
 		// the code says the outer must have.
-		val intersection = originalRead.restriction().intersectionWithType(
+		var intersection = originalRead.restriction().intersectionWithType(
 			outerType.typeIntersection(
 				code.constant.outerTypeAt(outerIndex)))
 		assert(!intersection.type.isBottom)
@@ -102,6 +103,11 @@ object L2_CREATE_FUNCTION : L2Operation(
 		// The registers that supplied the value are no longer live.  Extract
 		// the value from the actual function.  Note that it's still guaranteed
 		// to have the strengthened type.
+		if (functionRegister.restriction().isImmutable)
+		{
+			// An immutable function has immutable captured outers.
+			intersection = intersection.withFlag(IMMUTABLE_FLAG)
+		}
 		val tempWrite = generator.boxedWriteTemp(intersection)
 		generator.addInstruction(
 			L2_MOVE_OUTER_VARIABLE,
@@ -123,7 +129,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 	override fun getConstantCodeFrom(
 		instruction: L2Instruction): A_RawFunction
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		val constant = instruction.operand<L2ConstantOperand>(0)
 		return constant.constant
 	}
@@ -134,7 +140,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val code = instruction.operand<L2ConstantOperand>(0)
 		val outers = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val function = instruction.operand<L2WriteBoxedOperand>(2)
@@ -209,7 +215,7 @@ object L2_CREATE_FUNCTION : L2Operation(
 	@JvmStatic
 	fun constantRawFunctionOf(instruction: L2Instruction): A_RawFunction
 	{
-		assert(instruction.operation() is L2_CREATE_FUNCTION)
+		assert(instruction.operation is L2_CREATE_FUNCTION)
 		val constant = instruction.operand<L2ConstantOperand>(0)
 		return constant.constant
 	}

@@ -127,11 +127,11 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 	{
 		assert(arguments.size == 2)
 		val conditionType = argumentTypes[0]
+		val generator = translator.generator
 		if (!falseObject.isInstanceOf(conditionType))
 		{
 			// The condition can't be false, so skip the call.
-			callSiteHelper.useAnswer(
-				translator.generator.boxedConstant(nil))
+			callSiteHelper.useAnswer(generator.boxedConstant(nil))
 			return true
 		}
 		if (!trueObject.isInstanceOf(conditionType))
@@ -144,29 +144,29 @@ object P_Assert : Primitive(2, Unknown, CanSuspend, CannotFail)
 		// branched control flow so that some of the computation of the message
 		// string and the reification state can be pushed into the rare failure
 		// path.
-		val failPath = translator.generator.createBasicBlock("assertion failed")
-		val passPath = translator.generator.createBasicBlock("after assertion")
+		val failPath = generator.createBasicBlock("assertion failed")
+		val passPath = generator.createBasicBlock("after assertion")
 
-		translator.jumpIfEqualsConstant(
+		generator.jumpIfEqualsConstant(
 			arguments[0],
 			trueObject,
 			passPath,
 			failPath)
 
-		translator.generator.startBlock(failPath)
+		generator.startBlock(failPath)
 		// Since this invocation will also be optimized, pass the constant false
 		// as the condition argument to avoid infinite recursion.
 		translator.generateGeneralFunctionInvocation(
 			functionToCallReg,
 			listOf(
-				translator.generator.boxedConstant(falseObject),
+				generator.boxedConstant(falseObject),
 				arguments[1]),
 			true,
 			callSiteHelper)
 
 		// Happy case.  Just push nil and jump to a suitable exit point.
-		translator.generator.startBlock(passPath)
-		callSiteHelper.useAnswer(translator.generator.boxedConstant(nil))
+		generator.startBlock(passPath)
+		callSiteHelper.useAnswer(generator.boxedConstant(nil))
 		return true
 	}
 }

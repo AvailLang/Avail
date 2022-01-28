@@ -72,7 +72,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val caller = instruction.operand<L2ReadBoxedOperand>(1)
 		val levelOnePC = instruction.operand<L2IntImmediateOperand>(2)
@@ -112,7 +112,7 @@ object L2_CREATE_CONTINUATION : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val caller = instruction.operand<L2ReadBoxedOperand>(1)
 		val levelOnePC = instruction.operand<L2IntImmediateOperand>(2)

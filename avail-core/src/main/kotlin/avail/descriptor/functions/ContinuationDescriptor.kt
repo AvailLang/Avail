@@ -55,8 +55,9 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_CHUNK
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine3
@@ -316,13 +317,14 @@ class ContinuationDescriptor private constructor(
 			fields.add(
 				AvailObjectFieldHelper(
 					self,
-					DebuggerObjectSlots(name),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					self.frameAt(i)))
+					self.frameAt(i),
+					slotName = name))
 		}
 		val moduleName = code.module.run {
 			if (isNil) "No module"
-			else moduleName.asNativeString().split("/").last()
+			else moduleNameNative.split("/").last()
 		}
 
 		// Figure out the pc of the instruction before the current one, since
@@ -345,9 +347,10 @@ class ContinuationDescriptor private constructor(
 		fields.add(
 			AvailObjectFieldHelper(
 				self,
-				DebuggerObjectSlots("Disassembly"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				null,
+				slotName = "Disassembly",
 				forcedName = "L1 Disassembly ($moduleName)",
 				forcedChildren = disassembled.toTypedArray()))
 		return fields.toTypedArray()
@@ -476,8 +479,7 @@ class ContinuationDescriptor private constructor(
 			}
 			else
 			{
-				val name = module.moduleName.asNativeString()
-				append(name.split("/").last())
+				append(module.moduleNameNative.split("/").last())
 			}
 			append(":")
 			append(self.currentLineNumber())
@@ -835,7 +837,7 @@ class ContinuationDescriptor private constructor(
 						code.methodName.asNativeString(),
 						signature,
 						if (module.isNil) "?"
-						else module.moduleName.asNativeString(),
+						else module.moduleNameNative,
 						frame.currentLineNumber())
 				}
 				assert (allTypesIndex == allTypeNames.size)

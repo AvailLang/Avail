@@ -49,7 +49,7 @@ import org.objectweb.asm.Opcodes
  */
 object L2_UNREACHABLE_CODE : L2ControlFlowOperation()
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	/**
 	 * `UnreachableCodeException` is thrown only if unreachable code is

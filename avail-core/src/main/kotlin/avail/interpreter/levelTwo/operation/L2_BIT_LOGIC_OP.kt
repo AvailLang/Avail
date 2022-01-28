@@ -71,7 +71,7 @@ class L2_BIT_LOGIC_OP(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val input1 = instruction.operand<L2ReadIntOperand>(0)
 		val input2 = instruction.operand<L2ReadIntOperand>(1)
 		val output = instruction.operand<L2WriteIntOperand>(2)
@@ -80,7 +80,7 @@ class L2_BIT_LOGIC_OP(
 		builder.append(output.registerString())
 		builder.append(" ← ")
 		builder.append(input1.registerString())
-		builder.append(" ${name()} ")
+		builder.append(" $name ")
 		builder.append(input2.registerString())
 	}
 
@@ -199,5 +199,24 @@ class L2_BIT_LOGIC_OP(
 		 * intA / intB), wrapping around with 2's complement semantics as needed.
 		 */
 		val wrappedDivide = L2_BIT_LOGIC_OP("wrappedDivide", Opcodes.IDIV)
+
+		/**
+		 * The [L2Operation] for shifting an [Int] rightward by the specified
+		 * number of bit positions, treating it as unsigned.  The second operand
+		 * should be between 0 and 31 (otherwise only the bottom five bits will
+		 * be used).  The result can be negative if the first argument is
+		 * negative and the shift is zero.
+		 */
+		val bitwiseUnsignedShiftRight =
+			L2_BIT_LOGIC_OP("unsignedShiftRight", Opcodes.IUSHR)
+
+		/**
+		 * The [L2Operation] for shifting an [Int] rightward by the specified
+		 * number of bit positions, respecting its sign.  The second operand
+		 * should be between 0 and 31 (otherwise only the bottom five bits will
+		 * be used).
+		 */
+		val bitwiseSignedShiftRight =
+			L2_BIT_LOGIC_OP("signedShiftRight", Opcodes.ISHR)
 	}
 }

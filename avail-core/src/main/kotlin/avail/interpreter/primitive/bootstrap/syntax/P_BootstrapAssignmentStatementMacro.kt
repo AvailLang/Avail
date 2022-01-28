@@ -37,11 +37,10 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.variableBindings
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.token
@@ -107,41 +106,26 @@ object P_BootstrapAssignmentStatementMacro
 				"variable name for assignment to be alphanumeric, not $variableNameString")
 		}
 		val fiberGlobals = interpreter.fiber().fiberGlobals()
-		val clientData =
-			fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module
-		val declaration: A_Phrase = when
-		{
-			scopeMap.hasKey(variableNameString) ->
-			{
-				scopeMap.mapAt(variableNameString)
-			}
-			module.variableBindings.hasKey(variableNameString) ->
-			{
-				val variableObject =
-					module.variableBindings.mapAt(variableNameString)
-				newModuleVariable(actualToken, variableObject, nil, nil)
-			}
-			module.constantBindings.hasKey(variableNameString) ->
-			{
-				val variableObject =
-					module.constantBindings.mapAt(variableNameString)
-				newModuleConstant(actualToken, variableObject, nil)
-			}
-			else -> throw AvailRejectedParseException(STRONG)
-			{
-				formatString(
-					"variable (%s) for assignment to be in scope",
-					variableNameString)
-			}
-		}
+		val declaration = scopeMap.mapAtOrNull(variableNameString) ?:
+			module.variableBindings.mapAtOrNull(variableNameString)?.let {
+				newModuleVariable(actualToken, it, nil, nil)
+			} ?:
+				module.constantBindings.mapAtOrNull(variableNameString)?.let {
+					newModuleConstant(actualToken, it, nil)
+				} ?: throw AvailRejectedParseException(STRONG) {
+					formatString(
+						"variable (%s) for assignment to be in scope",
+						variableNameString)
+				}
 		if (!declaration.declarationKind().isVariable)
 		{
 			throw AvailRejectedParseException(STRONG)
 			{
 				formatString(
-					"a name of a variable, not a %s",
+					"a name of a variable, not a(n) %s",
 					declaration.declarationKind().nativeKindName())
 			}
 		}

@@ -41,8 +41,10 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.BottomPojoTypeDescriptor.Companion.pojoBottom
 import avail.descriptor.types.PojoTypeDescriptor
+import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.descriptor.types.TypeTag
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -183,12 +185,17 @@ class PojoDescriptor private constructor(
 			pojoType: A_Type
 		): AvailObject = mutable.createImmutable {
 			setSlot(RAW_POJO, rawPojo)
-			setSlot(KIND, pojoType)
+			val innateJavaClass = rawPojo.javaObjectNotNull<Any>().javaClass
+			val innateType = pojoTypeForClass(innateJavaClass)
+			val intersectedType = pojoType.typeIntersection(innateType)
+			setSlot(KIND, intersectedType)
 		}
 
 		/** The [pojo][PojoDescriptor] that wraps Java's `null`. */
-		private val nullObject =
-			newPojo(rawNullPojo(), pojoBottom()).makeShared()
+		private val nullObject = mutable.createShared {
+			setSlot(RAW_POJO, rawNullPojo())
+			setSlot(KIND, pojoBottom())
+		}
 
 		/**
 		 * Answer the [pojo][PojoDescriptor] that wraps Java's

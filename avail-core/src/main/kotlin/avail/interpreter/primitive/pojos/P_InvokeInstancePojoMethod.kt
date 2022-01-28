@@ -49,6 +49,7 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.MarshalingException
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
@@ -72,7 +73,7 @@ import java.lang.reflect.Method
  * [Method] and the [tuple][A_Tuple] of marshaled types.
  */
 @Suppress("unused")
-object P_InvokeInstancePojoMethod : Primitive(-1, Private)
+object P_InvokeInstancePojoMethod : Primitive(-1, Private, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

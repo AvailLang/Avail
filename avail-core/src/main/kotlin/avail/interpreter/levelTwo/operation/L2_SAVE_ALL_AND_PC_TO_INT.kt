@@ -67,13 +67,13 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 {
 	override fun targetEdges(instruction: L2Instruction): List<L2PcOperand>
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		return listOf(instruction.operand(0), instruction.operand(3))
 	}
 
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
-	override fun altersControlFlow() = true
+	override val altersControlFlow get() = true
 
 	/**
 	 * Answer true if this instruction leads to multiple targets, *multiple* of
@@ -96,7 +96,8 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	 *   Whether multiple branches may be taken following the circumstance of
 	 *   arriving at this instruction.
 	 */
-	override fun goesMultipleWays(): Boolean = true
+	override val goesMultipleWays: Boolean
+		get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -104,7 +105,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val target = instruction.operand<L2PcOperand>(0)
 		val targetAsInt = instruction.operand<L2WriteIntOperand>(1)
 		val registerDump = instruction.operand<L2WriteBoxedOperand>(2)
@@ -128,7 +129,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val target = instruction.operand<L2PcOperand>(0)
 		val targetAsInt = instruction.operand<L2WriteIntOperand>(1)
 		val registerDump = instruction.operand<L2WriteBoxedOperand>(2)
@@ -162,7 +163,7 @@ object L2_SAVE_ALL_AND_PC_TO_INT : L2Operation(
 	 */
 	fun referenceOf(instruction: L2Instruction): L2PcOperand
 	{
-		assert(instruction.operation() is L2_SAVE_ALL_AND_PC_TO_INT)
+		assert(instruction.operation is L2_SAVE_ALL_AND_PC_TO_INT)
 		return instruction.operand(0)
 	}
 }

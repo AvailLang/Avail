@@ -64,6 +64,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.numbers.IntegerDescriptor
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
@@ -102,9 +103,6 @@ import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
-import avail.utility.visitor.AvailSubobjectVisitor
-import avail.utility.visitor.BeImmutableSubobjectVisitor
-import avail.utility.visitor.BeSharedSubobjectVisitor
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
@@ -486,10 +484,6 @@ protected constructor (
 	override fun o_SetHashOrZero (self: AvailObject, value: Int): Unit =
 		unsupported
 
-	override fun o_HasKey (
-		self: AvailObject,
-		keyObject: A_BasicObject): Boolean = unsupported
-
 	override fun o_DefinitionsAtOrBelow (
 			self: AvailObject,
 			argRestrictions: List<TypeRestriction>): List<A_Definition> =
@@ -595,9 +589,9 @@ protected constructor (
 			argumentList: List<A_BasicObject>): A_Definition =
 		unsupported
 
-	override fun o_MapAt (
+	override fun o_MapAtOrNull (
 		self: AvailObject,
-		keyObject: A_BasicObject): AvailObject = unsupported
+		keyObject: A_BasicObject): AvailObject? = unsupported
 
 	override fun o_MapAtPuttingCanDestroy (
 		self: AvailObject,
@@ -713,7 +707,7 @@ protected constructor (
 	 */
 	override fun o_ScanSubobjects (
 		self: AvailObject,
-		visitor: AvailSubobjectVisitor)
+		visitor: (AvailObject) -> AvailObject)
 	{
 		val limit = self.objectSlotsCount()
 		for (i in 1 .. limit)
@@ -1377,7 +1371,7 @@ protected constructor (
 	 */
 	override fun o_MakeSubobjectsImmutable (self: AvailObject): AvailObject
 	{
-		self.scanSubobjects(BeImmutableSubobjectVisitor)
+		self.scanSubobjects(AvailObject::makeImmutable)
 		return self
 	}
 
@@ -1393,7 +1387,7 @@ protected constructor (
 	 */
 	override fun o_MakeSubobjectsShared (self: AvailObject): AvailObject
 	{
-		self.scanSubobjects(BeSharedSubobjectVisitor)
+		self.scanSubobjects(AvailObject::makeShared)
 		return self
 	}
 
@@ -2490,6 +2484,9 @@ protected constructor (
 		self: AvailObject,
 		field: A_Atom): AvailObject = unsupported
 
+	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
+		unsupported
+
 	override fun o_FieldAtOrNull (
 		self: AvailObject,
 		field: A_Atom): AvailObject? = unsupported
@@ -2503,6 +2500,9 @@ protected constructor (
 	override fun o_FieldTypeAt (
 		self: AvailObject,
 		field: A_Atom): A_Type = unsupported
+
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		unsupported
 
 	override fun o_FieldTypeAtOrNull (
 		self: AvailObject,
@@ -2619,6 +2619,7 @@ protected constructor (
 
 	override fun o_DefinitionBundle(self: AvailObject): A_Bundle = unsupported
 
+	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,
@@ -2706,11 +2707,6 @@ protected constructor (
 		serializedObjects: A_Tuple
 	): Unit = unsupported
 
-	override fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map
-	): Unit = unsupported
-
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -2742,4 +2738,14 @@ protected constructor (
 	override fun o_SynthesizeCurrentLexingState(
 		self: AvailObject
 	): LexingState = unsupported
+
+	override fun o_ObjectVariant(
+		self: AvailObject
+	): ObjectLayoutVariant = unsupported
+
+	override fun o_ObjectTypeVariant(
+		self: AvailObject
+	): ObjectLayoutVariant = unsupported
+
+	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
 }

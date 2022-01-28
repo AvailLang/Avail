@@ -67,7 +67,7 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 				{ fail(E_IO_ERROR) }
 			).guardedDo {
 				fiber.textInterface().inputChannel.read(
-					buffer, dummy, handler)
+					buffer, Unit, handler)
 			}
 		}
 	}

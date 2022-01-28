@@ -65,6 +65,7 @@ tasks {
 				"directory, that the executable tools can find them as " +
 				"resources. See " +
 				"`AvailBootstrapModule.relocateGeneratedPropertyFiles`."
+		group = "bootstrap"
 		AvailBootstrapModule.relocateGeneratedPropertyFiles(project, this)
 	}
 
@@ -142,6 +143,7 @@ tasks {
 			"Gradle task to generate the new bootstrap Avail modules for the " +
 				"current locale and copy them to the appropriate location " +
 				"for distribution."
+		group = "bootstrap"
 		AvailBootstrapModule.generateBootStrap(project, this)
 	}
 }

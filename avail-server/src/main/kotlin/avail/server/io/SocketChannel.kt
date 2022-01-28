@@ -68,8 +68,8 @@ internal class SocketChannel constructor(
 : AbstractTransportChannel<AsynchronousSocketChannel>(closeAction)
 {
 	override val isOpen get() = transport.isOpen
-	override val maximumSendQueueDepth = MAX_QUEUE_DEPTH
-	override val maximumReceiveQueueDepth = MAX_QUEUE_DEPTH
+	override val maximumSendQueueDepth get() = MAX_QUEUE_DEPTH
+	override val maximumReceiveQueueDepth get() = MAX_QUEUE_DEPTH
 
 	override fun closeTransport ()
 	{

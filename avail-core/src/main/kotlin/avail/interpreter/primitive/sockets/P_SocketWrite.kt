@@ -60,9 +60,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -73,7 +73,6 @@ import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
-import avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -144,13 +143,13 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		{
 			socket.write(
 				buffer,
-				dummy,
+				Unit,
 				SimpleCompletionHandler(
 					{
 						if (buffer.hasRemaining())
 						{
 							// Not done all writing.  Continue.
-							socket.write(buffer, dummy, handler)
+							socket.write(buffer, Unit, handler)
 						}
 						else
 						{

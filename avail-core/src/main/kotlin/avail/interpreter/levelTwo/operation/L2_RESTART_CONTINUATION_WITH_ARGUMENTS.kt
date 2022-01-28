@@ -62,7 +62,7 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 	L2OperandType.READ_BOXED.named("continuation to restart"),
 	L2OperandType.READ_BOXED_VECTOR.named("arguments"))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -70,7 +70,7 @@ object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val continuation = instruction.operand<L2ReadBoxedOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		renderPreamble(instruction, builder)

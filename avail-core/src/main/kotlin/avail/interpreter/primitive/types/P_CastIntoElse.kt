@@ -167,7 +167,7 @@ object P_CastIntoElse : Primitive(3, Invokes, CanInline, CannotFail)
 
 			// We know the exact type to compare the value against, but we
 			// couldn't statically eliminate the type test.  Emit a branch.
-			translator.jumpIfKindOfConstant(
+			translator.generator.jumpIfKindOfConstant(
 				valueRead, typeTest, castBlock, elseBlock)
 		}
 		else

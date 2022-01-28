@@ -116,7 +116,7 @@ object L2_REIFY : L2ControlFlowOperation(
 	// Technically it doesn't have a side-effect, but this flag keeps the
 	// instruction from being re-ordered to a place where the interpreter's
 	// top reified continuation is no longer the right one.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -124,7 +124,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
 		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
 		val statisticConstant = instruction.operand<L2ConstantOperand>(2)
@@ -157,7 +157,7 @@ object L2_REIFY : L2ControlFlowOperation(
 		{
 			val operand = instruction.operand<L2Operand>(3)
 			builder.append("\n\t")
-			assert(operand.operandType() === type.operandType())
+			assert(operand.operandType === type.operandType())
 			builder.append(type.name())
 			builder.append(" = ")
 			builder.append(increaseIndentation(operand.toString(), 1))

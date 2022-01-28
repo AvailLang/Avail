@@ -46,14 +46,10 @@ import com.intellij.openapi.module.ModuleType
  */
 class AnvilModuleTypeBuilder: ModuleBuilder()
 {
-	override fun getModuleType(): ModuleType<*> = AnvilModuleType
+	override fun getModuleType (): ModuleType<*> = AnvilModuleType
 
 	override fun getCustomOptionsStep(
 		context: WizardContext,
-		parentDisposable: Disposable): ModuleWizardStep =
-			AnvilRootConfigurationStep(context)
-
-
-
-//	data class NewProjectData constructor()
+		parentDisposable: Disposable
+	): ModuleWizardStep = AnvilRootConfigurationStep(context)
 }

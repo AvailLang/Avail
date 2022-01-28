@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
@@ -156,6 +157,7 @@ private constructor(
 			/**
 			 * The hash, populated during construction.
 			 */
+			@HideFieldInDebugger
 			val HASH = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -437,6 +439,9 @@ private constructor(
 
 	companion object
 	{
+		/** The total count of [Types] enum values. */
+		const val typesEnumCount = 22
+
 		/**
 		 * Extract the [Types] enum value from this primitive
 		 * type.
@@ -840,6 +845,3 @@ private constructor(
 		val intersectionTypes = arrayOfNulls<A_Type>(typesEnumCount)
 	}
 }
-
-/** The total count of [Types] enum values. */
-const val typesEnumCount = 22

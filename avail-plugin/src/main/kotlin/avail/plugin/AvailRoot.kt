@@ -80,7 +80,7 @@ open class AvailRoot constructor(
 
 	// Module packages always come before modules.
 	override fun compareTo(other: AvailRoot): Int =
-	 	when
+		when
 		{
 			this is CreateAvailRoot && other is CreateAvailRoot ||
 			this !is CreateAvailRoot && other !is CreateAvailRoot ->

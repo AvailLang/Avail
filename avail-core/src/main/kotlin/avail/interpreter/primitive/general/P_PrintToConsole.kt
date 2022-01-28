@@ -39,8 +39,8 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
@@ -75,7 +75,7 @@ object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)
 				{ fail(E_IO_ERROR) }
 			).guardedDo {
 				textInterface.outputChannel.write(
-					string.asNativeString(), dummy, handler)
+					string.asNativeString(), Unit, handler)
 			}
 		}
 	}

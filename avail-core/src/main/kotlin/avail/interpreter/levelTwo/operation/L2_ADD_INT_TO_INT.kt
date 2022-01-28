@@ -63,7 +63,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		//		final L2ReadIntOperand augendReg = instruction.operand(0);
 //		final L2ReadIntOperand addendReg = instruction.operand(1);
 		val sumReg = instruction.operand<L2WriteIntOperand>(2)
@@ -75,7 +75,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 	}
 
 	// It jumps if the result doesn't fit in an int.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -83,7 +83,7 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val augend = instruction.operand<L2ReadIntOperand>(0)
 		val addend = instruction.operand<L2ReadIntOperand>(1)
 		val sum = instruction.operand<L2WriteIntOperand>(2)
@@ -116,33 +116,34 @@ object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
 		translator.load(method, addendReg.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LADD)
-		method.visitInsn(Opcodes.DUP2)
-		// :: intSum = (int) longSum;
+		val longSumStart = Label()
+		val longSumEnd = Label()
+		val longSumLocal = translator.nextLocal(Type.LONG_TYPE)
+		method.visitLocalVariable(
+			"longSum",
+			Type.LONG_TYPE.descriptor,
+			null,
+			longSumStart,
+			longSumEnd,
+			longSumLocal)
+		method.visitVarInsn(Opcodes.LSTORE, longSumLocal)
+		method.visitLabel(longSumStart)
+		// :: if ((long) (int) longSum != longSum) goto outOfRange;
+		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
 		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.DUP)
-		val intSumLocal = translator.nextLocal(Type.INT_TYPE)
-		val intSumStart = Label()
-		method.visitLabel(intSumStart)
-		method.visitVarInsn(Opcodes.ISTORE, intSumLocal)
-		// :: if (longSum != intSum) goto outOfRange;
 		method.visitInsn(Opcodes.I2L)
+		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
 		method.visitInsn(Opcodes.LCMP)
 		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// :: else {
-		// ::    sum = intSum;
+		// ::    sum = (int)longSum;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(Opcodes.ILOAD, intSumLocal)
-		val intSumEnd = Label()
-		method.visitLabel(intSumEnd)
-		method.visitLocalVariable(
-			"intSum",
-			Type.INT_TYPE.descriptor,
-			null,
-			intSumStart,
-			intSumEnd,
-			intSumLocal)
+		method.visitVarInsn(Opcodes.LLOAD, longSumLocal)
+		method.visitInsn(Opcodes.L2I)
 		translator.store(method, sumReg.register())
 		translator.jump(method, instruction, inRange)
+		method.visitLabel(longSumEnd)
+		translator.endLocal(longSumLocal, Type.LONG_TYPE)
 	}
 }

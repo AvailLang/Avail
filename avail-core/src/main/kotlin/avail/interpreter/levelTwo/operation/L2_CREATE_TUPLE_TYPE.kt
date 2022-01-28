@@ -60,11 +60,9 @@ object L2_CREATE_TUPLE_TYPE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
-		val types =
-			instruction.operand<L2ReadBoxedVectorOperand>(0)
-		val tupleType =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		assert(this == instruction.operation)
+		val types = instruction.operand<L2ReadBoxedVectorOperand>(0)
+		val tupleType = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(tupleType.registerString())

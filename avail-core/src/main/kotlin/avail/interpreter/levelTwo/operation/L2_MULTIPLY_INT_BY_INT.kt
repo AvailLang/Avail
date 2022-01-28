@@ -59,7 +59,7 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS))
 {
 	// It jumps if the result doesn't fit in an int.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -67,7 +67,7 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val multiplicandReg = instruction.operand<L2ReadIntOperand>(0)
 		val multiplierReg = instruction.operand<L2ReadIntOperand>(1)
 		val productReg = instruction.operand<L2WriteIntOperand>(2)
@@ -101,34 +101,34 @@ object L2_MULTIPLY_INT_BY_INT : L2ControlFlowOperation(
 		translator.load(method, multiplierReg.register())
 		method.visitInsn(Opcodes.I2L)
 		method.visitInsn(Opcodes.LMUL)
-		method.visitInsn(Opcodes.DUP2)
-		// :: intProduct = (int) longProduct;
-		method.visitInsn(Opcodes.L2I)
-		method.visitInsn(Opcodes.DUP)
-		val intProductLocal = translator.nextLocal(Type.INT_TYPE)
-		val intProductStart = Label()
-		method.visitLabel(intProductStart)
-		method.visitVarInsn(Opcodes.ISTORE, intProductLocal)
+		val longProductStart = Label()
+		val longProductEnd = Label()
+		val longProductLocal = translator.nextLocal(Type.LONG_TYPE)
+		method.visitLocalVariable(
+			"longProduct",
+			Type.LONG_TYPE.descriptor,
+			null,
+			longProductStart,
+			longProductEnd,
+			longProductLocal)
+		method.visitVarInsn(Opcodes.LSTORE, longProductLocal)
+		method.visitLabel(longProductStart)
 		// :: if (longProduct != intProduct) goto outOfRange;
+		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
+		method.visitInsn(Opcodes.L2I)
 		method.visitInsn(Opcodes.I2L)
+		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
 		method.visitInsn(Opcodes.LCMP)
-		method.visitJumpInsn(
-			Opcodes.IFNE, translator.labelFor(outOfRange.offset()))
+		translator.jumpIf(method, Opcodes.IFNE, outOfRange)
 		// :: else {
-		// ::    product = intProduct;
+		// ::    product = (int)longProduct;
 		// ::    goto inRange;
 		// :: }
-		method.visitVarInsn(Opcodes.ILOAD, intProductLocal)
-		val intProductEnd = Label()
-		method.visitLabel(intProductEnd)
-		method.visitLocalVariable(
-			"intProduct",
-			Type.INT_TYPE.descriptor,
-			null,
-			intProductStart,
-			intProductEnd,
-			intProductLocal)
+		method.visitVarInsn(Opcodes.LLOAD, longProductLocal)
+		method.visitInsn(Opcodes.L2I)
 		translator.store(method, productReg.register())
 		translator.jump(method, instruction, inRange)
+		method.visitLabel(longProductEnd)
+		translator.endLocal(longProductLocal, Type.LONG_TYPE)
 	}
 }

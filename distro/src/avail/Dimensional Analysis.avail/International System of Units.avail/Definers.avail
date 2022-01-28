@@ -102,25 +102,25 @@ Private method "SI scaling function for_" is
 	 * SI metrics.
 	 */
 	quantityType ::= extend SI dimensioned quantity with metric : unitType;
-	args ::= <arg «`"quantity"` : quantityType», arg «`"aUnit"` : unitType»>;
+	arg1 ::= arg «`"quantity"` : quantityType»;
+	arg2 ::= arg «`"aUnit"` : unitType»;
+	getArg1 ::= «↓arg1» ?→ variable use phrase ⇒ SI dimensioned quantity;
+	getArg2 ::= «↓arg2» ?→ variable use phrase ⇒ SI unit;
 	/* Construct the expression to obtain the scaling factor. */
-	metricSend ::= send $"_'s⁇metric" with «<«↓args[1]»>» : SI unit;
-	minuend ::= send $"_'s⁇scale factor" with «<metricSend>» : integer;
-	subtrahend ::= send $"_'s⁇scale factor" with «<«↓args[2]»>» : integer;
-	exponent ::= send Foundation $"_-_" with «<minuend, subtrahend>» : integer;
-	scaleFactor ::= send $"_^_" with «<‘10’, exponent>» : number;
-	/* Construct the expression to obtain the scaled magnitude. */
-	extentSend ::= send $"_'s⁇extent" with «<«↓args[1]»>» : number;
-	scaled ::= send $"_×_" with «<extentSend, scaleFactor>» : number;
+	juxtapositionSend ::=
+	⟦
+		(⦊getArg1⦉'s extent ×
+			10 ^ (⦊getArg1⦉'s metric's scale factor - ⦊getArg2⦉'s scale factor))
+		/* Juxtaposition */
+		⦊getArg2⦉
+	⟧;
 	/* Construct the expression to obtain the resultant SI dimensioned
 	 * quantity.
 	 */
-	juxtapositionSend ::= send $"__"
-		with «<scaled, «↓args[2]»>»
-		: quantityType;
 	/* Construct and answer the requested function. */
-	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast newBlock→function into [t : unit conversion function | t]
+	newBlock ::=
+		«[ <arg1, arg2> | <juxtapositionSend> ] : dimensioned quantity»;
+	newBlock→function ?→ unit conversion function
 ] : unit conversion function;
 
 /**
@@ -301,7 +301,7 @@ Private method "function for scaling from_to_by_using_" is
 		: qB;
 	/* Construct and answer the requested function. */
 	newBlock ::= «[ args | <juxtapositionSend> ] : dimensioned quantity»;
-	cast newBlock→function into [t : unit conversion function | t]
+	newBlock→function ?→ unit conversion function
 ] : unit conversion function;
 
 /**
@@ -380,12 +380,12 @@ Method "Conversion rule:_≍_" is
 	metricA ::= a's metric;
 	metricB ::= b's metric;
 	scaleFactor ::= b's extent;
-	Stable method $"_converted to_" is function for scaling
+	Method $"_converted to_" is function for scaling
 		from metricA
 		to metricB
 		by scaleFactor
 		using $"_×_";
-	Stable method $"_converted to_" is function for scaling
+	Method $"_converted to_" is function for scaling
 		from metricB
 		to metricA
 		by scaleFactor

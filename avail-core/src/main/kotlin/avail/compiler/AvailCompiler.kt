@@ -36,7 +36,6 @@ import avail.AvailRuntimeConfiguration
 import avail.AvailRuntimeSupport.captureNanos
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
-import avail.compiler.ModuleManifestEntry.Kind
 import avail.compiler.ParsingOperation.CHECK_ARGUMENT
 import avail.compiler.ParsingOperation.Companion.decode
 import avail.compiler.ParsingOperation.Companion.distinctInstructions
@@ -104,6 +103,7 @@ import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -142,6 +142,7 @@ import avail.descriptor.module.A_Module.Companion.exportedNames
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.variableBindings
@@ -299,7 +300,6 @@ import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
-import java.lang.String.format
 import java.nio.ByteBuffer
 import java.nio.charset.CodingErrorAction
 import java.nio.charset.StandardCharsets
@@ -392,7 +392,7 @@ class AvailCompiler constructor(
 	 *   The module name.
 	 */
 	private val moduleName get() = ModuleName(
-		compilationContext.module.moduleName.asNativeString())
+		compilationContext.module.moduleNameNative)
 
 	/**
 	 * A list of subexpressions being parsed, represented by
@@ -1015,7 +1015,7 @@ class AvailCompiler constructor(
 							assignFunction)
 						loader.manifestEntries!!.add(
 							ModuleManifestEntry(
-								Kind.MODULE_CONSTANT_KIND,
+								SideEffectKind.MODULE_CONSTANT_KIND,
 								name.asNativeString(),
 								startState.lineNumber,
 								replacement.token.lineNumber(),
@@ -1086,7 +1086,7 @@ class AvailCompiler constructor(
 							module.lock {
 								loader.manifestEntries!!.add(
 									ModuleManifestEntry(
-										Kind.MODULE_VARIABLE_KIND,
+										SideEffectKind.MODULE_VARIABLE_KIND,
 										name.asNativeString(),
 										startState.lineNumber,
 										replacement.token.lineNumber(),
@@ -1498,9 +1498,7 @@ class AvailCompiler constructor(
 					val argumentBundle =
 						latestArgument.apparentSendName.bundleOrNil
 					assert(argumentBundle.notNil)
-					if (prefilter.hasKey(argumentBundle))
-					{
-						val successor = prefilter.mapAt(argumentBundle)
+					prefilter.mapAtOrNull(argumentBundle)?.let { successor ->
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							println(
@@ -1692,12 +1690,8 @@ class AvailCompiler constructor(
 						{
 							continue
 						}
-						if (!tokenMap.hasKey(string))
-						{
-							continue
-						}
+						val successor = tokenMap.mapAtOrNull(string) ?: continue
 						val timeBefore = captureNanos()
-						val successor = tokenMap.mapAt(string)
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							val insensitive =
@@ -2022,15 +2016,21 @@ class AvailCompiler constructor(
 		superexpressions: PartialSubexpressionList?,
 		continuation: (ParserState, A_Phrase)->Unit)
 	{
+		val code = prefixFunction.code()
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
+			start.expected(
+				STRONG,
+				FormattingDescriber(
+					"macro prefix function %s to accept the given argument " +
+						"types.",
+					code.methodName))
 			return
 		}
 		val fiber = newLoaderFiber(
 			prefixFunction.kind().returnType,
 			compilationContext.loader
 		) {
-			val code = prefixFunction.code()
 			formatString(
 				"Macro prefix %s, in %s:%d",
 				code.methodName,
@@ -3060,6 +3060,8 @@ class AvailCompiler constructor(
 	 *
 	 * @param state
 	 *   The [LexingState] at which the pragma was found.
+	 * @param token
+	 *   The token containing the pragma check information.
 	 * @param propertyName
 	 *   The name of the property that is being checked.
 	 * @param propertyValue
@@ -3069,48 +3071,43 @@ class AvailCompiler constructor(
 	 */
 	internal fun pragmaCheckThen(
 		state: LexingState,
+		token: A_Token,
 		propertyName: String,
 		propertyValue: String,
 		success: ()->Unit)
 	{
-		if ("version" == propertyName)
-		{
-			// Split the versions at commas.
-			val versions = propertyValue.split(",").toTypedArray()
-			for (i in versions.indices)
-			{
-				versions[i] = versions[i].trim { it <= ' ' }
-			}
-			// Put the required versions into a set.
-			val requiredVersions = generateSetFrom(versions, ::stringFrom)
-			// Ask for the guaranteed versions.
-			val activeVersions = generateSetFrom(
-				AvailRuntimeConfiguration.activeVersions, ::stringFrom)
-			// If the intersection of the sets is empty, then the module and
-			// the virtual machine are incompatible.
-			if (!requiredVersions.setIntersects(activeVersions))
-			{
-				state.expected(
-					STRONG,
-					format(
-						"Module and virtual machine are not compatible; "
-						+ "the virtual machine guarantees versions %s, "
-						+ "but the current module requires %s",
-						activeVersions,
-						requiredVersions))
-				return
-			}
-		}
-		else
+		if ("version" != propertyName)
 		{
 			val viableAssertions = mutableSetOf<String>()
 			viableAssertions.add("version")
-			state.expected(
-				STRONG,
-				format(
-					"Expected check pragma to assert one of the following "
-					+ "properties: %s",
-					viableAssertions))
+			state.compilationContext.diagnostics.reportError(
+				token.synthesizeCurrentLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Expected check pragma to assert one of the following "
+					+ "properties: $viableAssertions")
+			return
+		}
+		// Split the versions at commas.
+		val versions = propertyValue.split(",").toTypedArray()
+		for (i in versions.indices)
+		{
+			versions[i] = versions[i].trim { it <= ' ' }
+		}
+		// Put the required versions into a set.
+		val requiredVersions = generateSetFrom(versions, ::stringFrom)
+		// Ask for the guaranteed versions.
+		val activeVersions = generateSetFrom(
+			AvailRuntimeConfiguration.activeVersions, ::stringFrom)
+		// If the intersection of the sets is empty, then the module and
+		// the virtual machine are incompatible.
+		if (!requiredVersions.setIntersects(activeVersions))
+		{
+			state.compilationContext.diagnostics.reportError(
+				token.synthesizeCurrentLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Module and virtual machine are not compatible; the virtual "
+					+ "machine guarantees versions $activeVersions, but the "
+					+ "current module requires $requiredVersions")
 			return
 		}
 		success()
@@ -3295,18 +3292,21 @@ class AvailCompiler constructor(
 		val filterPrimitive = primitiveByName(filterPrimitiveName)
 		if (filterPrimitive === null)
 		{
-			state.expected(STRONG, "a valid primitive for the lexer filter")
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's filter function $filterPrimitiveName is not "
+					+ "a valid primitive")
 			return
 		}
 		val filterFunctionType = filterPrimitive.blockTypeRestriction()
 		if (!filterFunctionType.equals(lexerFilterFunctionType()))
 		{
-			state.expected(
-				STRONG,
-				"a primitive lexer filter function with type "
-				+ lexerFilterFunctionType()
-				+ ", not "
-				+ filterFunctionType)
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's filter function $filterPrimitiveName does not "
+					+ "have a suitable signature")
 			return
 		}
 		val filterFunction = createFunction(
@@ -3320,20 +3320,22 @@ class AvailCompiler constructor(
 		val bodyPrimitive = primitiveByName(bodyPrimitiveName)
 		if (bodyPrimitive === null)
 		{
-			state.expected(
-				STRONG,
-				"a valid primitive for the lexer body")
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's body function $bodyPrimitiveName is not "
+					+ "a valid primitive")
 			return
 		}
 		val bodyFunctionType = bodyPrimitive.blockTypeRestriction()
 		if (!bodyFunctionType.equals(lexerBodyFunctionType()))
 		{
-			state.expected(
-				STRONG,
-				"a primitive lexer body function with type "
-				+ lexerBodyFunctionType()
-				+ ", not "
-				+ bodyFunctionType)
+			state.compilationContext.diagnostics.reportError(
+				token.nextLexingState(),
+				"Malformed pragma at %s on line %d:",
+				"Lexer pragma's body function $bodyPrimitive does not have "
+					+ "a suitable signature")
+			return
 		}
 		val bodyFunction = createFunction(
 			newPrimitiveRawFunction(
@@ -3439,7 +3441,8 @@ class AvailCompiler constructor(
 				moduleName,
 				source.tupleSize.toLong(),
 				afterHeader.position.toLong(),
-				afterHeader.lineNumber)
+				afterHeader.lineNumber,
+				null)
 			// Run any side effects implied by this module header against
 			// the module.
 			val errorString = moduleHeader.applyToModule(
@@ -3450,13 +3453,18 @@ class AvailCompiler constructor(
 					moduleName,
 					source.tupleSize.toLong(),
 					source.tupleSize.toLong(),
-					afterHeader.lineNumber)
+					afterHeader.lineNumber,
+					null)
 				afterHeader.expected(STRONG, errorString)
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
 			}
 			compilationContext.loader.prepareForCompilingModuleBody()
 			applyPragmasThen(afterHeader.lexingState) {
+				compilationContext.diagnostics.run {
+					positionsToTrack = 3
+					silentPositionsToTrack = 3
+				}
 				parseAndExecuteOutermostStatements(afterHeader)
 			}
 		}
@@ -3522,7 +3530,8 @@ class AvailCompiler constructor(
 					moduleName,
 					source.tupleSize.toLong(),
 					afterStatement.position.toLong(),
-					afterStatement.lineNumber)
+					afterStatement.lineNumber,
+					unambiguousStatement)
 				parseAndExecuteOutermostStatements(
 					afterStatement.withMap(start.clientDataMap))
 			}
@@ -3666,6 +3675,10 @@ class AvailCompiler constructor(
 		startModuleTransaction()
 		val loader = compilationContext.loader
 		loader.prepareForCompilingModuleBody()
+		compilationContext.diagnostics.run {
+			positionsToTrack = 3
+			silentPositionsToTrack = 3
+		}
 		val clientData = mapFromPairs(
 			COMPILER_SCOPE_MAP_KEY.atom,
 			emptyMap,
@@ -3927,9 +3940,7 @@ class AvailCompiler constructor(
 					compilationContext.diagnostics.reportError(
 						nameToken.nextLexingState(),
 						"Duplicate declared name detected at %s on line %d:",
-						format(
-							"Declared name %s should be unique",
-							nameString))
+						"Declared name $nameString should be unique")
 					return false
 				}
 				moduleHeader.exportedNames.add(nameString)
@@ -4505,15 +4516,15 @@ class AvailCompiler constructor(
 						{
 							// The originals were the same.  Drill into the
 							// transformed phrases.
-							phrase1.value = phrase1.value.outputPhrase
-							phrase2.value = phrase2.value.outputPhrase
+							phrase1.update { outputPhrase }
+							phrase2.update { outputPhrase }
 							continue
 						}
 						else
 						{
 							// The originals differed.  Drill into them.
-							phrase1.value = phrase1.value.macroOriginalSendNode
-							phrase2.value = phrase2.value.macroOriginalSendNode
+							phrase1.update { macroOriginalSendNode }
+							phrase2.update { macroOriginalSendNode }
 							continue
 						}
 					}
@@ -4622,7 +4633,10 @@ class AvailCompiler constructor(
 
 		/** Marker phrase to signal cleanly reaching the end of the input. */
 		private val endOfFileMarkerPhrase =
-			newMarkerNode(stringFrom("End of file marker")).makeShared()
+			newMarkerNode(
+				stringFrom("End of file marker"),
+				TOP.o
+			).makeShared()
 
 		/**
 		 * Skip over whitespace and comment tokens, collecting the latter.

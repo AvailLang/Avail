@@ -106,7 +106,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		instruction: L2Instruction,
 		manifest: L2ValueManifest)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		//		final L2SelectorOperand bundle = instruction.operand(0);
 		val argRegs = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val functionReg = instruction.operand<L2WriteBoxedOperand>(2)
@@ -166,7 +166,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 		}
 	}
 
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

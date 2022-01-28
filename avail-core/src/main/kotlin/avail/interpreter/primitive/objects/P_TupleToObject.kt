@@ -1,5 +1,5 @@
 /*
- * P_TupleToObjectType.kt
+ * P_TupleToObject.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -44,9 +44,12 @@ import avail.descriptor.objects.ObjectDescriptor.Companion.objectFromTuple
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromTuple
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
+import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
@@ -57,10 +60,10 @@ import avail.descriptor.types.A_Type.Companion.tupleOfTypesFromTo
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -73,6 +76,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operation.L2_CREATE_OBJECT
 import avail.optimizer.L1Translator
+import avail.optimizer.L1Translator.CallSiteHelper
 
 /**
  * **Primitive:** Convert a [tuple][TupleDescriptor] of field assignment into an
@@ -144,7 +148,7 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 		arguments: List<L2ReadBoxedOperand>,
 		argumentTypes: List<A_Type>,
 		translator: L1Translator,
-		callSiteHelper: L1Translator.CallSiteHelper): Boolean
+		callSiteHelper: CallSiteHelper): Boolean
 	{
 		// If we know the exact keys, we can statically determine the
 		// ObjectLayoutVariant to populate, and write the fields into the fixed
@@ -182,18 +186,21 @@ object P_TupleToObject : Primitive(1, CannotFail, CanFold, CanInline)
 				pairsReg,
 				pairsType.tupleOfTypesFromTo(1, size).toList())
 		pairSources ?: return false
+		val fieldTypePairs = mutableListOf<A_Tuple>()
 		(atoms zip pairSources).forEach { (atom, pairSource) ->
 			fieldMap[atom]?.let { index ->
 				if (index != 0)
 				{
-					sourcesByFieldIndex[index - 1] =
-						generator.extractTupleElement(pairSource, 2)
+					val fieldRead = generator.extractTupleElement(pairSource, 2)
+					sourcesByFieldIndex[index - 1] = fieldRead
+					fieldTypePairs.add(tuple(atom, fieldRead.type()))
 				}
 			}
 		}
+		val typeGuarantee = objectTypeFromTuple(tupleFromList(fieldTypePairs))
 		val write = generator.boxedWriteTemp(
-			restrictionForType(callSiteHelper.expectedType, BOXED_FLAG))
-
+			restrictionForType(typeGuarantee, BOXED_FLAG)
+				.intersectionWithObjectVariant(variant))
 		generator.addInstruction(
 			L2_CREATE_OBJECT,
 			L2ArbitraryConstantOperand(variant),

@@ -12,5 +12,4 @@ Uses
 Body
 
 myVarValue : integer := 12;
-
 myConstValue ::= 52;

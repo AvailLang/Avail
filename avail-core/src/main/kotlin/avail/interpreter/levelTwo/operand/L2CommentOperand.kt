@@ -51,7 +51,8 @@ import avail.interpreter.levelTwo.L2OperandType
  */
 class L2CommentOperand constructor(val comment: String) : L2Operand()
 {
-	override fun operandType(): L2OperandType = L2OperandType.COMMENT
+	override val operandType: L2OperandType
+		get() = L2OperandType.COMMENT
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

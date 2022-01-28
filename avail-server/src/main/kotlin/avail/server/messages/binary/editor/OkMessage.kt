@@ -50,7 +50,7 @@ import avail.server.messages.Message
 internal class OkMessage constructor(
 	override var commandId: Long): BinaryMessage()
 {
-	override val command = BinaryCommand.OK
+	override val command get() = BinaryCommand.OK
 	override val message: Message
 
 	init

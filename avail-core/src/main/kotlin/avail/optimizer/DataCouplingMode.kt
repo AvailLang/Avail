@@ -66,7 +66,7 @@ enum class DataCouplingMode constructor(
 		{
 			accumulatingSet.add(
 				L2EntityAndKind(
-					readOperand.semanticValue(), readOperand.registerKind()))
+					readOperand.semanticValue(), readOperand.registerKind))
 		}
 
 		override fun addEntitiesFromWrite(
@@ -76,7 +76,7 @@ enum class DataCouplingMode constructor(
 			writeOperand.semanticValues().forEach {
 				accumulatingSet.add(
 					L2EntityAndKind(
-						it, writeOperand.registerKind()))
+						it, writeOperand.registerKind))
 			}
 		}
 	},
@@ -93,7 +93,7 @@ enum class DataCouplingMode constructor(
 		{
 			accumulatingSet.add(
 				L2EntityAndKind(
-					readOperand.register(), readOperand.registerKind()))
+					readOperand.register(), readOperand.registerKind))
 		}
 
 		override fun addEntitiesFromWrite(
@@ -102,7 +102,7 @@ enum class DataCouplingMode constructor(
 		{
 			accumulatingSet.add(
 				L2EntityAndKind(
-					writeOperand.register(), writeOperand.registerKind()))
+					writeOperand.register(), writeOperand.registerKind))
 		}
 	},
 
@@ -117,10 +117,10 @@ enum class DataCouplingMode constructor(
 		{
 			accumulatingSet.add(
 				L2EntityAndKind(
-					readOperand.semanticValue(), readOperand.registerKind()))
+					readOperand.semanticValue(), readOperand.registerKind))
 			accumulatingSet.add(
 				L2EntityAndKind(
-					readOperand.register(), readOperand.registerKind()))
+					readOperand.register(), readOperand.registerKind))
 		}
 
 		override fun addEntitiesFromWrite(
@@ -129,11 +129,11 @@ enum class DataCouplingMode constructor(
 		{
 			writeOperand.semanticValues().forEach {
 				accumulatingSet.add(
-					L2EntityAndKind(it, writeOperand.registerKind()))
+					L2EntityAndKind(it, writeOperand.registerKind))
 			}
 			accumulatingSet.add(
 				L2EntityAndKind(
-					writeOperand.register(), writeOperand.registerKind()))
+					writeOperand.register(), writeOperand.registerKind))
 		}
 	};
 
@@ -208,7 +208,7 @@ enum class DataCouplingMode constructor(
 	fun readEntitiesOf(instruction: L2Instruction): Set<L2EntityAndKind>
 	{
 		val entitiesRead = mutableSetOf<L2EntityAndKind>()
-		instruction.readOperands()
+		instruction.readOperands
 			.forEach { addEntitiesFromRead(it, entitiesRead) }
 		return entitiesRead
 	}
@@ -226,7 +226,7 @@ enum class DataCouplingMode constructor(
 	fun writeEntitiesOf(instruction: L2Instruction): Set<L2EntityAndKind>
 	{
 		val entitiesWritten = mutableSetOf<L2EntityAndKind>()
-		instruction.writeOperands()
+		instruction.writeOperands
 			.forEach { addEntitiesFromWrite(it, entitiesWritten) }
 		return entitiesWritten
 	}

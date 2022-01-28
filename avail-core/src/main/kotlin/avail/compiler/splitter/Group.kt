@@ -76,6 +76,7 @@ import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.subexpressionsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
+import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.integerRangeType
@@ -343,12 +344,27 @@ internal class Group : Expression
 	}
 
 	@Suppress("LocalVariableName")
+	@Throws(SignatureException::class)
 	override fun emitOn(
 		phraseType: A_Type,
 		generator: InstructionGenerator,
 		wrapState: WrapState): WrapState
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType
+		// The phrase type might not be guaranteed to be a list type at this
+		// point.
+		val intersected = phraseType
+			.makeImmutable()
+			.typeIntersection(LIST_PHRASE.mostGeneralType)
+			.makeShared()
+		if (intersected.isBottom)
+		{
+			// If a list is supplied, it won't match the type, and if a non-list
+			// is supplied, it can't be parsed.  Note that this doesn't affect
+			// the ability to invoke such a method/macro body with, say, a
+			// literal phrase yielding a suitable tuple.
+			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+		}
+		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		val sizeRange = subexpressionsTupleType.sizeRange
 		val minInteger = sizeRange.lowerBound
 		val minSize =
@@ -361,7 +377,7 @@ internal class Group : Expression
 				subexpressionsTupleType.typeTuple.tupleSize + 2,
 				min(minSize, 3)),
 			maxSize)
-		val needsProgressCheck = beforeDagger.mightBeEmpty(phraseType)
+		val needsProgressCheck = beforeDagger.mightBeEmpty(intersected)
 		generator.flushDelayed()
 		if (maxSize == 0)
 		{
@@ -669,12 +685,29 @@ internal class Group : Expression
 	 * @param phraseType
 	 *   The phrase type of the particular repetition of this group whose
 	 *   before-dagger sequence is to be parsed.
+	 * @throws SignatureException
+	 *   If the signature and phrase type are inconsistent.
 	 */
+	@Throws(SignatureException::class)
 	private fun emitDoubleWrappedBeforeDaggerOn(
 		generator: InstructionGenerator,
 		phraseType: A_Type)
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType
+		// The phrase type might not be guaranteed to be a list type at this
+		// point.
+		val intersected = phraseType
+			.makeImmutable()
+			.typeIntersection(LIST_PHRASE.mostGeneralType)
+			.makeShared()
+		if (intersected.isBottom)
+		{
+			// If a list is supplied, it won't match the type, and if a non-list
+			// is supplied, it can't be parsed.  Note that this doesn't affect
+			// the ability to invoke such a method/macro body with, say, a
+			// literal phrase yielding a suitable tuple.
+			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+		}
+		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		generator.partialListsCount += 2
 		var argIndex = 0
 		var ungroupedArgCount = 0
@@ -737,12 +770,28 @@ internal class Group : Expression
 	 * @param phraseType
 	 *   The phrase type of the particular repetition of this group whose
 	 *   after-dagger sequence is to be parsed.
+	 * @throws SignatureException
+	 *   If the signature and phrase type are inconsistent.
 	 */
 	private fun emitDoubleWrappedAfterDaggerOn(
 		generator: InstructionGenerator,
 		phraseType: A_Type)
 	{
-		val subexpressionsTupleType = phraseType.subexpressionsTupleType
+		// The phrase type might not be guaranteed to be a list type at this
+		// point.
+		val intersected = phraseType
+			.makeImmutable()
+			.typeIntersection(LIST_PHRASE.mostGeneralType)
+			.makeShared()
+		if (intersected.isBottom)
+		{
+			// If a list is supplied, it won't match the type, and if a non-list
+			// is supplied, it can't be parsed.  Note that this doesn't affect
+			// the ability to invoke such a method/macro body with, say, a
+			// literal phrase yielding a suitable tuple.
+			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+		}
+		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		generator.partialListsCount += 2
 		var argIndex = beforeDagger.yielders.size
 		var ungroupedArgCount = 0

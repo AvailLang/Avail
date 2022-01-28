@@ -36,12 +36,13 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.functions.ContinuationDescriptor
+import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
+import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
 import avail.descriptor.representation.AvailObject.Companion.newObjectIndexedIntegerIndexedDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.TypeTag
-import avail.utility.visitor.MarkUnreachableSubobjectVisitor
 import java.lang.invoke.MethodHandles
 import java.lang.invoke.VarHandle
 import java.util.Arrays
@@ -133,7 +134,28 @@ abstract class AvailObjectRepresentation protected constructor(
 		}
 		if (currentDescriptor.isMutable)
 		{
-			scanSubobjects(MarkUnreachableSubobjectVisitor(anotherObject))
+			lateinit var marker: (AvailObject) -> AvailObject
+			marker = { childObject: AvailObject ->
+				when
+				{
+					!childObject.descriptor().isMutable -> childObject
+					// The excluded object was reached.
+					childObject.sameAddressAs(anotherObject) -> childObject
+					else ->
+					{
+						// Recursively invoke the iterator on the subobjects of
+						// subobject... Indicate the object is no longer valid
+						// and should not ever be used again.
+						childObject.scanSubobjects(marker)
+						// Indicate the object is no longer valid and should not
+						// ever be used again.
+						childObject.destroy()
+						childObject
+					}
+				}
+			}
+
+			scanSubobjects(marker)
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
 			objectSlots[0] = anotherTraversed
@@ -164,7 +186,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		if (shouldCheckSlots)
 		{
 			val debugSlots = currentDescriptor.debugObjectSlots
-			val permittedFields = debugSlots[field.fieldOrdinal()]
+			val permittedFields = debugSlots[field.fieldOrdinal]
 			if (permittedFields !== null)
 			{
 				for (permittedField in permittedFields)
@@ -187,7 +209,7 @@ abstract class AvailObjectRepresentation protected constructor(
 					newPermittedFields[permittedFields.size] = field
 				}
 			}
-			debugSlots[field.fieldOrdinal()] = newPermittedFields
+			debugSlots[field.fieldOrdinal] = newPermittedFields
 		}
 	}
 
@@ -216,7 +238,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	private fun privateCheckSlots(field: IntegerSlotsEnum)
 	{
 		val debugSlots = currentDescriptor.debugIntegerSlots
-		val permittedFields = debugSlots[field.fieldOrdinal()]
+		val permittedFields = debugSlots[field.fieldOrdinal]
 		if (permittedFields !== null)
 		{
 			for (permittedField in permittedFields)
@@ -239,7 +261,7 @@ abstract class AvailObjectRepresentation protected constructor(
 				newPermittedFields[permittedFields.size] = field
 			}
 		}
-		debugSlots[field.fieldOrdinal()] = newPermittedFields
+		debugSlots[field.fieldOrdinal] = newPermittedFields
 	}
 
 	/**
@@ -290,7 +312,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	{
 		checkSlot(field)
 		val zeroBasedSubscript = byteSubscript - 1
-		val wordIndex = field.fieldOrdinal() + (zeroBasedSubscript shr 3)
+		val wordIndex = field.fieldOrdinal + (zeroBasedSubscript shr 3)
 		val word = longSlots[wordIndex]
 		val rightShift = zeroBasedSubscript and 0x07 shl 3
 		return (word ushr rightShift and 0xFFL).toShort()
@@ -316,7 +338,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkWriteForField(field)
 		checkSlot(field)
 		val zeroBasedSubscript = byteSubscript - 1
-		val wordIndex = field.fieldOrdinal() + (zeroBasedSubscript shr 3)
+		val wordIndex = field.fieldOrdinal + (zeroBasedSubscript shr 3)
 		var word = longSlots[wordIndex]
 		val leftShift = zeroBasedSubscript and 0x07 shl 3
 		word = word and (0xFFL shl leftShift).inv()
@@ -338,7 +360,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun shortSlot(field: IntegerSlotsEnum, shortIndex: Int): Int
 	{
 		checkSlot(field)
-		val word = longSlots[field.fieldOrdinal() + (shortIndex - 1 ushr 2)]
+		val word = longSlots[field.fieldOrdinal + (shortIndex - 1 ushr 2)]
 		return (word ushr (shortIndex - 1 and 3 shl 4) and 0xFFFF).toInt()
 	}
 
@@ -362,7 +384,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkWriteForField(field)
 		checkSlot(field)
 		val shift = shortIndex - 1 and 3 shl 4
-		val wordIndex = field.fieldOrdinal() + (shortIndex - 1 ushr 2)
+		val wordIndex = field.fieldOrdinal + (shortIndex - 1 ushr 2)
 		var word = longSlots[wordIndex]
 		word = word and (0xFFFFL shl shift).inv()
 		word = word or (aShort.toLong() shl shift)
@@ -384,7 +406,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		intIndex: Int): Int
 	{
 		checkSlot(field)
-		val word = longSlots[field.fieldOrdinal() + (intIndex - 1 ushr 1)]
+		val word = longSlots[field.fieldOrdinal + (intIndex - 1 ushr 1)]
 		return (word shr (intIndex - 1 and 1 shl 5)).toInt()
 	}
 
@@ -406,7 +428,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkWriteForField(field)
 		checkSlot(field)
 		val shift = intIndex - 1 and 1 shl 5
-		val wordIndex = field.fieldOrdinal() + (intIndex - 1 ushr 1)
+		val wordIndex = field.fieldOrdinal + (intIndex - 1 ushr 1)
 		var word = longSlots[wordIndex]
 		word = word and (0xFFFFFFFFL shl shift).inv()
 		word = word or (anInt.toLong() and 0xFFFFFFFFL shl shift)
@@ -430,7 +452,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun slot(field: IntegerSlotsEnum): Long
 	{
 		checkSlot(field)
-		return longSlots[field.fieldOrdinal()]
+		return longSlots[field.fieldOrdinal]
 	}
 
 	/**
@@ -446,7 +468,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	{
 		checkWriteForField(field)
 		checkSlot(field)
-		longSlots[field.fieldOrdinal()] = anInteger
+		longSlots[field.fieldOrdinal] = anInteger
 	}
 
 	/**
@@ -462,7 +484,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun slot(field: IntegerSlotsEnum, subscript: Int): Long
 	{
 		checkSlot(field)
-		return longSlots[field.fieldOrdinal() + subscript - 1]
+		return longSlots[field.fieldOrdinal + subscript - 1]
 	}
 
 	/**
@@ -480,7 +502,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	{
 		checkWriteForField(field)
 		checkSlot(field)
-		longSlots[field.fieldOrdinal() + subscript - 1] = anInteger
+		longSlots[field.fieldOrdinal + subscript - 1] = anInteger
 	}
 
 	/**
@@ -498,8 +520,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		return when
 		{
 			currentDescriptor.isShared ->
-				VolatileSlotHelper.volatileRead(longSlots, field.fieldOrdinal())
-			else -> longSlots[field.fieldOrdinal()]
+				VolatileSlotHelper.volatileRead(longSlots, field.fieldOrdinal)
+			else -> longSlots[field.fieldOrdinal]
 		}
 	}
 
@@ -522,8 +544,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		{
 			currentDescriptor.isShared ->
 				VolatileSlotHelper.volatileWrite(
-					longSlots, field.fieldOrdinal(), anInteger)
-			else -> longSlots[field.fieldOrdinal()] = anInteger
+					longSlots, field.fieldOrdinal, anInteger)
+			else -> longSlots[field.fieldOrdinal] = anInteger
 		}
 	}
 
@@ -600,8 +622,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		return when
 		{
 			currentDescriptor.isShared -> VolatileSlotHelper.volatileRead(
-				longSlots, field.fieldOrdinal() + subscript - 1)
-			else -> longSlots[field.fieldOrdinal() + subscript - 1]
+				longSlots, field.fieldOrdinal + subscript - 1)
+			else -> longSlots[field.fieldOrdinal + subscript - 1]
 		}
 	}
 
@@ -629,8 +651,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		{
 			currentDescriptor.isShared ->
 				VolatileSlotHelper.volatileWrite(
-					longSlots, field.fieldOrdinal() + subscript - 1, anInteger)
-			else -> longSlots[field.fieldOrdinal() + subscript - 1] = anInteger
+					longSlots, field.fieldOrdinal + subscript - 1, anInteger)
+			else -> longSlots[field.fieldOrdinal + subscript - 1] = anInteger
 		}
 	}
 
@@ -650,7 +672,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun slot(field: ObjectSlotsEnum): AvailObject
 	{
 		checkSlot(field)
-		return objectSlots[field.fieldOrdinal()]!!
+		return objectSlots[field.fieldOrdinal]!!
 	}
 
 	/**
@@ -668,7 +690,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		assert(!currentDescriptor.isShared || newValue.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
-		objectSlots[field.fieldOrdinal()] = newValue as AvailObject
+		objectSlots[field.fieldOrdinal] = newValue as AvailObject
 	}
 
 	/**
@@ -695,8 +717,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkSlot(field)
 		checkWriteForField(field)
 		assert(subscript >= 1)
-		assert(subscript == 1 || field.fieldName().endsWith('_'))
-		val arrayIndex = field.fieldOrdinal() + subscript - 1
+		assert(subscript == 1 || field.fieldName.endsWith('_'))
+		val arrayIndex = field.fieldOrdinal + subscript - 1
 		when {
 			currentDescriptor.isShared ->
 			{
@@ -746,8 +768,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkSlot(field)
 		checkWriteForField(field)
 		assert(subscript >= 1)
-		assert(subscript == 1 || field.fieldName().endsWith('_'))
-		val arrayIndex = field.fieldOrdinal() + subscript - 1
+		assert(subscript == 1 || field.fieldName.endsWith('_'))
+		val arrayIndex = field.fieldOrdinal + subscript - 1
 		when {
 			currentDescriptor.isShared ->
 			{
@@ -783,7 +805,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		// before it can be stored.
 		checkSlot(field)
 		checkWriteForField(field)
-		val ordinal = field.fieldOrdinal()
+		val ordinal = field.fieldOrdinal
 		val oldValue = objectSlots[ordinal]!!
 		val newValue = oldValue.updater() as AvailObject
 		assert(!currentDescriptor.isShared || newValue.descriptor().isShared)
@@ -802,7 +824,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		// before it can be stored.
 		checkSlot(field)
 		checkWriteForField(field)
-		val ordinal = field.fieldOrdinal()
+		val ordinal = field.fieldOrdinal
 		val oldValue = objectSlots[ordinal]!!
 		val newValue = oldValue.updater() as AvailObject
 		objectSlots[ordinal] = newValue.makeShared()
@@ -833,7 +855,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		assert(field === FiberDescriptor.ObjectSlots.CONTINUATION)
 		checkSlot(field)
 		checkWriteForField(field)
-		objectSlots[field.fieldOrdinal()] = aContinuation as AvailObject
+		objectSlots[field.fieldOrdinal] = aContinuation as AvailObject
 	}
 
 	/**
@@ -849,7 +871,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	fun slot(field: ObjectSlotsEnum, subscript: Int): AvailObject
 	{
 		checkSlot(field)
-		return objectSlots[field.fieldOrdinal() + subscript - 1]!!
+		return objectSlots[field.fieldOrdinal + subscript - 1]!!
 	}
 
 	/**
@@ -873,7 +895,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			|| anAvailObject.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
-		objectSlots[field.fieldOrdinal() + subscript - 1] =
+		objectSlots[field.fieldOrdinal + subscript - 1] =
 			anAvailObject as AvailObject
 	}
 
@@ -906,7 +928,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			|| sourceList.all { it!!.descriptor().isShared })
 		checkSlot(field)
 		checkWriteForField(field)
-		var slotIndex = field.fieldOrdinal() + startSubscript - 1
+		var slotIndex = field.fieldOrdinal + startSubscript - 1
 		var listIndex = zeroBasedStartSourceSubscript
 		for (i in 0 until count) {
 			objectSlots[slotIndex++] = sourceList[listIndex++] as AvailObject
@@ -949,7 +971,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			sourceArray,
 			zeroBasedStartSourceSubscript,
 			objectSlots,
-			targetField.fieldOrdinal() + startTargetSubscript - 1,
+			targetField.fieldOrdinal + startTargetSubscript - 1,
 			count)
 	}
 
@@ -986,7 +1008,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			sourceArray,
 			zeroBasedStartSourceSubscript,
 			longSlots,
-			targetField.fieldOrdinal() + startTargetSubscript - 1,
+			targetField.fieldOrdinal + startTargetSubscript - 1,
 			count)
 	}
 
@@ -1017,7 +1039,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkSlot(sourceField)
 		System.arraycopy(
 			longSlots,
-			sourceField.fieldOrdinal() + startSourceSubscript - 1,
+			sourceField.fieldOrdinal + startSourceSubscript - 1,
 			targetArray,
 			zeroBasedStartTargetSubscript,
 			count)
@@ -1053,7 +1075,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		}
 		checkSlot(targetField)
 		checkWriteForField(targetField)
-		var slotIndex = targetField.fieldOrdinal() + startTargetSubscript - 1
+		var slotIndex = targetField.fieldOrdinal + startTargetSubscript - 1
 		var tupleIndex = startSourceSubscript
 		for (i in 0 until count)
 		{
@@ -1098,9 +1120,9 @@ abstract class AvailObjectRepresentation protected constructor(
 		sourceRep.checkSlot(sourceField)
 		System.arraycopy(
 			sourceRep.objectSlots,
-			sourceField.fieldOrdinal() + startSourceSubscript - 1,
+			sourceField.fieldOrdinal + startSourceSubscript - 1,
 			objectSlots,
-			targetField.fieldOrdinal() + startTargetSubscript - 1,
+			targetField.fieldOrdinal + startTargetSubscript - 1,
 			count)
 	}
 
@@ -1142,9 +1164,9 @@ abstract class AvailObjectRepresentation protected constructor(
 		sourceRep.checkSlot(sourceField)
 		System.arraycopy(
 			sourceRep.longSlots,
-			sourceField.fieldOrdinal() + startSourceSubscript - 1,
+			sourceField.fieldOrdinal + startSourceSubscript - 1,
 			longSlots,
-			targetField.fieldOrdinal() + startTargetSubscript - 1,
+			targetField.fieldOrdinal + startTargetSubscript - 1,
 			count)
 	}
 
@@ -1173,7 +1195,7 @@ abstract class AvailObjectRepresentation protected constructor(
 			|| anAvailObject.descriptor().isShared)
 		checkSlot(field)
 		checkWriteForField(field)
-		val startSlotIndex = field.fieldOrdinal() + startSubscript - 1
+		val startSlotIndex = field.fieldOrdinal + startSubscript - 1
 		Arrays.fill(
 			objectSlots,
 			startSlotIndex,
@@ -1196,8 +1218,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		{
 			currentDescriptor.isShared ->
 				VolatileSlotHelper.volatileRead(
-					objectSlots, field.fieldOrdinal())
-			else -> objectSlots[field.fieldOrdinal()]!!
+					objectSlots, field.fieldOrdinal)
+			else -> objectSlots[field.fieldOrdinal]!!
 		}
 	}
 
@@ -1337,8 +1359,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		return when
 		{
 			currentDescriptor.isShared -> VolatileSlotHelper.volatileRead(
-				objectSlots, field.fieldOrdinal() + subscript - 1)
-			else -> objectSlots[field.fieldOrdinal() + subscript - 1]!!
+				objectSlots, field.fieldOrdinal + subscript - 1)
+			else -> objectSlots[field.fieldOrdinal + subscript - 1]!!
 		}
 	}
 
@@ -1357,8 +1379,8 @@ abstract class AvailObjectRepresentation protected constructor(
 		return when
 		{
 			currentDescriptor.isShared -> VolatileSlotHelper.volatileRead(
-				objectSlots, field.fieldOrdinal())
-			else -> objectSlots[field.fieldOrdinal()]!!
+				objectSlots, field.fieldOrdinal)
+			else -> objectSlots[field.fieldOrdinal]!!
 		}
 	}
 
@@ -1388,10 +1410,10 @@ abstract class AvailObjectRepresentation protected constructor(
 				// before it can be stored.
 				VolatileSlotHelper.volatileWrite(
 					objectSlots,
-					field.fieldOrdinal() + subscript - 1,
+					field.fieldOrdinal + subscript - 1,
 					anAvailObject.makeShared())
 			else ->
-				objectSlots[field.fieldOrdinal() + subscript - 1] =
+				objectSlots[field.fieldOrdinal + subscript - 1] =
 					anAvailObject as AvailObject
 		}
 	}
@@ -1416,10 +1438,10 @@ abstract class AvailObjectRepresentation protected constructor(
 				// before it can be stored.
 				VolatileSlotHelper.volatileWrite(
 					objectSlots,
-					field.fieldOrdinal(),
+					field.fieldOrdinal,
 					anAvailObject.makeShared())
 			else ->
-				objectSlots[field.fieldOrdinal()] = anAvailObject as AvailObject
+				objectSlots[field.fieldOrdinal] = anAvailObject as AvailObject
 		}
 	}
 
@@ -1444,7 +1466,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkSlot(field)
 		checkWriteForField(field)
 		return VolatileSlotHelper.getAndSet(
-			objectSlots, field.fieldOrdinal(), anAvailObject as AvailObject)
+			objectSlots, field.fieldOrdinal, anAvailObject as AvailObject)
 	}
 
 	/**
@@ -1472,7 +1494,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		checkWriteForField(field)
 		return VolatileSlotHelper.compareAndSet(
 			objectSlots,
-			field.fieldOrdinal(),
+			field.fieldOrdinal,
 			reference as AvailObject,
 			newValue as AvailObject)
 	}
@@ -1527,7 +1549,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		anAvailObject: AvailObject)
 	{
 		checkSlot(field)
-		objectSlots[field.fieldOrdinal() + subscript - 1] = anAvailObject
+		objectSlots[field.fieldOrdinal + subscript - 1] = anAvailObject
 	}
 
 	/**
@@ -1605,7 +1627,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		slotCount: Int,
 		key: Int): Int
 	{
-		val fromIntIndex = slot.fieldOrdinal() shl 1
+		val fromIntIndex = slot.fieldOrdinal shl 1
 		val toIntIndex = fromIntIndex + slotCount
 		var low = fromIntIndex
 		var high = toIntIndex - 1
@@ -1658,7 +1680,7 @@ abstract class AvailObjectRepresentation protected constructor(
 		key: Int): Int
 	{
 		if (startIndex > endIndex) return 0
-		val longOffset = slot.fieldOrdinal()
+		val longOffset = slot.fieldOrdinal
 		var longIndex = longOffset + ((startIndex - 1) ushr 1)
 		var longVal: Long
 		if (startIndex and 1 == 0)

@@ -52,7 +52,7 @@ import java.util.UUID
  */
 class UpgradeCommandMessage constructor(val uuid: UUID) : CommandMessage()
 {
-	override val command = TextCommand.UPGRADE
+	override val command get() = TextCommand.UPGRADE
 
 	override fun processThen(
 		channel: AvailServerChannel,

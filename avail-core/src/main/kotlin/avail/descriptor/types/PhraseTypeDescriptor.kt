@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.annotations.HideFieldInDebugger
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.BlockPhraseDescriptor
@@ -129,6 +130,7 @@ open class PhraseTypeDescriptor protected constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
+			@HideFieldInDebugger
 			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
 		}
 	}
@@ -172,15 +174,15 @@ open class PhraseTypeDescriptor protected constructor(
 		/** The root phrase kind. */
 		PARSE_PHRASE("phrase type", null, TypeTag.PHRASE_TAG),
 
-		/** The kind of a parse marker. */
-		MARKER_PHRASE(
-			"marker phrase type", PARSE_PHRASE, TypeTag.MARKER_PHRASE_TAG),
-
 		/** The abstract parent kind of all expression phrases. */
 		EXPRESSION_PHRASE(
 			"expression phrase type",
 			PARSE_PHRASE,
 			TypeTag.EXPRESSION_PHRASE_TAG),
+
+		/** The kind of a parse marker. */
+		MARKER_PHRASE(
+			"marker phrase type", EXPRESSION_PHRASE, TypeTag.MARKER_PHRASE_TAG),
 
 		/**
 		 * The kind of an [assignment&#32;phrase][AssignmentPhraseDescriptor].
@@ -390,9 +392,9 @@ open class PhraseTypeDescriptor protected constructor(
 			PARSE_PHRASE,
 			TypeTag.UNKNOWN_TAG);
 
-		override fun fieldName(): String = name
+		override val fieldName get() = name
 
-		override fun fieldOrdinal(): Int = ordinal
+		override val fieldOrdinal get() = ordinal
 
 		/**
 		 * Answer the kind of phrase of which this object is the type.

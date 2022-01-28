@@ -52,11 +52,9 @@ import org.objectweb.asm.MethodVisitor
 object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 	WRITE_BOXED.named("implicit observe function"))
 {
-	override fun hasSideEffect(): Boolean
-	{
+	override val hasSideEffect: Boolean
 		// Keep this instruction pinned in place for safety during inlining.
-		return true
-	}
+		get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -64,7 +62,7 @@ object L2_GET_IMPLICIT_OBSERVE_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function = instruction.operand<L2WriteBoxedOperand>(0)
 
 		renderPreamble(instruction, builder)

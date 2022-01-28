@@ -45,6 +45,7 @@ import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
+import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1InstructionWriter
@@ -62,7 +63,7 @@ import avail.interpreter.levelOne.L1InstructionWriter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_InvokeCallback : Primitive(-1, Private, CanSuspend)
+object P_InvokeCallback : Primitive(-1, Private, CanSuspend, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

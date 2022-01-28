@@ -83,7 +83,8 @@ object L2_INVOKE : L2ControlFlowOperation(
 	PC.named("on return", Purpose.SUCCESS),
 	PC.named("on reification", Purpose.OFF_RAMP))
 {
-	override fun hasSideEffect(): Boolean = true
+	override val hasSideEffect: Boolean
+		get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -91,7 +92,7 @@ object L2_INVOKE : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function = instruction.operand<L2ReadBoxedOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val result = instruction.operand<L2WriteBoxedOperand>(2)

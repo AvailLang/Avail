@@ -33,9 +33,9 @@ package avail.descriptor.types
 
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -175,12 +175,9 @@ constructor(
 		}
 		for (ancestor in ancestors.keysAsSet)
 		{
-			if (!otherAncestors.hasKey(ancestor))
-			{
+			val otherParams: A_Tuple = otherAncestors.mapAtOrNull(ancestor) ?:
 				return false
-			}
 			val params: A_Tuple = ancestors.mapAt(ancestor)
-			val otherParams: A_Tuple = otherAncestors.mapAt(ancestor)
 			val limit = params.tupleSize
 			assert(limit == otherParams.tupleSize)
 			for (i in 1 .. limit)
@@ -443,15 +440,14 @@ constructor(
 				for (i in vars.indices)
 				{
 					typeVars = typeVars.mapAtPuttingCanDestroy(
-						stringFrom(
-							ancestor.name + "." + vars[i].name),
+						stringFrom(ancestor.name + "." + vars[i].name),
 						typeArgs.tupleAt(i + 1),
 						true)
 				}
 			}
 			if (isShared)
 			{
-				typeVars = typeVars.traversed().makeShared()
+				typeVars = typeVars.makeShared()
 			}
 			self.setSlot(TYPE_VARIABLES, typeVars)
 		}
@@ -462,7 +458,7 @@ constructor(
 	{
 		if (isShared)
 		{
-			synchronized(self) { return typeVariables(self) }
+			return synchronized(self) { typeVariables(self) }
 		}
 		return typeVariables(self)
 	}

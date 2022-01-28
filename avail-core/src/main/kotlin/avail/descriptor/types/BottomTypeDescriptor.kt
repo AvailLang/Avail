@@ -31,13 +31,13 @@
  */
 package avail.descriptor.types
 
-import avail.compiler.ModuleManifestEntry
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.maps.A_Map
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.InfinityDescriptor.Companion.negativeInfinity
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
@@ -317,6 +317,11 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	// range.
 	override fun o_LowerInclusive(self: AvailObject): Boolean = false
 
+	// This case should have been eliminated explicitly by dispatch logic in
+	// LookupTree.
+	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
+		unsupported
+
 	override fun o_Parent(self: AvailObject): A_BasicObject
 	{
 		unsupportedOperation()
@@ -328,7 +333,7 @@ private constructor() : AbstractEnumerationTypeDescriptor(
 	override fun o_ReturnType(self: AvailObject): A_Type = self
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		SerializerOperation.BOTTOM_TYPE
+		SerializerOperation.SPECIAL_OBJECT
 
 	// Answer what sizes my instances can be. Since I'm a degenerate
 	// map type, answer ⊥, a degenerate integer type.

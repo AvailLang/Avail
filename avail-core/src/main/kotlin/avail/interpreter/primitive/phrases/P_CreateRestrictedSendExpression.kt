@@ -258,31 +258,28 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				forkedFiber.setHeritableFiberGlobals(
 					originalFiber.heritableFiberGlobals())
 				forkedFiber.setTextInterface(originalFiber.textInterface())
-				forkedFiber.setSuccessAndFailure(
-					success,
-					{ throwable ->
-						when (throwable)
+				forkedFiber.setSuccessAndFailure(success) { throwable ->
+					when (throwable)
+					{
+						is AvailRejectedParseException ->
 						{
-							is AvailRejectedParseException ->
-							{
-								// Compute rejectionString outside the mutex.
-								val string = throwable.rejectionString
-								resultLock.safeWrite { problems.add(string) }
-							}
-							is AvailAcceptedParseException ->
-							{
-								// Success without type narrowing – do nothing.
-							}
-							else ->
-								resultLock.safeWrite {
-									problems.add(
-										stringFrom(
-											"evaluation of macro body not to " +
-												"raise an unhandled " +
-												"exception:\n\t$throwable"))
-								}
+							// Compute rejectionString outside the mutex.
+							val string = throwable.rejectionString
+							resultLock.safeWrite { problems.add(string) }
 						}
-					})
+						is AvailAcceptedParseException ->
+						{
+							// Success without type narrowing – do nothing.
+						}
+						else -> resultLock.safeWrite {
+							problems.add(
+								stringFrom(
+									"evaluation of macro body not to " +
+										"raise an unhandled " +
+										"exception:\n\t$throwable"))
+						}
+					}
+				}
 				runOutermostFunction(
 					runtime, forkedFiber, restriction.function(), argTypesList)
 			}

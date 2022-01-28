@@ -286,9 +286,11 @@ class PrefixSharingList<E> : AbstractList<E>
 		 */
 		fun <E2> List<E2>.append(lastElement: E2): List<E2>
 		{
-			return when
+			return when (size)
 			{
-				isEmpty() -> singletonList(lastElement)
+				0 -> singletonList(lastElement)
+				1 -> listOf(get(0), lastElement)
+				2 -> listOf(get(0), get(1), lastElement)
 				else -> PrefixSharingList(this, lastElement)
 			}
 		}

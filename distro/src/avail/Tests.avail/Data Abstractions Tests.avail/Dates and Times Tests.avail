@@ -133,8 +133,8 @@ Test "timestamp leap year" in dates and times test suite is
 		map each bool of leapYearsStarting1983 through [¬bool];
 
 	Require: map each year of 1983 to 2017 through [|February's days in year|]
-	    = map each bool of leapYearsStarting1983 through
-	    [if bool then [29] else [28]];
+		= map each bool of leapYearsStarting1983 through
+		[if bool then [29] else [28]];
 
 ];
 

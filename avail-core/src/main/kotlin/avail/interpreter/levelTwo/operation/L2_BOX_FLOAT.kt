@@ -58,7 +58,7 @@ object L2_BOX_FLOAT : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val sourceReg = instruction.operand<L2ReadFloatOperand>(0)
 		val destinationReg = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)

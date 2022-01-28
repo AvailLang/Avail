@@ -226,7 +226,7 @@ object Compiler
 	 */
 	private fun localTracker(
 			configuration: CompilerConfiguration): CompilerProgressReporter =
-		{ module, moduleSize, position, line ->
+		{ module, moduleSize, position, line, _ ->
 			synchronized(statusLock) {
 				val level = configuration.verbosityLevel
 				if (level.displayLocalProgress)

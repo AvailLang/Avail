@@ -59,9 +59,9 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -72,7 +72,6 @@ import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
-import avail.io.SimpleCompletionHandler.Dummy.Companion.dummy
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
 
@@ -135,7 +134,7 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		{
 			val module = interpreter.module()
 			socket.accept(
-				dummy,
+				Unit,
 				SimpleCompletionHandler(
 					{
 						val newHandle = createAtom(name, module)

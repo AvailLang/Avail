@@ -81,7 +81,7 @@ Semantic restriction "_'s⁇parameters'type" is
 					++ <if param = ⊥ then [any] else [param]>;
 				true
 			];
-			leading ::= cast params into [t : tuple of any meta | t];
+			leading ::= params ?→ tuple of any meta;
 			<leading, leading[size]… | [size..size]>'s type
 		]
 	]
@@ -134,7 +134,7 @@ Semantic restriction "Invoke|invoke_with_" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Immediately reject parse, expected: sizesIncompatibleMessage
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 	];
 	functionType's return type
@@ -187,7 +187,7 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Immediately reject parse, expected: sizesIncompatibleMessage
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
 		From 1 to ⌊argumentsSizes⌋ do
@@ -197,7 +197,7 @@ Semantic restriction "_(«_‡,»)" is
 			parameterType ::= parametersType[index];
 			If parameterType ≠ ⊥ ∧ ¬argumentsType[index] ⊆ parameterType then
 			[
-				Immediately reject parse, expected:
+				Reject parse, expected:
 					"argument #"
 					++ “index”
 					++ " of type ("
@@ -240,7 +240,7 @@ Semantic restriction "_[_]" is
 		start ::= ⌊index⌋;
 		If start > limit then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"a subscript ("
 				++ “start”
 				++ " ≤ theSubscript ≤ "

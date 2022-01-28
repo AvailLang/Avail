@@ -39,15 +39,15 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyContinuationMethod
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.interpreter.JavaLibrary.getClassLoader
 import avail.interpreter.JavaLibrary.javaUnboxIntegerMethod
 import avail.interpreter.JavaLibrary.longAdderIncrement
@@ -157,7 +157,6 @@ import org.objectweb.asm.Opcodes.PUTSTATIC
 import org.objectweb.asm.Opcodes.RETURN
 import org.objectweb.asm.Opcodes.SIPUSH
 import org.objectweb.asm.Opcodes.V11
-//import org.objectweb.asm.Opcodes.V16
 import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
@@ -503,6 +502,21 @@ class JVMTranslator constructor(
 	}
 
 	/**
+	 * A local variable has just ended scope.  Ensure it was the most recently
+	 * allocated local, and deallocate the slot(s) that were used for it.
+	 *
+	 * @param
+	 *   The slot index of the most recently allocated JVM local.
+	 * @param type
+	 *   The [type][Type] of that local.
+	 */
+	fun endLocal(localNumber: Int, type: Type)
+	{
+		nextLocal -= type.size
+		assert(nextLocal == localNumber)
+	}
+
+	/**
 	 * Answer the JVM local number for this register.  This is the position
 	 * within the actual JVM stack frame layout.
 	 *
@@ -512,7 +526,7 @@ class JVMTranslator constructor(
 	 *   Its position in the JVM frame.
 	 */
 	fun localNumberFromRegister(register: L2Register): Int =
-		locals[register.registerKind()]!![register.finalIndex()]!!
+		locals[register.registerKind]!![register.finalIndex()]!!
 
 	/**
 	 * Generate a load of the local associated with the specified [L2Register].
@@ -526,7 +540,7 @@ class JVMTranslator constructor(
 	fun load(method: MethodVisitor, register: L2Register)
 	{
 		method.visitVarInsn(
-			register.registerKind().loadInstruction,
+			register.registerKind.loadInstruction,
 			localNumberFromRegister(register))
 	}
 
@@ -544,7 +558,7 @@ class JVMTranslator constructor(
 	fun store(method: MethodVisitor, register: L2Register)
 	{
 		method.visitVarInsn(
-			register.registerKind().storeInstruction,
+			register.registerKind.storeInstruction,
 			localNumberFromRegister(register))
 	}
 	/**
@@ -795,15 +809,15 @@ class JVMTranslator constructor(
 				// we include every basic block's first instruction for extra
 				// clarity.
 				include =
-					instruction.offset() == instruction.basicBlock().offset()
+					instruction.offset == instruction.basicBlock().offset()
 			}
 			if (include)
 			{
 				val label = Label()
-				entryPoints[instruction.offset()] = label
-				labels[instruction.offset()] = label
+				entryPoints[instruction.offset] = label
+				labels[instruction.offset] = label
 			}
-			instruction.operands().forEach { it.dispatchOperand(preparer) }
+			instruction.operands.forEach { it.dispatchOperand(preparer) }
 		}
 	}
 
@@ -1029,17 +1043,11 @@ class JVMTranslator constructor(
 			3 -> method.visitInsn(ICONST_3)
 			4 -> method.visitInsn(ICONST_4)
 			5 -> method.visitInsn(ICONST_5)
-			else ->
-			{
-				when (value)
-				{
-					in Byte.MIN_VALUE..Byte.MAX_VALUE ->
-						method.visitIntInsn(BIPUSH, value)
-					in Short.MIN_VALUE..Short.MAX_VALUE ->
-						method.visitIntInsn(SIPUSH, value)
-					else -> method.visitLdcInsn(value)
-				}
-			}
+			in Byte.MIN_VALUE..Byte.MAX_VALUE ->
+				method.visitIntInsn(BIPUSH, value)
+			in Short.MIN_VALUE..Short.MAX_VALUE ->
+				method.visitIntInsn(SIPUSH, value)
+			else -> method.visitLdcInsn(value)
 		}
 	}
 
@@ -1211,7 +1219,7 @@ class JVMTranslator constructor(
 	{
 		// If the jump target is the very next instruction, then don't emit a
 		// jump at all; just fall through.
-		if (operand.offset() != instruction.offset() + 1)
+		if (operand.offset() != instruction.offset + 1)
 		{
 			jump(method, operand)
 		}
@@ -1312,7 +1320,7 @@ class JVMTranslator constructor(
 		successCounter: LongAdder,
 		failureCounter: LongAdder)
 	{
-		val offset = instruction.offset()
+		val offset = instruction.offset
 		if (offset + 1 == failure.offset())
 		{
 			// Note that *both* paths might lead to the next instruction.  This
@@ -1564,6 +1572,7 @@ class JVMTranslator constructor(
 				annotation.visitEnd()
 			}
 		}
+		val endLabel = Label()
 		method.visitAnnotation(
 			Type.getDescriptor(Nullable::class.java),
 			true)
@@ -1573,10 +1582,39 @@ class JVMTranslator constructor(
 			// back to the main switch, the verifier can no longer prove that
 			// variables are set before use.  Explicitly initialize them here
 			// instead, before the methodHead.
-			for ((kind, localsOfKind) in locals)
-			{
-				for ((_, localIndex) in localsOfKind)
-				{
+			method.visitLocalVariable(
+				"interpreter",
+				Type.getDescriptor(Interpreter::class.java),
+				null,
+				methodHead,
+				endLabel,
+				interpreterLocal())
+			method.visitLocalVariable(
+				"offset",
+				Type.INT_TYPE.descriptor,
+				null,
+				methodHead,
+				endLabel,
+				offsetLocal())
+			// Also initialize the stackReifier local.
+			method.visitInsn(ACONST_NULL)
+			method.visitVarInsn(ASTORE, reifierLocal())
+			method.visitLocalVariable(
+				"reifier",
+				Type.getDescriptor(StackReifier::class.java),
+				null,
+				labelHere(method),
+				endLabel,
+				reifierLocal())
+			// Initialize the register locals.
+			locals
+				.flatMap { (kind, value) ->
+					value.map { (finalIndex, localIndex) ->
+						Triple(kind, finalIndex, localIndex)
+					}
+				}
+				.sortedBy(Triple<*, *, Int>::third)
+				.forEach { (kind, finalIndex, localIndex) ->
 					when (kind)
 					{
 						BOXED_KIND -> {
@@ -1592,11 +1630,14 @@ class JVMTranslator constructor(
 							method.visitVarInsn(DSTORE, localIndex)
 						}
 					}
+					method.visitLocalVariable(
+						kind.prefix + finalIndex,
+						kind.jvmTypeString,
+						null,
+						labelHere(method),
+						endLabel,
+						localIndex)
 				}
-			}
-			// Also initialize the stackReifier local.
-			method.visitInsn(ACONST_NULL)
-			method.visitVarInsn(ASTORE, reifierLocal())
 		}
 		method.visitLabel(methodHead)
 		// Emit the lookupswitch instruction to select among the entry points.
@@ -1614,17 +1655,17 @@ class JVMTranslator constructor(
 		// Translate the instructions.
 		for (instruction in instructions)
 		{
-			val label = labels[instruction.offset()]
+			val label = labels[instruction.offset]
 			if (label !== null)
 			{
 				method.visitLabel(label)
-				method.visitLineNumber(instruction.offset(), label)
+				method.visitLineNumber(instruction.offset, label)
 			}
 			@Suppress("ConstantConditionIf")
 			if (callTraceL2AfterEveryInstruction)
 			{
 				loadReceiver(method) // this, the executable chunk.
-				intConstant(method, instruction.offset())
+				intConstant(method, instruction.offset)
 				// First line of the instruction toString
 				method.visitLdcInsn(
 					instruction.toString()
@@ -1633,7 +1674,7 @@ class JVMTranslator constructor(
 				// Output the first read operand's value, as an Object, or null.
 				run pushOneObject@
 				{
-					for (operand in instruction.operands())
+					for (operand in instruction.operands)
 					{
 						if (operand is L2ReadBoxedOperand)
 						{
@@ -1677,44 +1718,12 @@ class JVMTranslator constructor(
 		// register names. At present, we just claim that every variable is live
 		// from the methodHead until the endLabel, but we can always tighten
 		// this up later if we care.
-		val endLabel = Label()
 		method.visitLabel(endLabel)
-		for ((kind, value) in locals)
-		{
-			for ((finalIndex, localIndex) in value)
-			{
-				method.visitLocalVariable(
-					kind.prefix + finalIndex,
-					kind.jvmTypeString,
-					null,
-					methodHead,
-					endLabel,
-					localIndex)
-			}
-		}
-		method.visitLocalVariable(
-			"interpreter",
-			Type.getDescriptor(Interpreter::class.java),
-			null,
-			methodHead,
-			endLabel,
-			interpreterLocal())
-		method.visitLocalVariable(
-			"offset",
-			Type.INT_TYPE.descriptor,
-			null,
-			methodHead,
-			endLabel,
-			offsetLocal())
-		method.visitLocalVariable(
-			"reifier",
-			Type.getDescriptor(StackReifier::class.java),
-			null,
-			methodHead,
-			endLabel,
-			reifierLocal())
 		finishMethod(method)
 	}
+
+	private fun labelHere(method: MethodVisitor): Label =
+		Label().also { method.visitLabel(it) }
 
 	/** The final phase of JVM code generation. */
 	fun classVisitEnd()
@@ -1919,7 +1928,7 @@ class JVMTranslator constructor(
 		 * what is generated when this flag is false), but it's probably not a
 		 * big difference.
 		 */
-		const val debugNicerJavaDecompilation = false
+		const val debugNicerJavaDecompilation = true
 
 		/**
 		 * A regex [Pattern] to rewrite function names like '"foo_"[1][3]' to
@@ -2025,7 +2034,7 @@ class JVMTranslator constructor(
 			}
 			else
 			{
-				moduleNameStripper.matcher(module.moduleName.asNativeString())
+				moduleNameStripper.matcher(module.moduleNameNative)
 					.replaceAll("$1")
 			}
 
@@ -2045,7 +2054,7 @@ class JVMTranslator constructor(
 		val safeUID = UUID.randomUUID().toString().replace('-', '_')
 		className = (
 			"avail.optimizer.jvm.generated.$moduleName.$cleanFunctionName"
-				 + " - $safeUID.$moduleName - $cleanFunctionName")
+				+ " - $safeUID.$moduleName - $cleanFunctionName")
 		classInternalName = className.replace('.', '/')
 	}
 }

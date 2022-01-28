@@ -53,6 +53,8 @@ import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
+import avail.optimizer.jvm.CheckedMethod
+import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
  * An `A_Phrase` is generally produced when the [AvailCompiler] parses source
@@ -296,6 +298,8 @@ interface A_Phrase : A_BasicObject {
 		 *   The [type][TypeDescriptor] of the [AvailObject] that will be
 		 *   produced by this phrase.
 		 */
+		@get:ReferencedInGeneratedCode
+		@JvmStatic
 		val A_Phrase.phraseExpressionType: A_Type
 			get() = dispatch { o_PhraseExpressionType(it) }
 
@@ -630,5 +634,12 @@ interface A_Phrase : A_BasicObject {
 		 *   The variable use phrase.
 		 */
 		val A_Phrase.variable: A_Phrase get() = dispatch { o_Variable(it) }
+
+		/** The [CheckedMethod] for [phraseExpressionType]. */
+		val phraseExpressionTypeMethod = CheckedMethod.staticMethod(
+			A_Phrase::class.java,
+			"getPhraseExpressionType",  // A_Phrase::phraseExpressionType.name
+			A_Type::class.java,
+			A_Phrase::class.java)
 	}
 }

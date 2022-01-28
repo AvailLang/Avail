@@ -73,7 +73,6 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.TypeTag
-import avail.utility.cast
 import avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.ArrayDeque
 import java.util.Deque

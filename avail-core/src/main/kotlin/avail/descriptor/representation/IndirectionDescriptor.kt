@@ -124,9 +124,8 @@ import avail.descriptor.functions.A_RawFunction.Companion.tallyInvocation
 import avail.descriptor.functions.A_RawFunction.Companion.totalInvocations
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
@@ -216,6 +215,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
@@ -224,7 +224,6 @@ import avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
-import avail.descriptor.module.A_Module.Companion.serializedObjectsMap
 import avail.descriptor.module.A_Module.Companion.stylers
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
@@ -287,6 +286,7 @@ import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.trimExcessInts
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
+import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.definition
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
@@ -348,6 +348,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.typeExpression
 import avail.descriptor.phrases.A_Phrase.Companion.validateLocally
 import avail.descriptor.phrases.A_Phrase.Companion.variable
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.IndirectionDescriptor.ObjectSlots.INDIRECTION_TARGET
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.asTuple
@@ -466,6 +467,7 @@ import avail.descriptor.types.A_Type.Companion.keyType
 import avail.descriptor.types.A_Type.Companion.literalType
 import avail.descriptor.types.A_Type.Companion.lowerBound
 import avail.descriptor.types.A_Type.Companion.lowerInclusive
+import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.parent
 import avail.descriptor.types.A_Type.Companion.phraseKind
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
@@ -543,7 +545,6 @@ import avail.io.TextInterface
 import avail.performance.Statistic
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
-import avail.utility.visitor.AvailSubobjectVisitor
 import java.math.BigInteger
 import java.nio.ByteBuffer
 import java.util.Deque
@@ -650,8 +651,8 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ScanSubobjects(
 		self: AvailObject,
-		visitor: AvailSubobjectVisitor
-	) {
+		visitor: (AvailObject) -> AvailObject)
+	{
 		visitor(self.slot(INDIRECTION_TARGET))
 	}
 
@@ -1305,11 +1306,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetHashOrZero(self: AvailObject, value: Int) =
 		self .. { setHashOrZero(value) }
 
-	override fun o_HasKey(
-		self: AvailObject,
-		keyObject: A_BasicObject
-	): Boolean = self .. { hasKey(keyObject) }
-
 	override fun o_HasObjectInstance(
 		self: AvailObject,
 		potentialInstance: AvailObject
@@ -1494,10 +1490,10 @@ class IndirectionDescriptor private constructor(
 		argumentList: List<A_BasicObject>
 	): A_Definition = self .. { lookupByValuesFromList(argumentList) }
 
-	override fun o_MapAt(
+	override fun o_MapAtOrNull(
 		self: AvailObject,
 		keyObject: A_BasicObject
-	): AvailObject = self .. { mapAt(keyObject) }
+	): AvailObject? = self .. { mapAtOrNull(keyObject) }
 
 	override fun o_MapAtPuttingCanDestroy(
 		self: AvailObject,
@@ -2911,7 +2907,7 @@ class IndirectionDescriptor private constructor(
 		self .. { methodName }
 
 	override fun o_NameForDebugger(self: AvailObject): String =
-		"IND→" + (self .. { nameForDebugger() })
+		"IND" + mutability.suffix + "→" + (self .. { nameForDebugger() })
 
 	override fun o_BinElementsAreAllInstancesOfKind(
 		self: AvailObject,
@@ -3460,6 +3456,9 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject, field: A_Atom
 	): AvailObject = self .. { fieldAt(field) }
 
+	override fun o_FieldAtIndex(self: AvailObject, index: Int): AvailObject =
+		self .. { fieldAtIndex(index) }
+
 	override fun o_FieldAtOrNull(
 		self: AvailObject, field: A_Atom
 	): AvailObject? = self .. { fieldAtOrNull(field) }
@@ -3475,6 +3474,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_FieldTypeAt(
 		self: AvailObject, field: A_Atom
 	): A_Type = self .. { fieldTypeAt(field) }
+
+	override fun o_FieldTypeAtIndex(self: AvailObject, index: Int): A_Type =
+		self .. { fieldTypeAtIndex(index) }
 
 	override fun o_FieldTypeAtOrNull(
 		self: AvailObject, field: A_Atom
@@ -3657,6 +3659,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_RegisterDump(self: AvailObject): AvailObject =
 		self .. { registerDump() }
 
+	@Throws(SignatureException::class)
 	override fun o_BundleAddMacro(
 		self: AvailObject,
 		macro: A_Macro,
@@ -3753,11 +3756,6 @@ class IndirectionDescriptor private constructor(
 		serializedObjects: A_Tuple
 	) = self .. { serializedObjects(serializedObjects) }
 
-	override fun o_SerializedObjectsMap(
-		self: AvailObject,
-		serializedObjectsMap: A_Map
-	) = self .. { serializedObjectsMap(serializedObjectsMap) }
-
 	override fun o_ApplyModuleHeader(
 		self: AvailObject,
 		loader: AvailLoader,
@@ -3806,4 +3804,13 @@ class IndirectionDescriptor private constructor(
 	override fun o_SynthesizeCurrentLexingState(
 		self: AvailObject
 	): LexingState = self .. { synthesizeCurrentLexingState() }
+
+	override fun o_ObjectVariant(self: AvailObject): ObjectLayoutVariant =
+		self .. { objectVariant }
+
+	override fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant =
+		self .. { objectTypeVariant }
+
+	override fun o_ModuleNameNative(self: AvailObject): String =
+		self .. { moduleNameNative }
 }

@@ -80,7 +80,7 @@ constructor(elements: List<RR>) : L2Operand()
 		elements.forEach { it.assertHasBeenEmitted() }
 	}
 
-	abstract override fun operandType(): L2OperandType
+	abstract override val operandType: L2OperandType
 
 	/**
 	 * Answer my [List] of [L2ReadOperand]s.
@@ -175,9 +175,6 @@ constructor(elements: List<RR>) : L2Operand()
 		}
 		append(">")
 	}
-
-	override fun replaceConstantRegisters() =
-		elements.forEach { it.replaceConstantRegisters() }
 
 	override fun postOptimizationCleanup() =
 		elements.forEach { it.postOptimizationCleanup() }

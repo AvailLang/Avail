@@ -49,7 +49,6 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -58,7 +57,7 @@ import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addImportedNames
 import avail.descriptor.module.A_Module.Companion.entryPoints
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.phrases.A_Phrase
@@ -74,8 +73,6 @@ import avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
 import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import avail.io.TextInterface
-import org.availlang.persistence.IndexedFile
-import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleArchive
 import avail.persistence.cache.Repository.ModuleCompilation
@@ -84,6 +81,8 @@ import avail.serialization.Serializer
 import avail.utility.Graph
 import avail.utility.StackPrinter.Companion.trace
 import avail.utility.safeWrite
+import org.availlang.persistence.IndexedFile
+import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import java.io.File
 import java.lang.String.format
 import java.nio.file.Path
@@ -282,8 +281,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		for (graphModuleName in moduleGraph.vertices.toList())
 		{
 			val qualifiedAvailName = stringFrom(graphModuleName.qualifiedName)
-			assert(allLoadedModules.containsKey(graphModuleName))
-			assert(loadedRuntimeModules.hasKey(qualifiedAvailName))
 			assert(allLoadedModules[graphModuleName]!!.module.equals(
 				loadedRuntimeModules.mapAt(qualifiedAvailName)))
 		}
@@ -518,11 +515,11 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	 *   A [CompilerProgressReporter].
 	 * @param globalTracker
 	 *   A [GlobalProgressReporter].
+	 * @param problemHandler
+	 *   How to handle or report [Problem]s that arise during the build.
 	 * @param originalAfterAll
 	 *   What to do after building everything.  This may run in another
 	 *   [Thread], possibly long after this method returns.
-	 * @param problemHandler
-	 *   How to handle or report [Problem]s that arise during the build.
 	 */
 	@Suppress("MemberVisibilityCanBePrivate")
 	fun buildTargetThen(
@@ -603,7 +600,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			target,
 			localTracker,
 			globalTracker,
-			problemHandler) { semaphore.release() }
+			problemHandler
+		) { semaphore.release() }
 		semaphore.acquireUninterruptibly()
 	}
 
@@ -865,8 +863,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 		{
 			val module = newModule(
 				stringFrom(
-					loadedModule.module.moduleName.asNativeString() +
-						" (command)"))
+					loadedModule.module.moduleNameNative + " (command)"))
 			val loader = AvailLoader(module, runtime.textInterface())
 			val moduleImport = ModuleImport.extend(loadedModule.module)
 			val header = ModuleHeader(loadedModule.name)
@@ -880,7 +877,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 				stringFrom(command),
 				textInterface,
 				pollForAbort,
-				{ _, _, _, _ -> },
+				{ _, _, _, _, _ -> },
 				object : BuilderProblemHandler(this, "«collection only»")
 				{
 					override fun handleGeneric(
@@ -921,7 +918,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							{ handleGeneric(problem, decider) }
 						).guardedDo {
 							textInterface.errorChannel.write(
-								problem.toString(), dummy, handler)
+								problem.toString(), Unit, handler)
 						}
 					}
 
@@ -936,7 +933,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 							{ handleGeneric(problem, decider) }
 						).guardedDo {
 							textInterface.errorChannel.write(
-								problem.toString(), dummy, handler)
+								problem.toString(), Unit, handler)
 						}
 					}
 				})
@@ -1127,7 +1124,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 					{ onFailure() }  /* Ignore I/O error */
 				).guardedDo {
 					textInterface.errorChannel.write(
-						"Action was cancelled by user", dummy, handler)
+						"Action was cancelled by user", Unit, handler)
 				}
 				else -> unambiguous(choice)
 			}

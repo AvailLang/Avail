@@ -193,7 +193,8 @@ abstract class L2Regenerator internal constructor(
 			val edge = L2PcOperand(
 				mapBlock(operand.targetBlock()),
 				operand.isBackward,
-				targetGenerator.currentManifest)
+				targetGenerator.currentManifest,
+				operand.optionalName)
 			// Generate clamped entities based on the originals.
 			operand.forcedClampedEntities?.let { oldClamped ->
 				val manifest = targetGenerator.currentManifest
@@ -518,7 +519,13 @@ abstract class L2Regenerator internal constructor(
 					// to ensure any blocks that are reachable from it in the
 					// source, but *also* from other blocks in the source, can
 					// proceed with generation if all the other blocks have been
-					// completed.
+					// completed.  We also have to keep walking through any
+					// successor edges, since there may be a whole subgraph that
+					// has become inaccessible, and we must ensure paths that
+					// eventually join with it (i.e., where it *would* have been
+					// merging control flow) can continue code generation with
+					// only some predecessors having produced code.
+					block.successorEdges().forEach(this::transformOperand)
 					break@instructions
 				}
 				processInstruction(instruction)
@@ -565,7 +572,7 @@ abstract class L2Regenerator internal constructor(
 		// Never translate a phi instruction.  Either they should be produced
 		// as part of generation, or they should already have been replaced by
 		// moves.
-		assert(!sourceInstruction.operation().isPhi)
+		assert(!sourceInstruction.operation.isPhi)
 		sourceInstruction.transformAndEmitOn(this)
 	}
 
@@ -598,10 +605,10 @@ abstract class L2Regenerator internal constructor(
 	fun forcePostponedTranslationNow(sourceInstruction: L2Instruction)
 	{
 		val manifest = targetGenerator.currentManifest
-		for (read in sourceInstruction.readOperands())
+		for (read in sourceInstruction.readOperands)
 		{
 			val semanticValue = read.semanticValue()
-			val kind = read.registerKind()
+			val kind = read.registerKind
 			// If there's a postponed instruction that produces the needed
 			// value, always use that, even if the value appears to be
 			// available in a register.  That's because a postponed instruction
@@ -645,7 +652,7 @@ abstract class L2Regenerator internal constructor(
 					// feed an L2_MAKE_IMMUTABLE don't try to translate
 					// themselves before the L2_MAKE_IMMUTABLE.
 					val instruction = instructions.last()
-					if (instruction.operation() !is L2_MOVE_CONSTANT<*, *, *>)
+					if (instruction.operation !is L2_MOVE_CONSTANT<*, *, *>)
 					{
 						postponedSet.add(instruction)
 					}
@@ -655,8 +662,8 @@ abstract class L2Regenerator internal constructor(
 			postponedSet.forEach { sourceInstruction ->
 				// Check if it was already emitted as a prerequisite of another
 				// postponed instruction.
-				val someWrite = sourceInstruction.writeOperands()[0]
-				val kind = someWrite.registerKind()
+				val someWrite = sourceInstruction.writeOperands[0]
+				val kind = someWrite.registerKind
 				val sv = someWrite.pickSemanticValue()
 				val manifest = targetGenerator.currentManifest
 				if (manifest.postponedInstructions

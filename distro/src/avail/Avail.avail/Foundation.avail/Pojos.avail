@@ -40,12 +40,7 @@ Uses
 	"Definers",
 	"Early Conditionals",
 	"Enumeration Support",
-	"Exceptions" =
-	(
-		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
-			→ "Reject parse(confidence=_),expected:_"
-		…
-	),
+	"Exceptions",
 	"Format",
 	"Late Math",
 	"Literals",

@@ -34,7 +34,7 @@ package avail.interpreter.levelTwo.operand
 import avail.interpreter.levelTwo.L2OperandDispatcher
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.register.L2IntRegister
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind
+import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import avail.optimizer.values.L2SemanticUnboxedInt
 import avail.optimizer.values.L2SemanticValue
 import avail.utility.cast
@@ -60,12 +60,12 @@ import avail.utility.cast
 class L2WriteIntOperand constructor(
 		semanticValues: Set<L2SemanticUnboxedInt>,
 		restriction: TypeRestriction,
-		register: L2IntRegister)
-	: L2WriteOperand<L2IntRegister>(semanticValues, restriction, register)
+		register: L2IntRegister
+) : L2WriteOperand<L2IntRegister>(semanticValues, restriction, register)
 {
-	override fun operandType(): L2OperandType = L2OperandType.WRITE_INT
+	override val operandType: L2OperandType get() = L2OperandType.WRITE_INT
 
-	override fun registerKind(): RegisterKind = RegisterKind.INTEGER_KIND
+	override val registerKind get() = INTEGER_KIND
 
 	override fun onlySemanticValue(): L2SemanticUnboxedInt =
 		super.onlySemanticValue().cast()

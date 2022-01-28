@@ -80,7 +80,8 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 {
 	// Don't allow this instruction to be folded out or reordered, even though
 	// it does nothing to its input.
-	override fun hasSideEffect(): Boolean = true
+	override val hasSideEffect: Boolean
+		get() = true
 
 	override fun extractFunctionOuter(
 		instruction: L2Instruction,
@@ -89,7 +90,7 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 		outerType: A_Type,
 		generator: L2Generator): L2ReadBoxedOperand
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
 		// val write: L2WriteBoxedOperand = instruction.operand(1)
 		// val type: L2ConstantOperand = instruction.operand(2)
@@ -98,7 +99,7 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 		// the function is still mutable, since the generated JVM code will make
 		// the outer variable immutable.
 		val earlierInstruction = read.definitionSkippingMoves(true)
-		return earlierInstruction.operation().extractFunctionOuter(
+		return earlierInstruction.operation.extractFunctionOuter(
 			earlierInstruction,
 			functionRegister,
 			outerIndex,
@@ -129,7 +130,7 @@ object L2_STRENGTHEN_TYPE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val read = instruction.operand<L2ReadBoxedOperand>(0)
 		val write = instruction.operand<L2WriteBoxedOperand>(1)
 

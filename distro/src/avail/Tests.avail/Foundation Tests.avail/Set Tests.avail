@@ -179,7 +179,7 @@ Test "map and filter" in set test suite is
 	[
 		n : natural number,
 		accept : [natural number]→⊤
-	 |
+	|
 		m ::= n + 2;
 		If m mod 2 = 0 then
 		[
@@ -214,7 +214,7 @@ Test "for each of do" in set test suite is
 	For each of a do
 	[
 		n : natural number
-	 |
+	|
 		b := b + n;
 	];
 	Require: b = a;

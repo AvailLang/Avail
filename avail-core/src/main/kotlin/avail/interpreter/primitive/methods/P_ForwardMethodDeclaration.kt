@@ -67,7 +67,7 @@ object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 		val blockSignature = interpreter.argument(1)
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader()
-					 ?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(

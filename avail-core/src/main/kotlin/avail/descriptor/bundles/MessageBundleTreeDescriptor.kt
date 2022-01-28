@@ -37,6 +37,7 @@ import avail.compiler.ParsingOperation
 import avail.compiler.ParsingOperation.BRANCH_FORWARD
 import avail.compiler.ParsingOperation.CHECK_ARGUMENT
 import avail.compiler.ParsingOperation.Companion.decode
+import avail.compiler.ParsingOperation.Companion.operand
 import avail.compiler.ParsingOperation.JUMP_BACKWARD
 import avail.compiler.ParsingOperation.JUMP_FORWARD
 import avail.compiler.ParsingOperation.PARSE_PART
@@ -51,6 +52,7 @@ import avail.descriptor.bundles.A_BundleTree.Companion.addPlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.allParsingPlansInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.expand
 import avail.descriptor.bundles.A_BundleTree.Companion.latestBackwardJump
+import avail.descriptor.bundles.A_BundleTree.Companion.lazyActions
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.HAS_BACKWARD_JUMP_INSTRUCTION
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.IntegerSlots.Companion.IS_SOURCE_OF_CYCLE
@@ -67,7 +69,9 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor.ObjectSlots.UNCLASSI
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapAtReplacingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -79,6 +83,7 @@ import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.numbers.A_Number
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.bundle
@@ -96,6 +101,7 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -125,6 +131,7 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TypeTag
 import avail.dispatch.LeafLookupTree
 import avail.dispatch.LookupTree
@@ -309,6 +316,7 @@ class MessageBundleTreeDescriptor private constructor(
 		 * not present as a key (or the argument isn't a send), then the
 		 * instruction is looked up normally in the lazy actions map.
 		 */
+		@HideFieldInDebugger
 		LAZY_ACTIONS,
 
 		/**
@@ -463,6 +471,38 @@ class MessageBundleTreeDescriptor private constructor(
 		append(")")
 	}
 
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
+	{
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		val actions = self.lazyActions
+		val actionEntries = actions.keysAsSet
+			.sortedBy { it.extractInt }
+			.map { key ->
+				val keyInt = key.extractInt
+				val operation = decode(keyInt)
+				val operand = operand(keyInt)
+				val description = operation.describe(operand)
+				AvailObjectFieldHelper(
+					self,
+					DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+					-1,
+					actions.mapAt(key).toList().toTypedArray(),
+					slotName = description,
+					forcedName = description)
+			}
+		fields.add(
+			AvailObjectFieldHelper(
+				self,
+				DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+				-1,
+				actionEntries.toTypedArray(),
+				slotName = "lazyActions",
+				forcedName = "lazyActions"))
+		return fields.toTypedArray()
+	}
+
 	/**
 	 * Add the plan to this bundle tree.  Use `self` as a monitor for mutual
 	 * exclusion to ensure *changes* from multiple fibers won't interfere, *not*
@@ -572,9 +612,9 @@ class MessageBundleTreeDescriptor private constructor(
 						if (pc == instructions.tupleSize + 1) {
 							// Just reached the end of these instructions.
 							// It's past the end of the parsing instructions.
-							complete.value =
-								complete.value.setWithElementCanDestroy(
-									bundle, true)
+							complete.update {
+								setWithElementCanDestroy(bundle, true)
+							}
 						}
 						else
 						{
@@ -843,7 +883,7 @@ class MessageBundleTreeDescriptor private constructor(
 			// Extract the phrase type from the pair, and use it directly as
 			// the signature type for the tree.
 			override fun extractSignature(element: A_Tuple): A_Type =
-				element.tupleAt(1)
+				tupleTypeForTypes(element.tupleAt(1))
 
 			override fun constructResult(
 				elements: List<A_Tuple>,
@@ -885,12 +925,8 @@ class MessageBundleTreeDescriptor private constructor(
 			val plan = planInProgress.parsingPlan
 			val bundle = plan.bundle
 			val definition = plan.definition
-			var submap =
-				if (outerMap.hasKey(bundle)) outerMap.mapAt(bundle)
-				else emptyMap
-			var inProgressSet =
-				if (submap.hasKey(definition)) submap.mapAt(definition)
-				else emptySet
+			var submap = outerMap.mapAtOrNull(bundle) ?: emptyMap
+			var inProgressSet = submap.mapAtOrNull(definition) ?: emptySet
 			inProgressSet =
 				inProgressSet.setWithElementCanDestroy(planInProgress, true)
 			submap =
@@ -948,14 +984,9 @@ class MessageBundleTreeDescriptor private constructor(
 			val plan = planInProgress.parsingPlan
 			val bundle = plan.bundle
 			val definition = plan.definition
-			if (!outerMap.hasKey(bundle)) {
-				return outerMap
-			}
-			var submap: A_Map = outerMap.mapAt(bundle)
-			if (!submap.hasKey(definition)) {
-				return outerMap
-			}
-			var inProgressSet: A_Set = submap.mapAt(definition)
+			var submap: A_Map = outerMap.mapAtOrNull(bundle) ?: return outerMap
+			var inProgressSet: A_Set =
+				submap.mapAtOrNull(definition) ?: return outerMap
 			if (!inProgressSet.hasElement(planInProgress)) {
 				return outerMap
 			}
@@ -1051,8 +1082,7 @@ class MessageBundleTreeDescriptor private constructor(
 			val instructions = plan.parsingInstructions
 			if (pc == instructions.tupleSize + 1)
 			{
-				complete.value =
-					complete.value.setWithElementCanDestroy(plan.bundle, true)
+				complete.update { setWithElementCanDestroy(plan.bundle, true) }
 				return
 			}
 			val instruction = plan.parsingInstructions.tupleIntAt(pc)
@@ -1100,8 +1130,8 @@ class MessageBundleTreeDescriptor private constructor(
 					val map =
 						if (op === PARSE_PART) incomplete
 						else caseInsensitive
-					map.value = map.value
-						.mapAtReplacingCanDestroy(part, nil, true) { _, v ->
+					map.update {
+						mapAtReplacingCanDestroy(part, nil, true) { _, v ->
 							val subtree = when
 							{
 								v.isNil -> newBundleTree(latestBackwardJump)
@@ -1110,6 +1140,7 @@ class MessageBundleTreeDescriptor private constructor(
 							subtree.addPlanInProgress(
 								newPlanInProgress(plan, pc + 1))
 							subtree
+						}
 					}
 					return
 				}
@@ -1123,17 +1154,13 @@ class MessageBundleTreeDescriptor private constructor(
 					newTarget.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 					val instructionObject: A_Number = fromInt(instruction)
 					var successors: A_Tuple =
-						if (actionMap.value.hasKey(instructionObject))
-						{
-							actionMap.value.mapAt(instructionObject)
-						}
-						else
-						{
+						actionMap.value.mapAtOrNull(instructionObject) ?:
 							emptyTuple
-						}
 					successors = successors.appendCanDestroy(newTarget, true)
-					actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-						instructionObject, successors, true)
+					actionMap.update {
+						mapAtPuttingCanDestroy(
+							instructionObject, successors, true)
+					}
 					// We added it to the actions, so don't fall through.
 					return
 				}
@@ -1146,8 +1173,7 @@ class MessageBundleTreeDescriptor private constructor(
 					val phraseType: A_Type = constantForIndex(typeIndex)
 					val planInProgress = newPlanInProgress(plan, pc + 1)
 					val pair = tuple(phraseType, planInProgress)
-					typeFilterTuples.value =
-						typeFilterTuples.value.appendCanDestroy(pair, true)
+					typeFilterTuples.update { appendCanDestroy(pair, true) }
 					return
 				}
 				CHECK_ARGUMENT ->
@@ -1155,21 +1181,21 @@ class MessageBundleTreeDescriptor private constructor(
 					// It's a checkArgument instruction.
 					val checkArgumentIndex = op.checkArgumentIndex(instruction)
 					// Add it to the action map.
-					val successor: A_BundleTree
 					val instructionObject: A_Number = fromInt(instruction)
-					if (actionMap.value.hasKey(instructionObject))
+					val successors: A_Tuple? =
+						actionMap.value.mapAtOrNull(instructionObject)
+					val successor: A_BundleTree = when (successors)
 					{
-						val successors: A_Tuple =
-							actionMap.value.mapAt(instructionObject)
-						assert(successors.tupleSize == 1)
-						successor = successors.tupleAt(1)
-					}
-					else
-					{
-						successor = newBundleTree(latestBackwardJump)
-						actionMap.value =
-							actionMap.value.mapAtPuttingCanDestroy(
-								instructionObject, tuple(successor), true)
+						null -> newBundleTree(latestBackwardJump).also { tree ->
+							actionMap.update {
+								mapAtPuttingCanDestroy(
+									instructionObject, tuple(tree), true)
+							}
+						}
+						else -> {
+							assert(successors.tupleSize == 1)
+							successors.tupleAt(1)
+						}
 					}
 					var forbiddenBundles = emptySet
 					plan.bundle.grammaticalRestrictions.forEach {
@@ -1217,9 +1243,10 @@ class MessageBundleTreeDescriptor private constructor(
 									}
 								}
 							}
-							prefilterMap.value =
-								prefilterMap.value.mapAtPuttingCanDestroy(
+							prefilterMap.update {
+								mapAtPuttingCanDestroy(
 									restrictedBundle, newTarget, true)
+							}
 						}
 					}
 					// Finally, add it to the action map.  This had to be
@@ -1244,21 +1271,22 @@ class MessageBundleTreeDescriptor private constructor(
 			// instructions should have been dealt with in a prior case.
 			val nextPcs = op.successorPcs(instruction, pc)
 			assert(nextPcs.size == 1 && nextPcs[0] == pc + 1)
-			val successor: A_BundleTree
 			val instructionObject: A_Number = fromInt(instruction)
-			if (actionMap.value.hasKey(instructionObject))
+			val successors: A_Tuple? =
+				actionMap.value.mapAtOrNull(instructionObject)
+			val successor: A_BundleTree = if (successors !== null)
 			{
-				val successors: A_Tuple =
-					actionMap.value.mapAt(instructionObject)
 				assert(successors.tupleSize == 1)
-				successor = successors.tupleAt(1)
+				successors.tupleAt(1)
 			}
 			else
 			{
-				successor = newBundleTree(latestBackwardJump)
-				val successors = tuple(successor)
-				actionMap.value = actionMap.value.mapAtPuttingCanDestroy(
-					instructionObject, successors, true)
+				newBundleTree(latestBackwardJump).also { tree ->
+					actionMap.update {
+						mapAtPuttingCanDestroy(
+							instructionObject, tuple(tree), true)
+					}
+				}
 			}
 			successor.addPlanInProgress(newPlanInProgress(plan, pc + 1))
 		}

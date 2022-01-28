@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.phrases
 
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions.exceptionType
 import avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.sets.SetDescriptor
@@ -41,7 +42,6 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.BLOCK_PHRASE
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
@@ -71,6 +71,5 @@ object P_BlockDeclaredExceptions : Primitive(1, CannotFail, CanFold, CanInline)
 				BLOCK_PHRASE.mostGeneralType),
 			setTypeForSizesContentType(
 				wholeNumbers,
-				// TODO: [MvG] Update with primitive exception type.
-				ANY.o))
+				exceptionType))
 }

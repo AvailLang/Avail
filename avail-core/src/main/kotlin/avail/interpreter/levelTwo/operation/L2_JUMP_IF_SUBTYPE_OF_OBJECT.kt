@@ -60,7 +60,7 @@ object L2_JUMP_IF_SUBTYPE_OF_OBJECT : L2ConditionalJump(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val firstReg = instruction.operand<L2ReadBoxedOperand>(0)
 		val secondReg = instruction.operand<L2ReadBoxedOperand>(1)
 		//		final L2PcOperand isSubtype = instruction.operand(2);

@@ -79,7 +79,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 	PC.named("on return", Purpose.SUCCESS),
 	PC.named("on reification", Purpose.OFF_RAMP))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -87,7 +87,7 @@ object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val constantFunction = instruction.operand<L2ConstantOperand>(0)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(1)
 		val result = instruction.operand<L2WriteBoxedOperand>(2)

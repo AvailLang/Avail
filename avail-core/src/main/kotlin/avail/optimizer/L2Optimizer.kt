@@ -274,7 +274,7 @@ class L2Optimizer internal constructor(
 			{
 				if (!instruction.altersControlFlow)
 				{
-					instruction.writeOperands().forEach {
+					instruction.writeOperands.forEach {
 						regs.add(it.register())
 						values.addAll(it.semanticValues())
 					}
@@ -381,16 +381,16 @@ class L2Optimizer internal constructor(
 			for (i in instructions.indices.reversed())
 			{
 				val instruction = instructions[i]
-				if (instruction.operation().isPhi)
+				if (instruction.operation.isPhi)
 				{
 					// We've reached the phis at the start of the block.
 					lastPhiIndex = i
 					break
 				}
-				sometimesLive.removeAll(instruction.destinationRegisters())
-				sometimesLive.addAll(instruction.sourceRegisters())
-				alwaysLive.removeAll(instruction.destinationRegisters())
-				alwaysLive.addAll(instruction.sourceRegisters())
+				sometimesLive.removeAll(instruction.destinationRegisters)
+				sometimesLive.addAll(instruction.sourceRegisters)
+				alwaysLive.removeAll(instruction.destinationRegisters)
+				alwaysLive.addAll(instruction.sourceRegisters)
 			}
 
 			// Add in the predecessor-specific live-in information for each edge
@@ -405,11 +405,11 @@ class L2Optimizer internal constructor(
 				{
 					val phiInstruction = instructions[i]
 					val phiOperation: L2_PHI_PSEUDO_OPERATION<*, *, *, *> =
-						phiInstruction.operation().cast()
+						phiInstruction.operation.cast()
 					edgeSometimesLiveIn.removeAll(
-						phiInstruction.destinationRegisters())
+						phiInstruction.destinationRegisters)
 					edgeAlwaysLiveIn.removeAll(
-						phiInstruction.destinationRegisters())
+						phiInstruction.destinationRegisters)
 					val sources =
 						phiOperation.sourceRegisterReads(phiInstruction)
 					val source = sources[edgeIndex].register()
@@ -485,7 +485,7 @@ class L2Optimizer internal constructor(
 		// Emit the transformation of the given instruction, emitting any
 		// necessary postponed instructions first.
 		regenerateGraph(true) { sourceInstruction ->
-			if (sourceInstruction.operation().goesMultipleWays())
+			if (sourceInstruction.operation.goesMultipleWays)
 			{
 				// Don't allow instructions to be delayed across an instruction
 				// that goes both ways, since that would make the computation in
@@ -503,7 +503,7 @@ class L2Optimizer internal constructor(
 				sourceInstruction.hasSideEffect ->
 					// Emit the translation right now.
 					forcePostponedTranslationNow(sourceInstruction)
-				!sourceInstruction.operation().isPhi ->
+				!sourceInstruction.operation.isPhi ->
 				{
 					// Postpone the translation.  The same instruction may be
 					// translated multiple times, in different basic blocks.
@@ -533,7 +533,7 @@ class L2Optimizer internal constructor(
 		{
 			override fun processInstruction(sourceInstruction: L2Instruction)
 			{
-				if (!sourceInstruction.operation().isPhi)
+				if (!sourceInstruction.operation.isPhi)
 				{
 					transformer(sourceInstruction)
 				}
@@ -565,7 +565,7 @@ class L2Optimizer internal constructor(
 		}
 		// Use an L2Regenerator to do the substitution.
 		regenerateGraph(true) { sourceInstruction ->
-			sourceInstruction.operation().generateReplacement(
+			sourceInstruction.operation.generateReplacement(
 				sourceInstruction, this)
 		}
 	}
@@ -586,14 +586,14 @@ class L2Optimizer internal constructor(
 			while (instructionIterator.hasNext())
 			{
 				val instruction = instructionIterator.next()
-				if (!instruction.operation().isPhi)
+				if (!instruction.operation.isPhi)
 				{
 					// Phi functions are always at the start, so we must be past
 					// them, if any.
 					break
 				}
 				val phiOperation: L2_PHI_PSEUDO_OPERATION<L2Register, *, *, *> =
-					instruction.operation().cast()
+					instruction.operation.cast()
 				val phiSources = phiOperation.sourceRegisterReads(instruction)
 				val fanIn = block.predecessorEdges().size
 				assert(fanIn == phiSources.size)
@@ -607,7 +607,7 @@ class L2Optimizer internal constructor(
 					val predecessor = edge.sourceBlock()
 					val instructions = predecessor.instructions()
 					assert(
-						predecessor.finalInstruction().operation()
+						predecessor.finalInstruction().operation
 							.isUnconditionalJump)
 					val sourceRead = phiSources[i]
 					val move = L2Instruction(
@@ -634,23 +634,23 @@ class L2Optimizer internal constructor(
 						if (clamped.remove(
 								L2EntityAndKind(
 									sourceRead.semanticValue(),
-									sourceRead.registerKind())))
+									sourceRead.registerKind)))
 						{
 							targetWriter.semanticValues().forEach {
 								clamped.add(
 									L2EntityAndKind(
-										it, targetWriter.registerKind()))
+										it, targetWriter.registerKind))
 							}
 						}
 						if (clamped.remove(
 								L2EntityAndKind(
 									sourceRead.register(),
-									sourceRead.registerKind())))
+									sourceRead.registerKind)))
 						{
 							clamped.add(
 								L2EntityAndKind(
 									targetWriter.register(),
-									targetWriter.registerKind()))
+									targetWriter.registerKind))
 						}
 					}
 				}
@@ -713,13 +713,13 @@ class L2Optimizer internal constructor(
 		val oldRegisters = mutableSetOf<L2Register>()
 		val action: (L2Register)->Unit = { reg: L2Register ->
 			remap[reg] = byKindAndIndex
-				.getOrPut(reg.registerKind()) { mutableMapOf() }
+				.getOrPut(reg.registerKind) { mutableMapOf() }
 				.computeIfAbsent(reg.finalIndex()) { reg.copyAfterColoring() }
 			oldRegisters.add(reg)
 		}
 		blocks.deepForEach({ instructions() }) { instruction ->
-			instruction.sourceRegisters().forEach(action)
-			instruction.destinationRegisters().forEach(action)
+			instruction.sourceRegisters.forEach(action)
+			instruction.destinationRegisters.forEach(action)
 		}
 		// Actually remap every register.
 		blocks.deepForEach({ instructions() }) { it.replaceRegisters(remap) }
@@ -746,9 +746,9 @@ class L2Optimizer internal constructor(
 			while (iterator.hasNext())
 			{
 				val instruction = iterator.next()
-				if (instruction.operation().isMove
-					&& instruction.sourceRegisters()[0].finalIndex()
-					== instruction.destinationRegisters()[0].finalIndex())
+				if (instruction.operation.isMove
+					&& instruction.sourceRegisters[0].finalIndex()
+					== instruction.destinationRegisters[0].finalIndex())
 				{
 					iterator.remove()
 					instruction.justRemoved()
@@ -778,11 +778,11 @@ class L2Optimizer internal constructor(
 					continue
 				}
 				val soleInstruction = block.finalInstruction()
-				val jumpEdge = if (soleInstruction.operation() === L2_JUMP)
+				val jumpEdge = if (soleInstruction.operation === L2_JUMP)
 				{
 					L2_JUMP.jumpTarget(soleInstruction)
 				}
-				else if (soleInstruction.operation() === L2_JUMP_BACK)
+				else if (soleInstruction.operation === L2_JUMP_BACK)
 				{
 					L2_JUMP_BACK.jumpTarget(soleInstruction)
 				}
@@ -944,7 +944,7 @@ class L2Optimizer internal constructor(
 			registerIdFunction: (L2Register)->Int)
 		{
 			assert(
-				liveRegistersByKind[register.registerKind().ordinal]
+				liveRegistersByKind[register.registerKind.ordinal]
 					.get(registerIdFunction(register)))
 		}
 
@@ -960,7 +960,7 @@ class L2Optimizer internal constructor(
 			register: L2Register,
 			registerIdFunction: (L2Register)->Int)
 		{
-			liveRegistersByKind[register.registerKind().ordinal]
+			liveRegistersByKind[register.registerKind.ordinal]
 				.set(registerIdFunction(register))
 		}
 
@@ -1030,10 +1030,10 @@ class L2Optimizer internal constructor(
 			mutableMapOf<L2Register, MutableSet<L2WriteOperand<*>>>()
 		blocks.deepForEach({ instructions() }) { instruction ->
 			instruction.assertHasBeenEmitted()
-			instruction.readOperands().forEach {
+			instruction.readOperands.forEach {
 				uses.getOrPut(it.register()) { mutableSetOf() }.add(it)
 			}
-			instruction.writeOperands().forEach {
+			instruction.writeOperands.forEach {
 				definitions.getOrPut(it.register()) { mutableSetOf() }.add(it)
 			}
 		}
@@ -1055,7 +1055,7 @@ class L2Optimizer internal constructor(
 	{
 		val allOperands = mutableSetOf<L2Operand>()
 		blocks.deepForEach({ instructions() }) { instruction: L2Instruction ->
-			instruction.operands().forEach { operand ->
+			instruction.operands.forEach { operand ->
 				val added = allOperands.add(operand)
 				assert(added)
 				if (operand is L2ReadVectorOperand<*, *>)
@@ -1081,8 +1081,8 @@ class L2Optimizer internal constructor(
 			for (instruction in block.instructions())
 			{
 				assert(
-					!instruction.operation().isPhi
-						|| instruction.sourceRegisters().size
+					!instruction.operation.isPhi
+						|| instruction.sourceRegisters.size
 						== block.predecessorEdges().size)
 				allEdgesFromBlock.addAll(instruction.targetEdges)
 			}
@@ -1147,13 +1147,13 @@ class L2Optimizer internal constructor(
 			val workingSet = UsedRegisters(checked)
 			for (instruction in block.instructions())
 			{
-				if (!instruction.operation().isPhi)
+				if (!instruction.operation.isPhi)
 				{
-					for (register in instruction.sourceRegisters())
+					for (register in instruction.sourceRegisters)
 					{
 						workingSet.readRegister(register, registerIdFunction)
 					}
-					for (register in instruction.destinationRegisters())
+					for (register in instruction.destinationRegisters)
 					{
 						workingSet.writeRegister(register, registerIdFunction)
 					}
@@ -1173,16 +1173,16 @@ class L2Optimizer internal constructor(
 				}
 				for (phiInTarget in targetBlock.instructions())
 				{
-					if (!phiInTarget.operation().isPhi)
+					if (!phiInTarget.operation.isPhi)
 					{
 						// All the phis are at the start of the block.
 						break
 					}
 					val phiSource =
-						phiInTarget.sourceRegisters()[predecessorIndex]
+						phiInTarget.sourceRegisters[predecessorIndex]
 					workingCopy.readRegister(phiSource, registerIdFunction)
 					workingCopy.writeRegister(
-						phiInTarget.destinationRegisters()[0],
+						phiInTarget.destinationRegisters[0],
 						registerIdFunction)
 				}
 				blocksToCheck.add(targetBlock to workingCopy)

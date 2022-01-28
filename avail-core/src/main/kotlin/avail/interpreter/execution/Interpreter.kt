@@ -66,11 +66,12 @@ import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.c
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -85,8 +86,8 @@ import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
@@ -267,15 +268,14 @@ class Interpreter(
 		val f: A_Function? = function
 		return when
 		{
-			f === null || f === nil ->
-				// Don't replace ===nil with .isNil, since that might have to
-				// dispatch on an object whose descriptor is in flux.  It's not
-				// the case as of 2021-06-17, but this is maintenance-proofing.
-				null
-			else ->
-				// A running A_RawFunction is always shared, so safe to access
-				// from this polling thread.
-				f.code()
+			f === null -> null
+			// Don't replace ===nil with .isNil, since that might have to
+			// dispatch on an object whose descriptor is in flux.  It's not the
+			// case as of 2021-06-17, but this is maintenance-proofing.
+			f === nil -> null
+			// A running A_RawFunction is always shared, so safe to access from
+			// this polling thread.
+			else -> f.code()
 		}
 	}
 
@@ -387,25 +387,40 @@ class Interpreter(
 		// Produce the current function being executed...
 		helpers.add(
 			AvailObjectFieldHelper(
-				nil, DebuggerObjectSlots("Current function"), -1, function))
+				nil, DUMMY_DEBUGGER_SLOT, -1, function, "Current function"))
 
 		// Extract the current L2 offset...
 		helpers.add(
 			AvailObjectFieldHelper(
 				nil,
-				DebuggerObjectSlots("L2 offset"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
 				offset.toLong(),
+				slotName = "L2 offset",
 				forcedName = "L2 offset = $offset",
 				forcedChildren = emptyArray<Any>()))
+
+		// Extract the current arguments, which may or may not have been
+		// consumed already, or may be in the process of being populated for the
+		// next call...
+		helpers.add(
+			AvailObjectFieldHelper(
+				nil,
+				DUMMY_DEBUGGER_SLOT,
+				-1,
+				argsBuffer,
+				slotName = "argsBuffer",
+				forcedName = "argsBuffer(${argsBuffer.size})",
+				forcedChildren = argsBuffer.toTypedArray()))
 
 		// Produce the current chunk's L2 instructions...
 		helpers.add(
 			AvailObjectFieldHelper(
 				nil,
-				DebuggerObjectSlots("L2 instructions"),
+				DUMMY_DEBUGGER_SLOT,
 				-1,
-				if (chunk !== null) chunk!!.instructions else emptyList<Any>()))
+				if (chunk !== null) chunk!!.instructions else emptyList<Any>(),
+				slotName = "L2 instructions"))
 
 		// Build the stack frames...
 		var frame: A_Continuation? = getReifiedContinuation()
@@ -420,18 +435,23 @@ class Interpreter(
 			helpers.add(
 				AvailObjectFieldHelper(
 					nil,
-					DebuggerObjectSlots("Frames"),
+					DUMMY_DEBUGGER_SLOT,
 					-1,
-					tupleFromList(frames)))
+					tupleFromList(frames),
+					slotName = "Frames"))
 		}
 
 		helpers.add(
 			AvailObjectFieldHelper(
-				nil, DebuggerObjectSlots("Loader"), -1, availLoaderOrNull()))
+				nil,
+				DUMMY_DEBUGGER_SLOT,
+				-1,
+				availLoaderOrNull(),
+				slotName = "Loader"))
 
 		helpers.add(
 			AvailObjectFieldHelper(
-				nil, DebuggerObjectSlots("Fiber"), -1, fiber))
+				nil, DUMMY_DEBUGGER_SLOT, -1, fiber, slotName = "Fiber"))
 
 		return helpers.toTypedArray()
 	}
@@ -1280,8 +1300,9 @@ class Interpreter(
 		isReifying = true
 		return StackReifier(true, primitive.reificationForNoninlineStat!!)
 		{
-			assert(unreifiedCallDepth() == 0)
-			{ "Should have reified stack for non-inlineable primitive" }
+			assert(unreifiedCallDepth() == 0) {
+				"Should have reified stack for non-inlineable primitive"
+			}
 			chunk = savedChunk
 			setOffset(savedOffset)
 			stepper.pointers = savedPointers
@@ -1317,8 +1338,7 @@ class Interpreter(
 				}
 				READY_TO_INVOKE ->
 				{
-					assert(false)
-					{ "Invoking primitives should be inlineable" }
+					assert(false) { "Invoking primitives should be inlineable" }
 				}
 				CONTINUATION_CHANGED ->
 				{
@@ -3230,7 +3250,7 @@ class Interpreter(
 						"Outermost %s @ %s:%d",
 						methodName.asNativeString(),
 						if (module.isNil) "«vm»"
-						else module.moduleName.asNativeString(),
+						else module.moduleNameNative,
 						codeStartingLineNumber)
 				}
 			}
@@ -3326,6 +3346,7 @@ class Interpreter(
 				setReifiedContinuation(continuation)
 				setLatestResult(result)
 				returningFunction = aFiber.suspendingFunction()
+				aFiber.setSuspendingFunction(nil)
 				exitNow = false
 				if (continuation.isNil)
 				{
@@ -3386,6 +3407,7 @@ class Interpreter(
 				assert(getReifiedContinuation() === null)
 				setReifiedContinuation(aFiber.continuation())
 				aFiber.setContinuation(nil)
+				aFiber.setSuspendingFunction(nil)
 				function = failureFunction
 				argsBuffer.clear()
 				argsBuffer.addAll(args)

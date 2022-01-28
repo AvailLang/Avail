@@ -52,7 +52,7 @@ import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.share
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -197,7 +197,7 @@ open class AtomDescriptor protected constructor (
 		}
 		val issuer: A_Module = self.slot(ISSUING_MODULE)
 		if (issuer.notNil) {
-			val issuerName = issuer.moduleName.asNativeString()
+			val issuerName = issuer.moduleNameNative
 			val localIssuer =
 				issuerName.substring(issuerName.lastIndexOf('/') + 1)
 			append(" (from $localIssuer)")
@@ -482,6 +482,12 @@ open class AtomDescriptor protected constructor (
 		) = AtomWithPropertiesSharedDescriptor.sharedSpecial.createInitialized(
 			stringFrom(name), nil, nil, 0)
 
+		/** The atom representing the Avail concept "true". */
+		val trueObject get () = TRUE.atom
+
+		/** The atom representing the Avail concept "false". */
+		val falseObject get () = FALSE.atom
+
 		/**
 		 * Convert a Kotlin [Boolean] into an Avail boolean.  There are exactly
 		 * two Avail booleans, which are just ordinary atoms, [trueObject] and
@@ -493,12 +499,6 @@ open class AtomDescriptor protected constructor (
 		 *   An Avail boolean.
 		 */
 		fun objectFromBoolean (aBoolean: Boolean): A_Atom =
-			if (aBoolean) TRUE.atom else FALSE.atom
-
-		/** The atom representing the Avail concept "true". */
-		val trueObject get () = TRUE.atom
-
-		/** The atom representing the Avail concept "false". */
-		val falseObject get () = FALSE.atom
+			if (aBoolean) trueObject else falseObject
 	}
 }

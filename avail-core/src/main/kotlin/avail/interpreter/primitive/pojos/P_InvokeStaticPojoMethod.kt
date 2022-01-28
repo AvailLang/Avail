@@ -46,6 +46,7 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.unmarshal
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.MarshalingException
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.pojos.PrimitiveHelper.marshalValues
@@ -67,7 +68,7 @@ import java.lang.reflect.Method
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_InvokeStaticPojoMethod : Primitive(-1, Private)
+object P_InvokeStaticPojoMethod : Primitive(-1, Private, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

@@ -36,8 +36,8 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
 import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
@@ -76,12 +76,8 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 		var fiberGlobals = fiber.fiberGlobals()
 		var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 		val bindings = clientData.mapAt(compilerScopeMapKey)
-		var stack: A_Tuple = when
-		{
-			clientData.hasKey(compilerScopeStackKey) ->
-				clientData.mapAt(compilerScopeStackKey)
-			else -> emptyTuple
-		}
+		var stack: A_Tuple = clientData.mapAtOrNull(compilerScopeStackKey) ?:
+			emptyTuple
 		stack = stack.appendCanDestroy(bindings, false)
 		clientData = clientData.mapAtPuttingCanDestroy(
 			compilerScopeStackKey, stack, true)

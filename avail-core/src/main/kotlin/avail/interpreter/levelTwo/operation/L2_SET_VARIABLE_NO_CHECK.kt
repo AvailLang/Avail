@@ -63,7 +63,7 @@ object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
 	PC.named("write succeeded", Purpose.SUCCESS),
 	PC.named("write failed", Purpose.OFF_RAMP))
 {
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override val isVariableSet: Boolean get() = true
 
@@ -75,7 +75,7 @@ object L2_SET_VARIABLE_NO_CHECK : L2ControlFlowOperation(
 	{
 		val variable = instruction.operand<L2ReadBoxedOperand>(0)
 		val value = instruction.operand<L2ReadBoxedOperand>(1)
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		renderPreamble(instruction, builder)
 		builder.append(" ↓")
 		builder.append(variable.registerString())

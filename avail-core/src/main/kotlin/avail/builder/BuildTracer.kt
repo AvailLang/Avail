@@ -239,7 +239,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 						availBuilder.runtime,
 						availBuilder.textInterface,
 						availBuilder.pollForAbort,
-						{ _, _, _, _ -> },
+						{ _, _, _, _, _ -> },
 						this::indicateTraceCompleted,
 						problemHandler
 					) { compiler ->
@@ -383,7 +383,7 @@ internal class BuildTracer constructor(val availBuilder: AvailBuilder)
 				{ }
 			).guardedDo {
 				availBuilder.textInterface.errorChannel.write(
-					"Load failed.\n", dummy, handler)
+					"Load failed.\n", Unit, handler)
 			}
 		}
 		else

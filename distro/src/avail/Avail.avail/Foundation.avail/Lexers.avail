@@ -618,7 +618,7 @@ Private method "read range element from_at_" is
 	If c2 ≠ ¢"(" then
 	[
 		Reject in s at ↓i, expected
-		  "one of {n, r, t, (, \\, or \"} after backslash"
+			"one of {n, r, t, (, \\, or \"} after backslash"
 	];
 	// It's of the form "\(1F2E5)".  Read hex digits and the close parenthesis.
 	i++;

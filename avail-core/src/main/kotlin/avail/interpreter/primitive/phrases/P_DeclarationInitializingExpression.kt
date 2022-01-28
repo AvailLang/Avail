@@ -32,70 +32,56 @@
 
 package avail.interpreter.primitive.phrases
 
-import avail.descriptor.atoms.AtomDescriptor
-import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
-import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.DECLARATION_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.VariableTypeDescriptor
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
-import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
-import avail.exceptions.AvailErrorCode.E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED
-import avail.exceptions.VariableSetException
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.exceptions.AvailErrorCode.E_DECLARATION_DOES_NOT_HAVE_INITIALIZER
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** If the specified [declaration][DeclarationPhraseDescriptor]
- * has an initializing [expression][PhraseKind.EXPRESSION_PHRASE], then store it
- * in the provided [variable][VariableTypeDescriptor]. Answer
- * [true][AtomDescriptor.trueObject] if a value was stored.
+ * has an initializing [expression][PhraseKind.EXPRESSION_PHRASE], then return
+ * it, otherwise fail with [E_DECLARATION_DOES_NOT_HAVE_INITIALIZER].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DeclarationInitializingExpression : Primitive(2, CanInline, HasSideEffect)
+object P_DeclarationInitializingExpression : Primitive(
+	1, CanFold, CanInline)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(2)
-		val variable = interpreter.argument(0)
-		val decl = interpreter.argument(1)
+		interpreter.checkArgumentCount(1)
+		val decl = interpreter.argument(0)
+
 		val initializer = decl.initializationExpression
-		if (initializer.isNil) {
-			return interpreter.primitiveSuccess(falseObject)
-		}
-		return try {
-			variable.setValue(initializer)
-			interpreter.primitiveSuccess(trueObject)
-		}
-		catch (e: VariableSetException)
+		if (initializer.isNil)
 		{
-			interpreter.primitiveFailure(e)
+			return interpreter.primitiveFailure(
+				E_DECLARATION_DOES_NOT_HAVE_INITIALIZER)
 		}
+		return interpreter.primitiveSuccess(initializer)
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				variableReadWriteType(TOP.o, bottom),
 				DECLARATION_PHRASE.mostGeneralType),
-			booleanType)
+			EXPRESSION_PHRASE.create(ANY.o))
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(
-			E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE,
-			E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED))
+			E_DECLARATION_DOES_NOT_HAVE_INITIALIZER))
 }

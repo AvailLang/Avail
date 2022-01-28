@@ -173,7 +173,7 @@ internal enum class SerializerOperandEncoding
 
 	/**
 	 * This is an [AvailObject] that's always a non-negative
-	 * [integer][IntegerDescriptor] in the range 0 through 2<sup>32</sup>-1.
+	 * [integer][IntegerDescriptor] in the range 0 through `2^32-1`.
 	 * Some system limits fall within this range, allowing this compact
 	 * representation to be used.
 	 */
@@ -647,6 +647,8 @@ internal enum class SerializerOperandEncoding
 					// 128..16383 are written with six bits of the first byte
 					// used for the high byte (first byte is 128..191).  The
 					// second byte is the low byte.
+					// Note that the two-byte sequences 80,00 through 80,7F are
+					// an encoding hole that is not produced by this mechanism.
 					serializer.writeByte((index shr 8) + 0x80)
 					serializer.writeByte(index and 0xFF)
 				}
@@ -656,12 +658,17 @@ internal enum class SerializerOperandEncoding
 					// dealing with the 192 bias).  The middle and low bytes
 					// follow.  That allows up to 0x003E_FFFF to be written in
 					// only three bytes. The middle and low bytes follow.
+					// Note that three-byte sequences C0,00,00 through C0,3F,FF
+					// are an encoding hole not produced by this mechanism.
 					serializer.writeByte((index shr 16) + 0xC0)
 					serializer.writeShort(index and 0xFFFF)
 				}
 				else ->
 				{
 					// All the way up to 2^31-1.
+					// Note that five-byte sequences FF,00,00,00,00 through
+					// FF,00,3E,FF,FF will be written with a shorter form, and
+					// the long form is an encoding hole.
 					serializer.writeByte(0xFF)
 					serializer.writeInt(index)
 				}

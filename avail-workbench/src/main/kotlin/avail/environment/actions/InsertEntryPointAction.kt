@@ -83,27 +83,23 @@ class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 		}
 		workbench.inputField.requestFocusInWindow()
 
-		val moduleName =
-			workbench.selectedEntryPointModule()
+		val moduleName = workbench.selectedEntryPointModule()
 		if (moduleName !== null)
 		{
-			if (workbench.availBuilder.getLoadedModule(moduleName) === null)
-			{
-				// Start loading the module as a convenience.
-				workbench.cursor = getPredefinedCursor(WAIT_CURSOR)
-				workbench.buildProgress.value = 0
-				workbench.inputField.requestFocusInWindow()
-				workbench.clearTranscript()
+			// Start loading the module as a convenience.
+			workbench.cursor = getPredefinedCursor(WAIT_CURSOR)
+			workbench.buildProgress.value = 0
+			workbench.inputField.requestFocusInWindow()
+			workbench.clearTranscript()
 
-				// Clear the build input stream.
-				workbench.inputStream().clear()
+			// Clear the build input stream.
+			workbench.inputStream().clear()
 
-				// Build the target module in a Swing worker thread.
-				val task = BuildTask(workbench, moduleName)
-				workbench.backgroundTask = task
-				workbench.setEnablements()
-				task.execute()
-			}
+			// Build the target module in a Swing worker thread.
+			val task = BuildTask(workbench, moduleName)
+			workbench.backgroundTask = task
+			workbench.setEnablements()
+			task.execute()
 		}
 	}
 

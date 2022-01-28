@@ -34,6 +34,8 @@ package avail.descriptor.maps
 import avail.annotations.ThreadSafe
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.hasKey
+import avail.descriptor.maps.A_Map.Companion.keysAsSet
+import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
@@ -84,12 +86,10 @@ import avail.descriptor.types.A_Type.Companion.valueType
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
-import avail.exceptions.AvailErrorCode
-import avail.exceptions.MapException
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
@@ -220,42 +220,32 @@ class MapDescriptor private constructor(
 					wholeNumbers, stringType, ANY.o))
 		) {
 			// The keys are all strings.
-			val mapIterable = self.mapIterable
-			return Array(self.mapSize) { counter ->
-				val (key, value) = mapIterable.next()
-				AvailObjectFieldHelper(
-					self,
-					object : ObjectSlotsEnum {
-						/** The cached entry name. */
-						private var name: String? = null
-
-						override fun fieldName(): String {
-							name?.run { return this }
-							// Truncate large key strings.
-							val keyStringSize = key.tupleSize
-							val keyString = if (keyStringSize > 50) {
-								tuple(
-									key.copyTupleFromToCanDestroy(1, 25, false),
-									stringFrom(" … "),
-									key.copyTupleFromToCanDestroy(
-										keyStringSize - 24,
-										keyStringSize,
-										false)
-								).concatenateTuplesCanDestroy(false)
-							}
-							else
-							{
-								key
-							}
-							name = ("Key#$counter $keyString")
-							return name!!
-						}
-
-						override fun fieldOrdinal() = counter
-					},
-					-1,
-					value)
-			}
+			return self.keysAsSet
+				.sortedBy { it.asNativeString() }
+				.map { key ->
+					val value = self.mapAt(key)
+					val keyStringSize = key.tupleSize
+					val keyString = when (keyStringSize > 50) {
+						true ->
+							tuple(
+								key.copyTupleFromToCanDestroy(1, 25, false),
+								stringFrom(" … "),
+								key.copyTupleFromToCanDestroy(
+									keyStringSize - 24,
+									keyStringSize,
+									false)
+							).concatenateTuplesCanDestroy(false)
+						else -> key
+					}
+					val name = ("Key: $keyString")
+					AvailObjectFieldHelper(
+						self,
+						DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+						-1,
+						value,
+						slotName = name)
+				}
+				.toTypedArray()
 		}
 		val fields = arrayOfNulls<AvailObjectFieldHelper>(self.mapSize shl 1)
 		var arrayIndex = 0
@@ -389,11 +379,10 @@ class MapDescriptor private constructor(
 	 * Answer the value of the map at the specified key. Fail if the key is not
 	 * present.
 	 */
-	override fun o_MapAt(
+	override fun o_MapAtOrNull(
 		self: AvailObject,
 		keyObject: A_BasicObject
 	) = rootBin(self).mapBinAtHash(keyObject, keyObject.hash())
-		?: throw MapException(AvailErrorCode.E_KEY_NOT_FOUND)
 
 	/**
 	 * Answer a map like this one but with [keyObject] associated with
@@ -506,9 +495,6 @@ class MapDescriptor private constructor(
 		}
 		return createFromBin(root)
 	}
-
-	override fun o_HasKey(self: AvailObject, keyObject: A_BasicObject) =
-		rootBin(self).mapBinAtHash(keyObject, keyObject.hash()) !== null
 
 	override fun o_MapSize(self: AvailObject) = rootBin(self).mapBinSize
 

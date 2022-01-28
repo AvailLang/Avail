@@ -77,22 +77,21 @@ import java.util.concurrent.atomic.LongAdder
  * Set [isBackward] to true if this is a back-link to a
  * [loop&#32;head][L2BasicBlock.isLoopHead],
  *
- * @param targetBlock
+ * @property targetBlock
  *   The [L2BasicBlock] The target basic block.
- * @param isBackward
+ * @property isBackward
  *   Whether this edge is a back-link to a loop head.
+ * @property manifest
+ *   If supplied, the [L2ValueManifest] linking semantic values and registers at
+ *   this control flow edge.
  */
 class L2PcOperand constructor (
 	private var targetBlock: L2BasicBlock,
-	var isBackward: Boolean
+	var isBackward: Boolean,
+	private var manifest: L2ValueManifest? = null,
+	val optionalName: String? = null
 ) : L2Operand()
 {
-	/**
-	 * The manifest linking semantic values and registers at this control flow
-	 * edge.
-	 */
-	private var manifest: L2ValueManifest? = null
-
 	/**
 	 * The [Set] of [L2Register]s that are written in all pasts, and are
 	 * consumed along all future paths after the start of this block.  This is
@@ -136,34 +135,14 @@ class L2PcOperand constructor (
 	 */
 	var counter: LongAdder? = null
 
-	/**
-	 * Create a remapped `L2PcOperand` from the original operand, the new target
-	 * [L2BasicBlock], and the transformed [L2ValueManifest]. Set [isBackward]
-	 * to true if this is a back-link to a
-	 * [loop&#32;head][L2BasicBlock.isLoopHead].
-	 *
-	 * @param newTargetBlock
-	 *   The transformed target [L2BasicBlock] of the new edge.
-	 * @param isBackward
-	 *   Whether this edge is a back-link to a loop head.
-	 * @param newManifest
-	 *   The transformed [L2ValueManifest] for the new edge.
-	 */
-	constructor(
-		newTargetBlock: L2BasicBlock,
-		isBackward: Boolean,
-		newManifest: L2ValueManifest) : this(newTargetBlock, isBackward)
-	{
-		manifest = newManifest
-	}
-
 	override fun adjustCloneForInstruction(theInstruction: L2Instruction)
 	{
 		super.adjustCloneForInstruction(theInstruction)
 		counter = null
 	}
 
-	override fun operandType(): L2OperandType = L2OperandType.PC
+	override val operandType: L2OperandType
+		get() = L2OperandType.PC
 
 	/**
 	 * Answer the [L2ValueManifest] for this edge, which describes which
@@ -191,7 +170,7 @@ class L2PcOperand constructor (
 	override fun instructionWasAdded(manifest: L2ValueManifest)
 	{
 		super.instructionWasAdded(manifest)
-		instruction().basicBlock().addSuccessorEdge(this)
+		instruction.basicBlock().addSuccessorEdge(this)
 		this.manifest = L2ValueManifest(manifest)
 		targetBlock.addPredecessorEdge(this)
 	}
@@ -207,10 +186,10 @@ class L2PcOperand constructor (
 
 	override fun instructionWasRemoved()
 	{
-		val sourceBlock = instruction().basicBlock()
+		val sourceBlock = instruction.basicBlock()
 		sourceBlock.removeSuccessorEdge(this)
 		targetBlock.removePredecessorEdge(this)
-		if (instruction().operation().altersControlFlow())
+		if (instruction.operation.altersControlFlow)
 		{
 			sourceBlock.removedControlFlowInstruction()
 		}
@@ -257,7 +236,7 @@ class L2PcOperand constructor (
 	 * @return
 	 *   The source basic block.
 	 */
-	fun sourceBlock(): L2BasicBlock = instruction().basicBlock()
+	fun sourceBlock(): L2BasicBlock = instruction.basicBlock()
 
 	override fun appendTo(builder: StringBuilder)
 	{
@@ -283,10 +262,10 @@ class L2PcOperand constructor (
 	 */
 	fun splitEdgeWith(controlFlowGraph: L2ControlFlowGraph): L2BasicBlock
 	{
-		assert(instructionHasBeenEmitted())
+		assert(instructionHasBeenEmitted)
 
 		// Capture where this edge originated.
-		val source = instruction()
+		val source = instruction
 
 		// Create a new intermediary block that initially just contains a jump
 		// to itself.
@@ -343,7 +322,7 @@ class L2PcOperand constructor (
 	/**
 	 * Write JVM bytecodes to the JVMTranslator which will push:
 	 *
-	 *  1. An [Array] of [AvailObject] containing the value of each live boxed
+	 *  1. An [Array] of [AvailObject]s containing the value of each live boxed
 	 *     register, and
 	 *  1. A [LongArray] containing encoded data from each live unboxed
 	 *     register.
@@ -369,13 +348,13 @@ class L2PcOperand constructor (
 		// L2_CREATE_CONTINUATION will use both, and the L2_ENTER_L2_CHUNK at
 		// the target will restore the register dump found in the continuation.
 		val targetInstruction = targetBlock.instructions()[0]
-		assert(targetInstruction.operation() === L2_ENTER_L2_CHUNK)
+		assert(targetInstruction.operation === L2_ENTER_L2_CHUNK)
 		val liveMap = enumMap { _: RegisterKind -> mutableListOf<Int>() }
 		val liveRegistersList =
 			(alwaysLiveInRegisters + sometimesLiveInRegisters)
 				.sortedBy(L2Register::finalIndex)
 		liveRegistersList.forEach {
-			liveMap[it.registerKind()]!!.add(
+			liveMap[it.registerKind]!!.add(
 				translator.localNumberFromRegister(it))
 		}
 		translator.liveLocalNumbersByKindPerEntryPoint[targetInstruction] =

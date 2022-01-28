@@ -64,7 +64,8 @@ class L2ReadFloatVectorOperand constructor(
 	override fun clone(replacementElements: List<L2ReadFloatOperand>) =
 		L2ReadFloatVectorOperand(replacementElements)
 
-	override fun operandType(): L2OperandType = L2OperandType.READ_FLOAT_VECTOR
+	override val operandType: L2OperandType
+		get() = L2OperandType.READ_FLOAT_VECTOR
 
 	override fun dispatchOperand(dispatcher: L2OperandDispatcher)
 	{

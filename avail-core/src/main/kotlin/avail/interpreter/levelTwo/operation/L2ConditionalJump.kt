@@ -69,11 +69,8 @@ abstract class L2ConditionalJump protected constructor(
 		}
 	}
 
-	override fun hasSideEffect(): Boolean
-	{
-		// It jumps, which counts as a side effect.
-		return true
-	}
+	// It jumps, which counts as a side effect.
+	override val hasSideEffect: Boolean get() = true
 
 	companion object
 	{

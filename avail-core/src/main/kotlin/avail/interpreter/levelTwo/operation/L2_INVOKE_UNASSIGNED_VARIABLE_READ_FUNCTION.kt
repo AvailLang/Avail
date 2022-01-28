@@ -71,7 +71,7 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val pc = instruction.operand<L2IntImmediateOperand>(0)
 		val stackp = instruction.operand<L2IntImmediateOperand>(1)
 		val frameValues = instruction.operand<L2ReadBoxedVectorOperand>(2)
@@ -85,7 +85,7 @@ object L2_INVOKE_UNASSIGNED_VARIABLE_READ_FUNCTION : L2ControlFlowOperation(
 	}
 
 	// Never remove this.
-	override fun hasSideEffect() = true
+	override val hasSideEffect get() = true
 
 	override fun translateToJVM(
 		translator: JVMTranslator,

@@ -34,7 +34,7 @@ package avail.interpreter.primitive.objects
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map.Companion.hasKey
-import avail.descriptor.maps.A_Map.Companion.mapAt
+import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -95,12 +95,10 @@ object P_GetObjectTypeField : Primitive(2, CanFold, CanInline)
 			var union = bottom
 			for (possibleField in fieldType.instances)
 			{
-				if (!fieldTypeMap.hasKey(possibleField))
-				{
+				val newType = fieldTypeMap.mapAtOrNull(possibleField) ?:
 					// Unknown field, so the field type could be any type.
 					return anyMeta()
-				}
-				union = union.typeUnion(fieldTypeMap.mapAt(possibleField))
+				union = union.typeUnion(newType)
 			}
 			// Shift it up; a primitive invocation will return the field's type.
 			return instanceMeta(union)

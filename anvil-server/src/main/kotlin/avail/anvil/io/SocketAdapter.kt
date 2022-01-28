@@ -99,7 +99,7 @@ class SocketAdapter @Throws(IOException::class) constructor (
 			{
 				// Asynchronously accept a subsequent connection.
 				handler.guardedDo {
-					serverChannel.accept(dummy, handler)
+					serverChannel.accept(Unit, handler)
 				}
 				val channel = AnvilServerChannel(
 					this@SocketAdapter, value, onChannelClose)
@@ -119,7 +119,7 @@ class SocketAdapter @Throws(IOException::class) constructor (
 					close()
 				}
 			}
-		).guardedDo { serverChannel.accept(dummy, handler) }
+		).guardedDo { serverChannel.accept(Unit, handler) }
 	}
 
 	/**

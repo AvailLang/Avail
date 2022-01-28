@@ -68,8 +68,8 @@ tasks {
 		systemProperty("availRoots", availRoots)
 	}
 
-	// Generate the list of all primitives, which a running Avail system uses during
-	// setup to reflectively identify the complete catalog of primitives.
+	// Generate the list of all primitives, which a running Avail system uses
+	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating {
 		// Un-Windows the path, if necessary.
 		val pathAvailBuildMain =

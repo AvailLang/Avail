@@ -124,7 +124,7 @@ Semantic restriction "_[_]else_" is
 |
 	if ⌊index⌋ ≥ 1 ∧ ⌈index⌉ ≤ ⌊tupleType⌋ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"alternative block to be necessary, but the subscript is \
 			\|guaranteed to be valid"
 	]
@@ -132,7 +132,7 @@ Semantic restriction "_[_]else_" is
 	[
 		if ⌊index⌋ > ⌈tupleType⌉ ∨ ⌈index⌉ < 1 then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"a subscript that could ever be valid"
 		]
 		else
@@ -604,7 +604,7 @@ Public method "Require:_[_.._]is ever valid" is
 |
 	If ⌊sliceStart⌋ > ⌈aTuple⌉+1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊sliceStart⌋”
 			++ " ≤ sliceStart ≤ "
@@ -617,7 +617,7 @@ Public method "Require:_[_.._]is ever valid" is
 	];
 	If ⌊sliceEnd⌋ > ⌈aTuple⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊sliceEnd⌋”
 			++ " ≤ sliceEnd ≤ "
@@ -630,7 +630,7 @@ Public method "Require:_[_.._]is ever valid" is
 	];
 	If ⌈sliceEnd⌉ < ⌊sliceStart⌋ - 1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a slice end subscript ("
 			++ “⌊sliceEnd⌋”
 			++ " ≤ theEndSubscript ≤ "
@@ -898,9 +898,7 @@ Public macro "_[.._]" is
 	aTuple : expression phrase ⇒ tuple,
 	sliceEnd : expression phrase ⇒ whole number
 |
-	bootstrap restricted send $"_[_.._]"
-		with «<aTuple, ‘1’, sliceEnd>»
-		: tuple
+	⟦⦊aTuple⦉[1..⦊sliceEnd⦉]⟧
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -1275,7 +1273,7 @@ Semantic restriction "_↑++=_" is
 	resultType ::= varType's read type ++ tupleType;
 	If ¬resultType ⊆ varType's write type then
 	[
-		Immediately reject parse,
+		Reject parse,
 			expected: "variable to accept " ++ “resultType”
 	];
 	⊤

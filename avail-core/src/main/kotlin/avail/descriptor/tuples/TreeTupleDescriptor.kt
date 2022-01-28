@@ -205,8 +205,7 @@ class TreeTupleDescriptor internal constructor(
 			val child: A_Tuple = self.slot(SUBTUPLE_AT_, childIndex)
 			val childOffset = offsetForChildSubscript(self, childIndex)
 			val childSize =
-				(self.intSlot(CUMULATIVE_SIZES_AREA_, childIndex)
-					 - childOffset)
+				(self.intSlot(CUMULATIVE_SIZES_AREA_, childIndex) - childOffset)
 			val startIndexInChild =
 				(startIndex1 - childOffset).coerceAtLeast(1)
 			val endIndexInChild =

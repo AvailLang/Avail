@@ -107,12 +107,12 @@ object P_SetImplicitObserveFunction : Primitive(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.CONTINUATION_CALLER.bundle),
-			writer.addLiteral(variableTypeFor(mostGeneralContinuationType())))
+			writer.addLiteral(variableTypeFor(mostGeneralContinuationType)))
 		writer.write(
 			0,
 			L1Operation.L1_doCall,
 			writer.addLiteral(SpecialMethodAtom.GET_VARIABLE.bundle),
-			writer.addLiteral(mostGeneralContinuationType()))
+			writer.addLiteral(mostGeneralContinuationType))
 		writer.write(
 			0,
 			L1Operation.L1_doCall,

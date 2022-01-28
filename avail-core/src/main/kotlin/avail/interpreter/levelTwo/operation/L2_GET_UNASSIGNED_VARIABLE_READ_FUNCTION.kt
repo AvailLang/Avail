@@ -62,7 +62,7 @@ object L2_GET_UNASSIGNED_VARIABLE_READ_FUNCTION : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val function = instruction.operand<L2WriteBoxedOperand>(0)
 		renderPreamble(instruction, builder)
 		builder.append(' ')

@@ -89,7 +89,7 @@ object L2_CREATE_TUPLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
@@ -228,7 +228,7 @@ object L2_CREATE_TUPLE : L2Operation(
 		generator: L2Generator
 	): L2ReadBoxedOperand
 	{
-		val instruction = tupleReg.definition().instruction()
+		val instruction = tupleReg.definition().instruction
 		val values = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		// val tuple = instruction.operand<L2WriteBoxedOperand>(1)
 
@@ -248,7 +248,7 @@ object L2_CREATE_TUPLE : L2Operation(
 	fun tupleSourceRegistersOf(
 		instruction: L2Instruction): List<L2ReadBoxedOperand>
 	{
-		assert(instruction.operation() === this)
+		assert(instruction.operation === this)
 		val vector = instruction.operand<L2ReadBoxedVectorOperand>(0)
 		return vector.elements()
 	}

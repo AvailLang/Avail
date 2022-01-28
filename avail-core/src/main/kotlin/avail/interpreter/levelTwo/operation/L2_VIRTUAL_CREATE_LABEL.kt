@@ -111,7 +111,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
 	L2OperandType.INT_IMMEDIATE.named("frame size"))
 {
-	override fun isPlaceholder(instruction: L2Instruction): Boolean = true
+	override val isPlaceholder get() = true
 
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -119,7 +119,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val outputLabel = instruction.operand<L2WriteBoxedOperand>(0)
 		val function = instruction.operand<L2ReadBoxedOperand>(1)
 		val arguments = instruction.operand<L2ReadBoxedVectorOperand>(2)
@@ -135,7 +135,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		instruction: L2Instruction,
 		regenerator: L2Regenerator)
 	{
-		assert(this == instruction.operation())
+		assert(this == instruction.operation)
 		val generator = regenerator.targetGenerator
 		val labelOutput = regenerator.transformOperand(
 			instruction.operand<L2WriteBoxedOperand>(0))
@@ -206,12 +206,12 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 			generator.startBlock(reificationOfframp)
 			val tempCaller = generator.boxedWrite(
 				generator.topFrame.reifiedCaller(),
-				restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 			val tempFunction = generator.boxedWrite(
 				generator.topFrame.function(),
 				restrictionForType(mostGeneralFunctionType(), BOXED_FLAG))
 			val dummyContinuation = generator.boxedWriteTemp(
-				restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+				restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 			generator.addInstruction(
 				L2_GET_CURRENT_CONTINUATION,
 				tempCaller)
@@ -250,7 +250,7 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 		}
 		// Caller has been reified, or is known to already be reified.
 		val tempCallerWrite = generator.boxedWriteTemp(
-			restrictionForType(mostGeneralContinuationType(), BOXED_FLAG))
+			restrictionForType(mostGeneralContinuationType, BOXED_FLAG))
 		generator.addInstruction(L2_GET_CURRENT_CONTINUATION, tempCallerWrite)
 
 		val fallThrough = generator.createBasicBlock(

@@ -44,6 +44,7 @@ import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.phrases.A_Phrase
 import avail.environment.LayoutConfiguration.Companion.basePreferences
 import avail.environment.LayoutConfiguration.Companion.moduleRenameSourceSubkeyString
 import avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyString
@@ -60,6 +61,7 @@ import avail.environment.actions.CreateProgramAction
 import avail.environment.actions.ExamineCompilationAction
 import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
+import avail.environment.actions.ExamineSerializedPhrasesAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
 import avail.environment.actions.InsertEntryPointAction
@@ -169,7 +171,6 @@ import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
 import javax.swing.JMenuBar
-import javax.swing.JMenuItem
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.JScrollPane
@@ -398,10 +399,10 @@ class AvailWorkbench internal constructor (
 	private val resetVMReportDataAction = ResetVMReportDataAction(this)
 
 	/** The [show CC report action][ShowCCReportAction]. */
-	private val showCCReportAction: ShowCCReportAction
+	private val showCCReportAction = ShowCCReportAction(this, runtime)
 
 	/** The [reset CC report data action][ResetCCReportDataAction]. */
-	private val resetCCReportDataAction: ResetCCReportDataAction
+	private val resetCCReportDataAction = ResetCCReportDataAction(this, runtime)
 
 	/** The [toggle trace macros action][TraceMacrosAction]. */
 	private val debugMacroExpansionsAction = TraceMacrosAction(this)
@@ -454,16 +455,23 @@ class AvailWorkbench internal constructor (
 		TraceLoadedStatementsAction(this)
 
 	/** The [ParserIntegrityCheckAction]. */
-	private val parserIntegrityCheckAction: ParserIntegrityCheckAction
+	private val parserIntegrityCheckAction =
+		ParserIntegrityCheckAction(this, runtime)
 
 	/** The [ExamineRepositoryAction]. */
-	private val examineRepositoryAction: ExamineRepositoryAction
+	private val examineRepositoryAction = ExamineRepositoryAction(this, runtime)
 
 	/** The [ExamineCompilationAction]. */
-	private val examineCompilationAction: ExamineCompilationAction
+	private val examineCompilationAction =
+		ExamineCompilationAction(this, runtime)
+
+	/** The [ExamineSerializedPhrasesAction]. */
+	private val examinePhrasesAction =
+		ExamineSerializedPhrasesAction(this, runtime)
 
 	/** The [ExamineModuleManifest]. */
-	private val examineModuleManifestAction: ExamineModuleManifest
+	private val examineModuleManifestAction =
+		ExamineModuleManifest(this, runtime)
 
 	/** The [clear transcript action][ClearTranscriptAction]. */
 	private val clearTranscriptAction = ClearTranscriptAction(this)
@@ -888,6 +896,8 @@ class AvailWorkbench internal constructor (
 		examineRepositoryAction.isEnabled =
 			!busy && selectedModuleRootNode() !== null
 		examineCompilationAction.isEnabled =
+			!busy && selectedModule() !== null
+		examinePhrasesAction.isEnabled =
 			!busy && selectedModule() !== null
 		examineModuleManifestAction.isEnabled =
 			!busy && selectedModule() !== null
@@ -1369,9 +1379,16 @@ class AvailWorkbench internal constructor (
 	 *   The line number at which a top-level statement is being parsed, or
 	 *   where the parsed statement being executed begins.  [Int.MAX_VALUE]
 	 *   indicates a completed module.
+	 * @param phrase
+	 *   The compiled [top-level&#32;statement][A_Phrase], or `null` if no
+	 *   phrase is available.
 	 */
 	fun eventuallyUpdatePerModuleProgress(
-		moduleName: ModuleName, moduleSize: Long, position: Long, line: Int)
+		moduleName: ModuleName,
+		moduleSize: Long,
+		position: Long,
+		line: Int,
+		@Suppress("UNUSED_PARAMETER") phrase: A_Phrase?)
 	{
 		perModuleProgressLock.safeWrite {
 			if (position == moduleSize)
@@ -1572,205 +1589,212 @@ class AvailWorkbench internal constructor (
 		rootPane.isDoubleBuffered = true
 
 		// Create the menu bar and its menus.
-		val buildMenu = menu("Build")
-		augment(
-			buildMenu,
-			buildAction, cancelAction, null,
-			unloadAction, unloadAllAction, cleanAction, null,
-//			cleanModuleAction,  //TODO MvG Fix implementation and enable.
-			refreshAction)
-		val menuBar = JMenuBar()
-		menuBar.add(buildMenu)
-		menuBar.add(
-			menu(
-				"Document",
-				documentAction,
-				null,
-				setDocumentationPathAction))
-		menuBar.add(
-			menu("Run", insertEntryPointAction, null, clearTranscriptAction))
-		showCCReportAction = ShowCCReportAction(this, runtime)
-		resetCCReportDataAction = ResetCCReportDataAction(this, runtime)
-		parserIntegrityCheckAction = ParserIntegrityCheckAction(this, runtime)
-		examineRepositoryAction = ExamineRepositoryAction(this, runtime)
-		examineCompilationAction = ExamineCompilationAction(this, runtime)
-		examineModuleManifestAction = ExamineModuleManifest(this, runtime)
-		if (showDeveloperTools)
-		{
-			menuBar.add(
-				menu(
-					"Developer",
-					showVMReportAction,
-					resetVMReportDataAction,
-					null,
-					showCCReportAction,
-					resetCCReportDataAction,
-					null,
-					JCheckBoxMenuItem(debugMacroExpansionsAction),
-					JCheckBoxMenuItem(debugCompilerAction),
-					JCheckBoxMenuItem(traceSummarizeStatementsAction),
-					JCheckBoxMenuItem(traceLoadedStatementsAction),
-					JCheckBoxMenuItem(toggleFastLoaderAction),
-					null,
-					JCheckBoxMenuItem(toggleDebugL1),
-					JCheckBoxMenuItem(toggleDebugL2),
-					JCheckBoxMenuItem(toggleL2SanityCheck),
-					JCheckBoxMenuItem(toggleDebugPrimitives),
-					JCheckBoxMenuItem(toggleDebugWorkUnits),
-					null,
-					JCheckBoxMenuItem(toggleDebugJVM),
-					JCheckBoxMenuItem(toggleDebugJVMCodeGeneration),
-					null,
-					parserIntegrityCheckAction,
-					examineRepositoryAction,
-					examineCompilationAction,
-					examineModuleManifestAction,
-					null,
-					graphAction))
+		lateinit var buildMenu: JMenu
+
+		jMenuBar = createMenuBar {
+			buildMenu = menu("Build")
+			{
+				item(buildAction)
+				item(cancelAction)
+				separator()
+				item(unloadAction)
+				item(unloadAllAction)
+				item(cleanAction)
+				separator()
+				//item(cleanModuleAction)  //TODO MvG Fix implementation and enable.
+				item(refreshAction)
+			}
+			menu("Document")
+			{
+				item(documentAction)
+				separator()
+				item(setDocumentationPathAction)
+			}
+			menu("Run")
+			{
+				item(insertEntryPointAction)
+				separator()
+				item(clearTranscriptAction)
+			}
+			if (showDeveloperTools)
+			{
+				menu("Developer")
+				{
+					item(showVMReportAction)
+					item(resetVMReportDataAction)
+					separator()
+					item(showCCReportAction)
+					item(resetCCReportDataAction)
+					separator()
+					check(debugMacroExpansionsAction)
+					check(debugCompilerAction)
+					check(traceSummarizeStatementsAction)
+					check(traceLoadedStatementsAction)
+					check(toggleFastLoaderAction)
+					separator()
+					check(toggleDebugL1)
+					check(toggleDebugL2)
+					check(toggleL2SanityCheck)
+					check(toggleDebugPrimitives)
+					check(toggleDebugWorkUnits)
+					separator()
+					check(toggleDebugJVM)
+					check(toggleDebugJVMCodeGeneration)
+					separator()
+					item(parserIntegrityCheckAction)
+					item(examineRepositoryAction)
+					item(examineCompilationAction)
+					item(examinePhrasesAction)
+					item(examineModuleManifestAction)
+					separator()
+					item(graphAction)
+				}
+			}
 		}
-		jMenuBar = menuBar
 
 		// The refresh item needs a little help ...
-		var inputMap = rootPane.getInputMap(
-			JComponent.WHEN_IN_FOCUSED_WINDOW)
-		var actionMap = getRootPane().actionMap
-		inputMap.put(KeyStroke.getKeyStroke("F5"), "refresh")
-		actionMap.put("refresh", refreshAction)
-
-		val transcriptPopup = menu("Transcript", clearTranscriptAction)
+		getRootPane().actionMap.put("Refresh", refreshAction)
+		rootPane.inputMap.put(KeyStroke.getKeyStroke("F5"), "Refresh")
 
 		// Create the module tree.
-		moduleTree = JTree(DefaultMutableTreeNode("(packages hidden root)"))
-		moduleTree.background = null
-		moduleTree.toolTipText = "All modules, organized by module root."
-		moduleTree.componentPopupMenu = buildMenu.popupMenu
-		moduleTree.isEditable = false
-		moduleTree.isEnabled = true
-		moduleTree.isFocusable = true
-		moduleTree.selectionModel.selectionMode =
-			TreeSelectionModel.SINGLE_TREE_SELECTION
-		moduleTree.toggleClickCount = 0
-		moduleTree.showsRootHandles = true
-		moduleTree.isRootVisible = false
-		moduleTree.addTreeSelectionListener { setEnablements() }
-		moduleTree.cellRenderer = treeRenderer
-		moduleTree.addMouseListener(
-			object : MouseAdapter()
-			{
-				override fun mouseClicked(e: MouseEvent)
+		moduleTree = JTree(DefaultMutableTreeNode(
+			"(packages hidden root)"))
+		moduleTree.run {
+			background = null
+			toolTipText = "All modules, organized by module root."
+			componentPopupMenu = buildMenu.popupMenu
+			isEditable = false
+			isEnabled = true
+			isFocusable = true
+			selectionModel.selectionMode =
+				TreeSelectionModel.SINGLE_TREE_SELECTION
+			toggleClickCount = 0
+			showsRootHandles = true
+			isRootVisible = false
+			addTreeSelectionListener { setEnablements() }
+			cellRenderer = treeRenderer
+			addMouseListener(
+				object : MouseAdapter()
 				{
-					if (buildAction.isEnabled
-						&& e.clickCount == 2
-						&& e.button == MouseEvent.BUTTON1)
+					override fun mouseClicked(e: MouseEvent)
 					{
-						e.consume()
-						buildAction.actionPerformed(
-							ActionEvent(moduleTree, -1, "Build"))
+						if (buildAction.isEnabled
+							&& e.clickCount == 2
+							&& e.button == MouseEvent.BUTTON1)
+						{
+							e.consume()
+							buildAction.actionPerformed(
+								ActionEvent(moduleTree, -1, "Build"))
+						}
 					}
-				}
-			})
-		inputMap = moduleTree.getInputMap(
-			JComponent.WHEN_IN_FOCUSED_WINDOW)
-		actionMap = moduleTree.actionMap
-		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
-		actionMap.put("build", buildAction)
+				})
+			actionMap.put("Build", buildAction)
+			actionMap.put("Cancel", cancelAction)
+			getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).run {
+				put(KeyStroke.getKeyStroke("meta ENTER"), "Build")
+				put(KeyStroke.getKeyStroke("control ESCAPE"), "Cancel")
+			}
+		}
 
 		// Create the entry points tree.
-		entryPointsTree =
-			JTree(DefaultMutableTreeNode("(entry points hidden root)"))
-		moduleTree.background = null
-		entryPointsTree.toolTipText =
-			"All entry points, organized by defining module."
-		entryPointsTree.isEditable = false
-		entryPointsTree.isEnabled = true
-		entryPointsTree.isFocusable = true
-		entryPointsTree.selectionModel.selectionMode =
-			TreeSelectionModel.SINGLE_TREE_SELECTION
-		entryPointsTree.toggleClickCount = 0
-		entryPointsTree.showsRootHandles = true
-		entryPointsTree.isRootVisible = false
-		entryPointsTree.addTreeSelectionListener { setEnablements() }
-		entryPointsTree.cellRenderer = treeRenderer
-		entryPointsTree.addMouseListener(
-			object : MouseAdapter()
-			{
-				override fun mouseClicked(e: MouseEvent)
+		entryPointsTree = JTree(
+			DefaultMutableTreeNode("(entry points hidden root)"))
+		entryPointsTree.run {
+			background = null
+			toolTipText = "All entry points, organized by defining module."
+			isEditable = false
+			isEnabled = true
+			isFocusable = true
+			selectionModel.selectionMode =
+				TreeSelectionModel.SINGLE_TREE_SELECTION
+			toggleClickCount = 0
+			showsRootHandles = true
+			isRootVisible = false
+			addTreeSelectionListener { setEnablements() }
+			cellRenderer = treeRenderer
+			addMouseListener(
+				object : MouseAdapter()
 				{
-					if (selectedEntryPoint() !== null)
+					override fun mouseClicked(e: MouseEvent)
 					{
-						if (insertEntryPointAction.isEnabled
-							&& e.clickCount == 2
-							&& e.button == MouseEvent.BUTTON1)
+						if (selectedEntryPoint() !== null)
 						{
-							e.consume()
-							val actionEvent = ActionEvent(
-								entryPointsTree, -1, "Insert entry point")
-							insertEntryPointAction.actionPerformed(actionEvent)
+							if (insertEntryPointAction.isEnabled
+								&& e.clickCount == 2
+								&& e.button == MouseEvent.BUTTON1)
+							{
+								e.consume()
+								val actionEvent = ActionEvent(
+									entryPointsTree, -1, "Insert entry point")
+								insertEntryPointAction.actionPerformed(
+									actionEvent)
+							}
+						}
+						else if (selectedEntryPointModule() !== null)
+						{
+							if (buildEntryPointModuleAction.isEnabled
+								&& e.clickCount == 2
+								&& e.button == MouseEvent.BUTTON1)
+							{
+								e.consume()
+								val actionEvent = ActionEvent(
+									entryPointsTree,
+									-1,
+									"Build entry point module")
+								buildEntryPointModuleAction
+									.actionPerformed(actionEvent)
+							}
 						}
 					}
-					else if (selectedEntryPointModule() !== null)
-					{
-						if (buildEntryPointModuleAction.isEnabled
-							&& e.clickCount == 2
-							&& e.button == MouseEvent.BUTTON1)
-						{
-							e.consume()
-							val actionEvent = ActionEvent(
-								entryPointsTree,
-								-1,
-								"Build entry point module")
-							buildEntryPointModuleAction
-								.actionPerformed(actionEvent)
-						}
-					}
-				}
-			})
-		inputMap = entryPointsTree.getInputMap(
-			JComponent.WHEN_ANCESTOR_OF_FOCUSED_COMPONENT)
-		actionMap = entryPointsTree.actionMap
-		inputMap.put(KeyStroke.getKeyStroke("ENTER"), "build")
-		actionMap.put("build", buildAction)
+				})
+			actionMap.put("Build", buildAction)
+			inputMap.put(KeyStroke.getKeyStroke("meta ENTER"), "Build")
+		}
 
 		// Create the build progress bar.
-		buildProgress = JProgressBar(0, 1000)
-		buildProgress.toolTipText = "Progress indicator for the build."
-		buildProgress.isEnabled = false
-		buildProgress.isFocusable = false
-		buildProgress.isIndeterminate = false
-		buildProgress.isStringPainted = true
-		buildProgress.string = "Build Progress:"
-		buildProgress.value = 0
+		buildProgress = JProgressBar(0, 1000).apply {
+			toolTipText = "Progress indicator for the build."
+			isEnabled = false
+			isFocusable = false
+			isIndeterminate = false
+			isStringPainted = true
+			string = "Build Progress:"
+			value = 0
+		}
 
 		// Create the transcript.
 
 		// Make this row and column be where the excess space goes.
 		// And reset the weights...
-		transcript = JTextPane()
-		transcript.border = BorderFactory.createEtchedBorder()
-		transcript.componentPopupMenu = transcriptPopup.popupMenu
-		transcript.isEditable = false
-		transcript.isEnabled = true
-		transcript.isFocusable = true
-		transcript.preferredSize = Dimension(0, 500)
+		transcript = JTextPane().apply {
+			border = BorderFactory.createEtchedBorder()
+			componentPopupMenu = menu("Transcript")
+			{
+				item(clearTranscriptAction)
+			}.popupMenu
+			isEditable = false
+			isEnabled = true
+			isFocusable = true
+			preferredSize = Dimension(0, 500)
+		}
 		transcriptScrollArea = createScrollPane(transcript)
 
 		// Create the input area.
 		inputLabel = JLabel("Command:")
-		inputField = JTextField()
-		inputField.toolTipText =
-			"Enter commands and interact with Avail programs.  Press " +
-				"ENTER to submit."
-		inputField.action = SubmitInputAction(this)
-		inputMap = inputField.getInputMap(JComponent.WHEN_FOCUSED)
-		actionMap = inputField.actionMap
-		inputMap.put(KeyStroke.getKeyStroke("UP"), "up")
-		actionMap.put("up", retrievePreviousAction)
-		inputMap.put(KeyStroke.getKeyStroke("DOWN"), "down")
-		actionMap.put("down", retrieveNextAction)
-		inputField.columns = 60
-		inputField.isEditable = true
-		inputField.isEnabled = true
-		inputField.isFocusable = true
+		inputField = JTextField().apply {
+			columns = 60
+			isEditable = true
+			isEnabled = true
+			isFocusable = true
+			toolTipText =
+				"Enter commands and interact with Avail programs.  Press " +
+					"ENTER to submit."
+			action = SubmitInputAction(this@AvailWorkbench)
+			actionMap.put("up", retrievePreviousAction)
+			actionMap.put("down", retrieveNextAction)
+			inputMap.put(KeyStroke.getKeyStroke("UP"), "up")
+			inputMap.put(KeyStroke.getKeyStroke("DOWN"), "down")
+		}
 
 		// Subscribe to module loading events.
 		availBuilder.subscribeToModuleLoading { loadedModule, _ ->
@@ -1790,7 +1814,8 @@ class AvailWorkbench internal constructor (
 			tabStops[i] = TabStop(
 				32.0f * (i + 1),
 				TabStop.ALIGN_LEFT,
-				TabStop.LEAD_NONE)
+				TabStop.LEAD_NONE
+			)
 		}
 		val tabSet = TabSet(tabStops)
 		val attributes = SimpleAttributeSet()
@@ -1808,8 +1833,7 @@ class AvailWorkbench internal constructor (
 		{
 			outputStream = BuildPrintStream(BuildOutputStream(this, OUT))
 			errorStream = BuildPrintStream(BuildOutputStream(this, ERR))
-		}
-		catch (e: UnsupportedEncodingException)
+		} catch (e: UnsupportedEncodingException)
 		{
 			// Java must support UTF_8.
 			throw RuntimeException(e)
@@ -1823,7 +1847,8 @@ class AvailWorkbench internal constructor (
 			TextInterface(
 				ConsoleInputChannel(inputStream),
 				ConsoleOutputChannel(outputStream),
-				ConsoleOutputChannel(errorStream))
+				ConsoleOutputChannel(errorStream)
+			)
 		runtime.setTextInterface(textInterface)
 		availBuilder.textInterface = textInterface
 
@@ -1831,9 +1856,11 @@ class AvailWorkbench internal constructor (
 			JSplitPane.VERTICAL_SPLIT,
 			true,
 			createScrollPane(moduleTree),
-			createScrollPane(entryPointsTree))
+			createScrollPane(entryPointsTree)
+		)
 		leftPane.setDividerLocation(
-			layoutConfiguration.moduleVerticalProportion())
+			layoutConfiguration.moduleVerticalProportion()
+		)
 		leftPane.resizeWeight =
 			layoutConfiguration.moduleVerticalProportion()
 		leftPane.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
@@ -1850,7 +1877,8 @@ class AvailWorkbench internal constructor (
 				.addComponent(outputLabel)
 				.addComponent(transcriptScrollArea)
 				.addComponent(inputLabel)
-				.addComponent(inputField))
+				.addComponent(inputField)
+		)
 		rightPaneLayout.setVerticalGroup(
 			rightPaneLayout.createSequentialGroup()
 				.addGroup(
@@ -1859,7 +1887,9 @@ class AvailWorkbench internal constructor (
 							buildProgress,
 							GroupLayout.PREFERRED_SIZE,
 							GroupLayout.DEFAULT_SIZE,
-							GroupLayout.PREFERRED_SIZE))
+							GroupLayout.PREFERRED_SIZE
+						)
+				)
 				.addGroup(
 					rightPaneLayout.createSequentialGroup()
 						.addComponent(outputLabel)
@@ -1867,7 +1897,9 @@ class AvailWorkbench internal constructor (
 							transcriptScrollArea,
 							0,
 							300,
-							Short.MAX_VALUE.toInt()))
+							Short.MAX_VALUE.toInt()
+						)
+				)
 				.addGroup(
 					rightPaneLayout.createSequentialGroup()
 						.addComponent(inputLabel)
@@ -1875,10 +1907,14 @@ class AvailWorkbench internal constructor (
 							inputField,
 							GroupLayout.PREFERRED_SIZE,
 							GroupLayout.DEFAULT_SIZE,
-							GroupLayout.PREFERRED_SIZE)))
+							GroupLayout.PREFERRED_SIZE
+						)
+				)
+		)
 
 		mainSplit = JSplitPane(
-			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane)
+			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane
+		)
 		mainSplit.dividerLocation = layoutConfiguration.leftSectionWidth()
 		mainSplit.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
 			saveWindowPosition()
@@ -1903,7 +1939,7 @@ class AvailWorkbench internal constructor (
 		})
 
 		// Set up desktop and taskbar features.
-		Desktop.getDesktop().setDefaultMenuBar(menuBar)
+		Desktop.getDesktop().setDefaultMenuBar(jMenuBar)
 		jMenuBar.maximumSize = Dimension(0, 0)
 		setQuitHandler {
 			// Quit was pressed.  Close the workbench, which should
@@ -1914,7 +1950,8 @@ class AvailWorkbench internal constructor (
 			// chance to save.
 			val closeEvent = WindowEvent(
 				this@AvailWorkbench,
-				WindowEvent.WINDOW_CLOSING)
+				WindowEvent.WINDOW_CLOSING
+			)
 			dispatchEvent(closeEvent)
 			true
 		}
@@ -1926,7 +1963,9 @@ class AvailWorkbench internal constructor (
 		}
 		Taskbar.getTaskbar().iconImage = ImageIcon(
 			AvailWorkbench::class.java.classLoader.getResource(
-				"resources/workbench/AvailHammer.png")).image
+				"resources/workbench/AvailHammer.png"
+			)
+		).image
 		Taskbar.getTaskbar().setIconBadge(activeVersionSummary)
 
 		// Select an initial module if specified.
@@ -2227,6 +2266,32 @@ class AvailWorkbench internal constructor (
 			}
 		}
 
+		/** A helper class for building menus. */
+		private class MenuBuilder constructor(val theMenu: JMenu)
+		{
+			fun item(item: Action)
+			{
+				theMenu.add(item)
+			}
+
+			fun check(item: Action)
+			{
+				theMenu.add(JCheckBoxMenuItem(item))
+			}
+
+			fun separator(): Unit = theMenu.addSeparator()
+
+			/** Add a pre-built menu. */
+			fun submenu(submenu: JMenu)
+			{
+				theMenu.add(submenu)
+			}
+
+			/** Create a submenu directly. */
+			fun submenu(name: String, body: MenuBuilder.()->Unit): JMenu =
+				menu(name, body).also(theMenu::add)
+		}
+
 		/**
 		 * Create a menu with the given name and entries, which can be null to
 		 * indicate a separator, a JMenuItem, or an Action to wrap in a
@@ -2234,43 +2299,30 @@ class AvailWorkbench internal constructor (
 		 *
 		 * @param name
 		 *   The name of the menu to create.
-		 * @param actionsAndSubmenus
-		 *   A varargs array of [Action]s, [JMenuItem]s for submenus, and
-		 *   `null`s for separator lines.
+		 * @param body
+		 *   A function that adds entries to the menu via the [MenuBuilder]
+		 *   syntax.
 		 * @return A new [JMenu].
 		 */
-		private fun menu(name: String, vararg actionsAndSubmenus: Any?): JMenu
+		private inline fun menu(
+			name: String = "",
+			body: MenuBuilder.()->Unit
+		) = JMenu(name).also { MenuBuilder(it).body() }
+
+		/** A helper class for building the menu bar. */
+		private class MenuBarBuilder constructor(val theMenuBar: JMenuBar)
 		{
-			val menu = JMenu(name)
-			augment(menu, *actionsAndSubmenus)
-			return menu
+			/** Add a pre-built menu. */
+			fun menu(menu: JMenu) = theMenuBar.add(menu)
+
+			/** Create a submenu directly. */
+			fun menu(name: String, body: MenuBuilder.()->Unit): JMenu =
+				JMenu(name).also { body(MenuBuilder(it)) }.also(theMenuBar::add)
 		}
 
-		/**
-		 * Augment the given menu with the array of entries, which can be null
-		 * to indicate a separator, a JMenuItem, or an Action to wrap in a
-		 * JMenuItem.
-		 *
-		 * @param menu
-		 *   A [JMenu] to add items to.
-		 * @param actionsAndSubmenus
-		 *   A varargs array of [Action]s, [JMenuItem]s for submenus, and
-		 *   `null`s for separator lines.
-		 */
-		private fun augment(menu: JMenu, vararg actionsAndSubmenus: Any?)
-		{
-			actionsAndSubmenus.forEach { item ->
-				when (item)
-				{
-					null -> menu.addSeparator()
-					is Action -> menu.add(item)
-					is JMenuItem -> menu.add(item)
-					else -> assert(false) {
-						"Bad argument while building menu"
-					}
-				}
-			}
-		}
+		private inline fun createMenuBar(
+			body: MenuBarBuilder.()->Unit
+		) = JMenuBar().also { MenuBarBuilder(it).body() }
 
 		/**
 		 * Answer the pane wrapped in a JScrollPane.
@@ -2413,7 +2465,7 @@ class AvailWorkbench internal constructor (
 
 			// Display the UI.
 			val bench = AvailWorkbench(runtime, fileManager, resolver)
-			bench.createBufferStrategy(2)
+			bench.createBufferStrategy(3)
 			bench.ignoreRepaint = true
 			invokeLater {
 				val initialRefreshTask =

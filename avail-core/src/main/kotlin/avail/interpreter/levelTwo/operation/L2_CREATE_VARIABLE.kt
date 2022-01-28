@@ -58,11 +58,9 @@ object L2_CREATE_VARIABLE : L2Operation(
 		builder: StringBuilder,
 		warningStyleChange: (Boolean) -> Unit)
 	{
-		assert(this == instruction.operation())
-		val outerType =
-			instruction.operand<L2ConstantOperand>(0)
-		val variable =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		assert(this == instruction.operation)
+		val outerType = instruction.operand<L2ConstantOperand>(0)
+		val variable = instruction.operand<L2WriteBoxedOperand>(1)
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(variable.registerString())

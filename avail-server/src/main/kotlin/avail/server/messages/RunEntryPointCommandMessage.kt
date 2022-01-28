@@ -53,7 +53,7 @@ import avail.server.io.AvailServerChannel
 class RunEntryPointCommandMessage constructor(
 	val expression: String) : CommandMessage()
 {
-	override val command = TextCommand.RUN_ENTRY_POINT
+	override val command get() = TextCommand.RUN_ENTRY_POINT
 
 	override fun processThen(
 		channel: AvailServerChannel,
