@@ -117,7 +117,10 @@ tasks {
 	}
 
 	// Update the dependencies of "assemble".
-	assemble { dependsOn(releaseAvail) }
+	assemble {
+		dependsOn(releaseAvail)
+		dependsOn(":avail-stdlib:releaseStandardLibrary")
+	}
 
 	/**
 	 * Remove released libraries.

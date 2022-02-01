@@ -654,7 +654,7 @@ enum class AvailErrorCode constructor(val code: Int)
 
 	/**
 	 * A value was passed that exceeded the allowed numeric range, either [Int],
-	 * `Long`, or some other limit imposed by the operating system or virtual
+	 * [Long], or some other limit imposed by the operating system or virtual
 	 * machine.
 	 */
 	E_EXCEEDS_VM_LIMIT(95),

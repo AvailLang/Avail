@@ -192,6 +192,7 @@ abstract class AbstractFileWrapper constructor(
 				// pointer as they are no longer valid.
 				do
 				{
+					@Suppress("UNUSED_VARIABLE")
 					val ta = tracedActionStack.pop()
 					// TODO remove ta from the project cache?
 				}
@@ -218,9 +219,9 @@ abstract class AbstractFileWrapper constructor(
 	 * is performed through the synchronized [execution][execute] path.
 	 *
 	 * @param originator
-	 *   The [Session.id] of the session that originated the undo.
+	 *   The [UUID] of the session that originated the undo.
 	 */
-	fun undo(originator: UUID)
+	fun undo(@Suppress("UNUSED_PARAMETER") originator: UUID)
 	{
 		if (tracedActionStack.size >= undoStackDepth.get() + 1)
 		{
@@ -241,9 +242,9 @@ abstract class AbstractFileWrapper constructor(
 	 * is performed through the synchronized [execution][execute] path.
 	 *
 	 * @param originator
-	 *   The [Session.id] of the session that originated the undo.
+	 *   The [UUID] of the session that originated the undo.
 	 */
-	fun redo(originator: UUID)
+	fun redo(@Suppress("UNUSED_PARAMETER") originator: UUID)
 	{
 		if (undoStackDepth.get() == 0)
 		{

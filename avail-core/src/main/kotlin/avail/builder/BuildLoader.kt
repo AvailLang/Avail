@@ -318,7 +318,7 @@ internal class BuildLoader constructor(
 		sourceDigest: ByteArray,
 		completionAction: ()->Unit)
 	{
-		localTracker(moduleName, moduleName.moduleSize, 0L, 0, null)
+		localTracker(moduleName, moduleName.moduleSize, 0L, 0) { null }
 		val module = newModule(stringFrom(moduleName.qualifiedName))
 		// Set up the block phrases field with an A_Number, so that requests for
 		// block phrases will retrieve them from the repository.
@@ -649,7 +649,7 @@ internal class BuildLoader constructor(
 		globalTracker(
 			bytesCompiled.addAndGet(moduleSize - lastPosition),
 			globalCodeSize)
-		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE, null)
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) { null }
 	}
 
 	/**

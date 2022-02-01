@@ -48,4 +48,4 @@ import avail.descriptor.phrases.A_Phrase
  *   available.
  */
 typealias CompilerProgressReporter =
-		(ModuleName, Long, Long, Int, A_Phrase?)->Unit
+		(ModuleName, Long, Long, Int, ()->A_Phrase?)->Unit

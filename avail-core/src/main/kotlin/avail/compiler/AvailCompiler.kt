@@ -3441,8 +3441,8 @@ class AvailCompiler constructor(
 				moduleName,
 				source.tupleSize.toLong(),
 				afterHeader.position.toLong(),
-				afterHeader.lineNumber,
-				null)
+				afterHeader.lineNumber
+			) { null }
 			// Run any side effects implied by this module header against
 			// the module.
 			val errorString = moduleHeader.applyToModule(
@@ -3453,8 +3453,8 @@ class AvailCompiler constructor(
 					moduleName,
 					source.tupleSize.toLong(),
 					source.tupleSize.toLong(),
-					afterHeader.lineNumber,
-					null)
+					afterHeader.lineNumber
+				) { null }
 				afterHeader.expected(STRONG, errorString)
 				compilationContext.diagnostics.reportError()
 				return@parseModuleHeader
@@ -3530,8 +3530,8 @@ class AvailCompiler constructor(
 					moduleName,
 					source.tupleSize.toLong(),
 					afterStatement.position.toLong(),
-					afterStatement.lineNumber,
-					unambiguousStatement)
+					afterStatement.lineNumber
+				) { unambiguousStatement }
 				parseAndExecuteOutermostStatements(
 					afterStatement.withMap(start.clientDataMap))
 			}

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/6/22, 1:23 AM
+ * * Last Generated: 1/28/22, 2:22 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -125,6 +125,7 @@ Names
 	/*  46 */ "method definition",
 	/*  20 */ "module",
 	/*  67 */ "module constant phrase",
+	/* 175 */ "module imports tuple",
 	/*  66 */ "module variable phrase",
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
@@ -1097,7 +1098,7 @@ Special object "macro definition" is special object 47;
 Special object "tuple of function" is special object 48;
 
 /**
- * The {@code atom} under which the stack is captured within an 
+ * The {@code atom} under which the stack is captured within an
  * {@code exception} when it is raised.
  *
  * @category "Primitives" "Constants"
@@ -2325,4 +2326,14 @@ Special object "token tuple" is special object 173;
  * @alias "marker phrase"
  */
 Special object "marker phrase" is special object 174;
+
+/**
+ * The type for the module imports list for the CreateAnonymousModule
+ * primitive.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "module imports tuple"
+ */
+Special object "module imports tuple" is special object 175;
 

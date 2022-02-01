@@ -1278,8 +1278,27 @@ class AvailRuntime constructor(
 						TokenType.END_OF_FILE.atom)))
 			put(zeroOrMoreOf(Types.TOKEN.o))
 			put(PhraseKind.MARKER_PHRASE.mostGeneralType)
+			put(
+				oneOrMoreOf(
+					tupleTypeForTypes(
+						// Imported module name (Uses).
+						stringType,
+						// Optional import names list.
+						zeroOrOneOf(
+							// Import names list.
+							tupleTypeForTypes(
+								zeroOrMoreOf(
+									tupleTypeForTypes(
+										// Negated import.
+										booleanType,
+										// Imported name.
+										nonemptyStringType,
+										// Optional rename.
+										zeroOrOneOf(nonemptyStringType))),
+								// Wildcard.
+								booleanType)))))
 
-			at(175)
+			at(176)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/6/22, 1:23 AM
+ * * Last Generated: 1/28/22, 2:22 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -201,7 +201,6 @@ Uses
 		"ln_",
 		"method exists named_",
 		"milliseconds since the Epoch",
-		"new anonymous module importing_",
 		"new_[_]",
 		"new_applying_",
 		"new`↑_",
@@ -2018,24 +2017,6 @@ Primitive "_'s⁇seals" is
 |
 	Primitive Seals;
 ] : tuple of tuple of any meta;
-
-/**
- * Create an anonymous {@type "module"} that privately imports only and exactly
- * the supplied {@type "set"} of {@type "atom" atoms}.
- *
- * @category "Primitives" "Modules"
- * @method "new anonymous module importing_"
- * @param "allImports" "{atom|}"
- *        Every atom to be imported privately by the new module.
- * @returns "module"
- *    The new module.
- */
-Primitive "new anonymous module importing_" is
-[
-	allImports : set of atom
-|
-	Primitive CreateAnonymousModule;
-] : module;
 
 /**
  * Answer the entry points introduced by the specified module.

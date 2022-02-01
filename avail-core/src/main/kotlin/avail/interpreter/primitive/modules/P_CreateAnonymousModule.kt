@@ -34,19 +34,23 @@ package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.addPrivateNames
-import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.sets.A_Set
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MODULE
+import avail.descriptor.types.TupleTypeDescriptor.Companion.nonemptyStringType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
+import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
+import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
-import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -57,21 +61,47 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_CreateAnonymousModule : Primitive(1, CanInline, CannotFail)
+object P_CreateAnonymousModule : Primitive(1, CanInline)
 {
 	override fun attempt (interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val allUses: A_Set = interpreter.argument(0)
+		// Not implemented yet, just fail generically for now.
+		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 
-		val newModule = newModule(emptyTuple)
-		newModule.addPrivateNames(allUses)
-		return interpreter.primitiveSuccess(newModule)
+		//val allUses: A_Set = interpreter.argument(0)
+		//val newModule = newModule(emptyTuple)
+		//newModule.addPrivateNames(allUses)
+		//return interpreter.primitiveSuccess(newModule)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_INCORRECT_ARGUMENT_TYPE
+			)
+		)
 
 	override fun privateBlockTypeRestriction () =
 		functionType(
-			// All atoms that should be imported privately.
-			tuple(setTypeForSizesContentType(wholeNumbers, ATOM.o)),
+			tuple(
+				oneOrMoreOf(
+					tupleTypeForTypes(
+						// Imported module name (Uses).
+						stringType,
+						// Optional import names list.
+						zeroOrOneOf(
+							// Import names list.
+							tupleTypeForTypes(
+								zeroOrMoreOf(
+									tupleTypeForTypes(
+										// Negated import.
+										booleanType,
+										// Imported name.
+										nonemptyStringType,
+										// Optional rename.
+										zeroOrOneOf(nonemptyStringType))),
+								// Wildcard.
+								booleanType))))),
 			MODULE.o)
 }

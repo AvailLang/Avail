@@ -65,6 +65,9 @@ import java.util.UUID
  *   The [fully-qualified name][ModuleName] of the module or resource.
  * @property type
  *   The [ResourceType] that describes what this [ResolverReference] refers to.
+ * @property forcedDigest
+ *   If the source file's digest was captured within a jar file, always use it
+ *   as the digest, and never computed it.
  *
  * @constructor
  * Construct a [ResolverReference].
@@ -93,7 +96,8 @@ class ResolverReference constructor(
 	mimeType: String, // TODO can be updated? Error on creation?
 	lastModified: Long,
 	size: Long,
-	localName: String = "")
+	localName: String = "",
+	val forcedDigest: ByteArray? = null)
 {
 	/**
 	 * `true` iff the [ResolverReference] represents a root, `false` otherwise.
@@ -235,7 +239,8 @@ class ResolverReference constructor(
 	/**
 	 * The cryptographic hash of the file's most recently reported contents.
 	 */
-	private val digest: ByteArray? get() = archive.provideDigest(this)
+	private val digest: ByteArray?
+		get() = forcedDigest ?: archive.provideDigest(this)
 
 	/**
 	 * The [exception][Throwable] that prevented the most recent attempt at
@@ -429,11 +434,7 @@ class ResolverReference constructor(
 			return
 		}
 		resolver.refreshResolverReferenceDigest(
-			this,
-			{ newDigest, fromSaveTime ->
-				withDigest(newDigest, fromSaveTime)
-			},
-			failureHandler)
+			this, withDigest, failureHandler)
 	}
 
 	/**

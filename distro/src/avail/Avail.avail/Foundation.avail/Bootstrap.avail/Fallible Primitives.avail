@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/6/22, 1:23 AM
+ * * Last Generated: 1/28/22, 2:22 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -135,6 +135,7 @@ Uses
 		"method definition of_for_",
 		"method for_",
 		"method_._,⁇parameterized by_",
+		"new anonymous module importing_",
 		"new atom named_",
 		"new explicit subclass atom named_",
 		"new`↑_initialized to_",
@@ -2615,6 +2616,26 @@ Primitive "Close module_" is
 ] : ⊤;
 
 /**
+ * Create an anonymous {@type "module"} that privately imports only and
+ * exactly the supplied modules with and optional import structures.
+ *
+ * @category "Primitives" "Modules"
+ * @method "new anonymous module importing_"
+ * @param "allImports" "<<string, <<<<boolean, <character…|1..∞>, <<character…|1..∞>…|0..1>…|3>…|>, boolean…|2>…|0..1>…|2>…|1..∞>"
+ *        Every module and name to be imported privately by the new module.
+ * @returns "module"
+ *    The new module.
+ */
+Primitive "new anonymous module importing_" is
+[
+	allImports : module imports tuple
+|
+	Primitive CreateAnonymousModule (failureCode : {
+		incorrect-argument-type code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : module;
+
+/**
  * Answer the module currently undergoing compilation.
  *
  * @category "Primitives" "Modules" "Queries"
@@ -3344,7 +3365,7 @@ Primitive "_(_)@_:_" is
 ] : token;
 
 /**
- * Answer this declaration's initializing expression, or fail if it doesn't
+ * Answer this declaration's initializing expression, or fail if it does not
  * have one.  Its presence can be checked with {@code 
  * "_has initializing expression"}.
  *

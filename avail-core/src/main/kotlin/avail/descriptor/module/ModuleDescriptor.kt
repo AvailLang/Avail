@@ -994,9 +994,10 @@ class ModuleDescriptor private constructor(
 		{
 			val string: A_String = trueName.atomName
 			privateNames = privateNames.mapAtReplacingCanDestroy(
-				string, emptySet, true) { _, set: A_Set ->
-					set.setWithElementCanDestroy(trueName, true)
-				}
+				string, emptySet, true
+			) { _, set: A_Set ->
+				set.setWithElementCanDestroy(trueName, true)
+			}
 			visibleNames = visibleNames.setWithElementCanDestroy(trueName, true)
 		}
 		self.setSlot(PRIVATE_NAMES, privateNames.makeShared())

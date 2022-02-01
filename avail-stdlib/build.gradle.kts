@@ -29,7 +29,9 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
+
 import avail.build.AvailSetupContext.distroLib
+import avail.plugins.gradle.CreateDigestsFileTask
 
 plugins {
 	java
@@ -45,24 +47,36 @@ dependencies {
 	// Avail.
 	implementation(project(":avail-core"))
 }
+
 tasks {
-	processResources {
-		exclude("**")
-	}
+	val sourcesRoot = "$projectDir/../distro/src/avail"
 	// Produce a JAR with the source of every module in the standard Avail library.
-	val standardLibraryName =
-		"$buildDir/avail-standard-library.jar"
+	val standardLibraryName = "$buildDir/avail-standard-library.jar"
+	val digestsDirectory = "$buildDir/Avail-Digests"
+	val digestsLocalFileName = "all_digests.txt"
+
+	val createDigests by creating(CreateDigestsFileTask::class) {
+		basePath = sourcesRoot
+		inputs.files(fileTree(sourcesRoot))
+		outputs.file("$digestsDirectory/$digestsLocalFileName")
+	}
+
 	jar {
 		description = "The Avail standard library"
 		archiveFileName.set(standardLibraryName)
-		exclude("stacks/**")
-		exclude("com/")
-		// Exclude all the java files that Gradle puts in by default.
-		dependsOn(processResources)
-
-		from("../distro/src/avail") {
+		isZip64 = true
+		dependsOn(createDigests)
+		from(sourcesRoot) {
 			include("**/*.*")
+			into("Avail-Sources")
 		}
+		from(digestsDirectory) {
+			include(digestsLocalFileName)
+			into("Avail-Digests")
+		}
+		// Eventually we will add Avail-Compilations or something, to capture
+		// serialized compiled modules, serialized phrases, manifest entries,
+		// style information, and navigation indices.
 		duplicatesStrategy = DuplicatesStrategy.FAIL
 		manifest.attributes["Implementation-Title"] = "Avail standard library"
 		manifest.attributes["Implementation-Version"] = project.version
@@ -85,7 +99,10 @@ tasks {
 	// Update the dependencies of "assemble".
 	assemble { dependsOn(releaseStandardLibrary) }
 }
-rootProject.tasks.assemble { dependsOn(tasks.getByName("releaseStandardLibrary")) }
+
+rootProject.tasks.assemble {
+	dependsOn(tasks.getByName("releaseStandardLibrary"))
+}
 
 publishing {
 	repositories {

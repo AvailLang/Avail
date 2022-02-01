@@ -100,7 +100,8 @@ data class Project constructor(
 			{   moduleName,
 				moduleSizeInBytes,
 				currentByteProcessing,
-				lineNumber ->
+				lineNumber,
+				phrase ->
 
 				// Add behavior to present compiler progress on module currently
 				// being compiled. This can be used to present the compilation

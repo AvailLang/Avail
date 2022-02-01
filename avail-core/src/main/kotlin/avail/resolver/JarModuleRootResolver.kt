@@ -51,9 +51,6 @@ import java.io.DataInputStream
 import java.io.File
 import java.io.IOException
 import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
-import java.security.MessageDigest
 import java.util.UUID
 import java.util.concurrent.locks.ReentrantLock
 import java.util.jar.JarFile
@@ -112,14 +109,39 @@ constructor(
 			val rootPrefix = "/${moduleRoot.name}"
 			try
 			{
+				val digests = mutableMapOf<String, ByteArray>()
 				val entries = jarFileLock.withLock {
 					jarFile = JarFile(uri.path)
+					// First, fetch the digests file and populate the digestMap.
+					val digestEntry =
+						jarFile!!.getEntry(availDigestsPathInJar)!!
+					val bytes = ByteArray(digestEntry.size.toInt())
+					val stream = DataInputStream(
+						BufferedInputStream(
+							jarFile!!.getInputStream(digestEntry), 4096))
+					stream.readFully(bytes)
+					// Decode file as UTF-8.
+					val text = String(bytes)
+					text.lines()
+						.filter(String::isNotEmpty)
+						.forEach { line ->
+							val (innerFileName, digestString) = line.split(":")
+							val digestBytes =
+								ByteArray(digestString.length ushr 1) { i ->
+									digestString
+										.substring(i shl 1, (i shl 1) + 2)
+										.toInt(16)
+										.toByte()
+								}
+							digests[innerFileName] = digestBytes
+						}
 					jarFile!!.entries()
 				}
 				for (entry in entries.iterator())
 				{
 					var name = entry.name
-					if (name.startsWith("META-INF/")) continue
+					if (!name.startsWith(availSourcesPathInJar)) continue
+					name = name.removePrefix(availSourcesPathInJar)
 					val type = when
 					{
 						entry.name.endsWith(availExtensionWithSlash) -> PACKAGE
@@ -132,8 +154,7 @@ constructor(
 							{
 								(parts.size >= 2
 									&& parts.last() == parts[parts.size - 2]
-									) ->
-									REPRESENTATIVE
+								) -> REPRESENTATIVE
 								else -> MODULE
 							}
 						}
@@ -158,7 +179,8 @@ constructor(
 						type,
 						mimeType,
 						entry.lastModifiedTime.toMillis(),
-						entry.size)
+						entry.size,
+						forcedDigest = digests[name])
 					map[qualifiedName] = reference
 				}
 				// Add the root.
@@ -234,20 +256,19 @@ constructor(
 		successHandler : (ByteArray, Long) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
-		// Within a jar file, the file entry's lastModified time is considered
-		// authoritative and sufficient for distinguishing versions.  Change it
-		// into form that's suitable for use as a digest.  In particular, write
-		// the timestamp into the first four bytes in big-endian order, leaving
-		// the other bytes zero.
-		val hasher = MessageDigest.getInstance(
-			ResolverReference.DIGEST_ALGORITHM)
-		val bytes = ByteArray(hasher.digestLength)
-		assert(bytes.size >= 8)
-		val buffer = ByteBuffer.wrap(bytes)
-		buffer.order(ByteOrder.BIG_ENDIAN)
-		buffer.putLong(reference.lastModified)
-		assert(buffer.getLong(0) == reference.lastModified)
-		successHandler(bytes, reference.lastModified)
+		// Within a jar file, the digest file is the authoritative mechanism for
+		// distinguishing versions.  There's nothing to refresh, since the
+		// digest and timestamp were capture during jar construction.
+		when (val digest = reference.forcedDigest)
+		{
+			null -> failureHandler(
+				FileErrorCode.FILE_NOT_FOUND,
+				NoSuchFileException(
+					File(reference.qualifiedName),
+					reason = "Avail file ${reference.qualifiedName} does not " +
+						"occur in Jar"))
+			else -> successHandler(digest, reference.lastModified)
+		}
 	}
 
 	override fun createFile(
@@ -319,13 +340,12 @@ constructor(
 				failureHandler)
 			if (handled) return
 		}
-		// We stashed the exact path within the jar inside the
-		// schemaSpecificPart of the URI.
-		val pathInJar = reference.uri.schemeSpecificPart
 		val fileContent = try
 		{
 			jarFileLock.withLock {
-				val entry = jarFile!!.getEntry(pathInJar)
+				// We stashed the exact path within the jar inside the
+				// schemaSpecificPart of the URI.
+				val entry = jarFile!!.getEntry(reference.uri.schemeSpecificPart)
 				assert(entry.size.toInt().toLong() == entry.size)
 				val bytes = ByteArray(entry.size.toInt())
 				val stream = DataInputStream(
@@ -340,5 +360,20 @@ constructor(
 			return
 		}
 		withContents(fileContent, null)
+	}
+
+	companion object
+	{
+		/**
+		 * The prefix of paths of Avail *source* file names within this jar
+		 * file.
+		 */
+		const val availSourcesPathInJar = "Avail-Sources/"
+
+		/**
+		 * The path within this jar file of the digests file.  The file contains
+		 * a series of entries of the form ```<path>:<digest>\n```.
+		 */
+		const val availDigestsPathInJar = "Avail-Digests/all_digests.txt"
 	}
 }

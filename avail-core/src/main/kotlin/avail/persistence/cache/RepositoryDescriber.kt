@@ -35,12 +35,14 @@ package avail.persistence.cache
 import avail.AvailRuntime
 import avail.compiler.ModuleManifestEntry
 import avail.descriptor.module.A_Module
-import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.DeserializerDescriber
+import avail.utility.Strings.newlineTab
+import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import org.availlang.persistence.MalformedSerialStreamException
 import java.io.DataInputStream
+import java.lang.String.format
 
 /**
  * An `RepositoryDescriber` provides a textual representation of
@@ -67,31 +69,31 @@ class RepositoryDescriber constructor(
 	 * @return
 	 *   A [String] describing the repository.
 	 */
-	fun dumpAll(): String
-	{
-		val builder = StringBuilder()
+	fun dumpAll() = buildString {
+		append("Structure of repository ${repository.fileName}:")
 		val archives = repository.allArchives
 		for (archive in archives)
 		{
-			builder.append(archive.rootRelativeName)
-			builder.append('\n')
+			newlineTab(0)
+			append(archive.rootRelativeName)
 			val versionMap = archive.allKnownVersions
 			versionMap.forEach { (versionKey, version) ->
-				builder.append('\t')
-				builder.append(versionKey.shortString)
-				builder.append('\n')
+				newlineTab(1)
+				append("digest=${versionKey.shortString}")
 				version.allCompilations.forEach { compilation ->
-					builder.append("\t\tCompilation #")
-					builder.append(compilation.recordNumber)
-					builder.append("\n\t\tPhrases #")
-					builder.append(compilation.recordNumberOfBlockPhrases)
-					builder.append("\n\t\tManifest #")
-					builder.append(compilation.recordNumberOfManifestEntries)
-					builder.append("\n")
+					compilation.run {
+						newlineTab(2)
+						append(format("Time: %tFT%<tTZ", compilationTime))
+						newlineTab(3)
+						append("Compilation #$recordNumber")
+						newlineTab(3)
+						append("Phrases #$recordNumberOfBlockPhrases")
+						newlineTab(3)
+						append("Manifest #$recordNumberOfManifestEntries")
+					}
 				}
 			}
 		}
-		return builder.toString()
 	}
 
 	/**

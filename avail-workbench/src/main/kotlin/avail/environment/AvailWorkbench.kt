@@ -1388,7 +1388,7 @@ class AvailWorkbench internal constructor (
 		moduleSize: Long,
 		position: Long,
 		line: Int,
-		@Suppress("UNUSED_PARAMETER") phrase: A_Phrase?)
+		@Suppress("UNUSED_PARAMETER") phrase: ()->A_Phrase?)
 	{
 		perModuleProgressLock.safeWrite {
 			if (position == moduleSize)

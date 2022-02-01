@@ -54,8 +54,7 @@ class AnvilLexer constructor(private val project: Project): LexerBase()
 		buffer: CharSequence,
 		startOffset: Int,
 		endOffset: Int,
-		initialState: Int
-	)
+		initialState: Int)
 	{
 		TODO("Not yet implemented")
 	}
