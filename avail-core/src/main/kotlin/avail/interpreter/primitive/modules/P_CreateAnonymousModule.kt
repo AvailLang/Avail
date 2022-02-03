@@ -66,7 +66,8 @@ object P_CreateAnonymousModule : Primitive(1, CanInline)
 	override fun attempt (interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		// Not implemented yet, just fail generically for now.
+		//
+		// TODO Not implemented yet, just fail generically for now.
 		return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 
 		//val allUses: A_Set = interpreter.argument(0)
@@ -76,11 +77,7 @@ object P_CreateAnonymousModule : Primitive(1, CanInline)
 	}
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(
-			set(
-				E_INCORRECT_ARGUMENT_TYPE
-			)
-		)
+		enumerationWith(set(E_INCORRECT_ARGUMENT_TYPE))
 
 	override fun privateBlockTypeRestriction () =
 		functionType(

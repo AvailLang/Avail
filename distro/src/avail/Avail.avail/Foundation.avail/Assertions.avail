@@ -45,10 +45,6 @@ Uses
 	"Phrases",
 	"Types"
 Names
-	"Assert:_",
-	"Assert:_(_)",
-	"Shouldn't happen",
-	"Shouldn't happen(_)",
 	"assertion-failed exception"
 Body
 
@@ -60,48 +56,31 @@ Body
  * @supertype "exception"
  * @category "Assertions" "Exceptions"
  */
-Public explicit class "assertion-failed exception" extends exception;
+Public explicit class "assertion-failed exception"
+	extends descriptive exception;
 
 /**
- * If the argument is {@code false}, then raise an {@type "assertion-failed
- * exception"}.
- *
- * @method "Assert:_"
- * @param "predicate" "boolean"
- *        A predicate.
- * @returns "⊤"
- * @raises "assertion-failed exception"
- *         If {@param "predicate"} is {@code false}.
- * @category "Assertions"
+ * Define a new mechanism for reporting failed assertions.  The raw failure form
+ * was fine for bootstrapping, but now we're ready to use exceptions and honor
+ * unwinds.
  */
-Public method "Assert:_" is
 [
-	predicate : boolean
-|
-	/* No implementation required. */
-] : ⊤;
+	oldAssertionFailureFunction ::= Replace assertion failure function with
+	[
+		message : string
+	|
+		Raise an assertion-failed exception with error message ::= message
+	] : ⊥;
 
-Public method "Assert:_" is
-[
-	predicate : false's type
-|
-	Raise an assertion-failed exception
-] : ⊥;
+	After the current module is unloaded, do
+	[
+		ignored ::= Replace assertion failure function
+			with oldAssertionFailureFunction;
+	];
+]();
 
-/**
- * @method "Assert:_"
- * @restricts "false's type's type"
- */
-Semantic restriction "Assert:_" is
-[
-	contradiction : false's type's type
-|
-	Reject parse, expected:
-		"an assertion that could ever be true \
-		\|(use \"Shouldn't happen\" instead)"
-];
 
-Private method "Assert:__" is
+Private method "Assert:_with function_" is
 [
 	predicate : boolean,
 	message : []→string
@@ -109,7 +88,7 @@ Private method "Assert:__" is
 	/* No implementation required. */
 ] : ⊤;
 
-Private method "Assert:__" is
+Private method "Assert:_with function_" is
 [
 	predicate : false's type,
 	message : []→string
@@ -134,7 +113,7 @@ Private method "Assert:__" is
  * @returns "send phrase ⇒ ⊤"
  * @category "Assertions"
  */
-Public macro "Assert:_(_)" is
+Macro "Assert:_(_)" is
 [
 	predicate : expression phrase ⇒ boolean,
 	message : expression phrase ⇒ string
@@ -145,45 +124,5 @@ Public macro "Assert:_(_)" is
 			"an assertion that could ever be true \
 			\|(use \"Shouldn't happen(_)\" instead)"
 	];
-	send $"Assert:__" with
-		«<
-			predicate,
-			«[<message>] : message's semantic type»
-		>» : ⊤
+	⟦Assert: ⦊predicate⦉ with function [⦊message⦉]⟧
 ];
-
-/**
- * Declare that the code path that called this method should never be executed.
- * It results in an assertion failure.
- *
- * @method "Shouldn't happen"
- * @returns "⊥"
- * @raises "assertion-failed exception"
- *         Always.
- * @category "Assertions"
- */
-Public method "Shouldn't happen" is
-[
-	Raise an assertion-failed exception ∩ descriptive exception
-		with error message ::= "This should not be possible."
-] : ⊥;
-
-/**
- * Declare that the code path that called this method should never be executed.
- * It results in an assertion failure.
- *
- * @method "Shouldn't happen(_)"
- * @param "message" "string"
- *        The error message.
- * @returns "⊥"
- * @raises "assertion-failed exception"
- *         Always.
- * @category "Assertions"
- */
-Public method "Shouldn't happen(_)" is
-[
-	message : string
-|
-	Raise an assertion-failed exception ∩ descriptive exception
-		with error message ::= message
-] : ⊥;

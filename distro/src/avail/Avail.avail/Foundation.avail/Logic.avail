@@ -38,7 +38,6 @@ Extends
 Uses
 	"Bootstrap",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Literals",

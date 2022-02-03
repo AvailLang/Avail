@@ -34,7 +34,6 @@ Module "Characters"
 Versions
 	"Avail-1.6.0"
 Uses
-	"Early Assertions",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",

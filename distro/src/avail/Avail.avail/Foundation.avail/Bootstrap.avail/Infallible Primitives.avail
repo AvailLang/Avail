@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/28/22, 2:22 PM
+ * * Last Generated: 2/3/22, 1:28 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -49,7 +49,6 @@ Uses
 	(
 		"$_",
 		"<_,_`…`|_>",
-		"Assert:_(_)",
 		"Breakpoint",
 		"Cast|cast_into_else_",
 		"Crash:_",
@@ -1322,28 +1321,6 @@ Primitive "_'s⁇return type" is
 |
 	Primitive ReturnType;
 ] : type;
-
-/**
- * Early assertion mechanism. This is obsolete once exceptions are available.
- * Raise a special exception in the virtual machine that may be trapped to
- * facilitate debugging. This exception will provided access to {@param "message"}.
- *
- * @category "Primitives" "Bootstrap" "Assertions"
- * @method "Assert:_(_)"
- * @param "predicate" "boolean"
- *        A boolean, usually derived from a more complex predicate expression.
- * @param "message" "string"
- *        Text describing the assertion failure, ignored unless {@param
- *        "predicate"} is `false`.
- * @returns "⊤"
- */
-Primitive "Assert:_(_)" is
-[
-	predicate : boolean,
-	message : string
-|
-	Primitive Assert;
-] : ⊤;
 
 /**
  * Cause the Avail virtual machine to raise an

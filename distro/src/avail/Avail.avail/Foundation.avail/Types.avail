@@ -37,7 +37,6 @@ Extends
 Uses
 	"Bootstrap",
 	"Collections" = ("_[_]else_"),
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Definers",

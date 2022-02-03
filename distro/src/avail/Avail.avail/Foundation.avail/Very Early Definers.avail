@@ -36,10 +36,15 @@ Versions
 Uses
 	"Bootstrap"
 Names
+	"Assert:_",
+	"Assert:_(_)",
 	"Method_is_",
 	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Reject parse(confidence=_),expected:_",
-	"Replace parse rejection function with_"
+	"Replace assertion failure function with_",
+	"Replace parse rejection function with_",
+	"Shouldn't happen",
+	"Shouldn't happen(_)"
 Body
 
 /**
@@ -330,3 +335,193 @@ Method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_" is
  */
 Alias "Reject parse(confidence=_),expected:_" to
 	atom for "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_";
+
+
+
+
+assertionFailureArgumentsTuple ::= <string>;
+assertionFailureArgumentsSizes ::= ||assertionFailureArgumentsTuple's type||;
+assertionFailureArgumentsType ::=
+	<assertionFailureArgumentsTuple, ⊥… |assertionFailureArgumentsSizes>;
+assertionFailureFunctionType ::=
+	function accepting assertionFailureArgumentsTuple and returning ⊥;
+
+/**
+ * The variable holding the assertion failure handler function.  This is
+ * populated when the exception mechanism has been sufficiently bootstrapped.
+ */
+assertionFailureFunction : assertionFailureFunctionType :=
+[
+	messageText : string
+|
+	message : tuple;
+	Cast <"Assertion failure: ", messageText>
+		into [t : tuple of tuple | message := concatenate t;]
+		else [message := "Unable to assemble message for assertion failure";];
+	Crash: message
+] : ⊥;
+
+/**
+ * Update the assertionFailureFunction, returning the prior value.
+ */
+Method "Replace assertion failure function with_" is
+[
+	newFunction : assertionFailureFunctionType
+|
+	temp ::= assertionFailureFunction;
+	assertionFailureFunction := newFunction;
+	temp
+] : assertionFailureFunctionType;
+
+/**
+ * The {@code "Assert:_(_)"} method is polymorphic on its {@code boolean}
+ * first argument. Define the base boolean case here, which will be overridden
+ * for the {@code false} case below.
+ *
+ * @category "Assertions"
+ * @method "Assert:_(_)"
+ * @param "condition" "boolean"
+ *        The condition being asserted. Ideally it should be {@code true}, but
+ *        if it's false, it should complain.
+ * @param "message" "string"
+ *        The message to report in the event the {@code condition} is false.
+ */
+Method "Assert:_(_)" is
+[
+	condition : boolean,
+	message : string
+|
+	/* Do nothing by default. */
+] : ⊤;
+
+/**
+ * Override the {@code "Assert:_(_)"} method for {@code false} as its first
+ * argument.  It should invoke the {@code "assertionFailureFunction"}.  Note
+ * that this override yields {@code "⊥"}, so a statically detectable failing
+ * assertion cannot have other statements after it.
+ *
+ * @param "condition" "false's type"
+ *        The condition being asserted. Ideally it should be {@code true}, but
+ *        here it's false, so we should complain.
+ * @param "message" "string"
+ *        The message to report because the {@code condition} is false.
+ */
+Method "Assert:_(_)" is
+[
+	condition : false's type,
+	message : string
+|
+	Invoke assertionFailureFunction with <message>;
+] : ⊤;
+
+/**
+ * Statically detect assertions that are always false.
+ *
+ * @method "Assert:_(_)"
+ * @restricts "false's type's type"
+ */
+Semantic restriction "Assert:_(_)" is
+[
+	contradiction : false's type's type,
+	message : string's type
+|
+	Reject parse, expected:
+		"an assertion that could ever be true \
+		\|(use \"Shouldn't happen\" instead)"
+];
+
+
+/**
+ * The {@code "Assert:_"} method is polymorphic on its {@code boolean} argument.
+ * Define the base boolean case here, which will be overridden for the {@code
+ * false} case below.
+ *
+ * @category "Assertions"
+ * @method "Assert:_"
+ * @param "condition" "boolean"
+ *        The condition being asserted. Ideally it should be {@code true}, but
+ *        if it's false, it should complain.
+ */
+Method "Assert:_" is
+[
+	condition : boolean
+|
+	/* Do nothing by default. */
+] : ⊤;
+
+/**
+ * Override the {@code "Assert:_"} method for {@code false} as its argument.  It
+ * should invoke the {@code "assertionFailureFunction"}.  Note that this
+ * override yields {@code "⊥"}, so a statically detectable failing assertion
+ * cannot have other statements after it.
+ */
+Method "Assert:_" is
+[
+	condition : false's type
+|
+	Invoke assertionFailureFunction with <"(no description provided)">;
+] : ⊤;
+
+/**
+ * Statically detect assertions that are always false.
+ *
+ * @method "Assert:_"
+ * @restricts "false's type's type"
+ */
+Semantic restriction "Assert:_" is
+[
+	contradiction : false's type's type
+|
+	Reject parse, expected:
+		"an assertion that could ever be true \
+		\|(use \"Shouldn't happen\" instead)"
+];
+
+/**
+ * Declare that the code path that called this method should never be executed.
+ * It results in an assertion failure. This is obsolete once exceptions are
+ * available, and should not be exported beyond this package.
+ *
+ * @method "Shouldn't happen"
+ * @returns "⊥"
+ * @category "Bootstrap" "Assertions"
+ */
+Method "Shouldn't happen" is
+[
+	Invoke assertionFailureFunction with
+		<"This should not be possible; debug the VM and/or system library.">;
+] : ⊤;
+
+Semantic restriction "Shouldn't happen" is [⊥];
+
+
+/**
+ * Declare that the code path that called this method should never be executed.
+ * It results in an assertion failure.
+ *
+ * @method "Shouldn't happen(_)"
+ * @param "message" "string"
+ *        The error message.
+ * @returns "⊥"
+ * @raises "assertion-failed exception"
+ *         Always.
+ * @category "Assertions"
+ */
+Method "Shouldn't happen(_)" is
+[
+	message : string
+|
+	messageText : tuple;
+	Cast <"This should not be possible: ", message>
+		into [t : tuple of tuple | messageText := concatenate t;]
+		else [
+			messageText := "Unable to assemble message for assertion failure";];
+	Invoke assertionFailureFunction with <messageText>;
+] : ⊤;
+
+Semantic restriction "Shouldn't happen(_)" is
+[
+	message : string's type
+|
+	⊥
+];

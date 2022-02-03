@@ -35,7 +35,6 @@ Versions
 	"Avail-1.6.0"
 Uses
 	"Bootstrap",
-	"Early Assertions",
 	"Early Control Structures",
 	"Early Definers",
 	"Early Logic",

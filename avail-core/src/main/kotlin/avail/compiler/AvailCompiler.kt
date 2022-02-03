@@ -271,7 +271,6 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.descriptor.variables.VariableSharedGlobalDescriptor.Companion.createGlobal
 import avail.dispatch.LookupStatistics
-import avail.exceptions.AvailAssertionFailedException
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
@@ -891,11 +890,6 @@ class AvailCompiler constructor(
 		val phraseFailure = { e: Throwable ->
 			when (e)
 			{
-				is AvailAssertionFailedException ->
-					compilationContext.reportAssertionFailureProblem(
-						startState.lineNumber,
-						startState.position,
-						e)
 				is AvailEmergencyExitException ->
 					compilationContext.reportEmergencyExitProblem(
 						startState.lineNumber,
@@ -2271,13 +2265,6 @@ class AvailCompiler constructor(
 								+ bundle.message.atomName.asNativeString()
 								+ "):\n\t"
 								+ e)
-						is AvailAssertionFailedException -> state.expected(
-							STRONG,
-							"assertion not to have failed "
-								+ "(while parsing send of "
-								+ bundle.message.atomName.asNativeString()
-								+ "):\n\t"
-								+ e.assertionString.asNativeString())
 						else -> state.expected(
 							STRONG,
 							FormattingDescriber(

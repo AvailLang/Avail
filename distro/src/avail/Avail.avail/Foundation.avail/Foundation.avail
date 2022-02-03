@@ -38,10 +38,6 @@ Uses
 Extends
 	"Assertions" =
 	(
-		"Assert:_",
-		"Assert:_(_)",
-		"Shouldn't happen",
-		"Shouldn't happen(_)",
 		"assertion-failed exception"
 	),
 	"Backtracking" =
@@ -1345,8 +1341,12 @@ Extends
 	),
 	"Very Early Definers" =
 	(
+		"Assert:_",
+		"Assert:_(_)",
 		"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
-		"Reject parse(confidence=_),expected:_"
+		"Reject parse(confidence=_),expected:_",
+		"Shouldn't happen",
+		"Shouldn't happen(_)"
 	)
 Body
 

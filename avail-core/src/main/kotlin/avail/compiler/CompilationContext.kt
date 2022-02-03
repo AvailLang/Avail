@@ -49,11 +49,11 @@ import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -74,7 +74,6 @@ import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.exceptions.AvailAssertionFailedException
 import avail.exceptions.AvailEmergencyExitException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
@@ -82,9 +81,9 @@ import avail.interpreter.levelOne.L1Decompiler
 import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.io.TextInterface
-import org.availlang.persistence.IndexedFile
 import avail.serialization.Serializer
 import avail.utility.StackPrinter.Companion.trace
+import org.availlang.persistence.IndexedFile
 import java.lang.String.format
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -841,38 +840,6 @@ class CompilationContext constructor(
 					}
 				})
 		}
-	}
-
-	/**
-	 * Report an [assertion&#32;failure][ProblemType.EXECUTION]
-	 * [problem][Problem].
-	 *
-	 * @param lineNumber
-	 *   The one-based line number on which the problem occurs.
-	 * @param position
-	 *   The one-based position in the source at which the problem occurs.
-	 * @param e
-	 *   The [assertion&#32;failure][AvailAssertionFailedException].
-	 */
-	internal fun reportAssertionFailureProblem(
-		lineNumber: Int,
-		position: Int,
-		e: AvailAssertionFailedException)
-	{
-		diagnostics.compilationIsInvalid = true
-		diagnostics.handleProblem(object : Problem(
-			moduleName,
-			lineNumber,
-			position.toLong(),
-			EXECUTION,
-			"{0}",
-			e.message)
-		{
-			override fun abortCompilation()
-			{
-				// Nothing else needed.
-			}
-		})
 	}
 
 	/**

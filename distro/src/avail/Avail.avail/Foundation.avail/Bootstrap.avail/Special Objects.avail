@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/28/22, 2:22 PM
+ * * Last Generated: 2/3/22, 1:28 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1098,7 +1098,7 @@ Special object "macro definition" is special object 47;
 Special object "tuple of function" is special object 48;
 
 /**
- * The {@code atom} under which the stack is captured within an
+ * The {@code atom} under which the stack is captured within an 
  * {@code exception} when it is raised.
  *
  * @category "Primitives" "Constants"

@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 1/28/22, 2:22 PM
+ * * Last Generated: 2/3/22, 1:28 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -878,10 +878,10 @@ Primitive "_∈current fiber" is
 ] : boolean;
 
 /**
- * Answer the value bound to {@param "key"} in the current fiber's environment. Since
- * the fiber's environment essentially contains fiber-local variables (i.e.
- * bindings from atoms to arbitrary values), this operation effectively reads a
- * fiber-local variable.
+ * Answer the value bound to {@param "key"} in the current fiber's environment.
+ * Since the fiber's environment essentially contains fiber-local variables
+ * (i.e. bindings from atoms to arbitrary values), this operation effectively
+ * reads a fiber-local variable.
  *
  * @category "Primitives" "Concurrency" "Queries"
  * @method "current fiber[_]"
@@ -1130,9 +1130,9 @@ Primitive "_>>_" is
 ] : integer;
 
 /**
- * Shift {@param "baseInteger"} to the left by {@param "shiftFactor"} bits (treating
- * a negative factor as a right shift), then truncate the result to the bottom
- * {@param "truncationBits"} bits by zeroing the rest.
+ * Shift {@param "baseInteger"} to the left by {@param "shiftFactor"} bits
+ * (treating a negative factor as a right shift), then truncate the result to
+ * the bottom {@param "truncationBits"} bits by zeroing the rest.
  *
  * @category "Primitives" "Numbers" "Integers" "Mathematics" "Bits"
  * @method "_<<_keeping_bits"
@@ -1412,9 +1412,10 @@ Primitive "Abstract method_is_" is
 
 /**
  * Define the specified semantic restriction. Henceforth whenever the method
- * named by {@param "methodName"} is invoked with arguments accepted by {@param "restriction"},
- * then apply {@param "restriction"} with the most specific available types of the actual
- * arguments. This is determined by the compiler at the method's call site.
+ * named by {@param "methodName"} is invoked with arguments accepted by
+ * {@param "restriction"}, then apply {@param "restriction"} with the most
+ * specific available types of the actual arguments. This is determined by the
+ * compiler at the method's call site.
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
@@ -1491,9 +1492,9 @@ Primitive "Semantic restriction_is_" is
 /**
  * Define the specified semantic restriction. Henceforth whenever the method
  * named by {@param "methodName"} is invoked with arguments accepted by
- * {@param "restriction"}, then apply {@param "restriction"} with the most specific
- * available types of the actual arguments. This is determined by the compiler
- * at the method's call site.
+ * {@param "restriction"}, then apply {@param "restriction"} with the most
+ * specific available types of the actual arguments. This is determined by the
+ * compiler at the method's call site.
  *
  * A semantic restriction has two responsibilities. First, it may reject a
  * method invocation on any appropriate semantic grounds by calling
@@ -1846,13 +1847,13 @@ Primitive "Forward method_is_" is
 
 /**
  * Define the indicated grammatical restrictions. Each method name in
- * {@param "methodsToRestrict"} must accept the same number of arguments, though not
- * necessarily the same types (or the same order of types). Each element `e` of
- * {@param "exclusions"}, itself a set of method names, corresponds to an argument
- * position `n` of any method name in {@param "methodsToRestrict"}. The compiler rejects
- * parses of source text that invoke methods named in `e` when they occur
- * grammatically at argument position `n` of an invocation of any method named
- * in {@param "methodsToRestrict"}.
+ * {@param "methodsToRestrict"} must accept the same number of arguments, though
+ * not necessarily the same types (or the same order of types). Each element `e`
+ * of {@param "exclusions"}, itself a set of method names, corresponds to an
+ * argument position `n` of any method name in {@param "methodsToRestrict"}. The
+ * compiler rejects parses of source text that invoke methods named in `e` when
+ * they occur grammatically at argument position `n` of an invocation of any
+ * method named in {@param "methodsToRestrict"}.
  *
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
@@ -1864,7 +1865,8 @@ Primitive "Forward method_is_" is
  * @param "exclusions" "<{string|}…|>"
  *        A tuple of sets of method names. The method names in the `n`-th set
  *        are restricted from occurring grammatically at the `n`-th argument
- *        position of any invocation of a method named in {@param "methodsToRestrict"}.
+ *        position of any invocation of a method named in
+ *        {@param "methodsToRestrict"}.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
  * @raises "incorrect-argument-type exception"
@@ -1924,13 +1926,13 @@ Primitive "Grammatical restriction_is_" is
 
 /**
  * Define the indicated grammatical restrictions. Each method name in
- * {@param "methodsToRestrict"} must accept the same number of arguments, though not
- * necessarily the same types (or the same order of types). Each element `e` of
- * {@param "exclusions"}, itself a set of method names, corresponds to an argument
- * position `n` of any method name in {@param "methodsToRestrict"}. The compiler rejects
- * parses of source text that invoke methods named in `e` when they occur
- * grammatically at argument position `n` of an invocation of any method named
- * in {@param "methodsToRestrict"}.
+ * {@param "methodsToRestrict"} must accept the same number of arguments, though
+ * not necessarily the same types (or the same order of types). Each element `e`
+ * of {@param "exclusions"}, itself a set of method names, corresponds to an
+ * argument position `n` of any method name in {@param "methodsToRestrict"}. The
+ * compiler rejects parses of source text that invoke methods named in `e` when
+ * they occur grammatically at argument position `n` of an invocation of any
+ * method named in {@param "methodsToRestrict"}.
  *
  * Note that "argument position" corresponds to a blank, not to a top-level
  * repeating sequence (indicated by guillemet notation).
@@ -2616,8 +2618,8 @@ Primitive "Close module_" is
 ] : ⊤;
 
 /**
- * Create an anonymous {@type "module"} that privately imports only and
- * exactly the supplied modules with and optional import structures.
+ * Create an anonymous {@type "module"} that privately imports exactly the
+ * supplied modules with optional import structures.
  *
  * @category "Primitives" "Modules"
  * @method "new anonymous module importing_"
@@ -2625,6 +2627,8 @@ Primitive "Close module_" is
  *        Every module and name to be imported privately by the new module.
  * @returns "module"
  *    The new module.
+ * @raises "incorrect-argument-type exception"
+ *    If the module import specifications are invalid in some way.
  */
 Primitive "new anonymous module importing_" is
 [
@@ -2932,8 +2936,8 @@ Primitive "_→tuple" is
  *        An expression.
  * @returns "assignment phrase⇒⊤"
  *    An expression that describes assigning to the variable indicated by
- *    {@param "variableUse"} the result of running {@param "valueExpression"}. The result
- *    yields the same answer as {@param "valueExpression"}.
+ *    {@param "variableUse"} the result of running {@param "valueExpression"}.
+ *    The result yields the same answer as {@param "valueExpression"}.
  * @raises "cannot-store-incorrectly-typed-value exception"
  * @raises "declaration-kind-does-not-support-assignment exception"
  */
@@ -3216,9 +3220,9 @@ Primitive "restricted report and send_with_:_" is
 ] : optional send phrase and report string;
 
 /**
- * Construct and answer a message send. {@param "messageName"} must be an atom which has
- * a message bundle.  The number and types of the argument expressions must
- * satisfy at least one of the method's existing definitions.
+ * Construct and answer a message send. {@param "messageName"} must be an atom
+ * which has a message bundle.  The number and types of the argument expressions
+ * must satisfy at least one of the method's existing definitions.
  *
  * @category "Primitives" "Phrases" "Constructors"
  * @method "send_with_:_"

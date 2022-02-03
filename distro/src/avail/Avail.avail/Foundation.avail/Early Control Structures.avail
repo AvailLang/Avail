@@ -35,7 +35,6 @@ Versions
 	"Avail-1.6.0"
 Uses
 	"Bootstrap",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Definers",
 	"Early Literals",
@@ -177,7 +176,7 @@ Public method "Cast|cast_into_" is
 		acceptedDescription>;
 	s : string;
 	s ?= t;
-	Assert: false (s)
+	Shouldn't happen (s)
 ] : ⊤;
 
 /**
