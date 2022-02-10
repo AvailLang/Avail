@@ -755,7 +755,6 @@ class CompilerDiagnostics constructor(
 		describer: Describer,
 		lexingState: LexingState)
 	{
-
 		val list =
 			if (level == SILENT) silentExpectationsList else expectationsList
 		list.expectedAt(level, describer, lexingState)

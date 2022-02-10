@@ -406,7 +406,7 @@ abstract class LookupTreeAdaptor<
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(
-				signatureExtrasExtractor, this, memento)
+				signatureExtrasExtractor, this, numArgs, memento)
 			extraValues = step.updateExtraValuesByTypes(
 				argumentTypesTuple, extraValues)
 			signatureExtrasExtractor = step.updateSignatureExtrasExtractor(
@@ -455,7 +455,7 @@ abstract class LookupTreeAdaptor<
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(
-				signatureExtrasExtractor, this, memento)
+				signatureExtrasExtractor, this, numArgs, memento)
 			extraValues = step.updateExtraValuesByValues(argValues, extraValues)
 			signatureExtrasExtractor = step.updateSignatureExtrasExtractor(
 				this, signatureExtrasExtractor, numArgs)
@@ -501,7 +501,7 @@ abstract class LookupTreeAdaptor<
 		while (solution === null)
 		{
 			val step = tree.expandIfNecessary(
-				signatureExtrasExtractor, this, memento)
+				signatureExtrasExtractor, this, numArgs, memento)
 			extraValues = step.updateExtraValuesByValue(argValue, extraValues)
 			signatureExtrasExtractor = step.updateSignatureExtrasExtractor(
 				this, signatureExtrasExtractor, numArgs)

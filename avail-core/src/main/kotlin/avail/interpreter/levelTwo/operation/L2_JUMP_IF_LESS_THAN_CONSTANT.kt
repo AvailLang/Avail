@@ -36,6 +36,9 @@ import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -50,10 +53,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("value"),
-	L2OperandType.CONSTANT.named("constant"),
-	L2OperandType.PC.named("if less", Purpose.SUCCESS),
-	L2OperandType.PC.named("if greater or equal", Purpose.FAILURE))
+	READ_BOXED.named("value"),
+	CONSTANT.named("constant"),
+	PC.named("if less", Purpose.SUCCESS),
+	PC.named("if greater or equal", Purpose.FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,
@@ -64,7 +67,7 @@ object L2_JUMP_IF_LESS_THAN_CONSTANT : L2ConditionalJump(
 		assert(this == instruction.operation)
 		val value = instruction.operand<L2ReadBoxedOperand>(0)
 		val constant = instruction.operand<L2ConstantOperand>(1)
-		//		final L2PcOperand ifLess = instruction.operand(2);
+//		final L2PcOperand ifLess = instruction.operand(2);
 //		final L2PcOperand ifNotLess = instruction.operand(3);
 		renderPreamble(instruction, builder)
 		builder.append(' ')

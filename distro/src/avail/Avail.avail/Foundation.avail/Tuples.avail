@@ -3926,20 +3926,22 @@ Method "quicksort_" is
 	 * pivot.
 	 */
 	size ::= |numbers|;
-	halfSize ::= |numbers| ÷ 2;
-	pivotIndex : natural number :=
-		if numbers[1] > numbers[size]
-		then [1]
-		else [size];
-	pivotIndex :=
-		if numbers[pivotIndex] < numbers[halfSize]
-		then [pivotIndex]
-		else [
-			nonpivotBoundaryIndex : natural number :=
-				cast size + 1 - pivotIndex into [t : natural number | t];
-			if numbers[nonpivotBoundaryIndex] < numbers[halfSize]
-			then [halfSize]
-			else [nonpivotBoundaryIndex]];
+	halfSize ::= ((size - 1) >> 1) + 1;
+	a ::= numbers[1];
+	b ::= numbers[halfSize];
+	c ::= numbers[size];
+	pivotIndex ::= if a < b then
+	[
+		if b < c then [halfSize]  /*abc*/
+		else if c < a then [1]  /*cab*/
+		else [size]  /*acb*/
+	]
+	else
+	[
+		if a < c then [1] /*bac*/
+		else if c < b then [halfSize]  /*cba*/
+		else [size]   /*bca*/
+	];
 	pivot ::= numbers[pivotIndex];
 	withoutPivot ::= numbers[..pivotIndex-1] ++ numbers[pivotIndex+1..];
 	lesser ::= select each n from withoutPivot where [n ≤ pivot];
@@ -4021,19 +4023,26 @@ Method "quicksort_with_" is
 	 * pivot.
 	 */
 	size ::= |aTuple|;
-	halfSize ::= |aTuple| ÷ 2;
-	pivotIndex : natural number :=
-		if comparator(aTuple[1], aTuple[size])
-		then [1]
-		else [size];
-	pivotIndex :=
-		if ¬comparator(aTuple[pivotIndex], aTuple[halfSize])
-		then [pivotIndex]
-		else [halfSize];
+	halfSize ::= ((size - 1) >> 1) + 1;
+	a ::= aTuple[1];
+	b ::= aTuple[halfSize];
+	c ::= aTuple[size];
+	pivotIndex ::= if comparator(a, b) then
+	[
+		if comparator(b, c) then [halfSize]  /*abc*/
+		else if comparator(c, a) then [1]  /*cab*/
+		else [size]  /*acb*/
+	]
+	else
+	[
+		if comparator(a, c) then [1] /*bac*/
+		else if comparator(c, b) then [halfSize]  /*cba*/
+		else [size]   /*bca*/
+	];
 	pivot ::= aTuple[pivotIndex];
 	withoutPivot ::= aTuple[..pivotIndex-1] ++ aTuple[pivotIndex+1..];
-	lesser ::= select each a from withoutPivot where [comparator(a, pivot)];
-	greater ::= reject each a from withoutPivot where [comparator(a, pivot)];
+	lesser ::= select each x from withoutPivot where [comparator(x, pivot)];
+	greater ::= reject each x from withoutPivot where [comparator(x, pivot)];
 	quicksort lesser with comparator
 		++ <pivot>
 		++ quicksort greater with comparator

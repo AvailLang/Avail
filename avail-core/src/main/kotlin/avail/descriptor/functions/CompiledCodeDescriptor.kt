@@ -1015,6 +1015,9 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			L2Chunk.Generation.usedChunk(chunk)
 		}
+		// Memory pressure from L2Chunk generations causes a task to be queued
+		// to do the (bulk) invalidation while all fibers are paused.
+		assert(chunk === startingChunk)
 		return chunk
 	}
 

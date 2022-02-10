@@ -32,7 +32,6 @@
 
 package avail.compiler
 
-import avail.compiler.AvailCompiler.PartialSubexpressionList
 import avail.compiler.ParsingConversionRule.Companion.ruleNumber
 import avail.compiler.ParsingOperation.PARSE_PART
 import avail.compiler.ParsingOperation.PARSE_PART_CASE_INSENSITIVELY
@@ -51,7 +50,6 @@ import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.MapDescriptor
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.copyConcatenating
 import avail.descriptor.phrases.A_Phrase.Companion.copyWith
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
@@ -71,10 +69,8 @@ import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermut
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
-import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.sets.A_Set.Companion.setSize
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor.Companion.literalToken
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tokens.TokenDescriptor.TokenType
@@ -83,9 +79,7 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tokens.TokenDescriptor.TokenType.KEYWORD
 import avail.descriptor.tokens.TokenDescriptor.TokenType.LITERAL
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor
@@ -109,7 +103,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * @property modulus
  *   The modulus that represents the operation uniquely for its arity.
  * @property commutesWithParsePart
- *   Whether this instance commutes with `PARSE_PART` instructions.
+ *   Whether this instance commutes with [PARSE_PART] instructions.
  * @property canRunIfHasFirstArgument
  *   Whether this operation can run successfully if there is a pre-parsed first
  *   argument that has not yet been consumed.
@@ -147,33 +141,12 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			// Push an empty list phrase and continue.
-			assert(successorTrees.tupleSize == 1)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar.append(emptyListNode()),
-				marksSoFar,
-				superexpressions,
-				continuation)
+			stepState.push(emptyListNode())
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -187,35 +160,14 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val value = argsSoFar.last()
-			val poppedOnce = argsSoFar.withoutLast()
-			val oldNode = poppedOnce.last()
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				poppedOnce.withoutLast().append(oldNode.copyWith(value)),
-				marksSoFar,
-				superexpressions,
-				continuation)
+			val value = stepState.pop()
+			val list = stepState.pop()
+			stepState.push(list.copyWith(value))
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -226,36 +178,17 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val marker = if (firstArgOrNull === null)
-				start.position
-			else
-				initialTokenPosition.position
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar.append(marker),
-				superexpressions,
-				continuation)
+			val marker = when (stepState.firstArgOrNull)
+			{
+				null -> stepState.start.position
+				else -> stepState.initialTokenPosition.position
+			}
+			stepState.pushMarker(marker)
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -266,32 +199,12 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar.withoutLast(),
-				superexpressions,
-				continuation)
+			stepState.popMarker()
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -305,39 +218,18 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val oldMarker = marksSoFar.last()
-			if (oldMarker == start.position)
+			val oldMarker = stepState.popMarker()
+			val newMarker = stepState.start.position
+			if (oldMarker != newMarker)
 			{
-				// No progress has been made.  Reject this path.
-				return
+				// Progress has been made.  Continue on this path.
+				stepState.pushMarker(newMarker)
+				compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 			}
-			val newMarker = start.position
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar.withoutLast().append(newMarker),
-				superexpressions,
-				continuation)
 		}
 	},
 
@@ -349,52 +241,39 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val successorTree = successorTrees.tupleAt(1)
-			val partialSubexpressionList =
-				if (firstArgOrNull === null)
-					superexpressions!!.advancedTo(successorTree)
-				else
-					superexpressions
+			val partialSubexpressionList = when (stepState.firstArgOrNull)
+			{
+				null -> stepState.superexpressions!!.advancedTo(successorTree)
+				else -> stepState.superexpressions
+			}
 			compiler.parseSendArgumentWithExplanationThen(
-				start,
+				stepState.start,
 				"argument",
-				firstArgOrNull,
-				firstArgOrNull === null
-					&& initialTokenPosition.lexingState != start.lexingState,
+				stepState.firstArgOrNull,
+				stepState.firstArgOrNull === null
+					&& stepState.initialTokenPosition.lexingState
+						!= stepState.start.lexingState,
 				false,
 				partialSubexpressionList
-			) { endState, phrase ->
-				compiler.eventuallyParseRestOfSendNode(
-					endState,
-					successorTree,
-					null,
-					initialTokenPosition,
-					// The argument counts as something that was consumed if
-					// it's not a leading argument...
-					firstArgOrNull === null,
-					// We're about to parse an argument, so whatever was in
+			) { afterArg, phrase ->
+				val stepStateCopy = stepState.copy {
+					start = afterArg
+					// We're about to accept an argument, so whatever was in
 					// consumedAnything should be moved into
 					// consumedAnythingBeforeLatestArgument.
-					consumedAnything,
-					consumedStaticTokens,
-					argsSoFar.append(phrase),
-					marksSoFar,
-					superexpressions,
-					continuation)
+					consumedAnythingBeforeLatestArgument = consumedAnything
+					// The argument counts as something that was consumed if
+					// it's not a leading argument...
+					consumedAnything = firstArgOrNull === null
+					firstArgOrNull = null
+					push(phrase)
+				}
+				compiler.eventuallyParseRestOfSendNode(
+					successorTree, stepStateCopy)
 			}
 		}
 	},
@@ -414,51 +293,39 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val partialSubexpressionList = when (firstArgOrNull)
+			val partialSubexpressionList = when (stepState.firstArgOrNull)
 			{
-				null -> superexpressions!!.advancedTo(successorTrees.tupleAt(1))
-				else -> superexpressions
+				null -> stepState.superexpressions!!.advancedTo(successorTree)
+				else -> stepState.superexpressions
 			}
 			compiler.parseSendArgumentWithExplanationThen(
-				start,
+				stepState.start,
 				"top-valued argument",
-				firstArgOrNull,
-				firstArgOrNull === null
-					&& initialTokenPosition.lexingState != start.lexingState,
+				stepState.firstArgOrNull,
+				stepState.firstArgOrNull === null
+					&& stepState.initialTokenPosition.lexingState
+						!= stepState.start.lexingState,
 				true,
 				partialSubexpressionList
-			) { endState, phrase ->
-				compiler.eventuallyParseRestOfSendNode(
-					endState,
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					// The argument counts as something that was consumed if
-					// it's not a leading argument...
-					firstArgOrNull === null,
-					// We're about to parse an argument, so whatever was in
+			) { afterArg, phrase ->
+				val stepStateCopy = stepState.copy {
+					start = afterArg
+					// We're about to accept an argument, so whatever was in
 					// consumedAnything should be moved into
 					// consumedAnythingBeforeLatestArgument.
-					consumedAnything,
-					consumedStaticTokens,
-					argsSoFar.append(phrase),
-					marksSoFar,
-					superexpressions,
-					continuation)
+					consumedAnythingBeforeLatestArgument = consumedAnything
+					// The argument counts as something that was consumed if
+					// it's not a leading argument...
+					consumedAnything = firstArgOrNull === null
+					firstArgOrNull = null
+					push(phrase)
+				}
+				compiler.eventuallyParseRestOfSendNode(
+					successorTree, stepStateCopy)
 			}
 		}
 	},
@@ -472,48 +339,37 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val partialSubexpressionList =
-				if (firstArgOrNull === null)
-					superexpressions!!.advancedTo(successorTrees.tupleAt(1))
-				else
-					superexpressions
+			val partialSubexpressionList = when (stepState.firstArgOrNull)
+			{
+				null -> stepState.superexpressions!!.advancedTo(successorTree)
+				else -> stepState.superexpressions
+			}
 			compiler.parseSendArgumentWithExplanationThen(
-				start,
+				stepState.start,
 				"variable reference",
-				firstArgOrNull,
-				firstArgOrNull === null
-					&& initialTokenPosition.lexingState != start.lexingState,
+				stepState.firstArgOrNull,
+				stepState.firstArgOrNull === null
+					&& stepState.initialTokenPosition.lexingState
+						!= stepState.start.lexingState,
 				false,
 				partialSubexpressionList
 			) { afterUse, variableUse ->
-				assert(successorTrees.tupleSize == 1)
 				val rawVariableUse = variableUse.stripMacro
 				if (!rawVariableUse.phraseKindIsUnder(VARIABLE_USE_PHRASE))
 				{
-					if (consumedAnything)
+					if (stepState.consumedAnything)
 					{
 						// At least one token besides the variable use has
 						// been encountered, so go ahead and report that we
 						// expected a variable.
 						afterUse.expected(
-							if (consumedStaticTokens.isEmpty()) WEAK
+							if (stepState.consumedStaticTokens.isEmpty()) WEAK
 							else STRONG,
-							describeWhyVariableUseIsExpected(
-								successorTrees.tupleAt(1)))
+							describeWhyVariableUseIsExpected(successorTree))
 					}
 					// It wasn't a variable use phrase, so give up.
 					return@parseSendArgumentWithExplanationThen
@@ -523,7 +379,7 @@ enum class ParsingOperation constructor(
 					rawVariableUse.declaration.declarationKind()
 				if (!declarationKind.isVariable)
 				{
-					if (consumedAnything)
+					if (stepState.consumedAnything)
 					{
 						// Only complain about this not being a variable if
 						// we've parsed something besides the variable
@@ -544,23 +400,21 @@ enum class ParsingOperation constructor(
 							variableUse.macroOriginalSendNode,
 							rawVariableReference)
 					else rawVariableReference
-				compiler.eventuallyParseRestOfSendNode(
-					afterUse,
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					// The argument counts as something that was consumed if
-					// it's not a leading argument...
-					firstArgOrNull === null,
-					// We're about to parse an argument, so whatever was in
+				val stepStateCopy = stepState.copy {
+					start = afterUse
+					// We're about to accept an argument, so whatever was in
 					// consumedAnything should be moved into
 					// consumedAnythingBeforeLatestArgument.
-					consumedAnything,
-					consumedStaticTokens,
-					argsSoFar.append(variableReference),
-					marksSoFar,
-					superexpressions,
-					continuation)
+					consumedAnythingBeforeLatestArgument = consumedAnything
+					// The argument counts as something that was consumed if
+					// it's not a leading argument...
+					consumedAnything = firstArgOrNull === null
+					firstArgOrNull = null
+					// Push the new argument phrase.
+					push(variableReference)
+				}
+				compiler.eventuallyParseRestOfSendNode(
+					successorTree, stepStateCopy)
 			}
 		}
 	},
@@ -573,31 +427,11 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			compiler.parseArgumentInModuleScopeThen(
-				start,
-				initialTokenPosition,
-				firstArgOrNull,
-				consumedAnything,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar,
-				successorTrees,
-				superexpressions,
-				continuation)
+			compiler.parseArgumentInModuleScopeThen(stepState, successorTree)
 		}
 	},
 
@@ -610,21 +444,11 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			if (firstArgOrNull !== null)
+			if (stepState.firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -634,13 +458,14 @@ enum class ParsingOperation constructor(
 				// reject the parse.
 				return
 			}
-			compiler.nextNonwhitespaceTokensDo(start) { token ->
+			compiler.nextNonwhitespaceTokensDo(stepState.start) { token ->
 				val tokenType = token.tokenType()
 				assert(tokenType != WHITESPACE && tokenType != COMMENT)
 				if (tokenType == END_OF_FILE)
 				{
-					start.expected(
-						if (consumedStaticTokens.isEmpty()) WEAK else STRONG,
+					stepState.start.expected(
+						if (stepState.consumedStaticTokens.isEmpty()) WEAK
+						else STRONG,
 						"any token, not end-of-file")
 					return@nextNonwhitespaceTokensDo
 				}
@@ -650,24 +475,20 @@ enum class ParsingOperation constructor(
 					token.lineNumber(),
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
-				val newArgsSoFar =
-					argsSoFar.append(literalNodeFromToken(syntheticToken))
-				compiler.eventuallyParseRestOfSendNode(
-					ParserState(token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					true,
+				val stepStateCopy = stepState.copy {
+					start = ParserState(
+						token.nextLexingState(), stepState.start.clientDataMap)
 					// Until we've passed the type test, we don't consider
 					// tokens read past it in the stream to have been truly
 					// encountered.
-					consumedAnything,
-					// Don't count it as a static token.
-					consumedStaticTokens,
-					newArgsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+					consumedAnythingBeforeLatestArgument = consumedAnything
+					consumedAnything = true
+					firstArgOrNull = null
+					// Push the new argument phrase.
+					push(literalNodeFromToken(syntheticToken))
+				}
+				compiler.eventuallyParseRestOfSendNode(
+					successorTree, stepStateCopy)
 			}
 		}
 	},
@@ -680,21 +501,11 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			if (firstArgOrNull !== null)
+			if (stepState.firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -704,14 +515,15 @@ enum class ParsingOperation constructor(
 				// reject the parse.
 				return
 			}
-			compiler.nextNonwhitespaceTokensDo(start) { token ->
+			compiler.nextNonwhitespaceTokensDo(stepState.start) { token ->
 				val tokenType = token.tokenType()
 				if (tokenType != KEYWORD)
 				{
-					if (consumedAnything)
+					if (stepState.consumedAnything)
 					{
-						start.expected(
-							if (consumedStaticTokens.isEmpty()) WEAK else STRONG
+						stepState.start.expected(
+							if (stepState.consumedStaticTokens.isEmpty()) WEAK
+							else STRONG
 						) {
 							it(
 								"a keyword token, not " +
@@ -731,25 +543,20 @@ enum class ParsingOperation constructor(
 					token.lineNumber(),
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
-				val newArgsSoFar =
-					argsSoFar.append(literalNodeFromToken(syntheticToken))
-				compiler.eventuallyParseRestOfSendNode(
-					ParserState(
-						token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					true,
+				val stepStateCopy = stepState.copy {
+					start = ParserState(
+						token.nextLexingState(), stepState.start.clientDataMap)
 					// Until we've passed the type test, we don't consider
 					// tokens read past it in the stream to have been truly
 					// encountered.
-					consumedAnything,
-					// Don't count it as a static token.
-					consumedStaticTokens,
-					newArgsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+					consumedAnythingBeforeLatestArgument = consumedAnything
+					consumedAnything = true
+					firstArgOrNull = null
+					// Push the new argument phrase.
+					push(literalNodeFromToken(syntheticToken))
+				}
+				compiler.eventuallyParseRestOfSendNode(
+					successorTree, stepStateCopy)
 			}
 		}
 	},
@@ -762,21 +569,11 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			if (firstArgOrNull !== null)
+			if (stepState.firstArgOrNull !== null)
 			{
 				// Starting with a parseRawToken can't cause unbounded
 				// left-recursion, so treat it more like reading an expected
@@ -786,14 +583,14 @@ enum class ParsingOperation constructor(
 				// reject the parse.
 				return
 			}
-			compiler.nextNonwhitespaceTokensDo(start) { token ->
+			compiler.nextNonwhitespaceTokensDo(stepState.start) { token ->
 				val tokenType = token.tokenType()
 				if (tokenType != LITERAL)
 				{
-					if (consumedAnything)
+					if (stepState.consumedAnything)
 					{
-						start.expected(
-							if (consumedStaticTokens.isEmpty()) WEAK
+						stepState.start.expected(
+							if (stepState.consumedStaticTokens.isEmpty()) WEAK
 							else STRONG
 						) {
 							it(
@@ -813,24 +610,21 @@ enum class ParsingOperation constructor(
 					token.lineNumber(),
 					token)
 				compiler.compilationContext.recordToken(syntheticToken)
-				val newArgsSoFar = argsSoFar.append(
-					literalNodeFromToken(syntheticToken))
-				compiler.eventuallyParseRestOfSendNode(
-					ParserState(token.nextLexingState(), start.clientDataMap),
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					true,
+
+				val stepStateCopy = stepState.copy {
+					start = ParserState(
+						token.nextLexingState(), stepState.start.clientDataMap)
 					// Until we've passed the type test, we don't consider
 					// tokens read past it in the stream to have been truly
 					// encountered.
-					consumedAnything,
-					// Don't count it as a static token.
-					consumedStaticTokens,
-					newArgsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+					consumedAnythingBeforeLatestArgument = consumedAnything
+					consumedAnything = true
+					firstArgOrNull = null
+					// Push the new argument phrase.
+					push(literalNodeFromToken(syntheticToken))
+				}
+				compiler.eventuallyParseRestOfSendNode(
+					successorTree, stepStateCopy)
 			}
 		}
 	},
@@ -842,41 +636,19 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val right = argsSoFar.last()
-			val popped1 = argsSoFar.withoutLast()
-			val left = popped1.last()
-			val popped2 = popped1.withoutLast()
-			val concatenated = when (left.expressionsSize)
+			val right = stepState.pop()
+			val left = stepState.pop()
+			when (left.expressionsSize)
 			{
-				0 -> right
-				else -> left.copyConcatenating(right)
+				0 -> stepState.push(right)
+				else -> stepState.push(left.copyConcatenating(right))
 			}
 			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				popped2.append(concatenated),
-				marksSoFar,
-				superexpressions,
-				continuation)
+				successorTree, stepState)
 		}
 	},
 
@@ -888,20 +660,12 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(false) { "Illegal reserved parsing operation" }
+			throw UnsupportedOperationException(
+				"Illegal reserved parsing operation")
 		}
 	},
 
@@ -913,20 +677,12 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(false) { "Illegal reserved parsing operation" }
+			throw UnsupportedOperationException(
+				"Illegal reserved parsing operation")
 		}
 	},
 
@@ -938,20 +694,12 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(false) { "Illegal reserved parsing operation" }
+			throw UnsupportedOperationException(
+				"Illegal reserved parsing operation")
 		}
 	},
 
@@ -971,34 +719,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			for (successorTree in successorTrees)
-			{
-				compiler.eventuallyParseRestOfSendNode(
-					start,
-					successorTree,
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedAnythingBeforeLatestArgument,
-					consumedStaticTokens,
-					argsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
-			}
+			throw UnsupportedOperationException(
+				"$name instruction should not be dispatched")
 		}
 	},
 
@@ -1013,32 +739,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar,
-				superexpressions,
-				continuation)
+			throw UnsupportedOperationException(
+				"$name instruction should not be dispatched")
 		}
 	},
 
@@ -1053,32 +759,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar,
-				superexpressions,
-				continuation)
+			throw UnsupportedOperationException(
+				"$name instruction should not be dispatched")
 		}
 	},
 
@@ -1094,20 +780,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(false) { "$name instruction should not be dispatched" }
+			throw UnsupportedOperationException(
+				"$name instruction should not be dispatched")
 		}
 	},
 
@@ -1123,20 +801,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(false) { "$name instruction should not be dispatched" }
+			throw UnsupportedOperationException(
+				"$name instruction should not be dispatched")
 		}
 	},
 
@@ -1151,33 +821,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			assert(firstArgOrNull === null)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				null,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar,
-				marksSoFar,
-				superexpressions,
-				continuation)
+			assert(stepState.firstArgOrNull === null)
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -1189,53 +838,35 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val input = argsSoFar.last()
+			val input = stepState.pop()
 			val sanityFlag = AtomicBoolean()
 			val conversionRule = ruleNumber(operand(instruction))
 			conversionRule.convert(
 				compiler.compilationContext,
-				start.lexingState,
+				stepState.start.lexingState,
 				input,
 				{ replacementExpression ->
 					assert(sanityFlag.compareAndSet(false, true))
+					stepState.push(replacementExpression)
 					compiler.eventuallyParseRestOfSendNode(
-						start,
-						successorTrees.tupleAt(1),
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						consumedAnythingBeforeLatestArgument,
-						consumedStaticTokens,
-						argsSoFar.withoutLast().append(replacementExpression),
-						marksSoFar,
-						superexpressions,
-						continuation)
+						successorTree, stepState)
 				},
 				{ e ->
 					// Deal with a failed conversion.  As of 2016-08-28, this
 					// can only happen during an expression evaluation.
 					assert(sanityFlag.compareAndSet(false, true))
-					start.expected(STRONG) {
+					stepState.start.expected(STRONG) {
 						it(
 							"evaluation of expression not to have "
 								+ "thrown Java exception:\n${trace(e)}")
 					}
 				})
 		}
+
 		override fun describe(operand: Int): String
 		{
 			return super.describe(operand) + " = " + ruleNumber(operand)
@@ -1259,20 +890,11 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			var stackCopy = argsSoFar
+			var stackCopy = stepState.argsSoFar
 			// Only do N-1 steps.  We simply couldn't encode zero as an operand,
 			// so we always bias by one automatically.
 			val fixupDepth = operand(instruction)
@@ -1285,22 +907,8 @@ enum class ParsingOperation constructor(
 				val listNode = oldNode.copyWith(value)
 				stackCopy = poppedOnce.withoutLast().append(listNode)
 			}
-			assert(stackCopy.size == 1)
-			for (successorTree in successorTrees)
-			{
-				compiler.eventuallyParseRestOfSendNode(
-					start,
-					successorTree,
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedAnythingBeforeLatestArgument,
-					consumedStaticTokens,
-					argsSoFar.append(stackCopy[0]),
-					marksSoFar,
-					superexpressions,
-					continuation)
-			}
+			stepState.push(stackCopy.single())
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -1321,21 +929,10 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
-			val successorTree = successorTrees.tupleAt(1)
 			// Look inside the only successor to find the only bundle.
 			val bundlesMap = successorTree.allParsingPlansInProgress
 			assert(bundlesMap.mapSize == 1)
@@ -1345,20 +942,12 @@ enum class ParsingOperation constructor(
 			val prefixFunctions = definition.prefixFunctions()
 			val prefixIndex = operand(instruction)
 			val prefixFunction = prefixFunctions.tupleAt(prefixIndex)
+			val arguments = stepState.pop().expressionsTuple
 			compiler.runPrefixFunctionThen(
-				start,
 				successorTree,
+				stepState,
 				prefixFunction,
-				toList(argsSoFar.last().expressionsTuple),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar.withoutLast(),
-				marksSoFar,
-				superexpressions,
-				continuation)
+				toList(arguments))
 		}
 	},
 
@@ -1371,34 +960,14 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
 			val permutationIndex = operand(instruction)
 			val permutation = permutationAtIndex(permutationIndex)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar.withoutLast().append(
-					newPermutedListNode(argsSoFar.last(), permutation)),
-				marksSoFar,
-				superexpressions,
-				continuation)
+			stepState.push(newPermutedListNode(stepState.pop(), permutation))
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 
 		override fun describe(operand: Int): String
@@ -1416,35 +985,15 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
 			val limit = operand(instruction)
-			val top = argsSoFar.last()
+			val top = stepState.argsSoFar.last()
 			if (top.expressionsSize >= limit)
 			{
-				compiler.eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedAnythingBeforeLatestArgument,
-					consumedStaticTokens,
-					argsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+				compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 			}
 		}
 	},
@@ -1458,35 +1007,15 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
 			val limit = operand(instruction)
-			val top = argsSoFar.last()
+			val top = stepState.argsSoFar.last()
 			if (top.expressionsSize <= limit)
 			{
-				compiler.eventuallyParseRestOfSendNode(
-					start,
-					successorTrees.tupleAt(1),
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedAnythingBeforeLatestArgument,
-					consumedStaticTokens,
-					argsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+				compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 			}
 		}
 	},
@@ -1506,20 +1035,12 @@ enum class ParsingOperation constructor(
 
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(false) { "$name instruction should not be dispatched" }
+			throw UnsupportedOperationException(
+				"$name instruction should not be dispatched")
 		}
 	},
 
@@ -1541,38 +1062,19 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
 			val listSize = operand(instruction)
-			val totalSize = argsSoFar.size
-			val unpopped = argsSoFar.subList(0, totalSize - listSize)
-			val popped = argsSoFar.subList(totalSize - listSize, totalSize)
-			val newListNode = newListNode(tupleFromList(popped))
-			val newArgsSoFar = unpopped.append(newListNode)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				newArgsSoFar,
-				marksSoFar,
-				superexpressions,
-				continuation)
+			stepState.run {
+				val totalSize = argsSoFar.size
+				val unpopped = argsSoFar.subList(0, totalSize - listSize)
+				val popped = argsSoFar.subList(totalSize - listSize, totalSize)
+				val newListNode = newListNode(tupleFromList(popped))
+				argsSoFar = unpopped.append(newListNode)
+			}
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	},
 
@@ -1585,37 +1087,18 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
 			val constant = constantForIndex(operand(instruction))
 			val token = literalToken(
 				stringFrom(constant.toString()),
-				initialTokenPosition.position,
-				initialTokenPosition.lineNumber,
+				stepState.initialTokenPosition.position,
+				stepState.initialTokenPosition.lineNumber,
 				constant)
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				argsSoFar.append(literalNodeFromToken(token)),
-				marksSoFar,
-				superexpressions,
-				continuation)
+			stepState.push(literalNodeFromToken(token))
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 
 		override fun describe(operand: Int): String
@@ -1632,41 +1115,19 @@ enum class ParsingOperation constructor(
 	{
 		override fun execute(
 			compiler: AvailCompiler,
+			stepState: ParsingStepState,
 			instruction: Int,
-			successorTrees: A_Tuple,
-			start: ParserState,
-			firstArgOrNull: A_Phrase?,
-			argsSoFar: List<A_Phrase>,
-			marksSoFar: List<Int>,
-			initialTokenPosition: ParserState,
-			consumedAnything: Boolean,
-			consumedAnythingBeforeLatestArgument: Boolean,
-			consumedStaticTokens: List<A_Token>,
-			superexpressions: PartialSubexpressionList?,
-			continuation: (ParserState, A_Phrase)->Unit)
+			successorTree: A_BundleTree)
 		{
-			assert(successorTrees.tupleSize == 1)
 			val depthToReverse = operand(instruction)
-			val totalSize = argsSoFar.size
-			val unpopped = argsSoFar.subList(
-				0,
-				totalSize - depthToReverse).toList()
-			val popped = argsSoFar.subList(
-				totalSize - depthToReverse,
-				totalSize).reversed()
-			val newArgsSoFar = unpopped + popped
-			compiler.eventuallyParseRestOfSendNode(
-				start,
-				successorTrees.tupleAt(1),
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedStaticTokens,
-				newArgsSoFar,
-				marksSoFar,
-				superexpressions,
-				continuation)
+			stepState.run {
+				val totalSize = argsSoFar.size
+				val unpopped = argsSoFar.subList(0, totalSize - depthToReverse)
+				val popped =
+					argsSoFar.subList(totalSize - depthToReverse, totalSize)
+				argsSoFar = unpopped + popped.reversed()
+			}
+			compiler.eventuallyParseRestOfSendNode(successorTree, stepState)
 		}
 	};
 
@@ -1790,57 +1251,26 @@ enum class ParsingOperation constructor(
 	 *
 	 * @param compiler
 	 *   The [AvailCompiler] which is parsing.
+	 * @param stepState
+	 *   Information about the current partially-constructed message or macro
+	 *   send that has not yet been completed.
 	 * @param instruction
-	 *   An [Int] encoding the `ParsingOperation` to execute.
-	 * @param successorTrees
-	 *   The [tuple][TupleDescriptor] of
-	 *   [message&#32;bundle&#32;trees][A_BundleTree] at which to continue
-	 *   parsing.
-	 * @param start
-	 *   Where to start parsing.
-	 * @param firstArgOrNull
-	 *   Either the already-parsed first argument or `null`. If we're looking
-	 *   for leading-argument message sends to wrap an expression then this is
-	 *   not-`null` before the first argument position is encountered, otherwise
-	 *   it's `null` and we should reject attempts to start with an argument
-	 *   (before a keyword).
-	 * @param argsSoFar
-	 *   The message arguments that have been parsed so far.
-	 * @param marksSoFar
-	 *   The parsing markers that have been recorded so far.
-	 * @param initialTokenPosition
-	 *   The position at which parsing of this message started. If it was parsed
-	 *   as a leading argument send (i.e., firstArgOrNull started out
-	 *   non-`null`) then the position is of the token following the first
-	 *   argument.
-	 * @param consumedAnything
-	 *   Whether any tokens or arguments have been consumed yet.
-	 * @param consumedAnythingBeforeLatestArgument
-	 *   Whether any tokens or arguments had been consumed before encountering
-	 *   the most recent argument.  This is to improve diagnostics when argument
-	 *   type checking is postponed past matches for subsequent tokens.
-	 * @param consumedStaticTokens
-	 *   The immutable [List] of "static" [A_Token]s that have been encountered
-	 *   and consumed for the current method or macro invocation being parsed.
-	 *   These are the tokens that correspond with tokens that occur verbatim
-	 *   inside the name of the method or macro.
-	 * @param continuation
-	 *   What to do with a complete [message&#32;send][SendPhraseDescriptor].
+	 *   An [Int] encoding the [ParsingOperation] to execute.
+	 * @param successorTree
+	 *   The [A_BundleTree] at which to continue parsing.
+	 * @return
+	 *   An optional [ParsingStepState] that the caller is expected to continue
+	 *   to execute, if present.  By returning a successor state, we avoid the
+	 *   cost of the work queue machinery in the common cases.  This also
+	 *   reduces the parameter-passing cost, since the [ParsingStepState] may be
+	 *   mutated and returned, as long as any forked executions make suitable
+	 *   copies first.
 	 */
 	internal abstract fun execute(
 		compiler: AvailCompiler,
+		stepState: ParsingStepState,
 		instruction: Int,
-		successorTrees: A_Tuple,
-		start: ParserState,
-		firstArgOrNull: A_Phrase?,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
-		initialTokenPosition: ParserState,
-		consumedAnything: Boolean,
-		consumedAnythingBeforeLatestArgument: Boolean,
-		consumedStaticTokens: List<A_Token>,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		successorTree: A_BundleTree)
 
 	companion object
 	{

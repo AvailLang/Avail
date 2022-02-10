@@ -75,6 +75,7 @@ internal constructor(private val finalResult: Result)
 	override fun <AdaptorMemento> expandIfNecessary(
 		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		numNaturalArgs: Int,
 		memento: AdaptorMemento): DecisionStep<Element, Result>
 	{
 		error("Attempting to expand leaf of decision tree")

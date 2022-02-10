@@ -202,6 +202,7 @@ internal constructor(
 	override fun <AdaptorMemento> expandIfNecessary(
 		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		numNaturalArgs: Int,
 		memento: AdaptorMemento
 	): DecisionStep<Element, Result> =
 		decisionStep ?: synchronized(this) {
@@ -212,7 +213,7 @@ internal constructor(
 			// infamous double-check problem won't bite us.
 			decisionStep ?: run {
 				val step = createDecisionStep(
-					signatureExtrasExtractor, adaptor, memento)
+					signatureExtrasExtractor, adaptor, numNaturalArgs, memento)
 				decisionStep = step
 				step
 			}
@@ -251,6 +252,7 @@ internal constructor(
 	private fun <AdaptorMemento> createDecisionStep(
 		signatureExtrasExtractor: (Element) -> Pair<A_Type?, List<A_Type>>,
 		adaptor: LookupTreeAdaptor<Element, Result, AdaptorMemento>,
+		numNaturalArgs: Int,
 		memento: AdaptorMemento
 	): DecisionStep<Element, Result>
 	{
@@ -551,11 +553,12 @@ internal constructor(
 				// NOTE: Other covariant relationships can be added here.
 			}
 
-			// See if everybody requires the same type for an argument, but
-			// doesn't guarantee it's satisfied yet.
+			// See if everybody requires the same type for a *natural* argument
+			// (i.e., not an extracted value) but doesn't guarantee that it's
+			// satisfied yet.
 			if (positiveElements.isEmpty())
 			{
-				for (argNumber in 1 .. numArgs)
+				for (argNumber in 1 .. numNaturalArgs)
 				{
 					val commonType = commonArgTypes[argNumber - 1]
 					if (commonType !== null

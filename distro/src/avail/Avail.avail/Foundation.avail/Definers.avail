@@ -271,7 +271,21 @@ Private method stabilityBodyAtom is
 			|
 				f ::= cast d's function into [f1 : […]→any | f1];
 				value ::= invoke f with argValues;
-				‘value’
+				simple ::= if value ∈ string then [true] else [value ∈ number];
+				name ::= if simple then
+				[
+					/* Simple constants should look like themselves. */
+					“value”
+				]
+				else
+				[
+					/*
+					 * Complex constants should look like their generating
+					 * expression.
+					 */
+					"(computed constant)"
+				];
+				`value`(name) → literal phrase
 			]
 		]
 		with

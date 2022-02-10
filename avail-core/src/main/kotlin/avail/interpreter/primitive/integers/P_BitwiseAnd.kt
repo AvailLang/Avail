@@ -132,8 +132,7 @@ object P_BitwiseAnd : Primitive(2, CannotFail, CanFold, CanInline)
 		arguments,
 		argumentTypes,
 		callSiteHelper,
-		typeGuaranteeFunction = {
-			restrictedArgTypes ->
+		typeGuaranteeFunction = { restrictedArgTypes ->
 			returnTypeGuaranteedByVM(rawFunction, restrictedArgTypes)
 		},
 		fallbackBody = {

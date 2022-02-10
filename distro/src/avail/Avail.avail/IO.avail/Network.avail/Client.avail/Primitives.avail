@@ -459,7 +459,7 @@ is
  *
  * @method
  *    "a fiber connecting_to_,⁇\
- *    \|on success doing_⁇,\
+ *    \|on success doing_,⁇\
  *    \|on failure doing_«⁇,forked at priority_»"
  * @param "s" "client socket"
  * @param "peerAddress" "socket address"

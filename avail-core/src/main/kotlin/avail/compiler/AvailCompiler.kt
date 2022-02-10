@@ -148,6 +148,7 @@ import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
+import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import avail.descriptor.parsing.A_Lexer
@@ -238,7 +239,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.toList
 import avail.descriptor.types.A_Type
@@ -292,7 +292,6 @@ import avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import avail.performance.StatisticReport.TYPE_CHECKING_FOR_PARSER
 import avail.persistence.cache.Repository
 import avail.utility.Mutable
-import avail.utility.PrefixSharingList
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.StackPrinter.Companion.trace
 import avail.utility.Strings.increaseIndentation
@@ -1244,17 +1243,19 @@ class AvailCompiler constructor(
 	{
 		val loader = compilationContext.loader
 		parseRestOfSendNode(
-			start,
 			loader.rootBundleTree(),
-			null,
-			start,
-			false, // Nothing consumed yet.
-			false, // (ditto)
-			emptyList(),
-			initialParseStack,
-			initialMarkStack,
-			PartialSubexpressionList(loader.rootBundleTree(), superexpressions),
-			continuation)
+			ParsingStepState(
+				start,
+				null,
+				initialParseStack,
+				initialMarkStack,
+				start,
+				false,
+				false,
+				emptyList(),
+				PartialSubexpressionList(
+					loader.rootBundleTree(), superexpressions),
+				continuation))
 	}
 
 	/**
@@ -1281,17 +1282,19 @@ class AvailCompiler constructor(
 		assert(start.lexingState != initialTokenPosition.lexingState)
 		val loader = compilationContext.loader
 		parseRestOfSendNode(
-			start,
 			loader.rootBundleTree(),
-			leadingArgument,
-			initialTokenPosition,
-			false, // Leading argument does not yet count as something parsed.
-			false, // (ditto)
-			emptyList(),
-			initialParseStack,
-			initialMarkStack,
-			PartialSubexpressionList(loader.rootBundleTree(), superexpressions),
-			continuation)
+			ParsingStepState(
+				start,
+				leadingArgument,
+				initialParseStack,
+				initialMarkStack,
+				initialTokenPosition,
+				false,
+				false,
+				emptyList(),
+				PartialSubexpressionList(
+					loader.rootBundleTree(), superexpressions),
+				continuation))
 	}
 
 	/**
@@ -1345,54 +1348,15 @@ class AvailCompiler constructor(
 	/**
 	 * We've parsed part of a send. Try to finish the job.
 	 *
-	 * @param start
-	 *   Where to start parsing.
 	 * @param bundleTreeArg
 	 *   The bundle tree used to parse at this position.
-	 * @param firstArgOrNull
-	 *   Either `null` or an argument that must be consumed before any keywords
-	 *   (or completion of a send).
-	 * @param initialTokenPosition
-	 *   The parse position where the send phrase started to be processed. Does
-	 *   not count the position of the first argument if there are no leading
-	 *   keywords.
-	 * @param consumedAnything
-	 *   Whether any actual tokens have been consumed so far for this send
-	 *   phrase.  That includes any leading argument.
-	 * @param consumedAnythingBeforeLatestArgument
-	 *   Whether any tokens or arguments had been consumed before encountering
-	 *   the most recent argument.  This is to improve diagnostics when argument
-	 *   type checking is postponed past matches for subsequent tokens.
-	 * @param consumedTokens
-	 *   The immutable [List] of [A_Token]s that have been consumed so far in
-	 *   this potential method/macro send, only including tokens that correspond
-	 *   with literal message parts of this send (like the `"+"` of `"_+_"`),
-	 *   and raw tokens (like the `"…"` of `"…:=_;"`).
-	 * @param argsSoFar
-	 *   The list of arguments parsed so far. I do not modify it. This is a
-	 *   stack of expressions that the parsing instructions will assemble into a
-	 *   list that correlates with the top-level non-backquoted underscores and
-	 *   guillemet groups in the message name.
-	 * @param marksSoFar
-	 *   The stack of mark positions used to test if parsing certain
-	 *   subexpressions makes progress.
-	 * @param superexpressions
-	 *   The enclosing partially-parsed expressions, if any.
-	 * @param continuation
-	 *   What to do with a fully parsed send phrase.
+	 * @param stepState
+	 *   The [ParsingStepState] that represents the current state of parsing of
+	 *   some partial method or macro invocation.
 	 */
 	private fun parseRestOfSendNode(
-		start: ParserState,
 		bundleTreeArg: A_BundleTree,
-		firstArgOrNull: A_Phrase?,
-		initialTokenPosition: ParserState,
-		consumedAnything: Boolean,
-		consumedAnythingBeforeLatestArgument: Boolean,
-		consumedTokens: List<A_Token>,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		stepState: ParsingStepState)
 	{
 		var tempBundleTree = bundleTreeArg
 		// If a bundle tree is marked as a source of a cycle, its latest
@@ -1419,10 +1383,10 @@ class AvailCompiler constructor(
 		val bundleTree = tempBundleTree
 
 		var skipCheckArgumentAction = false
-		if (firstArgOrNull === null)
+		if (stepState.firstArgOrNull === null)
 		{
 			// A call site is only valid if at least one token has been parsed.
-			if (consumedAnything)
+			if (stepState.consumedAnything)
 			{
 				val complete = bundleTree.lazyComplete
 				if (complete.setSize > 0)
@@ -1430,9 +1394,9 @@ class AvailCompiler constructor(
 					// There are complete messages, we didn't leave a leading
 					// argument stranded, and we made progress in the file
 					// (i.e., the message contains at least one token).
-					assert(marksSoFar.isEmpty())
-					assert(argsSoFar.size == 1)
-					val args = argsSoFar[0]
+					assert(stepState.marksSoFar.isEmpty())
+					assert(stepState.argsSoFar.size == 1)
+					val args = stepState.argsSoFar[0]
 					for (bundle in complete)
 					{
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
@@ -1442,49 +1406,29 @@ class AvailCompiler constructor(
 								+ "$args")
 						}
 						completedSendNode(
-							initialTokenPosition,
-							start,
+							stepState.initialTokenPosition,
+							stepState.start,
 							args,
 							bundle,
-							consumedTokens,
-							continuation)
+							stepState.consumedStaticTokens,
+							stepState.continuation)
 					}
 				}
 			}
 			val incomplete = bundleTree.lazyIncomplete
 			if (incomplete.mapSize > 0)
 			{
-				attemptToConsumeToken(
-					start,
-					initialTokenPosition,
-					consumedAnythingBeforeLatestArgument,
-					consumedTokens,
-					argsSoFar,
-					marksSoFar,
-					incomplete,
-					false,
-					superexpressions,
-					continuation)
+				attemptToConsumeToken(stepState.copy(), incomplete, false)
 			}
 			val caseInsensitive = bundleTree.lazyIncompleteCaseInsensitive
 			if (caseInsensitive.mapSize > 0)
 			{
-				attemptToConsumeToken(
-					start,
-					initialTokenPosition,
-					consumedAnythingBeforeLatestArgument,
-					consumedTokens,
-					argsSoFar,
-					marksSoFar,
-					caseInsensitive,
-					true,
-					superexpressions,
-					continuation)
+				attemptToConsumeToken(stepState.copy(), caseInsensitive, true)
 			}
 			val prefilter = bundleTree.lazyPrefilterMap
 			if (prefilter.mapSize > 0)
 			{
-				val latestArgument = argsSoFar.last()
+				val latestArgument = stepState.argsSoFar.last()
 				if (latestArgument.isMacroSubstitutionNode
 					|| latestArgument.isInstanceOfKind(
 						SEND_PHRASE.mostGeneralType))
@@ -1500,17 +1444,7 @@ class AvailCompiler constructor(
 								+ "$successor")
 						}
 						eventuallyParseRestOfSendNode(
-							start,
-							successor,
-							null,
-							initialTokenPosition,
-							consumedAnything,
-							consumedAnythingBeforeLatestArgument,
-							consumedTokens,
-							argsSoFar,
-							marksSoFar,
-							superexpressions,
-							continuation)
+							successor, stepState.copy())
 						// Don't allow any check-argument actions to be
 						// processed normally, as it would ignore the
 						// restriction which we've been so careful to prefilter.
@@ -1527,7 +1461,7 @@ class AvailCompiler constructor(
 				// Use the most recently pushed phrase's type to look up the
 				// successor bundle tree.  This implements type filtering for
 				// aggregated arguments.
-				val latestPhrase = argsSoFar.last()
+				val latestPhrase = stepState.argsSoFar.last()
 				val successor =
 					MessageBundleTreeDescriptor.parserTypeChecker.lookupByValue(
 						typeFilterTreePojo.javaObjectNotNull(),
@@ -1545,9 +1479,9 @@ class AvailCompiler constructor(
 				{
 					// Also be silent if no static tokens have been consumed
 					// yet.
-					if (consumedTokens.isNotEmpty())
+					if (stepState.consumedStaticTokens.isNotEmpty())
 					{
-						start.expected(MEDIUM) { continueWithDescription ->
+						stepState.start.expected(MEDIUM) { withDescription ->
 							stringifyThen(
 								compilationContext.runtime,
 								compilationContext.textInterface,
@@ -1556,23 +1490,13 @@ class AvailCompiler constructor(
 								describeFailedTypeTestThen(
 									actualTypeString,
 									bundleTree,
-									continueWithDescription)
+									withDescription)
 							}
 						}
 					}
 				}
-				eventuallyParseRestOfSendNode(
-					start,
-					successor,
-					null,
-					initialTokenPosition,
-					consumedAnything,
-					consumedAnythingBeforeLatestArgument,
-					consumedTokens,
-					argsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+				assert(stepState.firstArgOrNull === null)
+				eventuallyParseRestOfSendNode(successor, stepState.copy())
 				// Parse instruction optimization allows there to be some plans
 				// that do a type filter here, but some that are able to
 				// postpone it.  Therefore, also allow general actions to be
@@ -1582,7 +1506,7 @@ class AvailCompiler constructor(
 		val actions = bundleTree.lazyActions
 		if (actions.mapSize > 0)
 		{
-			actions.forEach { operation, value ->
+			actions.forEach { operation: A_Number, successors: A_Tuple ->
 				val operationInt = operation.extractInt
 				val op = decode(operationInt)
 				when
@@ -1593,25 +1517,17 @@ class AvailCompiler constructor(
 						// send that had an entry in the prefilter map, so it
 						// has already been dealt with.
 					}
-					firstArgOrNull === null || op.canRunIfHasFirstArgument ->
+					stepState.firstArgOrNull === null
+						|| op.canRunIfHasFirstArgument ->
 					{
 						// Eliminate it before queueing a work unit if it
 						// shouldn't run due to there being a first argument
 						// already pre-parsed.
-						start.workUnitDo {
-							runParsingInstructionThen(
-								start,
-								operationInt,
-								firstArgOrNull,
-								argsSoFar,
-								marksSoFar,
-								initialTokenPosition,
-								consumedAnything,
-								consumedAnythingBeforeLatestArgument,
-								consumedTokens,
-								value,
-								superexpressions,
-								continuation)
+						successors.forEach { successor ->
+							stepState.start.workUnitDo {
+								runParsingInstructionThen(
+									operationInt, stepState.copy(), successor)
+							}
 						}
 					}
 				}
@@ -1622,46 +1538,21 @@ class AvailCompiler constructor(
 	/**
 	 * Attempt to consume a token from the source.
 	 *
-	 * @param start
-	 *   Where to start consuming the token.
-	 * @param initialTokenPosition
-	 *   Where the current potential send phrase started.
-	 * @param consumedAnythingBeforeLatestArgument
-	 *   Whether any tokens or arguments had been consumed before encountering
-	 *   the most recent argument.  This is to improve diagnostics when argument
-	 *   type checking is postponed past matches for subsequent tokens.
-	 * @param consumedTokens
-	 *   An immutable [PrefixSharingList] of [A_Token]s that have been consumed
-	 *   so far for the current potential send phrase. The tokens are only those
-	 *   that match literal parts of the message name or explicit token
-	 *   arguments.
-	 * @param argsSoFar
-	 *   The argument phrases that have been accumulated so far.
-	 * @param marksSoFar
-	 *   The mark stack.
+	 * @param stepState
+	 *   The [ParsingStepState] that represents the current state of parsing of
+	 *   some partial method or macro invocation.
 	 * @param tokenMap
 	 *   A map from string to message bundle tree, used for parsing tokens when
 	 *   in this state.
 	 * @param caseInsensitive
 	 *   Whether to match the token case-insensitively.
-	 * @param superexpressions
-	 *   The enclosing partially-parsed expressions, if any.
-	 * @param continuation
-	 *   What to do when the current potential send phrase is complete.
 	 */
 	private fun attemptToConsumeToken(
-		start: ParserState,
-		initialTokenPosition: ParserState,
-		consumedAnythingBeforeLatestArgument: Boolean,
-		consumedTokens: List<A_Token>,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
+		stepState: ParsingStepState,
 		tokenMap: A_Map,
-		caseInsensitive: Boolean,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		caseInsensitive: Boolean)
 	{
-		skipWhitespaceAndComments(start) { afterWhiteSpaceStates ->
+		skipWhitespaceAndComments(stepState.start) { afterWhiteSpaceStates ->
 			for (afterWhiteSpace in afterWhiteSpaceStates)
 			{
 				afterWhiteSpace.lexingState.withTokensDo { tokens ->
@@ -1684,8 +1575,8 @@ class AvailCompiler constructor(
 						{
 							continue
 						}
-						val successor = tokenMap.mapAtOrNull(string) ?: continue
 						val timeBefore = captureNanos()
+						val successor = tokenMap.mapAtOrNull(string) ?: continue
 						if (AvailRuntimeConfiguration.debugCompilerSteps)
 						{
 							val insensitive =
@@ -1698,19 +1589,15 @@ class AvailCompiler constructor(
 						recognized = true
 						// Record this token for the call site.
 						val afterToken = ParserState(
-							token.nextLexingState(), start.clientDataMap)
-						eventuallyParseRestOfSendNode(
-							afterToken,
-							successor,
-							null,
-							initialTokenPosition,
-							true, // Just consumed a token.
-							consumedAnythingBeforeLatestArgument,
-							consumedTokens.append(token),
-							argsSoFar,
-							marksSoFar,
-							superexpressions,
-							continuation)
+							token.nextLexingState(),
+							stepState.start.clientDataMap)
+						val stepStateCopy = stepState.copy {
+							start = afterToken
+							consumedStaticTokens =
+								consumedStaticTokens.append(token)
+							consumedAnything = true
+						}
+						eventuallyParseRestOfSendNode(successor, stepStateCopy)
 						val timeAfter = captureNanos()
 						val stat =
 							if (caseInsensitive) matchTokenInsensitivelyStat
@@ -1718,9 +1605,10 @@ class AvailCompiler constructor(
 						stat.record(timeAfter - timeBefore)
 					}
 					assert(foundOne)
-					// Only report if at least one static token has been
+					// Only report if at least one static token had already been
 					// consumed.
-					if (!recognized && consumedTokens.isNotEmpty())
+					if (!recognized &&
+						stepState.consumedStaticTokens.isNotEmpty())
 					{
 						val strings = tokens.mapTo(
 							mutableSetOf(),
@@ -1729,7 +1617,7 @@ class AvailCompiler constructor(
 								else -> A_Token::string
 							})
 						expectedKeywordsOf(
-							start, tokenMap, caseInsensitive, strings)
+							stepState.start, tokenMap, caseInsensitive, strings)
 					}
 				}
 			}
@@ -1857,59 +1745,18 @@ class AvailCompiler constructor(
 	/**
 	 * Execute one non-keyword-parsing instruction, then run the continuation.
 	 *
-	 * @param start
-	 *   Where to start parsing.
 	 * @param instruction
-	 *   An int encoding the [parsing][ParsingOperation] to execute.
-	 * @param firstArgOrNull
-	 *   Either the already-parsed first argument or `null`. If we're looking
-	 *   for leading-argument message sends to wrap an expression then this is
-	 *   not-`null` before the first argument position is encountered, otherwise
-	 *   it's `null` and we should reject attempts to start with an argument
-	 *   (before a keyword).
-	 * @param argsSoFar
-	 *   The message arguments that have been parsed so far.
-	 * @param marksSoFar
-	 *   The parsing markers that have been recorded so far.
-	 * @param initialTokenPosition
-	 *   The position at which parsing of this message started. If it was parsed
-	 *   as a leading argument send (i.e., firstArgOrNull started out
-	 *   non-`null`) then the position is of the token following the first
-	 *   argument.
-	 * @param consumedAnything
-	 *   Whether any tokens or arguments have been consumed yet.
-	 * @param consumedAnythingBeforeLatestArgument
-	 *   Whether any tokens or arguments had been consumed before encountering
-	 *   the most recent argument.  This is to improve diagnostics when argument
-	 *   type checking is postponed past matches for subsequent tokens.
-	 * @param consumedTokens
-	 *   The immutable [List] of "static" [A_Token]s that have been encountered
-	 *   and consumed for the current method or macro invocation being parsed.
-	 *   These are the tokens that correspond with tokens that occur verbatim
-	 *   inside the name of the method or macro.
-	 * @param successorTrees
-	 *   The [tuple][TupleDescriptor] of
-	 *   [message&#32;bundle&#32;tree][A_BundleTree] at which to continue
-	 *   parsing.
-	 * @param superexpressions
-	 *   The enclosing partially-parsed expressions, if any.
-	 * @param continuation
-	 *   What to do with a complete
-	 *   [message&#32;send&#32;phrase][SendPhraseDescriptor].
+	 *   An [Int] encoding the [ParsingOperation] to execute.
+	 * @param stepState
+	 *   The [ParsingStepState] that represents the current state of parsing of
+	 *   some partial method or macro invocation.
+	 * @param successorTree
+	 *   The [A_BundleTree]s at which to continue parsing.
 	 */
 	private fun runParsingInstructionThen(
-		start: ParserState,
 		instruction: Int,
-		firstArgOrNull: A_Phrase?,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
-		initialTokenPosition: ParserState,
-		consumedAnything: Boolean,
-		consumedAnythingBeforeLatestArgument: Boolean,
-		consumedTokens: List<A_Token>,
-		successorTrees: A_Tuple,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		stepState: ParsingStepState,
+		successorTree: A_BundleTree)
 	{
 		val op = decode(instruction)
 		if (AvailRuntimeConfiguration.debugCompilerSteps)
@@ -1918,41 +1765,27 @@ class AvailCompiler constructor(
 			{
 				println(
 					"Instr @"
-					+ start.shortString()
+					+ stepState.start.shortString()
 					+ ": "
 					+ op.name
 					+ " ("
 					+ operand(instruction)
 					+ ") -> "
-					+ successorTrees)
+					+ successorTree)
 			}
 			else
 			{
 				println(
 					"Instr @"
-					+ start.shortString()
+					+ stepState.start.shortString()
 					+ ": "
 					+ op.name
 					+ " -> "
-					+ successorTrees)
+					+ successorTree)
 			}
 		}
-
 		val timeBefore = captureNanos()
-		op.execute(
-			this,
-			instruction,
-			successorTrees,
-			start,
-			firstArgOrNull,
-			argsSoFar,
-			marksSoFar,
-			initialTokenPosition,
-			consumedAnything,
-			consumedAnythingBeforeLatestArgument,
-			consumedTokens,
-			superexpressions,
-			continuation)
+		op.execute(this, stepState, instruction, successorTree)
 		val timeAfter = captureNanos()
 		op.parsingStatisticInNanoseconds.record(timeAfter - timeBefore)
 	}
@@ -1962,58 +1795,26 @@ class AvailCompiler constructor(
 	 * [AvailRejectedParseException] if a specific parsing problem needs to be
 	 * described.
 	 *
-	 * @param start
-	 *   The [ParserState] at which the prefix function is being run.
 	 * @param successorTree
 	 *   The [A_BundleTree] with which to continue parsing.
+	 * @param stepState
+	 *   The [ParsingStepState] that represents the current state of parsing of
+	 *   some partial method or macro invocation.
 	 * @param prefixFunction
 	 *   The prefix [A_Function] to invoke.
 	 * @param listOfArgs
 	 *   The argument [phrases][A_Phrase] to pass to the prefix function.
-	 * @param firstArgOrNull
-	 *   The leading argument if it has already been parsed but not consumed.
-	 * @param initialTokenPosition
-	 *   The [ParserState] at which the current potential macro invocation
-	 *   started.
-	 * @param consumedAnything
-	 *   Whether any tokens have been consumed so far at this macro site.
-	 * @param consumedAnythingBeforeLatestArgument
-	 *   Whether any tokens or arguments had been consumed before encountering
-	 *   the most recent argument.  This is to improve diagnostics when argument
-	 *   type checking is postponed past matches for subsequent tokens.
-	 * @param consumedTokens
-	 *   The list of [A_Token]s that have been consumed so far for this message
-	 *   send.
-	 * @param argsSoFar
-	 *   The stack of phrases.
-	 * @param marksSoFar
-	 *   The stack of markers that detect epsilon transitions (subexpressions
-	 *   consisting of no tokens).
-	 * @param superexpressions
-	 *   The enclosing partially-parsed expressions, if any.
-	 * @param continuation
-	 *   What should eventually be done with the completed macro invocation,
-	 *   should parsing ever get that far.
 	 */
 	internal fun runPrefixFunctionThen(
-		start: ParserState,
 		successorTree: A_BundleTree,
+		stepState: ParsingStepState,
 		prefixFunction: A_Function,
-		listOfArgs: List<AvailObject>,
-		firstArgOrNull: A_Phrase?,
-		initialTokenPosition: ParserState,
-		consumedAnything: Boolean,
-		consumedAnythingBeforeLatestArgument: Boolean,
-		consumedTokens: List<A_Token>,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		listOfArgs: List<AvailObject>)
 	{
 		val code = prefixFunction.code()
 		if (!prefixFunction.kind().acceptsListOfArgValues(listOfArgs))
 		{
-			start.expected(
+			stepState.start.expected(
 				STRONG,
 				FormattingDescriber(
 					"macro prefix function %s to accept the given argument " +
@@ -2032,36 +1833,29 @@ class AvailCompiler constructor(
 				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
-		val withTokens = start.clientDataMap
+		val withTokens = stepState.start.clientDataMap
 			.mapAtPuttingCanDestroy(
 				ALL_TOKENS_KEY.atom,
-				tupleFromList(start.lexingState.allTokens),
+				tupleFromList(stepState.start.lexingState.allTokens),
 				false)
 			.mapAtPuttingCanDestroy(
-				STATIC_TOKENS_KEY.atom, tupleFromList(consumedTokens), false)
+				STATIC_TOKENS_KEY.atom,
+				tupleFromList(stepState.consumedStaticTokens),
+				false)
 		var fiberGlobals = fiber.fiberGlobals()
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, withTokens.makeImmutable(), true)
 		fiber.setFiberGlobals(fiberGlobals)
 		fiber.setTextInterface(compilationContext.textInterface)
-		start.lexingState.setFiberContinuationsTrackingWork(
+		stepState.start.lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{
 				// The prefix function ran successfully.
 				val replacementClientDataMap =
 					fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
-				eventuallyParseRestOfSendNode(
-					start.withMap(replacementClientDataMap),
-					successorTree,
-					firstArgOrNull,
-					initialTokenPosition,
-					consumedAnything,
-					consumedAnythingBeforeLatestArgument,
-					consumedTokens,
-					argsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
+				stepState.start =
+					stepState.start.withMap(replacementClientDataMap)
+				eventuallyParseRestOfSendNode(successorTree, stepState)
 			},
 			{ e ->
 				// The prefix function failed in some way.
@@ -2071,28 +1865,19 @@ class AvailCompiler constructor(
 					// parse.
 					val replacementClientDataMap =
 						fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
-					eventuallyParseRestOfSendNode(
-						start.withMap(replacementClientDataMap),
-						successorTree,
-						firstArgOrNull,
-						initialTokenPosition,
-						consumedAnything,
-						consumedAnythingBeforeLatestArgument,
-						consumedTokens,
-						argsSoFar,
-						marksSoFar,
-						superexpressions,
-						continuation)
+					stepState.start =
+						stepState.start.withMap(replacementClientDataMap)
+					eventuallyParseRestOfSendNode(successorTree, stepState)
 				}
 				if (e is AvailRejectedParseException)
 				{
-					start.expected(
+					stepState.start.expected(
 						e.level,
 						e.rejectionString.asNativeString())
 				}
 				else
 				{
-					start.expected(
+					stepState.start.expected(
 						STRONG,
 						FormattingDescriber(
 							"prefix function not to have failed with:\n%s", e))
@@ -2514,8 +2299,8 @@ class AvailCompiler constructor(
 					argumentsListNode.expressionsTuple)
 				when (matchingMacros.tupleSize)
 				{
-					0 -> errorCode = E_NO_METHOD_DEFINITION
 					1 -> macro = matchingMacros.tupleAt(1)
+					0 -> errorCode = E_NO_METHOD_DEFINITION
 					else -> errorCode = E_AMBIGUOUS_METHOD_DEFINITION
 				}
 			}
@@ -2532,6 +2317,7 @@ class AvailCompiler constructor(
 
 				when (filtered.size)
 				{
+					1 -> macro = filtered[0]
 					0 ->
 					{
 						// Nothing is visible.
@@ -2543,7 +2329,6 @@ class AvailCompiler constructor(
 						errorCode = E_NO_METHOD_DEFINITION
 						// Fall through.
 					}
-					1 -> macro = filtered[0]
 					else ->
 					{
 						// Find the most specific macro(s).
@@ -2568,19 +2353,27 @@ class AvailCompiler constructor(
 			if (macro.isNil)
 			{
 				// Failed lookup.
-				if (errorCode !== E_NO_METHOD_DEFINITION)
+				when (errorCode)
 				{
-					val finalErrorCode = errorCode!!
-					stateAfterCall.expected(MEDIUM) {
-						if (finalErrorCode === E_AMBIGUOUS_METHOD_DEFINITION)
+					E_NO_METHOD_DEFINITION -> { } // fall through
+					E_AMBIGUOUS_METHOD_DEFINITION ->
+					{
+						stateAfterCall.expected(MEDIUM) {
 							it("unambiguous definition of macro " +
 								bundle.message)
-						else
-							it("successful macro lookup, not: " +
-								finalErrorCode.name)
+						}
+						// Don't try to treat it as a method invocation.
+						return
 					}
-					// Don't try to treat it as a method invocation.
-					return
+					else ->
+					{
+						stateAfterCall.expected(MEDIUM) {
+							it("successful macro lookup, not: " +
+								errorCode!!.name)
+						}
+						// Don't try to treat it as a method invocation.
+						return
+					}
 				}
 				if (definitions.tupleSize == 0)
 				{
@@ -2767,118 +2560,81 @@ class AvailCompiler constructor(
 	 * for parsing type expressions, and the macro facility may make good use of
 	 * it for other purposes.
 	 *
-	 * @param start
-	 *   The position at which parsing should occur.
-	 * @param initialTokenPosition
-	 *   The parse position where the send phrase started to be processed. Does
-	 *   not count the position of the first argument if there are no leading
-	 *   keywords.
-	 * @param firstArgOrNull
-	 *   An optional already parsed expression which, if present, must be used
-	 *   as a leading argument.  If it's `null` then no leading argument has
-	 *   been parsed, and a request to parse a leading argument should simply
-	 *   produce no local solution.
-	 * @param consumedAnything
-	 *   Whether anything has yet been consumed for this invocation.
-	 * @param consumedTokens
-	 *   The tokens that have been consumed for this invocation.
-	 * @param argsSoFar
-	 *   The list of arguments parsed so far. I do not modify it. This is a
-	 *   stack of expressions that the parsing instructions will assemble into a
-	 *   list that correlates with the top-level non-backquoted underscores and
-	 *   guillemet groups in the message name.
-	 * @param marksSoFar
-	 *   The stack of mark positions used to test if parsing certain
-	 *   subexpressions makes progress.
-	 * @param successorTrees
-	 *   A [tuple][TupleDescriptor] of [message&#32;bundle&#32;trees] along
-	 *   which to continue parsing if a local solution is found.
-	 * @param superexpressions
-	 *   The enclosing partially-parsed expressions, if any.
-	 * @param continuation
-	 *   What to do once we have a fully parsed send phrase (of which we are
-	 *   currently parsing an argument).
+	 * @param stepState
+	 *   The [ParsingStepState] that represents the current state of parsing of
+	 *   some partial method or macro invocation.
+	 * @param successorTree
+	 *   The [A_BundleTree] along which to continue parsing if a local
+	 *   solution is found.
 	 */
 	internal fun parseArgumentInModuleScopeThen(
-		start: ParserState,
-		initialTokenPosition: ParserState,
-		firstArgOrNull: A_Phrase?,
-		consumedAnything: Boolean,
-		consumedTokens: List<A_Token>,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
-		successorTrees: A_Tuple,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		stepState: ParsingStepState,
+		successorTree: A_BundleTree)
 	{
-		// Parse an argument in the outermost (module) scope and continue.
-		assert(successorTrees.tupleSize == 1)
 		val clientDataInGlobalScope =
-			start.clientDataMap.mapAtPuttingCanDestroy(
+			stepState.start.clientDataMap.mapAtPuttingCanDestroy(
 				COMPILER_SCOPE_MAP_KEY.atom,
 				emptyMap,
 				false)
 		parseSendArgumentWithExplanationThen(
-			start.withMap(clientDataInGlobalScope),
+			stepState.start.withMap(clientDataInGlobalScope),
 			"module-scoped argument",
-			firstArgOrNull,
-			firstArgOrNull === null
-				&& initialTokenPosition.lexingState != start.lexingState,
+			stepState.firstArgOrNull,
+			stepState.firstArgOrNull === null
+				&& stepState.initialTokenPosition.lexingState
+					!= stepState.start.lexingState,
 			false, // Static argument can't be top-valued
-			superexpressions) { afterArg, newArg ->
-				if (newArg.hasSuperCast)
+			stepState.superexpressions
+		) { afterArg, newArg ->
+			if (newArg.hasSuperCast)
+			{
+				afterArg.expected(
+					STRONG,
+					"global-scoped argument, not supercast")
+				return@parseSendArgumentWithExplanationThen
+			}
+			if (stepState.firstArgOrNull !== null)
+			{
+				// A leading argument was already supplied.  We couldn't prevent
+				// it from referring to variables that were in scope during its
+				// parsing, but we can reject it if the leading argument is
+				// supposed to be parsed in global scope, which is the case
+				// here, and there are references to local variables within the
+				// argument's parse tree.
+				val usedLocals = usesWhichLocalVariables(newArg)
+				if (usedLocals.setSize > 0)
 				{
-					afterArg.expected(
-						STRONG,
-						"global-scoped argument, not supercast")
+					// A leading argument was supplied which used at least
+					// one local.  It shouldn't have.
+					afterArg.expected(WEAK) {
+						val localNames = usedLocals.map {
+							it.token.string().asNativeString()
+						}
+						it(
+							"a leading argument which "
+								+ "was supposed to be parsed in "
+								+ "module scope, but it referred to "
+								+ "some local variables: "
+								+ localNames)
+					}
 					return@parseSendArgumentWithExplanationThen
 				}
-				if (firstArgOrNull !== null)
-				{
-					// A leading argument was already supplied.  We couldn't
-					// prevent it from referring to variables that were in scope
-					// during its parsing, but we can reject it if the leading
-					// argument is supposed to be parsed in global scope, which
-					// is the case here, and there are references to local
-					// variables within the argument's parse tree.
-					val usedLocals = usesWhichLocalVariables(newArg)
-					if (usedLocals.setSize > 0)
-					{
-						// A leading argument was supplied which used at least
-						// one local.  It shouldn't have.
-						afterArg.expected(WEAK) {
-							val localNames = usedLocals.map {
-								it.token.string().asNativeString()
-							}
-							it(
-								"a leading argument which "
-									+ "was supposed to be parsed in "
-									+ "module scope, but it referred to "
-									+ "some local variables: "
-									+ localNames)
-						}
-						return@parseSendArgumentWithExplanationThen
-					}
-				}
-				val newArgsSoFar = argsSoFar.append(newArg)
-				eventuallyParseRestOfSendNode(
-					afterArg.withMap(start.clientDataMap),
-					successorTrees.tupleAt(1),
-					null,
-					initialTokenPosition,
-					// The argument counts as something that was consumed if
-					// it's not a leading argument...
-					firstArgOrNull === null,
-					// We're about to parse an argument, so whatever was in
-					// consumedAnything should be moved into
-					// consumedAnythingBeforeLatestArgument.
-					consumedAnything,
-					consumedTokens,
-					newArgsSoFar,
-					marksSoFar,
-					superexpressions,
-					continuation)
 			}
+			val stepStateCopy = stepState.copy {
+				start = afterArg.withMap(stepState.start.clientDataMap)
+				// We're about to parse an argument, so whatever was in
+				// consumedAnything should be moved into
+				// consumedAnythingBeforeLatestArgument.
+				consumedAnythingBeforeLatestArgument = consumedAnything
+				// The argument counts as something that was consumed if
+				// it's not a leading argument...
+				consumedAnything = firstArgOrNull === null
+				firstArgOrNull = null
+				// Push the new argument phrase.
+				push(newArg)
+			}
+			eventuallyParseRestOfSendNode(successorTree, stepStateCopy)
+		}
 	}
 
 	/**
@@ -4140,60 +3896,18 @@ class AvailCompiler constructor(
 	 * A helper method to queue a parsing activity for continuing to parse a
 	 * [send&#32;phrase][SendPhraseDescriptor].
 	 *
-	 * @param start
-	 *   The current [ParserState].
 	 * @param bundleTree
 	 *   The current [A_BundleTree] being applied.
-	 * @param firstArgOrNull
-	 *   Either `null` or a pre-parsed first argument phrase.
-	 * @param initialTokenPosition
-	 *   The position at which parsing of this message started. If it was parsed
-	 *   as a leading argument send (i.e., `firstArgOrNull` started out
-	 *   non-`null`) then the position is of the token following the first
-	 *   argument.
-	 * @param consumedAnything
-	 *   Whether any tokens have been consumed yet.
-	 * @param consumedAnythingBeforeLatestArgument
-	 *   Whether any tokens or arguments had been consumed before encountering
-	 *   the most recent argument.  This is to improve diagnostics when argument
-	 *   type checking is postponed past matches for subsequent tokens.
-	 * @param consumedTokens
-	 *   The [A_Token]s that have been consumed so far for this invocation.
-	 * @param argsSoFar
-	 *   The arguments stack.
-	 * @param marksSoFar
-	 *   The marks stack.
-	 * @param superexpressions
-	 *   The enclosing partially-parsed expressions, if any.
-	 * @param continuation
-	 *   What to do with a completed phrase.
+	 * @param stepState
+	 *   Information about the current partially-constructed message or macro
+	 *   send that has not yet been completed.
 	 */
 	internal fun eventuallyParseRestOfSendNode(
-		start: ParserState,
 		bundleTree: A_BundleTree,
-		firstArgOrNull: A_Phrase?,
-		initialTokenPosition: ParserState,
-		consumedAnything: Boolean,
-		consumedAnythingBeforeLatestArgument: Boolean,
-		consumedTokens: List<A_Token>,
-		argsSoFar: List<A_Phrase>,
-		marksSoFar: List<Int>,
-		superexpressions: PartialSubexpressionList?,
-		continuation: (ParserState, A_Phrase)->Unit)
+		stepState: ParsingStepState)
 	{
-		start.workUnitDo {
-			parseRestOfSendNode(
-				start,
-				bundleTree,
-				firstArgOrNull,
-				initialTokenPosition,
-				consumedAnything,
-				consumedAnythingBeforeLatestArgument,
-				consumedTokens,
-				argsSoFar,
-				marksSoFar,
-				superexpressions,
-				continuation)
+		stepState.start.workUnitDo {
+			parseRestOfSendNode(bundleTree, stepState)
 		}
 	}
 
