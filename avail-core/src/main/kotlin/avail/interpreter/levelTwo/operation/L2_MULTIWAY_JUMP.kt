@@ -31,9 +31,15 @@
  */
 package avail.interpreter.levelTwo.operation
 
+import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.types.A_Type.Companion.lowerBound
+import avail.descriptor.types.A_Type.Companion.typeIntersection
+import avail.descriptor.types.A_Type.Companion.upperBound
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.TypeTag
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
@@ -151,8 +157,30 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		// Pick a split point near the middle of the range.
 		val splitIndex = (firstSplit + lastSplit) ushr 1
 		val splitValue = splitPoints.tupleIntAt(splitIndex)
-		val left = generator.createBasicBlock("< $splitValue")
-		val right = generator.createBasicBlock("≥ $splitValue")
+		var leftName = "< $splitValue"
+		var rightName = "≥ $splitValue"
+		if (value.definition().instruction.operation == L2_EXTRACT_TAG_ORDINAL)
+		{
+			// This is a tag dispatch, so be descriptive.
+			val range = generator.currentManifest
+				.restrictionFor(value.semanticValue())
+				.type
+				.typeIntersection(inclusive(0L, TypeTag.values().size - 1L))
+			val low = range.lowerBound.extractInt
+			val high = range.upperBound.extractInt
+			leftName += " ${TypeTag.tagFromOrdinal(low)}"
+			if (low < splitValue - 1)
+			{
+				leftName += "..${TypeTag.tagFromOrdinal(splitValue - 1)}"
+			}
+			rightName += " ${TypeTag.tagFromOrdinal(splitValue)}"
+			if (splitValue < high)
+			{
+				rightName += "..${TypeTag.tagFromOrdinal(high)}"
+			}
+		}
+		val left = generator.createBasicBlock(leftName)
+		val right = generator.createBasicBlock(rightName)
 		L2_JUMP_IF_COMPARE_INT.greaterOrEqual.compareAndBranch(
 			generator,
 			value,

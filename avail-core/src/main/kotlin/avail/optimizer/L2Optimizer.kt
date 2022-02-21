@@ -387,8 +387,10 @@ class L2Optimizer internal constructor(
 					lastPhiIndex = i
 					break
 				}
+				@Suppress("ConvertArgumentToSet")
 				sometimesLive.removeAll(instruction.destinationRegisters)
 				sometimesLive.addAll(instruction.sourceRegisters)
+				@Suppress("ConvertArgumentToSet")
 				alwaysLive.removeAll(instruction.destinationRegisters)
 				alwaysLive.addAll(instruction.sourceRegisters)
 			}

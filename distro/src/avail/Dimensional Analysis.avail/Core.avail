@@ -319,9 +319,7 @@ namesByUnit : {unit→string|} := {};
 
 Public method "names by unit" is
 [
-	temp : {unit→string|};
-	lock stateLock for [temp := namesByUnit;];
-	temp
+	lock stateLock for [namesByUnit]
 ];
 
 /**

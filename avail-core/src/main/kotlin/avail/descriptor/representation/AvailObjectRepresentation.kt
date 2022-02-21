@@ -62,7 +62,7 @@ import kotlin.math.min
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-abstract class AvailObjectRepresentation protected constructor(
+sealed class AvailObjectRepresentation constructor(
 	initialDescriptor: AbstractDescriptor,
 	objectSlotsSize: Int,
 	integerSlotsCount: Int
@@ -1226,8 +1226,7 @@ abstract class AvailObjectRepresentation protected constructor(
 	/**
 	 * Provide fast volatile and atomic access to long and AvailObject slots.
 	 * Java left a huge implementation gap where you can't access normal array
-	 * slots with volatile access, but there are ways around it.  For now, use
-	 * Sun's Unsafe class.
+	 * slots with volatile access, so we use [MethodHandles] to get around it.
 	 *
 	 * In sand-boxed environments where this is not possible we'll need to
 	 * change this to use subclassing, and do volatile reads or nilpotent

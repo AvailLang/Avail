@@ -1372,7 +1372,7 @@ constructor(messageName: A_String) {
 
 		/**
 		 * Answer the index of the given permutation (tuple of integers), adding
-		 * it to the global [MessageSplitter.constantsList] if necessary.
+		 * it to the global [permutations] tuple if necessary.
 		 *
 		 * @param permutation
 		 *   The permutation whose globally unique one-based index should be

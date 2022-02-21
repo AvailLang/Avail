@@ -161,7 +161,6 @@ import org.objectweb.asm.Type
 import org.objectweb.asm.tree.ClassNode
 import org.objectweb.asm.tree.MethodNode
 import org.objectweb.asm.util.CheckClassAdapter
-import sun.misc.Unsafe
 import java.io.IOException
 import java.io.UncheckedIOException
 import java.nio.charset.StandardCharsets
@@ -921,9 +920,10 @@ class JVMTranslator constructor(
 			}
 			// Capture the maximum stack depth and locals, for spoonfeeding into
 			// the checker.
+			val methodWriterAsNode = methodWriter as MethodNode
 			method.visitMaxs(
-				unsafe.getInt(methodWriter, maxStackOffset),
-				unsafe.getInt(methodWriter, maxLocalsOffset))
+				methodWriterAsNode.maxStack,
+				methodWriterAsNode.maxLocals)
 		}
 	}
 
@@ -1998,30 +1998,6 @@ class JVMTranslator constructor(
 		 * generation.
 		 */
 		var debugJVMCodeGeneration = false
-
-		/** The unsafe API. */
-		private val unsafe by lazy {
-			with(Unsafe::class.java.getDeclaredField("theUnsafe")) {
-				isAccessible = true
-				get(null) as Unsafe
-			}
-		}
-
-		/**
-		 * The offset of the `maxStack` field with a [MethodNode].
-		 */
-		private val maxStackOffset by lazy {
-			val delegate = Class.forName("org.objectweb.asm.MethodWriter")
-			unsafe.objectFieldOffset(delegate.getDeclaredField("maxStack"))
-		}
-
-		/**
-		 * The offset of the `maxLocals` field with a [MethodNode].
-		 */
-		private val maxLocalsOffset by lazy {
-			val delegate = Class.forName("org.objectweb.asm.MethodWriter")
-			unsafe.objectFieldOffset(delegate.getDeclaredField("maxLocals"))
-		}
 	}
 
 	init

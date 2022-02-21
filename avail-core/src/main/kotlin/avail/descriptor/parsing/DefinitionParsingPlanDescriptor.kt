@@ -127,10 +127,9 @@ class DefinitionParsingPlanDescriptor private constructor(
 		 * method. The integers encode parsing instructions, many of which can
 		 * be executed *en masse* against a piece of Avail source code for
 		 * multiple potential methods. This is facilitated by the incremental
-		 * construction of a
-		 * [message&#32;bundle&#32;tree][MessageBundleTreeDescriptor]. The
-		 * instructions are produced during analysis of the method name by the
-		 * [MessageSplitter], which has a description of the complete
+		 * construction of a message bundle [tree][MessageBundleTreeDescriptor].
+		 * The instructions are produced during analysis of the method name by
+		 * the [MessageSplitter], which has a description of the complete
 		 * instruction set.
 		 */
 		@HideFieldInDebugger

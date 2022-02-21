@@ -962,8 +962,7 @@ Semantic restriction "_→set" is
 [
 	tupleType : tuple meta
 |
-	typeLimit ::= |tupleType's leading types| + 1;
-	union ::= ∪ tupleType[1..typeLimit];
+	union ::= ∪ tupleType[1..∞];
 	if ⌊tupleType⌋ = ⌈tupleType⌉
 		∧ |union| = ⌊tupleType⌋
 		∧ ¬union ⊆ type
@@ -1242,8 +1241,8 @@ Semantic restriction "SHA-_digest of_" is
 	bytes : byte*'s type
 |
 	sizes ::= {1 → 20, 256 → 32, 384 → 48, 512 → 64};
-	low ::= cast sizes[⌊algorithm⌋] into [t : natural number | t];
-	high ::= cast sizes[⌈algorithm⌉] into [t : natural number | t];
+	low ::= sizes[⌊algorithm⌋] ?→ natural number;
+	high ::= sizes[⌈algorithm⌉] ?→ natural number;
 	<<>, byte… | [low .. high]>
 ];
 

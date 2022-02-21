@@ -1560,14 +1560,24 @@ Public stable method "distinct_" is
 	]
 ] : tuple;
 
-/* No decent semantic restrictions can be written yet for `distinct_` and
- * `_→set`. An efficient algorithm involves construction and evaluation of a
- * chromatic polynomial over the type intersection graph of the tuple type's
- * element types (the vertices represent the element types and an edge between
- * two vertices indicates that the type intersection of the element types is ⊥).
- * We cannot conveniently build graphs yet. We need object types and objects
- * first.
+/**
+ * Bound the type as well as possible without delving into chromatic polynomials
+ * and pigeon-hole proofs.
+ *
+ * @method "distinct_"
+ * @param "aTupleType" "tuple meta"
+ * @returns "tuple meta"
+ *          A tuple type that permits only the elements possible for {@param
+ *          "aTuple"}, with at most the given number of elements.
+ * @category "Tuples" "Transformers"
  */
+Semantic restriction "distinct_" is
+[
+	aTupleType : tuple meta
+|
+	elementType ::= ∪ aTupleType[1..∞];
+	<elementType…|⌊aTupleType⌋ min 1..⌈aTupleType⌉>
+] : tuple meta;
 
 /**
  * Answer a function that computes the zip of a tuple of tuples.
@@ -3511,18 +3521,9 @@ Semantic restriction "_'s⁇head" is
  *          The requested tuple slice.
  * @category "Tuples" "Queries"
  */
-Public stable abstract method "_'s⁇tail" is [any+]→tuple;
-
-Method "_'s⁇tail" is
+Public stable method "_'s⁇tail" is
 [
-	aTuple : <any…|1>
-|
-	<>
-] : <>'s type;
-
-Method "_'s⁇tail" is
-[
-	aTuple : <any…|2..>
+	aTuple : <any…|1..>
 |
 	aTuple[2..]
 ] : tuple;
@@ -5204,3 +5205,25 @@ Semantic restriction "_[_]" is
 			++ “subscript”
 	]
 ];
+
+
+
+/*** TODO - Introduce tuple query syntax
+Macro "select«all⁇|unique|distinct»\
+		\|*?\
+		\|«_«as…»?‡,»\
+		\|from«_‡,»§\
+		\|«where_»?\
+		\|«order by«_‡,»»?"
+is
+[...macro prefix...],
+[
+	modifier: literal phrase ⇒ [1..3],
+	star: literal phrase ⇒ false's type,  // Overridden for true's type to exclude explicit columns.
+	columns: (<expression, non-empty string?> → list phrase)+ → list phrase,
+	expression: expression phrase ⇒ boolean,
+	order: ()? → list phrase
+|
+	...
+]
+*/

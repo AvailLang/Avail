@@ -52,16 +52,16 @@ import java.util.LinkedList
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Richard Arriaga
  * @see [ECMA&#32;404:&#32;"The&#32;JSON&#32;Data&#32;Interchange&#32;Format"](http://www.ecma-international.org/publications/files/ECMA-ST/ECMA-404.pdf)
- * 
+ *
  * @property writer
  *   The [target][Writer] for the raw JSON document.
  * @property prettyPrint
  *   `true` indicates the JSON should be pretty-printed; `false` indicates the
- *   JSON should be minified. 
- *   
+ *   JSON should be minified.
+ *
  * @constructor
  * Construct a new [JSONWriter].
- * 
+ *
  * @param writer
  *   The [target][Writer] for the raw JSON document.
  * @param prettyPrint
@@ -84,7 +84,7 @@ open class JSONWriter constructor(
 	 * The prefix indentation each time a new line is to be inserted.
 	 */
 	private var newLineAndIndentation: String = ""
-	
+
 	/** `true` indicates in an array; `false` otherwise. */
 	private var inArray = false
 	private var addedArrayObjectValue = false
@@ -98,7 +98,7 @@ open class JSONWriter constructor(
 		if (prettyPrint)
 		{
 			newLineAndIndentation =
-				"\n${String(CharArray(currentIndentationLevel) { i -> '\t' })}"
+				"\n${String(CharArray(currentIndentationLevel) { '\t' })}"
 		}
 	}
 
@@ -126,7 +126,7 @@ open class JSONWriter constructor(
 	}
 
 	/**
-	 * If [prettyPrint] is `true`, [write][privateWrite] a 
+	 * If [prettyPrint] is `true`, [write][privateWrite] a
 	 * [new line and indentation][newLineAndIndentation].
 	 */
 	private fun insertNewLine()
@@ -507,7 +507,7 @@ open class JSONWriter constructor(
 		/**
 		 * When pretty-printing, can this element be started on the next line?
 		 *
-		 * @return 
+		 * @return
 		 *   `true` indicates yes; `false` indicates must be on same line.
 		 */
 		open val newlineBeforeWrite: Boolean = false
