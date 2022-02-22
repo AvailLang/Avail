@@ -151,7 +151,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				val atom = loader.lookupName(string)

@@ -68,15 +68,14 @@ object P_GetClearing : Primitive(1, CanInline, HasSideEffect)
 		val variable = interpreter.argument(0)
 		return try
 		{
-			val valueObject = variable.getValue()
-			variable.clearValue()
-			interpreter.primitiveSuccess(valueObject)
+			val value = variable.getValueClearing()
+			interpreter.primitiveSuccess(value)
 		}
 		catch (e: VariableGetException)
 		{
 			interpreter.primitiveFailure(e.numericCode)
 		}
-}
+	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(

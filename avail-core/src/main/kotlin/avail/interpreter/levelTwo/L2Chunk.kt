@@ -261,15 +261,8 @@ class L2Chunk private constructor(
 						{
 							val genSize = gen.chunks.size
 							liveCount += genSize
-							lastGenerationToKeep =
-								if (liveCount < maximumTotalChunkCount)
-								{
-									gen
-								}
-								else
-								{
-									break
-								}
+							if (liveCount >= maximumTotalChunkCount) break
+							lastGenerationToKeep = gen
 						}
 						// Remove the obsolete generations, gathering the chunks.
 						val chunksToInvalidate =
@@ -288,7 +281,7 @@ class L2Chunk private constructor(
 						{
 							// Queue a task to safely invalidate the evicted
 							// chunks.
-							AvailRuntime.currentRuntime().whenLevelOneSafeDo(
+							AvailRuntime.currentRuntime().whenSafePointDo(
 								FiberDescriptor.bulkL2InvalidationPriority)
 							{
 								invalidationLock.withLock {

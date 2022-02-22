@@ -73,7 +73,7 @@ object P_ForwardMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				loader.addForwardStub(loader.lookupName(string), blockSignature)

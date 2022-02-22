@@ -84,7 +84,7 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				loader.addMethodBody(atom, function)

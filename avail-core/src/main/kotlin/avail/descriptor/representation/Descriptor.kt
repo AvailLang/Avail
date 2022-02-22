@@ -1022,6 +1022,10 @@ protected constructor (
 	@Throws(VariableGetException::class)
 	override fun o_GetValue (self: AvailObject): AvailObject = unsupported
 
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearing (self: AvailObject): AvailObject =
+		unsupported
+
 	override fun o_HashOrZero (self: AvailObject): Int = unsupported
 
 	override fun o_HasGrammaticalRestrictions (self: AvailObject): Boolean =

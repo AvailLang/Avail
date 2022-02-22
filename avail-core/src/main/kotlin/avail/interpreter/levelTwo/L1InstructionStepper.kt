@@ -62,6 +62,8 @@ import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.Mutability.IMMUTABLE
+import avail.descriptor.representation.Mutability.MUTABLE
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
@@ -400,21 +402,14 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val localVariable: A_Variable =
 						pointerAt(instructionDecoder.getOperand())
-					val valueOrReifier = getVariable(localVariable)
+					val valueOrReifier =
+						getVariableClearingIfMutable(localVariable)
 					if (valueOrReifier is StackReifier)
 					{
 						return valueOrReifier
 					}
 					val value = valueOrReifier as AvailObject
-					if (localVariable.traversed().descriptor().isMutable)
-					{
-						localVariable.clearValue()
-						push(value)
-					}
-					else
-					{
-						push(value.makeImmutable())
-					}
+					push(value.makeImmutable()) //TODO Find mutability bug in a primitive used by Mersenne Twister.
 				}
 				L1_doPushOuter.ordinal ->
 				{
@@ -431,21 +426,14 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				{
 					val outerVariable: A_Variable =
 						function.outerVarAt(instructionDecoder.getOperand())
-					val valueOrReifier = getVariable(outerVariable)
+					val valueOrReifier =
+						getVariableClearingIfMutable(outerVariable)
 					if (valueOrReifier is StackReifier)
 					{
 						return valueOrReifier
 					}
 					val value = valueOrReifier as AvailObject
-					if (outerVariable.traversed().descriptor().isMutable)
-					{
-						outerVariable.clearValue()
-						push(value)
-					}
-					else
-					{
-						push(value.makeImmutable())
-					}
+					push(value.makeImmutable())
 				}
 				L1_doSetOuter.ordinal ->
 				{
@@ -465,8 +453,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					{
 						return valueOrReifier
 					}
-					val value = valueOrReifier as AvailObject
-					push(value.makeImmutable())
+					push(valueOrReifier as AvailObject)
 				}
 				L1_doMakeTuple.ordinal ->
 				{
@@ -485,8 +472,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					{
 						return valueOrReifier
 					}
-					val value = valueOrReifier as AvailObject
-					push(value.makeImmutable())
+					push(valueOrReifier as AvailObject)
 				}
 				L1_doExtension.ordinal ->
 				{
@@ -570,8 +556,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					{
 						return valueOrReifier
 					}
-					val value = valueOrReifier as AvailObject
-					push(value.makeImmutable())
+					push(valueOrReifier as AvailObject)
 				}
 				L1Ext_doSetLiteral.ordinal ->
 				{
@@ -784,6 +769,70 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				reifyCurrentFrame(
 					reifier, ChunkEntryPoint.UNREACHABLE,
 					"{0}Push reified continuation for L1 getVar "
+						+ "failure: {1}")
+			}
+			reifier
+		}
+	}
+
+	/**
+	 * Get the value from the given variable, reifying and invoking the
+	 * [HookType.READ_UNASSIGNED_VARIABLE] hook if the variable has no value.
+	 * Clear the variable as well, but only if the variable is [MUTABLE].  If
+	 * the variable was not mutable, make the value [IMMUTABLE].
+	 *
+	 * @param variable
+	 *   The variable to read (and possibly clear).
+	 * @return
+	 *   A [StackReifier] if the variable was unassigned, otherwise the
+	 *   [AvailObject] that's the current value of the variable.
+	 */
+	private fun getVariableClearingIfMutable(variable: A_Variable): Any
+	{
+		return try
+		{
+			if (variable.traversed().descriptor().isMutable)
+			{
+				variable.getValueClearing()
+					.apply {  //TODO Remove after debug
+						assert(!variable.hasValue())
+					}
+			}
+			else
+			{
+				// Automatically makes the value immutable.
+				variable.getValue()
+					.apply {  //TODO Remove after debug
+						assert(!traversed().descriptor().isMutable)
+					}
+			}
+		}
+		catch (e: VariableGetException)
+		{
+			assert(e.numericCode.equals(
+				AvailErrorCode.E_CANNOT_READ_UNASSIGNED_VARIABLE.numericCode()))
+			val savedFunction = interpreter.function!!
+			val savedPointers = pointers
+			val savedOffset = interpreter.offset
+			val savedPc = pc()
+			val savedStackp = stackp
+			val implicitObserveFunction =
+				HookType.READ_UNASSIGNED_VARIABLE[interpreter.runtime]
+			interpreter.argsBuffer.clear()
+			val reifier =
+				interpreter.invokeFunction(implicitObserveFunction)!!
+			pointers = savedPointers
+			interpreter.chunk = L2Chunk.unoptimizedChunk
+			interpreter.setOffset(savedOffset)
+			interpreter.function = savedFunction
+			savedFunction.code().setUpInstructionDecoder(instructionDecoder)
+			instructionDecoder.pc(savedPc)
+			stackp = savedStackp
+			if (reifier.actuallyReify())
+			{
+				reifyCurrentFrame(
+					reifier, ChunkEntryPoint.UNREACHABLE,
+					"{0}Push reified continuation for L1 getVarClearing "
 						+ "failure: {1}")
 			}
 			reifier

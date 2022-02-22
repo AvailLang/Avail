@@ -234,6 +234,37 @@ open class VariableSharedDescriptor protected constructor(
 		return value
 	}
 
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearing(self: AvailObject): AvailObject
+	{
+		recordReadFromSharedVariable(self)
+		try
+		{
+			val interpreter = Interpreter.current()
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
+			}
+		}
+		catch (e: ClassCastException)
+		{
+			// No implementation required.
+		}
+		// Answer the current value of the variable. Fail if no value is
+		// currently assigned.
+		val value = self.volatileSlot(VALUE)
+		if (value.isNil)
+		{
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+		}
+		assert(value.descriptor().isShared)
+		handleVariableWriteTracing(self)
+		self.setVolatileSlot(VALUE, nil)
+		recordWriteToSharedVariable()
+		return value
+	}
+
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		recordReadFromSharedVariable(self)

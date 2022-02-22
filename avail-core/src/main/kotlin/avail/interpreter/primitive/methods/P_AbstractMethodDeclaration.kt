@@ -78,7 +78,7 @@ object P_AbstractMethodDeclaration : Primitive(2, CanSuspend, Unknown)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				val atom = loader.lookupName(string)

@@ -155,7 +155,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(E_MACRO_MUST_RETURN_A_PHRASE)
 		}
 
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				loader.addMacroBody(atom, function, prefixFunctions, false)

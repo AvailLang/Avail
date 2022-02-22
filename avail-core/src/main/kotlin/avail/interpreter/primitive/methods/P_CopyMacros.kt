@@ -91,7 +91,7 @@ object P_CopyMacros : Primitive(2, CanSuspend, HasSideEffect)
 		if (oldBundle.isNil)
 			return interpreter.primitiveSuccess(nil)
 
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				for (macro in oldBundle.macrosTuple)

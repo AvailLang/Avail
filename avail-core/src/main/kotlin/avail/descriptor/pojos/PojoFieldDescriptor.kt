@@ -159,6 +159,10 @@ class PojoFieldDescriptor private constructor(
 		}
 	}
 
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearing(self: AvailObject): AvailObject =
+		self.getValue().also { self.clearValue() }
+
 	override fun o_Hash(self: AvailObject): Int = combine3(
 		self.slot(FIELD).hash(),
 		self.slot(RECEIVER).hash(),

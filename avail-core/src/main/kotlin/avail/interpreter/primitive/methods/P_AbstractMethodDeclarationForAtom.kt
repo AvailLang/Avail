@@ -79,7 +79,7 @@ object P_AbstractMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			try
 			{
 				loader.addAbstractSignature(atom, blockSignature)

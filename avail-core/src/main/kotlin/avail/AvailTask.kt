@@ -241,7 +241,7 @@ class AvailTask constructor(
 	init
 	{
 		assert(priority in 0 .. 255)
-		val deltaNanos = 1000000000L * (255 - priority) shr 8
+		val deltaNanos = 1_000_000_000L * (255 - priority) shr 8
 		quasiDeadline = System.nanoTime() + deltaNanos
 		this.body = body
 	}

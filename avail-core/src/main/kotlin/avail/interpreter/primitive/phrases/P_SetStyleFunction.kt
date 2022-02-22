@@ -82,7 +82,7 @@ object P_SetStyleFunction : Primitive(2, CanSuspend, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		return interpreter.suspendInLevelOneSafeThen {
+		return interpreter.suspendInSafePointThen {
 			val styler = newStyler(function, definition, module)
 			var bad = false
 			definition.updateStylers {

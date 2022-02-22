@@ -100,6 +100,20 @@ interface A_Variable : A_ChunkDependable
 	fun getValue(): AvailObject
 
 	/**
+	 * Extract the current value of the [variable][VariableDescriptor].  Fail if
+	 * the variable has no value.  Clear the variable afterward.
+	 *
+	 * @return
+	 *   The variable's value prior to it being cleared.
+	 * @throws VariableGetException
+	 *   If the current value could not be read, e.g., because the variable is
+	 *   unassigned.
+	 */
+	@ReferencedInGeneratedCode
+	@Throws(VariableGetException::class)
+	fun getValueClearing(): AvailObject
+
+	/**
 	 * Answer `true` if the variable currently has a value, otherwise answer
 	 * `false`.  No value is typically represented by the variable's value slot
 	 * containing [NilDescriptor.nil].

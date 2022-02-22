@@ -672,6 +672,9 @@ class AvailObject private constructor(
 	@Throws(VariableGetException::class)
 	override fun getValue() = descriptor().o_GetValue(this)
 
+	@Throws(VariableGetException::class)
+	override fun getValueClearing() = descriptor().o_GetValueClearing(this)
+
 	override fun hashOrZero() = descriptor().o_HashOrZero(this)
 
 	override fun setHashOrZero(value: Int) =

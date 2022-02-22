@@ -737,11 +737,11 @@ class Interpreter(
 	 * @return
 	 *   The value [FIBER_SUSPENDED].
 	 */
-	fun suspendInLevelOneSafeThen(
+	fun suspendInSafePointThen(
 		action: SuspensionHelper<A_BasicObject>.()->Unit
 	): Result = fiber!!.let { theFiber ->
 		suspendThen {
-			runtime.whenLevelOneSafeDo(
+			runtime.whenSafePointDo(
 				theFiber.priority(),
 				AvailTask.forUnboundFiber(theFiber) { action() })
 		}
@@ -1653,8 +1653,8 @@ class Interpreter(
 	 * specific to the current [fiber] or global to the [runtime][AvailRuntime].
 	 * There are several reasons why an interrupt might be requested:
 	 *
-	 * * Level one safety might be requested by the runtime, to ensure no fibers
-	 *   are executing during a critical operation, such as adding a method
+	 * * A safe point might be requested by the runtime, to ensure no fibers are
+	 *   executing during a critical operation, such as adding a method
 	 *   definition.  This requires more than just a lock, since it will cause
 	 *   [L2Chunk]s that rely on that method to be invalidated, which would not
 	 *   work if those chunks were running.  Reified continuations that get
@@ -1683,7 +1683,7 @@ class Interpreter(
 	 */
 	@get:ReferencedInGeneratedCode
 	val isInterruptRequested: Boolean
-		get() = (runtime.levelOneSafetyRequested()
+		get() = (runtime.safePointRequested()
 			|| unreifiedCallDepth > maxUnreifiedCallDepth
 			|| runtime.clock.get() - startTick >= timeSliceTicks
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED))
@@ -3170,21 +3170,20 @@ class Interpreter(
 
 		/**
 		 * Schedule the specified
-		 * [suspended][ExecutionState.indicatesSuspension]
-		 * [fiber][FiberDescriptor] to execute for a while as a
-		 * [Level-One-unsafe] [AvailRuntime.whenLevelOneUnsafeDo] task. If the
-		 * fiber completes normally, then call its [A_Fiber.resultContinuation]
-		 * with its final answer. If the fiber terminates abnormally, then call
-		 * its [A_Fiber.failureContinuation] with the terminal
-		 * [throwable][Throwable].
+		 * [suspended][ExecutionState.indicatesSuspension] fiber to execute for
+		 * a while as an [interpreter][AvailRuntime.interpreterTasks] task. If
+		 * the fiber completes normally, then call its
+		 * [A_Fiber.resultContinuation] with its final answer. If the fiber
+		 * terminates abnormally, then call its [A_Fiber.failureContinuation]
+		 * with the terminal [Throwable].
 		 *
 		 * @param runtime
-		 *   An [Avail&#32;runtime][AvailRuntime].
+		 *   An [AvailRuntime].
 		 * @param aFiber
-		 *   The fiber to run.
+		 *   The [A_Fiber] to run.
 		 * @param setup
 		 *   How to set up the interpreter prior to running the fiber for a
-		 *   while. Pass in the interpreter to use.
+		 *   while. Pass in the interpreter as the receiver.
 		 */
 		private fun executeFiber(
 			runtime: AvailRuntime,
@@ -3192,9 +3191,9 @@ class Interpreter(
 			setup: Interpreter.()->Unit)
 		{
 			assert(aFiber.executionState().indicatesSuspension)
-			// We cannot simply run the specified function, we must queue a task
-			// to run when Level One safety is no longer required.
-			runtime.whenLevelOneUnsafeDo(
+			// We cannot simply run the specified function, we must queue a new
+			// task to run when interpreters are allowed to run.
+			runtime.whenRunningInterpretersDo(
 				aFiber.priority(),
 				AvailTask.forFiberResumption(aFiber) {
 					assert(aFiber === fiberOrNull())

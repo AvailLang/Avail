@@ -195,12 +195,12 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 	{
 		// No need to lock dirtyModules any more, since it's purely read-only at
 		// this point.
-		availBuilder.runtime.whenLevelOneSafeDo(loaderPriority) {
+		availBuilder.runtime.whenSafePointDo(loaderPriority) {
 			val loadedModule = availBuilder.getLoadedModule(moduleName)!!
 			if (!loadedModule.deletionRequest)
 			{
 				completionAction()
-				return@whenLevelOneSafeDo
+				return@whenSafePointDo
 			}
 			AvailBuilder.log(
 				Level.FINER,

@@ -1011,13 +1011,17 @@ open class CompiledCodeDescriptor protected constructor(
 	override fun o_StartingChunk(self: AvailObject): L2Chunk
 	{
 		val chunk = startingChunk
+		assert(chunk.isValid)
 		if (chunk != L2Chunk.unoptimizedChunk)
 		{
 			L2Chunk.Generation.usedChunk(chunk)
 		}
 		// Memory pressure from L2Chunk generations causes a task to be queued
-		// to do the (bulk) invalidation while all fibers are paused.
-		assert(chunk === startingChunk)
+		// to do the (bulk) invalidation while all fibers are paused.  Therefore
+		// we can't observe a chunk becoming invalid here.  However, which chunk
+		// is the current startingChunk might change, due to *another* fiber
+		// optimizing this code.  Just answer whichever chunk we found at first.
+		assert(chunk.isValid)
 		return chunk
 	}
 
@@ -1160,7 +1164,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 *   The continuation to be executed upon.
 		 */
 		fun resetCodeCoverageDetailsThen(resume: ()->Unit) =
-			AvailRuntime.currentRuntime().whenLevelOneSafeDo(
+			AvailRuntime.currentRuntime().whenSafePointDo(
 				FiberDescriptor.commandPriority
 			) {
 				L2Chunk.invalidationLock.withLock {
@@ -1181,7 +1185,7 @@ open class CompiledCodeDescriptor protected constructor(
 							}
 						}
 					}
-					AvailRuntime.currentRuntime().whenLevelOneUnsafeDo(
+					AvailRuntime.currentRuntime().whenRunningInterpretersDo(
 						FiberDescriptor.commandPriority, resume)
 				}
 			}
@@ -1195,7 +1199,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 */
 		fun codeCoverageReportsThen(
 			resume: (List<CodeCoverageReport>)->Unit
-		) = AvailRuntime.currentRuntime().whenLevelOneSafeDo(
+		) = AvailRuntime.currentRuntime().whenSafePointDo(
 			FiberDescriptor.commandPriority
 		) {
 			val reports: MutableList<CodeCoverageReport> = mutableListOf()
@@ -1221,7 +1225,7 @@ open class CompiledCodeDescriptor protected constructor(
 					}
 				}
 			}
-			AvailRuntime.currentRuntime().whenLevelOneUnsafeDo(
+			AvailRuntime.currentRuntime().whenRunningInterpretersDo(
 				FiberDescriptor.commandPriority
 			) { resume(reports) }
 		}

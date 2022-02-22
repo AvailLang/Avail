@@ -1978,6 +1978,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_GetValue(self: AvailObject): AvailObject =
 		self .. { getValue() }
 
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearing(self: AvailObject): AvailObject =
+		self .. { getValueClearing() }
+
 	override fun o_Hash(self: AvailObject): Int =
 		self .. { hash() }
 

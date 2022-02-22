@@ -252,6 +252,35 @@ open class VariableDescriptor protected constructor(
 		return value
 	}
 
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearing(self: AvailObject): AvailObject
+	{
+		try
+		{
+			val interpreter = Interpreter.current()
+			if (interpreter.traceVariableReadsBeforeWrites())
+			{
+				val fiber = interpreter.fiber()
+				fiber.recordVariableAccess(self, true)
+			}
+		}
+		catch (e: ClassCastException)
+		{
+			// No implementation required.
+		}
+		// Answer the current value of the variable. Fail if no value is
+		// currently assigned.  Note that we do *not* have to make the retrieved
+		// value immutable, since the variable drops its reference.
+		val value = self.slot(VALUE)
+		if (value.isNil)
+		{
+			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
+		}
+		handleVariableWriteTracing(self)
+		self.setSlot(VALUE, nil)
+		return value
+	}
+
 	override fun o_HasValue(self: AvailObject): Boolean
 	{
 		try

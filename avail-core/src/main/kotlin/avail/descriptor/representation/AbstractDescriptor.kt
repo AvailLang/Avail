@@ -2117,6 +2117,9 @@ abstract class AbstractDescriptor protected constructor (
 	@Throws(VariableGetException::class)
 	abstract fun o_GetValue (self: AvailObject): AvailObject
 
+	@Throws(VariableGetException::class)
+	abstract fun o_GetValueClearing (self: AvailObject): AvailObject
+
 	abstract fun o_HashOrZero (self: AvailObject): Int
 
 	abstract fun o_HasGrammaticalRestrictions (self: AvailObject): Boolean

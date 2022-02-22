@@ -70,7 +70,8 @@ import avail.interpreter.execution.Interpreter
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffect)
+object P_SealMethodsAtExistingDefinitions : Primitive(
+	1, CanInline, HasSideEffect)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -90,11 +91,11 @@ object P_SealMethodsAtExistingDefinitions : Primitive(1, CanInline, HasSideEffec
 			val bundle = name.bundleOrNil
 			if (bundle.notNil)
 			{
-				// The definition tuple of a method can only be replaced in a
-				// Level One safe zone. Like the vast majority of primitives,
-				// this one runs in a Level One *unsafe* zone. Therefore it is
-				// not necessary to lock the method while traversing its
-				// definition tuple.
+				// The definition tuple of a method can only be replaced during
+				// a safe point. Like the vast majority of primitives, this one
+				// runs in an interpreter task, which is mutually exclusive of
+				// safe points. Therefore it is not necessary to lock the method
+				// while traversing its definition tuple.
 				val method = bundle.bundleMethod
 				val definitions = method.definitionsTuple
 				// Ignore macros.

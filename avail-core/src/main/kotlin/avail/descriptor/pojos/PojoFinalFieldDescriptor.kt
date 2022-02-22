@@ -52,6 +52,7 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.AvailErrorCode.E_CANNOT_MODIFY_FINAL_JAVA_FIELD
 import avail.exceptions.AvailErrorCode.E_JAVA_MARSHALING_FAILED
 import avail.exceptions.AvailRuntimeException
+import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -121,6 +122,14 @@ class PojoFinalFieldDescriptor(
 
 	override fun o_GetValue(self: AvailObject): AvailObject =
 		self.slot(CACHED_VALUE)
+
+	/**
+	 * The clear will fail, but for correctness we have to attempt the read
+	 * first.
+	 */
+	@Throws(VariableGetException::class)
+	override fun o_GetValueClearing(self: AvailObject): AvailObject =
+		self.getValue().also { self.clearValue() }
 
 	override fun o_Hash(self: AvailObject): Int = combine3(
 		self.slot(FIELD).hash(),

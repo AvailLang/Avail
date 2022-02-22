@@ -385,7 +385,7 @@ class AvailRuntime constructor(
 	 * The [timer][Timer] that managed scheduled [tasks][TimerTask] for this
 	 * [runtime][AvailRuntime]. The timer thread is not an
 	 * [Avail&#32;thread][AvailThread], and therefore cannot directly execute
-	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks
+	 * [fibers][FiberDescriptor]. It may, however, schedule fiber-related tasks.
 	 *
 	 * Additionally, we help drive the dynamic optimization of [A_RawFunction]s
 	 * into [L2Chunk]s by iterating over the existing Interpreters, asking each
@@ -1594,133 +1594,131 @@ class AvailRuntime constructor(
 	}
 
 	/**
-	 * The [lock][ReentrantLock] that guards access to the Level One
-	 * [-safe][levelOneSafeTasks] and [-unsafe][levelOneUnsafeTasks] queues and
-	 * counters.
+	 * The [ReentrantLock] that guards access to the [safePointTasks] and
+	 * [interpreterTasks] and their associated incomplete execution counters.
 	 *
-	 * For example, an [L2Chunk] may not be [invalidated][L2Chunk.invalidate]
-	 * while any [fiber][FiberDescriptor] is
-	 * [running][FiberDescriptor.ExecutionState.RUNNING] a Level Two chunk.
-	 * These two activities are mutually exclusive.
+	 * For example, an [L2Chunk] may not be invalidated while any [A_Fiber] is
+	 * actively running. These two activities are mutually exclusive.
 	 */
-	private val levelOneSafeLock = ReentrantLock()
+	private val safePointLock = ReentrantLock()
 
 	/**
-	 * The [list][List] of Level One-safe [tasks][Runnable]. A Level One-safe
-	 * task requires that no
-	 * [Level&#32;One-unsafe&#32;tasks][levelOneUnsafeTasks] are running.
+	 * The [List] of tasks to run at the next safe point.  Such tasks may only
+	 * execute when there are no [interpreterTasks] running.
 	 *
-	 * For example, a [Level Two chunk][L2Chunk] may not be
-	 * [invalidated][L2Chunk.invalidate] while any [fiber][FiberDescriptor] is
-	 * [running][FiberDescriptor.ExecutionState.RUNNING] a Level Two chunk.
-	 * These two activities are mutually exclusive.
+	 * For example, an [L2Chunk] may not be invalidated while any [A_Fiber] is
+	 * actively running. These two activities are mutually exclusive.
 	 */
-	private val levelOneSafeTasks = mutableListOf<AvailTask>()
+	@GuardedBy("safePointLock")
+	private val safePointTasks = mutableListOf<AvailTask>()
 
 	/**
-	 * The [list][List] of Level One-unsafe [tasks][Runnable]. A Level
-	 * One-unsafe task requires that no
-	 * [Level&#32;One-safe&#32;tasks][levelOneSafeTasks] are running.
+	 * The [List] of tasks that run when interpreters are allowed to run.  This
+	 * includes tasks that actually run fibers, but may include any other task
+	 * which must not execute at the same time as any [safePointTasks].
 	 */
-	private val levelOneUnsafeTasks = mutableListOf<AvailTask>()
+	@GuardedBy("safePointLock")
+	private val interpreterTasks = mutableListOf<AvailTask>()
 
 	/**
-	 * The number of [Level&#32;One-safe&#32;tasks][levelOneSafeTasks] that have
-	 * been [scheduled&#32;for&#32;execution][executor] but have not yet reached
-	 * completion.
+	 * The number of [safePointTasks] that have been scheduled for
+	 * [execution][executor] but have not yet reached completion.  This also
+	 * includes safe-point tasks that have been added to the executor but not
+	 * yet started.
 	 */
-	@GuardedBy("levelOneSafeLock")
-	private var incompleteLevelOneSafeTasks = 0
+	@GuardedBy("safePointLock")
+	private var incompleteSafePointTasks = 0
 
 	/**
-	 * The number of [Level&#32;One-unsafe&#32;tasks][levelOneUnsafeTasks] that
-	 * have been [scheduled&#32;for&#32;execution][executor] but have not yet
-	 * reached completion.
+	 * The number of [interpreterTasks] that have been scheduled for
+	 * [execution][executor] but have not yet reached completion.  This also
+	 * includes interpreter tasks that have been added to the executor but not
+	 * yet started.
 	 */
-	@GuardedBy("levelOneSafeLock")
-	private var incompleteLevelOneUnsafeTasks = 0
+	@GuardedBy("safePointLock")
+	private var incompleteInterpreterTasks = 0
 
 	/**
-	 * Has [whenLevelOneUnsafeDo] Level One safety been requested?
+	 * Has a safe-point been requested?
 	 */
 	@Volatile
-	private var levelOneSafetyRequested = false
+	private var safePointRequested = false
 
 	/**
-	 * Has [whenLevelOneUnsafeDo] Level One safety} been requested?
+	 * Has a safe point been requested?  During a safe point, no interpreters
+	 * are allowed to be running fibers.
 	 *
 	 * @return
-	 *   `true` if Level One safety has been requested, `false` otherwise.
+	 *   `true` if a safe point has been requested, `false` otherwise.
 	 */
-	fun levelOneSafetyRequested(): Boolean = levelOneSafetyRequested
+	fun safePointRequested(): Boolean = safePointRequested
 
 	/**
-	 * Request that the specified continuation be executed as a Level One-unsafe
-	 * task at such a time as there are no Level One-safe tasks running.
+	 * Request that the specified [action] be executed when interpreter tasks
+	 * are allowed to run.
 	 *
 	 * @param priority
 	 *   The priority of the [AvailTask] to queue.  It must be in the range
 	 *   [0..255].
-	 * @param unsafeAction
-	 *   The action to perform when Level One safety is not required.
+	 * @param action
+	 *   The action to perform when interpreters may run.
 	 */
-	fun whenLevelOneUnsafeDo(priority: Int, unsafeAction: ()->Unit)
+	fun whenRunningInterpretersDo(priority: Int, action: ()->Unit)
 	{
 		val wrapped = AvailTask(priority)
 		{
 			try
 			{
-				unsafeAction()
+				action()
 			}
 			catch (e: Exception)
 			{
 				System.err.println(
-					"\n\tException in level-one-unsafe task:\n\t${trace(e)}"
+					"\n\tException in running-interpreter task:\n\t${trace(e)}"
 						.trimIndent())
 			}
 			finally
 			{
-				levelOneSafeLock.withLock {
-					incompleteLevelOneUnsafeTasks--
-					if (incompleteLevelOneUnsafeTasks == 0)
+				safePointLock.withLock {
+					incompleteInterpreterTasks--
+					if (incompleteInterpreterTasks == 0)
 					{
-						assert(incompleteLevelOneSafeTasks == 0)
-						incompleteLevelOneSafeTasks = levelOneSafeTasks.size
-						levelOneSafeTasks.forEach(this::execute)
-						levelOneSafeTasks.clear()
+						assert(incompleteSafePointTasks == 0)
+						incompleteSafePointTasks = safePointTasks.size
+						// Run all queued safe point tasks sequentially.
+						safePointTasks.forEach(this::execute)
+						safePointTasks.clear()
 					}
 				}
 			}
 		}
-		levelOneSafeLock.withLock {
-			// Hasten the execution of pending Level One-safe tasks by
-			// postponing this task if there are any Level One-safe tasks
-			// waiting to run.
-			if (incompleteLevelOneSafeTasks == 0
-				&& levelOneSafeTasks.isEmpty())
+		safePointLock.withLock {
+			// Hasten the execution of safe-point tasks by postponing this task
+			// if there are any safe-point tasks waiting to run.
+			if (incompleteSafePointTasks == 0 && safePointTasks.isEmpty())
 			{
-				assert(!levelOneSafetyRequested)
-				incompleteLevelOneUnsafeTasks++
+				assert(!safePointRequested)
+				incompleteInterpreterTasks++
 				execute(wrapped)
 			}
 			else
 			{
-				levelOneUnsafeTasks.add(wrapped)
+				interpreterTasks.add(wrapped)
 			}
 		}
 	}
 
 	/**
-	 * Request that the specified action be executed as a Level One-safe task at
-	 * such a time as there are no Level One-unsafe tasks running.
+	 * Request that the specified action be executed at the next safe point.
+	 * No interpreter tasks are running at a safe point.
 	 *
 	 * @param priority
 	 *   The priority of the [AvailTask] to queue.  It must be in the range
 	 *   [0..255].
 	 * @param safeAction
-	 *   The action to execute when Level One safety is ensured.
+	 *   The action to execute at the next safe point.
 	 */
-	fun whenLevelOneSafeDo(priority: Int, safeAction: ()->Unit)
+	fun whenSafePointDo(priority: Int, safeAction: ()->Unit)
 	{
 		val task = AvailTask(priority)
 		{
@@ -1731,34 +1729,34 @@ class AvailRuntime constructor(
 			catch (e: Exception)
 			{
 				System.err.println(
-					"\n\tException in level-one-safe task:\n\t${trace(e)}"
+					"\n\tException in safe point task:\n\t${trace(e)}"
 						.trimIndent())
 			}
 			finally
 			{
-				levelOneSafeLock.withLock {
-					incompleteLevelOneSafeTasks--
-					if (incompleteLevelOneSafeTasks == 0)
+				safePointLock.withLock {
+					incompleteSafePointTasks--
+					if (incompleteSafePointTasks == 0)
 					{
-						assert(incompleteLevelOneUnsafeTasks == 0)
-						levelOneSafetyRequested = false
-						incompleteLevelOneUnsafeTasks = levelOneUnsafeTasks.size
-						levelOneUnsafeTasks.forEach(this::execute)
-						levelOneUnsafeTasks.clear()
+						assert(incompleteInterpreterTasks == 0)
+						safePointRequested = false
+						incompleteInterpreterTasks = interpreterTasks.size
+						interpreterTasks.forEach(this::execute)
+						interpreterTasks.clear()
 					}
 				}
 			}
 		}
-		levelOneSafeLock.withLock {
-			levelOneSafetyRequested = true
-			if (incompleteLevelOneUnsafeTasks == 0)
+		safePointLock.withLock {
+			safePointRequested = true
+			if (incompleteInterpreterTasks == 0)
 			{
-				incompleteLevelOneSafeTasks++
+				incompleteSafePointTasks++
 				execute(task)
 			}
 			else
 			{
-				levelOneSafeTasks.add(task)
+				safePointTasks.add(task)
 			}
 		}
 	}
