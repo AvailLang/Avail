@@ -253,6 +253,12 @@ class LexingState constructor(
 			compilationContext.source,
 			fromInt(position),
 			fromInt(lineNumber))
+		// If multiple lexers will run, the arguments must be shared.
+		if (applicableLexers.tupleSize > 1)
+		{
+			arguments[1].makeShared()
+			arguments[2].makeShared()
+		}
 		applicableLexers.forEach { lexer ->
 			evaluateLexerAndRunActionsWhenZero(lexer, arguments, countdown)
 		}

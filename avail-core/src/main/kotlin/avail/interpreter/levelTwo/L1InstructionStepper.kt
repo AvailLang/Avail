@@ -409,7 +409,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						return valueOrReifier
 					}
 					val value = valueOrReifier as AvailObject
-					push(value.makeImmutable()) //TODO Find mutability bug in a primitive used by Mersenne Twister.
+					push(value)
 				}
 				L1_doPushOuter.ordinal ->
 				{
@@ -573,20 +573,14 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						code.literalAt(instructionDecoder.getOperand())
 					val size = permutation.tupleSize
 					val values = arrayOfNulls<AvailObject>(size)
-					run {
-						var i = 1
-						while (i <= size)
-						{
-							values[permutation.tupleIntAt(i) - 1] =
-								pointerAt(stackp + size - i)
-							i++
-						}
+					for (i in 1..size)
+					{
+						values[permutation.tupleIntAt(i) - 1] =
+							pointerAt(stackp + size - i)
 					}
-					var i = 1
-					while (i <= size)
+					for (i in 1..size)
 					{
 						pointerAtPut(stackp + size - i, values[i - 1]!!)
-						i++
 					}
 				}
 				L1Ext_doSuperCall.ordinal ->

@@ -245,11 +245,7 @@ open class VariableDescriptor protected constructor(
 		{
 			throw VariableGetException(E_CANNOT_READ_UNASSIGNED_VARIABLE)
 		}
-		if (mutability === Mutability.IMMUTABLE)
-		{
-			value.makeImmutable()
-		}
-		return value
+		return value.makeImmutable()
 	}
 
 	@Throws(VariableGetException::class)
@@ -319,7 +315,8 @@ open class VariableDescriptor protected constructor(
 	{
 		assert(newValue.notNil)
 		handleVariableWriteTracing(self)
-		self.setSlot(VALUE, newValue)
+		self.setSlot(
+			VALUE, if (isMutable) newValue else newValue.makeImmutable())
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
