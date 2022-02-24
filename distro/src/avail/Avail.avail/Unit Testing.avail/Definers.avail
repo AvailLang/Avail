@@ -257,7 +257,7 @@ Private method "fixture semantic restriction function" is
 [
 	[
 		id : atom's type,
-		test : []→⊤'s type
+		test : ([]→⊤)'s type
 	|
 		If test's return type ≠ ⊤ then
 		[
@@ -267,7 +267,7 @@ Private method "fixture semantic restriction function" is
 		];
 		⊤
 	] : type
-] : [atom's type, []→⊤'s type]→type;
+] : [atom's type, ([]→⊤)'s type]→type;
 
 Semantic restriction "Before running_,⁇do_"
 	is fixture semantic restriction function;
@@ -511,14 +511,14 @@ is
  * @method "Test_in_is_«must raise_»"
  * @restricts "string's type"
  * @restricts "atom's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "exception's type?'s type"
  */
 Semantic restriction "Test_in_is_«must raise_»" is
 [
 	name : string's type,
 	suiteID : atom's type,
-	test : []→⊤'s type,
+	test : ([]→⊤)'s type,
 	optionalException : exception's type?'s type
 |
 	If ⌈optionalException⌉ = 1 then

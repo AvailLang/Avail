@@ -341,7 +341,7 @@ Private method "Require:_raises__" is
  *
  * @macro "Require:_raises_(_)"
  * @param "aFunction" "expression phrase ⇒ []→⊤"
- * @param "exceptionType" "expression phrase ⇒ (exception's type)"
+ * @param "exceptionType" "expression phrase ⇒ exception's type"
  * @param "message" "expression phrase ⇒ string"
  *        Additional information that should be attached to the exception in the
  *        event of failure. It is evaluated only in the event of failure.
@@ -351,7 +351,7 @@ Private method "Require:_raises__" is
 Public macro "Require:_raises_(_)" is
 [
 	aFunction : expression phrase ⇒ []→⊤,
-	exceptionType : expression phrase ⇒ (exception's type),
+	exceptionType : expression phrase ⇒ exception's type,
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require:_raise__" with
@@ -531,7 +531,7 @@ Private method "Require if supported«on this platform»⁇:_raises__" is
  *
  * @method "Require if supported«on this platform»⁇:_raises_(_)"
  * @param "aFunction" "expression phrase ⇒ []→boolean"
- * @param "exceptionType" "expression phrase ⇒ (exception's type)"
+ * @param "exceptionType" "expression phrase ⇒ exception's type"
  * @param "message" "expression phrase ⇒ string"
  *        Additional information that should be attached to the exception in the
  *        event of failure. It is evaluated only in the event of failure.
@@ -541,7 +541,7 @@ Private method "Require if supported«on this platform»⁇:_raises__" is
 Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 [
 	aFunction : expression phrase ⇒ []→⊤,
-	exceptionType : expression phrase ⇒ (exception's type),
+	exceptionType : expression phrase ⇒ exception's type,
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require if supported«on this platform»⁇:_raises__" with

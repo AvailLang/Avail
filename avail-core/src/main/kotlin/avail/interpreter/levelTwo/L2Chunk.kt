@@ -597,6 +597,7 @@ class L2Chunk private constructor(
 	{
 		val before = AvailRuntimeSupport.captureNanos()
 		assert(invalidationLock.isHeldByCurrentThread)
+		AvailRuntime.currentRuntime().assertInSafePoint()
 		assert(this !== unoptimizedChunk)
 		isValid = false
 		val contingents: A_Set = contingentValues.makeImmutable()

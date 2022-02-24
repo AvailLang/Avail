@@ -491,8 +491,8 @@ Private method "recursively visit_,on entering do_,on leaving do_" is
 Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
 [
 	aSuite : root unit test suite's type,
-	enterAction : [root unit test suite]→tuple's type,
-	leaveAction : [root unit test suite]→⊤'s type
+	enterAction : ([root unit test suite]→tuple)'s type,
+	leaveAction : ([root unit test suite]→⊤)'s type
 |
 	enterAction's return type
 ];

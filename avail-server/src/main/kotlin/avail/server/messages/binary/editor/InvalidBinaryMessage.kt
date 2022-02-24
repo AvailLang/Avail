@@ -66,8 +66,8 @@ internal class InvalidBinaryMessage constructor(
 {
 	init
 	{
-		val prefix =
-			content.copyOfRange(0, minOf(content.size, PREFIX_SIZE))
+		//val prefix =
+		//	content.copyOfRange(0, minOf(content.size, PREFIX_SIZE))
 		logger.log(
 			Level.WARNING,
 			"InvalidBinaryMessage ($commandId)")

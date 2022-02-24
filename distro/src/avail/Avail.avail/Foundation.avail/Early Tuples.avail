@@ -311,7 +311,7 @@ Macro "_++_" is
  * @macro "_++_"
  * @param "left" "expression phrase ⇒ <<>, any…|[0..0]>"
  * @param "right" "expression phrase ⇒ <<>, any…|[0..0]>"
- * @returns "literal phrase ⇒ (<>'s type)"
+ * @returns "literal phrase ⇒ <>'s type"
  * @category "Tuples"
  */
 Macro "_++_" is
@@ -320,7 +320,7 @@ Macro "_++_" is
 	right : expression phrase ⇒ <<>, any…|[0..0]>
 |
 	‘<>’
-] : literal phrase ⇒ (<>'s type);
+] : literal phrase ⇒ <>'s type;
 
 /**
  * If {@param "left"} is a {@type "send phrase" send} of {@method
@@ -1143,6 +1143,13 @@ Semantic restriction "_*" is
 |
 	<<>, m's instance…|[0..∞)>'s type
 ];
+
+/**
+ * Make expressions like "list phrase ⇒ string+" parse more naturally, without
+ * ambiguity.
+ */
+Grammatical restriction {"_+", "_*", "_`?"} is <
+	{"_⇒_", "[«_‡,»]→_", "[`…]→_"}>;
 
 /**
  * A {@type "UUID"} is a universally unique identifier.

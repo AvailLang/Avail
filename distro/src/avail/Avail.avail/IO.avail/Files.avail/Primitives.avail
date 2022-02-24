@@ -628,12 +628,12 @@ Public method "Using|using_,⁇do_" is
 /**
  * @method "Using|using_,⁇do_"
  * @restricts "file's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "Using|using_,⁇do_" is
 [
 	f : file's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	If ¬f ⊆ action[1] then
 	[

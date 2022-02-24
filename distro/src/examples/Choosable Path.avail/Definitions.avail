@@ -1047,12 +1047,12 @@ Private method "Require:scene_agrees with_" is
  * {@type "scene"}s that agree with the supplied {@type "context"} type.
  *
  * @method "Require:scene_agrees with_"
- * @param "selectorType" "[]→variable's type"
+ * @param "selectorType" "([]→variable)'s type"
  * @param "contextType" "context's type"
  */
 Private method "Require:scene_agrees with_" is
 [
-	selectorType : []→variable's type,
+	selectorType : ([]→variable)'s type,
 	contextType : context's type
 |
 	sceneType ::= scene for contextType;
@@ -1091,9 +1091,9 @@ Private method "unary wrapper on_" is
 
 Semantic restriction "unary wrapper on_" is
 [
-	nullaryType : []→⊤'s type
+	nullaryType : ([]→⊤)'s type
 |
-	[⊥]→(nullaryType's return type)
+	[⊥]→nullaryType's return type
 ];
 
 /**
@@ -1126,7 +1126,7 @@ Private method "target wrapper on_" is
 
 Semantic restriction "target wrapper on_" is
 [
-	nullaryType : []→⊤'s type
+	nullaryType : ([]→⊤)'s type
 |
 	[⊥]→scene
 ];

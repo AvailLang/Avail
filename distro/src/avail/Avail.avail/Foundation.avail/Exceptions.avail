@@ -308,8 +308,8 @@ Private method "Mark guard variable_with_" is
  * value then return it.
  *
  * @macro "Guard body_unwind_variable_;"
- * @param "body" "expression phrase⇒([]→⊤)"
- * @param "unwind" "expression phrase⇒([]→⊤)"
+ * @param "body" "expression phrase⇒[]→⊤"
+ * @param "unwind" "expression phrase⇒[]→⊤"
  * @param "guardVariable"
  *        "read any write {handler-sentinel code, unwind-sentinel code}ᵀ"
  * @returns "first-of-sequence phrase"
@@ -575,13 +575,13 @@ Private method "Handle_handler_unwind_" is
  * earlier handlers hide later handlers (by having a more general type).
  *
  * @method "Guard|guard_«intercept_»«ensure_»"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "<[⊥]→⊤…|>'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 [
-	bodyType : []→⊤'s type,
+	bodyType : ([]→⊤)'s type,
 	handlersType : <[⊥]→⊤…|>'s type,
 	unwindType : ([]→⊤)?'s type
 |
@@ -649,9 +649,9 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
  * @method "Guard|guard_«intercept_»«ensure_»"
  * @param "bodyPhrase" "expression phrase ⇒ []→⊤"
  *        The protected function.
- * @param "handlersPhrase" "list phrase ⇒ (([⊥]→⊤)*)"
+ * @param "handlersPhrase" "list phrase ⇒ ([⊥]→⊤)*"
  *        A {@type "list phrase" list} of exception handlers.
- * @param "optionalUnwindPhrase" "list phrase ⇒ (([]→⊤)?)"
+ * @param "optionalUnwindPhrase" "list phrase ⇒ ([]→⊤)?"
  *        If specified, then a function to apply after either the successful
  *        completion of {@param "body"} or an unwind through this continuation.
  * @returns "send phrase ⇒ ⊤"
@@ -660,8 +660,8 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 Public macro "Guard|guard_«intercept_»«ensure_»" is
 [
 	bodyPhrase : expression phrase ⇒ []→⊤,
-	handlersPhrase : list phrase ⇒ (([⊥]→⊤)*),
-	optionalUnwindPhrase : list phrase ⇒ (([]→⊤)?)
+	handlersPhrase : list phrase ⇒ ([⊥]→⊤)*,
+	optionalUnwindPhrase : list phrase ⇒ ([]→⊤)?
 |
 	handlers ::= handlersPhrase's expressions;
 	optionalUnwind ::= optionalUnwindPhrase's expressions;
@@ -737,13 +737,13 @@ Public method "try_else_" is
 
 /**
  * @method "try_else_"
- * @restricts "[]→any's type"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "try_else_" is
 [
-	protected : []→any's type,
-	else : []→any's type
+	protected : ([]→any)'s type,
+	else : ([]→any)'s type
 |
 	if protected's return type = ⊥ then [else's return type]
 	else [protected's return type ∪ else's return type]
@@ -2246,7 +2246,7 @@ After the current module is unloaded,
 Set stability failure function to
 [
 	op : []→literal phrase,
-	recover : []→(send phrase ⇒ any)
+	recover : []→send phrase ⇒ any
 |
 	guard op
 	intercept

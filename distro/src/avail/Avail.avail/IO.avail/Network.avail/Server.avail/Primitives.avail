@@ -367,8 +367,8 @@ is
 [
 	s : server socket's type,
 	optionalName : nonempty string?'s type,
-	success : [client socket]→⊤'s type,
-	failure : [exception]→⊤'s type,
+	success : ([client socket]→⊤)'s type,
+	failure : ([exception]→⊤)'s type,
 	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)

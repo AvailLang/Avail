@@ -260,12 +260,12 @@ Method "Require:_accepts_" is
  *
  * @method "For each of⁇_do_"
  * @restricts "set meta"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "For each of⁇_do_" is
 [
 	setType : set meta,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	Require: action accepts setType;
 	if ⌊setType⌋ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
@@ -316,8 +316,7 @@ Public method "set body function(_,_)" is
 		name ::= elementPhrase's token's lexeme;
 		aSetType ::= aSet's semantic type;
 		elementType ::= aSetType's element type;
-		blockType ::=
-			[elementType]→(action's semantic type's return type);
+		blockType ::= [elementType]→(action's semantic type's return type);
 
 		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aSetType, blockType>;
@@ -400,12 +399,12 @@ Method "map_through_" is
  *
  * @method "map_through_"
  * @restricts "set meta"
- * @restricts "[⊥]→any's type"
+ * @restricts "([⊥]→any)'s type"
  */
 Semantic restriction "map_through_" is
 [
 	setType : set meta,
-	transformer : [⊥]→any's type
+	transformer : ([⊥]→any)'s type
 |
 	Require: transformer accepts setType;
 	lower ::=
@@ -488,12 +487,12 @@ Method "filter_by_" is
  *
  * @method "filter_by_"
  * @restricts "set meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "filter_by_" is
 [
 	setType : set meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts setType;
 	if predicate's return type = true's type then [setType]
@@ -554,8 +553,7 @@ Macro "reject each…from_§where_" is a set iteration prefix function,
 	name ::= elementPhrase's token's lexeme;
 	aSetType ::= aSet's semantic type;
 	elementType ::= aSetType's element type;
-	blockType ::=
-		[elementType]→(predicate's semantic type's return type);
+	blockType ::= [elementType]→predicate's semantic type's return type;
 
 	returnType ::= strengthen set for call of anAtom
 			using <aSetType, blockType>;
@@ -645,12 +643,12 @@ Method "map and filter_by_" is
  *
  * @method "map and filter_by_"
  * @restricts "set meta"
- * @restricts "[⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
 	setType : set meta,
-	accumulator : [⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts setType;
 	Require: accumulator's keeper is valid;
@@ -701,12 +699,12 @@ Method "any of_satisfies_" is
  *
  * @method "any of_satisfies_"
  * @restricts "set meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "any of_satisfies_" is
 [
 	setType : set meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts setType;
 	predicate's return type
@@ -748,12 +746,12 @@ Method "each of_satisfies_" is
  *
  * @method "each of_satisfies_"
  * @restricts "set meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "each of_satisfies_" is
 [
 	setType : set meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts setType;
 	predicate's return type
@@ -838,12 +836,12 @@ Method "count of_where_" is
  *
  * @method "count of_where_"
  * @restricts "set meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "count of_where_" is
 [
 	setType : set meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts setType;
 	[0..⌈setType⌉ + 1)
@@ -1499,12 +1497,12 @@ Public method "any_else_" is
 /**
  * @method "any_else_"
  * @restricts "set meta"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "any_else_" is
 [
 	sType : set meta,
-	fType : []→any's type
+	fType : ([]→any)'s type
 |
 	if ⌊sType⌋ > 0 then [sType's element type]
 	else if ⌈sType⌉ = 0 then [fType's return type]

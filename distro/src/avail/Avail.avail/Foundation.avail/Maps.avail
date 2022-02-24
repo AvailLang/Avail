@@ -203,12 +203,12 @@ Private method "Require:_accepts_" is
  *
  * @method "For each of⁇_do_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "For each of⁇_do_" is
 [
 	mapType : map meta,
-	action : [⊥, ⊥]→⊤'s type
+	action : ([⊥, ⊥]→⊤)'s type
 |
 	Require: action accepts mapType;
 	if ⌊mapType⌋ > 0 ∧ action's return type = ⊥ then [⊥]
@@ -355,12 +355,12 @@ Method "map_through_" is
  *
  * @method "map_through_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "map_through_" is
 [
 	mapType : map meta,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	Require: transformer accepts mapType;
 	If ⌊mapType⌋ > 0 then
@@ -440,12 +440,12 @@ Method "filter_by_" is
  *
  * @method "filter_by_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "filter_by_" is
 [
 	mapType : map meta,
-	predicate : [⊥, ⊥]→boolean's type
+	predicate : ([⊥, ⊥]→boolean)'s type
 |
 	Require: predicate accepts mapType;
 	if predicate's return type = true's type then [mapType]
@@ -609,12 +609,12 @@ Method "map and filter_by_" is
  *
  * @method "map and filter_by_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
 	mapType : map meta,
-	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts mapType;
 	Require: accumulator's keeper is valid;
@@ -663,12 +663,12 @@ Method "any of_satisfies_" is
  *
  * @method "any of_satisfies_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "any of_satisfies_" is
 [
 	mapType : map meta,
-	predicate : [⊥, ⊥]→boolean's type
+	predicate : ([⊥, ⊥]→boolean)'s type
 |
 	Require: predicate accepts mapType;
 	predicate's return type
@@ -710,12 +710,12 @@ Method "each of_satisfies_" is
  *
  * @method "each of_satisfies_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "each of_satisfies_" is
 [
 	mapType : map meta,
-	predicate : [⊥, ⊥]→boolean's type
+	predicate : ([⊥, ⊥]→boolean)'s type
 |
 	Require: predicate accepts mapType;
 	predicate's return type
@@ -796,12 +796,12 @@ Method "count of_where_" is
  *
  * @method "count of_where_"
  * @restricts "map meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "count of_where_" is
 [
 	mapType : map meta,
-	predicate : [⊥, ⊥]→boolean's type
+	predicate : ([⊥, ⊥]→boolean)'s type
 |
 	Require: predicate accepts mapType;
 	[0..⌈mapType⌉ + 1)
@@ -892,7 +892,7 @@ Method "group_by_" is
 Semantic restriction "group_by_" is
 [
 	aTupleType : tuple's type,
-	discriminatorType : [⊥]→any's type
+	discriminatorType : ([⊥]→any)'s type
 |
 	Require: discriminatorType accepts aTupleType;
 	tupleCardinality ::= ||aTupleType||;
@@ -942,12 +942,12 @@ Method "group_by_" is
  *
  * @method "group_by_"
  * @restricts "set's type"
- * @restricts "[⊥]→any's type"
+ * @restricts "([⊥]→any)'s type"
  */
 Semantic restriction "group_by_" is
 [
 	aSetType : set's type,
-	discriminatorType : [⊥]→any's type
+	discriminatorType : ([⊥]→any)'s type
 |
 	Require: discriminatorType accepts aSetType;
 	setCardinality ::= ||aSetType||;
@@ -1073,13 +1073,13 @@ Public method "integrate_and_with_" is
  * @method "integrate_and_with_"
  * @restricts "map's type"
  * @restricts "map's type"
- * @restricts "[⊥,⊥,⊥]→map's type"
+ * @restricts "([⊥,⊥,⊥]→map)'s type"
  */
 Semantic restriction "integrate_and_with_" is
 [
 	baseMapType : map's type,
 	supplementMapType : map's type,
-	actionType : [⊥,⊥,⊥]→map's type
+	actionType : ([⊥,⊥,⊥]→map)'s type
 |
 	if actionType[1] ≠ ⊥ ∧ ¬baseMapType ⊆ actionType[1] then
 	[
@@ -1150,12 +1150,12 @@ Public method "integrate«_‡,and⁇»with_" is
  * @method "integrate_and_with_"
  * @restricts "map's type"
  * @restricts "map's type"
- * @restricts "[⊥,⊥,⊥]→map's type"
+ * @restricts "([⊥,⊥,⊥]→map)'s type"
  */
 Semantic restriction "integrate«_‡,and⁇»with_" is
 [
 	mapsType :<map…|2..>'s type,
-	actionType : [⊥,⊥,⊥]→map's type
+	actionType : ([⊥,⊥,⊥]→map)'s type
 |
 	If actionType[1] ≠ ⊥ ∧ ¬mapsType[1] ⊆ actionType[1] then
 	[

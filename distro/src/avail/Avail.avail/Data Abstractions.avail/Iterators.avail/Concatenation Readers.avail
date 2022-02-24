@@ -169,7 +169,7 @@ Method "«_‡++»" is
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
  * @category "Data Abstractions"
  * @method "concatenation semantic restriction"
- * @returns "[reader+'s type]→(concatenation reader's type)"
+ * @returns "[reader+'s type]→concatenation reader's type"
  *          The requested function.
  */
 Private method "concatenation semantic restriction" is

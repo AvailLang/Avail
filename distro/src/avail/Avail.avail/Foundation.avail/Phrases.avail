@@ -59,12 +59,26 @@ Names
 Body
 
 /**
- * Make "_'s type" bind more tightly than phrase type construction.
+ * Make "_'s type" bind more tightly than phrase type construction.  Also
+ * other similar methods.
  *
- * @method "_⇒_"
+ * @method "_'s⁇type"
  * @returns "⊤"
  */
-Grammatical restriction "_⇒_" is <∅, {"_'s⁇type"} ?→ {string|natural number}>;
+Grammatical restriction
+	{
+		"_'s⁇type",
+		"_'s⁇value type",
+		"_'s⁇instance",
+		"_'s⁇semantic type",
+		"_'s⁇return type"
+	} ?→ {string|natural number}
+	is <{"_⇒_"} ?→ {string|natural number}>;
+
+/**
+ * "_⇒_" should bind right-to-left.
+ */
+Grammatical restriction "_⇒_" is <{"_⇒_"} ?→ {string|natural number}, ∅>;
 
 Semantic restriction "_'s⁇value" is
 [
@@ -210,7 +224,7 @@ Semantic restriction "_→literal phrase" is
 [
 	aLiteralToken : literal token's type
 |
-	literal phrase ⇒ (aLiteralToken's value type)
+	literal phrase ⇒ aLiteralToken's value type
 ];
 
 /**
@@ -334,7 +348,7 @@ Semantic restriction "`«[_`|_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block phrase ⇒ ([…]→returnType's instance)
+	block phrase ⇒ […]→returnType's instance
 ];
 
 /**
@@ -373,7 +387,7 @@ Semantic restriction "`«[_]:_`»" is
 	statements : <<>, phrase…|whole number>'s type,
 	returnType : type's type
 |
-	block phrase ⇒ ([…]→returnType's instance)
+	block phrase ⇒ […]→returnType's instance
 ];
 
 /**
@@ -588,7 +602,7 @@ Semantic restriction "_'s⁇token" is
 [
 	literalType : literal phrase's type
 |
-	literal token ⇒ (literalType's semantic type)
+	literal token ⇒ literalType's semantic type
 ];
 
 /**
@@ -665,7 +679,7 @@ Method "“_”" is
  */
 Macro "$…#" is
 [
-	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
+	tokenPhrase : literal phrase ⇒ literal token ⇒ string
 |
 	s ::= tokenPhrase's token's value's value;
 	a ::= atom for s;
@@ -694,7 +708,7 @@ Method "T'(_)" is
 |
 	if pT ⊆ marker phrase then
 	[
-		expression phrase ⇒ (expression phrase ⇒ (pT's semantic type))
+		expression phrase ⇒ expression phrase ⇒ pT's semantic type
 	]
 	else
 	[
@@ -1036,7 +1050,7 @@ Macro "⟦§_!⟧" is
 	scope map := empty map;
 ],
 [
-	originalPhrase : literal phrase ⇒ (phrase ⇒ ⊤)
+	originalPhrase : literal phrase ⇒ phrase ⇒ ⊤
 |
 	declsMap : declarationsMapType := empty map;
 	/*

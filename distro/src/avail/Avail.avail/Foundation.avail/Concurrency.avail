@@ -320,11 +320,11 @@ Public method "fork_" is
 
 /**
  * @method "fork_"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "fork_" is
 [
-	functionType : []→⊤'s type
+	functionType : ([]→⊤)'s type
 |
 	fiber→(functionType's return type)
 ];
@@ -389,12 +389,12 @@ Public method "in_millisecond|milliseconds,⁇fork_" is
 /**
  * @method "in_millisecond|milliseconds,⁇fork_"
  * @restricts "[0..∞]'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "in_millisecond|milliseconds,⁇fork_" is
 [
 	delayType : [0..∞]'s type,
-	functionType : []→⊤'s type
+	functionType : ([]→⊤)'s type
 |
 	fiber→(functionType's return type)
 ];
@@ -504,11 +504,11 @@ Public method "the future of_" is
 
 /**
  * @method "the future of_"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "the future of_" is
 [
-	functionType : []→any's type
+	functionType : ([]→any)'s type
 |
 	extend future with expected type : functionType's return type's type
 ];
@@ -643,7 +643,7 @@ Semantic restriction "injector from_to_by_doing_in parallel_-way" is
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type,
-	action : [⊥]→⊤'s type,
+	action : ([⊥]→⊤)'s type,
 	limit : natural number's type
 |
 	Require: action accepts subscripts from start to end by step;
@@ -1072,8 +1072,7 @@ Private method "concurrent set body function(_,_)" is
 		aSetType ::= aSet's semantic type;
 		optionalLimitType ::= optionalLimit's semantic type;
 		elementType ::= aSetType's element type;
-		blockType ::=
-			[elementType]→(action's semantic type's return type);
+		blockType ::= [elementType]→(action's semantic type's return type);
 
 		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aSetType, optionalLimitType, blockType>;
@@ -1137,13 +1136,13 @@ Public method "For each of⁇_in parallel«_-way»do_" is
  * @method "For each of⁇_in parallel«_-way»do_"
  * @restricts "set meta"
  * @restricts "natural number?'s type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 [
 	setType : set meta,
 	optionalLimit : natural number?'s type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	Require: action accepts setType;
 	if ⌊setType⌋ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
@@ -1217,13 +1216,13 @@ Public method "For each of⁇_in parallel«_-way»do_" is
  * @method "For each of⁇_in parallel«_-way»do_"
  * @restricts "map meta"
  * @restricts "natural number?'s type"
- * @restricts "[⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "For each of⁇_in parallel«_-way»do_" is
 [
 	mapType : map meta,
 	optionalLimit : natural number?'s type,
-	action : [⊥, ⊥]→⊤'s type
+	action : ([⊥, ⊥]→⊤)'s type
 |
 	Require: action accepts mapType;
 	if ⌊mapType⌋ > 0 ∧ action's return type = ⊥ then [⊥] else [⊤]
@@ -1426,13 +1425,13 @@ Public method "map_in parallel«_-way»through_" is
  * @method "map_in parallel«_-way»through_"
  * @restricts "tuple meta"
  * @restricts "natural number?"
- * @restricts "[…]→any's type"
+ * @restricts "([…]→any)'s type"
  */
 Semantic restriction "map_in parallel«_-way»through_" is
 [
 	tupleType : tuple meta,
 	optionalLimit : natural number?'s type,
-	transformer : […]→any's type
+	transformer : ([…]→any)'s type
 |
 	Require: transformer accepts tupleType (check indices);
 	If ⌊tupleType⌋ > 0 then
@@ -1576,13 +1575,13 @@ Public method "map_in parallel«_-way»through_" is
  * @method "map_in parallel«_-way»through_"
  * @restricts "set meta"
  * @restricts "natural number?'s type"
- * @restricts "[⊥]→any's type"
+ * @restricts "([⊥]→any)'s type"
  */
 Semantic restriction "map_in parallel«_-way»through_" is
 [
 	setType : set meta,
 	optionalLimit : natural number?'s type,
-	transformer : [⊥]→any's type
+	transformer : ([⊥]→any)'s type
 |
 	Require: transformer accepts setType;
 	If ⌊setType⌋ > 0 then
@@ -1697,13 +1696,13 @@ Public method "map_in parallel«_-way»through_" is
  * @method "map_in parallel«_-way»through_"
  * @restricts "map meta"
  * @restricts "natural number?"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "map_in parallel«_-way»through_" is
 [
 	mapType : map meta,
 	optionalLimit : natural number?'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	Require: transformer accepts mapType;
 	If ⌊mapType⌋ > 0 then
@@ -1863,13 +1862,13 @@ Public method "filter_in parallel«_-way»by_" is
  * @method "filter_in parallel«_-way»by_"
  * @restricts "tuple meta"
  * @restricts "natural number?"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "filter_in parallel«_-way»by_" is
 [
 	tupleType : tuple meta,
 	optionalLimit : natural number?'s type,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	if predicate's return type = true's type then [tupleType]
@@ -1953,13 +1952,13 @@ Public method "filter_in parallel«_-way»by_" is
  * @method "filter_in parallel«_-way»by_"
  * @restricts "set meta"
  * @restricts "natural number?"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "filter_in parallel«_-way»by_" is
 [
 	setType : set meta,
 	optionalLimit : natural number?'s type,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts setType;
 	if predicate's return type = true's type then [setType]
@@ -2037,13 +2036,13 @@ Public method "filter_in parallel«_-way»by_" is
  * @method "filter_in parallel«_-way»by_"
  * @restricts "map meta"
  * @restricts "natural number?"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "filter_in parallel«_-way»by_" is
 [
 	mapType : map meta,
 	optionalLimit : natural number?'s type,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts mapType;
 	if predicate's return type = true's type then [mapType]
@@ -2401,8 +2400,7 @@ a set iteration prefix function,
 	aSetType ::= aSet's semantic type;
 	optionalLimitType ::= optionalLimit's semantic type;
 	elementType ::= aSetType's element type;
-	blockType ::=
-		[elementType]→(predicate's semantic type's return type);
+	blockType ::= [elementType]→(predicate's semantic type's return type);
 
 	returnType ::= strengthen set for call of anAtom
 			using <aSetType, optionalLimitType, blockType>;
@@ -2488,8 +2486,7 @@ a set iteration prefix function,
 	aMapType ::= aMap's semantic type;
 	keyType ::= aMapType's key type;
 	valueType ::= aMapType's value type;
-	blockType ::=
-		[keyType, valueType]→(predicate's semantic type's return type);
+	blockType ::= [keyType, valueType]→predicate's semantic type's return type;
 
 	returnType ::= strengthen map for call of anAtom
 		using <aMapType, optionalLimitType, blockType>;
@@ -2618,13 +2615,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "tuple meta"
  * @restricts "natural number?"
- * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	tupleType : tuple meta,
 	optionalLimit : natural number?'s type,
-	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts tupleType (check indices);
 	Require: accumulator's keeper is valid;
@@ -2729,13 +2726,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "tuple meta"
  * @restricts "natural number?"
- * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	tupleType : tuple meta,
 	optionalLimit : natural number?'s type,
-	accumulator : [⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts tupleType;
 	Require: accumulator's keeper is valid;
@@ -2840,13 +2837,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "set meta"
  * @restricts "natural number?"
- * @restricts "[⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	setType : set meta,
 	optionalLimit : natural number?'s type,
-	accumulator : [⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts setType;
 	Require: accumulator's keeper is valid;
@@ -2951,13 +2948,13 @@ Public method "map and filter_in parallel«_-way»by_" is
  * @method "map and filter_in parallel«_-way»by_"
  * @restricts "map meta"
  * @restricts "natural number?"
- * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_in parallel«_-way»by_" is
 [
 	mapType : map meta,
 	optionalLimit : natural number?'s type,
-	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts mapType;
 	Require: accumulator's keeper is valid;

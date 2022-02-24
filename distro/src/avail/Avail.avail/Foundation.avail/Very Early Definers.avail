@@ -145,7 +145,7 @@ Method "private instance of meta_" is
  * instance is strengthened to be a type.
  *
  * @method "private instance of meta_"
- * @param "m" "type's type's type"
+ * @restricts "m" "type's type's type"
  *        Any metatype's type.
  * @returns "type's type"
  *          This strengthens the result of an invocation to be a type.
@@ -336,7 +336,34 @@ Method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_" is
 Alias "Reject parse(confidence=_),expected:_" to
 	atom for "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_";
 
-
+/**
+ * Ensure semantic restriction bodies accept only types.  The primitive would
+ * fail anyhow, but that failure is different from a parse rejection.
+ *
+ * @method "Semantic restriction_is_"
+ * @restricts "string"
+ * @restricts "function"
+ */
+Semantic restriction "Semantic restriction_is_" is
+[
+	nameType : string's type,
+	bodyType : function's type
+|
+	argTypes ::= bodyType's parameters' type;
+	Cast argTypes into [t : tuple of type's type | /**/ ]
+	else
+	[
+		Reject parse strongly, expected:
+			"semantic restriction body to accept types"
+	];
+	Cast bodyType's return type into [t : type | /**/ ]
+	else
+	[
+		Reject parse strongly, expected:
+			"semantic restriction body to return a type"
+	];
+	⊤
+];
 
 
 assertionFailureArgumentsTuple ::= <string>;
@@ -483,7 +510,7 @@ Semantic restriction "Assert:_" is
  * available, and should not be exported beyond this package.
  *
  * @method "Shouldn't happen"
- * @returns "⊥"
+ * @returns "⊤" (but immediately restricted to ⊥, below)
  * @category "Bootstrap" "Assertions"
  */
 Method "Shouldn't happen" is
@@ -492,8 +519,14 @@ Method "Shouldn't happen" is
 		<"This should not be possible; debug the VM and/or system library.">;
 ] : ⊤;
 
+/**
+ * It would be hard to bootstrap this method to have a bottom return type, so
+ * just restrict it instead.
+ *
+ * @method "Shouldn't happen"
+ * @returns "⊥"
+ */
 Semantic restriction "Shouldn't happen" is [⊥];
-
 
 /**
  * Declare that the code path that called this method should never be executed.

@@ -57,6 +57,7 @@ import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.bundles.MessageBundleDescriptor.Companion.newBundle
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.FunctionDescriptor
@@ -1142,11 +1143,17 @@ class ModuleDescriptor private constructor(
 		// Run unload functions, asynchronously but serially, in reverse
 		// order.
 		loader.runUnloadFunctions(unloadFunctions) {
-			finishUnloading(self, loader)
-			// The module may already be closed, but ensure that it is closed
-			// following removal.
-			self.moduleState = Unloaded
-			afterRemoval()
+			// The final cleanup for the module has to happen in a safe point,
+			// because it causes chunk invalidations.
+			loader.runtime().whenSafePointDo(FiberDescriptor.loaderPriority) {
+				finishUnloading(self, loader)
+				// The module may already be closed, but ensure that it is
+				// closed following removal.
+				self.moduleState = Unloaded
+				// Run the post-action outside of the safe point.
+				loader.runtime().execute(
+					FiberDescriptor.loaderPriority, afterRemoval)
+			}
 		}
 	}
 

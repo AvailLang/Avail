@@ -136,8 +136,7 @@ Private method "body function(_,_)" is
 		Undeclare name;
 		aStreamType ::= aStream's semantic type;
 		elementType ::= aStreamType's element type's instance;
-		blockType ::=
-			[elementType]→(action's semantic type's return type);
+		blockType ::= [elementType]→action's semantic type's return type;
 		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aStreamType, blockType>;
 
@@ -298,7 +297,7 @@ Macro "reject each…from_§where_" is a stream prefix function,
 |
 	name ::= elementPhrase's token's lexeme;
 	aStreamType ::= aStream's semantic type;
-	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+	blockType ::= [⊥]→predicateBlock's semantic type's return type;
 	returnType ::= strengthen stream for call of $"filter_by_"
 		using <aStreamType, blockType>;
 	statements ::= predicateBlock's statements;

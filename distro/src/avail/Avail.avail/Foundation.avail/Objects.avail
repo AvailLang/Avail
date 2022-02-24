@@ -582,7 +582,7 @@ Private method "Generate and install_accessor for«mutable»?_" is
 	If defineClassAccessor then
 	[
 		Method methodName is
-			new [objectType's type]→(fieldType's type)
+			new [objectType's type]→fieldType's type
 			applying [x : object meta | x[fieldAtom]];
 		/* Install a semantic restriction if one does not already exist for this
 		 * signature.
@@ -595,7 +595,7 @@ Private method "Generate and install_accessor for«mutable»?_" is
 		If needToRestrict then
 		[
 			Semantic restriction methodName is
-				new [objectType's type's type]→(any meta's type)
+				new [objectType's type's type]→any meta's type
 				applying
 				[
 					x : object meta's type
@@ -1933,7 +1933,7 @@ Public method "a|an_«with«_«:»?:=_‡,»»" is
 Public macro "a|an_«with«_«:»?:=_‡,»»" is
 [
 	objectTypeExpression : literal phrase ⇒ object meta,
-	optionalExpression : list phrase ⇒ (<atom, boolean, any…|3>+?)
+	optionalExpression : list phrase ⇒ <atom, boolean, any…|3>+?
 |
 	$body : expression phrase ⇒ object;
 	exit ::= [
@@ -1946,7 +1946,7 @@ Public macro "a|an_«with«_«:»?:=_‡,»»" is
 	expressions ::= optionalExpression's expressions;
 	weakDefs ::= expressions[1] else [<> → list phrase];
 	defs ::= cast weakDefs
-		into [phrases : list phrase ⇒ (<atom, boolean, any…|3>*) |
+		into [phrases : list phrase ⇒ <atom, boolean, any…|3>* |
 			map each triple in phrases' expressions through [
 				cast triple
 				into [t : list phrase ⇒ <atom, boolean, any…|3> |

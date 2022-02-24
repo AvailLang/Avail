@@ -1501,14 +1501,14 @@ Method "“_”" is
  *
  * @method "“_”(ISO…#)"
  * @param "ts" "timestamp"
- * @param "_" "literal token ⇒ (8601's type)"
+ * @param "_" "literal token ⇒ 8601's type"
  * @returns "nonempty string"
  * @category "Timestamps"
  */
 Public stable method "“_”(ISO…#)" is
 [
 	ts : timestamp,
-	_ : literal token ⇒ (8601's type)
+	_ : literal token ⇒ 8601's type
 |
 	expl ::= ts exploded;
 	pad ::= [n : number | s ::= “n”; if |s| = 1 then ["0"] else [""] ++ s];

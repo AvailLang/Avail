@@ -96,7 +96,7 @@ Public method "Using|using_,do_" is
 Semantic restriction "Using|using_,do_" is
 [
 	scopedRNG : pRNG's type,
-	action : []→⊤'s type
+	action : ([]→⊤)'s type
 |
 	action's return type
 ];

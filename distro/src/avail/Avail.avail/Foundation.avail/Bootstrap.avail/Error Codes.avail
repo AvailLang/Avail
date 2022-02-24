@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/3/22, 1:28 AM
+ * * Last Generated: 2/23/22, 8:45 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -57,7 +57,6 @@ Names
 	/*  85 */ "ambiguous-method-definition code",
 	/*  35 */ "ambiguous-name code",
 	/*  74 */ "atom-already-exists code",
-	/*  66 */ "bad-yield-type code",
 	/* 103 */ "block-compilation-failed code",
 	/* 100 */ "block-contains-invalid-statements code",
 	/* 101 */ "block-is-invalid code",
@@ -461,11 +460,6 @@ Primitive "untimely-parse-acceptance code" is
 Primitive "not-evaluating-macro" is
 [
 	65
-];
-
-Primitive "bad-yield-type code" is
-[
-	66
 ];
 
 Primitive "macro-prefix-function-argument-must-be-a-phrase code" is

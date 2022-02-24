@@ -170,7 +170,7 @@ Private method "_partial evaluator with_" is
  * @method "_(««_»?«`_»?‡,»)"
  * @param "originalFunction" "expression phrase ⇒ function"
  *        An expression producing the function to ultimately invoke.
- * @param "pairs" "list phrase ⇒ (<any?, boolean…|2>*)"
+ * @param "pairs" "list phrase ⇒ <any?, boolean…|2>*"
  *        The arguments and place-holder underscores.  Either the first element
  *        must produce a size one tuple and the second element a literal
  *        producing false, or the first element must produce the empty tuple and
@@ -188,14 +188,14 @@ Private method "_partial evaluator with_" is
 Public macro "_(««_»?«`_»?‡,»)" is
 [
 	originalFunction : expression phrase ⇒ function,
-	pairs : list phrase ⇒ (<any?, boolean…|2>*)
+	pairs : list phrase ⇒ <any?, boolean…|2>*
 |
 	pairExprs ::= cast pairs' expressions into
 		[x : (list phrase ⇒ <any?, boolean…|2>)* | x];
 	providedExprs ::= map each pairExpr of pairExprs through
 	[
 		twoExprs ::= cast pairExpr's expressions into
-			[x : <list phrase⇒(any?), literal phrase⇒boolean…|2> | x];
+			[x : <list phrase⇒any?, literal phrase⇒boolean…|2> | x];
 		twoExprs[1]'s expressions
 	];
 	originalFunction partial evaluator with providedExprs
@@ -442,6 +442,6 @@ Semantic restriction "unsafe sender of_returning_" is
 		args ::= |message methodName's instance's name's parameters| of ⊥;
 		function accepting args and returning (returnType's instance)
 	]
-	else [[…]→(returnType's instance)]
+	else [[…]→returnType's instance]
 ];
 

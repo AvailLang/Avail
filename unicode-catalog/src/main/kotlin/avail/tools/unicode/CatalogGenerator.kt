@@ -71,7 +71,7 @@ object CatalogGenerator
 					directory.resolve("allCodePoints.json"),
 					StandardCharsets.UTF_8)).use { reader ->
 				val data = reader.read()
-				return Catalog.readFrom(data!!)
+				return Catalog.readFrom(data)
 			}
 		}
 		catch (e: NoSuchFileException)

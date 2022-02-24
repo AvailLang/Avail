@@ -171,7 +171,7 @@ Semantic restriction "`|_'s⁇remaining elements`|" is
 Semantic restriction "For each of⁇_do_" is
 [
 	readerType : counting number reader's type,
-	actionType : [⊥]→⊤'s type
+	actionType : ([⊥]→⊤)'s type
 |
 	parameterType ::= actionType[1];
 	elementType ::= readerType's element type's instance;

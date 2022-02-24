@@ -107,11 +107,11 @@ import avail.descriptor.types.A_Type.Companion.couldEverBeInvokedWith
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.TypeDescriptor
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.TypeTag
 import avail.dispatch.LeafLookupTree
 import avail.dispatch.LookupStatistics

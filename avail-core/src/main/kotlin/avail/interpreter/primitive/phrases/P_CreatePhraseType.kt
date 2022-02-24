@@ -33,19 +33,18 @@ package avail.interpreter.primitive.phrases
 
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.A_Type.Companion.phraseKind
+import avail.descriptor.types.A_Type.Companion.typeIntersection
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
-import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.exceptions.AvailErrorCode.E_BAD_YIELD_TYPE
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -54,7 +53,7 @@ import avail.interpreter.execution.Interpreter
  * of the same [kind][PhraseKind] but with the specified expression type.
  */
 @Suppress("unused")
-object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
+object P_CreatePhraseType : Primitive(2, CanFold, CanInline, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
@@ -66,11 +65,9 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 			return interpreter.primitiveSuccess(baseType)
 		}
 		val kind = baseType.phraseKind
-		return if (!expressionType.isSubtypeOf(kind.mostGeneralYieldType))
-		{
-			interpreter.primitiveFailure(E_BAD_YIELD_TYPE)
-		}
-		else interpreter.primitiveSuccess(kind.create(expressionType))
+		val intersected =
+			expressionType.typeIntersection(kind.mostGeneralYieldType)
+		return interpreter.primitiveSuccess(kind.create(intersected))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
@@ -79,8 +76,4 @@ object P_CreatePhraseType : Primitive(2, CanFold, CanInline)
 				instanceMeta(PARSE_PHRASE.mostGeneralType),
 				topMeta()),
 			instanceMeta(PARSE_PHRASE.mostGeneralType))
-
-	override fun privateFailureVariableType(): A_Type =
-		instanceType(E_BAD_YIELD_TYPE.numericCode())
-
 }

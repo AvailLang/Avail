@@ -103,7 +103,7 @@ Private method "body function(_,_)" is
 	|
 		name ::= elementPhrase's token's lexeme;
 		aReaderType ::= aReader's semantic type;
-		blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+		blockType ::= [⊥]→predicateBlock's semantic type's return type;
 		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aReaderType, blockType>;
 		statements ::= predicateBlock's statements;
@@ -312,7 +312,7 @@ Macro "reject each…from_§where_" is a reader prefix function,
 |
 	name ::= elementPhrase's token's lexeme;
 	aReaderType ::= aReader's semantic type;
-	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+	blockType ::= [⊥]→predicateBlock's semantic type's return type;
 	returnType ::= strengthen reader for call of $"filter_by_"
 		using <aReaderType, blockType>;
 	statements ::= predicateBlock's statements;

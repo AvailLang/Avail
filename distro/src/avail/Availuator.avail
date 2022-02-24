@@ -126,7 +126,7 @@ Method "time_" is
 
 Semantic restriction "time_" is
 [
-	f : []→⊤'s type
+	f : ([]→⊤)'s type
 |
 	cast f's return type into [t : any's type | <whole number µs, t…|2>]
 	else [whole number µs]

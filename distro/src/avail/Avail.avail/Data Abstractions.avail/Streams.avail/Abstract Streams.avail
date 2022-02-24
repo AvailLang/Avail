@@ -211,12 +211,12 @@ Public method "_'s⁇head method is_" is
  * @method "_'s⁇head method is_"
  * @category "Data Abstractions" "Streams"
  * @restricts "stream's type's type"
- * @restricts "[⊥]→any's type"
+ * @restricts "([⊥]→any)'s type"
  */
 Semantic restriction "_'s⁇head method is_" is
 [
 	streamMeta : stream's type's type,
-	implementationType : [⊥]→any's type
+	implementationType : ([⊥]→any)'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -313,12 +313,12 @@ Public method "_'s⁇tail method is_" is
  * @method "_'s⁇tail method is_"
  * @category "Data Abstractions" "Streams"
  * @restricts "stream's type's type"
- * @restricts "[⊥]→stream's type"
+ * @restricts "([⊥]→stream)'s type"
  */
 Semantic restriction "_'s⁇tail method is_" is
 [
 	streamMeta : stream's type's type,
-	implementationType : [⊥]→stream's type
+	implementationType : ([⊥]→stream)'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -476,7 +476,7 @@ Method "For each of⁇_do_" is
  * element type of `streamType`, then reject the current parse.
  *
  * @method "Require:_accepts_"
- * @param "actionType" "[⊥]→⊤'s type"
+ * @param "actionType" "([⊥]→⊤)'s type"
  *    action - A function type whose sole parameter must correspond to the
  *       element type of `streamType`.
  * @param "streamType" "stream's type"
@@ -485,7 +485,7 @@ Method "For each of⁇_do_" is
  */
 Method "Require:_accepts_" is
 [
-	actionType : [⊥]→⊤'s type,
+	actionType : ([⊥]→⊤)'s type,
 	streamType : stream's type
 |
 	elementType ::= streamType's element type's instance;
@@ -502,7 +502,7 @@ Method "Require:_accepts_" is
 Semantic restriction "For each of⁇_do_" is
 [
 	streamType : stream's type,
-	actionType : [⊥]→⊤'s type
+	actionType : ([⊥]→⊤)'s type
 |
 	Require: actionType accepts streamType;
 	⊤
@@ -580,7 +580,7 @@ Method "map_through_" is
 Semantic restriction "map_through_" is
 [
 	streamType : stream's type,
-	transformerType : [⊥]→any's type
+	transformerType : ([⊥]→any)'s type
 |
 	Require: transformerType accepts streamType;
 	extend stream with element type : transformerType's return type's type
@@ -716,7 +716,7 @@ Method "filter_by_" is
 Semantic restriction "filter_by_" is
 [
 	streamType : stream's type,
-	predicateType : [⊥]→boolean's type
+	predicateType : ([⊥]→boolean)'s type
 |
 	Require: predicateType accepts streamType;
 	extend stream with element type : streamType's element type
@@ -1062,7 +1062,7 @@ Method "take from_while_" is
 Semantic restriction "take from_while_" is
 [
 	streamType : stream's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts streamType;
 	<streamType's element type's instance…|>
@@ -1101,7 +1101,7 @@ Method "take from_until_" is
 Semantic restriction "take from_until_" is
 [
 	streamType : stream's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts streamType;
 	<streamType's element type's instance…|>
@@ -1191,7 +1191,7 @@ Method "drop from_while_" is
 Semantic restriction "drop from_while_" is
 [
 	streamType : stream's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts streamType;
 	stream of (streamType's element type's instance)
@@ -1228,7 +1228,7 @@ Method "drop from_until_" is
 Semantic restriction "drop from_until_" is
 [
 	streamType : stream's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts streamType;
 	stream of (streamType's element type's instance)

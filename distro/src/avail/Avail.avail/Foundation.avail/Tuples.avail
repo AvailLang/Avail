@@ -303,7 +303,7 @@ Public method "_'s⁇strengthening function" is
 			<aTupleType's default type>;
 		∪ tupleOfTypes
 	] : any's type
-]:[]→(any's type);
+]:[]→any's type;
 
 
 /**
@@ -314,7 +314,7 @@ Public method "_'s⁇strengthening function" is
  */
 Macro "a closed element operation on nonempty tuples of_" is
 [
-	tupTypePhrase : expression phrase ⇒ (number's type)
+	tupTypePhrase : expression phrase ⇒ number's type
 |
 	tupType ::= evaluate tupTypePhrase;
 	«[
@@ -409,13 +409,13 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 		if indexed then
 		[
 			indexingType ::= (0 .. ⌈aTupleType⌉+1);
-			[elementType, indexingType]→(action's semantic type's return type)
+			[elementType, indexingType]→action's semantic type's return type
 		] else [
-			[elementType, elementType]→(action's semantic type's return type)
+			[elementType, elementType]→action's semantic type's return type
 		]
 	] else
 	[
-		[elementType]→(action's semantic type's return type)
+		[elementType]→action's semantic type's return type
 	];
 
 	strengthen baseReturnType for call of anAtom using <aTupleType, blockType>
@@ -646,12 +646,12 @@ Method "map_through_" is
  *
  * @method "map_through_"
  * @restricts "tuple meta"
- * @restricts "[…]→any's type"
+ * @restricts "([…]→any)'s type"
  */
 Semantic restriction "map_through_" is
 [
 	tupleType : tuple meta,
-	transformer : […]→any's type
+	transformer : ([…]→any)'s type
 |
 	Require: transformer accepts tupleType (check indices);
 	If ⌊tupleType⌋ > 0 then
@@ -812,12 +812,12 @@ Method "filter_by_" is
  *
  * @method "filter_by_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "filter_by_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	if predicate's return type = true's type then [tupleType]
@@ -1133,12 +1133,12 @@ Method "map and filter_by_" is
  *
  * @method "map and filter_by_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
 	tupleType : tuple meta,
-	accumulator : [⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts tupleType;
 	Require: accumulator's keeper is valid;
@@ -1160,12 +1160,12 @@ Semantic restriction "map and filter_by_" is
  *
  * @method "map and filter_by_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
 	tupleType : tuple meta,
-	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts tupleType (check indices);
 	Require: accumulator's keeper is valid;
@@ -1263,12 +1263,12 @@ Method "any of_satisfies_" is
  *
  * @method "any of_satisfies_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "any of_satisfies_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	predicate's return type
@@ -1357,12 +1357,12 @@ Method "each of_satisfies_" is
  *
  * @method "each of_satisfies_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "each of_satisfies_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	predicate's return type
@@ -1498,12 +1498,12 @@ Method "count of_where_" is
  *
  * @method "count of_where_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "count of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	[0..⌈tupleType⌉ + 1)
@@ -1786,12 +1786,12 @@ Public method "left fold_through_" is
  *
  * @method "left fold_through_"
  * @restricts "any+'s type"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "left fold_through_" is
 [
 	tupleType : any+'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	headType ::= tupleType[1];
 	restType ::= if |tupleType's leading types| > 0
@@ -1884,13 +1884,13 @@ Public method "left fold_into_through_" is
  * @method "left fold_into_through_"
  * @restricts "any's type"
  * @restricts "any+'s type"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "left fold_into_through_" is
 [
 	initialValueType : any's type,
 	tupleType : any*'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	returnType ::= transformer's return type;
 	elementType ::= ∪ tupleType[1..∞];
@@ -1995,12 +1995,12 @@ Public method "right fold_through_" is
  *
  * @method "right fold_through_"
  * @restricts "any+'s type"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "right fold_through_" is
 [
 	tupleType : any+'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	sizes ::= ||tupleType||;
 
@@ -2075,12 +2075,12 @@ Public method "first index of_where_" is
  *
  * @method "first index of_where_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "first index of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	[0..⌈tupleType⌉ + 1)
@@ -2138,12 +2138,12 @@ Public method "last index of_where_" is
  *
  * @method "last index of_where_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "last index of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	[0..⌈tupleType⌉ + 1)
@@ -2204,12 +2204,12 @@ Public method "all indices of_where_" is
  *
  * @method "all indices of_where_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "all indices of_where_" is
 [
 	tupleType : tuple meta,
-	predicateType : [⊥]→boolean's type
+	predicateType : ([⊥]→boolean)'s type
 |
 	Require: predicateType accepts tupleType (check indices);
 	<natural number…|0..⌈tupleType⌉ + 1>
@@ -2807,12 +2807,12 @@ Method "split_before_" is
  *
  * @method "split_before_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "split_before_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	returnType ::= predicate's return type;
@@ -3051,15 +3051,15 @@ Public method "take from_while_" is
  * @category "Data Abstractions"
  * @method "take|drop-while|until semantic restriction"
  * @param "tupleType" "tuple meta"
- * @param "predicate" "[⊥]→boolean's type"
- * @returns "[tuple meta, [⊥]→boolean's type]→⊤"
+ * @param "predicate" "([⊥]→boolean)'s type"
+ * @returns "[tuple meta, ([⊥]→boolean)'s type]→⊤"
  *    The requested function.
  */
 Private method "take|drop-while|until semantic restriction" is
 [
 	[
 		tupleType : tuple meta,
-		predicate : [⊥]→boolean's type
+		predicate : ([⊥]→boolean)'s type
 	|
 		Require: predicate accepts tupleType (check indices);
 		<∪ tupleType[1..|tupleType's leading types| + 1]…|0..⌈tupleType⌉>
@@ -3069,7 +3069,7 @@ Private method "take|drop-while|until semantic restriction" is
 /**
  * @method "take from_while_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "take from_while_" is take-while semantic restriction;
 
@@ -3104,7 +3104,7 @@ Public method "take from_until_" is
 /**
  * @method "take from_until_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "take from_until_" is take-until semantic restriction;
 
@@ -3141,7 +3141,7 @@ Public method "drop from_while_" is
 /**
  * @method "drop from_while_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "drop from_while_" is drop-while semantic restriction;
 
@@ -3175,7 +3175,7 @@ Public method "drop from_until_" is
 /**
  * @method "drop from_until_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
@@ -3836,12 +3836,12 @@ Private method "insertion sort_with_" is
 /**
  * @method "insertion sort_with_"
  * @restricts "<any…|2..10>'s type"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "insertion sort_with_" is
 [
 	tupleType : <any…|2..10>'s type,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
@@ -3970,12 +3970,12 @@ Public abstract method "quicksort_with_" is [tuple, [⊥, ⊥]→boolean]→tupl
 /**
  * @method "quicksort_with_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "quicksort_with_" is
 [
 	tupleType : tuple meta,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
@@ -4157,12 +4157,12 @@ Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tup
 /**
  * @method "merge sort_with_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "merge sort_with_" is
 [
 	tupleType : tuple meta,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
@@ -5157,7 +5157,7 @@ Semantic restriction "insertion index of|for_in_with_" is
 [
 	element : any's type,
 	tupleType : tuple's type,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union : type := ∪ tupleType[1..|tupleType's leading types|+1];
 	union := union ∪ element;

@@ -192,13 +192,13 @@ Public method "_'s⁇advance method is_" is
  *
  * @method "_'s⁇advance method is_"
  * @restricts "iteratorMeta" "iterator's type's type"
- * @restricts "implementationType" "[⊥]→⊤'s type"
+ * @restricts "implementationType" "([⊥]→⊤)'s type"
  * @category "Data Abstractions" "Iterators"
  */
 Semantic restriction "_'s⁇advance method is_" is
 [
 	iteratorMeta : iterator's type's type,
-	implementationType : [⊥]→⊤'s type
+	implementationType : ([⊥]→⊤)'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -337,7 +337,7 @@ Public method "_'s⁇current element method is_" is
 Semantic restriction "_'s⁇current element method is_" is
 [
 	readerMeta : reader's type's type,
-	implementationType : [⊥]→any's type
+	implementationType : ([⊥]→any)'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -440,7 +440,7 @@ Seal method "Advance_" at <iterator>;
  *
  * @category "Data Abstractions" "Readers"
  * @method "Require:_accepts_"
- * @param "action" "[⊥]→⊤'s type"
+ * @param "action" "([⊥]→⊤)'s type"
  *        A function type whose sole parameter must correspond to the element
  *        type of `readerType`.
  * @param "readerType" "reader's type"
@@ -449,7 +449,7 @@ Seal method "Advance_" at <iterator>;
  */
 Method "Require:_accepts_" is
 [
-	actionType : [⊥]→⊤'s type,
+	actionType : ([⊥]→⊤)'s type,
 	readerType : reader's type
 |
 	elementType ::= readerType's element type's instance;
@@ -495,14 +495,14 @@ Method "For each of⁇_do_" is
  * @method "For each of⁇_do_"
  * @restricts "readerType" "reader's type"
  *        A reader.
- * @restricts "actionType" "[⊥]→⊤'s type"
+ * @restricts "actionType" "([⊥]→⊤)'s type"
  *        A function that accepts the elements of the iterator.
  * @returns "⊤"
  */
 Semantic restriction "For each of⁇_do_" is
 [
 	readerType : reader's type,
-	actionType : [⊥]→⊤'s type
+	actionType : ([⊥]→⊤)'s type
 |
 	Require: actionType accepts readerType;
 	⊤
@@ -635,13 +635,13 @@ Method "take from_while_" is
  *
  * @method "take from_while_"
  * @restricts "readerType" "reader's type"
- * @restricts "predicate" "[⊥]→boolean's type"
+ * @restricts "predicate" "([⊥]→boolean)'s type"
  * @returns "tuple's type"
  */
 Semantic restriction "take from_while_" is
 [
 	readerType : reader's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts readerType;
 	<readerType's element type's instance…|>
@@ -682,13 +682,13 @@ Method "take from_until_" is
  *
  * @method "take from_until_"
  * @restricts "readerType" "reader's type"
- * @restricts "predicate" "[⊥]→boolean's type"
+ * @restricts "predicate" "([⊥]→boolean)'s type"
  * @returns "tuple's type"
  */
 Semantic restriction "take from_until_" is
 [
 	readerType : reader's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts readerType;
 	<readerType's element type's instance…|>
@@ -761,13 +761,13 @@ Method "Drop from_while_" is
  *
  * @method "Drop from_while_"
  * @restricts "readerType" "reader's type"
- * @restricts "predicate" "[⊥]→boolean's type"
+ * @restricts "predicate" "([⊥]→boolean)'s type"
  * @returns "⊤'s type"
  */
 Semantic restriction "Drop from_while_" is
 [
 	readerType : reader's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts readerType;
 	⊤
@@ -804,13 +804,13 @@ Method "Drop from_until_" is
  *
  * @method "Drop from_until_"
  * @restricts "readerType" "reader's type"
- * @restricts "predicate" "[⊥]→boolean's type"
+ * @restricts "predicate" "([⊥]→boolean)'s type"
  * @returns "⊤'s type"
  */
 Semantic restriction "Drop from_until_" is
 [
 	readerType : reader's type,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts readerType;
 	⊤

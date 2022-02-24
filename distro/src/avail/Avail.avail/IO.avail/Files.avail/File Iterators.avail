@@ -463,12 +463,12 @@ Method "Using|using_,⁇do_" is
 /**
  * @method "Using|using_,⁇do_"
  * @restricts "file iterator's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "Using|using_,⁇do_" is
 [
 	anIterator : file iterator's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	If anIterator ⊈ action[1] then
 	[

@@ -187,7 +187,7 @@ Public method "Foundation atom for_" is
  *
  * @macro "Foundation$…"
  * @param "aToken"
- *        "literal phrase ⇒ (literal token ⇒ string)"
+ *        "literal phrase ⇒ literal token ⇒ string"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
  *        value is the name of the atom.
  * @returns "literal phrase ⇒ atom"
@@ -210,7 +210,7 @@ Public macro "Foundation$…" is
  *
  * @macro "Foundation$…#"
  * @param "aToken"
- *        "literal phrase ⇒ (literal token ⇒ string)"
+ *        "literal phrase ⇒ literal token ⇒ string"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
  *        value is the name of the atom.
  * @returns "literal phrase ⇒ atom"
@@ -219,7 +219,7 @@ Public macro "Foundation$…" is
  */
 Public macro "Foundation$…#" is
 [
-	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
+	tokenPhrase : literal phrase ⇒ literal token ⇒ string
 |
 	‘Foundation atom for tokenPhrase's token's value's value’
 ];

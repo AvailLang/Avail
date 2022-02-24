@@ -159,7 +159,7 @@ Method "«_‡zip»" is
  *
  * @category "Data Abstractions" "Readers"
  * @method "zip semantic restriction"
- * @returns "[reader*'s type]→(zipped reader's type)"
+ * @returns "[reader*'s type]→zipped reader's type"
  *          The requested function.
  */
 Private method "zip semantic restriction" is

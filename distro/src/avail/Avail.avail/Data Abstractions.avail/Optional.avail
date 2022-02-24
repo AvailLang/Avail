@@ -287,12 +287,12 @@ Public method "When_is present do_" is
 /**
  * @method "When_is present do_"
  * @restricts "optional's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "When_is present do_" is
 [
 	optionalType : optional's type,
-	presentBlock : [⊥]→⊤'s type
+	presentBlock : ([⊥]→⊤)'s type
 |
 	Unless optionalType's actual value[1] ⊆ presentBlock[1] then
 	[
@@ -334,14 +334,14 @@ Public method "When|when_is present do_else_" is
 /**
  * @method "When|when_is present do_else_"
  * @restricts "optional's type"
- * @restricts "[⊥]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "When|when_is present do_else_" is
 [
 	optionalType : optional's type,
-	presentBlock : [⊥]→⊤'s type,
-	elseBlock : []→⊤'s type
+	presentBlock : ([⊥]→⊤)'s type,
+	elseBlock : ([]→⊤)'s type
 |
 	Unless optionalType's actual value[1] ⊆ presentBlock[1] then
 	[

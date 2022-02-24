@@ -138,8 +138,8 @@ Private method "basic send phrase_conditional_then_else_" is
  */
 Private abstract method "for_nest_in_" is
 [
-	atom, expression phrase ⇒ []→⊤, <list phrase ⇒ <boolean, []→⊤…|2>…|1..>
-]→(expression phrase ⇒ []→⊤);
+	atom, expression phrase ⇒ []→⊤, (list phrase ⇒ <boolean, []→⊤…|2>)+
+]→expression phrase ⇒ []→⊤;
 
 Method "for_nest_in_" is
 [
@@ -180,11 +180,11 @@ Method "for_nest_in_" is
  * @param "firstThen" "expression phrase ⇒ []→⊤"
  *        The action to perform if {@param "firstPredicate"} is {@method
  *        "true"}.
- * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ * @param "elseIfTuple" "list phrase ⇒ <boolean, []→⊤…|2>+"
  *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
  *        first element a predicate and as its second element an action
  *        to perform if the predicate answers {@method "true"}.
- * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ * @param "else" "list phrase ⇒ []→⊤?"
  *        A lexically constructed tuple that optionally contains the action to
  *        perform if {@param "firstPredicate"} is {@method "false"} and all
  *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
@@ -196,12 +196,12 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : expression phrase ⇒ boolean,
 	firstThenBlock : expression phrase ⇒ []→⊤,
-	elseIfPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
-	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+	elseIfPairTuplePhrase : list phrase ⇒ <boolean, []→⊤…|2>+,
+	optionalElseBlock : list phrase ⇒ ([]→⊤)?
 |
 	elseBlock ::= optionalElseBlock's expressions[1] else [‘[]’];
 	elseIfPairTuple ::= elseIfPairTuplePhrase's expressions
-		?→ <list phrase⇒<boolean, []→⊤…|2>…|1..∞>;
+		?→ (list phrase⇒<boolean, []→⊤…|2>)+;
 	anAtom ::= $"If|if_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseIfPairTuple;
 	basic send phrase anAtom
@@ -279,12 +279,12 @@ Public method "Repeat__times" is
  * If the count is ∞, then answer ⊥ (because the loop will never terminate).
  *
  * @method "Repeat__times"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "[0..∞]'s type"
  */
 Semantic restriction "Repeat__times" is
 [
-	action : []→⊤'s type,
+	action : ([]→⊤)'s type,
 	count : [0..∞]'s type
 |
 	if ⌊count⌋ = ∞ then
@@ -394,14 +394,14 @@ Public method "From_to_by_do_" is
  * @restricts "integer's type"
  * @restricts "extended integer's type"
  * @restricts "integer's type"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "From_to_by_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type,
-	action : [⊥]→boolean's type
+	action : ([⊥]→boolean)'s type
 |
 	subscripts ::=
 		if step ⊆ [0..∞) then
@@ -551,7 +551,7 @@ Public method "From_to_by_do_" is
  */
 Public method "Require:_accepts subscripts from_to_by_" is
 [
-	action : [⊥]→⊤'s type,
+	action : ([⊥]→⊤)'s type,
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type
@@ -591,14 +591,14 @@ Public method "Require:_accepts subscripts from_to_by_" is
  * @restricts "integer's type"
  * @restricts "extended integer's type"
  * @restricts "integer's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "From_to_by_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	Require: action accepts subscripts from start to end by step;
 	return ::= action's return type;
@@ -744,13 +744,13 @@ Public method "From_to_do_" is
  * @method "From_to_do_"
  * @restricts "integer's type"
  * @restricts "extended integer's type"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "From_to_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
-	action : [⊥]→boolean's type
+	action : ([⊥]→boolean)'s type
 |
 	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
@@ -795,13 +795,13 @@ Public method "From_to_do_" is
  * @method "From_to_do_"
  * @restricts "integer's type"
  * @restricts "extended integer's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "From_to_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
@@ -1063,14 +1063,14 @@ Public method "If|if_then_«else if_then_»«else_»?" is
  *
  * @method "If|if_then_«else if_then_»«else_»?"
  * @restricts "boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
-	firstThen : []→⊤'s type,
+	firstThen : ([]→⊤)'s type,
 	elseIfTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
 	else : ([]→⊤)?'s type
 |
@@ -1200,14 +1200,14 @@ Semantic restriction "If|if_then_«else if_then_»«else_»?" is
  *
  * @method "Unless|unless_then_else_"
  * @restricts "boolean's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
 	predicate : boolean's type,
-	falseFunction : []→⊤'s type,
-	trueFunction : []→⊤'s type
+	falseFunction : ([]→⊤)'s type,
+	trueFunction : ([]→⊤)'s type
 |
 	trueFunction's return type ∪ falseFunction's return type
 ];
@@ -1218,14 +1218,14 @@ Semantic restriction "Unless|unless_then_else_" is
  *
  * @method "Unless|unless_then_else_"
  * @restricts "false's type's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
 	contradiction : false's type's type,
-	falseFunction : []→⊤'s type,
-	trueFunction : []→⊤'s type
+	falseFunction : ([]→⊤)'s type,
+	trueFunction : ([]→⊤)'s type
 |
 	falseFunction's return type
 ];
@@ -1236,14 +1236,14 @@ Semantic restriction "Unless|unless_then_else_" is
  *
  * @method "Unless|unless_then_else_"
  * @restricts "true's type's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
 	tautology : true's type's type,
-	falseFunction : []→⊤'s type,
-	trueFunction : []→⊤'s type
+	falseFunction : ([]→⊤)'s type,
+	trueFunction : ([]→⊤)'s type
 |
 	trueFunction's return type
 ];
@@ -1261,11 +1261,11 @@ Semantic restriction "Unless|unless_then_else_" is
  * @param "firstThen" "expression phrase ⇒ []→⊤"
  *        The action to perform if {@param "firstPredicate"} is {@method
  *        "false"}.
- * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ * @param "elseIfTuple" "list phrase ⇒ <boolean, []→⊤…|2>+"
  *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
  *        first element a predicate and as its second element an action
  *        to perform if the predicate answers {@method "true"}.
- * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ * @param "else" "list phrase ⇒ []→⊤?"
  *        A lexically constructed tuple that optionally contains the action to
  *        perform if {@param "firstPredicate"} is {@method "false"} and all
  *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
@@ -1277,8 +1277,8 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : expression phrase ⇒ boolean,
 	firstThenBlock : expression phrase ⇒ []→⊤,
-	elseUnlessPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
-	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+	elseUnlessPairTuplePhrase : list phrase ⇒ <boolean, []→⊤…|2>+,
+	optionalElseBlock : list phrase ⇒ ([]→⊤)?
 |
 	elseBlock ::= optionalElseBlock's expressions[1] else [‘[]’];
 	elseUnlessPairTuple ::= elseUnlessPairTuplePhrase's expressions
@@ -1375,14 +1375,14 @@ Public method "Unless|unless_then_«else unless_then_»«else_»?" is
  *
  * @method "Unless|unless_then_«else unless_then_»«else_»?"
  * @restricts "boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "<[]→boolean, []→⊤…|2>+'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
-	firstThen : []→⊤'s type,
+	firstThen : ([]→⊤)'s type,
 	elseUnlessTuple : <[]→boolean, []→⊤…|2>+'s type,
 	else : ([]→⊤)?'s type
 |
@@ -1531,11 +1531,11 @@ Public method "While_" is
  * (because the loop will run forever).
  *
  * @method "While_"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "While_" is
 [
-	action : []→boolean's type
+	action : ([]→boolean)'s type
 |
 	if action's return type = true's type then
 	[
@@ -1573,11 +1573,11 @@ Public method "Until_" is
  * (because the loop will run forever).
  *
  * @method "Until_"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "Until_" is
 [
-	action : []→boolean's type
+	action : ([]→boolean)'s type
 |
 	if action's return type = false's type then
 	[
@@ -1618,13 +1618,13 @@ Public method "While_do_" is
  * (because the loop will run forever).
  *
  * @method "While_do_"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "While_do_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type
 |
 	if predicate's return type = true's type then
 	[
@@ -1691,13 +1691,13 @@ Public method "Until_do_" is
  * (because the loop will run forever).
  *
  * @method "Until_do_"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Until_do_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type
 |
 	if predicate's return type = false's type then
 	[
@@ -1760,13 +1760,13 @@ Public method "Do_while_" is
  * answers {@method "true"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_while_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "Do_while_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = true's type
 	then [⊥]
@@ -1829,15 +1829,15 @@ Public method "Do_while_alternate with_" is
  * answers {@method "true"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_while_alternate with_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Do_while_alternate with_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type,
-	between : []→⊤'s type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = true's type
 	then [⊥]
@@ -1905,15 +1905,15 @@ Public method "While_do_alternate with_" is
  * answers {@method "true"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "While_do_alternate with_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "While_do_alternate with_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type,
-	between : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = true's type
 	then [⊥]
@@ -1972,13 +1972,13 @@ Public method "Do_until_" is
  * answers {@method "false"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_until_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "Do_until_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = false's type
 	then [⊥]
@@ -2041,15 +2041,15 @@ Public method "Do_until_alternate with_" is
  * answers {@method "false"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_until_alternate with_"
- * @restricts "[]→⊤'s type
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Do_until_alternate with_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type,
-	between : []→⊤'s type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ [predicate's return type = false's type]
 	then [⊥]
@@ -2117,15 +2117,15 @@ Public method "Until_do_alternate with_" is
  * answers {@method "false"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Until_do_alternate with_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Until_do_alternate with_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type,
-	between : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = false's type
 	then [⊥]

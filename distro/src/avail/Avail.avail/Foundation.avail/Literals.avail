@@ -356,7 +356,7 @@ Public macro "$…" is
  *
  * @macro "$…#"
  * @param "aToken"
- *        "literal phrase ⇒ (literal token ⇒ string)"
+ *        "literal phrase ⇒ literal token ⇒ string"
  *        A {@type "literal phrase"} holding a {@type "literal token"} whose
  *        value is the name of the atom.
  * @returns "literal phrase ⇒ atom"
@@ -365,7 +365,7 @@ Public macro "$…" is
  */
 Public macro "$…#" is
 [
-	tokenPhrase : literal phrase ⇒ (literal token ⇒ string)
+	tokenPhrase : literal phrase ⇒ literal token ⇒ string
 |
 	‘atom for tokenPhrase's token's value's value’
 ] : literal phrase ⇒ atom;
@@ -406,7 +406,7 @@ Public macro "¢…!" is
  * This allows capture of characters like space and double quote (").
  *
  * @macro "¢…!"
- * @param "tokenPhrase" "literal phrase ⇒ (literal token ⇒ <character…|1>)"
+ * @param "tokenPhrase" "literal phrase ⇒ literal token ⇒ <character…|1>"
  *        A {@type "literal phrase"} holding a synthetic {@type "literal token"}
  *        whose value denotes the character.
  * @returns "literal phrase ⇒ character"
@@ -415,7 +415,7 @@ Public macro "¢…!" is
  */
 Public macro "¢…!" is
 [
-	tokenPhrase : literal phrase ⇒ (literal token ⇒ <<>, character…|1's type>)
+	tokenPhrase : literal phrase ⇒ literal token ⇒ <<>, character…|1's type>
 |
 	‘tokenPhrase's token's value's value[1]’
 ];

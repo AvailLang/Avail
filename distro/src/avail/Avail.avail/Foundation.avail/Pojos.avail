@@ -78,8 +78,8 @@ Body
 
 Method "_[_]" is stable at [any's type, whole number's type]→pojo array meta;
 Method "`|_`|" is stable at [pojo array]→whole number;
-Method "_'s⁇element type" is stable at [pojo array's type]→(any's type);
-Method "`|`|_`|`|" is stable at [pojo array's type]→(whole number's type);
+Method "_'s⁇element type" is stable at [pojo array's type]→any's type;
+Method "`|`|_`|`|" is stable at [pojo array's type]→whole number's type;
 
 /**
  * @method "_'s⁇element type"
@@ -540,10 +540,10 @@ Public stable method "static field_.…" is
  *
  * @category "Types" "POJO" "Constructors"
  * @macro "«…‡.»«<«_‡,»>»?"
- * @param "pParts" "list phrase ⇒ (<token…|3..>)"
+ * @param "pParts" "list phrase ⇒ <token…|3..>"
  *        The fully qualified name of the Java class or interface, comprising at
  *        least three path components.
- * @param "typeParameters" "list phrase ⇒ (any's type+?)"
+ * @param "typeParameters" "list phrase ⇒ any's type+?"
  *        The type arguments. The cardinality of this tuple must agree with the
  *        number of type parameters required by the Java class or interface.
  * @returns "literal phrase ⇒ any's type"
@@ -551,8 +551,8 @@ Public stable method "static field_.…" is
  */
 Public macro "«…‡.»«<«_‡,»>»?" is
 [
-	pParts : list phrase ⇒ (<token…|3..>),
-	pTypesOpt : list phrase ⇒ (any's type+?)
+	pParts : list phrase ⇒ <token…|3..>,
+	pTypesOpt : list phrase ⇒ any's type+?
 |
 	parts ::= map each t of evaluate pParts through [t's lexeme];
 	types ::= evaluate pTypesOpt[1] else [<>];

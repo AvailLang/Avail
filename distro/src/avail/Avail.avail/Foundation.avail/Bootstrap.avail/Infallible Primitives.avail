@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/3/22, 1:28 AM
+ * * Last Generated: 2/23/22, 8:45 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -166,6 +166,7 @@ Uses
 		"_→set",
 		"_→statement phrase",
 		"_→tuple",
+		"_⇒_",
 		"_∈_",
 		"_∩_",
 		"_∪_",
@@ -2617,9 +2618,9 @@ Primitive "`«marker phrase_⇒_`»" is
  * @category "Primitives"
  * @method "`«module variable_(_)`»"
  * @param "aVariable" "read ⊤/write ⊥"
- *        TODO
+ *        The variable to use.
  * @param "aToken" "token"
- *        TODO
+ *        The token to treat as the point of declaration.
  * @returns "module variable phrase⇒⊤"
  *    A module variable declaration phrase.
  */
@@ -2630,6 +2631,28 @@ Primitive "`«module variable_(_)`»" is
 |
 	Primitive CreateModuleVariableDeclaration;
 ] : module variable phrase;
+
+/**
+ * Construct and answer a phrase type with the specified semantic type.
+ *
+ * @category "Primitives" "Types" "Phrases" "Constructors"
+ * @method "_⇒_"
+ * @param "aPhrase" "(phrase⇒⊤)'s type"
+ *        A phrase type.
+ * @param "semanticType" "(⊤)'s type"
+ *        The semantic type of values producible by phrases that are instances
+ *        of the answer.
+ * @returns "(phrase⇒⊤)'s type"
+ *    The requested phrase type.
+ * @raises "{6}"
+ */
+Primitive "_⇒_" is
+[
+	aPhrase : phrase meta,
+	semanticType : type
+|
+	Primitive CreatePhraseType;
+] : phrase meta;
 
 /**
  * Construct and answer a primitive failure local constant declaration.

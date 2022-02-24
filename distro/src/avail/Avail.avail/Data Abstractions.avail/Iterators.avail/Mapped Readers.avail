@@ -141,7 +141,7 @@ Method "map_through_" is
  * @method "map_through_"
  * @restricts "readerType" "reader's type"
  *        The source {@type "reader"}.
- * @restricts "transformerType" "[⊥]→any's type"
+ * @restricts "transformerType" "⊥'s type"
  *        A function that accepts the elements of {@param "aReader"}.
  * @returns "reader's type"
  *          The strengthened reader type.
@@ -149,7 +149,7 @@ Method "map_through_" is
 Semantic restriction "map_through_" is
 [
 	readerType : reader's type,
-	transformerType : [⊥]→any's type
+	transformerType : ([⊥]→any)'s type
 |
 	Require: transformerType accepts readerType;
 	extend reader with element type : transformerType's return type's type

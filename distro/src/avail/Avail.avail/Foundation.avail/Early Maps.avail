@@ -289,13 +289,13 @@ Method "_[_]else_" is
  * @method "_[_]else_"
  * @restricts "map meta"
  * @restricts "any meta"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "_[_]else_" is
 [
 	mapType : map meta,
 	keyType : any meta,
-	default : []→any's type
+	default : ([]→any)'s type
 |
 	if keyType ∩ (mapType's key type) = ⊥ then
 	[

@@ -1230,7 +1230,7 @@ Semantic restriction "_>>_" is
 ];
 
 Private forward method "_positive range pairs"
-	is [whole number's type] → (whole number's type*);
+	is [whole number's type] → whole number's type*;
 
 /**
  * Compute the ranges as for "_range pairs" (below), but with the knowledge that

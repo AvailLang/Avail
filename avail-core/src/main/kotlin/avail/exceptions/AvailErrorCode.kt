@@ -71,7 +71,6 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.EnumerationTypeDescriptor
 import avail.descriptor.types.FiberTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PojoTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TypeDescriptor
@@ -461,11 +460,7 @@ enum class AvailErrorCode constructor(val code: Int)
 	 */
 	E_NOT_EVALUATING_MACRO(65),
 
-	/**
-	 * The yield type specified for a [PhraseKind] was not a subtype of the
-	 * [most&#32;general&#32;yield][PhraseKind.mostGeneralYieldType].
-	 */
-	E_BAD_YIELD_TYPE(66),
+	//	E_??? (66)
 
 	/**
 	 * A [macro][MacroDescriptor]'s

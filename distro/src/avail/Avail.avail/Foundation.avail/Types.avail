@@ -101,8 +101,23 @@ Public method "[«_‡,»]→_" is
 ] : function meta;
 
 Grammatical restriction {"_`?", "_+", "_*"} is <{"[«_‡,»]→_", "[`…]→_"}>;
-Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type"}>;
-Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
+
+/**
+ * Make "_'s type" bind more tightly than function type construction.  Also
+ * other similar methods.
+ *
+ * @method "_'s⁇type"
+ * @returns "⊤"
+ */
+Grammatical restriction
+	{
+		"_'s⁇type",
+		"_'s⁇value type",
+		"_'s⁇instance",
+		"_'s⁇semantic type",
+		"_'s⁇return type"
+	}
+	is <{"[«_‡,»]→_", "[`…]→_"}>;
 
 /**
  * Tuple type constructor's semantic restriction.

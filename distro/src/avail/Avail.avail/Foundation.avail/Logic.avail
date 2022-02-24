@@ -184,12 +184,12 @@ Semantic restriction "_`↑_" is
  *
  * @method "_`↑_"
  * @restricts "true's type's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_`↑_" is
 [
 	a : true's type's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -201,12 +201,12 @@ Semantic restriction "_`↑_" is
  *
  * @method "_`↑_"
  * @restricts "boolean's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_`↑_" is
 [
 	a : boolean's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type
 ];
@@ -268,12 +268,12 @@ Method "_↓_" is
  *
  * @method "_↓_"
  * @restricts "true's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : true's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	false's type
 ];
@@ -285,12 +285,12 @@ Semantic restriction "_↓_" is
  *
  * @method "_↓_"
  * @restricts "false's type's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -302,12 +302,12 @@ Semantic restriction "_↓_" is
  *
  * @method "_↓_"
  * @restricts "false's type's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type
 ];
@@ -319,12 +319,12 @@ Semantic restriction "_↓_" is
  *
  * @method "_↓_"
  * @restricts "boolean's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : boolean's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -390,12 +390,12 @@ Method "_→_" is
  *
  * @method "_→_"
  * @restricts "false's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_→_" is
 [
 	a : false's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	true's type
 ];
@@ -407,12 +407,12 @@ Semantic restriction "_→_" is
  *
  * @method "_→_"
  * @restricts "boolean's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_→_" is
 [
 	a : boolean's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	true's type
 ];
@@ -473,12 +473,12 @@ Method "_←_" is
  *
  * @method "_←_"
  * @restricts "true's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_←_" is
 [
 	a : true's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	true's type
 ];
@@ -490,12 +490,12 @@ Semantic restriction "_←_" is
  *
  * @method "_←_"
  * @restricts "boolean's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_←_" is
 [
 	a : boolean's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type
 ];
@@ -595,12 +595,12 @@ Method "_↛_" is
  *
  * @method "_↛_"
  * @restricts "false's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↛_" is
 [
 	a : false's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	false's type
 ];
@@ -612,12 +612,12 @@ Semantic restriction "_↛_" is
  *
  * @method "_↛_"
  * @restricts "boolean's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↛_" is
 [
 	a : boolean's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -679,12 +679,12 @@ Method "_↚_" is
  *
  * @method "_↚_"
  * @restricts "true's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↚_" is
 [
 	a : true's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	false's type
 ];
@@ -696,12 +696,12 @@ Semantic restriction "_↚_" is
  *
  * @method "_↚_"
  * @restricts "boolean's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_↚_" is
 [
 	a : boolean's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	false's type
 ];
@@ -714,12 +714,12 @@ Semantic restriction "_↚_" is
  *
  * @method "_↚_"
  * @restricts "false's type's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↚_" is
 [
 	a : false's type's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	true's type
 ];

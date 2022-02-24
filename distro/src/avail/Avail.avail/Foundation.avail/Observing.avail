@@ -238,8 +238,8 @@ Public method "Whenever_changes,⁇do_" is
 
 Semantic restriction "Whenever_changes,⁇do_" is
 [
-	traceFunction : []→any's type,
-	action : [⊥]→⊤'s type
+	traceFunction : ([]→any)'s type,
+	action : ([⊥]→⊤)'s type
 |
 	If action[1] ≠ ⊥ ∧ ¬traceFunction's return type ⊆ action[1] then
 	[
@@ -336,7 +336,7 @@ Public method "Observe|observe_" is
 
 Semantic restriction "Observe|observe_" is
 [
-	observeFunction : []→⊤'s type
+	observeFunction : ([]→⊤)'s type
 |
 	observeFunction's return type
 ];

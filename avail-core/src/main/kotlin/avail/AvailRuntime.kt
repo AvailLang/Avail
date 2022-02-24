@@ -1654,6 +1654,17 @@ class AvailRuntime constructor(
 	fun safePointRequested(): Boolean = safePointRequested
 
 	/**
+	 * Assert that we're currently inside a safe point.  This should only be
+	 * checked while running a safe point task (good) or an interpreter task
+	 * (should fail).
+	 */
+	fun assertInSafePoint()
+	{
+		val isSafe = safePointLock.withLock { incompleteSafePointTasks > 0 }
+		assert(isSafe)
+	}
+
+	/**
 	 * Request that the specified [action] be executed when interpreter tasks
 	 * are allowed to run.
 	 *

@@ -160,12 +160,12 @@ Private method "args:=_" is
  * and bring them immediately into scope.
  *
  * @method "my(«$…§‡,»)=@`_;"
- * @param "argsPhrase" "list phrase ⇒ (token+)"
+ * @param "argsPhrase" "list phrase ⇒ token+"
  * @returns "sequence phrase"
  */
 Public macro "my(«$…§‡,»)=@`_;" is
 [
-	argsPhrase : list phrase ⇒ (token+)
+	argsPhrase : list phrase ⇒ token+
 |
 	argsTuple ::= argsPhrase's expressions ?→ (literal phrase ⇒ token)+;
 	argPhrase ::= argsTuple's last;
@@ -177,7 +177,7 @@ Public macro "my(«$…§‡,»)=@`_;" is
 	args := args ++ <argDecl>;
 ],
 [
-	argsPhrase : list phrase ⇒ (token+)
+	argsPhrase : list phrase ⇒ token+
 |
 	/* The arguments were brought into scope by the prefix function, so there's
 	 * nothing interesting for the macro body to do. Just answer an empty
@@ -257,7 +257,7 @@ Public macro "@…" is
  *
  * @method "sub…{§«_!»}"
  * @param "namePhrase" "literal phrase ⇒ token"
- * @param "stmtsPhrase" "list phrase ⇒ (phrase*)"
+ * @param "stmtsPhrase" "list phrase ⇒ phrase*"
  * @returns "expression as statement phrase"
  */
 Public macro "sub…{§«_!»}" is
@@ -271,7 +271,7 @@ Public macro "sub…{§«_!»}" is
 ],
 [
 	namePhrase : literal phrase ⇒ token,
-	stmtsPhrase : list phrase ⇒ (phrase*)
+	stmtsPhrase : list phrase ⇒ phrase*
 |
 	nameToken ::= namePhrase's token;
 	name : string :=
@@ -305,7 +305,7 @@ Public macro "sub…{§«_!»}" is
  * Declare a block or anonymous subroutine.
  *
  * @method "sub⁇{§«_!»}"
- * @param "stmtsPhrase" "list phrase ⇒ (phrase*)"
+ * @param "stmtsPhrase" "list phrase ⇒ phrase*"
  * @param "lastStmtPhrase" "literal phrase ⇒ phrase"
  * @returns "block phrase"
  */
@@ -318,7 +318,7 @@ Public macro "sub⁇{§«_!»_!}" is
 	scope map := scope map + defaultScalarName → defaultScalarDecl;
 ],
 [
-	stmtsPhrase : list phrase ⇒ (phrase*),
+	stmtsPhrase : list phrase ⇒ phrase*,
 	lastStmtPhrase : literal phrase ⇒ phrase
 |
 	defaultScalarDecl ::= scope map["_"];

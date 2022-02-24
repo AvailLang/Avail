@@ -72,7 +72,7 @@ Alias "_②≥_①" to atom for "_≤_";
  * @method "integer range genuine«lower|upper»!\
  *         \|bound semantic restriction function"
  * @param "lowerOrUpper" "[1..2]"
- * @returns "[extended integer meta's type]→([-∞..∞])'s type"
+ * @returns "[extended integer meta's type]→[-∞..∞]'s type"
  *    A function that strengthens the integer range bounds methods.
  */
 Private method

@@ -57,7 +57,7 @@ Method 	"anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»�
 	|2>+
 |
 	Primitive CreateAnonymousModule(code : {
-		loading-is-over code}ᵀ);
+		incorrect-argument-type code}ᵀ);
 	Raise an exception for code
 ] : module;
 

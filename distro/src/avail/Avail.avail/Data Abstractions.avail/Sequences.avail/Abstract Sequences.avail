@@ -200,7 +200,7 @@ Public method "_'s⁇subscript method is_" is
 Semantic restriction "_'s⁇subscript method is_" is
 [
 	sequenceMeta : sequence's type's type,
-	implementationType : [⊥, natural number]→any's type
+	implementationType : ([⊥, natural number]→any)'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -300,7 +300,7 @@ Semantic restriction "_[_]else_" is
 [
 	sequenceType : sequence's type,
 	index : integer's type,
-	else : []→any's type
+	else : ([]→any)'s type
 |
 	if ⌊index⌋ > ⌈sequenceType⌉ ∨ ⌈index⌉ < 1 then [else's return type]
 	else

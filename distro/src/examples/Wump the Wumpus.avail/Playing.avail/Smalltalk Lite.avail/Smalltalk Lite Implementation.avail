@@ -110,14 +110,14 @@ Body
  * Declare a {@type "method"}.
  *
  * @method "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!»`!`!"
- * @param "argsPhrase" "list phrase ⇒ (<token…|2>+)"
- * @param "localsPhrase" "list phrase ⇒ (token*)"
- * @param "stmtsPhrase" "list phrase ⇒ (statement phrase*)"
+ * @param "argsPhrase" "list phrase ⇒ <token…|2>+"
+ * @param "localsPhrase" "list phrase ⇒ token*"
+ * @param "stmtsPhrase" "list phrase ⇒ statement phrase*"
  * @returns "expression as statement phrase"
  */
 Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!»`!`!" is
 [
-	argsPhrase : list phrase ⇒ (<token…|2>+)
+	argsPhrase : list phrase ⇒ <token…|2>+
 |
 	argsTuple ::= argsPhrase's expressions ?→ (list phrase ⇒ <token…|2>)+;
 	_, argPhrase ::= argsTuple's last's expressions
@@ -129,8 +129,8 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 	scope map := scope map + argName → argDecl;
 ],
 [
-	argsPhrase : list phrase ⇒ (<token…|2>+),
-	localsPhrase : list phrase ⇒ (token*)
+	argsPhrase : list phrase ⇒ <token…|2>+,
+	localsPhrase : list phrase ⇒ token*
 |
 	localsTuple ::= localsPhrase's expressions
 		?→ (literal phrase ⇒ token)+;
@@ -142,9 +142,9 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
 	scope map := scope map + localName → localDecl;
 ],
 [
-	argsPhrase : list phrase ⇒ (<token…|2>+),
-	localsPhrase : list phrase ⇒ (token*),
-	stmtsPhrase : list phrase ⇒ (statement phrase*)
+	argsPhrase : list phrase ⇒ <token…|2>+,
+	localsPhrase : list phrase ⇒ token*,
+	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	argsTuple ::= argsPhrase's expressions ?→ (list phrase ⇒ <token…|2>)+;
 	args, selector ::= left fold <<>, "self "> into argsTuple through
@@ -179,14 +179,14 @@ Public macro "`!Game class methodsFor:'wumping'`!«…:…§»`|«…§»`|«_!�
  *
  * @method "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!"
  * @param "selectorPhrase" "literal phrase ⇒ token"
- * @param "localsPhrase" "list phrase ⇒ (token*)"
- * @param "stmtsPhrase" "list phrase ⇒ (statement phrase*)"
+ * @param "localsPhrase" "list phrase ⇒ token*"
+ * @param "stmtsPhrase" "list phrase ⇒ statement phrase*"
  * @returns "expression as statement phrase"
  */
 Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 [
 	selectorPhrase : literal phrase ⇒ token,
-	localsPhrase : list phrase ⇒ (token*)
+	localsPhrase : list phrase ⇒ token*
 |
 	localsTuple ::= localsPhrase's expressions
 		?→ (literal phrase ⇒ token)+;
@@ -199,8 +199,8 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
 ],
 [
 	selectorPhrase : literal phrase ⇒ token,
-	localsPhrase : list phrase ⇒ (token*),
-	stmtsPhrase : list phrase ⇒ (statement phrase*)
+	localsPhrase : list phrase ⇒ token*,
+	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
 	send $"Method_is_" with
@@ -221,13 +221,13 @@ Public macro "`!Game class methodsFor:'wumping'`!…`|«…§»`|«_!»`!`!" is
  *
  * @method "`!Game class methodsFor:'wumping'`!…«_!»`!`!"
  * @param "selectorPhrase" "literal phrase ⇒ token"
- * @param "stmtsPhrase" "list phrase ⇒ (statement phrase*)"
+ * @param "stmtsPhrase" "list phrase ⇒ statement phrase*"
  * @returns "expression as statement phrase"
  */
 Public macro "`!Game class methodsFor:'wumping'`!…«_!»`!`!" is
 [
 	selectorPhrase : literal phrase ⇒ token,
-	stmtsPhrase : list phrase ⇒ (statement phrase*)
+	stmtsPhrase : list phrase ⇒ statement phrase*
 |
 	selector ::= "self " ++ selectorPhrase's token' lexeme;
 	send $"Method_is_" with
@@ -256,7 +256,7 @@ Public macro "(Smalltalk)[]" is
  * Answer a {@type "block phrase"}.
  *
  * @macro "[§«_!»_!]"
- * @param "stmtsPhrase" "list phrase ⇒ (statement phrase*)"
+ * @param "stmtsPhrase" "list phrase ⇒ statement phrase*"
  *        The {@type "statement phrase" statements} that define the {@type
  *        "block phrase" block}'s behavior.
  * @param "lastStmtPhrase" "literal phrase ⇒ phrase"
@@ -268,7 +268,7 @@ Public macro "(Smalltalk)[§«_!»_!]" is
 	Push scope;
 ],
 [
-	stmtsPhrase : list phrase ⇒ (statement phrase*),
+	stmtsPhrase : list phrase ⇒ statement phrase*,
 	lastStmtPhrase : literal phrase ⇒ phrase
 |
 	Pop scope;
@@ -284,9 +284,9 @@ Public macro "(Smalltalk)[§«_!»_!]" is
  * Answer a {@type "block phrase"}.
  *
  * @macro "[§`|«…§»`|«_!»_!]"
- * @param "localsPhrase" "list phrase ⇒ (token*)"
+ * @param "localsPhrase" "list phrase ⇒ token*"
  *        The {@type "local variable phrase" local variable declarations}.
- * @param "stmtsPhrase" "list phrase ⇒ (statement phrase*)"
+ * @param "stmtsPhrase" "list phrase ⇒ statement phrase*"
  *        The {@type "statement phrase" statements} that define the {@type
  *        "block phrase" block}'s behavior.
  * @param "lastStmtPhrase" "literal phrase ⇒ phrase"
@@ -298,7 +298,7 @@ Public macro "(Smalltalk)[§`|«…§»`|«_!»_!]" is
 	Push scope;
 ],
 [
-	localsPhrase : list phrase ⇒ (token*)
+	localsPhrase : list phrase ⇒ token*
 |
 	localsTuple ::= localsPhrase's expressions
 		?→ (literal phrase ⇒ token)+;
@@ -310,8 +310,8 @@ Public macro "(Smalltalk)[§`|«…§»`|«_!»_!]" is
 	scope map := scope map + localName → localDecl;
 ],
 [
-	localsPhrase : list phrase ⇒ (token*),
-	stmtsPhrase : list phrase ⇒ (statement phrase*),
+	localsPhrase : list phrase ⇒ token*,
+	stmtsPhrase : list phrase ⇒ statement phrase*,
 	lastStmtPhrase : literal phrase ⇒ phrase
 |
 	Pop scope;
