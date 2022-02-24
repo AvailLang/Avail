@@ -1490,6 +1490,7 @@ class AvailCompiler constructor(
 								describeFailedTypeTestThen(
 									actualTypeString,
 									bundleTree,
+									stepState.superexpressions,
 									withDescription)
 							}
 						}
@@ -1671,12 +1672,16 @@ class AvailCompiler constructor(
 	 *   The [A_BundleTree] at which parsing was foiled.  There may be multiple
 	 *   potential methods and/or macros at this position, none of which will
 	 *   have survived the type test.
+	 * @param superexpressions
+	 *   The optional [PartialSubexpressionList] used to describe the
+	 *   superexpressions of the method parse that has failed a type test.
 	 * @param continuation
 	 *   What to do once a description of the problem has been produced.
 	 */
 	private fun describeFailedTypeTestThen(
 		actualTypeString: String,
 		bundleTree: A_BundleTree,
+		superexpressions: PartialSubexpressionList?,
 		continuation: (String)->Unit)
 	{
 		val typeSet = mutableSetOf<A_Type>()
@@ -1721,21 +1726,22 @@ class AvailCompiler constructor(
 				append(actualTypeString)
 				append(".  Expecting:")
 				for ((planString, types) in entries) {
-					append("\n\t")
+					append("\n\t\t")
 					append(planString)
 					append("   ")
 					val typeNames = types.stream()
 						.map { typeMap[it] }
 						.sorted()
 						.collect(toList<String>())
-					var first = true
-					for (typeName in typeNames) {
-						if (!first) {
-							append(", ")
-						}
-						first = false
-						append(increaseIndentation(typeName, 2))
+					typeNames.joinTo(this) { typeName ->
+						increaseIndentation(typeName, 3)
 					}
+				}
+				append("\n\tin:")
+				StringBuilder().let { innerBuilder ->
+					this@AvailCompiler.describeOn(
+						superexpressions, innerBuilder)
+					append(increaseIndentation(innerBuilder.toString(), 1))
 				}
 			}
 			continuation(string)
