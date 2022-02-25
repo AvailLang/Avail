@@ -34,7 +34,7 @@ package org.availlang.ide.anvil.actions
 
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import org.availlang.ide.anvil.models.project.anvilProjectService
 import org.availlang.ide.anvil.ui.dialog.ProjectProblemDialog
 

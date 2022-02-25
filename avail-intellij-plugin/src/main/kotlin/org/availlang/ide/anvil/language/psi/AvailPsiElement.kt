@@ -48,21 +48,21 @@ import org.availlang.ide.anvil.language.AvailLanguage
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
 sealed class AvailPsiElement constructor(
-	val availFile: AvailFile,
+	val anvilFile: AvailFile,
 	val myManager: PsiManager
 ): PsiElementBase()
 {
 	override fun getLanguage(): Language = AvailLanguage
 
-	override fun getParent(): PsiElement = availFile
+	override fun getParent(): PsiElement = anvilFile
 }
 
 class AvailErrorPsiElement constructor(
-	availFile: AvailFile,
+	anvilFile: AvailFile,
 	myManager: PsiManager,
 	val problem: Problem,
 	val rawText: String
-): AvailPsiElement(availFile, myManager)
+): AvailPsiElement(anvilFile, myManager)
 {
 	override fun getText(): String = rawText
 	override fun getChildren(): Array<PsiElement> = arrayOf()

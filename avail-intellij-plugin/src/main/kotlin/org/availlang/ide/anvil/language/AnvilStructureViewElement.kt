@@ -45,6 +45,7 @@ import com.intellij.psi.NavigatablePsiElement
 import org.availlang.ide.anvil.language.psi.AvailErrorPsiElement
 import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.language.psi.AvailManifestEntryPsiElement
+import org.availlang.ide.anvil.ui.AnvilIcons
 import javax.swing.Icon
 
 /**
@@ -97,16 +98,16 @@ open class AnvilStructureViewElement constructor(
 	override fun toString(): String =
 		myElement.name ?: super.toString()
 
-	fun getPsiManifestEntries (availFile: AvailFile): Array<TreeElement> =
-		availFile.refreshAndGetManifest()
+	fun getPsiManifestEntries (anvilFile: AvailFile): Array<TreeElement> =
+		anvilFile.refreshAndGetManifest()
 			.mapIndexed { i, it->
 				AnvilSingleModuleManifestItemPresentationTreeElement(
 					it,
 					AvailManifestEntryPsiElement(
-						availFile,
+						anvilFile,
 						it,
 						i,
-						availFile.manager))
+						anvilFile.manager))
 			}
 			.groupBy { it.entry.summaryText }
 			.map {
@@ -114,15 +115,15 @@ open class AnvilStructureViewElement constructor(
 				else AnvilModuleManifestGroupItemPresentationTreeElement(
 					it.key,
 					it.value,
-					availFile)
+					anvilFile)
 			}.toTypedArray()
 
-	fun getCompilerErrors (availFile: AvailFile): Array<TreeElement> =
-		availFile.problems
+	fun getCompilerErrors (anvilFile: AvailFile): Array<TreeElement> =
+		anvilFile.problems
 			.map {
 				val psi =  AvailErrorPsiElement(
-					availFile,
-					availFile.manager,
+					anvilFile,
+					anvilFile.manager,
 					it,
 					"$it")
 				AnvilStructureViewElement(psi)
@@ -328,7 +329,7 @@ class ModuleConstantTreeElement constructor(
 	entry: ModuleManifestEntry
 ): AvailManifestItemPresentation(entry)
 {
-	override fun getIcon(unused: Boolean) =AnvilIcons.constant
+	override fun getIcon(unused: Boolean) = AnvilIcons.constant
 }
 
 class ModuleVariableTreeElement constructor(

@@ -64,7 +64,7 @@ class AnvilParserDefinition : ParserDefinition
 	{
 		if (node is AvailFileElement)
 		{
-			return node.availFile
+			return node.anvilFile
 		}
 		else
 		{

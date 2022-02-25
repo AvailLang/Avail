@@ -46,12 +46,12 @@ import org.availlang.ide.anvil.language.psi.AvailFile
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property availFile
+ * @property anvilFile
  *   The associated [AvailFile].
  */
 class AnvilStructureViewModel constructor(
-	private val availFile: AvailFile
-): StructureViewModelBase(availFile, AnvilStructureViewElement(availFile)),
+	private val anvilFile: AvailFile
+): StructureViewModelBase(anvilFile, AnvilStructureViewElement(anvilFile)),
 	ElementInfoProvider
 {
 	override fun isAlwaysShowsPlus(element: StructureViewTreeElement?): Boolean

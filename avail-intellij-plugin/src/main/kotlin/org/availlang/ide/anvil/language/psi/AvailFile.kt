@@ -42,7 +42,7 @@ import com.intellij.extapi.psi.PsiFileBase
 import com.intellij.openapi.fileTypes.FileType
 import com.intellij.psi.FileViewProvider
 import com.intellij.psi.PsiElement
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import org.availlang.ide.anvil.language.AvailFileElement
 import org.availlang.ide.anvil.language.AvailLanguage
 import org.availlang.ide.anvil.language.file.AvailFileType

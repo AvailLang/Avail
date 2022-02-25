@@ -35,7 +35,7 @@ package org.availlang.ide.anvil.models.project
 import com.intellij.navigation.ItemPresentation
 import com.intellij.openapi.roots.SyntheticLibrary
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import javax.swing.Icon
 
 /**

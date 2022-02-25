@@ -51,5 +51,8 @@ class AnvilModuleTypeBuilder: ModuleBuilder()
 	override fun getCustomOptionsStep(
 		context: WizardContext,
 		parentDisposable: Disposable
-	): ModuleWizardStep = AnvilRootConfigurationStep(context)
+	): ModuleWizardStep =
+		context.project?.let {
+			AddAvailModuleConfigurationStep(context, it)
+		} ?: AnvilNewProjectConfigurationStep(context)
 }

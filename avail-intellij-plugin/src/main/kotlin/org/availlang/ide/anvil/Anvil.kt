@@ -50,7 +50,7 @@ internal object Anvil
 	/**
 	 * The name of the Avail home directory. This is where Avail lives.
 	 */
-	private const val AVAIL_HOME = ".avail"
+	internal const val AVAIL_HOME = ".avail"
 
 	/**
 	 * The name of the Avail library home directory. This is where shared Avail
@@ -73,7 +73,7 @@ internal object Anvil
 	 * The name of the Avail standard repositories home directory. This is the
 	 * default location for repositories to be written to.
 	 */
-	private const val AVAIL_REPOS = "repositories"
+	internal const val AVAIL_REPOS = "repositories"
 
 	/**
 	 * The enumeration of supported Avail library types.

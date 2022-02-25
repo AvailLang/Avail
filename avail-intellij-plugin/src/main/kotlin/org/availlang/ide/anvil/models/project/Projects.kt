@@ -61,7 +61,7 @@ import com.intellij.openapi.project.Project
 import com.intellij.openapi.vfs.VirtualFile
 import org.availlang.ide.anvil.Anvil
 import org.availlang.ide.anvil.language.AvailFileProblem
-import org.availlang.ide.anvil.language.psi.AnvilFile
+import org.availlang.ide.anvil.language.psi.AvailFile
 import org.availlang.ide.anvil.listeners.AnvilProjectOpenListener
 import org.availlang.ide.anvil.models.AvailNode
 import org.availlang.ide.anvil.models.ConfigFileProblem
@@ -72,6 +72,7 @@ import org.availlang.ide.anvil.models.LocationProblem
 import org.availlang.ide.anvil.models.ModuleNode
 import org.availlang.ide.anvil.models.ModulePackageNode
 import org.availlang.ide.anvil.models.ModuleRootScanProblem
+import org.availlang.ide.anvil.models.ProjectHome
 import org.availlang.ide.anvil.models.ProjectLocation
 import org.availlang.ide.anvil.models.ProjectProblem
 import org.availlang.ide.anvil.models.ResourceNode
@@ -213,6 +214,44 @@ class AnvilProjectRoot constructor(
 	}
 }
 
+data class AnvilConfigData constructor(
+	val projectName: String,
+	val moduleRootName: String,
+	val repositoryLocation: ProjectLocation =
+		Defaults.instance.defaultRepositoryPath,
+	val id: String = UUID.randomUUID().toString(),
+	val moduleRootId: String = UUID.randomUUID().toString()
+): JSONFriendly
+{
+	override fun writeTo(writer: JSONWriter)
+	{
+		writer.at(AnvilConfiguration::id.name) { write(id) }
+		writer.at("version") {
+			write(
+				AnvilConfiguration.CURRENT_SERIALIZATION_VERSION)
+		}
+		writer.at(AnvilConfiguration::name.name) { write(projectName) }
+		writer.at(AnvilConfiguration::repositoryLocation.name)
+		{
+			write(repositoryLocation)
+		}
+		writer.at(AnvilConfiguration::roots.name)
+		{
+			startArray()
+			startObject()
+			at(AnvilProjectRoot::id.name) { write(moduleRootId) }
+			at(AnvilProjectRoot::name.name) { write(moduleRootName) }
+			at(AnvilProjectRoot::editable.name) { write(true) }
+			at(AnvilProjectRoot::location.name)
+			{
+				write(ProjectHome(moduleRootName))
+			}
+			endObject()
+			endArray()
+		}
+	}
+}
+
 /**
  * Describes the makeup of an Avail [AnvilProject].
  *
@@ -222,10 +261,6 @@ class AnvilProjectRoot constructor(
  *   The [AnvilProject] name.
  * @property repositoryLocation
  *   The [Repository] [ProjectLocation].
- * @property renamesFilePath
- *   The path to the [renames file][RenamesFileParser].
- * @property renamesFileBody
- *   The contents of a [renames file][RenamesFileParser].
  * @property roots
  *   The map of [AnvilProjectRoot.name] to [AnvilProjectRoot].
  * @param id
@@ -235,8 +270,6 @@ class AnvilConfiguration constructor(
 	var name: String,
 	var repositoryLocation: ProjectLocation =
 		Defaults.instance.defaultRepositoryPath,
-	var renamesFilePath: String = "",
-	var renamesFileBody: String = "",
 	val roots: MutableMap<String, AnvilProjectRoot> = mutableMapOf(),
 	val id: String = UUID.randomUUID().toString(),
 	val isActiveProject: Boolean = true
@@ -309,14 +342,6 @@ class AnvilConfiguration constructor(
 		{
 			write(repositoryLocation)
 		}
-		writer.at(AnvilConfiguration::renamesFilePath.name)
-		{
-			write(renamesFilePath)
-		}
-		writer.at(AnvilConfiguration::renamesFileBody.name)
-		{
-			write(renamesFileBody)
-		}
 		writer.at(AnvilConfiguration::roots.name)
 		{
 			startArray()
@@ -378,8 +403,6 @@ class AnvilConfiguration constructor(
 				service,
 				jsonObject.getObject(
 					AnvilConfiguration::repositoryLocation.name))
-			val renamesPath = jsonObject.getString(
-				AnvilConfiguration::renamesFilePath.name)
 			val roots = mutableMapOf<String, AnvilProjectRoot>()
 			jsonObject.getArray(AnvilConfiguration::roots.name)
 				.forEachIndexed { i, it ->
@@ -409,11 +432,7 @@ class AnvilConfiguration constructor(
 						}
 					roots[root.id] = root
 				}
-			val renames = jsonObject.getString(
-				AnvilConfiguration::renamesFileBody.name
-			)
-			return AnvilConfiguration(
-				name, repoLocation, renamesPath, renames, roots, id)
+			return AnvilConfiguration(name, repoLocation, roots, id)
 		}
 	}
 }
@@ -545,8 +564,6 @@ class AnvilProjectService constructor(
 		descriptor.roots.clear()
 		descriptor.roots.putAll(reread.roots)
 		descriptor.name = reread.name
-		descriptor.renamesFileBody = reread.renamesFileBody
-		descriptor.renamesFilePath = reread.renamesFilePath
 		descriptor.repositoryLocation = reread.repositoryLocation
 
 		anvilProject.initialize()
@@ -585,12 +602,12 @@ class AnvilProjectService constructor(
 		if (!hasAvailProject || problems.isNotEmpty()) { return }
 		val writer =
 			jsonPrettyPrintWriter {
-				writeObject { anvilProject.descriptor.writeTo(this) }
+				writeObject { anvilProject.configuration.writeTo(this) }
 			}
 		try
 		{
-			val descriptorFile =
-				File("$projectDirectory/.idea/project.availconfig")
+			val descriptorFile = File(
+				"$projectDirectory/${AnvilConfiguration.configFileLocation}")
 			Files.newBufferedWriter(descriptorFile.toPath()).use { bw ->
 				bw.write(writer.toString())
 			}
@@ -625,7 +642,7 @@ class AnvilProjectService constructor(
 		}
 	}
 
-	override fun toString(): String = anvilProject.descriptor.name
+	override fun toString(): String = anvilProject.configuration.name
 }
 
 /**
@@ -638,7 +655,7 @@ val Project.anvilProjectService: AnvilProjectService get() = service()
  *
  * @author Richard Arriaga
  *
- * @property descriptor
+ * @property configuration
  *   The [AnvilConfiguration] that describes and identifies this [AnvilProject].
  * @property service
  *   The running [AnvilProjectService].
@@ -646,7 +663,7 @@ val Project.anvilProjectService: AnvilProjectService get() = service()
  *   The [FileManager] that manages files for this [AnvilProject].
  */
 data class AnvilProject constructor(
-	val descriptor: AnvilConfiguration,
+	val configuration: AnvilConfiguration,
 	val service: AnvilProjectService,
 	val fileManager: FileManager = Defaults.instance.defaultFileManager
 ): Comparable<AnvilProject>, JSONFriendly
@@ -656,7 +673,7 @@ data class AnvilProject constructor(
 	 */
 	internal fun initialize ()
 	{
-		val fullPath = descriptor.repositoryLocation.fullPath(service)
+		val fullPath = configuration.repositoryLocation.fullPath(service)
 		try
 		{
 			val file = File(URI(fullPath))
@@ -681,7 +698,7 @@ data class AnvilProject constructor(
 	 * The [AnvilConfiguration.id] that uniquely represents this
 	 * [AnvilProject].
 	 */
-	val id: String get() = descriptor.id
+	val id: String get() = configuration.id
 
 	/**
 	 * `true` indicates [build] is running, `false` otherwise.
@@ -749,7 +766,7 @@ data class AnvilProject constructor(
 
 	/**
 	 * Initialize this [AnvilProject]'s [ModuleRoots] with all the [AnvilProjectRoot]s
-	 * listed in its [descriptor].
+	 * listed in its [configuration].
 	 *
 	 * @param successHandler
 	 *   The lambda to run if adding the rot was successful.
@@ -761,9 +778,9 @@ data class AnvilProject constructor(
 		successHandler: ()->Unit,
 		failureHandler: (List<String>)->Unit)
 	{
-		val rootCount = AtomicInteger(descriptor.roots.size)
+		val rootCount = AtomicInteger(configuration.roots.size)
 		val errorList = mutableListOf<String>()
-		descriptor.roots.values.forEach { root ->
+		configuration.roots.values.forEach { root ->
 			addRoot(service, root,
 				{
 					if (rootCount.decrementAndGet() == 0)
@@ -828,10 +845,11 @@ data class AnvilProject constructor(
 
 	/**
 	 * The [ModuleNameResolver] for this project.
+	 * // TODO how to actually handle rename files and why...
 	 */
 	val moduleNameResolver: ModuleNameResolver by lazy {
 		val renamesFileParser = RenamesFileParser(
-			descriptor.renamesFileBody.reader(), moduleRoots)
+			"".reader(), moduleRoots)
 		renamesFileParser.parse()
 	}
 
@@ -857,8 +875,8 @@ data class AnvilProject constructor(
 	/**
 	 * Build the indicated Avail [module][ModuleDescriptor].
 	 *
-	 * @param availFile
-	 *   The [AnvilFile].
+	 * @param anvilFile
+	 *   The [AvailFile].
 	 * @param qualifiedModuleName
 	 *   The
 	 *   [fully&#32;qualified&#32;module&#32;name][ModuleName.qualifiedName].
@@ -871,7 +889,7 @@ data class AnvilProject constructor(
 	 *   What to do when the whole build is complete.
 	 */
 	fun build (
-		availFile: AnvilFile,
+		anvilFile: AvailFile,
 		qualifiedModuleName: String,
 		globalReporter: GlobalProgressReporter = { _, _ -> },
 		moduleReporter: CompilerProgressReporter = { _, _, _, _, _ -> },
@@ -900,7 +918,7 @@ data class AnvilProject constructor(
 						decider: (Boolean)->Unit
 					)
 					{
-						availFile.problems.add(problem)
+						anvilFile.problems.add(problem)
 						builder.stopBuildReason = "Build failed"
 						val problemText = with(problem) {
 							val adjustedLine = lineNumber - 5
@@ -1110,5 +1128,5 @@ data class AnvilProject constructor(
 	}
 
 	override fun compareTo(other: AnvilProject): Int =
-		descriptor.compareTo(other.descriptor)
+		configuration.compareTo(other.configuration)
 }

@@ -46,7 +46,7 @@ import org.availlang.ide.anvil.language.AnvilManifestEntryTreeElement
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  *
- * @property availFile
+ * @property anvilFile
  *   The [AvailFile] the [manifestEntry] comes from.
  * @property manifestEntry
  *   The [ModuleManifestEntry] that this [AvailManifestEntryPsiElement] represents.
@@ -54,11 +54,11 @@ import org.availlang.ide.anvil.language.AnvilManifestEntryTreeElement
  *   The active [PsiManager] for the active project.
  */
 class AvailManifestEntryPsiElement constructor(
-	availFile: AvailFile,
+	anvilFile: AvailFile,
 	val manifestEntry: ModuleManifestEntry,
 	val manifestEntryIndex: Int,
 	myManager: PsiManager
-) : AvailPsiElement(availFile, myManager)
+) : AvailPsiElement(anvilFile, myManager)
 {
 	override fun getName(): String =
 		manifestEntry.summaryText
@@ -72,7 +72,7 @@ class AvailManifestEntryPsiElement constructor(
 		if (range == null)
 		{
 			var i = manifestEntry.topLevelStartingLine - 1
-			val t = availFile.text
+			val t = anvilFile.text
 			var pos = 0
 			while (i > 0)
 			{
@@ -113,9 +113,9 @@ class AvailManifestEntryPsiElement constructor(
 
 	override fun getNextSibling(): PsiElement?
 	{
-		if (manifestEntryIndex < availFile.manifest.size - 1)
+		if (manifestEntryIndex < anvilFile.manifest.size - 1)
 		{
-			return availFile.availChildPsiElements[manifestEntryIndex + 1]
+			return anvilFile.availChildPsiElements[manifestEntryIndex + 1]
 		}
 		return null
 	}
@@ -124,7 +124,7 @@ class AvailManifestEntryPsiElement constructor(
 	{
 		if (manifestEntryIndex > 0)
 		{
-			return availFile.availChildPsiElements[manifestEntryIndex - 1]
+			return anvilFile.availChildPsiElements[manifestEntryIndex - 1]
 		}
 		return null
 	}

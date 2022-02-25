@@ -33,11 +33,15 @@
 package org.availlang.ide.anvil.module
 
 import com.intellij.openapi.module.ModuleType
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import javax.swing.Icon
 
 /**
  * `AnvilModuleType` is the [ModuleType] of an Avail IntelliJ project module.
+ *
+ * This is used in the process of creating a new Avail Module when:
+ *  * Creating a new project; or
+ *  * Adding an Avail Module to an existing project.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */

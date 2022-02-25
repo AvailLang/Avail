@@ -33,7 +33,7 @@
 package org.availlang.ide.anvil.language.file
 
 import com.intellij.openapi.fileTypes.FileType
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import javax.swing.Icon
 
 /**

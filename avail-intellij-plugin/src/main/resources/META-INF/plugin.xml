@@ -62,14 +62,6 @@
 		<annotator
 			language="Avail"
 			implementationClass="org.availlang.ide.anvil.language.AvailAnnotator"/>
-
-		<moduleBuilder
-			builderClass="org.availlang.ide.anvil.module.AvailModuleTypeBuilder"
-		/>
-		<moduleType
-			id="AVAIL_MODULE"
-			implementationClass="org.availlang.ide.anvil.module.AvailModuleType"
-		/>
 	</extensions>
 
 	<applicationListeners>

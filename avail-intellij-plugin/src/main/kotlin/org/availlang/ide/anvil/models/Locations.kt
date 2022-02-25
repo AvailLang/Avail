@@ -144,6 +144,16 @@ sealed class ProjectLocation constructor(
 				path: String,
 				jsonObject: JSONObject
 			): ProjectLocation = NetworkLocation(path)
+		},
+
+		/** The path is relative to the user's home directory. */
+		absolute
+		{
+			override fun location(
+				service: AnvilProjectService,
+				path: String,
+				jsonObject: JSONObject
+			): ProjectLocation = UserHome(path)
 		};
 
 		/**
@@ -295,6 +305,40 @@ class UserHome constructor (
 
 	override fun fullPath(service: AnvilProjectService): String =
 		"$scheme${System.getProperty("user.home")}/$path"
+
+	companion object
+	{
+		fun fromAbsolute (path: String): ProjectLocation
+		{
+			val home = System.getProperty("user.home")
+			return if (path.startsWith(home))
+			{
+				val parts = home.split(home)
+				UserHome(parts[1])
+			}
+			else
+			{
+				Absolute(path)
+			}
+		}
+	}
+}
+
+/**
+ * The location that is supplied as an absolute path.
+ *
+ * @author Richard Arriaga
+ */
+class Absolute constructor (
+	path: String
+): ProjectLocation(LocationType.absolute, path)
+{
+	private val scheme =
+		if (path.endsWith(".jar")) { "jar:" }
+		else { "file://" }
+
+	override fun fullPath(service: AnvilProjectService): String =
+		"$scheme$path"
 }
 
 /**

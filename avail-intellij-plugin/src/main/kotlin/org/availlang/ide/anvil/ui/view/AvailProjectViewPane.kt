@@ -37,7 +37,7 @@ import com.intellij.ide.projectView.impl.AbstractProjectViewPane
 import com.intellij.openapi.project.Project
 import com.intellij.openapi.util.ActionCallback
 import com.intellij.openapi.vfs.VirtualFile
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import java.util.jar.JarFile
 import javax.swing.Icon
 import javax.swing.JComponent

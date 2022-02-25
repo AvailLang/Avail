@@ -35,7 +35,7 @@ package org.availlang.ide.anvil.actions
 import com.intellij.openapi.actionSystem.ActionGroup
 import com.intellij.openapi.actionSystem.AnAction
 import com.intellij.openapi.actionSystem.AnActionEvent
-import org.availlang.ide.anvil.language.AnvilIcons
+import org.availlang.ide.anvil.ui.AnvilIcons
 import org.availlang.ide.anvil.models.project.AnvilConfiguration
 import org.availlang.ide.anvil.models.project.anvilProjectService
 import java.io.File
@@ -64,6 +64,7 @@ class AnvilActionGroup : ActionGroup()
 			}
 			else
 			{
+				// TODO If on project creation now Anvil file is created, this happens
 				false
 			}
 		}
