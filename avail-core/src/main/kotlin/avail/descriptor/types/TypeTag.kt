@@ -207,6 +207,10 @@ constructor(
 		EXPRESSION_PHRASE_TAG,
 		null,
 		Sup { PhraseKind.VARIABLE_USE_PHRASE.mostGeneralType }),
+	SEQUENCE_AS_EXPRESSION_PHRASE_TAG(
+		EXPRESSION_PHRASE_TAG,
+		null,
+		Sup { PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType }),
 	STATEMENT_PHRASE_TAG(
 		PHRASE_TAG,
 		null,

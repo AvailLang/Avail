@@ -1567,6 +1567,8 @@ protected constructor (
 
 	override fun o_Expression (self: AvailObject): A_Phrase = unsupported
 
+	override fun o_Sequence (self: AvailObject): A_Phrase = unsupported
+
 	override fun o_Variable (self: AvailObject): A_Phrase = unsupported
 
 	override fun o_StatementsTuple (self: AvailObject): A_Tuple = unsupported

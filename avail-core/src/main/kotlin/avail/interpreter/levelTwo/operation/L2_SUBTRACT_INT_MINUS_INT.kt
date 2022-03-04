@@ -1,5 +1,5 @@
 /*
- * L2_SUBTRACT_INT_FROM_INT.kt
+ * L2_SUBTRACT_INT_MINUS_INT.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *

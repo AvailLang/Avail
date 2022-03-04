@@ -1297,8 +1297,9 @@ class AvailRuntime constructor(
 										zeroOrOneOf(nonemptyStringType))),
 								// Wildcard.
 								booleanType)))))
+			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
 
-			at(176)
+			at(177)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**

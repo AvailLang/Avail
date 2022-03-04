@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/23/22, 8:45 PM
+ * * Last Generated: 3/7/22, 12:49 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -123,35 +123,35 @@ Body
  *          \|]§\
  *          \|«:_†»?\
  *          \|«^«_†‡,»»?"
- * @param "argPhrases" "list phrase⇒<token, any meta…|>?*"
+ * @param "argPhrases" "list phrase⇒(<token, any meta…|>?*)"
  *        A {@type "list phrase"} corresponding to the {@type "argument phrase"
  *        argument declarations}. Zero or many {@type "argument phrase"}s are
  *        permitted.
  * @param "primitivePhrase"
- *        "list phrase⇒<literal token⇒natural number, <token, any meta…|>?>?"
+ *        "list phrase⇒(<literal token⇒natural number, <token, any meta…|>?>?)"
  *        A {@type "list phrase"} that includes the parts of the primitive
  *        declaration (primitive name, primitive failure reason, primitive
  *        failure reason type). Zero or one primitive declaration is permitted.
- * @param "labelPhrase" "list phrase⇒<token, any meta?…|>?"
+ * @param "labelPhrase" "list phrase⇒(<token, any meta?…|>?)"
  *        A {@type "list phrase"} that includes the parts of the
  *        {@type "label phrase" label declaration} (label name, label return
  *        type). The label return type is optional, and will be inferred from
  *        the enclosing {@type "block phrase" block}'s return type if absent.
  *        Zero or more label declaration is permitted.
- * @param "bodyPhrase" "list phrase⇒statement*"
+ * @param "bodyPhrase" "list phrase⇒(statement*)"
  *        A {@type "list phrase"} corresponding to the {@type "statement"}s that
  *        comprise the body. Zero or many {@type "statement"}s are permitted.
- * @param "returnPhrase" "list phrase⇒any?"
+ * @param "returnPhrase" "list phrase⇒(any?)"
  *        A {@type "list phrase"} corresponding to the value-producing return
  *        {@type "expression phrase" expression}. Zero or one return {@type
  *        "expression phrase" expression} is permitted; if omitted, then the
  *        return type is inferred to be {@type "⊤"}.
- * @param "returnTypePhrase" "list phrase⇒any meta?"
+ * @param "returnTypePhrase" "list phrase⇒(any meta?)"
  *        A {@type "list phrase"} corresponding to the return type declaration.
  *        Zero or one return type declaration is permitted; if omitted, then the
  *        return type is inferred to be {@type "_∪_" type union} of the type
  *        indicated by {@param "returnPhrase"} and the label return type.
- * @param "exceptionTypesPhrase" "list phrase⇒exception*"
+ * @param "exceptionTypesPhrase" "list phrase⇒(exception*)"
  *        A {@type "list phrase"} corresponding to the declared {@type
  *        "exception"}s. Zero or many {@type "exception"}s may be declared.
  * @returns "block phrase"

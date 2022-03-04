@@ -373,15 +373,14 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					var i = numCopiedVars
 					while (i >= 1)
 					{
-
-						// We don't assert assertObjectUnreachableIfMutable: on
-						// the popped outer variables because each outer
-						// variable's new reference from the function balances
-						// the lost reference from the continuation's stack.
-						// Likewise, we make them be immutable. The function
-						// itself should remain mutable at this point, otherwise
-						// the outer variables would have to makeImmutable() to
-						// be referenced by an immutable function.
+						// We don't assertObjectUnreachableIfMutable() on the
+						// popped outer variables because each outer variable's
+						// new reference from the function balances the lost
+						// reference from the continuation's stack. Likewise, we
+						// don't make them be immutable. The function itself
+						// should remain mutable at this point, otherwise the
+						// outer variables would have to makeImmutable() to be
+						// referenced by an immutable function.
 						val value = pop()
 						assert(value.notNil)
 						newFunction.outerVarAtPut(i, value)

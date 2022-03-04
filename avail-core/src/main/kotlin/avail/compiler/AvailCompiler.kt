@@ -1722,9 +1722,9 @@ class AvailCompiler constructor(
 			// sorting by type name.
 			val entries = typesByPlanString.entries.sortedBy { it.key }
 			val string = buildString {
-				append("phrase to have a type other than ")
-				append(actualTypeString)
-				append(".  Expecting:")
+				append("phrase to have a type other than:\n\t\t")
+				append(increaseIndentation(actualTypeString, 2))
+				append(".\n\tExpecting:")
 				for ((planString, types) in entries) {
 					append("\n\t\t")
 					append(planString)

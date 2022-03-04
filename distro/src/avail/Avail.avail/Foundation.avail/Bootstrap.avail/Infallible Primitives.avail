@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/23/22, 8:45 PM
+ * * Last Generated: 3/7/22, 12:49 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -115,6 +115,7 @@ Uses
 		"_'s⁇return type",
 		"_'s⁇seals",
 		"_'s⁇semantic type",
+		"_'s⁇sequence",
 		"_'s⁇stack",
 		"_'s⁇stack pointer",
 		"_'s⁇starting position",
@@ -208,6 +209,7 @@ Uses
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"read_/write_",
+		"sequence-as-expression`«_`»",
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -2675,6 +2677,23 @@ Primitive "primfail`«_:_`»" is
 ] : primitive failure reason phrase;
 
 /**
+ * TODO: Method description goes here.
+ *
+ * @category "Primitives"
+ * @method "sequence-as-expression`«_`»"
+ * @param "sequence" "sequence phrase⇒⊤"
+ *        A sequence phrase.
+ * @returns "sequence as expression phrase⇒⊤"
+ *    A sequence-as-expression phrase containing the given sequence.
+ */
+Primitive "sequence-as-expression`«_`»" is
+[
+	sequence : sequence phrase
+|
+	Primitive CreateSequenceAsExpressionPhrase;
+] : sequence-as-expression phrase;
+
+/**
  * Construct and answer a local variable declaration.
  *
  * @category "Primitives" "Phrases" "Constructors"
@@ -3065,6 +3084,23 @@ Primitive "_'s⁇return type" is
 |
 	Primitive SendReturnType;
 ] : type;
+
+/**
+ * Extract the sequence phrase from a sequence-as-expression phrase.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇sequence"
+ * @param "sequenceAsExpression" "sequence as expression phrase⇒⊤"
+ *        The sequence-as-expression phrase.
+ * @returns "sequence phrase⇒⊤"
+ *    The contained sequence.
+ */
+Primitive "_'s⁇sequence" is
+[
+	sequenceAsExpression : sequence-as-expression phrase
+|
+	Primitive SequenceAsExpressionSequence;
+] : sequence phrase;
 
 /**
  * Answer the tuple of statements that constitute the specified sequence.

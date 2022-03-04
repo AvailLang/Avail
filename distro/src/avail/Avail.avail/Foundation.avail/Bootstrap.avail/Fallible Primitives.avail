@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/23/22, 8:45 PM
+ * * Last Generated: 3/7/22, 12:49 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -1427,7 +1427,7 @@ Primitive "Abstract method_is_" is
  * @method "Semantic restriction_is_"
  * @param "methodName" "string"
  *        The name of the method to which the semantic restriction applies.
- * @param "restriction" "[…]→⊤'s type"
+ * @param "restriction" "[…]→(⊤)'s type"
  *        The restriction function.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -1506,7 +1506,7 @@ Primitive "Semantic restriction_is_" is
  * @method "Semantic restriction_is_"
  * @param "methodName" "atom"
  *        The name of the method to which the semantic restriction applies.
- * @param "restriction" "[…]→⊤'s type"
+ * @param "restriction" "[…]→(⊤)'s type"
  *        The restriction function.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -2303,7 +2303,7 @@ Primitive "Seal method|methods_at existing definitions" is
  * @param "arguments" "<(any)'s type…|>"
  *        The tuple of arguments that should be used to filter the semantic
  *        restrictions.
- * @returns "<[…]→⊤'s type…|>"
+ * @returns "<[…]→(⊤)'s type…|>"
  *    The requested semantic restrictions.
  * @raises "incorrect-number-of-arguments exception"
  */
@@ -3345,7 +3345,7 @@ Primitive "_(_)@_:_" is
 
 /**
  * Answer this declaration's initializing expression, or fail if it does not
- * have one.  Its presence can be checked with {@code
+ * have one.  Its presence can be checked with {@code 
  * "_has initializing expression"}.
  *
  * @category "Primitives"

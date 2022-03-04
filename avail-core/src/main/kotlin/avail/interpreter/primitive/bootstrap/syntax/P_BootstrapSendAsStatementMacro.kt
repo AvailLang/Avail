@@ -33,7 +33,7 @@
 package avail.interpreter.primitive.bootstrap.syntax
 
 import avail.compiler.AvailRejectedParseException
-import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
+import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
@@ -77,7 +77,7 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 		if (!sendPhrase.phraseKindIsUnder(SEND_PHRASE))
 		{
 			throw AvailRejectedParseException(
-				WEAK,
+				SILENT,
 				StringDescriptor.stringFrom(
 					"statement to be a ⊤-valued send phrase, not "
 					+ "a ${sendPhrase.phraseKind.name}: $sendPhrase"))
@@ -85,7 +85,7 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 		if (!sendPhrase.phraseExpressionType.isTop)
 		{
 			throw AvailRejectedParseException(
-				WEAK,
+				SILENT,
 				StringDescriptor.stringFrom("statement to yield ⊤, "
 					+ "but it yields ${sendPhrase.phraseExpressionType}.  "
 					+ "Expression is: $sendPhrase"))

@@ -102,6 +102,7 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.sets.A_Set
@@ -2759,6 +2760,8 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_ParsingInstructions (self: AvailObject): A_Tuple
 
 	abstract fun o_Expression (self: AvailObject): A_Phrase
+
+	abstract fun o_Sequence (self: AvailObject): A_Phrase
 
 	abstract fun o_Variable (self: AvailObject): A_Phrase
 

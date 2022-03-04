@@ -344,6 +344,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.sequence
 import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
@@ -2253,6 +2254,9 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self .. { expression }
+
+	override fun o_Sequence (self: AvailObject): A_Phrase =
+		self .. { sequence }
 
 	override fun o_Variable(self: AvailObject): A_Phrase =
 		self .. { variable }

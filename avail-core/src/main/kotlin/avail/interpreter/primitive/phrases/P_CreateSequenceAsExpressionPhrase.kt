@@ -1,5 +1,5 @@
 /*
- * AnvilServerModule.kt
+ * P_CreateSequenceAsExpressionPhrase.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,14 +30,38 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.build.modules
+package avail.interpreter.primitive.phrases
+
+import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor.Companion.newSequenceAsExpression
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
+import avail.descriptor.types.A_Type
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEQUENCE_PHRASE
+import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.execution.Interpreter
 
 /**
- * The [dependencies][ModuleDependencies] for the `anvil-workbench` module
- * `build.gradle.kts` file's `dependencies` section.
+ * **Primitive CreateSequenceAsExpressionPhrase**: Construct a
+ * sequence-as-expression phrase for the given sequence phrase.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-object AnvilServerModule: ModuleDependencies(
-	implementations = listOf(Libraries.jsr305),
-	testImplementations = listOf(Libraries.junitJupiter))
+@Suppress("unused")
+object P_CreateSequenceAsExpressionPhrase : Primitive(1, CannotFail, CanInline)
+{
+	override fun attempt(interpreter: Interpreter): Result
+	{
+		interpreter.checkArgumentCount(1)
+		val sequence = interpreter.argument(0)
+		return interpreter.primitiveSuccess(newSequenceAsExpression(sequence))
+	}
+
+	override fun privateBlockTypeRestriction(): A_Type =
+		functionType(
+			tuple(
+				SEQUENCE_PHRASE.mostGeneralType),
+			SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
+}

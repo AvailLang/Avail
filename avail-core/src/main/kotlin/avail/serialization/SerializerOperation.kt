@@ -140,6 +140,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.markerValue
 import avail.descriptor.phrases.A_Phrase.Companion.outputPhrase
 import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.sequence
 import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
@@ -172,6 +173,8 @@ import avail.descriptor.phrases.PermutedListPhraseDescriptor.Companion.newPermut
 import avail.descriptor.phrases.ReferencePhraseDescriptor.Companion.referenceNodeFromUse
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
+import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor
+import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor.Companion.newSequenceAsExpression
 import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.phrases.SequencePhraseDescriptor.Companion.newSequence
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
@@ -2730,22 +2733,23 @@ enum class SerializerOperation constructor(
 	},
 
 	/**
-	 * Reserved for future use.
+	 * A [sequence-as-expression][SequenceAsExpressionPhraseDescriptor] phrase.
 	 */
-	@Suppress("unused") RESERVED_77(77)
+	SEQUENCE_AS_EXPRESSION_PHRASE(77, OBJECT_REFERENCE.named("sequence"))
 	{
 		override fun decompose(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			throw RuntimeException("Reserved serializer operation")
+			return array(obj.sequence)
 		}
 
 		override fun compose(
 			subobjects: Array<AvailObject>,
 			deserializer: Deserializer): A_BasicObject
 		{
-			throw RuntimeException("Reserved serializer operation")
+			val sequence = subobjects[0]
+			return newSequenceAsExpression(sequence)
 		}
 	},
 

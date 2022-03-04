@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 2/23/22, 8:45 PM
+ * * Last Generated: 3/7/22, 12:49 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -146,6 +146,7 @@ Names
 	"_'s⁇return type",
 	"_'s⁇seals",
 	"_'s⁇semantic type",
+	"_'s⁇sequence",
 	"_'s⁇stack",
 	"_'s⁇stack pointer",
 	"_'s⁇starting position",
@@ -296,6 +297,7 @@ Names
 	"semantic restrictions for_given_",
 	"send_with_:_",
 	"seq`«_`»",
+	"sequence-as-expression`«_`»",
 	"static method_._,⁇parameterized by_",
 	"termination requested",
 	"{_`|_}",

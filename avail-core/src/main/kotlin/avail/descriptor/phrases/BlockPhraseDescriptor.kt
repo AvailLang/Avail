@@ -45,6 +45,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.generateInModule
+import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.neededVariables
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -63,6 +64,9 @@ import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.RESULT_TYPE
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.STATEMENTS_TUPLE
 import avail.descriptor.phrases.BlockPhraseDescriptor.ObjectSlots.TOKENS
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_CONSTANT
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.LOCAL_VARIABLE
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind.PRIMITIVE_FAILURE_REASON
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
@@ -507,20 +511,45 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * phrases defined by this block. This includes arguments, locals,
 		 * constants, and labels.
 		 *
+		 * Note that we also have to look inside
+		 * [sequence-as-expression][SequenceAsExpressionPhraseDescriptor]
+		 * phrases, since they're allowed to contain declarations as well.
+		 *
 		 * @param self
 		 *   The Avail block phrase to scan.
 		 * @return
 		 *   The list of declarations.
 		 */
-		private fun allLocallyDefinedVariables(
+		private fun allLocalDeclarations(
 			self: A_Phrase
 		): List<A_Phrase>
 		{
 			val declarations = mutableListOf<A_Phrase>()
-			declarations.addAll(self.argumentsTuple)
-			declarations.addAll(locals(self))
-			declarations.addAll(constants(self))
-			declarations.addAll(labels(self))
+			recurse(self) { parent: A_Phrase, again: (A_Phrase)->Unit ->
+				parent.childrenDo { child: A_Phrase ->
+					when
+					{
+						// Don't recurse into blocks.
+						child.phraseKindIsUnder(BLOCK_PHRASE) -> { }
+						// Don't look in a variable use phrases, because the
+						// declaration it refers to might be in an outer scope.
+						child.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> { }
+						child.phraseKindIsUnder(DECLARATION_PHRASE) ->
+						{
+							declarations.add(child)
+							// The initialization expression of a declaration is
+							// allowed to be a sequence-as-expression that has
+							// additional declarations.
+							val initialization = child.initializationExpression
+							if (initialization.notNil)
+							{
+								again(initialization)
+							}
+						}
+						else -> again(child)
+					}
+				}
+			}
 			return declarations
 		}
 
@@ -533,18 +562,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @return
 		 *   A list of between zero and one labels.
 		 */
-		fun labels(self: A_Phrase): List<A_Phrase>
-		{
-			for (phrase in self.statementsTuple)
-			{
-				if (phrase.isInstanceOfKind(LABEL_PHRASE.mostGeneralType))
-				{
-					assert(phrase.declarationKind() === DeclarationKind.LABEL)
-					return listOf(phrase)
-				}
-			}
-			return emptyList()
-		}
+		fun labels(self: A_Phrase): List<A_Phrase> =
+			allLocalDeclarations(self).filter {
+				it.isInstanceOfKind(LABEL_PHRASE.mostGeneralType) }
 
 		/**
 		 * Answer the declarations of this block's local variables.  Do not
@@ -558,24 +578,10 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @return
 		 *   This block's local variable declarations.
 		 */
-		fun locals(self: A_Phrase): List<A_Phrase>
-		{
-			val locals = mutableListOf<A_Phrase>()
-			for (phrase in self.statementsTuple)
-			{
-				if (phrase.isInstanceOfKind(
-						DECLARATION_PHRASE.mostGeneralType))
-				{
-					val kind = phrase.declarationKind()
-					if (kind === DeclarationKind.LOCAL_VARIABLE
-						|| kind === DeclarationKind.PRIMITIVE_FAILURE_REASON)
-					{
-						locals.add(phrase)
-					}
-				}
-			}
-			return locals
-		}
+		fun locals(self: A_Phrase): List<A_Phrase> =
+			allLocalDeclarations(self).filter {
+				it.declarationKind() === PRIMITIVE_FAILURE_REASON
+					|| it.declarationKind() === LOCAL_VARIABLE }
 
 		/**
 		 * Answer the declarations of this block's local constants.  Do not
@@ -587,21 +593,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 * @return
 		 *   This block's local constant declarations.
 		 */
-		fun constants(self: A_Phrase): List<A_Phrase>
-		{
-			val constants = mutableListOf<A_Phrase>()
-			for (phrase in self.statementsTuple)
-			{
-				if (phrase.isInstanceOfKind(
-						DECLARATION_PHRASE.mostGeneralType)
-					&& phrase.declarationKind()
-					=== DeclarationKind.LOCAL_CONSTANT)
-				{
-					constants.add(phrase)
-				}
-			}
-			return constants
-		}
+		fun constants(self: A_Phrase): List<A_Phrase> =
+			allLocalDeclarations(self).filter {
+				it.declarationKind() === LOCAL_CONSTANT }
 
 		/**
 		 * Construct a block phrase.
@@ -693,7 +687,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 		 */
 		private fun collectNeededVariablesOfOuterBlocks(self: A_Phrase)
 		{
-			val providedByMe = allLocallyDefinedVariables(self).toSet()
+			val providedByMe = allLocalDeclarations(self).toSet()
 			val neededDeclarationsSet = mutableSetOf<A_Phrase>()
 			val neededDeclarations = mutableListOf<A_Phrase>()
 			recurse(self) { parent: A_Phrase, again: (A_Phrase)->Unit ->

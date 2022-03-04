@@ -508,6 +508,16 @@ interface A_Phrase : A_BasicObject {
 		val A_Phrase.primitive: Primitive? get() = dispatch { o_Primitive(it) }
 
 		/**
+		 * Answer the [sequence][SequencePhraseDescriptor] of statements inside
+		 * this [sequence-as-expression][SequenceAsExpressionPhraseDescriptor]
+		 * phrase.
+		 *
+		 * @return
+		 *   A [sequence][SequencePhraseDescriptor] phrase.
+		 */
+		val A_Phrase.sequence: A_Phrase get() = dispatch { o_Sequence(it) }
+
+		/**
 		 * Answer this [block][BlockPhraseDescriptor] phrase's starting line
 		 * number in the source.
 		 *

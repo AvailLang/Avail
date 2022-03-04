@@ -1,5 +1,5 @@
 /*
- * SuperCastPhraseDescriptor.kt
+ * SequenceAsExpressionPhraseDescriptor.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -31,33 +31,33 @@
  */
 package avail.descriptor.phrases
 import avail.compiler.AvailCodeGenerator
+import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
-import avail.descriptor.phrases.A_Phrase.Companion.expression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.sequence
-import avail.descriptor.phrases.A_Phrase.Companion.superUnionType
+import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
-import avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.EXPRESSION
-import avail.descriptor.phrases.SuperCastPhraseDescriptor.ObjectSlots.TYPE_FOR_LOOKUP
+import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor.ObjectSlots.SEQUENCE
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.combine3
+import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
+import avail.utility.Strings.newlineTab
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
 /**
- * My instances represent [phrases][PhraseDescriptor] which are elements of
- * recursive [list][ListPhraseDescriptor] phrases holding arguments to a (super)
- * [send][SendPhraseDescriptor] phrase.
+ * My instances adapt a sequence of statements, the last one potentially
+ * producing a non-⊤ value, as an expression.  The two currently supported
+ * examples are ⊤-value message sends and assignments.
  *
  * @constructor
  *
@@ -66,11 +66,11 @@ import java.util.IdentityHashMap
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class SuperCastPhraseDescriptor private constructor(
+class SequenceAsExpressionPhraseDescriptor(
 	mutability: Mutability
 ) : PhraseDescriptor(
 	mutability,
-	TypeTag.SUPER_CAST_PHRASE_TAG,
+	TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG,
 	ObjectSlots::class.java,
 	null
 ) {
@@ -79,92 +79,76 @@ class SuperCastPhraseDescriptor private constructor(
 	 */
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
-		 * The expression producing the actual value.
+		 * The [sequence][PhraseKind.SEQUENCE_PHRASE] being wrapped to be an
+		 * [expression][PhraseKind.EXPRESSION_PHRASE].
 		 */
-		EXPRESSION,
-
-		/**
-		 * The static type used to look up this argument in the enclosing
-		 * (super) [send][SendPhraseDescriptor] phrase.
-		 */
-		TYPE_FOR_LOOKUP
+		SEQUENCE
 	}
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	): Unit = with(builder) {
-		append("«(")
-		append(self.expression)
-		append(" :: ")
-		append(self.superUnionType)
-		append(")»")
+		indent: Int)
+	{
+		builder.append("sequence-as-expression(")
+		self.slot(SEQUENCE).statements.forEach { statement ->
+			builder.newlineTab(indent)
+			statement.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+			builder.append(";")
+		}
+		builder.append(")")
 	}
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase) -> Unit
-	) = action(self.slot(EXPRESSION))
+	) = action(self.slot(SEQUENCE))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
 		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(EXPRESSION, transformer(self.slot(EXPRESSION)))
+	) = self.updateSlot(SEQUENCE, transformer)
+
+	override fun o_EmitEffectOn(
+		self: AvailObject,
+		codeGenerator: AvailCodeGenerator
+	) = self.slot(SEQUENCE).emitEffectOn(codeGenerator)
 
 	override fun o_EmitValueOn(
 		self: AvailObject,
 		codeGenerator: AvailCodeGenerator
-	) = self.slot(EXPRESSION).emitValueOn(codeGenerator)
+	) = self.slot(SEQUENCE).emitValueOn(codeGenerator)
 
 	override fun o_EqualsPhrase(
 		self: AvailObject,
 		aPhrase: A_Phrase
-	): Boolean = (!aPhrase.isMacroSubstitutionNode
+	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expression.equals(aPhrase.expression)
-		&& self.superUnionType.equals(aPhrase.superUnionType))
+		&& self.slot(SEQUENCE).equals(aPhrase.sequence))
 
-	/**
-	 * Answer the expression producing the actual value.
-	 */
-	override fun o_Expression(self: AvailObject): A_Phrase =
-		self.slot(EXPRESSION)
+	override fun o_Sequence(self: AvailObject): A_Phrase =
+		self.slot(SEQUENCE)
 
-	/**
-	 * Answer the lookup type to ensure polymorphic macro substitutions happen
-	 * the right way.
-	 */
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
-		self.slot(TYPE_FOR_LOOKUP)
+	/** Statements are always ⊤-valued. */
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
 
-	override fun o_Hash(self: AvailObject): Int = combine3(
-		self.slot(EXPRESSION).hash(),
-		self.slot(TYPE_FOR_LOOKUP).hash(),
-		0x5035ebe5)
-
-	override fun o_HasSuperCast(self: AvailObject): Boolean = true
+	override fun o_Hash(self: AvailObject) =
+		combine2(self.slot(SEQUENCE).hash(), 0x46D8127F)
 
 	override fun o_PhraseKind(self: AvailObject): PhraseKind =
-		PhraseKind.SUPER_CAST_PHRASE
-
-	override fun o_Sequence (self: AvailObject): A_Phrase =
-		self.slot(EXPRESSION).sequence
+		PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
-		SerializerOperation.SUPER_CAST_PHRASE
+		SerializerOperation.SEQUENCE_AS_EXPRESSION_PHRASE
 
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	): Unit = unsupported
-
-	override fun o_SuperUnionType(self: AvailObject): A_Type =
-		self.slot(TYPE_FOR_LOOKUP)
+	) = continuation(self)
 
 	override fun o_Tokens(self: AvailObject): A_Tuple =
-		self.slot(EXPRESSION).tokens
+		self.slot(SEQUENCE).tokens
 
 	override fun o_ValidateLocally(
 		self: AvailObject,
@@ -175,18 +159,14 @@ class SuperCastPhraseDescriptor private constructor(
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
-			at("kind") { write("super cast phrase") }
-			at("expression") { self.slot(EXPRESSION).writeTo(writer) }
-			at("type to lookup") { self.slot(TYPE_FOR_LOOKUP).writeTo(writer) }
+			at("kind") { write("sequence as expression phrase") }
+			at("sequence") { self.slot(SEQUENCE).writeTo(writer) }
 		}
 
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
-			at("kind") { write("list phrase") }
-			at("expression") { self.slot(EXPRESSION).writeSummaryTo(writer) }
-			at("type to lookup") {
-				self.slot(TYPE_FOR_LOOKUP).writeSummaryTo(writer)
-			}
+			at("kind") { write("sequence as expression phrase") }
+			at("sequence") { self.slot(SEQUENCE).writeSummaryTo(writer) }
 		}
 
 	override fun mutable() = mutable
@@ -195,31 +175,27 @@ class SuperCastPhraseDescriptor private constructor(
 
 	companion object {
 		/**
-		 * Create a new [super&#32;cast&#32;phrase][SuperCastPhraseDescriptor]
-		 * from the given [phrase][PhraseDescriptor] and [type][A_Type] with
-		 * which to perform a method lookup.
+		 * Create a new sequence-as-expression phrase from the given sequence
+		 * phrase.
 		 *
-		 * @param expression
-		 *   The base expression.
-		 * @param superUnionType
-		 *   The type to combine via a [type&#32;union][A_Type.typeUnion] with
-		 *   the type of the actual runtime value produced by the expression, in
-		 *   order to look up the method.
+		 * @param sequence
+		 *   A [sequence][SequencePhraseDescriptor] phrase.
 		 * @return
-		 *   The resulting super cast phrase.
+		 *   The new
+		 *   [sequence-as-expression][SequenceAsExpressionPhraseDescriptor]
+		 *   phrase.
 		 */
-		fun newSuperCastNode(
-			expression: A_Phrase,
-			superUnionType: A_Type
-		): A_Phrase = mutable.createShared {
-			setSlot(EXPRESSION, expression)
-			setSlot(TYPE_FOR_LOOKUP, superUnionType)
-		}
+		fun newSequenceAsExpression(sequence: A_Phrase): A_Phrase =
+			mutable.createShared {
+				setSlot(SEQUENCE, sequence)
+			}
 
-		/** The mutable [SuperCastPhraseDescriptor]. */
-		private val mutable = SuperCastPhraseDescriptor(Mutability.MUTABLE)
+		/** The mutable [SequenceAsExpressionPhraseDescriptor]. */
+		private val mutable =
+			SequenceAsExpressionPhraseDescriptor(Mutability.MUTABLE)
 
-		/** The shared [SuperCastPhraseDescriptor]. */
-		private val shared = SuperCastPhraseDescriptor(Mutability.SHARED)
+		/** The shared [SequenceAsExpressionPhraseDescriptor]. */
+		private val shared =
+			SequenceAsExpressionPhraseDescriptor(Mutability.SHARED)
 	}
 }

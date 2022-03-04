@@ -42,6 +42,7 @@ import avail.descriptor.phrases.LiteralPhraseDescriptor
 import avail.descriptor.phrases.PermutedListPhraseDescriptor
 import avail.descriptor.phrases.ReferencePhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
+import avail.descriptor.phrases.SequenceAsExpressionPhraseDescriptor
 import avail.descriptor.phrases.SequencePhraseDescriptor
 import avail.descriptor.phrases.SuperCastPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
@@ -73,6 +74,7 @@ import avail.descriptor.types.PhraseTypeDescriptor.ObjectSlots.EXPRESSION_TYPE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ANY
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
@@ -304,6 +306,18 @@ open class PhraseTypeDescriptor protected constructor(
 			override fun produceMostGeneralYieldType(): A_Type = ANY.o
 		},
 
+		/**
+		 * The kind of a
+		 * [sequence-as-expression][SequenceAsExpressionPhraseDescriptor].
+		 */
+		SEQUENCE_AS_EXPRESSION_PHRASE(
+			"sequence as expression phrase type",
+			EXPRESSION_PHRASE,
+			TypeTag.SEQUENCE_AS_EXPRESSION_PHRASE_TAG)
+		{
+			override fun produceMostGeneralYieldType(): A_Type = TOP.o
+		},
+
 		/** A phrase that does not produce a result. */
 		STATEMENT_PHRASE(
 			"statement phrase type",
@@ -410,7 +424,7 @@ open class PhraseTypeDescriptor protected constructor(
 		 * @return
 		 *   The most general inner type for this kind of phrase.
 		 */
-		protected open fun produceMostGeneralYieldType(): A_Type = Types.TOP.o
+		protected open fun produceMostGeneralYieldType(): A_Type = TOP.o
 
 		/**
 		 * The most general inner type for this kind of phrase.  Computed lazily

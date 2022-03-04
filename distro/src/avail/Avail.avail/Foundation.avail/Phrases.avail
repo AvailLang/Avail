@@ -59,6 +59,24 @@ Names
 Body
 
 /**
+ * Some macros have to create a sequence of statements and wrap that in a
+ * sequence-as-expression phrase.  If that expression ends up being used as a
+ * expression, the "_!;" bootstrap macro won't allow such an expression to be
+ * the content of a send-as-statement.  So here we overload "_!;" to take
+ * a sequence-as-expression, but simply extract the sequence from it (a sequence
+ * can be treated as a statement).
+ */
+Macro "_!;" is
+[
+	seqAsExprInLiteral : literal phrase ⇒ sequence-as-expression phrase
+|
+	seqAsExpr ::= seqAsExprInLiteral's token's value
+		?→ sequence-as-expression phrase;
+	seqAsExpr's sequence
+];
+
+
+/**
  * Make "_'s type" bind more tightly than phrase type construction.  Also
  * other similar methods.
  *

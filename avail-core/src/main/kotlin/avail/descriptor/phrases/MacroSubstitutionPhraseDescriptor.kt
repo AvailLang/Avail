@@ -71,6 +71,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.permutation
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.sequence
 import avail.descriptor.phrases.A_Phrase.Companion.statements
 import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.A_Phrase.Companion.statementsTuple
@@ -333,6 +334,9 @@ class MacroSubstitutionPhraseDescriptor(
 
 	override fun o_ResultType(self: AvailObject): A_Type =
 		self.slot(OUTPUT_PHRASE).resultType()
+
+	override fun o_Sequence (self: AvailObject): A_Phrase =
+		self.slot(OUTPUT_PHRASE).sequence
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MACRO_SUBSTITUTION_PHRASE

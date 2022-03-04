@@ -1,5 +1,5 @@
 /*
- * L2_GET_TYPE.kt
+ * L2_INSTANCE_OF_META.kt
  * Copyright © 1993-2021, The Avail Foundation, LLC.
  * All rights reserved.
  *

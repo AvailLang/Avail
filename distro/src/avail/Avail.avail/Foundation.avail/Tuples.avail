@@ -193,6 +193,59 @@ Method "For each of⁇_do_" is
 /**
  * Iteratively apply `action` to each consecutive element of `aTuple`.
  *
+ * This is a macro to allow static type checks for the tuple elements and
+ * block argument, at least after dynamic optimization.
+ *
+ * @macro "For each of⁇_do_"
+ * @param "aTuple" "tuple"
+ * @param "action" "[⊥]→⊤"
+ *        A function that accepts the elements of the tuple.
+ * @returns "⊤"
+ * @category "Tuples" "Collections" "Control Structures"
+ */
+Macro "For each of⁇_do_" is
+[
+	aTuple : expression phrase ⇒ tuple,
+	action : expression phrase ⇒ [⊥]→⊤
+|
+	indexDecl ::= arg «this token: index : natural number»;
+	endDecl ::= arg «this token: end : whole number»;
+	innerTupleDecl ::= arg «this token: innerTuple : aTuple's semantic type»;
+	innerActionDecl ::= arg «this token: innerAction : action's semantic type»;
+	loopDecl ::= «$this token: loop : $[…]→⊤»;
+	tupleTempDecl ::= «this token: tupleTemp ::= aTuple»;
+
+	loop ::= «↓loopDecl» ?→ variable use phrase ⇒ $[…]→⊤;
+	index ::= «↓indexDecl» ?→ variable use phrase ⇒ natural number;
+	end ::= «↓endDecl» ?→ variable use phrase ⇒ whole number;
+	innerTuple ::= «↓innerTupleDecl» ?→ variable use phrase ⇒ tuple;
+	innerAction ::= «↓innerActionDecl» ?→ variable use phrase ⇒ […]→⊤;
+	tupleTemp ::= «↓tupleTempDecl» ?→ variable use phrase ⇒ tuple;
+
+	block ::= «[
+		<indexDecl, endDecl, innerTupleDecl, innerActionDecl>
+	|
+		<
+			loopDecl,
+			⟦Exit ⦊loop⦉ if ⦊index⦉ > ⦊end⦉;⟧,
+			⟦⦊innerAction⦉ (⦊innerTuple⦉ [⦊index⦉]);⟧,
+			⟦
+				Restart ⦊loop⦉
+				with <⦊index⦉ + 1, ⦊end⦉, ⦊innerTuple⦉, ⦊innerAction⦉>
+			⟧
+		>
+	] : ⊤»;
+	sequence-as-expression «
+		seq «<
+			tupleTempDecl,
+			⟦ ⦊block⦉ (1, |⦊tupleTemp⦉|, ⦊tupleTemp⦉, ⦊action⦉); ⟧
+		>»
+	»
+] : sequence-as-expression phrase;
+
+/**
+ * Iteratively apply `action` to each consecutive element of `aTuple`.
+ *
  * @method "For each of⁇_do_"
  * @param "aTuple" "tuple"
  * @param "action" "[⊥, ⊥]→⊤"
