@@ -37,6 +37,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom

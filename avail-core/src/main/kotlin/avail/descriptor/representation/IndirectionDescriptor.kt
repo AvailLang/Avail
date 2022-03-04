@@ -262,8 +262,15 @@ import avail.descriptor.numbers.A_Number.Companion.extractSignedByte
 import avail.descriptor.numbers.A_Number.Companion.extractSignedShort
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedShort
+import avail.descriptor.numbers.A_Number.Companion.isDouble
+import avail.descriptor.numbers.A_Number.Companion.isFloat
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.A_Number.Companion.isNumericallyIntegral
 import avail.descriptor.numbers.A_Number.Companion.isPositive
+import avail.descriptor.numbers.A_Number.Companion.isSignedByte
+import avail.descriptor.numbers.A_Number.Companion.isSignedShort
+import avail.descriptor.numbers.A_Number.Companion.isUnsignedShort
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.multiplyByDoubleCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.multiplyByFloatCanDestroy

@@ -35,6 +35,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.representation.A_BasicObject
@@ -64,7 +65,7 @@ import avail.descriptor.types.A_Type.Companion.rangeIncludesLong
 import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeTuple
-import avail.descriptor.types.IntegerRangeTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -142,12 +143,13 @@ class ByteTupleDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize
-		if (originalSize >= maximumCopySize || !newElement.isInt)
+		val newElementStrong = newElement as AvailObject
+		if (originalSize >= maximumCopySize || !newElementStrong.isInt)
 		{
 			// Transition to a tree tuple.
 			return self.concatenateWith(tuple(newElement), canDestroy)
 		}
-		val intValue = (newElement as A_Number).extractInt
+		val intValue = newElementStrong.extractInt
 		if (intValue and 255.inv() != 0)
 		{
 			// Transition to a tree tuple.
@@ -172,8 +174,8 @@ class ByteTupleDescriptor private constructor(
 			RAW_LONG_AT_, newSize, intValue.toShort())
 		result.setSlot(HASH_OR_ZERO, 0)
 		return result
-	}// Answer approximately how many bits per entry are taken up by this
-	// object.
+	}
+
 	override fun o_BitsPerEntry(self: AvailObject): Int = 8
 
 	override fun o_CompareFromToWithByteTupleStartingAt(
@@ -307,7 +309,7 @@ class ByteTupleDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
@@ -378,14 +380,12 @@ class ByteTupleDescriptor private constructor(
 		self: AvailObject,
 		aType: A_Type): Boolean
 	{
-		when
+		return when
 		{
-			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) ->
-				return true
-			!aType.isTupleType -> return false
+			aType.isSupertypeOfPrimitiveTypeEnum(Types.NONTYPE) -> true
+			!aType.isTupleType -> false
 			//  See if it's an acceptable size...
-			!aType.sizeRange.rangeIncludesLong(self.tupleSize.toLong()) ->
-				return false
+			!aType.sizeRange.rangeIncludesLong(self.tupleSize.toLong()) -> false
 
 			//  tuple's size is in range.
 			else ->
@@ -401,22 +401,13 @@ class ByteTupleDescriptor private constructor(
 					}
 				}
 				val defaultTypeObject = aType.defaultType
-				if (IntegerRangeTypeDescriptor.bytes
-						.isSubtypeOf(defaultTypeObject))
+				if (bytes.isSubtypeOf(defaultTypeObject))
 				{
 					return true
 				}
-				var i = breakIndex + 1
-				val end = self.tupleSize
-				while (i <= end)
-				{
-					if (!self.tupleAt(i).isInstanceOf(defaultTypeObject))
-					{
-						return false
-					}
-					i++
+				(breakIndex + 1 .. self.tupleSize).all { i ->
+					self.tupleAt(i).isInstanceOf(defaultTypeObject)
 				}
-				return true
 			}
 		}
 	}
@@ -473,9 +464,10 @@ class ByteTupleDescriptor private constructor(
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize)
+		val newValueStrong = newValueObject as AvailObject
 		if (!newValueObject.isUnsignedByte)
 		{
-			return if (newValueObject.isInt)
+			return if (newValueStrong.isInt)
 			{
 				self.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
 					index, newValueObject, true)
@@ -499,7 +491,7 @@ class ByteTupleDescriptor private constructor(
 		startIndex: Int,
 		endIndex: Int,
 		type: A_Type): Boolean =
-			(IntegerRangeTypeDescriptor.bytes.isSubtypeOf(type)
+			(bytes.isSubtypeOf(type)
 				|| super.o_TupleElementsInRangeAreInstancesOf(
 					self, startIndex, endIndex, type))
 
@@ -602,8 +594,8 @@ class ByteTupleDescriptor private constructor(
 		/**
 		 * Create an object of the appropriate size, whose descriptor is an
 		 * instance of `ByteTupleDescriptor`.  Run the generator for each
-		 * position in ascending order to produce the unsigned bytes (as shorts
-		 * in the range [0..15]) with which to populate the tuple.
+		 * position in ascending order to produce the unsigned bytes (as [Int]s
+		 * in the range `[0..255]`) with which to populate the tuple.
 		 *
 		 * @param size
 		 *   The size of byte tuple to create.

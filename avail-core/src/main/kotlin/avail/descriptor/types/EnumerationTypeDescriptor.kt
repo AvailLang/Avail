@@ -40,6 +40,7 @@ import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType

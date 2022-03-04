@@ -40,6 +40,7 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor
@@ -103,14 +104,8 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 		// Truncating to something beyond the file size has no effect, so use
 		// Long.MAX_VALUE if the newSize is bigger than that.
 		val size =
-			if (sizeObject.isLong)
-			{
-				sizeObject.extractLong
-			}
-			else
-			{
-				java.lang.Long.MAX_VALUE
-			}
+			if (sizeObject.isLong) sizeObject.extractLong
+			else java.lang.Long.MAX_VALUE
 		val runtime = currentRuntime()
 		// Guaranteed non-negative by argument constraint.
 		assert(size >= 0L)

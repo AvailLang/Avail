@@ -37,6 +37,7 @@ import avail.descriptor.numbers.A_Number.Companion.bitShift
 import avail.descriptor.numbers.A_Number.Companion.divideCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.extractFloat
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.A_Number.Companion.isPositive
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy

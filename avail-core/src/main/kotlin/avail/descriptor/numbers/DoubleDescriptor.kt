@@ -38,6 +38,7 @@ import avail.descriptor.numbers.A_Number.Companion.divideIntoDoubleCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.equalsDouble
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.multiplyByDoubleCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy

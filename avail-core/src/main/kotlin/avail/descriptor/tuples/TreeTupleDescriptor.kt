@@ -289,8 +289,8 @@ class TreeTupleDescriptor internal constructor(
 		end: Int): Int
 	{
 		val tupleSize = self.tupleSize
-		assert(start in 1 .. tupleSize)
-		assert(start - 1 <= end && end <= tupleSize)
+		assert(start in 1..tupleSize)
+		assert(end in start - 1..tupleSize)
 		if (end == 0)
 		{
 			assert(start == 1)
@@ -335,7 +335,7 @@ class TreeTupleDescriptor internal constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		if (start - 1 == end)
 		{
 			return emptyTuple
@@ -599,8 +599,8 @@ class TreeTupleDescriptor internal constructor(
 		type: A_Type): Boolean
 	{
 		val tupleSize = self.tupleSize
-		assert(startIndex in 1 .. tupleSize)
-		assert(startIndex - 1 <= endIndex && endIndex <= tupleSize)
+		assert(startIndex in 1..tupleSize)
+		assert(endIndex in startIndex - 1..tupleSize)
 		if (endIndex == startIndex - 1)
 		{
 			return true

@@ -36,6 +36,8 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Sign
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int64
 import avail.exceptions.ArithmeticException
 import avail.interpreter.primitive.numbers.P_LessOrEqual
 import avail.optimizer.jvm.CheckedMethod
@@ -598,6 +600,45 @@ interface A_Number : A_BasicObject
 		 *   permitted.
 		 */
 		val A_Number.isPositive: Boolean get() = dispatch { o_IsPositive(it) }
+
+		/**
+		 * Answer whether this value is an integer in the [int32] range.
+		 */
+		@get:ReferencedInGeneratedCode
+		val A_Number.isInt: Boolean get() = dispatch { o_IsInt(it) }
+
+		/**
+		 * Answer whether this value is an integer in the [int64] range.
+		 */
+		val A_Number.isLong get() = dispatch { o_IsLong(it) }
+
+		/**
+		 * Answer whether this value is an integer in the range `[0..65535]`.
+		 */
+		val A_Number.isUnsignedShort get() = dispatch { o_IsUnsignedShort(it) }
+
+		/**
+		 * Answer whether this value is a [single][FloatDescriptor]-precision
+		 * floating point number.
+		 */
+		val A_Number.isFloat get() = dispatch { o_IsFloat(it) }
+
+		/**
+		 * Answer whether this value is a [double][DoubleDescriptor]-precision
+		 * floating point number.
+		 */
+		val A_Number.isDouble get() = dispatch { o_IsDouble(it) }
+
+		/**
+		 * Answer whether this value is an integer in the range `[-128..127]`.
+		 */
+		val A_Number.isSignedByte get() = dispatch { o_IsSignedByte(it) }
+
+		/**
+		 * Answer whether this value is an integer in the range
+		 * `[-32768..32767]`.
+		 */
+		val A_Number.isSignedShort get() = dispatch { o_IsSignedShort(it) }
 
 		/**
 		 * Answer whether this number is numerically equal to some finite
@@ -1224,5 +1265,29 @@ interface A_Number : A_BasicObject
 			AvailObject::class.java,
 			AvailObject::class.java,
 			Boolean::class.javaPrimitiveType!!)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun isIntStatic(self: AvailObject): Boolean =
+			self.descriptor().o_IsInt(self)
+
+		/** The [CheckedMethod] for [isInt]. */
+		val isIntMethod = staticMethod(
+			A_Number::class.java,
+			::isIntStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java)
+
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun isDoubleStatic(self: AvailObject): Boolean =
+			self.descriptor().o_IsDouble(self)
+
+		/** The [CheckedMethod] for [isDouble]. */
+		val isDoubleMethod = staticMethod(
+			A_Number::class.java,
+			::isDoubleStatic.name,
+			Boolean::class.javaPrimitiveType!!,
+			AvailObject::class.java)
 	}
 }

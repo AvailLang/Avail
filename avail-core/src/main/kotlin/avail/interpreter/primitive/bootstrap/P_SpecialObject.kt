@@ -33,6 +33,7 @@ package avail.interpreter.primitive.bootstrap
 
 import avail.AvailRuntime
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.LiteralPhraseDescriptor.Companion.syntheticLiteralNodeFor
 import avail.descriptor.representation.AvailObject

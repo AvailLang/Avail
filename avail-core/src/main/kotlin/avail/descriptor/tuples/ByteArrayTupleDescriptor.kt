@@ -32,9 +32,9 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.pojos.RawPojoDescriptor
@@ -56,6 +56,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ByteArrayTupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.tuples.ByteArrayTupleDescriptor.ObjectSlots.BYTE_ARRAY_POJO
+import avail.descriptor.tuples.ByteTupleDescriptor.Companion.generateByteTupleFrom
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.concatenateAtLeastOneTree
 import avail.descriptor.tuples.TreeTupleDescriptor.Companion.createTwoPartTreeTuple
 import avail.descriptor.types.A_Type
@@ -139,33 +141,28 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
+		val newElementStrong = newElement as AvailObject
 		val originalSize = self.tupleSize
-		if (originalSize < maximumCopySize && newElement.isInt)
+		if (originalSize < maximumCopySize && newElementStrong.isInt)
 		{
-			val intValue = (newElement as A_Number).extractInt
+			val intValue = newElementStrong.extractInt
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
 				val array =
-					self.slot(BYTE_ARRAY_POJO)
-						.javaObjectNotNull<ByteArray>()
-				return ByteTupleDescriptor
-					.generateByteTupleFrom(originalSize + 1)
-					{ index: Int ->
-						if (index <= originalSize)
-						{
+					self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+				return generateByteTupleFrom(originalSize + 1) { index: Int ->
+					when
+					{
+						index <= originalSize ->
 							array[index - 1].toInt() and 255
-						}
-						else
-						{
-							intValue
-						}
+						else -> intValue
 					}
+				}
 			}
 		}
 		// Transition to a tree tuple.
-		return self.concatenateWith(
-			ObjectTupleDescriptor.tuple(newElement), canDestroy)
+		return self.concatenateWith(tuple(newElement), canDestroy)
 	}
 
 	// Answer approximately how many bits per entry are taken up by this
@@ -289,7 +286,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
@@ -298,8 +295,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 			// newLike() if start is 1.  Make sure to mask the last word in that
 			// case.
 			val originalBytes = self.byteArray
-			val result = ByteTupleDescriptor
-				.generateByteTupleFrom(size) {
+			val result = generateByteTupleFrom(size) {
 					originalBytes[it + start - 2].toInt() and 255
 				}
 			if (canDestroy)
@@ -454,9 +450,10 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize)
+		val newValueStrong = newValueObject as AvailObject
 		if (!newValueObject.isUnsignedByte)
 		{
-			return if (newValueObject.isInt)
+			return if (newValueStrong.isInt)
 			{
 				self.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
 					index, newValueObject, true)
@@ -470,10 +467,8 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 				index, newValueObject, true)
 		}
 		// Clobber the object in place...
-		val theByte =
-			(newValueObject as AvailObject).extractUnsignedByte.toByte()
-		val array =
-			self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
+		val theByte = newValueStrong.extractUnsignedByte.toByte()
+		val array = self.slot(BYTE_ARRAY_POJO).javaObjectNotNull<ByteArray>()
 		array[index - 1] = theByte
 		self.setHashOrZero(0)
 		//  ...invalidate the hash value.
@@ -517,7 +512,7 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		// newLike() if start is 1.  Make sure to mask the last word in that
 		// case.
 		val originalBytes = self.byteArray
-		val result = ByteTupleDescriptor.generateByteTupleFrom(size) {
+		val result = generateByteTupleFrom(size) {
 			originalBytes[size - it].toInt() and 255
 		}
 		result.setHashOrZero(0)

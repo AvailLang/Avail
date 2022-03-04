@@ -39,6 +39,7 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.multiplyByIntegerCanDestroy
@@ -272,7 +273,7 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Ensure parameters are in bounds
 		val oldSize = self.slot(SIZE)
-		assert(1 <= start && start <= end + 1 && end <= oldSize)
+		assert(start in 1..end + 1 && end <= oldSize)
 
 		// If the requested copy is a proper subrange, create it.
 		val newSize = end - start + 1
@@ -440,9 +441,9 @@ class IntegerIntervalTupleDescriptor private constructor(mutability: Mutability)
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize)
-		if (newValueObject.isInt
-			&& self.tupleIntAt(index)
-			== (newValueObject as A_Number).extractInt)
+		val newValueStrong = newValueObject as AvailObject
+		if (newValueStrong.isInt &&
+			self.tupleIntAt(index) == newValueStrong.extractInt)
 		{
 			// The element is to be replaced with itself.
 			if (!canDestroy)

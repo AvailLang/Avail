@@ -175,14 +175,14 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>) =
-				CheckedMethod(
-					true,
-					false,
-					receiverClass,
-					methodName,
-					returnClass,
-					*argumentTypes)
+			vararg argumentTypes: Class<*>
+		) = CheckedMethod(
+			true,
+			false,
+			receiverClass,
+			methodName,
+			returnClass,
+			*argumentTypes)
 
 		/**
 		 * Create a `CheckedMethod` for invoking a static method that has been
@@ -204,14 +204,14 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>) =
-				CheckedMethod(
-					true,
-					true,
-					receiverClass,
-					methodName,
-					returnClass,
-					*argumentTypes)
+			vararg argumentTypes: Class<*>
+		) = CheckedMethod(
+			true,
+			true,
+			receiverClass,
+			methodName,
+			returnClass,
+			*argumentTypes)
 
 		/**
 		 * Create a `CheckedMethod` for invoking an instance method that cannot
@@ -233,14 +233,14 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>) =
-				CheckedMethod(
-					false,
-					false,
-					receiverClass,
-					methodName,
-					returnClass,
-					*argumentTypes)
+			vararg argumentTypes: Class<*>
+		) = CheckedMethod(
+			false,
+			false,
+			receiverClass,
+			methodName,
+			returnClass,
+			*argumentTypes)
 
 		/**
 		 * Create a `CheckedMethod` for invoking a static method that cannot
@@ -262,14 +262,14 @@ class CheckedMethod private constructor(
 			receiverClass: Class<*>,
 			methodName: String,
 			returnClass: Class<*>,
-			vararg argumentTypes: Class<*>) =
-				CheckedMethod(
-					false,
-					true,
-					receiverClass,
-					methodName,
-					returnClass,
-					*argumentTypes)
+			vararg argumentTypes: Class<*>
+		) = CheckedMethod(
+			false,
+			true,
+			receiverClass,
+			methodName,
+			returnClass,
+			*argumentTypes)
 	}
 
 	/* The [Method] that was looked up during construction of this instance. */
@@ -313,8 +313,8 @@ class CheckedMethod private constructor(
 				returnClass.isAssignableFrom(methodReturnType) -> null
 				else ->
 				{
-					// For sanity, the type to check-cast-strengthen to should be a
-					// subtype of the method's return type.
+					// For sanity, the type to check-cast-strengthen to should
+					// be a subtype of the method's return type.
 					assert(methodReturnType.isAssignableFrom(returnClass))
 					Type.getInternalName(returnClass)
 				}

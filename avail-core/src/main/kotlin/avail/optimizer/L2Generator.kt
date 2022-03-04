@@ -42,6 +42,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -1371,6 +1372,7 @@ class L2Generator internal constructor(
 		failBlock: L2BasicBlock)
 	{
 		val restriction = registerToTest.restriction()
+		val constantValueStrong = constantValue as AvailObject
 		when (restriction.constantOrNull)
 		{
 			constantValue -> {
@@ -1511,7 +1513,7 @@ class L2Generator internal constructor(
 		// intermediate block that uses a move to a temp to force the constant
 		// value to be visible in a register.
 		val innerPass = L2BasicBlock("strengthen to constant")
-		if (constantValue.isInt
+		if (constantValueStrong.isInt
 			&& registerToTest.restriction().containedByType(int32))
 		{
 			// The constant and the value are both int32s.  Use the quicker int
@@ -1522,8 +1524,7 @@ class L2Generator internal constructor(
 				readInt(
 					L2SemanticUnboxedInt(registerToTest.semanticValue()),
 					trulyUnreachable),
-				unboxedIntConstant(
-					(constantValue as AvailObject).extractInt),
+				unboxedIntConstant(constantValueStrong.extractInt),
 				edgeTo(innerPass),
 				edgeTo(failBlock))
 			assert(trulyUnreachable.predecessorEdges().isEmpty())

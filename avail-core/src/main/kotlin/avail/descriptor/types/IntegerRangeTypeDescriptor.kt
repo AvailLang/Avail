@@ -39,6 +39,8 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.A_Number.Companion.isPositive
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy

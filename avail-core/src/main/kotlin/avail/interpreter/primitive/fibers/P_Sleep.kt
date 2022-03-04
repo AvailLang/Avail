@@ -39,6 +39,7 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.TERMINATION_REQUESTED
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.representation.NilDescriptor.Companion.nil

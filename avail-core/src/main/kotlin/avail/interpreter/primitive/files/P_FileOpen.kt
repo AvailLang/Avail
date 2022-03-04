@@ -37,6 +37,7 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
@@ -48,9 +49,9 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode.E_EXCEEDS_VM_LIMIT
 import avail.exceptions.AvailErrorCode.E_ILLEGAL_OPTION
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
@@ -187,7 +188,7 @@ object P_FileOpen : Primitive(4, CanInline, HasSideEffect)
 	/**
 	 * Stash the enum values for StandardOpenOption to avoid array copying.
 	 */
-	internal val allStandardOpenOptions = StandardOpenOption.values()
+	private val allStandardOpenOptions = StandardOpenOption.values()
 
 	/**
 	 * Construct the [set][EnumSet] of [open][OpenOption] that correspond to the

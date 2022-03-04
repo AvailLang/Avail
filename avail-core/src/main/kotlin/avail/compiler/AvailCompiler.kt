@@ -3539,7 +3539,6 @@ class AvailCompiler constructor(
 		{
 			assert(importKindToken.isInstanceOfKind(TOKEN.o))
 			val importKind = importKindToken.literal()
-			assert(importKind.isInt)
 			val importKindInt = importKind.extractInt
 			assert(importKindInt in 1 .. 2)
 			val isExtension = importKindInt == 1

@@ -36,6 +36,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.bitwiseAnd
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.IntegerDescriptor
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero

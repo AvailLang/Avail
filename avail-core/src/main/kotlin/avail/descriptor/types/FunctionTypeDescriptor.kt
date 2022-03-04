@@ -36,6 +36,7 @@ import avail.annotations.ThreadSafe
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.representation.A_BasicObject
@@ -513,7 +514,7 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		 *
 		 * @param objects
 		 *   The objects to print.
-		 * @param aStream
+		 * @param builder
 		 *   Where to print the objects.
 		 * @param recursionMap
 		 *   Which ancestor objects are currently being printed.

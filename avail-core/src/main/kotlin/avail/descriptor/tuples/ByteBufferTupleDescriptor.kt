@@ -32,9 +32,9 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.pojos.RawPojoDescriptor
@@ -141,24 +141,21 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize
-		if (originalSize < maximumCopySize && newElement.isInt)
+		val newElementStrong = newElement as AvailObject
+		if (originalSize < maximumCopySize && newElementStrong.isInt)
 		{
-			val intValue = (newElement as A_Number).extractInt
+			val intValue = newElementStrong.extractInt
 			if (intValue and 255.inv() == 0)
 			{
 				// Convert to a ByteTupleDescriptor.
 				val buffer = self.slot(BYTE_BUFFER)
 					.javaObjectNotNull<ByteBuffer>()
 				val newSize = originalSize + 1
-				return ByteTupleDescriptor.generateByteTupleFrom(newSize)
-				{
-					if (it < newSize)
+				return ByteTupleDescriptor.generateByteTupleFrom(newSize) {
+					when
 					{
-						buffer[it - 1].toInt().and(255)
-					}
-					else
-					{
-						intValue
+						it < newSize -> buffer[it - 1].toInt() and 255
+						else -> intValue
 					}
 				}
 			}
@@ -185,7 +182,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		while (index >= first)
 		{
 			val itemHash = hashOfUnsignedByte(
-				buffer[index].toShort().and(0xFF)) xor preToggle
+				buffer[index].toShort() and 0xFF) xor preToggle
 			hash = (hash + itemHash) * AvailObject.multiplier
 			index--
 		}
@@ -328,10 +325,11 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(1 <= index && index <= self.tupleSize)
-		if (!newValueObject.isUnsignedByte)
+		assert(index in 1..self.tupleSize)
+		val newValueStrong = newValueObject as AvailObject
+		if (!newValueStrong.isUnsignedByte)
 		{
-			return if (newValueObject.isInt)
+			return if (newValueStrong.isInt)
 			{
 				self.copyAsMutableIntTuple().tupleAtPuttingCanDestroy(
 					index, newValueObject, true)
@@ -341,17 +339,12 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		}
 		if (!canDestroy || !isMutable)
 		{
-			return copyAsMutableByteBufferTuple(self)
-				.tupleAtPuttingCanDestroy(
-					index,
-					newValueObject,
-					true)
+			return copyAsMutableByteBufferTuple(self).tupleAtPuttingCanDestroy(
+				index, newValueObject, true)
 		}
 		// Clobber the object in place...
-		val theByte =
-			(newValueObject as A_Number).extractUnsignedByte.toByte()
-		val buffer =
-			self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
+		val theByte = newValueStrong.extractUnsignedByte.toByte()
+		val buffer = self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>()
 		buffer.put(index - 1, theByte)
 		self.setHashOrZero(0)
 		//  ...invalidate the hash value.
@@ -459,7 +452,7 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{

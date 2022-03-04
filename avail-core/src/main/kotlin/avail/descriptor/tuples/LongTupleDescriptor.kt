@@ -32,9 +32,9 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
@@ -138,14 +138,15 @@ class LongTupleDescriptor private constructor(
 		newElement: A_BasicObject,
 		canDestroy: Boolean): A_Tuple
 	{
+		val newElementStrong = newElement as AvailObject
 		val originalSize = self.tupleSize
-		if (!newElement.isLong)
+		if (!newElementStrong.isLong)
 		{
 			// Transition to a tree tuple because it's not a long.
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val longValue = (newElement as AvailObject).extractLong
+		val longValue = newElementStrong.extractLong
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -302,7 +303,7 @@ class LongTupleDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
@@ -528,7 +529,8 @@ class LongTupleDescriptor private constructor(
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize)
-		if (!newValueObject.isLong)
+		val newValueStrong = newValueObject as AvailObject
+		if (!newValueStrong.isLong)
 		{
 			return self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
 				index, newValueObject, true)
@@ -536,10 +538,7 @@ class LongTupleDescriptor private constructor(
 		val result =
 			if (canDestroy && isMutable) self
 			else newLike(mutable(), self, 0, 0)
-		result.setSlot(
-			LONG_AT_,
-			index,
-			(newValueObject as A_Number).extractLong)
+		result.setSlot(LONG_AT_, index, newValueStrong.extractLong)
 		result.setSlot(HASH_OR_ZERO, 0)
 		return result
 	}

@@ -109,9 +109,7 @@ Names
 	"dequeue_from_",
 	"parking queue",
 	"priority enqueue_on_",
-	"synchronization device",
-	"unsafely atomically read_and store_",
-	"unsafely atomically compare_to_and,⁇if equal,⁇store_"
+	"synchronization device"
 Body
 
 Semantic restriction "atomically read_↑and store_" is

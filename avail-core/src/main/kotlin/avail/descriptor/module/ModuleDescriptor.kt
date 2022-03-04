@@ -124,6 +124,7 @@ import avail.descriptor.module.ModuleDescriptor.State.Unloaded
 import avail.descriptor.module.ModuleDescriptor.State.Unloading
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress

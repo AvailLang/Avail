@@ -716,17 +716,6 @@ interface A_BasicObject : JSONFriendly
 	fun declarationKind(): DeclarationKind
 
 	/**
-	 * Answer whether the receiver is a 32-bit signed integer.
-	 */
-	@get:ReferencedInGeneratedCode
-	val isInt: Boolean
-
-	/**
-	 * Answer whether the receiver is a 64-bit signed integer.
-	 */
-	val isLong: Boolean
-
-	/**
 	 * @param anInstanceType
 	 * @return
 	 */
@@ -782,22 +771,6 @@ interface A_BasicObject : JSONFriendly
 	 * @return
 	 */
 	fun javaClass(): A_BasicObject
-
-	/**
-	 * @return
-	 */
-	val isUnsignedShort: Boolean
-
-	/**
-	 * @return
-	 */
-	val isFloat: Boolean
-
-	/**
-	 * @return
-	 */
-	@get:ReferencedInGeneratedCode
-	val isDouble: Boolean
 
 	/**
 	 * @return
@@ -929,16 +902,6 @@ interface A_BasicObject : JSONFriendly
 	 * @return
 	 */
 	val isByteArrayTuple: Boolean
-
-	/**
-	 * @return
-	 */
-	val isSignedByte: Boolean
-
-	/**
-	 * @return
-	 */
-	val isSignedShort: Boolean
 
 	/**
 	 * @param aByteArrayTuple
@@ -1193,18 +1156,6 @@ interface A_BasicObject : JSONFriendly
 			A_BasicObject::class.java,
 			A_BasicObject::traversed.name,
 			AvailObject::class.java)
-
-		/** The [CheckedMethod] for [isInt]. */
-		val isIntMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::isInt.name,
-			Boolean::class.javaPrimitiveType!!)
-
-		/** The [CheckedMethod] for [isDouble]. */
-		val isDoubleMethod = instanceMethod(
-			A_BasicObject::class.java,
-			A_BasicObject::isDouble.name,
-			Boolean::class.javaPrimitiveType!!)
 
 		/** The [CheckedMethod] for [hash]. */
 		val hashMethod = instanceMethod(

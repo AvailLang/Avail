@@ -51,6 +51,7 @@ import avail.compiler.splitter.WrapState.SHOULD_NOT_HAVE_ARGUMENTS
 import avail.compiler.splitter.WrapState.SHOULD_NOT_PUSH_LIST
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero

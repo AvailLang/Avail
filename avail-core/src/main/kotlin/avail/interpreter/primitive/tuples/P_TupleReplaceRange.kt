@@ -34,6 +34,7 @@ package avail.interpreter.primitive.tuples
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.noFailMinusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one

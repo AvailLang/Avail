@@ -112,6 +112,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractFloat
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.numbers.FloatDescriptor

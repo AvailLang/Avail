@@ -39,6 +39,8 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.sets.SetDescriptor.Companion.set

@@ -37,6 +37,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.returnTypeIfPrimitiveFails
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize

@@ -32,6 +32,8 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -51,7 +53,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.ObjectSlots.TUPLE_AT_
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import java.util.NoSuchElementException
 
 /**
  * This is a representation for [tuples][TupleDescriptor] that can consist of
@@ -259,7 +260,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
@@ -268,12 +269,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			// newLike() if start is 1.
 			val result = createUninitialized(size)
 			result.setSlotsFromObjectSlots(
-				TUPLE_AT_,
-				1,
-				self,
-				TUPLE_AT_,
-				start,
-				size)
+				TUPLE_AT_, 1, self, TUPLE_AT_, start, size)
 			if (canDestroy)
 			{
 				self.assertObjectUnreachableIfMutable()
@@ -285,8 +281,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			result.setSlot(HASH_OR_ZERO, 0)
 			return result
 		}
-		return super.o_CopyTupleFromToCanDestroy(
-			self, start, end, canDestroy)
+		return super.o_CopyTupleFromToCanDestroy(self, start, end, canDestroy)
 	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =

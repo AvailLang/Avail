@@ -33,6 +33,7 @@ package avail.interpreter.primitive.tuples
 
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.sets.SetDescriptor.Companion.set

@@ -35,7 +35,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
-import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
@@ -43,6 +43,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
+import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithSmallIntegerIntervalTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
@@ -162,9 +163,10 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		val originalSize = self.tupleSize
 		val endValue = self.slot(END).toLong()
 		val deltaValue = self.slot(DELTA)
-		if (newElement.isInt)
+		val newElementStrong = newElement as AvailObject
+		if (newElementStrong.isInt)
 		{
-			val newElementValue = (newElement as A_Number).extractInt
+			val newElementValue = newElementStrong.extractInt
 			if (newElementValue.toLong() ==
 				endValue + deltaValue && originalSize < Int.MAX_VALUE)
 			{
@@ -329,7 +331,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 	{
 		// Ensure parameters are in bounds
 		val oldSize = self.slot(SIZE)
-		assert(1 <= start && start <= end + 1 && end <= oldSize)
+		assert(start in 1..end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 		if (newSize == oldSize)
 		{
@@ -428,10 +430,11 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		// Answer a tuple with all the elements of object except at the given
 		// index we should have newValueObject. This may destroy the original
 		// tuple if canDestroy is true.
-		assert(index >= 1 && index <= self.tupleSize)
-		if (newValueObject.isInt
-			&& self.tupleIntAt(index)
-				== (newValueObject as A_Number).extractInt)
+		val size = self.tupleSize
+		assert(index in 1..size)
+		val newValueStrong = newValueObject as AvailObject
+		if (newValueStrong.isInt
+			&& self.tupleIntAt(index) == newValueStrong.extractInt)
 		{
 			// The element is to be replaced with itself.
 			if (!canDestroy) self.makeImmutable()
@@ -440,33 +443,38 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		val start = self.slot(START)
 		val end = self.slot(END)
 		val delta = self.slot(DELTA)
-		val result: AvailObject
-		result =
-			if (start and 255.inv() == 0
-				&& end and 255.inv() == 0
-				&& newValueObject.isUnsignedByte)
-			{
-				// Everything will be bytes.  Synthesize a byte tuple.
+		val result = when
+		{
+			// Everything will be bytes. Synthesize a byte tuple. The tuple will
+			// have at most 256 elements.
+			start and 255.inv() == 0
+					&& end and 255.inv() == 0
+					&& newValueObject.isUnsignedByte ->
 				generateByteTupleFrom(self.slot(SIZE)) {
-					if (it == index)
-					{
-						(newValueObject as A_Number)
-							.extractUnsignedByte.toInt()
-					}
-					else
-					{
-						start + ((it - 1) * delta).toInt()
-					}
+					if (it == index) (newValueObject as A_Number).extractInt
+					else start + ((it - 1) * delta).toInt()
 				}
-			}
-			else
-			{
-				// Synthesize a general object tuple instead.
+			// Synthesize a (reasonably small) general object tuple instead.
+			size < 256 ->
 				generateObjectTupleFrom(self.slot(SIZE)) {
 					if (it == index) newValueObject
 					else fromInt(start + ((it - 1) * delta).toInt())
 				}
+			// The tuple might be huge, so splice the new element between two
+			// slices of the original.  The tree tuple and subrange mechanisms
+			// will deal with big and tiny cases appropriately.
+			else ->
+			{
+				// Make the object immutable because we're extracting two
+				// subranges.
+				self.makeImmutable()
+				val left = self.copyTupleFromToCanDestroy(1, index - 1, true)
+				val right =
+					self.copyTupleFromToCanDestroy(index + 1, size, true)
+				left.appendCanDestroy(newValueObject, true)
+					.concatenateWith(right, true)
 			}
+		}
 		if (!canDestroy)
 		{
 			self.makeImmutable()

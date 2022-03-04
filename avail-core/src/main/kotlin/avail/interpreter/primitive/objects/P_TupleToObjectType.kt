@@ -39,6 +39,7 @@ import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap

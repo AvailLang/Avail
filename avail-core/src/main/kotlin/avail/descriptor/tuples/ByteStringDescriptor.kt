@@ -384,7 +384,7 @@ class ByteStringDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		return if (size in 1 until tupleSize && size < maximumCopySize)
 		{

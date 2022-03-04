@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.doubles
 
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
+import avail.descriptor.numbers.A_Number.Companion.isDouble
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDouble
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

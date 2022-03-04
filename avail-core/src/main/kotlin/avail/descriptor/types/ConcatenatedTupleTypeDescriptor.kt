@@ -35,6 +35,7 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.noFailPlusCanDestroy
@@ -581,8 +582,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			// secondTupleType, depending on the spread between the first tuple
 			// type's lower and upper bounds. Compute the union of these types.
 			val typeFromFirstTuple = firstTupleType.typeAtIndex(index)
-			val startIndex: Int
-			startIndex = when
+			val startIndex: Int = when
 			{
 				firstUpper.isFinite -> max(index - firstUpper.extractInt, 1)
 				else -> 1
@@ -638,8 +638,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			{
 				return tupleType2.defaultType
 			}
-			val highIndexInB: Int
-			highIndexInB = when
+			val highIndexInB: Int = when
 			{
 				bRange.upperBound.isFinite -> bRange.upperBound.extractInt
 				else -> tupleType2.typeTuple.tupleSize + 1

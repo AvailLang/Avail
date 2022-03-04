@@ -481,6 +481,23 @@ class ObjectDescriptor internal constructor(
 		}
 	}
 
+	override fun o_NameForDebugger(self: AvailObject): String
+	{
+		val baseName = buildString {
+			val (names, _) = namesAndBaseTypesForObjectType(self.kind())
+			append("a/an ")
+			when (names.setSize)
+			{
+				0 -> append("object")
+				else -> append(
+					names.map(AvailObject::asNativeString)
+						.sorted()
+						.joinToString(" ∩ "))
+			}
+		}
+		return super.o_NameForDebugger(self) + " = " + baseName
+	}
+
 	override fun o_ObjectVariant(self: AvailObject) = variant
 
 	@ThreadSafe

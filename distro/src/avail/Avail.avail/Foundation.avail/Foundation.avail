@@ -1207,8 +1207,6 @@ Extends
 		"semaphore exception",
 		"synchronization device",
 		"synchronization exception",
-		"unsafely atomically read_and store_",
-		"unsafely atomically compare_to_and,⁇if equal,⁇store_",
 		"_is satisfied",
 		"_'s⁇misused condition",
 		"_'s⁇misused semaphore",

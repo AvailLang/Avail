@@ -32,7 +32,6 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.A_Number
-import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.interpreter.levelTwo.L2Instruction
@@ -111,7 +110,7 @@ object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
 
 		// :: if (!source.isInt()) goto ifNotUnboxed;
 		translator.load(method, source.register())
-		A_BasicObject.isIntMethod.generateCall(method)
+		A_Number.isIntMethod.generateCall(method)
 		method.visitJumpInsn(
 			Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
 		// :: else {

@@ -270,8 +270,8 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 	{
 		val basis: A_Tuple = self.slot(BASIS_TUPLE)
 		val size = self.slot(SIZE)
-		assert(start in 1 .. size)
-		assert(start - 1 <= end && end <= size)
+		assert(start in 1..size)
+		assert(end in start - 1..size)
 		val adjustment = self.slot(START_INDEX) - 1
 		return basis.computeHashFromTo(start + adjustment, end + adjustment)
 	}
@@ -321,7 +321,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		val oldSize = self.slot(SIZE)
-		assert(1 <= start && start <= end + 1 && end <= oldSize)
+		assert(start in 1..end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 		if (newSize == 0)
 		{
@@ -381,8 +381,8 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 	{
 		val basis: A_Tuple = self.slot(BASIS_TUPLE)
 		val size = self.slot(SIZE)
-		assert(startIndex in 1 .. size)
-		assert(startIndex - 1 <= endIndex && endIndex <= size)
+		assert(startIndex in 1..size)
+		assert(endIndex in startIndex - 1..size)
 		val adjustment = self.slot(START_INDEX) - 1
 		basis.transferIntoByteBuffer(
 			startIndex + adjustment,
@@ -395,7 +395,7 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 	 */
 	override fun o_TupleAt(self: AvailObject, index: Int): AvailObject
 	{
-		assert(1 <= index && index <= self.slot(SIZE))
+		assert(index in 1..self.slot(SIZE))
 		val adjustedIndex = index + self.slot(START_INDEX) - 1
 		return self.slot(BASIS_TUPLE).tupleAt(adjustedIndex)
 	}
@@ -481,14 +481,14 @@ class SubrangeTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		assert(1 <= index && index <= self.slot(SIZE))
+		assert(index in 1..self.slot(SIZE))
 		val adjustedIndex = index + self.slot(START_INDEX) - 1
 		return self.slot(BASIS_TUPLE).tupleIntAt(adjustedIndex)
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		assert(1 <= index && index <= self.slot(SIZE))
+		assert(index in 1..self.slot(SIZE))
 		val adjustedIndex = index + self.slot(START_INDEX) - 1
 		return self.slot(BASIS_TUPLE).tupleLongAt(adjustedIndex)
 	}

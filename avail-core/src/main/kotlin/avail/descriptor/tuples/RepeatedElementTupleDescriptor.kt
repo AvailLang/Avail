@@ -36,6 +36,7 @@ import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
@@ -169,7 +170,7 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 	{
 		// Ensure parameters are in bounds
 		val oldSize = self.slot(SIZE)
-		assert(1 <= start && start <= end + 1 && end <= oldSize)
+		assert(start in 1..end + 1 && end <= oldSize)
 		val newSize = end - start + 1
 
 		// If the requested copy is a proper subrange, create it.
@@ -458,13 +459,13 @@ class RepeatedElementTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 	{
-		assert(1 <= index && index <= self.slot(SIZE))
+		assert(index in 1..self.slot(SIZE))
 		return self.slot(ELEMENT).extractInt
 	}
 
 	override fun o_TupleLongAt(self: AvailObject, index: Int): Long
 	{
-		assert(1 <= index && index <= self.slot(SIZE))
+		assert(index in 1..self.slot(SIZE))
 		return self.slot(ELEMENT).extractLong
 	}
 

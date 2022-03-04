@@ -35,10 +35,11 @@ import avail.annotations.HideFieldInDebugger
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.functions.CompiledCodeDescriptor
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.extractNybble
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.numbers.IntegerDescriptor.Companion.hashOfUnsignedByte
 import avail.descriptor.representation.A_BasicObject
@@ -402,7 +403,7 @@ class NybbleTupleDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
@@ -553,9 +554,10 @@ class NybbleTupleDescriptor private constructor(
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize)
-		if (!newValueObject.isNybble)
+		val newValueStrong = newValueObject as AvailObject
+		if (!newValueStrong.isNybble)
 		{
-			if (newValueObject.isUnsignedByte)
+			if (newValueStrong.isUnsignedByte)
 			{
 				return copyAsMutableByteTuple(self).tupleAtPuttingCanDestroy(
 					index, newValueObject, true)
@@ -572,16 +574,10 @@ class NybbleTupleDescriptor private constructor(
 			}
 		}
 		val result: AvailObject =
-			if (canDestroy && isMutable)
-			{
-				self
-			}
-			else
-			{
-				newLike(mutable(), self, 0, 0)
-			}
+			if (canDestroy && isMutable) self
+			else newLike(mutable(), self, 0, 0)
 		// All clear.  Clobber the object in place...
-		val newNybble = (newValueObject as A_Number).extractNybble
+		val newNybble = newValueStrong.extractNybble
 		setNybble(result, index, newNybble)
 		result.setHashOrZero(0)
 		//  ...invalidate the hash value. Probably cheaper than computing the

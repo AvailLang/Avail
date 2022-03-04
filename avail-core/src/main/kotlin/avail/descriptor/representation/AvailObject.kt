@@ -904,10 +904,6 @@ class AvailObject private constructor(
 
 	override fun lineNumber() = descriptor().o_LineNumber(this)
 
-	override val isInt get() = descriptor().o_IsInt(this)
-
-	override val isLong get() = descriptor().o_IsLong(this)
-
 	override fun equalsInstanceTypeFor(anInstanceType: AvailObject) =
 		descriptor().o_EqualsInstanceTypeFor(this, anInstanceType)
 
@@ -943,12 +939,6 @@ class AvailObject private constructor(
 
 	override fun javaClass() = descriptor().o_JavaClass(this)
 
-	override val isUnsignedShort get() = descriptor().o_IsUnsignedShort(this)
-
-	override val isFloat get() = descriptor().o_IsFloat(this)
-
-	override val isDouble get() = descriptor().o_IsDouble(this)
-
 	override fun rawPojo() = descriptor().o_RawPojo(this)
 
 	override val isPojo get() = descriptor().o_IsPojo(this)
@@ -972,10 +962,6 @@ class AvailObject private constructor(
 
 	override fun equalsPojoField(field: AvailObject, receiver: AvailObject) =
 		descriptor().o_EqualsPojoField(this, field, receiver)
-
-	override val isSignedByte get() = descriptor().o_IsSignedByte(this)
-
-	override val isSignedShort get() = descriptor().o_IsSignedShort(this)
 
 	override fun equalsEqualityRawPojoFor(
 		otherEqualityRawPojo: AvailObject,

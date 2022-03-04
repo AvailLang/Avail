@@ -38,6 +38,7 @@ import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject

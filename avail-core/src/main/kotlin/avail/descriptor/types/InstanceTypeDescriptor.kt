@@ -38,6 +38,7 @@ import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType

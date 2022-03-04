@@ -108,7 +108,7 @@ object L2_JUMP_IF_UNBOX_FLOAT : L2ConditionalJump(
 
 		// :: if (!source.isDouble()) goto ifNotUnboxed;
 		translator.load(method, source.register())
-		A_BasicObject.isDoubleMethod.generateCall(method)
+		A_Number.isDoubleMethod.generateCall(method)
 		method.visitJumpInsn(
 			Opcodes.IFEQ, translator.labelFor(ifNotUnboxed.offset()))
 		// :: else {

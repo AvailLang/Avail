@@ -70,6 +70,7 @@ import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
@@ -118,7 +119,6 @@ import avail.interpreter.levelTwo.operation.L2_REIFY.StatisticCategory
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.fibers.P_AttemptJoinFiber
 import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
-import avail.interpreter.primitive.privatehelpers.P_PushArgument1
 import avail.interpreter.primitive.variables.P_SetValue
 import avail.io.TextInterface
 import avail.optimizer.ExecutableChunk

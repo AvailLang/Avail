@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.phrases
 
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.phrases.A_Phrase

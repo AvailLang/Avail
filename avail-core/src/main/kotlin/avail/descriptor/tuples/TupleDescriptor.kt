@@ -37,6 +37,7 @@ import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -273,15 +274,9 @@ abstract class TupleDescriptor protected constructor(
 		}
 		// Compare sizes...
 		val size = self.tupleSize
-		if (size != aTuple.tupleSize)
-		{
-			return false
-		}
-		if (o_Hash(self) != aTuple.hash())
-		{
-			return false
-		}
-		for (i in 1 .. size)
+		if (size != aTuple.tupleSize) return false
+		if (o_Hash(self) != aTuple.hash()) return false
+		for (i in 1..size)
 		{
 			if (!o_TupleAt(self, i).equals(aTuple.tupleAt(i)))
 			{
@@ -652,7 +647,7 @@ abstract class TupleDescriptor protected constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size == 0)
 		{
@@ -1386,7 +1381,7 @@ abstract class TupleDescriptor protected constructor(
 		): A_Tuple = firstTuple.concatenateWith(secondTuple, canDestroy)
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
-		val concatenateTupleMethod = CheckedMethod.staticMethod(
+		val concatenateTupleMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticConcatenateTuples.name,
 			A_Tuple::class.java,
@@ -1410,7 +1405,7 @@ abstract class TupleDescriptor protected constructor(
 			tuple.tupleAt(index)
 
 		/** The [CheckedMethod] for [staticTupleAt]. */
-		val tupleAtMethod = CheckedMethod.staticMethod(
+		val tupleAtMethod = staticMethod(
 			TupleDescriptor::class.java,
 			::staticTupleAt.name,
 			AvailObject::class.java,

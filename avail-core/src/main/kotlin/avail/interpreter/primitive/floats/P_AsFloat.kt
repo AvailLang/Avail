@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.floats
 
 import avail.descriptor.numbers.A_Number.Companion.extractFloat
+import avail.descriptor.numbers.A_Number.Companion.isFloat
 import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloat
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

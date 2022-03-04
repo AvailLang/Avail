@@ -34,6 +34,7 @@ package avail.interpreter.primitive.floats
 import avail.descriptor.numbers.A_Number.Companion.extractFloat
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.numbers.FloatDescriptor.Companion.fromFloatRecycling
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two

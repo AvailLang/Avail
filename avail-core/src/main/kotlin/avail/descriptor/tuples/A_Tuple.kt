@@ -84,7 +84,7 @@ interface A_Tuple : A_BasicObject, Iterable<AvailObject>
 		val A_Tuple.asSet: A_Set get() = dispatch { o_AsSet(it) }
 
 		/**
-		 * Answer the approximate memory cost in bets per element of this tuple.
+		 * Answer the approximate memory cost in bits per element of this tuple.
 		 * This is used to decide the direction of
 		 * [indirections][IndirectionDescriptor] after determining two objects
 		 * are equal.

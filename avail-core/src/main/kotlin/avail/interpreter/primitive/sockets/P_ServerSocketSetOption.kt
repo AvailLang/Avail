@@ -39,6 +39,7 @@ import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SERVER_SOCKET_KEY
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

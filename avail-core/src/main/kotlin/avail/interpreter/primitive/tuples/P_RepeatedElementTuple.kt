@@ -35,6 +35,7 @@ package avail.interpreter.primitive.tuples
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.RepeatedElementTupleDescriptor
@@ -71,15 +72,12 @@ object P_RepeatedElementTuple : Primitive(2, CanInline, CanFold)
 		val size = interpreter.argument(0)
 		val element = interpreter.argument(1)
 
-		return if (!size.isInt)
+		if (!size.isInt)
 		{
-			interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
+			return interpreter.primitiveFailure(E_EXCEEDS_VM_LIMIT)
 		}
-		else
-		{
-			interpreter.primitiveSuccess(
-				createRepeatedElementTuple(size.extractInt, element))
-		}
+		return interpreter.primitiveSuccess(
+			createRepeatedElementTuple(size.extractInt, element))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

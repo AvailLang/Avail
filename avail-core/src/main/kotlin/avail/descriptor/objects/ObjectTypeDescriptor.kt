@@ -469,7 +469,25 @@ class ObjectTypeDescriptor internal constructor(
 		return canonical
 	}
 
+	override fun o_NameForDebugger(self: AvailObject): String
+	{
+		val baseName = buildString {
+			val (names, _) = namesAndBaseTypesForObjectType(self)
+			when (names.setSize)
+			{
+				0 -> append("object")
+				else -> append(
+					names.map(AvailObject::asNativeString)
+						.sorted()
+						.joinToString(" ∩ "))
+			}
+		}
+		return super.o_NameForDebugger(self) + " = " + baseName
+	}
+
 	override fun o_ObjectTypeVariant(self: AvailObject) = variant
+
+	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
 	override fun o_TypeIntersection(
 		self: AvailObject,

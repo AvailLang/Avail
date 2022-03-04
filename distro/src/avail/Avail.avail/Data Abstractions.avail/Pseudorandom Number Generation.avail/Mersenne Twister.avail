@@ -96,9 +96,9 @@ Private method "next state after_" is
 	[
 		y ::= (next[i] bit∧ (1<<31))
 			bit∨ (next[i mod 624+1] bit∧ ((1<<31) - 1));
-		v ::= next[(i+396) mod 624+1] bit⊕ (y ÷ 2);
-		next := next[i]→
-			(v bit⊕ (if y is odd then [2567483615] else [0])) mod (1<<32);
+		v ::= next[(i+396) mod 624+1] bit⊕ (y>>1);
+		next := eject next[i]→
+			(v bit⊕ (if y is odd then [2567483615] else [0])) bit∧ ((1<<32)-1);
 	];
 	next
 ] : <[0..1<<32)…|624>;
@@ -108,10 +108,10 @@ Mersenne Twister's head method is
 	rng : Mersenne Twister
 |
 	y : integer := rng's mt[rng's index];
-	y := y bit⊕ (y ÷ (1<<11));
+	y := y bit⊕ (y >> 11);
 	y := y bit⊕ ((y × (1<<7)) bit∧ 2636928640);
 	y := y bit⊕ ((y × (1<<15)) bit∧ 4022730752);
-	y := y bit⊕ (y ÷ (1<<18));
+	y := y bit⊕ (y >> 18);
 	cast y into [t : [0..1<<32) | t]
 ] : [0..1<<32);
 
@@ -147,8 +147,8 @@ Private method "untwisted Mersenne Twister from_" is
 	For each i from 1 to 623 do
 	[
 		last ::= vector's last;
-		value ::= 1812433253 × (last bit⊕ (last ÷ (1<<30))) + i;
-		vector := eject vector ++ <value mod (1<<32)>;
+		value ::= 1812433253 × (last bit⊕ (last >> 30)) + i;
+		vector := eject vector ++ <value bit∧ ((1<<32)-1)>;
 	];
 	a Mersenne Twister with
 		element type ::= [0..1<<32),
@@ -198,9 +198,9 @@ Method "a Mersenne Twister stream from_" is
 	[
 		prev ::= vector[i - 1];
 		this ::= vector[i];
-		value ::= (this bit⊕ ((prev bit⊕ (prev ÷ (1<<30))) × 1664525))
+		value ::= (this bit⊕ ((prev bit⊕ (prev >> 30)) × 1664525))
 			+ seed[j] + (j - 1);
-		vector := vector[i]→value mod (1<<32);
+		vector := vector[i]→value bit∧ ((1<<32)-1);
 		If (++i) > 624 then
 		[
 			vector := vector[1]→vector[624];
@@ -212,9 +212,8 @@ Method "a Mersenne Twister stream from_" is
 	[
 		prev ::= vector[i - 1];
 		this ::= vector[i];
-		value ::= (this bit⊕ ((prev bit⊕ (prev ÷ (1<<30))) × 1566083941))
-			- (i - 1);
-		vector := vector[i]→value mod (1<<32);
+		value ::= (this bit⊕ ((prev bit⊕ (prev >> 30)) × 1566083941)) - (i - 1);
+		vector := vector[i]→value bit∧ ((1<<32)-1);
 		If (++i) > 624 then
 		[
 			vector := vector[1]→vector[624];

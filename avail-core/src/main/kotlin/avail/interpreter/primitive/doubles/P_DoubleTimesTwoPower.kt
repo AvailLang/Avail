@@ -34,6 +34,7 @@ package avail.interpreter.primitive.doubles
 import avail.descriptor.numbers.A_Number.Companion.extractDouble
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterOrEqual
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two

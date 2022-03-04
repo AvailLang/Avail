@@ -259,7 +259,7 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val subrangeSize = end - start + 1
 		if (subrangeSize == 0)
 		{

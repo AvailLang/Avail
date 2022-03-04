@@ -34,6 +34,7 @@ package avail.interpreter.primitive.sets
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.sets.SetDescriptor
@@ -135,12 +136,10 @@ object P_TupleToSet : Primitive(1, CannotFail, CanFold, CanInline)
 
 		val sizeRange = tupleReg.type().sizeRange
 		val size = sizeRange.lowerBound
-		if (!size.isInt || !sizeRange.upperBound.equals(size))
-			return false
+		if (!size.isInt || !sizeRange.upperBound.equals(size)) return false
 		val sizeInt = size.extractInt
 		val elementRegs = generator.explodeTupleIfPossible(
-			tupleReg,
-			tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
+			tupleReg, tupleReg.type().tupleOfTypesFromTo(1, sizeInt).toList())
 		elementRegs ?: return false
 
 		// Create the set directly from the values.  This may turn the tuple

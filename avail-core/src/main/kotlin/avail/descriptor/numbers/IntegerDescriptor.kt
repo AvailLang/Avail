@@ -45,6 +45,10 @@ import avail.descriptor.numbers.A_Number.Companion.extractSignedByte
 import avail.descriptor.numbers.A_Number.Companion.extractSignedShort
 import avail.descriptor.numbers.A_Number.Companion.extractUnsignedByte
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
+import avail.descriptor.numbers.A_Number.Companion.isLong
+import avail.descriptor.numbers.A_Number.Companion.isSignedByte
+import avail.descriptor.numbers.A_Number.Companion.isSignedShort
 import avail.descriptor.numbers.A_Number.Companion.lessOrEqual
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.A_Number.Companion.minusCanDestroy
@@ -92,9 +96,9 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
-import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
 import avail.utility.structures.EnumMap
+import org.availlang.json.JSONWriter
 import java.lang.Double.isInfinite
 import java.lang.Math.getExponent
 import java.lang.Math.scalb
@@ -663,19 +667,19 @@ class IntegerDescriptor private constructor(
 						numerator = -numerator
 					}
 					// assert(denominator > 0)
-					if (numerator < 0)
+					return if (numerator < 0)
 					{
 						// n/d for n<0, d>0:  use -1-(-1-n)/d
 						// e.g., -9/5  = -1-(-1+9)/5  = -1-8/5 = -2
 						// e.g., -10/5 = -1-(-1+10)/5 = -1-9/5 = -2
 						// e.g., -11/5 = -1-(-1+11)/5 = -1-10/5 = -3
-						return fromLong(-1 - (-1 - numerator) / denominator)
+						fromLong(-1 - (-1 - numerator) / denominator)
 					}
 					else
 					{
 						// This won't overflow, because the numerator isn't
 						// Long.MIN_VALUE.
-						return fromLong(numerator / denominator)
+						fromLong(numerator / denominator)
 					}
 				}
 			}
@@ -2025,7 +2029,7 @@ class IntegerDescriptor private constructor(
 
 		/**
 		 * One (U.S.) quintillion, which is 10^18.  This is the largest power of
-		 * ten for which [A_BasicObject.isLong] returns true.
+		 * ten for which [isLong] returns true.
 		 */
 		private val quintillionInteger: A_Number =
 			fromLong(quintillionLong).makeShared()

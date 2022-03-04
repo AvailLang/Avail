@@ -32,9 +32,9 @@
 package avail.descriptor.tuples
 
 import avail.annotations.HideFieldInDebugger
-import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.lessThan
 import avail.descriptor.numbers.IntegerDescriptor.Companion.computeHashOfInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
@@ -149,13 +149,14 @@ class IntTupleDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val originalSize = self.tupleSize
-		if (!newElement.isInt)
+		val newElementStrong = newElement as AvailObject
+		if (!newElementStrong.isInt)
 		{
 			// Transition to a tree tuple because it's not an int.
 			val singleton = tuple(newElement)
 			return self.concatenateWith(singleton, canDestroy)
 		}
-		val intValue = (newElement as AvailObject).extractInt
+		val intValue = newElementStrong.extractInt
 		if (originalSize >= maximumCopySize)
 		{
 			// Transition to a tree tuple because it's too big.
@@ -345,7 +346,7 @@ class IntTupleDescriptor private constructor(
 		canDestroy: Boolean): A_Tuple
 	{
 		val tupleSize = self.tupleSize
-		assert(1 <= start && start <= end + 1 && end <= tupleSize)
+		assert(start in 1..end + 1 && end <= tupleSize)
 		val size = end - start + 1
 		if (size in 1 until tupleSize && size < maximumCopySize)
 		{
@@ -583,20 +584,16 @@ class IntTupleDescriptor private constructor(
 		// index we should have newValueObject.  This may destroy the original
 		// tuple if canDestroy is true.
 		assert(index >= 1 && index <= self.tupleSize)
-		if (!newValueObject.isInt)
+		val newValueStrong = newValueObject as AvailObject
+		if (!newValueStrong.isInt)
 		{
 			return self.copyAsMutableObjectTuple().tupleAtPuttingCanDestroy(
-				index,
-				newValueObject,
-				true)
+				index, newValueObject, true)
 		}
 		val result =
 			if (canDestroy && isMutable) self
 			else newLike(mutable(), self, 0, 0)
-		result.setIntSlot(
-			RAW_LONG_AT_,
-			index,
-			(newValueObject as A_Number).extractInt)
+		result.setIntSlot(RAW_LONG_AT_, index, newValueStrong.extractInt)
 		result.setHashOrZero(0)
 		return result
 	}

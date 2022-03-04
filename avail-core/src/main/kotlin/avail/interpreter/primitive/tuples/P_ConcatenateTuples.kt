@@ -35,6 +35,7 @@ import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.greaterThan
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.numbers.A_Number.Companion.timesCanDestroy
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt

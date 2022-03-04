@@ -36,6 +36,7 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
