@@ -566,7 +566,7 @@ class AvailCompiler constructor(
 							solutions)
 					else ->
 						afterExpression.expected(
-							STRONG,
+							SILENT,
 							FormattingDescriber(
 								"an outer level statement, not %s (%s)",
 								expression.phraseKind,
@@ -4208,6 +4208,7 @@ class AvailCompiler constructor(
 					// what's different.
 					return
 				}
+				val isBlock = phrase1.value.phraseKindIsUnder(BLOCK_PHRASE)
 				if (phrase1.value.isMacroSubstitutionNode
 					&& phrase2.value.isMacroSubstitutionNode)
 				{
@@ -4217,7 +4218,8 @@ class AvailCompiler constructor(
 						// Two occurrences of the same macro.  Figure out
 						// whether to drill into the original or the transformed
 						// phrases.
-						if (phrase1.value.macroOriginalSendNode.equals(
+						if (!isBlock
+							&& phrase1.value.macroOriginalSendNode.equals(
 								phrase2.value.macroOriginalSendNode))
 						{
 							// The originals were the same.  Drill into the
@@ -4270,7 +4272,6 @@ class AvailCompiler constructor(
 				phrase1.value.childrenDo(parts1::add)
 				val parts2 = mutableListOf<A_Phrase>()
 				phrase2.value.childrenDo(parts2::add)
-				val isBlock = phrase1.value.phraseKindIsUnder(BLOCK_PHRASE)
 				if (parts1.size != parts2.size && !isBlock)
 				{
 					// Different structure at this level.
@@ -4284,23 +4285,16 @@ class AvailCompiler constructor(
 						differentIndices.add(i)
 					}
 				}
-				if (isBlock)
+				if (differentIndices.size == 0)
 				{
-					if (differentIndices.size == 0)
-					{
-						// Statement or argument lists are probably different
-						// sizes. Use the block itself.
-						return
-					}
-					// Show the first argument or statement that differs.
-					// Fall through.
-				}
-				else if (differentIndices.size != 1)
-				{
-					// More than one part differs, so we can't drill deeper.
+					// There were no differences, so we're at the problem.
 					return
 				}
-				// Drill into the only part that differs.
+				// Drill into the *FIRST* part that differs.  Otherwise the
+				// expression would be too big to figure out.  This will get us
+				// to a very specific subexpression that contributes to the
+				// ambiguity, which is a better diagnostic than the smallest
+				// phrase that contains *all* of the ambiguities.
 				phrase1.value = parts1[differentIndices[0]]
 				phrase2.value = parts2[differentIndices[0]]
 			}
@@ -4473,7 +4467,7 @@ class AvailCompiler constructor(
 					if (toKeep.size == 0)
 					{
 						start.expected(
-							STRONG,
+							MEDIUM,
 							"a way to parse tokens here, but all lexers were "
 								+ "unproductive")
 						continuation(emptyList())

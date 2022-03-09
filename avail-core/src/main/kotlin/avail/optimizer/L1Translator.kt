@@ -130,6 +130,7 @@ import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
@@ -1990,9 +1991,8 @@ class L1Translator private constructor(
 			L2_REIFY,
 			L2IntImmediateOperand(1),
 			L2IntImmediateOperand(1),
-			L2ConstantOperand(
-				identityPojo(
-					StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic)),
+			L2ArbitraryConstantOperand(
+				StatisticCategory.INTERRUPT_OFF_RAMP_IN_L2.statistic),
 			edgeTo(onReification))
 		generator.startBlock(onReification)
 		generator.addInstruction(

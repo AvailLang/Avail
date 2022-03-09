@@ -35,12 +35,12 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.ARBITRARY_CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.STACK_REIFIER
 import avail.interpreter.levelTwo.WritesHiddenVariable
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -68,7 +68,7 @@ import org.objectweb.asm.Opcodes
 object L2_REIFY : L2ControlFlowOperation(
 	INT_IMMEDIATE.named("capture frames"),
 	INT_IMMEDIATE.named("process interrupt"),
-	CONSTANT.named("statistic"),
+	ARBITRARY_CONSTANT.named("statistic"),
 	PC.named("on reification", Purpose.OFF_RAMP))
 {
 	/**
@@ -127,11 +127,11 @@ object L2_REIFY : L2ControlFlowOperation(
 		assert(this == instruction.operation)
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
 		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
-		val statisticConstant = instruction.operand<L2ConstantOperand>(2)
+		val statisticConstant =
+			instruction.operand<L2ArbitraryConstantOperand>(2)
 		//		final L2PcOperand onReification = instruction.operand(3);
 
-		val statistic =
-			statisticConstant.constant.javaObjectNotNull<Statistic>()
+		val statistic = statisticConstant.constant as Statistic
 		renderPreamble(instruction, builder)
 		builder.append(' ')
 		builder.append(statistic.name())
@@ -171,15 +171,16 @@ object L2_REIFY : L2ControlFlowOperation(
 	{
 		val actuallyReify = instruction.operand<L2IntImmediateOperand>(0)
 		val processInterrupt = instruction.operand<L2IntImmediateOperand>(1)
-		val statisticConstant = instruction.operand<L2ConstantOperand>(2)
+		val statisticConstant =
+			instruction.operand<L2ArbitraryConstantOperand>(2)
 		val onReification = instruction.operand<L2PcOperand>(3)
 
 		// :: reifier = interpreter.reify(
-		// ::    actuallyReify, processInterrupt, categoryIndex);
+		// ::    actuallyReify, processInterrupt, statistic);
 		translator.loadInterpreter(method)
 		translator.literal(method, actuallyReify.value)
 		translator.literal(method, processInterrupt.value)
-		translator.literal(method, statisticConstant.constant)
+		translator.literal(method, statisticConstant.constant as Statistic)
 		Interpreter.reifyMethod.generateCall(method)
 		method.visitVarInsn(Opcodes.ASTORE, translator.reifierLocal())
 		// Arrange to arrive at the onReification target, which must be an

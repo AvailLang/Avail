@@ -31,7 +31,6 @@
  */
 package avail.interpreter.levelTwo.operation
 
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.ContinuationTypeDescriptor.Companion.mostGeneralContinuationType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
@@ -41,15 +40,16 @@ import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
-import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
-import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.*
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
+import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.UNBOXED_INT_FLAG
 import avail.optimizer.L2ControlFlowGraph
 import avail.optimizer.L2ControlFlowGraph.ZoneType
 import avail.optimizer.L2Generator
@@ -178,12 +178,11 @@ object L2_VIRTUAL_CREATE_LABEL : L2Operation(
 				L2_REIFY,
 				L2IntImmediateOperand(1),
 				L2IntImmediateOperand(0),
-				L2ConstantOperand(
-					identityPojo(
-						Statistic(
-							REIFICATIONS,
-							"Reification for label creation in L2: "
-								+ generator.codeName.replace('\n', ' ')))),
+				L2ArbitraryConstantOperand(
+					Statistic(
+						REIFICATIONS,
+						"Reification for label creation in L2: "
+							+ generator.codeName.replace('\n', ' '))),
 				edgeTo(onReification))
 
 			generator.startBlock(onReification)

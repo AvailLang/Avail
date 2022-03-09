@@ -37,14 +37,17 @@ import avail.compiler.AvailRejectedParseException
 import avail.compiler.CompilationContext
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
+import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
+import avail.descriptor.methods.A_Method.Companion.chooseBundle
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
+import avail.descriptor.parsing.A_Lexer.Companion.lexerMethod
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -299,16 +302,13 @@ class LexingState constructor(
 			fiber,
 			{ newTokenRuns -> lexerBodyWasSuccessful(newTokenRuns, countdown) },
 			{ throwable ->
-				if (throwable is AvailRejectedParseException)
+				when (throwable)
 				{
-					expected(
+					is AvailRejectedParseException -> expected(
 						throwable.level,
 						throwable.rejectionString.asNativeString())
-				}
-				else
-				{
 					// Report the problem as an expectation, with a stack trace.
-					expected(STRONG) { afterDescribing ->
+					else -> expected(STRONG) { afterDescribing ->
 						val writer = StringWriter()
 						throwable.printStackTrace(PrintWriter(writer))
 						val text = format(
@@ -405,8 +405,8 @@ class LexingState constructor(
 	 * kinds of lexers.  The state must not yet have had any actions run on it,
 	 * nor may it have had its [nextTokens] [List] set yet.
 	 *
-	 * No synchronization is performed, because this should take while wiring an
-	 * explicit run of tokens together, prior to making them available for
+	 * No synchronization is performed, because this should run while wiring an
+	 * explicit run of tokens together, *prior* to making them available for
 	 * parsing.
 	 *
 	 * @param token
@@ -436,7 +436,35 @@ class LexingState constructor(
 		{
 			// We just heard from the last lexer.  Run the actions once, and
 			// ensure any new actions start immediately with nextTokens.
-			compilationContext.workUnitsDo(this, consumeActions, nextTokens!!)
+			val tokens = nextTokens!!
+			if (tokens.size > 1 && tokens.toSet().size < tokens.size)
+			{
+				// One or more lexers produced tokens, and at least two of those
+				// tokens are equivalent.  This is not permitted.
+				val dupes = tokens.groupBy { it }
+					.filterValues { it.size > 1 }
+					.keys
+					.sortedBy { it.string().asNativeString() }
+					.joinToString()
+				val lexers = compilationContext.loader.lexicalScanner()
+					.allVisibleLexers
+					.map {
+						it.lexerMethod.chooseBundle(compilationContext.module)
+							.message.toString()
+					}
+					.sorted()
+					.joinToString("\n\t\t")
+				expected(
+					STRONG,
+					"visible lexers:\n\t\t$lexers" +
+						"\n\tnot to produce duplicate tokens: $dupes")
+				// We can't do the normal failure channel here, but this should
+				// do.
+				compilationContext.workUnitsDo(
+					this, consumeActions, emptyList())
+				return
+			}
+			compilationContext.workUnitsDo(this, consumeActions, tokens)
 		}
 	}
 

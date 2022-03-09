@@ -66,7 +66,6 @@ class L2NamedOperandType internal constructor(
 	val name: String,
 	val purpose: Purpose?)
 {
-
 	/**
 	 * Answer the [L2OperandType] that this decorates.
 	 *
