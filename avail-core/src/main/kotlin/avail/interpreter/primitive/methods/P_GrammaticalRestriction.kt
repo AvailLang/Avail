@@ -32,16 +32,16 @@
 package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setSize
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor
-import avail.descriptor.sets.SetDescriptor.Companion.generateSetFrom
+import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.types.A_Type
@@ -49,10 +49,10 @@ import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumer
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
@@ -71,6 +71,9 @@ import avail.interpreter.execution.Interpreter
  * underscore in the method names, *not* with the (top-level) arguments of the
  * method. This distinction is only apparent when guillemet notation is used to
  * accept tuples of arguments.
+ *
+ * Note that if any of the provided names are ambiguous, *all* of the visible
+ * atoms with that name will be restricted.
  */
 @Suppress("unused")
 object P_GrammaticalRestriction : Primitive(2, Unknown)
@@ -87,30 +90,30 @@ object P_GrammaticalRestriction : Primitive(2, Unknown)
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		var excludedAtomSets: A_Tuple = excludedStringSets.makeShared()
-		for (i in excludedStringSets.tupleSize downTo 1)
-		{
-			val strings = excludedStringSets.tupleAt(i)
-			val atomSet =
-				try
-				{
-					generateSetFrom(strings.setSize, strings.iterator()) {
-						loader.lookupName(it, false)
+		val excludedAtomSets =
+			generateObjectTupleFrom(excludedStringSets.tupleSize) {
+				excludedStringSets.tupleAt(it)
+					.fold(emptySet) { set, string ->
+						var atoms = loader.module.trueNamesForStringName(string)
+						if (atoms.setSize == 0)
+						{
+							// Auto-create it if it doesn't exist yet.
+							atoms = set(loader.lookupName(string))
+						}
+						set.setUnionCanDestroy(atoms, true)
 					}
-				}
-				catch (e: AmbiguousNameException)
-				{
-					return interpreter.primitiveFailure(e)
-				}
-			excludedAtomSets =
-				excludedAtomSets.tupleAtPuttingCanDestroy(i, atomSet, true)
-		}
+			}
 		try
 		{
-			val parentAtoms = generateSetFrom(
-				parentStrings.setSize,
-				parentStrings.iterator(),
-				loader::lookupName)
+			val parentAtoms = parentStrings.fold(emptySet) { set, string ->
+				var atoms = loader.module.trueNamesForStringName(string)
+				if (atoms.setSize == 0)
+				{
+					// Auto-create it if it doesn't exist yet.
+					atoms = set(loader.lookupName(string))
+				}
+				set.setUnionCanDestroy(atoms, true)
+			}
 			loader.addGrammaticalRestrictions(parentAtoms, excludedAtomSets)
 		}
 		catch (e: MalformedMessageException)
