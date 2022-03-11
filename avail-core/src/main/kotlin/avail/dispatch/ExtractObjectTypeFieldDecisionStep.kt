@@ -300,7 +300,8 @@ constructor(
 		val baseRestriction =
 			generator.currentManifest.restrictionFor(baseSemanticValue)
 		val fieldRestriction = restrictionForType(
-			baseRestriction.type.fieldTypeAt(field), BOXED_FLAG)
+			instanceMeta(baseRestriction.type.instance.fieldTypeAt(field)),
+			BOXED_FLAG)
 		val fieldSemanticValue =
 			newSemanticValue(semanticArguments, extraSemanticArguments)
 		generator.addInstruction(
