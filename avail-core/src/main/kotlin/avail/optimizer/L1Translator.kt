@@ -43,7 +43,7 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.countdownToReoptimize
-import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithoutOuters
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
@@ -71,7 +71,6 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -251,11 +250,13 @@ class L1Translator private constructor(
 	private val numSlots: Int = code.numSlots
 
 	/**
-	 * An array of names of arguments, if available, to make it easier to follow
-	 * [L2ControlFlowGraph]s.
+	 * An array of names of arguments/locals/constants/labels, if available, to
+	 * make it easier to follow [L2ControlFlowGraph]s.
 	 */
 	private val slotNames =
-		code.declarationNames.map { it.asNativeString() }.toTypedArray()
+		code.declarationNamesWithoutOuters
+			.map(AvailObject::asNativeString)
+			.toTypedArray()
 
 	/**
 	 * An array of names of arguments, if available, to make it easier to follow
@@ -1722,30 +1723,19 @@ class L1Translator private constructor(
 			"lookup succeeded for " + callSiteHelper.quotedBundleName)
 		val lookupFailed = generator.createBasicBlock(
 			"lookup failed for " + callSiteHelper.quotedBundleName)
-		val argumentRestrictions =
-			mutableListOf<TypeRestriction>()
-		for (i in 1 .. nArgs)
-		{
-			val argumentRestriction =
-				currentManifest.restrictionFor(semanticArguments[i - 1])
-			val unionRestriction = argumentRestriction.union(
-				restrictionForType(
-					callSiteHelper.superUnionType.typeAtIndex(i), BOXED_FLAG))
-			argumentRestrictions.add(unionRestriction)
+		val argumentRestrictions = semanticArguments.mapIndexed { i, arg ->
+			restrictionForType(
+				callSiteHelper.superUnionType.typeAtIndex(i + 1), BOXED_FLAG
+			).union(currentManifest.restrictionFor(arg))
 		}
-		val possibleFunctions = mutableListOf<A_Function>()
-		for (definition in
-			bundle.bundleMethod.definitionsAtOrBelow(argumentRestrictions))
-		{
-			if (definition.isMethodDefinition())
-			{
-				possibleFunctions.add(definition.bodyBlock())
-			}
-		}
+		val possibleFunctions = bundle.bundleMethod
+			.definitionsAtOrBelow(argumentRestrictions)
+			.filter { it.isMethodDefinition() }
+			.map { it.bodyBlock() }
 		val functionTypeUnion =
 			enumerationWith(setFromCollection(possibleFunctions))
 		val argumentReads =
-			semanticArguments.map { currentManifest.readBoxed(it) }
+			semanticArguments.map(currentManifest::readBoxed)
 
 		// At some point we might want to introduce a SemanticValue for tagging
 		// this register.

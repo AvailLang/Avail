@@ -41,6 +41,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
 import avail.descriptor.representation.A_BasicObject
@@ -105,10 +106,10 @@ class L1Disassembler constructor(
 	}
 
 	/**
-	 * Extract the names of arg/local/constant declarations from the raw
-	 * function.
+	 * Extract the names of arg/local/constant/label/outer declarations from the
+	 * raw function.
 	 */
-	val declarationNames = code.declarationNames.map { it.asNativeString() }
+	val allDeclarationNames = code.declarationNames.map { it.asNativeString() }
 
 	/**
 	 * Visit the given [L1DisassemblyVisitor] with my [L1Operation]s and
@@ -351,7 +352,7 @@ class L1Disassembler constructor(
 
 			override fun doLocal(index: Int)
 			{
-				val name = declarationNames[index - 1]
+				val name = allDeclarationNames[index - 1]
 				nameBuilder.append(
 					when {
 						index <= code.numArgs() -> "arg#$index = $name"
@@ -361,7 +362,9 @@ class L1Disassembler constructor(
 
 			override fun doOuter(index: Int)
 			{
-				nameBuilder.append("outer#$index")
+				val i = index + (allDeclarationNames.size - code.numOuters)
+				val name = allDeclarationNames[i - 1]
+				nameBuilder.append("outer#$index = $name")
 			}
 		}
 		visit(visitor)

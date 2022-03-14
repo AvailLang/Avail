@@ -404,7 +404,6 @@ class AvailCodeGenerator private constructor(
 		val constantTypes = generateObjectTupleFrom(constants.size) {
 			constants[it - 1].declaredType
 		}
-
 		val outerTypes = generateObjectTupleFrom(outers.size) {
 			outerType(outers[it - 1])
 		}
@@ -413,6 +412,8 @@ class AvailCodeGenerator private constructor(
 		declarations.addAll(originatingBlockPhrase.argumentsTuple)
 		declarations.addAll(locals(originatingBlockPhrase))
 		declarations.addAll(constants(originatingBlockPhrase))
+		declarations.addAll(labels(originatingBlockPhrase))
+		declarations.addAll(outers)
 		val packedDeclarationNames = declarations.joinToString(",") {
 			// Quote-escape any name that contains a comma (,) or quote (").
 			val name = it.token.string().asNativeString()

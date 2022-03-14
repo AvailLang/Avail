@@ -42,6 +42,8 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.interpreter.Primitive
@@ -153,15 +155,35 @@ interface A_RawFunction : A_BasicObject {
 
 		/**
 		 * For this raw function, compute the tuple of its declaration names
-		 * (arguments, locals, constants).  This is useful for decompilation,
-		 * for giving meaningful names to registers in L2 translations, and for
-		 * presenting reified continuations.
+		 * (arguments, locals, constants, 0..1 labels, outers).  This is useful
+		 * for decompilation, for giving meaningful names to registers in L2
+		 * translations, and for presenting reified continuations.  Note that
+		 * the outers are not part of the stack frame, and apply to the
+		 * continuation's function instead.
 		 *
 		 * @return
 		 *   The tuple of declaration names.
 		 */
 		val A_RawFunction.declarationNames: A_Tuple
 			get() = dispatch { o_DeclarationNames(it) }
+
+		/**
+		 * For this raw function, compute the tuple of its declaration names
+		 * (arguments, locals, constants, 0..1 labels).  This is useful
+		 * for decompilation, for giving meaningful names to registers in L2
+		 * translations, and for presenting reified continuations.
+		 *
+		 * @return
+		 *   The tuple of declaration names, minus the outers.
+		 */
+		val A_RawFunction.declarationNamesWithoutOuters: A_Tuple
+			get()
+			{
+				val names = declarationNames
+				return names.copyTupleFromToCanDestroy(
+					1, names.tupleSize - numOuters, false
+				).makeShared()
+			}
 
 		/**
 		 * Answer the tuple of line number deltas for this ram function.  Each

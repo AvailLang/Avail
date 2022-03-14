@@ -438,7 +438,7 @@ internal class Sequence constructor(
 			// is supplied, it can't be parsed.  Note that this doesn't affect
 			// the ability to invoke such a method/macro body with, say, a
 			// literal phrase yielding a suitable tuple.
-			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+			throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP)
 		}
 		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		var argIndex = 0

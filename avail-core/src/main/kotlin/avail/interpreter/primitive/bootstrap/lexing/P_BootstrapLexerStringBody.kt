@@ -92,7 +92,7 @@ object P_BootstrapLexerStringBody
 	 *   What line to treat the first character as occurring on.
 	 * @return
 	 *   The resulting token, if successful.  Note that the size of the token's
-	 *   lexeme ([A_Token.string]) accurately conveys how many codpoints were
+	 *   lexeme ([A_Token.string]) accurately conveys how many codepoints were
 	 *   consumed.
 	 * @throws AvailRejectedParseException
 	 *   If a string token could not be parsed starting at the given position.
@@ -115,13 +115,12 @@ object P_BootstrapLexerStringBody
 			{
 				'\"' ->
 				{
-					val token = literalToken(
+					return literalToken(
 						source.copyStringFromToCanDestroy(
 							startPosition, scanner.position - 1, false),
 						startPosition,
 						startLineNumber,
 						stringFrom(builder.toString()))
-					return token
 				}
 				'\\' ->
 				{

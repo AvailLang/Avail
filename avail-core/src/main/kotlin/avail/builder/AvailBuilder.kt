@@ -228,10 +228,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	{
 		builderLock.safeWrite {
 			allLoadedModules[resolvedModuleName] = loadedModule
-			for (subscription in subscriptions)
-			{
-				subscription(loadedModule, true)
-			}
+			subscriptions.forEach { it(loadedModule, true) }
 		}
 	}
 
@@ -948,31 +945,25 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 	}
 
 	/**
-	 * Given a [collection][Collection] of continuations, each of which expects
-	 * a continuation (called the post-continuation activity) that instructs it
-	 * on how to proceed when it has completed, produce a single continuation
-	 * that evaluates this collection in parallel and defers the
-	 * post-continuation activity until every member has completed.
+	 * Given a [Collection] of actions, each of which expects a continuation
+	 * (called the post-action activity) that instructs it on how to proceed
+	 * when it has completed, produce a single action that evaluates this
+	 * collection in parallel and defers the post-action activity until every
+	 * member has completed.
 	 *
-	 * @param continuations
-	 *   A collection of continuations.
+	 * @param actions
+	 *   A collection of actions.
 	 * @return
-	 *   The combined continuation.
+	 *   The combined action.
 	 */
 	private fun parallelCombine(
-		continuations: Collection<(()->Unit)->Unit>): (()->Unit)->Unit
+		actions: Collection<(()->Unit)->Unit>): (()->Unit)->Unit
 	{
 		return { postAction ->
-			val count = AtomicInteger(continuations.size)
-			val decrement = {
-				if (count.decrementAndGet() == 0)
-				{
-					postAction()
-				}
-			}
-			for (continuation in continuations)
-			{
-				runtime.execute(commandPriority) { continuation(decrement) }
+			val count = AtomicInteger(actions.size)
+			val decrement = { if (count.decrementAndGet() == 0) postAction() }
+			actions.forEach { action ->
+				runtime.execute(commandPriority) { action(decrement) }
 			}
 		}
 	}

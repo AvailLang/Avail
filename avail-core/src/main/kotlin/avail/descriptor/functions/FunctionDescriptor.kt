@@ -31,12 +31,14 @@
  */
 package avail.descriptor.functions
 
+import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
+import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
@@ -56,15 +58,19 @@ import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.newBlockNode
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.recursivelyValidate
 import avail.descriptor.phrases.PhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.AvailObject.Companion.combine3
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
+import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
@@ -120,6 +126,7 @@ class FunctionDescriptor private constructor(
 		CODE,
 
 		/** The outer variables. */
+		@HideFieldInDebugger
 		OUTER_VAR_AT_
 	}
 
@@ -138,6 +145,31 @@ class FunctionDescriptor private constructor(
 	}
 
 	override fun o_Code(self: AvailObject): A_RawFunction = self.slot(CODE)
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
+	{
+		val fields = super.o_DescribeForDebugger(self).toMutableList()
+		val code = self.slot(CODE)
+		val allDeclarationNames = code.declarationNames
+		val outerNames = allDeclarationNames.copyTupleFromToCanDestroy(
+			allDeclarationNames.tupleSize + 1 - code.numOuters,
+			allDeclarationNames.tupleSize,
+			true)
+		for (i in 1..outerNames.tupleSize)
+		{
+			val outerName = outerNames.tupleAt(i).asNativeString()
+			fields.add(
+				AvailObjectFieldHelper(
+					self,
+					DUMMY_DEBUGGER_SLOT,
+					-1,
+					self.outerVarAt(i),
+					slotName = "Outer[$i: $outerName]"))
+		}
+		return fields.toTypedArray()
+	}
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject) =
 		another.equalsFunction(self)

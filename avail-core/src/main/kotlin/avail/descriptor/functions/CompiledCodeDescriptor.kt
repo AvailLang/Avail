@@ -641,7 +641,7 @@ open class CompiledCodeDescriptor protected constructor(
 						start, position - 1, false))
 			}
 			if (position == limit + 1)
-				return tupleFromList(names)
+				return tupleFromList(names).makeShared()
 			if (packedDeclarationNames.tupleCodePointAt(position)
 				!= ','.code)
 			{

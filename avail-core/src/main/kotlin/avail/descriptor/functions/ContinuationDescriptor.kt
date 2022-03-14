@@ -37,7 +37,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
-import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
+import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithoutOuters
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
@@ -301,7 +301,7 @@ class ContinuationDescriptor private constructor(
 	{
 		val fields = super.o_DescribeForDebugger(self).toMutableList()
 		val code = self.function().code()
-		val declarationNames = code.declarationNames
+		val declarationNames = code.declarationNamesWithoutOuters
 		for (i in 1..self.numSlots())
 		{
 			var name = if (i <= declarationNames.tupleSize)

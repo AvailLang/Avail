@@ -131,6 +131,7 @@ import java.awt.Toolkit
 import java.awt.event.ActionEvent
 import java.awt.event.ComponentAdapter
 import java.awt.event.ComponentEvent
+import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
 import java.awt.event.WindowEvent
@@ -1653,7 +1654,7 @@ class AvailWorkbench internal constructor (
 		}
 
 		// The refresh item needs a little help ...
-		getRootPane().actionMap.put("Refresh", refreshAction)
+		rootPane.actionMap.put("Refresh", refreshAction)
 		rootPane.inputMap.put(KeyStroke.getKeyStroke("F5"), "Refresh")
 
 		// Create the module tree.
@@ -1768,11 +1769,11 @@ class AvailWorkbench internal constructor (
 		// And reset the weights...
 		transcript = JTextPane().apply {
 			border = BorderFactory.createEtchedBorder()
-			componentPopupMenu = menu("Transcript")
-			{
-				item(clearTranscriptAction)
-			}.popupMenu
-			isEditable = false
+			//componentPopupMenu = menu("Transcript")
+			//{
+			//	item(clearTranscriptAction)
+			//}.popupMenu
+			isEditable = true
 			isEnabled = true
 			isFocusable = true
 			preferredSize = Dimension(0, 500)
@@ -1790,10 +1791,20 @@ class AvailWorkbench internal constructor (
 				"Enter commands and interact with Avail programs.  Press " +
 					"ENTER to submit."
 			action = SubmitInputAction(this@AvailWorkbench)
-			actionMap.put("up", retrievePreviousAction)
-			actionMap.put("down", retrieveNextAction)
-			inputMap.put(KeyStroke.getKeyStroke("UP"), "up")
-			inputMap.put(KeyStroke.getKeyStroke("DOWN"), "down")
+			actionMap.put(
+				retrievePreviousAction.getValue(Action.NAME),
+				retrievePreviousAction)
+			actionMap.put(
+				retrieveNextAction.getValue(Action.NAME),
+				retrieveNextAction)
+			getInputMap(JComponent.WHEN_FOCUSED).run {
+				put(
+					KeyStroke.getKeyStroke(KeyEvent.VK_UP, 0),
+					retrievePreviousAction.getValue(Action.NAME))
+				put(
+					KeyStroke.getKeyStroke(KeyEvent.VK_DOWN, 0),
+					retrieveNextAction.getValue(Action.NAME))
+			}
 		}
 
 		// Subscribe to module loading events.
@@ -2096,9 +2107,9 @@ class AvailWorkbench internal constructor (
 		 */
 		private val currentWorkingDirectory: File
 
-		// Obtain the current working directory. Try to resolve this location to its
-		// real path. If resolution fails, then just use the value of the "user.dir"
-		// system property.
+		// Obtain the current working directory. Try to resolve this location to
+		// its real path. If resolution fails, then just use the value of the
+		// "user.dir" system property.
 		init
 		{
 			val userDir = System.getProperty("user.dir")

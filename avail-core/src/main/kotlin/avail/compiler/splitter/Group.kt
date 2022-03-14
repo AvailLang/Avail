@@ -363,7 +363,7 @@ internal class Group : Expression
 			// is supplied, it can't be parsed.  Note that this doesn't affect
 			// the ability to invoke such a method/macro body with, say, a
 			// literal phrase yielding a suitable tuple.
-			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+			throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP)
 		}
 		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		val sizeRange = subexpressionsTupleType.sizeRange
@@ -706,7 +706,7 @@ internal class Group : Expression
 			// is supplied, it can't be parsed.  Note that this doesn't affect
 			// the ability to invoke such a method/macro body with, say, a
 			// literal phrase yielding a suitable tuple.
-			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+			throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP)
 		}
 		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		generator.partialListsCount += 2
@@ -790,7 +790,7 @@ internal class Group : Expression
 			// is supplied, it can't be parsed.  Note that this doesn't affect
 			// the ability to invoke such a method/macro body with, say, a
 			// literal phrase yielding a suitable tuple.
-			throw SignatureException(E_INCORRECT_TYPE_FOR_GROUP)
+			throwSignatureException(E_INCORRECT_TYPE_FOR_GROUP)
 		}
 		val subexpressionsTupleType = intersected.subexpressionsTupleType
 		generator.partialListsCount += 2
