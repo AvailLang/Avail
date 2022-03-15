@@ -308,6 +308,38 @@ Semantic restriction "_[_]else_" is
 ];
 
 /**
+ * Strengthen the key and value types against the type of map in the variable.
+ *
+ * @method "_[_]:=_"
+ * @restricts "map variable's type"
+ * @restricts "any meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "_[_]:=_" is
+[
+	varType : map variable's type,
+	keyType : any meta,
+	valueType : any meta
+|
+	mapType ::= varType's write type ?→ map's type;
+	Unless keyType ⊆ mapType's key type then
+	[
+		Reject parse, expected:
+			"key's type (" ++ “keyType” ++
+				") to be compatible with the map's expected key type (" ++
+				 “mapType's key type” ++ ")"
+	];
+	Unless valueType ⊆ mapType's value type then
+	[
+		Reject parse, expected:
+			"value's type (" ++ “valueType” ++
+				") to be compatible with the map's expected value type (" ++
+				 “mapType's value type” ++ ")"
+	];
+	⊤
+];
+
+/**
  * Answer the Avail virtual machine's environment as a {@type "map"} from
  * environment variable names to values.
  *

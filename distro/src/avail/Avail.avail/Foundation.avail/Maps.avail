@@ -1232,5 +1232,5 @@ Semantic restriction "duplication map for_" is
 [
 	tType : tuple meta
 |
-	{∪ tType[1..|tType's leading types|+1] → [2..∞) |}
+	{∪ tType[1..∞] → [2..∞) |}
 ];
