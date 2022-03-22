@@ -34,6 +34,7 @@ package avail.environment.actions
 
 import avail.environment.AvailWorkbench
 import javax.swing.AbstractAction
+import javax.swing.Action
 
 /**
  * An abstraction for all the workbench's actions.
@@ -51,4 +52,8 @@ import javax.swing.AbstractAction
  */
 abstract class AbstractWorkbenchAction constructor(
 	val workbench: AvailWorkbench,
-	name: String) : AbstractAction(name)
+	name: String
+) : AbstractAction(name)
+{
+	fun name(): String = getValue(Action.NAME) as String
+}

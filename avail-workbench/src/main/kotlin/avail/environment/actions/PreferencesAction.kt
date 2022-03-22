@@ -59,7 +59,7 @@ import javax.swing.table.AbstractTableModel
 import kotlin.math.min
 
 /**
- * An `AboutAction` presents the "About Avail" dialog.
+ * A [PreferencesAction] presents the preferences dialog.
  *
  * @constructor
  * Construct a new [PreferencesAction].
@@ -375,15 +375,15 @@ class PreferencesAction constructor(workbench: AvailWorkbench)
 					.addComponent(okButton)
 					.addComponent(cancelButton)))
 		layout.linkSize(SwingConstants.HORIZONTAL, okButton, cancelButton)
-		preferencesDialog!!.minimumSize = Dimension(300, 250)
-		preferencesDialog!!.preferredSize = Dimension(900, 500)
-		preferencesDialog!!.modalityType = ModalityType.APPLICATION_MODAL
-		preferencesDialog!!.contentPane.add(panel)
-		preferencesDialog!!.isResizable = true
-		preferencesDialog!!.pack()
-		val topLeft = workbench.location
-		preferencesDialog!!.setLocation(
-			topLeft.getX().toInt() + 22, topLeft.getY().toInt() + 22)
+		preferencesDialog!!.run {
+			minimumSize = Dimension(300, 250)
+			preferredSize = Dimension(900, 500)
+			modalityType = ModalityType.APPLICATION_MODAL
+			contentPane.add(panel)
+			isResizable = true
+			pack()
+			location = workbench.location.apply { translate(22, 22) }
+		}
 	}
 
 	init

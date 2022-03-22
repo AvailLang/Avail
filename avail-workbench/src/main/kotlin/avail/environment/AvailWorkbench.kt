@@ -62,6 +62,7 @@ import avail.environment.actions.ExamineCompilationAction
 import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
 import avail.environment.actions.ExamineSerializedPhrasesAction
+import avail.environment.actions.FindAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
 import avail.environment.actions.InsertEntryPointAction
@@ -105,6 +106,7 @@ import avail.environment.streams.StreamStyle.ERR
 import avail.environment.streams.StreamStyle.INFO
 import avail.environment.streams.StreamStyle.OUT
 import avail.environment.tasks.BuildTask
+import avail.environment.text.AvailEditorKit
 import avail.files.FileManager
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
@@ -351,6 +353,9 @@ class AvailWorkbench internal constructor (
 
 	/** The [refresh action][RefreshAction]. */
 	private val refreshAction = RefreshAction(this)
+
+	/** The [FindAction] for finding/replacing text in a text area. */
+	private val findAction = FindAction(this)
 
 	/** The [&quot;about Avail&quot; action][AboutAction]. */
 	private val aboutAction = AboutAction(this)
@@ -1605,6 +1610,10 @@ class AvailWorkbench internal constructor (
 				//item(cleanModuleAction)  //TODO MvG Fix implementation and enable.
 				item(refreshAction)
 			}
+			menu("Edit")
+			{
+				item(findAction)
+			}
 			menu("Document")
 			{
 				item(documentAction)
@@ -1777,6 +1786,11 @@ class AvailWorkbench internal constructor (
 			isEnabled = true
 			isFocusable = true
 			preferredSize = Dimension(0, 500)
+			editorKit = AvailEditorKit(this@AvailWorkbench)
+			actionMap.put(findAction, findAction)
+			inputMap.put(
+				findAction.getValue(Action.ACCELERATOR_KEY) as KeyStroke?,
+				findAction)
 		}
 		transcriptScrollArea = createScrollPane(transcript)
 
@@ -1972,12 +1986,14 @@ class AvailWorkbench internal constructor (
 		setPreferencesHandler {
 			preferencesAction.actionPerformed(null)
 		}
-		Taskbar.getTaskbar().iconImage = ImageIcon(
-			AvailWorkbench::class.java.classLoader.getResource(
-				"resources/workbench/AvailHammer.png"
-			)
-		).image
-		Taskbar.getTaskbar().setIconBadge(activeVersionSummary)
+		Taskbar.getTaskbar().run {
+			iconImage = ImageIcon(
+				AvailWorkbench::class.java.classLoader.getResource(
+					"resources/workbench/AvailHammer.png"
+				)
+			).image
+			setIconBadge(activeVersionSummary)
+		}
 
 		// Select an initial module if specified.
 		validate()
@@ -2476,7 +2492,7 @@ class AvailWorkbench internal constructor (
 
 			// Display the UI.
 			val bench = AvailWorkbench(runtime, fileManager, resolver)
-			bench.createBufferStrategy(3)
+			bench.createBufferStrategy(2)
 			bench.ignoreRepaint = true
 			invokeLater {
 				val initialRefreshTask =

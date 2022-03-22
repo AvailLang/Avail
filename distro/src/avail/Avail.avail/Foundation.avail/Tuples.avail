@@ -5153,6 +5153,12 @@ Semantic restriction "only_" is
 [
 	tType : tuple meta
 |
+	Unless 1 ∈ ||tType|| then
+	[
+		Reject parse, expected:
+			"the possibility that the tuple argument of \"only_\" has \
+			\|exactly one element"
+	];
 	tType[1]
 ];
 

@@ -1534,5 +1534,11 @@ Semantic restriction "only_" is
 [
 	sType : set meta
 |
+	Unless 1 ∈ ||sType|| then
+	[
+		Reject parse, expected:
+			"the possibility that the set argument of \"only_\" has \
+			\|exactly one element"
+	];
 	sType's element type
 ];

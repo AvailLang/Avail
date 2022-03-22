@@ -1154,7 +1154,7 @@ Public method "integrate«_‡,and⁇»with_" is
  */
 Semantic restriction "integrate«_‡,and⁇»with_" is
 [
-	mapsType :<map…|2..>'s type,
+	mapsType : <map…|2..>'s type,
 	actionType : ([⊥,⊥,⊥]→map)'s type
 |
 	If actionType[1] ≠ ⊥ ∧ ¬mapsType[1] ⊆ actionType[1] then
