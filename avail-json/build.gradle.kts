@@ -42,7 +42,7 @@ plugins {
 }
 
 group = "org.availlang"
-version = "1.0.4"
+version = "1.0.5"
 description = "A flexible JSON building and reading utility"
 
 repositories {
