@@ -59,6 +59,7 @@ import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter
+import javax.swing.text.Highlighter.HighlightPainter
 import javax.swing.text.JTextComponent
 import javax.swing.text.TextAction
 
@@ -84,29 +85,57 @@ class FindAction constructor(
 				KeyEvent.VK_F, AvailWorkbench.menuShortcutMask))
 	}
 
+	/** The non-modal Find dialog, created lazily but cached when dismissed.  */
 	private var findDialog: JDialog? = null
 
+	/** The JTextComponent on which to perform searches. */
 	private var textPane: JTextComponent? = null
 
+	/** The [textPane]'s highlighter. */
 	private var highlighter: Highlighter? = null
 
+	/**
+	 * The ordered [List] of (MatchResult, highlight tag) pairs, for all places
+	 * that match the current pattern.
+	 */
 	private val allMatches = mutableListOf<Pair<MatchResult, Any>>()
 
+	/**
+	 * When non-null, this is the index into [allMatches] representing the
+	 * current match.  Find Next and Find Previous always use the current caret
+	 * position or selection as the starting point for the search, but they not
+	 * only alter the [HighlightPainter] used to render the current match, they
+	 * also set the current selection to the same range.  Note that the
+	 * selection/caret is invisible while the dialog has focus.
+	 */
 	private var currentMatchIndex: Int? = null
 
-	// Replaced by a blend of selection color and background.
-	private var allMatchesPainter = DefaultHighlightPainter(Color.YELLOW)
+	/**
+	 * The [HighlightPainter] for rendering all matches but the current one.
+	 * Initialized to a dummy value.
+	 */
+	private var allMatchesPainter = DefaultHighlightPainter(Color.BLACK)
 
-	// Replaced by the selection color.
-	private var currentMatchPainter = DefaultHighlightPainter(Color.RED)
+	/**
+	 * The [HighlightPainter] for rendering the current match. Initialized to a
+	 * dummy value.
+	 */
+	private var currentMatchPainter = DefaultHighlightPainter(Color.BLACK)
 
+	/**
+	 * A [DocumentListener] that detects textual changes to in the [textPane],
+	 * triggering a recalculation of matches.
+	 */
 	private val documentListener = object : DocumentListener {
 		override fun insertUpdate(e: DocumentEvent?) = updateHighlights()
 		override fun changedUpdate(e: DocumentEvent?) = updateHighlights()
 		override fun removeUpdate(e: DocumentEvent?) = updateHighlights()
 	}
 
-	/** Open or reopen the find dialog. */
+	/**
+	 * Open or reopen the find dialog.  Connect it to the most recently focused
+	 * text pane of the workbench.
+	 */
 	override fun actionPerformed(event: ActionEvent?)
 	{
 		if (findDialog === null)
@@ -125,27 +154,30 @@ class FindAction constructor(
 		findDialog!!.isVisible = true
 	}
 
+	/**
+	 * Either the document or the search pattern has changed, or we have just
+	 * made the dialog visible.  Find all matches and highlight them, preserving
+	 * the current match if possible.
+	 */
 	private fun updateHighlights()
 	{
 		val pane = textPane ?: return
 		val body = pane.text
-		val matches = try
+		var matches = emptyList<MatchResult>()
+		matchCountLabel.text = when (val text = findText.text)
 		{
-			when (val text = findText.text)
-			{
-				"" -> emptyList()
-				else -> Regex(text).findAll(body).toList()
-			}
-		}
-		catch (e : PatternSyntaxException)
-		{
-			// Report malformed regexes only when using them.
-			emptyList()
-		}
-		matchCountLabel.text = when (val count = matches.size)
-		{
-			0 -> "No matches"
-			else -> "$count matches"
+			"" -> ""
+			else ->
+				try
+				{
+					matches = Regex(text).findAll(body).toList()
+					"${matches.size} matches"
+				}
+				catch (e : PatternSyntaxException)
+				{
+					// Report malformed regexes only when using them.
+					e.message
+				}
 		}
 		allMatches.forEach { highlighter!!.removeHighlight(it.second) }
 		currentMatchIndex = null
@@ -156,8 +188,10 @@ class FindAction constructor(
 		}
 	}
 
-	// Button actions.
-
+	/**
+	 * Starting at the caret or selection, find the next match, making it
+	 * current *and* changing the text pane's selection to correspond.
+	 */
 	private val findNextAction = object : TextAction("Find Next")
 	{
 		override fun actionPerformed(e: ActionEvent)
@@ -195,6 +229,10 @@ class FindAction constructor(
 		}
 	}
 
+	/**
+	 * Starting at the caret or selection, find the textually previous match,
+	 * making it current *and* changing the text pane's selection to correspond.
+	 */
 	private val findPreviousAction = object : TextAction("Find Previous")
 	{
 		override fun actionPerformed(e: ActionEvent)
@@ -208,8 +246,8 @@ class FindAction constructor(
 				{
 					pane.select(match.range.first, match.range.last + 1)
 					currentMatchIndex?.let { j ->
-						// Remove the current match highlighting, replacing it with the
-						// highlighting for all matches.
+						// Remove the current match highlighting, replacing it
+						// with the highlighting for all matches.
 						val (m, t) = allMatches[j]
 						highlighter!!.removeHighlight(t)
 						val newTag = highlighter!!.addHighlight(
@@ -233,7 +271,11 @@ class FindAction constructor(
 		}
 	}
 
-	private val replaceNextAction = object : TextAction("Replace Next")
+	/**
+	 * If there is a current match, replace it using the regex replacement
+	 * pattern, then advance to the next match.
+	 */
+	private val replaceCurrentAction = object : TextAction("Replace")
 	{
 		override fun actionPerformed(e: ActionEvent)
 		{
@@ -242,6 +284,11 @@ class FindAction constructor(
 		}
 	}
 
+	/**
+	 * Given the already computed list of matches, perform the replacement for
+	 * each one.  The change to the document will trigger [updateHighlights] to
+	 * find any new matches after this batch of substitutions.
+	 */
 	private val replaceAllAction = object : TextAction("Replace All")
 	{
 		override fun actionPerformed(e: ActionEvent)
@@ -251,6 +298,9 @@ class FindAction constructor(
 		}
 	}
 
+	/**
+	 * Hide the (non-modal) find dialog, removing all highlighting.
+	 */
 	private val closeAction = object : TextAction("Close")
 	{
 		override fun actionPerformed(e: ActionEvent)
@@ -260,7 +310,6 @@ class FindAction constructor(
 		}
 	}
 
-	// The controls.
 	private val findLabel = JLabel("Find (regex):")
 	private val replaceLabel = JLabel("Replace:")
 	private val findText = JTextPane().apply {
@@ -274,7 +323,7 @@ class FindAction constructor(
 	private val matchCountLabel = JLabel("")
 	private val findNextButton = JButton(findNextAction)
 	private val findPreviousButton = JButton(findPreviousAction)
-	private val replaceNextButton = JButton(replaceNextAction)
+	private val replaceNextButton = JButton(replaceCurrentAction)
 	private val replaceAllButton = JButton(replaceAllAction)
 	private val closeButton = JButton(closeAction)
 
@@ -354,23 +403,28 @@ class FindAction constructor(
 		}
 		findDialog = JDialog(workbench, name(), ModalityType.MODELESS)
 		findDialog!!.run {
-			minimumSize = Dimension(200, 200)
+			minimumSize = Dimension(300, 200)
 			preferredSize = Dimension(600, 200)
 			contentPane.add(panel)
 			isResizable = true
 			pack()
 			val topLeft = workbench.location
-			setLocation(topLeft.x + workbench.width - width - 60, topLeft.y + 22)
+			setLocation(
+				topLeft.x + workbench.width - width - 100, topLeft.y + 30)
 			addWindowListener(object : WindowAdapter()
 			{
 				override fun windowClosing(e: WindowEvent) {
-					isVisible = false
+					//isVisible = false
 					dialogWasClosed()
 				}
 			})
 		}
 	}
 
+	/**
+	 * The dialog has been closed, but may be reopened later.  Hide all
+	 * highlights.
+	 */
 	private fun dialogWasClosed()
 	{
 		allMatches.forEach { highlighter?.removeHighlight(it.second) }
