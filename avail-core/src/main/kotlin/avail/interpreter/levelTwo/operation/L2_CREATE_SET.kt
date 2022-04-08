@@ -35,6 +35,8 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -48,8 +50,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_SET : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.named("values"),
-	L2OperandType.WRITE_BOXED.named("new set"))
+	READ_BOXED_VECTOR.named("values"),
+	WRITE_BOXED.named("new set"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

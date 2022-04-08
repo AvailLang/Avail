@@ -34,6 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -48,9 +50,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_TYPE_UNION : L2Operation(
-	L2OperandType.READ_BOXED.named("first type"),
-	L2OperandType.READ_BOXED.named("second type"),
-	L2OperandType.WRITE_BOXED.named("union type"))
+	READ_BOXED.named("first type"),
+	READ_BOXED.named("second type"),
+	WRITE_BOXED.named("union type"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

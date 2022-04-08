@@ -33,7 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -59,8 +60,8 @@ object L2_JUMP_IF_EQUALS_CONSTANT :
 	L2ConditionalJump(
 		L2OperandType.READ_BOXED.named("value"),
 		L2OperandType.CONSTANT.named("constant"),
-		L2OperandType.PC.named("if equal", Purpose.SUCCESS),
-		L2OperandType.PC.named("if unequal", Purpose.FAILURE))
+		L2OperandType.PC.named("if equal", SUCCESS),
+		L2OperandType.PC.named("if unequal", FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction, manifest: L2ValueManifest)

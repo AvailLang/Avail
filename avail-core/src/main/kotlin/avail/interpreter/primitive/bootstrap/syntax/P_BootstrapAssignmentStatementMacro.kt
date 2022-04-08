@@ -37,6 +37,8 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.module.A_Module.Companion.constantBindings
@@ -89,7 +91,7 @@ object P_BootstrapAssignmentStatementMacro
 		val valueExpression = interpreter.argument(1)
 
 		val loader =
-			interpreter.fiber().availLoader()
+			interpreter.fiber().availLoader
 				?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		assert(
 			variableNameLiteral.isInstanceOf(
@@ -105,7 +107,7 @@ object P_BootstrapAssignmentStatementMacro
 				STRONG,
 				"variable name for assignment to be alphanumeric, not $variableNameString")
 		}
-		val fiberGlobals = interpreter.fiber().fiberGlobals()
+		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		val module = loader.module

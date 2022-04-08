@@ -35,6 +35,9 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.descriptor.tuples.TupleDescriptor.Companion.tupleAtMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -50,9 +53,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_TUPLE_AT_CONSTANT : L2Operation(
-	L2OperandType.READ_BOXED.named("tuple"),
-	L2OperandType.INT_IMMEDIATE.named("immediate subscript"),
-	L2OperandType.WRITE_BOXED.named("destination"))
+	READ_BOXED.named("tuple"),
+	INT_IMMEDIATE.named("immediate subscript"),
+	WRITE_BOXED.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

@@ -35,6 +35,8 @@ import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -49,8 +51,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_VARIABLE : L2Operation(
-	L2OperandType.CONSTANT.named("outerType"),
-	L2OperandType.WRITE_BOXED.named("variable"))
+	CONSTANT.named("outerType"),
+	WRITE_BOXED.named("variable"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

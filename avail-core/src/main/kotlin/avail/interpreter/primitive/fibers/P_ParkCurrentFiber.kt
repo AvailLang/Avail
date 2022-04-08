@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag

@@ -154,7 +154,7 @@ fun<E> MutableList<E>.removeLast(): E = this.removeAt(size - 1)
  * thread will run the [after] function.
  */
 fun<E, R> List<E>.partitionedMap(
-	partitions : Int,
+	partitions: Int,
 	body: (List<E>, (List<R>)->Unit)->Unit,
 	after: (List<R>)->Unit)
 {

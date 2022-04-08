@@ -35,6 +35,7 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -53,7 +54,7 @@ import org.objectweb.asm.Type
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 object L2_GET_RETURNING_FUNCTION : L2Operation(
-	L2OperandType.WRITE_BOXED.named("returning function"))
+	WRITE_BOXED.named("returning function"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

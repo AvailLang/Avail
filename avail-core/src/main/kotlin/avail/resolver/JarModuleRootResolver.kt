@@ -253,7 +253,7 @@ constructor(
 
 	override fun refreshResolverReferenceDigest (
 		reference: ResolverReference,
-		successHandler : (ByteArray, Long) -> Unit,
+		successHandler: (ByteArray, Long) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		// Within a jar file, the digest file is the authoritative mechanism for

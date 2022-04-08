@@ -31,8 +31,12 @@
  */
 package avail.interpreter.primitive.general
 
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
+import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import avail.descriptor.numbers.A_Number
@@ -83,12 +87,12 @@ object P_EmergencyExit : Primitive(
 		val continuation = interpreter.getReifiedContinuation()!!
 		interpreter.primitiveSuspend(interpreter.function!!)
 		dumpStackThen(
-			interpreter.runtime, fiber.textInterface(), continuation
+			interpreter.runtime, fiber.textInterface, continuation
 		) { stack ->
 			val builder = StringBuilder()
 			builder.append(format(
 				"A fiber (%s) has exited: %s",
-				fiber.fiberName(),
+				fiber.fiberName,
 				errorMessageProducer))
 			if (errorMessageProducer.isInt)
 			{
@@ -107,8 +111,8 @@ object P_EmergencyExit : Primitive(
 			builder.append("\n\n")
 			val killer = AvailEmergencyExitException(builder.toString())
 			killer.fillInStackTrace()
-			fiber.setExecutionState(ExecutionState.ABORTED)
-			fiber.failureContinuation()(killer)
+			fiber.executionState = ABORTED
+			(fiber.failureContinuation)(killer)
 			// If we're still here, the handler didn't do anything with the
 			// exception.  Output it and throw it as a runtime exception.
 			System.err.print(builder)

@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.phrases
 
 import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.updateStylers
@@ -74,7 +75,7 @@ object P_SetStyleFunction : Primitive(2, CanSuspend, Unknown)
 		interpreter.checkArgumentCount(2)
 		val definition: A_Definition = interpreter.argument(0)
 		val function: A_Function = interpreter.argument(1)
-		val loader = interpreter.fiber().availLoader()
+		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module
 		if (!loader.phase().isExecuting)

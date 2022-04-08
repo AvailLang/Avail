@@ -85,7 +85,7 @@ abstract class SetBinDescriptor protected constructor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * The low 32 bits are used for the [.BIN_HASH], but the upper 32 can be
+		 * The low 32 bits are used for the [BIN_HASH], but the upper 32 can be
 		 * used by other [BitField]s in subclasses.
 		 */
 		BIN_HASH_AND_MORE;

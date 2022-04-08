@@ -35,6 +35,9 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -54,9 +57,9 @@ import org.objectweb.asm.MethodVisitor
  */
 @ReadsHiddenVariable(CURRENT_FUNCTION::class)
 object L2_MOVE_OUTER_VARIABLE : L2Operation(
-	L2OperandType.INT_IMMEDIATE.named("outer index"),
-	L2OperandType.READ_BOXED.named("function"),
-	L2OperandType.WRITE_BOXED.named("destination"))
+	INT_IMMEDIATE.named("outer index"),
+	READ_BOXED.named("function"),
+	WRITE_BOXED.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

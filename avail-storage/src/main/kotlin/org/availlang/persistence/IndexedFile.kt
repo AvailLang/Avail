@@ -1342,8 +1342,7 @@ internal inline fun <T> ReentrantReadWriteLock.safeWrite (lambda: () -> T) =
  * the underlying `close` operation.
  *
  * @param closeable
- *   A closeable resource. **Must not be `null`**; see
- *   [closeIfNotNull][.closeIfNotNull] to handle that case.
+ *   A closeable resource. **Must not be `null`**.
  */
 internal fun close(closeable: AutoCloseable)
 {

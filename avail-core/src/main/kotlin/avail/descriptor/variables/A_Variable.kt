@@ -42,6 +42,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_String
@@ -390,6 +391,12 @@ interface A_Variable : A_ChunkDependable
 	 *   The name of this global variable/constant.
 	 */
 	fun globalName(): A_String?
+
+	/**
+	 * Read the current value of a variable without tripping any observerless
+	 * mechanisms or checks.  If the variable is unassigned, answer [nil].
+	 */
+	fun getValueForDebugger(): AvailObject
 
 	companion object
 	{

@@ -34,6 +34,9 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -48,9 +51,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_EXTRACT_CONTINUATION_SLOT : L2Operation(
-	L2OperandType.READ_BOXED.named("continuation"),
-	L2OperandType.INT_IMMEDIATE.named("slot index"),
-	L2OperandType.WRITE_BOXED.named("extracted slot"))
+	READ_BOXED.named("continuation"),
+	INT_IMMEDIATE.named("slot index"),
+	WRITE_BOXED.named("extracted slot"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

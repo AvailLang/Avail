@@ -37,6 +37,8 @@ import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -73,8 +75,8 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 		val globals = when
 		{
 			key.getAtomProperty(HERITABLE_KEY.atom).isNil ->
-				fiber.fiberGlobals()
-			else -> fiber.heritableFiberGlobals()
+				fiber.fiberGlobals
+			else -> fiber.heritableFiberGlobals
 		}
 		return interpreter.primitiveSuccess(
 			objectFromBoolean(globals.hasKey(key)))

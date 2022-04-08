@@ -32,8 +32,9 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
@@ -52,8 +53,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_BACK : L2ControlFlowOperation(
-	L2OperandType.PC.named("target", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.READ_BOXED_VECTOR.named("registers to keep"))
+	PC.named("target", SUCCESS),
+	READ_BOXED_VECTOR.named("registers to keep"))
 {
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect get() = true

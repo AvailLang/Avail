@@ -32,6 +32,8 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -63,14 +65,14 @@ object P_FiberResult : Primitive(
 		return with(fiber) {
 			lock {
 				when {
-					!executionState().indicatesTermination
-						|| fiberResult().isNil ->
+					!executionState.indicatesTermination
+						|| fiberResult.isNil ->
 						interpreter.primitiveFailure(
 							E_FIBER_RESULT_UNAVAILABLE)
-					!fiberResult().isInstanceOf(kind().resultType()) ->
+					!fiberResult.isInstanceOf(kind().resultType()) ->
 						interpreter.primitiveFailure(
 							E_FIBER_PRODUCED_INCORRECTLY_TYPED_RESULT)
-					else -> interpreter.primitiveSuccess(fiberResult())
+					else -> interpreter.primitiveSuccess(fiberResult)
 				}
 			}
 		}

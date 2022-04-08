@@ -33,6 +33,7 @@ package avail.interpreter.primitive.compiler
 
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel
+import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.sets.SetDescriptor.Companion.set

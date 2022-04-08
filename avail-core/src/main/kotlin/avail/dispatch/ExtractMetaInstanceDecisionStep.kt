@@ -220,7 +220,7 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d extract meta's instance : known=%s",
+					"(u=%d, p=%d) #%d extract meta's instance: known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,

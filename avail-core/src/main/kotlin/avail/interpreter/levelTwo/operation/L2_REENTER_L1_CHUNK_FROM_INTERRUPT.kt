@@ -32,6 +32,12 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.numSlots
+import avail.descriptor.functions.A_Continuation.Companion.pc
+import avail.descriptor.functions.A_Continuation.Companion.stackAt
+import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.representation.NilDescriptor
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log

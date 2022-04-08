@@ -49,6 +49,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.A_RawFunction.Companion.outerTypeAt
 import avail.descriptor.functions.CompiledCodeDescriptor.Companion.initialMutableDescriptor
@@ -65,6 +66,7 @@ import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.originatingPhraseAtIndex
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
@@ -708,7 +710,7 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			val moduleName = module.run {
 				if (isNil) "No module"
-				else moduleNameNative.split("/").last()
+				else shortModuleNameNative
 			}
 			fields.add(
 				AvailObjectFieldHelper(
@@ -809,7 +811,7 @@ open class CompiledCodeDescriptor protected constructor(
 	}
 
 	override fun o_MaxStackDepth(self: AvailObject) =
-		(self.numSlots() - self.numArgs() - self.numLocals)
+		(self.numSlots - self.numArgs() - self.numLocals)
 
 	override fun o_MethodName(self: AvailObject): A_String = methodName
 
@@ -898,7 +900,7 @@ open class CompiledCodeDescriptor protected constructor(
 	/**
 	 * Answer the [Statistic] used to record the cost of explicitly type
 	 * checking returns from the raw function.  These are also collected into
-	 * the [.returnerCheckStatisticsByName], to ensure unloading/reloading
+	 * the [returnerCheckStatisticsByName], to ensure unloading/reloading
 	 * a module will reuse the same statistic objects.
 	 *
 	 * @param self
@@ -927,7 +929,7 @@ open class CompiledCodeDescriptor protected constructor(
 	/**
 	 * Answer the [Statistic] used to record the cost of explicitly type
 	 * checking returns back into the raw function.  These are also collected
-	 * into the [.returneeCheckStatisticsByName], to ensure
+	 * into the [returneeCheckStatisticsByName], to ensure
 	 * unloading/reloading a module will reuse the same statistic objects.
 	 *
 	 * @param self

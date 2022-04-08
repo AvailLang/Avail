@@ -34,7 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Continuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -60,8 +61,8 @@ import org.objectweb.asm.Opcodes
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_JUMP_IF_ALREADY_REIFIED : L2ConditionalJump(
-	PC.named("already reified", L2NamedOperandType.Purpose.SUCCESS),
-	PC.named("not yet interrupt", L2NamedOperandType.Purpose.FAILURE))
+	PC.named("already reified", SUCCESS),
+	PC.named("not yet interrupt", FAILURE))
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

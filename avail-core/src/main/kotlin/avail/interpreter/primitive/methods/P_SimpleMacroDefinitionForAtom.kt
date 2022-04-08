@@ -37,6 +37,7 @@ import avail.compiler.splitter.MessageSplitter.Metacharacter
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
@@ -98,7 +99,7 @@ object P_SimpleMacroDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val function = interpreter.argument(2)
 
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader() ?:
+		val loader = fiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{

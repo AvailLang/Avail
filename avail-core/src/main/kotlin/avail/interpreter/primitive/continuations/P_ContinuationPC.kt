@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.continuations
 
+import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.functions.FunctionDescriptor

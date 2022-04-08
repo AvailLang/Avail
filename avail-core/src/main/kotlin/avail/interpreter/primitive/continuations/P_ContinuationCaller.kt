@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.continuations
 
+import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type

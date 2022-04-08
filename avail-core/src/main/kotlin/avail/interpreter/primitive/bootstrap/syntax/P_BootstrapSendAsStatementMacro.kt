@@ -34,6 +34,7 @@ package avail.interpreter.primitive.bootstrap.syntax
 
 import avail.compiler.AvailRejectedParseException
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.SILENT
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
@@ -70,7 +71,7 @@ object P_BootstrapSendAsStatementMacro : Primitive(1, CanInline, Bootstrap)
 		interpreter.checkArgumentCount(1)
 		val sendPhraseInLiteral = interpreter.argument(0)
 
-		interpreter.fiber().availLoader() ?:
+		interpreter.fiber().availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 
 		val sendPhrase = sendPhraseInLiteral.token.literal()

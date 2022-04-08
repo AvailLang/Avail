@@ -975,6 +975,12 @@ class TypeConsistencyTest
 							null)
 						PhraseKind.MACRO_SUBSTITUTION_PHRASE -> addMultiHelper(
 							kind, topNode, anyNode)
+						PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE ->
+							addMultiHelper(
+								kind,
+								anyNode,
+								TUPLE,
+								SET)
 					}
 				}
 			}

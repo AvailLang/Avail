@@ -33,7 +33,7 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.ARBITRARY_CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
@@ -69,7 +69,7 @@ object L2_REIFY : L2ControlFlowOperation(
 	INT_IMMEDIATE.named("capture frames"),
 	INT_IMMEDIATE.named("process interrupt"),
 	ARBITRARY_CONSTANT.named("statistic"),
-	PC.named("on reification", Purpose.OFF_RAMP))
+	PC.named("on reification", OFF_RAMP))
 {
 	/**
 	 * An enumeration of reasons for reification, for the purpose of

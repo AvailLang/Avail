@@ -208,7 +208,7 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 * actual variable's inner type must be this or a supertype.
 	 */
 	@Suppress("LeakingThis")
-	val failureVariableType : AvailObject =
+	val failureVariableType: AvailObject =
 		privateFailureVariableType().makeShared()
 
 	/**

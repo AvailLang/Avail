@@ -219,7 +219,7 @@ object L2_LOOKUP_BY_VALUES : L2ControlFlowOperation(
 	 * The error codes that can be produced by a failed lookup.
 	 */
 	@JvmField
-	val lookupErrorsType : A_Type =
+	val lookupErrorsType: A_Type =
 		enumerationWith(set(
 			E_NO_METHOD,
 			E_NO_METHOD_DEFINITION,

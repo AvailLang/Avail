@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -60,7 +61,7 @@ object P_HasResult : Primitive(
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(fiber.fiberResult().notNil))
+			objectFromBoolean(fiber.fiberResult.notNil))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

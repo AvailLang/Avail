@@ -44,6 +44,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AvailObject
@@ -51,10 +52,14 @@ import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.A_Type.Companion.instance
+import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NUMBER
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
+import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.utility.Strings
 import java.util.IdentityHashMap
 
@@ -147,13 +152,15 @@ class L1Disassembler constructor(
 	/**
 	 * Output the disassembly to the given StringBuilder.
 	 *
-	 * @property builder
+	 * @param builder
 	 *   The [StringBuilder] onto which to describe the level one instructions.
-	 * @property recursionMap
+	 * @param recursionMap
 	 *   The (mutable) [IdentityHashMap] of [A_BasicObject]s to avoid recursing
 	 *   into while printing the [level&#32;one][L1Operation].
-	 * @property indent
+	 * @param indent
 	 *   The number of tabs to output after each line break.
+	 * @param highlightPc
+	 *   The optional pc at which to show a highlight.
 	 */
 	fun print(
 		builder: StringBuilder,
@@ -162,6 +169,40 @@ class L1Disassembler constructor(
 		highlightPc: Int = -1)
 	{
 		val tabs = Strings.repeated("\t", indent)
+		printInstructions(recursionMap, indent) { pc, line, string ->
+			if (pc != 1)
+			{
+				builder.append("\n")
+			}
+			if (pc == highlightPc)
+			{
+				builder.append(" \uD83D\uDD35==> ")
+			}
+			builder.append("$tabs$pc. [:$line] $string")
+		}
+	}
+
+	/**
+	 * Output the disassembly, one instruction at a time, to the provided
+	 * function that takes the instruction pc and print representation.
+	 *
+	 * @param recursionMap
+	 *   The (mutable) [IdentityHashMap] of [A_BasicObject]s to avoid recursing
+	 *   into while printing the [level&#32;one][L1Operation].
+	 * @param indent
+	 *   The number of tabs to output after each line break.
+	 * @param action
+	 *   What to do with each pc, source line number, and corresponding
+	 *   disassembled instruction.
+	 */
+	fun printInstructions(
+		recursionMap: IdentityHashMap<A_BasicObject, Void>,
+		indent: Int,
+		action: (Int, Int, String)->Unit)
+	{
+		val tempBuilder = StringBuilder()
+		var instructionPc = -1
+		var instructionLine = -1
 		val visitor = object : L1DisassemblyVisitor
 		{
 			override fun startOperation(
@@ -169,57 +210,53 @@ class L1Disassembler constructor(
 				pc: Int,
 				line: Int)
 			{
-				if (pc != 1)
-				{
-					builder.append("\n")
-				}
-				if (pc == highlightPc) {
-					builder.append(" \uD83D\uDD35==> ")
-				}
-				builder.append("$tabs$pc. [:$line] ")
-				builder.append(operation.name)
+				instructionPc = pc
+				instructionLine = line
+				tempBuilder.append(operation.shortName())
 				if (operation.operandTypes.isNotEmpty()) {
-					builder.append("(")
+					tempBuilder.append(" ")
 				}
 			}
 
 			override fun betweenOperands()
 			{
-				builder.append(", ")
+				tempBuilder.append(", ")
 			}
 
 			override fun endOperation(operation: L1Operation)
 			{
-				if (operation.operandTypes.isNotEmpty())
-				{
-					builder.append(")")
-				}
+				action(instructionPc, instructionLine, tempBuilder.toString())
+				tempBuilder.clear()
 			}
 
 			override fun doImmediate(index: Int)
 			{
-				builder.append("immediate=$index")
+				tempBuilder.append("#$index")
 			}
 
 			override fun doLiteral(index: Int)
 			{
-				builder.append("literal#$index")
-				val literal = code.literalAt(index)
-				builder.append(" = ")
-				literal.printOnAvoidingIndent(builder, recursionMap, indent + 1)
+				val value = code.literalAt(index)
+				val (print, _) = simplePrintable(value)
+				when (print)
+				{
+					null -> value.printOnAvoidingIndent(
+						tempBuilder, recursionMap, indent + 1)
+					else -> tempBuilder.append(print)
+				}
 			}
 
 			override fun doLocal(index: Int)
 			{
-				when {
-					index <= code.numArgs() -> builder.append("arg#$index")
-					else -> builder.append("local#${index - code.numArgs()}")
-				}
+				val name = allDeclarationNames[index - 1]
+				tempBuilder.append(name)
 			}
 
 			override fun doOuter(index: Int)
 			{
-				builder.append("outer#$index")
+				val i = index + (allDeclarationNames.size - code.numOuters)
+				val name = allDeclarationNames[i - 1]
+				tempBuilder.append(name)
 			}
 		}
 		visit(visitor)
@@ -252,11 +289,13 @@ class L1Disassembler constructor(
 				currentOperationPc = pc
 				operandValues.clear()
 				nameBuilder.clear()
-				if (pc == highlightPc) {
+				if (pc == highlightPc)
+				{
 					nameBuilder.append(" \uD83D\uDD35==> ")
 				}
 				nameBuilder.append("$pc. [:$line] ${operation.shortName()}")
-				if (operation.operandTypes.isNotEmpty()) {
+				if (operation.operandTypes.isNotEmpty())
+				{
 					nameBuilder.append(" (")
 				}
 			}
@@ -272,14 +311,17 @@ class L1Disassembler constructor(
 				{
 					nameBuilder.append(")")
 				}
-				slots.add(AvailObjectFieldHelper(
-					code,
-					DUMMY_DEBUGGER_SLOT,
-					currentOperationPc,
-					tupleFromList(operandValues),
-					slotName = "Instruction",
-					forcedName = nameBuilder.toString(),
-					forcedChildren = operandValues.toTypedArray()))
+				slots.add(
+					AvailObjectFieldHelper(
+						code,
+						DUMMY_DEBUGGER_SLOT,
+						currentOperationPc,
+						tupleFromList(operandValues),
+						slotName = "Instruction",
+						forcedName = nameBuilder.toString(),
+						forcedChildren = operandValues.toTypedArray()
+					)
+				)
 			}
 
 			override fun doImmediate(index: Int)
@@ -287,77 +329,23 @@ class L1Disassembler constructor(
 				nameBuilder.append("immediate=$index")
 			}
 
-			/**
-			 * Answer two things: (1) What object to print directly after the
-			 * operand index, or null if none; (2) Whether to present the object
-			 * as a sub-object for navigating in the debugger.
-			 *
-			 * When invoked on the instance of an instanceMeta (or the
-			 * instance's instance of a meta-metatype) the nullity of the first
-			 * value determines whether the original value should be printed,
-			 * and the second value is ignored.
-			 *
-			 * @param value
-			 *        The value to check for simple printability.
-			 * @return Whether to print the value instead of deconstructing it.
-			 */
-			private fun simplePrintable(value: AvailObject) =
-				when {
-					// Show some things textually.
-					value.isNil -> value to false
-					value.isString -> value to false
-					value.isInstanceOf(NUMBER.o) -> value to false
-					value.isInstanceOf(MESSAGE_BUNDLE.o) ->
-						value.message.atomName to true
-					value.isInstanceOf(METHOD.o) -> value to true
-					value.isAtom -> value.atomName to true
-					value.isCharacter -> value to false
-					!value.isType -> value to true
-					value.isTop -> value to false
-					value.traversed().descriptor() is PrimitiveTypeDescriptor ->
-						value to false
-					value.isBottom -> value to false
-					else -> null to true
-				}
-
 			override fun doLiteral(index: Int)
 			{
 				nameBuilder.append("literal#$index")
 				val value = code.literalAt(index)
-				val (print, expand) = simplePrintable(value)
-				if (expand) operandValues.add(value)
-				if (print !== null)
-				{
-					nameBuilder.append(" = $print")
-				}
-				else if (value.isInstanceMeta)
-				{
-					val instance = value.instance
-					val (print2, _) = simplePrintable(instance)
-					if (print2 !== null)
-					{
-						nameBuilder.append(" = $print2's type")
-					}
-					else if (instance.isInstanceMeta)
-					{
-						val instanceInstance = instance.instance
-						val (print3, _) = simplePrintable(instanceInstance)
-						if (print3 !== null)
-						{
-							nameBuilder.append(" = $print3's type's type")
-						}
-					}
-				}
+				printIfSimple(value, nameBuilder, operandValues)
 			}
 
 			override fun doLocal(index: Int)
 			{
 				val name = allDeclarationNames[index - 1]
 				nameBuilder.append(
-					when {
+					when
+					{
 						index <= code.numArgs() -> "arg#$index = $name"
 						else -> "local#${index - code.numArgs()} = $name"
-					})
+					}
+				)
 			}
 
 			override fun doOuter(index: Int)
@@ -369,5 +357,97 @@ class L1Disassembler constructor(
 		}
 		visit(visitor)
 		return slots
+	}
+
+	private fun printIfSimple(
+		value: AvailObject,
+		builder: StringBuilder,
+		operandValues: MutableList<AvailObject>? = null,
+		depth: Int = 0)
+	{
+		if (depth > 3)
+		{
+			builder.append("***depth***")
+			return
+		}
+		val (print, expand) = simplePrintable(value)
+		if (depth == 0 && expand && operandValues != null)
+		{
+			operandValues.add(value)
+		}
+		if (print !== null)
+		{
+			builder.append(" = $print")
+			return
+		}
+		if (value.isInstanceOf(mostGeneralVariableType))
+		{
+			// Allow
+			builder.append("var(")
+			val variableValue = value.value()
+			printIfSimple(variableValue, builder, null, depth + 1)
+			builder.append(")")
+			return
+		}
+		if (!value.isType || !value.instanceCount.equalsInt(1)) return
+		// It's an instance type or instance meta.
+		val instance = value.instance
+		val (print2, _) = simplePrintable(instance)
+		if (print2 !== null)
+		{
+			builder.append(" = $print2's type")
+			return
+		}
+		if (!instance.isType || !instance.instanceCount.equalsInt(1)) return
+		// It's an instance meta.
+		val instanceInstance = instance.instance
+		val (print3, _) = simplePrintable(instanceInstance)
+		if (print3 !== null)
+		{
+			builder.append(" = $print3's type's type")
+		}
+		else
+		{
+			builder.append(" = (some metatype)")
+		}
+	}
+
+	companion object
+	{
+		/**
+		 * Answer two things: (1) What object to print directly after the
+		 * operand index, or null if none; (2) Whether to present the object
+		 * as a sub-object for navigating in the debugger.
+		 *
+		 * When invoked on the instance of an instanceMeta (or the
+		 * instance's instance of a meta-metatype) the nullity of the first
+		 * value determines whether the original value should be printed,
+		 * and the second value is ignored.
+		 *
+		 * @param value
+		 *        The value to check for simple printability.
+		 * @return Whether to print the value instead of deconstructing it.
+		 */
+		fun simplePrintable(value: AvailObject) =
+			when {
+				// Show some things textually.
+				value.isNil -> value to false
+				value.isString -> value to false
+				value.isInstanceOf(NUMBER.o) -> value to false
+				value.isInstanceOf(MESSAGE_BUNDLE.o) ->
+					value.message.atomName to true
+				value.isInstanceOf(METHOD.o) -> value to true
+				value.isAtom -> value.atomName to true
+				value.isCharacter -> value to false
+				value.equals(mostGeneralTupleType) -> value to false
+				value.equals(stringType) -> value to false
+				value.isInstanceOf(mostGeneralVariableType) -> null to true
+				!value.isType -> value to true
+				value.isTop -> value to false
+				value.traversed().descriptor() is PrimitiveTypeDescriptor ->
+					value to false
+				value.isBottom -> value to false
+				else -> null to true
+			}
 	}
 }

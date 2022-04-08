@@ -191,7 +191,7 @@ object P_BootstrapLexerStringBody
 				}
 				'\r' ->
 				{
-					// Transform \r or \r\n in the source into \n.
+					// *Transform* \r or \r\n in the source into \n.
 					if (scanner.hasNext() && scanner.peek() == '\n'.code)
 					{
 						scanner.next()
@@ -313,28 +313,28 @@ object P_BootstrapLexerStringBody
 			var digitCount = 0
 			while (c != ','.code && c != ')'.code)
 			{
-				if (c >= '0'.code && c <= '9'.code)
+				when (c)
 				{
-					value = (value shl 4) + c - '0'.code
-					digitCount++
+					in '0'.code .. '9'.code ->
+					{
+						value = (value shl 4) + c - '0'.code
+					}
+					in 'A'.code .. 'F'.code ->
+					{
+						value = (value shl 4) + c - 'A'.code + 10
+					}
+					in 'a'.code .. 'f'.code ->
+					{
+						value = (value shl 4) + c - 'a'.code + 10
+					}
+					else ->
+					{
+						throw AvailRejectedParseException(
+							STRONG,
+							"a hex digit or comma or closing parenthesis")
+					}
 				}
-				else if (c >= 'A'.code && c <= 'F'.code)
-				{
-					value = (value shl 4) + c - 'A'.code + 10
-					digitCount++
-				}
-				else if (c >= 'a'.code && c <= 'f'.code)
-				{
-					value = (value shl 4) + c - 'a'.code + 10
-					digitCount++
-				}
-				else
-				{
-					throw AvailRejectedParseException(
-						STRONG,
-						"a hex digit or comma or closing parenthesis")
-				}
-				if (digitCount > 6)
+				if (++digitCount > 6)
 				{
 					throw AvailRejectedParseException(
 						STRONG,
@@ -360,7 +360,13 @@ object P_BootstrapLexerStringBody
 			stringBuilder.appendCodePoint(value)
 			if (c == ','.code)
 			{
+				// Skip whitespace after a comma.
 				c = scanner.next()
+				while (scanner.hasNext()
+					&& Character.isWhitespace(scanner.peek()))
+				{
+					scanner.next()
+				}
 			}
 		}
 	}

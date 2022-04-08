@@ -39,6 +39,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.COMMENT
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -54,8 +56,8 @@ import org.objectweb.asm.Opcodes
 
 /**
  * This marks the entry point into optimized (level two) code.  At entry, the
- * arguments are expected to be in the [Interpreter.argsBuffer].  Set up
- * fresh registers for this chunk, but do not write to them yet.
+ * arguments are expected to be in the [Interpreter.argsBuffer].  Set up fresh
+ * registers for this chunk, but do not write to them yet.
  *
  * This instruction also occurs at places that a reified continuation can be
  * re-entered, such as returning into it, restarting it, or continuing it after
@@ -64,8 +66,8 @@ import org.objectweb.asm.Opcodes
 @ReadsHiddenVariable(CURRENT_CONTINUATION::class)
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_ENTER_L2_CHUNK : L2Operation(
-	L2OperandType.INT_IMMEDIATE.named("entry point offset in default chunk"),
-	L2OperandType.COMMENT.named("chunk entry point name"))
+	INT_IMMEDIATE.named("entry point offset in default chunk"),
+	COMMENT.named("chunk entry point name"))
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

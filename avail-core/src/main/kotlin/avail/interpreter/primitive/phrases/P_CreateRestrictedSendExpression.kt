@@ -40,6 +40,11 @@ import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.priority
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.A_RawFunction
@@ -124,7 +129,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 		val returnType = interpreter.argument(2)
 
 		val originalFiber = currentFiber()
-		val loader = originalFiber.availLoader() ?:
+		val loader = originalFiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val argExpressions = argsListPhrase.expressionsTuple
 		val argsCount = argExpressions.tupleSize
@@ -245,7 +250,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			{
 				val finalCount = fiberCount++
 				val forkedFiber = newFiber(
-					topMeta(), originalFiber.priority()
+					runtime, topMeta(), originalFiber.priority
 				) {
 					stringFrom(
 						"Semantic restriction checker (#"
@@ -254,10 +259,10 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 							+ this@P_CreateRestrictedSendExpression.javaClass
 							.simpleName)
 				}
-				forkedFiber.setAvailLoader(loader)
-				forkedFiber.setHeritableFiberGlobals(
-					originalFiber.heritableFiberGlobals())
-				forkedFiber.setTextInterface(originalFiber.textInterface())
+				forkedFiber.availLoader = loader
+				forkedFiber.heritableFiberGlobals =
+					originalFiber.heritableFiberGlobals
+				forkedFiber.textInterface = originalFiber.textInterface
 				forkedFiber.setSuccessAndFailure(success) { throwable ->
 					when (throwable)
 					{

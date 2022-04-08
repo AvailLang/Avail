@@ -167,13 +167,13 @@ class LexerDescriptor private constructor(
 		self: AvailObject,
 		builder: StringBuilder,
 		recursionMap: IdentityHashMap<A_BasicObject, Void>,
-		indent: Int
-	) {
+		indent: Int)
+	{
 		self.lexerMethod.bundles.joinTo(
 			buffer = builder,
 			separator = " a.k.a. ",
-			prefix = "Lexer for "
-		) {
+			prefix = "Lexer for ")
+		{
 			it.message.toString()
 		}
 	}

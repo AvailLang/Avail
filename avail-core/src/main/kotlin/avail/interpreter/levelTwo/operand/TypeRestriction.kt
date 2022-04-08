@@ -594,6 +594,30 @@ class TypeRestriction private constructor(
 			flags)
 
 	/**
+	 * Create the asymmetric difference of the receiver and each of the given
+	 * exact values.  This is the restriction that a register would have if it
+	 * held a value that satisfied the receiver, but failed a value comparison
+	 * against each of the given values.
+	 *
+	 * @param valuesToExclude
+	 *   The values to exclude from the receiver to create a new
+	 *   [TypeRestriction].
+	 * @return
+	 *   The new type restriction.
+	 */
+	fun minusValues(valuesToExclude: Iterable<A_BasicObject>) =
+		restriction(
+			type,
+			constantOrNull,
+			excludedTypes,
+			excludedValues + valuesToExclude,
+			positiveGroup.objectVariants,
+			negativeGroup.objectVariants,
+			positiveGroup.objectTypeVariants,
+			negativeGroup.objectTypeVariants,
+			flags)
+
+	/**
 	 * Create the intersection of the receiver with the given object variant
 	 * [ObjectLayoutVariant].  This is the restriction that a register would
 	 * have if it were already known to satisfy the receiver restriction, and

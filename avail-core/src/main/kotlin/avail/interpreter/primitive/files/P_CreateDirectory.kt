@@ -33,6 +33,9 @@
 package avail.interpreter.primitive.files
 
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -109,13 +112,16 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
+				runtime,
 				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
-			{ formatString("Asynchronous create directory, %s", path) }
-		newFiber.setAvailLoader(current.availLoader())
-		newFiber.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
-		newFiber.setTextInterface(current.textInterface())
+			{
+				formatString("Asynchronous create directory, %s", path)
+			}
+		newFiber.availLoader = current.availLoader
+		newFiber.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
+		newFiber.textInterface = current.textInterface
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

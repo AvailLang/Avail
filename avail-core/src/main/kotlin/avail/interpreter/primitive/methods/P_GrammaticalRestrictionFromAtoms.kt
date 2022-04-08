@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor
@@ -75,7 +76,7 @@ object P_GrammaticalRestrictionFromAtoms : Primitive(2, Unknown)
 		interpreter.checkArgumentCount(2)
 		val atomSet = interpreter.argument(0)
 		val exclusionsTuple = interpreter.argument(1)
-		val loader = interpreter.fiber().availLoader()
+		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{

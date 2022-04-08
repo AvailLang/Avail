@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.general
 
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -65,7 +66,7 @@ object P_MarkStandardInputStream : Primitive(1, CanInline, HasSideEffect)
 		interpreter.checkArgumentCount(1)
 		val readAhead = interpreter.argument(0)
 		val readAheadInt = readAhead.extractInt
-		val channel = interpreter.fiber().textInterface().inputChannel
+		val channel = interpreter.fiber().textInterface.inputChannel
 		try
 		{
 			channel.mark(readAheadInt)

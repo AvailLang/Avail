@@ -1915,7 +1915,7 @@ class IntegerDescriptor private constructor(
 		/**
 		 * Compute the hash of the given Avail integer object.  Note that if the
 		 * input is within the range of an [Int], it should produce the same
-		 * value as the equivalent invocation of [.computeHashOfInt].
+		 * value as the equivalent invocation of [computeHashOfInt].
 		 *
 		 * @param anIntegerObject
 		 * An Avail integer to be hashed.

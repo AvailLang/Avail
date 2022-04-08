@@ -475,34 +475,33 @@ is
 	test : []→⊤,
 	optionalException : exception's type?
 |
+	Set name of function implementation test's implementation to "TEST: " ++ name;
+	trueName ::= atom for name;
+	unitTest ::= a unit test with
+		test ID ::= trueName,
+		suite ID ::= suiteID,
+		body ::= test,
+		platform optionality ::= platformOptionality,
+		expected exception type ::= optionalException;
 	Lock suite lock for
 	[
-		Set name of function implementation test's implementation to "TEST: " ++ name;
-		trueName ::= atom for name;
 		If trueName ∈ tests by atom then
 		[
 			Raise a test-already-exists exception with test ID ::= trueName
 		];
 		Remember the current module;
-		unitTest ::= a unit test with
-			test ID ::= trueName,
-			suite ID ::= suiteID,
-			body ::= test,
-			platform optionality ::= platformOptionality,
-			expected exception type ::= optionalException;
-		tests by atom := tests by atom + trueName→unitTest;
+		↑tests by atom[trueName] := unitTest;
 		suite ::= suites by atom[suiteID] else
 			[
 				Raise a no-such-test-suite exception with suite ID ::= suiteID
 			];
 		suiteTests ::= suite's unit tests ++ <unitTest>;
-		suites by atom :=
-			suites by atom + suiteID→suite's unit tests ::= suiteTests;
+		↑suites by atom [suiteID] := (suite's unit tests ::= suiteTests);
 		/* Arrange to forget the test suite when its defining module is
 		 * unloaded.
 		 */
-		After the current module is unloaded, do [Forget unitTest;];
 	];
+	After the current module is unloaded, do [Forget unitTest;];
 ] : ⊤;
 
 /**

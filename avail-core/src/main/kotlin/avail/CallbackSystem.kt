@@ -71,7 +71,7 @@ import kotlin.concurrent.read
  * [pojo][PojoDescriptor] inside an Avail exception, and rethrown within Avail.
  *
  * Note that the [AvailRuntime] that's responsible for the [A_Fiber] doing the
- * callback contains a `CallbackSystem` whose [.callbackExecutor]'s worker
+ * callback contains a `CallbackSystem` whose [callbackExecutor]'s worker
  * threads are responsible for performing the callback to the Java lambda.
  * Performing a long computation, significant wait, or unbounded blocking may
  * negatively affect execution of other callbacks, so it's recommended that

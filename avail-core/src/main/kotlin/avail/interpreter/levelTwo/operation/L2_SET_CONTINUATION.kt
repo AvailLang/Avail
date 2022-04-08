@@ -34,6 +34,7 @@ package avail.interpreter.levelTwo.operation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.WritesHiddenVariable
@@ -49,7 +50,7 @@ import org.objectweb.asm.MethodVisitor
  */
 @WritesHiddenVariable(CURRENT_CONTINUATION::class)
 object L2_SET_CONTINUATION : L2Operation(
-	L2OperandType.READ_BOXED.named("replacement continuation"))
+	READ_BOXED.named("replacement continuation"))
 {
 	// It updates the current continuation of the interpreter.
 	override val hasSideEffect get() = true

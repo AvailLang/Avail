@@ -220,7 +220,7 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d extract phrase yield type : known=%s",
+					"(u=%d, p=%d) #%d extract phrase yield type: known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,

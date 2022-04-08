@@ -35,6 +35,7 @@ package avail.interpreter.primitive.methods
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
@@ -77,7 +78,7 @@ object P_SealMethodsAtExistingDefinitions : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val methodNames = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader()
+		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{

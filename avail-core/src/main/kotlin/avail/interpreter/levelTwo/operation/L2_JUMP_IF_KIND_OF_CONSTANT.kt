@@ -33,8 +33,12 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -50,10 +54,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_KIND_OF_CONSTANT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("value"),
-	L2OperandType.CONSTANT.named("constant type"),
-	L2OperandType.PC.named("is kind", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("is not kind", L2NamedOperandType.Purpose.FAILURE))
+	READ_BOXED.named("value"),
+	CONSTANT.named("constant type"),
+	PC.named("is kind", SUCCESS),
+	PC.named("is not kind", FAILURE))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

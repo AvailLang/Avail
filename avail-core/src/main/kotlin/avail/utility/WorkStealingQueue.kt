@@ -30,7 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail
+package avail.utility
 
 import avail.interpreter.execution.Interpreter
 import java.util.AbstractQueue

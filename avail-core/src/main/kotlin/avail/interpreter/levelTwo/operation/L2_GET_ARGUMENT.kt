@@ -36,6 +36,8 @@ import avail.interpreter.JavaLibrary.listGetMethod
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_ARGUMENTS
 import avail.interpreter.levelTwo.ReadsHiddenVariable
@@ -55,8 +57,8 @@ import org.objectweb.asm.Type
  */
 @ReadsHiddenVariable(CURRENT_ARGUMENTS::class)
 object L2_GET_ARGUMENT : L2Operation(
-	L2OperandType.INT_IMMEDIATE.named("zeroIndex into argsBuffer"),
-	L2OperandType.WRITE_BOXED.named("argument"))
+	INT_IMMEDIATE.named("zeroIndex into argsBuffer"),
+	WRITE_BOXED.named("argument"))
 {
 	// Keep this instruction pinned in place for safety during inlining.
 	override val hasSideEffect get() = true

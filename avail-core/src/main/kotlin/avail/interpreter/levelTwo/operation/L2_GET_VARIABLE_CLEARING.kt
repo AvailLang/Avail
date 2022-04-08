@@ -40,7 +40,8 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -64,9 +65,9 @@ import org.objectweb.asm.Type
  */
 object L2_GET_VARIABLE_CLEARING : L2ControlFlowOperation(
 	READ_BOXED.named("variable"),
-	WRITE_BOXED.named("extracted value", Purpose.SUCCESS),
-	PC.named("read succeeded", Purpose.SUCCESS),
-	PC.named("read failed", Purpose.OFF_RAMP))
+	WRITE_BOXED.named("extracted value", SUCCESS),
+	PC.named("read succeeded", SUCCESS),
+	PC.named("read failed", OFF_RAMP))
 {
 	// Subtle. Reading from a variable can fail, so don't remove this.
 	// Also it clears the variable.

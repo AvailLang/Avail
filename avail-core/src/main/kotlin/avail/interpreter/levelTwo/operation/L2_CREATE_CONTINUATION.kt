@@ -37,6 +37,12 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.COMMENT
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -56,15 +62,15 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_CREATE_CONTINUATION : L2Operation(
-	L2OperandType.READ_BOXED.named("function"),
-	L2OperandType.READ_BOXED.named("caller"),
-	L2OperandType.INT_IMMEDIATE.named("level one pc"),
-	L2OperandType.INT_IMMEDIATE.named("stack pointer"),
-	L2OperandType.READ_BOXED_VECTOR.named("slot values"),
-	L2OperandType.WRITE_BOXED.named("destination"),
-	L2OperandType.READ_INT.named("label address"),
-	L2OperandType.READ_BOXED.named("register dump"),
-	L2OperandType.COMMENT.named("usage comment"))
+	READ_BOXED.named("function"),
+	READ_BOXED.named("caller"),
+	INT_IMMEDIATE.named("level one pc"),
+	INT_IMMEDIATE.named("stack pointer"),
+	READ_BOXED_VECTOR.named("slot values"),
+	WRITE_BOXED.named("destination"),
+	READ_INT.named("label address"),
+	READ_BOXED.named("register dump"),
+	COMMENT.named("usage comment"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

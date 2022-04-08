@@ -34,6 +34,7 @@ package avail.interpreter.primitive.atoms
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.falseObject
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -63,7 +64,7 @@ object P_IsUnambiguousName : Primitive(
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
 		val currentFiber = interpreter.fiber()
-		val loader = currentFiber.availLoader()
+		val loader = currentFiber.availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		return try
 		{

@@ -32,6 +32,9 @@
 package avail.interpreter.primitive.files
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -47,8 +50,8 @@ import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_FILE_EXISTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -106,16 +109,17 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
+			runtime,
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			priorityInt)
 		{
 			stringFrom(
 				"Asynchronous file rename, $sourcePath → $destinationPath")
 		}
-		newFiber.setAvailLoader(current.availLoader())
-		newFiber.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
-		newFiber.setTextInterface(current.textInterface())
+		newFiber.availLoader = current.availLoader
+		newFiber.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
+		newFiber.textInterface = current.textInterface
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

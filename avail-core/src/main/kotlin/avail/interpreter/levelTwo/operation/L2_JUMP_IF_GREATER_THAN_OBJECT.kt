@@ -34,8 +34,11 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -50,10 +53,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_GREATER_THAN_OBJECT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("first value"),
-	L2OperandType.READ_BOXED.named("second value"),
-	L2OperandType.PC.named("if greater", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("if less or equal", L2NamedOperandType.Purpose.FAILURE))
+	READ_BOXED.named("first value"),
+	READ_BOXED.named("second value"),
+	PC.named("if greater", SUCCESS),
+	PC.named("if less or equal", FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

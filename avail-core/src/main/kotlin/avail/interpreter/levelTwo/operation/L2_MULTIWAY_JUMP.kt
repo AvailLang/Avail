@@ -110,7 +110,7 @@ object L2_MULTIWAY_JUMP : L2ConditionalJump(
 		val edges = regenerator.transformOperand(
 			instruction.operand<L2PcVectorOperand>(2))
 
-		val splitTuple : A_Tuple = splitPoints.constant
+		val splitTuple: A_Tuple = splitPoints.constant
 		generateSubtree(
 			generator,
 			value,

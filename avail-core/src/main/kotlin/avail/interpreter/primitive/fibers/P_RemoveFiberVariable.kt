@@ -36,6 +36,8 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
@@ -78,8 +80,8 @@ object P_RemoveFiberVariable : Primitive(
 		val heritable = key.getAtomProperty(HERITABLE_KEY.atom).notNil
 		val globals = when
 		{
-			heritable -> fiber.heritableFiberGlobals()
-			else -> fiber.fiberGlobals()
+			heritable -> fiber.heritableFiberGlobals
+			else -> fiber.fiberGlobals
 		}
 		if (!globals.hasKey(key))
 		{
@@ -87,12 +89,12 @@ object P_RemoveFiberVariable : Primitive(
 		}
 		if (heritable)
 		{
-			fiber.setHeritableFiberGlobals(
-				globals.mapWithoutKeyCanDestroy(key, true))
+			fiber.heritableFiberGlobals =
+				globals.mapWithoutKeyCanDestroy(key, true)
 		}
 		else
 		{
-			fiber.setFiberGlobals(globals.mapWithoutKeyCanDestroy(key, true))
+			fiber.fiberGlobals = globals.mapWithoutKeyCanDestroy(key, true)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

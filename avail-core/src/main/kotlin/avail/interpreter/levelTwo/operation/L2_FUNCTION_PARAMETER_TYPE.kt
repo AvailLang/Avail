@@ -36,6 +36,9 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -51,9 +54,9 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_FUNCTION_PARAMETER_TYPE : L2Operation(
-	L2OperandType.READ_BOXED.named("function"),
-	L2OperandType.INT_IMMEDIATE.named("parameter index"),
-	L2OperandType.WRITE_BOXED.named("parameter type"))
+	READ_BOXED.named("function"),
+	INT_IMMEDIATE.named("parameter index"),
+	WRITE_BOXED.named("parameter type"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

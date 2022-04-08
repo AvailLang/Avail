@@ -31,12 +31,17 @@
  */
 package avail.descriptor.fiber
 
+import avail.AvailDebuggerModel
 import avail.AvailRuntime
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.AvailRuntimeSupport
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
+import avail.descriptor.fiber.A_Fiber.Companion.continuation
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.BREAKPOINT_BLOCK
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.CONTINUATION
 import avail.descriptor.fiber.FiberDescriptor.ObjectSlots.FIBER_GLOBALS
@@ -83,6 +88,7 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.execution.Interpreter.Companion.resumeIfPausedByDebugger
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
 import org.availlang.json.JSONWriter
@@ -249,11 +255,13 @@ class FiberDescriptor private constructor(
 		/**
 		 * The [Lazy]-wrapped nameSupplier provided to the constructor.
 		 */
-		private var lazyNameSupplier = lazy(nameSupplier)
+		private var lazyNameSupplier = lazy { nameSupplier().makeShared() }
 
 		/**
 		 * The name of this fiber.  It's computed lazily from the nameSupplier
-		 * [Function] provided during creation.
+		 * [Function] provided during creation (or updated later).  The
+		 * resulting [A_String] *must* be shared, but the constructor and the
+		 * updater ensure that.
 		 */
 		val name: A_String get() = lazyNameSupplier.value
 
@@ -261,7 +269,7 @@ class FiberDescriptor private constructor(
 		 * Replace the [nameSupplier].  This also clears the cached name.
 		 */
 		fun nameSupplier(nameSupplier: ()->A_String) {
-			lazyNameSupplier = lazy(nameSupplier)
+			lazyNameSupplier = lazy { nameSupplier().makeShared() }
 		}
 
 		/**
@@ -346,6 +354,16 @@ class FiberDescriptor private constructor(
 			// suspended, adjusted to be a fiber time.
 			else -> suspended - clockBiasNanos
 		}
+
+		/** The [AvailDebuggerModel] that has captured this fiber, if any. */
+		var debugger: AvailDebuggerModel? = null
+
+		/**
+		 * A function which checks whether the given fiber should run, based on
+		 * what has been set up by the debugger.  This *must* be non-null
+		 * whenever the fiber is captured by a debugger.
+		 */
+		var debuggerRunCondition: ((A_Fiber)->Boolean)? = null
 	}
 
 	/** The interpretation of the [FiberHelper]'s [flags][FiberHelper.flags]. */
@@ -571,7 +589,11 @@ class FiberDescriptor private constructor(
 		RUNNING(
 			false,
 			false,
-			{ setOf(SUSPENDED, INTERRUPTED, PARKED, TERMINATED, ABORTED) }),
+			{
+				setOf(
+					SUSPENDED, INTERRUPTED, PARKED, PAUSED, TERMINATED, ABORTED)
+			}),
+
 		/**
 		 * The fiber has been suspended.
 		 */
@@ -591,6 +613,11 @@ class FiberDescriptor private constructor(
 		 * The fiber is asleep.
 		 */
 		ASLEEP(true, false, { setOf(SUSPENDED) }),
+
+		/**
+		 * The fiber was [RUNNING], but was paused by an [AvailDebuggerModel].
+		 */
+		PAUSED(true, false, { setOf(RUNNING) }),
 
 		/**
 		 * The fiber has terminated successfully.
@@ -756,12 +783,6 @@ class FiberDescriptor private constructor(
 		globals: A_Map
 	) = self.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals)
 
-	override fun o_BreakpointBlock(self: AvailObject): A_BasicObject =
-		self.mutableSlot(BREAKPOINT_BLOCK)
-
-	override fun o_SetBreakpointBlock(self: AvailObject, value: AvailObject) =
-		self.setMutableSlot(BREAKPOINT_BLOCK, value)
-
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? = helper.loader
 
 	override fun o_SetAvailLoader(
@@ -890,16 +911,17 @@ class FiberDescriptor private constructor(
 		self: AvailObject,
 		whenReified: (A_Continuation) -> Unit
 	) = self.lock {
-		when (self.executionState()) {
+		when (self.executionState) {
 			ExecutionState.ABORTED,
 			ExecutionState.ASLEEP,
 			ExecutionState.INTERRUPTED,
 			ExecutionState.PARKED,
 			ExecutionState.RETIRED,
 			ExecutionState.SUSPENDED,
+			ExecutionState.PAUSED,
 			ExecutionState.TERMINATED,
 			ExecutionState.UNSTARTED -> {
-				whenReified(self.continuation().makeShared())
+				whenReified(self.continuation.makeShared())
 			}
 			ExecutionState.RUNNING -> {
 				helper.reificationWaiters.add(whenReified)
@@ -921,9 +943,9 @@ class FiberDescriptor private constructor(
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("fiber") }
-			at("fiber name") { self.fiberName().writeTo(writer) }
+			at("fiber name") { self.fiberName.writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.lowercase())
+				write(self.executionState.name.lowercase())
 			}
 			val result = self.mutableSlot(RESULT)
 			if (result.notNil)
@@ -935,9 +957,9 @@ class FiberDescriptor private constructor(
 	override fun o_WriteSummaryTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
 			at("kind") { write("fiber") }
-			at("fiber name") { self.fiberName().writeTo(writer) }
+			at("fiber name") { self.fiberName.writeTo(writer) }
 			at("execution state") {
-				write(self.executionState().name.lowercase())
+				write(self.executionState.name.lowercase())
 			}
 		}
 
@@ -956,6 +978,13 @@ class FiberDescriptor private constructor(
 		self.slot(SUSPENDING_FUNCTION)
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder = helper.debugLog
+
+	override fun o_ReleaseFromDebugger(self: AvailObject)
+	{
+		helper.debugger = null
+		helper.debuggerRunCondition = null
+		resumeIfPausedByDebugger(self)
+	}
 
 	override fun <T> o_Lock(self: AvailObject, body: ()->T): T =
 		when (val interpreter = Interpreter.currentOrNull()) {
@@ -1006,6 +1035,9 @@ class FiberDescriptor private constructor(
 		/** The priority for invalidating expired L2 chunks in bulk. */
 		const val bulkL2InvalidationPriority = 90
 
+		/** The priority for debugger operations. */
+		const val debuggerPriority = 80
+
 		/**
 		 * Look up the [declaration][DeclarationPhraseDescriptor] with the given
 		 * name in the current compiler scope.  This information is associated
@@ -1023,7 +1055,7 @@ class FiberDescriptor private constructor(
 			name: A_String
 		): A_Phrase? {
 			val fiber = currentFiber()
-			val fiberGlobals = fiber.fiberGlobals()
+			val fiberGlobals = fiber.fiberGlobals
 			val clientData: A_Map =
 				fiberGlobals.mapAt(SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom)
 			val bindings: A_Map =
@@ -1049,7 +1081,7 @@ class FiberDescriptor private constructor(
 			val clientDataGlobalKey = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom
 			val compilerScopeMapKey = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom
 			val fiber = currentFiber()
-			var fiberGlobals = fiber.fiberGlobals()
+			var fiberGlobals = fiber.fiberGlobals
 			var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 			var bindings: A_Map = clientData.mapAt(compilerScopeMapKey)
 			val declarationName = declaration.token.string()
@@ -1061,7 +1093,7 @@ class FiberDescriptor private constructor(
 				compilerScopeMapKey, bindings, true)
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				clientDataGlobalKey, clientData, true)
-			fiber.setFiberGlobals(fiberGlobals.makeShared())
+			fiber.fiberGlobals = fiberGlobals.makeShared()
 			return null
 		}
 
@@ -1083,11 +1115,12 @@ class FiberDescriptor private constructor(
 		 *   The new fiber.
 		 */
 		fun newFiber(
+			runtime: AvailRuntime,
 			resultType: A_Type,
 			priority: Int,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType, priority, null, currentRuntime(), nameSupplier)
+			resultType, priority, null, runtime, nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
@@ -1097,7 +1130,7 @@ class FiberDescriptor private constructor(
 		 * @param resultType
 		 *   The expected result type.
 		 * @param loader
-		 *   An [AvailLoader] or `null`.
+		 *   An [AvailLoader].
 		 * @param nameSupplier
 		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
@@ -1109,10 +1142,10 @@ class FiberDescriptor private constructor(
 		 */
 		fun newLoaderFiber(
 			resultType: A_Type,
-			loader: AvailLoader?,
+			loader: AvailLoader,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType, loaderPriority, loader, currentRuntime(), nameSupplier)
+			resultType, loaderPriority, loader, loader.runtime(), nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]

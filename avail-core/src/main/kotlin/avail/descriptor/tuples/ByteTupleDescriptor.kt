@@ -105,7 +105,7 @@ class ByteTupleDescriptor private constructor(
 	enum class IntegerSlots : IntegerSlotsEnum
 	{
 		/**
-		 * The low 32 bits are used for the [.HASH_OR_ZERO], but the upper 32
+		 * The low 32 bits are used for the [HASH_OR_ZERO], but the upper 32
 		 * can be used by other [BitField]s in subclasses of [TupleDescriptor].
 		 */
 		@HideFieldInDebugger

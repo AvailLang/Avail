@@ -87,6 +87,9 @@ import avail.descriptor.bundles.A_BundleTree.Companion.lazyTypeFilterTreePojo
 import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -145,6 +148,7 @@ import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
@@ -306,8 +310,10 @@ import java.util.Collections.emptyList
 import java.util.Formatter
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.locks.ReentrantLock
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.stream.Collectors.toList
+import kotlin.concurrent.withLock
 import kotlin.math.max
 import kotlin.math.min
 import kotlin.streams.toList
@@ -770,14 +776,11 @@ class AvailCompiler constructor(
 			formatString(
 				"Semantic restriction %s, in %s:%d",
 				restriction.definitionMethod().bundles.first().message,
-				if (mod.isNil)
-					"no module"
-				else
-					mod.moduleName,
+				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
-		fiber.setTextInterface(compilationContext.textInterface)
+		fiber.textInterface = compilationContext.textInterface
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber, onSuccess, onFailure)
 		runOutermostFunction(compilationContext.runtime, fiber, function, args)
@@ -826,21 +829,21 @@ class AvailCompiler constructor(
 			formatString(
 				"Macro evaluation %s, in %s:%d",
 				macro.definitionBundle().message,
-				if (mod.isNil) "no module" else mod.moduleName,
+				if (mod.isNil) "no module" else mod.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO)
-		var fiberGlobals = fiber.fiberGlobals()
+		var fiberGlobals = fiber.fiberGlobals
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.setFiberGlobals(fiberGlobals)
-		fiber.setTextInterface(compilationContext.textInterface)
+		fiber.fiberGlobals = fiberGlobals
+		fiber.textInterface = compilationContext.textInterface
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{ outputPhrase ->
 				clientParseDataOut.value =
-					fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+					fiber.fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 				onSuccess(outputPhrase)
 			},
 			onFailure)
@@ -1832,10 +1835,12 @@ class AvailCompiler constructor(
 			prefixFunction.kind().returnType,
 			compilationContext.loader
 		) {
+			val m = code.module
+			val modName = if (m.isNil) "nil" else m.shortModuleNameNative
 			formatString(
 				"Macro prefix %s, in %s:%d",
 				code.methodName,
-				code.module.moduleName,
+				modName,
 				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
@@ -1848,17 +1853,17 @@ class AvailCompiler constructor(
 				STATIC_TOKENS_KEY.atom,
 				tupleFromList(stepState.consumedStaticTokens),
 				false)
-		var fiberGlobals = fiber.fiberGlobals()
+		var fiberGlobals = fiber.fiberGlobals
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, withTokens.makeImmutable(), true)
-		fiber.setFiberGlobals(fiberGlobals)
-		fiber.setTextInterface(compilationContext.textInterface)
+		fiber.fiberGlobals = fiberGlobals
+		fiber.textInterface = compilationContext.textInterface
 		stepState.start.lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{
 				// The prefix function ran successfully.
 				val replacementClientDataMap =
-					fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+					fiber.fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 				stepState.start =
 					stepState.start.withMap(replacementClientDataMap)
 				eventuallyParseRestOfSendNode(successorTree, stepState)
@@ -1870,7 +1875,7 @@ class AvailCompiler constructor(
 					// Prefix functions are allowed to explicitly accept a
 					// parse.
 					val replacementClientDataMap =
-						fiber.fiberGlobals().mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
+						fiber.fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 					stepState.start =
 						stepState.start.withMap(replacementClientDataMap)
 					eventuallyParseRestOfSendNode(successorTree, stepState)
@@ -4502,6 +4507,7 @@ class AvailCompiler constructor(
 					// start.
 					result.add(start)
 				}
+				val lock = ReentrantLock()
 				var countdown = toSkip.size
 				for (tokenToSkip in toSkip)
 				{
@@ -4510,7 +4516,7 @@ class AvailCompiler constructor(
 						tokenToSkip.nextLexingState(), start.clientDataMap)
 					skipWhitespaceAndComments(after, ambiguousWhitespace) {
 							partialList ->
-						synchronized(countdown) {
+						lock.withLock {
 							result.addAll(partialList)
 							countdown--
 							assert(countdown >= 0)

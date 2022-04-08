@@ -40,7 +40,8 @@ import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_INT
@@ -96,8 +97,8 @@ class L2_JUMP_IF_COMPARE_INT private constructor(
 	) : L2ConditionalJump(
 		READ_INT.named("int1"),
 		READ_INT.named("int2"),
-		PC.named("if true", Purpose.SUCCESS),
-		PC.named("if false", Purpose.FAILURE))
+		PC.named("if true", SUCCESS),
+		PC.named("if false", FAILURE))
 {
 	/**
 	 * Compare the int register values and branch to one target or the other.

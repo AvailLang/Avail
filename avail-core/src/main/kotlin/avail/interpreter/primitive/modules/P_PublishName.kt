@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_NEW_NAME
 import avail.descriptor.module.A_Module.Companion.addImportedName
 import avail.descriptor.module.A_Module.Companion.introduceNewName
@@ -74,7 +75,7 @@ object P_PublishName : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader()
+		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module
 		if (module.isNil)

@@ -38,6 +38,7 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.WEAK
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.maps.A_Map.Companion.keysAsSet
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -102,7 +103,7 @@ object P_BootstrapVariableUseMacro
 			throw AvailRejectedParseException(
 				STRONG, "variable $variableNameString to be alphanumeric")
 		}
-		val fiberGlobals = interpreter.fiber().fiberGlobals()
+		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val scopeMap = clientData.mapAt(COMPILER_SCOPE_MAP_KEY.atom)
 		scopeMap.mapAtOrNull(variableNameString)?.let { localDeclaration ->

@@ -34,7 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -54,8 +55,8 @@ import org.objectweb.asm.Opcodes
 object L2_JUMP_IF_LESS_THAN_OR_EQUAL_TO_OBJECT : L2ConditionalJump(
 	READ_BOXED.named("first value"),
 	READ_BOXED.named("second value"),
-	PC.named("if less or equal", Purpose.SUCCESS),
-	PC.named("if more", Purpose.FAILURE))
+	PC.named("if less or equal", SUCCESS),
+	PC.named("if more", FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

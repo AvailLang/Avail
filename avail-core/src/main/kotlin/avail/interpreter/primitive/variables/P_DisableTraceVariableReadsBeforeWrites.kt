@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.variables
 
 import avail.descriptor.atoms.A_Atom
+import avail.descriptor.fiber.A_Fiber.Companion.variablesReadBeforeWritten
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.FunctionDescriptor
@@ -79,7 +80,7 @@ object P_DisableTraceVariableReadsBeforeWrites : Primitive(
 		}
 		interpreter.setTraceVariableReadsBeforeWrites(false)
 		val fiber = interpreter.fiber()
-		val readBeforeWritten = fiber.variablesReadBeforeWritten()
+		val readBeforeWritten = fiber.variablesReadBeforeWritten
 		val reactor = VariableAccessReactor(reactorFunction.makeShared())
 		for (variable in readBeforeWritten)
 		{

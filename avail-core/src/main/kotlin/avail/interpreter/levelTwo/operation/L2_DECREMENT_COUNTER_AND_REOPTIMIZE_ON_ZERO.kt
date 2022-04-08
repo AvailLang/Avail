@@ -39,7 +39,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.Companion.countdownForNewlyOptimizedCode
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2IntImmediateOperand
 import avail.optimizer.L1Translator
@@ -62,8 +62,8 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_DECREMENT_COUNTER_AND_REOPTIMIZE_ON_ZERO : L2Operation(
-	L2OperandType.INT_IMMEDIATE.named("new optimization level"),
-	L2OperandType.INT_IMMEDIATE.named("is entry point"))
+	INT_IMMEDIATE.named("new optimization level"),
+	INT_IMMEDIATE.named("is entry point"))
 {
 	override val hasSideEffect: Boolean
 		get() = true

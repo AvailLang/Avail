@@ -31,6 +31,7 @@
  */
 package avail.interpreter.execution
 
+import avail.AvailDebuggerModel
 import avail.AvailRuntime
 import avail.AvailRuntime.HookType
 import avail.AvailRuntimeConfiguration.maxInterpreters
@@ -38,6 +39,26 @@ import avail.AvailRuntimeSupport
 import avail.AvailTask
 import avail.AvailThread
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.clearTraceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.continuation
+import avail.descriptor.fiber.A_Fiber.Companion.debugLog
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
+import avail.descriptor.fiber.A_Fiber.Companion.getAndClearInterruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.getAndClearReificationWaiters
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.A_Fiber.Companion.interruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.joiningFibers
+import avail.descriptor.fiber.A_Fiber.Companion.priority
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.setTraceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
+import avail.descriptor.fiber.A_Fiber.Companion.traceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.uniqueId
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.stringificationPriority
@@ -45,6 +66,7 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.INTERRUPTED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.TERMINATED
@@ -54,11 +76,15 @@ import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
+import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
-import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
@@ -66,7 +92,6 @@ import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.c
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
-import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -493,8 +518,24 @@ class Interpreter(
 	 */
 	fun availLoaderOrNull(): AvailLoader? = availLoader
 
-	/** The [FiberDescriptor] being executed by this interpreter. */
+	/** The [A_Fiber] being executed by this interpreter. */
 	private var fiber: A_Fiber? = null
+
+	/**
+	 * A fiber's debugger can only change during a safe point, but at that time
+	 * no interpreters are bound to fibers, so this can be cached when binding
+	 * the fiber to the interpreter, and cleared when unbinding.
+	 */
+	var debugger: AvailDebuggerModel? = null
+		private set
+
+	/**
+	 * A fiber's debuggerRunCondition can only change during a safe point, but
+	 * at that time no interpreters are bound to fibers, so this can be cached
+	 * when binding the fiber to the interpreter, and cleared when unbinding.
+	 */
+	var debuggerRunCondition: ((A_Fiber)->Boolean)? = null
+		private set
 
 	/**
 	 * Answer the current [fiber][A_Fiber] bound to this interpreter, or `null`
@@ -531,11 +572,11 @@ class Interpreter(
 				append("[$interpreterIndex] fiber: ")
 				append(
 					if (fiber === null) "null"
-					else "${fiber!!.uniqueId()}[${fiber!!.executionState()}]")
+					else "${fiber!!.uniqueId}[${fiber!!.executionState}]")
 				append(" -> ")
 				append(
 					if (newFiber === null) "null"
-					else "${newFiber.uniqueId()}[${newFiber.executionState()}]")
+					else "${newFiber.uniqueId}[${newFiber.executionState}]")
 				append(" ($tempDebug)")
 			}
 			log(
@@ -545,23 +586,27 @@ class Interpreter(
 				string)
 		}
 		assert((fiber === null) xor (newFiber === null))
-		assert(newFiber === null || newFiber.executionState() === RUNNING)
+		assert(newFiber === null || newFiber.executionState === RUNNING)
 		fiber = newFiber
 		setReifiedContinuation(null)
 		if (newFiber !== null)
 		{
-			availLoader = newFiber.availLoader()
+			availLoader = newFiber.availLoader
 			val readsBeforeWrites = newFiber.traceFlag(
 				TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES)
 			traceVariableReadsBeforeWrites = readsBeforeWrites
 			traceVariableWrites = readsBeforeWrites
 				|| newFiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES)
+			debugger = newFiber.fiberHelper.debugger
+			debuggerRunCondition = newFiber.fiberHelper.debuggerRunCondition
 		}
 		else
 		{
 			availLoader = null
 			traceVariableReadsBeforeWrites = false
 			traceVariableWrites = false
+			debugger = null
+			debuggerRunCondition = null
 		}
 	}
 
@@ -646,7 +691,7 @@ class Interpreter(
 	 *   The current loader's module under definition, or `nil` if loading is
 	 *   not taking place via this interpreter.
 	 */
-	fun module(): A_Module = fiber().availLoader()?.module ?: nil
+	fun module(): A_Module = fiber().availLoader?.module ?: nil
 
 	/**
 	 * The latest result produced by a [successful][Result.SUCCESS]
@@ -743,7 +788,7 @@ class Interpreter(
 	): Result = fiber!!.let { theFiber ->
 		suspendThen {
 			runtime.whenSafePointDo(
-				theFiber.priority(),
+				theFiber.priority,
 				AvailTask.forUnboundFiber(theFiber) { action() })
 		}
 	}
@@ -855,7 +900,7 @@ class Interpreter(
 	@CheckReturnValue
 	fun primitiveSuccess(result: A_BasicObject): Result
 	{
-		assert(fiber().executionState() === RUNNING)
+		assert(fiber().executionState === RUNNING)
 		setLatestResult(result)
 		return SUCCESS
 	}
@@ -915,7 +960,7 @@ class Interpreter(
 	@CheckReturnValue
 	fun primitiveFailure(result: A_BasicObject): Result
 	{
-		assert(fiber().executionState() === RUNNING)
+		assert(fiber().executionState === RUNNING)
 		setLatestResult(result)
 		return FAILURE
 	}
@@ -973,12 +1018,12 @@ class Interpreter(
 		assert(unreifiedCallDepth() == 0)
 		val aFiber = fiber()
 		aFiber.lock {
-			assert(aFiber.executionState() === RUNNING)
-			aFiber.setExecutionState(state)
-			aFiber.setContinuation(getReifiedContinuation()!!)
+			assert(aFiber.executionState === RUNNING)
+			aFiber.executionState = state
+			aFiber.continuation = getReifiedContinuation()!!
 			setReifiedContinuation(null)
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
-			aFiber.fiberHelper().stopCountingCPU()
+			aFiber.fiberHelper.stopCountingCPU()
 			assert(bound)
 			fiber(null, "primitiveSuspend")
 		}
@@ -998,10 +1043,9 @@ class Interpreter(
 	}
 
 	/**
-	 * [Suspend][ExecutionState.SUSPENDED] the current [A_Fiber] from within a
-	 * [Primitive] invocation.  The reified [A_Continuation] will be available
-	 * in [getReifiedContinuation], and will be installed into the current
-	 * fiber.
+	 * [Suspend][SUSPENDED] the current [A_Fiber] from within a [Primitive]
+	 * invocation.  The reified [A_Continuation] will be available in
+	 * [getReifiedContinuation], and will be installed into the current fiber.
 	 *
 	 * @param suspendingFunction
 	 *   The primitive [A_Function] causing the fiber suspension.
@@ -1013,7 +1057,7 @@ class Interpreter(
 	{
 		val prim = suspendingFunction.code().codePrimitive()!!
 		assert(prim.hasFlag(CanSuspend))
-		fiber().setSuspendingFunction(suspendingFunction)
+		fiber().suspendingFunction = suspendingFunction
 		function = null // Safety
 		return primitiveSuspend(SUSPENDED)
 	}
@@ -1032,7 +1076,7 @@ class Interpreter(
 	@CheckReturnValue
 	fun primitivePark(suspendingFunction: A_Function): Result
 	{
-		fiber().setSuspendingFunction(suspendingFunction)
+		fiber().suspendingFunction = suspendingFunction
 		return primitiveSuspend(PARKED)
 	}
 
@@ -1054,12 +1098,12 @@ class Interpreter(
 		assert(state.indicatesTermination)
 		val aFiber = fiber()
 		aFiber.lock {
-			assert(aFiber.executionState() === RUNNING)
-			aFiber.setExecutionState(state)
-			aFiber.setContinuation(nil)
-			aFiber.setFiberResult(finalObject)
+			assert(aFiber.executionState === RUNNING)
+			aFiber.executionState = state
+			aFiber.continuation = nil
+			aFiber.fiberResult = finalObject as AvailObject
 			val bound = aFiber.getAndSetSynchronizationFlag(BOUND, false)
-			aFiber.fiberHelper().stopCountingCPU()
+			aFiber.fiberHelper.stopCountingCPU()
 			assert(bound)
 			fiber(null, "exitFiber")
 		}
@@ -1077,8 +1121,8 @@ class Interpreter(
 		levelOneStepper.wipeRegisters()
 		postExitContinuation {
 			val joining = aFiber.lock {
-				val temp: A_Set = aFiber.joiningFibers().makeShared()
-				aFiber.setJoiningFibers(nil)
+				val temp: A_Set = aFiber.joiningFibers.makeShared()
+				aFiber.joiningFibers = nil
 				temp
 			}
 			// Wake up all fibers trying to join this one.
@@ -1087,7 +1131,7 @@ class Interpreter(
 					// Restore the permit. Resume the fiber if it was parked.
 					joiner.getAndSetSynchronizationFlag(
 						PERMIT_UNAVAILABLE, false)
-					if (joiner.executionState() === PARKED)
+					if (joiner.executionState === PARKED)
 					{
 						// Unpark it, whether it's still parked because of an
 						// attempted join on this fiber, an attempted join on
@@ -1096,9 +1140,9 @@ class Interpreter(
 						// in the public joining methods should normally deal
 						// with spurious unparks, but there's no mechanism yet
 						// to eject the stale joiner from the set.
-						joiner.setExecutionState(SUSPENDED)
+						joiner.executionState = SUSPENDED
 						val suspended =
-							joiner.suspendingFunction().code()
+							joiner.suspendingFunction.code()
 								.codePrimitive()!!
 						assert(suspended === P_AttemptJoinFiber
 							|| suspended === P_ParkCurrentFiber)
@@ -1708,9 +1752,9 @@ class Interpreter(
 		var waiters: List<(A_Continuation)->Unit> = emptyList()
 		aFiber.lock {
 			synchronized(aFiber) {
-				assert(aFiber.executionState() === RUNNING)
-				aFiber.setExecutionState(INTERRUPTED)
-				aFiber.setContinuation(continuation)
+				assert(aFiber.executionState === RUNNING)
+				aFiber.executionState = INTERRUPTED
+				aFiber.continuation = continuation
 				if (aFiber.getAndClearInterruptRequestFlag(
 						REIFICATION_REQUESTED))
 				{
@@ -1719,7 +1763,7 @@ class Interpreter(
 					assert(waiters.isNotEmpty())
 				}
 				val bound = fiber().getAndSetSynchronizationFlag(BOUND, false)
-				aFiber.fiberHelper().stopCountingCPU()
+				aFiber.fiberHelper.stopCountingCPU()
 				assert(bound)
 				fiber(null, "processInterrupt")
 			}
@@ -1924,6 +1968,14 @@ class Interpreter(
 	 * Otherwise, set the current chunk to the [L2Chunk.unoptimizedChunk], set
 	 * the offset to the specified offset within that chunk, and return `false`.
 	 *
+	 * If there is a debugger active, always treat an optimized chunk as
+	 * invalid, allowing precise control for stepping.  Note that this doesn't
+	 * have an effect when returning from JVM frames, as no invalidation can
+	 * happen inside the JVM call.  If a reification took place and we're now
+	 * reentering the continuation either to resume from an interrupt or to
+	 * return into a frame, this validity check will force L1 stepping, but just
+	 * for that frame (and any other reified frame being returned into).
+	 *
 	 * @param offsetInDefaultChunkIfInvalid
 	 *   The offset within the [L2Chunk.unoptimizedChunk] to resume execution at
 	 *   if the current chunk is found to be invalid.
@@ -1936,7 +1988,7 @@ class Interpreter(
 		offsetInDefaultChunkIfInvalid: Int
 	): Boolean = when
 	{
-		chunk!!.isValid -> true
+		chunk!!.isValid && debugger == null -> true
 		else ->
 		{
 			chunk = L2Chunk.unoptimizedChunk
@@ -2290,16 +2342,18 @@ class Interpreter(
 		startTick = runtime.clock.get()
 		if (debugL2)
 		{
-			debugModeString = "Fib=" + fiber!!.uniqueId() + " "
+			debugModeString = "Fib=" + fiber!!.uniqueId + " "
 			log(
 				loggerDebugPrimitives,
 				Level.FINER,
 				"\n{0}Run: ({1})",
 				debugModeString,
-				fiber!!.fiberName())
+				fiber!!.fiberName)
 		}
 		while (true)
 		{
+			// Each time we're at the base unreified frame, make sure to
+			// deoptimize the continuation.
 			// Run the chunk to completion (dealing with reification).
 			// The chunk will do its own invalidation checks and off-ramp
 			// to L1 if needed.
@@ -2415,7 +2469,7 @@ class Interpreter(
 			}
 			else
 			{
-				append(formatString(" [%s]", fiber!!.fiberName()))
+				append(formatString(" [%s]", fiber!!.fiberName))
 				if (getReifiedContinuation() === null)
 				{
 					append(formatString("%n\t«null stack»"))
@@ -2726,7 +2780,7 @@ class Interpreter(
 					if (runningFiber !== null)
 					{
 						// Log to the fiber.
-						val log = runningFiber.debugLog()
+						val log = runningFiber.debugLog
 						if (interpreter.isReifying)
 						{
 							log.append("R! ")
@@ -2769,7 +2823,7 @@ class Interpreter(
 					when
 					{
 						runningFiber !== null ->
-							String.format("%6d ", runningFiber.uniqueId())
+							String.format("%6d ", runningFiber.uniqueId)
 						else -> "?????? "
 					})
 				builder.append("→ ")
@@ -2777,7 +2831,7 @@ class Interpreter(
 					when
 					{
 						affectedFiber !== null ->
-							String.format("%6d ", affectedFiber.uniqueId())
+							String.format("%6d ", affectedFiber.uniqueId)
 						else -> "?????? "
 					})
 				logger.log(level, builder.toString() + message, arguments)
@@ -2983,13 +3037,13 @@ class Interpreter(
 			Interpreter::offset.name,
 			Int::class.javaPrimitiveType!!)
 
-		/** The [CheckedField] for the field [.argsBuffer]. */
+		/** The [CheckedField] for the field [argsBuffer]. */
 		val argsBufferField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::argsBuffer.name,
 			MutableList::class.java)
 
-		/** The [CheckedField] for [.levelOneStepper]. */
+		/** The [CheckedField] for [levelOneStepper]. */
 		val levelOneStepperField: CheckedField = instanceField(
 			Interpreter::class.java,
 			Interpreter::levelOneStepper.name,
@@ -3184,14 +3238,14 @@ class Interpreter(
 			aFiber: A_Fiber,
 			setup: Interpreter.()->Unit)
 		{
-			assert(aFiber.executionState().indicatesSuspension)
+			assert(aFiber.executionState.indicatesSuspension)
 			// We cannot simply run the specified function, we must queue a new
 			// task to run when interpreters are allowed to run.
 			runtime.whenRunningInterpretersDo(
-				aFiber.priority(),
+				aFiber.priority,
 				AvailTask.forFiberResumption(aFiber) {
 					assert(aFiber === fiberOrNull())
-					assert(aFiber.executionState() === RUNNING)
+					assert(aFiber.executionState === RUNNING)
 					setup()
 					if (exitNow)
 					{
@@ -3236,22 +3290,12 @@ class Interpreter(
 			functionToRun: A_Function,
 			arguments: List<A_BasicObject>)
 		{
-			assert(aFiber.executionState() === UNSTARTED)
-			aFiber.fiberNameSupplier {
-				functionToRun.code().run {
-					formatString(
-						"Outermost %s @ %s:%d",
-						methodName.asNativeString(),
-						if (module.isNil) "«vm»"
-						else module.moduleNameNative,
-						codeStartingLineNumber)
-				}
-			}
+			assert(aFiber.executionState === UNSTARTED)
 			executeFiber(runtime, aFiber)
 			{
 				assert(aFiber === fiberOrNull())
-				assert(aFiber.executionState() === RUNNING)
-				assert(aFiber.continuation().isNil)
+				assert(aFiber.executionState === RUNNING)
+				assert(aFiber.continuation.isNil)
 				// Invoke the base-frame (hook) function with the given function
 				// and its arguments collected as a tuple.
 				val baseFrameFunction = HookType.BASE_FRAME[runtime]
@@ -3284,13 +3328,13 @@ class Interpreter(
 		 */
 		fun resumeFromInterrupt(aFiber: A_Fiber)
 		{
-			assert(aFiber.executionState() === INTERRUPTED)
-			assert(aFiber.continuation().notNil)
+			assert(aFiber.executionState === INTERRUPTED)
+			assert(aFiber.continuation.notNil)
 			executeFiber(AvailRuntime.currentRuntime(), aFiber)
 			{
 				assert(aFiber === fiberOrNull())
-				assert(aFiber.executionState() === RUNNING)
-				val con = aFiber.continuation()
+				assert(aFiber.executionState === RUNNING)
+				val con = aFiber.continuation
 				assert(con.notNil)
 				exitNow = false
 				returnNow = false
@@ -3300,7 +3344,50 @@ class Interpreter(
 				chunk = con.levelTwoChunk()
 				offset = con.levelTwoOffset()
 				levelOneStepper.wipeRegisters()
-				aFiber.setContinuation(nil)
+				aFiber.continuation = nil
+			}
+		}
+
+		/**
+		 * If the fiber was [PAUSED] by a debugger, unpause it now.
+		 *
+		 * If the fiber subsequently pauses due to the debugger, it will enter
+		 * the [PAUSED] state again.  Any other transitions to suspended states
+		 * will be handled normally.
+		 *
+		 * If the function successfully runs to completion, then the fiber's "on
+		 * success" continuation will be invoked with the function's result.
+		 *
+		 * If the function fails for any reason, then the fiber's "on failure"
+		 * continuation will be invoked with the terminal
+		 * [throwable][Throwable].
+		 *
+		 * @param aFiber
+		 *   The fiber to allow to continue running.
+		 */
+		fun resumeIfPausedByDebugger(aFiber: A_Fiber)
+		{
+			if (aFiber.executionState == PAUSED)
+			{
+				// The fiber was runnable, but paused by a debugger.  Clear this
+				// flag and queue a suitable action for resuming the fiber.
+				assert(aFiber.continuation.notNil)
+				executeFiber(AvailRuntime.currentRuntime(), aFiber)
+				{
+					assert(aFiber === fiberOrNull())
+					assert(aFiber.executionState === RUNNING)
+					val con = aFiber.continuation
+					assert(con.notNil)
+					exitNow = false
+					returnNow = false
+					setReifiedContinuation(con)
+					function = con.function()
+					setLatestResult(null)
+					chunk = con.levelTwoChunk()
+					offset = con.levelTwoOffset()
+					levelOneStepper.wipeRegisters()
+					aFiber.continuation = nil
+				}
 			}
 		}
 
@@ -3316,7 +3403,7 @@ class Interpreter(
 		 *   The fiber to run.
 		 * @param resumingPrimitive
 		 *   The suspended primitive that is resuming.  This must agree with the
-		 *   fiber's [A_Fiber.setSuspendingFunction]'s raw function's primitive.
+		 *   fiber's [A_Fiber.suspendingFunction]'s raw function's primitive.
 		 * @param result
 		 *   The result of the primitive.
 		 */
@@ -3326,20 +3413,20 @@ class Interpreter(
 			resumingPrimitive: Primitive,
 			result: A_BasicObject)
 		{
-			assert(aFiber.continuation().notNil)
-			assert(aFiber.executionState() === SUSPENDED)
+			assert(aFiber.continuation.notNil)
+			assert(aFiber.executionState === SUSPENDED)
 			assert(
-				aFiber.suspendingFunction().code().codePrimitive()
+				aFiber.suspendingFunction.code().codePrimitive()
 					=== resumingPrimitive)
 			executeFiber(runtime, aFiber)
 			{
 				assert(aFiber === fiberOrNull())
-				assert(aFiber.executionState() === RUNNING)
-				val continuation = aFiber.continuation()
+				assert(aFiber.executionState === RUNNING)
+				val continuation = aFiber.continuation
 				setReifiedContinuation(continuation)
 				setLatestResult(result)
-				returningFunction = aFiber.suspendingFunction()
-				aFiber.setSuspendingFunction(nil)
+				returningFunction = aFiber.suspendingFunction
+				aFiber.suspendingFunction = nil
 				exitNow = false
 				if (continuation.isNil)
 				{
@@ -3358,7 +3445,7 @@ class Interpreter(
 					offset = continuation.levelTwoOffset()
 					// Clear the fiber's continuation slot while it's
 					// active.
-					aFiber.setContinuation(nil)
+					aFiber.continuation = nil
 				}
 			}
 		}
@@ -3387,9 +3474,9 @@ class Interpreter(
 			failureFunction: A_Function,
 			args: List<AvailObject>)
 		{
-			assert(aFiber.continuation().notNil)
-			assert(aFiber.executionState() === SUSPENDED)
-			assert(aFiber.suspendingFunction().equals(failureFunction))
+			assert(aFiber.continuation.notNil)
+			assert(aFiber.executionState === SUSPENDED)
+			assert(aFiber.suspendingFunction.equals(failureFunction))
 			executeFiber(runtime, aFiber)
 			{
 				val code = failureFunction.code()
@@ -3398,9 +3485,9 @@ class Interpreter(
 				assert(prim.hasFlag(CanSuspend))
 				assert(args.size == code.numArgs())
 				assert(getReifiedContinuation() === null)
-				setReifiedContinuation(aFiber.continuation())
-				aFiber.setContinuation(nil)
-				aFiber.setSuspendingFunction(nil)
+				setReifiedContinuation(aFiber.continuation)
+				aFiber.continuation = nil
+				aFiber.suspendingFunction = nil
 				function = failureFunction
 				argsBuffer.clear()
 				argsBuffer.addAll(args)
@@ -3441,10 +3528,11 @@ class Interpreter(
 			// If the stringifier function is not defined, then use the basic
 			// mechanism for stringification.
 			// Create the fiber that will execute the function.
-			val fiber = newFiber(stringType, stringificationPriority) {
+			val fiber = newFiber(runtime, stringType, stringificationPriority)
+			{
 				stringFrom("Stringification")
 			}
-			fiber.setTextInterface(textInterface)
+			fiber.textInterface = textInterface
 			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->
 					continuation(string.asNativeString())

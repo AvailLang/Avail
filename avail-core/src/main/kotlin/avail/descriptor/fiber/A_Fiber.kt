@@ -42,7 +42,9 @@ import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_String
@@ -68,316 +70,309 @@ import java.util.TimerTask
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-interface A_Fiber : A_BasicObject {
-	/**
-	 * @return
-	 */
-	fun availLoader(): AvailLoader?
+interface A_Fiber : A_BasicObject
+{
+	companion object
+	{
+		/**
+		 * Answer the [loader][AvailLoader] bound to the
+		 * [receiver][FiberDescriptor], or `null` if the receiver is not a loader
+		 * fiber.
+		 */
+		var A_Fiber.availLoader: AvailLoader?
+			get() = dispatch { o_AvailLoader(it) }
+			set(value) = dispatch { o_SetAvailLoader(it, value) }
 
-	/**
-	 * @param loader
-	 */
-	fun setAvailLoader(loader: AvailLoader?)
+		/**
+		 * @param flag
+		 */
+		fun A_Fiber.clearGeneralFlag(flag: GeneralFlag) =
+			dispatch { o_ClearGeneralFlag(it, flag) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun breakpointBlock(): A_BasicObject
+		/**
+		 * The fiber's current [A_Continuation] if suspended, otherwise [nil].
+		 */
+		var A_Fiber.continuation: A_Continuation
+			get() = dispatch { o_Continuation(it) }
+			set(value) = dispatch { o_SetContinuation(it, value) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setBreakpointBlock(value: AvailObject)
+		/**
+		 * Dispatch to the descriptor.
+		 */
+		val A_Fiber.debugLog: StringBuilder
+			get() = dispatch { o_DebugLog(it) }
 
-	/**
-	 * @param flag
-	 */
-	fun clearGeneralFlag(flag: GeneralFlag)
+		/**
+		 * Dispatch to the descriptor.
+		 */
+		var A_Fiber.executionState: ExecutionState
+			get() = dispatch { o_ExecutionState(it) }
+			set(value) = dispatch { o_SetExecutionState(it, value) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun continuation(): A_Continuation
+		/**
+		 * Answer the continuation that accepts the [Throwable] responsible for
+		 * abnormal termination of this fiber.
+		 *
+		 * @return
+		 *   A continuation.
+		 */
+		val A_Fiber.failureContinuation: (Throwable)->Unit
+			get() = dispatch { o_FailureContinuation(it) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setContinuation(value: A_Continuation)
+		/**
+		 * Dispatch to the descriptor.
+		 */
+		var A_Fiber.fiberGlobals: A_Map
+			get() = dispatch { o_FiberGlobals(it) }
+			set(value) = dispatch { o_SetFiberGlobals(it, value) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun debugLog(): StringBuilder
+		/**
+		 * @return
+		 */
+		val A_Fiber.fiberName: A_String
+			get() = dispatch { o_FiberName(it) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun executionState(): ExecutionState
+		/**
+		 * @param supplier
+		 */
+		fun A_Fiber.fiberNameSupplier(supplier: ()->A_String) =
+			dispatch { o_FiberNameSupplier(it, supplier) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setExecutionState(value: ExecutionState)
+		/**
+		 * @return
+		 */
+		var A_Fiber.fiberResult: AvailObject
+			get() = dispatch { o_FiberResult(it) }
+			set(value) = dispatch { o_SetFiberResult(it, value) }
 
-	/**
-	 * @return
-	 */
-	fun failureContinuation(): (Throwable) -> Unit
+		/**
+		 * @return
+		 */
+		val A_Fiber.fiberResultType: A_Type
+			get() = dispatch { o_FiberResultType(it) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun fiberGlobals(): A_Map
+		/**
+		 * @param flag
+		 * @return
+		 */
+		fun A_Fiber.generalFlag(flag: GeneralFlag): Boolean =
+			dispatch { o_GeneralFlag(it, flag) }
 
-	/**
-	 * Dispatch to the descriptor.
-	 */
-	fun setFiberGlobals(value: A_Map)
+		/**
+		 * @param flag
+		 * @return
+		 */
+		fun A_Fiber.getAndClearInterruptRequestFlag(
+			flag: InterruptRequestFlag
+		): Boolean =
+			dispatch { o_GetAndClearInterruptRequestFlag(it, flag) }
 
-	/**
-	 * @return
-	 */
-	fun fiberName(): A_String
+		/**
+		 * @param flag
+		 * @param value
+		 * @return
+		 */
+		fun A_Fiber.getAndSetSynchronizationFlag(
+			flag: SynchronizationFlag,
+			value: Boolean
+		): Boolean =
+			dispatch { o_GetAndSetSynchronizationFlag(it, flag, value) }
 
-	/**
-	 * @param supplier
-	 */
-	fun fiberNameSupplier(supplier: () -> A_String)
+		/**
+		 * @param flag
+		 * @return
+		 */
+		fun A_Fiber.traceFlag(flag: TraceFlag): Boolean =
+			dispatch { o_TraceFlag(it, flag) }
 
-	/**
-	 * @return
-	 */
-	fun fiberResult(): AvailObject
+		/**
+		 * @param flag
+		 */
+		fun A_Fiber.setTraceFlag(flag: TraceFlag) =
+			dispatch { o_SetTraceFlag(it, flag) }
 
-	/**
-	 * @param result
-	 */
-	fun setFiberResult(result: A_BasicObject)
+		/**
+		 * @param flag
+		 */
+		fun A_Fiber.clearTraceFlag(flag: TraceFlag) =
+			dispatch { o_ClearTraceFlag(it, flag) }
 
-	/**
-	 * @return
-	 */
-	fun fiberResultType(): A_Type
+		/**
+		 * @return
+		 */
+		var A_Fiber.heritableFiberGlobals: A_Map
+			get() = dispatch { o_HeritableFiberGlobals(it) }
+			set(value) = dispatch { o_SetHeritableFiberGlobals(it, value) }
 
-	/**
-	 * @param flag
-	 * @return
-	 */
-	fun generalFlag(flag: GeneralFlag): Boolean
+		/**
+		 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]
+		 * set for the [receiver][FiberDescriptor]?
+		 *
+		 * @param flag
+		 *   An interrupt request flag.
+		 * @return
+		 *   `true` if the interrupt request flag is set, `false` otherwise.
+		 */
+		fun A_Fiber.interruptRequestFlag(flag: InterruptRequestFlag): Boolean =
+			dispatch { o_InterruptRequestFlag(it, flag) }
 
-	/**
-	 * @param flag
-	 * @return
-	 */
-	fun getAndClearInterruptRequestFlag(flag: InterruptRequestFlag): Boolean
+		/**
+		 * The [A_Set] of [A_Fiber]s waiting for this one to end.
+		 */
+		var A_Fiber.joiningFibers: A_Set
+			get() = dispatch { o_JoiningFibers(it) }
+			set(value) = dispatch { o_SetJoiningFibers(it, value) }
 
-	/**
-	 * @param flag
-	 * @param value
-	 * @return
-	 */
-	fun getAndSetSynchronizationFlag(
-		flag: SynchronizationFlag,
-		value: Boolean): Boolean
+		/**
+		 * Answer this fiber's current priority.
+		 *
+		 * @return
+		 *   The priority.
+		 */
+		var A_Fiber.priority: Int
+			get() = dispatch { o_Priority(it) }
+			set(value) = dispatch { o_SetPriority(it, value) }
 
-	/**
-	 * @param flag
-	 * @return
-	 */
-	fun traceFlag(flag: TraceFlag): Boolean
+		/**
+		 * Answer the continuation that accepts the result produced by the
+		 * [receiver][FiberDescriptor]'s successful completion.
+		 *
+		 * @return
+		 *   A continuation.
+		 */
+		val A_Fiber.resultContinuation: (AvailObject)->Unit
+			get() = dispatch { o_ResultContinuation(it) }
 
-	/**
-	 * @param flag
-	 */
-	fun setTraceFlag(flag: TraceFlag)
+		/**
+		 * @param flag
+		 */
+		fun A_Fiber.setGeneralFlag(flag: GeneralFlag) =
+			dispatch { o_SetGeneralFlag(it, flag) }
 
-	/**
-	 * @param flag
-	 */
-	fun clearTraceFlag(flag: TraceFlag)
+		/**
+		 * Set the success and failure actions of this fiber.  The former
+		 * runs if the fiber succeeds, passing the resulting [AvailObject], and also
+		 * stashing it in the fiber.  The latter runs if the fiber fails, passing
+		 * the [Throwable] that caused the failure.
+		 *
+		 * @param onSuccess
+		 *   The action to invoke with the fiber's result value.
+		 * @param onFailure
+		 *   The action to invoke with the responsible throwable.
+		 */
+		fun A_Fiber.setSuccessAndFailure(
+			onSuccess: (AvailObject)->Unit,
+			onFailure: (Throwable)->Unit
+		) = dispatch { o_SetSuccessAndFailure(it, onSuccess, onFailure) }
 
-	/**
-	 * @return
-	 */
-	fun heritableFiberGlobals(): A_Map
+		/**
+		 * @param flag
+		 */
+		fun A_Fiber.setInterruptRequestFlag(flag: InterruptRequestFlag) =
+			dispatch { o_SetInterruptRequestFlag(it, flag) }
 
-	/**
-	 * @param globals
-	 */
-	fun setHeritableFiberGlobals(globals: A_Map)
+		/**
+		 * @return
+		 */
+		var A_Fiber.wakeupTask: TimerTask?
+			get() = dispatch { o_WakeupTask(it) }
+			set(value) = dispatch { o_SetWakeupTask(it, value) }
 
-	/**
-	 * @param flag
-	 * @return
-	 */
-	fun interruptRequestFlag(flag: InterruptRequestFlag): Boolean
+		/**
+		 * Record access of the specified [variable][VariableDescriptor] by this
+		 * [fiber][FiberDescriptor].
+		 *
+		 * @param variable
+		 *   A variable.
+		 * @param wasRead
+		 *   `true` if the variable was read, `false` otherwise.
+		 */
+		fun A_Fiber.recordVariableAccess(
+			variable: A_Variable,
+			wasRead: Boolean
+		) = dispatch { o_RecordVariableAccess(it, variable, wasRead) }
 
-	/**
-	 * @return
-	 */
-	fun joiningFibers(): A_Set
+		/**
+		 * The [set][SetDescriptor] of [variables][VariableDescriptor] that were
+		 * read before written. Only variables still live are included in this
+		 * set; the [trace][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]
+		 * mechanism retains variables only weakly.
+		 */
+		val A_Fiber.variablesReadBeforeWritten: A_Set
+			get() = dispatch { o_VariablesReadBeforeWritten(it) }
 
-	/**
-	 * @param joiners
-	 */
-	fun setJoiningFibers(joiners: A_Set)
+		/**
+		 * Answer the [set][SetDescriptor] of [variables][VariableDescriptor] that
+		 * were written. Only variables still live are included in this set; the
+		 * [trace][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] mechanism retains
+		 * variables only weakly.
+		 *
+		 * @return
+		 *   The requested variables.
+		 */
+		val A_Fiber.variablesWritten: A_Set
+			get() = dispatch { o_VariablesWritten(it) }
 
-	/**
-	 * Answer this fiber's current priority.
-	 *
-	 * @return
-	 *   The priority.
-	 */
-	fun priority(): Int
+		/**
+		 * Ensure the specified action is invoked with this fiber's reified
+		 * [continuation][ContinuationDescriptor] as soon as it's available.  Note
+		 * that this triggers an interrupt on the fiber to ensure a timely capture
+		 * of the stack.
+		 *
+		 * @param whenReified
+		 *   What to run with the Avail [continuation][ContinuationDescriptor].
+		 */
+		fun A_Fiber.whenContinuationIsAvailableDo(
+			whenReified: (A_Continuation)->Unit
+		) = dispatch { o_WhenContinuationIsAvailableDo(it, whenReified) }
 
-	/**
-	 * Change this fiber's current priority.
-	 *
-	 * @param value
-	 *   The new priority.
-	 */
-	fun setPriority(value: Int)
+		/**
+		 * Extract the current [A_Set] of [pojo][PojoDescriptor]-wrapped
+		 * actions to perform when this fiber is next reified.  Replace it with the
+		 * empty set.
+		 *
+		 * @return
+		 *   The set of outstanding actions, prior to clearing it.
+		 */
+		fun A_Fiber.getAndClearReificationWaiters(
+		): List<(A_Continuation)->Unit> =
+			dispatch { o_GetAndClearReificationWaiters(it) }
 
-	/**
-	 * @return
-	 */
-	fun resultContinuation(): (AvailObject) -> Unit
+		/**
+		 * The [TextInterface] for routing I/O to and from this fiber.
+		 */
+		var A_Fiber.textInterface: TextInterface
+			get() = dispatch { o_TextInterface(it) }
+			set(value) = dispatch { o_SetTextInterface(it, value) }
 
-	/**
-	 * @param flag
-	 */
-	fun setGeneralFlag(flag: GeneralFlag)
+		/**
+		 * Answer the unique identifier of this `A_Fiber fiber`.
+		 *
+		 * @return
+		 *   The unique identifier, a `long`.
+		 */
+		val A_Fiber.uniqueId: Long
+			get() = dispatch { o_UniqueId(it) }
 
-	/**
-	 * Set the success and failure actions of this fiber.  The former
-	 * runs if the fiber succeeds, passing the resulting [AvailObject], and also
-	 * stashing it in the fiber.  The latter runs if the fiber fails, passing
-	 * the [Throwable] that caused the failure.
-	 *
-	 * @param onSuccess
-	 *   The action to invoke with the fiber's result value.
-	 * @param onFailure
-	 *   The action to invoke with the responsible throwable.
-	 */
-	fun setSuccessAndFailure(
-		onSuccess: (AvailObject) -> Unit,
-		onFailure: (Throwable) -> Unit)
+		/**
+		 * The primitive [A_Function] that's suspending the fiber.
+		 */
+		var A_Fiber.suspendingFunction: A_Function
+			get() = dispatch { o_SuspendingFunction(it) }
+			set(value) = dispatch { o_SetSuspendingFunction(it, value) }
 
-	/**
-	 * @param flag
-	 */
-	fun setInterruptRequestFlag(flag: InterruptRequestFlag)
+		/**
+		 * Answer the [FiberDescriptor.FiberHelper] associated with this [A_Fiber].
+		 */
+		val A_Fiber.fiberHelper: FiberDescriptor.FiberHelper
+			get() = dispatch { o_FiberHelper(it) }
 
-	/**
-	 * @return
-	 */
-	fun wakeupTask(): TimerTask?
-
-	/**
-	 * @param task
-	 */
-	fun setWakeupTask(task: TimerTask?)
-
-	/**
-	 * Record access of the specified [variable][VariableDescriptor] by this
-	 * [fiber][FiberDescriptor].
-	 *
-	 * @param variable
-	 *   A variable.
-	 * @param wasRead
-	 *   `true` if the variable was read, `false` otherwise.
-	 */
-	fun recordVariableAccess(
-		variable: A_Variable,
-		wasRead: Boolean)
-
-	/**
-	 * Answer the [set][SetDescriptor] of [variables][VariableDescriptor] that
-	 * were read before written. Only variables still live are included in this
-	 * set; the [trace][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] mechanism
-	 * retains variables only weakly.
-	 *
-	 * @return
-	 *   The requested variables.
-	 */
-	fun variablesReadBeforeWritten(): A_Set
-
-	/**
-	 * Answer the [set][SetDescriptor] of [variables][VariableDescriptor] that
-	 * were written. Only variables still live are included in this set; the
-	 * [trace][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] mechanism retains
-	 * variables only weakly.
-	 *
-	 * @return
-	 *   The requested variables.
-	 */
-	fun variablesWritten(): A_Set
-
-	/**
-	 * Ensure the specified action is invoked with this fiber's reified
-	 * [continuation][ContinuationDescriptor] as soon as it's available.  Note
-	 * that this triggers an interrupt on the fiber to ensure a timely capture
-	 * of the stack.
-	 *
-	 * @param whenReified
-	 *   What to run with the Avail [continuation][ContinuationDescriptor].
-	 */
-	fun whenContinuationIsAvailableDo(
-		whenReified: (A_Continuation) -> Unit)
-
-	/**
-	 * Extract the current [A_Set] of [pojo][PojoDescriptor]-wrapped
-	 * actions to perform when this fiber is next reified.  Replace it with the
-	 * empty set.
-	 *
-	 * @return
-	 *   The set of outstanding actions, prior to clearing it.
-	 */
-	fun getAndClearReificationWaiters(): List<(A_Continuation)->Unit>
-
-	/**
-	 * Answer the [TextInterface] for this fiber.
-	 *
-	 * @return
-	 *   The fiber's text interface.
-	 */
-	fun textInterface(): TextInterface
-
-	/**
-	 * Set the [TextInterface] for this fiber.
-	 *
-	 * @param textInterface
-	 *   A text interface.
-	 */
-	fun setTextInterface(textInterface: TextInterface)
-
-	/**
-	 * Answer the unique identifier of this `A_Fiber fiber`.
-	 *
-	 * @return
-	 *   The unique identifier, a `long`.
-	 */
-	fun uniqueId(): Long
-
-	/**
-	 * Set the [A_Function] that's suspending the fiber.
-	 *
-	 * @param suspendingFunction
-	 *   The function that's suspending the fiber.
-	 */
-	fun setSuspendingFunction(suspendingFunction: A_Function)
-
-	/**
-	 * Answer the [A_Function] that was saved in the fiber when it was
-	 * suspended.
-	 *
-	 * @return
-	 *   The function that suspended the fiber.
-	 */
-	fun suspendingFunction(): A_Function
-
-	/**
-	 * Answer the [FiberDescriptor.FiberHelper] associated with this [A_Fiber].
-	 */
-	fun fiberHelper(): FiberDescriptor.FiberHelper
+		/**
+		 * This fiber was captured by a debugger.  Release it from that debugger,
+		 * allowing it to continue running freely when/if its state indicates it
+		 * should.
+		 */
+		fun A_Fiber.releaseFromDebugger() =
+			dispatch { o_ReleaseFromDebugger(it) }
+	}
 }

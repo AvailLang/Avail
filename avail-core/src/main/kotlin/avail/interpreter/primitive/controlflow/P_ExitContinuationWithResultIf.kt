@@ -33,6 +33,10 @@ package avail.interpreter.primitive.controlflow
 
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.ContinuationDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil

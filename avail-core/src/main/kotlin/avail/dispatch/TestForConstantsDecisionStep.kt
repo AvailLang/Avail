@@ -148,7 +148,7 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d constants : known=%s",
+					"(u=%d, p=%d) #%d constants: known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,

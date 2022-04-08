@@ -55,6 +55,10 @@ import avail.descriptor.bundles.MessageBundleDescriptor
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.pc
+import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
@@ -66,6 +70,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLiterals
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.A_RawFunction.Companion.nybbles
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhrase
 import avail.descriptor.functions.A_RawFunction.Companion.originatingPhraseIndex
@@ -1313,7 +1318,7 @@ enum class SerializerOperation constructor(
 				if (primitive === null) emptyTuple
 				else stringFrom(primitive.name)
 			return array(
-				fromInt(obj.numSlots()),
+				fromInt(obj.numSlots),
 				primName,
 				obj.returnTypeIfPrimitiveFails,
 				obj.functionType(),
@@ -1692,7 +1697,7 @@ enum class SerializerOperation constructor(
 			obj: AvailObject,
 			serializer: Serializer): Array<out A_BasicObject>
 		{
-			val frameSlotCount = obj.numSlots()
+			val frameSlotCount = obj.numSlots
 			val frameSlotsList = mutableListOf<AvailObject>()
 			for (i in 1..frameSlotCount)
 			{

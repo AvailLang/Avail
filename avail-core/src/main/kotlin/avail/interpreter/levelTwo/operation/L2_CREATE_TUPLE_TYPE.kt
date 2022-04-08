@@ -36,6 +36,8 @@ import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypesForTypesArrayMethod
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -51,8 +53,8 @@ import org.objectweb.asm.MethodVisitor
  */
 @Suppress("unused")
 object L2_CREATE_TUPLE_TYPE : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.named("element types"),
-	L2OperandType.WRITE_BOXED.named("tuple type"))
+	READ_BOXED_VECTOR.named("element types"),
+	WRITE_BOXED.named("tuple type"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

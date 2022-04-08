@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple

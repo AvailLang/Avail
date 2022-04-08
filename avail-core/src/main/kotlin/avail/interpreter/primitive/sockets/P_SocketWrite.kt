@@ -38,6 +38,9 @@ import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.SOCKET_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor
@@ -120,6 +123,7 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
+			interpreter.runtime,
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
 			priority.extractInt
 		) {
@@ -127,12 +131,12 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.setAvailLoader(current.availLoader())
+		newFiber.availLoader = current.availLoader
 		// Share and inherit any heritable variables.
-		newFiber.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
+		newFiber.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
 		// Inherit the fiber's text interface.
-		newFiber.setTextInterface(current.textInterface())
+		newFiber.textInterface = current.textInterface
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()

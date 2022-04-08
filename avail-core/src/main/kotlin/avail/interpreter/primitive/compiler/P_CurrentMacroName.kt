@@ -35,6 +35,9 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.MACRO_BUNDLE_KEY
 import avail.descriptor.bundles.A_Bundle.Companion.message
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.IS_EVALUATING_MACRO
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -63,9 +66,9 @@ object P_CurrentMacroName : Primitive(0, CanInline)
 		{
 			return interpreter.primitiveFailure(E_NOT_EVALUATING_MACRO)
 		}
-		interpreter.fiber().availLoader()
+		interpreter.fiber().availLoader
 			?: error("Macro expansion shouldn't be possible after loading")
-		val fiberGlobals = interpreter.fiber().fiberGlobals()
+		val fiberGlobals = interpreter.fiber().fiberGlobals
 		val clientData = fiberGlobals.mapAt(CLIENT_DATA_GLOBAL_KEY.atom)
 		val currentMacroBundle = clientData.mapAt(MACRO_BUNDLE_KEY.atom)
 		return interpreter.primitiveSuccess(currentMacroBundle.message)

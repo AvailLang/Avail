@@ -96,7 +96,7 @@ sealed class AvailNode constructor(
 	/**
 	 * The list of [children] nodes in a sorted list.
 	 */
-	val sortedChildren : List<AvailNode> get() =
+	val sortedChildren: List<AvailNode> get() =
 		children.values.toList().sorted()
 
 	override fun compareTo(other: AvailNode): Int =

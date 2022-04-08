@@ -35,6 +35,9 @@ import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.FILE_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -112,16 +115,17 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		val current = interpreter.fiber()
 		val newFiber =
 			newFiber(
+				interpreter.runtime,
 				succeed.kind().returnType.typeUnion(fail.kind().returnType),
 				priorityInt)
 			{
 				StringDescriptor.stringFrom(
 					"Asynchronous file sync, ${handle.filename}")
 			}
-		newFiber.setAvailLoader(current.availLoader())
-		newFiber.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
-		newFiber.setTextInterface(current.textInterface())
+		newFiber.availLoader = current.availLoader
+		newFiber.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
+		newFiber.textInterface = current.textInterface
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

@@ -36,6 +36,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
@@ -624,6 +625,9 @@ open class VariableDescriptor protected constructor(
 		// false.
 		return false
 	}
+
+	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
+		self.slot(VALUE)
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {

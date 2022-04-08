@@ -36,6 +36,16 @@ import avail.annotations.EnumField
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.functions.A_Continuation.Companion.callDepth
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
+import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
+import avail.descriptor.functions.A_Continuation.Companion.numSlots
+import avail.descriptor.functions.A_Continuation.Companion.pc
+import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.declarationNamesWithoutOuters
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
@@ -44,6 +54,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.CALL_DEPTH
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -56,6 +67,7 @@ import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_C
 import avail.descriptor.functions.ContinuationDescriptor.ObjectSlots.LEVEL_TWO_REGISTER_DUMP
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractDescriptor.DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -94,7 +106,6 @@ import avail.interpreter.primitive.controlflow.P_RestartContinuation
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
 import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
-import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
@@ -137,10 +148,10 @@ class ContinuationDescriptor private constructor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * A composite field containing the [PROGRAM_COUNTER] and
-		 * [STACK_POINTER].
+		 * A composite field containing the [PROGRAM_COUNTER], the
+		 * [STACK_POINTER], and the [CALL_DEPTH].
 		 */
-		PROGRAM_COUNTER_AND_STACK_POINTER,
+		PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH,
 
 		/**
 		 * A composite field containing the [LEVEL_TWO_OFFSET], and the cached
@@ -157,7 +168,7 @@ class ContinuationDescriptor private constructor(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
 			val PROGRAM_COUNTER =
-				BitField(PROGRAM_COUNTER_AND_STACK_POINTER, 32, 32)
+				BitField(PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH, 44, 20)
 
 			/**
 			 * An index into this continuation's [frame&#32;slots][FRAME_AT_].
@@ -168,7 +179,17 @@ class ContinuationDescriptor private constructor(
 				describedBy = EnumField.Converter::class,
 				lookupMethodName = "decimal")
 			val STACK_POINTER =
-				BitField(PROGRAM_COUNTER_AND_STACK_POINTER, 0, 32)
+				BitField(PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH, 28, 16)
+
+			/**
+			 * The number of continuations in my caller chain.  It can be as low
+			 * as zero, indicating this is a base frame.
+			 */
+			@EnumField(
+				describedBy = EnumField.Converter::class,
+				lookupMethodName = "decimal")
+			val CALL_DEPTH =
+				BitField(PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH, 0, 28)
 
 			/**
 			 * The Level Two [instruction][L2Chunk.instructions] index at
@@ -266,6 +287,8 @@ class ContinuationDescriptor private constructor(
 		return self
 	}
 
+	override fun o_CallDepth(self: AvailObject): Int = self.slot(CALL_DEPTH)
+
 	override fun o_Caller(self: AvailObject): A_Continuation = self.slot(CALLER)
 
 	override fun o_CurrentLineNumber(
@@ -293,6 +316,21 @@ class ContinuationDescriptor private constructor(
 			repeat(op.operandTypes.size) { instructionDecoder.getOperand() }
 		}
 		return lineNumber
+	}
+
+	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+	{
+		AvailRuntime.currentRuntime().assertInSafePoint()
+		val mutableCopy = self.ensureMutable() as AvailObject
+		if (mutableCopy.levelTwoChunk() != L2Chunk.unoptimizedChunk)
+		{
+			mutableCopy.setSlot(
+				LEVEL_TWO_CHUNK, L2Chunk.unoptimizedChunk.chunkPojo)
+			mutableCopy.setSlot(
+				LEVEL_TWO_OFFSET,
+				L2Chunk.ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
+		}
+		return mutableCopy
 	}
 
 	override fun o_DescribeForDebugger(
@@ -324,7 +362,7 @@ class ContinuationDescriptor private constructor(
 		}
 		val moduleName = code.module.run {
 			if (isNil) "No module"
-			else moduleNameNative.split("/").last()
+			else shortModuleNameNative
 		}
 
 		// Figure out the pc of the instruction before the current one, since
@@ -371,14 +409,32 @@ class ContinuationDescriptor private constructor(
 	override fun o_EqualsContinuation(
 		self: AvailObject,
 		aContinuation: A_Continuation
-	): Boolean = when {
-		self.sameAddressAs(aContinuation) -> true
-		!self.caller().equals(aContinuation.caller()) -> false
-		!self.function().equals(aContinuation.function()) -> false
-		self.pc() != aContinuation.pc() -> false
-		self.stackp() != aContinuation.stackp() -> false
-		else -> (1..self.numSlots()).all {
-			self.frameAt(it).equals(aContinuation.frameAt(it))
+	): Boolean
+	{
+		var a: A_Continuation = self
+		var b = aContinuation
+		if (a.callDepth() != b.callDepth()) return false
+		// Iterate over the potentially deep call chain, rather than recurse.
+		while (true)
+		{
+			when
+			{
+				a.sameAddressAs(b) -> return true
+				!a.function().equals(b.function()) -> return false
+				a.pc() != b.pc() -> return false
+				a.stackp() != b.stackp() -> return false
+				(1 .. a.numSlots()).any {
+					!a.frameAt(it).equals(b.frameAt(it))
+				} -> return false
+			}
+			a = a.caller()
+			b = b.caller()
+			if (a.isNil)
+			{
+				// We already checked that the depths agree before the loop.
+				assert(b.isNil)
+				return true
+			}
 		}
 	}
 
@@ -431,27 +487,6 @@ class ContinuationDescriptor private constructor(
 	override fun o_Kind(self: AvailObject): A_Type =
 		continuationTypeForFunctionType(self.function().kind())
 
-	/**
-	 * Set both my chunk index and the offset into it.
-	 */
-	override fun o_LevelTwoChunkOffset(
-		self: AvailObject,
-		chunk: L2Chunk,
-		offset: Int)
-	{
-		if (isShared) {
-			synchronized(self) {
-				self.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo)
-				self.setSlot(LEVEL_TWO_OFFSET, offset)
-			}
-		}
-		else
-		{
-			self.setSlot(LEVEL_TWO_CHUNK, chunk.chunkPojo)
-			self.setSlot(LEVEL_TWO_OFFSET, offset)
-		}
-	}
-
 	override fun o_LevelTwoChunk(self: AvailObject): L2Chunk
 	{
 		val chunk: L2Chunk =
@@ -479,7 +514,7 @@ class ContinuationDescriptor private constructor(
 			}
 			else
 			{
-				append(module.moduleNameNative.split("/").last())
+				append(module.shortModuleNameNative)
 			}
 			append(":")
 			append(self.currentLineNumber())
@@ -536,11 +571,17 @@ class ContinuationDescriptor private constructor(
 	override fun shared() = shared
 
 	companion object {
-		/** The [CheckedMethod] for [A_Continuation.function]. */
-		val continuationFunctionMethod = instanceMethod(
-			A_Continuation::class.java,
-			A_Continuation::function.name,
-			A_Function::class.java)
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun functionStatic(self: AvailObject): A_Function =
+			self.descriptor().o_Function(self)
+
+		/** The [CheckedMethod] for [functionStatic]. */
+		val continuationFunctionMethod = staticMethod(
+			ContinuationDescriptor::class.java,
+			::functionStatic.name,
+			A_Function::class.java,
+			AvailObject::class.java)
 
 		/**
 		 * Create a new continuation with the given data.  The continuation
@@ -578,7 +619,10 @@ class ContinuationDescriptor private constructor(
 				setSlot(LEVEL_TWO_REGISTER_DUMP, nil)
 				setSlot(PROGRAM_COUNTER, 0) // Indicates this is a label.
 				setSlot(STACK_POINTER, frameSize + 1)
-				levelTwoChunkOffset(startingChunk, startingOffset)
+				setSlot(
+					CALL_DEPTH, if (caller.isNil) 0 else caller.callDepth() + 1)
+				setSlot(LEVEL_TWO_CHUNK, startingChunk.chunkPojo)
+				setSlot(LEVEL_TWO_OFFSET, startingOffset)
 				//  Set up arguments...
 				val numArgs = args.size
 				assert(numArgs == code.numArgs())
@@ -634,6 +678,8 @@ class ContinuationDescriptor private constructor(
 				setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump)
 				setSlot(PROGRAM_COUNTER, pc)
 				setSlot(STACK_POINTER, stackp)
+				setSlot(
+					CALL_DEPTH, if (caller.isNil) 0 else caller.callDepth() + 1)
 				setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
 				setSlot(LEVEL_TWO_OFFSET, levelTwoOffset)
 				fillSlots(FRAME_AT_, 1, frameSize, nil)
@@ -741,6 +787,7 @@ class ContinuationDescriptor private constructor(
 				createRegisterDump(boxedRegisters, unboxedRegisters))
 			setSlot(PROGRAM_COUNTER, -1)
 			setSlot(STACK_POINTER, -1)
+			setSlot(CALL_DEPTH, -1)
 			setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
 			setSlot(LEVEL_TWO_OFFSET, levelTwoOffset)
 		}

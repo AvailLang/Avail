@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.fiberNameSupplier
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -60,7 +61,7 @@ object P_SetFiberName : Primitive(
 	{
 		interpreter.checkArgumentCount(2)
 		val fiber = interpreter.argument(0)
-		val name = interpreter.argument(1)
+		val name = interpreter.argument(1).makeShared()
 		fiber.fiberNameSupplier { name }
 		return interpreter.primitiveSuccess(nil)
 	}

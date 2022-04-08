@@ -34,6 +34,9 @@ package avail.interpreter.primitive.processes
 
 import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -52,10 +55,10 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
 import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
@@ -117,12 +120,13 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		// Create the new fiber that will be connected to the external process.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(TOP.o, priority.extractInt) {
+		val newFiber = newFiber(interpreter.runtime, TOP.o, priority.extractInt)
+		{
 			stringFrom("External process execution")
 		}
-		newFiber.setAvailLoader(current.availLoader())
-		newFiber.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
+		newFiber.availLoader = current.availLoader
+		newFiber.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()
@@ -133,11 +137,11 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		try
 		{
 			val process = builder.start()
-			newFiber.setTextInterface(
+			newFiber.textInterface =
 				TextInterface(
 					ProcessInputChannel(process.inputStream),
 					ProcessOutputChannel(PrintStream(process.outputStream)),
-					ProcessOutputChannel(PrintStream(process.outputStream))))
+					ProcessOutputChannel(PrintStream(process.outputStream)))
 			runOutermostFunction(runtime, newFiber, succeed, emptyList())
 			return interpreter.primitiveSuccess(newFiber)
 		}
@@ -151,7 +155,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 
 		// Run the failure function on the new fiber.
-		newFiber.setTextInterface(current.textInterface())
+		newFiber.textInterface = current.textInterface
 		runOutermostFunction(
 			runtime, newFiber, fail, listOf(error.numericCode()))
 		return interpreter.primitiveSuccess(newFiber)

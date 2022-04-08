@@ -41,6 +41,9 @@ import avail.compiler.ModuleHeader
 import avail.compiler.problems.Problem
 import avail.compiler.problems.ProblemHandler
 import avail.compiler.problems.ProblemType.EXECUTION
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
@@ -49,9 +52,9 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
@@ -426,14 +429,14 @@ internal class BuildLoader constructor(
 						formatString(
 							"Load repo module %s, in %s:%d",
 							code.methodName,
-							code.module.moduleName,
+							code.module.shortModuleNameNative,
 							code.codeStartingLineNumber)
 					}
-					fiber.setTextInterface(availBuilder.textInterface)
-					val before = fiber.fiberHelper().fiberTime()
+					fiber.textInterface = availBuilder.textInterface
+					val before = fiber.fiberHelper.fiberTime()
 					fiber.setSuccessAndFailure(
 						{
-							val after = fiber.fiberHelper().fiberTime()
+							val after = fiber.fiberHelper.fiberTime()
 							Interpreter.current().recordTopStatementEvaluation(
 								(after - before).toDouble(), module)
 							runNext()

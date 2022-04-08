@@ -32,6 +32,9 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.interruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.wakeupTask
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
@@ -97,10 +100,10 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 						// termination request may have already woken the
 						// fiber up, but so recently that it didn't manage
 						// to cancel this timer task.
-						if (fiber.executionState() === ASLEEP)
+						if (fiber.executionState === ASLEEP)
 						{
-							fiber.setWakeupTask(null)
-							fiber.setExecutionState(SUSPENDED)
+							fiber.wakeupTask = null
+							fiber.executionState = SUSPENDED
 							resumeFromSuccessfulPrimitive(
 								runtime, fiber, this@P_Sleep, nil)
 						}
@@ -115,13 +118,13 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 					// the resumption of this fiber.
 					when {
 						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
-							assert(fiber.executionState() === SUSPENDED)
+							assert(fiber.executionState === SUSPENDED)
 							resumeFromSuccessfulPrimitive(
 								runtime, fiber, this, nil)
 						}
 						else -> {
-							fiber.setWakeupTask(task)
-							fiber.setExecutionState(ASLEEP)
+							fiber.wakeupTask = task
+							fiber.executionState = ASLEEP
 							runtime.timer.schedule(
 								task, sleepMillis.extractLong)
 						}
@@ -138,11 +141,11 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 					// the resumption of this fiber.
 					when {
 						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
-							assert(fiber.executionState() === SUSPENDED)
+							assert(fiber.executionState === SUSPENDED)
 							resumeFromSuccessfulPrimitive(
 								runtime, fiber, this, nil)
 						}
-						else -> fiber.setExecutionState(ASLEEP)
+						else -> fiber.executionState = ASLEEP
 					}
 				}
 			}

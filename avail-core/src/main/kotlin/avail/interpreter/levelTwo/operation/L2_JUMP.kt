@@ -32,8 +32,8 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
+import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -46,7 +46,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP : L2ControlFlowOperation(
-	L2OperandType.PC.named("target", L2NamedOperandType.Purpose.SUCCESS))
+	PC.named("target", SUCCESS))
 {
 	// It jumps, which counts as a side effect.
 	override val hasSideEffect: Boolean

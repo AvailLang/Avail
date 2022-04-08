@@ -34,6 +34,7 @@ package avail.interpreter.primitive.bootstrap.syntax
 
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_PHRASE
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_LITERAL_TOKEN
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MACRO_DEFINER
@@ -83,7 +84,7 @@ object P_BootstrapDefineSpecialObjectMacro
 		val nameLiteral = interpreter.argument(0)
 		val specialObjectLiteral = interpreter.argument(1)
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader()
+		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)

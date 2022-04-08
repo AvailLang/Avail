@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.controlflow
 
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.ContinuationDescriptor.Companion.dumpStackThen
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -70,7 +71,7 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 
 		val runtime = interpreter.runtime
 		// The primitive is flagged CanSuspend to force the stack to be reified.
-		val continuation : A_Continuation =
+		val continuation: A_Continuation =
 			try
 			{
 				exception.fieldAt(stackDumpAtom)
@@ -82,7 +83,7 @@ object P_ExceptionStackDump : Primitive(1, CanSuspend, Unknown)
 				return interpreter.primitiveFailure(E_INCORRECT_ARGUMENT_TYPE)
 			}
 
-		val textInterface = interpreter.fiber().textInterface()
+		val textInterface = interpreter.fiber().textInterface
 		return interpreter.suspendThen {
 			dumpStackThen(runtime, textInterface, continuation)
 			{	stack ->

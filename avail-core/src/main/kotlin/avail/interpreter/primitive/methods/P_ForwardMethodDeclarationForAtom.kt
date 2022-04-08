@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -65,7 +66,7 @@ object P_ForwardMethodDeclarationForAtom : Primitive(2, CanSuspend, Unknown)
 		val atom = interpreter.argument(0)
 		val blockSignature = interpreter.argument(1)
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader() ?:
+		val loader = fiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{

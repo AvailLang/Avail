@@ -114,7 +114,7 @@ internal class AvailTextFile : AbstractAvailTextFile
 	 *   The [Charset] of the file.
 	 */
 	constructor(
-		raw : ByteArray,
+		raw: ByteArray,
 		fileWrapper: AbstractFileWrapper,
 		charset: Charset = Charsets.UTF_8): super(charset, fileWrapper)
 	{

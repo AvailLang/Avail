@@ -31,6 +31,7 @@
  */
 package avail.interpreter.levelTwo
 
+import avail.AvailDebuggerModel
 import avail.AvailRuntime
 import avail.AvailRuntime.HookType
 import avail.AvailRuntimeSupport
@@ -38,7 +39,17 @@ import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.message
+import avail.descriptor.fiber.A_Fiber.Companion.continuation
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
+import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
@@ -150,7 +161,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 	/**
 	 * The registers that hold [Avail&#32;objects][AvailObject].
 	 */
-	var pointers : Array<AvailObject> = emptyPointersArray
+	var pointers: Array<AvailObject> = emptyPointersArray
 
 	/**
 	 * Get the current program counter.
@@ -245,9 +256,63 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 						whitespaces.matcher(function.toString()).replaceAll(" ")
 				})
 		}
+		val debugger = interpreter.debugger
 		code.setUpInstructionDecoder(instructionDecoder)
 		while (!instructionDecoder.atEnd())
 		{
+			if (debugger !== null)
+			{
+				val f = interpreter.fiber()
+				if (!interpreter.debuggerRunCondition!!(f))
+				{
+					// The debuggerRunCondition said we should pause now.
+					val mutableContinuation = createContinuationWithFrame(
+						function = function,
+						caller = nil,
+						registerDump = nil,
+						pc = pc(),
+						stackp = stackp,
+						levelTwoChunk = L2Chunk.unoptimizedChunk,
+						levelTwoOffset =
+							ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk,
+						frameValues = listOf(*pointers),
+						zeroBasedStartIndex = 1)
+					interpreter.isReifying = true
+					return StackReifier(
+						true,
+						AvailDebuggerModel.reificationForDebuggerStat)
+					{
+						// Push the new continuation onto the reified stack.
+						interpreter.apply {
+							returnNow = false
+							f.continuation =
+								mutableContinuation.replacingCaller(
+									getReifiedContinuation()!!)
+							interpreter.setReifiedContinuation(null)
+							isReifying = false
+							returnNow = false
+							exitNow = true
+							offset = Int.MAX_VALUE
+							setLatestResult(null)
+							levelOneStepper.wipeRegisters()
+							f.lock {
+								synchronized(f) {
+									assert(f.executionState === RUNNING)
+									f.executionState = PAUSED
+									val bound = f.getAndSetSynchronizationFlag(
+										BOUND, false)
+									f.fiberHelper.stopCountingCPU()
+									assert(bound)
+									fiber(null, "debug pause")
+								}
+							}
+							postExitContinuation {
+								debugger.justPaused(f)
+							}
+						}
+					}
+				}
+			}
 			val operationOrdinal = instructionDecoder.getOperationOrdinal()
 			if (Interpreter.debugL1)
 			{
@@ -787,17 +852,11 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			if (variable.traversed().descriptor().isMutable)
 			{
 				variable.getValueClearing()
-					.apply {  //TODO Remove after debug
-						assert(!variable.hasValue())
-					}
 			}
 			else
 			{
 				// Automatically makes the value immutable.
 				variable.getValue()
-					.apply {  //TODO Remove after debug
-						assert(!traversed().descriptor().isMutable)
-					}
 			}
 		}
 		catch (e: VariableGetException)
@@ -1057,7 +1116,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		val savedPointers = pointers
 		val savedPc = pc()
 		val savedStackp = stackp
-		with (interpreter.argsBuffer) {
+		interpreter.argsBuffer.run {
 			clear()
 			add(errorCode.numericCode().cast())
 			add(method.cast())

@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.fibers
 
 import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -61,7 +62,7 @@ object P_HasTerminated : Primitive(
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
 		return interpreter.primitiveSuccess(
-			objectFromBoolean(fiber.executionState().indicatesTermination))
+			objectFromBoolean(fiber.executionState.indicatesTermination))
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

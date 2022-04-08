@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.modules
 
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.module.A_Module.Companion.addUnloadFunction
@@ -65,7 +66,7 @@ object P_AddUnloadFunction : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val unloadFunction = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader()
+		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module
 		module.addUnloadFunction(unloadFunction)

@@ -32,6 +32,11 @@
 package avail.interpreter.primitive.fibers
 
 import avail.AvailRuntime.Companion.currentRuntime
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
+import avail.descriptor.fiber.A_Fiber.Companion.wakeupTask
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ASLEEP
@@ -70,7 +75,7 @@ object P_RequestTermination : Primitive(
 			lock {
 				// Set the interrupt request flag.
 				setInterruptRequestFlag(TERMINATION_REQUESTED)
-				val oldState = executionState()
+				val oldState = executionState
 				val hadPermit =
 					!getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
 				when (oldState) {
@@ -78,15 +83,15 @@ object P_RequestTermination : Primitive(
 					{
 						// Try to cancel the task (if any). This is best
 						// effort only.
-						val task = wakeupTask()
+						val task = wakeupTask
 						if (task !== null)
 						{
 							task.cancel()
-							setWakeupTask(null)
+							wakeupTask = null
 						}
-						setExecutionState(SUSPENDED)
+						executionState = SUSPENDED
 						val fiberSuspendingPrimitive =
-							suspendingFunction().code().codePrimitive()!!
+							suspendingFunction.code().codePrimitive()!!
 						resumeFromSuccessfulPrimitive(
 							currentRuntime(),
 							fiber,
@@ -99,9 +104,9 @@ object P_RequestTermination : Primitive(
 						assert(!hadPermit) {
 							"Should not have been parked with a permit"
 						}
-						setExecutionState(SUSPENDED)
+						executionState = SUSPENDED
 						val suspendingPrimitive =
-							suspendingFunction().code().codePrimitive()!!
+							suspendingFunction.code().codePrimitive()!!
 						assert(
 							suspendingPrimitive === P_ParkCurrentFiber
 								|| suspendingPrimitive === P_AttemptJoinFiber)

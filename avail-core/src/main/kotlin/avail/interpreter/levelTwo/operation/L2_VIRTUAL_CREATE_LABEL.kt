@@ -39,6 +39,10 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.INT_IMMEDIATE
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ArbitraryConstantOperand
 import avail.interpreter.levelTwo.operand.L2CommentOperand
@@ -106,10 +110,10 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_VIRTUAL_CREATE_LABEL : L2Operation(
-	L2OperandType.WRITE_BOXED.named("output label"),
-	L2OperandType.READ_BOXED.named("immutable function"),
-	L2OperandType.READ_BOXED_VECTOR.named("arguments"),
-	L2OperandType.INT_IMMEDIATE.named("frame size"))
+	WRITE_BOXED.named("output label"),
+	READ_BOXED.named("immutable function"),
+	READ_BOXED_VECTOR.named("arguments"),
+	INT_IMMEDIATE.named("frame size"))
 {
 	override val isPlaceholder get() = true
 

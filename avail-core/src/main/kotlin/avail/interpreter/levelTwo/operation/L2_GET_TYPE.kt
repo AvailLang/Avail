@@ -38,6 +38,8 @@ import avail.descriptor.types.InstanceTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.NONTYPE
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -54,8 +56,8 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_GET_TYPE : L2Operation(
-	L2OperandType.READ_BOXED.named("value"),
-	L2OperandType.WRITE_BOXED.named("value's type"))
+	READ_BOXED.named("value"),
+	WRITE_BOXED.named("value's type"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

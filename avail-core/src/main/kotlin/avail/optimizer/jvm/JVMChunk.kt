@@ -109,7 +109,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		/**
 		 * The [CheckedMethod] for the default constructor.
 		 */
-		val chunkConstructor : CheckedConstructor =
+		val chunkConstructor: CheckedConstructor =
 			CheckedConstructor.constructorMethod(JVMChunk::class.java)
 
 		/** An empty `long` array. */
@@ -118,7 +118,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val noLongs = LongArray(0)
 
 		/** Access to the field [noLongs]. */
-		var noLongsField : CheckedField = CheckedField.staticField(
+		var noLongsField: CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noLongs",
 			LongArray::class.java)
@@ -129,7 +129,7 @@ abstract class JVMChunk @ReferencedInGeneratedCode constructor()
 		val noObjects = arrayOf<AvailObject>()
 
 		/** Access to the field [noObjects]. */
-		var noObjectsField : CheckedField = CheckedField.staticField(
+		var noObjectsField: CheckedField = CheckedField.staticField(
 			JVMChunk::class.java,
 			"noObjects",
 			Array<AvailObject>::class.java)

@@ -37,6 +37,8 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.primitive.controlflow.P_RestartContinuationWithArguments
@@ -59,8 +61,8 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_RESTART_CONTINUATION_WITH_ARGUMENTS : L2ControlFlowOperation(
-	L2OperandType.READ_BOXED.named("continuation to restart"),
-	L2OperandType.READ_BOXED_VECTOR.named("arguments"))
+	READ_BOXED.named("continuation to restart"),
+	READ_BOXED_VECTOR.named("arguments"))
 {
 	override val hasSideEffect get() = true
 

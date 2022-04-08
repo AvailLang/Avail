@@ -37,7 +37,7 @@ import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.attemptTheInlinePrimitiveMethod
 import avail.interpreter.execution.Interpreter.Companion.attemptTheNonInlinePrimitiveMethod
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.PRIMITIVE
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_CONTINUATION
 import avail.interpreter.levelTwo.L2Operation.HiddenVariable.CURRENT_FUNCTION
@@ -67,7 +67,7 @@ import org.objectweb.asm.Opcodes
 	//	CURRENT_ARGUMENTS.class,
 	LATEST_RETURN_VALUE::class)
 object L2_TRY_PRIMITIVE : L2Operation(
-	L2OperandType.PRIMITIVE.named("primitive"))
+	PRIMITIVE.named("primitive"))
 {
 	override fun isEntryPoint(instruction: L2Instruction): Boolean = true
 

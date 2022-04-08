@@ -64,6 +64,8 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
@@ -120,11 +122,11 @@ import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.resolveForward
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.State.Loading
@@ -499,7 +501,7 @@ class AvailLoader(
 							.message.atomName,
 						codePoint)
 				}
-				fiber.setTextInterface(loader.textInterface)
+				fiber.textInterface = loader.textInterface
 				lexingState.setFiberContinuationsTrackingWork(
 					fiber,
 					{ boolObject: AvailObject ->
@@ -1456,14 +1458,15 @@ class AvailLoader(
 					val currentIndex = index++
 					val unloadFunction: A_Function =
 						unloadFunctions.tupleAt(currentIndex)
-					val fiber = newFiber(TOP.o, loaderPriority) {
+					val fiber = newFiber(runtime, TOP.o, loaderPriority)
+					{
 						formatString(
 							"Unload function #%d/%d for module %s",
 							currentIndex,
 							size,
-							module.moduleName)
+							module.shortModuleNameNative)
 					}
-					fiber.setTextInterface(textInterface)
+					fiber.textInterface = textInterface
 					fiber.setSuccessAndFailure({ again() }, { again() })
 					runOutermostFunction(
 						runtime(), fiber, unloadFunction, emptyList())

@@ -39,6 +39,7 @@ import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.STATIC_TOKENS_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.hasKey
@@ -151,7 +152,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		val optionalReturnType = interpreter.argument(5)
 		val optionalExceptionTypes = interpreter.argument(6)
 
-		var fiberGlobals = interpreter.fiber().fiberGlobals()
+		var fiberGlobals = interpreter.fiber().fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!clientData.hasKey(scopeMapKey))
@@ -406,7 +407,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			scopeStackKey, scopeStack, true)
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		fiber.setFiberGlobals(fiberGlobals.makeShared())
+		fiber.fiberGlobals = fiberGlobals.makeShared()
 		return interpreter.primitiveSuccess(block)
 	}
 

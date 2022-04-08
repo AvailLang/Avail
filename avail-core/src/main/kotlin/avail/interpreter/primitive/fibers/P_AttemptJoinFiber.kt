@@ -32,6 +32,9 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.A_Fiber.Companion.joiningFibers
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
@@ -92,7 +95,7 @@ object P_AttemptJoinFiber : Primitive(
 			return interpreter.primitiveFailure(E_FIBER_CANNOT_JOIN_ITSELF)
 		}
 		val succeed = joinee.lock {
-			if (joinee.executionState().indicatesTermination)
+			if (joinee.executionState.indicatesTermination)
 			{
 				return@lock true
 			}
@@ -117,9 +120,9 @@ object P_AttemptJoinFiber : Primitive(
 			// no longer in the joinee's set – in fact, the set will have been
 			// replaced by nil.  The attempt to remove the joiner from the set
 			// is simply skipped in that case.
-			joinee.setJoiningFibers(
-				joinee.joiningFibers().setWithElementCanDestroy(
-					current, false))
+			joinee.joiningFibers =
+				joinee.joiningFibers.setWithElementCanDestroy(
+					current, false)
 			false
 		}
 		return when {

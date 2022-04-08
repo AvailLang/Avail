@@ -36,7 +36,8 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.variables.A_Variable
 import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -72,9 +73,9 @@ object L2_VARIABLE_COMPARE_AND_SWAP_NO_CHECK : L2ControlFlowOperation(
 	READ_BOXED.named("variable"),
 	READ_BOXED.named("reference"),
 	READ_BOXED.named("value to write"),
-	PC.named("swap succeeded", Purpose.SUCCESS),
-	PC.named("swap failed", Purpose.FAILURE),
-	PC.named("variable set exception", Purpose.FAILURE))
+	PC.named("swap succeeded", SUCCESS),
+	PC.named("swap failed", FAILURE),
+	PC.named("variable set exception", FAILURE))
 {
 	override val hasSideEffect get() = true
 

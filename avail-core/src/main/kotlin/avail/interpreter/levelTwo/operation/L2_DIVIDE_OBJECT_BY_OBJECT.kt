@@ -34,7 +34,8 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.A_Number
 import avail.exceptions.ArithmeticException
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -59,10 +60,10 @@ import org.objectweb.asm.Type
 object L2_DIVIDE_OBJECT_BY_OBJECT : L2ControlFlowOperation(
 	READ_BOXED.named("dividend"),
 	READ_BOXED.named("divisor"),
-	WRITE_BOXED.named("quotient", Purpose.SUCCESS),
-	WRITE_BOXED.named("remainder", Purpose.SUCCESS),
-	PC.named("if undefined", Purpose.OFF_RAMP),
-	PC.named("success", Purpose.SUCCESS))
+	WRITE_BOXED.named("quotient", SUCCESS),
+	WRITE_BOXED.named("remainder", SUCCESS),
+	PC.named("if undefined", OFF_RAMP),
+	PC.named("success", SUCCESS))
 {
 	override val hasSideEffect: Boolean
 		// It jumps for division by zero.

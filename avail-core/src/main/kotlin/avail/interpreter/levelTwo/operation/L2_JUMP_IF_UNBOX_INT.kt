@@ -35,8 +35,12 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -52,10 +56,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_UNBOX_INT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("source"),
-	L2OperandType.WRITE_INT.named("destination", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("if not unboxed", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.named("if unboxed", L2NamedOperandType.Purpose.SUCCESS))
+	READ_BOXED.named("source"),
+	WRITE_INT.named("destination", SUCCESS),
+	PC.named("if not unboxed", FAILURE),
+	PC.named("if unboxed", SUCCESS))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

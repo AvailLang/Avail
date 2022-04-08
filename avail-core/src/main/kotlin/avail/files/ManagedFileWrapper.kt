@@ -455,7 +455,7 @@ class ManagedFileWrapper constructor(
  *   The [FileManager] this [ManagedFileWrapper] belongs to.
  */
 class NullFileWrapper constructor(
-	raw : ByteArray,
+	raw: ByteArray,
 	resolverReference: ResolverReference,
 	fileManager: FileManager
 ): AbstractFileWrapper(nullUUID, resolverReference, fileManager)

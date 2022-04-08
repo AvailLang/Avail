@@ -38,6 +38,7 @@ import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -88,7 +89,7 @@ object P_SimpleLexerDefinitionForAtom : Primitive(3, CanSuspend, Unknown)
 		val bodyFunction = interpreter.argument(2)
 
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader() ?:
+		val loader = fiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{

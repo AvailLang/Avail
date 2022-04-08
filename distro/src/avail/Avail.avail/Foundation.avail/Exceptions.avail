@@ -778,9 +778,6 @@ Stable method "“_”" is
 	(a|an) “anException's error name”
 ] : string;
 
-/* A map from error codes to system exceptions. */
-exceptionsByCode : {natural number→system exception's type|} := {};
-
 /**
  * Define a new system exception class. Publish the name of the class.
  *
@@ -800,7 +797,6 @@ Private method "System exception_(_)extends_" is
 	code : natural number,
 	supertype : exception's type
 |
-	Assert: ¬code ∈ ↑exceptionsByCode ("code " ++ “code” ++ " already in use");
 	Assert: ¬exceptionBaseName ends with " exception"
 		(format "\"‘①’\" ends with \" exception\"" with exceptionBaseName);
 	exceptionName ::= exceptionBaseName ++ " exception";
@@ -813,7 +809,9 @@ Private method "System exception_(_)extends_" is
 		?→ method definition;
 	implementation ::= site's function ?→ []→object meta;
 	exceptionType ::= implementation() ?→ system exception's type;
-	↑exceptionsByCode [code] := exceptionType;
+	Method "exception for code_" is
+		new [code's type]→exceptionType's type
+		applying [i : integer | exceptionType];
 ];
 
 /**
@@ -1515,6 +1513,15 @@ System exception "cannot-compute-logarithm-for-nonpositive-base" (1040)
 	extends bad-argument exception;
 System exception "cannot-compute-logarithm-of-nonpositive-number" (1041)
 	extends bad-argument exception;
+
+/* A map from error codes to system exceptions. */
+exceptionsByCode : {natural number→system exception's type|} :=
+	map each def in method for $"exception for code_"'s definitions through [
+		code ::= def's function type[1]'s instance ?→ natural number;
+		exceptionType ::= def's function type's return type's instance
+			?→ (system exception's type);
+		<code, exceptionType>
+	] → map;
 
 /**
  * Ensure that all error codes have corresponding exceptions.

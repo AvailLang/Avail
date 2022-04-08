@@ -33,6 +33,7 @@ package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.module.ModuleDescriptor
@@ -79,7 +80,7 @@ object P_SimpleMethodDeclaration : Primitive(2, Bootstrap, CanSuspend, Unknown)
 		val string = interpreter.argument(0)
 		val function = interpreter.argument(1)
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader()
+		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)

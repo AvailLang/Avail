@@ -32,6 +32,8 @@
 
 package avail.interpreter.primitive.variables
 
+import avail.descriptor.fiber.A_Fiber.Companion.traceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.variablesWritten
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Function
@@ -78,7 +80,7 @@ object P_DisableTraceVariableWrites : Primitive(
 			return interpreter.primitiveFailure(E_ILLEGAL_TRACE_MODE)
 		}
 		interpreter.setTraceVariableWrites(false)
-		val written = fiber.variablesWritten()
+		val written = fiber.variablesWritten
 		var functions = emptySet
 		for (variable in written)
 		{

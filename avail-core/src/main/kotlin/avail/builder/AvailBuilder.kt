@@ -46,6 +46,9 @@ import avail.compiler.problems.ProblemType.PARSE
 import avail.compiler.problems.ProblemType.TRACE
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase
@@ -1066,14 +1069,17 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val phrase = command.phrase
 			val function = createFunctionForPhrase(phrase, nil, 1)
 			val fiber = newFiber(
+				runtime,
 				function.kind().returnType,
-				commandPriority
-			) { stringFrom("Running command: $phrase") }
-			var fiberGlobals = fiber.fiberGlobals()
+				commandPriority)
+			{
+				stringFrom("Running command: $phrase")
+			}
+			var fiberGlobals = fiber.fiberGlobals
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap, true)
-			fiber.setFiberGlobals(fiberGlobals)
-			fiber.setTextInterface(textInterface)
+			fiber.fiberGlobals = fiberGlobals
+			fiber.textInterface = textInterface
 			fiber.setSuccessAndFailure(
 				{ result -> onSuccess(result, postSuccessCleanup) },
 				{ e ->

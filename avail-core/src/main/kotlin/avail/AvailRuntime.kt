@@ -230,6 +230,7 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.StackPrinter.Companion.trace
+import avail.utility.WorkStealingQueue
 import avail.utility.evaluation.OnceSupplier
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
@@ -728,7 +729,7 @@ class AvailRuntime constructor(
 		val defaultFunctionSupplier: OnceSupplier<A_Function> =
 			produceDefaultFunctionSupplier(hookName, primitive)
 
-		open fun produceDefaultFunctionSupplier(
+		fun produceDefaultFunctionSupplier(
 			hookName: String,
 			primitive: Primitive?
 		): OnceSupplier<A_Function> = when (primitive)
@@ -948,7 +949,7 @@ class AvailRuntime constructor(
 	 * [runtime][AvailRuntime] data structures against dangerous concurrent
 	 * access.
 	 */
-	private val runtimeLock = ReentrantReadWriteLock()
+	val runtimeLock = ReentrantReadWriteLock()
 
 	companion object
 	{
@@ -1793,4 +1794,12 @@ class AvailRuntime constructor(
 		}
 		modules = nil
 	}
+
+	/**
+	 * A call-out to allow tools like debuggers to intercept breakpoints. Only
+	 * one breakpoint handler can be active for this runtime.  The function will
+	 * be invoked from within a safe point.
+	 */
+	@Volatile
+	var breakpointHandler: (A_Fiber)->Unit = {  }
 }

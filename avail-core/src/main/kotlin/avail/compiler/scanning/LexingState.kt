@@ -40,10 +40,14 @@ import avail.compiler.problems.CompilerDiagnostics.ParseNotificationLevel.STRONG
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import avail.descriptor.methods.A_Method.Companion.chooseBundle
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.lexerBodyFunction
@@ -287,16 +291,20 @@ class LexingState constructor(
 		countdown: AtomicInteger)
 	{
 		val loader = compilationContext.loader
-		val fiber = newLoaderFiber(lexerBodyFunctionType().returnType, loader) {
+		val fiber = newLoaderFiber(lexerBodyFunctionType().returnType, loader)
+		{
 			formatString(
-				"Lexer body on line %d for %s.", lineNumber, lexer)
+				"Lexing %s:%d (%s)",
+				compilationContext.module.shortModuleNameNative,
+				lineNumber,
+				lexer)
 		}
 		// TODO MvG - Set up fiber variables for lexing?
 		//		A_Map fiberGlobals = fiber.fiberGlobals();
 		//		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 		//			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true);
 		//		fiber.fiberGlobals(fiberGlobals);
-		fiber.setTextInterface(compilationContext.textInterface)
+		fiber.textInterface = compilationContext.textInterface
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		setFiberContinuationsTrackingWork(
 			fiber,

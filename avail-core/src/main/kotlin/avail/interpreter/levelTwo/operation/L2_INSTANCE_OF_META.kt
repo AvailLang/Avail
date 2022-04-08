@@ -33,7 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceOfMetaMethod
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
+import avail.interpreter.levelTwo.L2OperandType.WRITE_BOXED
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
@@ -47,8 +48,8 @@ import org.objectweb.asm.MethodVisitor
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_INSTANCE_OF_META : L2Operation(
-	L2OperandType.READ_BOXED.named("meta"),
-	L2OperandType.WRITE_BOXED.named("meta's instance"))
+	READ_BOXED.named("meta"),
+	WRITE_BOXED.named("meta's instance"))
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

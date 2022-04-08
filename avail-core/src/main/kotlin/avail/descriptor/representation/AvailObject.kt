@@ -37,12 +37,6 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_BundleTree
 import avail.descriptor.character.A_Character
 import avail.descriptor.fiber.A_Fiber
-import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState
-import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
-import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
-import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
-import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
@@ -92,11 +86,10 @@ import avail.descriptor.variables.VariableDescriptor.VariableAccessReactor
 import avail.exceptions.AvailException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
-import avail.interpreter.execution.AvailLoader
 import avail.interpreter.levelTwo.L2Chunk
-import avail.io.TextInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
+import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
@@ -105,7 +98,6 @@ import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
 import java.util.Spliterator
-import java.util.TimerTask
 
 /**
  * `AvailObject` is the fully realized, and mostly machine generated,
@@ -371,21 +363,9 @@ class AvailObject private constructor(
 	 */
 	override fun asNativeString() = descriptor().o_AsNativeString(this)
 
-	override fun breakpointBlock() = descriptor().o_BreakpointBlock(this)
-
-	override fun setBreakpointBlock(value: AvailObject) =
-		descriptor().o_SetBreakpointBlock(this, value)
-
-	override fun caller() = descriptor().o_Caller(this)
-
 	override fun clearValue() = descriptor().o_ClearValue(this)
 
 	override fun function() = descriptor().o_Function(this)
-
-	override fun continuation() = descriptor().o_Continuation(this)
-
-	override fun setContinuation(value: A_Continuation) =
-		descriptor().o_SetContinuation(this, value)
 
 	/**
 	 * A convenience method that exposes the fact that a subtuple of a string is
@@ -405,8 +385,6 @@ class AvailObject private constructor(
 	): A_String = descriptor()
 		.o_CopyTupleFromToCanDestroy(this, start, end, canDestroy)
 		.cast()
-
-	override fun ensureMutable() = descriptor().o_EnsureMutable(this)
 
 	/**
 	 * Answer whether the receiver and the argument, both [AvailObject]s, are
@@ -662,11 +640,6 @@ class AvailObject private constructor(
 	override fun equalsTwoByteString(aTwoByteString: A_String) =
 		descriptor().o_EqualsTwoByteString(this, aTwoByteString)
 
-	override fun executionState() = descriptor().o_ExecutionState(this)
-
-	override fun setExecutionState(value: ExecutionState) =
-		descriptor().o_SetExecutionState(this, value)
-
 	override fun fieldMap() = descriptor().o_FieldMap(this)
 
 	@Throws(VariableGetException::class)
@@ -675,13 +648,13 @@ class AvailObject private constructor(
 	@Throws(VariableGetException::class)
 	override fun getValueClearing() = descriptor().o_GetValueClearing(this)
 
+	override fun getValueForDebugger() =
+		descriptor().o_GetValueForDebugger(this)
+
 	override fun hashOrZero() = descriptor().o_HashOrZero(this)
 
 	override fun setHashOrZero(value: Int) =
 		descriptor().o_SetHashOrZero(this, value)
-
-	override fun setInterruptRequestFlag(flag: InterruptRequestFlag) =
-		descriptor().o_SetInterruptRequestFlag(this, flag)
 
 	override val isAbstract get() = descriptor().o_IsAbstract(this)
 
@@ -815,22 +788,7 @@ class AvailObject private constructor(
 	override fun spliterator(): Spliterator<AvailObject> =
 		descriptor().o_Spliterator(this)
 
-	override fun levelTwoChunk() = descriptor().o_LevelTwoChunk(this)
-
-	override fun levelTwoChunkOffset(chunk: L2Chunk, offset: Int) =
-		descriptor().o_LevelTwoChunkOffset(this, chunk, offset)
-
-	override fun levelTwoOffset() = descriptor().o_LevelTwoOffset(this)
-
 	override fun literal() = descriptor().o_Literal(this)
-
-	@ReferencedInGeneratedCode
-	override fun frameAt(index: Int) =
-		descriptor().o_FrameAt(this, index)
-
-	@ReferencedInGeneratedCode
-	override fun frameAtPut(index: Int, value: AvailObject): AvailObject =
-		descriptor().o_FrameAtPut(this, index, value)
 
 	override fun makeImmutable() =
 		descriptor().let {
@@ -854,20 +812,6 @@ class AvailObject private constructor(
 	override fun makeSubobjectsShared() =
 		descriptor().o_MakeSubobjectsShared(this)
 
-	override fun numSlots() = descriptor().o_NumSlots(this)
-
-	override fun pc() = descriptor().o_Pc(this)
-
-	override fun priority() = descriptor().o_Priority(this)
-
-	override fun setPriority(value: Int) =
-		descriptor().o_SetPriority(this, value)
-
-	override fun fiberGlobals() = descriptor().o_FiberGlobals(this)
-
-	override fun setFiberGlobals(value: A_Map) =
-		descriptor().o_SetFiberGlobals(this, value)
-
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
 
@@ -880,11 +824,6 @@ class AvailObject private constructor(
 
 	override fun setValueNoCheck(newValue: A_BasicObject) =
 		descriptor().o_SetValueNoCheck(this, newValue)
-
-	override fun stackAt(slotIndex: Int) =
-		descriptor().o_StackAt(this, slotIndex)
-
-	override fun stackp() = descriptor().o_Stackp(this)
 
 	override fun start() = descriptor().o_Start(this)
 
@@ -1020,58 +959,6 @@ class AvailObject private constructor(
 
 	override fun <T> lock(body: () -> T): T = descriptor().o_Lock(this, body)
 
-	/**
-	 * Answer the [loader][AvailLoader] bound to the
-	 * [receiver][FiberDescriptor], or `null` if the receiver is not a loader
-	 * fiber.
-	 *
-	 * @return
-	 *   An Avail loader, or `null` if no Avail loader is associated with the
-	 *   specified fiber.
-	 */
-	override fun availLoader(): AvailLoader? = descriptor().o_AvailLoader(this)
-
-	override fun setAvailLoader(loader: AvailLoader?) =
-		descriptor().o_SetAvailLoader(this, loader)
-
-	/**
-	 * Answer the continuation that accepts the result produced by the
-	 * [receiver][FiberDescriptor]'s successful completion.
-	 *
-	 * @return
-	 *   A continuation.
-	 */
-	override fun resultContinuation(): (AvailObject) -> Unit =
-		descriptor().o_ResultContinuation(this)
-
-	/**
-	 * Answer the continuation that accepts the [throwable][Throwable]
-	 * responsible for abnormal termination of the [receiver][FiberDescriptor].
-	 *
-	 * @return
-	 *   A continuation.
-	 */
-	override fun failureContinuation(): (Throwable) -> Unit =
-		descriptor().o_FailureContinuation(this)
-
-
-	override fun setSuccessAndFailure(
-		onSuccess: (AvailObject) -> Unit,
-		onFailure: (Throwable) -> Unit
-	) = descriptor().o_SetSuccessAndFailure(this, onSuccess, onFailure)
-
-	/**
-	 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]
-	 * set for the [receiver][FiberDescriptor]?
-	 *
-	 * @param flag
-	 *   An interrupt request flag.
-	 * @return
-	 *   `true` if the interrupt request flag is set, `false` otherwise.
-	 */
-	override fun interruptRequestFlag(flag: InterruptRequestFlag) =
-		descriptor().o_InterruptRequestFlag(this, flag)
-
 	@Throws(VariableGetException::class, VariableSetException::class)
 	override fun getAndSetValue(newValue: A_BasicObject) =
 		descriptor().o_GetAndSetValue(this, newValue)
@@ -1092,54 +979,11 @@ class AvailObject private constructor(
 	override fun fetchAndAddValue(addend: A_Number) =
 		descriptor().o_FetchAndAddValue(this, addend)
 
-	override fun getAndClearInterruptRequestFlag(flag: InterruptRequestFlag) =
-		descriptor().o_GetAndClearInterruptRequestFlag(this, flag)
-
-	override fun getAndSetSynchronizationFlag(
-		flag: SynchronizationFlag,
-		value: Boolean
-	) = descriptor().o_GetAndSetSynchronizationFlag(this, flag, value)
-
-	override fun fiberResult() = descriptor().o_FiberResult(this)
-
-	override fun setFiberResult(result: A_BasicObject) =
-		descriptor().o_SetFiberResult(this, result)
-
-	override fun joiningFibers() = descriptor().o_JoiningFibers(this)
-
-	override fun wakeupTask(): TimerTask? = descriptor().o_WakeupTask(this)
-
-	override fun setWakeupTask(task: TimerTask?) =
-		descriptor().o_SetWakeupTask(this, task)
-
-	override fun setJoiningFibers(joiners: A_Set) =
-		descriptor().o_SetJoiningFibers(this, joiners)
-
-	override fun heritableFiberGlobals() =
-		descriptor().o_HeritableFiberGlobals(this)
-
-	override fun setHeritableFiberGlobals(globals: A_Map) =
-		descriptor().o_SetHeritableFiberGlobals(this, globals)
-
-	override fun generalFlag(flag: GeneralFlag) =
-		descriptor().o_GeneralFlag(this, flag)
-
-	override fun setGeneralFlag(flag: GeneralFlag) =
-		descriptor().o_SetGeneralFlag(this, flag)
-
-	override fun clearGeneralFlag(flag: GeneralFlag) =
-		descriptor().o_ClearGeneralFlag(this, flag)
-
 	override fun equalsByteBufferTuple(aByteBufferTuple: A_Tuple) =
 		descriptor().o_EqualsByteBufferTuple(this, aByteBufferTuple)
 
 	override val isByteBufferTuple get() =
 		descriptor().o_IsByteBufferTuple(this)
-
-	override fun fiberName() = descriptor().o_FiberName(this)
-
-	override fun fiberNameSupplier(supplier: () -> A_String) =
-		descriptor().o_FiberNameSupplier(this, supplier)
 
 	override fun definitionBundle(): A_Bundle =
 		descriptor().o_DefinitionBundle(this)
@@ -1150,9 +994,6 @@ class AvailObject private constructor(
 		descriptor().o_ArgumentRestrictionSets(this)
 
 	override fun restrictedBundle() = descriptor().o_RestrictedBundle(this)
-
-	override fun adjustPcAndStackp(pc: Int, stackp: Int) =
-		descriptor().o_AdjustPcAndStackp(this, pc, stackp)
 
 	override val isByteString get() = descriptor().o_IsByteString(this)
 
@@ -1165,35 +1006,8 @@ class AvailObject private constructor(
 	override fun removeWriteReactor(key: A_Atom) =
 		descriptor().o_RemoveWriteReactor(this, key)
 
-	override fun traceFlag(flag: TraceFlag) =
-		descriptor().o_TraceFlag(this, flag)
-
-	override fun setTraceFlag(flag: TraceFlag) =
-		descriptor().o_SetTraceFlag(this, flag)
-
-	override fun clearTraceFlag(flag: TraceFlag) =
-		descriptor().o_ClearTraceFlag(this, flag)
-
-	override fun recordVariableAccess(variable: A_Variable, wasRead: Boolean) =
-		descriptor().o_RecordVariableAccess(this, variable, wasRead)
-
-	override fun variablesReadBeforeWritten() =
-		descriptor().o_VariablesReadBeforeWritten(this)
-
-	override fun variablesWritten() = descriptor().o_VariablesWritten(this)
-
 	override fun validWriteReactorFunctions() =
 		descriptor().o_ValidWriteReactorFunctions(this)
-
-	override fun replacingCaller(newCaller: A_Continuation) =
-		descriptor().o_ReplacingCaller(this, newCaller)
-
-	override fun whenContinuationIsAvailableDo(
-		whenReified: (A_Continuation) -> Unit
-	) = descriptor().o_WhenContinuationIsAvailableDo(this, whenReified)
-
-	override fun getAndClearReificationWaiters(): List<(A_Continuation)->Unit> =
-		descriptor().o_GetAndClearReificationWaiters(this)
 
 	override val isBottom get() = descriptor().o_IsBottom(this)
 
@@ -1206,11 +1020,6 @@ class AvailObject private constructor(
 	override val isInitializedWriteOnceVariable get() =
 		descriptor().o_IsInitializedWriteOnceVariable(this)
 
-	override fun textInterface() = descriptor().o_TextInterface(this)
-
-	override fun setTextInterface(textInterface: TextInterface) =
-		descriptor().o_SetTextInterface(this, textInterface)
-
 	override fun writeTo(writer: JSONWriter) =
 		descriptor().o_WriteTo(this, writer)
 
@@ -1222,8 +1031,6 @@ class AvailObject private constructor(
 
 	override fun setValueWasStablyComputed(wasStablyComputed: Boolean) =
 		descriptor().o_SetValueWasStablyComputed(this, wasStablyComputed)
-
-	override fun uniqueId() = descriptor().o_UniqueId(this)
 
 	override fun equalsListNodeType(listNodeType: A_Type) =
 		descriptor().o_EqualsListNodeType(this, listNodeType)
@@ -1282,30 +1089,13 @@ class AvailObject private constructor(
 	override fun setNextLexingStateFromPrior(priorLexingState: LexingState) =
 		descriptor().o_SetNextLexingStateFromPrior(this, priorLexingState)
 
-	override fun setSuspendingFunction(suspendingFunction: A_Function) =
-		descriptor().o_SetSuspendingFunction(this, suspendingFunction)
-
-	override fun suspendingFunction() = descriptor().o_SuspendingFunction(this)
-
-	override fun debugLog() = descriptor().o_DebugLog(this)
-
-	override fun currentLineNumber() = descriptor().o_CurrentLineNumber(this)
-
-	override fun fiberResultType() = descriptor().o_FiberResultType(this)
-
 	override fun clearLexingState() = descriptor().o_ClearLexingState(this)
-
-	@ReferencedInGeneratedCode
-	override fun registerDump() = descriptor().o_RegisterDump(this)
 
 	override fun extractDumpedObjectAt(index: Int): AvailObject =
 		descriptor().o_ExtractDumpedObjectAt(this, index)
 
 	override fun extractDumpedLongAt(index: Int): Long =
 		descriptor().o_ExtractDumpedLongAt(this, index)
-
-	override fun fiberHelper(): FiberDescriptor.FiberHelper =
-		descriptor().o_FiberHelper(this)
 
 	override fun synthesizeCurrentLexingState(): LexingState =
 		descriptor().o_SynthesizeCurrentLexingState(this)
@@ -1510,25 +1300,46 @@ class AvailObject private constructor(
 			AvailObject::iterator.name,
 			Iterator::class.java)
 
-		/** Access the [frameAt] method. */
-		val frameAtMethod = instanceMethod(
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtStatic(self: AvailObject, index: Int): AvailObject =
+			self.descriptor().o_FrameAt(self, index)
+
+		/** Access the [frameAtStatic] method. */
+		val frameAtMethod = staticMethod(
 			AvailObject::class.java,
-			AvailObject::frameAt.name,
+			::frameAtStatic.name,
+			AvailObject::class.java,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!)
 
-		/** Access the [frameAtPut] method. */
-		val frameAtPutMethod = instanceMethod(
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun frameAtPutStatic(
+			self: AvailObject,
+			index: Int,
+			value: AvailObject
+		): AvailObject = self.descriptor().o_FrameAtPut(self, index, value)
+
+		/** Access the [frameAtPutStatic] method. */
+		val frameAtPutMethod = staticMethod(
 			AvailObject::class.java,
-			AvailObject::frameAtPut.name,
+			::frameAtPutStatic.name,
+			AvailObject::class.java,
 			AvailObject::class.java,
 			Int::class.javaPrimitiveType!!,
 			AvailObject::class.java)
 
-		/** Access the [registerDump] method. */
-		val registerDumpMethod = instanceMethod(
+		@ReferencedInGeneratedCode
+		@JvmStatic
+		fun registerDumpStatic(self: AvailObject): AvailObject =
+			self.descriptor().o_RegisterDump(self)
+
+		/** Access the [registerDumpStatic] method. */
+		val registerDumpMethod = staticMethod(
 			AvailObject::class.java,
-			AvailObject::registerDump.name,
+			::registerDumpStatic.name,
+			AvailObject::class.java,
 			AvailObject::class.java)
 
 		/** Access the [fieldAt] method. */

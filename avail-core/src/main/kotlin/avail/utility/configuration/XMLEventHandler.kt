@@ -107,7 +107,7 @@ where
 		uri: String, localName: String, qName: String, attributes: Attributes)
 	{
 		val parent = state.peek()
-		val allowedChildren : Set<ElementType> =
+		val allowedChildren: Set<ElementType> =
 			if (parent === null) setOf(model.rootElement())
 			else model.allowedChildrenOf(parent)!!
 		val element = model.elementWithQName(qName)

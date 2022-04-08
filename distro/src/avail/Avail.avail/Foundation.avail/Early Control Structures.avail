@@ -385,22 +385,6 @@ Method "`|`|_`|`|" is
 	⊥
 ];
 
-/**
- * Strengthen {@method "Invoke|invoke_with_"} to the invoked function's return
- * type.
- *
- * @method "Invoke|invoke_with_"
- * @restricts "function meta"
- * @restricts "tuple meta"
- */
-Semantic restriction "Invoke|invoke_with_" is
-[
-	aFunction : function meta,
-	arguments : tuple meta
-|
-	aFunction's return type
-];
-
 zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
 optionalSendPhraseType ::= <<>, send phrase… | zeroOrOne>;
 

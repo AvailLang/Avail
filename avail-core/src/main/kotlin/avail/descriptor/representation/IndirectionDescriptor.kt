@@ -82,6 +82,42 @@ import avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRe
 import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import avail.descriptor.character.A_Character.Companion.isCharacter
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.clearGeneralFlag
+import avail.descriptor.fiber.A_Fiber.Companion.clearTraceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.continuation
+import avail.descriptor.fiber.A_Fiber.Companion.debugLog
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.fiberNameSupplier
+import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
+import avail.descriptor.fiber.A_Fiber.Companion.fiberResultType
+import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
+import avail.descriptor.fiber.A_Fiber.Companion.getAndClearInterruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.getAndClearReificationWaiters
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.interruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.joiningFibers
+import avail.descriptor.fiber.A_Fiber.Companion.priority
+import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
+import avail.descriptor.fiber.A_Fiber.Companion.releaseFromDebugger
+import avail.descriptor.fiber.A_Fiber.Companion.resultContinuation
+import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
+import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.setTraceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
+import avail.descriptor.fiber.A_Fiber.Companion.traceFlag
+import avail.descriptor.fiber.A_Fiber.Companion.uniqueId
+import avail.descriptor.fiber.A_Fiber.Companion.variablesReadBeforeWritten
+import avail.descriptor.fiber.A_Fiber.Companion.variablesWritten
+import avail.descriptor.fiber.A_Fiber.Companion.wakeupTask
+import avail.descriptor.fiber.A_Fiber.Companion.whenContinuationIsAvailableDo
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -89,6 +125,22 @@ import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.adjustPcAndStackp
+import avail.descriptor.functions.A_Continuation.Companion.callDepth
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
+import avail.descriptor.functions.A_Continuation.Companion.deoptimizedForDebugger
+import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
+import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
+import avail.descriptor.functions.A_Continuation.Companion.numSlots
+import avail.descriptor.functions.A_Continuation.Companion.pc
+import avail.descriptor.functions.A_Continuation.Companion.registerDump
+import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
+import avail.descriptor.functions.A_Continuation.Companion.stackAt
+import avail.descriptor.functions.A_Continuation.Companion.stackp
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_Function.Companion.numOuterVars
 import avail.descriptor.functions.A_Function.Companion.optionallyNilOuterVar
@@ -224,6 +276,7 @@ import avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.stylers
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
@@ -923,11 +976,6 @@ class IndirectionDescriptor private constructor(
 			elementObject, elementObjectHash, myLevel, canDestroy)
 	}
 
-	override fun o_SetBreakpointBlock(
-		self: AvailObject,
-		value: AvailObject
-	) = self .. { setBreakpointBlock(value) }
-
 	override fun o_BuildFilteredBundleTree(
 		self: AvailObject
 	): A_BundleTree = self .. { buildFilteredBundleTree() }
@@ -1056,7 +1104,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetContinuation(
 		self: AvailObject,
 		value: A_Continuation
-	) = self .. { setContinuation(value) }
+	) = self .. { continuation = value }
 
 	override fun o_CopyTupleFromToCanDestroy(
 		self: AvailObject,
@@ -1276,7 +1324,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetExecutionState(
 		self: AvailObject,
 		value: ExecutionState
-	) = self .. { setExecutionState(value) }
+	) = self .. { executionState = value }
 
 	override fun o_ExtractNybbleFromTupleAt(
 		self: AvailObject,
@@ -1461,12 +1509,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_ParallelStream(self: AvailObject): Stream<AvailObject> =
 		self .. { parallelStream() }
 
-	override fun o_LevelTwoChunkOffset(
-		self: AvailObject,
-		chunk: L2Chunk,
-		offset: Int
-	) = self .. { levelTwoChunkOffset(chunk, offset) }
-
 	override fun o_LiteralAt(self: AvailObject, index: Int): AvailObject =
 		self .. { literalAt(index) }
 
@@ -1574,12 +1616,12 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetPriority(
 		self: AvailObject,
 		value: Int
-	) = self .. { setPriority(value) }
+	) = self .. { priority = value }
 
 	override fun o_SetFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self .. { setFiberGlobals(globals) }
+	) = self .. { fiberGlobals = globals }
 
 	override fun o_RawByteForCharacterAt(
 		self: AvailObject,
@@ -1901,9 +1943,6 @@ class IndirectionDescriptor private constructor(
 	override fun o_BodySignature(self: AvailObject): A_Type =
 		self .. { bodySignature() }
 
-	override fun o_BreakpointBlock(self: AvailObject): A_BasicObject =
-		self .. { breakpointBlock() }
-
 	override fun o_Caller(self: AvailObject): A_Continuation =
 		self .. { caller() }
 
@@ -1932,7 +1971,7 @@ class IndirectionDescriptor private constructor(
 		self .. { contentType }
 
 	override fun o_Continuation(self: AvailObject): A_Continuation =
-		self .. { continuation() }
+		self .. { continuation }
 
 	override fun o_CopyAsMutableIntTuple(self: AvailObject): A_Tuple =
 		self .. { copyAsMutableIntTuple() }
@@ -1950,7 +1989,7 @@ class IndirectionDescriptor private constructor(
 		self .. { ensureMutable() }
 
 	override fun o_ExecutionState(self: AvailObject): ExecutionState =
-		self .. { executionState() }
+		self .. { executionState }
 
 	override fun o_Expand(self: AvailObject, module: A_Module) =
 		self .. { expand(module) }
@@ -2169,13 +2208,13 @@ class IndirectionDescriptor private constructor(
 		self .. { pc() }
 
 	override fun o_Priority(self: AvailObject): Int =
-		self .. { priority() }
+		self .. { priority }
 
 	override fun o_PrivateNames(self: AvailObject): A_Map =
 		self .. { privateNames }
 
 	override fun o_FiberGlobals(self: AvailObject): A_Map =
-		self .. { fiberGlobals() }
+		self .. { fiberGlobals }
 
 	override fun o_GrammaticalRestrictions(self: AvailObject): A_Set =
 		self .. { grammaticalRestrictions }
@@ -3015,6 +3054,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_ModuleName(self: AvailObject): A_String =
 		self .. { moduleName }
 
+	override fun o_ShortModuleNameNative(self: AvailObject): String =
+		self .. { shortModuleNameNative }
+
 	override fun o_BundleMethod(self: AvailObject): A_Method =
 		self .. { bundleMethod }
 
@@ -3047,18 +3089,18 @@ class IndirectionDescriptor private constructor(
 	override fun o_FailureContinuation(
 		self: AvailObject
 	): (Throwable)->Unit =
-		self .. { failureContinuation() }
+		self .. { failureContinuation }
 
 	override fun o_ResultContinuation(
 		self: AvailObject
 	): (AvailObject)->Unit =
-		self .. { resultContinuation() }
+		self .. { resultContinuation }
 
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? =
-		self .. { availLoader() }
+		self .. { availLoader }
 
 	override fun o_SetAvailLoader(self: AvailObject, loader: AvailLoader?) =
-		self .. { setAvailLoader(loader) }
+		self .. { availLoader = loader }
 
 	override fun o_InterruptRequestFlag(
 		self: AvailObject,
@@ -3077,30 +3119,30 @@ class IndirectionDescriptor private constructor(
 	): Boolean = self.. { getAndSetSynchronizationFlag(flag, value) }
 
 	override fun o_FiberResult(self: AvailObject): AvailObject =
-		self .. { fiberResult() }
+		self .. { fiberResult }
 
 	override fun o_SetFiberResult(self: AvailObject, result: A_BasicObject) =
-		self .. { setFiberResult(result) }
+		self .. { fiberResult = result as AvailObject }
 
 	override fun o_JoiningFibers(self: AvailObject): A_Set =
-		self .. { joiningFibers() }
+		self .. { joiningFibers }
 
 	override fun o_WakeupTask(self: AvailObject): TimerTask? =
-		self .. { wakeupTask() }
+		self .. { wakeupTask }
 
 	override fun o_SetWakeupTask(self: AvailObject, task: TimerTask?) =
-		self .. { setWakeupTask(task) }
+		self .. { wakeupTask = task }
 
 	override fun o_SetJoiningFibers(self: AvailObject, joiners: A_Set) =
-		self .. { setJoiningFibers(joiners) }
+		self .. { joiningFibers = joiners }
 
 	override fun o_HeritableFiberGlobals(self: AvailObject): A_Map =
-		self .. { heritableFiberGlobals() }
+		self .. { heritableFiberGlobals }
 
 	override fun o_SetHeritableFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self .. { setHeritableFiberGlobals(globals) }
+	) = self .. { heritableFiberGlobals = globals }
 
 	override fun o_GeneralFlag(self: AvailObject, flag: GeneralFlag): Boolean =
 		self .. { generalFlag(flag) }
@@ -3137,7 +3179,7 @@ class IndirectionDescriptor private constructor(
 		self .. { isByteBufferTuple }
 
 	override fun o_FiberName(self: AvailObject): A_String =
-		self .. { fiberName() }
+		self .. { fiberName }
 
 	override fun o_FiberNameSupplier(
 		self: AvailObject,
@@ -3245,10 +3287,10 @@ class IndirectionDescriptor private constructor(
 	) = self.. { recordVariableAccess(variable, wasRead) }
 
 	override fun o_VariablesReadBeforeWritten(self: AvailObject): A_Set =
-		self .. { variablesReadBeforeWritten() }
+		self .. { variablesReadBeforeWritten }
 
 	override fun o_VariablesWritten(self: AvailObject): A_Set =
-		self .. { variablesWritten() }
+		self .. { variablesWritten }
 
 	override fun o_ValidWriteReactorFunctions(self: AvailObject): A_Set =
 		self .. { validWriteReactorFunctions() }
@@ -3316,12 +3358,12 @@ class IndirectionDescriptor private constructor(
 		self .. { isNumericallyIntegral }
 
 	override fun o_TextInterface(self: AvailObject): TextInterface =
-		self .. { textInterface() }
+		self .. { textInterface }
 
 	override fun o_SetTextInterface(
 		self: AvailObject,
 		textInterface: TextInterface
-	) = self .. { setTextInterface(textInterface) }
+	) = self .. { this.textInterface = textInterface }
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		self .. { writeTo(writer) }
@@ -3419,7 +3461,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { setValueWasStablyComputed(wasStablyComputed) }
 
 	override fun o_UniqueId(self: AvailObject): Long =
-		self .. { uniqueId() }
+		self .. { uniqueId }
 
 	override fun o_Definition(self: AvailObject): A_Definition =
 		self .. { definition }
@@ -3595,10 +3637,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_SetSuspendingFunction(
 		self: AvailObject,
 		suspendingFunction: A_Function
-	) = self .. { setSuspendingFunction(suspendingFunction) }
+	) = self .. { this.suspendingFunction = suspendingFunction }
 
 	override fun o_SuspendingFunction(self: AvailObject): A_Function =
-		self .. { suspendingFunction() }
+		self .. { suspendingFunction }
 
 	override fun o_IsBackwardJump(self: AvailObject): Boolean =
 		self .. { isBackwardJump }
@@ -3619,7 +3661,7 @@ class IndirectionDescriptor private constructor(
 	) = self .. { this.isSourceOfCycle = isSourceOfCycle }
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder =
-		self .. { debugLog() }
+		self .. { debugLog }
 
 	override fun o_NumConstants(self: AvailObject): Int =
 		self .. { numConstants }
@@ -3643,7 +3685,7 @@ class IndirectionDescriptor private constructor(
 		self .. { currentLineNumber() }
 
 	override fun o_FiberResultType(self: AvailObject): A_Type =
-		self .. { fiberResultType() }
+		self .. { fiberResultType }
 
 	override fun o_TestingTree(
 		self: AvailObject): LookupTree<A_Definition, A_Tuple> =
@@ -3784,7 +3826,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_FiberHelper(
 		self: AvailObject
-	): FiberDescriptor.FiberHelper = self .. { fiberHelper() }
+	): FiberDescriptor.FiberHelper = self .. { fiberHelper }
 
 	override fun o_TrimType(
 		self: AvailObject,
@@ -3828,4 +3870,15 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ModuleNameNative(self: AvailObject): String =
 		self .. { moduleNameNative }
+
+	override fun o_ReleaseFromDebugger(self: AvailObject) =
+		self .. { releaseFromDebugger() }
+
+	override fun o_CallDepth(self: AvailObject): Int = self .. { callDepth() }
+
+	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
+		self .. { deoptimizedForDebugger() }
+
+	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
+		self .. { getValueForDebugger() }
 }

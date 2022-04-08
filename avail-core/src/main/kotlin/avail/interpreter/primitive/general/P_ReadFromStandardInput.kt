@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.general
 
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -61,13 +62,15 @@ object P_ReadFromStandardInput : Primitive(0, CanSuspend, Unknown)
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
 		return interpreter.suspendThen {
-			val buffer = CharBuffer.allocate(1)
-			SimpleCompletionHandler<Int>(
-				{ succeed(fromCodePoint(buffer.get(0).code)) },
-				{ fail(E_IO_ERROR) }
-			).guardedDo {
-				fiber.textInterface().inputChannel.read(
-					buffer, Unit, handler)
+			interpreter.runtime.ioSystem.executeFileTask {
+				val buffer = CharBuffer.allocate(1)
+				SimpleCompletionHandler<Int>(
+					{ succeed(fromCodePoint(buffer.get(0).code)) },
+					{ fail(E_IO_ERROR) }
+				).guardedDo {
+					fiber.textInterface.inputChannel.read(
+						buffer, Unit, handler)
+				}
 			}
 		}
 	}

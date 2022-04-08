@@ -33,6 +33,9 @@
 package avail.interpreter.primitive.fibers
 
 import avail.AvailRuntime.Companion.currentRuntime
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
@@ -74,13 +77,13 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 			lock {
 				// Restore the permit. If the fiber is parked, then unpark it.
 				getAndSetSynchronizationFlag(PERMIT_UNAVAILABLE, false)
-				when {
-					executionState() === PARKED ->
+				when (executionState) {
+					PARKED ->
 					{
 						// Wake up the fiber.
-						setExecutionState(SUSPENDED)
+						executionState = SUSPENDED
 						val suspendingPrimitive =
-							suspendingFunction().code().codePrimitive()!!
+							suspendingFunction.code().codePrimitive()!!
 						assert(
 							suspendingPrimitive === P_ParkCurrentFiber
 								|| suspendingPrimitive === P_AttemptJoinFiber)

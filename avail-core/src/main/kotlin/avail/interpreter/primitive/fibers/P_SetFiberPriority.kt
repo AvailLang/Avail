@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.priority
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -57,7 +58,7 @@ object P_SetFiberPriority : Primitive(2, CannotFail, WritesToHiddenGlobalState)
 		val priority = interpreter.argument(0)
 		val priorityInt = priority.extractInt
 		assert(priorityInt in 0 .. 255)
-		fiber.setPriority(priorityInt)
+		fiber.priority = priorityInt
 		return interpreter.primitiveSuccess(nil)
 	}
 

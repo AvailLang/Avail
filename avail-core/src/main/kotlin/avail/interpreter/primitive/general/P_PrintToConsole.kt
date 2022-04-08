@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.general
 
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
@@ -68,7 +69,7 @@ object P_PrintToConsole : Primitive(1, CanSuspend, Unknown)
 		val loader = interpreter.availLoaderOrNull()
 		loader?.statementCanBeSummarized(false)
 
-		val textInterface = interpreter.fiber().textInterface()
+		val textInterface = interpreter.fiber().textInterface
 		return interpreter.suspendThen {
 			SimpleCompletionHandler<Int>(
 				{ succeed(nil) },

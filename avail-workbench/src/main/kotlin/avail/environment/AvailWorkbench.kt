@@ -58,6 +58,7 @@ import avail.environment.actions.CleanAction
 import avail.environment.actions.CleanModuleAction
 import avail.environment.actions.ClearTranscriptAction
 import avail.environment.actions.CreateProgramAction
+import avail.environment.actions.DebugAction
 import avail.environment.actions.ExamineCompilationAction
 import avail.environment.actions.ExamineModuleManifest
 import avail.environment.actions.ExamineRepositoryAction
@@ -91,6 +92,7 @@ import avail.environment.actions.TraceMacrosAction
 import avail.environment.actions.TraceSummarizeStatementsAction
 import avail.environment.actions.UnloadAction
 import avail.environment.actions.UnloadAllAction
+import avail.environment.debugger.AvailDebugger
 import avail.environment.nodes.AbstractBuilderFrameTreeNode
 import avail.environment.nodes.EntryPointModuleNode
 import avail.environment.nodes.EntryPointNode
@@ -230,7 +232,7 @@ import kotlin.math.min
  *   The [module&#32;name resolver][ModuleNameResolver].
  */
 class AvailWorkbench internal constructor (
-	private val runtime: AvailRuntime,
+	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
 	val resolver: ModuleNameResolver) : JFrame()
 {
@@ -403,6 +405,9 @@ class AvailWorkbench internal constructor (
 
 	/** The [reset VM report data action][ResetVMReportDataAction]. */
 	private val resetVMReportDataAction = ResetVMReportDataAction(this)
+
+	/** The [DebugAction], which opens an [AvailDebugger]. */
+	private val debugAction = DebugAction(this)
 
 	/** The [show CC report action][ShowCCReportAction]. */
 	private val showCCReportAction = ShowCCReportAction(this, runtime)
@@ -847,6 +852,37 @@ class AvailWorkbench internal constructor (
 			get() = with(color) {
 				format("#%02x%02x%02x", red, green, blue)
 			}
+
+		fun blend(
+			otherColor: Color,
+			selfWeight: Float = 0.5.toFloat()
+		) : AdaptiveColor
+		{
+			assert(selfWeight in 0.0 .. 1.0)
+			return AdaptiveColor(
+				blend(light, otherColor, selfWeight),
+				blend(dark, otherColor, selfWeight))
+		}
+
+		companion object
+		{
+			fun blend(
+				selfColor: Color,
+				otherColor: Color,
+				selfWeight: Float
+			) : Color
+			{
+				assert(selfWeight in 0.0 .. 1.0)
+				val otherWeight = 1.0.toFloat() - selfWeight
+				val vector = selfColor.getRGBComponents(null)
+					.zip(otherColor.getRGBComponents(null))
+					.map { (a, b) ->
+						a * selfWeight + b * otherWeight
+					}
+					.toFloatArray()
+				return Color(vector[0], vector[1], vector[2])
+			}
+		}
 	}
 
 	/**
@@ -1592,7 +1628,7 @@ class AvailWorkbench internal constructor (
 		// Set *just* the window title...
 		title = "Avail Workbench"
 		isResizable = true
-		rootPane.isDoubleBuffered = true
+		background = rootPane.background
 
 		// Create the menu bar and its menus.
 		lateinit var buildMenu: JMenu
@@ -1632,6 +1668,8 @@ class AvailWorkbench internal constructor (
 				{
 					item(showVMReportAction)
 					item(resetVMReportDataAction)
+					separator()
+					item(debugAction)
 					separator()
 					item(showCCReportAction)
 					item(resetCCReportDataAction)
@@ -1834,21 +1872,15 @@ class AvailWorkbench internal constructor (
 
 		// Set up styles for the transcript.
 		val doc = transcript.styledDocument
-		val tabStops = arrayOfNulls<TabStop>(500)
-		tabStops.indices.forEach { i ->
-			tabStops[i] = TabStop(
-				32.0f * (i + 1),
-				TabStop.ALIGN_LEFT,
-				TabStop.LEAD_NONE
-			)
+		val tabStops = Array(500) { i ->
+			TabStop(32.0f * (i + 1), TabStop.ALIGN_LEFT, TabStop.LEAD_NONE)
 		}
 		val tabSet = TabSet(tabStops)
 		val attributes = SimpleAttributeSet()
 		StyleConstants.setTabSet(attributes, tabSet)
 		doc.setParagraphAttributes(0, doc.length, attributes, false)
-		val defaultStyle =
-			StyleContext.getDefaultStyleContext()
-				.getStyle(StyleContext.DEFAULT_STYLE)
+		val defaultStyle = StyleContext.getDefaultStyleContext().getStyle(
+			StyleContext.DEFAULT_STYLE)
 		defaultStyle.addAttributes(attributes)
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
 		StreamStyle.values().forEach { style -> style.defineStyleIn(doc) }
@@ -1858,7 +1890,8 @@ class AvailWorkbench internal constructor (
 		{
 			outputStream = BuildPrintStream(BuildOutputStream(this, OUT))
 			errorStream = BuildPrintStream(BuildOutputStream(this, ERR))
-		} catch (e: UnsupportedEncodingException)
+		}
+		catch (e: UnsupportedEncodingException)
 		{
 			// Java must support UTF_8.
 			throw RuntimeException(e)
@@ -1967,12 +2000,11 @@ class AvailWorkbench internal constructor (
 		Desktop.getDesktop().setDefaultMenuBar(jMenuBar)
 		jMenuBar.maximumSize = Dimension(0, 0)
 		setQuitHandler {
-			// Quit was pressed.  Close the workbench, which should
-			// save window position state then exit.
-			// Apple's apple.eawt.quitStrategy has never worked, to
-			// the best of my knowledge.  It's a trick.  We must
-			// close the workbench window explicitly to give it a
-			// chance to save.
+			// Quit was pressed.  Close the workbench, which should save window
+			// position state then exit. Apple's apple.eawt.quitStrategy has
+			// never worked, to the best of my knowledge.  It's a trick.  We
+			// must close the workbench window explicitly to give it a chance to
+			// save.
 			val closeEvent = WindowEvent(
 				this@AvailWorkbench,
 				WindowEvent.WINDOW_CLOSING
@@ -2340,7 +2372,10 @@ class AvailWorkbench internal constructor (
 		private class MenuBarBuilder constructor(val theMenuBar: JMenuBar)
 		{
 			/** Add a pre-built menu. */
-			fun menu(menu: JMenu) = theMenuBar.add(menu)
+			fun menu(menu: JMenu)
+			{
+				theMenuBar.add(menu)
+			}
 
 			/** Create a submenu directly. */
 			fun menu(name: String, body: MenuBuilder.()->Unit): JMenu =
@@ -2492,6 +2527,13 @@ class AvailWorkbench internal constructor (
 
 			// Display the UI.
 			val bench = AvailWorkbench(runtime, fileManager, resolver)
+			// Inject a breakpoint handler into the runtime to open a debugger.
+			runtime.breakpointHandler = { fiber ->
+				val debugger = AvailDebugger(bench)
+				// Debug just the fiber that hit the breakpoint.
+				debugger.gatherFibers { listOf(fiber) }
+				debugger.open()
+			}
 			bench.createBufferStrategy(2)
 			bench.ignoreRepaint = true
 			invokeLater {

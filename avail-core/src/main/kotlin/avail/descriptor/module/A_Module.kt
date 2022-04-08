@@ -352,6 +352,13 @@ interface A_Module : A_BasicObject
 		val A_Module.moduleName: A_String get() = dispatch { o_ModuleName(it) }
 
 		/**
+		 * Produce an [A_String] describing the module.  Leave off the module
+		 * path.
+		 */
+		val A_Module.shortModuleNameNative: String get() =
+			dispatch { o_ShortModuleNameNative(it) }
+
+		/**
 		 * Answer the name of this module as a native Kotlin [String].
 		 *
 		 * @return

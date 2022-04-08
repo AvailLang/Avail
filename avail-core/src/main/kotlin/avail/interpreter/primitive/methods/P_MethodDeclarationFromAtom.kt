@@ -34,6 +34,7 @@ package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
@@ -73,7 +74,7 @@ object P_MethodDeclarationFromAtom : Primitive(2, CanSuspend, Unknown)
 		val atom = interpreter.argument(0)
 		val function = interpreter.argument(1)
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader()
+		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
 		{
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)

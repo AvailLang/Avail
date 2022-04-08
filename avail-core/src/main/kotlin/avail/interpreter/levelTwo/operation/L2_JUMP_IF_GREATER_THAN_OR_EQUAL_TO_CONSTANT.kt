@@ -34,8 +34,12 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.AbstractNumberDescriptor
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -51,10 +55,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_GREATER_THAN_OR_EQUAL_TO_CONSTANT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("value"),
-	L2OperandType.CONSTANT.named("constant"),
-	L2OperandType.PC.named("if greater or equal", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("if less", L2NamedOperandType.Purpose.FAILURE))
+	READ_BOXED.named("value"),
+	CONSTANT.named("constant"),
+	PC.named("if greater or equal", SUCCESS),
+	PC.named("if less", FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

@@ -33,11 +33,15 @@
 Module "Early Literals"
 Versions
 	"Avail-1.6.0"
+Extends
+	"Very Early Definers" =
+	(
+		"<«_‡,»>"
+	)
 Uses
 	"Bootstrap",
 	"Very Early Definers"
 Names
-	"<«_‡,»>",
 	"{«_‡,»}",
 	"“_”",
 
@@ -75,40 +79,6 @@ Method "“_”" is
 |
 	primitive description of value
 ] : string;
-
-/**
- * Construct and answer a tuple from the lexically specified expressions. The
- * hard work here is done automatically by the Avail compiler.
- *
- * @method "<«_‡,»>"
- * @param "elements" "tuple"
- *        The desired tuple, lexically constructed by the compiler.
- * @returns "tuple"
- *          The argument.
- * @category "Constructors" "Tuples"
- */
-Method "<«_‡,»>" is
-[
-	elements : tuple
-|
-	elements
-] : tuple;
-
-/**
- * Strengthen the type of {@method "<«_‡,»>"} to the most exact possible. The
- * hard work here is done automatically by the Avail compiler, which examines
- * the lexical arguments and produces instance types for literals and applies
- * semantic restrictions to any method sends.
- *
- * @method "<«_‡,»>"
- * @restricts "tuple meta"
- */
-Semantic restriction "<«_‡,»>" is
-[
-	elements : tuple meta
-|
-	elements
-];
 
 /**
  * Construct and answer a set from the lexically specified expressions.

@@ -33,6 +33,7 @@
 package avail.interpreter.primitive.atoms
 
 import avail.descriptor.atoms.A_Atom
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.module.A_Module
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_String
@@ -67,7 +68,7 @@ object P_LookupAtomsForName : Primitive(
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
 		val currentFiber = interpreter.fiber()
-		val loader = currentFiber.availLoader()
+		val loader = currentFiber.availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		return interpreter.primitiveSuccess(loader.lookupAtomsForName(name))
 	}

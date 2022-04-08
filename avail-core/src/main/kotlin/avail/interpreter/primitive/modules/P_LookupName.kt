@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.modules
 
 import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -62,7 +63,7 @@ object P_LookupName : Primitive(1, CanInline, ReadsFromHiddenGlobalState)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val loader = interpreter.fiber().availLoader()
+		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		return try
 		{

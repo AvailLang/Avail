@@ -35,6 +35,8 @@ package avail.interpreter.primitive.bootstrap.syntax
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -67,13 +69,13 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 	{
 		interpreter.checkArgumentCount(0)
 
-		interpreter.fiber().availLoader() ?:
+		interpreter.fiber().availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val clientDataGlobalKey = CLIENT_DATA_GLOBAL_KEY.atom
 		val compilerScopeMapKey = COMPILER_SCOPE_MAP_KEY.atom
 		val compilerScopeStackKey = COMPILER_SCOPE_STACK_KEY.atom
 		val fiber = interpreter.fiber()
-		var fiberGlobals = fiber.fiberGlobals()
+		var fiberGlobals = fiber.fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 		val bindings = clientData.mapAt(compilerScopeMapKey)
 		var stack: A_Tuple = clientData.mapAtOrNull(compilerScopeStackKey) ?:
@@ -83,7 +85,7 @@ object P_BootstrapPrefixStartOfBlock : Primitive(0, CanInline, Bootstrap)
 			compilerScopeStackKey, stack, true)
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataGlobalKey, clientData, true)
-		fiber.setFiberGlobals(fiberGlobals.makeShared())
+		fiber.fiberGlobals = fiberGlobals.makeShared()
 		return interpreter.primitiveSuccess(nil)
 	}
 

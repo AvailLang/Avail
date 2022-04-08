@@ -33,8 +33,13 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -57,13 +62,13 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_DIVIDE_INT_BY_INT : L2ControlFlowOperation(
-	L2OperandType.READ_INT.named("dividend"),
-	L2OperandType.READ_INT.named("divisor"),
-	L2OperandType.WRITE_INT.named("quotient", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.WRITE_INT.named("remainder", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.named("zero divisor", L2NamedOperandType.Purpose.OFF_RAMP),
-	L2OperandType.PC.named("success", L2NamedOperandType.Purpose.SUCCESS))
+	READ_INT.named("dividend"),
+	READ_INT.named("divisor"),
+	WRITE_INT.named("quotient", SUCCESS),
+	WRITE_INT.named("remainder", SUCCESS),
+	PC.named("out of range", FAILURE),
+	PC.named("zero divisor", OFF_RAMP),
+	PC.named("success", SUCCESS))
 {
 	// It jumps for division by zero or out-of-range.
 	override val hasSideEffect get() = true

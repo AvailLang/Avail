@@ -32,21 +32,23 @@
 
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -56,8 +58,8 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.mostGeneralFiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
-import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.Primitive
@@ -100,23 +102,26 @@ object P_Fork : Primitive(
 		}
 		function.makeShared()
 		val current = interpreter.fiber()
-		val newFiber = newFiber(function.kind().returnType, priority.extractInt)
+		val newFiber = newFiber(
+			interpreter.runtime,
+			function.kind().returnType,
+			priority.extractInt)
 		{
 			formatString(
 				"Fork, %s, %s:%d",
 				code.methodName,
-				if (code.module.isNil) emptyTuple
-				else code.module.moduleName,
+				if (code.module.isNil) "no module"
+				else code.module.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		newFiber.setAvailLoader(current.availLoader())
+		newFiber.availLoader = current.availLoader
 		// Share and inherit any heritable variables.
-		newFiber.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
+		newFiber.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
 		// Inherit the fiber's text interface.
-		newFiber.setTextInterface(current.textInterface())
+		newFiber.textInterface = current.textInterface
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared()

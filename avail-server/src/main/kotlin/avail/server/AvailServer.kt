@@ -42,6 +42,8 @@ import avail.builder.RenamesFileParserException
 import avail.builder.ResolvedModuleName
 import avail.builder.UnresolvedDependencyException
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.uniqueId
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.module.A_Module
 import avail.error.ErrorCodeRangeRegistry
@@ -915,8 +917,8 @@ class AvailServer constructor(
 				for (fiber in allFibers)
 				{
 					writeObject {
-						at("id") { write(fiber.uniqueId()) }
-						at("name") { write(fiber.fiberName()) }
+						at("id") { write(fiber.uniqueId) }
+						at("name") { write(fiber.fiberName) }
 					}
 				}
 			}

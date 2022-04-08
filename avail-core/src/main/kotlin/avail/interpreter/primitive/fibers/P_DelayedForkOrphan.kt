@@ -33,14 +33,17 @@
 package avail.interpreter.primitive.fibers
 
 import avail.AvailRuntime.Companion.currentRuntime
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
-import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.FunctionDescriptor
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.numbers.A_Number.Companion.extractInt
 import avail.descriptor.numbers.A_Number.Companion.extractLong
@@ -64,8 +67,8 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionTypeReturning
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
-import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.interpreter.Primitive
@@ -121,6 +124,7 @@ object P_DelayedForkOrphan : Primitive(
 		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
 		val orphan = newFiber(
+			interpreter.runtime,
 			function.kind().returnType,
 			priority.extractInt)
 		{
@@ -128,17 +132,17 @@ object P_DelayedForkOrphan : Primitive(
 				"Delayed fork orphan, %s, %s:%d",
 				code.methodName,
 				if (code.module.isNil) emptyTuple
-				else code.module.moduleName,
+				else code.module.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
-		orphan.setAvailLoader(current.availLoader())
+		orphan.availLoader = current.availLoader
 		// Share and inherit any heritable variables.
-		orphan.setHeritableFiberGlobals(
-			current.heritableFiberGlobals().makeShared())
+		orphan.heritableFiberGlobals =
+			current.heritableFiberGlobals.makeShared()
 		// Inherit the fiber's text interface.
-		orphan.setTextInterface(current.textInterface())
+		orphan.textInterface = current.textInterface
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		val runtime = currentRuntime()
 		if (sleepMillis.equalsInt(0))

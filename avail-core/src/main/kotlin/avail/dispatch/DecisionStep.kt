@@ -377,7 +377,7 @@ constructor(
 	 * any subtrees that are still lazy.
 	 */
 	abstract fun describe(
-		node : InternalLookupTree<Element, Result>,
+		node: InternalLookupTree<Element, Result>,
 		indent: Int,
 		builder: StringBuilder)
 

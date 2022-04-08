@@ -32,10 +32,17 @@
 package avail
 
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.executionState
+import avail.descriptor.fiber.A_Fiber.Companion.failureContinuation
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.fiberResult
+import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
+import avail.descriptor.fiber.A_Fiber.Companion.resultContinuation
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
-import avail.descriptor.representation.AvailObject
 import avail.exceptions.PrimitiveThrownException
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.current
@@ -103,7 +110,7 @@ class AvailTask constructor(
 		 * [fiber][FiberDescriptor] using the specified action. If the
 		 * continuation fails for any reason, then it
 		 * [aborts][Interpreter.abortFiber] the fiber and invokes the [failure
-		 * continuation][AvailObject.failureContinuation] with the terminal
+		 * continuation][A_Fiber.failureContinuation] with the terminal
 		 * [throwable][Throwable].
 		 *
 		 * @param fiber
@@ -120,7 +127,7 @@ class AvailTask constructor(
 			fiber: A_Fiber,
 			body: Interpreter.() -> Unit): () -> Unit
 		{
-			assert(fiber.executionState().indicatesSuspension)
+			assert(fiber.executionState.indicatesSuspension)
 			val scheduled = fiber.getAndSetSynchronizationFlag(
 				SynchronizationFlag.SCHEDULED, true)
 			assert(!scheduled)
@@ -128,15 +135,15 @@ class AvailTask constructor(
 				val interpreter = current()
 				assert(interpreter.fiberOrNull() === null)
 				fiber.lock {
-					assert(fiber.executionState().indicatesSuspension)
+					assert(fiber.executionState.indicatesSuspension)
 					val bound = fiber.getAndSetSynchronizationFlag(
 						SynchronizationFlag.BOUND, true)
-					fiber.fiberHelper().startCountingCPU()
+					fiber.fiberHelper.startCountingCPU()
 					assert(!bound)
 					val wasScheduled = fiber.getAndSetSynchronizationFlag(
 						SynchronizationFlag.SCHEDULED, false)
 					assert(wasScheduled)
-					fiber.setExecutionState(ExecutionState.RUNNING)
+					fiber.executionState = RUNNING
 					interpreter.fiber(fiber, "forFiberResumption")
 				}
 				try
@@ -149,17 +156,17 @@ class AvailTask constructor(
 					// failure continuation with the throwable.
 					interpreter.adjustUnreifiedCallDepthBy(
 						-interpreter.unreifiedCallDepth())
-					if (!fiber.executionState().indicatesTermination)
+					if (!fiber.executionState.indicatesTermination)
 					{
 						assert(interpreter.fiberOrNull() === fiber)
 						interpreter.abortFiber()
 					}
 					else
 					{
-						fiber.setExecutionState(ExecutionState.ABORTED)
+						fiber.executionState = ABORTED
 					}
-					fiber.failureContinuation()(e)
-					fiber.setExecutionState(ExecutionState.RETIRED)
+					(fiber.failureContinuation)(e)
+					fiber.executionState = ExecutionState.RETIRED
 					interpreter.runtime.unregisterFiber(fiber)
 				}
 				catch (e: Throwable)
@@ -183,10 +190,10 @@ class AvailTask constructor(
 				// If the fiber has terminated, then report its result via its
 				// result continuation.
 				fiber.lock {
-					if (fiber.executionState() === ExecutionState.TERMINATED)
+					if (fiber.executionState === ExecutionState.TERMINATED)
 					{
-						fiber.resultContinuation()(fiber.fiberResult())
-						fiber.setExecutionState(ExecutionState.RETIRED)
+						(fiber.resultContinuation)(fiber.fiberResult)
+						fiber.executionState = ExecutionState.RETIRED
 						interpreter.runtime.unregisterFiber(fiber)
 					}
 				}
@@ -199,7 +206,7 @@ class AvailTask constructor(
 		 * an unbound [ExecutionState.SUSPENDED] [fiber][FiberDescriptor]. If
 		 * the continuation fails for any reason, then it transitions the fiber
 		 * to the [aborted][ExecutionState.ABORTED] state and invokes the
-		 * fiber's [failure continuation][AvailObject.failureContinuation] with
+		 * fiber's [failure continuation][A_Fiber.failureContinuation] with
 		 * the terminal [throwable][Throwable].
 		 *
 		 * @param fiber
@@ -214,7 +221,7 @@ class AvailTask constructor(
 			fiber: A_Fiber,
 			action: () -> Unit): () -> Unit
 		{
-			assert(fiber.executionState() === ExecutionState.SUSPENDED)
+			assert(fiber.executionState === ExecutionState.SUSPENDED)
 			val scheduled = fiber.getAndSetSynchronizationFlag(
 				SynchronizationFlag.SCHEDULED, true)
 			assert(!scheduled)
@@ -231,8 +238,8 @@ class AvailTask constructor(
 					// If execution failed for any reason, then terminate the
 					// fiber and invoke its failure continuation with the
 					// throwable.
-					fiber.setExecutionState(ExecutionState.ABORTED)
-					fiber.failureContinuation()(e)
+					fiber.executionState = ABORTED
+					(fiber.failureContinuation)(e)
 				}
 				assert(current().fiberOrNull() === null)
 			}

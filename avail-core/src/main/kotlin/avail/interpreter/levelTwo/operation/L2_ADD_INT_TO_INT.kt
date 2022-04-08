@@ -33,8 +33,12 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.int32
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.WRITE_INT
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteIntOperand
@@ -53,11 +57,11 @@ import org.objectweb.asm.Type
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_ADD_INT_TO_INT : L2ControlFlowOperation(
-	L2OperandType.READ_INT.named("augend"),
-	L2OperandType.READ_INT.named("addend"),
-	L2OperandType.WRITE_INT.named("sum", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("out of range", L2NamedOperandType.Purpose.FAILURE),
-	L2OperandType.PC.named("in range", L2NamedOperandType.Purpose.SUCCESS))
+	READ_INT.named("augend"),
+	READ_INT.named("addend"),
+	WRITE_INT.named("sum", SUCCESS),
+	PC.named("out of range", FAILURE),
+	PC.named("in range", SUCCESS))
 {
 	override fun instructionWasAdded(
 		instruction: L2Instruction,

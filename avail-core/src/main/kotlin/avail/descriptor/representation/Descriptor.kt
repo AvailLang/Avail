@@ -340,10 +340,6 @@ protected constructor (
 	override fun o_BinElementAt (self: AvailObject, index: Int): AvailObject =
 		unsupported
 
-	override fun o_SetBreakpointBlock (
-		self: AvailObject,
-		value: AvailObject): Unit = unsupported
-
 	override fun o_BuildFilteredBundleTree (self: AvailObject): A_BundleTree =
 		unsupported
 
@@ -567,11 +563,6 @@ protected constructor (
 		self: AvailObject,
 		anEnumerationType: A_Type): Boolean = unsupported
 
-	override fun o_LevelTwoChunkOffset (
-		self: AvailObject,
-		chunk: L2Chunk,
-		offset: Int): Unit = unsupported
-
 	override fun o_LiteralAt (self: AvailObject, index: Int): AvailObject =
 		unsupported
 
@@ -673,6 +664,8 @@ protected constructor (
 		self: AvailObject,
 		index: Int,
 		value: Int): Unit = unsupported
+
+	override fun o_ReleaseFromDebugger(self: AvailObject): Unit = unsupported
 
 	override fun o_RemoveDependentChunk (
 		self: AvailObject,
@@ -930,9 +923,6 @@ protected constructor (
 	override fun o_BodyBlock (self: AvailObject): A_Function = unsupported
 
 	override fun o_BodySignature (self: AvailObject): A_Type = unsupported
-
-	override fun o_BreakpointBlock (self: AvailObject): A_BasicObject =
-		unsupported
 
 	override fun o_Caller (self: AvailObject): A_Continuation = unsupported
 
@@ -2127,6 +2117,9 @@ protected constructor (
 
 	override fun o_ModuleName (self: AvailObject): A_String = unsupported
 
+	override fun o_ShortModuleNameNative(self: AvailObject): String =
+		unsupported
+
 	override fun o_BundleMethod (self: AvailObject): A_Method = unsupported
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -2754,4 +2747,12 @@ protected constructor (
 	): ObjectLayoutVariant = unsupported
 
 	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
+
+	override fun o_CallDepth(self: AvailObject): Int = unsupported
+
+	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
+		unsupported
+
+	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
+		unsupported
 }

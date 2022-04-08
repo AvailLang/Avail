@@ -32,11 +32,11 @@
 package avail.utility
 
 /**
- * Subclasses get a public [.clone] method without a silly catch of an
+ * Subclasses get a public [clone] method without a silly catch of an
  * impossible exception.
  *
  * @param X
- * The self-type of the object to be cloned.
+ *   The self-type of the object to be cloned.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */

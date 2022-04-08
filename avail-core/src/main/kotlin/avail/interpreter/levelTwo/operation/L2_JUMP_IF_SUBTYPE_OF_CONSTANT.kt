@@ -33,8 +33,12 @@ package avail.interpreter.levelTwo.operation
 
 import avail.descriptor.types.A_Type
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.FAILURE
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.CONSTANT
+import avail.interpreter.levelTwo.L2OperandType.PC
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
@@ -50,10 +54,10 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_SUBTYPE_OF_CONSTANT : L2ConditionalJump(
-	L2OperandType.READ_BOXED.named("type to check"),
-	L2OperandType.CONSTANT.named("constant type"),
-	L2OperandType.PC.named("is subtype", L2NamedOperandType.Purpose.SUCCESS),
-	L2OperandType.PC.named("not subtype", L2NamedOperandType.Purpose.FAILURE))
+	READ_BOXED.named("type to check"),
+	CONSTANT.named("constant type"),
+	PC.named("is subtype", SUCCESS),
+	PC.named("not subtype", FAILURE))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

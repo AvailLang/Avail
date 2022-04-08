@@ -36,32 +36,27 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.exceptions.AvailBreakpointException
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
 
 /**
  * **Primitive:** Pause the VM.
  */
 @Suppress("unused")
-object P_BreakPoint : Primitive(0, Unknown, CannotFail)
+object P_BreakPoint : Primitive(0, CanSuspend, CannotFail)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		// Throw and catch a RuntimeException.  A sensibly configured debugger
-		// will pause during the throw. There are also ample locations here to
-		// insert an explicit breakpoint if you don't want to pause on caught
-		// RuntimeExceptions.
-		try
-		{
-			throw AvailBreakpointException()
-		}
-		catch (e: AvailBreakpointException)
-		{
-			return interpreter.primitiveSuccess(nil)
+		val fiber = interpreter.fiber()
+		val runtime = interpreter.runtime
+		// Enter a safe point, invoke the runtime's injected breakpoint handler,
+		// then succeed from the primitive with nil.
+		return interpreter.suspendInSafePointThen {
+			runtime.breakpointHandler(fiber)
+			succeed(nil)
 		}
 	}
 

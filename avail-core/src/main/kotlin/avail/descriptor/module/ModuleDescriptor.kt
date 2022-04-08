@@ -359,6 +359,11 @@ class ModuleDescriptor private constructor(
 	private val moduleNameNative = moduleName.asNativeString()
 
 	/**
+	 * Produce an [A_String] describing this module.  Leave off the module path.
+	 */
+	private val shortModuleNameNative = moduleNameNative.split("/").last()
+
+	/**
 	 * The [set][A_Set] of all ancestor modules of this module, but *not*
 	 * including the module itself.  The provided set must always be [SHARED].
 	 */
@@ -742,6 +747,9 @@ class ModuleDescriptor private constructor(
 		super.o_NameForDebugger(self) + " = " + moduleNameNative
 
 	override fun o_ModuleName(self: AvailObject): A_String = moduleName
+
+	override fun o_ShortModuleNameNative(self: AvailObject): String =
+		shortModuleNameNative
 
 	override fun o_ModuleNameNative(self: AvailObject): String =
 		moduleNameNative

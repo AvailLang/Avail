@@ -34,6 +34,8 @@ package avail.interpreter.primitive.fibers
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -67,15 +69,15 @@ object P_SetFiberVariable : Primitive(
 		val fiber = interpreter.fiber()
 		if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
 		{
-			fiber.setFiberGlobals(
-				fiber.fiberGlobals().mapAtPuttingCanDestroy(
-					key.makeImmutable(), value.makeImmutable(), true))
+			fiber.fiberGlobals =
+				fiber.fiberGlobals.mapAtPuttingCanDestroy(
+					key.makeImmutable(), value.makeImmutable(), true)
 		}
 		else
 		{
-			fiber.setHeritableFiberGlobals(
-				fiber.heritableFiberGlobals().mapAtPuttingCanDestroy(
-					key.makeImmutable(), value.makeImmutable(), true))
+			fiber.heritableFiberGlobals =
+				fiber.heritableFiberGlobals.mapAtPuttingCanDestroy(
+					key.makeImmutable(), value.makeImmutable(), true)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

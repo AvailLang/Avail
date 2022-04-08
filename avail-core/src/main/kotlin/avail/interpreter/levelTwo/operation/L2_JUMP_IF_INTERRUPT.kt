@@ -33,7 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.operand.L2PcOperand
 import avail.optimizer.jvm.JVMTranslator
@@ -49,8 +50,8 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_JUMP_IF_INTERRUPT : L2ConditionalJump(
-	PC.named("if interrupt", Purpose.OFF_RAMP),
-	PC.named("if not interrupt", Purpose.SUCCESS))
+	PC.named("if interrupt", OFF_RAMP),
+	PC.named("if not interrupt", SUCCESS))
 {
 	override fun translateToJVM(
 		translator: JVMTranslator,

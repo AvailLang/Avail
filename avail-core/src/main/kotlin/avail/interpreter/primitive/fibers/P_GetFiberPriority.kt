@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.fibers
 
+import avail.descriptor.fiber.A_Fiber.Companion.priority
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromUnsignedByte
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
@@ -54,7 +55,7 @@ object P_GetFiberPriority : Primitive(
 	{
 		interpreter.checkArgumentCount(1)
 		val fiber = interpreter.argument(0)
-		val priority = fiber.priority()
+		val priority = fiber.priority
 		assert(priority in 0 .. 255)
 		return interpreter.primitiveSuccess(fromUnsignedByte(priority.toShort()))
 	}

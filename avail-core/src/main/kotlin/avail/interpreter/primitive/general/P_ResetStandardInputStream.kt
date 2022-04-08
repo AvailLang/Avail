@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.general
 
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -60,7 +61,7 @@ object P_ResetStandardInputStream : Primitive(0, CanInline, HasSideEffect)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(0)
-		val channel = interpreter.fiber().textInterface().inputChannel
+		val channel = interpreter.fiber().textInterface.inputChannel
 		try
 		{
 			channel.reset()

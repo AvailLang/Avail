@@ -139,7 +139,7 @@ constructor(
 	}
 
 	override fun describe(
-		node : InternalLookupTree<Element, Result>,
+		node: InternalLookupTree<Element, Result>,
 		indent: Int,
 		builder: StringBuilder
 	): Unit = builder.run {

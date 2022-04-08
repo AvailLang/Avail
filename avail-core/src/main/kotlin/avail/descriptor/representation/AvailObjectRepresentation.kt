@@ -1734,7 +1734,7 @@ sealed class AvailObjectRepresentation constructor(
 	/** Redirect Kotlin's [hashCode] to [AbstractDescriptor.o_Hash]. */
 	override fun hashCode(): Int = currentDescriptor.o_Hash(this as AvailObject)
 
-	val typeTag : TypeTag
+	val typeTag: TypeTag
 		get()
 		{
 			// First, directly access the descriptor's typeTag, which will be

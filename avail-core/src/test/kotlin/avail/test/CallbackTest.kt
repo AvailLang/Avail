@@ -41,6 +41,7 @@ import avail.builder.UnresolvedDependencyException
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.createFiber
 import avail.descriptor.functions.A_Function

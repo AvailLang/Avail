@@ -33,6 +33,11 @@ package avail.optimizer
 
 import avail.AvailRuntimeSupport
 import avail.AvailThread
+import avail.descriptor.functions.A_Continuation.Companion.caller
+import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
+import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
+import avail.descriptor.functions.A_Continuation.Companion.replacingCaller
 import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.traceL2
@@ -76,7 +81,7 @@ import java.util.Deque
  * @param postReificationAction
  *   The action to perform after the Java stack has been fully reified.
  */
-class StackReifier(
+class StackReifier constructor(
 	private val actuallyReify: Boolean,
 	val reificationStatistic: Statistic,
 	val postReificationAction: ()->Unit)

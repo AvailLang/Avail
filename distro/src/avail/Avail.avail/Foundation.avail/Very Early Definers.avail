@@ -36,6 +36,7 @@ Versions
 Uses
 	"Bootstrap"
 Names
+	"<«_‡,»>",
 	"Assert:_",
 	"Assert:_(_)",
 	"Method_is_",
@@ -66,11 +67,11 @@ Semantic restriction "_'s⁇type" is
  * hard work here is done automatically by the Avail compiler.
  *
  * @method "<«_‡,»>"
- * @category "Bootstrap" "Tuples"
  * @param "elements" "tuple"
  *        The desired tuple, lexically constructed by the compiler.
  * @returns "tuple"
  *          The argument.
+ * @category "Constructors" "Tuples"
  */
 Primitive "<«_‡,»>" is
 [
@@ -78,6 +79,38 @@ Primitive "<«_‡,»>" is
 |
 	elements
 ] : tuple;
+
+/**
+ * Strengthen the type of {@method "<«_‡,»>"} to the most exact possible. The
+ * hard work here is done automatically by the Avail compiler, which examines
+ * the lexical arguments and produces instance types for literals and applies
+ * semantic restrictions to any method sends.
+ *
+ * @method "<«_‡,»>"
+ * @restricts "tuple meta"
+ */
+Semantic restriction "<«_‡,»>" is
+[
+	elements : tuple meta
+|
+	elements
+];
+
+/**
+ * Strengthen {@method "Invoke|invoke_with_"} to the invoked function's return
+ * type.
+ *
+ * @method "Invoke|invoke_with_"
+ * @restricts "function meta"
+ * @restricts "tuple meta"
+ */
+Semantic restriction "Invoke|invoke_with_" is
+[
+	aFunction : function meta,
+	arguments : tuple meta
+|
+	aFunction's return type
+];
 
 /**
  * Define a new method.
@@ -96,7 +129,7 @@ Primitive "Method_is_" is
 	function : function
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -116,7 +149,7 @@ Primitive "Method_is_" is
 	function : function
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -400,46 +433,52 @@ Method "Replace assertion failure function with_" is
 	temp
 ] : assertionFailureFunctionType;
 
-/**
- * The {@code "Assert:_(_)"} method is polymorphic on its {@code boolean}
- * first argument. Define the base boolean case here, which will be overridden
- * for the {@code false} case below.
- *
- * @category "Assertions"
- * @method "Assert:_(_)"
- * @param "condition" "boolean"
- *        The condition being asserted. Ideally it should be {@code true}, but
- *        if it's false, it should complain.
- * @param "message" "string"
- *        The message to report in the event the {@code condition} is false.
- */
-Method "Assert:_(_)" is
+emptyTuple ::= <>;
+nullaryFunctionReturningString ::=
+	function accepting emptyTuple and returning string;
+
+Method "Assert:_with function_" is
 [
-	condition : boolean,
-	message : string
+	predicate : boolean,
+	message : nullaryFunctionReturningString
 |
-	/* Do nothing by default. */
+	/* No implementation required. */
 ] : ⊤;
 
-/**
- * Override the {@code "Assert:_(_)"} method for {@code false} as its first
- * argument.  It should invoke the {@code "assertionFailureFunction"}.  Note
- * that this override yields {@code "⊥"}, so a statically detectable failing
- * assertion cannot have other statements after it.
- *
- * @param "condition" "false's type"
- *        The condition being asserted. Ideally it should be {@code true}, but
- *        here it's false, so we should complain.
- * @param "message" "string"
- *        The message to report because the {@code condition} is false.
- */
-Method "Assert:_(_)" is
+Method "Assert:_with function_" is
 [
-	condition : false's type,
-	message : string
+	predicate : false's type,
+	message : nullaryFunctionReturningString
 |
-	Invoke assertionFailureFunction with <message>;
-] : ⊤;
+	Invoke assertionFailureFunction with <invoke message with <>>
+] : ⊥;
+
+assertWithFunctionAtom ::= atom for "Assert:_with function_";
+
+/**
+ * If {@param "predicate"} evaluates to {@method "false"}, then raise a {@type
+ * "descriptive exception" descriptive} {@type "assertion-failed
+ * exception"} that includes an {@param "message" error message} produced by the
+ * specified {@type "string"} {@type "expression phrase" expression}.
+ *
+ * @macro "Assert:_(_)"
+ * @param "predicate" "expression phrase ⇒ boolean"
+ *        A predicate.
+ * @param "message" "expression phrase ⇒ string"
+ *        An {@type "expression phrase" expression} that produces an error
+ *        message. It is only evaluated if {@param "predicate"} is {@method
+ *        "false"}.
+ * @returns "send phrase ⇒ ⊤"
+ * @category "Assertions"
+ */
+Macro "Assert:_(_)" is
+[
+	predicate : expression phrase ⇒ boolean,
+	message : expression phrase ⇒ string
+|
+	messageBlock ::= «[emptyTuple |Primitive "" <message>]: string ^ ∅»;
+	send assertWithFunctionAtom with <predicate, messageBlock> → list phrase : ⊤
+];
 
 /**
  * Statically detect assertions that are always false.
@@ -486,7 +525,7 @@ Method "Assert:_" is
 [
 	condition : false's type
 |
-	Invoke assertionFailureFunction with <"(no description provided)">;
+	Invoke assertionFailureFunction with <"An assertion has failed">
 ] : ⊤;
 
 /**
@@ -516,7 +555,7 @@ Semantic restriction "Assert:_" is
 Method "Shouldn't happen" is
 [
 	Invoke assertionFailureFunction with
-		<"This should not be possible; debug the VM and/or system library.">;
+		<"This should not be possible; debug the VM and/or system library.">
 ] : ⊤;
 
 /**
@@ -549,7 +588,7 @@ Method "Shouldn't happen(_)" is
 		into [t : tuple of tuple | messageText := concatenate t;]
 		else [
 			messageText := "Unable to assemble message for assertion failure";];
-	Invoke assertionFailureFunction with <messageText>;
+	Invoke assertionFailureFunction with <messageText>
 ] : ⊤;
 
 Semantic restriction "Shouldn't happen(_)" is

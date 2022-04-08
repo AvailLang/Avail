@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.continuations
 
 import avail.descriptor.functions.A_Continuation
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor.Companion.nilSubstitute
 import avail.descriptor.representation.NilDescriptor

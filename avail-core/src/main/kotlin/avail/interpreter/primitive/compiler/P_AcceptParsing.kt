@@ -32,6 +32,7 @@
 package avail.interpreter.primitive.compiler
 
 import avail.compiler.AvailAcceptedParseException
+import avail.descriptor.fiber.A_Fiber.Companion.generalFlag
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.sets.SetDescriptor.Companion.set

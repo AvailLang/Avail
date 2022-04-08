@@ -36,7 +36,8 @@ import avail.descriptor.representation.AvailObject
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -79,9 +80,9 @@ import org.objectweb.asm.Opcodes
 object L2_INVOKE : L2ControlFlowOperation(
 	READ_BOXED.named("called function"),
 	READ_BOXED_VECTOR.named("arguments"),
-	WRITE_BOXED.named("result", Purpose.SUCCESS),
-	PC.named("on return", Purpose.SUCCESS),
-	PC.named("on reification", Purpose.OFF_RAMP))
+	WRITE_BOXED.named("result", SUCCESS),
+	PC.named("on return", SUCCESS),
+	PC.named("on reification", OFF_RAMP))
 {
 	override val hasSideEffect: Boolean
 		get() = true

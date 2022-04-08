@@ -48,7 +48,6 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObject
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.objectVariant
 import avail.descriptor.representation.AvailObjectRepresentation
-import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceTag
@@ -58,7 +57,6 @@ import avail.descriptor.types.A_Type.Companion.objectTypeVariant
 import avail.descriptor.types.A_Type.Companion.phraseTypeExpressionType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.A_Type.Companion.typeIntersection
-import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
@@ -310,6 +308,15 @@ internal constructor(
 						})
 					{
 						commonTags[argNumber] = null
+					}
+					if (!alreadyTestedConstants.bitTest(argNumber))
+					{
+						if (argType.isEnumeration &&
+							(!argType.isInstanceMeta
+								|| argType.equals(bottomMeta)))
+						{
+							constantSets[argNumber].addAll(argType.instances)
+						}
 					}
 				}
 			}
@@ -1328,9 +1335,8 @@ internal constructor(
 				positiveElements,
 				noMatches.toList(),
 				knownArgumentRestrictions.toMutableList().also {
-					it[argumentIndex - 1] = it[argumentIndex - 1].minusType(
-						enumerationWith(
-							setFromCollection(elementsByConstant.keys)))
+					it[argumentIndex - 1] = it[argumentIndex - 1].minusValues(
+						elementsByConstant.keys)
 				},
 				alreadyTagTestedArguments,
 				alreadyVariantTestedArguments,

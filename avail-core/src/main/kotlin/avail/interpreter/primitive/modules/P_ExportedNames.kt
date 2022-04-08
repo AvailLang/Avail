@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.modules
 
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.exportedNames
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -58,7 +59,7 @@ object P_ExportedNames : Primitive(0, CanInline)
 	{
 		interpreter.checkArgumentCount(0)
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader()
+		val loader = fiber.availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val module = loader.module
 		val exportedNames = module.exportedNames

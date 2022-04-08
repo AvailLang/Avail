@@ -102,7 +102,6 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
-import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
 import avail.descriptor.representation.AvailObject.Companion.newIndexedDescriptor
 import avail.descriptor.sets.A_Set
@@ -1045,8 +1044,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_BinElementAt (self: AvailObject, index: Int): AvailObject
 
-	abstract fun o_SetBreakpointBlock (self: AvailObject, value: AvailObject)
-
 	abstract fun o_BuildFilteredBundleTree (self: AvailObject): A_BundleTree
 
 	/**
@@ -1545,11 +1542,6 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		anEnumerationType: A_Type): Boolean
 
-	abstract fun o_LevelTwoChunkOffset (
-		self: AvailObject,
-		chunk: L2Chunk,
-		offset: Int)
-
 	abstract fun o_LiteralAt (self: AvailObject, index: Int): AvailObject
 
 	abstract fun o_FrameAt (self: AvailObject, index: Int): AvailObject
@@ -1723,6 +1715,8 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		index: Int,
 		value: Int)
+
+	abstract fun o_ReleaseFromDebugger(self: AvailObject)
 
 	abstract fun o_RemoveDependentChunk (self: AvailObject, chunk: L2Chunk)
 
@@ -2035,8 +2029,6 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_BodyBlock (self: AvailObject): A_Function
 
 	abstract fun o_BodySignature (self: AvailObject): A_Type
-
-	abstract fun o_BreakpointBlock (self: AvailObject): A_BasicObject
 
 	abstract fun o_Caller (self: AvailObject): A_Continuation
 
@@ -3337,6 +3329,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleName (self: AvailObject): A_String
 
+	abstract fun o_ShortModuleNameNative (self: AvailObject): String
+
 	abstract fun o_BundleMethod (self: AvailObject): A_Method
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -3892,6 +3886,12 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_ObjectTypeVariant(self: AvailObject): ObjectLayoutVariant
 
 	abstract fun o_ModuleNameNative(self: AvailObject): String
+
+	abstract fun o_CallDepth(self: AvailObject): Int
+
+	abstract fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+
+	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject
 
 	companion object
 	{

@@ -33,7 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.CONSTANT
 import avail.interpreter.levelTwo.L2OperandType.PC
@@ -75,9 +76,9 @@ import org.objectweb.asm.MethodVisitor
 object L2_INVOKE_CONSTANT_FUNCTION : L2ControlFlowOperation(
 	CONSTANT.named("constant function"),
 	READ_BOXED_VECTOR.named("arguments"),
-	WRITE_BOXED.named("result", Purpose.SUCCESS),
-	PC.named("on return", Purpose.SUCCESS),
-	PC.named("on reification", Purpose.OFF_RAMP))
+	WRITE_BOXED.named("result", SUCCESS),
+	PC.named("on return", SUCCESS),
+	PC.named("on reification", OFF_RAMP))
 {
 	override val hasSideEffect get() = true
 

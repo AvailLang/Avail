@@ -34,6 +34,7 @@ package avail.optimizer
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2NamedOperandType
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.operand.L2Operand
 import avail.interpreter.levelTwo.operand.L2PcOperand
@@ -472,17 +473,17 @@ class L2ControlFlowGraphVisualizer constructor(
 					when (type.purpose()!!)
 					{
 						// Nothing. The default styling will be fine.
-						L2NamedOperandType.Purpose.SUCCESS -> Unit
-						L2NamedOperandType.Purpose.FAILURE ->
+						Purpose.SUCCESS -> Unit
+						Purpose.FAILURE ->
 							attr.attribute("color", "#e54545/c03030")
-						L2NamedOperandType.Purpose.OFF_RAMP ->
+						Purpose.OFF_RAMP ->
 							attr.attribute("style", "dashed")
-						L2NamedOperandType.Purpose.ON_RAMP ->
+						Purpose.ON_RAMP ->
 						{
 							attr.attribute("style", "dashed")
 							attr.attribute("color", "#6aaf6a")
 						}
-						L2NamedOperandType.Purpose.REFERENCED_AS_INT ->
+						Purpose.REFERENCED_AS_INT ->
 						{
 							attr.attribute("style", "dashed")
 							attr.attribute("color", "#6080ff")

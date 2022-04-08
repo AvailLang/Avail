@@ -128,4 +128,15 @@ class DeserializerDescriber constructor(
 	{
 		builder.append(string)
 	}
+
+	/**
+	 * Append the given character to my description.
+	 *
+	 * @param char
+	 *   The [Char] to append.
+	 */
+	internal fun append(char: Char)
+	{
+		builder.append(char)
+	}
 }

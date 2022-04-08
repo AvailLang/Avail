@@ -236,7 +236,7 @@ constructor(
 		append(
 			increaseIndentation(
 				format(
-					"(u=%d, p=%d) #%d object type variants : known=%s",
+					"(u=%d, p=%d) #%d object type variants: known=%s",
 					node.undecidedElements.size,
 					node.positiveElements.size,
 					argumentPositionToTest,

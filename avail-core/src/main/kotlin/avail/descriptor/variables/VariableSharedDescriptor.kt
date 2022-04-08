@@ -34,6 +34,7 @@ package avail.descriptor.variables
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.A_Atom
+import avail.descriptor.fiber.A_Fiber.Companion.recordVariableAccess
 import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.A_Map.Companion.mapSize

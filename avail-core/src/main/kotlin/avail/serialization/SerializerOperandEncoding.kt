@@ -491,6 +491,24 @@ internal enum class SerializerOperandEncoding
 				twoNybbles and 0xF
 			}
 		}
+
+		override fun describe(describer: DeserializerDescriber)
+		{
+			val tupleSize = readCompressedPositiveInt(describer)
+			describer.append("Nybbles:[")
+			for (byteIndex in 1..(tupleSize ushr 1))
+			{
+				val byte = describer.readByte()
+				describer.append("0123456789ABCDEF"[byte ushr 4])
+				describer.append("0123456789ABCDEF"[byte and 15])
+			}
+			if (tupleSize and 1 == 1)
+			{
+				val byte = describer.readByte()
+				describer.append("0123456789ABCDEF"[byte ushr 4])
+			}
+			describer.append("]")
+		}
 	},
 
 	/**

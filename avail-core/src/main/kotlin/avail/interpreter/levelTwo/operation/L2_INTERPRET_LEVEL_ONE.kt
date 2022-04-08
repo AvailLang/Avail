@@ -34,45 +34,31 @@ package avail.interpreter.levelTwo.operation
 import avail.descriptor.functions.A_Continuation
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
-import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType
-import avail.interpreter.levelTwo.L2OperandType
-import avail.interpreter.levelTwo.L2Operation
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.ON_RAMP
+import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.optimizer.StackReifier
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
 import org.objectweb.asm.Opcodes
 
 /**
- * Use the [Interpreter.levelOneStepper] to execute the Level One
- * unoptimized nybblecodes.  If an interrupt request is indicated, throw a
- * [StackReifier], making sure to synthesize a continuation for the
- * current frame.
- *
+ * Use the [Interpreter.levelOneStepper] to execute Level One unoptimized
+ * nybblecodes.  If an interrupt request is indicated, or if a call anywhere
+ * within this code arranges to reify the fiber, return a [StackReifier], making
+ * sure to synthesize a continuation for the current frame.
  *
  * Note that Avail calls are now executed as Java calls, causing this thread
  * to block until either it completes or a [StackReifier] is
- * thrown, which causes an [A_Continuation] to be built, allowing the
+ * returned, which causes an [A_Continuation] to be built, allowing the
  * Avail frame to continue executing later.
- *
- *
- * Single-stepping is currently not supported – perhaps a separate [L2Operation]
- * in a special [L2Chunk] would be an appropriate way to do that.  Also, be
- * careful not to saturate the interrupt request to the point that no progress
- * can be made.  Perhaps a solution to both concerns is to add a
- * one-step-delayed interrupt flag.  Querying the interrupt flag would cause the
- * delayed flag to be OR-ed into the current interrupt flag, returning its
- * previous value.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
-	L2OperandType.PC.named(
-		"call reentry point", L2NamedOperandType.Purpose.ON_RAMP),
-	L2OperandType.PC.named(
-		"interrupt reentry point", L2NamedOperandType.Purpose.ON_RAMP))
+	PC.named("call reentry point", ON_RAMP),
+	PC.named("interrupt reentry point", ON_RAMP))
 {
 	// Keep this instruction from being removed, since it's only used by the
 	// default chunk.
@@ -85,8 +71,8 @@ object L2_INTERPRET_LEVEL_ONE : L2ControlFlowOperation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-//		final int callReentryOffset = instruction.pcAt(0);
-//		final int interruptReentryOffset = instruction.pcAt(1);
+		//val callReentryOffset = instruction.operand<L2PcOperand>(0);
+		//val interruptReentryOffset = instruction.operand<L2PcOperand>(1);
 
 		// :: return interpreter.levelOneStepper.run();
 		translator.loadInterpreter(method)

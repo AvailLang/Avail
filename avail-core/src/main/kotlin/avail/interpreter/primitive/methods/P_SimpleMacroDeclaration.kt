@@ -34,6 +34,7 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.compiler.splitter.MessageSplitter.Metacharacter
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
@@ -94,7 +95,7 @@ object P_SimpleMacroDeclaration : Primitive(3, CanSuspend, HasSideEffect)
 		val function = interpreter.argument(2)
 
 		val fiber = interpreter.fiber()
-		val loader = fiber.availLoader() ?:
+		val loader = fiber.availLoader ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!loader.phase().isExecuting)
 		{

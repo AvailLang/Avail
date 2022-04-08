@@ -33,6 +33,8 @@ package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
 import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_INT
+import avail.interpreter.levelTwo.L2OperandType.WRITE_FLOAT
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadIntOperand
 import avail.interpreter.levelTwo.operand.L2WriteFloatOperand
@@ -46,8 +48,8 @@ import org.objectweb.asm.Opcodes
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object L2_INT_TO_FLOAT : L2Operation(
-	L2OperandType.READ_INT.named("source"),
-	L2OperandType.WRITE_FLOAT.named("destination"))
+	READ_INT.named("source"),
+	WRITE_FLOAT.named("destination"))
 {
 	override fun appendToWithWarnings(
 		instruction: L2Instruction,

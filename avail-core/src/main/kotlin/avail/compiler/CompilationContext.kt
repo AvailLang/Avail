@@ -46,6 +46,10 @@ import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
+import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
+import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
@@ -61,8 +65,8 @@ import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.module.A_Module
-import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.PhraseDescriptor
@@ -546,14 +550,14 @@ class CompilationContext constructor(
 			formatString(
 				"Eval fn=%s, in %s:%d",
 				code.methodName,
-				code.module.moduleName,
+				code.module.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
-		var fiberGlobals = fiber.fiberGlobals()
+		var fiberGlobals = fiber.fiberGlobals
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.setFiberGlobals(fiberGlobals)
-		fiber.setTextInterface(textInterface)
+		fiber.fiberGlobals = fiberGlobals
+		fiber.textInterface = textInterface
 		if (shouldSerialize)
 		{
 			loader.startRecordingEffects()
@@ -563,9 +567,9 @@ class CompilationContext constructor(
 		{
 			shouldSerialize ->
 			{
-				val before = fiber.fiberHelper().fiberTime()
+				val before = fiber.fiberHelper.fiberTime()
 				adjustedSuccess = { successValue ->
-					val after = fiber.fiberHelper().fiberTime()
+					val after = fiber.fiberHelper.fiberTime()
 					Interpreter.current().recordTopStatementEvaluation(
 						(after - before).toDouble(), module)
 					loader.stopRecordingEffects()
@@ -667,7 +671,8 @@ class CompilationContext constructor(
 	 * The equivalent is expected to be faster, but can only be used if no
 	 * triggers had been tripped during execution of the function.  The triggers
 	 * include reading or writing shared variables, or executing certain
-	 * primitives.
+	 * primitives.  Reading from shared constants is ok, as long as it has the
+	 * bit set to indicate it was initialized with a stably computed value.
 	 *
 	 * @param function
 	 *   The function that has already run.

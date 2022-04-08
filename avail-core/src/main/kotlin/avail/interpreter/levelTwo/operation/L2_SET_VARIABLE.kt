@@ -35,7 +35,8 @@ import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
 import avail.exceptions.VariableSetException
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2NamedOperandType.Purpose
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.OFF_RAMP
+import avail.interpreter.levelTwo.L2NamedOperandType.Purpose.SUCCESS
 import avail.interpreter.levelTwo.L2OperandType
 import avail.interpreter.levelTwo.L2OperandType.PC
 import avail.interpreter.levelTwo.L2OperandType.READ_BOXED
@@ -56,8 +57,8 @@ import org.objectweb.asm.Type
 object L2_SET_VARIABLE : L2ControlFlowOperation(
 	READ_BOXED.named("variable"),
 	READ_BOXED.named("value to write"),
-	PC.named("write succeeded", Purpose.SUCCESS),
-	PC.named("write failed", Purpose.OFF_RAMP))
+	PC.named("write succeeded", SUCCESS),
+	PC.named("write failed", OFF_RAMP))
 {
 	override val hasSideEffect get() = true
 

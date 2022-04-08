@@ -32,14 +32,14 @@
 package avail.utility
 
 /**
- * `IO` is a utility class for I/O operations.
+ * [IO] is a utility class for input/output operations.
  *
- * Prominent among the operations provided are [close][.close] operations that
- * suppress the annoying checked [Exception]s that Java's [AutoCloseable.close]
- * operation throws *for no earthly reason*. The `#close(AutoCloseable) close`
- * methods defined here silence exceptions, the way God intended. If you should
- * encounter a bizarre case where a `close` operation should really throw an
- * exception, then  *do not use the `close` methods defined herein*.
+ * Prominent among the operations provided are [close] operations that suppress
+ * the annoying checked [Exception]s that Java's [AutoCloseable.close] operation
+ * throws *for no earthly reason*. The `close(AutoCloseable)` methods defined
+ * here silence these pointless exceptions. If you should encounter a bizarre
+ * case where a close operation should really throw an exception, then *do not
+ * use the [close] methods defined herein*.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -52,7 +52,7 @@ object IO
 	 *
 	 * @param closeable
 	 *   A closeable resource. **Must not be `null`**; see
-	 *   [closeIfNotNull][.closeIfNotNull] to handle that case.
+	 *   [closeIfNotNull] to handle that case.
 	 */
 	fun close(closeable: AutoCloseable)
 	{

@@ -35,6 +35,7 @@ package avail.interpreter.primitive.bootstrap.syntax
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_MAP_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.COMPILER_SCOPE_STACK_KEY
+import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
@@ -94,14 +95,14 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(5)
-		//	val optionalArgumentDeclarations : A_Phrase = interpreter.argument(0);
-		//	val optionalPrimitive : A_Phrase = interpreter.argument(1);
-		//	val A_Phrase optionalLabel : A_Phrase = interpreter.argument(2);
-		//	val statements : A_Phrase= interpreter.argument(3);
-		//	val optionalReturnExpression : A_Phrase = interpreter.argument(4);
+		//	val optionalArgumentDeclarations: A_Phrase = interpreter.argument(0);
+		//	val optionalPrimitive: A_Phrase = interpreter.argument(1);
+		//	val A_Phrase optionalLabel: A_Phrase = interpreter.argument(2);
+		//	val statements: A_Phrase= interpreter.argument(3);
+		//	val optionalReturnExpression: A_Phrase = interpreter.argument(4);
 
 		val fiber = interpreter.fiber()
-		var fiberGlobals = fiber.fiberGlobals()
+		var fiberGlobals = fiber.fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val currentScopeMap = clientData.mapAtOrNull(scopeMapKey) ?:
@@ -124,7 +125,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 			scopeStackKey, stack, true)
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		fiber.setFiberGlobals(fiberGlobals.makeShared())
+		fiber.fiberGlobals = fiberGlobals.makeShared()
 		return interpreter.primitiveSuccess(nil)
 	}
 

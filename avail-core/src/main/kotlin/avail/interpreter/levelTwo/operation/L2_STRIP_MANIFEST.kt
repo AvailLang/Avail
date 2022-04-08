@@ -32,7 +32,7 @@
 package avail.interpreter.levelTwo.operation
 
 import avail.interpreter.levelTwo.L2Instruction
-import avail.interpreter.levelTwo.L2OperandType
+import avail.interpreter.levelTwo.L2OperandType.READ_BOXED_VECTOR
 import avail.interpreter.levelTwo.L2Operation
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.register.L2Register
@@ -49,7 +49,7 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 object L2_STRIP_MANIFEST : L2Operation(
-	L2OperandType.READ_BOXED_VECTOR.named("live values"))
+	READ_BOXED_VECTOR.named("live values"))
 {
 	// Prevent this instruction from being removed, because it constrains
 	// the manifest along a back-edge, even after optimization.
