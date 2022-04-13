@@ -205,6 +205,7 @@ Extends
 		"natural number",
 		"new anonymous module importing_",
 		"new atom named_",
+		"new explicit subclass atom named_",
 		"new_[_]",
 		"new_applying_",
 		"new⁇heritable«fiber-local»⁇atom named_",

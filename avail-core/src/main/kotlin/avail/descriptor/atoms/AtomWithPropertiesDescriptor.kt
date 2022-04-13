@@ -32,6 +32,7 @@
 package avail.descriptor.atoms
 
 import avail.annotations.HideFieldInDebugger
+import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
@@ -42,10 +43,12 @@ import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
+import avail.descriptor.representation.AvailObjectFieldHelper
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IndirectionDescriptor
 import avail.descriptor.representation.IntegerSlotsEnum
@@ -53,6 +56,7 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.ObjectTupleDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation
@@ -117,7 +121,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init {
 				assert(AtomDescriptor.IntegerSlots.HASH_AND_MORE.ordinal
@@ -151,6 +155,7 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		 * property values.  It's never [nil] for this descriptor class, but it
 		 * may be [nil] in the [Mutability.SHARED] subclass.
 		 */
+		@HideFieldInDebugger
 		PROPERTY_MAP_POJO;
 
 		companion object {
@@ -167,6 +172,33 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		e: AbstractSlotsEnum
 	) = super.allowsImmutableToMutableReferenceInField(e)
 		|| e === HASH_AND_MORE
+
+	override fun o_DescribeForDebugger(
+		self: AvailObject
+	): Array<AvailObjectFieldHelper>
+	{
+		val fieldsArray = super.o_DescribeForDebugger(self)
+		val propertiesPojo = self.slot(PROPERTY_MAP_POJO)
+		if (propertiesPojo.isNil)
+		{
+			return fieldsArray
+		}
+		val fields = fieldsArray.toMutableList()
+		val properties =
+			propertiesPojo.javaObjectNotNull<Map<A_Atom, A_BasicObject>>()
+		properties.entries
+			.sortedBy { it.key.nameForDebugger() }
+			.forEach { (key, value) ->
+				fields.add(
+					AvailObjectFieldHelper(
+						self,
+						DebuggerObjectSlots.DUMMY_DEBUGGER_SLOT,
+						-1,
+						value,
+						slotName = "Key " + key.atomName))
+			}
+		return fields.toTypedArray()
+	}
 
 	/**
 	 * Extract the property value of this atom at the specified key.  Return

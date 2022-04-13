@@ -54,11 +54,12 @@ import avail.descriptor.representation.ObjectSlotsEnum
  *   The Java [Class] which is a subclass of [IntegerSlotsEnum] and defines this
  *   object's object slots
  */
-abstract class NumericTupleDescriptor protected constructor(
-		mutability: Mutability,
-		objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
-		integerSlotsEnumClass: Class<out IntegerSlotsEnum>)
-	: TupleDescriptor(mutability, objectSlotsEnumClass, integerSlotsEnumClass)
+abstract class NumericTupleDescriptor
+protected constructor(
+	mutability: Mutability,
+	objectSlotsEnumClass: Class<out ObjectSlotsEnum>?,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum>
+) : TupleDescriptor(mutability, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	abstract override fun o_TupleIntAt(self: AvailObject, index: Int): Int
 

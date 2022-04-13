@@ -261,8 +261,6 @@ class L1Translator private constructor(
 	/**
 	 * An array of names of arguments, if available, to make it easier to follow
 	 * [L2ControlFlowGraph]s.
-	 *
-	 * TODO: Extend declarationNames() for outers.
 	 */
 	val outerNames = Array(code.numOuters) { "Outer#${it+1}" }
 

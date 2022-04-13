@@ -423,8 +423,8 @@ internal class BuildLoader constructor(
 				{
 					val fiber = newLoaderFiber(
 						function.kind().returnType,
-						availLoader
-					) {
+						availLoader)
+					{
 						val code = function.code()
 						formatString(
 							"Load repo module %s, in %s:%d",
@@ -432,7 +432,6 @@ internal class BuildLoader constructor(
 							code.module.shortModuleNameNative,
 							code.codeStartingLineNumber)
 					}
-					fiber.textInterface = availBuilder.textInterface
 					val before = fiber.fiberHelper.fiberTime()
 					fiber.setSuccessAndFailure(
 						{

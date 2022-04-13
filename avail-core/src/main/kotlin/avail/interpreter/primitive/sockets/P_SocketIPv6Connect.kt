@@ -138,10 +138,11 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			interpreter.runtime,
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			priority.extractInt
-		) {
+			interpreter.runtime,
+			current.textInterface,
+			priority.extractInt)
+		{
 			formatString(
 				"Socket IPv6 connect, %s:%d",
 				addressTuple.toString(),
@@ -153,8 +154,6 @@ object P_SocketIPv6Connect : Primitive(6, CanInline, HasSideEffect)
 		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		// Inherit the fiber's text interface.
-		newFiber.textInterface = current.textInterface
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()

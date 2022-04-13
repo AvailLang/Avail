@@ -114,7 +114,7 @@ class GrammaticalRestrictionDescriptor private constructor(
 			 * A slot to hold the hash value, a random value computed at
 			 * construction time.
 			 */
-			val HASH = BitField(HASH_AND_MORE, 0, 32)
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
 		}
 	}
 

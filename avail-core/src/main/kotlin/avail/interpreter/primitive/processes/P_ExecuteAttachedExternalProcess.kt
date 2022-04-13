@@ -32,7 +32,6 @@
 
 package avail.interpreter.primitive.processes
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
@@ -59,7 +58,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_NO_EXTERNAL_PROCESS
 import avail.exceptions.AvailErrorCode.E_PERMISSION_DENIED
 import avail.interpreter.Primitive
@@ -70,6 +68,7 @@ import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.ProcessInputChannel
 import avail.io.ProcessOutputChannel
 import avail.io.TextInterface
+import avail.utility.Tuple3
 import java.io.File
 import java.io.IOException
 import java.io.PrintStream
@@ -120,7 +119,42 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		}
 		// Create the new fiber that will be connected to the external process.
 		val current = interpreter.fiber()
-		val newFiber = newFiber(interpreter.runtime, TOP.o, priority.extractInt)
+
+		// Start the process, running the success function on the new fiber if
+		// the process launches successfully.
+		val (textInterface, toRun, args) = try
+		{
+			builder.start().run {
+				Tuple3(
+					TextInterface(
+						ProcessInputChannel(inputStream),
+						ProcessOutputChannel(PrintStream(outputStream)),
+						ProcessOutputChannel(PrintStream(outputStream))),
+					succeed,
+					emptyList())
+			}
+		}
+		catch (e: SecurityException)
+		{
+			Tuple3(
+				current.textInterface,
+				fail,
+				listOf(E_PERMISSION_DENIED.numericCode()))
+		}
+		catch (e: IOException)
+		{
+			Tuple3(
+				current.textInterface,
+				fail,
+				listOf(E_NO_EXTERNAL_PROCESS.numericCode()))
+		}
+		// Run either the success or failure function in a new fiber.
+		val runtime = interpreter.runtime
+		val newFiber = newFiber(
+			TOP.o,
+			runtime,
+			textInterface,
+			priority.extractInt)
 		{
 			stringFrom("External process execution")
 		}
@@ -128,36 +162,8 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
 		newFiber.makeShared()
-		succeed.makeShared()
-		fail.makeShared()
-		val error: AvailErrorCode
-		val runtime = currentRuntime()
-		// Start the process, running the success function on the new fiber if
-		// the process launches successfully.
-		try
-		{
-			val process = builder.start()
-			newFiber.textInterface =
-				TextInterface(
-					ProcessInputChannel(process.inputStream),
-					ProcessOutputChannel(PrintStream(process.outputStream)),
-					ProcessOutputChannel(PrintStream(process.outputStream)))
-			runOutermostFunction(runtime, newFiber, succeed, emptyList())
-			return interpreter.primitiveSuccess(newFiber)
-		}
-		catch (e: SecurityException)
-		{
-			error = E_PERMISSION_DENIED
-		}
-		catch (e: IOException)
-		{
-			error = E_NO_EXTERNAL_PROCESS
-		}
-
-		// Run the failure function on the new fiber.
-		newFiber.textInterface = current.textInterface
-		runOutermostFunction(
-			runtime, newFiber, fail, listOf(error.numericCode()))
+		toRun.makeShared()
+		runOutermostFunction(runtime, newFiber, toRun, args)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

@@ -71,6 +71,7 @@ import avail.exceptions.AvailErrorCode.E_CANNOT_STORE_INCORRECTLY_TYPED_VALUE
 import avail.exceptions.AvailException
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.SLOW_VARIABLE
@@ -128,8 +129,7 @@ open class VariableSharedDescriptor protected constructor(
 			 * A slot to hold the hash value.  Must be computed when (or before)
 			 * making a variable shared.
 			 */
-			@HideFieldInDebugger
-			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init
 			{
@@ -213,11 +213,12 @@ open class VariableSharedDescriptor protected constructor(
 		recordReadFromSharedVariable(self)
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableReadsBeforeWrites())
-			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(self, true)
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
 			}
 		}
 		catch (e: ClassCastException)
@@ -241,11 +242,12 @@ open class VariableSharedDescriptor protected constructor(
 		recordReadFromSharedVariable(self)
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableReadsBeforeWrites())
-			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(self, true)
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
 			}
 		}
 		catch (e: ClassCastException)
@@ -271,11 +273,12 @@ open class VariableSharedDescriptor protected constructor(
 		recordReadFromSharedVariable(self)
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableReadsBeforeWrites())
-			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(self, true)
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
 			}
 		}
 		catch (e: ClassCastException)
@@ -620,8 +623,7 @@ open class VariableSharedDescriptor protected constructor(
 		@JvmStatic
 		protected fun recordWriteToSharedVariable()
 		{
-			Interpreter.current().availLoaderOrNull()
-				?.statementCanBeSummarized(false)
+			AvailLoader.currentLoaderOrNull()?.statementCanBeSummarized(false)
 		}
 
 		/**
@@ -634,8 +636,8 @@ open class VariableSharedDescriptor protected constructor(
 		 */
 		private fun recordReadFromSharedVariable(self: AvailObject)
 		{
-			val loader = Interpreter.current().availLoaderOrNull()
-			if (loader !== null && loader.statementCanBeSummarized()
+			val loader = AvailLoader.currentLoaderOrNull() ?: return
+			if (loader.statementCanBeSummarized()
 				&& self.slot(VALUE).notNil
 				&& !self.valueWasStablyComputed())
 			{

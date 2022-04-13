@@ -132,8 +132,7 @@ open class PhraseTypeDescriptor protected constructor(
 			/**
 			 * The hash, or zero (`0`) if the hash has not yet been computed.
 			 */
-			@HideFieldInDebugger
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 		}
 	}
 

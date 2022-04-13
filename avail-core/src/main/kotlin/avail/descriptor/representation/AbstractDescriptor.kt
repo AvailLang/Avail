@@ -187,11 +187,11 @@ import kotlin.reflect.KProperty1
 import kotlin.reflect.full.companionObject
 import kotlin.reflect.full.declaredMemberProperties
 import kotlin.reflect.full.findAnnotation
-import kotlin.reflect.full.hasAnnotation
 import kotlin.reflect.full.isSubtypeOf
 import kotlin.reflect.full.memberProperties
 import kotlin.reflect.full.starProjectedType
 import kotlin.reflect.full.valueParameters
+import kotlin.reflect.jvm.javaField
 import kotlin.reflect.jvm.javaGetter
 
 /**
@@ -4073,17 +4073,25 @@ abstract class AbstractDescriptor protected constructor (
 					var first = true
 					for (bitField in bitFields)
 					{
+						val fieldValue = self.slot(bitField)
+						val string = when (val presenter = bitField.presenter)
+						{
+							null -> buildString {
+								describeIntegerField(
+									fieldValue.toLong(),
+									bitField.bits,
+									bitField.enumField,
+									this)
+							}
+							else -> presenter(fieldValue) ?: continue
+						}
 						if (!first)
 						{
 							builder.append(", ")
 						}
 						builder.append(bitField.name)
 						builder.append("=")
-						describeIntegerField(
-							self.slot(bitField).toLong(),
-							bitField.bits,
-							bitField.enumField,
-							builder)
+						builder.append(string)
 						first = false
 					}
 					builder.append(")")
@@ -4138,9 +4146,10 @@ abstract class AbstractDescriptor protected constructor (
 							val bitField: BitField = field.getter.call(
 								companionObject!!.objectInstance).cast()
 							if (bitField.integerSlot === slot
-								&& !field.hasAnnotation<HideFieldInDebugger>()
-								&& !field
-									.hasAnnotation<HideFieldJustForPrinting>())
+								&& !field.javaField!!.isAnnotationPresent(
+									HideFieldInDebugger::class.java)
+								&& !field.javaField!!.isAnnotationPresent(
+									HideFieldJustForPrinting::class.java))
 							{
 								bitField.enumField = field.findAnnotation()
 								bitField.name = field.name

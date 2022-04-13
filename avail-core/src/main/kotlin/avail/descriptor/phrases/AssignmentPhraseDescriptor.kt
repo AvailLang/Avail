@@ -102,7 +102,7 @@ class AssignmentPhraseDescriptor private constructor(
 			/**
 			 * Is this an inline [assignment][AssignmentPhraseDescriptor]?
 			 */
-			val IS_INLINE = BitField(FLAGS, 0, 1)
+			val IS_INLINE = BitField(FLAGS, 0, 1) { (it != 0).toString() }
 		}
 	}
 

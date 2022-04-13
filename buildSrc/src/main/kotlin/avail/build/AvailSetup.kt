@@ -58,24 +58,6 @@ object AvailSetupContext
 		listOf("avail", "builder-tests", "examples", "website")
 
 	/**
-	 * Avail [Project.getProjectDir] path to the Avail `Primitive` classes
-	 * in the build directory.
-	 */
-	const val allPrimitivesPath =
-		"${BuildContext.buildClassesPath}/avail/interpreter"
-
-	/**
-	 * The path to the `All_Primitives.txt` file that lists all the primitives.
-	 */
-	const val allPrimitivesText = "$allPrimitivesPath/All_Primitives.txt"
-
-	/**
-	 * The pattern that matches all the names of `Primitive` class files
-	 * relative to [allPrimitivesPath].
-	 */
-	const val primitiveClassFileNamePattern = "**/P_*.class"
-
-	/**
 	 *
 	 */
 	const val bootstrapPackagePath = "avail/tools/bootstrap"

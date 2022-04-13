@@ -41,18 +41,24 @@ import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldOrdinal
  *
  * @constructor
  * @property integerSlot
- *   The [integer&#32;slot][IntegerSlotsEnum] within which this `BitField`` occurs.
+ *   The integer [slot][IntegerSlotsEnum] within which this [BitField] occurs.
  * @property shift
  *   The lowest bit position that this BitField occupies.  Zero (`0`) is the
  *   rightmost or lowest order bit.
  * @property bits
  *   The number of bits that this `BitField` occupies within a [Long].
+ * @property presenter
+ *   An optional function that converts an [Int] value for this field into
+ *   suitable [String] for presenting this [BitField] value.  If the function is
+ *   present and produces `null`, don't show this value.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class BitField (
+class BitField
+constructor(
 	val integerSlot: IntegerSlotsEnum,
 	val shift: Int,
-	val bits: Int
+	val bits: Int,
+	val presenter: ((Int) -> String?)? = null
 ) : Comparable<BitField?> {
 	init {
 		assert(shift == shift and 63)

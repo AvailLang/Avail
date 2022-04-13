@@ -31,7 +31,6 @@
  */
 package avail.descriptor.phrases
 
-import avail.annotations.EnumField
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.AvailCodeGenerator.Companion.generateFunction
 import avail.descriptor.functions.A_RawFunction
@@ -45,7 +44,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.declaredExceptions
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
 import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.generateInModule
-import avail.descriptor.phrases.A_Phrase.Companion.initializationExpression
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.neededVariables
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
@@ -138,11 +136,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 			/**
 			 * The line number on which this block starts.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
 			val STARTING_LINE_NUMBER = BitField(
-				STARTING_LINE_NUMBER_AND_MORE, 0, 32)
+				STARTING_LINE_NUMBER_AND_MORE, 0, 32, Int::toString)
 		}
 	}
 
@@ -540,11 +535,7 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 							// The initialization expression of a declaration is
 							// allowed to be a sequence-as-expression that has
 							// additional declarations.
-							val initialization = child.initializationExpression
-							if (initialization.notNil)
-							{
-								again(initialization)
-							}
+							again(child)
 						}
 						else -> again(child)
 					}

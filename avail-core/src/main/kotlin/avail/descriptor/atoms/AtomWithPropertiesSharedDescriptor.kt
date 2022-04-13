@@ -127,7 +127,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 			 * A slot to hold the hash value, or zero if it has not been
 			 * computed. The hash of an atom is a random number, computed once.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init {
 				assert(AtomWithPropertiesDescriptor.IntegerSlots.HASH_AND_MORE
@@ -160,6 +160,7 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 		/**
 		 * A weak map from this atom's property keys (atoms) to property values.
 		 */
+		@HideFieldInDebugger
 		PROPERTY_MAP_POJO,
 
 		/**

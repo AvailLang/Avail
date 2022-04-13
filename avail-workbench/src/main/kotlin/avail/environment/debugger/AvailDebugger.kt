@@ -34,13 +34,13 @@ package avail.environment.debugger
 
 import avail.AvailDebuggerModel
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
@@ -55,6 +55,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
@@ -62,7 +63,6 @@ import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor
@@ -83,6 +83,7 @@ import java.awt.event.WindowEvent
 import java.util.Collections.synchronizedMap
 import java.util.IdentityHashMap
 import java.util.concurrent.Semaphore
+import java.util.concurrent.atomic.AtomicLong
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
 import javax.swing.JButton
@@ -312,21 +313,21 @@ class AvailDebugger internal constructor (
 			}
 		}
 
-	val stepOverAction = object : AbstractWorkbenchAction(workbench, "Over")
+	private val stepOverAction = object : AbstractWorkbenchAction(workbench, "Over")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
 			TODO("Not yet implemented")
 		}
 	}
-	val stepOutAction = object : AbstractWorkbenchAction(workbench, "Out")
+	private val stepOutAction = object : AbstractWorkbenchAction(workbench, "Out")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
 			TODO("Not yet implemented")
 		}
 	}
-	val stepToLineAction = object : AbstractWorkbenchAction(
+	private val stepToLineAction = object : AbstractWorkbenchAction(
 		workbench, "To Line"
 	)
 	{
@@ -335,14 +336,14 @@ class AvailDebugger internal constructor (
 			TODO("Not yet implemented")
 		}
 	}
-	val resumeAction = object : AbstractWorkbenchAction(workbench, "Resume")
+	private val resumeAction = object : AbstractWorkbenchAction(workbench, "Resume")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
 			TODO("Not yet implemented")
 		}
 	}
-	val restartAction = object : AbstractWorkbenchAction(workbench, "Restart")
+	private val restartAction = object : AbstractWorkbenchAction(workbench, "Restart")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
@@ -350,7 +351,7 @@ class AvailDebugger internal constructor (
 		}
 	}
 
-	val inspectVariable = object : AbstractWorkbenchAction(workbench, "Inspect")
+	private val inspectVariable = object : AbstractWorkbenchAction(workbench, "Inspect")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
@@ -518,29 +519,37 @@ class AvailDebugger internal constructor (
 			val code = function.code()
 			val numArgs = code.numArgs()
 			val numLocals = code.numLocals
+			val numConstants = code.numConstants
 			val numOuters = code.numOuters
-			val names = code.declarationNames
-			for (i in 1..numArgs)
+			val names = code.declarationNames.map(AvailObject::asNativeString)
+				.iterator()
+			var frameIndex = 1
+			repeat (numArgs)
 			{
 				entries.add(
 					Variable(
-						"arg " + names.tupleAt(i).asNativeString(),
-						frame.frameAt(i)))
+						"[arg] " + names.next(),
+						frame.frameAt(frameIndex++)))
 			}
-			for (i in numArgs + 1 .. numArgs + numLocals)
+			repeat (numLocals)
 			{
 				entries.add(
 					Variable(
-						"local " + names.tupleAt(i).asNativeString(),
-						frame.frameAt(i)))
+						"[local] " + names.next(),
+						frame.frameAt(frameIndex++)))
+			}
+			repeat (numConstants)
+			{
+				entries.add(
+					Variable(
+						"[const] " + names.next(),
+						frame.frameAt(frameIndex++)))
 			}
 			for (i in 1..numOuters)
 			{
 				entries.add(
 					Variable(
-						"outer " +
-							names.tupleAt(i + numArgs + numLocals)
-								.asNativeString(),
+						"[outer] " + names.next(),
 						function.outerVarAt(i)))
 			}
 			for (i in frame.numSlots() downTo frame.stackp())
@@ -568,34 +577,58 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
-	 * Present the stringification of the currently selected variable in the
-	 * [variableValuePane].
+	 * A mechanism by which a monotonic [Long] is allocated, to associate with a
+	 * variable stringification request; when the stringification completes, the
+	 * completion lock is held while the [variableValuePane] is updated, but
+	 * only if the associated [Long] is the largest that has been completed.
+	 */
+	private val paneVersioneTracker = object
+	{
+		val allocator = AtomicLong(0)
+
+		var renderedVersion: Long = -1
+	}
+
+	/**
+	 * The user has indicated the desire to textually render a variable's value
+	 * in the [variableValuePane]. Allow multiple overlapping requests, but only
+	 * ever display the most recently allocated request which has completed.  In
+	 * theory, we could terminate the stringification fibers corresponding to
+	 * values we'll never see (because a newer request has already been
+	 * satisfied), but we'll save that for a later optimization.
 	 */
 	private fun updateVariableValuePane()
 	{
-		lateinit var string: String
+		val id = paneVersioneTracker.allocator.getAndIncrement()
 		val variable = variablesPane.selectedValue
-		variableValuePane.text = when
+		// Do some trickery to avoid stringifying null or nil.
+		val valueToStringify = when
 		{
-			variable == null -> ""
-			variable.value.isNil -> "nil"
-			else ->
+			variable == null -> AtomDescriptor.trueObject //dummy
+			variable.value.isNil -> AtomDescriptor.trueObject //dummy
+			else -> variable.value
+		}
+		Interpreter.stringifyThen(
+			runtime, runtime.textInterface(), valueToStringify)
+		{
+			// Undo the above trickery.
+			val string = when
 			{
-				val semaphore = Semaphore(0)
-				// Run the stringifier in a fresh fiber.
-				Interpreter.stringifyThen(
-					runtime,
-					fiberListPane.selectedValue!!.textInterface,
-					variable.value.makeShared())
+				variable == null -> ""
+				variable.value.isNil -> "nil\n"
+				else -> "${variable.value.typeTag}\n\n$it\n"
+			}
+			// Delegate to the UI thread, for safety and simplicity.
+			SwingUtilities.invokeLater {
+				// We're now in the UI thread, so check if we should replace the
+				// text.  There's no need for a lock, since the UI thread runs
+				// such actions serially.
+				if (id > paneVersioneTracker.renderedVersion)
 				{
-					string = it
-					semaphore.release()
-				}
-				semaphore.acquire()
-				buildString {
-					append(variable.value.typeTag)
-					append("\n\n")
-					append(string)
+					// It's a more recent stringification than the currently
+					// displayed string, so replace it.
+					variableValuePane.text = string
+					paneVersioneTracker.renderedVersion = id
 				}
 			}
 		}
@@ -631,7 +664,7 @@ class AvailDebugger internal constructor (
 				createParallelGroup()
 					.addGroup(createSequentialGroup()
 						.addComponent(scroll(fiberListPane), 100, 100, max)
-						.addComponent(scroll(stackListPane), 100, 100, max))
+						.addComponent(scroll(stackListPane), 200, 200, max))
 					.addGroup(createSequentialGroup()
 						.addComponent(stepIntoButton)
 						.addComponent(stepOverButton)
@@ -641,13 +674,13 @@ class AvailDebugger internal constructor (
 						.addComponent(restartButton))
 					.addComponent(scroll(codePane))
 					.addGroup(createSequentialGroup()
-						.addComponent(scroll(variablesPane), 100, 100, max)
+						.addComponent(scroll(variablesPane), 60, 60, max)
 						.addComponent(scroll(variableValuePane), 100, 100, max)))
 			setVerticalGroup(
 				createSequentialGroup()
 					.addGroup(createParallelGroup()
-						.addComponent(scroll(fiberListPane), 100, 100, max)
-						.addComponent(scroll(stackListPane), 100, 100, max))
+						.addComponent(scroll(fiberListPane), 60, 60, max)
+						.addComponent(scroll(stackListPane), 60, 60, max))
 					.addGroup(createParallelGroup()
 						.addComponent(stepIntoButton, pref, pref, pref)
 						.addComponent(stepOverButton, pref, pref, pref)
@@ -655,10 +688,10 @@ class AvailDebugger internal constructor (
 						.addComponent(stepToLineButton, pref, pref, pref)
 						.addComponent(resumeButton, pref, pref, pref)
 						.addComponent(restartButton, pref, pref, pref))
-					.addComponent(scroll(codePane), 80, 80, max)
+					.addComponent(scroll(codePane), 150, 150, max)
 					.addGroup(createParallelGroup()
-						.addComponent(scroll(variablesPane), 60, 60, max)
-						.addComponent(scroll(variableValuePane), 60, 60, max)))
+						.addComponent(scroll(variablesPane), 80, 80, max)
+						.addComponent(scroll(variableValuePane), 80, 80, max)))
 			linkSize(
 				SwingConstants.HORIZONTAL,
 				stepIntoButton,

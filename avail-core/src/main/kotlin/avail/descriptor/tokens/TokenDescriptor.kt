@@ -30,9 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package avail.descriptor.tokens
-import avail.annotations.EnumField
-import avail.annotations.EnumField.Converter
-import avail.annotations.HideFieldInDebugger
 import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
@@ -66,8 +63,8 @@ import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
 import avail.descriptor.types.A_Type.Companion.tokenType
-import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import avail.utility.PrefixSharingList.Companion.append
@@ -118,17 +115,17 @@ open class TokenDescriptor protected constructor(
 			 * what basic kind of token this is.  Currently four bits are
 			 * reserved for this purpose.
 			 */
-			@EnumField(describedBy = TokenType::class)
-			val TOKEN_TYPE_CODE = BitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4)
+			val TOKEN_TYPE_CODE =
+				BitField(TOKEN_TYPE_AND_START_AND_LINE, 0, 4) {
+					lookupTokenType(it).fieldName
+				}
 
 			/**
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
-			@EnumField(
-				describedBy = Converter::class,
-				lookupMethodName = "decimal")
-			val LINE_NUMBER = BitField(TOKEN_TYPE_AND_START_AND_LINE, 4, 28)
+			val LINE_NUMBER = BitField(
+				TOKEN_TYPE_AND_START_AND_LINE, 4, 28, Int::toString)
 
 			/**
 			 * The starting position in the source file. Currently signed 32
@@ -136,8 +133,7 @@ open class TokenDescriptor protected constructor(
 			 * need to parse 2GB of *Avail* source in one file, due to its
 			 * deeply flexible syntax.
 			 */
-			@HideFieldInDebugger
-			val START = BitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32)
+			val START = BitField(TOKEN_TYPE_AND_START_AND_LINE, 32, 32) { null }
 		}
 	}
 

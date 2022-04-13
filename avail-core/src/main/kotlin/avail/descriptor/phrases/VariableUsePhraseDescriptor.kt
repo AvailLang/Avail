@@ -99,7 +99,7 @@ class VariableUsePhraseDescriptor private constructor(
 			 * the phrase is immutable.  It should not be made visible to the
 			 * Avail language.
 			 */
-			val LAST_USE = BitField(FLAGS, 0, 1)
+			val LAST_USE = BitField(FLAGS, 0, 1) { (it != 0).toString() }
 		}
 	}
 

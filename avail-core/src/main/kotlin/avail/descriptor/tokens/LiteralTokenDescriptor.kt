@@ -99,7 +99,7 @@ class LiteralTokenDescriptor private constructor(
 			 * The line number in the source file. Currently signed 28 bits,
 			 * which should be plenty.
 			 */
-			val LINE_NUMBER = BitField(START_AND_LINE, 4, 28)
+			val LINE_NUMBER = BitField(START_AND_LINE, 4, 28, Int::toString)
 
 			/**
 			 * The starting position in the source file. Currently signed 32
@@ -107,8 +107,7 @@ class LiteralTokenDescriptor private constructor(
 			 * need to parse 2GB of *Avail* source in one file, due to its
 			 * deeply flexible syntax.
 			 */
-			@HideFieldInDebugger
-			val START = BitField(START_AND_LINE, 32, 32)
+			val START = BitField(START_AND_LINE, 32, 32) { null }
 
 			init
 			{

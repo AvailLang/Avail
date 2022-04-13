@@ -33,11 +33,11 @@ package avail.descriptor.functions
 
 import avail.AvailRuntime
 import avail.AvailRuntimeSupport
-import avail.annotations.EnumField
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailRejectedParseException
 import avail.descriptor.fiber.FiberDescriptor
+import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.constantTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
@@ -263,55 +263,40 @@ open class CompiledCodeDescriptor protected constructor(
 			 * The hash value of this [compiled][CompiledCodeDescriptor].  It is
 			 * computed at construction time.
 			 */
-			@HideFieldInDebugger
-			val HASH = BitField(HASH_AND_OUTERS, 32, 32)
+			val HASH = BitField(HASH_AND_OUTERS, 32, 32) { null }
 
 			/**
 			 * The number of outer variables that must be captured by my
 			 * [functions][FunctionDescriptor].
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val NUM_OUTERS = BitField(HASH_AND_OUTERS, 0, 16)
+			val NUM_OUTERS = BitField(HASH_AND_OUTERS, 0, 16, Int::toString)
 
 			/**
 			 * The number of [frame&#32;slots][A_Continuation.frameAt] to
 			 * allocate for continuations running this code.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val FRAME_SLOTS =
-				BitField(NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 48, 16)
+			val FRAME_SLOTS = BitField(
+				NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 48, 16, Int::toString)
 
 			/**
 			 * The number of [arguments][ARGUMENT] that this code expects.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val NUM_ARGS = BitField(NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 32, 16)
+			val NUM_ARGS = BitField(
+				NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 32, 16, Int::toString)
 
 			/**
 			 * The number of local variables declared in this code.  This does
 			 * not include arguments or local constants.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val NUM_LOCALS =
-				BitField(NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 16, 16)
+			val NUM_LOCALS = BitField(
+				NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 16, 16, Int::toString)
 
 			/**
 			 * The number of local constants declared in this code.  These occur
 			 * in the frame after the arguments and local variables.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val NUM_CONSTANTS =
-				BitField(NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 0, 16)
+			val NUM_CONSTANTS = BitField(
+				NUM_SLOTS_ARGS_LOCALS_AND_CONSTANTS, 0, 16, Int::toString)
 		}
 	}
 
@@ -685,8 +670,8 @@ open class CompiledCodeDescriptor protected constructor(
 		{
 			val current = counter.get()
 		}
-		while (current <= 0
-			|| !counter.compareAndSet(current, max(1, current - delta)))
+		while (current > 0
+			&& !counter.compareAndSet(current, max(1, current - delta)))
 	}
 
 	/**
@@ -1417,7 +1402,7 @@ open class CompiledCodeDescriptor protected constructor(
 		 * The sole [mutable][Mutability.MUTABLE] descriptor, used only
 		 * while initializing a new [A_RawFunction].
 		 */
-		private val initialMutableDescriptor = CompiledCodeDescriptor(
+		val initialMutableDescriptor = CompiledCodeDescriptor(
 			Mutability.MUTABLE, nil, -1, nil, nil, -1, nil)
 
 		/**

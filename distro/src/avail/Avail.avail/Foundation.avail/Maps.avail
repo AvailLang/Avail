@@ -151,7 +151,7 @@ Method "For each of⁇_do_" is
 |
 	For each binding of aMap's bindings do
 	[
-		action(binding[1], binding[2]);
+		Invoke action with binding;
 	];
 ] : ⊤;
 

@@ -31,6 +31,7 @@
  */
 package avail.descriptor.maps
 
+import avail.annotations.HideFieldInDebugger
 import avail.descriptor.maps.MapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
 import avail.descriptor.maps.MapDescriptor.MapIterable
 import avail.descriptor.representation.A_BasicObject
@@ -87,6 +88,7 @@ abstract class MapBinDescriptor protected constructor(
 		 * A [Long] holding [BitField]s containing the combined keys hash and
 		 * the combined values hash or zero.
 		 */
+		@HideFieldInDebugger
 		COMBINED_HASHES;
 
 		companion object {
@@ -94,13 +96,13 @@ abstract class MapBinDescriptor protected constructor(
 			 * The sum of the hashes of the elements recursively within this
 			 * bin.
 			 */
-			val KEYS_HASH = BitField(COMBINED_HASHES, 0, 32)
+			val KEYS_HASH = BitField(COMBINED_HASHES, 0, 32) { null }
 
 			/**
 			 * The sum of the hashes of the elements recursively within this
 			 * bin, or zero if not computed.
 			 */
-			val VALUES_HASH_OR_ZERO = BitField(COMBINED_HASHES, 32, 32)
+			val VALUES_HASH_OR_ZERO = BitField(COMBINED_HASHES, 32, 32) { null }
 		}
 	}
 

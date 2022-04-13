@@ -68,6 +68,7 @@ import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.mutableObjectOfSi
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots
 import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
+import avail.descriptor.tuples.TupleDescriptor.IntegerSlots.HASH_AND_MORE
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.defaultType
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPrimitiveTypeEnum
@@ -76,8 +77,8 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.typeTuple
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor
-import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
+import avail.descriptor.types.TupleTypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -143,7 +144,7 @@ abstract class TupleDescriptor protected constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 		}
 	}
 
@@ -156,17 +157,10 @@ abstract class TupleDescriptor protected constructor(
 
 	override fun o_SetHashOrZero(self: AvailObject, value: Int)
 	{
-		if (isShared)
-		{
-			synchronized(self) {
-				// The synchronized section is only to ensure other BitFields
-				// in the same long slot don't get clobbered.
-				self.setSlot(HASH_OR_ZERO, value)
-			}
-		}
-		else
-		{
-			self.setSlot(HASH_OR_ZERO, value)
+		// Use an atomic replace to avoid clobbering other BitFields in the same
+		// long slot.
+		self.atomicUpdateSlot(HASH_AND_MORE, 1) {
+			HASH_OR_ZERO.replaceBits(this, value)
 		}
 	}
 

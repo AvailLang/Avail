@@ -54,6 +54,7 @@ import avail.exceptions.MarshalingException
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import avail.utility.safeWrite
+import java.lang.String.format
 import java.util.IdentityHashMap
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import javax.annotation.concurrent.GuardedBy
@@ -94,12 +95,14 @@ class CharacterDescriptor private constructor(
 			/**
 			 * This character's Unicode code point, in the range 0..1,411,111.
 			 */
-			val CODE_POINT = BitField(CODE_POINT_AND_HASH, 0, 32)
+			val CODE_POINT = BitField(CODE_POINT_AND_HASH, 0, 32) {
+				format("U+%04x", it)
+			}
 
 			/**
 			 * This character's hash value, which is eagerly computed.
 			 */
-			val HASH = BitField(CODE_POINT_AND_HASH, 32, 32)
+			val HASH = BitField(CODE_POINT_AND_HASH, 32, 32) { null }
 		}
 	}
 

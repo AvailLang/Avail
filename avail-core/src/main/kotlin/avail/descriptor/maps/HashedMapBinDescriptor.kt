@@ -154,13 +154,13 @@ class HashedMapBinDescriptor private constructor(
 			 * The sum of the hashes of the elements recursively within this
 			 * bin.
 			 */
-			val KEYS_HASH = BitField(COMBINED_HASHES, 0, 32)
+			val KEYS_HASH = BitField(COMBINED_HASHES, 0, 32) { null }
 
 			/**
 			 * The sum of the hashes of the elements recursively within this
 			 * bin, or zero if not computed.
 			 */
-			val VALUES_HASH_OR_ZERO = BitField(COMBINED_HASHES, 32, 32)
+			val VALUES_HASH_OR_ZERO = BitField(COMBINED_HASHES, 32, 32) { null }
 
 			init {
 				assert(MapBinDescriptor.IntegerSlots.COMBINED_HASHES.ordinal

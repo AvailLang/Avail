@@ -124,8 +124,9 @@ object P_DelayedForkOrphan : Primitive(
 		callArgs.forEach { it.makeShared() }
 		val current = interpreter.fiber()
 		val orphan = newFiber(
-			interpreter.runtime,
 			function.kind().returnType,
+			interpreter.runtime,
+			current.textInterface,
 			priority.extractInt)
 		{
 			formatString(
@@ -141,8 +142,6 @@ object P_DelayedForkOrphan : Primitive(
 		// Share and inherit any heritable variables.
 		orphan.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		// Inherit the fiber's text interface.
-		orphan.textInterface = current.textInterface
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
 		val runtime = currentRuntime()
 		if (sleepMillis.equalsInt(0))

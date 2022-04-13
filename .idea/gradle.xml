@@ -4,9 +4,11 @@
   <component name="GradleSettings">
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
+        <option name="delegatedBuild" value="true" />
+        <option name="testRunner" value="GRADLE" />
         <option name="distributionType" value="DEFAULT_WRAPPED" />
         <option name="externalProjectPath" value="$PROJECT_DIR$" />
-        <option name="gradleHome" value="/usr/local/Cellar/gradle/6.5.1/libexec" />
+        <option name="gradleJvm" value="16" />
         <option name="modules">
           <set>
             <option value="$PROJECT_DIR$" />
@@ -14,7 +16,6 @@
             <option value="$PROJECT_DIR$/avail-bootstrap" />
             <option value="$PROJECT_DIR$/avail-cli" />
             <option value="$PROJECT_DIR$/avail-core" />
-            <option value="$PROJECT_DIR$/avail-intellij-plugin" />
             <option value="$PROJECT_DIR$/avail-json" />
             <option value="$PROJECT_DIR$/avail-server" />
             <option value="$PROJECT_DIR$/avail-stdlib" />

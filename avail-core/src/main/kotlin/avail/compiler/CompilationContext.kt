@@ -543,10 +543,8 @@ class CompilationContext constructor(
 	{
 		val code = function.code()
 		assert(code.numArgs() == args.size)
-		val fiber = newLoaderFiber(
-			function.kind().returnType,
-			loader
-		) {
+		val fiber = newLoaderFiber(function.kind().returnType, loader)
+		{
 			formatString(
 				"Eval fn=%s, in %s:%d",
 				code.methodName,
@@ -557,7 +555,6 @@ class CompilationContext constructor(
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
 		fiber.fiberGlobals = fiberGlobals
-		fiber.textInterface = textInterface
 		if (shouldSerialize)
 		{
 			loader.startRecordingEffects()

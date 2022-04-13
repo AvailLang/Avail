@@ -173,9 +173,10 @@ class CallbackTest
 			stringFrom("Invoke Once_with_"))
 		val fiber = createFiber(
 			Types.NUMBER.o,
-			FiberDescriptor.commandPriority,
+			helper.runtime,
 			null,
-			helper.runtime)
+			helper.runtime.textInterface(),
+			FiberDescriptor.commandPriority)
 		{
 			stringFrom("testDivisionCallback")
 		}

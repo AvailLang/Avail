@@ -140,12 +140,12 @@ class HashedSetBinDescriptor private constructor(
 			 * A slot to hold the bin's hash value, or zero if it has not been
 			 * computed.
 			 */
-			val BIN_HASH = BitField(BIN_HASH_AND_MORE, 0, 32)
+			val BIN_HASH = BitField(BIN_HASH_AND_MORE, 0, 32) { null }
 
 			/**
 			 * The total number of elements within this bin.
 			 */
-			val BIN_SIZE = BitField(BIN_HASH_AND_MORE, 32, 32)
+			val BIN_SIZE = BitField(BIN_HASH_AND_MORE, 32, 32, Int::toString)
 
 			init {
 				assert(SetBinDescriptor.IntegerSlots.BIN_HASH_AND_MORE.ordinal

@@ -53,9 +53,9 @@ import avail.descriptor.types.FiberTypeDescriptor.Companion.fiberType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.inclusive
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.SetTypeDescriptor.Companion.setTypeForSizesContentType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_FILE_EXISTS
 import avail.exceptions.AvailErrorCode.E_INVALID_PATH
 import avail.exceptions.AvailErrorCode.E_IO_ERROR
@@ -110,18 +110,17 @@ object P_CreateDirectory : Primitive(5, CanInline, HasSideEffect)
 
 		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
-		val newFiber =
-			newFiber(
-				runtime,
-				succeed.kind().returnType.typeUnion(fail.kind().returnType),
-				priorityInt)
-			{
-				formatString("Asynchronous create directory, %s", path)
-			}
+		val newFiber = newFiber(
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			interpreter.runtime,
+			current.textInterface,
+			priorityInt)
+		{
+			formatString("Asynchronous create directory, %s", path)
+		}
 		newFiber.availLoader = current.availLoader
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		newFiber.textInterface = current.textInterface
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

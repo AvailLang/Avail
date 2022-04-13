@@ -109,16 +109,16 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 		companion object
 		{
 			/** The number of elements in the tuple. */
-			val SIZE = BitField(HASH_AND_MORE, 32, 32)
+			val SIZE = BitField(HASH_AND_MORE, 32, 32, Int::toString)
 
 			/** The first value in the tuple, inclusive. */
-			val START = BitField(START_AND_END, 32, 32)
+			val START = BitField(START_AND_END, 32, 32, Int::toString)
 
 			/**
 			 * The last value in the tuple, inclusive. Within the constructor,
 			 * the supplied END is normalized to the actual last value.
 			 */
-			val END = BitField(START_AND_END, 0, 32)
+			val END = BitField(START_AND_END, 0, 32, Int::toString)
 
 			/**
 			 * A slot to hold the cached hash value of a tuple.  If zero, then
@@ -126,7 +126,7 @@ class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init
 			{

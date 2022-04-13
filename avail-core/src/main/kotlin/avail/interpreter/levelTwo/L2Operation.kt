@@ -100,7 +100,6 @@ import org.objectweb.asm.MethodVisitor
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 abstract class L2Operation
-@Suppress("LeakingThis")
 protected constructor(
 	name: String?,
 	vararg theNamedOperandTypes: L2NamedOperandType)

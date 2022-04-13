@@ -102,10 +102,11 @@ class ParsingPlanInProgressDescriptor private constructor(
 		PARSING_PC_AND_HASH;
 
 		companion object {
-			/** The subscript into my parsing plan's parsing instructions. */
-			val PARSING_PC = BitField(PARSING_PC_AND_HASH, 0, 32)
+			/** The subscript into my plan-in-progress's instructions. */
+			val PARSING_PC = BitField(PARSING_PC_AND_HASH, 0, 32, Int::toString)
 
-			val HASH = BitField(PARSING_PC_AND_HASH, 32, 32)
+			/** The plan-in-progress's hash, set at construction. */
+			val HASH = BitField(PARSING_PC_AND_HASH, 32, 32) { null }
 		}
 	}
 

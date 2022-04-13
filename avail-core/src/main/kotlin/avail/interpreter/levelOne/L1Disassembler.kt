@@ -442,7 +442,7 @@ class L1Disassembler constructor(
 				value.equals(mostGeneralTupleType) -> value to false
 				value.equals(stringType) -> value to false
 				value.isInstanceOf(mostGeneralVariableType) -> null to true
-				!value.isType -> value to true
+				!value.isType -> null to true
 				value.isTop -> value to false
 				value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 					value to false

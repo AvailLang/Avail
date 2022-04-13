@@ -771,8 +771,8 @@ class AvailCompiler constructor(
 		val mod = code.module
 		val fiber = newLoaderFiber(
 			function.kind().returnType,
-			compilationContext.loader
-		) {
+			compilationContext.loader)
+		{
 			formatString(
 				"Semantic restriction %s, in %s:%d",
 				restriction.definitionMethod().bundles.first().message,
@@ -780,7 +780,6 @@ class AvailCompiler constructor(
 				code.codeStartingLineNumber)
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
-		fiber.textInterface = compilationContext.textInterface
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber, onSuccess, onFailure)
 		runOutermostFunction(compilationContext.runtime, fiber, function, args)
@@ -838,7 +837,6 @@ class AvailCompiler constructor(
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
 		fiber.fiberGlobals = fiberGlobals
-		fiber.textInterface = compilationContext.textInterface
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{ outputPhrase ->
@@ -1833,8 +1831,8 @@ class AvailCompiler constructor(
 		}
 		val fiber = newLoaderFiber(
 			prefixFunction.kind().returnType,
-			compilationContext.loader
-		) {
+			compilationContext.loader)
+		{
 			val m = code.module
 			val modName = if (m.isNil) "nil" else m.shortModuleNameNative
 			formatString(
@@ -1857,7 +1855,6 @@ class AvailCompiler constructor(
 		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, withTokens.makeImmutable(), true)
 		fiber.fiberGlobals = fiberGlobals
-		fiber.textInterface = compilationContext.textInterface
 		stepState.start.lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{

@@ -173,7 +173,7 @@ open class VariableDescriptor protected constructor(
 			/**
 			 * A slot to hold the cached hash value.  Zero if not yet computed.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 		}
 	}
 
@@ -228,11 +228,12 @@ open class VariableDescriptor protected constructor(
 	{
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableReadsBeforeWrites())
-			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(self, true)
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
 			}
 		}
 		catch (e: ClassCastException)
@@ -254,11 +255,12 @@ open class VariableDescriptor protected constructor(
 	{
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableReadsBeforeWrites())
-			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(self, true)
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
 			}
 		}
 		catch (e: ClassCastException)
@@ -282,11 +284,12 @@ open class VariableDescriptor protected constructor(
 	{
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableReadsBeforeWrites())
-			{
-				val fiber = interpreter.fiber()
-				fiber.recordVariableAccess(self, true)
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableReadsBeforeWrites())
+				{
+					val fiber = interpreter.fiber()
+					fiber.recordVariableAccess(self, true)
+				}
 			}
 		}
 		catch (e: ClassCastException)
@@ -704,23 +707,24 @@ open class VariableDescriptor protected constructor(
 	{
 		try
 		{
-			val interpreter = Interpreter.current()
-			if (interpreter.traceVariableWrites())
-			{
-				interpreter.fiber().recordVariableAccess(self, false)
-			}
-			else
-			{
-				withWriteReactorsToModify(self, false) { writeReactors ->
-					if (writeReactors !== null)
-					{
-						discardInvalidWriteReactors(writeReactors)
-						// If there are write reactors, but write tracing isn't
-						// active, then raise an exception.
-						if (writeReactors.isNotEmpty())
+			Interpreter.currentOrNull()?.let { interpreter ->
+				if (interpreter.traceVariableWrites())
+				{
+					interpreter.fiber().recordVariableAccess(self, false)
+				}
+				else
+				{
+					withWriteReactorsToModify(self, false) { writeReactors ->
+						if (writeReactors !== null)
 						{
-							throw VariableSetException(
-								E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
+							discardInvalidWriteReactors(writeReactors)
+							// If there are write reactors, but write tracing isn't
+							// active, then raise an exception.
+							if (writeReactors.isNotEmpty())
+							{
+								throw VariableSetException(
+									E_OBSERVED_VARIABLE_WRITTEN_WHILE_UNTRACED)
+							}
 						}
 					}
 				}

@@ -1,6 +1,7 @@
 <component name="ProjectDictionaryState">
   <dictionary name="markvangulik">
     <words>
+      <w>abcdef</w>
       <w>antipattern</w>
       <w>api</w>
       <w>backpointer</w>
@@ -129,6 +130,7 @@
       <w>unsynchronized</w>
       <w>untraced</w>
       <w>uuids</w>
+      <w>versioner</w>
       <w>vettings</w>
       <w>welford</w>
       <w>wump</w>

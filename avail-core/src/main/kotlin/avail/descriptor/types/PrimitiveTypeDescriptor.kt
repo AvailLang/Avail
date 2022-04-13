@@ -157,8 +157,7 @@ private constructor(
 			/**
 			 * The hash, populated during construction.
 			 */
-			@HideFieldInDebugger
-			val HASH = BitField(HASH_AND_MORE, 0, 32)
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
 		}
 	}
 

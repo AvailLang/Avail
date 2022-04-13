@@ -32,7 +32,6 @@
 package avail.descriptor.functions
 
 import avail.AvailRuntime
-import avail.annotations.EnumField
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
@@ -53,7 +52,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
-import avail.descriptor.functions.CompiledCodeDescriptor.L1InstructionDecoder
+import avail.descriptor.functions.CompiledCodeDescriptor.*
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.CALL_DEPTH
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
@@ -151,7 +150,7 @@ class ContinuationDescriptor private constructor(
 		 * A composite field containing the [PROGRAM_COUNTER], the
 		 * [STACK_POINTER], and the [CALL_DEPTH].
 		 */
-		PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH,
+		PC_STACK_POINTER_AND_CALL_DEPTH,
 
 		/**
 		 * A composite field containing the [LEVEL_TWO_OFFSET], and the cached
@@ -164,47 +163,36 @@ class ContinuationDescriptor private constructor(
 			 * The index into the current continuation's [FUNCTION]'s compiled
 			 * code's tuple of nybblecodes at which execution will next occur.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val PROGRAM_COUNTER =
-				BitField(PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH, 44, 20)
+			val PROGRAM_COUNTER = BitField(
+				PC_STACK_POINTER_AND_CALL_DEPTH, 44, 20, Int::toString)
 
 			/**
 			 * An index into this continuation's [frame&#32;slots][FRAME_AT_].
 			 * It grows from the top + 1 (empty stack), and at its deepest it
 			 * just abuts the last local variable.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val STACK_POINTER =
-				BitField(PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH, 28, 16)
+			val STACK_POINTER = BitField(
+				PC_STACK_POINTER_AND_CALL_DEPTH, 28, 16, Int::toString)
 
 			/**
 			 * The number of continuations in my caller chain.  It can be as low
 			 * as zero, indicating this is a base frame.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val CALL_DEPTH =
-				BitField(PROGRAM_COUNTER_STACK_POINTER_AND_CALL_DEPTH, 0, 28)
+			val CALL_DEPTH = BitField(
+				PC_STACK_POINTER_AND_CALL_DEPTH, 0, 28, Int::toString)
 
 			/**
 			 * The Level Two [instruction][L2Chunk.instructions] index at
 			 * which to resume.
 			 */
-			@EnumField(
-				describedBy = EnumField.Converter::class,
-				lookupMethodName = "decimal")
-			val LEVEL_TWO_OFFSET = BitField(LEVEL_TWO_OFFSET_AND_HASH, 32, 32)
+			val LEVEL_TWO_OFFSET = BitField(
+				LEVEL_TWO_OFFSET_AND_HASH, 32, 32, Int::toString)
 
 			/**
 			 * Either zero or the hash of this [A_Continuation].
 			 */
-			@HideFieldInDebugger
-			val HASH_OR_ZERO = BitField(LEVEL_TWO_OFFSET_AND_HASH, 0, 32)
+			val HASH_OR_ZERO =
+				BitField(LEVEL_TWO_OFFSET_AND_HASH, 0, 32) { null }
 		}
 	}
 

@@ -113,19 +113,18 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 		// never be blocked waiting for I/O.
 		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
-		val newFiber =
-			newFiber(
-				interpreter.runtime,
-				succeed.kind().returnType.typeUnion(fail.kind().returnType),
-				priorityInt)
-			{
-				StringDescriptor.stringFrom(
-					"Asynchronous file sync, ${handle.filename}")
-			}
+		val newFiber = newFiber(
+			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			interpreter.runtime,
+			current.textInterface,
+			priorityInt)
+		{
+			StringDescriptor.stringFrom(
+				"Asynchronous file sync, ${handle.filename}")
+		}
 		newFiber.availLoader = current.availLoader
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		newFiber.textInterface = current.textInterface
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

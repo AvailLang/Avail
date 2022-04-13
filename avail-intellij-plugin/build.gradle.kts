@@ -1,5 +1,3 @@
-import avail.build.cleanupAllJars
-
 plugins {
     kotlin("jvm")
     id("org.jetbrains.intellij")
@@ -45,7 +43,7 @@ tasks {
     jar {
         manifest.attributes["Implementation-Title"] = "Avail IntelliJ Plugin"
         manifest.attributes["Implementation-Version"] = project.version
-        doFirst { cleanupAllJars() }
+        //doFirst { cleanupAllJars() }
         duplicatesStrategy = DuplicatesStrategy.INCLUDE
     }
 }

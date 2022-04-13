@@ -56,7 +56,6 @@ import avail.descriptor.fiber.A_Fiber.Companion.priority
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.A_Fiber.Companion.setTraceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.A_Fiber.Companion.traceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.uniqueId
 import avail.descriptor.fiber.FiberDescriptor
@@ -3528,11 +3527,11 @@ class Interpreter(
 			// If the stringifier function is not defined, then use the basic
 			// mechanism for stringification.
 			// Create the fiber that will execute the function.
-			val fiber = newFiber(runtime, stringType, stringificationPriority)
+			val fiber = newFiber(
+				stringType, runtime, textInterface, stringificationPriority)
 			{
 				stringFrom("Stringification")
 			}
-			fiber.textInterface = textInterface
 			fiber.setSuccessAndFailure(
 				{ string: AvailObject ->
 					continuation(string.asNativeString())

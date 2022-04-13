@@ -126,7 +126,7 @@ class TreeTupleDescriptor internal constructor(
 			 * subtuples is easily computable from the hashes of the subtuples
 			 * and their lengths.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init
 			{

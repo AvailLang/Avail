@@ -51,8 +51,8 @@ import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.naturalNumbers
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.interpreter.Primitive.Companion.holdersByClassName
 import avail.interpreter.Primitive.Fallibility.CallSiteCanFail
@@ -942,7 +942,8 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 			assert(expectedTypes.sizeRange.upperBound.extractInt
 				== expected)
 			val string = buildString {
-				for (i in 1..expected) {
+				for (i in 1 .. expected)
+				{
 					val declaredType = arguments[i - 1].declaredType
 					val expectedType = expectedTypes.typeAtIndex(i)
 					if (!declaredType.isSubtypeOf(expectedType))

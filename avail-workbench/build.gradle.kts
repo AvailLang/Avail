@@ -74,7 +74,7 @@ tasks {
 	}
 
 	shadowJar {
-		doFirst { cleanupAllJars() }
+//		doFirst { cleanupAllJars() }
 		dependencies {
 			exclude(rootProject.path)
 		}
@@ -103,6 +103,7 @@ tasks {
 	artifacts { add("archives", sourceJar) }
 	publish { Publish.checkCredentials() }
 }
+
 publishing {
 	repositories {
 		maven {

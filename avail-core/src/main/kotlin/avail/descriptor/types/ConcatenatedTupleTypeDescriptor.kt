@@ -117,7 +117,7 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 			 * subobjects being coalesced with more direct representations.
 			 */
 			val TUPLE_TYPE_COMPLEXITY =
-				BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32)
+				BitField(TUPLE_TYPE_COMPLEXITY_AND_MORE, 0, 32, Int::toString)
 		}
 	}
 

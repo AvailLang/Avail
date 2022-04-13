@@ -90,7 +90,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init
 			{

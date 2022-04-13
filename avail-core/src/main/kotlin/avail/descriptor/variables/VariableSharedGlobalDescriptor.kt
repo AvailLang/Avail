@@ -32,7 +32,6 @@
 package avail.descriptor.variables
 
 import avail.AvailRuntimeSupport
-import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.A_Number
@@ -115,8 +114,7 @@ class VariableSharedGlobalDescriptor private constructor(
 			 * A slot to hold the hash value.  Must be computed when (or before)
 			 * making a variable shared.
 			 */
-			@HideFieldInDebugger
-			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_ALWAYS_SET = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			/**
 			 * A flag indicating whether this variable was initialized to a
@@ -124,7 +122,8 @@ class VariableSharedGlobalDescriptor private constructor(
 			 * kind of computation that does not disqualify [LoadingEffect]s set
 			 * being recorded in place of top level statements.
 			 */
-			val VALUE_IS_STABLE = BitField(HASH_AND_MORE, 32, 1)
+			val VALUE_IS_STABLE =
+				BitField(HASH_AND_MORE, 32, 1) { (it != 0).toString() }
 
 			init
 			{

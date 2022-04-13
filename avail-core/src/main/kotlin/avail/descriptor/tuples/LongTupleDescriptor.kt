@@ -91,7 +91,8 @@ import kotlin.math.min
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
  */
-class LongTupleDescriptor private constructor(
+class LongTupleDescriptor
+private constructor(
 	mutability: Mutability
 ) : NumericTupleDescriptor(mutability, null, IntegerSlots::class.java)
 {
@@ -121,7 +122,7 @@ class LongTupleDescriptor private constructor(
 			 * very rare case that the hash value actually equals zero, the hash
 			 * value has to be computed every time it is requested.
 			 */
-			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32)
+			val HASH_OR_ZERO = BitField(HASH_AND_MORE, 0, 32) { null }
 
 			init
 			{

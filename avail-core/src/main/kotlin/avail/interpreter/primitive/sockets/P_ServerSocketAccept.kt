@@ -116,18 +116,19 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 		val socket = pojo.javaObjectNotNull<AsynchronousServerSocketChannel>()
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			interpreter.runtime,
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			priority.extractInt
-		) { formatString("Server socket accept, name=%s", name) }
+			interpreter.runtime,
+			current.textInterface,
+			priority.extractInt)
+		{
+			formatString("Server socket accept, name=%s", name)
+		}
 		// If the current fiber is an Avail fiber, then the new one should be
 		// also.
 		newFiber.availLoader = current.availLoader
 		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		// Inherit the fiber's text interface.
-		newFiber.textInterface = current.textInterface
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()

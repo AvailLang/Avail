@@ -1069,8 +1069,9 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val phrase = command.phrase
 			val function = createFunctionForPhrase(phrase, nil, 1)
 			val fiber = newFiber(
-				runtime,
 				function.kind().returnType,
+				runtime,
+				textInterface,
 				commandPriority)
 			{
 				stringFrom("Running command: $phrase")
@@ -1079,7 +1080,6 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap, true)
 			fiber.fiberGlobals = fiberGlobals
-			fiber.textInterface = textInterface
 			fiber.setSuccessAndFailure(
 				{ result -> onSuccess(result, postSuccessCleanup) },
 				{ e ->

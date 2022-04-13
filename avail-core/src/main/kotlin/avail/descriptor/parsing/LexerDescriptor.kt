@@ -31,6 +31,7 @@
  */
 package avail.descriptor.parsing
 
+import avail.annotations.HideFieldInDebugger
 import avail.compiler.scanning.LexingState
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.functions.A_Function
@@ -104,10 +105,12 @@ class LexerDescriptor private constructor(
 	/**
 	 * The layout of integer slots for my instances.
 	 */
-	enum class IntegerSlots : IntegerSlotsEnum {
+	enum class IntegerSlots : IntegerSlotsEnum
+	{
 		/**
 		 * [BitField]s for the hash and the argument count.  See below.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE,
 
 		/**
@@ -118,18 +121,20 @@ class LexerDescriptor private constructor(
 		 */
 		LATIN1_BIT_VECTORS_;
 
-		companion object {
+		companion object
+		{
 			/**
 			 * The hash of this lexer.  Set during construction.
 			 */
-			val HASH = BitField(HASH_AND_MORE, 0, 32)
+			val HASH = BitField(HASH_AND_MORE, 0, 32) { null }
 		}
 	}
 
 	/**
 	 * The fields that are of type [AvailObject].
 	 */
-	enum class ObjectSlots : ObjectSlotsEnum {
+	enum class ObjectSlots : ObjectSlotsEnum
+	{
 		/** The [A_Method] in which this lexer is defined. */
 		LEXER_METHOD,
 

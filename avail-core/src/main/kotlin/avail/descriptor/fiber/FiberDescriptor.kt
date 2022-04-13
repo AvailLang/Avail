@@ -1103,6 +1103,10 @@ class FiberDescriptor private constructor(
 		 *
 		 * @param resultType
 		 *   The expected result type.
+		 * @param runtime
+		 *   The [AvailRuntime] that will eventually be given the fiber to run.
+		 * @param textInterface
+		 *   The [TextInterface] for providing console I/O in this fiber.
 		 * @param priority
 		 *   The initial priority.
 		 * @param nameSupplier
@@ -1110,17 +1114,18 @@ class FiberDescriptor private constructor(
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
 		 *   this is evaluated during fiber execution it will cause the current
 		 *   [Thread]'s execution to block, potentially starving the execution
-		 *   pool
+		 *   pool.
 		 * @return
 		 *   The new fiber.
 		 */
 		fun newFiber(
-			runtime: AvailRuntime,
 			resultType: A_Type,
+			runtime: AvailRuntime,
+			textInterface: TextInterface,
 			priority: Int,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType, priority, null, runtime, nameSupplier)
+			resultType, runtime, null, textInterface, priority, nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
@@ -1145,7 +1150,12 @@ class FiberDescriptor private constructor(
 			loader: AvailLoader,
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType, loaderPriority, loader, loader.runtime(), nameSupplier)
+			resultType,
+			loader.runtime(),
+			loader,
+			loader.textInterface,
+			loaderPriority,
+			nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
@@ -1154,34 +1164,37 @@ class FiberDescriptor private constructor(
 		 *
 		 * @param resultType
 		 *   The expected result type.
+		 * @param runtime
+		 *   The [AvailRuntime] that will eventually be given the fiber to run.
+		 * @param loader
+		 *   Either an AvailLoader or `null`.
+		 * @param textInterface
+		 *   The [TextInterface] for providing console I/O in this fiber.
 		 * @param priority
 		 *   An [Int] between 0 and 255 that affects how much of the CPU time
 		 *   will be allocated to the fiber.
-		 * @param loader
-		 *   Either an AvailLoader or `null`.
 		 * @param nameSupplier
 		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
 		 *   this is evaluated during fiber execution it will cause the current
 		 *   [Thread]'s execution to block, potentially starving the execution
 		 *   pool.
-		 * @param runtime
-		 *   The [AvailRuntime] that will eventually be given the fiber to run.
 		 * @return
 		 *   The new fiber.
 		 */
 		fun createFiber(
 			resultType: A_Type,
-			priority: Int,
-			loader: AvailLoader?,
 			runtime: AvailRuntime,
+			loader: AvailLoader?,
+			textInterface: TextInterface,
+			priority: Int,
 			nameSupplier: ()->A_String
 		): A_Fiber
 		{
 			assert(priority and 255.inv() == 0) { "Priority must be [0..255]" }
 			val helper = FiberHelper(
 				loader,
-				runtime.textInterface(),
+				textInterface,
 				priority,
 				nameSupplier)
 			return FiberDescriptor(MUTABLE, helper).create {

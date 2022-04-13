@@ -53,17 +53,18 @@ plugins {
 	id("org.jetbrains.compose") version Versions.compose apply false
 	id("org.jetbrains.intellij") version Versions.intellij apply false
 }
+
 allprojects {
 	group = "avail"
 	version = versionToPublish
 
 	tasks {
-		withType<JavaCompile>().configureEach {
+		withType<JavaCompile> {
 			options.encoding = "UTF-8"
 			sourceCompatibility = Versions.jvmTarget
 			targetCompatibility = Versions.jvmTarget
 		}
-		withType<KotlinCompile>().configureEach {
+		withType<KotlinCompile> {
 			kotlinOptions {
 				jvmTarget = Versions.jvmTarget
 				freeCompilerArgs = listOf("-Xjvm-default=compatibility")

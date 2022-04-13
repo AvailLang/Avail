@@ -123,10 +123,11 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		}
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			interpreter.runtime,
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
-			priority.extractInt
-		) {
+			interpreter.runtime,
+			current.textInterface,
+			priority.extractInt)
+		{
 			formatString("Socket write, %s", handle.atomName)
 		}
 		// If the current fiber is an Avail fiber, then the new one should be
@@ -135,8 +136,6 @@ object P_SocketWrite : Primitive(5, CanInline, HasSideEffect)
 		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		// Inherit the fiber's text interface.
-		newFiber.textInterface = current.textInterface
 		// Share everything that will potentially be visible to the fiber.
 		newFiber.makeShared()
 		succeed.makeShared()

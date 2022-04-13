@@ -319,7 +319,7 @@ class LRUCache<K, V> @JvmOverloads constructor(
 			return result
 		}
 
-		override fun get(timeout: Long, unit: TimeUnit?): V
+		override fun get(timeout: Long, unit: TimeUnit): V
 		{
 			throw UnsupportedOperationException()
 		}

@@ -32,6 +32,7 @@
 package avail.interpreter.execution
 
 import avail.AvailRuntime
+import avail.AvailThread
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
 import avail.compiler.scanning.LexingState
@@ -65,7 +66,6 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleT
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
@@ -501,7 +501,6 @@ class AvailLoader(
 							.message.atomName,
 						codePoint)
 				}
-				fiber.textInterface = loader.textInterface
 				lexingState.setFiberContinuationsTrackingWork(
 					fiber,
 					{ boolObject: AvailObject ->
@@ -1458,7 +1457,8 @@ class AvailLoader(
 					val currentIndex = index++
 					val unloadFunction: A_Function =
 						unloadFunctions.tupleAt(currentIndex)
-					val fiber = newFiber(runtime, TOP.o, loaderPriority)
+					val fiber = newFiber(
+						TOP.o, runtime, textInterface, loaderPriority)
 					{
 						formatString(
 							"Unload function #%d/%d for module %s",
@@ -1466,7 +1466,6 @@ class AvailLoader(
 							size,
 							module.shortModuleNameNative)
 					}
-					fiber.textInterface = textInterface
 					fiber.setSuccessAndFailure({ again() }, { again() })
 					runOutermostFunction(
 						runtime(), fiber, unloadFunction, emptyList())
@@ -1577,6 +1576,17 @@ class AvailLoader(
 		 * fast-loader to rewrite some top-level statements into a faster form.
 		 */
 		var enableFastLoader = true
+
+		/**
+		 * If the current [Thread] is an [AvailThread], extract its
+		 * [AvailLoader], if any.  Otherwise answer `null`.
+		 */
+		fun currentLoaderOrNull(): AvailLoader?
+		{
+			val availThread =
+				Thread.currentThread() as? AvailThread ?: return null
+			return availThread.interpreter.availLoaderOrNull()
+		}
 
 		/**
 		 * Create an `AvailLoader` suitable for unloading the specified

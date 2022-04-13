@@ -250,8 +250,11 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			{
 				val finalCount = fiberCount++
 				val forkedFiber = newFiber(
-					runtime, topMeta(), originalFiber.priority
-				) {
+					topMeta(),
+					runtime,
+					originalFiber.textInterface,
+					originalFiber.priority)
+				{
 					stringFrom(
 						"Semantic restriction checker (#"
 							+ finalCount
@@ -262,7 +265,6 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 				forkedFiber.availLoader = loader
 				forkedFiber.heritableFiberGlobals =
 					originalFiber.heritableFiberGlobals
-				forkedFiber.textInterface = originalFiber.textInterface
 				forkedFiber.setSuccessAndFailure(success) { throwable ->
 					when (throwable)
 					{

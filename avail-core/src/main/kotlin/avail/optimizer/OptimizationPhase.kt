@@ -32,6 +32,7 @@
 package avail.optimizer
 
 import avail.interpreter.levelTwo.operation.L2_ENTER_L2_CHUNK
+import avail.interpreter.levelTwo.operation.L2_MULTIWAY_JUMP
 import avail.interpreter.levelTwo.operation.L2_SAVE_ALL_AND_PC_TO_INT
 import avail.interpreter.levelTwo.operation.L2_VIRTUAL_CREATE_LABEL
 import avail.optimizer.DataCouplingMode.FOLLOW_SEMANTIC_VALUES_AND_REGISTERS
@@ -100,6 +101,9 @@ internal enum class OptimizationPhase constructor(
 	 * If there are any [L2_VIRTUAL_CREATE_LABEL] instructions still extant,
 	 * replace them with the rather complex code that will reify the caller if
 	 * necessary, and create a label continuation.
+	 *
+	 * There are other placeholder instructions that get transformed here as
+	 * well, such as [L2_MULTIWAY_JUMP].
 	 */
 	REPLACE_PLACEHOLDER_INSTRUCTIONS({ replacePlaceholderInstructions() }),
 

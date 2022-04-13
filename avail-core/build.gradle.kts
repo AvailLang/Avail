@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import avail.build.cleanupAllJars
 import avail.build.cleanupJars
 import avail.build.computeAvailRootsForTest
 import avail.build.generateBuildTime
@@ -71,28 +70,32 @@ tasks {
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating {
-		// Un-Windows the path, if necessary.
-		val pathAvailBuildMain =
-			"$buildDir/classes/kotlin/main".replace("\\\\", "/")
-		val allPrimitives = fileTree("$pathAvailBuildMain/avail/interpreter")
-		val pathToPrimitivesList =
-			file("$pathAvailBuildMain/avail/interpreter/All_Primitives.txt")
-		allPrimitives.include("**/P_*.class")
-		allPrimitives.exclude("**/*$*.class")
-		allPrimitives.builtBy("compileKotlin")
-		inputs.files + allPrimitives
+		val sourcesPath = layout.projectDirectory.dir("src/main/kotlin")
+		val primitivesSourceTree = fileTree(sourcesPath)
+		{
+			include("avail/interpreter/primitive/**/P_*.kt")
+		}
+		inputs.files + primitivesSourceTree
+		val pathToPrimitivesList = layout.buildDirectory.dir(
+			"classes/kotlin/main/avail/interpreter/All_Primitives.txt")
+		val primitivesListFile = pathToPrimitivesList.get().asFile
 		outputs.files + pathToPrimitivesList
 
 		doLast {
-			val allPrimitiveNames = allPrimitives.map {
+			val baseSourcePath = primitivesSourceTree.dir.path + "/"
+			val allPrimitiveNames = primitivesSourceTree.map {
 				it.absolutePath
 					.replace("\\\\", "/")
-					.replaceFirst("$pathAvailBuildMain/", "")
-					.replaceFirst(".class", "")
+					.replaceFirst(baseSourcePath, "")
+					.replaceFirst(".kt", "")
 					.replace("/", ".")
 			}.sorted().joinToString("\n")
-
-			pathToPrimitivesList.writeText(allPrimitiveNames)
+			if (!primitivesListFile.exists() ||
+				primitivesListFile.readText() != allPrimitiveNames)
+			{
+				primitivesListFile.parentFile.mkdirs()
+				primitivesListFile.writeText(allPrimitiveNames)
+			}
 		}
 	}
 
@@ -109,7 +112,7 @@ tasks {
 			project.version
 		doFirst { cleanupJars() }
 	}
-	shadowJar { doFirst { cleanupAllJars() } }
+//	shadowJar { doFirst { cleanupAllJars() } }
 
 	// Copy the JAR into the distribution directory.
 	val releaseAvail by creating(Copy::class) {
@@ -167,7 +170,6 @@ publishing {
 		}
 	}
 }
-
 
 tasks {
 	/**

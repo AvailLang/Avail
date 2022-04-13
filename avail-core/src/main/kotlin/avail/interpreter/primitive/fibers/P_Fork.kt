@@ -103,8 +103,9 @@ object P_Fork : Primitive(
 		function.makeShared()
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			interpreter.runtime,
 			function.kind().returnType,
+			interpreter.runtime,
+			current.textInterface,
 			priority.extractInt)
 		{
 			formatString(
@@ -120,8 +121,6 @@ object P_Fork : Primitive(
 		// Share and inherit any heritable variables.
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		// Inherit the fiber's text interface.
-		newFiber.textInterface = current.textInterface
 		// Schedule the fiber to run the specified function. Share the fiber,
 		// since it will be visible to the caller.
 		newFiber.makeShared()

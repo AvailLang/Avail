@@ -109,8 +109,9 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		val priorityInt = priority.extractInt
 		val current = interpreter.fiber()
 		val newFiber = newFiber(
-			runtime,
 			succeed.kind().returnType.typeUnion(fail.kind().returnType),
+			runtime,
+			current.textInterface,
 			priorityInt)
 		{
 			stringFrom(
@@ -119,7 +120,6 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 		newFiber.availLoader = current.availLoader
 		newFiber.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
-		newFiber.textInterface = current.textInterface
 		newFiber.makeShared()
 		succeed.makeShared()
 		fail.makeShared()

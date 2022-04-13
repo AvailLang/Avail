@@ -89,27 +89,27 @@ class AvailDebuggerModel constructor (
 
 	//TODO Rework and wire in these actions.
 
-	fun stepOverThen(then: () -> Unit)
+	fun stepOverThen()
 	{
 		TODO("Not yet implemented")
 	}
 
-	fun stepOutThen(then: () -> Unit)
+	fun stepOutThen()
 	{
 		TODO("Not yet implemented")
 	}
 
-	fun stepToLineThen(then: () -> Unit)
+	fun stepToLineThen()
 	{
 		TODO("Not yet implemented")
 	}
 
-	fun resumeThen(then: () -> Unit)
+	fun resumeThen()
 	{
 		TODO("Not yet implemented")
 	}
 
-	fun restartFrameThen(then: () -> Unit)
+	fun restartFrameThen()
 	{
 		TODO("Not yet implemented")
 	}

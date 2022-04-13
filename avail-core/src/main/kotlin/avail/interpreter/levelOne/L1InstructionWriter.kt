@@ -133,8 +133,8 @@ class L1InstructionWriter constructor(
 
 	/**
 	 * The types of the outer (lexically captured) variables.  Note that
-	 * arguments of outer scopes can also be captured, which aren't technically
-	 * variables.
+	 * arguments and constants in outer scopes can also be captured, which
+	 * aren't technically variables.
 	 */
 	private val outerTypes = mutableListOf<A_Type>()
 
