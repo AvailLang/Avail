@@ -39,7 +39,7 @@
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.31"
+	const val kotlin = "1.6.20"
 
 	/** The Kotlin Desktop Compose version [org.jetbrains.compose]. */
 	const val compose = "1.0.0"
@@ -69,10 +69,10 @@ object Versions
 	const val junitVersion = "5.7.2"
 
 	/** The language level version of Kotlin. */
-	const val kotlinLanguage = "1.5"
+	const val kotlinLanguage = "1.6"
 
 	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "11"
+	const val jvmTarget = "16"
 
 	/** The JVM target version for Kotlin. */
 	const val intellij = "1.3.1"

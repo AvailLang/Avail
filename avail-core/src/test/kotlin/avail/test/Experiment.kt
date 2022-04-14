@@ -90,7 +90,7 @@ abstract class Instruction
 
 	// Use the layout to extract just the write-operands.
 	fun writeOperands() = javaClass.fields
-		.filter { it.type is L2WriteOperand<*> }
+		.filter { L2WriteOperand::class.java.isAssignableFrom(it.type) }
 		.map { it.get(this) }
 
 	// Use the layout's operandFields for the operand names and other
