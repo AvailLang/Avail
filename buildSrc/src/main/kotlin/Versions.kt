@@ -80,7 +80,7 @@ object Versions
 	/**
 	 * The list of compile-time arguments to be used during Kotlin compilation.
 	 */
-	val freeCompilerArgs = listOf("-Xjvm-default=compatibility")
+	val freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
 
 	/** The language level version of Kotlin. */
 	const val languageVersion = kotlinLanguage

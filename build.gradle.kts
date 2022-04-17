@@ -66,7 +66,7 @@ allprojects {
 		withType<KotlinCompile> {
 			kotlinOptions {
 				jvmTarget = Versions.jvmTarget
-				freeCompilerArgs = listOf("-Xjvm-default=compatibility")
+				freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
 				languageVersion = Versions.kotlinLanguage
 			}
 		}
