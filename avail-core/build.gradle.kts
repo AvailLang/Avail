@@ -30,9 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import avail.build.cleanupJars
 import avail.build.computeAvailRootsForTest
-import avail.build.generateBuildTime
 import avail.build.modules.AvailCoreModule
 import avail.build.releaseAvail
 import avail.build.scrubReleases
@@ -75,11 +73,8 @@ tasks {
 		{
 			include("avail/interpreter/primitive/**/P_*.kt")
 		}
-		inputs.files + primitivesSourceTree
-		val pathToPrimitivesList = layout.buildDirectory.dir(
-			"classes/kotlin/main/avail/interpreter/All_Primitives.txt")
-		val primitivesListFile = pathToPrimitivesList.get().asFile
-		outputs.files + pathToPrimitivesList
+		inputs.files(primitivesSourceTree)
+		outputs.file(layout.buildDirectory.file("All_Primitives.txt"))
 
 		doLast {
 			val baseSourcePath = primitivesSourceTree.dir.path + "/"
@@ -90,29 +85,23 @@ tasks {
 					.replaceFirst(".kt", "")
 					.replace("/", ".")
 			}.sorted().joinToString("\n")
-			if (!primitivesListFile.exists() ||
-				primitivesListFile.readText() != allPrimitiveNames)
+			val outFile = outputs.files.singleFile
+			if (!outFile.exists() || outFile.readText() != allPrimitiveNames)
 			{
-				primitivesListFile.parentFile.mkdirs()
-				primitivesListFile.writeText(allPrimitiveNames)
+				outFile.parentFile.mkdirs()
+				outFile.writeText(allPrimitiveNames)
 			}
 		}
 	}
 
-	// Update the dependencies of "classes".
-	classes {
-		dependsOn(generatePrimitivesList)
-		doLast {
-			generateBuildTime(this)
+	jar {
+		manifest.attributes["Implementation-Version"] = project.version
+		// Include the output from generatePrimitivesList (All_Primitives.txt)
+		// in the jar, placing it in /avail/interpreter within the jar.
+		from(generatePrimitivesList) {
+			into("avail/interpreter/")
 		}
 	}
-
-	jar {
-		manifest.attributes["Implementation-Version"] =
-			project.version
-		doFirst { cleanupJars() }
-	}
-//	shadowJar { doFirst { cleanupAllJars() } }
 
 	// Copy the JAR into the distribution directory.
 	val releaseAvail by creating(Copy::class) {

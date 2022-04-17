@@ -34,7 +34,7 @@ package avail
 import avail.descriptor.methods.MacroDescriptor
 import avail.interpreter.execution.Interpreter
 import java.io.IOException
-import java.util.Scanner
+import java.util.Date
 
 /**
  * This class contains static state and methods related to the current running
@@ -90,21 +90,17 @@ object AvailRuntimeConfiguration
 	 */
 	init
 	{
-		var version = "dev"
-		try
+		buildVersion = try
 		{
-			ClassLoader.getSystemResourceAsStream(
-				"resources/build-time.txt").use { resourceStream ->
-				if (resourceStream !== null)
-				{
-					Scanner(resourceStream).use { version = it.nextLine() }
-				}
-			}
+			// Look up this very class as a resource.
+			val url = javaClass.getResource(javaClass.simpleName + ".class")
+			// Extract its last modification date from the jar or .class file.
+			val lastModified = Date(url.openConnection().lastModified)
+			lastModified.toString()
 		}
 		catch (e: IOException)
 		{
-			version = "UNKNOWN"
+			"UNKNOWN"
 		}
-		buildVersion = version
 	}
 }

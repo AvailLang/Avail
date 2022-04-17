@@ -42,6 +42,7 @@ import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Private
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
 
 /**

@@ -285,8 +285,7 @@ open class AvailWorkbenchTask: DefaultTask()
 			project.mkdir("${project.buildDir}/$WORKBENCH")
 			archiveBaseName.set(workbenchJarBaseName)
 			archiveVersion.set("")
-			destinationDirectory.set(project.file(
-				"${project.buildDir}/$WORKBENCH"))
+			into(project.file("${project.buildDir}/$WORKBENCH"))
 			val workbenchConfig =
 				project.configurations.getByName(
 					AvailPlugin.WORKBENCH_INTERNAL_CONFIG)

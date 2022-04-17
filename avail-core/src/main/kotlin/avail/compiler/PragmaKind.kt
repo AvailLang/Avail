@@ -44,7 +44,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.interpreter.Primitive.Companion.primitiveByName
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 
 /**
  * These are the tokens that are understood directly by the Avail compiler.

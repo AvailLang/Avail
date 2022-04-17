@@ -33,6 +33,7 @@ package avail.tools.bootstrap
 
 import avail.descriptor.types.A_Type.Companion.instances
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
 import avail.tools.bootstrap.BootstrapGenerator.Companion.checkedFormat
 import avail.tools.bootstrap.Resources.escape
 import avail.tools.bootstrap.Resources.primitiveCommentKey
@@ -74,7 +75,7 @@ class PrimitiveNamesGenerator constructor(locale: Locale)
 		writer: PrintWriter
 	) = with(writer) {
 		val keys = mutableSetOf<String>()
-		Primitive.holdersByName.forEach { (_, holder) ->
+		holdersByName.forEach { (_, holder) ->
 			val primitive = holder.primitive
 			if (!primitive.hasFlag(Primitive.Flag.Private))
 			{

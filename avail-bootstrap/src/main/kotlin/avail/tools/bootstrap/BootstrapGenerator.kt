@@ -59,6 +59,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.methods.P_AddSemanticRestriction
@@ -249,7 +250,7 @@ class BootstrapGenerator constructor(private val locale: Locale)
 		 *   The selected primitives.
 		 */
 		private fun primitives(fallible: Boolean?): List<Primitive> =
-			Primitive.holdersByName.flatMap { (_, holder) ->
+			holdersByName.flatMap { (_, holder) ->
 				holder.primitive.run {
 					when
 					{

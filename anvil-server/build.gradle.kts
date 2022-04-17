@@ -33,7 +33,6 @@
 import avail.build.AvailSetupContext.distroLib
 import avail.build.cleanupAllJars
 import avail.build.cleanupJars
-import avail.build.generateBuildTime
 import avail.build.modules.AnvilServerModule
 
 plugins {
@@ -54,13 +53,6 @@ dependencies {
 }
 
 tasks {
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-
 	shadowJar {
 		doFirst { cleanupAllJars() }
 	}

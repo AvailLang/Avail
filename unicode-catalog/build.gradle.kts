@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import avail.build.cleanupJars
-import avail.build.generateBuildTime
 
 plugins {
 	java
@@ -48,13 +47,6 @@ dependencies {
 	implementation(project(":avail-core"))
 }
 tasks {
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-
 	// Produce a fat JAR for the Avail CLI.
 	jar {
 		doFirst { cleanupJars() }

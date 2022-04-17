@@ -46,6 +46,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.Companion.byNumericCode
 import avail.interpreter.Primitive
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.holdersByName
 import avail.tools.bootstrap.Resources.errorCodeCommentKey
 import avail.tools.bootstrap.Resources.errorCodeExceptionKey
 import avail.tools.bootstrap.Resources.errorCodeKey
@@ -175,7 +176,7 @@ class ErrorCodeNamesGenerator (locale: Locale?)
 				}
 			}
 			var reachableErrorCodes = emptySet
-			Primitive.holdersByName.forEach { (_, holder) ->
+			holdersByName.forEach { (_, holder) ->
 				val primitive = holder.primitive
 				if (!primitive.hasFlag(Primitive.Flag.CannotFail))
 				{

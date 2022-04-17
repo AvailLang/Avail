@@ -290,7 +290,7 @@ import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOu
 import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
-import avail.interpreter.Primitive.Companion.primitiveByName
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART
 import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
 import avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk

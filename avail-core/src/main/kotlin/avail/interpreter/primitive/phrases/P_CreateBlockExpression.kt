@@ -59,6 +59,7 @@ import avail.exceptions.AvailErrorCode.E_INVALID_PRIMITIVE_NAME
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanFold
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
 
 /**

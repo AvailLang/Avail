@@ -279,7 +279,7 @@ import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_METHOD_DEFINITION
 import avail.exceptions.AvailErrorCode.E_NO_METHOD_DEFINITION
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Companion.primitiveByName
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE

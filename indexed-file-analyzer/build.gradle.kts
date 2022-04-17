@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import avail.build.cleanupJars
-import avail.build.generateBuildTime
 import avail.build.releaseSubproject
 
 plugins {
@@ -49,13 +48,6 @@ dependencies {
 }
 
 tasks {
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-
 	// Produce a fat JAR for the IndexFileAnalyzer.
 	jar {
 		doFirst { cleanupJars() }

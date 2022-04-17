@@ -49,16 +49,6 @@ object BuildContext
 	 * [Project.getProjectDir]-relative path to the generated JVM classes.
 	 */
 	const val buildClassesPath = "classes/kotlin/main"
-
-	/**
-	 * [Project.getProjectDir]-relative location of the `build-time.txt` file.
-	 */
-	const val buildTimePath = "resources/main/resources"
-
-	/**
-	 * [Project.getProjectDir]-relative location of the `build-time.txt` file.
-	 */
-	const val buildTimeFileName = "build-time.txt"
 }
 
 /**
@@ -67,32 +57,6 @@ object BuildContext
  */
 val Project.platformNeutralBuildDir get() =
 	"$buildDir".replace('\\', '/')
-
-
-/**
- * Build the file, `build-time.txt`, in
- * `buildDir`/resources/main/resources, add the current time in the format,
- * `yyyyMMdd.HHmmss.SSS`, to the file and answer the file.
- *
- * @param task
- *   The [Task] in which this code is executed.
- * @param output
- *   The contents to write. Defaults to [formattedNow]
- */
-fun Project.generateBuildTime (task: Task, output: String = formattedNow)
-{
-	val pathToBuildTime = "$buildDir/${BuildContext.buildTimePath}"
-	val buildTime =
-		"$pathToBuildTime/${BuildContext.buildTimeFileName}"
-	task.outputs.files + buildTime
-	val dir = file(pathToBuildTime)
-	if (!dir.exists())
-	{
-		val created = dir.mkdirs()
-		println("Created ($created): $dir")
-	}
-	file(buildTime).writeText("$output\n")
-}
 
 /**
  * Copy the JAR into the distribution directory.

@@ -302,7 +302,7 @@ class CreateAvailRoot constructor(
 				archiveBaseName.set(packageNameBase)
 				archiveClassifier.set("")
 				archiveVersion.set("")
-				destinationDirectory.set(project.file(exportDirectory))
+				into(project.file(exportDirectory))
 				from(this@CreateAvailRoot.uri) {
 					include("**/*.*")
 				}

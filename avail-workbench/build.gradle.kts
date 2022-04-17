@@ -29,9 +29,7 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import avail.build.cleanupAllJars
 import avail.build.cleanupJars
-import avail.build.generateBuildTime
 import avail.build.modules.AvailWorkbenchModule
 import avail.build.releaseSubproject
 
@@ -66,15 +64,7 @@ tasks {
 		from(sourceSets["main"].allSource)
 	}
 
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-
 	shadowJar {
-//		doFirst { cleanupAllJars() }
 		dependencies {
 			exclude(rootProject.path)
 		}

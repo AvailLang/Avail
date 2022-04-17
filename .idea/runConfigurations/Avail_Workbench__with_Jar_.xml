@@ -4,7 +4,6 @@
     <option name="VM_PARAMETERS" value="-ea -Xmx4g --illegal-access=permit -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/debug-logging.properties -DavailDeveloper=true -DavailRoots=avail=jar:$PROJECT_DIR$/distro/lib/avail-standard-library.jar;builder-tests=$PROJECT_DIR$/distro/src/builder-tests;examples=$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/distro/src/website" />
     <option name="PROGRAM_PARAMETERS" value="&quot;/avail/Avail Tests&quot;" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="ALTERNATIVE_JRE_PATH_ENABLED" value="true" />
     <option name="ALTERNATIVE_JRE_PATH" value="11" />
     <module name="avail.avail-workbench.main" />
     <method v="2">

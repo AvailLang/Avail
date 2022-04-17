@@ -53,16 +53,17 @@ import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.anyMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.oneOrMoreOf
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
 
 /**

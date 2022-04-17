@@ -31,7 +31,6 @@
  */
 import avail.build.cleanupAllJars
 import avail.build.cleanupJars
-import avail.build.generateBuildTime
 import avail.build.modules.AvailServerModule
 
 plugins {
@@ -54,13 +53,6 @@ dependencies {
 }
 
 tasks {
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
-	}
-
 	shadowJar {
 		doFirst { cleanupAllJars() }
 	}

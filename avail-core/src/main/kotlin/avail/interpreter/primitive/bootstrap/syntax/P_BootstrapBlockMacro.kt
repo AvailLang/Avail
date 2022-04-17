@@ -95,6 +95,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
 import avail.interpreter.execution.Interpreter
 
 /**

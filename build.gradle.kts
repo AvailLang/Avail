@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import avail.build.generateBuildTime
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -94,24 +93,16 @@ tasks {
 	}
 
 	publishToMavenLocal {
-		doFirst { generateBuildTime(this, versionToPublish) }
 		// Copy updated version to `avail-plugin`. This only provides
 		// `avail-plugin` with the new version, it does not publish
 		// `avail-plugin`.
 		finalizedBy(rootProject.tasks.getByName("updatePluginPublishVersion"))
 	}
 	publish {
-		doFirst { generateBuildTime(this, versionToPublish) }
 		// Copy updated version to `avail-plugin`. This only provides
 		// `avail-plugin` with the new version, it does not publish
 		// `avail-plugin`.
 		finalizedBy(rootProject.tasks.getByName("updatePluginPublishVersion"))
-	}
-
-	build {
-		doLast {
-			generateBuildTime(this, versionToPublish)
-		}
 	}
 }
 

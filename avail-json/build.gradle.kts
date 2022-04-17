@@ -30,7 +30,6 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 import avail.build.cleanupJars
-import avail.build.generateBuildTime
 import avail.build.modules.AvailJsonModule
 import avail.build.releaseAvail
 
@@ -60,13 +59,6 @@ tasks {
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
 		from(sourceSets["main"].allSource)
-	}
-
-	// Update the dependencies of "classes".
-	classes {
-		doLast {
-			generateBuildTime(this)
-		}
 	}
 
 	jar {
