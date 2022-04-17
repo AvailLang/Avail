@@ -475,6 +475,7 @@ class AvailLoader(
 					{
 						null -> undecidedLexers.add(it)
 						true -> applicableLexers.add(it)
+						false -> { }
 					}
 				}
 				else -> undecidedLexers.addAll(allVisibleLexers)

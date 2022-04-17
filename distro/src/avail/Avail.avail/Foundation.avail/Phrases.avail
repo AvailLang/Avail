@@ -286,7 +286,7 @@ Method "`«↓_`»" is
 ] : variable use phrase;
 
 /**
- * Construct and answer a list phrase from the specified tuple.
+ * Construct and answer a list phrase from the specified tuple of expressions.
  *
  * @method "`«<«_‡,»>`»"
  * @param "aTuple" "<<>, expression phrase⇒any…|whole number>"

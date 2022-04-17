@@ -32,7 +32,6 @@
 package avail.descriptor.methods
 
 import avail.AvailRuntimeSupport
-import avail.annotations.EnumField
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.ThreadSafe
 import avail.descriptor.atoms.A_Atom

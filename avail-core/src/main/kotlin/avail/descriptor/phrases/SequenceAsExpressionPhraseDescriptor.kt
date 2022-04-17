@@ -34,6 +34,7 @@ import avail.compiler.AvailCodeGenerator
 import avail.descriptor.phrases.A_Phrase.Companion.emitEffectOn
 import avail.descriptor.phrases.A_Phrase.Companion.emitValueOn
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.sequence
 import avail.descriptor.phrases.A_Phrase.Companion.statements
@@ -47,7 +48,6 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
@@ -130,8 +130,8 @@ class SequenceAsExpressionPhraseDescriptor(
 	override fun o_Sequence(self: AvailObject): A_Phrase =
 		self.slot(SEQUENCE)
 
-	/** Statements are always ⊤-valued. */
-	override fun o_PhraseExpressionType(self: AvailObject): A_Type = TOP.o
+	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
+		self.slot(SEQUENCE).phraseExpressionType
 
 	override fun o_Hash(self: AvailObject) =
 		combine2(self.slot(SEQUENCE).hash(), 0x46D8127F)

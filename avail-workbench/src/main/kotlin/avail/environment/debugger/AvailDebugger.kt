@@ -115,11 +115,11 @@ import javax.swing.text.Highlighter.HighlightPainter
  * │                      │                                 │
  * ├──────┬──────┬─────┬──┴──────┬────────┬─────────┬───────┤
  * │ Into │ Over │ Out │ To Line │ Resume │ Restart │       │
- * ├──────┴──────┴─────┴─────────┴────────┴─────────┴───────┤
- * │                                                        │
- * │ Code                                                   │
- * │                                                        │
- * ├────────────────┬───────────────────────────────────────┤
+ * ├──────┴──────┴─────┴───┬─────┴────────┴─────────┴───────┤
+ * │                       │                                │
+ * │ Code                  │  Source (TODO)                 │
+ * │                       │                                │
+ * ├────────────────┬──────┴────────────────────────────────┤
  * │                │                                       │
  * │ Variables      │ Variable Value                        │
  * │                │                                       │
@@ -182,6 +182,17 @@ class AvailDebugger internal constructor (
 				frame.currentLineNumber(),
 				frame.pc())
 			return JLabel(text)
+		}
+	}
+
+	private val inspectFrame = object :
+		AbstractWorkbenchAction(workbench, "Inspect")
+	{
+		override fun actionPerformed(e: ActionEvent?)
+		{
+			stackListPane.selectedValue?.let {
+				inspect(it.function().code().toString(), it as AvailObject)
+			}
 		}
 	}
 
@@ -351,7 +362,8 @@ class AvailDebugger internal constructor (
 		}
 	}
 
-	private val inspectVariable = object : AbstractWorkbenchAction(workbench, "Inspect")
+	private val inspectVariable = object :
+		AbstractWorkbenchAction(workbench, "Inspect")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
@@ -582,7 +594,7 @@ class AvailDebugger internal constructor (
 	 * completion lock is held while the [variableValuePane] is updated, but
 	 * only if the associated [Long] is the largest that has been completed.
 	 */
-	private val paneVersioneTracker = object
+	private val paneVersionTracker = object
 	{
 		val allocator = AtomicLong(0)
 
@@ -599,7 +611,7 @@ class AvailDebugger internal constructor (
 	 */
 	private fun updateVariableValuePane()
 	{
-		val id = paneVersioneTracker.allocator.getAndIncrement()
+		val id = paneVersionTracker.allocator.getAndIncrement()
 		val variable = variablesPane.selectedValue
 		// Do some trickery to avoid stringifying null or nil.
 		val valueToStringify = when
@@ -623,12 +635,12 @@ class AvailDebugger internal constructor (
 				// We're now in the UI thread, so check if we should replace the
 				// text.  There's no need for a lock, since the UI thread runs
 				// such actions serially.
-				if (id > paneVersioneTracker.renderedVersion)
+				if (id > paneVersionTracker.renderedVersion)
 				{
 					// It's a more recent stringification than the currently
 					// displayed string, so replace it.
 					variableValuePane.text = string
-					paneVersioneTracker.renderedVersion = id
+					paneVersionTracker.renderedVersion = id
 				}
 			}
 		}
@@ -719,6 +731,9 @@ class AvailDebugger internal constructor (
 			DefaultHighlightPainter(washedOut)
 		}
 
+		stackListPane.componentPopupMenu = JPopupMenu("Stack").apply {
+			add(inspectFrame)
+		}
 		variablesPane.componentPopupMenu = JPopupMenu("Variable").apply {
 			add(inspectVariable)
 		}

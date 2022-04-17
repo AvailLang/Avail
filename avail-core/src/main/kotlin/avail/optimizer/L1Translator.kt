@@ -69,7 +69,7 @@ import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
-import avail.descriptor.module.A_Module.Companion.moduleName
+import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -2891,7 +2891,7 @@ class L1Translator private constructor(
 				if (module.notNil)
 				{
 					append("\n")
-					append(module.moduleName)
+					append(module.shortModuleNameNative)
 					val line = code.codeStartingLineNumber
 					if (line != 0)
 					{

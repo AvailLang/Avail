@@ -729,7 +729,7 @@ class AvailRuntime constructor(
 		val defaultFunctionSupplier: OnceSupplier<A_Function> =
 			produceDefaultFunctionSupplier(hookName, primitive)
 
-		fun produceDefaultFunctionSupplier(
+		private fun produceDefaultFunctionSupplier(
 			hookName: String,
 			primitive: Primitive?
 		): OnceSupplier<A_Function> = when (primitive)

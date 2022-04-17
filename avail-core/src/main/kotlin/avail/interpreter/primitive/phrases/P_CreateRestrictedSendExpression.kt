@@ -43,10 +43,12 @@ import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.priority
+import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
+import avail.descriptor.fiber.FiberDescriptor.Companion.createFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.currentFiber
-import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
+import avail.descriptor.fiber.FiberDescriptor.GeneralFlag.CAN_REJECT_PARSE
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.A_Method.Companion.filterByTypes
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
@@ -78,11 +80,11 @@ import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeDescriptor
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -249,20 +251,23 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 			for (restriction in applicableRestrictions)
 			{
 				val finalCount = fiberCount++
-				val forkedFiber = newFiber(
+				val forkedFiber = createFiber(
 					topMeta(),
 					runtime,
+					loader,
 					originalFiber.textInterface,
 					originalFiber.priority)
 				{
 					stringFrom(
 						"Semantic restriction checker (#"
 							+ finalCount
+							+ "/"
+							+ applicableRestrictions.size
 							+ ") for primitive "
 							+ this@P_CreateRestrictedSendExpression.javaClass
 							.simpleName)
 				}
-				forkedFiber.availLoader = loader
+				forkedFiber.setGeneralFlag(CAN_REJECT_PARSE)
 				forkedFiber.heritableFiberGlobals =
 					originalFiber.heritableFiberGlobals
 				forkedFiber.setSuccessAndFailure(success) { throwable ->
@@ -286,6 +291,7 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 										"exception:\n\t$throwable"))
 						}
 					}
+					decrement()
 				}
 				runOutermostFunction(
 					runtime, forkedFiber, restriction.function(), argTypesList)

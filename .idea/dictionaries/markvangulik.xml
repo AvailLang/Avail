@@ -10,6 +10,7 @@
       <w>bgcolor</w>
       <w>boundedly</w>
       <w>calendrical</w>
+      <w>canonicalized</w>
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
@@ -104,6 +105,7 @@
       <w>subgraphs</w>
       <w>subkey</w>
       <w>sublists</w>
+      <w>submap</w>
       <w>subnode</w>
       <w>subphrase</w>
       <w>subregion</w>
@@ -112,6 +114,9 @@
       <w>subtyped</w>
       <w>subvalue</w>
       <w>subvariant</w>
+      <w>summarizability</w>
+      <w>summarizable</w>
+      <w>supercall</w>
       <w>supercast's</w>
       <w>supernode</w>
       <w>superunion</w>
@@ -128,6 +133,7 @@
       <w>unquoter</w>
       <w>unreturnable</w>
       <w>unreversed</w>
+      <w>unsummarized</w>
       <w>unsynchronized</w>
       <w>untraced</w>
       <w>uuids</w>

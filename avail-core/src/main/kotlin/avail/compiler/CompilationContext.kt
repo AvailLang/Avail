@@ -49,7 +49,6 @@ import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
@@ -79,6 +78,7 @@ import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
+import avail.exceptions.AvailRuntimeException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Decompiler
@@ -617,8 +617,16 @@ class CompilationContext constructor(
 		onSuccess: (AvailObject)->Unit,
 		onFailure: (Throwable)->Unit)
 	{
-		val function = createFunctionForPhrase(
-			expressionNode, module, lexingState.lineNumber)
+		val function = try
+		{
+			createFunctionForPhrase(
+				expressionNode, module, lexingState.lineNumber)
+		}
+		catch (e: AvailRuntimeException)
+		{
+			onFailure(e)
+			return
+		}
 		if (shouldSerialize)
 		{
 			loader.topLevelStatementBeingCompiled =

@@ -89,7 +89,6 @@ import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.compilerPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -3291,7 +3290,7 @@ class AvailCompiler constructor(
 			// Run the simple statements in succession.
 			val simpleStatementIterator = simpleStatements.iterator()
 			val declarationRemap = mutableMapOf<A_Phrase, A_Phrase>()
-			var recurse: (()->Unit)? = null
+			lateinit var recurse: (()->Unit)
 			recurse = recurse@{
 				if (!simpleStatementIterator.hasNext())
 				{
@@ -3319,7 +3318,7 @@ class AvailCompiler constructor(
 					afterStatement.lexingState,
 					statement,
 					declarationRemap,
-					recurse!!)
+					recurse)
 			}
 			recurse()
 		}
