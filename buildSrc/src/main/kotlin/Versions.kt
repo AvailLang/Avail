@@ -59,6 +59,9 @@ object Versions
 	/** The `com.github.weisj:darklaf-core` version.*/
 	const val darklafVersion = "2.7.3"
 
+	/** The `com.github.weisj:darklaf-core` version.*/
+	const val flatlafVersion = "2.1"
+
 	/** The `io.methvin:directory-watcher` version. */
 	const val directoryWatcherVersion = "0.15.0"
 

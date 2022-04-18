@@ -40,4 +40,4 @@ package avail.build.modules
  */
 object AvailWorkbenchModule: ModuleDependencies(
 	apis = listOf(Libraries.jsr305),
-	implementations = listOf(Libraries.darklafCore))
+	implementations = listOf(Libraries.flatlaf, Libraries.flatlafTheme))

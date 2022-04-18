@@ -123,8 +123,8 @@ import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.cast
 import avail.utility.safeWrite
-import com.github.weisj.darklaf.LafManager
-import com.github.weisj.darklaf.theme.DarculaTheme
+import com.formdev.flatlaf.FlatDarculaLaf
+import com.formdev.flatlaf.util.SystemInfo
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -2459,10 +2459,30 @@ class AvailWorkbench internal constructor (
 			// Do the slow Swing setup in parallel with other things...
 			val swingReady = Semaphore(0)
 			val runtimeReady = Semaphore(0)
+			if (SystemInfo.isMacOS)
+			{
+				// enable screen menu bar
+				// (moves menu bar from JFrame window to top of screen)
+				System.setProperty("apple.laf.useScreenMenuBar", "true")
+
+				// appearance of window title bars
+				// possible values:
+				//   - "system": use current macOS appearance (light or dark)
+				//   - "NSAppearanceNameAqua": use light appearance
+				//   - "NSAppearanceNameDarkAqua": use dark appearance
+				System.setProperty("apple.awt.application.appearance", "system")
+			}
 			thread(name = "Set up LAF") {
 				if (darkMode)
 				{
-					LafManager.install(DarculaTheme())
+					try
+					{
+						FlatDarculaLaf.setup()
+					}
+					catch (ex: Exception)
+					{
+						System.err.println("Failed to initialize LaF")
+					}
 				}
 				swingReady.release()
 			}

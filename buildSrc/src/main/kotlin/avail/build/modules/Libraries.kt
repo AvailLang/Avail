@@ -187,6 +187,24 @@ internal object Libraries
 	internal val darklafCore =
 		Dependency(
 			"com.github.weisj:darklaf-core") { Versions.darklafVersion }
+
+	/**
+	 * Dark mode look & feel using Flatlaf.
+	 *
+	 * @see <a href="https://github.com/JFormDesigner/FlatLaf">Flatlaf</a>
+	 */
+	internal val flatlaf =
+		Dependency(
+			"com.formdev:flatlaf-intellij-themes") { Versions.flatlafVersion }
+
+	/**
+	 * Flatlaf themes.
+	 *
+	 * @see <a href="https://www.formdev.com/flatlaf/themes/">Themes</a>
+	 */
+	internal val flatlafTheme =
+		Dependency(
+			"com.formdev:flatlaf") { Versions.flatlafVersion }
 }
 
 /**
