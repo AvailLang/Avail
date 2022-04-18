@@ -127,7 +127,13 @@ import javax.swing.text.Highlighter.HighlightPainter
  * └────────────────┴───────────────────────────────────────┘
  * ```
  *
+ * To trigger the debugger:
+ *  1. Run the workbench
+ *  2. Build `Availuator`
+ *  3. Run "Command" `Run [Breakpoint; Print: “(1 :: integer) + 2”;]`.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga
  *
  * @property workbench
  *   The [AvailWorkbench] associated with this debugger.
