@@ -75,7 +75,11 @@ object Versions
 	const val kotlinLanguage = "1.6"
 
 	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "16"
+	const val jvmTarget = 17
+
+	/** The JVM target version for Kotlin. */
+	const val jvmTargetString = jvmTarget.toString()
+
 
 	/** The JVM target version for Kotlin. */
 	const val intellij = "1.3.1"

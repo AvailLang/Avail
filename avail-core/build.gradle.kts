@@ -59,6 +59,7 @@ val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
 	test {
 		useJUnitPlatform()
+		println("Java version for tests: $javaVersion")
 		minHeapSize = "4g"
 		maxHeapSize = "6g"
 		enableAssertions = true

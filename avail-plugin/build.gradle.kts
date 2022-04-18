@@ -84,12 +84,12 @@ dependencies {
 tasks {
 	withType<JavaCompile> {
 		options.encoding = "UTF-8"
-		sourceCompatibility = Versions.jvmTarget
-		targetCompatibility = Versions.jvmTarget
+		sourceCompatibility = Versions.jvmTargetString
+		targetCompatibility = Versions.jvmTargetString
 	}
 	withType<KotlinCompile> {
 		kotlinOptions {
-			jvmTarget = Versions.jvmTarget
+			jvmTarget = Versions.jvmTargetString
 			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
 			languageVersion = Versions.kotlinLanguage
 		}

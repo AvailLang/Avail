@@ -1,6 +1,6 @@
 /*
- * build.gradle.kts
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * TestHelper.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,34 +30,30 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.gradle.kotlin.dsl.`kotlin-dsl`
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.kotlin.dsl.withType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+package avail
 
-plugins {
-	`kotlin-dsl`
-	`kotlin-dsl-precompiled-script-plugins`
-}
+import org.gradle.api.Project
+import org.gradle.api.tasks.testing.Test
+import org.gradle.jvm.toolchain.JavaLanguageVersion
+import org.gradle.kotlin.dsl.getByType
+import org.gradle.jvm.toolchain.JavaToolchainService
 
-repositories {
-	mavenCentral()
-}
-
-val JVM = "17"
-val KOTLIN_LANGUAGE_VERSION = "1.6"
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = JVM
-		targetCompatibility = JVM
-	}
-	withType<KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = JVM
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = KOTLIN_LANGUAGE_VERSION
-		}
+/**
+ * A {@code TestHelper} is TODO: Document this!
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ */
+object TestHelper
+{
+	fun setUpJDK (test: Test)
+	{
+		val toolChains =
+			test.project.extensions.getByType(JavaToolchainService::class)
+		test.javaLauncher.set(
+			toolChains.launcherFor {
+				languageVersion.set(JavaLanguageVersion.of(
+					Versions.jvmTarget))
+			}
+		)
 	}
 }
