@@ -4,7 +4,7 @@
     <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/debug-logging.properties" />
     <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples --webSocketAdapter" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
     <module name="avail.avail-server.main" />
     <method v="2">
       <option name="Gradle.BeforeRunTask" enabled="false" tasks="assemble" externalProjectPath="$PROJECT_DIR$/avail-server" vmOptions="" scriptParameters="" />

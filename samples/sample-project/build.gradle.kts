@@ -29,8 +29,12 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import avail.plugin.AvailWorkbenchTask
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 plugins {
     kotlin("jvm") version Versions.kotlin
@@ -43,6 +47,22 @@ version = "1.0"
 repositories {
     mavenLocal()
     mavenCentral()
+}
+
+val jvmTarget = 17
+val jvmTargetString = "17"
+
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+    }
+}
+
+kotlin {
+    jvmToolchain {
+        (this as JavaToolchainSpec).languageVersion.set(
+            JavaLanguageVersion.of(Versions.jvmTarget))
+    }
 }
 
 dependencies {
@@ -177,17 +197,31 @@ tasks {
     }
 
     withType<KotlinCompile>() {
-        kotlinOptions.jvmTarget = "11"
+        kotlinOptions.jvmTarget = jvmTargetString
     }
 
     withType<JavaCompile>() {
-        sourceCompatibility = "11"
-        targetCompatibility = "11"
+        sourceCompatibility = jvmTargetString
+        targetCompatibility = jvmTargetString
     }
     jar {
         archiveVersion.set("")
     }
     test {
         useJUnit()
+        val toolChains =
+            project.extensions.getByType(JavaToolchainService::class)
+        javaLauncher.set(
+            toolChains.launcherFor {
+                languageVersion.set(JavaLanguageVersion.of(
+                    Versions.jvmTarget))
+            })
+        testLogging {
+            events = setOf(FAILED)
+            exceptionFormat = TestExceptionFormat.FULL
+            showExceptions = true
+            showCauses = true
+            showStackTraces = true
+        }
     }
 }

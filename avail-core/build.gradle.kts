@@ -57,15 +57,6 @@ dependencies {
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
-	test {
-		useJUnitPlatform()
-		println("Java version for tests: $javaVersion")
-		minHeapSize = "4g"
-		maxHeapSize = "6g"
-		enableAssertions = true
-		systemProperty("availRoots", availRoots)
-	}
-
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating {
@@ -93,6 +84,16 @@ tasks {
 				outFile.writeText(allPrimitiveNames)
 			}
 		}
+	}
+
+	test {
+		useJUnitPlatform()
+		println("Java version for tests: $javaVersion")
+		minHeapSize = "4g"
+		maxHeapSize = "6g"
+		enableAssertions = true
+		systemProperty("availRoots", availRoots)
+//		dependsOn(generatePrimitivesList)
 	}
 
 	jar {

@@ -350,8 +350,8 @@ class AvailDebugger internal constructor (
 		override fun actionPerformed(e: ActionEvent?)
 		{
 			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"Into\" is not implemented")
-			System.err.println("The debugger \"Into\" button feature is not implemented")
+				this@AvailDebugger, "\"To Line\" is not implemented")
+			System.err.println("The debugger \"To Line\" button feature is not implemented")
 		}
 	}
 	private val resumeAction = object : AbstractWorkbenchAction(workbench, "Resume")

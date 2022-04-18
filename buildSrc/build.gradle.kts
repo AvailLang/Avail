@@ -31,9 +31,6 @@
  */
 
 import org.gradle.kotlin.dsl.`kotlin-dsl`
-import org.gradle.api.tasks.compile.JavaCompile
-import org.gradle.kotlin.dsl.withType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
 	`kotlin-dsl`
@@ -42,22 +39,4 @@ plugins {
 
 repositories {
 	mavenCentral()
-}
-
-val JVM = "17"
-val KOTLIN_LANGUAGE_VERSION = "1.6"
-
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = JVM
-		targetCompatibility = JVM
-	}
-	withType<KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = JVM
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = KOTLIN_LANGUAGE_VERSION
-		}
-	}
 }

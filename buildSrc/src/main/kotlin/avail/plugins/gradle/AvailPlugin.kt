@@ -48,10 +48,8 @@ class AvailPlugin : Plugin<Project>
 {
 	override fun apply(target: Project)
 	{
-		val extension =
-			target.extensions.create<AvailPluginExtension>("roots")
-		val stdlibVersion =
-			target.extensions.create<String>("stdlibVersion")
+		target.extensions.create<AvailPluginExtension>("roots")
+		target.extensions.create<String>("stdlibVersion")
 	}
 }
 

@@ -33,6 +33,8 @@
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 val versionToPublish by lazy {
 	Publish.versionToPublish
@@ -93,6 +95,13 @@ allprojects {
 					languageVersion.set(JavaLanguageVersion.of(
 						Versions.jvmTarget))
 				})
+			testLogging {
+				events = setOf(FAILED)
+				exceptionFormat = TestExceptionFormat.FULL
+				showExceptions = true
+				showCauses = true
+				showStackTraces = true
+			}
 		}
 	}
 }

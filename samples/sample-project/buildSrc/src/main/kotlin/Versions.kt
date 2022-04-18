@@ -39,10 +39,13 @@
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.5.21"
+	const val kotlin = "1.6.20"
 
 	/** The JVM target version for Kotlin. */
-	const val jvmTarget = "11"
+	const val jvmTarget = 17
+
+	/** The JVM target version for Kotlin. */
+	const val jvmTargetString = jvmTarget.toString()
 
 	/**
 	 * The stripe release version of avail jars:
@@ -54,7 +57,7 @@ object Versions
 	 *
 	 *  This represents the version of the `avail-plugin`.
 	 */
-	const val avail = "1.6.0.20220128.025742"
+	const val avail = "1.6.0.20220418.190120"
 //
 //	/**
 //	 * The SLF4J No-Op package used to prevent SLF4J warning from being printed.
