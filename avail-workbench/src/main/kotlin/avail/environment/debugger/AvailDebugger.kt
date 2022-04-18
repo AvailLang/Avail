@@ -90,6 +90,7 @@ import javax.swing.JButton
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JList
+import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JScrollPane
@@ -328,14 +329,18 @@ class AvailDebugger internal constructor (
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
-			TODO("Not yet implemented")
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Over\" is not implemented")
+			System.err.println("The debugger \"Over\" button feature is not implemented")
 		}
 	}
 	private val stepOutAction = object : AbstractWorkbenchAction(workbench, "Out")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
-			TODO("Not yet implemented")
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Out\" is not implemented")
+			System.err.println("The debugger \"Out\" button feature is not implemented")
 		}
 	}
 	private val stepToLineAction = object : AbstractWorkbenchAction(
@@ -344,21 +349,27 @@ class AvailDebugger internal constructor (
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
-			TODO("Not yet implemented")
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Into\" is not implemented")
+			System.err.println("The debugger \"Into\" button feature is not implemented")
 		}
 	}
 	private val resumeAction = object : AbstractWorkbenchAction(workbench, "Resume")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
-			TODO("Not yet implemented")
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Resume\" is not implemented")
+			System.err.println("The debugger \"Resume\" button feature is not implemented")
 		}
 	}
 	private val restartAction = object : AbstractWorkbenchAction(workbench, "Restart")
 	{
 		override fun actionPerformed(e: ActionEvent?)
 		{
-			TODO("Not yet implemented")
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Restart\" is not implemented")
+			System.err.println("The debugger \"Restart\" button feature is not implemented")
 		}
 	}
 
