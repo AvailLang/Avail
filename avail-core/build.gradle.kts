@@ -66,7 +66,8 @@ tasks {
 			include("avail/interpreter/primitive/**/P_*.kt")
 		}
 		inputs.files(primitivesSourceTree)
-		outputs.file(layout.buildDirectory.file("All_Primitives.txt"))
+		// Ensure the resource directory is created in the build folder
+		outputs.file(layout.buildDirectory.file("resources/main/All_Primitives.txt"))
 
 		doLast {
 			val baseSourcePath = primitivesSourceTree.dir.path + "/"
@@ -93,7 +94,6 @@ tasks {
 		maxHeapSize = "6g"
 		enableAssertions = true
 		systemProperty("availRoots", availRoots)
-//		dependsOn(generatePrimitivesList)
 	}
 
 	jar {
@@ -103,6 +103,10 @@ tasks {
 		from(generatePrimitivesList) {
 			into("avail/interpreter/")
 		}
+	}
+
+	shadowJar {
+		dependsOn(generatePrimitivesList)
 	}
 
 	// Copy the JAR into the distribution directory.
