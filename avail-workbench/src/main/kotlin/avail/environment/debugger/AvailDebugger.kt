@@ -127,7 +127,13 @@ import javax.swing.text.Highlighter.HighlightPainter
  * └────────────────┴───────────────────────────────────────┘
  * ```
  *
+ * To trigger the debugger:
+ *  1. Run the workbench
+ *  2. Build `Availuator`
+ *  3. Run "Command" `Run [Breakpoint; Print: “(1 :: integer) + 2”;]`.
+ *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga
  *
  * @property workbench
  *   The [AvailWorkbench] associated with this debugger.
@@ -350,8 +356,8 @@ class AvailDebugger internal constructor (
 		override fun actionPerformed(e: ActionEvent?)
 		{
 			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"Into\" is not implemented")
-			System.err.println("The debugger \"Into\" button feature is not implemented")
+				this@AvailDebugger, "\"To Line\" is not implemented")
+			System.err.println("The debugger \"To Line\" button feature is not implemented")
 		}
 	}
 	private val resumeAction = object : AbstractWorkbenchAction(workbench, "Resume")

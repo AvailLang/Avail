@@ -4,7 +4,7 @@
     <option name="VM_PARAMETERS" value="-ea -Xmx10g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true" />
     <option name="PROGRAM_PARAMETERS" value="--availRoots=avail=$PROJECT_DIR$/distro/src/avail;builder-tests=$PROJECT_DIR$/distro/src/builder-tests;examples=$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/distro/src/website --verboseMode=2 --compile /avail/Avail" />
     <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$" />
-    <option name="ALTERNATIVE_JRE_PATH" />
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
     <module name="avail.avail-cli" />
     <method v="2">
       <option name="Gradle.BeforeRunTask" enabled="false" tasks="assemble" externalProjectPath="$PROJECT_DIR$/avail-cli" vmOptions="" scriptParameters="" />

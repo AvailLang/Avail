@@ -57,14 +57,6 @@ dependencies {
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
-	test {
-		useJUnitPlatform()
-		minHeapSize = "4g"
-		maxHeapSize = "6g"
-		enableAssertions = true
-		systemProperty("availRoots", availRoots)
-	}
-
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating {
@@ -74,7 +66,8 @@ tasks {
 			include("avail/interpreter/primitive/**/P_*.kt")
 		}
 		inputs.files(primitivesSourceTree)
-		outputs.file(layout.buildDirectory.file("All_Primitives.txt"))
+		// Ensure the resource directory is created in the build folder
+		outputs.file(layout.buildDirectory.file("resources/main/avail/interpreter/All_Primitives.txt"))
 
 		doLast {
 			val baseSourcePath = primitivesSourceTree.dir.path + "/"
@@ -94,13 +87,24 @@ tasks {
 		}
 	}
 
+	test {
+		useJUnitPlatform()
+		println("Java version for tests: $javaVersion")
+		minHeapSize = "4g"
+		maxHeapSize = "6g"
+		enableAssertions = true
+		systemProperty("availRoots", availRoots)
+	}
+
 	jar {
 		manifest.attributes["Implementation-Version"] = project.version
-		// Include the output from generatePrimitivesList (All_Primitives.txt)
-		// in the jar, placing it in /avail/interpreter within the jar.
-		from(generatePrimitivesList) {
-			into("avail/interpreter/")
-		}
+		// The All_Primitives.txt file must be added to the build resources
+		// directory before we can build the jar.
+		dependsOn(generatePrimitivesList)
+	}
+
+	shadowJar {
+		dependsOn(generatePrimitivesList)
 	}
 
 	// Copy the JAR into the distribution directory.

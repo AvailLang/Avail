@@ -2,6 +2,9 @@
 <project version="4">
   <component name="CompilerConfiguration">
     <option name="BUILD_PROCESS_HEAP_SIZE" value="3000" />
-    <bytecodeTargetLevel target="16" />
+    <bytecodeTargetLevel target="17">
+      <module name="avail.anvil-server.main" target="17" />
+      <module name="avail.anvil-server.test" target="17" />
+    </bytecodeTargetLevel>
   </component>
 </project>

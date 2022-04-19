@@ -41,7 +41,6 @@ include(
 	"avail-json",
 	"avail-storage",
 	"avail-core",
-	"anvil-server",
 	"avail-bootstrap",
 	"avail-cli",
 	"avail-server",
@@ -49,6 +48,5 @@ include(
 	"avail-test-utility",
 	"avail-workbench",
 	"indexed-file-analyzer",
-	"unicode-catalog",
-//	"avail-intellij-plugin"
+	"unicode-catalog"
 )

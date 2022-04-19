@@ -24,8 +24,13 @@ in the task group, `avail`. Delete the `avail` directory and run
 At the time of writing this, the Avail Gradle Plugin has yet to be made 
 accessible from Gradle's repository. Additionally, the Avail libraries are not
 yet available on Maven Central. Until such time as these become published 
-publicly, users of this should publish Avail to Maven Local and then publish 
-the Avail Gradle Plugin to Maven Local. 
+publicly, users of this should publish Avail to Maven Local, 
+`publishToMavenLocal`, and then publish the Avail Gradle Plugin to Maven Local, 
+`publishToMavenLocal`. Then get the locally published new version found in:
+```bash
+../../avail-plugin//src/main/resources/releaseVersion.properties
+```
+and update `buildSrc/src/main/kotlin/Versions.avail` with that version.
 
 RUNNING
 --------------------------------------------------------------------------------

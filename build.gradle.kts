@@ -33,6 +33,8 @@
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 val versionToPublish by lazy {
 	Publish.versionToPublish
@@ -45,12 +47,26 @@ extra.apply{
 
 plugins {
 	java
+	`java-library`
 	kotlin("jvm") version Versions.kotlin
 	id("com.github.johnrengelman.shadow") version Versions.shadow apply false
 	`maven-publish`
 	publishing
 	id("org.jetbrains.compose") version Versions.compose apply false
 	id("org.jetbrains.intellij") version Versions.intellij apply false
+}
+
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		(this as JavaToolchainSpec).languageVersion.set(
+			JavaLanguageVersion.of(Versions.jvmTargetString))
+	}
 }
 
 allprojects {
@@ -60,14 +76,31 @@ allprojects {
 	tasks {
 		withType<JavaCompile> {
 			options.encoding = "UTF-8"
-			sourceCompatibility = Versions.jvmTarget
-			targetCompatibility = Versions.jvmTarget
+			sourceCompatibility = Versions.jvmTargetString
+			targetCompatibility = Versions.jvmTargetString
 		}
+
 		withType<KotlinCompile> {
 			kotlinOptions {
-				jvmTarget = Versions.jvmTarget
+				jvmTarget = Versions.jvmTargetString
 				freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
 				languageVersion = Versions.kotlinLanguage
+			}
+		}
+		withType<Test> {
+			val toolChains =
+				project.extensions.getByType(JavaToolchainService::class)
+			javaLauncher.set(
+				toolChains.launcherFor {
+					languageVersion.set(JavaLanguageVersion.of(
+						Versions.jvmTarget))
+				})
+			testLogging {
+				events = setOf(FAILED)
+				exceptionFormat = TestExceptionFormat.FULL
+				showExceptions = true
+				showCauses = true
+				showStackTraces = true
 			}
 		}
 	}

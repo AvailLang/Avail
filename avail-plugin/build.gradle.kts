@@ -30,10 +30,14 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Properties
 import java.io.FileInputStream
 import java.io.FileOutputStream
+import org.gradle.api.tasks.compile.JavaCompile
+import org.gradle.kotlin.dsl.withType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
+import org.gradle.api.tasks.testing.logging.TestLogEvent.*
 
 buildscript {
 	extensions.add("kotlin_version", Versions.kotlin)
@@ -77,21 +81,53 @@ repositories {
 	}
 }
 
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		(this as JavaToolchainSpec).languageVersion.set(
+			JavaLanguageVersion.of(Versions.jvmTargetString))
+	}
+}
+
 dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}")
 }
 
 tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = Versions.jvmTarget
-		targetCompatibility = Versions.jvmTarget
-	}
-	withType<KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = Versions.jvmTarget
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = Versions.kotlinLanguage
+	tasks {
+		withType<JavaCompile> {
+			options.encoding = "UTF-8"
+			sourceCompatibility = Versions.jvmTargetString
+			targetCompatibility = Versions.jvmTargetString
+		}
+
+		withType<KotlinCompile> {
+			kotlinOptions {
+				jvmTarget = Versions.jvmTargetString
+				freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+				languageVersion = Versions.kotlinLanguage
+			}
+		}
+		withType<Test> {
+			val toolChains =
+				project.extensions.getByType(JavaToolchainService::class)
+			javaLauncher.set(
+				toolChains.launcherFor {
+					languageVersion.set(JavaLanguageVersion.of(
+						Versions.jvmTarget))
+				})
+			testLogging {
+				events = setOf(FAILED)
+				exceptionFormat = TestExceptionFormat.FULL
+				showExceptions = true
+				showCauses = true
+				showStackTraces = true
+			}
 		}
 	}
 
