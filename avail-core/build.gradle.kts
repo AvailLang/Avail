@@ -67,7 +67,7 @@ tasks {
 		}
 		inputs.files(primitivesSourceTree)
 		// Ensure the resource directory is created in the build folder
-		outputs.file(layout.buildDirectory.file("resources/main/All_Primitives.txt"))
+		outputs.file(layout.buildDirectory.file("resources/main/avail/interpreter/All_Primitives.txt"))
 
 		doLast {
 			val baseSourcePath = primitivesSourceTree.dir.path + "/"
@@ -98,11 +98,9 @@ tasks {
 
 	jar {
 		manifest.attributes["Implementation-Version"] = project.version
-		// Include the output from generatePrimitivesList (All_Primitives.txt)
-		// in the jar, placing it in /avail/interpreter within the jar.
-		from(generatePrimitivesList) {
-			into("avail/interpreter/")
-		}
+		// The All_Primitives.txt file must be added to the build resources
+		// directory before we can build the jar.
+		dependsOn(generatePrimitivesList)
 	}
 
 	shadowJar {
