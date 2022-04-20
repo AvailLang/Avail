@@ -57,6 +57,7 @@ Names
 	"nonpositive integer",
 	"_is odd",
 	"_is even",
+	"_`|_",
 	"-_",
 	"«_‡«=|≤|<»!»",
 	"«_‡«=|≥|>»!»",
@@ -404,6 +405,24 @@ Method "_mod_" is
 |
 	dividend
 ] : extended integer;
+
+Public macro "_`|_" is
+[
+	divisor : expression phrase ⇒ natural number,
+	dividend : expression phrase ⇒ integer
+|
+	sequence-as-expression «
+		seq «
+			⟦
+				[
+					dividend1 ::= ⦊dividend⦉;
+					divisor1 ::= ⦊divisor⦉;
+					dividend1 ÷ divisor1 × divisor1 = dividend1
+				]
+			⟧'s statements
+		»
+	» ?→ expression phrase ⇒ boolean
+];
 
 /**
  * Is the argument odd?

@@ -705,9 +705,13 @@ Macro "$…#" is
 ] : literal phrase ⇒ atom;
 
 
-
+/**
+ * The type of the declarations map, which maps from declarations in the
+ * original phrase to local constant declarations that will hold the substitutes
+ * for those originals.
+ */
 declarationsMapType ::=
-	{declaration phrase → (phrase ⇒ declaration phrase)|whole number};
+	{declaration phrase → declaration phrase|whole number};
 
 /**
  * Transform phrases into expressions that build those phrases, but with any
@@ -870,20 +874,30 @@ Method "T(_,_)" is
 	p : declaration phrase,
 	decls : ↑declarationsMapType
 |
-	strongMap ::= (↓decls)
-		?→ {declaration phrase → (phrase ⇒ declaration phrase)|whole number};
-	decl : phrase ⇒ declaration phrase;
-	If p ∈ strongMap then
-	[
-		decl := strongMap[p] ?→ (phrase ⇒ declaration phrase);
-	]
-	else
-	[
-		decl := new Tdecl(p, decls);
-		decls ?= strongMap + p → decl;
-	];
-	decl
-] : phrase ⇒ declaration phrase;
+	strongMap ::= ↓decls ?→ declarationsMapType;
+	Assert: p ∈ strongMap = false;
+	declGen : expression phrase ⇒ declaration phrase;
+	declGen := new Tdecl(p, decls);
+	/*
+	 * declGen now holds a phrase that generates a declaration.
+	 * Declare a local constant 'x' to hold this phrase, so that variable
+	 * uses later in the quoted expression will be able to refer to this
+	 * exact declaration with a variable-use of 'x'.  Give it a similar name
+	 * to the declaration that it will later generate.
+	 */
+	declName ::= concatenate <p's token's lexeme, "_decl"> ?→ string;
+	constHoldingDecl ::= «keyword(declName)@0:0 ::= declGen»;
+	constUse ::= «↓constHoldingDecl»(p's token);
+	decls ?= strongMap + p → constHoldingDecl;
+	sequence-as-expression«
+		seq«
+			<
+				constHoldingDecl,
+				constUse
+			>
+		»
+	» ?→ sequence-as-expression phrase ⇒ statement phrase
+] : expression phrase ⇒ statement phrase;
 
 Method "T(_,_)" is
 [
@@ -994,17 +1008,27 @@ Method "T(_,_)" is
 		: super cast phrase
 ];
 
+/**
+ * Transform a variable use phrase.  It's a use of some declaration D.  We've
+ * already transformed the declaration into a constant declaration D' that holds
+ * (an equivalent of) the declaration D as its value.  So return a phrase that
+ * extracts the D equivalent from D' (via a variable use of D'), then creates a
+ * variable use phrase to mimic the variable use phrase we're transforming.
+ */
 Method "T(_,_)" is
 [
 	p : variable use phrase,
 	decls : ↑declarationsMapType
 |
+	strongMap ::= (↓decls) ?→ declarationsMapType;
+	constDecl ::= strongMap[p's declaration] ?→ local constant phrase;
+	getDecl ::= «↓constDecl»(constDecl's token);
 	restricted send $"`«↓_`»(_)"
 		with <
-			T(p's declaration, decls),
+			getDecl,
 			`p's token` → literal phrase
 		> → list phrase
-		: variable use phrase
+		: variable use phrase ⇒ p's semantic type
 ];
 
 Method "T(_,_)" is

@@ -68,6 +68,7 @@ import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForTypesList
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
+import avail.utility.Strings.newlineTab
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
 
@@ -117,14 +118,19 @@ class ListPhraseDescriptor private constructor(
 		indent: Int
 	) {
 		builder.append("List(")
-		var first = true
-		self.expressionsTuple.forEach {
-			if (!first) {
-				builder.append(", ")
-			}
-			it.printOnAvoidingIndent(builder, recursionMap, indent + 1)
-			first = false
+		val strings = self.expressionsTuple.map {
+			val tempBuilder = StringBuilder()
+			it.printOnAvoidingIndent(tempBuilder, recursionMap, indent + 1)
+			tempBuilder.toString()
 		}
+		if (strings.any { it.contains('\n') }
+			|| strings.sumOf { it.length } > 60)
+		{
+			// Print on multiple lines.
+			val indenter = buildString { newlineTab(indent) }
+			strings.joinTo(builder, ",$indenter", indenter)
+		}
+		strings.joinTo(builder, ", ")
 		builder.append(")")
 	}
 

@@ -181,7 +181,7 @@ Test "map and filter" in set test suite is
 		accept : [natural number]→⊤
 	|
 		m ::= n + 2;
-		If m mod 2 = 0 then
+		If 2|m then
 		[
 			accept(m);
 		];
@@ -192,7 +192,7 @@ Test "map and filter" in set test suite is
 Test "any satisfies" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= any of a satisfies [n : natural number | n mod 2 = 0];
+	b ::= any of a satisfies [n : natural number | 2|n];
 	c ::= any of a satisfies [n : natural number | n > 200];
 	Require: b = true;
 	Require: c = false;
@@ -201,7 +201,7 @@ Test "any satisfies" in set test suite is
 Test "any satisfies (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= any n of a satisfies [n mod 2 = 0];
+	b ::= any n of a satisfies [2|n];
 	c ::= any n of a satisfies [n > 200];
 	Require: b = true;
 	Require: c = false;
@@ -234,7 +234,7 @@ Test "macro for each of do" in set test suite is
 Test "count of where" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= count of a where [n : natural number | n mod 2 = 0];
+	b ::= count of a where [n : natural number | 2|n];
 	c ::= count of a where [n : natural number | n > 2000];
 	Require: b = 2;
 	Require: c = 0;
@@ -243,7 +243,7 @@ Test "count of where" in set test suite is
 Test "count of where (macros)" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= count of n in a where [n mod 2 = 0];
+	b ::= count of n in a where [2|n];
 	c ::= count of n in a where [n > 2000];
 	Require: b = 2;
 	Require: c = 0;
@@ -270,7 +270,7 @@ Test "each of satisfies (macro)" in set test suite is
 Test "filter by" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= filter a by [n : natural number | n mod 2 = 0];
+	b ::= filter a by [n : natural number | 2|n];
 	c ::= filter a by [n : natural number | n > 2000];
 	Require: b = {2,4};
 	Require: c = ∅;
@@ -279,7 +279,7 @@ Test "filter by" in set test suite is
 Test "select each (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= select each n from a where [n mod 2 = 0];
+	b ::= select each n from a where [2|n];
 	c ::= select each n from a where [n > 2000];
 	Require: b = {2,4};
 	Require: c = ∅;
@@ -288,7 +288,7 @@ Test "select each (macro)" in set test suite is
 Test "reject each (macro)" in set test suite is
 [
 	a ::= {1,2,3,4};
-	b ::= reject each n from a where [n mod 2 = 0];
+	b ::= reject each n from a where [2|n];
 	c ::= reject each n from a where [n > 2000];
 	Require: b = {1,3};
 	Require: c = {1,2,3,4};

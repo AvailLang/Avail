@@ -70,7 +70,6 @@ import java.util.concurrent.locks.ReentrantLock
 import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.concurrent.withLock
-import kotlin.streams.toList
 
 /**
  * A [Repository] manages a persistent [IndexedFile] of compiled

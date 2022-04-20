@@ -70,7 +70,7 @@ class SequenceAsExpressionPhraseDescriptor(
 	mutability: Mutability
 ) : PhraseDescriptor(
 	mutability,
-	TypeTag.EXPRESSION_AS_STATEMENT_PHRASE_TAG,
+	TypeTag.SEQUENCE_AS_EXPRESSION_PHRASE_TAG,
 	ObjectSlots::class.java,
 	null
 ) {

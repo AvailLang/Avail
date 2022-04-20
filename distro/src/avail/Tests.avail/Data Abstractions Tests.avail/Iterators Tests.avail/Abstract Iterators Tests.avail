@@ -65,7 +65,7 @@ Test "filter by" in iterators test suite is
 [
 	a ::= a reader over <1,2,3,4>;
 
-	b ::= filter a by [n : natural number | n mod 2 = 0];
+	b ::= filter a by [n : natural number | 2|n];
 	bt : natural number* := <>;
 	For each element of b do
 	[
@@ -86,7 +86,7 @@ Test "filter by" in iterators test suite is
 Test "select each (macro)" in iterators test suite is
 [
 	a ::= a reader over <1,2,3,4>;
-	b ::= take at most ∞ from select each n from a where [n mod 2 = 0];
+	b ::= take at most ∞ from select each n from a where [2|n];
 	c ::= take at most ∞ from select each n from a where [n > 2000];
 
 	Require: b = <2,4>;
@@ -96,7 +96,7 @@ Test "select each (macro)" in iterators test suite is
 Test "reject each (macro)" in iterators test suite is
 [
 	a ::= a reader over <3,2,3,6>;
-	b ::= take at most ∞ from reject each n from a where [n mod 2 = 0];
+	b ::= take at most ∞ from reject each n from a where [2|n];
 
 	d ::= a reader over <3,2,3,6>;
 	c ::= take at most ∞ from  reject each n from d where [n > 2000];

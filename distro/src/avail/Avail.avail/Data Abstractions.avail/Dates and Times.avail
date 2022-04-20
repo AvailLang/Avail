@@ -552,7 +552,7 @@ Public stable method "_is leap year" is
 [
 	y : integer
 |
-	y mod 4 = 0 ∧ (y mod 100 ≠ 0 ∨ y mod 400 = 0)
+	4|y ∧ (¬100|y ∨ 400|y)
 ];
 
 /**

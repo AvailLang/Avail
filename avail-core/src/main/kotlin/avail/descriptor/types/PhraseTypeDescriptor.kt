@@ -125,6 +125,7 @@ open class PhraseTypeDescriptor protected constructor(
 		/**
 		 * The low 32 bits are used for caching the hash.
 		 */
+		@HideFieldInDebugger
 		HASH_AND_MORE;
 
 		companion object

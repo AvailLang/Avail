@@ -701,9 +701,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 							val declaration = child.declaration
 							if (!providedByMe.contains(declaration)
 								&& declaration.declarationKind()
-								!== DeclarationKind.MODULE_VARIABLE
+									!== DeclarationKind.MODULE_VARIABLE
 								&& declaration.declarationKind()
-								!== DeclarationKind.MODULE_CONSTANT
+									!== DeclarationKind.MODULE_CONSTANT
 								&& !neededDeclarationsSet.contains(declaration))
 							{
 								neededDeclarationsSet.add(declaration)

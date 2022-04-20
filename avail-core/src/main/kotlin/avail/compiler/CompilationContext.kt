@@ -188,10 +188,9 @@ class CompilationContext constructor(
 		set(newNoMoreWorkUnits)
 		{
 			assert(newNoMoreWorkUnits === null
-					!= (this.noMoreWorkUnits === null)) {
+				!= (this.noMoreWorkUnits === null)) {
 				"noMoreWorkUnits must transition to or from null"
 			}
-
 			if (Interpreter.debugWorkUnits)
 			{
 				val wasNull = this.noMoreWorkUnits === null
@@ -209,13 +208,15 @@ class CompilationContext constructor(
 				logWorkUnits(
 					"SetNoMoreWorkUnits:\n\t" + trace.trim { it <= ' ' })
 			}
-			val ran = AtomicBoolean(false)
-			field =
-				if (newNoMoreWorkUnits === null)
-					null
-				else
-				{
-					{
+			if (newNoMoreWorkUnits === null)
+			{
+				field = null
+			}
+			else
+			{
+				// Wrap the provided function with safety and logging.
+				val ran = AtomicBoolean(false)
+				field = {
 					assert(!ran.getAndSet(true)) {
 						"Attempting to invoke the same noMoreWorkUnits twice"
 					}
@@ -224,8 +225,8 @@ class CompilationContext constructor(
 						logWorkUnits("Running noMoreWorkUnits")
 					}
 					newNoMoreWorkUnits()
-					}
 				}
+			}
 		}
 
 	/** The output stream on which the serializer writes. */

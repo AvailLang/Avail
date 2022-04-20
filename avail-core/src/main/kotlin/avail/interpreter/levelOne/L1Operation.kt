@@ -163,8 +163,7 @@ enum class L1Operation constructor(
 	},
 
 	/**
-	 * Pop the stack and write the value into the specified local variable or
-	 * constant (the latter should only happen once).
+	 * Pop the stack and write the value into the specified local variable.
 	 */
 	L1_doSetLocal(6, LOCAL)
 	{
