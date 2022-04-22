@@ -84,18 +84,17 @@ import java.util.Collections.synchronizedMap
 import java.util.IdentityHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
+import javax.swing.DefaultListCellRenderer
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
 import javax.swing.JButton
 import javax.swing.JFrame
-import javax.swing.JLabel
 import javax.swing.JList
 import javax.swing.JOptionPane
 import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JScrollPane
 import javax.swing.JTextArea
-import javax.swing.ListCellRenderer
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -154,42 +153,49 @@ class AvailDebugger internal constructor (
 	val runtime = debuggerModel.runtime
 
 	/** Renders entries in the list of fibers. */
-	class FiberRenderer : ListCellRenderer<A_Fiber>
+	class FiberRenderer : DefaultListCellRenderer()
 	{
 		override fun getListCellRendererComponent(
-			list: JList<out A_Fiber>,
-			fiber: A_Fiber,
+			list: JList<*>?,
+			fiber: Any?,
 			index: Int,
 			isSelected: Boolean,
-			cellHasFocus: Boolean): Component
-		{
-			return fiber.run {
-				JLabel("[$executionState] ${fiberName.asNativeString()}")
-			}
-		}
+			cellHasFocus: Boolean
+		): Component = super.getListCellRendererComponent(
+			list,
+			(fiber as A_Fiber).run {
+				"[$executionState] ${fiberName.asNativeString()}"
+			},
+			index,
+			isSelected,
+			cellHasFocus)
 	}
 
 	/** Renders entries in the list of frames ([A_Continuation]s) of a fiber. */
-	class FrameRenderer : ListCellRenderer<A_Continuation>
+	class FrameRenderer : DefaultListCellRenderer()
 	{
 		override fun getListCellRendererComponent(
-			list: JList<out A_Continuation>,
-			frame: A_Continuation,
+			list: JList<*>?,
+			frame: Any?,
 			index: Int,
 			isSelected: Boolean,
-			cellHasFocus: Boolean): Component
-		{
-			val code = frame.function().code()
-			val module = code.module
-			val text = String.format(
-				"%s (%s:%d) pc=%d",
-				code.methodName.asNativeString(),
-				if (module.isNil) "?"
-				else module.moduleNameNative,
-				frame.currentLineNumber(),
-				frame.pc())
-			return JLabel(text)
-		}
+			cellHasFocus: Boolean
+		): Component = super.getListCellRendererComponent(
+			list,
+			(frame as A_Continuation).run {
+				val code = function().code()
+				val module = code.module
+				String.format(
+					"%s (%s:%d) pc=%d",
+					code.methodName.asNativeString(),
+					if (module.isNil) "?"
+					else module.moduleNameNative,
+					frame.currentLineNumber(),
+					frame.pc())
+			},
+			index,
+			isSelected,
+			cellHasFocus)
 	}
 
 	private val inspectFrame = object :
@@ -208,7 +214,7 @@ class AvailDebugger internal constructor (
 		val name: String,
 		val value: AvailObject)
 	{
-		val label = JLabel("$name = ${stringIfSimple(value)}")
+		val presentationString = "$name = ${stringIfSimple(value)}"
 
 		/**
 		 * Answer a [String] representation of the given [value] if it's simple,
@@ -241,15 +247,22 @@ class AvailDebugger internal constructor (
 	}
 
 	/** Renders variables in the variables list view. */
-	class VariablesRenderer : ListCellRenderer<Variable>
+	class VariablesRenderer : DefaultListCellRenderer()
 	{
 		override fun getListCellRendererComponent(
-			list: JList<out Variable>,
-			variable: Variable,
+			list: JList<*>?,
+			variable: Any?,
 			index: Int,
 			isSelected: Boolean,
-			cellHasFocus: Boolean
-		) = variable.label
+			cellHasFocus: Boolean): Component
+		{
+			return super.getListCellRendererComponent(
+				list,
+				(variable as Variable).presentationString,
+				index,
+				isSelected,
+				cellHasFocus)
+		}
 	}
 
 	/**

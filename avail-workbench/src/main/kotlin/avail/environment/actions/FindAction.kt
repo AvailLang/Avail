@@ -51,6 +51,7 @@ import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JLabel
 import javax.swing.JPanel
+import javax.swing.JTextArea
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
@@ -142,7 +143,7 @@ class FindAction constructor(
 		{
 			createDialog()
 		}
-		textPane = workbench.mostRecentFocusOwner as? JTextComponent ?: return
+		textPane = workbench.mostRecentFocusOwner as? JTextArea ?: return
 		highlighter = textPane!!.highlighter
 		textPane!!.document.addDocumentListener(documentListener)
 		val selectionColor = textPane!!.selectionColor

@@ -189,6 +189,7 @@ import javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_AS_NEEDED
 import javax.swing.ScrollPaneConstants.VERTICAL_SCROLLBAR_ALWAYS
 import javax.swing.SwingUtilities.invokeLater
 import javax.swing.SwingWorker
+import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
 import javax.swing.text.SimpleAttributeSet
@@ -2483,6 +2484,7 @@ class AvailWorkbench internal constructor (
 					{
 						System.err.println("Failed to initialize LaF")
 					}
+					UIManager.put("ScrollPane.smoothScrolling", false)
 				}
 				swingReady.release()
 			}
