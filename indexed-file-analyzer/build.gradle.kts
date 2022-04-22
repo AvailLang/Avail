@@ -39,11 +39,15 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		url = uri("${rootProject.rootDir}/libs/")
+	}
 }
 
 dependencies {
-	implementation(project(":avail-storage"))
+	implementation("org.availlang:avail-storage:${Versions.availStorageVersion}")
 	implementation(project(":avail-core"))
 }
 

@@ -42,6 +42,7 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
 	maven {
 		url = uri(Repositories.ossSonaType)
@@ -50,8 +51,8 @@ repositories {
 
 dependencies {
 	// Avail.
-	implementation(project(":avail-json"))
-	implementation(project(":avail-storage"))
+	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
+	implementation("org.availlang:avail-storage:${Versions.availStorageVersion}")
 	implementation(project(":avail-core"))
 	AvailWorkbenchModule.addDependencies(this)
 }
