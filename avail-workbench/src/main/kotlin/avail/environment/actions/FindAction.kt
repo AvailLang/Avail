@@ -143,7 +143,7 @@ class FindAction constructor(
 		{
 			createDialog()
 		}
-		textPane = workbench.mostRecentFocusOwner as? JTextArea ?: return
+		textPane = workbench.mostRecentFocusOwner as? JTextComponent ?: return
 		highlighter = textPane!!.highlighter
 		textPane!!.document.addDocumentListener(documentListener)
 		val selectionColor = textPane!!.selectionColor

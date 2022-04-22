@@ -48,7 +48,6 @@ import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.commandPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionForPhrase

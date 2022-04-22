@@ -301,9 +301,6 @@ import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
-import java.nio.ByteBuffer
-import java.nio.charset.CodingErrorAction
-import java.nio.charset.StandardCharsets
 import java.util.Arrays
 import java.util.Collections.emptyList
 import java.util.Formatter
@@ -4078,19 +4075,14 @@ class AvailCompiler constructor(
 			withSource: (String)->Unit)
 		{
 			val ref = resolvedName.resolverReference
-			val decoder = StandardCharsets.UTF_8.newDecoder()
-			decoder.onMalformedInput(CodingErrorAction.REPLACE)
-			decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
-			ref.readFile(
+			ref.readFileString(
 				false,
 				{ content, _ ->
 					try
 					{
-						val source =
-							decoder.decode(ByteBuffer.wrap(content)).toString()
 						runtime.execute(compilerPriority)
 						{
-							withSource(source)
+							withSource(content)
 						}
 					}
 					catch (e: Throwable)

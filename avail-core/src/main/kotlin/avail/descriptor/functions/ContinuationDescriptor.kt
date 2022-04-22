@@ -41,6 +41,7 @@ import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
 import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.function
+import avail.descriptor.functions.A_Continuation.Companion.highlightPc
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Continuation.Companion.numSlots
 import avail.descriptor.functions.A_Continuation.Companion.pc
@@ -280,19 +281,20 @@ class ContinuationDescriptor private constructor(
 	override fun o_Caller(self: AvailObject): A_Continuation = self.slot(CALLER)
 
 	override fun o_CurrentLineNumber(
-		self: AvailObject
+		self: AvailObject,
+		topFrame: Boolean
 	): Int
 	{
 		val code = self.function().code()
 		val encodedDeltas = code.lineNumberEncodedDeltas
 		val instructionDecoder = L1InstructionDecoder()
 		code.setUpInstructionDecoder(instructionDecoder)
-		val thisPc = self.pc()
+		val thisPc = self.highlightPc(topFrame)
 		instructionDecoder.pc(1)
 		var lineNumber = code.codeStartingLineNumber
 		var instructionCounter = 1
 		while (!instructionDecoder.atEnd()
-			&& instructionDecoder.pc() < thisPc)
+			&& instructionDecoder.pc() <= thisPc)
 		{
 			val encodedDelta = encodedDeltas.tupleIntAt(instructionCounter++)
 			val decodedDelta =
@@ -472,6 +474,26 @@ class ContinuationDescriptor private constructor(
 			hash
 		}
 
+	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int
+	{
+		val pc = self.pc()
+		if (topFrame) return pc
+		// Find the previous pc.
+		val code = self.function().code()
+		val instructionDecoder = L1InstructionDecoder()
+		code.setUpInstructionDecoder(instructionDecoder)
+		instructionDecoder.pc(1)
+		var previousPc = 1
+		while (!instructionDecoder.atEnd() && instructionDecoder.pc() < pc)
+		{
+			// Skip one nybblecode instruction.
+			previousPc = instructionDecoder.pc()
+			val op = instructionDecoder.getOperation()
+			repeat(op.operandTypes.size) { instructionDecoder.getOperand() }
+		}
+		return previousPc
+	}
+
 	override fun o_Kind(self: AvailObject): A_Type =
 		continuationTypeForFunctionType(self.function().kind())
 
@@ -505,7 +527,7 @@ class ContinuationDescriptor private constructor(
 				append(module.shortModuleNameNative)
 			}
 			append(":")
-			append(self.currentLineNumber())
+			append(self.currentLineNumber(false))
 			append(")")
 			val primitive = code.codePrimitive()
 			if (primitive === P_CatchException)
@@ -873,7 +895,7 @@ class ContinuationDescriptor private constructor(
 						signature,
 						if (module.isNil) "?"
 						else module.moduleNameNative,
-						frame.currentLineNumber())
+						frame.currentLineNumber(frameIndex == 0))
 				}
 				assert (allTypesIndex == allTypeNames.size)
 				action(strings.map { it!! })

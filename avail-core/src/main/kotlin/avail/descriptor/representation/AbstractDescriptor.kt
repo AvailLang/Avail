@@ -3752,7 +3752,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_LineNumberEncodedDeltas (self: AvailObject): A_Tuple
 
-	abstract fun o_CurrentLineNumber (self: AvailObject): Int
+	abstract fun o_CurrentLineNumber (
+		self: AvailObject, topFrame: Boolean): Int
 
 	abstract fun o_FiberResultType (self: AvailObject): A_Type
 
@@ -3892,6 +3893,8 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
 
 	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject
+
+	abstract fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int
 
 	companion object
 	{

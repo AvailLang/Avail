@@ -57,7 +57,7 @@ internal class AvailBinaryFile constructor(
 
 	init
 	{
-		fileWrapper.reference.readFile(true,
+		fileWrapper.reference.readFileBytes(true,
 			{ bytes, _ ->
 				try
 				{

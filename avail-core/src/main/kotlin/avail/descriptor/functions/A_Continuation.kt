@@ -237,8 +237,8 @@ interface A_Continuation : A_BasicObject
 		 *
 		 * @return The line number within the defining module.
 		 */
-		fun A_Continuation.currentLineNumber(): Int =
-			dispatch { o_CurrentLineNumber(it) }
+		fun A_Continuation.currentLineNumber(topFrame: Boolean): Int =
+			dispatch { o_CurrentLineNumber(it, topFrame) }
 
 		/**
 		 * Answer the [ContinuationRegisterDumpDescriptor] object that was
@@ -256,5 +256,13 @@ interface A_Continuation : A_BasicObject
 		 * caller's caller, etc).  It will be ≥ 0.
 		 */
 		fun A_Continuation.callDepth(): Int = dispatch { o_CallDepth(it) }
+
+		/**
+		 * Determine which nybblecode index is "current" for this continuation.
+		 * If this is not the top frame, use the instruction previous to the
+		 * current [pc].
+ 		 */
+		fun A_Continuation.highlightPc(isTopFrame: Boolean): Int =
+			dispatch { o_HighlightPc(it, isTopFrame) }
 	}
 }

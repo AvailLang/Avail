@@ -43,7 +43,6 @@ import avail.compiler.problems.ProblemHandler
 import avail.compiler.problems.ProblemType.EXECUTION
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor.Companion.loaderPriority
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function

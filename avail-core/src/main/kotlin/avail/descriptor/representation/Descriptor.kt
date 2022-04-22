@@ -2587,13 +2587,15 @@ protected constructor (
 	override fun o_LineNumberEncodedDeltas (self: AvailObject): A_Tuple =
 		unsupported
 
-	override fun o_CurrentLineNumber (self: AvailObject): Int = unsupported
+	override fun o_CurrentLineNumber (
+		self: AvailObject, topFrame: Boolean
+	): Int = unsupported
 
 	override fun o_FiberResultType (self: AvailObject): A_Type = unsupported
 
 	override fun o_TestingTree (
-			self: AvailObject): LookupTree<A_Definition, A_Tuple> =
-		unsupported
+		self: AvailObject
+	): LookupTree<A_Definition, A_Tuple> = unsupported
 
 	override fun o_ForEach (
 			self: AvailObject,
@@ -2754,5 +2756,8 @@ protected constructor (
 		unsupported
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
+		unsupported
+
+	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int =
 		unsupported
 }

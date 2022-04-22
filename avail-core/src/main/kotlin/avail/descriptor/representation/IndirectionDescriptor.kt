@@ -133,6 +133,7 @@ import avail.descriptor.functions.A_Continuation.Companion.deoptimizedForDebugge
 import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
+import avail.descriptor.functions.A_Continuation.Companion.highlightPc
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoChunk
 import avail.descriptor.functions.A_Continuation.Companion.levelTwoOffset
 import avail.descriptor.functions.A_Continuation.Companion.numSlots
@@ -3681,8 +3682,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_LineNumberEncodedDeltas(self: AvailObject): A_Tuple =
 		self .. { lineNumberEncodedDeltas }
 
-	override fun o_CurrentLineNumber(self: AvailObject): Int =
-		self .. { currentLineNumber() }
+	override fun o_CurrentLineNumber(
+		self: AvailObject, topFrame: Boolean
+	): Int = self .. { currentLineNumber(topFrame) }
 
 	override fun o_FiberResultType(self: AvailObject): A_Type =
 		self .. { fiberResultType }
@@ -3881,4 +3883,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
 		self .. { getValueForDebugger() }
+
+	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int =
+		self .. { highlightPc(topFrame) }
 }

@@ -73,7 +73,7 @@ internal class AvailModuleFile : AbstractAvailTextFile
 		fileWrapper: AbstractFileWrapper,
 		charset: Charset = Charsets.UTF_8): super(charset, fileWrapper)
 	{
-		fileWrapper.reference.readFile(true,
+		fileWrapper.reference.readFileBytes(true,
 		{ bytes, _ ->
 			val decoder = charset.newDecoder()
 			decoder.onMalformedInput(CodingErrorAction.REPLACE)
@@ -90,7 +90,7 @@ internal class AvailModuleFile : AbstractAvailTextFile
 						fileWrapper.reference.uri)
 				e.printStackTrace()
 				fileWrapper.notifyOpenFailure(FileErrorCode.DECODER_FAILURE, e)
-				return@readFile
+				return@readFileBytes
 			}
 			catch (e: Throwable)
 			{
@@ -99,7 +99,7 @@ internal class AvailModuleFile : AbstractAvailTextFile
 						fileWrapper.reference.uri)
 				e.printStackTrace()
 				fileWrapper.notifyOpenFailure(FileErrorCode.UNSPECIFIED, e)
-				return@readFile
+				return@readFileBytes
 			}
 			fileWrapper.notifyReady()
 		}) { code, ex ->

@@ -46,6 +46,9 @@ import avail.files.NullFileWrapper
 import avail.persistence.cache.Repository
 import org.availlang.json.JSONWriter
 import java.net.URI
+import java.nio.ByteBuffer
+import java.nio.charset.CodingErrorAction
+import java.nio.charset.StandardCharsets
 import java.security.MessageDigest
 import java.util.Deque
 import java.util.LinkedList
@@ -451,12 +454,30 @@ class ResolverReference constructor(
 	 *   A function that accepts a [ErrorCode] that describes the nature
 	 *   of the failure and a `nullable` [Throwable].
 	 */
-	fun readFile (
+	fun readFileBytes (
 		bypassFileManager: Boolean,
 		withContents: (ByteArray, UUID?) -> Unit,
 		failureHandler: (ErrorCode, Throwable?) -> Unit)
 	{
 		resolver.readFile(bypassFileManager, this, withContents, failureHandler)
+	}
+
+	//TODO Document
+	fun readFileString (
+		bypassFileManager: Boolean,
+		withContents: (String, UUID?) -> Unit,
+		failureHandler: (ErrorCode, Throwable?) -> Unit)
+	{
+		val decoder = StandardCharsets.UTF_8.newDecoder()
+		decoder.onMalformedInput(CodingErrorAction.REPLACE)
+		decoder.onUnmappableCharacter(CodingErrorAction.REPLACE)
+		readFileBytes(
+			bypassFileManager,
+			{ bytes, uuid ->
+				withContents(
+					decoder.decode(ByteBuffer.wrap(bytes)).toString(), uuid)
+			},
+			failureHandler)
 	}
 
 	override fun equals(other: Any?): Boolean

@@ -33,6 +33,7 @@
 package avail.environment.debugger
 
 import avail.AvailDebuggerModel
+import avail.builder.ModuleName
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.A_Bundle.Companion.message
@@ -58,6 +59,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
@@ -69,6 +71,7 @@ import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.environment.AvailWorkbench
+import avail.environment.JTextWithLineNumbers
 import avail.environment.actions.AbstractWorkbenchAction
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Disassembler
@@ -101,6 +104,7 @@ import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
+import kotlin.math.max
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -117,7 +121,7 @@ import javax.swing.text.Highlighter.HighlightPainter
  * │ Into │ Over │ Out │ To Line │ Resume │ Restart │       │
  * ├──────┴──────┴─────┴───┬─────┴────────┴─────────┴───────┤
  * │                       │                                │
- * │ Code                  │  Source (TODO)                 │
+ * │ Code                  │  Source                        │
  * │                       │                                │
  * ├────────────────┬──────┴────────────────────────────────┤
  * │                │                                       │
@@ -190,7 +194,7 @@ class AvailDebugger internal constructor (
 					code.methodName.asNativeString(),
 					if (module.isNil) "?"
 					else module.moduleNameNative,
-					frame.currentLineNumber(),
+					frame.currentLineNumber(index == 0),
 					frame.pc())
 			},
 			index,
@@ -310,8 +314,54 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
+	 * A cache of the source code for [A_Module]s, each with a [List] of
+	 * positions in the string where a linefeed occurs.
+	 */
+	private val sourceCache =
+		synchronizedMap<A_Module, Pair<String, List<Int>>>(
+			mutableMapOf())
+
+	/**
+	 * Extract the source of the current frame's module, along with the list
+	 * of positions where linefeeds are.
+	 */
+	private fun sourceWithLineEndsThen(
+		module: A_Module,
+		then: (String, List<Int>)->Unit)
+	{
+		// Access the cache in a wait-free manner, where multiple simultaneous
+		// requesters for the same source code will simply compute the
+		// (idempotent) value redundantly.
+		sourceCache[module]?.let {
+			then(it.first, it.second)
+			return
+		}
+		// The source isn't cached yet.  Compute it in an AvailThread.
+		runtime.whenRunningInterpretersDo(debuggerPriority) {
+			val name = module.moduleNameNative
+			val resolverReference =
+				runtime.moduleNameResolver.resolve(
+					ModuleName(name), null
+				).resolverReference
+			resolverReference.readFileString(
+				false,
+				{ string, _ ->
+					val lineEnds = string.withIndex()
+						.filter { it.value == '\n' }
+						.map { it.index }
+					// Write to the cache, even if it overwrites.
+					sourceCache[module] = string to lineEnds
+					then(string, lineEnds)
+				},
+				{ errorCode, _ ->
+					then("Cannot retrieve source: $errorCode", emptyList())
+				})
+		}
+	}
+
+	/**
 	 * The [HighlightPainter] with which to show the current instruction in the
-	 * [codePane].  This is updated to something sensible as part of opening the
+	 * [disassemblyPane].  This is updated to something sensible as part of opening the
 	 * frame.
 	 */
 	private var codeHighlightPainter = DefaultHighlightPainter(Color.BLACK)
@@ -419,7 +469,7 @@ class AvailDebugger internal constructor (
 		selectionModel.addListSelectionListener {
 			if (!it.valueIsAdjusting)
 			{
-				updateCodePane()
+				updateDisassemblyAndSourcePanes()
 				updateVariablesList()
 			}
 		}
@@ -432,10 +482,18 @@ class AvailDebugger internal constructor (
 	private val resumeButton = JButton(resumeAction)
 	private val restartButton = JButton(restartAction)
 
-	/** A view of the source code or L1 disassembly for the selected frame. */
-	private val codePane = JTextArea().apply {
+	/** A view of the L1 disassembly for the selected frame. */
+	private val disassemblyPane = JTextArea().apply {
 		lineWrap = false
 		tabSize = 2
+		isEditable = false
+	}
+
+	/** A view of the source code for the selected frame. */
+	private val sourcePane = JTextArea().apply {
+		lineWrap = false
+		tabSize = 2
+		isEditable = false
 	}
 
 	/** The list of variables in scope in the selected frame. */
@@ -456,11 +514,25 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
-	 * The [A_RawFunction] currently displayed in the [codePane].  This assists
-	 * caching to avoid having to disassemble the code repeatedly during
+	 * The [A_RawFunction] currently displayed in the [disassemblyPane].  This
+	 * assists caching to avoid having to disassemble the code repeatedly during
 	 * stepping.
 	 */
 	private var currentCode: A_RawFunction = nil
+
+	/**
+	 * The [A_Module] of the [A_RawFunction] currently displayed in the
+	 * [sourcePane].  This assists caching to avoid having to fetch the source
+	 * repeatedly during stepping.
+	 */
+	private var currentModule: A_Module = nil
+
+	/**
+	 * A pair consisting of the current source [String] and a [List] of [Int]s
+	 * that indicate the position of each linefeed in the source.
+	 */
+	private var currentSourceAndLineEnds: Pair<String, List<Int>> =
+		Pair("", emptyList())
 
 	/**
 	 * Either the current fiber has changed or that fiber has made progress, so
@@ -501,7 +573,7 @@ class AvailDebugger internal constructor (
 	 * The selected stack frame has changed.  Note that stepping causes the top
 	 * stack frame to be replaced.
 	 */
-	private fun updateCodePane()
+	private fun updateDisassemblyAndSourcePanes()
 	{
 		val isTopFrame = stackListPane.selectedIndex == 0
 		when (val frame = stackListPane.selectedValue)
@@ -509,19 +581,21 @@ class AvailDebugger internal constructor (
 			null ->
 			{
 				currentCode = nil
-				codePane.highlighter.removeAllHighlights()
-				codePane.text = ""
+				disassemblyPane.highlighter.removeAllHighlights()
+				disassemblyPane.text = ""
+				sourcePane.highlighter.removeAllHighlights()
+				sourcePane.text = ""
 			}
 			else ->
 			{
 				val code = frame.function().code()
 				disassembledWithMapThen(code) { text, map ->
 					SwingUtilities.invokeLater {
-						codePane.highlighter.removeAllHighlights()
+						disassemblyPane.highlighter.removeAllHighlights()
 						if (!code.equals(currentCode))
 						{
 							currentCode = code
-							codePane.text = text
+							disassemblyPane.text = text
 						}
 						val pc = frame.pc()
 						val highlightPc = when (isTopFrame)
@@ -534,17 +608,94 @@ class AvailDebugger internal constructor (
 							}
 						}
 						map[highlightPc]?.let { range ->
-							codePane.highlighter.addHighlight(
+							disassemblyPane.highlighter.addHighlight(
 								range.first,
 								range.last + 1,
 								if (isTopFrame) codeHighlightPainter
 								else secondaryCodeHighlightPainter)
-							codePane.select(range.first, range.last + 1)
+							// Swing doesn't correctly scroll to the selected
+							// line if it's just above the top of the viewport.
+							// To compensate, we first select the previous line,
+							// then the correct one.
+							val endOfPrevious = max(range.first - 1, 0)
+							disassemblyPane.select(endOfPrevious, endOfPrevious)
+							disassemblyPane.select(range.first, range.last + 1)
 						}
 					}
 				}
+				val module = code.module
+				if (!module.equals(currentModule))
+				{
+					SwingUtilities.invokeLater {
+						sourcePane.text = "Fetching source..."
+					}
+					if (module.notNil)
+					{
+						sourceWithLineEndsThen(module) { source, lineEnds ->
+							currentSourceAndLineEnds = Pair(source, lineEnds)
+							SwingUtilities.invokeLater {
+								sourcePane.text = source
+								highlightSourceLine(
+									frame.currentLineNumber(isTopFrame),
+									isTopFrame)
+							}
+						}
+					}
+				}
+				else
+				{
+					// We still have to update the highlight.
+					highlightSourceLine(
+						frame.currentLineNumber(isTopFrame),
+						isTopFrame)
+				}
 			}
 		}
+	}
+
+	/**
+	 * Highlight the line in the [sourcePane] corresponding to the line number
+	 * that is listed for the current L1 program counter in the current frame.
+	 */
+	private fun highlightSourceLine(
+		lineNumber: Int,
+		isTopFrame: Boolean)
+	{
+		val source = currentSourceAndLineEnds.first
+		val lineEnds = currentSourceAndLineEnds.second
+		if (lineNumber == 0)
+		{
+			// Don't change the highlight if the line number is 0, indicating
+			// an instruction from a generated phrase.
+			return
+		}
+		val rangeStart = when
+		{
+			lineNumber <= 1 -> 0
+			lineNumber <= lineEnds.size + 1 ->
+				lineEnds[lineNumber - 2] + 1
+			else -> source.length - 1
+		}
+		val rangeEnd = when
+		{
+			lineEnds.isEmpty() -> source.length
+			lineNumber <= 1 -> lineEnds[0]
+			lineNumber <= lineEnds.size ->
+				lineEnds[lineNumber - 1]
+			else -> source.length
+		}
+		sourcePane.highlighter.addHighlight(
+			rangeStart,
+			rangeEnd + 1,
+			if (isTopFrame) codeHighlightPainter
+			else secondaryCodeHighlightPainter)
+		// Swing doesn't correctly scroll to the selected
+		// line if it's just above the top of the viewport.
+		// To compensate, we first select the previous line,
+		// then the correct one.
+		val endOfPrevious = max(rangeStart - 1, 0)
+		sourcePane.select(endOfPrevious, endOfPrevious)
+		sourcePane.select(rangeStart, rangeEnd)
 	}
 
 	/**
@@ -697,6 +848,9 @@ class AvailDebugger internal constructor (
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
+		val sourceWithLineNumbers = JTextWithLineNumbers(sourcePane)
+		val scrollSourceWithLineNumbers = JScrollPane()
+		sourceWithLineNumbers.addTo(scrollSourceWithLineNumbers)
 		panel.layout = GroupLayout(panel).apply {
 			val pref = PREFERRED_SIZE
 			//val def = DEFAULT_SIZE
@@ -714,7 +868,9 @@ class AvailDebugger internal constructor (
 						.addComponent(stepToLineButton)
 						.addComponent(resumeButton)
 						.addComponent(restartButton))
-					.addComponent(scroll(codePane))
+					.addGroup(createSequentialGroup()
+						.addComponent(scroll(disassemblyPane))
+						.addComponent(scrollSourceWithLineNumbers))
 					.addGroup(createSequentialGroup()
 						.addComponent(scroll(variablesPane), 60, 60, max)
 						.addComponent(scroll(variableValuePane), 100, 100, max)))
@@ -730,7 +886,10 @@ class AvailDebugger internal constructor (
 						.addComponent(stepToLineButton, pref, pref, pref)
 						.addComponent(resumeButton, pref, pref, pref)
 						.addComponent(restartButton, pref, pref, pref))
-					.addComponent(scroll(codePane), 150, 150, max)
+					.addGroup(createParallelGroup()
+						.addComponent(scroll(disassemblyPane), 150, 150, max)
+						.addComponent(
+							scrollSourceWithLineNumbers, 150, 150, max))
 					.addGroup(createParallelGroup()
 						.addComponent(scroll(variablesPane), 80, 80, max)
 						.addComponent(scroll(variableValuePane), 80, 80, max)))
@@ -748,7 +907,7 @@ class AvailDebugger internal constructor (
 		add(panel)
 		pack()
 		codeHighlightPainter = run {
-			val selectionColor = codePane.selectionColor
+			val selectionColor = disassemblyPane.selectionColor
 			val currentLineColor = AvailWorkbench.AdaptiveColor(
 				selectionColor.darker(), selectionColor.brighter())
 			DefaultHighlightPainter(currentLineColor.color)
