@@ -456,7 +456,7 @@ internal class Catalog
 		/** The source paths to search for matching files. */
 		internal val rootPaths = listOf(
 			// The Java search path.
-			Paths.get("src"),
+//			Paths.get("src"),
 			// The Avail search path.
 			Paths.get("distro", "src"))
 

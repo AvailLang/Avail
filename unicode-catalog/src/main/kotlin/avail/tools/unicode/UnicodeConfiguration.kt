@@ -45,6 +45,6 @@ import java.nio.file.Paths
 internal class UnicodeConfiguration : Configuration {
 	/** The [directory][Path] containing the JSON files. */
 	internal var catalogPath = Paths.get(
-		"src", "main", "kotlin", "com", "avail", "tools",
+		"unicode-catalog", "src", "main", "kotlin", "avail", "tools",
 		"unicode", "generated")
 }
