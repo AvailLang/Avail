@@ -38,12 +38,16 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		url = uri("${rootProject.rootDir}/libs/")
+	}
 }
 
 dependencies {
 	// Avail.
-	implementation(project(":avail-json"))
+	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
 	implementation(project(":avail-core"))
 }
 tasks {

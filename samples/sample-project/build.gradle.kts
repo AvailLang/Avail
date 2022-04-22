@@ -69,6 +69,7 @@ dependencies {
     // The module that is the foreign function interface that provides Pojos
     // written in Java that is usable by Avail.
     implementation(project(":avail-java-ffi"))
+    implementation("org.availlang:avail-json:1.0.7")
 
     // Dependency prevents SLF4J warning from being printed
     // see: http://www.slf4j.org/codes.html#noProviders

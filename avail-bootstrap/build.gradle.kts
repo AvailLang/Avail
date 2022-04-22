@@ -40,11 +40,15 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		url = uri("${rootProject.rootDir}/libs/")
+	}
 }
 
 dependencies {
-	implementation(project(":avail-json"))
+	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
 	implementation(project(":avail-core"))
 	AvailBootstrapModule.addDependencies(this)
 }

@@ -42,14 +42,19 @@ plugins {
 
 group = "org.availlang"
 version = "1.0.7"
+val availJsonVersion = "1.0.7"
 
 repositories {
+    mavenLocal()
     mavenCentral()
+    maven {
+        url = uri("${rootProject.rootDir}/libs/")
+    }
 }
 
 dependencies {
     implementation(kotlin("stdlib"))
-    testImplementation(project(":avail-json"))
+    testImplementation("org.availlang:avail-json:$availJsonVersion")
     AvailStorageModule.addDependencies(this)
 }
 

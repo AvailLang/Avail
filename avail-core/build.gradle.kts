@@ -44,11 +44,28 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		url = uri("${rootProject.rootDir}/libs/")
+	}
+}
+
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		(this as JavaToolchainSpec).languageVersion.set(
+			JavaLanguageVersion.of(Versions.jvmTargetString))
+	}
 }
 
 dependencies {
-	api(project(":avail-json"))
+	api("org.availlang:avail-json:${Versions.availJsonVersion}")
 	api(project(":avail-storage"))
 	testApi(project(":avail-test-utility"))
 	AvailCoreModule.addDependencies(this)

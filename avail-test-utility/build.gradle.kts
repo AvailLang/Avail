@@ -36,7 +36,11 @@ plugins {
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+	maven {
+		url = uri("${rootProject.rootDir}/libs/")
+	}
 }
 
 dependencies {

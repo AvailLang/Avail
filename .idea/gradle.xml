@@ -12,7 +12,6 @@
             <option value="$PROJECT_DIR$/avail-bootstrap" />
             <option value="$PROJECT_DIR$/avail-cli" />
             <option value="$PROJECT_DIR$/avail-core" />
-            <option value="$PROJECT_DIR$/avail-json" />
             <option value="$PROJECT_DIR$/avail-server" />
             <option value="$PROJECT_DIR$/avail-stdlib" />
             <option value="$PROJECT_DIR$/avail-storage" />

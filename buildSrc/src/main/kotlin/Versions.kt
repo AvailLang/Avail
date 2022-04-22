@@ -69,7 +69,7 @@ object Versions
 	const val jsrVersion = "3.0.2"
 
 	/** The `org.junit.jupiter:junit-jupiter` version. */
-	const val junitVersion = "5.7.2"
+	const val junitVersion = "5.8.2"
 
 	/** The language level version of Kotlin. */
 	const val kotlinLanguage = "1.6"
@@ -80,6 +80,10 @@ object Versions
 	/** The JVM target version for Kotlin. */
 	const val jvmTargetString = jvmTarget.toString()
 
+	/**
+	 * The version of `org.availlang:avail-json`.
+	 */
+	const val availJsonVersion = "1.0.7"
 
 	/** The JVM target version for Kotlin. */
 	const val intellij = "1.3.1"
