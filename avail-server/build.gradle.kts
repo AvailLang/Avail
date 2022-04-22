@@ -50,7 +50,7 @@ repositories {
 dependencies {
 	// Avail.
 	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
-	implementation(project(":avail-storage"))
+	implementation("org.availlang:avail-storage:${Versions.availStorageVersion}")
 	implementation(project(":avail-core"))
 	testImplementation(project(":avail-test-utility"))
 	AvailServerModule.addDependencies(this)
