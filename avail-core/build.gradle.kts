@@ -34,6 +34,7 @@ import avail.build.computeAvailRootsForTest
 import avail.build.modules.AvailCoreModule
 import avail.build.releaseAvail
 import avail.build.scrubReleases
+import avail.plugins.gradle.GenerateFileManifestTask
 
 plugins {
 	java
@@ -74,33 +75,26 @@ dependencies {
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
+	val generated = layout.buildDirectory.dir("generated-resources")
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
-	val generatePrimitivesList by creating {
-		val sourcesPath = layout.projectDirectory.dir("src/main/kotlin")
-		val primitivesSourceTree = fileTree(sourcesPath)
-		{
-			include("avail/interpreter/primitive/**/P_*.kt")
+	val generatePrimitivesList by creating(GenerateFileManifestTask::class) {
+		basePath = layout.projectDirectory.dir("src/main/kotlin").asFile.path
+		inputs.files(
+			fileTree(basePath) {
+				include("avail/interpreter/primitive/**/P_*.kt")
+			})
+		outputs.dir(generated)
+		outputFilePath = "avail/interpreter/All_Primitives.txt"
+		fileNameTransformer = {
+			// Transform from a relative path to a fully qualified class name.
+			replaceFirst(".kt", "").replace("/", ".")
 		}
-		inputs.files(primitivesSourceTree)
-		// Ensure the resource directory is created in the build folder
-		outputs.file(layout.buildDirectory.file("resources/main/avail/interpreter/All_Primitives.txt"))
+	}
 
-		doLast {
-			val baseSourcePath = primitivesSourceTree.dir.path + "/"
-			val allPrimitiveNames = primitivesSourceTree.map {
-				it.absolutePath
-					.replace("\\\\", "/")
-					.replaceFirst(baseSourcePath, "")
-					.replaceFirst(".kt", "")
-					.replace("/", ".")
-			}.sorted().joinToString("\n")
-			val outFile = outputs.files.singleFile
-			if (!outFile.exists() || outFile.readText() != allPrimitiveNames)
-			{
-				outFile.parentFile.mkdirs()
-				outFile.writeText(allPrimitiveNames)
-			}
+	sourceSets.main {
+		resources {
+			srcDir(generatePrimitivesList)
 		}
 	}
 
@@ -117,11 +111,6 @@ tasks {
 		manifest.attributes["Implementation-Version"] = project.version
 		// The All_Primitives.txt file must be added to the build resources
 		// directory before we can build the jar.
-		dependsOn(generatePrimitivesList)
-	}
-
-	shadowJar {
-		dependsOn(generatePrimitivesList)
 	}
 
 	// Copy the JAR into the distribution directory.
@@ -205,11 +194,4 @@ tasks {
 			Publish.checkCredentials()
 		}
 	}
-
-//	publishToMavenLocal {
-//		// Copy updated version to `avail-plugin`. This only provides
-//		// `avail-plugin` with the new version, it does not publish
-//		// `avail-plugin`.
-//		dependsOn(rootProject.tasks.getByName("updatePluginPublishVersion"))
-//	}
 }
