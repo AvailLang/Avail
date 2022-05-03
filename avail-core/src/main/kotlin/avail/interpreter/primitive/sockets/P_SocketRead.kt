@@ -74,7 +74,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import java.lang.Integer.MAX_VALUE
 import java.nio.ByteBuffer
@@ -145,8 +144,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 				SimpleCompletionHandler(
 					{
 						buffer.flip()
-						runOutermostFunction(
-							runtime,
+						runtime.runOutermostFunction(
 							newFiber,
 							succeed,
 							listOf(
@@ -154,8 +152,7 @@ object P_SocketRead : Primitive(5, CanInline, HasSideEffect)
 								objectFromBoolean(value == -1)))
 					},
 					{
-						runOutermostFunction(
-							runtime,
+						runtime.runOutermostFunction(
 							newFiber,
 							fail,
 							listOf(E_IO_ERROR.numericCode()))

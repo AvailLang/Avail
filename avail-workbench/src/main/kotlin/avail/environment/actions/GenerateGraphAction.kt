@@ -53,7 +53,7 @@ import javax.swing.Action
 class GenerateGraphAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Generate graph")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 		val selectedModule = workbench.selectedModule()!!

@@ -32,7 +32,6 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
@@ -68,7 +67,6 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 
 /**
  * **Primitive:** Fork a new [fiber][FiberDescriptor] to execute the specified
@@ -124,7 +122,7 @@ object P_ForkOrphan : Primitive(
 		orphan.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
 		// Schedule the fiber to run the specified function.
-		runOutermostFunction(currentRuntime(), orphan, function, callArgs)
+		interpreter.runtime.runOutermostFunction(orphan, function, callArgs)
 		return interpreter.primitiveSuccess(nil)
 	}
 

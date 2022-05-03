@@ -52,7 +52,7 @@ import javax.swing.Action
 class UnloadAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Unload")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 		val selectedModule = workbench.selectedModule()!!

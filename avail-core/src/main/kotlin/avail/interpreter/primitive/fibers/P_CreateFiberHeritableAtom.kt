@@ -32,7 +32,6 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
@@ -48,15 +47,13 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
-import avail.exceptions.AvailErrorCode
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
-import avail.utility.Mutable
 
 /**
  * **Primitive:** Create a new [atom][AtomDescriptor] with the given name that
@@ -72,37 +69,27 @@ object P_CreateFiberHeritableAtom : Primitive(1, CanInline)
 	{
 		interpreter.checkArgumentCount(1)
 		val name = interpreter.argument(0)
-		val module = interpreter.module()
-		val trueName = Mutable<A_Atom?>(null)
-		val errorCode = Mutable<AvailErrorCode?>(null)
-		if (module.notNil)
+		return when (val module = interpreter.module())
 		{
-			module.lock {
+			nil -> interpreter.primitiveSuccess(
+				createAtom(name, nil).run {
+					setAtomProperty(HERITABLE_KEY.atom, trueObject)
+					makeShared()
+				})
+			else -> module.lock {
 				val trueNames = module.trueNamesForStringName(name)
 				when (trueNames.setSize) {
-					0 -> {
-						val newName = createAtom(name, module)
-						newName.setAtomProperty(
-							HERITABLE_KEY.atom, trueObject)
-						module.addPrivateName(newName)
-						trueName.value = newName
-					}
-					1 -> errorCode.value = E_ATOM_ALREADY_EXISTS
-					else -> errorCode.value = E_AMBIGUOUS_NAME
+					0 -> interpreter.primitiveSuccess(
+						createAtom(name, module).run {
+							setAtomProperty(HERITABLE_KEY.atom, trueObject)
+							module.addPrivateName(this)
+							makeShared()
+						})
+					1 -> interpreter.primitiveFailure(E_ATOM_ALREADY_EXISTS)
+					else -> interpreter.primitiveFailure(E_AMBIGUOUS_NAME)
 				}
 			}
 		}
-		else
-		{
-			val newName = createAtom(name, nil)
-			newName.setAtomProperty(HERITABLE_KEY.atom, trueObject)
-			trueName.value = newName
-		}
-		return if (errorCode.value !== null)
-		{
-			interpreter.primitiveFailure(errorCode.value!!)
-		}
-		else interpreter.primitiveSuccess(trueName.value!!.makeShared())
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =

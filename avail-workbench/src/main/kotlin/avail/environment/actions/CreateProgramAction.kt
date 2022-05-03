@@ -49,7 +49,7 @@ import javax.swing.Action
 class CreateProgramAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Create Program File…")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 

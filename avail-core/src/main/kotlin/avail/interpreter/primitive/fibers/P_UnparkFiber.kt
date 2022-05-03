@@ -32,7 +32,7 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.AvailRuntime.Companion.currentRuntime
+import avail.AvailRuntime
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
 import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
@@ -52,17 +52,16 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
 
 /**
  * **Primitive:** Unpark the specified [fiber][FiberDescriptor]. If the
  * [permit][SynchronizationFlag.PERMIT_UNAVAILABLE] associated with the fiber is
  * available, then simply continue. If the permit is not available, then restore
  * the permit and schedule
- * [resumption][Interpreter.resumeFromSuccessfulPrimitive] of the fiber. A newly
- * unparked fiber should always recheck the basis for its having parked, to see
- * if it should park again. Low-level synchronization mechanisms may require the
- * ability to spuriously unpark in order to ensure correctness.
+ * [resumption][AvailRuntime.resumeFromSuccessfulPrimitive] of the fiber. A
+ * newly unparked fiber should always recheck the basis for its having parked,
+ * to see if it should park again. Low-level synchronization mechanisms may
+ * require the ability to spuriously unpark in order to ensure correctness.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
@@ -87,8 +86,8 @@ object P_UnparkFiber : Primitive(1, CannotFail, CanInline, HasSideEffect)
 						assert(
 							suspendingPrimitive === P_ParkCurrentFiber
 								|| suspendingPrimitive === P_AttemptJoinFiber)
-						resumeFromSuccessfulPrimitive(
-							currentRuntime(), fiber, suspendingPrimitive, nil)
+						interpreter.runtime.resumeFromSuccessfulPrimitive(
+							fiber, suspendingPrimitive, nil)
 					}
 					else -> {
 						// Save the permit for next time.

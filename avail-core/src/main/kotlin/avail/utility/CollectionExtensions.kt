@@ -52,7 +52,7 @@ import java.util.concurrent.atomic.AtomicInteger
  */
 inline fun <K : Enum<K>, V: Any> Array<K>.toEnumMap (
 	generator: (K) -> V
-): EnumMap<K, V>
+) : EnumMap<K, V>
 {
 	val map = EnumMap<K, V>(this)
 	this.forEach { key -> map[key] = generator(key) }
@@ -77,7 +77,7 @@ inline fun <K : Enum<K>, V: Any> Array<K>.toEnumMap (
 inline fun <T, R> Iterable<T>.mapToSet (
 	destination: MutableSet<R> = mutableSetOf(),
 	transform: (T) -> R
-): MutableSet<R> = mapTo(destination, transform)
+) : MutableSet<R> = mapTo(destination, transform)
 
 /**
  * Given an [Iterable] receiver, run the normal `forEach` operation to produce
@@ -192,7 +192,7 @@ fun<E, R> List<E>.partitionedMap(
  */
 fun<E, K> List<E>.partitionRunsBy(
 	groupingKey: (E) -> K
-): List<List<E>>
+) : List<List<E>>
 {
 	if (isEmpty()) return emptyList()
 	val result = mutableListOf<List<E>>()

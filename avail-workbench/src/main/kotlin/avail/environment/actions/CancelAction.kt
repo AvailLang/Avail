@@ -47,10 +47,15 @@ import javax.swing.KeyStroke
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class CancelAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Cancel Build")
+class CancelAction
+constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(
+	workbench,
+	"Cancel Build",
+	KeyStroke.getKeyStroke("control ESCAPE"))
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		val task = workbench.backgroundTask
 		task?.cancel()
@@ -60,8 +65,5 @@ class CancelAction constructor(workbench: AvailWorkbench)
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION, "Cancel the current build process.")
-		putValue(
-			Action.ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke("control ESCAPE"))
 	}
 }

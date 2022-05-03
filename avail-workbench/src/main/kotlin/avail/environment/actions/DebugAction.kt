@@ -36,7 +36,9 @@ import avail.descriptor.fiber.A_Fiber
 import avail.environment.AvailWorkbench
 import avail.environment.debugger.AvailDebugger
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import javax.swing.Action
+import javax.swing.KeyStroke
 
 /**
  * The [DebugAction] opens a debugger on all extant Avail [fibers][A_Fiber].
@@ -47,12 +49,18 @@ import javax.swing.Action
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class DebugAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Debug")
+class DebugAction
+constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(
+	workbench,
+	"Debug",
+	KeyStroke.getKeyStroke(KeyEvent.VK_D, AvailWorkbench.menuShortcutMask))
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		val debugger = AvailDebugger(workbench)
+		debugger.debuggerModel.installFiberCapture(true)
 		debugger.gatherFibers { workbench.runtime.allFibers() }
 		debugger.open()
 	}

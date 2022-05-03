@@ -31,6 +31,7 @@
  */
 package avail.descriptor.representation
 
+import avail.AvailDebuggerModel
 import avail.annotations.EnumField
 import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
@@ -3895,6 +3896,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject
 
 	abstract fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int
+
+	abstract fun o_CaptureInDebugger(
+		self: AvailObject,
+		debugger: AvailDebuggerModel)
 
 	companion object
 	{

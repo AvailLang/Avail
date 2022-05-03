@@ -34,7 +34,6 @@ package avail.environment.actions
 
 import avail.environment.AvailWorkbench
 import java.awt.event.ActionEvent
-import java.awt.event.KeyEvent
 import javax.swing.Action
 import javax.swing.KeyStroke
 import javax.swing.SwingUtilities.invokeLater
@@ -49,10 +48,12 @@ import javax.swing.SwingUtilities.invokeLater
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class RefreshAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Refresh")
+class RefreshAction
+constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Refresh", KeyStroke.getKeyStroke("F5"))
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		runAction()
 	}
@@ -72,8 +73,5 @@ class RefreshAction constructor(workbench: AvailWorkbench)
 		putValue(
 			Action.SHORT_DESCRIPTION,
 			"Refresh the availability of top-level modules.")
-		putValue(
-			Action.ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(KeyEvent.VK_F5, 0))
 	}
 }

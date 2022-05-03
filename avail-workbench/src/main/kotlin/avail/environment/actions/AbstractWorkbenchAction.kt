@@ -35,6 +35,9 @@ package avail.environment.actions
 import avail.environment.AvailWorkbench
 import javax.swing.AbstractAction
 import javax.swing.Action
+import javax.swing.JComponent
+import javax.swing.JRootPane
+import javax.swing.KeyStroke
 
 /**
  * An abstraction for all the workbench's actions.
@@ -49,11 +52,25 @@ import javax.swing.Action
  *   The owning [AvailWorkbench].
  * @param name
  *   The action's name.
+ * @param keyStroke
+ *   The [KeyStroke] under which to install an action, with window-level scope.
  */
 abstract class AbstractWorkbenchAction constructor(
 	val workbench: AvailWorkbench,
-	name: String
+	name: String,
+	keyStroke: KeyStroke? = null,
+	private val rootPane: JRootPane = workbench.rootPane
 ) : AbstractAction(name)
 {
 	fun name(): String = getValue(Action.NAME) as String
+
+	init
+	{
+		keyStroke?.let {
+			putValue(Action.ACCELERATOR_KEY, keyStroke)
+			rootPane.actionMap.put(this, this)
+			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				keyStroke, this)
+		}
+	}
 }

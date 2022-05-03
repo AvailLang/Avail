@@ -59,7 +59,7 @@ class ExamineRepositoryAction constructor(
 		workbench: AvailWorkbench, private val runtime: AvailRuntime)
 	: AbstractWorkbenchAction(workbench, "Examine repository")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
 		runtime.execute(FiberDescriptor.commandPriority)

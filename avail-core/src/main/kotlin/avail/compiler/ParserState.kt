@@ -41,7 +41,6 @@ import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
-import avail.interpreter.execution.Interpreter
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.SimpleDescriber
 import java.lang.String.format
@@ -213,11 +212,10 @@ class ParserState internal constructor(
 		transformer: (List<String>)->String
 	) =
 		expected(level) { continuation ->
-			Interpreter.stringifyThen(
-				currentRuntime(),
-				lexingState.compilationContext.textInterface,
-				values
-			) {
+			currentRuntime().stringifyThen(
+				values,
+				lexingState.compilationContext.textInterface)
+			{
 				continuation(transformer(it))
 			}
 		}

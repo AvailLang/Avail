@@ -60,7 +60,7 @@ class EntryPointNode constructor(
 	builder: AvailBuilder,
 	val resolvedModuleName: ResolvedModuleName,
 	val entryPointString: String
-): AbstractBuilderFrameTreeNode(builder) {
+) : AbstractBuilderFrameTreeNode(builder) {
 	override fun modulePathString(): String =
 		throw UnsupportedOperationException()
 

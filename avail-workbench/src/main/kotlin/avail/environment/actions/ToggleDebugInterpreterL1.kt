@@ -50,7 +50,7 @@ import javax.swing.Action
 class ToggleDebugInterpreterL1 constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Debug interpreter L1")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		Interpreter.debugL1 = Interpreter.debugL1 xor true
 	}

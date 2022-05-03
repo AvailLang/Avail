@@ -31,6 +31,7 @@
  */
 package avail.descriptor.fiber
 
+import avail.AvailDebuggerModel
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag
@@ -205,8 +206,8 @@ interface A_Fiber : A_BasicObject
 			set(value) = dispatch { o_SetHeritableFiberGlobals(it, value) }
 
 		/**
-		 * Is the specified [interrupt&#32;request&#32;flag][InterruptRequestFlag]
-		 * set for the [receiver][FiberDescriptor]?
+		 * Is the specified interrupt request [flag][InterruptRequestFlag] set
+		 * for the [receiver][FiberDescriptor]?
 		 *
 		 * @param flag
 		 *   An interrupt request flag.
@@ -362,10 +363,18 @@ interface A_Fiber : A_BasicObject
 			set(value) = dispatch { o_SetSuspendingFunction(it, value) }
 
 		/**
-		 * Answer the [FiberDescriptor.FiberHelper] associated with this [A_Fiber].
+		 * Answer the [FiberDescriptor.FiberHelper] associated with this
+		 * [A_Fiber].
 		 */
 		val A_Fiber.fiberHelper: FiberDescriptor.FiberHelper
 			get() = dispatch { o_FiberHelper(it) }
+
+		/**
+		 * Attach the given debugger to this fiber.  Do nothing if the fiber is
+		 * already attached to another debugger.
+		 */
+		fun A_Fiber.captureInDebugger(debugger: AvailDebuggerModel) =
+			dispatch { o_CaptureInDebugger(it, debugger) }
 
 		/**
 		 * This fiber was captured by a debugger.  Release it from that debugger,

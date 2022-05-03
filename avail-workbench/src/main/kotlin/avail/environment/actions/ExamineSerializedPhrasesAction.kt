@@ -62,7 +62,7 @@ class ExamineSerializedPhrasesAction constructor (
 	private val runtime: AvailRuntime
 ) : AbstractWorkbenchAction(workbench, "Examine phrases")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
 		runtime.execute(FiberDescriptor.commandPriority)

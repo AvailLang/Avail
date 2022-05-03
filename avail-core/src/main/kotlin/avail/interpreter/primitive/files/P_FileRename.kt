@@ -149,13 +149,12 @@ object P_FileRename : Primitive(6, CanInline, HasSideEffect)
 					is IOException -> E_IO_ERROR
 					else -> throw e
 				}
-				Interpreter.runOutermostFunction(
-					runtime, newFiber, fail, listOf(errorCode.numericCode()))
+				runtime.runOutermostFunction(
+					newFiber, fail, listOf(errorCode.numericCode()))
 				return@executeFileTask
 			}
 
-			Interpreter.runOutermostFunction(
-				runtime, newFiber, succeed, emptyList())
+			runtime.runOutermostFunction(newFiber, succeed, emptyList())
 		}
 		return interpreter.primitiveSuccess(newFiber)
 	}

@@ -68,7 +68,7 @@ open class AvailRoot constructor(
 	val name: String,
 	val uri: String,
 	var action: (AvailRoot) -> Unit = {}
-): Comparable<AvailRoot>
+) : Comparable<AvailRoot>
 {
 	/** The VM Options, `-DavailRoot`, root string. */
 	val rootString: String by lazy { "$name=$uri" }
@@ -131,7 +131,7 @@ class CreateAvailRoot constructor(
 	name: String,
 	uri: String,
 	action: (AvailRoot) -> Unit = {}
-): AvailRoot(name, uri, action)
+) : AvailRoot(name, uri, action)
 {
 	/**
 	 * The [AvailLibraryPackageContext] that will be used to package this Avail
@@ -505,7 +505,7 @@ open class AvailModule constructor(
 class AvailModulePackage constructor(
 	baseName: String,
 	fileExtension: String = "avail"
-): AvailModule(baseName, fileExtension)
+) : AvailModule(baseName, fileExtension)
 {
 	/**
 	 * The set of [AvailModule]'s to create in this module.

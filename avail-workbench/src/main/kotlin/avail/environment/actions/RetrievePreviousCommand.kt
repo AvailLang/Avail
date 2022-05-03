@@ -51,7 +51,7 @@ import javax.swing.Action
 class RetrievePreviousCommand constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "RetrievePreviousCommand")
 {
-	override fun actionPerformed(e: ActionEvent?)
+	override fun actionPerformed(e: ActionEvent)
 	{
 		if (workbench.commandHistoryIndex == -1)
 		{

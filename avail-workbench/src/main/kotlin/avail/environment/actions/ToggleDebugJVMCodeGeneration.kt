@@ -52,7 +52,7 @@ import javax.swing.Action
 class ToggleDebugJVMCodeGeneration constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Debug JVM code generation")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 
 		JVMTranslator.debugJVMCodeGeneration =

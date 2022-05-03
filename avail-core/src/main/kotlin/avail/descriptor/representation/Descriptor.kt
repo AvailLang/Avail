@@ -31,6 +31,7 @@
  */
 package avail.descriptor.representation
 
+import avail.AvailDebuggerModel
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
@@ -2760,4 +2761,9 @@ protected constructor (
 
 	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int =
 		unsupported
+
+	override fun o_CaptureInDebugger(
+		self: AvailObject,
+		debugger: AvailDebuggerModel
+	): Unit = unsupported
 }

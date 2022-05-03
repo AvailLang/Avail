@@ -80,7 +80,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.IOSystem.BufferKey
 import avail.io.IOSystem.FileHandle
 import avail.io.SimpleCompletionHandler
@@ -267,8 +266,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 			// Concatenate the buffers we have.
 			val buffersTuple = tupleFromList(buffers)
 			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
-			runOutermostFunction(
-				runtime, newFiber, succeed, listOf(concatenated))
+			runtime.runOutermostFunction(
+				newFiber, succeed, listOf(concatenated))
 			return interpreter.primitiveSuccess(newFiber)
 		}
 		// We began with buffer misses, and we can figure out how many...
@@ -322,19 +321,13 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 						offsetInBuffer += alignment
 					}
 				}
-				runOutermostFunction(
-					runtime,
-					newFiber,
-					succeed,
-					listOf(bytesTuple))
+				runtime.runOutermostFunction(
+					newFiber, succeed, listOf(bytesTuple))
 			},
 			// failed
 			{
-				runOutermostFunction(
-					runtime,
-					newFiber,
-					fail,
-					listOf(E_IO_ERROR.numericCode()))
+				runtime.runOutermostFunction(
+					newFiber, fail, listOf(E_IO_ERROR.numericCode()))
 			}
 		).guardedDo {
 			fileChannel.read(buffer, oneBasedPositionLong - 1, Unit, handler)

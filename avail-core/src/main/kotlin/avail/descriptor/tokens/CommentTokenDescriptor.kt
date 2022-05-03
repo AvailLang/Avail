@@ -31,7 +31,6 @@
  */
 package avail.descriptor.tokens
 
-import avail.annotations.HideFieldInDebugger
 import avail.compiler.scanning.LexingState
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.AbstractSlotsEnum

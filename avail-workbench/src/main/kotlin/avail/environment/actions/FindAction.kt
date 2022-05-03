@@ -51,7 +51,6 @@ import javax.swing.JComponent
 import javax.swing.JDialog
 import javax.swing.JLabel
 import javax.swing.JPanel
-import javax.swing.JTextArea
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
 import javax.swing.SwingConstants
@@ -75,15 +74,14 @@ import javax.swing.text.TextAction
  */
 class FindAction constructor(
 	workbench: AvailWorkbench
-) : AbstractWorkbenchAction(workbench, "Find/Replace…")
+) : AbstractWorkbenchAction(
+	workbench,
+	"Find/Replace…",
+	KeyStroke.getKeyStroke(KeyEvent.VK_F, AvailWorkbench.menuShortcutMask))
 {
 	init
 	{
 		putValue(Action.SHORT_DESCRIPTION, "Find/Replace…")
-		putValue(
-			Action.ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(
-				KeyEvent.VK_F, AvailWorkbench.menuShortcutMask))
 	}
 
 	/** The non-modal Find dialog, created lazily but cached when dismissed.  */
@@ -137,7 +135,7 @@ class FindAction constructor(
 	 * Open or reopen the find dialog.  Connect it to the most recently focused
 	 * text pane of the workbench.
 	 */
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		if (findDialog === null)
 		{

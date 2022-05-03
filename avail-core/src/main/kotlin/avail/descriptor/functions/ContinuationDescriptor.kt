@@ -94,7 +94,6 @@ import avail.descriptor.types.ContinuationTypeDescriptor.Companion.continuationT
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
@@ -878,7 +877,7 @@ class ContinuationDescriptor private constructor(
 				(1 .. code.numArgs()).map { paramsType.typeAtIndex(it) }
 			}
 			val strings = arrayOfNulls<String>(lines)
-			stringifyThen(runtime, textInterface, allTypes) { allTypeNames ->
+			runtime.stringifyThen(allTypes, textInterface) { allTypeNames ->
 				var allTypesIndex = 0
 				for (frameIndex in 0 until frames.size)
 				{

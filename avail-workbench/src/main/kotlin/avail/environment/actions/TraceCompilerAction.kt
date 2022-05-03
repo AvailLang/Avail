@@ -49,7 +49,7 @@ import javax.swing.Action
 class TraceCompilerAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Trace compiler")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailRuntimeConfiguration.debugCompilerSteps =
 			AvailRuntimeConfiguration.debugCompilerSteps xor true

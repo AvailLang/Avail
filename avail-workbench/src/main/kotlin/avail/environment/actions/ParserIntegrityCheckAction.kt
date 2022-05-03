@@ -58,7 +58,7 @@ class ParserIntegrityCheckAction constructor (
 		workbench: AvailWorkbench, private val runtime: AvailRuntime)
 	: AbstractWorkbenchAction(workbench, "Integrity check")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
 		runtime.execute(

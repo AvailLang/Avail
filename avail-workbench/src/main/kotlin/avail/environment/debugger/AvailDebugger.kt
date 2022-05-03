@@ -35,14 +35,17 @@ package avail.environment.debugger
 import avail.AvailDebuggerModel
 import avail.builder.ModuleName
 import avail.descriptor.atoms.A_Atom.Companion.atomName
-import avail.descriptor.atoms.AtomDescriptor
+import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberName
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.FiberDescriptor.Companion.debuggerPriority
+import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
@@ -59,6 +62,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
+import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
@@ -72,8 +76,6 @@ import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.environment.AvailWorkbench
 import avail.environment.JTextWithLineNumbers
-import avail.environment.actions.AbstractWorkbenchAction
-import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Disassembler
 import avail.utility.safeWrite
 import java.awt.BorderLayout
@@ -81,16 +83,19 @@ import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.Collections.synchronizedMap
 import java.util.IdentityHashMap
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicLong
+import javax.swing.Action
 import javax.swing.DefaultListCellRenderer
 import javax.swing.GroupLayout
 import javax.swing.GroupLayout.PREFERRED_SIZE
 import javax.swing.JButton
+import javax.swing.JCheckBox
 import javax.swing.JFrame
 import javax.swing.JList
 import javax.swing.JOptionPane
@@ -98,6 +103,7 @@ import javax.swing.JPanel
 import javax.swing.JPopupMenu
 import javax.swing.JScrollPane
 import javax.swing.JTextArea
+import javax.swing.KeyStroke
 import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
@@ -113,21 +119,21 @@ import kotlin.math.max
  *
  * The layout is as follows:
  * ```
- * ┌──────────────────────┬─────────────────────────────────┐
- * │                      │                                 │
- * │ Fibers               │ Stack                           │
- * │                      │                                 │
- * ├──────┬──────┬─────┬──┴──────┬────────┬─────────┬───────┤
- * │ Into │ Over │ Out │ To Line │ Resume │ Restart │       │
- * ├──────┴──────┴─────┴───┬─────┴────────┴─────────┴───────┤
- * │                       │                                │
- * │ Code                  │  Source                        │
- * │                       │                                │
- * ├────────────────┬──────┴────────────────────────────────┤
- * │                │                                       │
- * │ Variables      │ Variable Value                        │
- * │                │                                       │
- * └────────────────┴───────────────────────────────────────┘
+ * ┌──────────────────────┬─────────────────────────────────────┐
+ * │                      │                                     │
+ * │ Fibers               │ Stack                               │
+ * │                      │                                     │
+ * ├──────┬──────┬─────┬──┴──────┬────────┬─────────┬───────────┤
+ * │ Into │ Over │ Out │ To Line │ Resume │ Restart │ ▢ Capture │
+ * ├──────┴──────┴─────┴───────┬─┴────────┴─────────┴───────────┤
+ * │                           │                                │
+ * │ Code                      │  Source                        │
+ * │                           │                                │
+ * ├────────────────┬──────────┴────────────────────────────────┤
+ * │                │                                           │
+ * │ Variables      │ Variable Value                            │
+ * │                │                                           │
+ * └────────────────┴───────────────────────────────────────────┘
  * ```
  *
  * To trigger the debugger:
@@ -202,10 +208,11 @@ class AvailDebugger internal constructor (
 			cellHasFocus)
 	}
 
-	private val inspectFrame = object :
-		AbstractWorkbenchAction(workbench, "Inspect")
+	private val inspectFrame = object : AbstractDebuggerAction(
+		this,
+		"Inspect")
 	{
-		override fun actionPerformed(e: ActionEvent?)
+		override fun actionPerformed(e: ActionEvent)
 		{
 			stackListPane.selectedValue?.let {
 				inspect(it.function().code().toString(), it as AvailObject)
@@ -379,73 +386,129 @@ class AvailDebugger internal constructor (
 	 * The single-step action.  Allow the selected fiber to execute one L1
 	 * nybblecode.
 	 */
-	private val stepIntoAction =
-		object : AbstractWorkbenchAction(workbench, "Into")
-		{
-			override fun actionPerformed(e: ActionEvent?)
-			{
-				runtime.whenSafePointDo(debuggerPriority) {
-					runtime.runtimeLock.safeWrite {
-						fiberListPane.selectedValue?.let {
-							debuggerModel.singleStep(it)
+	private val stepIntoAction = object : AbstractDebuggerAction(
+		this,
+		"Into (F7)",
+		KeyStroke.getKeyStroke(KeyEvent.VK_F7, 0))
+	{
+		override fun actionPerformed(e: ActionEvent) =
+			runtime.whenSafePointDo(debuggerPriority) {
+				runtime.runtimeLock.safeWrite {
+					fiberListPane.selectedValue?.let { fiber ->
+						if (fiber.executionState == PAUSED)
+						{
+							debuggerModel.singleStep(fiber)
 						}
 					}
 				}
 			}
-		}
 
-	private val stepOverAction = object : AbstractWorkbenchAction(workbench, "Over")
+		init
+		{
+			putValue(
+				Action.SHORT_DESCRIPTION,
+				"Step one instruction, or into a call.")
+		}
+	}
+
+	private val stepOverAction = object : AbstractDebuggerAction(
+		this,
+		"Over (F8)",
+		KeyStroke.getKeyStroke(KeyEvent.VK_F8, 0))
 	{
-		override fun actionPerformed(e: ActionEvent?)
+		init { isEnabled = false }
+
+		override fun actionPerformed(e: ActionEvent)
 		{
 			JOptionPane.showMessageDialog(
 				this@AvailDebugger, "\"Over\" is not implemented")
-			System.err.println("The debugger \"Over\" button feature is not implemented")
-		}
-	}
-	private val stepOutAction = object : AbstractWorkbenchAction(workbench, "Out")
-	{
-		override fun actionPerformed(e: ActionEvent?)
-		{
-			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"Out\" is not implemented")
-			System.err.println("The debugger \"Out\" button feature is not implemented")
-		}
-	}
-	private val stepToLineAction = object : AbstractWorkbenchAction(
-		workbench, "To Line"
-	)
-	{
-		override fun actionPerformed(e: ActionEvent?)
-		{
-			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"To Line\" is not implemented")
-			System.err.println("The debugger \"To Line\" button feature is not implemented")
-		}
-	}
-	private val resumeAction = object : AbstractWorkbenchAction(workbench, "Resume")
-	{
-		override fun actionPerformed(e: ActionEvent?)
-		{
-			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"Resume\" is not implemented")
-			System.err.println("The debugger \"Resume\" button feature is not implemented")
-		}
-	}
-	private val restartAction = object : AbstractWorkbenchAction(workbench, "Restart")
-	{
-		override fun actionPerformed(e: ActionEvent?)
-		{
-			JOptionPane.showMessageDialog(
-				this@AvailDebugger, "\"Restart\" is not implemented")
-			System.err.println("The debugger \"Restart\" button feature is not implemented")
 		}
 	}
 
-	private val inspectVariable = object :
-		AbstractWorkbenchAction(workbench, "Inspect")
+	private val stepOutAction = object : AbstractDebuggerAction(
+		this,
+		"Out (⇧F8)",
+		KeyStroke.getKeyStroke(KeyEvent.VK_F8, KeyEvent.SHIFT_DOWN_MASK))
 	{
-		override fun actionPerformed(e: ActionEvent?)
+		init { isEnabled = false }
+
+		override fun actionPerformed(e: ActionEvent)
+		{
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Out\" is not implemented")
+		}
+	}
+
+	private val stepToLineAction = object : AbstractDebuggerAction(
+		this,
+		"To Line")
+	{
+		init { isEnabled = false }
+
+		override fun actionPerformed(e: ActionEvent)
+		{
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"To Line\" is not implemented")
+		}
+	}
+
+	private val resumeAction = object : AbstractDebuggerAction(
+		this,
+		"Resume (⌘R)",
+		KeyStroke.getKeyStroke(KeyEvent.VK_R, AvailWorkbench.menuShortcutMask))
+	{
+		override fun actionPerformed(e: ActionEvent)
+		{
+			runtime.whenSafePointDo(debuggerPriority) {
+				runtime.runtimeLock.safeWrite {
+					fiberListPane.selectedValue?.let { fiber ->
+						debuggerModel.resume(fiber)
+					}
+				}
+			}
+		}
+	}
+
+	private val restartAction = object : AbstractDebuggerAction(
+		this,
+		"Restart")
+	{
+		init { isEnabled = false }
+
+		override fun actionPerformed(e: ActionEvent)
+		{
+			JOptionPane.showMessageDialog(
+				this@AvailDebugger, "\"Restart\" is not implemented")
+		}
+	}
+
+	private val captureAction = object : AbstractDebuggerAction(
+		this,
+		"Capture")
+	{
+		override fun actionPerformed(e: ActionEvent)
+		{
+			val checkBox = e.source as JCheckBox
+			val install = checkBox.isSelected
+			val installed = debuggerModel.installFiberCapture(install)
+			if (!installed)
+			{
+				JOptionPane.showMessageDialog(
+					this@AvailDebugger,
+					"Could not " + (if (install) "" else "un") +
+						"install capture mode for this debugger",
+					"Warning",
+					JOptionPane.WARNING_MESSAGE)
+			}
+			checkBox.isSelected = debuggerModel.isCapturingNewFibers
+		}
+	}
+
+	private val inspectVariable = object : AbstractDebuggerAction(
+		this,
+		"Inspect")
+	{
+		override fun actionPerformed(e: ActionEvent)
 		{
 			variablesPane.selectedValue?.run { inspect(name, value) }
 		}
@@ -481,6 +544,9 @@ class AvailDebugger internal constructor (
 	private val stepToLineButton = JButton(stepToLineAction)
 	private val resumeButton = JButton(resumeAction)
 	private val restartButton = JButton(restartAction)
+	private val captureButton = JCheckBox(captureAction).also {
+		debuggerModel.isCapturingNewFibers
+	}
 
 	/** A view of the L1 disassembly for the selected frame. */
 	private val disassemblyPane = JTextArea().apply {
@@ -533,6 +599,38 @@ class AvailDebugger internal constructor (
 	 */
 	private var currentSourceAndLineEnds: Pair<String, List<Int>> =
 		Pair("", emptyList())
+
+	/**
+	 * The list of fibers has changed.  Refresh its visual presentation,
+	 * maintaining the selected fiber if possible.
+	 */
+	private fun updateFiberList() = fiberListPane.run {
+		val oldFiber = selectedValue
+		var changedFiber = false
+		val wasAdjusting = valueIsAdjusting
+		val newArray = debuggerModel.debuggedFibers.toTypedArray()
+		valueIsAdjusting = true
+		try
+		{
+			setListData(newArray)
+			var newIndex = newArray.indexOf(oldFiber)
+			if (newIndex == -1 && newArray.isNotEmpty())
+			{
+				// The old fiber died.  Select the one at the end of the list.
+				newIndex = newArray.size - 1
+				changedFiber = true
+			}
+			selectedIndex = newIndex
+		}
+		finally
+		{
+			valueIsAdjusting = wasAdjusting
+		}
+		if (changedFiber)
+		{
+			updateStackList()
+		}
+	}
 
 	/**
 	 * Either the current fiber has changed or that fiber has made progress, so
@@ -797,12 +895,19 @@ class AvailDebugger internal constructor (
 		// Do some trickery to avoid stringifying null or nil.
 		val valueToStringify = when
 		{
-			variable == null -> AtomDescriptor.trueObject //dummy
-			variable.value.isNil -> AtomDescriptor.trueObject //dummy
+			variable == null -> trueObject //dummy
+			variable.value.isNil -> trueObject //dummy
 			else -> variable.value
 		}
-		Interpreter.stringifyThen(
-			runtime, runtime.textInterface(), valueToStringify)
+		runtime.stringifyThen(
+			valueToStringify,
+			setup = {
+				// Prevent the debugger from capturing this fiber, or any fibers
+				// that it forks.
+				heritableFiberGlobals =
+					heritableFiberGlobals.mapAtPuttingCanDestroy(
+						DONT_DEBUG_KEY.atom, trueObject, true)
+			})
 		{
 			// Undo the above trickery.
 			val string = when
@@ -834,15 +939,31 @@ class AvailDebugger internal constructor (
 		debuggerModel.whenPausedActions.add {
 			if (it === fiberListPane.selectedValue)
 			{
-				// Regenerate the stack.
-				updateStackList()
+				if (it.executionState.indicatesTermination)
+				{
+					// This fiber has ended, so get rid of all fibers that have
+					// ended.
+					updateFiberList()
+				}
+				else
+				{
+					// Regenerate the stack.
+					updateStackList()
+				}
 			}
 			repaint()
+		}
+		debuggerModel.whenAddedFiberActions.add {
+			updateFiberList()
 		}
 		addWindowListener(object : WindowAdapter()
 		{
 			override fun windowClosing(e: WindowEvent) {
 				releaseAllFibers()
+				if (debuggerModel.isCapturingNewFibers)
+				{
+					debuggerModel.installFiberCapture(false)
+				}
 			}
 		})
 		val panel = JPanel(BorderLayout(20, 20))
@@ -867,7 +988,8 @@ class AvailDebugger internal constructor (
 						.addComponent(stepOutButton)
 						.addComponent(stepToLineButton)
 						.addComponent(resumeButton)
-						.addComponent(restartButton))
+						.addComponent(restartButton)
+						.addComponent(captureButton))
 					.addGroup(createSequentialGroup()
 						.addComponent(scroll(disassemblyPane))
 						.addComponent(scrollSourceWithLineNumbers))
@@ -885,7 +1007,8 @@ class AvailDebugger internal constructor (
 						.addComponent(stepOutButton, pref, pref, pref)
 						.addComponent(stepToLineButton, pref, pref, pref)
 						.addComponent(resumeButton, pref, pref, pref)
-						.addComponent(restartButton, pref, pref, pref))
+						.addComponent(restartButton, pref, pref, pref)
+						.addComponent(captureButton, pref, pref, pref))
 					.addGroup(createParallelGroup()
 						.addComponent(scroll(disassemblyPane), 150, 150, max)
 						.addComponent(
@@ -927,8 +1050,7 @@ class AvailDebugger internal constructor (
 			add(inspectVariable)
 		}
 		isVisible = true
-		fiberListPane.setListData(
-			debuggerModel.debuggedFibers.toTypedArray())
+		updateFiberList()
 	}
 
 	/**
@@ -948,16 +1070,19 @@ class AvailDebugger internal constructor (
 	 *   the collection of fibers to be debugged.  Already-terminated fibers
 	 *   will be automatically excluded.
 	 */
-	fun gatherFibers(fibersProvider: () -> Collection<A_Fiber>)
+	fun gatherFibers(
+		fibersProvider: () -> Collection<A_Fiber>)
 	{
 		val semaphore = Semaphore(0)
 		debuggerModel.gatherFibersThen(fibersProvider) {
+			captureButton.isSelected = debuggerModel.isCapturingNewFibers
 			semaphore.release()
 		}
 		semaphore.acquire()
 	}
 
-	/** Un-capture all of the debugger's captured fibers, allowing them to
+	/**
+	 * Un-capture all of the debugger's captured fibers, allowing them to
 	 * continue running freely.
 	 */
 	private fun releaseAllFibers()

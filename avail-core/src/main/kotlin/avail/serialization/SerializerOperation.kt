@@ -1236,6 +1236,7 @@ enum class SerializerOperation constructor(
 			val module = obj.issuingModule
 			if (module.isNil)
 			{
+				// It probably should be listed in AvailRuntime.specialAtoms.
 				throw RuntimeException("Atom has no issuing module")
 			}
 			return array(obj.atomName, module.moduleName)

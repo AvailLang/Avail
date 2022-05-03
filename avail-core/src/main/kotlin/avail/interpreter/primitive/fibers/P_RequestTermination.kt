@@ -31,7 +31,6 @@
  */
 package avail.interpreter.primitive.fibers
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setInterruptRequestFlag
@@ -56,7 +55,6 @@ import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
 
 /**
  * **Primitive:** Request termination of the given [fiber][FiberDescriptor]. If
@@ -92,11 +90,8 @@ object P_RequestTermination : Primitive(
 						executionState = SUSPENDED
 						val fiberSuspendingPrimitive =
 							suspendingFunction.code().codePrimitive()!!
-						resumeFromSuccessfulPrimitive(
-							currentRuntime(),
-							fiber,
-							fiberSuspendingPrimitive,
-							nil)
+						interpreter.runtime.resumeFromSuccessfulPrimitive(
+							fiber, fiberSuspendingPrimitive, nil)
 					}
 					PARKED ->
 					{
@@ -110,14 +105,10 @@ object P_RequestTermination : Primitive(
 						assert(
 							suspendingPrimitive === P_ParkCurrentFiber
 								|| suspendingPrimitive === P_AttemptJoinFiber)
-						resumeFromSuccessfulPrimitive(
-							currentRuntime(),
-							fiber,
-							suspendingPrimitive,
-							nil)
+						interpreter.runtime.resumeFromSuccessfulPrimitive(
+							fiber, suspendingPrimitive, nil)
 					}
-					else -> {
-					}
+					else -> { }
 				}
 			}
 		}

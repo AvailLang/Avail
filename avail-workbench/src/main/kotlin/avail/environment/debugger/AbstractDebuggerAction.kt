@@ -1,6 +1,6 @@
 /*
- * ResetCCReportDataAction.kt
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * AbstractDebuggerAction.kt
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -30,50 +30,33 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.environment.actions
+package avail.environment.debugger
 
-import avail.AvailRuntime
-import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.CompiledCodeDescriptor.Companion.resetCodeCoverageDetailsThen
-import avail.environment.AvailWorkbench
-import avail.environment.streams.StreamStyle.INFO
-import java.awt.event.ActionEvent
-import javax.swing.Action
+import avail.environment.actions.AbstractWorkbenchAction
+import javax.swing.KeyStroke
 
 /**
- * A `ResetCCReportDataAction` clears code coverage information obtained
- * from running.
+ * A [AbstractDebuggerAction] is attached to an [AvailDebugger], and
+ * automatically installs itself into the inputMap and actionMap of the root of
+ * the debugger's frame, if an accelerator is provided.
  *
- * @property runtime
- *   The active [AvailRuntime].
  * @constructor
- * Construct a new [ResetCCReportDataAction].
+ * Construct a new [AbstractDebuggerAction].
  *
- * @param workbench
- *   The owning [AvailWorkbench].
- * @param runtime
- *   The active [AvailRuntime].
+ * @param debugger
+ *   The owning [AvailDebugger].
+ * @param name
+ *   The name of the action.
+ * @param keyStroke
+ *   The optional window-global [KeyStroke] used to invoke the action.
  */
-class ResetCCReportDataAction constructor(
-		workbench: AvailWorkbench, private val runtime: AvailRuntime)
-	: AbstractWorkbenchAction(workbench, "Clear code coverage data")
-{
-	override fun actionPerformed(event: ActionEvent)
-	{
-		runtime.execute(
-			FiberDescriptor.commandPriority
-		) {
-			resetCodeCoverageDetailsThen {
-				workbench.writeText(
-					"Code coverage data reset.\n", INFO)
-			}
-		}
-	}
-
-	init
-	{
-		putValue(
-			Action.SHORT_DESCRIPTION,
-			"Reset the code coverage data.")
-	}
-}
+abstract class AbstractDebuggerAction
+constructor(
+	val debugger: AvailDebugger,
+	name: String,
+	keyStroke: KeyStroke? = null)
+: AbstractWorkbenchAction(
+	debugger.workbench,
+	name,
+	keyStroke,
+	debugger.rootPane)

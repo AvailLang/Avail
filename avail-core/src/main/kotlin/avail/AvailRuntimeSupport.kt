@@ -34,6 +34,7 @@ package avail
 import avail.annotations.ThreadSafe
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.representation.AvailObject
+import avail.utility.ifZero
 import java.util.Random
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.atomic.AtomicLong
@@ -65,18 +66,14 @@ object AvailRuntimeSupport
 	fun nextHash(): Int = rng.nextInt()
 
 	/**
-	 * Answer a new *non-zero* value suitable for use as the [hash
-	 * code][AvailObject.hash] for an immutable [value][AvailObject].
+	 * Answer a new *non-zero* value suitable for use as the
+	 * [hash][AvailObject.hash] code for an immutable [value][AvailObject].
 	 *
 	 * @return
 	 *   A 32-bit pseudo-random number that isn't zero (0).
 	 */
 	@ThreadSafe
-	fun nextNonzeroHash(): Int
-	{
-		val hash = nextHash()
-		return if (hash != 0) hash else 123456789
-	}
+	fun nextNonzeroHash(): Int = nextHash().ifZero { 123456789 }
 
 	/**
 	 * The source of [fiber][FiberDescriptor] identifiers.

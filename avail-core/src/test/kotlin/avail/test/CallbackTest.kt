@@ -63,7 +63,6 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.BeforeAll
@@ -208,8 +207,7 @@ class CallbackTest
 				// Shouldn't happen.
 			}
 		}
-		runOutermostFunction(
-			helper.runtime,
+		helper.runtime.runOutermostFunction(
 			fiber,
 			body,
 			listOf(

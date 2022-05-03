@@ -34,7 +34,6 @@ package avail.environment.actions
 
 import avail.builder.AvailBuilder.CompiledCommand
 import avail.environment.AvailWorkbench
-import avail.interpreter.execution.Interpreter
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
 import avail.io.TextInterface
@@ -53,12 +52,13 @@ import javax.swing.SwingUtilities.invokeLater
  * Construct a new `SubmitInputAction`.
  *
  * @param workbench
- * The owning [AvailWorkbench].
+ *   The owning [AvailWorkbench].
  */
-class SubmitInputAction constructor(workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Submit Input")
+class SubmitInputAction constructor(
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(workbench, "Submit Input")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		if (workbench.inputField.isFocusOwner)
 		{
@@ -121,10 +121,7 @@ class SubmitInputAction constructor(workbench: AvailWorkbench)
 						cleanup(afterward)
 						return@attemptCommand
 					}
-					Interpreter.stringifyThen(
-						workbench.availBuilder.runtime,
-						workbench.availBuilder.runtime.textInterface(),
-						result)
+					workbench.availBuilder.runtime.stringifyThen(result)
 					{ resultString ->
 						workbench
 							.outputStream()

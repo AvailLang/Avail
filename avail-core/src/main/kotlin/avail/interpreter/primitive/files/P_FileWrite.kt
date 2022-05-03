@@ -78,7 +78,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.IOSystem.BufferKey
 import avail.io.IOSystem.FileHandle
 import avail.io.SimpleCompletionHandler
@@ -274,11 +273,8 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 								ioSystem.discardBuffer(key)
 							}
 						}
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							fail,
-							listOf(E_IO_ERROR.numericCode()))
+						runtime.runOutermostFunction(
+							newFiber, fail, listOf(E_IO_ERROR.numericCode()))
 					}
 				).guardedDo {
 					fileChannel.write(
@@ -287,12 +283,14 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 			}
 			else
 			{
-				// Just finished the entire write.  Transfer the data onto
-				// any affected cached pages.
+				// Just finished the entire write.  Transfer the data onto any
+				// affected cached pages.
 				assert(nextPosition == oneBasedPositionLong + totalBytes - 1)
 				var subscriptInTuple = 1
-				var startOfBuffer = (oneBasedPositionLong - 1) / alignment * alignment + 1
-				var offsetInBuffer = (oneBasedPositionLong - startOfBuffer + 1).toInt()
+				var startOfBuffer =
+					(oneBasedPositionLong - 1) / alignment * alignment + 1
+				var offsetInBuffer =
+					(oneBasedPositionLong - startOfBuffer + 1).toInt()
 				// Skip this if the file isn't also open for read access.
 				if (!handle.canRead)
 				{
@@ -362,7 +360,7 @@ object P_FileWrite : Primitive(6, CanInline, HasSideEffect)
 					offsetInBuffer = 1
 				}
 				assert(subscriptInTuple == totalBytes + 1)
-				runOutermostFunction(runtime, newFiber, succeed, emptyList())
+				runtime.runOutermostFunction(newFiber, succeed, emptyList())
 			}
 		}
 		return interpreter.primitiveSuccess(newFiber)

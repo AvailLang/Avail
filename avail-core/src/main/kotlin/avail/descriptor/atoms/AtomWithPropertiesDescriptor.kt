@@ -43,7 +43,6 @@ import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.NAME
 import avail.descriptor.atoms.AtomWithPropertiesDescriptor.ObjectSlots.PROPERTY_MAP_POJO
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.objects.ObjectDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -56,7 +55,6 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.ObjectTupleDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.Serializer
 import avail.serialization.SerializerOperation

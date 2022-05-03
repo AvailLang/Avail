@@ -61,7 +61,7 @@ class ShowCCReportAction constructor(
 	workbench: AvailWorkbench, private val runtime: AvailRuntime)
 	: AbstractWorkbenchAction(workbench, "Generate Code Coverage Report")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		runtime.execute(FiberDescriptor.commandPriority)
 		{

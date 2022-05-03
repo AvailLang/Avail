@@ -32,7 +32,6 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
@@ -143,10 +142,10 @@ object P_DelayedForkOrphan : Primitive(
 		orphan.heritableFiberGlobals =
 			current.heritableFiberGlobals.makeShared()
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
-		val runtime = currentRuntime()
+		val runtime = interpreter.runtime
 		if (sleepMillis.equalsInt(0))
 		{
-			Interpreter.runOutermostFunction(runtime, orphan, function, callArgs)
+			runtime.runOutermostFunction(orphan, function, callArgs)
 		}
 		else
 		{
@@ -157,8 +156,7 @@ object P_DelayedForkOrphan : Primitive(
 					{
 						// Don't check for the termination requested interrupt
 						// here, since no fiber could have signaled it.
-						Interpreter.runOutermostFunction(
-							runtime, orphan, function, callArgs)
+						runtime.runOutermostFunction(orphan, function, callArgs)
 					}
 				},
 				sleepMillis.extractLong)

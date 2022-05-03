@@ -64,7 +64,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.ProcessInputChannel
 import avail.io.ProcessOutputChannel
 import avail.io.TextInterface
@@ -163,7 +162,7 @@ object P_ExecuteAttachedExternalProcess : Primitive(6, CanInline, HasSideEffect)
 			current.heritableFiberGlobals.makeShared()
 		newFiber.makeShared()
 		toRun.makeShared()
-		runOutermostFunction(runtime, newFiber, toRun, args)
+		runtime.runOutermostFunction(newFiber, toRun, args)
 		return interpreter.primitiveSuccess(newFiber)
 	}
 

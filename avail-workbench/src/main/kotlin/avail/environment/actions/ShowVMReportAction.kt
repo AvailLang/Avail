@@ -51,7 +51,7 @@ import javax.swing.Action
 class ShowVMReportAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Generate VM report")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		val reports = EnumSet.allOf(StatisticReport::class.java)
 		val reportsString = StatisticReport.produceReports(reports)

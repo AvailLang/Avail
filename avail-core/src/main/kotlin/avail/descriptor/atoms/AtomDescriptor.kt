@@ -51,6 +51,7 @@ import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.share
 import avail.descriptor.atoms.AtomWithPropertiesSharedDescriptor.Companion.sharedForTrue
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.objects.ObjectTypeDescriptor
@@ -135,7 +136,7 @@ open class AtomDescriptor protected constructor (
 	typeTag: TypeTag,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum>,
 	integerSlotsEnumClass: Class<out IntegerSlotsEnum>
-): Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
+) : Descriptor(mutability, typeTag, objectSlotsEnumClass, integerSlotsEnumClass)
 {
 	/**
 	 * The layout of integer slots for my instances.
@@ -320,9 +321,9 @@ open class AtomDescriptor protected constructor (
 	 * @param atom
 	 *   The actual [A_Atom] to be held by this [SpecialAtom].
 	 */
-	enum class SpecialAtom constructor (
-		val atom: A_Atom
-	) {
+	enum class SpecialAtom
+	constructor (val atom: A_Atom)
+	{
 		/** The atom representing the Avail concept "true". */
 		TRUE(
 			sharedForTrue.createInitialized(
@@ -414,7 +415,20 @@ open class AtomDescriptor protected constructor (
 		 * The property key whose presence indicates an atom is for explicit
 		 * subclassing of [object&#32;types][ObjectTypeDescriptor].
 		 */
-		EXPLICIT_SUBCLASSING_KEY("explicit subclassing");
+		EXPLICIT_SUBCLASSING_KEY("explicit subclassing"),
+
+		/**
+		 * A heritable atom (has [HERITABLE_KEY] -> [trueObject] as a property)
+		 * which, when present in as [A_Fiber]'s [heritableFiberGlobals],
+		 * indicates that the fiber should not be subject to debugging.  This is
+		 * a way to mark fibers launched by the debugger itself, or forked by
+		 * such a fiber, say for stringification.
+		 *
+		 * Note that a fibers aren't currently (2022.05.02) serializable, and if
+		 * they were, we still wouldn't want to serialize one launched from a
+		 * debugger, so this atom itself doesn't need to be serializable.
+		 */
+		DONT_DEBUG_KEY("don't debug");
 
 		/**
 		 * Create a `SpecialAtom` to hold a new atom constructed with the given
@@ -423,6 +437,15 @@ open class AtomDescriptor protected constructor (
 		 * @param name The name of the atom to be created.
 		 */
 		constructor (name: String) : this(createSpecialAtom(name))
+
+		companion object
+		{
+			init
+			{
+				DONT_DEBUG_KEY.atom.setAtomProperty(
+					HERITABLE_KEY.atom, trueObject)
+			}
+		}
 	}
 
 	companion object

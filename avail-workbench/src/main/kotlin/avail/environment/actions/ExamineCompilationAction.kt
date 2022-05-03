@@ -61,7 +61,7 @@ class ExamineCompilationAction constructor (
 	private val runtime: AvailRuntime
 ) : AbstractWorkbenchAction(workbench, "Examine compilation")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.clearTranscript()
 		runtime.execute(FiberDescriptor.commandPriority)

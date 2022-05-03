@@ -586,7 +586,7 @@ class CompilationContext constructor(
 		{
 			fiber.setSuccessAndFailure(adjustedSuccess, onFailure)
 		}
-		Interpreter.runOutermostFunction(runtime, fiber, function, args)
+		runtime.runOutermostFunction(fiber, function, args)
 	}
 
 	/**

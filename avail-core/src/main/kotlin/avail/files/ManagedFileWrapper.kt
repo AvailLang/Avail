@@ -387,7 +387,7 @@ class ManagedFileWrapper constructor(
 	id: UUID,
 	resolverReference: ResolverReference,
 	fileManager: FileManager
-): AbstractFileWrapper(id, resolverReference, fileManager)
+) : AbstractFileWrapper(id, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
 	override val file: AvailFile by lazy {
@@ -458,7 +458,7 @@ class NullFileWrapper constructor(
 	raw: ByteArray,
 	resolverReference: ResolverReference,
 	fileManager: FileManager
-): AbstractFileWrapper(nullUUID, resolverReference, fileManager)
+) : AbstractFileWrapper(nullUUID, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [NullFileWrapper]. */
 	override val file: AvailFile by lazy {
@@ -520,7 +520,7 @@ class ErrorFileWrapper constructor(
 	fileManager: FileManager,
 	override val error: Throwable,
 	override val errorCode: ErrorCode
-): AbstractFileWrapper(id, resolverReference, fileManager)
+) : AbstractFileWrapper(id, resolverReference, fileManager)
 {
 	/** The [AvailFile] wrapped by this [ManagedFileWrapper]. */
 	override val file: AvailFile

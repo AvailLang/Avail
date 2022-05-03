@@ -48,8 +48,6 @@ import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.module.A_Module
 import avail.error.ErrorCodeRangeRegistry
 import avail.files.FileManager
-import avail.interpreter.execution.Interpreter
-import org.availlang.persistence.IndexedFileException
 import avail.persistence.cache.Repository
 import avail.server.configuration.AvailServerConfiguration
 import avail.server.configuration.CommandLineConfigurator
@@ -83,6 +81,7 @@ import avail.server.messages.binary.editor.ErrorBinaryMessage
 import avail.server.session.Session
 import avail.utility.configuration.ConfigurationException
 import org.availlang.json.JSONWriter
+import org.availlang.persistence.IndexedFileException
 import java.io.FileNotFoundException
 import java.io.IOException
 import java.net.InetSocketAddress
@@ -868,11 +867,10 @@ class AvailServer constructor(
 					}
 					return@attemptCommand
 				}
-				Interpreter.stringifyThen(
-					runtime,
-					ioChannel.textInterface!!,
-					value
-				) { string ->
+				runtime.stringifyThen(
+					value,
+					ioChannel.textInterface!!)
+				{ string ->
 					val message = newSuccessMessage(channel, command) {
 						writeObject {
 							at("expression") { write(command.expression) }

@@ -30,6 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 package avail.descriptor.representation
+import avail.AvailDebuggerModel
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.ModuleHeader
@@ -83,6 +84,7 @@ import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.A_Character.Companion.equalsCharacterWithCodePoint
 import avail.descriptor.character.A_Character.Companion.isCharacter
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
+import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
 import avail.descriptor.fiber.A_Fiber.Companion.clearGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.clearTraceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.continuation
@@ -3886,4 +3888,9 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_HighlightPc(self: AvailObject, topFrame: Boolean): Int =
 		self .. { highlightPc(topFrame) }
+
+	override fun o_CaptureInDebugger(
+		self: AvailObject,
+		debugger: AvailDebuggerModel
+	) = self .. { captureInDebugger(debugger) }
 }

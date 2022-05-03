@@ -53,7 +53,7 @@ import javax.swing.Action
 class CleanModuleAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clean Module")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 

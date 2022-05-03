@@ -37,7 +37,8 @@ package avail.utility
  * equal, or greater-than, answer that if it's not equal (i.e., not 0).
  * Otherwise use the inlined zero-argument block to do further comparisons.
  */
-inline fun Int.ifZero(minorBody: () -> Int): Int {
+inline fun Int.ifZero(minorBody: () -> Int): Int
+{
 	// Avoid duplicating the test when inlining.  Not sure if Kotlin deals with
 	// this intrinsically.
 	return if (this != 0) this else minorBody()
@@ -53,7 +54,8 @@ inline fun Int.ifZero(minorBody: () -> Int): Int {
 inline fun <reified C : Comparable<C>> Int.ifZero(
 	minor1: () -> C,
 	minor2: () -> C
-): Int {
+) : Int
+{
 	// Avoid duplicating the test when inlining.  Not sure if Kotlin deals with
 	// this intrinsically.
 	return if (this != 0) this else (minor1().compareTo(minor2()))

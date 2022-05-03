@@ -52,7 +52,7 @@ import javax.swing.Action
 class ToggleL2SanityCheck constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Enable L2 sanity checks")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		L2Optimizer.shouldSanityCheck = L2Optimizer.shouldSanityCheck xor true
 	}

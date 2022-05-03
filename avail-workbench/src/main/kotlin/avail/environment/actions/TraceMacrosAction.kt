@@ -50,7 +50,7 @@ import javax.swing.Action
 class TraceMacrosAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Trace macros")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailRuntimeConfiguration.debugMacroExpansions =
 			AvailRuntimeConfiguration.debugMacroExpansions xor true

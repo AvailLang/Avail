@@ -50,7 +50,7 @@ import javax.swing.Action
 class CleanAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clean All")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		workbench.availBuilder.unloadTarget(null)
 		assert(workbench.backgroundTask === null)

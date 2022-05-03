@@ -46,6 +46,7 @@
       <w>inet</w>
       <w>int's</w>
       <w>intelli</w>
+      <w>ints</w>
       <w>irreflexive</w>
       <w>jetbrains</w>
       <w>johnrengelman</w>
@@ -54,7 +55,9 @@
       <w>jvm's</w>
       <w>katal</w>
       <w>lexes</w>
+      <w>lexings</w>
       <w>linearization</w>
+      <w>linefeeds</w>
       <w>literalizes</w>
       <w>literalizing</w>
       <w>masse</w>
@@ -86,6 +89,7 @@
       <w>recurses</w>
       <w>regenerator's</w>
       <w>regenerators</w>
+      <w>reifier</w>
       <w>reifier's</w>
       <w>resumable</w>
       <w>retranslator</w>
@@ -133,7 +137,9 @@
       <w>unparameterized</w>
       <w>unparking</w>
       <w>unparks</w>
+      <w>unpausing</w>
       <w>unquoter</w>
+      <w>unreified</w>
       <w>unreturnable</w>
       <w>unreversed</w>
       <w>unsummarized</w>

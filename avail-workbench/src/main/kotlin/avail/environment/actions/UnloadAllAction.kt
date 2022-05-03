@@ -51,7 +51,7 @@ import javax.swing.Action
 class UnloadAllAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Unload All")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 

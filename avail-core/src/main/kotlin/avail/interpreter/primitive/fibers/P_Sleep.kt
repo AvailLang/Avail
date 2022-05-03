@@ -56,7 +56,6 @@ import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.resumeFromSuccessfulPrimitive
 import java.util.TimerTask
 
 /**
@@ -104,8 +103,8 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 						{
 							fiber.wakeupTask = null
 							fiber.executionState = SUSPENDED
-							resumeFromSuccessfulPrimitive(
-								runtime, fiber, this@P_Sleep, nil)
+							runtime.resumeFromSuccessfulPrimitive(
+								fiber, this@P_Sleep, nil)
 						}
 					}
 				}
@@ -119,8 +118,8 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 					when {
 						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
 							assert(fiber.executionState === SUSPENDED)
-							resumeFromSuccessfulPrimitive(
-								runtime, fiber, this, nil)
+							runtime.resumeFromSuccessfulPrimitive(
+								fiber, this, nil)
 						}
 						else -> {
 							fiber.wakeupTask = task
@@ -142,8 +141,8 @@ object P_Sleep : Primitive(1, CannotFail, CanSuspend, Unknown)
 					when {
 						fiber.interruptRequestFlag(TERMINATION_REQUESTED) -> {
 							assert(fiber.executionState === SUSPENDED)
-							resumeFromSuccessfulPrimitive(
-								runtime, fiber, this, nil)
+							runtime.resumeFromSuccessfulPrimitive(
+								fiber, this, nil)
 						}
 						else -> fiber.executionState = ASLEEP
 					}

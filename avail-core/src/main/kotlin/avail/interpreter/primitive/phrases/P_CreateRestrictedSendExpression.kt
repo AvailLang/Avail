@@ -94,7 +94,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.Primitive.Flag.Unknown
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.utility.Strings.increaseIndentation
 import avail.utility.safeWrite
 import java.util.concurrent.atomic.AtomicInteger
@@ -293,8 +292,8 @@ object P_CreateRestrictedSendExpression : Primitive(3, CanSuspend, Unknown)
 					}
 					decrement()
 				}
-				runOutermostFunction(
-					runtime, forkedFiber, restriction.function(), argTypesList)
+				runtime.runOutermostFunction(
+					forkedFiber, restriction.function(), argTypesList)
 			}
 		}
 	}

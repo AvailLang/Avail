@@ -284,8 +284,6 @@ import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase.COMPILING
 import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_COMPILE
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
-import avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForConstant
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.primitive.compiler.P_RejectParsing
@@ -777,7 +775,7 @@ class AvailCompiler constructor(
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber, onSuccess, onFailure)
-		runOutermostFunction(compilationContext.runtime, fiber, function, args)
+		compilationContext.runtime.runOutermostFunction(fiber, function, args)
 	}
 
 	/**
@@ -840,7 +838,7 @@ class AvailCompiler constructor(
 				onSuccess(outputPhrase)
 			},
 			onFailure)
-		runOutermostFunction(compilationContext.runtime, fiber, function, args)
+		compilationContext.runtime.runOutermostFunction(fiber, function, args)
 	}
 
 	/**
@@ -1478,11 +1476,10 @@ class AvailCompiler constructor(
 					if (stepState.consumedStaticTokens.isNotEmpty())
 					{
 						stepState.start.expected(MEDIUM) { withDescription ->
-							stringifyThen(
-								compilationContext.runtime,
-								compilationContext.textInterface,
-								latestPhrase.phraseExpressionType
-							) { actualTypeString ->
+							compilationContext.runtime.stringifyThen(
+								latestPhrase.phraseExpressionType,
+								compilationContext.textInterface)
+							{ actualTypeString ->
 								describeFailedTypeTestThen(
 									actualTypeString,
 									bundleTree,
@@ -1707,11 +1704,10 @@ class AvailCompiler constructor(
 		}
 		val typeList = typeSet.toList()
 		// Generate the type names in parallel.
-		stringifyThen(
-			compilationContext.runtime,
-			compilationContext.textInterface,
-			typeList
-		) { typeNamesList ->
+		compilationContext.runtime.stringifyThen(
+			typeList,
+			compilationContext.textInterface)
+		{ typeNamesList ->
 			assert(typeList.size == typeNamesList.size)
 			val typeMap = (typeList zip typeNamesList).toMap()
 			// Stitch the type names back onto the plan strings, prior to
@@ -1886,8 +1882,8 @@ class AvailCompiler constructor(
 							"prefix function not to have failed with:\n%s", e))
 				}
 			})
-		runOutermostFunction(
-			compilationContext.runtime, fiber, prefixFunction, listOfArgs)
+		compilationContext.runtime.runOutermostFunction(
+			fiber, prefixFunction, listOfArgs)
 	}
 
 	/**
@@ -2181,11 +2177,10 @@ class AvailCompiler constructor(
 					}
 				}
 			}
-			stringifyThen(
-				compilationContext.runtime,
-				compilationContext.textInterface,
-				uniqueValues
-			) { strings ->
+			compilationContext.runtime.stringifyThen(
+				uniqueValues,
+				compilationContext.textInterface)
+			{ strings ->
 				val builder = Formatter()
 				builder.format(
 					"arguments at indices %s of message %s to "
@@ -3768,11 +3763,10 @@ class AvailCompiler constructor(
 			{
 				// This shouldn't be possible, but in theory we might some
 				// day introduce non-root macros for arguments.
-				stringifyThen(
-					compilationContext.runtime,
-					compilationContext.textInterface,
-					headerPhrase
-				) { headerPhraseAsString ->
+				compilationContext.runtime.stringifyThen(
+					headerPhrase,
+					compilationContext.textInterface)
+				{ headerPhraseAsString ->
 					compilationContext.diagnostics.reportError(
 						endState.lexingState,
 						"Expected module header, but found this "

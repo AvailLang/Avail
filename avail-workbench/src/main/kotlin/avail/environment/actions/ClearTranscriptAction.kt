@@ -48,7 +48,7 @@ import javax.swing.Action
 class ClearTranscriptAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clear Transcript")
 {
-	override fun actionPerformed(e: ActionEvent?)
+	override fun actionPerformed(e: ActionEvent)
 	{
 		workbench.clearTranscript()
 	}

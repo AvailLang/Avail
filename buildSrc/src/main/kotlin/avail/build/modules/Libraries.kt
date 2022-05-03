@@ -274,4 +274,4 @@ open class ModuleDependencies constructor(
 	override val testApis: List<Dependency> = listOf(),
 	override val testImplementations: List<Dependency> = listOf(),
 	override val compileOnlys: List<Dependency> = listOf()
-): Dependencies()
+) : Dependencies()

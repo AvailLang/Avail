@@ -33,11 +33,8 @@
 package avail.plugins.gradle
 
 import org.gradle.api.DefaultTask
-import org.gradle.api.file.ConfigurableFileTree
-import org.gradle.api.file.Directory
-import org.gradle.api.tasks.*
-import java.io.File
-import java.security.MessageDigest
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 
 /**
  * Construct a single file that names all files matching a given pattern inside

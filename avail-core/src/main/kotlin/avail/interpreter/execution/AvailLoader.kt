@@ -195,7 +195,6 @@ import avail.interpreter.execution.AvailLoader.Phase.EXECUTING_FOR_LOAD
 import avail.interpreter.execution.AvailLoader.Phase.INITIALIZING
 import avail.interpreter.execution.AvailLoader.Phase.LOADING
 import avail.interpreter.execution.AvailLoader.Phase.UNLOADING
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordBody
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerKeywordFilter
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerOperatorBody
@@ -555,8 +554,7 @@ class AvailLoader(
 			// counters could collide, running the noMoreWorkUnits action before
 			// all fibers got a chance to run.
 			fibers.forEachIndexed { i, fiber ->
-				runOutermostFunction(
-					loader.runtime(),
+				loader.runtime.runOutermostFunction(
 					fiber,
 					undecidedLexers[i].lexerFilterFunction,
 					argsList)
@@ -1468,8 +1466,8 @@ class AvailLoader(
 							module.shortModuleNameNative)
 					}
 					fiber.setSuccessAndFailure({ again() }, { again() })
-					runOutermostFunction(
-						runtime(), fiber, unloadFunction, emptyList())
+					runtime.runOutermostFunction(
+						fiber, unloadFunction, emptyList())
 				}
 				else
 				{

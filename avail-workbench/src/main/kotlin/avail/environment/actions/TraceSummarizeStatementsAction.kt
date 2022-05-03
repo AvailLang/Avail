@@ -50,7 +50,7 @@ import javax.swing.Action
 class TraceSummarizeStatementsAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Trace statement summarizations")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailLoader.debugUnsummarizedStatements =
 			AvailLoader.debugUnsummarizedStatements xor true

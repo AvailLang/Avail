@@ -51,7 +51,7 @@ import javax.swing.Action
 class ResetVMReportDataAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Clear VM report")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		for (report in StatisticReport.values())
 		{

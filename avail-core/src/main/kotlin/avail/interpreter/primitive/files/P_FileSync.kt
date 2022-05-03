@@ -63,7 +63,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.IOSystem.FileHandle
 import java.io.IOException
 import java.nio.channels.AsynchronousFileChannel
@@ -138,19 +137,11 @@ object P_FileSync : Primitive(4, CanInline, HasSideEffect)
 				}
 				catch (e: IOException)
 				{
-					runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						listOf(E_IO_ERROR.numericCode()))
+					runtime.runOutermostFunction(
+						newFiber, fail, listOf(E_IO_ERROR.numericCode()))
 					return@Runnable
 				}
-
-				runOutermostFunction(
-					runtime,
-					newFiber,
-					succeed,
-					emptyList())
+				runtime.runOutermostFunction(newFiber, succeed, emptyList())
 			})
 		return interpreter.primitiveSuccess(newFiber)
 	}

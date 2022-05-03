@@ -51,7 +51,7 @@ import javax.swing.Action
 class TraceLoadedStatementsAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Trace statement loading/compiling")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailLoader.debugLoadedStatements = AvailLoader.debugLoadedStatements xor true
 	}

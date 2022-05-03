@@ -53,7 +53,7 @@ import javax.swing.filechooser.FileFilter
 class SetDocumentationPathAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Set Documentation Path…")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		val chooser = JFileChooser()
 		chooser.fileSelectionMode = JFileChooser.DIRECTORIES_ONLY

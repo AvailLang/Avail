@@ -63,9 +63,9 @@ import avail.descriptor.types.IntegerRangeTypeDescriptor
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.bytes
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.singleInt
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.unsignedShorts
-import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleTypeForSizesTypesDefaultType
 import avail.exceptions.AvailErrorCode
 import avail.exceptions.AvailErrorCode.E_INCORRECT_ARGUMENT_TYPE
 import avail.exceptions.AvailErrorCode.E_INVALID_HANDLE
@@ -76,7 +76,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import java.net.Inet4Address
 import java.net.InetAddress.getByAddress
@@ -167,15 +166,12 @@ object P_SocketIPv4Connect : Primitive(6, CanInline, HasSideEffect)
 				Unit,
 				SimpleCompletionHandler(
 					{
-						runOutermostFunction(
-							runtime, newFiber, succeed, emptyList())
+						runtime.runOutermostFunction(
+							newFiber, succeed, emptyList())
 					},
 					{
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							fail,
-							listOf(E_IO_ERROR.numericCode()))
+						runtime.runOutermostFunction(
+							newFiber, fail, listOf(E_IO_ERROR.numericCode()))
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}

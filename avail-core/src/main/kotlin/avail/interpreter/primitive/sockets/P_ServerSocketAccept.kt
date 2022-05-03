@@ -73,7 +73,6 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import java.nio.channels.AsynchronousServerSocketChannel
 import java.nio.channels.AsynchronousSocketChannel
@@ -145,18 +144,12 @@ object P_ServerSocketAccept : Primitive(5, CanInline, HasSideEffect)
 						val newHandle = createAtom(name, module)
 						val newPojo = identityPojo(value)
 						newHandle.setAtomProperty(SOCKET_KEY.atom, newPojo)
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							succeed,
-							listOf<A_Atom>(newHandle))
+						runtime.runOutermostFunction(
+							newFiber, succeed, listOf<A_Atom>(newHandle))
 					},
 					{
-						runOutermostFunction(
-							runtime,
-							newFiber,
-							fail,
-							listOf(E_IO_ERROR.numericCode()))
+						runtime.runOutermostFunction(
+							newFiber,fail, listOf(E_IO_ERROR.numericCode()))
 					}))
 			interpreter.primitiveSuccess(newFiber)
 		}

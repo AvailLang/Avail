@@ -42,7 +42,6 @@ import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.setGeneralFlag
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
-import avail.descriptor.fiber.A_Fiber.Companion.textInterface
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.fiber.FiberDescriptor.GeneralFlag
@@ -66,8 +65,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
-import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.stringifyThen
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.SimpleDescriber
 import java.io.PrintWriter
@@ -328,8 +325,8 @@ class LexingState constructor(
 				}
 				decrementAndRunActionsWhenZero(countdown)
 			})
-		Interpreter.runOutermostFunction(
-			loader.runtime(), fiber, lexer.lexerBodyFunction, arguments)
+		loader.runtime().runOutermostFunction(
+			fiber, lexer.lexerBodyFunction, arguments)
 	}
 
 	/**
@@ -576,11 +573,12 @@ class LexingState constructor(
 		transformer: Function<List<String>, String>)
 	{
 		expected(level) { continuation ->
-			stringifyThen(
-				compilationContext.loader.runtime(),
-				compilationContext.textInterface,
-				values
-			) { list -> continuation(transformer.apply(list)) }
+			compilationContext.loader.runtime().stringifyThen(
+				values,
+				compilationContext.textInterface)
+			{ list ->
+				continuation(transformer.apply(list))
+			}
 		}
 	}
 

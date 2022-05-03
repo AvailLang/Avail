@@ -72,7 +72,6 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter.Companion.debugWorkUnits
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.io.SimpleCompletionHandler
 import avail.io.TextInterface
 import avail.persistence.cache.Repository
@@ -599,8 +598,10 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			target,
 			localTracker,
 			globalTracker,
-			problemHandler
-		) { semaphore.release() }
+			problemHandler)
+		{
+			semaphore.release()
+		}
 		semaphore.acquireUninterruptibly()
 	}
 
@@ -1102,7 +1103,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 						commandProblemHandler.handle(problem)
 					}
 				})
-			runOutermostFunction(runtime, fiber, function, emptyList())
+			runtime.runOutermostFunction(fiber, function, emptyList())
 		}
 
 		// If the command was unambiguous, then go ahead and run it.

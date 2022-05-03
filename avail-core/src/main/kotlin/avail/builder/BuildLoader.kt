@@ -66,7 +66,6 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.AvailLoader.Phase
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import avail.persistence.cache.Repository
 import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
@@ -449,8 +448,8 @@ internal class BuildLoader constructor(
 								.codeStartingLineNumber
 								+ " Running precompiled -- " + function)
 					}
-					runOutermostFunction(
-						availBuilder.runtime, fiber, function, emptyList())
+					availBuilder.runtime.runOutermostFunction(
+						fiber, function, emptyList())
 				}
 				availBuilder.shouldStopBuild ->
 					module.removeFrom(availLoader) {

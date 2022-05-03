@@ -52,7 +52,7 @@ import javax.swing.Action
 class InsertEntryPointAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Insert Entry Point")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 

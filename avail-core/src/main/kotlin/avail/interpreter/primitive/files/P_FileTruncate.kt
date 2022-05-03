@@ -143,16 +143,12 @@ object P_FileTruncate : Primitive(5, CanInline, HasSideEffect)
 				}
 				catch (e: IOException)
 				{
-					Interpreter.runOutermostFunction(
-						runtime,
-						newFiber,
-						fail,
-						listOf(E_IO_ERROR.numericCode()))
+					runtime.runOutermostFunction(
+						newFiber, fail, listOf(E_IO_ERROR.numericCode()))
 					return@Runnable
 				}
 
-				Interpreter.runOutermostFunction(
-					runtime, newFiber, succeed, emptyList())
+				runtime.runOutermostFunction(newFiber, succeed, emptyList())
 			})
 
 		return interpreter.primitiveSuccess(newFiber)

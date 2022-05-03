@@ -1737,12 +1737,6 @@ class AvailWorkbench internal constructor (
 						}
 					}
 				})
-			actionMap.put("Build", buildAction)
-			actionMap.put("Cancel", cancelAction)
-			getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).run {
-				put(KeyStroke.getKeyStroke("meta ENTER"), "Build")
-				put(KeyStroke.getKeyStroke("control ESCAPE"), "Cancel")
-			}
 		}
 
 		// Create the entry points tree.
@@ -1796,8 +1790,6 @@ class AvailWorkbench internal constructor (
 						}
 					}
 				})
-			actionMap.put("Build", buildAction)
-			inputMap.put(KeyStroke.getKeyStroke("meta ENTER"), "Build")
 		}
 
 		// Create the build progress bar.
@@ -1826,10 +1818,6 @@ class AvailWorkbench internal constructor (
 			isFocusable = true
 			preferredSize = Dimension(0, 500)
 			editorKit = AvailEditorKit(this@AvailWorkbench)
-			actionMap.put(findAction, findAction)
-			inputMap.put(
-				findAction.getValue(Action.ACCELERATOR_KEY) as KeyStroke?,
-				findAction)
 		}
 		transcriptScrollArea = createScrollPane(transcript)
 
@@ -2433,9 +2421,9 @@ class AvailWorkbench internal constructor (
 		}
 
 		/**
-		 * Pass this method an Object and a Method equipped to display
-		 * application options. They will be called when the Preferences menu
-		 * item is selected from the application menu.
+		 * Pass this method a function which displays and edits application
+		 * options. It will be invoked when the Preferences menu item is
+		 * selected from the application menu.
 		 *
 		 * @param preferences
 		 */

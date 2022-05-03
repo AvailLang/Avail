@@ -152,7 +152,7 @@ fun createAvailRuntime (
 	moduleRootsPath: String,
 	renamesFileBody: String = "",
 	fileManager: FileManager = FileManager()
-): AvailRuntime
+) : AvailRuntime
 {
 	val moduleRootResolutionErrors = mutableListOf<String>()
 	val moduleRoots = ModuleRoots(fileManager, moduleRootsPath) {
@@ -177,4 +177,4 @@ fun createAvailRuntime (
 fun createAvailRuntime (
 	moduleNameResolver: ModuleNameResolver,
 	fileManager: FileManager
-): AvailRuntime = AvailRuntime(moduleNameResolver, fileManager)
+) : AvailRuntime = AvailRuntime(moduleNameResolver, fileManager)

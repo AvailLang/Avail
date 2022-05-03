@@ -53,23 +53,18 @@ import avail.descriptor.fiber.A_Fiber.Companion.getAndSetSynchronizationFlag
 import avail.descriptor.fiber.A_Fiber.Companion.interruptRequestFlag
 import avail.descriptor.fiber.A_Fiber.Companion.joiningFibers
 import avail.descriptor.fiber.A_Fiber.Companion.priority
-import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
 import avail.descriptor.fiber.A_Fiber.Companion.setTraceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.suspendingFunction
 import avail.descriptor.fiber.A_Fiber.Companion.traceFlag
 import avail.descriptor.fiber.A_Fiber.Companion.uniqueId
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
-import avail.descriptor.fiber.FiberDescriptor.Companion.stringificationPriority
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.ABORTED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.INTERRUPTED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PARKED
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.RUNNING
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.SUSPENDED
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.TERMINATED
-import avail.descriptor.fiber.FiberDescriptor.ExecutionState.UNSTARTED
 import avail.descriptor.fiber.FiberDescriptor.InterruptRequestFlag.REIFICATION_REQUESTED
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.BOUND
 import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag.PERMIT_UNAVAILABLE
@@ -88,7 +83,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.startingChunk
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.functions.ContinuationRegisterDumpDescriptor.Companion.createRegisterDump
-import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.numbers.A_Number
@@ -107,12 +101,10 @@ import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
-import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.argsTupleType
 import avail.descriptor.types.A_Type.Companion.typeAtIndex
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor
@@ -144,7 +136,6 @@ import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.fibers.P_AttemptJoinFiber
 import avail.interpreter.primitive.fibers.P_ParkCurrentFiber
 import avail.interpreter.primitive.variables.P_SetValue
-import avail.io.TextInterface
 import avail.optimizer.ExecutableChunk
 import avail.optimizer.L1Translator
 import avail.optimizer.L2Generator
@@ -164,7 +155,6 @@ import org.jetbrains.annotations.Debug.Renderer
 import java.text.MessageFormat
 import java.util.concurrent.ForkJoinWorkerThread
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.function.Supplier
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -596,7 +586,7 @@ class Interpreter(
 			traceVariableReadsBeforeWrites = readsBeforeWrites
 			traceVariableWrites = readsBeforeWrites
 				|| newFiber.traceFlag(TraceFlag.TRACE_VARIABLE_WRITES)
-			debugger = newFiber.fiberHelper.debugger
+			debugger = newFiber.fiberHelper.debugger.get()
 			debuggerRunCondition = newFiber.fiberHelper.debuggerRunCondition
 		}
 		else
@@ -867,16 +857,14 @@ class Interpreter(
 			SuspensionHelper<A_BasicObject>(
 				toSucceed = {
 					assert(!once.getAndSet(true))
-					resumeFromSuccessfulPrimitive(
-						runtime,
+					runtime.resumeFromSuccessfulPrimitive(
 						currentFiber,
 						prim,
 						it)
 				},
 				toFail = {
 					assert(!once.getAndSet(true))
-					resumeFromFailedPrimitive(
-						runtime,
+					runtime.resumeFromFailedPrimitive(
 						currentFiber,
 						it,
 						primitiveFunction,
@@ -1145,8 +1133,8 @@ class Interpreter(
 								.codePrimitive()!!
 						assert(suspended === P_AttemptJoinFiber
 							|| suspended === P_ParkCurrentFiber)
-						resumeFromSuccessfulPrimitive(
-							runtime, joiner, suspended, nil)
+						runtime.resumeFromSuccessfulPrimitive(
+							joiner, suspended, nil)
 					}
 				}
 			}
@@ -1733,12 +1721,12 @@ class Interpreter(
 			|| fiber().interruptRequestFlag(REIFICATION_REQUESTED))
 
 	/**
-	 * The current [fiber] has been asked to pause for an inter-nybblecode
-	 * interrupt for some reason. It has possibly executed several more L2
-	 * instructions since that time, to place the fiber into a state that's
-	 * consistent with naive Level One execution semantics. That is, a naive
-	 * Level One interpreter should be able to resume the fiber later (although
-	 * most of the time the Level Two interpreter will kick in).
+	 * The current [fiber] has been asked to temporarily cease running for an
+	 * inter-nybblecode interrupt for some reason. It has possibly executed
+	 * several more L2 instructions since that time, to place the fiber into a
+	 * state that's consistent with naive Level One execution semantics. That
+	 * is, a naive Level One interpreter should be able to resume the fiber
+	 * later (although most of the time the Level Two interpreter will kick in).
 	 *
 	 * @param continuation
 	 *   The reified continuation to save into the current fiber.
@@ -1784,7 +1772,7 @@ class Interpreter(
 		levelOneStepper.wipeRegisters()
 		postExitContinuation {
 			waiters.forEach { action -> action(continuation) }
-			resumeFromInterrupt(aFiber)
+			runtime.resumeFromInterrupt(aFiber)
 		}
 	}
 
@@ -3214,388 +3202,6 @@ class Interpreter(
 			Int::class.javaPrimitiveType!!,
 			Int::class.javaPrimitiveType!!,
 			Array<A_BasicObject>::class.java)
-
-		/**
-		 * Schedule the specified
-		 * [suspended][ExecutionState.indicatesSuspension] fiber to execute for
-		 * a while as an [interpreter][AvailRuntime.interpreterTasks] task. If
-		 * the fiber completes normally, then call its
-		 * [A_Fiber.resultContinuation] with its final answer. If the fiber
-		 * terminates abnormally, then call its [A_Fiber.failureContinuation]
-		 * with the terminal [Throwable].
-		 *
-		 * @param runtime
-		 *   An [AvailRuntime].
-		 * @param aFiber
-		 *   The [A_Fiber] to run.
-		 * @param setup
-		 *   How to set up the interpreter prior to running the fiber for a
-		 *   while. Pass in the interpreter as the receiver.
-		 */
-		private fun executeFiber(
-			runtime: AvailRuntime,
-			aFiber: A_Fiber,
-			setup: Interpreter.()->Unit)
-		{
-			assert(aFiber.executionState.indicatesSuspension)
-			// We cannot simply run the specified function, we must queue a new
-			// task to run when interpreters are allowed to run.
-			runtime.whenRunningInterpretersDo(
-				aFiber.priority,
-				AvailTask.forFiberResumption(aFiber) {
-					assert(aFiber === fiberOrNull())
-					assert(aFiber.executionState === RUNNING)
-					setup()
-					if (exitNow)
-					{
-						assert(getReifiedContinuation()!!.isNil)
-						terminateFiber(getLatestResult())
-					}
-					else
-					{
-						// Run the interpreter for a while.
-						run()
-					}
-					assert(fiber === null)
-				})
-		}
-
-		/**
-		 * Schedule the specified [fiber][FiberDescriptor] to run the given
-		 * [function][FunctionDescriptor]. This function is invoked via the
-		 * [HookType.BASE_FRAME] hook. The fiber must be in the
-		 * [unstarted][ExecutionState.UNSTARTED] state. This Kotlin method is an
-		 * entry point for driving Avail externally.
-		 *
-		 * If the function successfully runs to completion, then the fiber's
-		 * "on success" continuation will be invoked with the function's result.
-		 *
-		 * If the function fails for any reason, then the fiber's "on failure"
-		 * continuation will be invoked with the terminal
-		 * [throwable][Throwable].
-		 *
-		 * @param runtime
-		 *   An [Avail&#32;runtime][AvailRuntime].
-		 * @param aFiber
-		 *   The fiber to run.
-		 * @param functionToRun
-		 *   A [function][FunctionDescriptor] to run.
-		 * @param arguments
-		 *   The arguments for the function.
-		 */
-		fun runOutermostFunction(
-			runtime: AvailRuntime,
-			aFiber: A_Fiber,
-			functionToRun: A_Function,
-			arguments: List<A_BasicObject>)
-		{
-			assert(aFiber.executionState === UNSTARTED)
-			executeFiber(runtime, aFiber)
-			{
-				assert(aFiber === fiberOrNull())
-				assert(aFiber.executionState === RUNNING)
-				assert(aFiber.continuation.isNil)
-				// Invoke the base-frame (hook) function with the given function
-				// and its arguments collected as a tuple.
-				val baseFrameFunction = HookType.BASE_FRAME[runtime]
-				exitNow = false
-				returnNow = false
-				setReifiedContinuation(nil)
-				function = baseFrameFunction
-				chunk = baseFrameFunction.code().startingChunk
-				offset = 0
-				argsBuffer.clear()
-				argsBuffer.add(functionToRun as AvailObject)
-				argsBuffer.add(tupleFromList(arguments) as AvailObject)
-			}
-		}
-
-		/**
-		 * Schedule resumption of the specified [fiber][FiberDescriptor]
-		 * following [suspension][ExecutionState.INTERRUPTED] due to an
-		 * interrupt. This method is an entry point.
-		 *
-		 * If the function successfully runs to completion, then the fiber's "on
-		 * success" continuation will be invoked with the function's result.
-		 *
-		 * If the function fails for any reason, then the fiber's "on failure"
-		 * continuation will be invoked with the terminal
-		 * [throwable][Throwable].
-		 *
-		 * @param aFiber
-		 *   The fiber to run.
-		 */
-		fun resumeFromInterrupt(aFiber: A_Fiber)
-		{
-			assert(aFiber.executionState === INTERRUPTED)
-			assert(aFiber.continuation.notNil)
-			executeFiber(AvailRuntime.currentRuntime(), aFiber)
-			{
-				assert(aFiber === fiberOrNull())
-				assert(aFiber.executionState === RUNNING)
-				val con = aFiber.continuation
-				assert(con.notNil)
-				exitNow = false
-				returnNow = false
-				setReifiedContinuation(con)
-				function = con.function()
-				setLatestResult(null)
-				chunk = con.levelTwoChunk()
-				offset = con.levelTwoOffset()
-				levelOneStepper.wipeRegisters()
-				aFiber.continuation = nil
-			}
-		}
-
-		/**
-		 * If the fiber was [PAUSED] by a debugger, unpause it now.
-		 *
-		 * If the fiber subsequently pauses due to the debugger, it will enter
-		 * the [PAUSED] state again.  Any other transitions to suspended states
-		 * will be handled normally.
-		 *
-		 * If the function successfully runs to completion, then the fiber's "on
-		 * success" continuation will be invoked with the function's result.
-		 *
-		 * If the function fails for any reason, then the fiber's "on failure"
-		 * continuation will be invoked with the terminal
-		 * [throwable][Throwable].
-		 *
-		 * @param aFiber
-		 *   The fiber to allow to continue running.
-		 */
-		fun resumeIfPausedByDebugger(aFiber: A_Fiber)
-		{
-			if (aFiber.executionState == PAUSED)
-			{
-				// The fiber was runnable, but paused by a debugger.  Clear this
-				// flag and queue a suitable action for resuming the fiber.
-				assert(aFiber.continuation.notNil)
-				executeFiber(AvailRuntime.currentRuntime(), aFiber)
-				{
-					assert(aFiber === fiberOrNull())
-					assert(aFiber.executionState === RUNNING)
-					val con = aFiber.continuation
-					assert(con.notNil)
-					exitNow = false
-					returnNow = false
-					setReifiedContinuation(con)
-					function = con.function()
-					setLatestResult(null)
-					chunk = con.levelTwoChunk()
-					offset = con.levelTwoOffset()
-					levelOneStepper.wipeRegisters()
-					aFiber.continuation = nil
-				}
-			}
-		}
-
-		/**
-		 * Schedule resumption of the specified [fiber][FiberDescriptor]
-		 * following [suspension][ExecutionState.SUSPENDED] by a
-		 * [successful][Result.SUCCESS] [primitive][Primitive]. This method is
-		 * an entry point.
-		 *
-		 * @param runtime
-		 *   An [AvailRuntime].
-		 * @param aFiber
-		 *   The fiber to run.
-		 * @param resumingPrimitive
-		 *   The suspended primitive that is resuming.  This must agree with the
-		 *   fiber's [A_Fiber.suspendingFunction]'s raw function's primitive.
-		 * @param result
-		 *   The result of the primitive.
-		 */
-		fun resumeFromSuccessfulPrimitive(
-			runtime: AvailRuntime,
-			aFiber: A_Fiber,
-			resumingPrimitive: Primitive,
-			result: A_BasicObject)
-		{
-			assert(aFiber.continuation.notNil)
-			assert(aFiber.executionState === SUSPENDED)
-			assert(
-				aFiber.suspendingFunction.code().codePrimitive()
-					=== resumingPrimitive)
-			executeFiber(runtime, aFiber)
-			{
-				assert(aFiber === fiberOrNull())
-				assert(aFiber.executionState === RUNNING)
-				val continuation = aFiber.continuation
-				setReifiedContinuation(continuation)
-				setLatestResult(result)
-				returningFunction = aFiber.suspendingFunction
-				aFiber.suspendingFunction = nil
-				exitNow = false
-				if (continuation.isNil)
-				{
-					// Return from outer function, which was the
-					// (successful) suspendable primitive itself.
-					returnNow = true
-					function = null
-					chunk = null
-					offset = Int.MAX_VALUE
-				}
-				else
-				{
-					returnNow = false
-					function = continuation.function()
-					chunk = continuation.levelTwoChunk()
-					offset = continuation.levelTwoOffset()
-					// Clear the fiber's continuation slot while it's
-					// active.
-					aFiber.continuation = nil
-				}
-			}
-		}
-
-		/**
-		 * Schedule resumption of the specified [fiber][FiberDescriptor]
-		 * following [suspension][ExecutionState.SUSPENDED] by a
-		 * [failed][Result.FAILURE] [primitive][Primitive]. This method is an
-		 * entry point.
-		 *
-		 * @param runtime
-		 *   An [AvailRuntime].
-		 * @param aFiber
-		 *   The fiber to run.
-		 * @param failureValue
-		 *   The failure value produced by the failed primitive attempt.
-		 * @param failureFunction
-		 *   The primitive failure [function][FunctionDescriptor].
-		 * @param args
-		 *   The arguments to the primitive.
-		 */
-		fun resumeFromFailedPrimitive(
-			runtime: AvailRuntime,
-			aFiber: A_Fiber,
-			failureValue: A_BasicObject,
-			failureFunction: A_Function,
-			args: List<AvailObject>)
-		{
-			assert(aFiber.continuation.notNil)
-			assert(aFiber.executionState === SUSPENDED)
-			assert(aFiber.suspendingFunction.equals(failureFunction))
-			executeFiber(runtime, aFiber)
-			{
-				val code = failureFunction.code()
-				val prim = code.codePrimitive()!!
-				assert(!prim.hasFlag(CannotFail))
-				assert(prim.hasFlag(CanSuspend))
-				assert(args.size == code.numArgs())
-				assert(getReifiedContinuation() === null)
-				setReifiedContinuation(aFiber.continuation)
-				aFiber.continuation = nil
-				aFiber.suspendingFunction = nil
-				function = failureFunction
-				argsBuffer.clear()
-				argsBuffer.addAll(args)
-				setLatestResult(failureValue)
-				val startingChunk = code.startingChunk
-				chunk = startingChunk
-				offset = startingChunk.offsetAfterInitialTryPrimitive()
-				exitNow = false
-				returnNow = false
-			}
-		}
-
-		/**
-		 * Stringify an [AvailObject], using the [HookType.STRINGIFICATION] hook
-		 * in the specified [AvailRuntime]. Stringification will run in a new
-		 * [fiber][FiberDescriptor]. If stringification fails for any reason,
-		 * then the built-in mechanism, available via [AvailObject.toString]
-		 * will be used. Invoke the specified continuation with the result.
-		 *
-		 * @param runtime
-		 *   An Avail runtime.
-		 * @param textInterface
-		 *   The [text&#32;interface][TextInterface] for [fibers][A_Fiber]
-		 *   started due to stringification. This need not be the default
-		 *   [text&#32;interface][AvailRuntime.textInterface].
-		 * @param value
-		 *   An Avail value.
-		 * @param continuation
-		 *   What to do with the stringification of `value`.
-		 */
-		fun stringifyThen(
-			runtime: AvailRuntime,
-			textInterface: TextInterface,
-			value: A_BasicObject,
-			continuation: (String)->Unit)
-		{
-			val stringifierFunction = HookType.STRINGIFICATION[runtime]
-			// If the stringifier function is not defined, then use the basic
-			// mechanism for stringification.
-			// Create the fiber that will execute the function.
-			val fiber = newFiber(
-				stringType, runtime, textInterface, stringificationPriority)
-			{
-				stringFrom("Stringification")
-			}
-			fiber.setSuccessAndFailure(
-				{ string: AvailObject ->
-					continuation(string.asNativeString())
-				},
-				{ e: Throwable ->
-					continuation(
-						String.format(
-							"(stringification failed [%s]) %s",
-							e.javaClass.simpleName,
-							value))
-				})
-			runOutermostFunction(
-				runtime, fiber, stringifierFunction, listOf(value))
-		}
-
-		/**
-		 * Stringify a [list][List] of [Avail][AvailObject], using the
-		 * [HookType.STRINGIFICATION] hook associated with the specified
-		 * [runtime][AvailRuntime]. Stringification will run in parallel, with
-		 * each value being processed by its own new [fiber][A_Fiber]. If
-		 * stringification fails for a value for any reason, then the built-in
-		 * mechanism, available via [AvailObject.toString] will be used for that
-		 * value. Invoke the specified continuation with the resulting list,
-		 * preserving the original order.
-		 *
-		 * @param runtime
-		 *   An Avail runtime.
-		 * @param textInterface
-		 *   The [text&#32;interface][TextInterface] for [fibers][A_Fiber]
-		 *   started due to stringification. This need not be the default
-		 *   [text&#32;interface][AvailRuntime.textInterface].
-		 * @param values
-		 *   Some Avail values.
-		 * @param continuation
-		 *   What to do with the resulting list.
-		 */
-		fun stringifyThen(
-			runtime: AvailRuntime,
-			textInterface: TextInterface,
-			values: List<A_BasicObject>,
-			continuation: (List<String>)->Unit)
-		{
-			val valuesCount = values.size
-			if (valuesCount == 0)
-			{
-				continuation(emptyList())
-				return
-			}
-			// Deduplicate the list of values for performance…
-			val map = values.indices.groupBy(values::get)
-			val outstanding = AtomicInteger(map.size)
-			val strings = arrayOfNulls<String>(valuesCount)
-			map.forEach { (key, indicesToWrite) ->
-				stringifyThen(runtime, textInterface, key) { arg ->
-					indicesToWrite.forEach { indexToWrite ->
-						strings[indexToWrite] = arg
-					}
-					if (outstanding.decrementAndGet() == 0)
-					{
-						continuation(strings.map { it!! })
-					}
-				}
-			}
-		}
 
 		/**
 		 * Top-level statement evaluation statistics, keyed by module name.

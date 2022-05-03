@@ -32,13 +32,16 @@
 
 package avail
 
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.DONT_DEBUG_KEY
 import avail.descriptor.fiber.A_Fiber
+import avail.descriptor.fiber.A_Fiber.Companion.captureInDebugger
 import avail.descriptor.fiber.A_Fiber.Companion.executionState
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
+import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.releaseFromDebugger
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.fiber.FiberDescriptor.ExecutionState.PAUSED
-import avail.interpreter.execution.Interpreter
+import avail.descriptor.maps.A_Map.Companion.hasKey
 import avail.performance.Statistic
 import avail.performance.StatisticReport
 import avail.utility.safeWrite
@@ -64,8 +67,18 @@ class AvailDebuggerModel constructor (
 	 * have not yet been captured by other debuggers.  The fibers likewise get a
 	 * reference to this debugger, so they can determine how/whether to run
 	 * during stepping operations.
+	 *
+	 * If [installFiberCapture] (with the argument `true`) has happened, all
+	 * newly launched fibers get added to this list as well.
 	 */
-	var debuggedFibers = emptyList<A_Fiber>()
+	val debuggedFibers = mutableListOf<A_Fiber>()
+
+	/**
+	 * Determine whether the current capture function hook for the runtime is
+	 * for this debugger.
+	 */
+	val isCapturingNewFibers: Boolean
+		get() = runtime.newFiberHandler.get() == fiberCaptureFunction
 
 	/**
 	 * Allow the specified fiber to execute exactly one nybblecode.  Supersede
@@ -75,15 +88,17 @@ class AvailDebuggerModel constructor (
 	fun singleStep(fiber: A_Fiber)
 	{
 		runtime.assertInSafePoint()
-		fiber.lock {
-			fiber.fiberHelper.let { helper ->
-				assert(fiber.fiberHelper.debugger == this)
-				var allow = true
-				helper.debuggerRunCondition = {
-					allow.also { allow = false }
+		runtime.runtimeLock.safeWrite {
+			fiber.lock {
+				fiber.fiberHelper.let { helper ->
+					assert(fiber.fiberHelper.debugger.get() == this)
+					var allow = true
+					helper.debuggerRunCondition = {
+						allow.also { allow = false }
+					}
 				}
+				runtime.resumeIfPausedByDebugger(fiber)
 			}
-			Interpreter.resumeIfPausedByDebugger(fiber)
 		}
 	}
 
@@ -104,9 +119,13 @@ class AvailDebuggerModel constructor (
 		TODO("Not yet implemented")
 	}
 
-	fun resumeThen()
+	fun resume(fiber: A_Fiber)
 	{
-		TODO("Not yet implemented")
+		runtime.runtimeLock.safeWrite {
+			fiber.releaseFromDebugger()
+			debuggedFibers.remove(fiber)
+			whenAddedFiberActions.forEach { it(fiber) }
+		}
 	}
 
 	fun restartFrameThen()
@@ -115,10 +134,46 @@ class AvailDebuggerModel constructor (
 	}
 
 	/**
+	 * A function for capturing newly launched fibers, if installed in the
+	 * [AvailRuntime.newFiberHandler].  Note that this function is compared *by
+	 * identity* when setting/clearing the new fiber handler.
+	 */
+	private val fiberCaptureFunction = { fiber: A_Fiber ->
+		// Do nothing if the debugger that launched this fiber (or a creation
+		// ancestor) indicated that this fiber should not itself be debugged.
+		if (!fiber.heritableFiberGlobals.hasKey(DONT_DEBUG_KEY.atom))
+		{
+			runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
+				runtime.runtimeLock.safeWrite {
+					fiber.captureInDebugger(this)
+					debuggedFibers.removeIf {
+						it.executionState.indicatesTermination
+					}
+					debuggedFibers.add(fiber)
+					whenAddedFiberActions.forEach { it(fiber) }
+				}
+			}
+		}
+	}
+
+	fun installFiberCapture(install: Boolean): Boolean
+	{
+		val oldValue = if (install) null else fiberCaptureFunction
+		val newValue = if (install) fiberCaptureFunction else null
+		return runtime.compareAndSetFiberCaptureFunction(oldValue, newValue)
+	}
+
+	/**
 	 * A publicly accessible list of functions to call when a fiber has reached
 	 * its pause condition.
 	 */
 	val whenPausedActions = mutableListOf<(A_Fiber) -> Unit>()
+
+	/**
+	 * A publicly accessible list of functions to call when a new fiber is to be
+	 * added to the list of tracked fibers.
+	 */
+	val whenAddedFiberActions = mutableListOf<(A_Fiber) -> Unit>()
 
 	/**
 	 * The given [fiber] just reached the pause condition, and has transitioned
@@ -157,16 +212,18 @@ class AvailDebuggerModel constructor (
 		runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
 			// Prevent other debuggers from accessing the set of fibers.
 			runtime.runtimeLock.safeWrite {
-				debuggedFibers = fibersProvider()
-					.filter {
-						it.fiberHelper.debugger == null
-							&& !it.executionState.indicatesTermination
-					}
-					.sortedBy { it.fiberHelper.debugUniqueId }
+				debuggedFibers.addAll(
+					fibersProvider()
+						.filter {
+							it.fiberHelper.debugger.get() == null
+								&& !it.executionState.indicatesTermination
+								&& !it.heritableFiberGlobals.hasKey(
+									DONT_DEBUG_KEY.atom)
+						}
+						.sortedBy { it.fiberHelper.debugUniqueId })
 				debuggedFibers.forEach { fiber ->
-					val helper = fiber.fiberHelper
-					helper.debugger = this
-					helper.debuggerRunCondition = {
+					fiber.captureInDebugger(this)
+					fiber.fiberHelper.debuggerRunCondition = {
 						false
 					}
 				}
@@ -184,12 +241,10 @@ class AvailDebuggerModel constructor (
 	{
 		runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
 			runtime.runtimeLock.safeWrite {
-				debuggedFibers.forEach {
-					// Release each fiber from this debugger, allowing it to run
-					// if it was runnable.
-					it.releaseFromDebugger()
-				}
-				debuggedFibers = emptyList()
+				// Release each fiber from this debugger, allowing it to run if
+				// it was runnable.
+				debuggedFibers.forEach { it.releaseFromDebugger() }
+				debuggedFibers.clear()
 			}
 			then()
 		}

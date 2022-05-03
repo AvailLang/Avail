@@ -57,12 +57,21 @@ import javax.swing.KeyStroke
  *   Whether this action is for the currently selected entry point module rather
  *   than for the module tree's selection.
  */
-class BuildAction constructor (
-		workbench: AvailWorkbench,
-		private val forEntryPointModule: Boolean)
-	: AbstractWorkbenchAction(workbench, "Build")
+class BuildAction
+constructor (
+	workbench: AvailWorkbench,
+	private val forEntryPointModule: Boolean
+) : AbstractWorkbenchAction(
+	workbench,
+	"Build",
+	when
+	{
+		forEntryPointModule -> null
+		else -> KeyStroke.getKeyStroke(
+			KeyEvent.VK_ENTER, AvailWorkbench.menuShortcutMask)
+	})
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 		val selectedModule = (if (forEntryPointModule)
@@ -92,13 +101,5 @@ class BuildAction constructor (
 		putValue(
 			Action.SHORT_DESCRIPTION,
 			"Build the selected module.")
-		if (!forEntryPointModule)
-		{
-			putValue(
-				Action.ACCELERATOR_KEY,
-				KeyStroke.getKeyStroke(
-					KeyEvent.VK_ENTER,
-					AvailWorkbench.menuShortcutMask))
-		}
 	}
 }

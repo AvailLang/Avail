@@ -34,6 +34,7 @@ package avail.descriptor.fiber
 import avail.AvailDebuggerModel
 import avail.AvailRuntime
 import avail.AvailRuntimeSupport
+import avail.AvailTask
 import avail.annotations.HideFieldJustForPrinting
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
@@ -88,7 +89,6 @@ import avail.descriptor.variables.VariableDescriptor
 import avail.interpreter.Primitive.Flag.CanSuspend
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.resumeIfPausedByDebugger
 import avail.interpreter.levelTwo.L2Chunk
 import avail.io.TextInterface
 import org.availlang.json.JSONWriter
@@ -96,6 +96,7 @@ import java.util.TimerTask
 import java.util.WeakHashMap
 import java.util.concurrent.ThreadPoolExecutor
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 
 /**
  * An Avail `FiberDescriptor fiber` represents an independently schedulable flow
@@ -356,13 +357,14 @@ class FiberDescriptor private constructor(
 		}
 
 		/** The [AvailDebuggerModel] that has captured this fiber, if any. */
-		var debugger: AvailDebuggerModel? = null
+		val debugger = AtomicReference<AvailDebuggerModel?>(null)
 
 		/**
 		 * A function which checks whether the given fiber should run, based on
 		 * what has been set up by the debugger.  This *must* be non-null
 		 * whenever the fiber is captured by a debugger.
 		 */
+		@Volatile
 		var debuggerRunCondition: ((A_Fiber)->Boolean)? = null
 	}
 
@@ -617,7 +619,14 @@ class FiberDescriptor private constructor(
 		/**
 		 * The fiber was [RUNNING], but was paused by an [AvailDebuggerModel].
 		 */
-		PAUSED(true, false, { setOf(RUNNING) }),
+		PAUSED(true, false, { setOf(UNPAUSING) }),
+
+		/**
+		 * The fiber was [PAUSED], but the attached [AvailDebuggerModel] is
+		 * attempting (while holding the fiber's lock) to queue an [AvailTask]
+		 * which will make it execute.
+		 */
+		UNPAUSING(true, false, { setOf(RUNNING) }),
 
 		/**
 		 * The fiber has terminated successfully.
@@ -767,7 +776,7 @@ class FiberDescriptor private constructor(
 		self.mutableSlot(FIBER_GLOBALS)
 
 	override fun o_SetFiberGlobals(self: AvailObject, globals: A_Map) =
-		self.setMutableSlot(FIBER_GLOBALS, globals)
+		self.setMutableSlot(FIBER_GLOBALS, globals.makeShared())
 
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self.mutableSlot(RESULT)
@@ -781,7 +790,7 @@ class FiberDescriptor private constructor(
 	override fun o_SetHeritableFiberGlobals(
 		self: AvailObject,
 		globals: A_Map
-	) = self.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals)
+	) = self.setMutableSlot(HERITABLE_FIBER_GLOBALS, globals.makeShared())
 
 	override fun o_AvailLoader(self: AvailObject): AvailLoader? = helper.loader
 
@@ -919,6 +928,7 @@ class FiberDescriptor private constructor(
 			ExecutionState.RETIRED,
 			ExecutionState.SUSPENDED,
 			ExecutionState.PAUSED,
+			ExecutionState.UNPAUSING,
 			ExecutionState.TERMINATED,
 			ExecutionState.UNSTARTED -> {
 				whenReified(self.continuation.makeShared())
@@ -979,11 +989,28 @@ class FiberDescriptor private constructor(
 
 	override fun o_DebugLog(self: AvailObject): StringBuilder = helper.debugLog
 
+	override fun o_CaptureInDebugger(
+		self: AvailObject,
+		debugger: AvailDebuggerModel)
+	{
+		assert(debugger.runtime.runtimeLock.isWriteLockedByCurrentThread)
+		if (!helper.debugger.compareAndSet(null, debugger))
+		{
+			// It lost a race, which means another debugger has already
+			// captured it.  This is not really a problem.  Exit silently.
+			return
+		}
+		helper.debuggerRunCondition = { false }
+		debugger.runtime.resumeIfPausedByDebugger(self)
+	}
+
 	override fun o_ReleaseFromDebugger(self: AvailObject)
 	{
-		helper.debugger = null
+		val runtime = helper.debugger.get()!!.runtime
+		assert(runtime.runtimeLock.isWriteLockedByCurrentThread)
+		helper.debugger.set(null)
 		helper.debuggerRunCondition = null
-		resumeIfPausedByDebugger(self)
+		runtime.resumeIfPausedByDebugger(self)
 	}
 
 	override fun <T> o_Lock(self: AvailObject, body: ()->T): T =
@@ -1109,6 +1136,9 @@ class FiberDescriptor private constructor(
 		 *   The [TextInterface] for providing console I/O in this fiber.
 		 * @param priority
 		 *   The initial priority.
+		 * @param setup
+		 *   A function to run against the fiber before scheduling it.  The
+		 *   function execution happens before any debugger hooks run.
 		 * @param nameSupplier
 		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
@@ -1123,9 +1153,16 @@ class FiberDescriptor private constructor(
 			runtime: AvailRuntime,
 			textInterface: TextInterface,
 			priority: Int,
+			setup: A_Fiber.()->Unit = { },
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
-			resultType, runtime, null, textInterface, priority, nameSupplier)
+			resultType,
+			runtime,
+			null,
+			textInterface,
+			priority,
+			setup,
+			nameSupplier)
 
 		/**
 		 * Construct an [unstarted][ExecutionState.UNSTARTED] [fiber][A_Fiber]
@@ -1155,6 +1192,7 @@ class FiberDescriptor private constructor(
 			loader,
 			loader.textInterface,
 			loaderPriority,
+			{ },
 			nameSupplier)
 
 		/**
@@ -1173,6 +1211,9 @@ class FiberDescriptor private constructor(
 		 * @param priority
 		 *   An [Int] between 0 and 255 that affects how much of the CPU time
 		 *   will be allocated to the fiber.
+		 * @param setup
+		 *   A function to run against the fiber before scheduling it.  The
+		 *   function execution happens before any debugger hooks run.
 		 * @param nameSupplier
 		 *   A supplier that produces an Avail [string][A_String] to name this
 		 *   fiber on demand.  Please don't run Avail code to do so, since if
@@ -1188,6 +1229,7 @@ class FiberDescriptor private constructor(
 			loader: AvailLoader?,
 			textInterface: TextInterface,
 			priority: Int,
+			setup: A_Fiber.()->Unit = { },
 			nameSupplier: ()->A_String
 		): A_Fiber
 		{
@@ -1206,6 +1248,7 @@ class FiberDescriptor private constructor(
 				setSlot(HERITABLE_FIBER_GLOBALS, emptyMap)
 				setSlot(RESULT, nil)
 				setSlot(JOINING_FIBERS, emptySet)
+				setup()
 				runtime.registerFiber(this)
 			}
 		}

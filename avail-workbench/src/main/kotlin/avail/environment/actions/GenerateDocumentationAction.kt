@@ -54,10 +54,15 @@ import javax.swing.KeyStroke
  * @param workbench
  *   The owning [AvailWorkbench].
  */
-class GenerateDocumentationAction constructor (workbench: AvailWorkbench)
-	: AbstractWorkbenchAction(workbench, "Generate Documentation")
+class GenerateDocumentationAction
+constructor (
+	workbench: AvailWorkbench
+) : AbstractWorkbenchAction(
+	workbench,
+	"Generate Documentation",
+	KeyStroke.getKeyStroke(KeyEvent.VK_G, AvailWorkbench.menuShortcutMask))
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		assert(workbench.backgroundTask === null)
 		val selectedModule =
@@ -81,10 +86,7 @@ class GenerateDocumentationAction constructor (workbench: AvailWorkbench)
 	{
 		putValue(
 			Action.SHORT_DESCRIPTION,
-			"Generate API documentation for the selected module and " + "its ancestors.")
-		putValue(
-			Action.ACCELERATOR_KEY,
-			KeyStroke.getKeyStroke(
-				KeyEvent.VK_G, AvailWorkbench.menuShortcutMask))
+			"Generate API documentation for the selected module and " +
+				"its ancestors.")
 	}
 }

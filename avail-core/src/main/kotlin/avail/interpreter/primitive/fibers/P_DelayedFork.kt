@@ -32,7 +32,6 @@
 
 package avail.interpreter.primitive.fibers
 
-import avail.AvailRuntime.Companion.currentRuntime
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.fiber.A_Fiber.Companion.heritableFiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.textInterface
@@ -75,7 +74,6 @@ import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.HasSideEffect
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.execution.Interpreter.Companion.runOutermostFunction
 import java.util.TimerTask
 
 /**
@@ -138,20 +136,20 @@ object P_DelayedFork : Primitive(
 		// Share the fiber, since it will be visible in the caller.
 		newFiber.makeShared()
 		// If the requested sleep time is 0 milliseconds, then fork immediately.
+		val runtime = interpreter.runtime
 		when
 		{
-			sleepMillis.equalsInt(0) -> runOutermostFunction(
-				currentRuntime(), newFiber, function, callArgs)
+			sleepMillis.equalsInt(0) ->
+				runtime.runOutermostFunction(newFiber, function, callArgs)
 			sleepMillis.isLong ->
 			{
-				val runtime = interpreter.runtime
 				runtime.timer.schedule(
 					object : TimerTask()
 					{
 						override fun run()
 						{
-							runOutermostFunction(
-								runtime, newFiber, function, callArgs)
+							runtime.runOutermostFunction(
+								newFiber, function, callArgs)
 						}
 					},
 					sleepMillis.extractLong)

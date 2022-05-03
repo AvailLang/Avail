@@ -51,7 +51,7 @@ import javax.swing.Action
 class ToggleFastLoaderAction constructor(workbench: AvailWorkbench)
 	: AbstractWorkbenchAction(workbench, "Use fast-loading")
 {
-	override fun actionPerformed(event: ActionEvent?)
+	override fun actionPerformed(event: ActionEvent)
 	{
 		AvailLoader.enableFastLoader = AvailLoader.enableFastLoader xor true
 	}
