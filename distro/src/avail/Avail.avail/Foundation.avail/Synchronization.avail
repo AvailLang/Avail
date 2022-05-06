@@ -678,7 +678,6 @@ Public method "Lock|lock_for_" is
 	mutex : reentrant mutex,
 	criticalSection : []→⊤
 |
-	queue ::= ↑mutex's parked fibers;
 	/* If the current fiber already owns the mutex, then avoid putting it back
 	 * onto the parking queue.
 	 */

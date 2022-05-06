@@ -145,10 +145,11 @@ class AvailDebuggerModel constructor (
 		{
 			runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
 				runtime.runtimeLock.safeWrite {
-					fiber.captureInDebugger(this)
 					debuggedFibers.removeIf {
 						it.executionState.indicatesTermination
 					}
+					assert(fiber.fiberHelper.debugger.get() !== this)
+					fiber.captureInDebugger(this)
 					debuggedFibers.add(fiber)
 					whenAddedFiberActions.forEach { it(fiber) }
 				}
@@ -212,16 +213,17 @@ class AvailDebuggerModel constructor (
 		runtime.whenSafePointDo(FiberDescriptor.debuggerPriority) {
 			// Prevent other debuggers from accessing the set of fibers.
 			runtime.runtimeLock.safeWrite {
-				debuggedFibers.addAll(
-					fibersProvider()
-						.filter {
-							it.fiberHelper.debugger.get() == null
-								&& !it.executionState.indicatesTermination
-								&& !it.heritableFiberGlobals.hasKey(
-									DONT_DEBUG_KEY.atom)
-						}
-						.sortedBy { it.fiberHelper.debugUniqueId })
-				debuggedFibers.forEach { fiber ->
+				val newFibers = fibersProvider()
+					.filter {
+						it.fiberHelper.debugger.get() === null
+							&& !it.executionState.indicatesTermination
+							&& !it.heritableFiberGlobals.hasKey(
+								DONT_DEBUG_KEY.atom)
+					}
+					.sortedBy { it.fiberHelper.debugUniqueId }
+				debuggedFibers.addAll(newFibers)
+				newFibers.forEach { fiber ->
+					assert(fiber.fiberHelper.debugger.get() === null)
 					fiber.captureInDebugger(this)
 					fiber.fiberHelper.debuggerRunCondition = {
 						false

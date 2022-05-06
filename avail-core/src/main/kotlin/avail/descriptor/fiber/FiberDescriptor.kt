@@ -998,6 +998,7 @@ class FiberDescriptor private constructor(
 		{
 			// It lost a race, which means another debugger has already
 			// captured it.  This is not really a problem.  Exit silently.
+			assert(helper.debugger.get() !== debugger)
 			return
 		}
 		helper.debuggerRunCondition = { false }

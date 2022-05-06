@@ -75,17 +75,20 @@ import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.environment.AvailWorkbench
-import avail.environment.JTextWithLineNumbers
+import avail.environment.LineNumberComponent
+import avail.environment.LineNumberModel
 import avail.interpreter.levelOne.L1Disassembler
 import avail.utility.safeWrite
 import java.awt.BorderLayout
 import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
+import java.awt.Rectangle
 import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.awt.geom.Point2D
 import java.util.Collections.synchronizedMap
 import java.util.IdentityHashMap
 import java.util.concurrent.Semaphore
@@ -108,9 +111,13 @@ import javax.swing.ListSelectionModel.SINGLE_SELECTION
 import javax.swing.SwingConstants
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
+import javax.swing.event.DocumentEvent
+import javax.swing.event.DocumentListener
+import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -304,14 +311,13 @@ class AvailDebugger internal constructor (
 			val map = mutableMapOf<Int, IntRange>()
 			val string = buildString {
 				L1Disassembler(code).printInstructions(
-					IdentityHashMap<A_BasicObject, Void>(10),
-					0
-				) { pc, line, string ->
-					if (pc != 1) append("\n")
+					IdentityHashMap<A_BasicObject, Void>(10), 0)
+				{ pc, line, string ->
 					val before = length
 					append("$pc. [:$line] $string")
 					val after = length
 					map[pc] = before .. after
+					append("\n")
 				}
 			}
 			// Write to the cache, even if it overwrites.
@@ -368,8 +374,8 @@ class AvailDebugger internal constructor (
 
 	/**
 	 * The [HighlightPainter] with which to show the current instruction in the
-	 * [disassemblyPane].  This is updated to something sensible as part of opening the
-	 * frame.
+	 * [disassemblyPane].  This is updated to something sensible as part of
+	 * opening the frame.
 	 */
 	private var codeHighlightPainter = DefaultHighlightPainter(Color.BLACK)
 
@@ -711,13 +717,23 @@ class AvailDebugger internal constructor (
 								range.last + 1,
 								if (isTopFrame) codeHighlightPainter
 								else secondaryCodeHighlightPainter)
-							// Swing doesn't correctly scroll to the selected
-							// line if it's just above the top of the viewport.
-							// To compensate, we first select the previous line,
-							// then the correct one.
-							val endOfPrevious = max(range.first - 1, 0)
-							disassemblyPane.select(endOfPrevious, endOfPrevious)
-							disassemblyPane.select(range.first, range.last + 1)
+							try
+							{
+								disassemblyPane.select(
+									range.first, range.last + 1)
+								showTextRange(
+									disassemblyPane,
+									range.first,
+									range.last + 1)
+							}
+							catch (e: BadLocationException)
+							{
+								// Ignore.
+							}
+							catch (e: IllegalArgumentException)
+							{
+								// Ignore.
+							}
 						}
 					}
 				}
@@ -787,13 +803,36 @@ class AvailDebugger internal constructor (
 			rangeEnd + 1,
 			if (isTopFrame) codeHighlightPainter
 			else secondaryCodeHighlightPainter)
-		// Swing doesn't correctly scroll to the selected
-		// line if it's just above the top of the viewport.
-		// To compensate, we first select the previous line,
-		// then the correct one.
-		val endOfPrevious = max(rangeStart - 1, 0)
-		sourcePane.select(endOfPrevious, endOfPrevious)
 		sourcePane.select(rangeStart, rangeEnd)
+		showTextRange(sourcePane, rangeStart, rangeEnd)
+	}
+
+	/**
+	 * Scroll the given pane to ensure the given text range is visible, and
+	 * preferably not jammed against the top or bottom border.
+	 */
+	private fun showTextRange(pane: JTextArea, rangeStart: Int, rangeEnd: Int)
+	{
+		try
+		{
+			val start2D = pane.modelToView2D(rangeStart)
+			val end2D = pane.modelToView2D(rangeEnd)
+			val union2D = start2D.createUnion(end2D)
+			val union = Rectangle(
+				union2D.x.toInt(),
+				union2D.y.toInt(),
+				union2D.width.toInt(),
+				union2D.height.toInt())
+			// First make sure the actual text rectangle is visible.
+			pane.scrollRectToVisible(union)
+			// Now try to make an expanded rectangle visible.
+			union.grow(0, 50)
+			pane.scrollRectToVisible(union)
+		}
+		catch (ble: BadLocationException)
+		{
+			// Ignore text range problems.
+		}
 	}
 
 	/**
@@ -969,9 +1008,6 @@ class AvailDebugger internal constructor (
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
-		val sourceWithLineNumbers = JTextWithLineNumbers(sourcePane)
-		val scrollSourceWithLineNumbers = JScrollPane()
-		sourceWithLineNumbers.addTo(scrollSourceWithLineNumbers)
 		panel.layout = GroupLayout(panel).apply {
 			val pref = PREFERRED_SIZE
 			//val def = DEFAULT_SIZE
@@ -991,8 +1027,12 @@ class AvailDebugger internal constructor (
 						.addComponent(restartButton)
 						.addComponent(captureButton))
 					.addGroup(createSequentialGroup()
-						.addComponent(scroll(disassemblyPane))
-						.addComponent(scrollSourceWithLineNumbers))
+						.addComponent(scroll(disassemblyPane), 100, 100, max)
+						.addComponent(
+							scrollTextWithLineNumbers(sourcePane),
+							100,
+							100,
+							max))
 					.addGroup(createSequentialGroup()
 						.addComponent(scroll(variablesPane), 60, 60, max)
 						.addComponent(scroll(variableValuePane), 100, 100, max)))
@@ -1012,7 +1052,10 @@ class AvailDebugger internal constructor (
 					.addGroup(createParallelGroup()
 						.addComponent(scroll(disassemblyPane), 150, 150, max)
 						.addComponent(
-							scrollSourceWithLineNumbers, 150, 150, max))
+							scrollTextWithLineNumbers(sourcePane),
+							150,
+							150,
+							max))
 					.addGroup(createParallelGroup()
 						.addComponent(scroll(variablesPane), 80, 80, max)
 						.addComponent(scroll(variableValuePane), 80, 80, max)))
@@ -1100,6 +1143,66 @@ class AvailDebugger internal constructor (
 		 */
 		private fun scroll(component: Component) =
 			component.parent?.parent ?: JScrollPane(component)
+
+		/**
+		 * Either places the given JTextArea inside a JScrollPane with line
+		 * numbers presented as row headers, or answers the JScrollPane that
+		 * it's already inside.
+		 */
+		private fun scrollTextWithLineNumbers(textArea: JTextArea): JScrollPane
+		{
+			textArea.parent?.parent?.let { return it as JScrollPane }
+			val lineNumberModel = object : LineNumberModel {
+				override val numberOfLines: Int get() = textArea.lineCount
+
+				override fun lineToRectangle(line: Int): Rectangle = try
+				{
+					val rectangle2D = textArea.modelToView2D(
+						textArea.getLineStartOffset(line))
+					Rectangle(
+						rectangle2D.x.toInt(),
+						rectangle2D.y.toInt(),
+						rectangle2D.width.toInt(),
+						rectangle2D.height.toInt())
+				}
+				catch (e: BadLocationException)
+				{
+					Rectangle()
+				}
+
+				override fun visibleLines(): IntRange
+				{
+					val rectangle = textArea.visibleRect
+					val startOffset = textArea.viewToModel2D(
+						Point2D.Double(rectangle.minX, rectangle.minY))
+					val firstLine =
+						max(textArea.getLineOfOffset(startOffset) - 1, 0)
+					val endOffset = textArea.viewToModel2D(
+						Point2D.Double(rectangle.maxX, rectangle.maxY))
+					val lastLine =
+						min(
+							textArea.getLineOfOffset(endOffset) + 1,
+							textArea.lineCount - 1)
+					return firstLine..lastLine
+				}
+			}
+			val lineNumberComponent = LineNumberComponent(lineNumberModel)
+			val scroller = JScrollPane(textArea)
+			scroller.setRowHeaderView(lineNumberComponent)
+			textArea.document.addDocumentListener(
+				object : DocumentListener
+				{
+					override fun changedUpdate(arg0: DocumentEvent) =
+						lineNumberComponent.adjustWidth()
+
+					override fun insertUpdate(arg0: DocumentEvent) =
+						lineNumberComponent.adjustWidth()
+
+					override fun removeUpdate(arg0: DocumentEvent) =
+						lineNumberComponent.adjustWidth()
+				})
+			return scroller
+		}
 	}
 }
 
