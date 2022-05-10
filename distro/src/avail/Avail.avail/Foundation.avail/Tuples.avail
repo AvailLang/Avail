@@ -5031,24 +5031,23 @@ Method "replace all occurrences of_in_with_" is
 	aTuple : any+,
 	replacementTuple : tuple
 |
-	if |subtuple| > |aTuple| then [aTuple]
-	else if subtuple = aTuple then [replacementTuple]
-	else if |subtuple| = 1 then
+	$body : tuple;
+	Exit body with aTuple if |subtuple| > |aTuple|;
+	Exit body with replacementTuple if subtuple = aTuple;
+	If |subtuple| = 1 then
 	[
+		item ::= subtuple[1];
 		newTuple : tuple := <>;
-		index : natural number := 1;
-		While index ≤ |aTuple| do
+		runStart : natural number := 1;
+		For each index from 1 to |aTuple| do
 		[
-			If <aTuple[index]> = subtuple then
+			If aTuple[index] = item then
 			[
-				newTuple ++= replacementTuple;
-			]
-			else
-			[
-				newTuple ++= <aTuple[index]>;
+				newTuple ++= aTuple[runStart..index - 1] ++ replacementTuple;
+				runStart := index + 1;
 			];
-			index++;
 		];
+		newTuple ++= aTuple[runStart..|aTuple|];
 		newTuple
 	]
 	else

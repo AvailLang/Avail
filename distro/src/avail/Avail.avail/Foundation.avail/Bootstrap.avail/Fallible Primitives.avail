@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 3/7/22, 12:49 PM
+ * * Last Generated: 5/9/22, 11:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -3345,7 +3345,7 @@ Primitive "_(_)@_:_" is
 
 /**
  * Answer this declaration's initializing expression, or fail if it does not
- * have one.  Its presence can be checked with {@code 
+ * have one.  Its presence can be checked with {@code
  * "_has initializing expression"}.
  *
  * @category "Primitives"

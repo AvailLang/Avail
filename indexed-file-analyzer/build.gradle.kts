@@ -38,14 +38,6 @@ plugins {
 	id("com.github.johnrengelman.shadow")
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-	maven {
-		url = uri("${rootProject.rootDir}/libs/")
-	}
-}
-
 dependencies {
 	implementation("org.availlang:avail-storage:${Versions.availStorageVersion}")
 	implementation(project(":avail-core"))

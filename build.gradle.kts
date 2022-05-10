@@ -73,6 +73,17 @@ allprojects {
 	group = "avail"
 	version = versionToPublish
 
+	repositories {
+		mavenLocal()
+		mavenCentral()
+		maven {
+			url = uri("${rootProject.rootDir}/libs/")
+		}
+		maven {
+			url = uri(Repositories.ossSonaType)
+		}
+	}
+
 	tasks {
 		withType<JavaCompile> {
 			options.encoding = "UTF-8"
@@ -104,10 +115,6 @@ allprojects {
 			}
 		}
 	}
-}
-
-repositories {
-	mavenCentral()
 }
 
 tasks {

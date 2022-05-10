@@ -39,14 +39,6 @@ plugins {
 	publishing
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-	maven {
-		url = uri("${rootProject.rootDir}/libs/")
-	}
-}
-
 dependencies {
 	// Avail.
 	implementation(project(":avail-core"))

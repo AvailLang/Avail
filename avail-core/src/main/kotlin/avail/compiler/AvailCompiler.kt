@@ -989,9 +989,14 @@ class AvailCompiler constructor(
 							variable,
 							nil,
 							replacement.initializationExpression)
+						val valueExpression = when (canSummarize)
+						{
+							true -> syntheticLiteralNodeFor(value)
+							false -> replacement.initializationExpression
+						}
 						val assign = newAssignment(
 							newUse(replacement.token, newDeclaration),
-							syntheticLiteralNodeFor(value),
+							valueExpression,
 							expression.tokens,
 							false)
 						val assignFunction = createFunctionForPhrase(

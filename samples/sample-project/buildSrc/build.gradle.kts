@@ -38,4 +38,7 @@ plugins {
 
 repositories {
 	mavenCentral()
+	maven {
+		url = uri("${rootProject.rootDir}/libs/")
+	}
 }

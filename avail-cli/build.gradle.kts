@@ -38,14 +38,6 @@ plugins {
 	id("com.github.johnrengelman.shadow")
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-	maven {
-		url = uri("${rootProject.rootDir}/libs/")
-	}
-}
-
 dependencies {
 	// Avail.
 

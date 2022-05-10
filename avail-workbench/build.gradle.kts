@@ -41,14 +41,6 @@ plugins {
 	publishing
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-	maven {
-		url = uri(Repositories.ossSonaType)
-	}
-}
-
 dependencies {
 	// Avail.
 	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")

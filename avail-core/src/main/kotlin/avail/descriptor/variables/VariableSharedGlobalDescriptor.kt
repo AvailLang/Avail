@@ -256,8 +256,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		if (writeOnce)
 		{
-			throw VariableSetException(
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+			throw VariableSetException(E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		return super.o_GetAndSetValue(self, newValue)
 	}
@@ -270,8 +269,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		if (writeOnce)
 		{
-			throw VariableSetException(
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+			throw VariableSetException(E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		return super.o_CompareAndSwapValuesNoCheck(self, reference, newValue)
 	}
@@ -282,8 +280,7 @@ class VariableSharedGlobalDescriptor private constructor(
 	{
 		if (writeOnce)
 		{
-			throw VariableSetException(
-				E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
+			throw VariableSetException(E_CANNOT_OVERWRITE_WRITE_ONCE_VARIABLE)
 		}
 		return super.o_FetchAndAddValue(self, addend)
 	}

@@ -47,6 +47,9 @@ version = "1.0"
 repositories {
     mavenLocal()
     mavenCentral()
+    maven {
+        url = uri("${rootProject.rootDir}/libs/")
+    }
 }
 
 val jvmTarget = 17

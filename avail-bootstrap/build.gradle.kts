@@ -39,14 +39,6 @@ plugins {
 	id("com.github.johnrengelman.shadow")
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-	maven {
-		url = uri("${rootProject.rootDir}/libs/")
-	}
-}
-
 dependencies {
 	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
 	implementation(project(":avail-core"))

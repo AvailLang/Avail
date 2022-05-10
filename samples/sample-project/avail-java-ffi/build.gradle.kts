@@ -9,6 +9,9 @@ description = "Java foreign function interface (FFI) to be accessed using " +
 
 repositories {
     mavenCentral()
+    maven {
+        url = uri("${rootProject.rootDir}/libs/")
+    }
 }
 
 tasks {

@@ -44,14 +44,6 @@ plugins {
 	publishing
 }
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-	maven {
-		url = uri("${rootProject.rootDir}/libs/")
-	}
-}
-
 java {
 	toolchain {
 		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
