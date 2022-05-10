@@ -1,0 +1,73 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "avail",
+    "module": "avail-plugin",
+    "version": "1.6.0.20220510.044657",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "files": [
+        {
+          "name": "avail-plugin-1.6.0.20220510.044657.jar",
+          "url": "avail-plugin-1.6.0.20220510.044657.jar",
+          "size": 69899,
+          "sha512": "d6a2a4f5d7b4f0f14f3f50441c170294d84dee0d50f4e95b8063f90ff41481ed1e00f60680075fba52d717761508c70a799f571bf85d2adfd623e2a4413c6583",
+          "sha256": "cdcfd265a4d9cddb04f7d62259089d77b6fae7df9ae13ec0a3218eda55e46c01",
+          "sha1": "7b0c93084147552e5e492804d8cd0eabf067618a",
+          "md5": "c6929114c78f98c5088998e9b48b752a"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-gradle-plugin",
+          "version": {
+            "requires": "1.6.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "avail-plugin-1.6.0.20220510.044657.jar",
+          "url": "avail-plugin-1.6.0.20220510.044657.jar",
+          "size": 69899,
+          "sha512": "d6a2a4f5d7b4f0f14f3f50441c170294d84dee0d50f4e95b8063f90ff41481ed1e00f60680075fba52d717761508c70a799f571bf85d2adfd623e2a4413c6583",
+          "sha256": "cdcfd265a4d9cddb04f7d62259089d77b6fae7df9ae13ec0a3218eda55e46c01",
+          "sha1": "7b0c93084147552e5e492804d8cd0eabf067618a",
+          "md5": "c6929114c78f98c5088998e9b48b752a"
+        }
+      ]
+    }
+  ]
+}

@@ -182,8 +182,9 @@ tasks {
 publishing {
 	repositories {
 		maven {
+			this.
 			name = "localPluginRepository"
-			url = uri("../local-plugin-repository")
+			url = uri("${rootProject.projectDir}/../local-plugin-repository")
 		}
 	}
 
