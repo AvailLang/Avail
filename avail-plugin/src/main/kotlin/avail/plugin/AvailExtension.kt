@@ -51,13 +51,6 @@ open class AvailExtension constructor(
 	private val plugin: AvailPlugin)
 {
 	/**
-	 * The version of Avail to use. This will be the version that is used for
-	 * `avail-core`, `avail-workbench`, `avail-stdlib`. By default it is set to
-	 * `+` which indicates the latest version in the repository should be used.
-	 */
-	var availVersion = "+"
-
-	/**
 	 * The directory location where the Avail roots exist. The path to this
 	 * location must be absolute.
 	 */
@@ -98,8 +91,7 @@ open class AvailExtension constructor(
 	@Suppress("Unused")
 	fun useStdAvailLib (configure: AvailStandardLibrary.() -> Unit)
 	{
-		val asl = AvailStandardLibrary(
-			"$AVAIL_STDLIB_BASE_JAR_NAME")
+		val asl = AvailStandardLibrary(AVAIL_STDLIB_BASE_JAR_NAME)
 		configure(asl)
 		this.availStandardLibrary = asl
 		root(asl.root(rootsDirectory))
@@ -201,6 +193,9 @@ open class AvailExtension constructor(
 		buildString {
 			append("\n========================= Avail Configuration")
 			append(" =========================")
+			availStandardLibrary?.let {
+				append("\n\tStandard Library Version: ${it.stdlibVersion}")
+			}
 			append("\n\tRepository Location: $repositoryDirectory")
 			append("\n\tVM Arguments to include for Avail Runtime:")
 			append(roots.values

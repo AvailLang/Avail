@@ -147,25 +147,6 @@ tasks {
 	artifacts {
 		add("archives", sourceJar)
 	}
-
-	register("updateVersion", DefaultTask::class)
-	{
-		if(project.hasProperty("versionStripe"))
-		{
-			val updatedVersion =
-				project.property("versionStripe").toString()
-			val propsFile = FileInputStream(Versions.releaseVersionFile)
-			val props = Properties()
-			props.load(propsFile)
-			props.setProperty("releaseVersion", updatedVersion)
-			props.store(FileOutputStream(Versions.releaseVersionFile), null)
-		}
-		else
-		{
-			System.err.println("`avail-plugin` `updateVersion` task run but " +
-				"receive no updated version.")
-		}
-	}
 }
 
 publishing {
@@ -173,7 +154,7 @@ publishing {
 		maven {
 			this.
 			name = "localPluginRepository"
-			url = uri("${rootProject.projectDir}/../local-plugin-repository")
+			url = uri("${rootProject.projectDir}/local-plugin-repository")
 		}
 	}
 

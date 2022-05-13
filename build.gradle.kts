@@ -124,35 +124,6 @@ allprojects {
 	}
 }
 
-tasks {
-	// Associated with the publishing of `avail-core`. Publishing `avail-core`
-	// will cause this task to trigger as a dependency.
-	register("updatePluginPublishVersion", Exec::class) {
-		group = "publish"
-		description = "This pushes the most recently created " +
-			"`versionToPublish` build version to `avail-plugin` so that it " +
-			"can be updated in that project."
-		workingDir = project.file("${project.projectDir}/avail-plugin")
-		commandLine = listOf(
-			"./gradlew", "updateVersion", "-PversionStripe=$version")
-		println("Sending `avail-plugin` (${project.projectDir}/avail-plugin) " +
-			"gradle command, `updateVersion` with version, $version")
-	}
-
-	publishToMavenLocal {
-		// Copy updated version to `avail-plugin`. This only provides
-		// `avail-plugin` with the new version, it does not publish
-		// `avail-plugin`.
-		finalizedBy(rootProject.tasks.getByName("updatePluginPublishVersion"))
-	}
-	publish {
-		// Copy updated version to `avail-plugin`. This only provides
-		// `avail-plugin` with the new version, it does not publish
-		// `avail-plugin`.
-		finalizedBy(rootProject.tasks.getByName("updatePluginPublishVersion"))
-	}
-}
-
 val buildFailMessage =
 	file("buildSrc/buildFailureMessage.txt")
 		.readText()

@@ -13,15 +13,15 @@ using a Gradle Plugin. It can be found on [Github](https://github.com/orgs/Avail
 
 ## Overview
 The plugin provides:
- * The inclusion of the `avail:avail-core` dependency in the 
-   `implementation` `Configuration` of your project.
  * Initializes your Avail Roots directory, or uses a default.
  * Initializes your Avail Repositories directory, or uses a default.
- * Includes the Avail Standard Library, `avail:avail-stdlib` as an 
-   Avail Root for your Avail project by default but permits opting out of 
-   using the Avail Standard Library.
+ * Optionally includes the Avail Standard Library, `avail:avail-stdlib`, either 
+   the most recent version or the version of your choice as an Avail Root for 
+   your Avail project by default but permits opting out of using the Avail 
+   Standard Library.
  * A human-readable printable configuration of your Avail Project.
- * Provides access to Gradle task that will launch an Avail Workbench.
+ * Provides access to Gradle task that will launch a customizable Avail 
+   Workbench.
  
 ## Setup
 To make the plugin accessible you must insure you include the following in the 
@@ -34,6 +34,8 @@ pluginManagement {
 		mavenLocal()
 		// Adds the gradle plugin portal back to the plugin repositories as
 		// this is removed (overridden) by adding any repository here.
+        // NOTE as of 5/13/2022 the plugin has yet to be published to the gradle
+        // plugin repository and as such must be imported from a local repo.
 		gradlePluginPortal()
 	}
 }
@@ -47,6 +49,8 @@ pluginManagement {
 		mavenLocal()
 		// Adds the gradle plugin portal back to the plugin repositories as
 		// this is removed (overridden) by adding any repository here.
+      // NOTE as of 5/13/2022 the plugin has yet to be published to the gradle
+      // plugin repository and as such must be imported from a local repo.
 		gradlePluginPortal()
 	}
 }
@@ -54,19 +58,17 @@ rootProject.name "plugin-test"
 ```
 
 To include the plugin, you must add the plugin id, `avail.avail-plugin` and 
-provide a corresponding Avail release version in your Gradle build file. The 
-following is an example that imports the version `1.6.0.20210910.181950` of 
-the `avail-core`, `avail-workbench`, and `avail-stdlib` releases (*The 
-version should be changed to match your desired version of Avail.*):
+provide the corresponding plugin release version in your Gradle build file. The 
+following is an example that uses the version `1.6.1.rc1`:
 
 **`build.gradle.kts`**
 ```kotlin
-id("avail.avail-plugin") version "1.6.0.20210910.181950"
+id("avail.avail-plugin") version "1.6.1.rc1"
 ```
 
 **`build.gradle`**
 ```groovy
-id 'avail.avail-plugin' version '1.6.0.20210910.181950'
+id 'avail.avail-plugin' version '1.6.1.rc1'
 ```
 
 ## Configuration
@@ -77,6 +79,7 @@ the configuration `availLibrary`. For example:
 ```kotlin
 dependencies {
     implementation("org.foo:myProject:1.2.3")
+    // Will be added as a library in your roots directory
     availLibrary("com.somewhere.cool:avail-cool-lib:5.4.3")
 }
 ```
@@ -110,12 +113,15 @@ The following are the options available for configuration:
   the `rootsDirectory`and included as a root in the Avail Workbench when it is  
   launched (*see `assembleAndRunWorkbench` task in the Plugin Tasks section*).
   The fields that can be configured in the body of the lambda are:
-    * `name` -  The name of the root for the standard library actually defaults 
-      to "avail". It only needs to be set if the root should be named something
-      other than "avail".
-    * `jarLibBaseName` - The base name the `avail-stdlib` jar file that should 
-      be named without the `.jar` extension. This will be used to construct the 
-      Avail root uri.
+    * `name` (`string`)-  The name of the root for the standard library actually 
+      defaults to "avail". It only needs to be set if the root should be named
+      something other than "avail".
+    * `jarLibBaseName` (`string`) - The base name the `avail-stdlib` jar file 
+      that should be named without the `.jar` extension. This will be used 
+      to construct the Avail root uri.
+    * `stdlibVersion` (`string`) - The version of the 
+      `avail-stdlib:<VERSION>` to use. By default, the most recently released
+      version is used indicated by the version being set to `+`.
   This function *must be called* in order for the Avail standard library to be
   included as a root. If no customization is needed, this function should be 
   called with an empty lambda:
@@ -193,9 +199,10 @@ types made available.
 The Avail plugin provides some custom Gradle Tasks, `AvailWorkbenchTask`.
 
 #### AvailWorkbenchTask
-This allows you to create a task that launches a workbench. An Avail workbench 
-is launched by creating a fatjar that includes all the necessary dependencies
-for it to run. The jar is placed in `$buildDir/workbench`.
+This allows you to create a task that launches a workbench 
+(`avail:avail-workbench:<VERSION>`). An Avail workbench is launched by 
+creating a fatjar that includes all the necessary dependencies for it to run.
+The jar is placed in `$buildDir/workbench`.
 
 Just like any other Gradle task, this task can be configured. You can use
 `dependsOn` if there are any tasks that should be run before building your
@@ -208,6 +215,11 @@ standard out. Here are the options for configuring `AvailWorkbenchTask`.
 * ***workbenchJarBaseName*** (`string`)- Provides a custom name for the 
   workbench jar created by this task. Defaults to the name provided for the 
   task. Jar will be placed in `"$buildDir/workbench"`.
+
+
+* ***workbenchVersion*** (`string`) - The version of the Avail Workbench to use
+  to create the custom workbench to be launched 
+  (`avail:avail-workbench:<VERSION>`).
 
 
 * ***rebuildWorkbenchJar*** (`boolean`) - `true` indicates the jar should be 
@@ -293,10 +305,10 @@ task group when the plugin is applied.
 
 ```
 ========================= Avail Configuration =========================
-    Avail Version: 1.6.0.20210910.181950
+    Standard Library Version: 1.6.1.rc1
     Repository Location: /Users/MyUser/Development/MyProject/avail/repositories
     VM Arguments to include for Avail Runtime:
-      • -DavailRoots=avail=jar:/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/avail-stdlib-1.6.0.20210910.181950.jar;my-avail-root=/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/my-avail-root
+      • -DavailRoots=avail=jar:/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/avail-stdlib.jar;my-avail-root=/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/my-avail-root
       • -Davail.repositories=/Users/Rich/Development/Avail/samples/sample-project/avail/my-repos
     Roots Location: /Users/MyUser/Development/MyProject/avail/my-roots
     Included Roots:
@@ -327,9 +339,9 @@ You can see a full project example in [sample-project](../samples/sample-project
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
-	kotlin("jvm") version "1.5.21" 
+	kotlin("jvm") version "1.6.21" 
         // Add the Avail plugin
-	id("avail.avail-plugin") version "1.6.0.20210910.181950"
+	id("avail.avail-plugin") version "1.6.1.rc1"
 }
 
 group = "avail.sample"
@@ -360,6 +372,12 @@ avail {
       // jar as it is retrieved from maven:
       //    `avail-stdlib-<AVAIL BUILD VERSION>.jar
       jarLibBaseName = "avail-stdlib"
+      
+      // OPTIONAL: The specific Avail Standard Library version. If not 
+      // explicitly set, the most recently released version of the standard 
+      // library will be used. The most recent version being used is indicated
+      // by a version set to `+`.
+      stdlibVersion = "1.5.11"
     }
 
     // Specify the roots directory where the roots should be located. This will
@@ -457,6 +475,12 @@ tasks {
         // AvailWorkbenchTask.
         workbenchDependency("${buildDir}/libs/sample-1.0.0.jar")
         dependency("org.foo:my-sample:1.2.3")
+        
+        // If a foreign function interface is being used in the project from 
+        // a module in the project, we may require a `build` task be run before
+        // the `assembleAndRunWorkbench` task can be run. In this event we must
+        // add `dependsOn` for build:
+        dependsOn(build)
     }
 
     val myWorkbenchTask by creating(AvailWorkbenchTask::class.java)
@@ -516,10 +540,10 @@ the following to standard out:
 
 ```
 ========================= Avail Configuration =========================
-    Avail Version: 1.6.0.20210910.181950
+    Standard Library Version: 1.5.11
     Repository Location: /Users/MyUser/Development/MyProject/avail/repositories
     VM Arguments to include for Avail Runtime:
-      • -DavailRoots=avail=jar:/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/avail-stdlib-1.6.0.20210910.181950.jar;my-avail-root=/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/my-avail-root
+      • -DavailRoots=avail=jar:/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/avail-stdlib.jar;my-avail-root=/Users/Rich/Development/Avail/samples/sample-project/avail/my-roots/my-avail-root
       • -Davail.repositories=/Users/Rich/Development/Avail/samples/sample-project/avail/my-repos
     Roots Location: /Users/MyUser/Development/MyProject/avail/my-roots
     Included Roots:
@@ -563,11 +587,3 @@ pluginManagement {
 }
 rootProject.name = "plugin-test"
 ```
-### Publish Version
-The publish version is specified in 
-[releaseVersion.properties](src/main/resources/releaseVersion.properties). It
-must match the version of the Avail library builds assigned during the Avail 
-publishing process. The Avail project Gradle tasks, `publish` and 
-`publishToMavenLocal` update `releaseVersion.properties` automatically. It is 
-only necessary to run either Gradle task, `publish` or `publishToMavenLocal` to
-have a plugin build that matches the most recently published Avail libraries.

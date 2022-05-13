@@ -81,7 +81,7 @@ dependencies {
     // repositories listed in the repository section
     // availLibrary("avail:example-lib:1.2.3")
     testImplementation(kotlin("test"))
-//    implementation("avail:avail-stdlib:${Versions.avail}")
+    implementation("avail:avail-core:+")
 }
 
 avail {
@@ -97,6 +97,12 @@ avail {
         // jar as it is retrieved from maven:
         //    `avail-stdlib-<AVAIL BUILD VERSION>.jar
         jarLibBaseName = "avail-stdlib"
+
+        // OPTIONAL: The specific Avail Standard Library version. If not
+        // explicitly set, the most recently released version of the standard
+        // library will be used. The most recent version being used is indicated
+        // by a version set to `+`.
+        stdlibVersion = "1.6.0.20220512.133335"
     }
 
     // Specify where the main Avail roots' directory is located.
@@ -172,6 +178,11 @@ tasks {
         // This task is customizable in the same manner as any
         // AvailWorkbenchTask.
         dependency(project.dependencies.project(":avail-java-ffi"))
+
+        // Since our project uses a foreign function interface that must be
+        // built before we can assemble our workbench, we must require `build`
+        // to be run before this `assembleAndRunWorkbench` can be run.
+        dependsOn(build)
     }
 
     // Add your own custom task to assemble and launch an Avail workbench.

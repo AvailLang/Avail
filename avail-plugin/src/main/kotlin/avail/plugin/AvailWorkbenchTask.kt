@@ -33,6 +33,7 @@
 package avail.plugin
 
 import avail.plugin.AvailPlugin.Companion.WORKBENCH
+import avail.plugin.AvailPlugin.Companion.WORKBENCH_DEP
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -58,6 +59,14 @@ open class AvailWorkbenchTask: DefaultTask()
 	 */
 	@Input
 	var workbenchJarBaseName: String = name
+
+	/**
+	 * The version of the Avail Workbench, `avail:avail-workbench` to use. By
+	 * default, it is set to `+` which indicates the latest version in the
+	 * repository should be used.
+	 */
+	@Input
+	var workbenchVersion = "+"
 
 	/**
 	 * `true` indicates if as Workbench jar created by this task from a previous
@@ -273,6 +282,12 @@ open class AvailWorkbenchTask: DefaultTask()
 		{
 			if (project.file(fullPathToFile).exists()) { return }
 		}
+		val workbenchConfig =
+			project.configurations.getByName(WORKBENCH_INTERNAL_CONFIG)
+		val workbenchDependency =
+			project.dependencies.create(
+				"${WORKBENCH_DEP}:$workbenchVersion")
+		workbenchConfig.dependencies.add(workbenchDependency)
 		println("Building $fullPathToFile")
 		project.tasks.create("__wbassm_$name", AvailJarPackager::class.java)
 		{
@@ -290,9 +305,6 @@ open class AvailWorkbenchTask: DefaultTask()
 			archiveBaseName.set(workbenchJarBaseName)
 			archiveVersion.set("")
 			destinationDirectory.set(project.file(workbenchDir))
-			val workbenchConfig =
-				project.configurations.getByName(
-					AvailPlugin.WORKBENCH_INTERNAL_CONFIG)
 			// Explicitly gather the dependencies, so that we end up with a JAR
 			// including the complete Avail workbench plus any workbench
 			// dependencies explicitly stated in the Avail extension.
@@ -348,5 +360,21 @@ open class AvailWorkbenchTask: DefaultTask()
 			"${project.buildDir}/$WORKBENCH/$workbenchJarBaseName.jar"
 		assemble(fullPathToFile)
 		launch(fullPathToFile)
+	}
+
+	companion object
+	{
+		/**
+		 * The dependency group-artifact String dependency that points to the
+		 * published Avail Workbench Jar. This is absent the version.
+		 */
+		internal const val WORKBENCH_DEP: String =
+			"avail:avail-workbench"
+
+		/**
+		 * The name of the custom [Project] [Configuration],
+		 * `__internalAvailWorkbench`, where the [WORKBENCH_DEP] is added.
+		 */
+		internal const val WORKBENCH_INTERNAL_CONFIG = "__internalAvailWorkbench"
 	}
 }

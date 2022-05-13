@@ -180,10 +180,6 @@ tasks {
 
 	publish {
 		dependsOn(cleanUpStagingDirectory)
-		// Copy updated version to `avail-plugin`. This only provides
-		// `avail-plugin` with the new version, it does not publish
-		// `avail-plugin`.
-		dependsOn(rootProject.tasks.getByName("updatePluginPublishVersion"))
 		doFirst {
 			Publish.checkCredentials()
 		}

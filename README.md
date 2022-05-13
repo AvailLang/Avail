@@ -349,9 +349,8 @@ your best source of Avail news.
 
 PUBLISHING AVAIL
 --------------------------------------------------------------------------------
-At the time of writing, Avail provides six distinct publishable 
-libraries/utilities one of which is a Gradle plugin used to simplify the 
-start and development of a new Avail project. 
+At the time of writing, Avail provides three distinct publishable 
+libraries. 
 
 The Avail Foundation is in the process of working towards making the Avail 
 Gradle plugin available in Gradle's plugin repository as well as making the 
@@ -367,17 +366,6 @@ Publishing Avail to local Maven will publish five jars:
    (see [Standard Library](avail-stdlib))
  * `avail-workbench` - *The Avail development tool for developing Avail* 
    (see [Workbench](avail-workbench))
- * `avail-json` - *A stand-alone general JSON building utility written in 
-   Kotlin*
-   (see [JSON](avail-json))
- * `avail-storage` - *A stand-alone general utility for data storage written in 
-   Kotlin*
-   (see [Storage](avail-storage))
-
-Publishing Avail automatically updates the Avail version being used by the 
-[Avail Gradle Plugin](avail-plugin). All that is necessary to have a 
-functional Avail Gradle plugin to match the above mentioned builds is to run the 
-`publishToLocalMaven` in `avail-plugin`.
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------
