@@ -72,6 +72,7 @@ tasks {
 			"avail.environment.AvailWorkbench"
 		manifest.attributes["Implementation-Version"] =
 			project.version
+		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
 	}
 
 	// Copy the JAR into the distribution directory.

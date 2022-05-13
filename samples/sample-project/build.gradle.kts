@@ -45,11 +45,10 @@ group = "org.availlang.sample"
 version = "1.0"
 
 repositories {
-    mavenLocal()
-    mavenCentral()
-    maven {
-        url = uri("${rootProject.rootDir}/libs/")
+    mavenLocal {
+        url = uri("local-plugin-repository/")
     }
+    mavenCentral()
 }
 
 val jvmTarget = 17
@@ -82,10 +81,11 @@ dependencies {
     // repositories listed in the repository section
     // availLibrary("avail:example-lib:1.2.3")
     testImplementation(kotlin("test"))
-    implementation("avail:avail-stdlib:${Versions.avail}")
+//    implementation("avail:avail-stdlib:${Versions.avail}")
 }
 
 avail {
+//    this.availVersion = "1.6.0.20220512.133335"
     useStdAvailLib {
         // The name of the root for the standard library actually defaults to
         // "avail", so it is not necessary to include this line.

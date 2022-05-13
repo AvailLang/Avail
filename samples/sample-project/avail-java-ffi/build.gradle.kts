@@ -8,10 +8,10 @@ description = "Java foreign function interface (FFI) to be accessed using " +
     "Avails Pojos"
 
 repositories {
-    mavenCentral()
-    maven {
-        url = uri("${rootProject.rootDir}/libs/")
+    mavenLocal {
+        url = uri("../local-plugin-repository/")
     }
+    mavenCentral()
 }
 
 tasks {

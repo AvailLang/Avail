@@ -51,10 +51,11 @@ open class AvailExtension constructor(
 	private val plugin: AvailPlugin)
 {
 	/**
-	 * The name of the standard
+	 * The version of Avail to use. This will be the version that is used for
+	 * `avail-core`, `avail-workbench`, `avail-stdlib`. By default it is set to
+	 * `+` which indicates the latest version in the repository should be used.
 	 */
-	private val stdLibName =
-		"$AVAIL_STDLIB_BASE_JAR_NAME-${plugin.releaseVersion}.jar"
+	var availVersion = "+"
 
 	/**
 	 * The directory location where the Avail roots exist. The path to this
@@ -88,15 +89,6 @@ open class AvailExtension constructor(
 	internal val roots: MutableMap<String, AvailRoot> = mutableMapOf()
 
 	/**
-	 * Add the `avail-stdlib` to the [roots].
-	 */
-	private fun addStdLib (rootDir: String)
-	{
-		roots[AvailPlugin.AVAIL_LIBRARY] = AvailRoot(
-			AvailPlugin.AVAIL_LIBRARY, "jar:$rootDir/$stdLibName")
-	}
-
-	/**
 	 * This function informs the plugin to include the Avail Standard Library
 	 * as a root.
 	 *
@@ -107,7 +99,7 @@ open class AvailExtension constructor(
 	fun useStdAvailLib (configure: AvailStandardLibrary.() -> Unit)
 	{
 		val asl = AvailStandardLibrary(
-			"$AVAIL_STDLIB_BASE_JAR_NAME-${plugin.releaseVersion}")
+			"$AVAIL_STDLIB_BASE_JAR_NAME")
 		configure(asl)
 		this.availStandardLibrary = asl
 		root(asl.root(rootsDirectory))
@@ -207,16 +199,8 @@ open class AvailExtension constructor(
 	 */
 	val printableConfig: String get() =
 		buildString {
-			/**
-			 * The list of VM options to be used when starting the workbench jar.
-			 */
-			val vmArgs = listOf(
-				"-Davail.repositories=$repositoryDirectory",
-				)
-
 			append("\n========================= Avail Configuration")
 			append(" =========================")
-			append("\n\tAvail Version: ${plugin.releaseVersion}")
 			append("\n\tRepository Location: $repositoryDirectory")
 			append("\n\tVM Arguments to include for Avail Runtime:")
 			append(roots.values

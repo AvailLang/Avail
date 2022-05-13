@@ -42,7 +42,7 @@ import java.util.Properties
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.6.20"
+	const val kotlin = "1.6.21"
 
 	/** The JVM target version for Kotlin. */
 	const val jvmTarget = 17

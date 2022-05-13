@@ -48,6 +48,7 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] = "avail.tools.compiler.Compiler"
+		manifest.attributes["Build"] = project.version
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 

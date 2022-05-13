@@ -63,22 +63,11 @@ gradlePlugin {
 }
 
 group = "avail"
-version = Versions.getReleaseVersion()
+version = "1.6.1.rc1"// Versions.getReleaseVersion()
 
 repositories {
+	mavenLocal()
 	mavenCentral()
-	maven {
-		setUrl("https://maven.pkg.github.com/AvailLang/Avail")
-		metadataSources {
-			mavenPom()
-			artifact()
-		}
-		credentials {
-			username = "anonymous"
-			// A public key read-only token for Avail downloads.
-			password = "gh" + "p_z45vpIzBYdnOol5Q" + "qRCr4x8FSnPaGb3v1y8n"
-		}
-	}
 }
 
 java {

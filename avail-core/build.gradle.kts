@@ -100,7 +100,9 @@ tasks {
 	}
 
 	jar {
+
 		manifest.attributes["Implementation-Version"] = project.version
+		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
 		// The All_Primitives.txt file must be added to the build resources
 		// directory before we can build the jar.
 	}

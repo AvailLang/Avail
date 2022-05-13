@@ -59,6 +59,8 @@ tasks {
 
 	jar {
 		description = "The Avail standard library"
+		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
+		manifest.attributes["Implementation-Version"] = project.version
 		archiveFileName.set(standardLibraryName)
 		isZip64 = true
 		dependsOn(createDigests)

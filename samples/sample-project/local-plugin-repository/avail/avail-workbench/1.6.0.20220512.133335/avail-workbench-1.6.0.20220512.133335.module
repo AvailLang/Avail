@@ -1,0 +1,151 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "avail",
+    "module": "avail-workbench",
+    "version": "1.6.0.20220512.133335",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.code.findbugs",
+          "module": "jsr305",
+          "version": {
+            "requires": "3.0.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.6.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "avail-workbench-1.6.0.20220512.133335.jar",
+          "url": "avail-workbench-1.6.0.20220512.133335.jar",
+          "size": 652306,
+          "sha512": "514b3a48378a691ba7853cfe46e41242ff80faf99d6f1e2a1bf186b2d9d296188b08d1b58db8bae27c61f26d7aa8ceee6a3b44bfb47adb81bb03208aaf4027ab",
+          "sha256": "26c61eedcd49a980c52a06c69800f95d7f1b40c900593c53c0806163dd18cb92",
+          "sha1": "c9e2b047bdf87de0f6ab462f7fb81a68fc7188a7",
+          "md5": "ff9d361ab85777c6700e1be3c090371f"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.availlang",
+          "module": "avail-json",
+          "version": {
+            "requires": "1.0.7"
+          }
+        },
+        {
+          "group": "org.availlang",
+          "module": "avail-storage",
+          "version": {
+            "requires": "1.0.7"
+          }
+        },
+        {
+          "group": "avail",
+          "module": "avail-core",
+          "version": {
+            "requires": "1.6.0.20220512.133335"
+          }
+        },
+        {
+          "group": "com.formdev",
+          "module": "flatlaf-intellij-themes",
+          "version": {
+            "requires": "2.1"
+          }
+        },
+        {
+          "group": "com.formdev",
+          "module": "flatlaf",
+          "version": {
+            "requires": "2.1"
+          }
+        },
+        {
+          "group": "com.google.code.findbugs",
+          "module": "jsr305",
+          "version": {
+            "requires": "3.0.2"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.6.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "avail-workbench-1.6.0.20220512.133335.jar",
+          "url": "avail-workbench-1.6.0.20220512.133335.jar",
+          "size": 652306,
+          "sha512": "514b3a48378a691ba7853cfe46e41242ff80faf99d6f1e2a1bf186b2d9d296188b08d1b58db8bae27c61f26d7aa8ceee6a3b44bfb47adb81bb03208aaf4027ab",
+          "sha256": "26c61eedcd49a980c52a06c69800f95d7f1b40c900593c53c0806163dd18cb92",
+          "sha1": "c9e2b047bdf87de0f6ab462f7fb81a68fc7188a7",
+          "md5": "ff9d361ab85777c6700e1be3c090371f"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "avail-workbench-1.6.0.20220512.133335-all.jar",
+          "url": "avail-workbench-1.6.0.20220512.133335-all.jar",
+          "size": 16037121,
+          "sha512": "696c447621c9b6fbe49f0eaf77188f3e6e671f0736c1e07878f207ce9b89d451d2c8fe9f861687bcf1e8c713b4cbf624a198e2a39a1ef189f74755c0b4db03b6",
+          "sha256": "5d93230c16953fb8f029c947b9f93baee5f4d866ccd73ec876f363b05c3ea2a1",
+          "sha1": "b1beb038a63c47a69b19dfa70e15da425e501cd5",
+          "md5": "6c8b9a54edbfa1740ae47c749a2c34f5"
+        }
+      ]
+    }
+  ]
+}

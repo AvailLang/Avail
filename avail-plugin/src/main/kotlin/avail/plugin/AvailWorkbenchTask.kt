@@ -37,13 +37,14 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
-import org.gradle.api.artifacts.ProjectDependency
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
 import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskAction
 import java.lang.IllegalStateException
 import java.net.URI
+import java.util.jar.Attributes
+import java.util.jar.JarFile
 
 /**
  * `AvailWorkbenchTask` enables a custom run of the workbench.
@@ -82,7 +83,6 @@ open class AvailWorkbenchTask: DefaultTask()
 	/**
 	 * Get the active [AvailExtension] from the host [Project].
 	 */
-	@Suppress("MemberVisibilityCanBePrivate")
 	private val availExtension: AvailExtension get() =
 		(project.extensions.getByName(AvailPlugin.AVAIL) as AvailExtension)
 
@@ -263,6 +263,9 @@ open class AvailWorkbenchTask: DefaultTask()
 	/**
 	 * Assembles the custom workbench jar if it doesn't exist or
 	 * [rebuildWorkbenchJar] is `true`.
+	 *
+	 * @param fullPathToFile
+	 *   The location the jar will end up.
 	 */
 	private fun assemble (fullPathToFile: String)
 	{
@@ -282,17 +285,18 @@ open class AvailWorkbenchTask: DefaultTask()
 					"configurations from the `avail` extension."
 			manifest.attributes["Main-Class"] =
 				"avail.environment.AvailWorkbench"
-			project.mkdir("${project.buildDir}/$WORKBENCH")
+			val workbenchDir = "${project.buildDir}/$WORKBENCH"
+			project.mkdir(workbenchDir)
 			archiveBaseName.set(workbenchJarBaseName)
 			archiveVersion.set("")
-			into(project.file("${project.buildDir}/$WORKBENCH"))
+			destinationDirectory.set(project.file(workbenchDir))
 			val workbenchConfig =
 				project.configurations.getByName(
 					AvailPlugin.WORKBENCH_INTERNAL_CONFIG)
-			// Explicitly gather up the dependencies, so that we end up with
-			// a JAR including the complete Avail workbench plus any workbench
+			// Explicitly gather the dependencies, so that we end up with a JAR
+			// including the complete Avail workbench plus any workbench
 			// dependencies explicitly stated in the Avail extension.
-			// Additionally anything added to the "workbench" configuration in
+			// Additionally, anything added to the "workbench" configuration in
 			// the host project's dependencies section of the build script will
 			// also be added.
 			from(
@@ -303,6 +307,9 @@ open class AvailWorkbenchTask: DefaultTask()
 						else project.zipTree(it) } +
 					workbenchJarDependencies.map {
 						val f = project.file(it)
+						JarFile(f).manifest
+							.mainAttributes[Attributes.Name("Implementation-Version")] as? String
+
 						if (f.isDirectory) f else project.zipTree(f)})
 			duplicatesStrategy = DuplicatesStrategy.INCLUDE
 		}.doCopy()

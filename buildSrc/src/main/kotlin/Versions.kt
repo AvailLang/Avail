@@ -39,7 +39,7 @@
 object Versions
 {
 	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.6.20"
+	const val kotlin = "1.6.21"
 
 	/** The Kotlin Desktop Compose version [org.jetbrains.compose]. */
 	const val compose = "1.0.0"

@@ -37,7 +37,10 @@ import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.Dependency
 import java.io.File
+import java.net.URI
 import java.util.Properties
+import java.util.jar.Attributes
+import java.util.jar.JarFile
 
 /**
  * `AvailPlugin` represents the Avail Gradle plugin.
@@ -46,22 +49,6 @@ import java.util.Properties
  */
 class AvailPlugin : Plugin<Project>
 {
-	/**
-	 * The release version of the Avail dependencies to target. This also will
-	 * represent the version of the released plugin.
-	 */
-	internal var releaseVersion: String
-
-	init
-	{
-		// Get the release version stripe for all Avail resources to be acquired
-		// as dependencies.
-		val propsFile = javaClass.getResourceAsStream(releaseVersionFile)
-		val props = Properties()
-		props.load(propsFile)
-		this.releaseVersion = props.getProperty("releaseVersion")
-	}
-
 	override fun apply(target: Project)
 	{
 		// Create Custom Project Configurations
@@ -78,31 +65,11 @@ class AvailPlugin : Plugin<Project>
 				target,
 				this)
 
-		// Set up repositories
-		target.repositories.run {
-			mavenCentral()
-			maven {
-				setUrl("https://maven.pkg.github.com/AvailLang/Avail")
-				metadataSources {
-					mavenPom()
-					artifact()
-				}
-				credentials {
-					username = "anonymous"
-					// A public key read-only token for Avail downloads.
-					password =
-						"gh" + "p_z45vpIzBYdnOol5Q" + "qRCr4x8FSnPaGb3v1y8n"
-				}
-			}
-		}
-
 		// Create Dependencies
 		val workbenchDependency =
-			target.dependencies.create("$WORKBENCH_DEP:$releaseVersion:all")
+			target.dependencies.create("$WORKBENCH_DEP:${extension.availVersion}")
 		val coreDependency: Dependency =
-			target.dependencies.create("$AVAIL_CORE:$releaseVersion")
-		val stdlibDependency =
-			target.dependencies.create("$AVAIL_STDLIB_DEP:$releaseVersion")
+			target.dependencies.create("$AVAIL_CORE:${extension.availVersion}")
 
 		// Obtain Project Configurations
 		val availLibConfig =
@@ -111,8 +78,6 @@ class AvailPlugin : Plugin<Project>
 			target.configurations.getByName(WORKBENCH_INTERNAL_CONFIG)
 		val implementationConfig =
 			target.configurations.getByName(IMPLEMENTATION)
-//		val apiConfig =
-//			target.configurations.getByName(API)
 
 		// Add Dependencies
 		workbenchConfig.dependencies.add(workbenchDependency)
@@ -128,6 +93,8 @@ class AvailPlugin : Plugin<Project>
 
 			if (extension.useAvailStdLib)
 			{
+				val stdlibDependency =
+					target.dependencies.create("$AVAIL_STDLIB_DEP:${extension.availVersion}")
 				availLibConfig.dependencies.add(stdlibDependency)
 				extension.root(extension.availStandardLibrary!!.root(
 					extension.rootsDirectory))
@@ -137,12 +104,13 @@ class AvailPlugin : Plugin<Project>
 			doLast {
 				project.mkdir(extension.rootsDirectory)
 				project.mkdir(extension.repositoryDirectory)
-
 				availLibConfig.resolve().forEach {
 					val targetFile =
 						if (extension.useAvailStdLib
 							&& it.name.contains(AVAIL_STDLIB_BASE_JAR_NAME))
 						{
+							val vv = getImplementationVersion(it)
+							println("Adding Avail Standard Library: $vv")
 							extension.availStandardLibrary!!.jar(
 								extension.rootsDirectory)
 						}
@@ -171,6 +139,7 @@ class AvailPlugin : Plugin<Project>
 		target.tasks.register(
 			"assembleAndRunWorkbench", AvailWorkbenchTask::class.java)
 		{
+			// Create Dependencies
 			group = AVAIL
 			description = "My custom workbench build."
 			workbenchJarBaseName = WORKBENCH
@@ -193,6 +162,11 @@ class AvailPlugin : Plugin<Project>
 			}
 		}
 	}
+
+	private fun getImplementationVersion(jar: File): String? =
+		JarFile(jar).manifest
+			.mainAttributes[Attributes.Name("Implementation-Version")] as? String
+
 	companion object
 	{
 		/**
@@ -220,12 +194,6 @@ class AvailPlugin : Plugin<Project>
 		 * dependencies are added.
 		 */
 		private const val IMPLEMENTATION: String = "implementation"
-
-		/**
-		 * The name of the [Project] [Configuration] where `api`
-		 * dependencies are added.
-		 */
-		private const val API: String = "api"
 
 		/**
 		 * The name of the custom [Project] [Configuration], `availLibrary`,

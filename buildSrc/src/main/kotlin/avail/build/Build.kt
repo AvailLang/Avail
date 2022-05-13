@@ -47,6 +47,13 @@ object BuildContext
 	 * [Project.getProjectDir]-relative path to the generated JVM classes.
 	 */
 	const val buildClassesPath = "classes/kotlin/main"
+
+	/**
+	 * The build version string of the form:
+	 * [Versions.avail]-"yyyyMMdd.HHmmss", representing the time of the
+	 * build.
+	 */
+	val buildVersion: String get() = "${Versions.avail}-${Utility.formattedNow}"
 }
 
 /**

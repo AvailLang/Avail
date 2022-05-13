@@ -57,7 +57,7 @@ object Versions
 	 *
 	 *  This represents the version of the `avail-plugin`.
 	 */
-	const val avail = "1.6.0.20220418.190120"
+	const val avail = "1.6.1.rc1"
 //
 //	/**
 //	 * The SLF4J No-Op package used to prevent SLF4J warning from being printed.

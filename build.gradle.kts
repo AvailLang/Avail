@@ -35,14 +35,18 @@ import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import org.gradle.api.tasks.testing.logging.TestLogEvent.*
+import avail.build.BuildContext
 
-val versionToPublish by lazy {
-	Publish.versionToPublish
-}
-
-// Define versions in a single place
-extra.apply{
-	set("versionToPublish", versionToPublish)
+/**
+ * The build version string of the form:
+ * [version]."yyyyMMdd.HHmmss", representing the time of the
+ * build.
+ *
+ * It simply represents the time the build was completed and the base [version]
+ * of said build.
+ */
+val buildVersion by lazy {
+	BuildContext.buildVersion
 }
 
 plugins {
@@ -71,8 +75,11 @@ kotlin {
 
 allprojects {
 	group = "avail"
-	version = versionToPublish
-
+	version = "1.6.1.rc1"
+	// Define versions in a single place
+	extra.apply{
+		set("buildVersion", buildVersion)
+	}
 	repositories {
 		mavenLocal()
 		mavenCentral()
@@ -127,9 +134,9 @@ tasks {
 			"can be updated in that project."
 		workingDir = project.file("${project.projectDir}/avail-plugin")
 		commandLine = listOf(
-			"./gradlew", "updateVersion", "-PversionStripe=$versionToPublish")
+			"./gradlew", "updateVersion", "-PversionStripe=$version")
 		println("Sending `avail-plugin` (${project.projectDir}/avail-plugin) " +
-			"gradle command, `updateVersion` with version, $versionToPublish")
+			"gradle command, `updateVersion` with version, $version")
 	}
 
 	publishToMavenLocal {

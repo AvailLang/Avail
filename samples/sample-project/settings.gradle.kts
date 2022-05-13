@@ -31,6 +31,9 @@
  */
 pluginManagement {
 	repositories {
+		mavenLocal {
+			url = uri("local-plugin-repository/")
+		}
 		mavenLocal()
 		// Adds the gradle plugin portal back to the plugin repositories as
 		// this is removed (overridden) by adding any repository here.

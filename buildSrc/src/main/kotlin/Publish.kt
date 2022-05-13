@@ -39,13 +39,6 @@ import avail.build.Utility.formattedNow
  */
 object Publish
 {
-	/**
-	 * The publish version string of the form:
-	 * [Versions.avail]."yyyyMMdd.HHmmss", representing the time of the
-	 * publish.
-	 */
-	val versionToPublish: String get() = "${Versions.avail}.$formattedNow"
-
 	val githubUsername: String get() =
 		System.getenv("GITHUB_USER") ?: ""
 	val githubPassword: String get() =
