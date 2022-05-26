@@ -850,8 +850,8 @@ class L2Generator internal constructor(
 	{
 		assert(!currentManifest.hasSemanticValue(targetSemanticValue))
 		val block = currentBlock()
-		val sourceRegisters = currentManifest.getDefinitions<L2Register>(
-			sourceSemanticValue, moveOperation.kind)
+		val sourceRegisters =
+			currentManifest.getDefinitions<L2Register>(sourceSemanticValue)
 		val sourceWritesInBlock = sourceRegisters
 			.flatMap(L2Register::definitions)
 			.filter { it.instruction.basicBlock() == block }

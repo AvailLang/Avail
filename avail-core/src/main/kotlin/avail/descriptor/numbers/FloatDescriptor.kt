@@ -46,6 +46,7 @@ import avail.descriptor.numbers.AbstractNumberDescriptor.Order.LESS
 import avail.descriptor.numbers.AbstractNumberDescriptor.Order.MORE
 import avail.descriptor.numbers.DoubleDescriptor.Companion.addDoubleAndIntegerCanDestroy
 import avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubleAndInteger
+import avail.descriptor.numbers.DoubleDescriptor.Companion.compareDoubles
 import avail.descriptor.numbers.DoubleDescriptor.Companion.fromDoubleRecycling
 import avail.descriptor.numbers.FloatDescriptor.IntegerSlots.Companion.RAW_INT
 import avail.descriptor.representation.A_BasicObject
@@ -296,14 +297,7 @@ class FloatDescriptor private constructor(
 	override fun o_NumericCompareToDouble(
 		self: AvailObject,
 		aDouble: Double
-	): Order = getDouble(self).let {
-		when {
-			it == aDouble -> EQUAL
-			it < aDouble -> LESS
-			it > aDouble -> MORE
-			else -> INCOMPARABLE
-		}
-	}
+	): Order = compareDoubles(getDouble(self), aDouble)
 
 	override fun o_NumericCompareToInfinity(
 		self: AvailObject,

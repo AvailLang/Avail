@@ -150,7 +150,7 @@ abstract class TupleDescriptor protected constructor(
 
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
-			e === IntegerSlots.HASH_AND_MORE
+			e === HASH_AND_MORE
 
 	override fun o_NameForDebugger(self: AvailObject): String =
 		"${super.o_NameForDebugger(self)}: tupleSize=${self.tupleSize}"
@@ -631,8 +631,8 @@ abstract class TupleDescriptor protected constructor(
 
 	/**
 	 * Subclasses should override to deal with short subranges and efficient
-	 * copying techniques.  Here we pretty much just create a [subrange
-	 * tuple][SubrangeTupleDescriptor].
+	 * copying techniques.  Here we pretty much just create a
+	 * [subrange][SubrangeTupleDescriptor] tuple.
 	 */
 	override fun o_CopyTupleFromToCanDestroy(
 		self: AvailObject,

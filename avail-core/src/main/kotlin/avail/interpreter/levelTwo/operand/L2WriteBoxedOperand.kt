@@ -54,14 +54,14 @@ import avail.optimizer.values.L2SemanticValue
  * @param register
  *   The initial [L2BoxedRegister] that backs this operand.
  */
-class L2WriteBoxedOperand constructor(
-		semanticValues: Set<L2SemanticValue>,
-		restriction: TypeRestriction,
-		register: L2BoxedRegister
+class L2WriteBoxedOperand
+constructor(
+	semanticValues: Set<L2SemanticValue>,
+	restriction: TypeRestriction,
+	register: L2BoxedRegister
 ) : L2WriteOperand<L2BoxedRegister>(semanticValues, restriction, register)
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.WRITE_BOXED
+	override val operandType: L2OperandType get() = L2OperandType.WRITE_BOXED
 
 	override val registerKind get() = BOXED_KIND
 

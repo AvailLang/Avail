@@ -45,7 +45,9 @@ import avail.interpreter.levelTwo.operation.L2_MAKE_IMMUTABLE
 import avail.interpreter.levelTwo.operation.L2_PHI_PSEUDO_OPERATION
 import avail.interpreter.levelTwo.register.L2Register
 import avail.interpreter.levelTwo.register.L2Register.RegisterKind
-import avail.interpreter.levelTwo.register.L2Register.RegisterKind.*
+import avail.interpreter.levelTwo.register.L2Register.RegisterKind.BOXED_KIND
+import avail.interpreter.levelTwo.register.L2Register.RegisterKind.FLOAT_KIND
+import avail.interpreter.levelTwo.register.L2Register.RegisterKind.INTEGER_KIND
 import avail.optimizer.reoptimizer.L2Regenerator
 import avail.optimizer.values.L2SemanticPrimitiveInvocation
 import avail.optimizer.values.L2SemanticUnboxedFloat
@@ -55,8 +57,6 @@ import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.cast
 import avail.utility.removeLast
-import avail.utility.structures.EnumMap
-import avail.utility.structures.EnumMap.Companion.enumMap
 import java.util.Collections.singletonList
 import java.util.EnumSet
 import kotlin.collections.component1
@@ -134,17 +134,14 @@ class L2ValueManifest
 	private val constraints: MutableMap<L2Synonym, Constraint>
 
 	/**
-	 * A map from <[L2SemanticValue], [RegisterKind]> to source [L2Instruction]s
-	 * from a previous [L2ControlFlowGraph], which can be translated as needed
-	 * by an [L2Regenerator], as part of the instruction postponement
-	 * optimization (perfect redundancy elimination). The same source
-	 * instruction is stored under each semantic value that was written by that
-	 * instruction.
+	 * A map from [L2SemanticValue] to source [L2Instruction]s from a previous
+	 * [L2ControlFlowGraph], which can be translated as needed by an
+	 * [L2Regenerator], as part of the instruction postponement optimization
+	 * (perfect redundancy elimination). The same source instruction is stored
+	 * under each semantic value that was written by that instruction.
 	 */
-	var postponedInstructions: EnumMap<
-			RegisterKind,
-			MutableMap<L2SemanticValue, MutableList<L2Instruction>>>? =
-		null
+	val postponedInstructions =
+		mutableMapOf<L2SemanticValue, MutableList<L2Instruction>>()
 
 	/** Create a new, empty manifest. */
 	constructor()
@@ -166,11 +163,9 @@ class L2ValueManifest
 		constraints = originalManifest.constraints.mapValuesTo(mutableMapOf()) {
 			Constraint(it.value)
 		}
-		postponedInstructions = originalManifest.postponedInstructions
-			?.mapValuesTo(enumMap()) { (_, submap) ->
-				submap.mapValuesTo(mutableMapOf()) { (_, instructions) ->
-					instructions.toMutableList()
-				}
+		originalManifest.postponedInstructions
+			.mapValuesTo(postponedInstructions) { (_, instructions) ->
+				instructions.toMutableList()
 			}
 	}
 
@@ -180,38 +175,26 @@ class L2ValueManifest
 	 */
 	fun recordPostponedSourceInstruction(sourceInstruction: L2Instruction)
 	{
-		if (postponedInstructions == null)
-		{
-			postponedInstructions = enumMap()
-		}
 		for (write in sourceInstruction.writeOperands)
 		{
-			val submap =
-				postponedInstructions!!.getOrPut(write.registerKind) {
-					mutableMapOf()
-				}
 			write.semanticValues().forEach {
-				submap.getOrPut(it, ::mutableListOf).add(sourceInstruction)
+				postponedInstructions.getOrPut(it, ::mutableListOf)
+					.add(sourceInstruction)
 			}
 		}
 	}
 
 	/**
-	 * Record a sourceInstruction for just the given [RegisterKind] and
-	 * [L2SemanticValue].  It can be translated as needed by an [L2Regenerator]
-	 * whenever its output values are needed.
+	 * Record a sourceInstruction for just the given [L2SemanticValue].  It can
+	 * be translated as needed by an [L2Regenerator] whenever its output values
+	 * are needed.
 	 */
 	private fun recordPostponedSourceInstruction(
 		sourceInstruction: L2Instruction,
-		kind: RegisterKind,
 		semanticValue: L2SemanticValue)
 	{
-		if (postponedInstructions == null)
-		{
-			postponedInstructions = enumMap()
-		}
-		val submap = postponedInstructions!!.getOrPut(kind) { mutableMapOf() }
-		submap.getOrPut(semanticValue, ::mutableListOf).add(sourceInstruction)
+		postponedInstructions.getOrPut(semanticValue, ::mutableListOf)
+			.add(sourceInstruction)
 	}
 
 	/**
@@ -224,22 +207,19 @@ class L2ValueManifest
 	 * Fail if such an instruction is not found.
 	 */
 	fun removePostponedSourceInstruction(
-		registerKind: RegisterKind,
 		semanticValue: L2SemanticValue): L2Instruction
 	{
-		val sourceInstructions =
-			postponedInstructions!![registerKind]!![semanticValue]!!
+		val sourceInstructions = postponedInstructions[semanticValue]!!
 		val sourceInstruction = sourceInstructions.last()
 		for (write in sourceInstruction.writeOperands)
 		{
-			val submap = postponedInstructions!![write.registerKind]!!
 			write.semanticValues().forEach {
-				val instructions = submap[it]!!
+				val instructions = postponedInstructions[it]!!
 				val lastInstruction = instructions.removeLast()
 				assert(lastInstruction == sourceInstruction)
 				if (instructions.isEmpty())
 				{
-					submap.remove(it)
+					postponedInstructions.remove(it)
 				}
 			}
 		}
@@ -314,9 +294,7 @@ class L2ValueManifest
 	private fun liveOrPostponedSemanticValues(): MutableSet<L2SemanticValue> {
 		val set = mutableSetOf<L2SemanticValue>()
 		set.addAll(semanticValueToSynonym.keys)
-		postponedInstructions?.forEach { (_, submap) ->
-			set.addAll(submap.keys)
-		}
+		set.addAll(postponedInstructions.keys)
 		return set
 	}
 
@@ -672,30 +650,26 @@ class L2ValueManifest
 	}
 
 	/**
-	 * Retrieve all [L2Register]s known to contain the given [L2SemanticValue],
-	 * but having the given [RegisterKind].  Narrow it to just those registers
-	 * whose definitions *all* include that semantic value.
+	 * Retrieve all [L2Register]s known to contain the given [L2SemanticValue].
+	 * Narrow it to just those registers whose definitions *all* include that
+	 * semantic value.
 	 *
 	 * @param <R>
 	 *   The kind of [L2Register] to return.
 	 * @param semanticValue
 	 *   The [L2SemanticValue] being examined.
-	 * @param registerKind
-	 *   The [RegisterKind] of the desired register.
 	 * @return
 	 *   A [List] of the requested [L2Register]s.
 	 */
 	@Suppress("UNCHECKED_CAST")
 	fun <R : L2Register> getDefinitions(
-		semanticValue: L2SemanticValue,
-		registerKind: RegisterKind
+		semanticValue: L2SemanticValue
 	): List<R> =
 		constraint(semanticValue).definitions
 			.filter { reg ->
-				reg.registerKind === registerKind &&
-					reg.definitions().all { write ->
-						write.semanticValues().contains(semanticValue)
-					}
+				reg.definitions().all { write ->
+					write.semanticValues().contains(semanticValue)
+				}
 			}
 			.map { it as R }
 
@@ -807,7 +781,7 @@ class L2ValueManifest
 	{
 		semanticValueToSynonym.clear()
 		constraints.clear()
-		postponedInstructions = null
+		postponedInstructions.clear()
 	}
 
 	/**
@@ -986,7 +960,7 @@ class L2ValueManifest
 	 * @param synonym
 	 *   The [L2Synonym] to forget.
 	 */
-	fun forget(synonym: L2Synonym)
+	private fun forget(synonym: L2Synonym)
 	{
 		semanticValueToSynonym.keys.removeAll(synonym.semanticValues())
 		val previous = constraints.remove(synonym)
@@ -1132,14 +1106,11 @@ class L2ValueManifest
 			soleManifest.constraints.mapValuesTo(constraints) {
 				(_, constraint) -> Constraint(constraint)
 			}
-			soleManifest.postponedInstructions?.let { postponed ->
-				postponedInstructions =
-					postponed.mapValuesTo(enumMap()) { (_, submap) ->
-						submap.mapValuesTo(mutableMapOf()) { (_, instructions) ->
-							instructions.toMutableList()
-						}
-					}
-			}
+			assert(postponedInstructions.isEmpty())
+			soleManifest.postponedInstructions
+				.mapValuesTo(postponedInstructions) { (_, instructions) ->
+					instructions.toMutableList()
+				}
 			return
 		}
 		val otherManifests = manifests.toMutableList()
@@ -1160,60 +1131,55 @@ class L2ValueManifest
 			// same original instruction (in the previous version of the control
 			// flow graph), cause them to be generated in the incoming edges
 			// (which will be in edge-split SSA).
-			liveSemanticValues.forEach { semanticValue ->
-				skip@for (kind in RegisterKind.all) {
-					val keep = manifests.all { manifest ->
-						when
-						{
-							manifest.hasSemanticValue(semanticValue)
-								&& manifest.getDefinitions<L2Register>(
-									semanticValue, kind).isNotEmpty() -> true
-							else -> manifest.postponedInstructions
-								?.get(kind)?.get(semanticValue) != null
-						}
-					}
-					if (!keep) continue@skip
-					// This combination of semantic value and register kind is
-					// backed by either a register or a postponed instruction in
-					// each incoming edge.
-					val origins = manifests.map { manifest ->
-						manifest.postponedInstructions
-							?.get(kind)
-							?.get(semanticValue)
-					}
-					if (origins.all { it == null })
+			skip@for (semanticValue in liveSemanticValues) {
+				val keep = manifests.all { manifest ->
+					when
 					{
-						// There are no postponed instruction for this purpose.
-						continue@skip
+						manifest.hasSemanticValue(semanticValue)
+							&& manifest.getDefinitions<L2Register>(
+								semanticValue).isNotEmpty() -> true
+						else ->
+							semanticValue in manifest.postponedInstructions
 					}
-					if (!origins.contains(null) && origins.distinct().size == 1)
-					{
-						// The source of this semantic value (and kind) is the
-						// same original instruction(s) for each incoming edge.
-						// Simply include it to the new manifest as a postponed
-						// value.
-						origins[0]!!.forEach {
-							recordPostponedSourceInstruction(
-								it, kind, semanticValue)
-						}
-						continue@skip
+				}
+				if (!keep) continue@skip
+				// This combination of semantic value and register kind is
+				// backed by either a register or a postponed instruction in
+				// each incoming edge.
+				val origins = manifests.map { manifest ->
+					manifest.postponedInstructions[semanticValue]
+				}
+				if (origins.all { it == null })
+				{
+					// There are no postponed instruction for this purpose.
+					continue@skip
+				}
+				if (!origins.contains(null) && origins.distinct().size == 1)
+				{
+					// The source of this semantic value (and kind) is the
+					// same original instruction(s) for each incoming edge.
+					// Simply include it to the new manifest as a postponed
+					// value.
+					origins[0]!!.forEach {
+						recordPostponedSourceInstruction(it, semanticValue)
 					}
-					// The same postponed instruction is *not* the source of the
-					// value in each incoming edge.  Force the relevant
-					// postponed instructions to generate just before each
-					// incoming edge for which there isn't already a register
-					// with the value.  The actual phi creation happens further
-					// down. This is safe, because the graph is in edge-split
-					// SSA in the presence of postponements.
+					continue@skip
+				}
+				// The same postponed instruction is *not* the source of the
+				// value in each incoming edge.  Force the relevant
+				// postponed instructions to generate just before each
+				// incoming edge for which there isn't already a register
+				// with the value.  The actual phi creation happens further
+				// down. This is safe, because the graph is in edge-split
+				// SSA in the presence of postponements.
 
-					assert(regenerator != null)
-					val edges = generator.currentBlock().predecessorEdges()
-					origins.zip(edges).forEach { (sourceInstructions, edge) ->
-						if (sourceInstructions != null)
-						{
-							regenerator!!.forcePostponedTranslationBeforeEdge(
-								edge, kind, semanticValue)
-						}
+				assert(regenerator != null)
+				val edges = generator.currentBlock().predecessorEdges()
+				origins.zip(edges).forEach { (sourceInstructions, edge) ->
+					if (sourceInstructions != null)
+					{
+						regenerator!!.forcePostponedTranslationBeforeEdge(
+							edge, semanticValue)
 					}
 				}
 			}
@@ -1266,7 +1232,7 @@ class L2ValueManifest
 			// represented by those registers in all incoming edges, and limit
 			// the manifest to that intersection, setting the restriction to the
 			// union of the inputs.
-			assert(manifests.all { it.postponedInstructions == null })
+			assert(manifests.all { it.postponedInstructions.isEmpty() })
 			val liveRegisters = mutableMapOf<
 				L2Register,
 				Pair<MutableSet<L2SemanticValue>, Mutable<TypeRestriction>>>()

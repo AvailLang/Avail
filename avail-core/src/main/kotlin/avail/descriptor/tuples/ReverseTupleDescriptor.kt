@@ -42,7 +42,6 @@ import avail.descriptor.tuples.A_Tuple.Companion.childAt
 import avail.descriptor.tuples.A_Tuple.Companion.childCount
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
 import avail.descriptor.tuples.A_Tuple.Companion.copyTupleFromToCanDestroy
-import avail.descriptor.tuples.A_Tuple.Companion.isBetterRepresentationThan
 import avail.descriptor.tuples.A_Tuple.Companion.treeTupleLevel
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAtPuttingCanDestroy
@@ -304,52 +303,6 @@ class ReverseTupleDescriptor private constructor(mutability: Mutability)
 
 	override fun o_Equals(self: AvailObject, another: A_BasicObject): Boolean =
 		another.equalsReverseTuple(self)
-
-	override fun o_EqualsAnyTuple(
-		self: AvailObject,
-		aTuple: A_Tuple): Boolean
-	{
-		// Compare this arbitrary Tuple and the given arbitrary tuple.
-		if (self.sameAddressAs(aTuple))
-		{
-			return true
-		}
-		// Compare sizes...
-		val size = self.tupleSize
-		if (size != aTuple.tupleSize)
-		{
-			return false
-		}
-		if (o_Hash(self) != aTuple.hash())
-		{
-			return false
-		}
-		for (i in 1 .. size)
-		{
-			if (!o_TupleAt(self, i).equals(aTuple.tupleAt(i)))
-			{
-				return false
-			}
-		}
-		if (self.isBetterRepresentationThan(aTuple))
-		{
-			if (!aTuple.descriptor().isShared)
-			{
-				self.makeImmutable()
-				aTuple.becomeIndirectionTo(self)
-			}
-		}
-		else
-		{
-			if (!isShared)
-			{
-				aTuple.makeImmutable()
-				self.becomeIndirectionTo(aTuple)
-			}
-		}
-		return true
-	}
-
 
 	override fun o_EqualsReverseTuple(
 		self: AvailObject,

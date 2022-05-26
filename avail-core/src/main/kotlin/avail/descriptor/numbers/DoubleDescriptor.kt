@@ -413,6 +413,7 @@ class DoubleDescriptor private constructor(
 		 *   An [Order][AbstractNumberDescriptor.Order] describing how double1
 		 *   compares to double2.
 		 */
+		@Suppress("KotlinConstantConditions")
 		fun compareDoubles(
 			double1: Double,
 			double2: Double

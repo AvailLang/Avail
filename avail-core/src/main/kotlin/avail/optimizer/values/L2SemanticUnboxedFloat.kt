@@ -32,6 +32,7 @@
 package avail.optimizer.values
 
 import avail.interpreter.levelTwo.register.L2FloatRegister
+import avail.interpreter.levelTwo.register.L2Register
 
 /**
  * A semantic value which represents the [base] semantic value, but unboxed as
@@ -48,14 +49,17 @@ import avail.interpreter.levelTwo.register.L2FloatRegister
 class L2SemanticUnboxedFloat constructor(val base: L2SemanticValue)
 	: L2SemanticValue(base.hash xor 0x27F6F766)
 {
+	override val kind = L2Register.RegisterKind.FLOAT_KIND
+
 	override fun equalsSemanticValue(other: L2SemanticValue): Boolean =
 		other is L2SemanticUnboxedFloat && base.equalsSemanticValue(other.base)
 
 	override fun transform(
 		semanticValueTransformer: (L2SemanticValue) -> L2SemanticValue,
-		frameTransformer: (Frame) -> Frame): L2SemanticValue =
-			semanticValueTransformer(base).let {
-				if (it == base) this else L2SemanticUnboxedFloat(it)
+		frameTransformer: (Frame) -> Frame
+	): L2SemanticValue =
+		semanticValueTransformer(base).let {
+			if (it == base) this else L2SemanticUnboxedFloat(it)
 		}
 
 	override fun toString(): String = "Float($base)"

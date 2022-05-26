@@ -44,6 +44,7 @@
       <w>hmmss</w>
       <w>incomparables</w>
       <w>inet</w>
+      <w>inliner</w>
       <w>int's</w>
       <w>intelli</w>
       <w>ints</w>
@@ -87,6 +88,7 @@
       <w>pseudoprimes</w>
       <w>recanonicalize</w>
       <w>recurses</w>
+      <w>recursing</w>
       <w>regenerator's</w>
       <w>regenerators</w>
       <w>reifier</w>
@@ -115,6 +117,8 @@
       <w>submap</w>
       <w>subnode</w>
       <w>subphrase</w>
+      <w>subrange</w>
+      <w>subranges</w>
       <w>subregion</w>
       <w>subtable</w>
       <w>subtags</w>
@@ -133,6 +137,7 @@
       <w>unboundedly</w>
       <w>uncaptured</w>
       <w>undeclare</w>
+      <w>underflows</w>
       <w>unname</w>
       <w>unparameterized</w>
       <w>unparking</w>
@@ -149,6 +154,7 @@
       <w>versioner</w>
       <w>vettings</w>
       <w>welford</w>
+      <w>write's</w>
       <w>wump</w>
       <w>wumping</w>
       <w>wumpus</w>

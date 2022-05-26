@@ -1651,8 +1651,7 @@ class IntegerDescriptor private constructor(
 			in 0 until smallIntegerLimit -> smallIntegers[aLong.toInt()] ?:
 				createUninitializedInteger(1).apply {
 					setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
-					makeShared()
-					smallIntegers[aLong.toInt()] = this
+					smallIntegers[aLong.toInt()] = makeShared()
 				}
 			aLong.toInt().toLong() -> createUninitializedInteger(1).apply {
 				setIntSlot(RAW_LONG_SLOTS_, 1, aLong.toInt())
@@ -1978,7 +1977,7 @@ class IntegerDescriptor private constructor(
 		private val smallIntegers =
 			arrayOfNulls<AvailObject>(smallIntegerLimit).also { array ->
 				(0..255).forEach { i ->
-					array[i] = createUninitializedInteger(1).apply {
+					array[i] = createUninitializedInteger(1).run {
 						rawSignedIntegerAtPut(1, i)
 						makeShared()
 					}

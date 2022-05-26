@@ -56,14 +56,14 @@ import avail.utility.cast
  * @param register
  *   The initial [L2FloatRegister] that backs this operand.
  */
-class L2WriteFloatOperand constructor(
-		semanticValues: Set<L2SemanticUnboxedFloat>,
-		restriction: TypeRestriction,
-		register: L2FloatRegister
+class L2WriteFloatOperand
+constructor(
+	semanticValues: Set<L2SemanticUnboxedFloat>,
+	restriction: TypeRestriction,
+	register: L2FloatRegister
 ) : L2WriteOperand<L2FloatRegister>(semanticValues, restriction, register)
 {
-	override val operandType: L2OperandType
-		get() = L2OperandType.WRITE_FLOAT
+	override val operandType: L2OperandType get() = L2OperandType.WRITE_FLOAT
 
 	override val registerKind get() = FLOAT_KIND
 

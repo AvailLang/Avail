@@ -33,6 +33,7 @@ package avail.optimizer.values
 
 import avail.descriptor.representation.A_BasicObject
 import avail.interpreter.Primitive
+import avail.interpreter.levelTwo.register.L2Register
 import avail.optimizer.L2Entity
 import avail.optimizer.L2Synonym
 import avail.utility.ifZero
@@ -131,6 +132,8 @@ abstract class L2SemanticValue protected constructor(val hash: Int)
 	 *   A short string representation of this semantic value.
 	 */
 	open fun toStringForSynonym(): String = toString()
+
+	open val kind = L2Register.RegisterKind.BOXED_KIND
 
 	companion object
 	{

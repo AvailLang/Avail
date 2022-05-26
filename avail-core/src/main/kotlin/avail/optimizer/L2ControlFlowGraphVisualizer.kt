@@ -200,6 +200,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * @param started
 	 *   `true` if the basic block is starting, `false` otherwise.
 	 */
+	@Suppress("SpellCheckingInspection")
 	private fun basicBlock(
 		basicBlock: L2BasicBlock,
 		writer: GraphWriter,
@@ -327,6 +328,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * @param edgeCounter
 	 *   An [AtomicInteger], suitable for uniquely numbering edges.
 	 */
+	@Suppress("SpellCheckingInspection")
 	private fun edge(
 		edge: L2PcOperand,
 		writer: GraphWriter,
@@ -547,38 +549,35 @@ class L2ControlFlowGraphVisualizer constructor(
 						body = body)
 			}
 		}
-		manifest.postponedInstructions?.let { postponements ->
+		manifest.postponedInstructions.let { postponements ->
 			append("<br/>")
 			tag("i") { append("postponements:") }
 			append("<br/>")
-			for ((kind, submap) in postponements)
-			{
-				val sortedSubmap = submap.entries.sortedBy { it.key }
-				sortedSubmap.forEach { (semanticValue, oldInstructions) ->
-					tag(
-						"font",
-						"color" to writer.adjust(errorTextColor)
-					) {
-						append(repeated("&nbsp;", 4))
-						append(kind.kindName)
-						append("/")
-						append(escape(semanticValue))
-						append(" = ")
-						when (oldInstructions.size)
+			val sortedSubmap = postponements.entries.sortedBy { it.key }
+			sortedSubmap.forEach { (semanticValue, oldInstructions) ->
+				tag(
+					"font",
+					"color" to writer.adjust(errorTextColor))
+				{
+					append(repeated("&nbsp;", 4))
+					append(semanticValue.kind)
+					append("/")
+					append(escape(semanticValue))
+					append(" = ")
+					when (oldInstructions.size)
+					{
+						0 -> append("ERROR: No instructions")
+						1 -> append(escape(oldInstructions[0]))
+						else ->
 						{
-							0 -> append("ERROR: No instructions")
-							1 -> append(escape(oldInstructions[0]))
-							else ->
-							{
-								oldInstructions.forEach {
-									append("<br/>")
-									append(repeated("&nbsp;", 8))
-									append(escape(it))
-								}
+							oldInstructions.forEach {
+								append("<br/>")
+								append(repeated("&nbsp;", 8))
+								append(escape(it))
 							}
 						}
-						append("<br/>")
 					}
+					append("<br/>")
 				}
 			}
 		}
@@ -588,7 +587,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * The subgraphs ([L2ControlFlowGraph.Zone]s) that have been discovered so
 	 * far.
 	 */
-	var blocksByZone =
+	private val blocksByZone =
 		mutableMapOf<L2ControlFlowGraph.Zone, MutableSet<L2BasicBlock>>()
 
 	/**
@@ -624,6 +623,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * @throws IOException
 	 *   If it can't write.
 	 */
+	@Suppress("SpellCheckingInspection")
 	@Throws(IOException::class)
 	private fun cluster(
 		zone: L2ControlFlowGraph.Zone,
@@ -652,6 +652,7 @@ class L2ControlFlowGraphVisualizer constructor(
 	 * Visualize the [L2ControlFlowGraph] by [writing][DotWriter] an
 	 * appropriate `dot` source file to the [accumulator].
 	 */
+	@Suppress("SpellCheckingInspection")
 	fun visualize()
 	{
 		val writer = DotWriter(

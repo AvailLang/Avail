@@ -608,24 +608,19 @@ abstract class L2Regenerator internal constructor(
 		for (read in sourceInstruction.readOperands)
 		{
 			val semanticValue = read.semanticValue()
-			val kind = read.registerKind
 			// If there's a postponed instruction that produces the needed
 			// value, always use that, even if the value appears to be
 			// available in a register.  That's because a postponed instruction
 			// like L2_MAKE_IMMUTABLE can't hide the registers that hold the
 			// mutable inputs (because forcing the L2_MAKE_IMMUTABLE to be
 			// translated would still have to access the mutable inputs).
-			if (manifest.postponedInstructions
-					?.getOrNull(kind)
-					?.get(semanticValue)
-				!= null)
+			if (semanticValue in manifest.postponedInstructions)
 			{
 				// There's no register yet (or it's shadowed by a postponed
 				// instruction.  Generate (recursively) the instruction(s)
 				// needed to produce the value in a register.
 				forcePostponedTranslationNow(
-					manifest.removePostponedSourceInstruction(
-						kind, semanticValue))
+					manifest.removePostponedSourceInstruction(semanticValue))
 			}
 		}
 		basicProcessInstruction(sourceInstruction)
@@ -644,18 +639,16 @@ abstract class L2Regenerator internal constructor(
 		while (true)
 		{
 			val postponedSet = mutableSetOf<L2Instruction>()
-			targetGenerator.currentManifest.postponedInstructions?.forEach {
-				(_, submap) ->
-				submap.forEach { (_, instructions) ->
-					// Only produce the last element of the list of postponed
-					// instructions on each pass, to ensure instructions that
-					// feed an L2_MAKE_IMMUTABLE don't try to translate
-					// themselves before the L2_MAKE_IMMUTABLE.
-					val instruction = instructions.last()
-					if (instruction.operation !is L2_MOVE_CONSTANT<*, *, *>)
-					{
-						postponedSet.add(instruction)
-					}
+			targetGenerator.currentManifest.postponedInstructions.forEach {
+					(_, instructions) ->
+				// Only produce the last element of the list of postponed
+				// instructions on each pass, to ensure instructions that
+				// feed an L2_MAKE_IMMUTABLE don't try to translate
+				// themselves before the L2_MAKE_IMMUTABLE.
+				val instruction = instructions.last()
+				if (instruction.operation !is L2_MOVE_CONSTANT<*, *, *>)
+				{
+					postponedSet.add(instruction)
 				}
 			}
 			if (postponedSet.isEmpty()) return
@@ -663,17 +656,12 @@ abstract class L2Regenerator internal constructor(
 				// Check if it was already emitted as a prerequisite of another
 				// postponed instruction.
 				val someWrite = sourceInstruction.writeOperands[0]
-				val kind = someWrite.registerKind
 				val sv = someWrite.pickSemanticValue()
 				val manifest = targetGenerator.currentManifest
-				if (manifest.postponedInstructions
-						?.get(kind)
-						?.get(sv)
-						?.isNotEmpty()
-					== true)
+				if (manifest.postponedInstructions[sv]?.isNotEmpty() == true)
 				{
 					forcePostponedTranslationNow(
-						manifest.removePostponedSourceInstruction(kind, sv))
+						manifest.removePostponedSourceInstruction(sv))
 				}
 			}
 		}
@@ -696,13 +684,12 @@ abstract class L2Regenerator internal constructor(
 	 */
 	fun forcePostponedTranslationBeforeEdge(
 		edge: L2PcOperand,
-		kind: RegisterKind,
 		semanticValue: L2SemanticValue)
 	{
 		targetGenerator.generateRetroactivelyBeforeEdge(edge) {
 			forcePostponedTranslationNow(
 				targetGenerator.currentManifest
-					.removePostponedSourceInstruction(kind, semanticValue))
+					.removePostponedSourceInstruction(semanticValue))
 		}
 	}
 

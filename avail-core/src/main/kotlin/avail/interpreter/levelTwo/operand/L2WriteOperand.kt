@@ -70,17 +70,11 @@ import avail.utility.cast
  */
 abstract class L2WriteOperand<R : L2Register>
 constructor(
-	semanticValues: Set<L2SemanticValue>,
+	private var semanticValues: Set<L2SemanticValue>,
 	private val restriction: TypeRestriction,
 	protected var register: R
 ) : L2Operand()
 {
-	/**
-	 * The [L2SemanticValue]s being written when an [L2Instruction] uses this
-	 * [L2Operand].
-	 */
-	private val semanticValues = semanticValues.toMutableSet()
-
 	/**
 	 * Answer this write's immutable set of [L2SemanticValue]s.
 	 *
@@ -226,7 +220,8 @@ constructor(
 	 */
 	fun retroactivelyIncludeSemanticValue(newSemanticValue: L2SemanticValue)
 	{
-		semanticValues.add(newSemanticValue)
+		semanticValues =
+			semanticValues.toMutableSet().apply { add(newSemanticValue) }
 	}
 
 	override fun replaceRegisters(
@@ -262,7 +257,7 @@ constructor(
 	override fun postOptimizationCleanup()
 	{
 		// Leave the restriction in place.  It shouldn't be all that big.
-		semanticValues.clear()
+		semanticValues = emptySet()
 		restriction.makeShared()
 	}
 }

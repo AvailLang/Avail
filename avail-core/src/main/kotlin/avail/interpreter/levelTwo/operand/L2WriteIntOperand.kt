@@ -57,10 +57,11 @@ import avail.utility.cast
  * @param register
  *   The initial [L2IntRegister] that backs this operand.
  */
-class L2WriteIntOperand constructor(
-		semanticValues: Set<L2SemanticUnboxedInt>,
-		restriction: TypeRestriction,
-		register: L2IntRegister
+class L2WriteIntOperand
+constructor(
+	semanticValues: Set<L2SemanticUnboxedInt>,
+	restriction: TypeRestriction,
+	register: L2IntRegister
 ) : L2WriteOperand<L2IntRegister>(semanticValues, restriction, register)
 {
 	override val operandType: L2OperandType get() = L2OperandType.WRITE_INT

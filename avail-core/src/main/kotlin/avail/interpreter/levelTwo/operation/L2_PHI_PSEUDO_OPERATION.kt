@@ -393,9 +393,7 @@ private constructor(
 		val manifest = generator.currentManifest
 		val pickSemanticValue = relatedSemanticValues[0]
 		val completeRegistersBySource = sourceManifests.map { m ->
-			val registers = m.getDefinitions<R>(
-				pickSemanticValue, moveOperation.kind)
-			registers.filter {
+			m.getDefinitions<R>(pickSemanticValue).filter {
 				r -> r.definitions().all {
 					w -> w.semanticValues().containsAll(relatedSemanticValues)
 				}
