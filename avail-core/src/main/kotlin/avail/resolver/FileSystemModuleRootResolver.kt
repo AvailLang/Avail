@@ -106,6 +106,8 @@ class FileSystemModuleRootResolver constructor(
 	fileManager: FileManager
 ) : ModuleRootResolver(name, uri, fileManager)
 {
+	override val canSave: Boolean get() = true
+
 	override fun close() = fileSystemWatcher.close()
 
 	override fun resolvesToValidModuleRoot(): Boolean = File(uri).isDirectory
@@ -401,7 +403,7 @@ class FileSystemModuleRootResolver constructor(
 	{
 		val data = ByteBuffer.wrap(fileContents)
 		val file = fileManager.ioSystem.openFile(
-			absolutePath(uri, reference.qualifiedName),
+			Path.of(reference.uri),
 			EnumSet.of(
 				StandardOpenOption.TRUNCATE_EXISTING,
 				StandardOpenOption.WRITE))
@@ -710,38 +712,6 @@ class FileSystemModuleRootResolver constructor(
 				return FileVisitResult.CONTINUE
 			}
 		}
-	}
-
-	companion object
-	{
-		/**
-		 * Answer a [Path] for a given [ModuleRootResolver.uri] and
-		 * [ResolverReference.qualifiedName], transforming the package names to
-		 * include the [availExtension].
-		 *
-		 * So, a module root at `file:///Users/Someone/foo` with a qualified
-		 * name of an Avail module, 'Bar/Baz/Cat`, will result in the `Path`:
-		 * `file:///Users/Someone/foo/Bar.avail/Baz.avail/Cat.avail`.
-		 *
-		 * @param rootURI
-		 *   The target `ModuleRootResolver.uri`.
-		 * @param qualifiedName
-		 *   The target `ResolverReference.qualifiedName`.
-		 * @return The resolved absolute `Path`.
-		 */
-		fun absolutePath (
-			rootURI: URI,
-			qualifiedName: String
-		): Path = Paths.get(
-			buildString {
-				append(rootURI)
-				for (part in qualifiedName.split("/"))
-				{
-					append('/')
-					append(part)
-					append(availExtension)
-				}
-			})
 	}
 
 	/**

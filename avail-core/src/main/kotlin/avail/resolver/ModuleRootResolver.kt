@@ -95,6 +95,9 @@ constructor(
 	val uri: URI,
 	val fileManager: FileManager)
 {
+	/** Answer whether data can be written to modules under this resolver. */
+	abstract val canSave: Boolean
+
 	/**
 	 * The [ModuleRoot] this [ModuleRootResolver] resolves to.
 	 */

@@ -85,6 +85,8 @@ constructor(
 	fileManager: FileManager
 ) : ModuleRootResolver(name, uri, fileManager)
 {
+	override val canSave: Boolean get() = false
+
 	private val jarFileLock = ReentrantLock()
 
 	/** The jar file containing Avail source files. */

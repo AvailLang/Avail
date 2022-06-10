@@ -67,6 +67,8 @@ import avail.environment.actions.FindAction
 import avail.environment.actions.GenerateDocumentationAction
 import avail.environment.actions.GenerateGraphAction
 import avail.environment.actions.InsertEntryPointAction
+import avail.environment.actions.NewModuleAction
+import avail.environment.actions.OpenModuleAction
 import avail.environment.actions.ParserIntegrityCheckAction
 import avail.environment.actions.PreferencesAction
 import avail.environment.actions.RefreshAction
@@ -159,6 +161,7 @@ import java.util.Collections
 import java.util.Collections.synchronizedMap
 import java.util.Queue
 import java.util.TimerTask
+import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.ConcurrentLinkedQueue
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
@@ -494,6 +497,12 @@ class AvailWorkbench internal constructor (
 	/** The [action to build an entry point module][BuildAction]. */
 	internal val buildEntryPointModuleAction = BuildAction(this, true)
 
+	/** The action to open a [new][NewModuleAction] module editor. */
+	private val newEditorAction = NewModuleAction(this)
+
+	/** The action to [edit][OpenModuleAction] a module. */
+	private val openEditorAction = OpenModuleAction(this)
+
 //	/**
 //	 * The {@linkplain DisplayCodeCoverageReport action to display the current
 //	 * code coverage session's report data}.
@@ -505,6 +514,8 @@ class AvailWorkbench internal constructor (
 //	 * coverage data and thereby start a new code coverage session}.
 //	 */
 //	val resetCodeCoverageDataAction = ResetCodeCoverageDataAction(this, true)
+
+	val openEditors: MutableMap<ModuleName, AvailEditor> = ConcurrentHashMap()
 
 	/** Whether an entry point invocation (command line) is executing. */
 	var isRunning = false
@@ -915,6 +926,7 @@ class AvailWorkbench internal constructor (
 		val busy = backgroundTask !== null || isRunning
 		buildProgress.isEnabled = busy
 		buildProgress.isVisible = backgroundTask is BuildTask
+		openEditorAction.isEnabled = !busy && selectedModule() !== null
 		inputField.isEnabled = !busy || isRunning
 		retrievePreviousAction.isEnabled = !busy
 		retrieveNextAction.isEnabled = !busy
@@ -1637,6 +1649,9 @@ class AvailWorkbench internal constructor (
 		jMenuBar = createMenuBar {
 			buildMenu = menu("Build")
 			{
+				item(newEditorAction)
+				item(openEditorAction)
+				separator()
 				item(buildAction)
 				item(cancelAction)
 				separator()

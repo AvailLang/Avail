@@ -1092,6 +1092,9 @@ class AvailDebugger internal constructor (
 		variablesPane.componentPopupMenu = JPopupMenu("Variable").apply {
 			add(inspectVariable)
 		}
+		(scrollTextWithLineNumbers(sourcePane).rowHeader.view
+			as LineNumberComponent
+		).adjustWidth()
 		isVisible = true
 		updateFiberList()
 	}
