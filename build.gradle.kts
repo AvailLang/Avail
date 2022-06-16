@@ -83,12 +83,12 @@ allprojects {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-		maven {
-			url = uri("${rootProject.rootDir}/libs/")
-		}
-		maven {
-			url = uri(Repositories.ossSonaType)
-		}
+//		maven {
+//			url = uri("${rootProject.rootDir}/libs/")
+//		}
+//		maven {
+//			url = uri(Repositories.ossSonaType)
+//		}
 	}
 
 	tasks {

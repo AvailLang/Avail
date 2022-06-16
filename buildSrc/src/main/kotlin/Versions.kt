@@ -83,12 +83,12 @@ object Versions
 	/**
 	 * The version of `org.availlang:avail-json`.
 	 */
-	const val availJsonVersion = "1.0.7"
+	const val availJsonVersion = "1.1.1"
 
 	/**
 	 * The version of `org.availlang:avail-storage`.
 	 */
-	const val availStorageVersion = "1.0.7"
+	const val availStorageVersion = "1.0.10"
 
 	/** The JVM target version for Kotlin. */
 	const val intellij = "1.3.1"
