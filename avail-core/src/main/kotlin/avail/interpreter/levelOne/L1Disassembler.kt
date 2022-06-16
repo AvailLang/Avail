@@ -319,9 +319,7 @@ class L1Disassembler constructor(
 						tupleFromList(operandValues),
 						slotName = "Instruction",
 						forcedName = nameBuilder.toString(),
-						forcedChildren = operandValues.toTypedArray()
-					)
-				)
+						forcedChildren = operandValues.toTypedArray()))
 			}
 
 			override fun doImmediate(index: Int)
@@ -344,8 +342,7 @@ class L1Disassembler constructor(
 					{
 						index <= code.numArgs() -> "arg#$index = $name"
 						else -> "local#${index - code.numArgs()} = $name"
-					}
-				)
+					})
 			}
 
 			override fun doOuter(index: Int)

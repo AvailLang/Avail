@@ -32,11 +32,15 @@
 
 package avail.environment.actions
 
+import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
+import avail.environment.showTextRange
 import java.awt.BorderLayout
 import java.awt.Color
+import java.awt.Component
 import java.awt.Dialog.ModalityType
 import java.awt.Dimension
+import java.awt.Frame
 import java.awt.event.ActionEvent
 import java.awt.event.ActionListener
 import java.awt.event.KeyEvent
@@ -141,11 +145,13 @@ class FindAction constructor(
 		{
 			createDialog()
 		}
+		var frame = event.source as Component
+		while (frame !is Frame) frame = frame.parent
 		textPane = workbench.mostRecentFocusOwner as? JTextComponent ?: return
 		highlighter = textPane!!.highlighter
 		textPane!!.document.addDocumentListener(documentListener)
 		val selectionColor = textPane!!.selectionColor
-		val currentMatchColor = AvailWorkbench.AdaptiveColor(
+		val currentMatchColor = AdaptiveColor(
 			selectionColor.darker(), selectionColor.brighter())
 		allMatchesPainter = DefaultHighlightPainter(selectionColor)
 		currentMatchPainter = DefaultHighlightPainter(currentMatchColor.color)
@@ -220,6 +226,7 @@ class FindAction constructor(
 						match.range.first, match.range.last + 1,
 						currentMatchPainter)
 					allMatches[i] = match to newTag
+					pane.showTextRange(match.range.first, match.range.last + 1)
 					return
 				}
 			}
@@ -262,6 +269,7 @@ class FindAction constructor(
 						match.range.first, match.range.last + 1,
 						currentMatchPainter)
 					allMatches[i] = match to newTag
+					pane.showTextRange(match.range.first, match.range.last + 1)
 					return
 				}
 			}

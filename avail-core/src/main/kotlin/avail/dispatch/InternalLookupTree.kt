@@ -1357,8 +1357,7 @@ internal constructor(
 				testedFlags,
 				alreadyEnumerationOfNontypeTested,
 				alreadyExtractedFields,
-				memento)
-		)
+				memento))
 	}
 
 	/**

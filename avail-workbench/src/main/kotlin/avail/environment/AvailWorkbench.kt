@@ -51,6 +51,7 @@ import avail.environment.LayoutConfiguration.Companion.moduleRenameTargetSubkeyS
 import avail.environment.LayoutConfiguration.Companion.moduleRenamesKeyString
 import avail.environment.LayoutConfiguration.Companion.moduleRootsKeyString
 import avail.environment.LayoutConfiguration.Companion.moduleRootsSourceSubkeyString
+import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.actions.AboutAction
 import avail.environment.actions.BuildAction
 import avail.environment.actions.CancelAction
@@ -110,7 +111,6 @@ import avail.environment.streams.StreamStyle.ERR
 import avail.environment.streams.StreamStyle.INFO
 import avail.environment.streams.StreamStyle.OUT
 import avail.environment.tasks.BuildTask
-import avail.environment.text.AvailEditorKit
 import avail.files.FileManager
 import avail.io.ConsoleInputChannel
 import avail.io.ConsoleOutputChannel
@@ -170,15 +170,12 @@ import java.util.concurrent.atomic.AtomicLong
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.prefs.BackingStoreException
 import javax.swing.Action
-import javax.swing.BorderFactory
 import javax.swing.GroupLayout
 import javax.swing.ImageIcon
-import javax.swing.JCheckBoxMenuItem
 import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JLabel
 import javax.swing.JMenu
-import javax.swing.JMenuBar
 import javax.swing.JPanel
 import javax.swing.JProgressBar
 import javax.swing.JScrollPane
@@ -195,12 +192,7 @@ import javax.swing.SwingWorker
 import javax.swing.UIManager
 import javax.swing.WindowConstants
 import javax.swing.text.BadLocationException
-import javax.swing.text.SimpleAttributeSet
-import javax.swing.text.StyleConstants
-import javax.swing.text.StyleContext
 import javax.swing.text.StyledDocument
-import javax.swing.text.TabSet
-import javax.swing.text.TabStop
 import javax.swing.tree.DefaultMutableTreeNode
 import javax.swing.tree.DefaultTreeCellRenderer
 import javax.swing.tree.DefaultTreeModel
@@ -317,7 +309,7 @@ class AvailWorkbench internal constructor (
 	 * The [text&#32;area][JTextPane] that displays the [build][AvailBuilder]
 	 * transcript.
 	 */
-	val transcript: JTextPane
+	val transcript = codeSuitableTextPane(this)
 
 	/** The [scroll bars][JScrollPane] for the [transcript]. */
 	private val transcriptScrollArea: JScrollPane
@@ -361,7 +353,7 @@ class AvailWorkbench internal constructor (
 	private val refreshAction = RefreshAction(this)
 
 	/** The [FindAction] for finding/replacing text in a text area. */
-	private val findAction = FindAction(this)
+	val findAction = FindAction(this)
 
 	/** The [&quot;about Avail&quot; action][AboutAction]. */
 	private val aboutAction = AboutAction(this)
@@ -841,59 +833,6 @@ class AvailWorkbench internal constructor (
 		if (!wentToZero)
 		{
 			updateTranscript()
-		}
-	}
-
-	/**
-	 * An abstraction for a color that's dependent on light versus dark mode.
-	 *
-	 * @property light
-	 *   The color to use in light mode.
-	 * @property light
-	 *   The color to use in dark mode.
-	 * @constructor
-	 * Construct a new `AdaptiveColor`.
-	 */
-	data class AdaptiveColor constructor(
-		private val light: Color,
-		private val dark: Color)
-	{
-		val color: Color get() = if (darkMode) dark else light
-
-		val hex: String
-			get() = with(color) {
-				format("#%02x%02x%02x", red, green, blue)
-			}
-
-		fun blend(
-			otherColor: Color,
-			selfWeight: Float = 0.5.toFloat()
-		) : AdaptiveColor
-		{
-			assert(selfWeight in 0.0 .. 1.0)
-			return AdaptiveColor(
-				blend(light, otherColor, selfWeight),
-				blend(dark, otherColor, selfWeight))
-		}
-
-		companion object
-		{
-			fun blend(
-				selfColor: Color,
-				otherColor: Color,
-				selfWeight: Float
-			) : Color
-			{
-				assert(selfWeight in 0.0 .. 1.0)
-				val otherWeight = 1.0.toFloat() - selfWeight
-				val vector = selfColor.getRGBComponents(null)
-					.zip(otherColor.getRGBComponents(null))
-					.map { (a, b) ->
-						a * selfWeight + b * otherWeight
-					}
-					.toFloatArray()
-				return Color(vector[0], vector[1], vector[2])
-			}
 		}
 	}
 
@@ -1822,18 +1761,6 @@ class AvailWorkbench internal constructor (
 
 		// Make this row and column be where the excess space goes.
 		// And reset the weights...
-		transcript = JTextPane().apply {
-			border = BorderFactory.createEtchedBorder()
-			//componentPopupMenu = menu("Transcript")
-			//{
-			//	item(clearTranscriptAction)
-			//}.popupMenu
-			isEditable = true
-			isEnabled = true
-			isFocusable = true
-			preferredSize = Dimension(0, 500)
-			editorKit = AvailEditorKit(this@AvailWorkbench)
-		}
 		transcriptScrollArea = createScrollPane(transcript)
 
 		// Create the input area.
@@ -1874,21 +1801,6 @@ class AvailWorkbench internal constructor (
 			}
 		}
 
-		// Set up styles for the transcript.
-		val doc = transcript.styledDocument
-		val tabStops = Array(500) { i ->
-			TabStop(32.0f * (i + 1), TabStop.ALIGN_LEFT, TabStop.LEAD_NONE)
-		}
-		val tabSet = TabSet(tabStops)
-		val attributes = SimpleAttributeSet()
-		StyleConstants.setTabSet(attributes, tabSet)
-		doc.setParagraphAttributes(0, doc.length, attributes, false)
-		val defaultStyle = StyleContext.getDefaultStyleContext().getStyle(
-			StyleContext.DEFAULT_STYLE)
-		defaultStyle.addAttributes(attributes)
-		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
-		StreamStyle.values().forEach { style -> style.defineStyleIn(doc) }
-
 		// Redirect the standard streams.
 		try
 		{
@@ -1905,12 +1817,10 @@ class AvailWorkbench internal constructor (
 		System.setOut(outputStream)
 		System.setErr(errorStream)
 		System.setIn(inputStream)
-		val textInterface =
-			TextInterface(
-				ConsoleInputChannel(inputStream),
-				ConsoleOutputChannel(outputStream),
-				ConsoleOutputChannel(errorStream)
-			)
+		val textInterface = TextInterface(
+			ConsoleInputChannel(inputStream),
+			ConsoleOutputChannel(outputStream),
+			ConsoleOutputChannel(errorStream))
 		runtime.setTextInterface(textInterface)
 		availBuilder.textInterface = textInterface
 
@@ -1918,11 +1828,9 @@ class AvailWorkbench internal constructor (
 			JSplitPane.VERTICAL_SPLIT,
 			true,
 			createScrollPane(moduleTree),
-			createScrollPane(entryPointsTree)
-		)
+			createScrollPane(entryPointsTree))
 		leftPane.setDividerLocation(
-			layoutConfiguration.moduleVerticalProportion()
-		)
+			layoutConfiguration.moduleVerticalProportion())
 		leftPane.resizeWeight =
 			layoutConfiguration.moduleVerticalProportion()
 		leftPane.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
@@ -1939,8 +1847,7 @@ class AvailWorkbench internal constructor (
 				.addComponent(outputLabel)
 				.addComponent(transcriptScrollArea)
 				.addComponent(inputLabel)
-				.addComponent(inputField)
-		)
+				.addComponent(inputField))
 		rightPaneLayout.setVerticalGroup(
 			rightPaneLayout.createSequentialGroup()
 				.addGroup(
@@ -1949,9 +1856,7 @@ class AvailWorkbench internal constructor (
 							buildProgress,
 							GroupLayout.PREFERRED_SIZE,
 							GroupLayout.DEFAULT_SIZE,
-							GroupLayout.PREFERRED_SIZE
-						)
-				)
+							GroupLayout.PREFERRED_SIZE))
 				.addGroup(
 					rightPaneLayout.createSequentialGroup()
 						.addComponent(outputLabel)
@@ -1959,9 +1864,7 @@ class AvailWorkbench internal constructor (
 							transcriptScrollArea,
 							0,
 							300,
-							Short.MAX_VALUE.toInt()
-						)
-				)
+							Short.MAX_VALUE.toInt()))
 				.addGroup(
 					rightPaneLayout.createSequentialGroup()
 						.addComponent(inputLabel)
@@ -1969,14 +1872,10 @@ class AvailWorkbench internal constructor (
 							inputField,
 							GroupLayout.PREFERRED_SIZE,
 							GroupLayout.DEFAULT_SIZE,
-							GroupLayout.PREFERRED_SIZE
-						)
-				)
-		)
+							GroupLayout.PREFERRED_SIZE)))
 
 		mainSplit = JSplitPane(
-			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane
-		)
+			JSplitPane.HORIZONTAL_SPLIT, true, leftPane, rightPane)
 		mainSplit.dividerLocation = layoutConfiguration.leftSectionWidth()
 		mainSplit.addPropertyChangeListener(DIVIDER_LOCATION_PROPERTY) {
 			saveWindowPosition()
@@ -2008,12 +1907,13 @@ class AvailWorkbench internal constructor (
 			// position state then exit. Apple's apple.eawt.quitStrategy has
 			// never worked, to the best of my knowledge.  It's a trick.  We
 			// must close the workbench window explicitly to give it a chance to
-			// save.
-			val closeEvent = WindowEvent(
-				this@AvailWorkbench,
-				WindowEvent.WINDOW_CLOSING
-			)
-			dispatchEvent(closeEvent)
+			// save.  But first close all the editors (assume they close).
+			openEditors.values.toList().forEach { editor ->
+				editor.dispatchEvent(
+					WindowEvent(editor, WindowEvent.WINDOW_CLOSING))
+			}
+			dispatchEvent(
+				WindowEvent(this@AvailWorkbench, WindowEvent.WINDOW_CLOSING))
 			true
 		}
 		setAboutHandler {
@@ -2025,8 +1925,7 @@ class AvailWorkbench internal constructor (
 		Taskbar.getTaskbar().run {
 			iconImage = ImageIcon(
 				AvailWorkbench::class.java.classLoader.getResource(
-					"resources/workbench/AvailHammer.png"
-				)
+					"resources/workbench/AvailHammer.png")
 			).image
 			setIconBadge(activeVersionSummary)
 		}
@@ -2329,67 +2228,6 @@ class AvailWorkbench internal constructor (
 			}
 		}
 
-		/** A helper class for building menus. */
-		private class MenuBuilder constructor(val theMenu: JMenu)
-		{
-			fun item(item: Action)
-			{
-				theMenu.add(item)
-			}
-
-			fun check(item: Action)
-			{
-				theMenu.add(JCheckBoxMenuItem(item))
-			}
-
-			fun separator(): Unit = theMenu.addSeparator()
-
-			/** Add a pre-built menu. */
-			fun submenu(submenu: JMenu)
-			{
-				theMenu.add(submenu)
-			}
-
-			/** Create a submenu directly. */
-			fun submenu(name: String, body: MenuBuilder.()->Unit): JMenu =
-				menu(name, body).also(theMenu::add)
-		}
-
-		/**
-		 * Create a menu with the given name and entries, which can be null to
-		 * indicate a separator, a JMenuItem, or an Action to wrap in a
-		 * JMenuItem.
-		 *
-		 * @param name
-		 *   The name of the menu to create.
-		 * @param body
-		 *   A function that adds entries to the menu via the [MenuBuilder]
-		 *   syntax.
-		 * @return A new [JMenu].
-		 */
-		private inline fun menu(
-			name: String = "",
-			body: MenuBuilder.()->Unit
-		) = JMenu(name).also { MenuBuilder(it).body() }
-
-		/** A helper class for building the menu bar. */
-		private class MenuBarBuilder constructor(val theMenuBar: JMenuBar)
-		{
-			/** Add a pre-built menu. */
-			fun menu(menu: JMenu)
-			{
-				theMenuBar.add(menu)
-			}
-
-			/** Create a submenu directly. */
-			fun menu(name: String, body: MenuBuilder.()->Unit): JMenu =
-				JMenu(name).also { body(MenuBuilder(it)) }.also(theMenuBar::add)
-		}
-
-		private inline fun createMenuBar(
-			body: MenuBarBuilder.()->Unit
-		) = JMenuBar().also { MenuBarBuilder(it).body() }
-
 		/**
 		 * Answer the pane wrapped in a JScrollPane.
 		 *
@@ -2398,11 +2236,10 @@ class AvailWorkbench internal constructor (
 		 * @return The new [JScrollPane].
 		 */
 		private fun createScrollPane(innerComponent: Component): JScrollPane =
-			JScrollPane().apply {
+			JScrollPane(innerComponent).apply {
 				horizontalScrollBarPolicy = HORIZONTAL_SCROLLBAR_AS_NEEDED
 				verticalScrollBarPolicy = VERTICAL_SCROLLBAR_ALWAYS
 				minimumSize = Dimension(100, 50)
-				setViewportView(innerComponent)
 			}
 
 		/**

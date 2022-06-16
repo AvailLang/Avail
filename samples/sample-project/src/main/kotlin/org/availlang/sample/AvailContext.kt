@@ -65,8 +65,7 @@ data class Project constructor(
 	val name: String,
 	val moduleRootsPath: String,
 	val renamesFileBody: String = "",
-	val fileManager: FileManager = FileManager()
-)
+	val fileManager: FileManager = FileManager())
 {
 	/** The [AvailRuntime] for this project. */
 	val runtime by lazy {

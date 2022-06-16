@@ -169,19 +169,16 @@ internal class DeadCodeAnalyzer constructor(
 					{
 						val entities = entitiesByPredecessor[predecessorIndex]
 						if (entities.removeAll(
-								dataCouplingMode.writeEntitiesOf(phiInstruction)
-							)
-							|| phiInstruction.hasSideEffect
-						)
+								dataCouplingMode.writeEntitiesOf(
+									phiInstruction))
+							|| phiInstruction.hasSideEffect)
 						{
 							liveInstructions.add(phiInstruction)
 							val readOperand = readOperands[predecessorIndex]
 							dataCouplingMode.addEntitiesFromRead(
-								readOperand, entities
-							)
+								readOperand, entities)
 							entities.addAll(
-								dataCouplingMode.readEntitiesOf(readOperand)
-							)
+								dataCouplingMode.readEntitiesOf(readOperand))
 						}
 					}
 					index--

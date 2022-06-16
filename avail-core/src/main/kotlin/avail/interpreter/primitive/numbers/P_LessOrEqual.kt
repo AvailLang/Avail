@@ -153,8 +153,7 @@ object P_LessOrEqual : Primitive(2, CannotFail, CanFold, CanInline)
 					firstReg,
 					secondReg,
 					L2Generator.edgeTo(truePath),
-					L2Generator.edgeTo(falsePath)
-				)
+					L2Generator.edgeTo(falsePath))
 		}
 		generator.startBlock(truePath)
 		callSiteHelper.useAnswer(generator.boxedConstant(trueObject))

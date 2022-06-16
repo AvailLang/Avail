@@ -427,8 +427,7 @@ protected constructor(
 	{
 		assert(
 			!isEntryPoint(instruction)
-				|| instruction.basicBlock().instructions()[0] == instruction
-		)
+				|| instruction.basicBlock().instructions()[0] == instruction)
 		{ "Entry point instruction must be at start of a block" }
 		instruction.operands.forEach {
 			it.instructionWasInserted(instruction)

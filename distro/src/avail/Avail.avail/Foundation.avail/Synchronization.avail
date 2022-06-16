@@ -547,7 +547,7 @@ Private method "Acquire_" is
 	 */
 	else
 	[
-		Until mutex's owner = current fiber	do
+		Until mutex's owner = current fiber do
 		[
 			Park current fiber;
 			If termination requested then

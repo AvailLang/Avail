@@ -279,8 +279,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 			intB,
 			generator.unboxedIntConstant(0),
 			edgeTo(notZeroDenominator),
-			edgeTo(fallback)
-		)
+			edgeTo(fallback))
 		generator.startBlock(notZeroDenominator)
 		// At this point the denominator isn't zero.
 		val manifest = generator.currentManifest
@@ -298,8 +297,7 @@ object P_Division : Primitive(2, CanFold, CanInline)
 				intA,
 				generator.unboxedIntConstant(Int.MIN_VALUE),
 				edgeTo(notMinInt),
-				edgeTo(fallback)
-			)
+				edgeTo(fallback))
 			generator.startBlock(notMinInt)
 		}
 		// At this point the result will not throw division-by-zero or overflow

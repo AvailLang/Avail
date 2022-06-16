@@ -164,7 +164,7 @@ class LayoutConfiguration constructor (input: String = "")
 	 *
 	 * @return A string.
 	 */
-	fun stringToStore(): String
+	private fun stringToStore(): String
 	{
 		val strings = Array(10) { "" }
 		val p = placement
@@ -201,11 +201,11 @@ class LayoutConfiguration constructor (input: String = "")
 			resourcePrefix + localResourceName
 
 		/** The user-specific [Preferences] for this application to use. */
-		val basePreferences =
+		val basePreferences: Preferences =
 			Preferences.userNodeForPackage(AvailWorkbench::class.java)
 
 		/** The key under which to organize all placement information. */
-		const val placementByMonitorNamesString =
+		private const val placementByMonitorNamesString =
 			"placementByMonitorNames"
 
 		/** The leaf key under which to store a single window placement. */

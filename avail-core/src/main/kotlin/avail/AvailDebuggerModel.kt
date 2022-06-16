@@ -148,10 +148,12 @@ class AvailDebuggerModel constructor (
 					debuggedFibers.removeIf {
 						it.executionState.indicatesTermination
 					}
-					assert(fiber.fiberHelper.debugger.get() !== this)
-					fiber.captureInDebugger(this)
-					debuggedFibers.add(fiber)
-					whenAddedFiberActions.forEach { it(fiber) }
+					if (fiber.fiberHelper.debugger.get() == null)
+					{
+						fiber.captureInDebugger(this)
+						debuggedFibers.add(fiber)
+						whenAddedFiberActions.forEach { it(fiber) }
+					}
 				}
 			}
 		}

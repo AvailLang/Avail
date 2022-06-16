@@ -32,7 +32,7 @@
 
 package avail.environment.streams
 
-import avail.environment.AvailWorkbench
+import avail.environment.AdaptiveColor
 import java.awt.Color
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
@@ -94,7 +94,7 @@ enum class StreamStyle constructor(
 		dark = Color(220, 196, 87));
 
 	/** Combine the light and dark into an AdaptiveColor. */
-	private val adaptiveColor = AvailWorkbench.AdaptiveColor(light, dark)
+	private val adaptiveColor = AdaptiveColor(light, dark)
 
 	/**
 	 * Create my corresponding [Style] in the [StyledDocument].

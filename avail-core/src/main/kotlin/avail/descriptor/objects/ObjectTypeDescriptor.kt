@@ -1155,7 +1155,6 @@ class ObjectTypeDescriptor internal constructor(
 			ObjectTypeDescriptor::class.java,
 			::staticObjectTypeVariantId.name,
 			Int::class.javaPrimitiveType!!,
-			AvailObject::class.java
-		)
+			AvailObject::class.java)
 	}
 }

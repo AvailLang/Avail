@@ -34,7 +34,7 @@ package avail.environment.nodes
 
 import avail.builder.AvailBuilder
 import avail.environment.AvailWorkbench
-import avail.environment.AvailWorkbench.AdaptiveColor
+import avail.environment.AdaptiveColor
 import avail.environment.LayoutConfiguration.Companion.resource
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded

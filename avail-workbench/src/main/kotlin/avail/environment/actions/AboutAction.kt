@@ -34,7 +34,7 @@ package avail.environment.actions
 
 import avail.AvailRuntimeConfiguration
 import avail.environment.AvailWorkbench
-import avail.environment.AvailWorkbench.AdaptiveColor
+import avail.environment.AdaptiveColor
 import avail.environment.LayoutConfiguration.Companion.resource
 import java.awt.BorderLayout
 import java.awt.Color

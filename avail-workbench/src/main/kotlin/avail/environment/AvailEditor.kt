@@ -32,27 +32,23 @@
 
 package avail.environment
 
+import avail.AvailRuntime
 import avail.builder.ModuleName
+import avail.environment.MenuBarBuilder.Companion.createMenuBar
+import avail.environment.actions.FindAction
 import java.awt.BorderLayout
 import java.awt.Dimension
-import java.awt.Rectangle
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
-import java.awt.geom.Point2D
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
-import javax.swing.JScrollPane
-import javax.swing.JTextArea
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
-import javax.swing.text.BadLocationException
-import kotlin.math.max
-import kotlin.math.min
 
 class AvailEditor
 constructor(
@@ -60,20 +56,36 @@ constructor(
 	moduleName: ModuleName
 ) : JFrame("Avail Editor: $moduleName")
 {
+	/** The current [AvailRuntime]. */
 	private val runtime = workbench.runtime
 
+	/**
+	 * When the first edit was after a save, or the first ever.
+	 * Only access within the Swing UI thread.
+	 */
 	private var firstUnsavedEditTime = 0L
 
+	/**
+	 * The most recent edit time.
+	 * Only access within the Swing UI thread.
+	 */
 	private var lastEditTime = 0L
 
+	/**
+	 * The last time the module was saved.
+	 * Only access within the Swing UI thread.
+	 */
 	private var lastSaveTime = 0L
 
+	/**
+	 * The resolved reference to the module.
+	 * Only access within the Swing UI thread.
+	 */
 	private val resolverReference =
 		runtime.moduleNameResolver.resolve(moduleName).resolverReference
 
-	private val sourcePane = JTextArea().apply {
-		lineWrap = false
-		tabSize = 2
+	/** The editor pane. */
+	private val sourcePane = codeSuitableTextPane(workbench).apply {
 		val semaphore = Semaphore(0)
 		resolverReference.readFileString(
 			true,
@@ -95,6 +107,10 @@ constructor(
 		})
 	}
 
+	/**
+	 * The editor has indicated that the module has just been edited.
+	 * Only call within the Swing UI thread.
+	 */
 	private fun editorChanged()
 	{
 		val editTime = lastEditTime
@@ -107,6 +123,10 @@ constructor(
 		}
 	}
 
+	/**
+	 * Cause the modified module to be written to disk soon.
+	 * Only call within the Swing UI thread.
+	 */
 	private fun eventuallySave()
 	{
 		val maximumStaleness = 10_000L  //ms
@@ -136,6 +156,10 @@ constructor(
 			idleBeforeWrite)
 	}
 
+	/**
+	 * Write the modified module to disk immediately.
+	 * Only call within the Swing UI thread.
+	 */
 	private fun forceWrite()
 	{
 		val string = sourcePane.text
@@ -154,6 +178,7 @@ constructor(
 		throwable?.let { throw it }
 	}
 
+	/** Open the editor window. */
 	fun open()
 	{
 		addWindowListener(object : WindowAdapter()
@@ -166,6 +191,7 @@ constructor(
 		val panel = JPanel(BorderLayout(20, 20))
 		panel.border = EmptyBorder(10, 10, 10, 10)
 		background = panel.background
+		val sourcePaneScroll = sourcePane.scrollTextWithLineNumbers()
 		panel.layout = GroupLayout(panel).apply {
 			//val pref = GroupLayout.PREFERRED_SIZE
 			//val def = DEFAULT_SIZE
@@ -173,84 +199,25 @@ constructor(
 			autoCreateGaps = true
 			setHorizontalGroup(
 				createSequentialGroup()
-					.addComponent(
-						scrollTextWithLineNumbers(sourcePane)))
+					.addComponent(sourcePaneScroll))
 			setVerticalGroup(
 				createSequentialGroup()
-					.addComponent(
-						scrollTextWithLineNumbers(sourcePane)))
+					.addComponent(sourcePaneScroll))
 		}
 		minimumSize = Dimension(550, 350)
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()
-		(scrollTextWithLineNumbers(sourcePane).rowHeader.view
-			as LineNumberComponent
-		).adjustWidth()
 		isVisible = true
 	}
 
-	companion object {
-		/**
-		 * Either places the given JTextArea inside a JScrollPane with line
-		 * numbers presented as row headers, or answers the JScrollPane that
-		 * it's already inside.
-		 */
-		private fun scrollTextWithLineNumbers(textArea: JTextArea): JScrollPane
-		{
-			textArea.parent?.parent?.let { return it as JScrollPane }
-			val lineNumberModel = object : LineNumberModel {
-				override val numberOfLines: Int get() = textArea.lineCount
-
-				override fun lineToRectangle(line: Int): Rectangle = try
-				{
-					val rectangle2D = textArea.modelToView2D(
-						textArea.getLineStartOffset(line))
-					Rectangle(
-						rectangle2D.x.toInt(),
-						rectangle2D.y.toInt(),
-						rectangle2D.width.toInt(),
-						rectangle2D.height.toInt())
-				}
-				catch (e: BadLocationException)
-				{
-					Rectangle()
-				}
-
-				override fun visibleLines(): IntRange
-				{
-					val rectangle = textArea.visibleRect
-					val startOffset = textArea.viewToModel2D(
-						Point2D.Double(rectangle.minX, rectangle.minY))
-					val firstLine =
-						max(textArea.getLineOfOffset(startOffset) - 1, 0)
-					val endOffset = textArea.viewToModel2D(
-						Point2D.Double(rectangle.maxX, rectangle.maxY))
-					val lastLine =
-						min(
-							textArea.getLineOfOffset(endOffset) + 1,
-							textArea.lineCount - 1)
-					return firstLine..lastLine
-				}
+	init
+	{
+		jMenuBar = createMenuBar {
+			menu("Edit")
+			{
+				item(FindAction(workbench))
 			}
-			val lineNumberComponent = LineNumberComponent(lineNumberModel)
-			val scroller = JScrollPane(textArea)
-			scroller.setRowHeaderView(lineNumberComponent)
-			textArea.document.addDocumentListener(
-				object : DocumentListener
-				{
-					override fun changedUpdate(arg0: DocumentEvent) =
-						lineNumberComponent.adjustWidth()
-
-					override fun insertUpdate(arg0: DocumentEvent) =
-						lineNumberComponent.adjustWidth()
-
-					override fun removeUpdate(arg0: DocumentEvent) =
-						lineNumberComponent.adjustWidth()
-				})
-			return scroller
 		}
 	}
-
 }
-
