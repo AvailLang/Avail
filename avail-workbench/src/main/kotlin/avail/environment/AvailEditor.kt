@@ -36,8 +36,12 @@ import avail.AvailRuntime
 import avail.builder.ModuleName
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.actions.FindAction
+import avail.environment.editor.AbstractEditorAction
 import java.awt.BorderLayout
 import java.awt.Dimension
+import java.awt.Toolkit
+import java.awt.event.ActionEvent
+import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
 import java.util.TimerTask
@@ -45,10 +49,14 @@ import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
 import javax.swing.JFrame
 import javax.swing.JPanel
+import javax.swing.KeyStroke
 import javax.swing.SwingUtilities
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
+import javax.swing.undo.CannotRedoException
+import javax.swing.undo.CannotUndoException
+import javax.swing.undo.UndoManager
 
 class AvailEditor
 constructor(
@@ -84,6 +92,60 @@ constructor(
 	private val resolverReference =
 		runtime.moduleNameResolver.resolve(moduleName).resolverReference
 
+	/**
+	 * The [UndoManager] for supplying undo/redo for edits to the underlying
+	 * document.
+	 */
+	private val undoManager = UndoManager().apply {
+		limit = 1000
+	}
+
+	init
+	{
+		// Action: undo the previous edit.
+		object : AbstractEditorAction(
+			this,
+			"Undo",
+			KeyStroke.getKeyStroke(
+				KeyEvent.VK_Z,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx
+			)
+		)
+		{
+			override fun actionPerformed(e: ActionEvent) =
+				try
+				{
+					undoManager.undo()
+				}
+				catch (e: CannotUndoException)
+				{
+					// Ignore.
+				}
+		}
+
+		// Action: redo the previous undone edit.
+		object : AbstractEditorAction(
+			this,
+			"Redo",
+			KeyStroke.getKeyStroke(
+				KeyEvent.VK_Z,
+				Toolkit.getDefaultToolkit().menuShortcutKeyMaskEx or
+					KeyEvent.SHIFT_DOWN_MASK
+			)
+		)
+		{
+			override fun actionPerformed(e: ActionEvent) =
+				try
+				{
+					undoManager.redo()
+				}
+				catch (e: CannotRedoException)
+				{
+					// Ignore.
+				}
+		}
+	}
+
 	/** The editor pane. */
 	private val sourcePane = codeSuitableTextPane(workbench).apply {
 		val semaphore = Semaphore(0)
@@ -105,6 +167,7 @@ constructor(
 			override fun changedUpdate(e: DocumentEvent) = editorChanged()
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
+		document.addUndoableEditListener(undoManager)
 	}
 
 	/**
