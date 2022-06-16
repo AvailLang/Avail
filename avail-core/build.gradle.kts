@@ -60,7 +60,6 @@ kotlin {
 dependencies {
 	api("org.availlang:avail-json:${Versions.availJsonVersion}")
 	api("org.availlang:avail-storage:${Versions.availStorageVersion}")
-	testApi(project(":avail-test-utility"))
 	AvailCoreModule.addDependencies(this)
 }
 
