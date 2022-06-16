@@ -43,6 +43,5 @@ include(
 	"avail-cli",
 	"avail-server",
 	"avail-stdlib",
-	"avail-workbench",
-	"indexed-file-analyzer"
+	"avail-workbench"
 )

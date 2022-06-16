@@ -74,7 +74,7 @@ kotlin {
 }
 
 allprojects {
-	group = "avail"
+	group = "org.availlang"
 	version = "1.6.1.rc1"
 	// Define versions in a single place
 	extra.apply{
@@ -83,12 +83,6 @@ allprojects {
 	repositories {
 		mavenLocal()
 		mavenCentral()
-//		maven {
-//			url = uri("${rootProject.rootDir}/libs/")
-//		}
-//		maven {
-//			url = uri(Repositories.ossSonaType)
-//		}
 	}
 
 	tasks {

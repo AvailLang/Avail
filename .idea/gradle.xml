@@ -16,7 +16,6 @@
             <option value="$PROJECT_DIR$/avail-stdlib" />
             <option value="$PROJECT_DIR$/avail-workbench" />
             <option value="$PROJECT_DIR$/buildSrc" />
-            <option value="$PROJECT_DIR$/indexed-file-analyzer" />
           </set>
         </option>
       </GradleProjectSettings>
