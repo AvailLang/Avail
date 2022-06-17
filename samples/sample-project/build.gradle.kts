@@ -1,6 +1,6 @@
 /*
  * build.gradle.kts
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -118,7 +118,7 @@ avail {
     // files in this root that do not already exist.
     createRoot("my-avail-root").apply{
         val customHeader =
-            "Copyright © 1993-2021, The Avail Foundation, LLC.\n" +
+            "Copyright © 1993-2022, The Avail Foundation, LLC.\n" +
                 "All rights reserved."
         // This specifies that this root should be package into a jar.
         packageContext =

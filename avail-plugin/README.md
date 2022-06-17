@@ -398,7 +398,7 @@ avail {
     createRoot("my-avail-root").apply {
       // Create module file header text.
       val customHeader =
-        "Copyright © 1993-2021, The Avail Foundation, LLC.\n" +
+        "Copyright © 1993-2022, The Avail Foundation, LLC.\n" +
                 "All rights reserved."
       
       // Enables this root to be packaged as a jar using the `packageRoots` task
