@@ -776,7 +776,7 @@ class FiberDescriptor private constructor(
 		self.mutableSlot(FIBER_GLOBALS)
 
 	override fun o_SetFiberGlobals(self: AvailObject, globals: A_Map) =
-		self.setMutableSlot(FIBER_GLOBALS, globals.makeShared())
+		self.setMutableSlot(FIBER_GLOBALS, globals.makeImmutable())
 
 	override fun o_FiberResult(self: AvailObject): AvailObject =
 		self.mutableSlot(RESULT)
@@ -1109,7 +1109,7 @@ class FiberDescriptor private constructor(
 			val clientDataGlobalKey = SpecialAtom.CLIENT_DATA_GLOBAL_KEY.atom
 			val compilerScopeMapKey = SpecialAtom.COMPILER_SCOPE_MAP_KEY.atom
 			val fiber = currentFiber()
-			var fiberGlobals = fiber.fiberGlobals
+			val fiberGlobals = fiber.fiberGlobals
 			var clientData: A_Map = fiberGlobals.mapAt(clientDataGlobalKey)
 			var bindings: A_Map = clientData.mapAt(compilerScopeMapKey)
 			val declarationName = declaration.token.string()
@@ -1119,9 +1119,8 @@ class FiberDescriptor private constructor(
 				declarationName, declaration, true)
 			clientData = clientData.mapAtPuttingCanDestroy(
 				compilerScopeMapKey, bindings, true)
-			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 				clientDataGlobalKey, clientData, true)
-			fiber.fiberGlobals = fiberGlobals.makeShared()
 			return null
 		}
 

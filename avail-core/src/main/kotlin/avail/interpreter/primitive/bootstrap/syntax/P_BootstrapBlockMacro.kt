@@ -153,7 +153,7 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 		val optionalReturnType = interpreter.argument(5)
 		val optionalExceptionTypes = interpreter.argument(6)
 
-		var fiberGlobals = interpreter.fiber().fiberGlobals
+		val fiberGlobals = interpreter.fiber().fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		if (!clientData.hasKey(scopeMapKey))
@@ -406,9 +406,8 @@ object P_BootstrapBlockMacro : Primitive(7, CanInline, Bootstrap)
 			1, scopeStack.tupleSize - 1, true)
 		clientData = clientData.mapAtPuttingCanDestroy(
 			scopeStackKey, scopeStack, true)
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+		fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		fiber.fiberGlobals = fiberGlobals.makeShared()
 		return interpreter.primitiveSuccess(block)
 	}
 

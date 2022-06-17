@@ -74,8 +74,7 @@ object P_IsFiberVariable : Primitive(1, CanInline)
 		// Choose the correct map based on the heritability of the key.
 		val globals = when
 		{
-			key.getAtomProperty(HERITABLE_KEY.atom).isNil ->
-				fiber.fiberGlobals
+			key.getAtomProperty(HERITABLE_KEY.atom).isNil -> fiber.fiberGlobals
 			else -> fiber.heritableFiberGlobals
 		}
 		return interpreter.primitiveSuccess(

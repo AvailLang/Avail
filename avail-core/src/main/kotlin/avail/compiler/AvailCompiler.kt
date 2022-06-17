@@ -826,10 +826,8 @@ class AvailCompiler constructor(
 		}
 		fiber.setGeneralFlag(GeneralFlag.CAN_REJECT_PARSE)
 		fiber.setGeneralFlag(GeneralFlag.IS_EVALUATING_MACRO)
-		var fiberGlobals = fiber.fiberGlobals
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+		fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.fiberGlobals = fiberGlobals
 		lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{ outputPhrase ->
@@ -1847,10 +1845,8 @@ class AvailCompiler constructor(
 				STATIC_TOKENS_KEY.atom,
 				tupleFromList(stepState.consumedStaticTokens),
 				false)
-		var fiberGlobals = fiber.fiberGlobals
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
-			CLIENT_DATA_GLOBAL_KEY.atom, withTokens.makeImmutable(), true)
-		fiber.fiberGlobals = fiberGlobals
+		fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
+			CLIENT_DATA_GLOBAL_KEY.atom, withTokens, true)
 		stepState.start.lexingState.setFiberContinuationsTrackingWork(
 			fiber,
 			{

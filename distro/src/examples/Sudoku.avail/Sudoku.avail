@@ -149,8 +149,8 @@ Private stable method "(_,_)" is [x : x-coordinate, y : y-coordinate | <x, y>];
 allPoints ::= all values of [(trial# of 9, trial# of 9)];
 
 /**
- * Compute the center of the region in which the specified {@type "point"}s
- * lines.
+ * Compute the center of the region in which the specified {@type "point"}
+ * lives.
  *
  * @method "_'s⁇region center"
  * @param "xy" "point"
@@ -260,7 +260,7 @@ Private stable method "points in same column as_" is
  * that must not have the same {@type "Sudoku value"} as the key).
  *
  * @global "pointsInConflict"
- *         "{point→{point|}|9}"
+ *         "{point→<point|20>|81}"
  */
 pointsInConflict ::=
 	map each xy of allPoints through

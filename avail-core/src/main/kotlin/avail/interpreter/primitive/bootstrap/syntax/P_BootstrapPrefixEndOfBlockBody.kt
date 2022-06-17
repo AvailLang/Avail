@@ -102,7 +102,7 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 		//	val optionalReturnExpression: A_Phrase = interpreter.argument(4);
 
 		val fiber = interpreter.fiber()
-		var fiberGlobals = fiber.fiberGlobals
+		val fiberGlobals = fiber.fiberGlobals
 		var clientData: A_Map = fiberGlobals.mapAtOrNull(clientDataKey) ?:
 			return interpreter.primitiveFailure(E_LOADING_IS_OVER)
 		val currentScopeMap = clientData.mapAtOrNull(scopeMapKey) ?:
@@ -123,9 +123,8 @@ object P_BootstrapPrefixEndOfBlockBody : Primitive(5, CanInline, Bootstrap)
 			scopeMapKey, poppedScopeMap, true)
 		clientData = clientData.mapAtPuttingCanDestroy(
 			scopeStackKey, stack, true)
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+		fiber.fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
 			clientDataKey, clientData, true)
-		fiber.fiberGlobals = fiberGlobals.makeShared()
 		return interpreter.primitiveSuccess(nil)
 	}
 

@@ -65,12 +65,11 @@ object P_LookupFiberVariable : Primitive(1, CanInline)
 		// Choose the correct map based on the heritability of the key.
 		val globals = when
 		{
-			key.getAtomProperty(HERITABLE_KEY.atom).isNil ->
-				fiber.fiberGlobals
+			key.getAtomProperty(HERITABLE_KEY.atom).isNil -> fiber.fiberGlobals
 			else -> fiber.heritableFiberGlobals
 		}
 		globals.mapAtOrNull(key)?.let {
-			return interpreter.primitiveSuccess(it.makeImmutable())
+			return interpreter.primitiveSuccess(it)
 		}
 		return interpreter.primitiveFailure(E_NO_SUCH_FIBER_VARIABLE)
 	}

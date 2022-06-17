@@ -1076,10 +1076,8 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			{
 				stringFrom("Running command: $phrase")
 			}
-			var fiberGlobals = fiber.fiberGlobals
-			fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+			fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
 				CLIENT_DATA_GLOBAL_KEY.atom, emptyMap, true)
-			fiber.fiberGlobals = fiberGlobals
 			fiber.setSuccessAndFailure(
 				{ result -> onSuccess(result, postSuccessCleanup) },
 				{ e ->

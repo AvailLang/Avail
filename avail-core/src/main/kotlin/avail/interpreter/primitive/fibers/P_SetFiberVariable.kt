@@ -70,14 +70,13 @@ object P_SetFiberVariable : Primitive(
 		if (key.getAtomProperty(HERITABLE_KEY.atom).isNil)
 		{
 			fiber.fiberGlobals =
-				fiber.fiberGlobals.mapAtPuttingCanDestroy(
-					key.makeImmutable(), value.makeImmutable(), true)
+				fiber.fiberGlobals.mapAtPuttingCanDestroy(key, value, true)
 		}
 		else
 		{
 			fiber.heritableFiberGlobals =
 				fiber.heritableFiberGlobals.mapAtPuttingCanDestroy(
-					key.makeImmutable(), value.makeImmutable(), true)
+					key, value, true)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

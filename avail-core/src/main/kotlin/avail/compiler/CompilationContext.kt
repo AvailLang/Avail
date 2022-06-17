@@ -552,10 +552,8 @@ class CompilationContext constructor(
 				code.module.shortModuleNameNative,
 				code.codeStartingLineNumber)
 		}
-		var fiberGlobals = fiber.fiberGlobals
-		fiberGlobals = fiberGlobals.mapAtPuttingCanDestroy(
+		fiber.fiberGlobals = fiber.fiberGlobals.mapAtPuttingCanDestroy(
 			CLIENT_DATA_GLOBAL_KEY.atom, clientParseData, true)
-		fiber.fiberGlobals = fiberGlobals
 		if (shouldSerialize)
 		{
 			loader.startRecordingEffects()
