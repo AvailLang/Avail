@@ -101,23 +101,3 @@ tasks {
 rootProject.tasks.assemble {
 	dependsOn(tasks.getByName("releaseStandardLibrary"))
 }
-
-publishing {
-	repositories {
-		maven {
-			name = "GitHub"
-			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
-			credentials {
-				username = Publish.githubUsername
-				password = Publish.githubPassword
-			}
-		}
-	}
-
-	publications {
-		create<MavenPublication>("avail-stdlib") {
-			val jar = tasks.jar
-			artifact(jar)
-		}
-	}
-}

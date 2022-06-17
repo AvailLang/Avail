@@ -85,26 +85,4 @@ tasks {
 	assemble { dependsOn(releaseAvailWorkbench) }
 
 	artifacts { add("archives", sourceJar) }
-	publish { Publish.checkCredentials() }
-}
-
-publishing {
-	repositories {
-		maven {
-			name = "GitHub"
-			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
-			credentials {
-				username = Publish.githubUsername
-				password = Publish.githubPassword
-			}
-		}
-	}
-
-	publications {
-		create<MavenPublication>("workbench") {
-			val sourceJar = project.tasks.getByName("sourceJar")
-			artifact(sourceJar)
-			from(components["java"])
-		}
-	}
 }

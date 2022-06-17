@@ -148,28 +148,6 @@ tasks {
 	}
 }
 
-publishing {
-	repositories {
-		maven {
-			name = "GitHub"
-			url = uri("https://maven.pkg.github.com/AvailLang/Avail")
-			credentials {
-				username = Publish.githubUsername
-				password = Publish.githubPassword
-			}
-		}
-	}
-
-	publications {
-		create<MavenPublication>("avail-core") {
-			val sourceJar = tasks.getByName("sourceJar") as Jar
-			from(components["java"])
-			artifact(sourceJar)
-		}
-	}
-}
-
-
 ///////////////////////////////////////////////////////////////////////////////
 //                       Publish Utilities
 ///////////////////////////////////////////////////////////////////////////////
@@ -179,7 +157,7 @@ val ossrhPassword: String get() =
 	System.getenv("OSSRH_PASSWORD") ?: ""
 
 private val credentialsWarning =
-	"Missing OSSRH credentials.  To publish, you'll need to create an OSSHR " +
+	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
 		"JIRA account. Then ensure the user name, and password are available " +
 		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
 
