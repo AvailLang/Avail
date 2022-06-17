@@ -155,8 +155,7 @@ constructor(
 				text = string
 				semaphore.release()
 			},
-			{
-				code, throwable ->
+			{ code, throwable ->
 				text = "Error reading module: $throwable, code=$code"
 				semaphore.release()
 			})
@@ -168,6 +167,11 @@ constructor(
 			override fun removeUpdate(e: DocumentEvent) = editorChanged()
 		})
 		document.addUndoableEditListener(undoManager)
+		// TODO Extract token/phrase style information that should have been
+		// captured by stylers that ran against method/macro send phrases.
+		// TODO Also, we need to capture info relating local variable
+		// uses and definitions, and we should extract it here, so that we can
+		// navigate, or at least highlight all the occurrences.
 	}
 
 	/**

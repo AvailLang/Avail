@@ -325,7 +325,7 @@ class LexingState constructor(
 				}
 				decrementAndRunActionsWhenZero(countdown)
 			})
-		loader.runtime().runOutermostFunction(
+		loader.runtime.runOutermostFunction(
 			fiber, lexer.lexerBodyFunction, arguments)
 	}
 
@@ -573,7 +573,7 @@ class LexingState constructor(
 		transformer: Function<List<String>, String>)
 	{
 		expected(level) { continuation ->
-			compilationContext.loader.runtime().stringifyThen(
+			compilationContext.loader.runtime.stringifyThen(
 				values,
 				compilationContext.textInterface)
 			{ list ->

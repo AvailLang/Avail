@@ -1189,7 +1189,7 @@ class FiberDescriptor private constructor(
 			nameSupplier: ()->A_String
 		): A_Fiber = createFiber(
 			resultType,
-			loader.runtime(),
+			loader.runtime,
 			loader,
 			loader.textInterface,
 			loaderPriority,

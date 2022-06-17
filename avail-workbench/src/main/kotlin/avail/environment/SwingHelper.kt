@@ -107,10 +107,6 @@ fun codeSuitableTextPane(
 	}
 }
 
-/** Answer what zero-based line the given offset in the document is on. */
-fun JTextPane.lineOfOffset(offset: Int): Int =
-	styledDocument.defaultRootElement.getElementIndex(offset)
-
 /**
  * Scroll the given [JTextPane] to ensure the given text range is visible, and
  * preferably not jammed against the top or bottom border.

@@ -170,7 +170,7 @@ class CompilationContext constructor(
 	 * [compiler][AvailCompiler] to facilitate the loading of
 	 * [modules][ModuleDescriptor].
 	 */
-	val loader = AvailLoader(module, textInterface).also {
+	val loader = AvailLoader(runtime, module, textInterface).also {
 		it.manifestEntries = mutableListOf()
 	}
 

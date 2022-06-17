@@ -78,6 +78,8 @@ import java.util.EnumSet
 import java.util.LinkedList
 import java.util.UUID
 import kotlin.concurrent.thread
+import kotlin.io.path.deleteIfExists
+import kotlin.io.path.moveTo
 
 /**
  * `FileSystemModuleRootResolver` is a [ModuleRootResolver] used for accessing
@@ -402,12 +404,15 @@ class FileSystemModuleRootResolver constructor(
 		failureHandler: (ErrorCode, Throwable?)->Unit)
 	{
 		val data = ByteBuffer.wrap(fileContents)
-		val file = fileManager.ioSystem.openFile(
-			Path.of(reference.uri),
+		val path = Path.of(reference.uri)
+		val tempPath = path.parent.resolve("\$\$\$" + path.fileName)
+		val tempFile = fileManager.ioSystem.openFile(
+			tempPath,
 			EnumSet.of(
+				StandardOpenOption.CREATE,
 				StandardOpenOption.TRUNCATE_EXISTING,
 				StandardOpenOption.WRITE))
-		file.write(
+		tempFile.write(
 			data,
 			0,
 			null,
@@ -420,13 +425,15 @@ class FileSystemModuleRootResolver constructor(
 					if (data.hasRemaining())
 					{
 						save(
-							file,
+							tempFile,
 							data,
 							data.position().toLong(),
 							failureHandler)
 					}
 					else
 					{
+						path.deleteIfExists()
+						tempPath.moveTo(path)
 						reference.refresh(
 							System.currentTimeMillis(),
 							fileContents.size.toLong())

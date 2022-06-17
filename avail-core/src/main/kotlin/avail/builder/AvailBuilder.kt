@@ -864,7 +864,7 @@ class AvailBuilder constructor(val runtime: AvailRuntime)
 			val module = newModule(
 				stringFrom(
 					loadedModule.module.moduleNameNative + " (command)"))
-			val loader = AvailLoader(module, runtime.textInterface())
+			val loader = AvailLoader(runtime, module, runtime.textInterface())
 			val moduleImport = ModuleImport.extend(loadedModule.module)
 			val header = ModuleHeader(loadedModule.name)
 			header.importedModules.add(moduleImport)

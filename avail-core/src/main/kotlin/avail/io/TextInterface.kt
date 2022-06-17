@@ -72,7 +72,6 @@ class TextInterface constructor(
 {
 	companion object
 	{
-
 		/**
 		 * Answer a `TextInterface` bound to the [System] [input][System.in],
 		 * [output][System.out], and [error][System.err] channels.

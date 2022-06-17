@@ -325,7 +325,8 @@ internal class BuildLoader constructor(
 		// block phrases will retrieve them from the repository.
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
-		val availLoader = AvailLoader(module, availBuilder.textInterface)
+		val availLoader = AvailLoader(
+			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
 		val fail = { e: Throwable ->
 			module.removeFrom(availLoader) {

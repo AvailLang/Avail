@@ -225,6 +225,8 @@ import kotlin.concurrent.withLock
  *
  * @constructor
  *
+ * @property runtime
+ *   The current [AvailRuntime].
  * @property module
  *   The Avail [module][ModuleDescriptor] undergoing loading.
  * @property textInterface
@@ -234,7 +236,9 @@ import kotlin.concurrent.withLock
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-class AvailLoader(
+class AvailLoader
+constructor(
+	val runtime: AvailRuntime,
 	val module: A_Module,
 	val textInterface: TextInterface)
 {
@@ -630,20 +634,6 @@ class AvailLoader(
 	fun setPhase(newPhase: Phase) {
 		phase = newPhase
 	}
-
-	/**
-	 * The [AvailRuntime] for the loader. Since an [AvailLoader] cannot migrate
-	 * between two [AvailRuntime]s, it is safe to cache it for efficient access.
-	 */
-	private val runtime = AvailRuntime.currentRuntime()
-
-	/**
-	 * Answer the [AvailRuntime] for the loader.
-	 *
-	 * @return
-	 *   The Avail runtime.
-	 */
-	fun runtime(): AvailRuntime = runtime
 
 	/**
 	 * Used for extracting tokens from the source text. Start by using the
@@ -1591,6 +1581,8 @@ class AvailLoader(
 		 * Create an `AvailLoader` suitable for unloading the specified
 		 * [module][ModuleDescriptor].
 		 *
+		 * @param runtime
+		 *   The current [AvailRuntime].
 		 * @param module
 		 *   The module that will be unloaded.
 		 * @param textInterface
@@ -1598,11 +1590,12 @@ class AvailLoader(
 		 *   builder. @return An AvailLoader suitable for unloading the module.
 		 */
 		fun forUnloading(
+			runtime: AvailRuntime,
 			module: A_Module,
 			textInterface: TextInterface
 		): AvailLoader
 		{
-			val loader = AvailLoader(module, textInterface)
+			val loader = AvailLoader(runtime, module, textInterface)
 			// We had better not be removing forward declarations from an
 			// already fully-loaded module.
 			loader.pendingForwards = nil

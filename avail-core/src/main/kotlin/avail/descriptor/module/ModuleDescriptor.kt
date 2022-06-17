@@ -1154,13 +1154,13 @@ class ModuleDescriptor private constructor(
 		loader.runUnloadFunctions(unloadFunctions) {
 			// The final cleanup for the module has to happen in a safe point,
 			// because it causes chunk invalidations.
-			loader.runtime().whenSafePointDo(FiberDescriptor.loaderPriority) {
+			loader.runtime.whenSafePointDo(FiberDescriptor.loaderPriority) {
 				finishUnloading(self, loader)
 				// The module may already be closed, but ensure that it is
 				// closed following removal.
 				self.moduleState = Unloaded
 				// Run the post-action outside of the safe point.
-				loader.runtime().execute(
+				loader.runtime.execute(
 					FiberDescriptor.loaderPriority, afterRemoval)
 			}
 		}
@@ -1185,7 +1185,7 @@ class ModuleDescriptor private constructor(
 	@Synchronized
 	private fun finishUnloading(self: AvailObject, loader: AvailLoader)
 	{
-		val runtime = loader.runtime()
+		val runtime = loader.runtime
 		// Remove stylers.
 		(self as A_Module).stylers.forEach { styler ->
 			styler.definition.updateStylers {

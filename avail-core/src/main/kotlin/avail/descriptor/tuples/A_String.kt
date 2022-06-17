@@ -70,4 +70,62 @@ interface A_String : A_Tuple
 		start: Int,
 		end: Int,
 		canDestroy: Boolean): A_String
+
+	/**
+	 * A construct for mapping indices within Avail strings, which can contain
+	 * code points up to 0x10FFFF, to and from indices in the corresponding Java
+	 * strings, which must use two UTF-16 code points (a surrogate pair) for any
+	 * character above 0xFFFF.
+	 */
+	class SurrogateIndexConverter(string: String)
+	{
+		val highSurrogatesInJavaString = string.indices.filter {
+			string[it].isHighSurrogate()
+		}.toTypedArray()
+
+		val highCodePointsInAvailString = highSurrogatesInJavaString
+			.mapIndexed { arrayPos, javaIndex ->
+				javaIndex - arrayPos
+			}.toTypedArray()
+
+		/**
+		 * Convert from a zero-based index into the Avail string, where code
+		 * points can be up to 0x10FFFF, to a zero-based index into the Java
+		 * string that would have to use surrogate pairs (two [Char]s) per code
+		 * point over 0xFFFF.  The resulting index will be greater than or equal
+		 * to the Avail index, depending how many large code points occur prior
+		 * to the given index.
+		 */
+		fun availIndexToJavaIndex(availZeroIndex: Int): Int
+		{
+			val position =
+				highCodePointsInAvailString.binarySearch(availZeroIndex)
+			return when
+			{
+				// An exact match, which means we're pointing directly at a code
+				// point bigger than 0xFFFF.
+				position >= 0 -> availZeroIndex + position
+				else -> availZeroIndex + (-1 - position)
+			}
+		}
+
+		/**
+		 * Convert from a zero-based index into a Java string, which contains
+		 * only code points in 0..0xFFFF, using two to represent Unicode values
+		 * in 0x10000-0x10FFFF, into zero-based index into an Avail string,
+		 * which can contain arbitrary code points.
+		 */
+		fun javaIndexToAvailIndex(javaZeroIndex: Int): Int
+		{
+			val position =
+				highSurrogatesInJavaString.binarySearch(javaZeroIndex)
+			return when
+			{
+				// An exact match, which means we're pointing directly at a high
+				// surrogate in the Java string.
+				position >= 0 -> javaZeroIndex - position
+				else -> javaZeroIndex - (-1 - position)
+			}
+		}
+	}
 }

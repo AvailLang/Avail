@@ -210,7 +210,8 @@ internal class BuildUnloader constructor(private val availBuilder: AvailBuilder)
 			// It's legal to just create a loader here, since it won't have any
 			// pending forwards to remove.
 			module.removeFrom(
-				AvailLoader.forUnloading(module, availBuilder.textInterface)
+				AvailLoader.forUnloading(
+					availBuilder.runtime, module, availBuilder.textInterface)
 			) {
 				availBuilder.runtime.unlinkModule(module)
 				AvailBuilder.log(

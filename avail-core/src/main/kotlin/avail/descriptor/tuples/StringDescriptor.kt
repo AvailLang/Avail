@@ -170,10 +170,12 @@ abstract class StringDescriptor protected constructor(
 			}
 			else
 			{
+				// Pack it into a TwoByteString, preserving surrogates.
 				generateTwoByteString(aNativeString.length)
-				{ aNativeString[it - 1].code }
+				{
+					aNativeString[it - 1].code
+				}
 			}
-			// Pack it into a TwoByteString, preserving surrogates.
 		}
 
 		/**
