@@ -360,8 +360,8 @@ In the meantime, all of these libraries/utilities can be published to a local
 Maven repository using the Avail top level Gradle task, `publishToLocalMaven`.
 
 Publishing Avail to local Maven will publish five jars:
- * `avail-core` - *The core Avail language*
-   (see [Avail](avail-core))
+ * `avail` - *The core Avail language*
+   (see [Avail](avail))
  * `avail-stdlib` - *The Avail standard library*
    (see [Standard Library](avail-stdlib))
  * `avail-workbench` - *The Avail development tool for developing Avail* 

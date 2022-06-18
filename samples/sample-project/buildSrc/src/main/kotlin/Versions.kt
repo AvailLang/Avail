@@ -49,7 +49,7 @@ object Versions
 
 	/**
 	 * The stripe release version of avail jars:
-	 *  * `avail-core`
+	 *  * `avail`
 	 *  * `avail-workbench`
 	 *  * `avail-stdlib`
 	 *  * `avail-storage`

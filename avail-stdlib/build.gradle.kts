@@ -41,7 +41,7 @@ plugins {
 
 dependencies {
 	// Avail.
-	implementation(project(":avail-core"))
+	implementation(project(":avail"))
 }
 
 tasks {

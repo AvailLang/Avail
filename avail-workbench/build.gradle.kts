@@ -45,7 +45,7 @@ dependencies {
 	// Avail.
 	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
 	implementation("org.availlang:avail-storage:${Versions.availStorageVersion}")
-	implementation(project(":avail-core"))
+	implementation(project(":avail"))
 	AvailWorkbenchModule.addDependencies(this)
 }
 

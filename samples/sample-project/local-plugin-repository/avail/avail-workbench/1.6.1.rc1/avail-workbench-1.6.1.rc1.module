@@ -81,7 +81,7 @@
         },
         {
           "group": "avail",
-          "module": "avail-core",
+          "module": "avail",
           "version": {
             "requires": "1.6.1.rc1"
           }

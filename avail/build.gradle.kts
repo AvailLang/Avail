@@ -175,19 +175,6 @@ fun checkCredentials ()
 ///////////////////////////////////////////////////////////////////////////////
 
 tasks {
-	/**
-	 * Remove libraries from the staging directory after successful publication.
-	 * Otherwise they'll gradually build up in there.
-	 */
-	val cleanUpStagingDirectory by creating(Delete::class) {
-		description =
-			"Remove libraries from the staging directory after successful " +
-				"publication. Otherwise they'll gradually build up in there."
-		delete(fileTree ("$projectDir/build/libs").matching {
-			include("**/*.jar")
-		})
-	}
-
 	val sourceJarCore by creating(Jar::class) {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
@@ -279,10 +266,6 @@ publishing {
 					developer {
 						id.set("leslieATAvail")
 						name.set("Leslie Schultz")
-					}
-					developer {
-						id.set("markATAvail")
-						name.set("Mark van Gulik")
 					}
 				}
 			}

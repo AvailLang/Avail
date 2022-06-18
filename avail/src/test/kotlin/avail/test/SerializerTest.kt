@@ -124,7 +124,7 @@ class SerializerTest
 	{
 		val semaphore = Semaphore(0)
 		val projectDirectory = File(".").absolutePath
-			.replace("/avail-core", "")
+			.replace("/avail", "")
 		val rootDirectory =
 			projectDirectory.substring(0..(projectDirectory.length - 2))
 		val availRoot =

@@ -33,7 +33,7 @@
 package avail.build.modules
 
 /**
- * `AvailCoreModule` is the [Dependencies] for `avail-core`'s
+ * `AvailCoreModule` is the [Dependencies] for `avail`'s
  * `build.gradle.kts` file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;

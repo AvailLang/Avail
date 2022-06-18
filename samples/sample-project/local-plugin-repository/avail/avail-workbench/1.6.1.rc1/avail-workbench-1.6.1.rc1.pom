@@ -36,7 +36,7 @@
     </dependency>
     <dependency>
       <groupId>avail</groupId>
-      <artifactId>avail-core</artifactId>
+      <artifactId>avail</artifactId>
       <version>1.6.1.rc1</version>
       <scope>runtime</scope>
     </dependency>
