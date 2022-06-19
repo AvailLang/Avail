@@ -42,6 +42,5 @@ include(
 	"avail-bootstrap",
 	"avail-cli",
 	"avail-server",
-	"avail-stdlib",
-	"avail-workbench"
+	"avail-stdlib"
 )

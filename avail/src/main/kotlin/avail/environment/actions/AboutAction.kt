@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -34,7 +34,6 @@ package avail.environment.actions
 
 import avail.AvailRuntimeConfiguration
 import avail.environment.AvailWorkbench
-import avail.environment.AdaptiveColor
 import avail.environment.LayoutConfiguration.Companion.resource
 import java.awt.BorderLayout
 import java.awt.Color
@@ -95,7 +94,7 @@ class AboutAction constructor(workbench: AvailWorkbench)
 		builder.append(
 			"Copyright \u00A9 1993-2022 The Avail Foundation, LLC.<br>")
 		builder.append("All rights reserved.<br><br>")
-		val siteColor = AdaptiveColor(
+		val siteColor = avail.environment.AdaptiveColor(
 			light = Color(16, 16, 192),
 			dark = Color(128, 160, 255))
 		val site = "www.availlang.org"

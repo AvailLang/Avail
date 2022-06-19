@@ -74,7 +74,6 @@ import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
-import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
 import avail.environment.MenuBarBuilder
 import avail.environment.actions.FindAction
@@ -1044,12 +1043,12 @@ class AvailDebugger internal constructor (
 		pack()
 		codeHighlightPainter = run {
 			val selectionColor = disassemblyPane.selectionColor
-			val currentLineColor = AdaptiveColor(
+			val currentLineColor = avail.environment.AdaptiveColor(
 				selectionColor.darker(), selectionColor.brighter())
 			DefaultHighlightPainter(currentLineColor.color)
 		}
 		secondaryCodeHighlightPainter = run {
-			val washedOut = AdaptiveColor.blend(
+			val washedOut = avail.environment.AdaptiveColor.blend(
 				codeHighlightPainter.color,
 				background,
 				0.15f)

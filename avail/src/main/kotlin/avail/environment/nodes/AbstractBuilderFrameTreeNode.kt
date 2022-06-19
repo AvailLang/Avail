@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- * * Redistributions of source code must retain the above copyright notice, this
- *   list of conditions and the following disclaimer.
+ *  * Redistributions of source code must retain the above copyright notice,
+ *    this list of conditions and the following disclaimer.
  *
- * * Redistributions in binary form must reproduce the above copyright notice,
- *   this list of conditions and the following disclaimer in the documentation
- *   and/or other materials provided with the distribution.
+ *  * Redistributions in binary form must reproduce the above copyright notice,
+ *    this list of conditions and the following disclaimer in the documentation
+ *    and/or other materials provided with the distribution.
  *
- * * Neither the name of the copyright holder nor the names of the contributors
- *   may be used to endorse or promote products derived from this software
- *   without specific prior written permission.
+ *  * Neither the name of the copyright holder nor the names of the contributors
+ *    may be used to endorse or promote products derived from this software
+ *    without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -34,7 +34,6 @@ package avail.environment.nodes
 
 import avail.builder.AvailBuilder
 import avail.environment.AvailWorkbench
-import avail.environment.AdaptiveColor
 import avail.environment.LayoutConfiguration.Companion.resource
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Loaded
 import avail.environment.nodes.AbstractBuilderFrameTreeNode.Companion.LoadedState.Unloaded
@@ -177,28 +176,28 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 		enum class SelectedState {Selected, Unselected}
 
 		private val palette = mapOf(
-			Triple(Unloaded, NotRenamed, Unselected) to AdaptiveColor(
+			Triple(Unloaded, NotRenamed, Unselected) to avail.environment.AdaptiveColor(
 				light = Color.gray,
 				dark = Color.gray),
-			Triple(Unloaded, NotRenamed, Selected) to AdaptiveColor(
+			Triple(Unloaded, NotRenamed, Selected) to avail.environment.AdaptiveColor(
 				light = Color.lightGray,
 				dark = Color.lightGray),
-			Triple(Unloaded, Renamed, Unselected) to AdaptiveColor(
+			Triple(Unloaded, Renamed, Unselected) to avail.environment.AdaptiveColor(
 				light = Color(220, 170, 10),
 				dark = Color(110, 98, 43)),
-			Triple(Unloaded, Renamed, Selected) to AdaptiveColor(
+			Triple(Unloaded, Renamed, Selected) to avail.environment.AdaptiveColor(
 				light = Color(180, 145, 0),
 				dark = Color(180, 160, 72)),
-			Triple(Loaded, NotRenamed, Unselected) to AdaptiveColor(
+			Triple(Loaded, NotRenamed, Unselected) to avail.environment.AdaptiveColor(
 				light = Color.black,
 				dark = Color(169, 183, 198)),
-			Triple(Loaded, NotRenamed, Selected) to AdaptiveColor(
+			Triple(Loaded, NotRenamed, Selected) to avail.environment.AdaptiveColor(
 				light = Color.white,
 				dark = Color(169, 183, 198)),
-			Triple(Loaded, Renamed, Unselected) to AdaptiveColor(
+			Triple(Loaded, Renamed, Unselected) to avail.environment.AdaptiveColor(
 				light = Color(200, 160, 0),
 				dark = Color(180, 160, 72)),
-			Triple(Loaded, Renamed, Selected) to AdaptiveColor(
+			Triple(Loaded, Renamed, Selected) to avail.environment.AdaptiveColor(
 				light = Color(235, 190, 30),
 				dark = Color(180, 160, 72)))
 
@@ -211,7 +210,7 @@ abstract class AbstractBuilderFrameTreeNode internal constructor(
 			loaded: Boolean,
 			renamed: Boolean): String
 		{
-			val fore: AdaptiveColor? = palette[
+			val fore: avail.environment.AdaptiveColor? = palette[
 				Triple(
 					if (loaded) Loaded else Unloaded,
 					if (renamed) Renamed else NotRenamed,

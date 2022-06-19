@@ -32,6 +32,7 @@
 
 import avail.build.computeAvailRootsForTest
 import avail.build.modules.AvailCoreModule
+import avail.build.modules.AvailWorkbenchModule
 import avail.build.releaseAvail
 import avail.build.scrubReleases
 import avail.plugins.gradle.GenerateFileManifestTask
@@ -67,6 +68,7 @@ dependencies {
 	api("org.availlang:avail-json:${Versions.availJsonVersion}")
 	api("org.availlang:avail-storage:${Versions.availStorageVersion}")
 	AvailCoreModule.addDependencies(this)
+	AvailWorkbenchModule.addDependencies(this)
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".

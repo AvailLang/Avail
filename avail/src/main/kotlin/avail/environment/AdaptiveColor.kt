@@ -48,7 +48,7 @@ data class AdaptiveColor constructor(
 	private val light: Color,
 	private val dark: Color)
 {
-	val color: Color get() = if (AvailWorkbench.darkMode) dark else light
+	val color: Color get() = if (avail.environment.AvailWorkbench.Companion.darkMode) dark else light
 
 	val hex: String
 		get() = with(color) {
@@ -58,12 +58,18 @@ data class AdaptiveColor constructor(
 	fun blend(
 		otherColor: Color,
 		selfWeight: Float = 0.5f
-	) : AdaptiveColor
+	) : avail.environment.AdaptiveColor
 	{
 		assert(selfWeight in 0.0 .. 1.0)
-		return AdaptiveColor(
-			blend(light, otherColor, selfWeight),
-			blend(dark, otherColor, selfWeight))
+		return avail.environment.AdaptiveColor(
+			avail.environment.AdaptiveColor.Companion.blend(
+				light,
+				otherColor,
+				selfWeight),
+			avail.environment.AdaptiveColor.Companion.blend(
+				dark,
+				otherColor,
+				selfWeight))
 	}
 
 	companion object
