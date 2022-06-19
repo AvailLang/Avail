@@ -31,9 +31,7 @@
  */
 
 import avail.build.computeAvailRootsForTest
-import avail.build.modules.AvailCoreModule
-import avail.build.modules.AvailWorkbenchModule
-import avail.build.releaseAvail
+import avail.build.modules.AvailModule
 import avail.build.scrubReleases
 import avail.plugins.gradle.GenerateFileManifestTask
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
@@ -41,7 +39,6 @@ import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 plugins {
 	java
 	kotlin("jvm")
-	id("com.github.johnrengelman.shadow")
 	`maven-publish`
 	publishing
 	signing
@@ -67,9 +64,34 @@ kotlin {
 dependencies {
 	api("org.availlang:avail-json:${Versions.availJsonVersion}")
 	api("org.availlang:avail-storage:${Versions.availStorageVersion}")
-	AvailCoreModule.addDependencies(this)
-	AvailWorkbenchModule.addDependencies(this)
+	AvailModule.addDependencies(this)
 }
+
+///////////////////////////////////////////////////////////////////////////////
+//                       Publish Utilities
+///////////////////////////////////////////////////////////////////////////////
+val ossrhUsername: String get() =
+	System.getenv("OSSRH_USER") ?: ""
+val ossrhPassword: String get() =
+	System.getenv("OSSRH_PASSWORD") ?: ""
+
+private val credentialsWarning =
+	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
+		"JIRA account. Then ensure the user name, and password are available " +
+		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
+
+/**
+ * Check that the publish task has access to the necessary credentials.
+ */
+fun checkCredentials ()
+{
+	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
+	{
+		System.err.println(credentialsWarning)
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
@@ -107,21 +129,14 @@ tasks {
 	}
 
 	jar {
-
 		manifest.attributes["Implementation-Version"] = project.version
 		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
 		// The All_Primitives.txt file must be added to the build resources
 		// directory before we can build the jar.
 	}
 
-	// Copy the JAR into the distribution directory.
-	val releaseAvail by creating(Copy::class) {
-		releaseAvail(this, shadowJar.get().outputs.files)
-	}
-
 	// Update the dependencies of "assemble".
 	assemble {
-		dependsOn(releaseAvail)
 		dependsOn(":avail-stdlib:releaseStandardLibrary")
 	}
 
@@ -139,45 +154,7 @@ tasks {
 	// Update the dependencies of "clean".
 	clean { dependsOn(scrubReleases) }
 
-	// This is looked up by name in the publishing the scope but cannot be
-	// referred to directly as this is created in a different scope.
-	@Suppress("UNUSED_VARIABLE")
-	val sourceJar by creating (Jar::class) {
-		description = "Creates sources JAR."
-		archiveClassifier.set("sources")
-		from(sourceSets.getByName("main").allSource)
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//                       Publish Utilities
-///////////////////////////////////////////////////////////////////////////////
-val ossrhUsername: String get() =
-	System.getenv("OSSRH_USER") ?: ""
-val ossrhPassword: String get() =
-	System.getenv("OSSRH_PASSWORD") ?: ""
-
-private val credentialsWarning =
-	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
-		"JIRA account. Then ensure the user name, and password are available " +
-		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
-
-/**
- * Check that the publish task has access to the necessary credentials.
- */
-fun checkCredentials ()
-{
-	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
-	{
-		System.err.println(credentialsWarning)
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
-
-tasks {
-	val sourceJarCore by creating(Jar::class) {
+	val sourceJar by creating(Jar::class) {
 		description = "Creates sources JAR."
 		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
 		archiveClassifier.set("sources")
@@ -196,7 +173,7 @@ tasks {
 	}
 
 	artifacts {
-		add("archives", sourceJarCore)
+		add("archives", sourceJar)
 		add("archives", javadocJar)
 	}
 	publish {

@@ -32,17 +32,48 @@
 
 import avail.build.AvailSetupContext.distroLib
 import avail.plugins.gradle.CreateDigestsFileTask
+import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
 	java
 	`maven-publish`
 	publishing
+	signing
+	id("org.jetbrains.dokka")
 }
 
 dependencies {
 	// Avail.
 	implementation(project(":avail"))
 }
+
+
+
+///////////////////////////////////////////////////////////////////////////////
+//                       Publish Utilities
+///////////////////////////////////////////////////////////////////////////////
+val ossrhUsername: String get() =
+	System.getenv("OSSRH_USER") ?: ""
+val ossrhPassword: String get() =
+	System.getenv("OSSRH_PASSWORD") ?: ""
+
+private val credentialsWarning =
+	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
+		"JIRA account. Then ensure the user name, and password are available " +
+		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
+
+/**
+ * Check that the publish task has access to the necessary credentials.
+ */
+fun checkCredentials ()
+{
+	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
+	{
+		System.err.println(credentialsWarning)
+	}
+}
+
+///////////////////////////////////////////////////////////////////////////////
 
 tasks {
 	val sourcesRoot = "$projectDir/../distro/src/avail"
@@ -96,8 +127,113 @@ tasks {
 
 	// Update the dependencies of "assemble".
 	assemble { dependsOn(releaseStandardLibrary) }
+
+	val sourceJar by creating(Jar::class) {
+		description = "Creates sources JAR."
+		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+		archiveClassifier.set("sources")
+		from(sourceSets["main"].allSource)
+	}
+
+	val dokkaHtml by getting(org.jetbrains.dokka.gradle.DokkaTask::class)
+
+	val javadocJar by creating(Jar::class)
+	{
+		dependsOn(dokkaHtml)
+		description = "Creates Javadoc JAR."
+		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+		archiveClassifier.set("javadoc")
+		from(dokkaHtml.outputDirectory)
+	}
+
+	artifacts {
+		add("archives", sourceJar)
+		add("archives", javadocJar)
+	}
+	publish {
+		checkCredentials()
+		dependsOn(build)
+	}
 }
+
+val isReleaseVersion =
+	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 rootProject.tasks.assemble {
 	dependsOn(tasks.getByName("releaseStandardLibrary"))
+}
+
+signing {
+	useGpgCmd()
+	sign(the<PublishingExtension>().publications)
+}
+
+publishing {
+	repositories {
+		maven {
+			url = if (isReleaseVersion)
+			{
+				// Release version
+				uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+			}
+			else
+			{
+				// Snapshot
+				uri("https://s01.oss.sonatype.org/content/repositories/snapshots/")
+			}
+			println("Publishing snapshot: $isReleaseVersion")
+			println("Publishing URL: $url")
+			credentials {
+				username = System.getenv("OSSRH_USER")
+				password = System.getenv("OSSRH_PASSWORD")
+			}
+		}
+	}
+
+	publications {
+
+		create<MavenPublication>("avail-stdlib") {
+			pom {
+				groupId = project.group.toString()
+				name.set("Avail Standard Library")
+				packaging = "jar"
+				description.set("This module provides the entire Avail standard library.")
+				url.set("https://www.availlang.org/")
+				licenses {
+					license {
+						name.set("BSD 3-Clause \"New\" or \"Revised\" License")
+						url.set("https://github.com/AvailLang/avail-storage/blob/main/LICENSE")
+					}
+				}
+				scm {
+					connection.set("scm:git:git@github.com:AvailLang/Avail.git")
+					developerConnection.set("scm:git:git@github.com:AvailLang/Avail.git")
+					url.set("https://github.com/AvailLang/Avail")
+				}
+				developers {
+					developer {
+						id.set("toddATAvail")
+						name.set("Todd Smith")
+					}
+					developer {
+						id.set("markATAvail")
+						name.set("Mark van Gulik")
+					}
+					developer {
+						id.set("richATAvail")
+						name.set("Richard Arriaga")
+					}
+					developer {
+						id.set("leslieATAvail")
+						name.set("Leslie Schultz")
+					}
+				}
+			}
+			val sourceJar = tasks.getByName("sourceJar") as Jar
+			val javadocJar = tasks.getByName("javadocJar") as Jar
+			from(components["java"])
+			artifact(sourceJar)
+			artifact(javadocJar)
+		}
+	}
 }

@@ -1,5 +1,5 @@
 /*
- * AvailJsonModule.kt
+ * AvailCoreModule.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,12 +33,23 @@
 package avail.build.modules
 
 /**
- * `AvailJsonModule` is the [Dependencies] for `avail-json`'s
+ * `AvailCoreModule` is the [Dependencies] for `avail`'s
  * `build.gradle.kts` file.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-object AvailJsonModule: ModuleDependencies(
+object AvailModule: ModuleDependencies(
+	implementations = listOf(
+		Libraries.jsr305,
+		Libraries.asm,
+		Libraries.asmAnalysis,
+		Libraries.asmTree,
+		Libraries.asmUtil,
+		Libraries.fileWatcher,
+		Libraries.flatlaf,
+		Libraries.flatlafTheme),
+	apis = listOf(Libraries.kotlinReflection),
 	testImplementations = listOf(
-		Libraries.junitJupiterParams, Libraries.junitJupiterEngine))
+		Libraries.junitJupiterParams, Libraries.junitJupiterEngine),
+	compileOnlys = listOf(Libraries.kotlinAnnotations))
 
