@@ -42,12 +42,12 @@ plugins {
 	id("org.jetbrains.dokka")
 }
 
+version = "1.6.0.rc1-SNAPSHOT"
+
 dependencies {
 	// Avail.
 	implementation(project(":avail"))
 }
-
-
 
 ///////////////////////////////////////////////////////////////////////////////
 //                       Publish Utilities

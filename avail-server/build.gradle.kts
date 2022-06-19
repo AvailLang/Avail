@@ -47,6 +47,19 @@ dependencies {
 	AvailServerModule.addDependencies(this)
 }
 
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		(this as JavaToolchainSpec).languageVersion.set(
+			JavaLanguageVersion.of(Versions.jvmTargetString))
+	}
+}
+
 tasks {
 	shadowJar {
 		doFirst { cleanupAllJars() }
