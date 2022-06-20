@@ -80,8 +80,6 @@ fun checkCredentials ()
 	}
 }
 
-///////////////////////////////////////////////////////////////////////////////
-
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {

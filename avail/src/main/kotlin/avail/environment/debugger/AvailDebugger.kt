@@ -6,16 +6,16 @@
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions are met:
  *
- *  * Redistributions of source code must retain the above copyright notice,
- *    this list of conditions and the following disclaimer.
+ * * Redistributions of source code must retain the above copyright notice, this
+ *   list of conditions and the following disclaimer.
  *
- *  * Redistributions in binary form must reproduce the above copyright notice,
- *    this list of conditions and the following disclaimer in the documentation
- *    and/or other materials provided with the distribution.
+ * * Redistributions in binary form must reproduce the above copyright notice,
+ *   this list of conditions and the following disclaimer in the documentation
+ *   and/or other materials provided with the distribution.
  *
- *  * Neither the name of the copyright holder nor the names of the contributors
- *    may be used to endorse or promote products derived from this software
- *    without specific prior written permission.
+ * * Neither the name of the copyright holder nor the names of the contributors
+ *   may be used to endorse or promote products derived from this software
+ *   without specific prior written permission.
  *
  * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS"
  * AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE
@@ -74,6 +74,7 @@ import avail.descriptor.types.A_Type.Companion.instanceCount
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
+import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
 import avail.environment.MenuBarBuilder
 import avail.environment.actions.FindAction
@@ -1043,12 +1044,12 @@ class AvailDebugger internal constructor (
 		pack()
 		codeHighlightPainter = run {
 			val selectionColor = disassemblyPane.selectionColor
-			val currentLineColor = avail.environment.AdaptiveColor(
+			val currentLineColor = AdaptiveColor(
 				selectionColor.darker(), selectionColor.brighter())
 			DefaultHighlightPainter(currentLineColor.color)
 		}
 		secondaryCodeHighlightPainter = run {
-			val washedOut = avail.environment.AdaptiveColor.blend(
+			val washedOut = AdaptiveColor.blend(
 				codeHighlightPainter.color,
 				background,
 				0.15f)
