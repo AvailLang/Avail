@@ -38,10 +38,22 @@ plugins {
 	id("com.github.johnrengelman.shadow")
 }
 
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		(this as JavaToolchainSpec).languageVersion.set(
+			JavaLanguageVersion.of(Versions.jvmTargetString))
+	}
+}
+
 dependencies {
 	// Avail.
-
-	implementation(project(":avail-core"))
+	implementation(project(":avail"))
 }
 tasks {
 	// Produce a fat JAR for the Avail CLI.

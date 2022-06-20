@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
   <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit">
-    <module name="avail.avail-core.test" />
+    <module name="avail.avail.test" />
     <option name="ALTERNATIVE_JRE_PATH" value="17" />
     <option name="PACKAGE_NAME" value="avail.test" />
     <option name="MAIN_CLASS_NAME" value="" />

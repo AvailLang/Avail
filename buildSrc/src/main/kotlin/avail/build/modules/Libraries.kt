@@ -157,7 +157,6 @@ internal object Libraries
 			"io.methvin:directory-watcher")
 			{ Versions.directoryWatcherVersion }
 
-//	org.junit.jupiter:junit-jupiter:5.7.0
 	/** The JUnit 5 Jupiter engine. */
 	internal val junitJupiter =
 		Dependency(
@@ -179,14 +178,6 @@ internal object Libraries
 	/** The Kotlin reflection support. */
 	internal val kotlinReflection =
 		Dependency("org.jetbrains.kotlin:kotlin-reflect") { Versions.kotlin }
-
-	/**
-	 * Dark mode look & feel.  Embed the jar's contents in the fat shadow jar.
-	 * This was based on the Darcula module.
-	 */
-	internal val darklafCore =
-		Dependency(
-			"com.github.weisj:darklaf-core") { Versions.darklafVersion }
 
 	/**
 	 * Dark mode look & feel using Flatlaf.

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <metadata>
   <groupId>avail</groupId>
-  <artifactId>avail-core</artifactId>
+  <artifactId>avail</artifactId>
   <versioning>
     <latest>1.6.1.rc1</latest>
     <release>1.6.1.rc1</release>

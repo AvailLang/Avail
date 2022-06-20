@@ -32,7 +32,7 @@
 
 Module "PermutedListList Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Primitive Test Common"
 Body

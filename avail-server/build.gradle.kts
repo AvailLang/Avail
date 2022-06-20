@@ -43,8 +43,21 @@ dependencies {
 	// Avail.
 	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
 	implementation("org.availlang:avail-storage:${Versions.availStorageVersion}")
-	implementation(project(":avail-core"))
+	implementation(project(":avail"))
 	AvailServerModule.addDependencies(this)
+}
+
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(Versions.jvmTarget))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		(this as JavaToolchainSpec).languageVersion.set(
+			JavaLanguageVersion.of(Versions.jvmTargetString))
+	}
 }
 
 tasks {

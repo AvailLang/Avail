@@ -2,7 +2,7 @@
   "formatVersion": "1.1",
   "component": {
     "group": "avail",
-    "module": "avail-core",
+    "module": "avail",
     "version": "1.6.1.rc1",
     "attributes": {
       "org.gradle.status": "release"
@@ -57,8 +57,8 @@
       ],
       "files": [
         {
-          "name": "avail-core-1.6.1.rc1.jar",
-          "url": "avail-core-1.6.1.rc1.jar",
+          "name": "avail-1.6.1.rc1.jar",
+          "url": "avail-1.6.1.rc1.jar",
           "size": 7370996,
           "sha512": "88bca46778a2be3e0e79aefe01d8c90ad2daecf1ed94b67c9888edc9b8d8b2a0e51e29b8aef69ebecddced70538210966cde1591ca92f07e526f07aac4a59389",
           "sha256": "37fef932b38e354fcb5d6080874ba0900ae766881ed1a1362b655bddf3661e6b",
@@ -152,8 +152,8 @@
       ],
       "files": [
         {
-          "name": "avail-core-1.6.1.rc1.jar",
-          "url": "avail-core-1.6.1.rc1.jar",
+          "name": "avail-1.6.1.rc1.jar",
+          "url": "avail-1.6.1.rc1.jar",
           "size": 7370996,
           "sha512": "88bca46778a2be3e0e79aefe01d8c90ad2daecf1ed94b67c9888edc9b8d8b2a0e51e29b8aef69ebecddced70538210966cde1591ca92f07e526f07aac4a59389",
           "sha256": "37fef932b38e354fcb5d6080874ba0900ae766881ed1a1362b655bddf3661e6b",
@@ -172,8 +172,8 @@
       },
       "files": [
         {
-          "name": "avail-core-1.6.1.rc1-all.jar",
-          "url": "avail-core-1.6.1.rc1-all.jar",
+          "name": "avail-1.6.1.rc1-all.jar",
+          "url": "avail-1.6.1.rc1-all.jar",
           "size": 14361857,
           "sha512": "2f51f55ff4b691908419ac076bfbb62299e5ec2d882e31e7137b1e1e0eb9fff1e7e60f76dfcb4aa0a4a468128a757d9d714edb9efbe19b45c47ff6fc8ece45c8",
           "sha256": "b19bab0203d5b5ccdeb82970e774465b76fdc681717fede272b9c1892a201fb6",

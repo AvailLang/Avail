@@ -81,7 +81,7 @@ dependencies {
     // repositories listed in the repository section
     // availLibrary("avail:example-lib:1.2.3")
     testImplementation(kotlin("test"))
-    implementation("avail:avail-core:+")
+    implementation("avail:avail:+")
 }
 
 avail {

@@ -32,7 +32,7 @@
 
 Module "External Processes"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Files",
 	"Foundation",

@@ -32,7 +32,7 @@
 
 Module "Enumeration Support"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Definers" = (
 		"_'s⁇instance"

@@ -19,8 +19,6 @@ standard library. Both are released under the [3-clause BSD license](https://en.
  * [Reporting Problems](#reporting-problems)
  * [Avail Gradle Plugin](avail-plugin)
  * [Avail Sample Project](samples/sample-project)
- * [JSON Utility](avail-json)
- * [Avail Storage Utility](avail-storage)
 
 BEFORE GETTING STARTED
 --------------------------------------------------------------------------------
@@ -304,6 +302,17 @@ maintaining consistency in coding, documentation, and formatting practices. You
 should also strive to imitate the existing stylistic conventions, just as you
 would for any other established code base. 
 
+AVAIL WORKBENCH
+--------------------------------------------------------------------------------
+
+The Avail Workbench is an Avail development tool for developing, building, and
+running Avail applications.  It:
+
+* Compiles Avail Modules
+* Runs Avail Entry Points
+* Provides Development Utilities
+
+
 STAYING CURRENT
 --------------------------------------------------------------------------------
 
@@ -349,23 +358,24 @@ your best source of Avail news.
 
 PUBLISHING AVAIL
 --------------------------------------------------------------------------------
-At the time of writing, Avail provides three distinct publishable 
-libraries. 
+At the time of writing, Avail provides two distinct publishable libraries. 
 
 The Avail Foundation is in the process of working towards making the Avail 
 Gradle plugin available in Gradle's plugin repository as well as making the 
-other four libraries available on Maven Central.
+other four libraries available on Maven Central:
+- [X] [Avail JSON](https://github.com/AvailLang/avail-json) 
+- [X] [Avail Storage](https://github.com/AvailLang/avail-storage)
+- [ ] Avail 
+- [ ] Avail Standard Library
 
 In the meantime, all of these libraries/utilities can be published to a local 
 Maven repository using the Avail top level Gradle task, `publishToLocalMaven`.
 
 Publishing Avail to local Maven will publish five jars:
- * `avail-core` - *The core Avail language*
-   (see [Avail](avail-core))
+ * `avail` - *The core Avail language including the Avail Workbench*
+   (see [Avail](avail))
  * `avail-stdlib` - *The Avail standard library*
    (see [Standard Library](avail-stdlib))
- * `avail-workbench` - *The Avail development tool for developing Avail* 
-   (see [Workbench](avail-workbench))
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------

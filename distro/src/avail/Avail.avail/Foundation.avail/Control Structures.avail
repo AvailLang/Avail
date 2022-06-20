@@ -32,7 +32,7 @@
 
 Module "Control Structures"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Control Structures" =
 	(

@@ -31,12 +31,12 @@
  */
 
 Module "ShouldFailDuplicateImportVersion"
-Versions "Avail-1.6.0"
+Versions "Avail-1.6.1"
 Uses
 	"Avail"
 	(
-		"Avail-1.6.0",
+		"Avail-1.6.1",
 		"Something newer",
-		"Avail-1.6.0"
+		"Avail-1.6.1"
 	)
 Body

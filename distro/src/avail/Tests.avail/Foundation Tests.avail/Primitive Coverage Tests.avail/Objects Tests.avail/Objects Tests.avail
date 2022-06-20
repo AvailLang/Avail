@@ -40,7 +40,7 @@
 
 Module "Objects Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Avail",
 	"CreateObjectFieldGetter Tests",
