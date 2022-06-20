@@ -40,7 +40,7 @@
 
 Module "Special Objects"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Origin"
 Uses

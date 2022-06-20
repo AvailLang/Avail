@@ -31,7 +31,7 @@
  */
 
 Module "ShouldFailPragmas"
-Versions "Avail-1.6.0"
+Versions "Avail-1.6.1"
 Uses
 	"Avail"
 Pragma

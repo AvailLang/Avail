@@ -218,7 +218,7 @@ class AvailTest
 		fun eachShouldFailTest(): List<String>
 		{
 			val projectDirectory = System.getProperty("user.dir")
-				.replace("/avail/", "/")
+				.replace("/avail", "")
 			val dir = File(projectDirectory)
 				.resolve("distro/src/builder-tests/Invalid Tests.avail")
 			return dir.list()!!.mapNotNull {
@@ -242,7 +242,7 @@ class AvailTest
 		fun eachShouldPassTest(): List<String>
 		{
 			val projectDirectory = System.getProperty("user.dir")
-				.replace("/avail/", "/")
+				.replace("/avail", "")
 			val dir = File(projectDirectory)
 				.resolve("distro/src/builder-tests/Valid Tests.avail")
 			return dir.list()!!.mapNotNull {

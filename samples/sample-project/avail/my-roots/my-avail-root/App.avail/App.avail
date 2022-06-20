@@ -32,7 +32,7 @@
 
 Module "App"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Avail" = (-"_+_"…),
 	"Configurations",

@@ -32,7 +32,7 @@
 
 Module "Base64 Converters"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Abstract Converters",
 	"Foundation",

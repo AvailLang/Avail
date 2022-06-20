@@ -32,7 +32,7 @@
 
 Module "Early Tuples"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Bootstrap",
 	"Collections" = ("_[_]else_"),
