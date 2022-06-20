@@ -48,8 +48,6 @@ plugins {
 val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
-version = "1.6.1.rc3-SNAPSHOT"
-
 dependencies {
 	api("org.availlang:avail-json:${Versions.availJsonVersion}")
 	api("org.availlang:avail-storage:${Versions.availStorageVersion}")

@@ -42,7 +42,7 @@ plugins {
 	id("org.jetbrains.dokka")
 }
 
-version = "1.6.0.rc1-SNAPSHOT"
+version = "1.6.1"
 
 dependencies {
 	// Avail.
