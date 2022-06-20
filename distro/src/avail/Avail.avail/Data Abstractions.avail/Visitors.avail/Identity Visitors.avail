@@ -1,6 +1,6 @@
 /*
  * Identity Visitors.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Identity Visitors"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Abstract Visitors",
 	"Depth-First Visitors",
@@ -65,92 +65,31 @@ Class "private identity visitor" extends visitor
 	with field
 		escape continuation : $[…]→boolean;
 
-Method "Before visiting_upon_" is
+For each kind in {
+	atom,
+	definition,
+	fiber,
+	function,
+	function implementation,
+	method,
+	module,
+	pojo,
+	phrase,
+	token,
+	variable
+} do
 [
-	aVisitor : private identity visitor,
-	value : atom
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : definition
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : fiber
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : function
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : function implementation
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : method
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : module
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : pojo
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : phrase
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : token
-|
-	Exit aVisitor's escape continuation with true
-];
-
-Method "Before visiting_upon_" is
-[
-	aVisitor : private identity visitor,
-	value : variable
-|
-	Exit aVisitor's escape continuation with true
+	visitorArg ::= arg «(this token: aVisitor) : private identity visitor»;
+	valueArg ::= arg «(this token: value) : kind»;
+	visitorRead ::= «↓visitorArg»
+		?→ variable use phrase ⇒ private identity visitor;
+	phrase ::=
+		«[
+			<visitorArg, valueArg>
+		|
+			<⟦Exit ⦊visitorRead⦉'s escape continuation with true⟧>
+		]: ⊥»;
+	Method "Before visiting_upon_" is phrase → function;
 ];
 
 /**

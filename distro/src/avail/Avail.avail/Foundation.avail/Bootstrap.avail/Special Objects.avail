@@ -1,6 +1,6 @@
 /*
  * Special Objects.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,15 @@
 
 /*
  * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/13/21 1:27 PM
+ * * Generator: avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 5/9/22, 11:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
 Module "Special Objects"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Origin"
 Uses
@@ -118,12 +118,14 @@ Names
 	/* 153 */ "map from string to atom",
 	/*  19 */ "map meta",
 	/* 156 */ "map variable",
+	/* 174 */ "marker phrase",
 	/*  40 */ "message bundle",
 	/*  41 */ "message bundle tree",
 	/*  42 */ "method",
 	/*  46 */ "method definition",
 	/*  20 */ "module",
 	/*  67 */ "module constant phrase",
+	/* 175 */ "module imports tuple",
 	/*  66 */ "module variable phrase",
 	/*  37 */ "natural number",
 	/*  97 */ "non-empty map",
@@ -167,6 +169,7 @@ Names
 	/* 107 */ "semantic restriction function",
 	/*  57 */ "send phrase",
 	/*  51 */ "sequence phrase",
+	/* 176 */ "sequence-as-expression phrase",
 	/*  26 */ "set",
 	/*  27 */ "set meta",
 	/* 114 */ "set of atom",
@@ -277,7 +280,7 @@ Special object "any" is special object 1;
  *
  * Note that values may be instances of many enumerations. This means that Avail
  * directly supports other logical systems, such as Kleene's three-valued logic
- * of indeterminacy, whose truth values are {@code "true"}, {@code "false"}, 
+ * of indeterminacy, whose truth values are {@code "true"}, {@code "false"},
  * and {@code "unknown"}. Implementation of this system would proceed directly
  * from creation of an atom to represent {@code "unknown"} and the formation of
  * a new enumeration that contained the standard {@method "true"} and {@method
@@ -1096,7 +1099,7 @@ Special object "macro definition" is special object 47;
 Special object "tuple of function" is special object 48;
 
 /**
- * The {@code atom} under which the stack is captured within an 
+ * The {@code atom} under which the stack is captured within an
  * {@code exception} when it is raised.
  *
  * @category "Primitives" "Constants"
@@ -2312,4 +2315,35 @@ Special object "token classifiers" is special object 172;
  * @alias "token tuple"
  */
 Special object "token tuple" is special object 173;
+
+/**
+ * The marker phrase type, instances of which are generally produced by an
+ * explicit construction primitive.  A marker phrase type has a yield type.
+ * An actual marker phrase contains both a value and a yield type, which do not
+ * need to agree with each other.
+ *
+ * @category "Primitives" "Types"
+ * @type "marker phrase⇒⊤"
+ * @alias "marker phrase"
+ */
+Special object "marker phrase" is special object 174;
+
+/**
+ * The type for the module imports list for the CreateAnonymousModule
+ * primitive.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "module imports tuple"
+ */
+Special object "module imports tuple" is special object 175;
+
+/**
+ * The most general sequence-as-expression phrase type.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "sequence-as-expression phrase"
+ */
+Special object "sequence-as-expression phrase" is special object 176;
 

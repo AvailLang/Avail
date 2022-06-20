@@ -1,7 +1,7 @@
 #!/bin/bash
 #
 # compute-usages.sh
-# Copyright © 1993-2021, The Avail Foundation, LLC.
+# Copyright © 1993-2022, The Avail Foundation, LLC.
 # All rights reserved.
 #
 # Redistribution and use in source and binary forms, with or without
@@ -48,7 +48,7 @@ CLASSES=used_classes.txt
 
 find $ROOT -name '*.class' -exec javap -c -verbose {} \; \
 	| awk '$3 == "Methodref" {print $6}' \
-	| grep -v '^com/avail' \
+	| grep -v '^avail' \
 	| grep -v '^"' \
 	| sort \
 	| uniq \

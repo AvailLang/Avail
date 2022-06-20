@@ -1,6 +1,6 @@
 /*
  * Definers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Definers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Framework State",
 	"Foundation",
@@ -257,7 +257,7 @@ Private method "fixture semantic restriction function" is
 [
 	[
 		id : atom's type,
-		test : []→⊤'s type
+		test : ([]→⊤)'s type
 	|
 		If test's return type ≠ ⊤ then
 		[
@@ -267,7 +267,7 @@ Private method "fixture semantic restriction function" is
 		];
 		⊤
 	] : type
-] : [atom's type, []→⊤'s type]→type;
+] : [atom's type, ([]→⊤)'s type]→type;
 
 Semantic restriction "Before running_,⁇do_"
 	is fixture semantic restriction function;
@@ -475,34 +475,33 @@ is
 	test : []→⊤,
 	optionalException : exception's type?
 |
+	Set name of function implementation test's implementation to "TEST: " ++ name;
+	trueName ::= atom for name;
+	unitTest ::= a unit test with
+		test ID ::= trueName,
+		suite ID ::= suiteID,
+		body ::= test,
+		platform optionality ::= platformOptionality,
+		expected exception type ::= optionalException;
 	Lock suite lock for
 	[
-		Set name of function implementation test's implementation to "TEST: " ++ name;
-		trueName ::= atom for name;
 		If trueName ∈ tests by atom then
 		[
 			Raise a test-already-exists exception with test ID ::= trueName
 		];
 		Remember the current module;
-		unitTest ::= a unit test with
-			test ID ::= trueName,
-			suite ID ::= suiteID,
-			body ::= test,
-			platform optionality ::= platformOptionality,
-			expected exception type ::= optionalException;
-		tests by atom := tests by atom + trueName→unitTest;
+		↑tests by atom[trueName] := unitTest;
 		suite ::= suites by atom[suiteID] else
 			[
 				Raise a no-such-test-suite exception with suite ID ::= suiteID
 			];
 		suiteTests ::= suite's unit tests ++ <unitTest>;
-		suites by atom :=
-			suites by atom + suiteID→suite's unit tests ::= suiteTests;
+		↑suites by atom [suiteID] := (suite's unit tests ::= suiteTests);
 		/* Arrange to forget the test suite when its defining module is
 		 * unloaded.
 		 */
-		After the current module is unloaded, do [Forget unitTest;];
 	];
+	After the current module is unloaded, do [Forget unitTest;];
 ] : ⊤;
 
 /**
@@ -511,14 +510,14 @@ is
  * @method "Test_in_is_«must raise_»"
  * @restricts "string's type"
  * @restricts "atom's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "exception's type?'s type"
  */
 Semantic restriction "Test_in_is_«must raise_»" is
 [
 	name : string's type,
 	suiteID : atom's type,
-	test : []→⊤'s type,
+	test : ([]→⊤)'s type,
 	optionalException : exception's type?'s type
 |
 	If ⌈optionalException⌉ = 1 then

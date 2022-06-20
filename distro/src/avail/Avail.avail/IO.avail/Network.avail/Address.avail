@@ -1,6 +1,6 @@
 /*
  * Address.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Address"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Foundation"
 Names
@@ -268,7 +268,7 @@ Public macro "IPv6««…#§»?«…§»?‡:»" is
 		?→ <list phrase ⇒ <token?, token?…|1..2>…|1..8>;
 	tetPhrase ::= hexadecituple's last;
 	tetTuple ::= tetPhrase's expressions
-		?→ <list phrase ⇒ (token?), list phrase ⇒ (token?)…|1..2>;
+		?→ <list phrase ⇒ token?, list phrase ⇒ token?…|1..2>;
 	numPhrase ::= tetTuple[1];
 	numTuple ::= numPhrase's expressions ?→ (literal phrase ⇒ token)?;
 	hexadecitet ::= numTuple[1]'s token's lexeme;
@@ -289,7 +289,7 @@ Public macro "IPv6««…#§»?«…§»?‡:»" is
 		?→ <list phrase ⇒ <token?, token?…|1..2>…|1..8>;
 	tetPhrase ::= hexadecituple's last;
 	tetTuple ::= tetPhrase's expressions
-		?→ <list phrase ⇒ (token?), list phrase ⇒ (token?)…|1..2>;
+		?→ <list phrase ⇒ token?, list phrase ⇒ token?…|1..2>;
 	alphaPhrase ::= tetTuple[2];
 	alphaTuple ::= alphaPhrase's expressions ?→ (literal phrase ⇒ token)?;
 	hexadecitet ::= alphaTuple[1]'s token's lexeme;
@@ -318,7 +318,7 @@ Public macro "IPv6««…#§»?«…§»?‡:»" is
 	For each tetPhrase, index of hexadecituple do
 	[
 		tetTuple ::= tetPhrase's expressions
-			?→ <list phrase ⇒ (token?), list phrase ⇒ (token?)…|1..2>;
+			?→ <list phrase ⇒ token?, list phrase ⇒ token?…|1..2>;
 		firstPhrase ::= tetTuple[1];
 		firstTuple ::= firstPhrase's expressions ?→ (literal phrase⇒token)?;
 		secondPhrase ::= tetTuple[2];
@@ -468,7 +468,7 @@ Method "a socket address from_and_" is
 Public macro "_:…#" is
 [
 	addr : literal phrase ⇒ IPv4 address,
-	port : literal phrase ⇒ (literal token ⇒ [0..65535])
+	port : literal phrase ⇒ literal token ⇒ [0..65535]
 |
 	‘a socket address with
 		address ::= addr's token's value,
@@ -481,14 +481,14 @@ Public macro "_:…#" is
  *
  * @method "[_]:…#"
  * @param "addr" "literal phrase ⇒ IPv6 address"
- * @param "port" "literal phrase ⇒ (literal token ⇒ [0..65535])"
+ * @param "port" "literal phrase ⇒ literal token ⇒ [0..65535]"
  * @returns "literal phrase ⇒ socket address"
  * @category "IO" "Networking" "Sockets"
  */
 Public macro "[_]:…#" is
 [
 	addr : literal phrase ⇒ IPv6 address,
-	port : literal phrase ⇒ (literal token ⇒ [0..65535])
+	port : literal phrase ⇒ literal token ⇒ [0..65535]
 |
 	‘a socket address with
 		address ::= addr's token's value,

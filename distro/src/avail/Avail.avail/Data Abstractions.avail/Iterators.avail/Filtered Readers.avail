@@ -1,6 +1,6 @@
 /*
  * Filtered Readers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Filtered Readers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Common" = ("element type", "_'s⁇element type"),
 	"Foundation" =
@@ -167,7 +167,7 @@ Method "filter_by_" is
  * @method "filter_by_"
  * @restricts "readerType" "reader's type"
  *        An {@type "reader"}.
- * @restricts "predicateType" "[⊥]→boolean's type"
+ * @restricts "predicateType" "([⊥]→boolean)'s type"
  *        A function that accepts the elements of {@param "aReader"} and
  *        answers {@code true} iff they should be obtainable via the result
  *        reader.
@@ -177,7 +177,7 @@ Method "filter_by_" is
 Semantic restriction "filter_by_" is
 [
 	readerType : reader's type,
-	predicateType : [⊥]→boolean's type
+	predicateType : ([⊥]→boolean)'s type
 |
 	Require: predicateType accepts readerType;
 	extend reader with element type : readerType's element type

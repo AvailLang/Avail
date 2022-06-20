@@ -1,6 +1,6 @@
 /*
  * Variables.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Variables"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Variables"
 Uses
@@ -161,7 +161,7 @@ Semantic restriction "Swap_↑and_↑" is
 	then [⊤]
 	else
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"variable's read/write types to be cross-compatible"
 	]
 ];
@@ -212,7 +212,7 @@ Semantic restriction "(↓new`↑_:=_)" is
 			" to support initial value (",
 			“valueType”,
 			")">;
-		Immediately reject parse,
+		Reject parse,
 			expected: cast messageTuple into [t : string | t]
 	];
 	⊤
@@ -247,7 +247,7 @@ Private method "increment/decrement semantic restriction" is
 	|
 		If ¬varType's write type ⊆ number then
 		[
-			Immediately reject parse,
+			Reject parse,
 				expected: "variable to accept and yield numbers"
 		];
 		⊤
@@ -318,7 +318,7 @@ Semantic restriction "(_↑++)" is
 |
 	If ¬varType's write type ⊆ number then
 	[
-		Immediately reject parse,
+		Reject parse,
 			expected: "variable to accept and yield numbers"
 	];
 	varType's read type
@@ -385,7 +385,7 @@ Semantic restriction "(++_↑)" is
 |
 	If ¬varType's write type ⊆ number then
 	[
-		Immediately reject parse,
+		Reject parse,
 			expected: "variable to accept and yield numbers"
 	];
 	readType ::= varType's read type;
@@ -468,7 +468,7 @@ Semantic restriction "(_↑--)" is
 |
 	If ¬varType's write type ⊆ number then
 	[
-		Immediately reject parse,
+		Reject parse,
 			expected: "variable to accept and yield numbers"
 	];
 	varType's read type
@@ -536,7 +536,7 @@ Semantic restriction "(--_↑)" is
 |
 	If ¬varType's write type ⊆ number then
 	[
-		Immediately reject parse,
+		Reject parse,
 			expected: "variable to accept and yield numbers"
 	];
 	readType ::= varType's read type;
@@ -648,16 +648,19 @@ Public macro "«…‡,»::=_;" is
 	];
 	If |nameTokens| ≠ |nameTokens→set| then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"local constants in destructuring tuple binding to \
 			\|have distinct names"
 	];
 	tupleType ::= tuplePhrase's semantic type;
 	If |nameTokens| > ⌊tupleType⌋ then
 	[
-		Immediately reject parse, expected:
-			"local constants in destructuring tuple binding not to exceed the
-			\|minimum size of the source tuple"
+		Reject parse, expected:
+			concatenate <
+				"local constants in destructuring tuple binding not to exceed ",
+				"the minimum size of the source tuple (",
+				 “⌊tupleType⌋”,
+				 ")"> ?→ string
 	];
 	strongNameTokens ::=
 		cast nameTokens into [t : <<>, token…|natural number> | t];
@@ -733,16 +736,19 @@ Public macro "«…‡,»::=_;" is
 	];
 	If |nameTokens| ≠ |nameTokens→set| then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"local constants in destructuring tuple binding to \
 			\|have distinct names"
 	];
 	tupleType ::= tupleTypePhrase's semantic type's instance;
 	If |nameTokens| > ⌊tupleType⌋ then
 	[
-		Immediately reject parse, expected:
-			"local constants in destructuring tuple type binding not to exceed \
-			\|the minimum size of the source tuple"
+		Reject parse, expected:
+			concatenate <
+				"local constants in destructuring tuple type binding not to ",
+				"exceed the minimum size of the source tuple type (",
+				 “⌊tupleType⌋”,
+				 ")"> ?→ string
 	];
 	strongNameTokens ::=
 		cast nameTokens into [t : <<>, token…|natural number> | t];
@@ -827,8 +833,7 @@ Grammatical restriction
 
 	"atomically read_and store_",
 	"atomically read_and add_",
-	"_`?=_",
-	"_`?=_'s⁇initialization"
+	"_`?=_"
 } is <{"`↑_↑"}, ∅>;
 
 Grammatical restriction

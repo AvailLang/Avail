@@ -1,6 +1,6 @@
 /*
  * Tries.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -298,7 +298,7 @@ Semantic restriction "_[_]else_" is
 [
 	tType : trie's type,
 	keyType : tuple's type,
-	notFoundType : []→any's type
+	notFoundType : ([]→any)'s type
 |
 	Require: keyType is valid key type of tType;
 	tType's value type's instance ∪ notFoundType's return type
@@ -369,7 +369,7 @@ Semantic restriction "_[_]'s⁇subtrie else_" is
 [
 	tType : trie's type,
 	keyType : tuple's type,
-	notFoundType : []→any's type
+	notFoundType : ([]→any)'s type
 |
 	Require: keyType is valid key type of tType;
 	tKeyType ::= tType's key type's instance;
@@ -618,7 +618,7 @@ Semantic restriction "Remove_[_]else_" is
 [
 	tType : trie's type,
 	keyType : tuple's type,
-	notFound : []→⊤'s type
+	notFound : ([]→⊤)'s type
 |
 	Require: keyType is valid key type of tType;
 	⊤

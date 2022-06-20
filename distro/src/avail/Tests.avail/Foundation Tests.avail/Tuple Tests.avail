@@ -1,6 +1,6 @@
 /*
  * Tuple Tests.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Tuple Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Common"
 Names
@@ -85,7 +85,7 @@ Test "map and filter" in tuple test suite is
 		accept : [natural number]→⊤
 	|
 		m ::= n + 2;
-		If m mod 2 = 0 then
+		If 2|m then
 		[
 			accept(m);
 		];
@@ -96,7 +96,7 @@ Test "map and filter" in tuple test suite is
 Test "any satisfies" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= any of a satisfies [n : natural number | n mod 2 = 0];
+	b ::= any of a satisfies [n : natural number | 2|n];
 	c ::= any of a satisfies [n : natural number | n > 200];
 	Require: b = true;
 	Require: c = false;
@@ -105,7 +105,7 @@ Test "any satisfies" in tuple test suite is
 Test "any satisfies (macro)" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= any n of a satisfies [n mod 2 = 0];
+	b ::= any n of a satisfies [2|n];
 	c ::= any n of a satisfies [n > 200];
 	Require: b = true;
 	Require: c = false;
@@ -154,7 +154,7 @@ Test "macro for each of do" in tuple test suite is
 Test "count of where" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= count of a where [n : natural number | n mod 2 = 0];
+	b ::= count of a where [n : natural number | 2|n];
 	c ::= count of a where [n : natural number | n > 2000];
 	Require: b = 2;
 	Require: c = 0;
@@ -163,7 +163,7 @@ Test "count of where" in tuple test suite is
 Test "count of where (macro)" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= count of n in a where [n mod 2 = 0];
+	b ::= count of n in a where [2|n];
 	c ::= count of n in a where [n > 2000];
 	Require: b = 2;
 	Require: c = 0;
@@ -204,7 +204,7 @@ Test "each of satisfies (macro)" in tuple test suite is
 Test "filter by" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= filter a by [n : natural number | n mod 2 = 0];
+	b ::= filter a by [n : natural number | 2|n];
 	c ::= filter a by [n : natural number | n > 2000];
 	d ::= filter a by [n : natural number, i : natural number | (n + i) > 5];
 	Require: b = <2,4>;
@@ -215,7 +215,7 @@ Test "filter by" in tuple test suite is
 Test "select each (macro)" in tuple test suite is
 [
 	a ::= <1,2,3,4>;
-	b ::= select each n from a where [(n mod 2) = 0];
+	b ::= select each n from a where [2|n];
 	c ::= select each n from a where [n > 2000];
 	d ::= select each n,i from a where [(n + i) > 5];
 	Require: b = <2,4>;

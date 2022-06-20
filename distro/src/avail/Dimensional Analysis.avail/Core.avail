@@ -1,6 +1,6 @@
 /*
  * Core.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Core"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Avail"
 Names
@@ -319,9 +319,7 @@ namesByUnit : {unit→string|} := {};
 
 Public method "names by unit" is
 [
-	temp : {unit→string|};
-	lock stateLock for [temp := namesByUnit;];
-	temp
+	lock stateLock for [namesByUnit]
 ];
 
 /**

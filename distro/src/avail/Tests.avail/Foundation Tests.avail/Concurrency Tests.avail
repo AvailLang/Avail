@@ -1,6 +1,6 @@
 /*
  * Concurrency Tests.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Concurrency Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Common"
 Names
@@ -183,7 +183,7 @@ Test "heritable fiber variables (orphan)" in concurrency test suite is
 	[
 		For each key of fiberLocals' keys do
 		[
-		 If key ∈ current fiber then
+			If key ∈ current fiber then
 			[
 				inherited := inherited + key→current fiber[key];
 			];

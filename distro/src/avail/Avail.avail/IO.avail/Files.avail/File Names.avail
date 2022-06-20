@@ -1,6 +1,6 @@
 /*
  * File Names.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "File Names"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Foundation"
 Names
@@ -592,6 +592,6 @@ Public method "temporary directory" is
 	./${TMPDIR}
 		/* Windows. */
 		else [${TEMP}
-		    else [${TMP}
-			    else [Raise a no-file exception]]]
+			else [${TMP}
+				else [Raise a no-file exception]]]
 ] : file name;

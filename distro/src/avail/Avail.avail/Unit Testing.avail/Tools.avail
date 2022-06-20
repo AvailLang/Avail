@@ -1,6 +1,6 @@
 /*
  * Tools.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Tools"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Foundation"
 Names
@@ -211,7 +211,7 @@ Semantic restriction "Require:_=_" is
 	[
 		Reject parse, expected:
 			format "a predicate that could ever be true (because \
-				\|(“①”) doesn't intersect (“②”)"
+				\|\n\t\t\t(“①”)\n\t\tdoesn't intersect\n\t\t\t(“②”)"
 			with actual, expected
 	];
 	⊤
@@ -254,7 +254,7 @@ Public macro "Require:_=_(_)" is
 	[
 		Reject parse, expected:
 			format "a predicate that could ever be true (because \
-				\|(“①”) doesn't intersect (“②”)"
+				\|\n\t\t\t(“①”)\n\t\tdoesn't intersect\n\t\t\t(“②”)"
 			with actual's semantic type, expected's semantic type
 	];
 	restricted send $"Require:_=__" with
@@ -341,7 +341,7 @@ Private method "Require:_raises__" is
  *
  * @macro "Require:_raises_(_)"
  * @param "aFunction" "expression phrase ⇒ []→⊤"
- * @param "exceptionType" "expression phrase ⇒ (exception's type)"
+ * @param "exceptionType" "expression phrase ⇒ exception's type"
  * @param "message" "expression phrase ⇒ string"
  *        Additional information that should be attached to the exception in the
  *        event of failure. It is evaluated only in the event of failure.
@@ -351,7 +351,7 @@ Private method "Require:_raises__" is
 Public macro "Require:_raises_(_)" is
 [
 	aFunction : expression phrase ⇒ []→⊤,
-	exceptionType : expression phrase ⇒ (exception's type),
+	exceptionType : expression phrase ⇒ exception's type,
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require:_raise__" with
@@ -531,7 +531,7 @@ Private method "Require if supported«on this platform»⁇:_raises__" is
  *
  * @method "Require if supported«on this platform»⁇:_raises_(_)"
  * @param "aFunction" "expression phrase ⇒ []→boolean"
- * @param "exceptionType" "expression phrase ⇒ (exception's type)"
+ * @param "exceptionType" "expression phrase ⇒ exception's type"
  * @param "message" "expression phrase ⇒ string"
  *        Additional information that should be attached to the exception in the
  *        event of failure. It is evaluated only in the event of failure.
@@ -541,7 +541,7 @@ Private method "Require if supported«on this platform»⁇:_raises__" is
 Public method "Require if supported«on this platform»⁇:_raises_(_)" is
 [
 	aFunction : expression phrase ⇒ []→⊤,
-	exceptionType : expression phrase ⇒ (exception's type),
+	exceptionType : expression phrase ⇒ exception's type,
 	message : expression phrase ⇒ string
 |
 	restricted send $"Require if supported«on this platform»⁇:_raises__" with

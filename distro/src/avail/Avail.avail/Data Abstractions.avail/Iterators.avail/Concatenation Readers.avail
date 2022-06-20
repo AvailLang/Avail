@@ -1,6 +1,6 @@
 /*
  * Concatenation Readers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Concatenation Readers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Common" = ("element type", "_'s⁇element type"),
 	"Foundation" =
@@ -169,7 +169,7 @@ Method "«_‡++»" is
  * {@method "concatenate_"} and {@method "«_‡++»"} methods.
  * @category "Data Abstractions"
  * @method "concatenation semantic restriction"
- * @returns "[reader+'s type]→(concatenation reader's type)"
+ * @returns "[reader+'s type]→concatenation reader's type"
  *          The requested function.
  */
 Private method "concatenation semantic restriction" is

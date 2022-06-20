@@ -1,6 +1,6 @@
 /*
  * Exceptions.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,12 @@
 
 Module "Exceptions"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Atoms",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Enumeration Support",
 	"Error Codes",
@@ -65,7 +64,6 @@ Names
 	"causal exception",
 	"descriptive_",
 	"error message",
-	"restricted send_with_:_",
 	"try_else_",
 	"_caused by_",
 	"_'s⁇causal exception",
@@ -92,6 +90,7 @@ Names
 	"general-I/O exception",
 	"instantiation exception",
 	"invocation exception",
+	"recursive exception",
 	"security exception",
 	"system exception",
 	"trace exception",
@@ -109,7 +108,6 @@ Names
 
 	/* Rejecting/accepting parses safely. */
 	"Accept parse",
-	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Unwind fiber and run_"
 
 	/* Quite a few names are introduced, but all dynamically by the
@@ -178,7 +176,7 @@ Public method "_'s⁇stack summary" is
  */
 Public method "current fiber's unhandled exception handler" is
 [
-	cast current fiber[unhandled exception handler] into [t : [exception]→⊥ | t]
+	current fiber[unhandled exception handler] ?→ [exception]→⊥
 ] : [exception]→⊥;
 
 /**
@@ -200,16 +198,25 @@ Public method "Current fiber's unhandled exception handler is_" is
 	current fiber[unhandled exception handler] := handler;
 ] : ⊤;
 
-/* This function that "Raise_" should invoke if the current fiber does not have
- * an unhandled exception handler. This will be updated after all other
- * exception machinery has been built.
+/*
+ * This function simply invokes a clean fiber "crash" when there is no unhandled
+ * exception handler and some unhandled exception is raised.
  */
-noUnhandledExceptionHandler : [exception]→⊥ :=
+bootstrapNoUnhandledExceptionHandler ::=
 	[
 		anException : exception
 	|
 		Crash: "unhandled exception: " ++ “anException”
 	];
+
+
+/*
+ * This function that "Raise_" should invoke if the current fiber does not have
+ * an unhandled exception handler. This will be updated after all other
+ * exception machinery has been built.
+ */
+noUnhandledExceptionHandler : [exception]→⊥ :=
+	bootstrapNoUnhandledExceptionHandler;
 
 /**
  * Raise the specified {@type "exception"}. The virtual machine scans the
@@ -301,8 +308,8 @@ Private method "Mark guard variable_with_" is
  * value then return it.
  *
  * @macro "Guard body_unwind_variable_;"
- * @param "body" "expression phrase⇒([]→⊤)"
- * @param "unwind" "expression phrase⇒([]→⊤)"
+ * @param "body" "expression phrase⇒[]→⊤"
+ * @param "unwind" "expression phrase⇒[]→⊤"
  * @param "guardVariable"
  *        "read any write {handler-sentinel code, unwind-sentinel code}ᵀ"
  * @returns "first-of-sequence phrase"
@@ -352,20 +359,23 @@ Private macro "Do_and_;" is
  * @category "Bootstrap" "Primitives" "Exception Handling" "Control Structures"
  */
 Private method "Private guard_intercept_ensure_" is
- 	[
+[
 	body : []→⊤,
 	handlers : <[⊥]→⊤…|>,
 	unwind : []→⊤
 |
 	Primitive CatchException (failureCode : guardVariableType);
 
-	/* If the failureCode is non-zero, report it with the failure function. */
+	/*
+	 * If the failureCode is non-zero, report it with a "hard" fiber failure,
+	 * not an exception.
+	 */
 	Cast ↓failureCode into
 	[
 		code : natural number
 	|
-		early failure function(code)
-	]
+		Primitive EmergencyExit;
+	] : ⊥
 	else [];
 
 	Do
@@ -374,7 +384,8 @@ Private method "Private guard_intercept_ensure_" is
 		]
 	and
 		[
-			/* No exception was caught, or we would have dealt with the unwind
+			/*
+			 * No exception was caught, or we would have dealt with the unwind
 			 * already in "Handle_handler_unwind_".  Therefore, any exception
 			 * raised in the unwind should propagate (unmodified by causal
 			 * chaining) to any enclosing handlers.
@@ -394,7 +405,7 @@ Private method "Private guard_intercept_ensure_" is
  * @type "cascade exception"
  * @supertype "exception"
  * @field "causal exception" "exception"
- * 		The original exception that lead to the current exception
+ * 		The original exception that led to the current exception
  * @category "Exceptions"
  */
 Public class "cascade exception" extends exception
@@ -453,7 +464,7 @@ Public method "_caused by_" is
 	originalException : exception
 |
 	fields ::= newException→map + causal exception→originalException;
-	cast fields→object into [t : cascade exception | t]
+	fields→object ?→ cascade exception
 ] : cascade exception;
 
 /**
@@ -491,13 +502,15 @@ Private method "Handle_handler_unwind_" is
 	unwind : []→⊤
 |
 	preemptiveException : exception;
-	/* Guard the handler, because we need to try the unwind no matter what
+	/*
+	 * Guard the handler, because we need to try the unwind no matter what
 	 * happens.
 	 */
 	Private guard [handler(originalException);]
 	intercept <[e : exception | preemptiveException := e;]>
 	ensure [];
-	/* Guard the unwind, because if it blows up, then we want to build a cascade
+	/*
+	 * Guard the unwind, because if it blows up, then we want to build a cascade
 	 * exception from it instead of from the handler.
 	 */
 	Private guard [unwind();]
@@ -505,7 +518,8 @@ Private method "Handle_handler_unwind_" is
 	ensure [];
 	/* Forbid a subsequent unwind. */
 	Mark nearest guard frame with unwind-sentinel code;
-	/* If either the handler or the unwind raised an exception, then convert it
+	/*
+	 * If either the handler or the unwind raised an exception, then convert it
 	 * to a cascade exception (with the original exception attached) and reraise
 	 * it.
 	 */
@@ -523,13 +537,15 @@ Private method "Handle_handler_unwind_" is
 |
 	result : any;
 	preemptiveException : exception;
-	/* Guard the handler, because we need to try the unwind no matter what
+	/*
+	 * Guard the handler, because we need to try the unwind no matter what
 	 * happens.
 	 */
 	Private guard [result := handler(originalException);]
 	intercept <[e : exception | preemptiveException := e;]>
 	ensure [];
-	/* Guard the unwind, because if it blows up, then we want to build a cascade
+	/*
+	 * Guard the unwind, because if it blows up, then we want to build a cascade
 	 * exception from it instead of from the handler.
 	 */
 	Private guard [unwind();]
@@ -537,7 +553,8 @@ Private method "Handle_handler_unwind_" is
 	ensure [];
 	/* Forbid a subsequent unwind. */
 	Mark nearest guard frame with unwind-sentinel code;
-	/* If either the handler or the unwind raised an exception, then convert it
+	/*
+	 * If either the handler or the unwind raised an exception, then convert it
 	 * to a cascade exception (with the original exception attached) and reraise
 	 * it.
 	 */
@@ -545,7 +562,8 @@ Private method "Handle_handler_unwind_" is
 	[
 		Raise preemptiveException caused by originalException
 	];
-	/* The result must be assigned, or control would have left because of a
+	/*
+	 * The result must be assigned, or control would have left because of a
 	 * raised exception.
 	 */
 	Assert: result is assigned;
@@ -557,13 +575,13 @@ Private method "Handle_handler_unwind_" is
  * earlier handlers hide later handlers (by having a more general type).
  *
  * @method "Guard|guard_«intercept_»«ensure_»"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "<[⊥]→⊤…|>'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 [
-	bodyType : []→⊤'s type,
+	bodyType : ([]→⊤)'s type,
 	handlersType : <[⊥]→⊤…|>'s type,
 	unwindType : ([]→⊤)?'s type
 |
@@ -572,7 +590,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 	unwindCount ::= ⌊unwindType⌋;
 	If handlerCount = 0 ∧ unwindCount = 0 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"at least one exception handler or an unwind handler"
 	];
 	For each index from 1 to handlerCount do
@@ -581,14 +599,14 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		argType ::= handlerType[1];
 		If argType = ⊥ then
 		[
-			Immediately reject parse, expected: format
+			Reject parse, expected: format
 				"exception handler #“①”'s parameter type to be \
 				\|statically known"
 				with index
 		];
 		If ¬argType ⊆ exception then
 		[
-			Immediately reject parse, expected: format
+			Reject parse, expected: format
 				"exception handler to accept only exceptions (not “①”)"
 				with argType
 		];
@@ -603,7 +621,7 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 		];
 		If ¬hidingArgTypes is empty then
 		[
-			Immediately reject parse, expected: format
+			Reject parse, expected: format
 			"exception handler for “①” to be reachable \
 			\|(but it is hidden by each of: “②”)"
 			with argType, hidingArgTypes
@@ -631,9 +649,9 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
  * @method "Guard|guard_«intercept_»«ensure_»"
  * @param "bodyPhrase" "expression phrase ⇒ []→⊤"
  *        The protected function.
- * @param "handlersPhrase" "list phrase ⇒ (([⊥]→⊤)*)"
+ * @param "handlersPhrase" "list phrase ⇒ ([⊥]→⊤)*"
  *        A {@type "list phrase" list} of exception handlers.
- * @param "optionalUnwindPhrase" "list phrase ⇒ (([]→⊤)?)"
+ * @param "optionalUnwindPhrase" "list phrase ⇒ ([]→⊤)?"
  *        If specified, then a function to apply after either the successful
  *        completion of {@param "body"} or an unwind through this continuation.
  * @returns "send phrase ⇒ ⊤"
@@ -642,33 +660,25 @@ Semantic restriction "Guard|guard_«intercept_»«ensure_»" is
 Public macro "Guard|guard_«intercept_»«ensure_»" is
 [
 	bodyPhrase : expression phrase ⇒ []→⊤,
-	handlersPhrase : list phrase ⇒ (([⊥]→⊤)*),
-	optionalUnwindPhrase : list phrase ⇒ (([]→⊤)?)
+	handlersPhrase : list phrase ⇒ ([⊥]→⊤)*,
+	optionalUnwindPhrase : list phrase ⇒ ([]→⊤)?
 |
 	handlers ::= handlersPhrase's expressions;
 	optionalUnwind ::= optionalUnwindPhrase's expressions;
-	unwind ::= optionalUnwind[1] else [«[<>] : ⊤»];
+	unwind ::= optionalUnwind[1] else [⟦[]:⊤⟧ ?→ (expression phrase ⇒ []→⊤)];
 	catchAll ::=
 		[
-			outerArg ::= arg «`"e"` : exception»;
-			innerArg ::= arg «`"ex"` : exception»;
-			«[
-				<outerArg>
-			|
-				<
-					send $"Handle_handler_unwind_" with
-						«<
-							«↓outerArg»,
-							«[
-								<innerArg>
-							|
-								<send $"Raise_" with «<«↓innerArg»>» : ⊥>
-							] : ⊥»,
-							unwind
-						>» : ⊥
-				>
-			] : ⊥»
+			⟦
+				[
+					e : exception
+				|
+					Handle e
+					handler [ex : exception | Raise ex]
+					unwind ⦊unwind⦉
+				] : ⊤
+			⟧
 		];
+
 	/* Wrap each of the handlers. The wrapper will call the user-supplied
 	 * exception handler and then the unwind handler. If the user did not supply
 	 * a catch-all, then we need to synthesize one to make sure that the ensure
@@ -686,7 +696,7 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 				<arg>
 			|
 				<
-					send $"Handle_handler_unwind_" with
+					restricted send $"Handle_handler_unwind_" with
 						«<
 							«↓arg»,
 							handler,
@@ -697,13 +707,8 @@ Public macro "Guard|guard_«intercept_»«ensure_»" is
 		];
 	realHandlers ::=
 		(wrappedHandlers ++ if needCatchAll then [<catchAll()>] else [<>])
-			→ list phrase;
-	bootstrap restricted send $"Private guard_intercept_ensure_" with
-		«<
-			bodyPhrase,
-			realHandlers,
-			unwind
-		>» : ⊤
+			→ list phrase ?→ list phrase ⇒ <[⊥]→⊤…|>;
+	⟦Private guard ⦊bodyPhrase⦉ intercept ⦊realHandlers⦉ ensure ⦊unwind⦉⟧
 ];
 
 /**
@@ -732,13 +737,13 @@ Public method "try_else_" is
 
 /**
  * @method "try_else_"
- * @restricts "[]→any's type"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "try_else_" is
 [
-	protected : []→any's type,
-	else : []→any's type
+	protected : ([]→any)'s type,
+	else : ([]→any)'s type
 |
 	if protected's return type = ⊥ then [else's return type]
 	else [protected's return type ∪ else's return type]
@@ -773,9 +778,6 @@ Stable method "“_”" is
 	(a|an) “anException's error name”
 ] : string;
 
-/* A map from error codes to system exceptions. */
-exceptionsByCode : {natural number→system exception's type|} := {};
-
 /**
  * Define a new system exception class. Publish the name of the class.
  *
@@ -795,7 +797,6 @@ Private method "System exception_(_)extends_" is
 	code : natural number,
 	supertype : exception's type
 |
-	Assert: ¬code ∈ ↑exceptionsByCode ("code " ++ “code” ++ " already in use");
 	Assert: ¬exceptionBaseName ends with " exception"
 		(format "\"‘①’\" ends with \" exception\"" with exceptionBaseName);
 	exceptionName ::= exceptionBaseName ++ " exception";
@@ -804,12 +805,13 @@ Private method "System exception_(_)extends_" is
 			error code : code's type,
 			error name : exceptionName's type;
 	Export exceptionName as a new name;
-	site ::= cast method definition of atom for exceptionName for <>
-		into [t : method definition | t];
-	implementation ::= cast site's function into [t : []→object meta | t];
-	exceptionType ::= cast implementation()
-		into  [t : system exception's type | t];
-	↑exceptionsByCode [code] := exceptionType;
+	site ::= method definition of atom for exceptionName for <>
+		?→ method definition;
+	implementation ::= site's function ?→ []→object meta;
+	exceptionType ::= implementation() ?→ system exception's type;
+	Method "exception for code_" is
+		new [code's type]→exceptionType's type
+		applying [i : integer | exceptionType];
 ];
 
 /**
@@ -1512,6 +1514,15 @@ System exception "cannot-compute-logarithm-for-nonpositive-base" (1040)
 System exception "cannot-compute-logarithm-of-nonpositive-number" (1041)
 	extends bad-argument exception;
 
+/* A map from error codes to system exceptions. */
+exceptionsByCode : {natural number→system exception's type|} :=
+	map each def in method for $"exception for code_"'s definitions through [
+		code ::= def's function type[1]'s instance ?→ natural number;
+		exceptionType ::= def's function type's return type's instance
+			?→ (system exception's type);
+		<code, exceptionType>
+	] → map;
+
 /**
  * Ensure that all error codes have corresponding exceptions.
  *
@@ -1539,7 +1550,7 @@ Semantic restriction "Ensure:all error codes have corresponding exceptions" is
 	];
 	If |missingSystemExceptions| ≠ 0 ∨ |missingExceptionClasses| ≠ 0 then
 	[
-		Immediately reject parse, expected: problem
+		Reject parse, expected: problem
 	];
 	⊤
 ];
@@ -1994,6 +2005,26 @@ After the current module is unloaded, do
 		] : ⊥;
 ];
 
+/**
+ * This is added as a fiber variable while assembling details about a lookup
+ * exception.  The value of the fiber variable is unused.  If the fiber variable
+ * is present when another lookup exception occurs, a {@type
+ * "recursive exception"} is reported instead, containing no further detail.
+ */
+"recursiveError" is a new atom;
+
+/**
+ * A recursive exception is raised when a lookup error happens, and while
+ * collecting information to present with that error, another lookup error
+ * happens.  The {@code "recursiveError"} fiber variable is introduced by the
+ * original problem, and removed just before raising the assembled exception.
+ *
+ * @type "recursive exception"
+ * @supertype "exception"
+ * @category "Exceptions"
+ */
+Public explicit class "recursive exception" extends exception;
+
 /* Raise the appropriate exception whenever a message send fails dynamically. */
 invalid method send function :=
 	[
@@ -2006,20 +2037,46 @@ invalid method send function :=
 		theMethod : method,
 		arguments : tuple
 	|
-		exceptionType ::= exceptionsByCode[code];
-		name ::= exceptionType's error name's instance;
-		e ::= an exceptionType with
-			error code ::= code,
-			error name ::= name,
-			error message ::=
-				format
-					"method:  “①”
-					\|\targuments:  “②”"
-				with
-					theMethod,
-					arguments,
-			looked up method ::= theMethod,
-			looked up arguments ::= arguments;
+		/*
+		 * Be careful to handle recursive exceptions that are raised while
+		 * assembling the original exception.
+		 */
+		If recursiveError ∈ current fiber then
+		[
+			/*
+			 * Do the bare minimum here, since we're already handling a
+			 * recursive problem.
+			 */
+			Raise a recursive exception
+		];
+		e ::= guard
+		[
+			current fiber[recursiveError] := recursiveError;
+			exceptionType ::= exceptionsByCode[code];
+			name ::= exceptionType's error name's instance;
+			/* Safety, to prevent recursive printing errors. */
+			methodString ::=
+				guard [“theMethod”]
+				intercept [e : exception | "(Exception while printing)"];
+			argumentsString ::= map arguments through
+			[
+				argument : any
+			|
+				guard [“argument”]
+				intercept [e : exception | "(Exception while printing)"]
+			];
+			an exceptionType with
+				error code ::= code,
+				error name ::= name,
+				error message ::= "method:  " ++ methodString ++
+					"\n\targuments:  " ++ argumentsString,
+				looked up method ::= theMethod,
+				looked up arguments ::= arguments
+		]
+		ensure
+		[
+			Remove current fiber[recursiveError];
+		];
 		Raise e
 	] : ⊥;
 
@@ -2086,6 +2143,20 @@ syntheticBase ::=
 		$[Ignore: 0;]@pc=0 stack=<⊥>[2] caller=↑caller
 	]();
 
+/*
+ * Reject the current parse *without unwinding*.  This gets sent after unwinding
+ * to the base frame, so it would be wrong to attempt to unwind further.
+ */
+Method "Immediately reject parse(confidence=_),expected:_" is
+[
+	level : parse rejection level,
+	expected : string
+|
+	Primitive RejectParsing (failureCode :
+		untimely-parse-rejection code's type);
+	Crash: failureCode
+] : ⊥;
+
 /* This completes the behavior of "Raise_" in the event that no unhandled
  * exception handler has been specified for the current fiber.
  */
@@ -2118,7 +2189,7 @@ noUnhandledExceptionHandler :=
 		 */
 		If current fiber can reject a parse then
 		[
-			Immediately reject parse, expected: msg
+			Immediately reject parse(confidence=4), expected: msg
 		];
 		/* If the unhandled exception is a termination-requested exception, then
 		 * arrange to exit the current fiber cleanly. Note that this will only
@@ -2146,6 +2217,9 @@ noUnhandledExceptionHandler :=
 			Terminate current fiber
 		]
 	];
+
+After the current module is unloaded,
+	do [noUnhandledExceptionHandler := bootstrapNoUnhandledExceptionHandler;];
 
 originalEarlyFailureFunction ::= early failure function;
 
@@ -2179,14 +2253,14 @@ After the current module is unloaded,
 Set stability failure function to
 [
 	op : []→literal phrase,
-	recover : []→(send phrase ⇒ any)
+	recover : []→send phrase ⇒ any
 |
 	guard op
 	intercept
 	[
 		e : exception
 	|
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"stable method not to fail during macro evaluation:\n"
 			++ “e” (stack summary)
 	]
@@ -2246,12 +2320,11 @@ Public method "Unwind fiber and run_" is
 
 
 /**
- * This function rejects the current parse immediately, exiting the fiber.  It
- * should only be used in the early bootstrapping (i.e., before this point, via
- * the "Immediately reject..." form), or with proper unwinding of the stack
- * first, which is what we're about to define.
+ * This primitive rejects the current parse immediately, exiting the fiber.  It
+ * should only be used in early bootstrapping (i.e., before this point), or with
+ * automatic unwinding of the stack, which is about to be defined below.
  */
-privateReject ::=
+Method "Private reject_,_" is
 [
 	level : parse rejection level,
 	expected : string
@@ -2262,17 +2335,21 @@ privateReject ::=
 ] : ⊥;
 
 /**
- * Define a new method for rejecting a parse.  The "Immediately reject..."
- * form was fine for bootstrapping, but now we're ready to honor unwinds.
+ * Define a new method for rejecting a parse.  The raw primitive form was fine
+ * for bootstrapping, but now we're ready to honor unwinds.
  */
-Public method "Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_"
-is
+oldRejectionFunction ::= Replace parse rejection function with
+	[
+		level : parse rejection level,
+		expected : string
+	|
+		Unwind fiber and run [Private reject level, expected]
+	] : ⊥;
+
+After the current module is unloaded, do
 [
-	level : parse rejection level,
-	expected : string
-|
-	Unwind fiber and run [privateReject(level, expected)]
-] : ⊥;
+	Ignore: Replace parse rejection function with oldRejectionFunction;
+];
 
 /**
  * This function accepts the current parse immediately, exiting the fiber.  It
@@ -2306,79 +2383,3 @@ Public method "Accept parse" is
 [
 	Unwind fiber and run privateAccept
 ] : ⊥;
-
-
-/**
- * Implement the non-bootstrap version of "restricted send_with_:_".  The
- * bootstrap version doesn't respect the unwind mechanism, and uses
- * "Immediate reject parse..." instead of the "Reject parse..." that we just
- * implemented above.  Use that instead.
- *
- * Create a send phrase from the supplied message name (atom), list phrase of
- * arguments, and return type.  Strengthen the return type based on the
- * applicable method definitions.  Also launch a fiber for each applicable
- * semantic restriction and strengthen the return type with their eventual
- * results.
- *
- * If any semantic restrictions reject parsing, reject it again immediately in
- * the current fiber.  This ignores unwind blocks, so don't export this
- * mechanism past Exceptions, where a safer form is created.
- *
- * @method "restricted send_with_:_"
- * @param "message" "atom"
- *        The atom that names the method to be invoked by the send phrase.
- * @param "args" "list phrase"
- *        The list phrase of phrases that are supplied as arguments of the send
- *        phrase.
- * @param "basicReturnType" "type"
- *        The return type of the send phrase, prior to strengthening by
- *        applicable method definitions and semantic restrictions.
- * @returns "send phrase⇒⊤"
- *        The strengthened send phrase.
- * @raises "incorrect-number-of-arguments exception"
- * @raises "incorrect-argument-type exception"
- * @raises "incorrect-type-for-group exception"
- * @raises "exclamation-mark-must-follow-an-alternation-group exception"
- * @raises "incorrect-type-for-complex-group exception"
- * @raises "incorrect-use-of-double-dagger exception"
- * @raises "unbalanced-guillemets exception"
- * @raises "method-name-is-not-canonical exception"
- * @raises "expected-operator-after-backquote exception"
- * @raises "incorrect-type-for-boolean-group exception"
- * @raises "incorrect-type-for-counting-group exception"
- * @raises "octothorp-must-follow-a-simple-group-or-ellipsis exception"
- * @raises "question-mark-must-follow-a-simple-group exception"
- * @raises "case-insensitive-expression-canonization exception"
- * @raises "double-question-mark-must-follow-a-token-or-simple-group exception"
- * @raises "alternative-must-not-contain-arguments exception"
- * @raises "vertical-bar-must-separate-tokens-or-simple-groups exception"
- * @raises "incorrect-type-for-numbered-choice exception"
- * @raises "loading-is-over exception"
- */
-Public method "restricted send_with_:_" is
-[
-	message : atom,
-	args : list phrase,
-	basicReturnType : type
-|
-	pair ::= restricted report and send message with args : basicReturnType;
-	optionalPhrase ::= pair[1];
-	If optionalPhrase = <> then
-	[
-		Immediately reject parse strongly, expected: pair[2]
-	];
-	optionalPhrase[1]
-] : send phrase;
-
-/**
- * Restrict the resulting send node to have a yield type at least as strong as
- * the supplied yield type constraint.
- */
-Semantic restriction "restricted send_with_:_" is
-[
-	messageType : atom's type,
-	argsType : list phrase's type,
-	basicReturnMeta : type's type
-|
-	send phrase ⇒ basicReturnMeta's instance
-];

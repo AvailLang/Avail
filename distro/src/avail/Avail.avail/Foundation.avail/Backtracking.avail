@@ -1,6 +1,6 @@
 /*
  * Backtracking.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Backtracking"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Assertions",
 	"Atoms",
@@ -213,7 +213,7 @@ Public method "backtracking fence_" is
 
 Semantic restriction "backtracking fence_" is
 [
-	actionType : []→any's type
+	actionType : ([]→any)'s type
 |
 	actionType's return type
 ];
@@ -452,11 +452,11 @@ Public method "all values of_" is
 
 /**
  * @method "all values of_"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "all values of_" is
 [
-	functionType : []→any's type
+	functionType : ([]→any)'s type
 |
 	<functionType's return type…|>
 ];
@@ -518,12 +518,12 @@ Public method "first«_»?value|values of_" is
 /**
  * @method "first«_»?value|values of_"
  * @restricts "[0..∞]?'s type"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "first«_»?value|values of_" is
 [
 	optionalMaxValues : [0..∞]?'s type,
-	functionType : []→any's type
+	functionType : ([]→any)'s type
 |
 	maxValues ::=
 		if ⌊optionalMaxValues⌋ = 1 then [optionalMaxValues[1]] else [1's type];

@@ -1,6 +1,6 @@
 /*
  * Runners.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Runners"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Foundation",
 	"Framework State",
@@ -491,8 +491,8 @@ Private method "recursively visit_,on entering do_,on leaving do_" is
 Semantic restriction "recursively visit_,on entering do_,on leaving do_" is
 [
 	aSuite : root unit test suite's type,
-	enterAction : [root unit test suite]→tuple's type,
-	leaveAction : [root unit test suite]→⊤'s type
+	enterAction : ([root unit test suite]→tuple)'s type,
+	leaveAction : ([root unit test suite]→⊤)'s type
 |
 	enterAction's return type
 ];

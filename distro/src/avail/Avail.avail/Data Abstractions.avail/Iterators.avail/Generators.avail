@@ -1,6 +1,6 @@
 /*
  * Generators.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Generators"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Abstract Iterators",
 	"Common",
@@ -207,7 +207,7 @@ Public method "generator for_" is
 	/* Construct the generator. */
 	theGenerator ::= a generator with
 		element type ::=
-			cast generatorFunction's type[1] into [t : [⊥]→⊤'s type | t[1]],
+			cast generatorFunction's type[1] into [t : ([⊥]→⊤)'s type | t[1]],
 		current value ::= ↑value,
 		client state ::= ↑caller,
 		execution state ::= ↑state,
@@ -220,10 +220,10 @@ Public method "generator for_" is
 
 Semantic restriction "generator for_" is
 [
-	functionType : [⊥]→⊤'s type
+	functionType : ([⊥]→⊤)'s type
 |
 	cast functionType[1]
-		into [t : [⊥]→⊤'s type | reader of t[1]]
+		into [t : ([⊥]→⊤)'s type | reader of t[1]]
 		else
 		[
 			Reject parse, expected: format

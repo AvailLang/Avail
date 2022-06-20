@@ -1,0 +1,37 @@
+    ATTENTION ==========================================================
+    Be sure to set AVAIL_HOME to:
+
+    	$projectDir/distro
+
+    And update your path to include:
+
+    	###projectDir###/distro/bin
+
+    For example, a user of bash might include something like the
+    following in the appropriate shell config file:
+
+    	export AVAIL_HOME=###projectDir###/distro
+    	export PATH=$PATH:###projectDir###/distro/bin
+
+    Once your path has been updated, from any directory you can launch
+    the Avail workbench like this:
+
+    	avail-dev
+
+    Or the Avail server like this:
+
+    	avail-server
+
+    (The server is currently hard-wired to run on port 40000. This will
+    change at some point.)
+
+    To develop Avail code, you will also need to set AVAIL_ROOTS to a
+    valid module root path. If AVAIL_ROOTS is not set, then avail-dev
+    temporarily sets it to:
+
+    	avail=$projectDir/distro/src/avail;\\
+    	examples=$projectDir/distro/src/examples
+
+    This is convenient for experimenting with Avail, but must be
+    extended with custom module roots as you develop your own modules.
+    ====================================================================

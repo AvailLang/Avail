@@ -1,6 +1,6 @@
 /*
  * Math.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,12 @@
 
 Module "Math"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Math"
 Uses
 	"Bootstrap",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Functions",
@@ -58,6 +57,7 @@ Names
 	"nonpositive integer",
 	"_is odd",
 	"_is even",
+	"_`|_",
 	"-_",
 	"«_‡«=|≤|<»!»",
 	"«_‡«=|≥|>»!»",
@@ -195,12 +195,12 @@ Method "_mod_" is type promotion function for
 |
 	If b = 0 ∧ a ∈ extended integer then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
 	If a ∈ infinities ∧ b ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	a mod b
 ];
@@ -228,13 +228,13 @@ Method "_mod_" is
 	denominatorSet ::= {⌊b⌋, ⌈b⌉};
 	If denominatorSet = {0} then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	numeratorSet ::= {⌊a⌋, ⌈a⌉};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	if ⌊b⌋ = ⌈b⌉
 		∧ ⌊a⌋ is finite
@@ -406,6 +406,24 @@ Method "_mod_" is
 	dividend
 ] : extended integer;
 
+Public macro "_`|_" is
+[
+	divisor : expression phrase ⇒ natural number,
+	dividend : expression phrase ⇒ integer
+|
+	sequence-as-expression «
+		seq «
+			⟦
+				[
+					dividend1 ::= ⦊dividend⦉;
+					divisor1 ::= ⦊divisor⦉;
+					dividend1 ÷ divisor1 × divisor1 = dividend1
+				]
+			⟧'s statements
+		»
+	» ?→ expression phrase ⇒ boolean
+];
+
 /**
  * Is the argument odd?
  *
@@ -503,7 +521,7 @@ Method "_×_" is
 	};
 	If bounds = {{0}, {∞}} ∨ bounds = {{0}, {-∞}} then
 	[
-		Immediately reject parse, expected: cannotMultiplyMessage
+		Reject parse, expected: cannotMultiplyMessage
 	]
 	else
 	[
@@ -653,7 +671,7 @@ Semantic restriction "_+_" is
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
-		Immediately reject parse, expected: cannotAddMessage
+		Reject parse, expected: cannotAddMessage
 	];
 	a + b
 ];
@@ -679,7 +697,7 @@ Semantic restriction "_-_" is
 	};
 	If bounds = {{-∞}, {∞}} then
 	[
-		Immediately reject parse, expected: cannotSubtractMessage
+		Reject parse, expected: cannotSubtractMessage
 	];
 	a + negated
 ];
@@ -721,7 +739,7 @@ Method "_÷_" is
 	if numeratorRange = ⊥ ∨ denominator = 0 then [⊥]
 	else
 	[
-		/* ±∞ divided by any finite nonzero value is 0. */
+		/* dividing by ±∞ yields 0. */
 		if denominator is infinite then
 		[
 			0's type
@@ -770,13 +788,13 @@ Method "_÷_" is
 	denominatorSet ::= {⌊b⌋, ⌈b⌉};
 	If denominatorSet = {0} then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	numeratorSet ::= {⌊a⌋, ⌈a⌉};
 	infinities ::= {{∞}, {-∞}};
 	If numeratorSet ∈ infinities ∧ denominatorSet ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	union : extended integer's type := ⊥;
 	negativeDenominators ::= b ∩ [-∞..-1];
@@ -920,27 +938,17 @@ Semantic restriction "`|_`|" is
 |
 	If a ∩ [0..∞] = a then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"argument of absolute value (\"`|_`|\") to be potentially negative."
 	];
 	⊤
 ];
 
-/* This table of functions is used by the inequality operations. */
-predicates ::=
-<
-	[ a : number, b : number | a < b ],
-	[ a : number, b : number | a ≤ b ],
-	[ a : number, b : number | a = b ],
-	[ a : number, b : number | a ≥ b ],
-	[ a : number, b : number | a > b ]
->;
-
 /**
  * Compute and answer the boolean value of the sequence of equals, less than or
  * equal, and less than operators.
  *
- * @method "«_‡«=|≤|<»!»"
+ * @macro "«_‡«=|≤|<»!»"
  * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
  *        A tuple whose elements are a sequence of 2-tuples followed by an
  *        ending 1-tuple. The first element of these 1,2-tuples is a number.
@@ -952,30 +960,61 @@ predicates ::=
  *          {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers"
  */
-Public stable method "«_‡«=|≤|<»!»" is
+Public macro "«_‡«=|≤|<»!»" is
 [
-	args : <<number, [1..3]…|1..2>…|3..∞>
+	args : list phrase ⇒ <<number, [1..3]…|1..2>…|3..∞>
 |
-	result : boolean := true;
-	From 1 to |args| - 1 do
+	expressions ::= args' expressions;
+	argPhrases : (expression phrase ⇒ number)* := <>;
+	argTypes : (any's type)* := <>;
+	blockArgs : (argument phrase)* := <>;
+	operatorIndices : [1..3]* := <>;
+	From 1 to |expressions| do
 	[
-		index : natural number
+		i : natural number
 	|
-		arg ::= args[index];
-		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
-		/* Determine which predicate to apply. */
-		predicate ::= predicates[4 - arg[2]];
-		if predicate(arg[1], args[index + 1][1]) then
+		entryList ::= expressions[i] ?→ list phrase ⇒ <number, [1..3]…|1..2>;
+		entry ::= entryList's expressions;
+		argPhrases ++= <entry[1]>;
+		argType ::= entry[1]'s semantic type;
+		argTypes ++= <argType>;
+		blockArgs ++= <arg «keyword("arg" ++ “i”)@0:0 : argType»>;
+		If |entry| = 2 then
 		[
-			true
-		]
-		else
-		[
-			result := false;
-			false
-		]
+			operatorLiteral ::= entry[2] ?→ literal phrase ⇒ [1..3];
+			operatorIndices ++= <operatorLiteral's token's value>;
+		];
+		true
 	];
-	result
+	/*
+	 * We've now extracted the argument expressions, the atoms to send between
+	 * each adjacent pair, and the block argument declarations.  Assemble a
+	 * block to do the comparisons, using early exits for efficiency.
+	 */
+	functionType ::= function accepting argTypes and returning boolean;
+	continuationType ::= $functionType;
+	exit ::= «$this token: exit : continuationType»;
+	getExit ::= «↓exit» ?→ phrase ⇒ $[…]→boolean;
+	statements : (phrase)+ := <exit>;
+	From 1 to |operatorIndices| do
+	[
+		i : natural number
+	|
+		get1 ::= «↓blockArgs[i]» ?→ phrase ⇒ number;
+		get2 ::= «↓blockArgs[i + 1]» ?→ phrase ⇒ number;
+		operatorIndex ::= operatorIndices[i];
+		comparison ::= if operatorIndex = 1 then [⟦⦊get1⦉ = ⦊get2⦉⟧]
+			else [
+				if operatorIndex = 2 then [⟦⦊get1⦉ ≤ ⦊get2⦉⟧]
+				else [⟦⦊get1⦉ < ⦊get2⦉⟧]];
+		statements ++= <⟦ Exit ⦊getExit⦉ with false if ¬ ⦊comparison⦉; ⟧>;
+		true
+	];
+	statements ++= <⟦true⟧>;
+	⟦
+		invoke ⦊ «[blockArgs | statements] : boolean» ⦉
+		with ⦊argPhrases → list phrase⦉
+	⟧
 ];
 
 /**
@@ -995,7 +1034,7 @@ Public method "comparison chain semantic restriction function" is
 	[
 		args : <<any, [1..1]…|1..2>…|3..∞>'s type
 	|
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"inequality chain to include at least one inequality"
 	]
 ];
@@ -1011,7 +1050,7 @@ Semantic restriction "«_‡«=|≤|<»!»" is
  * Compute and answer the boolean value of the sequence of equals, greater than
  * or equal, and greater than operators.
  *
- * @method "«_‡«=|≥|>»!»"
+ * @macro "«_‡«=|≥|>»!»"
  * @param "args" "<<number, [1..3]…|1..2>…|3..∞>"
  *        A tuple whose elements are a sequence of 2-tuples followed by an
  *        ending 1-tuple. The first element of these 1,2-tuples is a number.
@@ -1023,30 +1062,62 @@ Semantic restriction "«_‡«=|≤|<»!»" is
  *          {@method "false"} otherwise.
  * @category "Mathematics" "Relations" "Numbers"
  */
-Public stable method "«_‡«=|≥|>»!»" is
+Public macro "«_‡«=|≥|>»!»" is
 [
-	args : <<number, [1..3]…|1..2>…|3..∞>
+	args : list phrase ⇒ <<number, [1..3]…|1..2>…|3..∞>
 |
-	result : boolean := true;
-	From 1 to |args| - 1 do
+	expressions ::= args' expressions;
+	argPhrases : (expression phrase ⇒ number)* := <>;
+	argTypes : (any's type)* := <>;
+	blockArgs : (argument phrase)* := <>;
+	operatorIndices : [1..3]* := <>;
+	From 1 to |expressions| do
 	[
-		index : natural number
+		i : natural number
 	|
-		arg ::= args[index];
-		Assert: |arg| = 2 ("args ≠ <aNumber, comparisonOperatorSubscript>");
-		/* Determine which predicate to apply. */
-		predicate ::= predicates[2 + arg[2]];
-		if predicate(arg[1], args[index + 1][1]) then
+		entryList ::= expressions[i] ?→ list phrase ⇒ <number, [1..3]…|1..2>;
+		entry ::= entryList's expressions;
+		argPhrases ++= <entry[1]>;
+		argType ::= entry[1]'s semantic type;
+		argTypes ++= <argType>;
+		blockArgs ++= <arg «keyword("arg" ++ “i”)@0:0 : argType»>;
+		If |entry| = 2 then
 		[
-			true
-		]
-		else
-		[
-			result := false;
-			false
-		]
+			operatorLiteral ::= entry[2] ?→ literal phrase ⇒ [1..3];
+			operatorIndices ++= <operatorLiteral's token's value>;
+		];
+		true
 	];
-	result
+	/*
+	 * We've now extracted the argument expressions, the atoms to send between
+	 * each adjacent pair, and the block argument declarations.  Assemble a
+	 * block to do the comparisons, using early exits for efficiency.
+	 */
+	functionType ::= function accepting argTypes and returning boolean;
+	continuationType ::= $functionType;
+	exit ::= «$this token: exit : continuationType»;
+	getExit ::= «↓exit» ?→ phrase ⇒ $[…]→boolean;
+	statements : (phrase)+ := <exit>;
+	From 1 to |operatorIndices| do
+	[
+		i : natural number
+	|
+		get1 ::= «↓blockArgs[i]» ?→ phrase ⇒ number;
+		get2 ::= «↓blockArgs[i + 1]» ?→ phrase ⇒ number;
+		operatorIndex ::= operatorIndices[i];
+		comparison ::= if operatorIndex = 1 then [⟦⦊get1⦉ = ⦊get2⦉⟧]
+			else [
+				if operatorIndex = 2 then [⟦⦊get1⦉ ≥ ⦊get2⦉⟧]
+				else [⟦⦊get1⦉ > ⦊get2⦉⟧]];
+		negation ::= send $"¬_" with <comparison> → list phrase : boolean;
+		statements ++= <⟦ Exit ⦊getExit⦉ with false if ⦊negation⦉; ⟧>;
+		true
+	];
+	statements ++= <⟦true⟧>;
+	⟦
+		invoke ⦊ «[blockArgs | statements] : boolean» ⦉
+		with ⦊argPhrases → list phrase⦉
+	⟧
 ];
 
 /**
@@ -1178,7 +1249,7 @@ Semantic restriction "_>>_" is
 ];
 
 Private forward method "_positive range pairs"
-	is [whole number's type] → (whole number's type*);
+	is [whole number's type] → whole number's type*;
 
 /**
  * Compute the ranges as for "_range pairs" (below), but with the knowledge that

@@ -1,6 +1,6 @@
 /*
  * Expressions.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Expressions"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Avail",
 	"Random"
@@ -190,7 +190,7 @@ Semantic restriction "integrate_and_with_" is
 [
 	arg1 : dice outcome's type,
 	arg2 : dice outcome's type,
-	merger : [⊥, ⊥]→extended integer's type
+	merger : ([⊥, ⊥]→extended integer)'s type
 |
 	If merger[1] ≠ ⊥ ∧ ¬extended integer ⊆ merger[1] then
 	[

@@ -1,6 +1,6 @@
 /*
  * Synchronization.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Synchronization"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Assertions",
 	"Atoms",
@@ -109,9 +109,7 @@ Names
 	"dequeue_from_",
 	"parking queue",
 	"priority enqueue_on_",
-	"synchronization device",
-	"unsafely atomically read_and store_",
-	"unsafely atomically compare_to_and,⁇if equal,⁇store_"
+	"synchronization device"
 Body
 
 Semantic restriction "atomically read_↑and store_" is
@@ -182,7 +180,7 @@ Alias "Atomically update_using_" to "Atomically update_↑using_";
 Semantic restriction "Atomically update_↑using_" is
 [
 	var : variable's type,
-	f : [⊥]→any's type
+	f : ([⊥]→any)'s type
 |
 	If ¬var's read type ⊆ f[1] then
 	[
@@ -549,7 +547,7 @@ Private method "Acquire_" is
 	 */
 	else
 	[
-		Until mutex's owner = current fiber	do
+		Until mutex's owner = current fiber do
 		[
 			Park current fiber;
 			If termination requested then
@@ -599,7 +597,7 @@ Public method "Lock|lock_for_" is
 Semantic restriction "Lock|lock_for_" is
 [
 	mutex : synchronization device's type,
-	criticalSection : []→⊤'s type
+	criticalSection : ([]→⊤)'s type
 |
 	criticalSection's return type
 ];
@@ -680,7 +678,6 @@ Public method "Lock|lock_for_" is
 	mutex : reentrant mutex,
 	criticalSection : []→⊤
 |
-	queue ::= ↑mutex's parked fibers;
 	/* If the current fiber already owns the mutex, then avoid putting it back
 	 * onto the parking queue.
 	 */

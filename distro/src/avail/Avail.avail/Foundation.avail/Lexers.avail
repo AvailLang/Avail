@@ -1,6 +1,6 @@
 /*
  * Lexers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Lexers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Bootstrap",
 	"Characters",
@@ -618,7 +618,7 @@ Private method "read range element from_at_" is
 	If c2 ≠ ¢"(" then
 	[
 		Reject in s at ↓i, expected
-		  "one of {n, r, t, (, \\, or \"} after backslash"
+			"one of {n, r, t, (, \\, or \"} after backslash"
 	];
 	// It's of the form "\(1F2E5)".  Read hex digits and the close parenthesis.
 	i++;

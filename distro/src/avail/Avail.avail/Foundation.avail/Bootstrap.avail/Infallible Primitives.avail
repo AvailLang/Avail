@@ -1,6 +1,6 @@
 /*
  * Infallible Primitives.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,15 +32,15 @@
 
 /*
  * GENERATED FILE
- * * Generator: com.avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 8/13/21 1:27 PM
+ * * Generator: avail.tools.bootstrap.BootstrapGenerator
+ * * Last Generated: 5/9/22, 11:29 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
 
 Module "Infallible Primitives"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 Uses
 	"Origin",
@@ -49,7 +49,6 @@ Uses
 	(
 		"$_",
 		"<_,_`…`|_>",
-		"Assert:_(_)",
 		"Breakpoint",
 		"Cast|cast_into_else_",
 		"Crash:_",
@@ -68,6 +67,7 @@ Uses
 		"_'s⁇arity",
 		"_'s⁇atom",
 		"_'s⁇bindings",
+		"_'s⁇bundle",
 		"_'s⁇caller",
 		"_'s⁇character type number",
 		"_'s⁇code point",
@@ -115,6 +115,7 @@ Uses
 		"_'s⁇return type",
 		"_'s⁇seals",
 		"_'s⁇semantic type",
+		"_'s⁇sequence",
 		"_'s⁇stack",
 		"_'s⁇stack pointer",
 		"_'s⁇starting position",
@@ -139,6 +140,7 @@ Uses
 		"_bit∧_",
 		"_bit∨_",
 		"_bit⊕_",
+		"_has initializing expression",
 		"_has public name_",
 		"_has result",
 		"_has terminated",
@@ -165,6 +167,7 @@ Uses
 		"_→set",
 		"_→statement phrase",
 		"_→tuple",
+		"_⇒_",
 		"_∈_",
 		"_∩_",
 		"_∪_",
@@ -180,6 +183,7 @@ Uses
 		"`«_::=_`»",
 		"`«_:_:=_`»",
 		"`«_:_`»",
+		"`«marker phrase_⇒_`»",
 		"`«module variable_(_)`»",
 		"`«↓_`»",
 		"`«↓_`»(_)",
@@ -198,7 +202,6 @@ Uses
 		"ln_",
 		"method exists named_",
 		"milliseconds since the Epoch",
-		"new anonymous module importing_",
 		"new_[_]",
 		"new_applying_",
 		"new`↑_",
@@ -206,6 +209,7 @@ Uses
 		"primfail`«_:_`»",
 		"primitive description of_",
 		"read_/write_",
+		"sequence-as-expression`«_`»",
 		"termination requested",
 		"{_`|_}",
 		"{_→_`|_}",
@@ -1322,28 +1326,6 @@ Primitive "_'s⁇return type" is
 ] : type;
 
 /**
- * Early assertion mechanism. This is obsolete once exceptions are available.
- * Raise a special exception in the virtual machine that may be trapped to
- * facilitate debugging. This exception will provided access to {@param "message"}.
- *
- * @category "Primitives" "Bootstrap" "Assertions"
- * @method "Assert:_(_)"
- * @param "predicate" "boolean"
- *        A boolean, usually derived from a more complex predicate expression.
- * @param "message" "string"
- *        Text describing the assertion failure, ignored unless {@param
- *        "predicate"} is `false`.
- * @returns "⊤"
- */
-Primitive "Assert:_(_)" is
-[
-	predicate : boolean,
-	message : string
-|
-	Primitive Assert;
-] : ⊤;
-
-/**
  * Cause the Avail virtual machine to raise an
  * `org.availlang.exceptions.AvailBreakpointException` that a Java debugger
  * can trap upon raise.
@@ -2017,24 +1999,6 @@ Primitive "_'s⁇seals" is
 ] : tuple of tuple of any meta;
 
 /**
- * Create an anonymous {@type "module"} that privately imports only and exactly
- * the supplied {@type "set"} of {@type "atom" atoms}.
- *
- * @category "Primitives" "Modules"
- * @method "new anonymous module importing_"
- * @param "allImports" "{atom|}"
- *        Every atom to be imported privately by the new module.
- * @returns "module"
- *    The new module.
- */
-Primitive "new anonymous module importing_" is
-[
-	allImports : set of atom
-|
-	Primitive CreateAnonymousModule;
-] : module;
-
-/**
  * Answer the entry points introduced by the specified module.
  *
  * @category "Primitives"
@@ -2397,7 +2361,7 @@ Primitive "_'s⁇arguments" is
  * @method "_'s⁇declared exceptions"
  * @param "aBlock" "block phrase⇒[…]→⊤"
  *        A block.
- * @returns "set"
+ * @returns "{exception|}"
  *    The block's set of declared exceptions.
  */
 Primitive "_'s⁇declared exceptions" is
@@ -2405,7 +2369,7 @@ Primitive "_'s⁇declared exceptions" is
 	aBlock : block phrase
 |
 	Primitive BlockDeclaredExceptions;
-] : set;
+] : set of exception;
 
 /**
  * Answer the specified block's outer variables.
@@ -2424,6 +2388,24 @@ Primitive "_'s⁇outer variables" is
 |
 	Primitive BlockNeededVariables;
 ] : declaration tuple;
+
+/**
+ * Extract the name of the primitive used by this block phrase, or the empty
+ * string if the block does not specify a primitive.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇primitive name"
+ * @param "aBlock" "block phrase⇒[…]→⊤"
+ *        The block phrase to examine.
+ * @returns "string"
+ *    Either the name of this block phrase's primitive or the empty string.
+ */
+Primitive "_'s⁇primitive name" is
+[
+	aBlock : block phrase
+|
+	Primitive BlockPrimitiveName;
+] : string;
 
 /**
  * Answer the return type of the specified block.
@@ -2527,16 +2509,16 @@ Primitive "`«_:_:=_`»" is
  * @category "Primitives" "Phrases" "Constructors"
  * @method "`«$_:_`»"
  * @param "name" "token"
- *        The name of the new constant.
- * @param "declaredType" "$[…]→⊥"
- *        The declared type of the named constant.
+ *        The name of the label being declared.
+ * @param "declaredType" "($[…]→⊥)'s type"
+ *        The result type of the block containing the label declaration.
  * @returns "label phrase⇒⊤"
  *    The requested label declaration.
  */
 Primitive "`«$_:_`»" is
 [
 	name : token,
-	declaredType : continuation
+	declaredType : continuation meta
 |
 	Primitive CreateLabelDeclaration;
 ] : label phrase;
@@ -2613,14 +2595,34 @@ Primitive "`«_::=_`»" is
 ] : local constant phrase;
 
 /**
+ * Create a marker phrase with the given value and yield type.
+ *
+ * @category "Primitives"
+ * @method "`«marker phrase_⇒_`»"
+ * @param "value" "any"
+ *        The marker phrase's value.
+ * @param "expressionType" "(⊤)'s type"
+ *        The marker phrase's yield type.
+ * @returns "marker phrase⇒⊤"
+ *    A marker phrase.
+ */
+Primitive "`«marker phrase_⇒_`»" is
+[
+	value : any,
+	expressionType : type
+|
+	Primitive CreateMarkerPhrase;
+] : marker phrase;
+
+/**
  * Answer a module variable declaration based on the given variable and token.
  *
  * @category "Primitives"
  * @method "`«module variable_(_)`»"
  * @param "aVariable" "read ⊤/write ⊥"
- *        TODO
+ *        The variable to use.
  * @param "aToken" "token"
- *        TODO
+ *        The token to treat as the point of declaration.
  * @returns "module variable phrase⇒⊤"
  *    A module variable declaration phrase.
  */
@@ -2631,6 +2633,28 @@ Primitive "`«module variable_(_)`»" is
 |
 	Primitive CreateModuleVariableDeclaration;
 ] : module variable phrase;
+
+/**
+ * Construct and answer a phrase type with the specified semantic type.
+ *
+ * @category "Primitives" "Types" "Phrases" "Constructors"
+ * @method "_⇒_"
+ * @param "aPhrase" "(phrase⇒⊤)'s type"
+ *        A phrase type.
+ * @param "semanticType" "(⊤)'s type"
+ *        The semantic type of values producible by phrases that are instances
+ *        of the answer.
+ * @returns "(phrase⇒⊤)'s type"
+ *    The requested phrase type.
+ * @raises "{6}"
+ */
+Primitive "_⇒_" is
+[
+	aPhrase : phrase meta,
+	semanticType : type
+|
+	Primitive CreatePhraseType;
+] : phrase meta;
 
 /**
  * Construct and answer a primitive failure local constant declaration.
@@ -2651,6 +2675,23 @@ Primitive "primfail`«_:_`»" is
 |
 	Primitive CreatePrimitiveFailureVariableDeclaration;
 ] : primitive failure reason phrase;
+
+/**
+ * Create a sequence-as-expression from the given sequence.
+ *
+ * @category "Primitives"
+ * @method "sequence-as-expression`«_`»"
+ * @param "sequence" "sequence phrase⇒⊤"
+ *        A sequence phrase.
+ * @returns "sequence as expression phrase⇒⊤"
+ *    A sequence-as-expression phrase containing the given sequence.
+ */
+Primitive "sequence-as-expression`«_`»" is
+[
+	sequence : sequence phrase
+|
+	Primitive CreateSequenceAsExpressionPhrase;
+] : sequence-as-expression phrase;
 
 /**
  * Construct and answer a local variable declaration.
@@ -2691,6 +2732,23 @@ Primitive "`«↓_`»(_)" is
 |
 	Primitive CreateVariableUse;
 ] : variable use phrase;
+
+/**
+ * Answer whether this declaration has an initializing expression.
+ *
+ * @category "Primitives"
+ * @method "_has initializing expression"
+ * @param "decl" "declaration phrase⇒⊤"
+ *        The declaration.
+ * @returns "boolean"
+ *    True if the declaration has an initializing expression, false otherwise.
+ */
+Primitive "_has initializing expression" is
+[
+	decl : declaration phrase
+|
+	Primitive DeclarationHasInitializingExpression;
+] : boolean;
 
 /**
  * Answer the token that names the entity introduced by the specified
@@ -2834,6 +2892,23 @@ Primitive "_'s⁇value" is
 ] : any;
 
 /**
+ * Extract a marker phrase's value.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇value"
+ * @param "markerPhrase" "marker phrase⇒⊤"
+ *        A marker phrase.
+ * @returns "any"
+ *    The marker phrase's value.
+ */
+Primitive "_'s⁇value" is
+[
+	markerPhrase : marker phrase
+|
+	Primitive MarkerPhraseValue;
+] : any;
+
+/**
  * Answer the {@type "list phrase"} wrapped by the specified {@type
  * "permuted list phrase"}.
  *
@@ -2960,6 +3035,23 @@ Primitive "_'s⁇arguments" is
 ] : list phrase;
 
 /**
+ * Extract the message bundle from a send phrase.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇bundle"
+ * @param "sendPhrase" "send phrase⇒⊤"
+ *        A send phrase.
+ * @returns "message bundle"
+ *    The message bundle sent by this send phrase.
+ */
+Primitive "_'s⁇bundle" is
+[
+	sendPhrase : send phrase
+|
+	Primitive SendBundle;
+] : message bundle;
+
+/**
  * Answer the target method of the specified message send.
  *
  * @category "Primitives" "Phrases" "Queries"
@@ -2992,6 +3084,23 @@ Primitive "_'s⁇return type" is
 |
 	Primitive SendReturnType;
 ] : type;
+
+/**
+ * Extract the sequence phrase from a sequence-as-expression phrase.
+ *
+ * @category "Primitives"
+ * @method "_'s⁇sequence"
+ * @param "sequenceAsExpression" "sequence as expression phrase⇒⊤"
+ *        The sequence-as-expression phrase.
+ * @returns "sequence phrase⇒⊤"
+ *    The contained sequence.
+ */
+Primitive "_'s⁇sequence" is
+[
+	sequenceAsExpression : sequence-as-expression phrase
+|
+	Primitive SequenceAsExpressionSequence;
+] : sequence phrase;
 
 /**
  * Answer the tuple of statements that constitute the specified sequence.

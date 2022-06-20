@@ -1,6 +1,6 @@
 /*
  * Types.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,12 +32,11 @@
 
 Module "Types"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 Uses
 	"Bootstrap",
 	"Collections" = ("_[_]else_"),
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Definers",
@@ -102,8 +101,23 @@ Public method "[«_‡,»]→_" is
 ] : function meta;
 
 Grammatical restriction {"_`?", "_+", "_*"} is <{"[«_‡,»]→_", "[`…]→_"}>;
-Grammatical restriction "[«_‡,»]→_" is <∅, {"_'s⁇type"}>;
-Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
+
+/**
+ * Make "_'s type" bind more tightly than function type construction.  Also
+ * other similar methods.
+ *
+ * @method "_'s⁇type"
+ * @returns "⊤"
+ */
+Grammatical restriction
+	{
+		"_'s⁇type",
+		"_'s⁇value type",
+		"_'s⁇instance",
+		"_'s⁇semantic type",
+		"_'s⁇return type"
+	}
+	is <{"[«_‡,»]→_", "[`…]→_"}>;
 
 /**
  * Tuple type constructor's semantic restriction.
@@ -116,68 +130,51 @@ Grammatical restriction "[`…]→_" is <{"_'s⁇type"}>;
  */
 Semantic restriction "<_,_`…`|_>" is
 [
-	leadingTypesTypes : tuple of any meta's type,
+	leadingTypesType : (tuple of any meta)'s type,
 	defaultTypeType : any meta's type,
 	cardinalityTypeType : whole number meta's type
 |
-	leadingTupleLeadingAndDefaultTypes :: =
-		leadingTypesTypes' leading types ++ <leadingTypesTypes' default type>;
-	leadingTypesTypesSize ::= |leadingTupleLeadingAndDefaultTypes|;
-	typesTypesInstanceTuple : tuple := <>;
-
-	From 1 to leadingTypesTypesSize do
+	defaultType : any meta := defaultTypeType's instance;
+	cardinalityType ::= cardinalityTypeType's instance;
+	leadingSize, thresholdForDefault ::= cast ⌈leadingTypesType⌉ into
 	[
-		index : natural number
+		finiteLargestLeading : whole number
 	|
-		typesTypesInstanceTuple :=
-			if |leadingTupleLeadingAndDefaultTypes[index]| ≠ 1 then
-			[
-				Assert: leadingTupleLeadingAndDefaultTypes[index] ∈ {type,⊥}
-					("tuple leading type at index: "
-						++ “index”
-						++ " has size ≠ 1 and is "
-						++  “leadingTupleLeadingAndDefaultTypes[index]”
-						++ ", however only type or ⊥ is acceptable"
-						++ " in this case.");
-				if leadingTupleLeadingAndDefaultTypes[index] = type then
-				[
-					eject typesTypesInstanceTuple ++ <type>
-				]
-				else
-				[
-					eject typesTypesInstanceTuple
-				]
-			]
-			else
-			[
-				eject typesTypesInstanceTuple ++
-					<leadingTupleLeadingAndDefaultTypes[index]'s instance>
-			];
+		/*
+		 * {<a, b, c…|[1..9]>}ᵀ,    {d}ᵀ,   {[x..y]}ᵀ
+         * <a, b+d, c+d, c+d, c+d, c+d, c+d, c+d, c+d, d…|[x..y]>
+         * (<a, b, c…|[1..9]>   u   <⊥, d…|0..∞>)    n    <any…|[x..y]>
+         */
+		<finiteLargestLeading, ⌊leadingTypesType⌋>
+	]
+	else
+	[
+		/*
+		 * {<a, b, c…|[1..∞)>}ᵀ,    {d}ᵀ,   {[x..y]}ᵀ
+         * <a, b+d, c+d…|[x..y]>
+         * (<a, b, c…|[1..∞]>   u   <⊥, d…|0..∞>)    n    <any…|[x..y]>
+		 */
+		leadingTuple : tuple of any meta := leadingTypesType's leading types;
+		maxVariation ::= |leadingTuple| + 1;
+		<maxVariation + 1, maxVariation>
+	];
+	typesTuple : tuple of any meta := <>;
+	From 1 to leadingSize do
+	[
+		i : natural number
+	|
+		element : any meta := leadingTypesType[i]'s instance;
+		If i > thresholdForDefault then
+		[
+			element := (element ∪ defaultType) ?→ any meta;
+		];
+		typesTuple ++= <element>;
 		true
 	];
-	finalDefaultType ::=
-		if |defaultTypeType| ≠ 1 then
-		[
-			Assert: defaultTypeType = type
-				("tuple default type is "
-					++ “defaultTypeType”
-					++ " and has size ≠ 1, however only type is acceptable"
-					++ " in this case.");
-			type
-		]
-		else
-		[
-			defaultTypeType's instance
-		];
-
-	cardinalityTypeTypeInstance :: = cardinalityTypeType's instance;
-	lower ::= ⌊cardinalityTypeTypeInstance⌋;
-	upper ::= ⌈cardinalityTypeTypeInstance⌉;
-	allTypesToUse ::= cast typesTypesInstanceTuple into
-		[t: <<>,any's type…|[0..∞)> | t];
-
-	<allTypesToUse,finalDefaultType…|[lower..upper + 1)>'s type
+	result ::= <typesTuple, defaultType…|cardinalityType>'s type;
+	result
 ];
+
 
 /**
  * Tuple type constructor.

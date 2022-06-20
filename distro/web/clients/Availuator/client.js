@@ -1,6 +1,6 @@
 /*
  * client.js
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -501,12 +501,12 @@ function placeCursor(textArea, index)
  */
 function resetSelectedText(initialSize, newSize, start, end, shift)
 {
-	 var carretOffset = initialSize - newSize;
-	 var expression = $("#expression");
+	var carretOffset = initialSize - newSize;
+	var expression = $("#expression");
 
-	 // put caret at right position again
-	 expression.get(0).selectionStart = start + shift;
-	 expression.get(0).selectionEnd = end - carretOffset;
+	// put caret at right position again
+	expression.get(0).selectionStart = start + shift;
+	expression.get(0).selectionEnd = end - carretOffset;
 }
 
 /**

@@ -1,22 +1,14 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit" singleton="false">
-    <useClassPathOnly />
-    <option name="ALTERNATIVE_JRE_PATH" value="8" />
-    <option name="PACKAGE_NAME" value="com.avail.test" />
+  <configuration default="false" name="All Avail Tests" type="JUnit" factoryName="JUnit">
+    <module name="avail.avail.test" />
+    <option name="ALTERNATIVE_JRE_PATH" value="17" />
+    <option name="PACKAGE_NAME" value="avail.test" />
     <option name="MAIN_CLASS_NAME" value="" />
     <option name="METHOD_NAME" value="" />
     <option name="TEST_OBJECT" value="package" />
-    <option name="VM_PARAMETERS" value="-ea -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples;builder-tests=$PROJECT_DIR$/distro/src/builder-tests" />
-    <option name="PARAMETERS" value="" />
-    <option name="WORKING_DIRECTORY" value="$MODULE_DIR$" />
-    <option name="TEST_SEARCH_SCOPE">
-      <value defaultName="wholeProject" />
-    </option>
-    <dir value="$PROJECT_DIR$/test/com/avail/test" />
-    <fork_mode value="class" />
+    <option name="VM_PARAMETERS" value="-ea -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;examples=$PROJECT_DIR$/distro/src/examples;builder-tests=$PROJECT_DIR$/distro/src/builder-tests&quot;" />
     <method v="2">
-      <option name="Gradle.BeforeRunTask" enabled="false" tasks="testClasses" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
-      <option name="BSP.BeforeRunTask" enabled="true" />
+      <option name="Make" enabled="true" />
     </method>
   </configuration>
 </component>

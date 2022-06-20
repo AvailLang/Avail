@@ -1,6 +1,6 @@
 /*
  * Logic.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,12 @@
 
 Module "Logic"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Logic"
 Uses
 	"Bootstrap",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Control Structures",
 	"Early Literals",
@@ -185,12 +184,12 @@ Semantic restriction "_`↑_" is
  *
  * @method "_`↑_"
  * @restricts "true's type's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_`↑_" is
 [
 	a : true's type's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -202,12 +201,12 @@ Semantic restriction "_`↑_" is
  *
  * @method "_`↑_"
  * @restricts "boolean's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_`↑_" is
 [
 	a : boolean's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type
 ];
@@ -232,11 +231,7 @@ Macro "_`↑_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_`↑_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↑ [⦊b⦉]⟧
 ];
 
 /**
@@ -273,12 +268,12 @@ Method "_↓_" is
  *
  * @method "_↓_"
  * @restricts "true's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : true's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	false's type
 ];
@@ -290,12 +285,12 @@ Semantic restriction "_↓_" is
  *
  * @method "_↓_"
  * @restricts "false's type's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -307,12 +302,12 @@ Semantic restriction "_↓_" is
  *
  * @method "_↓_"
  * @restricts "false's type's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : false's type's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type
 ];
@@ -324,12 +319,12 @@ Semantic restriction "_↓_" is
  *
  * @method "_↓_"
  * @restricts "boolean's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↓_" is
 [
 	a : boolean's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -395,12 +390,12 @@ Method "_→_" is
  *
  * @method "_→_"
  * @restricts "false's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_→_" is
 [
 	a : false's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	true's type
 ];
@@ -412,12 +407,12 @@ Semantic restriction "_→_" is
  *
  * @method "_→_"
  * @restricts "boolean's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_→_" is
 [
 	a : boolean's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	true's type
 ];
@@ -442,11 +437,7 @@ Macro "_→_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_→_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ → [⦊b⦉]⟧
 ];
 
 /**
@@ -482,12 +473,12 @@ Method "_←_" is
  *
  * @method "_←_"
  * @restricts "true's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_←_" is
 [
 	a : true's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	true's type
 ];
@@ -499,12 +490,12 @@ Semantic restriction "_←_" is
  *
  * @method "_←_"
  * @restricts "boolean's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_←_" is
 [
 	a : boolean's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	true's type
 ];
@@ -529,11 +520,7 @@ Macro "_←_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_←_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ← [⦊b⦉]⟧
 ];
 
 /**
@@ -608,12 +595,12 @@ Method "_↛_" is
  *
  * @method "_↛_"
  * @restricts "false's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↛_" is
 [
 	a : false's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	false's type
 ];
@@ -625,12 +612,12 @@ Semantic restriction "_↛_" is
  *
  * @method "_↛_"
  * @restricts "boolean's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↛_" is
 [
 	a : boolean's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	false's type
 ];
@@ -655,11 +642,7 @@ Macro "_↛_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_↛_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↛ [⦊b⦉]⟧
 ];
 
 /**
@@ -696,12 +679,12 @@ Method "_↚_" is
  *
  * @method "_↚_"
  * @restricts "true's type's type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "_↚_" is
 [
 	a : true's type's type,
-	b : []→boolean's type
+	b : ([]→boolean)'s type
 |
 	false's type
 ];
@@ -713,12 +696,12 @@ Semantic restriction "_↚_" is
  *
  * @method "_↚_"
  * @restricts "boolean's type"
- * @restricts "[]→(false's type)'s type"
+ * @restricts "([]→false's type)'s type"
  */
 Semantic restriction "_↚_" is
 [
 	a : boolean's type,
-	b : []→(false's type)'s type
+	b : ([]→false's type)'s type
 |
 	false's type
 ];
@@ -731,12 +714,12 @@ Semantic restriction "_↚_" is
  *
  * @method "_↚_"
  * @restricts "false's type's type"
- * @restricts "[]→(true's type)'s type"
+ * @restricts "([]→true's type)'s type"
  */
 Semantic restriction "_↚_" is
 [
 	a : false's type's type,
-	b : []→(true's type)'s type
+	b : ([]→true's type)'s type
 |
 	true's type
 ];
@@ -761,11 +744,7 @@ Macro "_↚_" is
 	a : expression phrase ⇒ boolean,
 	b : expression phrase ⇒ boolean
 |
-	bootstrap restricted send atom for "_↚_" with
-	«<
-		a,
-		«[<> | <b>] : boolean»
-	>» : boolean
+	⟦⦊a⦉ ↚ [⦊b⦉]⟧
 ];
 
 /**
@@ -776,8 +755,9 @@ Macro "_↚_" is
  * 	"_=_" "_≠_"
  */
 Grammatical restriction "¬_" is
-	<{"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
-	 "_=_", "_≠_"}>;
+	<{
+		"_∧_", "_∨_", "_⊕_", "_`↑_", "_↓_", "_→_", "_←_", "_↔_", "_↛_", "_↚_",
+		"_=_", "_≠_"}>;
 
 /**
  * AND operation is second highest precedence among logical operators, after
@@ -900,7 +880,7 @@ Public macro "¬_≠_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"use of \"_=_\", instead of \"¬_≠_\""
 ];
 
@@ -921,6 +901,6 @@ Public macro "¬_=_" is
 	a : expression phrase,
 	b : expression phrase
 |
-	Immediately reject parse, expected:
+	Reject parse, expected:
 		"use of \"_≠_\", instead of \"¬_=_\""
 ];

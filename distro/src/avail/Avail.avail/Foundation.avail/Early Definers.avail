@@ -1,6 +1,6 @@
 /*
  * Early Definers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Early Definers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Very Early Definers"
 Uses
@@ -49,23 +49,41 @@ Names
 	"Public method_is_",
 	"Public macro_is«_,»_",
 	"Require:_is public",
-	"Require:_is private"
+	"Require:_is private",
+	"_'s⁇instance"
 Body
 
-Method "_'⁇s instance" is
+/**
+ * Answer the sole instance of the specified enumeration.
+ *
+ * @method "_'s⁇instance"
+ * @param "enum" "type"
+ *        An enumeration. Anything answered by {@method "_'s⁇type"} satisfies
+ *        this criterion.
+ * @returns "any"
+ *          The sole instance of the argument.
+ * @category "Enumerations" "Types" "Queries"
+ */
+Method "_'s⁇instance" is
 [
-	t : any's type
+	t : type
 |
 	Assert: |t| = 1 ("Expected single instance type");
 	t's instances→tuple[1]
 ];
 
-Semantic restriction "_'⁇s instance" is
+/**
+ * Improve the static bounds.
+ *
+ * @method "_'s⁇instance"
+ * @restricts "type's type"
+ */
+Semantic restriction "_'s⁇instance" is
 [
-	tt : any's type's type
+	tt : type's type
 |
-	result : any's type;
-	Cast tt's instance into [t : any's type | result := t;] else [];
+	result : type;
+	Cast tt's instance into [t : type | result := t;] else [];
 	result
 ];
 
@@ -104,11 +122,11 @@ Method "Require:_is public" is
 				[
 					messageString : string
 				|
-					Immediately reject parse, expected: messageString
+					Reject parse, expected: messageString
 				]
-				with <messageTuple>;
+				with <messageTuple>
 			]
-			with <methodName>;
+			with <methodName>
 		];
 	];
 ] : ⊤;
@@ -153,11 +171,11 @@ Method "Require:_is public" is
 					[
 						messageString : string
 					|
-						Immediately reject parse, expected: messageString
+						Reject parse, expected: messageString
 					]
-					with <messageTuple>;
+					with <messageTuple>
 				]
-				with <methodName>;
+				with <methodName>
 			];
 		]
 		with <methodAtom>;
@@ -195,11 +213,11 @@ Method "Require:_is private" is
 				[
 					messageString : string
 				|
-					Immediately reject parse, expected: messageString
+					Reject parse, expected: messageString
 				]
-				with <messageTuple>;
+				with <messageTuple>
 			]
-			with <methodName>;
+			with <methodName>
 		]
 		else
 		[
@@ -245,11 +263,11 @@ Method "Require:_is private" is
 					[
 						messageString : string
 					|
-						Immediately reject parse, expected: messageString
+						Reject parse, expected: messageString
 					]
-					with <messageTuple>;
+					with <messageTuple>
 				]
-				with <methodName>;
+				with <methodName>
 			]
 			else
 			[
@@ -282,7 +300,7 @@ Method "Public abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -323,7 +341,7 @@ Method "Public abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclarationForAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -365,7 +383,7 @@ Method "Public forward method_is_" is
 	aFunctionType : function meta
 |
 	Primitive ForwardMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -403,7 +421,7 @@ Method "Public method_is_" is
 	function : function
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -441,7 +459,7 @@ Public method "Public method_is_" is
 	function : function
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -482,7 +500,7 @@ Public method "Private abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -523,7 +541,7 @@ Public method "Private abstract method_is_" is
 	aFunctionType : function meta
 |
 	Primitive AbstractMethodDeclarationForAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -565,7 +583,7 @@ Public method "Private forward method_is_" is
 	aFunctionType : function meta
 |
 	Primitive ForwardMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -603,7 +621,7 @@ Public method "Private method_is_" is
 	function : function
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -641,7 +659,7 @@ Public method "Private method_is_" is
 	function : function
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -752,7 +770,7 @@ Method "Public macro_is«_,»_" is
 	body : macro function
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**
@@ -794,7 +812,7 @@ Method "Private macro_is«_,»_" is
 	body : macro function
 |
 	Primitive SimpleMacroDeclaration (failureCode : natural number);
-	Invoke early failure function with <failureCode>;
+	Invoke early failure function with <failureCode>
 ] : ⊤;
 
 /**

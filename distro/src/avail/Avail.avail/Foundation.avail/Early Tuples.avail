@@ -1,6 +1,6 @@
 /*
  * Early Tuples.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Early Tuples"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Bootstrap",
 	"Collections" = ("_[_]else_"),
@@ -124,7 +124,7 @@ Semantic restriction "_[_]else_" is
 |
 	if ⌊index⌋ ≥ 1 ∧ ⌈index⌉ ≤ ⌊tupleType⌋ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"alternative block to be necessary, but the subscript is \
 			\|guaranteed to be valid"
 	]
@@ -132,7 +132,7 @@ Semantic restriction "_[_]else_" is
 	[
 		if ⌊index⌋ > ⌈tupleType⌉ ∨ ⌈index⌉ < 1 then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"a subscript that could ever be valid"
 		]
 		else
@@ -311,7 +311,7 @@ Macro "_++_" is
  * @macro "_++_"
  * @param "left" "expression phrase ⇒ <<>, any…|[0..0]>"
  * @param "right" "expression phrase ⇒ <<>, any…|[0..0]>"
- * @returns "literal phrase ⇒ (<>'s type)"
+ * @returns "literal phrase ⇒ <>'s type"
  * @category "Tuples"
  */
 Macro "_++_" is
@@ -320,7 +320,7 @@ Macro "_++_" is
 	right : expression phrase ⇒ <<>, any…|[0..0]>
 |
 	‘<>’
-] : literal phrase ⇒ (<>'s type);
+] : literal phrase ⇒ <>'s type;
 
 /**
  * If {@param "left"} is a {@type "send phrase" send} of {@method
@@ -604,7 +604,7 @@ Public method "Require:_[_.._]is ever valid" is
 |
 	If ⌊sliceStart⌋ > ⌈aTuple⌉+1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊sliceStart⌋”
 			++ " ≤ sliceStart ≤ "
@@ -617,7 +617,7 @@ Public method "Require:_[_.._]is ever valid" is
 	];
 	If ⌊sliceEnd⌋ > ⌈aTuple⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊sliceEnd⌋”
 			++ " ≤ sliceEnd ≤ "
@@ -630,7 +630,7 @@ Public method "Require:_[_.._]is ever valid" is
 	];
 	If ⌈sliceEnd⌉ < ⌊sliceStart⌋ - 1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a slice end subscript ("
 			++ “⌊sliceEnd⌋”
 			++ " ≤ theEndSubscript ≤ "
@@ -898,9 +898,7 @@ Public macro "_[.._]" is
 	aTuple : expression phrase ⇒ tuple,
 	sliceEnd : expression phrase ⇒ whole number
 |
-	bootstrap restricted send $"_[_.._]"
-		with «<aTuple, ‘1’, sliceEnd>»
-		: tuple
+	⟦⦊aTuple⦉[1..⦊sliceEnd⦉]⟧
 ] : expression phrase ⇒ tuple;
 
 /**
@@ -964,8 +962,7 @@ Semantic restriction "_→set" is
 [
 	tupleType : tuple meta
 |
-	typeLimit ::= |tupleType's leading types| + 1;
-	union ::= ∪ tupleType[1..typeLimit];
+	union ::= ∪ tupleType[1..∞];
 	if ⌊tupleType⌋ = ⌈tupleType⌉
 		∧ |union| = ⌊tupleType⌋
 		∧ ¬union ⊆ type
@@ -1148,6 +1145,13 @@ Semantic restriction "_*" is
 ];
 
 /**
+ * Make expressions like "list phrase ⇒ string+" parse more naturally, without
+ * ambiguity.
+ */
+Grammatical restriction {"_+", "_*", "_`?"} is <
+	{"_⇒_", "[«_‡,»]→_", "[`…]→_"}>;
+
+/**
  * A {@type "UUID"} is a universally unique identifier.
  *
  * @type "UUID"
@@ -1244,8 +1248,8 @@ Semantic restriction "SHA-_digest of_" is
 	bytes : byte*'s type
 |
 	sizes ::= {1 → 20, 256 → 32, 384 → 48, 512 → 64};
-	low ::= cast sizes[⌊algorithm⌋] into [t : natural number | t];
-	high ::= cast sizes[⌈algorithm⌉] into [t : natural number | t];
+	low ::= sizes[⌊algorithm⌋] ?→ natural number;
+	high ::= sizes[⌈algorithm⌉] ?→ natural number;
 	<<>, byte… | [low .. high]>
 ];
 
@@ -1275,7 +1279,7 @@ Semantic restriction "_↑++=_" is
 	resultType ::= varType's read type ++ tupleType;
 	If ¬resultType ⊆ varType's write type then
 	[
-		Immediately reject parse,
+		Reject parse,
 			expected: "variable to accept " ++ “resultType”
 	];
 	⊤

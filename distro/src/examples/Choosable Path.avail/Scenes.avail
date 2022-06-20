@@ -1,6 +1,6 @@
 /*
  * Scenes.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Scenes"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Abstract Types" = ("abstract scene")
 Uses
@@ -365,10 +365,10 @@ Semantic restriction
 	"a scene transition to_,⁇contingent on_,⁇before entry doing_,⁇described by_"
 is
 [
-	sceneType : [⊥]→scene's type,
-	predicateType : [⊥]→boolean's type,
-	entryType : [⊥]→⊤'s type,
-	describerType : [⊥]→string's type
+	sceneType : ([⊥]→scene)'s type,
+	predicateType : ([⊥]→boolean)'s type,
+	entryType : ([⊥]→⊤)'s type,
+	describerType : ([⊥]→string)'s type
 |
 	Unless sceneType[1] ⊆ context then
 	[
@@ -452,9 +452,9 @@ Semantic restriction
 	"a scene titled by_,⁇before entry doing_,⁇described by_,⁇with transitions_"
 is
 [
-	titleType : [⊥]→string's type,
-	entryType : [⊥]→⊤'s type,
-	describerType : [⊥]→string's type,
+	titleType : ([⊥]→string)'s type,
+	entryType : ([⊥]→⊤)'s type,
+	describerType : ([⊥]→string)'s type,
 	nextScenes : <scene transition…|>'s type
 |
 	Unless titleType[1] ⊆ context then

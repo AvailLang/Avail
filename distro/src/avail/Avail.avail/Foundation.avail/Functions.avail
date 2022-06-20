@@ -1,6 +1,6 @@
 /*
  * Functions.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,12 @@
 
 Module "Functions"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Functions"
 Uses
 	"Bootstrap",
 	"Control Structures",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Definers",
 	"Early Logic",
@@ -171,7 +170,7 @@ Private method "_partial evaluator with_" is
  * @method "_(««_»?«`_»?‡,»)"
  * @param "originalFunction" "expression phrase ⇒ function"
  *        An expression producing the function to ultimately invoke.
- * @param "pairs" "list phrase ⇒ (<any?, boolean…|2>*)"
+ * @param "pairs" "list phrase ⇒ <any?, boolean…|2>*"
  *        The arguments and place-holder underscores.  Either the first element
  *        must produce a size one tuple and the second element a literal
  *        producing false, or the first element must produce the empty tuple and
@@ -189,14 +188,14 @@ Private method "_partial evaluator with_" is
 Public macro "_(««_»?«`_»?‡,»)" is
 [
 	originalFunction : expression phrase ⇒ function,
-	pairs : list phrase ⇒ (<any?, boolean…|2>*)
+	pairs : list phrase ⇒ <any?, boolean…|2>*
 |
 	pairExprs ::= cast pairs' expressions into
 		[x : (list phrase ⇒ <any?, boolean…|2>)* | x];
 	providedExprs ::= map each pairExpr of pairExprs through
 	[
 		twoExprs ::= cast pairExpr's expressions into
-			[x : <list phrase⇒(any?), literal phrase⇒boolean…|2> | x];
+			[x : <list phrase⇒any?, literal phrase⇒boolean…|2> | x];
 		twoExprs[1]'s expressions
 	];
 	originalFunction partial evaluator with providedExprs
@@ -214,19 +213,19 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 |
 	If ⌊pairs⌋ ≠ ⌈pairs⌉ then
 	[
-		Immediately reject parse weakly, expected:
+		Reject parse weakly, expected:
 			"Need a definite number of arguments and underscores"
 	];
 	paramTypes ::= originalFunction's parameters' type;
 	If paramTypes = ⊥ ∨ ⌊paramTypes⌋ ≠ ⌈paramTypes⌉ then
 	[
-		Immediately reject parse weakly, expected:
+		Reject parse weakly, expected:
 			"function for partial application to have \
 			\|a statically known number of arguments"
 	];
 	If ⌊paramTypes⌋ ≠ ⌊pairs⌋ then
 	[
-		Immediately reject parse weakly, expected:
+		Reject parse weakly, expected:
 			"agreement between number of supplied arguments ("
 				++ “⌊pairs⌋” ++ ") and function parameters ("
 				++ “⌊paramTypes⌋” ++ "), for partial application"
@@ -241,7 +240,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		[
 			If ¬ ||pairType[1]|| ⊆ [0..0] then
 			[
-				Immediately reject parse weakly, expected:
+				Reject parse weakly, expected:
 					"either no argument or no underscore for partial \
 					\|function application, index " ++ “index” ++
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
@@ -253,7 +252,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		[
 			If ¬ ||pairType[1]|| ⊆ [1..1] then
 			[
-				Immediately reject parse weakly, expected:
+				Reject parse weakly, expected:
 					"either an argument or an underscore for partial \
 					\|function application, at index " ++ “index” ++
 					".  The arguments were:\n" ++ “pairTypes” ++ "."
@@ -261,7 +260,7 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 			valueType ::= pairType[1][1];
 			If ¬ valueType ⊆ originalFunction[index] then
 			[
-				Immediately reject parse weakly, expected:
+				Reject parse weakly, expected:
 					"type of argument #" ++ “index” ++
 					" to be a subtype of " ++ “originalFunction[index]” ++
 					", not of type " ++ “valueType”
@@ -269,19 +268,19 @@ Semantic restriction "_(««_»?«`_»?‡,»)" is
 		]
 		else
 		[
-			Immediately reject parse weakly, expected:
+			Reject parse weakly, expected:
 				"statically determined presence or absence of an underscore"
 		];
 	];
 	If |argumentTypes| = 0 then
 	[
 		/* This is a *very* weak theory. */
-		Immediately reject parse silently, expected:
+		Reject parse silently, expected:
 			"at least one underscore for partial function application"
 	];
 	If |argumentTypes| = |pairTypes| then
 	[
-		Immediately reject parse weakly, expected:
+		Reject parse weakly, expected:
 			"at least one argument value for partial function application"
 	];
 	function accepting argumentTypes
@@ -328,17 +327,17 @@ Semantic restriction "_(_,`…)" is
 	argumentsType ::= originalFunction's parameters' type;
 	If ⌊argumentsType⌋ ≠ ⌈argumentsType⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"function to take a definite number of arguments"
 	];
 	If ⌊argumentsType⌋ < 2 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
 	];
 	If ¬ firstValue ⊆ argumentsType[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"first argument (" ++ “firstValue” ++ ") to agree with function's \
 			\|first parameter (" ++ “argumentsType[1]” ++ ")"
 	];
@@ -386,18 +385,18 @@ Semantic restriction "_(`…,_)" is
 	argumentsType ::= originalFunction's parameters' type;
 	If ⌊argumentsType⌋ ≠ ⌈argumentsType⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"function to take a definite number of arguments"
 	];
 	If ⌊argumentsType⌋ < 2 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"function for partial evaluation to take at least two arguments"
 	];
 	argumentsCount ::= cast ⌊argumentsType⌋ into [n : [2..∞) | n];
 	If ¬ lastValue ⊆ argumentsType[argumentsCount] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"last argument (" ++ “lastValue” ++ ") to agree with function's \
 			\|last parameter (" ++ “argumentsType[argumentsCount]” ++ ")"
 	];
@@ -443,6 +442,6 @@ Semantic restriction "unsafe sender of_returning_" is
 		args ::= |message methodName's instance's name's parameters| of ⊥;
 		function accepting args and returning (returnType's instance)
 	]
-	else [[…]→(returnType's instance)]
+	else [[…]→returnType's instance]
 ];
 

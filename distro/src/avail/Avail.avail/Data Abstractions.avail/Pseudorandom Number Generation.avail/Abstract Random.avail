@@ -1,6 +1,6 @@
 /*
  * Abstract Random.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Abstract Random"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Common",
 	"Foundation" = (-"_'s⁇element type", …),
@@ -110,8 +110,7 @@ Public method "_'s⁇next«value in»⁇_" is
 	/* The following algorithm is used to uniformly map values from the range
 	 * onto pRNG's element type.  The algorithm
 	 */
-	rangeSize : natural number := cast ⌈range⌉ - ⌊range⌋ + 1
-		into [n : natural number | n];
+	rangeSize : natural number := ⌈range⌉ - ⌊range⌋ + 1 ?→ natural number;
 
 	rngSize ::= cast ⌈rng's element type⌉ - ⌊rng's element type⌋ + 1
 		into [n : natural number | n];

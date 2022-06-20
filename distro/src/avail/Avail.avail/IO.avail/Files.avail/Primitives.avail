@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Primitives"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Data Abstractions" = ("_'s⁇position", "_'s⁇position:=_")
 Uses
@@ -628,12 +628,12 @@ Public method "Using|using_,⁇do_" is
 /**
  * @method "Using|using_,⁇do_"
  * @restricts "file's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "Using|using_,⁇do_" is
 [
 	f : file's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	If ¬f ⊆ action[1] then
 	[

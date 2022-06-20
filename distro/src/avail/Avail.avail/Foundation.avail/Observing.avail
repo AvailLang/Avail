@@ -1,6 +1,6 @@
 /*
  * Observing.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Observing"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Atoms",
 	"Bootstrap",
@@ -238,8 +238,8 @@ Public method "Whenever_changes,⁇do_" is
 
 Semantic restriction "Whenever_changes,⁇do_" is
 [
-	traceFunction : []→any's type,
-	action : [⊥]→⊤'s type
+	traceFunction : ([]→any)'s type,
+	action : ([⊥]→⊤)'s type
 |
 	If action[1] ≠ ⊥ ∧ ¬traceFunction's return type ⊆ action[1] then
 	[
@@ -336,7 +336,7 @@ Public method "Observe|observe_" is
 
 Semantic restriction "Observe|observe_" is
 [
-	observeFunction : []→⊤'s type
+	observeFunction : ([]→⊤)'s type
 |
 	observeFunction's return type
 ];

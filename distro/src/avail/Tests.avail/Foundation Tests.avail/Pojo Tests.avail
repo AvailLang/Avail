@@ -1,6 +1,6 @@
 /*
  * Pojo Tests.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Pojo Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Common"
 Names
@@ -72,9 +72,9 @@ Test "Avail pojo classes are forbidden" in pojo test suite is
 	// Try to look up some critical Avail classes.
 	For each className in
 	<
-		"com.avail.descriptor.AvailObject",
-		"com.avail.descriptor.Descriptor",
-		"com.avail.interpreter.Interpreter"
+		"avail.descriptor.AvailObject",
+		"avail.descriptor.Descriptor",
+		"avail.interpreter.Interpreter"
 	>
 	do
 	[

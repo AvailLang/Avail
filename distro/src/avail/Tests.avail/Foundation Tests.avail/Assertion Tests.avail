@@ -1,6 +1,6 @@
 /*
  * Assertion Tests.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Assertion Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Common"
 Names
@@ -63,7 +63,7 @@ Test "assertion failed exception" in assertion test suite is
 		[
 			a : natural number,
 			b : natural number
-		 |
+		|
 			a = b
 		];
 		Assert: func(5,6);
@@ -75,7 +75,7 @@ Test "assertion failed exception" in assertion test suite is
 		[
 			a : boolean,
 			b : boolean
-		 |
+		|
 			a = b
 		];
 		Assert: func(true,false);
@@ -87,7 +87,7 @@ Test "assertion failed exception" in assertion test suite is
 		[
 			a : integer,
 			b : integer
-		 |
+		|
 			a ≥ b
 		];
 		Assert: func(-10,62);
@@ -99,7 +99,7 @@ Test "assertion failed exception" in assertion test suite is
 		[
 			a : extended integer,
 			b : extended integer
-		 |
+		|
 			a ≥ b
 		];
 		Assert: func(-∞,∞);

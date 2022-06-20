@@ -1,6 +1,6 @@
 /*
  * Availuator.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Availuator"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Convenient ASCII"
 Entries
@@ -126,7 +126,7 @@ Method "time_" is
 
 Semantic restriction "time_" is
 [
-	f : []→⊤'s type
+	f : ([]→⊤)'s type
 |
 	cast f's return type into [t : any's type | <whole number µs, t…|2>]
 	else [whole number µs]

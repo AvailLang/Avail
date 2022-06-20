@@ -1,6 +1,6 @@
 /*
  * Casts.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Casts"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Assertions",
 	"Atoms",
@@ -42,7 +42,8 @@ Uses
 		"For each…from_to_§do_",
 		"If|if_then_«else if_then_»«else_»?",
 		"Repeat__times",
-		"(_)"
+		"(_)",
+		"_`?→_†"
 	),
 	"Definers",
 	"Early Conditionals",
@@ -59,7 +60,6 @@ Uses
 	"Variables"
 Names
 	/* Inline cast notation. */
-	"_`?→_†",
 	"_`?→_†else_",
 
 	/* Casts. */
@@ -135,12 +135,12 @@ Public method "Cast|cast_into_" is
  *
  * @method "Cast|cast_into_"
  * @restricts "any's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "Cast|cast_into_" is
 [
 	valueType : any's type,
-	acceptType : [⊥]→⊤'s type
+	acceptType : ([⊥]→⊤)'s type
 |
 	targetType ::= acceptType[1];
 	If valueType ⊆ targetType then
@@ -163,14 +163,14 @@ Semantic restriction "Cast|cast_into_" is
  *
  * @method "Cast|cast_into_"
  * @restricts "any's type"
- * @restricts "[⊥]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Cast|cast_into_else_" is
 [
 	valueType : any's type,
-	acceptType : [⊥]→⊤'s type,
-	elseType : []→⊤'s type
+	acceptType : ([⊥]→⊤)'s type,
+	elseType : ([]→⊤)'s type
 |
 	targetType ::= acceptType[1];
 	If valueType ⊆ targetType then
@@ -314,7 +314,7 @@ Public method "Cast|cast each of_into_" is
 |
 	valueTypes ::= map each t in values through [t's type];
 	sig ::= accept's type's parameters' type;
-	limit ::= cast ⌈sig⌉ into [t : natural number | t];
+	limit ::= ⌈sig⌉ ?→ natural number;
 	paramTypes ::= map each t in 1 to limit through [sig[t]];
 	Assert: |valueTypes| = |paramTypes|;
 	zipped ::= valueTypes zip paramTypes;
@@ -420,13 +420,13 @@ Public method "Cast|cast each of_into_else_" is
  * @method "Cast|cast each of_into_else_"
  * @restricts "any's type"
  * @restricts "function's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Cast|cast each of_into_else_" is
 [
 	valuesType : tuple meta,
 	acceptType : function meta,
-	rejectType : []→⊤'s type
+	rejectType : ([]→⊤)'s type
 |
 	If ⌊valuesType⌋ ≠ ⌈valuesType⌉ then
 	[
@@ -466,71 +466,6 @@ Semantic restriction "Cast|cast each of_into_else_" is
 		];
 	];
 	acceptType's return type ∪ rejectType's return type
-];
-
-/**
- * Cast the value into the specified <em>statically evaluated</em> type.  If the
- * value at runtime does not comply with this type, fail the same way any call
- * overly strengthened by a semantic restriction would fail.
- *
- * @method "_`?→_†"
- * @param "value" "any"
- *        The value whose type is to be strengthened.
- * @param "strongerType" "type"
- *        Evaluated at compile time to produce the strengthened type of this
- *        call.
- * @returns "any"
- *          Restricted to the {@param "strongerType"}.
- * @category "Casts"
- */
-Public method "_`?→_†" is
-[
-	value : any,
-	strongerType : type
-|
-	value
-];
-
-/**
- * Cast the value into the specified <em>statically evaluated</em> type.  If the
- * value at runtime does not comply with this type, fail the same way any call
- * overly strengthened by a semantic restriction would fail.
- *
- * The value's static type and the provided type must have a non-⊥ intersection.
- * Additionally, the value's static type must not already be sufficiently strong
- * by being a subtype of the provided type.  The resulting type of the call site
- * is the intersection of the value's static type and the provided type.
- *
- * @method "_`?→_†"
- * @restricts "valueType" "any's type"
- *        The static type of the expression whose type is to be strengthened.
- * @restricts "strongerMeta" "type's type"
- *        Evaluated at compile time to produce the strengthened type of this
- *        call.  The actual type is passed at runtime, but the metatype is what
- *        gets provided to this semantic restriction.
- */
-Semantic restriction "_`?→_†" is
-[
-	valueType : any's type,
-	strongerMeta : type's type
-|
-	strongerType ::= strongerMeta's instance;
-	If valueType ∩ strongerType = ⊥ then
-	[
-		Reject parse, expected:
-			format
-				"cast to have related types instead of “①” and “②”"
-			with valueType, strongerType
-	];
-	If valueType ⊆ strongerType then
-	[
-		Reject parse, expected:
-			format
-				"a necessary cast expression, but “①” is already a \
-				\|subtype of “②”"
-			with valueType, strongerType
-	];
-	valueType ∩ strongerType
 ];
 
 /**

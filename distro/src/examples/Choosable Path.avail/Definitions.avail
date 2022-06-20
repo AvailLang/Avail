@@ -1,6 +1,6 @@
 /*
  * Definitions.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Definitions"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Avail",
 	"Contexts",
@@ -92,7 +92,7 @@ Private method "context type,initialization triples,and atom map given_and_" is
 	booleanState : <<<string, boolean, string, boolean…|4>…|1..>…|0..1>,
 	nonBooleanState : <<any's type, <<string, any…|2>…|1..>…|2>…|>
 |
-	explicitAtom ::= atom for explicitAtomName;
+	explicitAtom ::= new explicit subclass atom named explicitAtomName;
 	typeMap : field type map := context→map + explicitAtom→explicitAtom's type;
 	initializationTriples : <<atom, any's type, any…|3>…|> := <>;
 	atomsByName : {string→atom|} := {};
@@ -229,7 +229,7 @@ is
 	/* Declare the local variables that will be captured as the mutable fields
 	 * of the new game-specific context.
 	 */
-	instVars ::= map each initTriple, index in initializationTriples through
+	instVars ::= map each initTriple in initializationTriples through
 		[
 			«`initTriple[1]'s name` : initTriple[2] := ‘initTriple[3]’»
 		];
@@ -237,6 +237,7 @@ is
 	/* Generate the map construction expressions. */
 	mapUpdates ::= map each initTriple, index in initializationTriples through
 		[
+//			⟦↑⦊mapVar⦉ ?= eject ↑⦊mapVar⦉ + ⦊initTriple[1]⦉ → ↑⦊instVars[index]⦉⟧
 			ejectSend ::= send $"eject_" with «< «↑«↓mapVar»» >» : field map;
 			addBindingSend ::= send $"_+_→_"
 				with «< ejectSend, ‘initTriple[1]’, «↑«↓instVars[index]»» >»
@@ -1047,12 +1048,12 @@ Private method "Require:scene_agrees with_" is
  * {@type "scene"}s that agree with the supplied {@type "context"} type.
  *
  * @method "Require:scene_agrees with_"
- * @param "selectorType" "[]→variable's type"
+ * @param "selectorType" "([]→variable)'s type"
  * @param "contextType" "context's type"
  */
 Private method "Require:scene_agrees with_" is
 [
-	selectorType : []→variable's type,
+	selectorType : ([]→variable)'s type,
 	contextType : context's type
 |
 	sceneType ::= scene for contextType;
@@ -1091,9 +1092,9 @@ Private method "unary wrapper on_" is
 
 Semantic restriction "unary wrapper on_" is
 [
-	nullaryType : []→⊤'s type
+	nullaryType : ([]→⊤)'s type
 |
-	[⊥]→(nullaryType's return type)
+	[⊥]→nullaryType's return type
 ];
 
 /**
@@ -1126,7 +1127,7 @@ Private method "target wrapper on_" is
 
 Semantic restriction "target wrapper on_" is
 [
-	nullaryType : []→⊤'s type
+	nullaryType : ([]→⊤)'s type
 |
 	[⊥]→scene
 ];

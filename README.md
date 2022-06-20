@@ -1,12 +1,39 @@
 OVERVIEW
 --------------------------------------------------------------------------------
+Avail is a multi-paradigmatic general purpose programming language whose feature
+set emphasizes support for articulate programming. Avail is an open-source 
+project that comprises a 
+[language virtual machine](https://en.wikipedia.org/wiki/Virtual_machine) and a 
+standard library. Both are released under the [3-clause BSD license](https://en.wikipedia.org/wiki/BSD_licenses#3-clause_license_.28.22Revised_BSD_License.22.2C_.22New_BSD_License.22.2C_or_.22Modified_BSD_License.22.29).
+
+ * [Before Getting Started](#before-getting-started)
+ * [Before Obtaining Avail](#before-obtaining-avail)
+ * [Obtaining Avail](#obtaining-avail)
+ * [Before Installing](#before-installing)
+ * [Building Avail](#building)
+ * [After Building Avail](#after-building)
+ * [Running Avail](#running-avail)
+ * [Developing Avail](#developing-avail)
+ * [Staying Current](#staying-current)
+ * [Publishing Avail](#publishing-avail)
+ * [Reporting Problems](#reporting-problems)
+ * [Avail Gradle Plugin](avail-plugin)
+ * [Avail Sample Project](samples/sample-project)
+
+BEFORE GETTING STARTED
+--------------------------------------------------------------------------------
+
+If you would simply like to use Avail in a JVM project, you can import a
+prebuilt version of Avail as a dependency. See the
+[Avail Gradle Plugin](avail-plugin) for more details on how to
+accomplish this. You can also refer to our [sample project](samples/sample-project)
+to see how Avail can be incorporated into a JVM project.
 
 This document describes the entire process of obtaining, installing,
 configuring, and running the Avail development workbench. Depending on how you
 obtained Avail, whether it is a first time installation, and what utilities are
 already installed on your system, you may be able to skip some of the sections
 of this document.
-
 
 BEFORE OBTAINING AVAIL
 --------------------------------------------------------------------------------
@@ -73,11 +100,11 @@ installing it from OpenJDK (or some other vendor). You can do so like this:
 
 And hopefully you get back something like this:
 
-	javac 16.0.2
+	javac 11.0.2
 
 Otherwise, the latest version of the JDK can be obtained at:
 
-	https://jdk.java.net/16/index.html
+	https://jdk.java.net/11/index.html
 
 Please follow any installation directions provided by the website or included
 with the JDK.
@@ -275,6 +302,17 @@ maintaining consistency in coding, documentation, and formatting practices. You
 should also strive to imitate the existing stylistic conventions, just as you
 would for any other established code base. 
 
+AVAIL WORKBENCH
+--------------------------------------------------------------------------------
+
+The Avail Workbench is an Avail development tool for developing, building, and
+running Avail applications.  It:
+
+* Compiles Avail Modules
+* Runs Avail Entry Points
+* Provides Development Utilities
+
+
 STAYING CURRENT
 --------------------------------------------------------------------------------
 
@@ -318,112 +356,26 @@ maintenance. Our active team has shrunk in recent years, and the website suffers
 for it. Development of Avail itself is quite active, however, so GitHub might be
 your best source of Avail news.
 
-DOCUMENTATION
+PUBLISHING AVAIL
 --------------------------------------------------------------------------------
-Avail's codebase is extensively documented. Raw Markdown documentation can be
- generated using [Dokka](https://github.com/Kotlin/dokka). The Avail Gradle 
- `dokka` task has been set up to generate GitHub Flavored Markdown (gfm) by 
-default. This places the documentation in `documentation/docs/src_docs`. 
+At the time of writing, Avail provides two distinct publishable libraries. 
 
-On Unix:
+The Avail Foundation is in the process of working towards making the Avail 
+Gradle plugin available in Gradle's plugin repository as well as making the 
+other four libraries available on Maven Central:
+- [X] [Avail JSON](https://github.com/AvailLang/avail-json) 
+- [X] [Avail Storage](https://github.com/AvailLang/avail-storage)
+- [ ] Avail 
+- [ ] Avail Standard Library
 
-	$ ./gradlew dokka
+In the meantime, all of these libraries/utilities can be published to a local 
+Maven repository using the Avail top level Gradle task, `publishToLocalMaven`.
 
-On vanilla Windows:
-
-    $ .\gradlew.bat dokka
-
-If you prefer to generate direct navigable HTML documentation, you can utilize 
-the Gradle task, `dokkaHTML`. That has been added to each project of Avail.
-
-On Unix:
-
-	$ ./gradlew dokkaHTML
-
-On vanilla Windows:
-
-    $ .\gradlew.bat dokkaHTML
-     
-If you prefer a more integrated documentation environment, you can optionally 
-follow the below instructions to generate a documentation website using
-[MkDocs](https://www.mkdocs.org/).
-
-
-#### MkDocs Generated Site
-The following lists the software that will be needed to complete this taks.
-
-- [Python 3](https://www.python.org/) / [pip 3](https://pip.pypa.io/en/stable/)
-- [MkDocs](https://www.mkdocs.org/)
-- [MkDocs Material](https://squidfunk.github.io/mkdocs-material/)
-
-The following instructions assume that both Python 3 (`python3`) and Pip 3 
-(`pip3`) are installed. If you have not done this please install them before 
-proceeding.
-
-**Automated Setup - (*Mac OSX Only*)** It is presumed you have Mac's Homebrew
-installed. Run the gradle task:
-    
-    $ ./gradlew installDocsToolsMac
-
-**Manual Setup MkDocs**
-
-***Mac OSX***
-
-It is recommended that you use Homebrew to install MkDocs. If you do not have 
-Homebrew installed, follow the 
-[installation instructions](https://docs.brew.sh/Installation). Once homebrew is 
-installed, in the terminal run:
-
-    $ brew install mkdocs
-
-***Linux***
-
-Depending on your Linux distro, a package manager may make MkDocs available to 
-you with an easy install. Using this path for installation is disrecommended as 
-the versions of the binaries available through the OS package managers may be 
-out of date.
-
-It is recommended that you follow the 
-[manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure 
-to use `pip3` for installation of MkDocs. Doing this may prevent mkdocs from 
-being available on the PATH. The command `mkdocs` will need to be available on 
-the PATH for documentation to function. 
-
-***Windows***
-
-It is recommeneded that you follow the
-[manual instructions](https://www.mkdocs.org/#installation) using `pip`. Be sure 
-to use `pip3` for installation of MkDocs. 
-
-**Manual Setup MkDocs Material**
-
-The documentation site utilizes Material for MkDocs for its style theme. To 
-install Material, follow their 
-*[Getting Started](https://squidfunk.github.io/mkdocs-material/getting-started/)* 
-guide.
-
-At the time of writing this README, Material could be installed using PIP:
-
-```
-pip3 install mkdocs-material
-```
-
-**Building Documentation Website**
-
-To build the documentation website, first run the `dokka` gradle task as
-described above for your operating system. Then from the documentation directory
-in the terminal, run `$ mkdocs build`.  As the Avail codebase is large and
-extensively documented, the site may take several minutes to generate.
-
-**Serving Documentation**
-
-The documentation site is now available to be served up through your preferred
-method of local website serving. Some quick options include:
- 
- - Python: run `python3 -m http.server [PORT]` from `documentation/site`
- - Node: 
-    - using npm, install `http-server`  
-    - run `http-server` from `documentation/site`
+Publishing Avail to local Maven will publish five jars:
+ * `avail` - *The core Avail language including the Avail Workbench*
+   (see [Avail](avail))
+ * `avail-stdlib` - *The Avail standard library*
+   (see [Standard Library](avail-stdlib))
 
 REPORTING PROBLEMS
 --------------------------------------------------------------------------------

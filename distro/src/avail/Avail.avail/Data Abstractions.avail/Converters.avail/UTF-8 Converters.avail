@@ -1,6 +1,6 @@
 /*
- * UTF8 Converters.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * UTF-8 Converters.avail
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "UTF-8 Converters"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Abstract Converters",
 	"Foundation",
@@ -71,27 +71,30 @@ Private method "bytes from_" is
 [
 	codePoint : [128..2047]
 |
-	<192 + (codePoint >> 6),
-	 128 + (codePoint bit∧ 63)>
+	<
+		192 + (codePoint >> 6),
+		128 + (codePoint bit∧ 63)>
 ] : byte*;
 
 Private method "bytes from_" is
 [
 	codePoint : [2048..65535]
 |
-	<224 + (codePoint >> 12),
-	 128 + ((codePoint >> 6) bit∧ 63),
-	 128 + (codePoint bit∧ 63)>
+	<
+		224 + (codePoint >> 12),
+		128 + ((codePoint >> 6) bit∧ 63),
+		128 + (codePoint bit∧ 63)>
 ] : byte*;
 
 Private method "bytes from_" is
 [
 	codePoint : [65536..1114111]
 |
-	<240 + (codePoint >> 18),
-	 128 + ((codePoint >> 12) bit∧ 63),
-	 128 + ((codePoint >> 6) bit∧ 63),
-	 128 + (codePoint bit∧ 63)>
+	<
+		240 + (codePoint >> 18),
+		128 + ((codePoint >> 12) bit∧ 63),
+		128 + ((codePoint >> 6) bit∧ 63),
+		128 + (codePoint bit∧ 63)>
 ] : byte*;
 
 /**

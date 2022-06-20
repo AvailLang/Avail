@@ -13,9 +13,11 @@
           <option value="generateBootstrap" />
         </list>
       </option>
-      <option name="vmOptions" value="" />
+      <option name="vmOptions" />
     </ExternalSystemSettings>
-    <GradleScriptDebugEnabled>true</GradleScriptDebugEnabled>
+    <ExternalSystemDebugServerProcess>true</ExternalSystemDebugServerProcess>
+    <ExternalSystemReattachDebugProcess>true</ExternalSystemReattachDebugProcess>
+    <DebugAllEnabled>true</DebugAllEnabled>
     <method v="2" />
   </configuration>
 </component>

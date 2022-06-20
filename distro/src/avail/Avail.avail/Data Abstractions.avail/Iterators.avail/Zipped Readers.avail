@@ -1,6 +1,6 @@
 /*
  * Zipped Readers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Zipped Readers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Common" = ("element type", "_'s⁇element type"),
 	"Foundation" =
@@ -159,7 +159,7 @@ Method "«_‡zip»" is
  *
  * @category "Data Abstractions" "Readers"
  * @method "zip semantic restriction"
- * @returns "[reader*'s type]→(zipped reader's type)"
+ * @returns "[reader*'s type]→zipped reader's type"
  *          The requested function.
  */
 Private method "zip semantic restriction" is

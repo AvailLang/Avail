@@ -1,6 +1,6 @@
 /*
  * Early Math.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,13 @@
 
 Module "Early Math"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Bootstrap",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Control Structures",
-	"Early Enumeration Support",
+	"Early Definers",
 	"Early Literals",
 	"Early Logic"
 Names
@@ -73,7 +72,7 @@ Alias "_②≥_①" to atom for "_≤_";
  * @method "integer range genuine«lower|upper»!\
  *         \|bound semantic restriction function"
  * @param "lowerOrUpper" "[1..2]"
- * @returns "[extended integer meta's type]→([-∞..∞])'s type"
+ * @returns "[extended integer meta's type]→[-∞..∞]'s type"
  *    A function that strengthens the integer range bounds methods.
  */
 Private method
@@ -450,6 +449,20 @@ Private method "minimum function" is
 	] : number
 ];
 
+/*
+ * Answer a function like {@code "minimum function"}, but that requires at least
+ * two values to be supplied.  In theory this avoids pointless parsing attempts
+ * for the inline {@code "«_‡min»"} operation.
+ */
+Private method "minimum function for two or more" is
+[
+	[
+		numbers : <<>, number…|[2..∞)>
+	|
+		invoke minimum function with <numbers>
+	]
+];
+
 /**
  * Answer the minimum of the specified numbers.
  *
@@ -472,7 +485,7 @@ Public method "min_" is minimum function;
  *          The minimum of the specified numbers.
  * @category "Mathematics" "Relations" "Numbers"
  */
-Public method "«_‡min»" is minimum function;
+Public method "«_‡min»" is minimum function for two or more;
 
 /* Don't parse «_‡min» recursively. */
 Invoke
@@ -509,6 +522,20 @@ Private method "maximum function" is
 	] : number
 ];
 
+/*
+ * Answer a function like {@code "maximum function"}, but that requires at least
+ * two values to be supplied.  In theory this avoids pointless parsing attempts
+ * for the inline {@code "«_‡max»"} operation.
+ */
+Private method "maximum function for two or more" is
+[
+	[
+		numbers : <<>, number…|[2..∞)>
+	|
+		invoke maximum function with <numbers>
+	]
+];
+
 /**
  * Answer the maximum of the specified numbers.
  *
@@ -531,7 +558,7 @@ Public method "max_" is maximum function;
  *          The maximum of the specified numbers.
  * @category "Mathematics" "Relations" "Numbers"
  */
-Public method "«_‡max»" is maximum function;
+Public method "«_‡max»" is maximum function for two or more;
 
 /* Don't parse «_‡max» recursively. */
 Invoke
@@ -999,7 +1026,7 @@ Method "_+_" is type promotion function for
 |
 	If {a, b} = {-∞, ∞} then
 	[
-		Immediately reject parse, expected: cannotAddMessage
+		Reject parse, expected: cannotAddMessage
 	];
 	a + b
 ];
@@ -1028,7 +1055,7 @@ Method "_-_" is type promotion function for
 |
 	If {a, b} ∈ {{-∞}, {∞}} then
 	[
-		Immediately reject parse, expected: cannotSubtractMessage
+		Reject parse, expected: cannotSubtractMessage
 	];
 	a - b
 ];
@@ -1058,7 +1085,7 @@ Method "_×_" is type promotion function for
 	terms ::= {a, b};
 	If terms = {0, ∞} ∨ terms = {0, -∞} then
 	[
-		Immediately reject parse, expected: cannotMultiplyMessage
+		Reject parse, expected: cannotMultiplyMessage
 	];
 	a × b
 ];
@@ -1087,12 +1114,12 @@ Method "_÷_" is type promotion function for
 |
 	If b = 0 ∧ a's type ⊆ extended integer then
 	[
-		Immediately reject parse, expected: cannotDivideByZeroMessage
+		Reject parse, expected: cannotDivideByZeroMessage
 	];
 	infinities ::= {∞, -∞};
 	If a ∈ infinities ∧ b ∈ infinities then
 	[
-		Immediately reject parse, expected: cannotDivideTwoInfinitiesMessage
+		Reject parse, expected: cannotDivideTwoInfinitiesMessage
 	];
 	a ÷ b
 ];

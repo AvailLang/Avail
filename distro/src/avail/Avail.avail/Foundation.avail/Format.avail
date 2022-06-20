@@ -1,6 +1,6 @@
 /*
  * Format.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,13 +32,12 @@
 
 Module "Format"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Atoms",
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
 	"Enumeration Support",
@@ -377,7 +376,7 @@ Semantic restriction "partially format_with_" is
  *        A map from format variables to their bindings. This map must include a
  *        binding for every variable mentioned within the template.
  * @returns "string"
- *          The result of formatting the template usings the specified bindings.
+ *          The result of formatting the template using the specified bindings.
  * @category "Formatting" "Strings"
  */
 Public stable method "format_with_" is
@@ -509,7 +508,7 @@ Private method "format variable for_" is
  * @param "bindings" "<<token, any…|2>…|1..>"
  *        The format variable bindings.
  * @returns "string"
- *          The result of partially formatting the template usings the specified
+ *          The result of partially formatting the template using the specified
  *          bindings.
  * @category "Formatting" "Strings"
  */
@@ -551,7 +550,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
-				Immediately reject parse, expected:
+				Reject parse, expected:
 					"format variable "
 					++ “var”
 					++ " ∈ string, not "
@@ -563,7 +562,7 @@ Semantic restriction "partially format_with«…::=_‡,»" is
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];
@@ -646,7 +645,7 @@ Semantic restriction "format_with«…!::=_‡,»" is
 			var ::= format variable for binding[1]'s instance;
 			If var ∈ stringVars ∧ ¬binding[2] ⊆ string then
 			[
-				Immediately reject parse, expected:
+				Reject parse, expected:
 					"format variable "
 					++ “var”
 					++ " ∈ string, not "
@@ -658,14 +657,14 @@ Semantic restriction "format_with«…!::=_‡,»" is
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"bindings for format variables "
 				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];
@@ -812,7 +811,7 @@ Semantic restriction "format_with unchecked_" is
  *        binding (i.e., subscript) for every variable mentioned within the
  *        template.
  * @returns "string"
- *          The result of formatting the template usings the specified bindings.
+ *          The result of formatting the template using the specified bindings.
  * @category "Formatting" "Strings"
  */
 Public stable method "format_with«_‡,»" is
@@ -851,7 +850,7 @@ Semantic restriction "format_with«_‡,»" is
 				bindingType ::= bindingsType[index];
 				If var ∈ stringVars ∧ ¬bindingType ⊆ string then
 				[
-					Immediately reject parse, expected:
+					Reject parse, expected:
 						"format variable "
 						++ “var”
 						++ " ∈ string, not "
@@ -863,14 +862,14 @@ Semantic restriction "format_with«_‡,»" is
 		unboundVars ::= templateVars \ bindingVars;
 		If unboundVars ≠ ∅ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"bindings for format variables "
 				++ “unboundVars”
 		];
 		unmentionedVars ::= bindingVars \ templateVars;
 		If unmentionedVars ≠ ∅ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"only bindings for format variables, but bindings also include "
 				++ “unmentionedVars”
 		];

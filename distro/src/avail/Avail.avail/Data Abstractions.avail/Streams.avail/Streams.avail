@@ -1,6 +1,6 @@
 /*
  * Streams.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Streams"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Abstract Streams" =
 	(
@@ -136,8 +136,7 @@ Private method "body function(_,_)" is
 		Undeclare name;
 		aStreamType ::= aStream's semantic type;
 		elementType ::= aStreamType's element type's instance;
-		blockType ::=
-			[elementType]→(action's semantic type's return type);
+		blockType ::= [elementType]→action's semantic type's return type;
 		returnType ::= strengthen baseReturnType for call of anAtom
 			using <aStreamType, blockType>;
 
@@ -149,10 +148,10 @@ Private method "body function(_,_)" is
 		«<
 			aStream,
 			«[
-			  	<cast declaration into [d : argument phrase | d]>
-			 |
+				<cast declaration into [d : argument phrase | d]>
+			|
 				statements
-			 ] : blockReturnType»
+			] : blockReturnType»
 		>» : returnType
 	] : send phrase ⇒ ⊤
 ] : [literal phrase ⇒ token, expression phrase ⇒ stream,
@@ -298,7 +297,7 @@ Macro "reject each…from_§where_" is a stream prefix function,
 |
 	name ::= elementPhrase's token's lexeme;
 	aStreamType ::= aStream's semantic type;
-	blockType ::= [⊥]→(predicateBlock's semantic type's return type);
+	blockType ::= [⊥]→predicateBlock's semantic type's return type;
 	returnType ::= strengthen stream for call of $"filter_by_"
 		using <aStreamType, blockType>;
 	statements ::= predicateBlock's statements;
@@ -324,7 +323,7 @@ Macro "reject each…from_§where_" is a stream prefix function,
 		«<
 			aStream,
 			«[
-			  	<cast declaration into [d : argument phrase | d]>
+				<cast declaration into [d : argument phrase | d]>
 			|
 				newStatements
 			] : blockReturnType»

@@ -1,6 +1,6 @@
 /*
  * Map Tests.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Map Tests"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Common"
 Names
@@ -98,9 +98,9 @@ Test "map and filter" in map test suite is
 		s : string,
 		n : natural number,
 		accept : [natural number]→⊤
-	 |
+	|
 		m ::= n + 2;
-		If m mod 2 = 0 then
+		If 2|m then
 		[
 			accept(m);
 		];
@@ -111,7 +111,7 @@ Test "map and filter" in map test suite is
 Test "any satisfies" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= any of a satisfies [s : string, n : natural number | n mod 2 = 0];
+	b ::= any of a satisfies [s : string, n : natural number | 2|n];
 	c ::= any of a satisfies [s : string, n : natural number | n > 200];
 	Require: b = true;
 	Require: c = false;
@@ -120,7 +120,7 @@ Test "any satisfies" in map test suite is
 Test "any satisfies (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= any s→n of a satisfies [n mod 2 = 0];
+	b ::= any s→n of a satisfies [2|n];
 	c ::= any s→n of a satisfies [n > 200];
 	Require: b = true;
 	Require: c = false;
@@ -134,7 +134,7 @@ Test "for each of do" in map test suite is
 	[
 		s : string,
 		n : natural number
-	 |
+	|
 		b := b + s→n;
 	];
 	Require: a = b;
@@ -151,7 +151,7 @@ Test "macro for each of do" in map test suite is
 Test "count of where" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= count of a where [s : string, n : natural number | n mod 2 = 0];
+	b ::= count of a where [s : string, n : natural number | 2|n];
 	c ::= count of a where [s : string, n : natural number | n > 2000];
 	Require: b = 2;
 	Require: c = 0;
@@ -160,7 +160,7 @@ Test "count of where" in map test suite is
 Test "count of where (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= count of s → n in a where [n mod 2 = 0];
+	b ::= count of s → n in a where [2|n];
 	c ::= count of s → n in a where [n > 2000];
 	Require: b = 2;
 	Require: c = 0;
@@ -185,7 +185,7 @@ Test "each of satisfies" in map test suite is
 Test "filter by" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= filter a by [s : string, n : natural number | n mod 2 = 0];
+	b ::= filter a by [s : string, n : natural number | 2|n];
 	c ::= filter a by [s : string, n : natural number | n > 2000];
 	Require: b = {"bar"→2,"prince"→4};
 	Require: c = {};
@@ -194,7 +194,7 @@ Test "filter by" in map test suite is
 Test "select each (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= select each s→n from a where [n mod 2 = 0];
+	b ::= select each s→n from a where [2|n];
 	c ::= select each s→n from a where [n > 2000];
 	Require: b = {"bar"→2,"prince"→4};
 	Require: c = {};
@@ -203,7 +203,7 @@ Test "select each (macro)" in map test suite is
 Test "reject each (macro)" in map test suite is
 [
 	a ::= {"foo"→1,"bar"→2,"frog"→3,"prince"→4};
-	b ::= reject each s→n from a where [n mod 2 = 0];
+	b ::= reject each s→n from a where [2|n];
 	c ::= reject each s→n from a where [n < 2000];
 	Require: b = {"foo"→1,"frog"→3};
 	Require: c = {};

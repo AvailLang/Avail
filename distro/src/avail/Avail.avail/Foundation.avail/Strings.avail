@@ -1,6 +1,6 @@
 /*
  * Strings.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,14 +32,13 @@
 
 Module "Strings"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Atoms",
 	"Bootstrap",
 	"Characters",
 	"Control Structures",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
 	"Enumeration Support",
@@ -1355,7 +1354,7 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 	metachars ::= select each c from s where [c is an Avail metacharacter];
 	If ¬metachars is empty then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"string " ++ “s” ++ " not to contain Avail message metacharacters, \
 				\|but the following included characters are Avail message \
         		\|metacharacters: " ++ “metachars” (as simple list)
@@ -1378,7 +1377,7 @@ Public method "Require:_contains no Avail message⁇metacharacters" is
 |
 	If |sT| ≠ 1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"string that forbids Avail message metacharacters to be \
 			\|statically known"
 	];

@@ -1,6 +1,6 @@
 /*
  * Evaluation.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Evaluation"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Avail"
 Entries
@@ -57,7 +57,7 @@ Method 	"anonymous module using«_«=(««-»?_«→_»?‡,»,⁇«`…»?)»�
 	|2>+
 |
 	Primitive CreateAnonymousModule(code : {
-		loading-is-over code}ᵀ);
+		incorrect-argument-type code}ᵀ);
 	Raise an exception for code
 ] : module;
 

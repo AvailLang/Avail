@@ -1,0 +1,186 @@
+{
+  "formatVersion": "1.1",
+  "component": {
+    "group": "avail",
+    "module": "avail",
+    "version": "1.6.0.20220512.133335",
+    "attributes": {
+      "org.gradle.status": "release"
+    }
+  },
+  "createdBy": {
+    "gradle": {
+      "version": "7.4.2"
+    }
+  },
+  "variants": [
+    {
+      "name": "apiElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-api",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "org.availlang",
+          "module": "avail-json",
+          "version": {
+            "requires": "1.0.7"
+          }
+        },
+        {
+          "group": "org.availlang",
+          "module": "avail-storage",
+          "version": {
+            "requires": "1.0.7"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-reflect",
+          "version": {
+            "requires": "1.6.20"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.6.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "avail-1.6.0.20220512.133335.jar",
+          "url": "avail-1.6.0.20220512.133335.jar",
+          "size": 7370980,
+          "sha512": "195f5939e91cdbdf373970eccfd304aa486f31236cce42a0c721eb6167bde927fc6d97619e45f57c2a6a619d2819f89d4f70fcc0ada21f36971017edbf7c09f5",
+          "sha256": "e1afd43e71e5cafab70806f932c35c16b6056890deaab92a148533f84c799698",
+          "sha1": "7ec45d7b1f35607359416610081f40e489b0c4ab",
+          "md5": "71c692e856c1237eef8b4f7f7f178e81"
+        }
+      ]
+    },
+    {
+      "name": "runtimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "external",
+        "org.gradle.jvm.environment": "standard-jvm",
+        "org.gradle.jvm.version": 17,
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime",
+        "org.jetbrains.kotlin.platform.type": "jvm"
+      },
+      "dependencies": [
+        {
+          "group": "com.google.code.findbugs",
+          "module": "jsr305",
+          "version": {
+            "requires": "3.0.2"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-analysis",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-tree",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "org.ow2.asm",
+          "module": "asm-util",
+          "version": {
+            "requires": "9.2"
+          }
+        },
+        {
+          "group": "io.methvin",
+          "module": "directory-watcher",
+          "version": {
+            "requires": "0.15.0"
+          }
+        },
+        {
+          "group": "org.availlang",
+          "module": "avail-json",
+          "version": {
+            "requires": "1.0.7"
+          }
+        },
+        {
+          "group": "org.availlang",
+          "module": "avail-storage",
+          "version": {
+            "requires": "1.0.7"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-reflect",
+          "version": {
+            "requires": "1.6.20"
+          }
+        },
+        {
+          "group": "org.jetbrains.kotlin",
+          "module": "kotlin-stdlib-jdk8",
+          "version": {
+            "requires": "1.6.20"
+          }
+        }
+      ],
+      "files": [
+        {
+          "name": "avail-1.6.0.20220512.133335.jar",
+          "url": "avail-1.6.0.20220512.133335.jar",
+          "size": 7370980,
+          "sha512": "195f5939e91cdbdf373970eccfd304aa486f31236cce42a0c721eb6167bde927fc6d97619e45f57c2a6a619d2819f89d4f70fcc0ada21f36971017edbf7c09f5",
+          "sha256": "e1afd43e71e5cafab70806f932c35c16b6056890deaab92a148533f84c799698",
+          "sha1": "7ec45d7b1f35607359416610081f40e489b0c4ab",
+          "md5": "71c692e856c1237eef8b4f7f7f178e81"
+        }
+      ]
+    },
+    {
+      "name": "shadowRuntimeElements",
+      "attributes": {
+        "org.gradle.category": "library",
+        "org.gradle.dependency.bundling": "shadowed",
+        "org.gradle.libraryelements": "jar",
+        "org.gradle.usage": "java-runtime"
+      },
+      "files": [
+        {
+          "name": "avail-1.6.0.20220512.133335-all.jar",
+          "url": "avail-1.6.0.20220512.133335-all.jar",
+          "size": 14361841,
+          "sha512": "e529cbbacf35ca74c4c532f4c59667bc64a642191d1ad523af6f68bacc4ca9a33626162745da1df06938dbcaba14c8028fcf74d592ef76c92f087965642a36b7",
+          "sha256": "ce7cfa0988d3ae01536850b6199ff5840be09951b9e0fc5ad8ea9e7bc6b3978c",
+          "sha1": "21cdaedceb0d2b067118fbf9503387ab09bf32c6",
+          "md5": "ca8f1eaa6d43408b81bd9a4e677cc32e"
+        }
+      ]
+    }
+  ]
+}

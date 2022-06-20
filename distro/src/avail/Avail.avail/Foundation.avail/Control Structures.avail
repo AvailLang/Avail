@@ -1,6 +1,6 @@
 /*
  * Control Structures.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Control Structures"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Early Control Structures" =
 	(
@@ -42,12 +42,12 @@ Extends
 		"Ignore:_",
 		"bootstrap restricted send_with_:_",
 		"(_)",
-		"((_))"
+		"((_))",
+		"_`?→_†"
 	)
 Uses
 	"Bootstrap",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
 	"Early Maps",
@@ -113,7 +113,7 @@ Private method "block from_" is
 	sendPhrase : send phrase ⇒ ⊤
 |
 	returnType ::= sendPhrase's return type;
-	cast «[<sendPhrase>]:returnType» into [b: block phrase ⇒ []→⊤| b]
+	«[<sendPhrase>]:returnType» ?→ block phrase ⇒ []→⊤
 ] : expression phrase ⇒ []→⊤;
 
 Private method "basic send phrase_conditional_then_else_" is
@@ -138,8 +138,8 @@ Private method "basic send phrase_conditional_then_else_" is
  */
 Private abstract method "for_nest_in_" is
 [
-	atom, expression phrase ⇒ []→⊤, <list phrase ⇒ <boolean, []→⊤…|2>…|1..>
-]→(expression phrase ⇒ []→⊤);
+	atom, expression phrase ⇒ []→⊤, (list phrase ⇒ <boolean, []→⊤…|2>)+
+]→expression phrase ⇒ []→⊤;
 
 Method "for_nest_in_" is
 [
@@ -147,11 +147,12 @@ Method "for_nest_in_" is
 	elseBlock : expression phrase ⇒ []→⊤,
 	elseConditionalPairTuple : <list phrase ⇒ <boolean, []→⊤…|2>…|1>
 |
-	elseConditionalPair ::= elseConditionalPairTuple[1]'s expressions;
-	predicate ::= elseConditionalPair[1];
-	thenBlock ::= elseConditionalPair[2];
-	block from basic send phrase anAtom conditional predicate then
-		thenBlock else elseBlock
+	predicate, thenBlock ::= elseConditionalPairTuple[1]'s expressions;
+	block from
+		basic send phrase anAtom
+		conditional predicate
+		then thenBlock
+		else elseBlock
 ] : expression phrase ⇒ []→⊤;
 
 Method "for_nest_in_" is
@@ -179,11 +180,11 @@ Method "for_nest_in_" is
  * @param "firstThen" "expression phrase ⇒ []→⊤"
  *        The action to perform if {@param "firstPredicate"} is {@method
  *        "true"}.
- * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ * @param "elseIfTuple" "list phrase ⇒ <boolean, []→⊤…|2>+"
  *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
  *        first element a predicate and as its second element an action
  *        to perform if the predicate answers {@method "true"}.
- * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ * @param "else" "list phrase ⇒ []→⊤?"
  *        A lexically constructed tuple that optionally contains the action to
  *        perform if {@param "firstPredicate"} is {@method "false"} and all
  *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
@@ -195,17 +196,17 @@ Public macro "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : expression phrase ⇒ boolean,
 	firstThenBlock : expression phrase ⇒ []→⊤,
-	elseIfPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
-	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+	elseIfPairTuplePhrase : list phrase ⇒ <boolean, []→⊤…|2>+,
+	optionalElseBlock : list phrase ⇒ ([]→⊤)?
 |
-	elseBlock ::= if |optionalElseBlock's expressions| = 1 then
-		[optionalElseBlock's expressions[1]]
-		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
-	elseIfPairTuple ::= cast elseIfPairTuplePhrase's expressions into
-		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
+	elseBlock ::= optionalElseBlock's expressions[1] else [‘[]’];
+	elseIfPairTuple ::= elseIfPairTuplePhrase's expressions
+		?→ (list phrase⇒<boolean, []→⊤…|2>)+;
 	anAtom ::= $"If|if_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseIfPairTuple;
-	basic send phrase anAtom conditional firstPredicate then firstThenBlock
+	basic send phrase anAtom
+		conditional firstPredicate
+		then firstThenBlock
 		else finalElseBlock
 ] : send phrase ⇒ ⊤;
 
@@ -278,12 +279,12 @@ Public method "Repeat__times" is
  * If the count is ∞, then answer ⊥ (because the loop will never terminate).
  *
  * @method "Repeat__times"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "[0..∞]'s type"
  */
 Semantic restriction "Repeat__times" is
 [
-	action : []→⊤'s type,
+	action : ([]→⊤)'s type,
 	count : [0..∞]'s type
 |
 	if ⌊count⌋ = ∞ then
@@ -393,14 +394,14 @@ Public method "From_to_by_do_" is
  * @restricts "integer's type"
  * @restricts "extended integer's type"
  * @restricts "integer's type"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "From_to_by_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type,
-	action : [⊥]→boolean's type
+	action : ([⊥]→boolean)'s type
 |
 	subscripts ::=
 		if step ⊆ [0..∞) then
@@ -420,7 +421,7 @@ Semantic restriction "From_to_by_do_" is
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
 			++ “subscripts”
 			++ ", but it only accepts "
@@ -550,7 +551,7 @@ Public method "From_to_by_do_" is
  */
 Public method "Require:_accepts subscripts from_to_by_" is
 [
-	action : [⊥]→⊤'s type,
+	action : ([⊥]→⊤)'s type,
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type
@@ -574,7 +575,7 @@ Public method "Require:_accepts subscripts from_to_by_" is
 		];
 	If action[1] ≠ ⊥ ∧ ¬subscripts ⊆ action[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept all values in the range "
 			++ “subscripts”
 			++ ", but it only accepts "
@@ -590,14 +591,14 @@ Public method "Require:_accepts subscripts from_to_by_" is
  * @restricts "integer's type"
  * @restricts "extended integer's type"
  * @restricts "integer's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "From_to_by_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
 	step : integer's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	Require: action accepts subscripts from start to end by step;
 	return ::= action's return type;
@@ -743,13 +744,13 @@ Public method "From_to_do_" is
  * @method "From_to_do_"
  * @restricts "integer's type"
  * @restricts "extended integer's type"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "From_to_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
-	action : [⊥]→boolean's type
+	action : ([⊥]→boolean)'s type
 |
 	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
@@ -794,13 +795,13 @@ Public method "From_to_do_" is
  * @method "From_to_do_"
  * @restricts "integer's type"
  * @restricts "extended integer's type"
- * @restricts "[⊥]→⊤'s type"
+ * @restricts "([⊥]→⊤)'s type"
  */
 Semantic restriction "From_to_do_" is
 [
 	start : integer's type,
 	end : extended integer's type,
-	action : [⊥]→⊤'s type
+	action : ([⊥]→⊤)'s type
 |
 	Require: action accepts subscripts from start to end by 1's type;
 	return ::= action's return type;
@@ -924,7 +925,7 @@ Semantic restriction "_(«_‡,»)" is
 		validSizes ::= parametersSizes ∩ argumentsSizes;
 		If validSizes = ⊥ then
 		[
-			Immediately reject parse, expected: sizesIncompatibleMessage
+			Reject parse, expected: sizesIncompatibleMessage
 		];
 		/* Verify each of the arguments. */
 		From 1 to ⌊argumentsSizes⌋ do
@@ -933,7 +934,7 @@ Semantic restriction "_(«_‡,»)" is
 		|
 			If ¬argumentsType[index] ⊆ parametersType[index] then
 			[
-				Immediately reject parse, expected:
+				Reject parse, expected:
 					"argument #"
 					++ “index”
 					++ " of type ("
@@ -973,7 +974,7 @@ Public method "Require:_'s⁇keeper is valid" is
 	expectedType ::= [⊥]→⊤;
 	If ¬action[parametersSize] ⊆ expectedType then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"last argument ⊆ "
 			++ “expectedType”
 			++ " (but instead it was "
@@ -1062,14 +1063,14 @@ Public method "If|if_then_«else if_then_»«else_»?" is
  *
  * @method "If|if_then_«else if_then_»«else_»?"
  * @restricts "boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "<<[]→boolean, []→⊤…|2>…|1..>'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "If|if_then_«else if_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
-	firstThen : []→⊤'s type,
+	firstThen : ([]→⊤)'s type,
 	elseIfTuple : <<[]→boolean, []→⊤…|2>…|1..>'s type,
 	else : ([]→⊤)?'s type
 |
@@ -1199,14 +1200,14 @@ Semantic restriction "If|if_then_«else if_then_»«else_»?" is
  *
  * @method "Unless|unless_then_else_"
  * @restricts "boolean's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
 	predicate : boolean's type,
-	falseFunction : []→⊤'s type,
-	trueFunction : []→⊤'s type
+	falseFunction : ([]→⊤)'s type,
+	trueFunction : ([]→⊤)'s type
 |
 	trueFunction's return type ∪ falseFunction's return type
 ];
@@ -1217,14 +1218,14 @@ Semantic restriction "Unless|unless_then_else_" is
  *
  * @method "Unless|unless_then_else_"
  * @restricts "false's type's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
 	contradiction : false's type's type,
-	falseFunction : []→⊤'s type,
-	trueFunction : []→⊤'s type
+	falseFunction : ([]→⊤)'s type,
+	trueFunction : ([]→⊤)'s type
 |
 	falseFunction's return type
 ];
@@ -1235,14 +1236,14 @@ Semantic restriction "Unless|unless_then_else_" is
  *
  * @method "Unless|unless_then_else_"
  * @restricts "true's type's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Unless|unless_then_else_" is
 [
 	tautology : true's type's type,
-	falseFunction : []→⊤'s type,
-	trueFunction : []→⊤'s type
+	falseFunction : ([]→⊤)'s type,
+	trueFunction : ([]→⊤)'s type
 |
 	trueFunction's return type
 ];
@@ -1260,11 +1261,11 @@ Semantic restriction "Unless|unless_then_else_" is
  * @param "firstThen" "expression phrase ⇒ []→⊤"
  *        The action to perform if {@param "firstPredicate"} is {@method
  *        "false"}.
- * @param "elseIfTuple" "list phrase ⇒ (<boolean, []→⊤…|2>+)"
+ * @param "elseIfTuple" "list phrase ⇒ <boolean, []→⊤…|2>+"
  *        A lexically constructed tuple of 2-tuples. Each 2-tuple has as its
  *        first element a predicate and as its second element an action
  *        to perform if the predicate answers {@method "true"}.
- * @param "else" "list phrase ⇒ (([]→⊤)?)"
+ * @param "else" "list phrase ⇒ []→⊤?"
  *        A lexically constructed tuple that optionally contains the action to
  *        perform if {@param "firstPredicate"} is {@method "false"} and all
  *        predicates of {@param "elseIfTuple"} answer {@method "false"}.
@@ -1276,20 +1277,18 @@ Public macro "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : expression phrase ⇒ boolean,
 	firstThenBlock : expression phrase ⇒ []→⊤,
-	elseUnlessPairTuplePhrase : list phrase ⇒ (<boolean, []→⊤…|2>+),
-	optionalElseBlock : list phrase ⇒ (([]→⊤)?)
+	elseUnlessPairTuplePhrase : list phrase ⇒ <boolean, []→⊤…|2>+,
+	optionalElseBlock : list phrase ⇒ ([]→⊤)?
 |
-	elseBlock ::= if |optionalElseBlock's expressions| = 1 then
-		[optionalElseBlock's expressions[1]]
-		else [cast «[<>]:⊤» into [b : expression phrase ⇒ []→⊤ | b]];
-	elseUnlessPairTuple ::= cast elseUnlessPairTuplePhrase's expressions into
-		[l : <list phrase⇒<boolean, []→⊤…|2>…|1..∞> | l];
-
+	elseBlock ::= optionalElseBlock's expressions[1] else [‘[]’];
+	elseUnlessPairTuple ::= elseUnlessPairTuplePhrase's expressions
+		?→ <list phrase⇒<boolean, []→⊤…|2>…|1..∞>;
 	anAtom ::= $"Unless|unless_then_else_";
 	finalElseBlock ::= for anAtom nest elseBlock in elseUnlessPairTuple;
-
-	basic send phrase anAtom conditional firstPredicate
-		then firstThenBlock else finalElseBlock
+	basic send phrase anAtom
+		conditional firstPredicate
+		then firstThenBlock
+		else finalElseBlock
 ]: send phrase ⇒ ⊤;
 
 /**
@@ -1376,14 +1375,14 @@ Public method "Unless|unless_then_«else unless_then_»«else_»?" is
  *
  * @method "Unless|unless_then_«else unless_then_»«else_»?"
  * @restricts "boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
  * @restricts "<[]→boolean, []→⊤…|2>+'s type"
  * @restricts "([]→⊤)?'s type"
  */
 Semantic restriction "Unless|unless_then_«else unless_then_»«else_»?" is
 [
 	firstPredicate : boolean's type,
-	firstThen : []→⊤'s type,
+	firstThen : ([]→⊤)'s type,
 	elseUnlessTuple : <[]→boolean, []→⊤…|2>+'s type,
 	else : ([]→⊤)?'s type
 |
@@ -1532,11 +1531,11 @@ Public method "While_" is
  * (because the loop will run forever).
  *
  * @method "While_"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "While_" is
 [
-	action : []→boolean's type
+	action : ([]→boolean)'s type
 |
 	if action's return type = true's type then
 	[
@@ -1574,11 +1573,11 @@ Public method "Until_" is
  * (because the loop will run forever).
  *
  * @method "Until_"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "Until_" is
 [
-	action : []→boolean's type
+	action : ([]→boolean)'s type
 |
 	if action's return type = false's type then
 	[
@@ -1619,13 +1618,13 @@ Public method "While_do_" is
  * (because the loop will run forever).
  *
  * @method "While_do_"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "While_do_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type
 |
 	if predicate's return type = true's type then
 	[
@@ -1692,13 +1691,13 @@ Public method "Until_do_" is
  * (because the loop will run forever).
  *
  * @method "Until_do_"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Until_do_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type
 |
 	if predicate's return type = false's type then
 	[
@@ -1729,10 +1728,7 @@ Macro "Until_do_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	action : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Until_do_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean», action
-		>» : ⊤
+	⟦Until [⦊expressionPhrase⦉] do ⦊action⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1764,13 +1760,13 @@ Public method "Do_while_" is
  * answers {@method "true"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_while_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "Do_while_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = true's type
 	then [⊥]
@@ -1796,10 +1792,7 @@ Macro "Do_while_" is
 	action : block phrase ⇒ []→⊤,
 	expressionPhrase : expression phrase ⇒ boolean
 |
-	bootstrap restricted send $"Do_while_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean»
-		>» : ⊤
+	⟦Do ⦊action⦉ while [⦊expressionPhrase⦉]⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1836,15 +1829,15 @@ Public method "Do_while_alternate with_" is
  * answers {@method "true"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_while_alternate with_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Do_while_alternate with_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type,
-	between : []→⊤'s type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = true's type
 	then [⊥]
@@ -1873,10 +1866,7 @@ Macro "Do_while_alternate with_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Do_while_alternate with_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean», between
-		>» : ⊤
+	⟦Do ⦊action⦉ while [⦊expressionPhrase⦉] alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1915,15 +1905,15 @@ Public method "While_do_alternate with_" is
  * answers {@method "true"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "While_do_alternate with_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "While_do_alternate with_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type,
-	between : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = true's type
 	then [⊥]
@@ -1950,10 +1940,7 @@ Macro "While_do_alternate with_" is
 	action : block phrase ⇒ []→⊤,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"While_do_alternate with_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean», action, between
-		>» : ⊤
+	⟦While [⦊expressionPhrase⦉] do ⦊action⦉ alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -1985,13 +1972,13 @@ Public method "Do_until_" is
  * answers {@method "false"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_until_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
  */
 Semantic restriction "Do_until_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = false's type
 	then [⊥]
@@ -2017,10 +2004,7 @@ Macro "Do_until_" is
 	action : block phrase ⇒ []→⊤,
 	expressionPhrase : expression phrase ⇒ boolean
 |
-	bootstrap restricted send $"Do_until_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean»
-		>» : ⊤
+	⟦Do ⦊action⦉ until [⦊expressionPhrase⦉]⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2057,15 +2041,15 @@ Public method "Do_until_alternate with_" is
  * answers {@method "false"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Do_until_alternate with_"
- * @restricts "[]→⊤'s type
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Do_until_alternate with_" is
 [
-	action : []→⊤'s type,
-	predicate : []→boolean's type,
-	between : []→⊤'s type
+	action : ([]→⊤)'s type,
+	predicate : ([]→boolean)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ [predicate's return type = false's type]
 	then [⊥]
@@ -2094,10 +2078,7 @@ Macro "Do_until_alternate with_" is
 	expressionPhrase : expression phrase ⇒ boolean,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Do_until_alternate with_" with
-		«<
-			action,	«[<> | <expressionPhrase>] : boolean», between
-		>» : ⊤
+	⟦Do ⦊action⦉ until [⦊expressionPhrase⦉] alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2136,15 +2117,15 @@ Public method "Until_do_alternate with_" is
  * answers {@method "false"}, then answer ⊥ (because the loop will run forever).
  *
  * @method "Until_do_alternate with_"
- * @restricts "[]→⊤'s type"
- * @restricts "[]→boolean's type"
- * @restricts "[]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([]→boolean)'s type"
+ * @restricts "([]→⊤)'s type"
  */
 Semantic restriction "Until_do_alternate with_" is
 [
-	predicate : []→boolean's type,
-	action : []→⊤'s type,
-	between : []→⊤'s type
+	predicate : ([]→boolean)'s type,
+	action : ([]→⊤)'s type,
+	between : ([]→⊤)'s type
 |
 	if action's return type = ⊥ ∨ predicate's return type = false's type
 	then [⊥]
@@ -2171,10 +2152,7 @@ Macro "Until_do_alternate with_" is
 	action : block phrase ⇒ []→⊤,
 	between : block phrase ⇒ []→⊤
 |
-	bootstrap restricted send $"Until_do_alternate with_" with
-		«<
-			«[<> | <expressionPhrase>] : boolean», action, between
-		>» : ⊤
+	⟦Until [⦊expressionPhrase⦉] do ⦊action⦉ alternate with ⦊between⦉⟧
 ] : send phrase ⇒ ⊤;
 
 /**
@@ -2242,7 +2220,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		functionType ::= caseTuple[index];
 		If valueType ⊆ functionType[1] then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"necessary cast expression, but "
 				++ “valueType”
 				++ " is a subtype of "
@@ -2250,7 +2228,7 @@ Semantic restriction "Cast|cast_into«_‡,»«else_»" is
 		];
 		If valueType ∩ (functionType[1]) = ⊥ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"allowed cast expression, but "
 				++ “valueType”
 				++ " is not a supertype of "
@@ -2350,11 +2328,11 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 	$body : type;
 	If |meta| ≠ 1 ∨ ¬0 < |meta's instance| < ∞ then
 	[
-		Immediately reject parse, expected: "enumeration to be statically known"
+		Reject parse, expected: "enumeration to be statically known"
 	];
 	If ¬valueType ∈ meta then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"case selector ("
 			++ “valueType”
 			++ ") to be an instance of "
@@ -2370,14 +2348,14 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		case ::= caseTuple[index];
 		If |case[1]| ≠ 1 then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"all cases to be statically known values, but discovered "
 				++ “case[1]”
 		];
 		instance ::= case[1]'s instance;
 		If ¬instance ∈ enum then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"all cases to be instances of "
 				++ “enum”
 				++ ", but "
@@ -2386,7 +2364,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		];
 		If case[1] ⊆ caseEnum then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"each case to be unique, but "
 				++ “instance”
 				++ " occurs more than once"
@@ -2406,7 +2384,7 @@ Semantic restriction "Choose|choose_from_where«_is_‡,»«,else_»" is
 		allCases ::= enum's instances;
 		handledCases ::= caseEnum's instances;
 		unhandledCases ::= allCases \ handledCases;
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"all cases to be handled, but these cases are not: "
 			++ “unhandledCases”
 	];
@@ -2429,10 +2407,10 @@ Macro "If|if__«else|;|]»#" is
 |
 	bodyTokens ::= body's tokens;
 	openSquare ::= bodyTokens[1] else [
-		Immediately reject parse strongly,
+		Reject parse strongly,
 			expected: "You may have forgotten the word \"then\" above."
 	];
-	Immediately reject parse strongly,
+	Reject parse strongly,
 		expected: "You may have forgotten \"then\" between the condition \
 			\|expression and the \"[\" on line " ++ “openSquare's line number”
 ];

@@ -1,0 +1,280 @@
+/*
+ * Foreign Functions.avail
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Foreign Functions"
+Versions
+	"Avail-1.6.1"
+Uses
+	"Avail"
+Extends
+	"Avail" =
+	(
+		/* The entry point "Run all sample tests" uses whitespace, so we need
+		 * to export the whitespace lexer to handle whitespace during the parse.
+		 */
+		"whitespace lexer",
+
+		/* The entry point "Run all sample tests" uses four keywords, so we need
+		 * to export the keyword lexer in order to provide the right parsing
+		 * capability for scanning them.
+		 */
+		"keyword lexer"
+	)
+Names
+	"_+_",
+	"_'s⁇created milliseconds",
+	"_'s⁇created timestamp",
+	"_'s⁇id",
+	"_'s⁇value",
+	"Run all sample tests",
+	"sample value wrapper",
+	"wrap_"
+Entries
+	/* Entry point: run all internal tests. */
+	"Run all sample tests"
+Body
+
+myValue : integer := 12;
+
+// The contents of this file represents creating a link to Java POJOs that exist
+// on the JVM classpath of the Avail Runtime.
+// Note: As with any FFI bindings, the native source must be re-compiled each
+// time a change is made to the POJOs in order for Avail to pick up the changes.
+
+// Bind the class up front, to avoid reflection costs on usage.
+sampleValueWrapperClass ::= org.availlang.ffi.SampleValueWrapper;
+
+/**
+ * A {@type "integer"} value wrapper {@type "SampleValueWrapper"}.
+ *
+ * This creates a link to the Java class SampleValueWrapper. It is accessible as
+ * long as the project, avail-java-ffi, is on the JVM classpath when the Avail
+ * Runtime is started.
+ *
+ * By marking the method as "stable", we give the compiler permission to inline
+ * the result of sending this method at compile time, rather than waiting to
+ * invoke the method at runtime.
+ *
+ * @type "sample value wrapper"
+ */
+Public stable method "sample value wrapper" is [sampleValueWrapperClass];
+
+// The constructor is looked up by reflection. Setting this to a constant
+// ensures the binding is only done once.
+intConstructor ::= constructor sample value wrapper (Java int);
+
+/**
+ * Create a {@type "SampleValueWrapper"} wrapping the provided value.
+ *
+ * Though not necessary, this method wraps the FFI Pojo constructor binding for
+ * the purpose of establishing a method for constructing a SampleValueWrapper
+ * that is more natural in Avail code.
+ *
+ * @category "FFI" "POJO"
+ * @method "wrap_"
+ * @param "value" "Java int"
+ *       A Java integer to wrap.
+ * @returns "sample value wrapper"
+ *       The POJO wrapping the provided value.
+ * @raises "Java-field-not-available exception"
+ * @raises "Java-field-reference-is-ambiguous exception"
+ */
+Public method "wrap_" is
+[
+	value: Java int
+|
+	// This is how a Pojo's constructor is called from Avail.
+	intConstructor(value)
+]: sample value wrapper;
+
+// Bind the "getValue" method once, to avoid future reflective calls.
+valueMethod ::= method sample value wrapper.getValue ();
+
+/**
+ * Answer the {@type "sample value wrapper"}'s wrapped value.
+ *
+ * @category "FFI" "POJO"
+ * @method "_'s⁇value"
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the value for.
+ * @returns "Java int"
+ *       The wrapped value.
+ */
+Public method "_'s⁇value" is
+[
+	wrapper : sample value wrapper
+|
+	valueMethod(wrapper)
+];
+
+/**
+ * Answer the {@type "sample value wrapper"}'s id.
+ *
+ * @category "FFI" "POJO"
+ * @method "_'s⁇id"
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the id for.
+ * @returns "UUID string"
+ *       The wrapper's id.
+ */
+Public method "_'s⁇id" is
+[
+	wrapper : sample value wrapper
+|
+	// The field accessor answers a read-only variable of "any", which isn't
+	// strong enough for our purposes. First cast the result of performing the
+	// read to "string". Avail's "UUID string" type expects only Arabic numerals
+	// and capitalized hexadecimal digits, so "uppercase" the result to obtain
+	// something of the right form to satisfy the type. Then cast again to force
+	// the final desired type. Note that the parenthesized expression is not
+	// ambiguous, because there is only one possible type-safe order of
+	// operations.
+	(uppercase ↓field wrapper.id ?→ string) ?→ UUID string
+]: UUID string;
+
+/**
+ * Answer the {@type "sample value wrapper"}'s created time in milliseconds
+ * since the Unix Epoch. Note that the result will be too weak to use as a
+ * Java long, but the semantic restriction below will fix this.
+ *
+ * @category "FFI" "POJO"
+ * @method "_'s⁇created milliseconds"
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the created for.
+ * @returns "any"
+ *       The wrapper's created time in milliseconds.
+ */
+Public method "_'s⁇created milliseconds" is
+[
+	wrapper : sample value wrapper
+|
+	↓field wrapper.created
+]: any;
+
+/**
+ * Fields from a POJO can only provide a type as a strong as "any" therefore we
+ * must use a semantic restriction to strengthen that type to match the type of
+ * the field as it is typed in Java.
+ *
+ * @method "_'s⁇created milliseconds"
+ * @restrict "sample value wrapper's type"
+ */
+Semantic restriction "_'s⁇created milliseconds" is
+[
+	tWrapper: sample value wrapper's type
+|
+	Java long
+];
+
+/**
+ * Answer the {@type "sample value wrapper"}'s created time as an Avail
+ * timestamp.
+ *
+ * @category "FFI" "POJO"
+ * @method "_'s⁇created milliseconds"
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the created for.
+ * @returns "timestamp"
+ *       The timestamp.
+ */
+Public method "_'s⁇created timestamp" is
+[
+	wrapper : sample value wrapper
+|
+	wrapper's created milliseconds → timestamp
+] : timestamp;
+
+// The method is looked up by reflection. Setting this to a constant ensures
+// the binding is only done once.
+addMethod ::= method sample value wrapper.add (Java int);
+
+/**
+ * Answer a new {@type "sample value wrapper"} that wraps the sum of the given
+ * wrapper's value and the provided Java int.
+ *
+ * @category "FFI" "POJO"
+ * @method "_+_"
+ * @param "value" "Java int"
+ *       A Java integer to add to the wrapped value.
+ * @param "wrapper" "sample value wrapper"
+ *       The wrapper to access the value for summing with the provided value.
+ * @returns "Java int"
+ *       The wrapped sum.
+ */
+Public method "_+_" is
+[
+	value : Java int,
+	wrapper : sample value wrapper
+|
+	// This is how a Pojo's method is called from Avail. You must pass the
+	// pojo into the function as the first argument.
+	addMethod(wrapper, value)
+]: sample value wrapper;
+
+/**
+ * Answer the test test suite identifier.
+ *
+ * @method "Sample|sample test suite"
+ * @returns "atom"
+ *    The requested test suite identifier.
+ */
+Method "Sample|sample test suite" is [$"sample test suite"];
+
+// Create the test suite.
+Sample test suite is a new test suite;
+
+// Create a test and add it to the sample test suite.
+Test "ffi java add" in sample test suite is
+[
+	v ::= wrap 5;
+	Require: v's value = 5;
+	v2 ::= 6 + v;
+	Require: v2's value = 11;
+];
+
+// Create another test and add it to the sample test suite.
+Test "ffi java wrapper id" in sample test suite is
+[
+	v ::= wrap 5;
+	id ::= v's id;
+	length ::= |id|;
+	// The length of the UUID 32 byte characters plus the interleaved "_"'s.
+	Require: length = 36;
+];
+
+// Create another test and add it to the sample test suite.
+Test "ffi java wrapper created" in sample test suite is
+[
+	v ::= wrap 5;
+	millis ::= v's created milliseconds;
+	Require: millis > 0;
+];
+
+// Create another test and add it to the sample test suite.
+Test "ffi java wrapper timestamp agrees with milliseconds" in sample test suite is
+[
+	v ::= wrap 5;
+	millis ::= v's created milliseconds;
+	timestamp ::= v's created timestamp;
+	Require: millis → timestamp = timestamp;
+];
+
+/**
+ * Generate a test suite-oriented report for the specified test suite. Emit it
+ * to standard output.
+ *
+ * The purpose of this
+ *
+ * @entry
+ * @method "Run all sample tests"
+ * @returns "⊤"
+ */
+Public method "Run all sample tests" is
+[
+	report ::= report on all tests in sample test suite;
+	Print: test suite-oriented “report”;
+	|bad results of report's metrics| = 0
+];

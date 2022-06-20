@@ -1,6 +1,6 @@
 /*
  * CSV Language.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -123,21 +123,21 @@ Private method "Append record_" is
  * Add the CSV record to {@global "records"}.
  *
  * @method "«…#‡,»"
- * @param "pLeadingEOLs" "list phrase⇒((literal token⇒{end-of-line marker}ᵀ)*)"
+ * @param "pLeadingEOLs" "list phrase⇒(literal token⇒{end-of-line marker}ᵀ)*"
  *        The leading {@method "end-of-line marker"}s, corresponding to line
  *        feed characters.
- * @param "record" "list phrase ⇒ ((literal token ⇒ string)+)"
+ * @param "record" "list phrase ⇒ (literal token ⇒ string)+"
  *        A {@type "list phrase" list} of {@type "literal token" literal} {@type
  *        "string"}s.
- * @param "pTrailingEOL" "literal phrase⇒(literal token⇒{end-of-line marker}ᵀ)"
+ * @param "pTrailingEOL" "literal phrase⇒literal token⇒{end-of-line marker}ᵀ"
  *        The trailing {@method "end-of-line marker"}.
  * @returns "expression as statement phrase"
  */
 Public macro "«…!»«…#‡,»…!" is
 [
-	pLeadingEOLs : list phrase ⇒ ((literal token ⇒ {end-of-line marker}ᵀ)*),
-	pRecord : list phrase ⇒ ((literal token ⇒ string)+),
-	pTrailingEOL : literal phrase ⇒ (literal token ⇒ {end-of-line marker}ᵀ)
+	pLeadingEOLs : list phrase ⇒ (literal token ⇒ {end-of-line marker}ᵀ)*,
+	pRecord : list phrase ⇒ (literal token ⇒ string)+,
+	pTrailingEOL : literal phrase ⇒ literal token ⇒ {end-of-line marker}ᵀ
 |
 	// We know that the record comprises only literals, so evaluate it.
 	record ::= map each column of evaluate pRecord through [column's value];

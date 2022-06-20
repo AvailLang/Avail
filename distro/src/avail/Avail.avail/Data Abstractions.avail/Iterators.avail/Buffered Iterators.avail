@@ -1,6 +1,6 @@
 /*
  * Buffered Iterators.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Buffered Iterators"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Uses
 	"Abstract Iterators",
 	"Common" = ("element type"),
@@ -167,7 +167,7 @@ Public method "_'s⁇exit buffer method is_" is
  * @method "_'s⁇exit buffer method is_"
  * @restricts "iteratorType" "random access buffered iterator's type's type"
  *            The iterator's metatype, as a cross check for the implementation.
- * @restricts "implementation" "[⊥]→⊤'s type"
+ * @restricts "implementation" "([⊥]→⊤)'s type"
  *            The new method extension's metatype. The argument is the iterator.
  * @returns "⊤'s type"
  * @category "Data Abstractions" "Iterators"
@@ -175,7 +175,7 @@ Public method "_'s⁇exit buffer method is_" is
 Semantic restriction "_'s⁇exit buffer method is_" is
 [
 	iteratorMeta : buffered iterator's type's type,
-	implementationType : [⊥]→⊤'s type
+	implementationType : ([⊥]→⊤)'s type
 |
 	If implementationType[1] = ⊥ then
 	[
@@ -235,7 +235,7 @@ Public method "_'s⁇fetch current buffer method is_" is
 Semantic restriction "_'s⁇fetch current buffer method is_" is
 [
 	readerMeta : buffered reader's type's type,
-	implementationType : [⊥]→tuple's type
+	implementationType : ([⊥]→tuple)'s type
 |
 	If implementationType[1] = ⊥ then
 	[

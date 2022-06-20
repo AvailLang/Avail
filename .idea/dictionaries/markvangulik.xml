@@ -1,12 +1,18 @@
 <component name="ProjectDictionaryState">
   <dictionary name="markvangulik">
     <words>
+      <w>abcdef</w>
+      <w>antipattern</w>
       <w>api</w>
+      <w>arriaga</w>
+      <w>augend</w>
+      <w>availuator</w>
       <w>backpointer</w>
       <w>bagwell's</w>
       <w>bgcolor</w>
       <w>boundedly</w>
       <w>calendrical</w>
+      <w>canonicalized</w>
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
@@ -18,6 +24,8 @@
       <w>dbff</w>
       <w>debugger's</w>
       <w>decompilable</w>
+      <w>deoptimize</w>
+      <w>deoptimized</w>
       <w>devirtualize</w>
       <w>dfff</w>
       <w>distro</w>
@@ -36,39 +44,54 @@
       <w>hmmss</w>
       <w>incomparables</w>
       <w>inet</w>
+      <w>inliner</w>
       <w>int's</w>
       <w>intelli</w>
+      <w>ints</w>
       <w>irreflexive</w>
       <w>jetbrains</w>
       <w>johnrengelman</w>
       <w>joinee</w>
+      <w>joinee's</w>
       <w>jvm's</w>
+      <w>katal</w>
       <w>lexes</w>
+      <w>lexings</w>
       <w>linearization</w>
+      <w>linefeeds</w>
       <w>literalizes</w>
       <w>literalizing</w>
       <w>masse</w>
       <w>mersenne</w>
       <w>metainvariance</w>
       <w>metametatype</w>
+      <w>metatype's</w>
       <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
+      <w>noncanonical</w>
       <w>noninline</w>
       <w>nonlocal</w>
       <w>nonprimitive</w>
       <w>nulled</w>
       <w>nullness</w>
+      <w>nybblecoded</w>
       <w>observerless</w>
+      <w>optional's</w>
+      <w>parameters'type</w>
       <w>postinvoke</w>
+      <w>pragma's</w>
       <w>precompute</w>
       <w>preinvoke</w>
       <w>primfail</w>
       <w>printability</w>
       <w>pseudoprimes</w>
+      <w>recanonicalize</w>
       <w>recurses</w>
+      <w>recursing</w>
       <w>regenerator's</w>
       <w>regenerators</w>
+      <w>reifier</w>
       <w>reifier's</w>
       <w>resumable</w>
       <w>retranslator</w>
@@ -85,36 +108,53 @@
       <w>spliterated</w>
       <w>spliterating</w>
       <w>stackless</w>
+      <w>steradian</w>
       <w>subbin</w>
       <w>subblock</w>
       <w>subgraphs</w>
       <w>subkey</w>
       <w>sublists</w>
+      <w>submap</w>
       <w>subnode</w>
       <w>subphrase</w>
+      <w>subrange</w>
+      <w>subranges</w>
       <w>subregion</w>
       <w>subtable</w>
+      <w>subtags</w>
       <w>subtyped</w>
+      <w>subvalue</w>
+      <w>subvariant</w>
+      <w>summarizability</w>
+      <w>summarizable</w>
+      <w>supercall</w>
       <w>supercast's</w>
       <w>supernode</w>
       <w>superunion</w>
+      <w>supremum</w>
       <w>synchronizer</w>
       <w>tailrec</w>
       <w>unboundedly</w>
       <w>uncaptured</w>
       <w>undeclare</w>
+      <w>underflows</w>
       <w>unname</w>
       <w>unparameterized</w>
       <w>unparking</w>
       <w>unparks</w>
+      <w>unpausing</w>
       <w>unquoter</w>
+      <w>unreified</w>
       <w>unreturnable</w>
       <w>unreversed</w>
+      <w>unsummarized</w>
       <w>unsynchronized</w>
       <w>untraced</w>
       <w>uuids</w>
+      <w>versioner</w>
       <w>vettings</w>
       <w>welford</w>
+      <w>write's</w>
       <w>wump</w>
       <w>wumping</w>
       <w>wumpus</w>

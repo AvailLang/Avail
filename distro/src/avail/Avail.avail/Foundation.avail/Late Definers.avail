@@ -1,6 +1,6 @@
 /*
  * Late Definers.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Late Definers"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Definers"
 Uses
@@ -161,7 +161,7 @@ do
 	Semantic restriction name is
 	[
 		nameType : string's type,
-		definitionType : […]→⊤'s type
+		definitionType : ([…]→⊤)'s type
 	|
 		Require: nameType is unambiguous;
 		Require: nameType is canonical;
@@ -171,7 +171,7 @@ do
 	Semantic restriction name is
 	[
 		nameType : atom's type,
-		definitionType : […]→⊤'s type
+		definitionType : ([…]→⊤)'s type
 	|
 		Require: nameType is canonical;
 		⊤

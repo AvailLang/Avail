@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Primitives"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Common" = ("Close_"),
 	"Network Common" = ("_'s⁇name")
@@ -459,7 +459,7 @@ is
  *
  * @method
  *    "a fiber connecting_to_,⁇\
- *    \|on success doing_⁇,\
+ *    \|on success doing_,⁇\
  *    \|on failure doing_«⁇,forked at priority_»"
  * @param "s" "client socket"
  * @param "peerAddress" "socket address"
@@ -506,8 +506,8 @@ is
 [
 	s : client socket's type,
 	peerAddress : socket address's type,
-	success : []→⊤'s type,
-	failure : [exception]→⊤'s type,
+	success : ([]→⊤)'s type,
+	failure : ([exception]→⊤)'s type,
 	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)
@@ -582,8 +582,8 @@ is
  *  \|on failure doing_«⁇,forked at priority_»"
  * @restricts "whole number's type"
  * @restricts "client socket's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[exception]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([exception]→⊤)'s type"
  * @restricts "byte?'s type"
  */
 Semantic restriction
@@ -594,8 +594,8 @@ is
 [
 	count : whole number's type,
 	s : client socket's type,
-	success : []→⊤'s type,
-	failure : [exception]→⊤'s type,
+	success : ([]→⊤)'s type,
+	failure : ([exception]→⊤)'s type,
 	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)
@@ -667,8 +667,8 @@ is
  *  \|on failure doing_«⁇,forked at priority_»"
  * @restricts "byte*'s type"
  * @restricts "client socket's type"
- * @restricts "[]→⊤'s type"
- * @restricts "[exception]→⊤'s type"
+ * @restricts "([]→⊤)'s type"
+ * @restricts "([exception]→⊤)'s type"
  * @restricts "byte?'s type"
  */
 Semantic restriction
@@ -679,8 +679,8 @@ is
 [
 	data : byte*'s type,
 	s : client socket's type,
-	success : []→⊤'s type,
-	failure : [exception]→⊤'s type,
+	success : ([]→⊤)'s type,
+	failure : ([exception]→⊤)'s type,
 	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)

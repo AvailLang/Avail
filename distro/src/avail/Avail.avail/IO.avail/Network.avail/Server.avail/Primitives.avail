@@ -1,6 +1,6 @@
 /*
  * Primitives.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Primitives"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Address" = ("_'s⁇address"),
 	"Common" = ("Close_"),
@@ -367,8 +367,8 @@ is
 [
 	s : server socket's type,
 	optionalName : nonempty string?'s type,
-	success : [client socket]→⊤'s type,
-	failure : [exception]→⊤'s type,
+	success : ([client socket]→⊤)'s type,
+	failure : ([exception]→⊤)'s type,
 	optionalPriority : byte?'s type
 |
 	fiber→(success's return type ∪ failure's return type)

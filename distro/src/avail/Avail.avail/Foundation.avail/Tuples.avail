@@ -1,6 +1,6 @@
 /*
  * Tuples.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Tuples"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Collections",
 	"Early Tuples"
@@ -40,7 +40,6 @@ Uses
 	"Bootstrap",
 	"Control Structures",
 	"Definers",
-	"Early Assertions",
 	"Early Conditionals",
 	"Early Functions",
 	"Early Maps",
@@ -128,6 +127,8 @@ Method "“_”" is
 	t : tuple meta
 |
 	if |t| < ∞ then [“(t :: nontype's type)”]
+	else if t = tuple then ["tuple"]
+	else if t = string then ["string"]
 	else
 	[
 		s : nonempty string := "<";
@@ -192,6 +193,59 @@ Method "For each of⁇_do_" is
 /**
  * Iteratively apply `action` to each consecutive element of `aTuple`.
  *
+ * This is a macro to allow static type checks for the tuple elements and
+ * block argument, at least after dynamic optimization.
+ *
+ * @macro "For each of⁇_do_"
+ * @param "aTuple" "tuple"
+ * @param "action" "[⊥]→⊤"
+ *        A function that accepts the elements of the tuple.
+ * @returns "⊤"
+ * @category "Tuples" "Collections" "Control Structures"
+ */
+Macro "For each of⁇_do_" is
+[
+	aTuple : expression phrase ⇒ tuple,
+	action : expression phrase ⇒ [⊥]→⊤
+|
+	indexDecl ::= arg «this token: index : natural number»;
+	endDecl ::= arg «this token: end : whole number»;
+	innerTupleDecl ::= arg «this token: innerTuple : aTuple's semantic type»;
+	innerActionDecl ::= arg «this token: innerAction : action's semantic type»;
+	loopDecl ::= «$this token: loop : $[…]→⊤»;
+	tupleTempDecl ::= «this token: tupleTemp ::= aTuple»;
+
+	loop ::= «↓loopDecl» ?→ variable use phrase ⇒ $[…]→⊤;
+	index ::= «↓indexDecl» ?→ variable use phrase ⇒ natural number;
+	end ::= «↓endDecl» ?→ variable use phrase ⇒ whole number;
+	innerTuple ::= «↓innerTupleDecl» ?→ variable use phrase ⇒ tuple;
+	innerAction ::= «↓innerActionDecl» ?→ variable use phrase ⇒ […]→⊤;
+	tupleTemp ::= «↓tupleTempDecl» ?→ variable use phrase ⇒ tuple;
+
+	block ::= «[
+		<indexDecl, endDecl, innerTupleDecl, innerActionDecl>
+	|
+		<
+			loopDecl,
+			⟦Exit ⦊loop⦉ if ⦊index⦉ > ⦊end⦉;⟧,
+			⟦⦊innerAction⦉ (⦊innerTuple⦉ [⦊index⦉]);⟧,
+			⟦
+				Restart ⦊loop⦉
+				with <⦊index⦉ + 1, ⦊end⦉, ⦊innerTuple⦉, ⦊innerAction⦉>
+			⟧
+		>
+	] : ⊤»;
+	sequence-as-expression «
+		seq «<
+			tupleTempDecl,
+			⟦ ⦊block⦉ (1, |⦊tupleTemp⦉|, ⦊tupleTemp⦉, ⦊action⦉); ⟧
+		>»
+	»
+] : sequence-as-expression phrase;
+
+/**
+ * Iteratively apply `action` to each consecutive element of `aTuple`.
+ *
  * @method "For each of⁇_do_"
  * @param "aTuple" "tuple"
  * @param "action" "[⊥, ⊥]→⊤"
@@ -241,13 +295,13 @@ Method "Require:_accepts_«(check indices)»?" is
 |
 	If ⌊action's parameters' type⌋ < 1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept at least one argument"
 	];
 	union ::= ∪ tupleType[1..|tupleType's leading types| + 1];
 	If action[1] ≠ ⊥ ∧ ¬union ⊆ action[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept all elements of the tuple ⊆ "
 			++ “tupleType”
 			++ " (but it only accepts "
@@ -260,7 +314,7 @@ Method "Require:_accepts_«(check indices)»?" is
 		∧ ¬[1..⌈tupleType⌉ + 1) ⊆ action[2]
 	then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to accept all indices of the tuple ⊆ "
 			++ “tupleType”
 			++ " (but it only accepts "
@@ -302,7 +356,7 @@ Public method "_'s⁇strengthening function" is
 			<aTupleType's default type>;
 		∪ tupleOfTypes
 	] : any's type
-]:[]→(any's type);
+]:[]→any's type;
 
 
 /**
@@ -313,7 +367,7 @@ Public method "_'s⁇strengthening function" is
  */
 Macro "a closed element operation on nonempty tuples of_" is
 [
-	tupTypePhrase : expression phrase ⇒ (number's type)
+	tupTypePhrase : expression phrase ⇒ number's type
 |
 	tupType ::= evaluate tupTypePhrase;
 	«[
@@ -408,13 +462,13 @@ Private method "«two input»?«indexed»?return type(_,_,_,_)" is
 		if indexed then
 		[
 			indexingType ::= (0 .. ⌈aTupleType⌉+1);
-			[elementType, indexingType]→(action's semantic type's return type)
+			[elementType, indexingType]→action's semantic type's return type
 		] else [
-		    [elementType, elementType]→(action's semantic type's return type)
+			[elementType, elementType]→action's semantic type's return type
 		]
 	] else
 	[
-		[elementType]→(action's semantic type's return type)
+		[elementType]→action's semantic type's return type
 	];
 
 	strengthen baseReturnType for call of anAtom using <aTupleType, blockType>
@@ -456,7 +510,7 @@ Public method "tuple body function(_,_)" is
 				aTuple,
 				«[
 					<cast declaration into [d : argument phrase | d]>
-				 |
+				|
 					statements
 				] : blockReturnType»
 			>» : returnType
@@ -493,8 +547,8 @@ Private method "«indexed»?two-input tuple body function(_,_)" is
 				two input indexed return type(
 					aTuple, action, baseReturnType, anAtom)
 			] else [
-			    two input return type(
-			    	aTuple, action, baseReturnType, anAtom)
+				two input return type(
+					aTuple, action, baseReturnType, anAtom)
 			];
 		statements ::= action's statements;
 		blockReturnType ::= cast statements
@@ -645,19 +699,19 @@ Method "map_through_" is
  *
  * @method "map_through_"
  * @restricts "tuple meta"
- * @restricts "[…]→any's type"
+ * @restricts "([…]→any)'s type"
  */
 Semantic restriction "map_through_" is
 [
 	tupleType : tuple meta,
-	transformer : […]→any's type
+	transformer : ([…]→any)'s type
 |
 	Require: transformer accepts tupleType (check indices);
 	If ⌊tupleType⌋ > 0 then
 	[
 		If transformer's return type = ⊥ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"repeatedly applied function to have a return type other than\
 				\| ⊥"
 		];
@@ -811,12 +865,12 @@ Method "filter_by_" is
  *
  * @method "filter_by_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "filter_by_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	if predicate's return type = true's type then [tupleType]
@@ -934,7 +988,7 @@ Macro "reject each…from_§where_" is a tuple iteration prefix function,
 			aTuple,
 			«[
 				<cast declaration into [d : argument phrase | d]>
-			 |
+			|
 				newStatements
 			] : blockReturnType»
 		>» : returnType
@@ -1132,18 +1186,18 @@ Method "map and filter_by_" is
  *
  * @method "map and filter_by_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
 	tupleType : tuple meta,
-	accumulator : [⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts tupleType;
 	Require: accumulator's keeper is valid;
 	If accumulator's return type ≠ ⊤ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to have return type ⊤"
 	];
 	<
@@ -1159,18 +1213,18 @@ Semantic restriction "map and filter_by_" is
  *
  * @method "map and filter_by_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥, ⊥]→⊤'s type"
+ * @restricts "([⊥, ⊥, ⊥]→⊤)'s type"
  */
 Semantic restriction "map and filter_by_" is
 [
 	tupleType : tuple meta,
-	accumulator : [⊥, ⊥, ⊥]→⊤'s type
+	accumulator : ([⊥, ⊥, ⊥]→⊤)'s type
 |
 	Require: accumulator accepts tupleType (check indices);
 	Require: accumulator's keeper is valid;
 	If accumulator's return type ≠ ⊤ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function to have return type ⊤"
 	];
 	<
@@ -1262,12 +1316,12 @@ Method "any of_satisfies_" is
  *
  * @method "any of_satisfies_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "any of_satisfies_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	predicate's return type
@@ -1356,12 +1410,12 @@ Method "each of_satisfies_" is
  *
  * @method "each of_satisfies_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "each of_satisfies_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	predicate's return type
@@ -1497,12 +1551,12 @@ Method "count of_where_" is
  *
  * @method "count of_where_"
  * @restricts "tuple meta"
- * @restricts "[…]→boolean's type"
+ * @restricts "([…]→boolean)'s type"
  */
 Semantic restriction "count of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : […]→boolean's type
+	predicate : ([…]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	[0..⌈tupleType⌉ + 1)
@@ -1559,14 +1613,24 @@ Public stable method "distinct_" is
 	]
 ] : tuple;
 
-/* No decent semantic restrictions can be written yet for `distinct_` and
- * `_→set`. An efficient algorithm involves construction and evaluation of a
- * chromatic polynomial over the type intersection graph of the tuple type's
- * element types (the vertices represent the element types and an edge between
- * two vertices indicates that the type intersection of the element types is ⊥).
- * We cannot conveniently build graphs yet. We need object types and objects
- * first.
+/**
+ * Bound the type as well as possible without delving into chromatic polynomials
+ * and pigeon-hole proofs.
+ *
+ * @method "distinct_"
+ * @param "aTupleType" "tuple meta"
+ * @returns "tuple meta"
+ *          A tuple type that permits only the elements possible for {@param
+ *          "aTuple"}, with at most the given number of elements.
+ * @category "Tuples" "Transformers"
  */
+Semantic restriction "distinct_" is
+[
+	aTupleType : tuple meta
+|
+	elementType ::= ∪ aTupleType[1..∞];
+	<elementType…|⌊aTupleType⌋ min 1..⌈aTupleType⌉>
+] : tuple meta;
 
 /**
  * Answer a function that computes the zip of a tuple of tuples.
@@ -1594,6 +1658,20 @@ Private method "zip function" is
 		accumulator
 	] : tuple
 ] : [tuple+]→tuple;
+
+/*
+ * Answer a function like {@code "zip function"}, but that requires at least
+ * two tuples to be supplied.  In theory this avoids pointless parsing attempts
+ * for the inline {@code "«_‡zip»"} operation.
+ */
+Private method "zip function for two or more" is
+[
+	[
+		tuples : <tuple…|2..>
+	|
+		zip function(tuples)
+	]
+];
 
 /**
  * Compute and answer the zip of the specified tuples. Given N input tuples, the
@@ -1625,7 +1703,7 @@ Public method "zip_" is zip function;
  *          The zip of the input tuples.
  * @category "Tuples" "Transformers"
  */
-Public method "«_‡zip»" is zip function;
+Public method "«_‡zip»" is zip function for two or more;
 
 /**
  * Don't parse {@param "«_‡zip»"} recursively.
@@ -1761,12 +1839,12 @@ Public method "left fold_through_" is
  *
  * @method "left fold_through_"
  * @restricts "any+'s type"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "left fold_through_" is
 [
 	tupleType : any+'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	headType ::= tupleType[1];
 	restType ::= if |tupleType's leading types| > 0
@@ -1776,7 +1854,7 @@ Semantic restriction "left fold_through_" is
 	finalType ::= headType ∪ returnType;
 	If transformer[1] ≠ ⊥ ∧ ¬restType ⊆ transformer[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept all\
 			\| non-first elements of the tuple ⊆ "
 			++ “restType”
@@ -1786,7 +1864,7 @@ Semantic restriction "left fold_through_" is
 	];
 	If transformer[2] ≠ ⊥ ∧ ¬finalType ⊆ transformer[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
 			\| type union ⊆ "
 			++ “finalType”
@@ -1859,19 +1937,19 @@ Public method "left fold_into_through_" is
  * @method "left fold_into_through_"
  * @restricts "any's type"
  * @restricts "any+'s type"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "left fold_into_through_" is
 [
 	initialValueType : any's type,
 	tupleType : any*'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	returnType ::= transformer's return type;
 	elementType ::= ∪ tupleType[1..∞];
 	If transformer[1] ≠ ⊥ ∧ elementType ⊈ transformer[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept each\
 			\| element of the tuple, typed "
 			++ “elementType”
@@ -1880,7 +1958,7 @@ Semantic restriction "left fold_into_through_" is
 	];
 	If transformer[2] ≠ ⊥ ∧ initialValueType ⊈ transformer[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
 			\| initial value, "
 			++ “initialValueType”
@@ -1889,7 +1967,7 @@ Semantic restriction "left fold_into_through_" is
 	];
 	If transformer[2] ≠ ⊥ ∧ returnType ⊈ transformer[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept its own\
 			\| output, "
 			++ “returnType”
@@ -1970,12 +2048,12 @@ Public method "right fold_through_" is
  *
  * @method "right fold_through_"
  * @restricts "any+'s type"
- * @restricts "[⊥, ⊥]→any's type"
+ * @restricts "([⊥, ⊥]→any)'s type"
  */
 Semantic restriction "right fold_through_" is
 [
 	tupleType : any+'s type,
-	transformer : [⊥, ⊥]→any's type
+	transformer : ([⊥, ⊥]→any)'s type
 |
 	sizes ::= ||tupleType||;
 
@@ -1988,7 +2066,7 @@ Semantic restriction "right fold_through_" is
 	finalType ::= lastType ∪ returnType;
 	If transformer[1] ≠ ⊥ ∧ ¬restType ⊆ transformer[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's first parameter to accept all\
 			\| non-last elements of the tuple ⊆ "
 			++ “restType”
@@ -1998,7 +2076,7 @@ Semantic restriction "right fold_through_" is
 	];
 	If transformer[2] ≠ ⊥ ∧ ¬finalType ⊆ transformer[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"repeatedly applied function's second parameter to accept the\
 			\| type union ⊆ "
 			++ “finalType”
@@ -2050,12 +2128,12 @@ Public method "first index of_where_" is
  *
  * @method "first index of_where_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "first index of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	[0..⌈tupleType⌉ + 1)
@@ -2113,12 +2191,12 @@ Public method "last index of_where_" is
  *
  * @method "last index of_where_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "last index of_where_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	[0..⌈tupleType⌉ + 1)
@@ -2179,12 +2257,12 @@ Public method "all indices of_where_" is
  *
  * @method "all indices of_where_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "all indices of_where_" is
 [
 	tupleType : tuple meta,
-	predicateType : [⊥]→boolean's type
+	predicateType : ([⊥]→boolean)'s type
 |
 	Require: predicateType accepts tupleType (check indices);
 	<natural number…|0..⌈tupleType⌉ + 1>
@@ -2368,7 +2446,7 @@ Semantic restriction "_to_by_" is
 
 	If delta ⊆ [0..0] then
 	[
-		Immediately reject parse, expected: "delta value not to be zero"
+		Reject parse, expected: "delta value not to be zero"
 	];
 
 	If delta ⊆ [0..∞) then
@@ -2674,7 +2752,7 @@ Semantic restriction "split_after_" is
 |
 	If ⌊pivot⌋ > ⌈tupleType⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"pivot ∈ "
 			++ “pivot”
 			++ " ever to be valid for the tuple ∈ "
@@ -2728,7 +2806,7 @@ Semantic restriction "split_before_" is
 |
 	If ⌊pivot⌋ > ⌈tupleType⌉ + 1 then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"pivot ∈ "
 			++ “pivot”
 			++ " ever to be valid for the tuple ∈ "
@@ -2782,12 +2860,12 @@ Method "split_before_" is
  *
  * @method "split_before_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "split_before_" is
 [
 	tupleType : tuple meta,
-	predicate : [⊥]→boolean's type
+	predicate : ([⊥]→boolean)'s type
 |
 	Require: predicate accepts tupleType (check indices);
 	returnType ::= predicate's return type;
@@ -2870,7 +2948,7 @@ Semantic restriction "explode_at element_«,⁇skipping empties»?" is
   tupleMemberType ::= ∪ tupleType[1..|tupleType's leading types| + 1];
   Unless delimiterType ⊆ tupleMemberType then
   [
-     Immediately reject parse, expected:
+     Reject parse, expected:
         "delimiter of type " ++ “delimiterType” ++
         " to be a subtype of the smeared tuple union type" ++
         “tupleMemberType”
@@ -2930,7 +3008,7 @@ Semantic restriction "stripe_at_" is
 		innerType ::= tupleType[typeIndex];
 		If ⌊index⌋ > ⌈innerType⌉ then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"a subscript ("
 				++ “⌊index⌋”
 				++ " ≤ theSubscript ≤ "
@@ -3026,15 +3104,15 @@ Public method "take from_while_" is
  * @category "Data Abstractions"
  * @method "take|drop-while|until semantic restriction"
  * @param "tupleType" "tuple meta"
- * @param "predicate" "[⊥]→boolean's type"
- * @returns "[tuple meta, [⊥]→boolean's type]→⊤"
+ * @param "predicate" "([⊥]→boolean)'s type"
+ * @returns "[tuple meta, ([⊥]→boolean)'s type]→⊤"
  *    The requested function.
  */
 Private method "take|drop-while|until semantic restriction" is
 [
 	[
 		tupleType : tuple meta,
-		predicate : [⊥]→boolean's type
+		predicate : ([⊥]→boolean)'s type
 	|
 		Require: predicate accepts tupleType (check indices);
 		<∪ tupleType[1..|tupleType's leading types| + 1]…|0..⌈tupleType⌉>
@@ -3044,7 +3122,7 @@ Private method "take|drop-while|until semantic restriction" is
 /**
  * @method "take from_while_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "take from_while_" is take-while semantic restriction;
 
@@ -3079,7 +3157,7 @@ Public method "take from_until_" is
 /**
  * @method "take from_until_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "take from_until_" is take-until semantic restriction;
 
@@ -3116,7 +3194,7 @@ Public method "drop from_while_" is
 /**
  * @method "drop from_while_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "drop from_while_" is drop-while semantic restriction;
 
@@ -3150,7 +3228,7 @@ Public method "drop from_until_" is
 /**
  * @method "drop from_until_"
  * @restricts "tuple meta"
- * @restricts "[⊥]→boolean's type"
+ * @restricts "([⊥]→boolean)'s type"
  */
 Semantic restriction "drop from_until_" is drop-until semantic restriction;
 
@@ -3302,7 +3380,7 @@ Semantic restriction "_[_]→_" is
 	indexLower ::= ⌊indexType⌋;
 	If indexLower > ⌈tupleType⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊indexType⌋”
 			++ " ≤ theSubscript ≤ "
@@ -3427,7 +3505,7 @@ Semantic restriction "_[_↔_]" is
 |
 	If ⌊index1⌋ > ⌈aTuple⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊index1⌋”
 			++ " ≤ theSubscript ≤ "
@@ -3440,7 +3518,7 @@ Semantic restriction "_[_↔_]" is
 	];
 	If ⌊index2⌋ > ⌈aTuple⌉ then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"a subscript ("
 			++ “⌊index2⌋”
 			++ " ≤ theSubscript ≤ "
@@ -3496,18 +3574,9 @@ Semantic restriction "_'s⁇head" is
  *          The requested tuple slice.
  * @category "Tuples" "Queries"
  */
-Public stable abstract method "_'s⁇tail" is [any+]→tuple;
-
-Method "_'s⁇tail" is
+Public stable method "_'s⁇tail" is
 [
-	aTuple : <any…|1>
-|
-	<>
-] : <>'s type;
-
-Method "_'s⁇tail" is
-[
-	aTuple : <any…|2..>
+	aTuple : <any…|1..>
 |
 	aTuple[2..]
 ] : tuple;
@@ -3820,17 +3889,17 @@ Private method "insertion sort_with_" is
 /**
  * @method "insertion sort_with_"
  * @restricts "<any…|2..10>'s type"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "insertion sort_with_" is
 [
 	tupleType : <any…|2..10>'s type,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -3839,7 +3908,7 @@ Semantic restriction "insertion sort_with_" is
 	];
 	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -3911,20 +3980,22 @@ Method "quicksort_" is
 	 * pivot.
 	 */
 	size ::= |numbers|;
-	halfSize ::= |numbers| ÷ 2;
-	pivotIndex : natural number :=
-		if numbers[1] > numbers[size]
-		then [1]
-		else [size];
-	pivotIndex :=
-		if numbers[pivotIndex] < numbers[halfSize]
-		then [pivotIndex]
-		else [
-			nonpivotBoundaryIndex : natural number :=
-				cast size + 1 - pivotIndex into [t : natural number | t];
-			if numbers[nonpivotBoundaryIndex] < numbers[halfSize]
-			then [halfSize]
-			else [nonpivotBoundaryIndex]];
+	halfSize ::= ((size - 1) >> 1) + 1;
+	a ::= numbers[1];
+	b ::= numbers[halfSize];
+	c ::= numbers[size];
+	pivotIndex ::= if a < b then
+	[
+		if b < c then [halfSize]  /*abc*/
+		else if c < a then [1]  /*cab*/
+		else [size]  /*acb*/
+	]
+	else
+	[
+		if a < c then [1] /*bac*/
+		else if c < b then [halfSize]  /*cba*/
+		else [size]   /*bca*/
+	];
 	pivot ::= numbers[pivotIndex];
 	withoutPivot ::= numbers[..pivotIndex-1] ++ numbers[pivotIndex+1..];
 	lesser ::= select each n from withoutPivot where [n ≤ pivot];
@@ -3952,17 +4023,17 @@ Public abstract method "quicksort_with_" is [tuple, [⊥, ⊥]→boolean]→tupl
 /**
  * @method "quicksort_with_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "quicksort_with_" is
 [
 	tupleType : tuple meta,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -3971,7 +4042,7 @@ Semantic restriction "quicksort_with_" is
 	];
 	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -4006,19 +4077,26 @@ Method "quicksort_with_" is
 	 * pivot.
 	 */
 	size ::= |aTuple|;
-	halfSize ::= |aTuple| ÷ 2;
-	pivotIndex : natural number :=
-		if comparator(aTuple[1], aTuple[size])
-		then [1]
-		else [size];
-	pivotIndex :=
-		if ¬comparator(aTuple[pivotIndex], aTuple[halfSize])
-		then [pivotIndex]
-		else [halfSize];
+	halfSize ::= ((size - 1) >> 1) + 1;
+	a ::= aTuple[1];
+	b ::= aTuple[halfSize];
+	c ::= aTuple[size];
+	pivotIndex ::= if comparator(a, b) then
+	[
+		if comparator(b, c) then [halfSize]  /*abc*/
+		else if comparator(c, a) then [1]  /*cab*/
+		else [size]  /*acb*/
+	]
+	else
+	[
+		if comparator(a, c) then [1] /*bac*/
+		else if comparator(c, b) then [halfSize]  /*cba*/
+		else [size]   /*bca*/
+	];
 	pivot ::= aTuple[pivotIndex];
 	withoutPivot ::= aTuple[..pivotIndex-1] ++ aTuple[pivotIndex+1..];
-	lesser ::= select each a from withoutPivot where [comparator(a, pivot)];
-	greater ::= reject each a from withoutPivot where [comparator(a, pivot)];
+	lesser ::= select each x from withoutPivot where [comparator(x, pivot)];
+	greater ::= reject each x from withoutPivot where [comparator(x, pivot)];
 	quicksort lesser with comparator
 		++ <pivot>
 		++ quicksort greater with comparator
@@ -4132,17 +4210,17 @@ Public abstract method "merge sort_with_" is [tuple, [⊥, ⊥]→boolean]→tup
 /**
  * @method "merge sort_with_"
  * @restricts "tuple meta"
- * @restricts "[⊥, ⊥]→boolean's type"
+ * @restricts "([⊥, ⊥]→boolean)'s type"
  */
 Semantic restriction "merge sort_with_" is
 [
 	tupleType : tuple meta,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union ::= ∪ tupleType[1..|tupleType's leading types|+1];
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -4151,7 +4229,7 @@ Semantic restriction "merge sort_with_" is
 	];
 	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -4320,7 +4398,7 @@ Semantic restriction "_-_" is
 		∧ tupleType's default type ∩ element = ⊥
 	then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"tuple subtraction to have a possible effect (but "
 			++ “element”
 			++ " is disjoint from every element type)"
@@ -4378,7 +4456,7 @@ Semantic restriction "_↑-=_" is
 	];
 	If allDisjoint then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"tuple subtraction to have a possible effect (but "
 			++ “element”
 			++ " is disjoint from every element type)"
@@ -4389,7 +4467,7 @@ Semantic restriction "_↑-=_" is
 		resultType ::= <union… | 0 max (⌊tupleType⌋-1).. ⌈tupleType⌉>;
 		If ¬resultType ⊆ varType's write type then
 		[
-			Immediately reject parse, expected:
+			Reject parse, expected:
 				"variable to accept " ++ “resultType”
 		];
 	];
@@ -4452,7 +4530,7 @@ Semantic restriction "_[_.._]else_" is
 		∨ ⌊start⌋ - 1 > ⌈end⌉
 	then
 	[
-		Immediately reject parse, expected: "slice to ever be valid"
+		Reject parse, expected: "slice to ever be valid"
 	]
 	else if
 		⌊start⌋ ≥ 1
@@ -4461,7 +4539,7 @@ Semantic restriction "_[_.._]else_" is
 		∧ ⌈end⌉ ≤ ⌊tupleType⌋
 	then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"alternative block to be necessary, but the slice is guaranteed \
 			\|to be valid"
 	]
@@ -4514,7 +4592,7 @@ Semantic restriction "_[.._]else_" is
 |
 	if ⌊end⌋ > ⌈tupleType⌉ ∨ ⌈end⌉ < 0 then
 	[
-		Immediately reject parse, expected: "slice to ever be valid"
+		Reject parse, expected: "slice to ever be valid"
 	]
 	else if
 		⌊end⌋ ≥ 0
@@ -4522,7 +4600,7 @@ Semantic restriction "_[.._]else_" is
 		∧ ⌈end⌉ ≤ ⌊tupleType⌋
 	then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"alternative block to be necessary, but the slice is guaranteed \
 			\|to be valid"
 	]
@@ -4580,7 +4658,7 @@ Semantic restriction "_[_..]else_" is
 		∨ ⌊start⌋ - 1 > ⌈end⌉
 	then
 	[
-		Immediately reject parse, expected: "slice to ever be valid"
+		Reject parse, expected: "slice to ever be valid"
 	]
 	else if
 		⌊start⌋ ≥ 1
@@ -4588,7 +4666,7 @@ Semantic restriction "_[_..]else_" is
 		∧ ⌈end⌉ ≤ ⌊tupleType⌋
 	then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"alternative block to be necessary, but the slice is guaranteed \
 			\|to be valid"
 	]
@@ -4702,7 +4780,7 @@ Method "first index of_in_" is
 		first index of aTuple where
 		[
 			a : any
-		 |
+		|
 			a = subtuple[1]
 		]
 	]
@@ -4801,7 +4879,7 @@ Method "all indices of_in_" is
 		all indices of aTuple where
 		[
 			a : any
-		 |
+		|
 			a = subtuple[1]
 		]
 	]
@@ -4953,24 +5031,23 @@ Method "replace all occurrences of_in_with_" is
 	aTuple : any+,
 	replacementTuple : tuple
 |
-	if |subtuple| > |aTuple| then [aTuple]
-	else if subtuple = aTuple then [replacementTuple]
-	else if |subtuple| = 1 then
+	$body : tuple;
+	Exit body with aTuple if |subtuple| > |aTuple|;
+	Exit body with replacementTuple if subtuple = aTuple;
+	If |subtuple| = 1 then
 	[
+		item ::= subtuple[1];
 		newTuple : tuple := <>;
-		index : natural number := 1;
-		While index ≤ |aTuple| do
+		runStart : natural number := 1;
+		For each index from 1 to |aTuple| do
 		[
-			If <aTuple[index]> = subtuple then
+			If aTuple[index] = item then
 			[
-				newTuple ++= replacementTuple;
-			]
-			else
-			[
-				newTuple ++= <aTuple[index]>;
+				newTuple ++= aTuple[runStart..index - 1] ++ replacementTuple;
+				runStart := index + 1;
 			];
-			index++;
 		];
+		newTuple ++= aTuple[runStart..|aTuple|];
 		newTuple
 	]
 	else
@@ -5075,6 +5152,12 @@ Semantic restriction "only_" is
 [
 	tType : tuple meta
 |
+	Unless 1 ∈ ||tType|| then
+	[
+		Reject parse, expected:
+			"the possibility that the tuple argument of \"only_\" has \
+			\|exactly one element"
+	];
 	tType[1]
 ];
 
@@ -5132,13 +5215,13 @@ Semantic restriction "insertion index of|for_in_with_" is
 [
 	element : any's type,
 	tupleType : tuple's type,
-	comparator : [⊥, ⊥]→boolean's type
+	comparator : ([⊥, ⊥]→boolean)'s type
 |
 	union : type := ∪ tupleType[1..|tupleType's leading types|+1];
 	union := union ∪ element;
 	If comparator[1] ≠ ⊥ ∧ ¬union ⊆ comparator[1] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"first parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -5147,7 +5230,7 @@ Semantic restriction "insertion index of|for_in_with_" is
 	];
 	If comparator[2] ≠ ⊥ ∧ ¬union ⊆ comparator[2] then
 	[
-		Immediately reject parse, expected:
+		Reject parse, expected:
 			"second parameter of comparison function to accept all elements ∈ "
 			++ “union”
 			++ " of the specified tuple (but it only accepts "
@@ -5175,8 +5258,30 @@ Semantic restriction "_[_]" is
 	]
 	else
 	[
-		Immediately reject parse strongly, expected:
+		Reject parse strongly, expected:
 			"a natural number for subscripting a tuple, not "
 			++ “subscript”
 	]
 ];
+
+
+
+/*** TODO - Introduce tuple query syntax
+Macro "select«all⁇|unique|distinct»\
+		\|*?\
+		\|«_«as…»?‡,»\
+		\|from«_‡,»§\
+		\|«where_»?\
+		\|«order by«_‡,»»?"
+is
+[...macro prefix...],
+[
+	modifier: literal phrase ⇒ [1..3],
+	star: literal phrase ⇒ false's type,  // Overridden for true's type to exclude explicit columns.
+	columns: (<expression, non-empty string?> → list phrase)+ → list phrase,
+	expression: expression phrase ⇒ boolean,
+	order: ()? → list phrase
+|
+	...
+]
+*/

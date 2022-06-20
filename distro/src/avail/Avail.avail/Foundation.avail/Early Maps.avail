@@ -1,6 +1,6 @@
 /*
  * Early Maps.avail
- * Copyright © 1993-2021, The Avail Foundation, LLC.
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
  * Redistribution and use in source and binary forms, with or without
@@ -32,7 +32,7 @@
 
 Module "Early Maps"
 Versions
-	"Avail-1.6.0"
+	"Avail-1.6.1"
 Extends
 	"Collections" = ("_[_]else_")
 Uses
@@ -289,13 +289,13 @@ Method "_[_]else_" is
  * @method "_[_]else_"
  * @restricts "map meta"
  * @restricts "any meta"
- * @restricts "[]→any's type"
+ * @restricts "([]→any)'s type"
  */
 Semantic restriction "_[_]else_" is
 [
 	mapType : map meta,
 	keyType : any meta,
-	default : []→any's type
+	default : ([]→any)'s type
 |
 	if keyType ∩ (mapType's key type) = ⊥ then
 	[
@@ -305,6 +305,38 @@ Semantic restriction "_[_]else_" is
 	[
 		mapType's value type ∪ default's return type
 	]
+];
+
+/**
+ * Strengthen the key and value types against the type of map in the variable.
+ *
+ * @method "_[_]:=_"
+ * @restricts "map variable's type"
+ * @restricts "any meta"
+ * @restricts "any meta"
+ */
+Semantic restriction "_[_]:=_" is
+[
+	varType : map variable's type,
+	keyType : any meta,
+	valueType : any meta
+|
+	mapType ::= varType's write type ?→ map's type;
+	Unless keyType ⊆ mapType's key type then
+	[
+		Reject parse, expected:
+			"key's type (" ++ “keyType” ++
+				") to be compatible with the map's expected key type (" ++
+				 “mapType's key type” ++ ")"
+	];
+	Unless valueType ⊆ mapType's value type then
+	[
+		Reject parse, expected:
+			"value's type (" ++ “valueType” ++
+				") to be compatible with the map's expected value type (" ++
+				 “mapType's value type” ++ ")"
+	];
+	⊤
 ];
 
 /**

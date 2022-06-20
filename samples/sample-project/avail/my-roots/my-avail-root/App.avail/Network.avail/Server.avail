@@ -1,0 +1,12 @@
+/*
+ * Server.avail
+ * Copyright © 1993-2022, The Avail Foundation, LLC.
+ * All rights reserved.
+ */
+
+Module "Server"
+Versions
+	"Avail-1.6.1"
+Uses
+	"Avail"
+Body
