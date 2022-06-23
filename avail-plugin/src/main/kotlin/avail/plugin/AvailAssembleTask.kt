@@ -32,68 +32,60 @@
 
 package avail.plugin
 
-import avail.plugin.AvailPlugin.Companion.WORKBENCH
-import avail.plugin.AvailPlugin.Companion.WORKBENCH_DEP
+import avail.plugin.AvailPlugin.Companion.AVAIL
+import org.availlang.artifact.AvailArtifactType
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.tasks.Input
-import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.TaskAction
+import java.io.File
 import java.lang.IllegalStateException
 import java.net.URI
+import java.security.MessageDigest
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
+import java.util.*
 import java.util.jar.Attributes
 import java.util.jar.JarFile
 
 /**
- * `AvailWorkbenchTask` enables a custom run of the workbench.
+ * A task that assembles the entire Avail project into a fat jar.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
  */
-open class AvailWorkbenchTask: DefaultTask()
+open class AvailAssembleTask: DefaultTask()
 {
 	/**
 	 * The base name to give to the created jar.
 	 */
 	@Input
-	var workbenchJarBaseName: String = name
+	var jarBaseName: String = name
 
 	/**
-	 * The version of the Avail Workbench, `org.availlang:avail-workbench` to use. By
-	 * default, it is set to `+` which indicates the latest version in the
-	 * repository should be used.
+	 * The base name to give to the created jar.
 	 */
 	@Input
-	var workbenchVersion = "+"
+	var mainClass: String = "avail.environment.AvailWorkbench"
 
 	/**
-	 * `true` indicates if as Workbench jar created by this task from a previous
-	 * run exists, it will be deleted and rebuilt. `false` indicates any
-	 * preexisting Workbench jar will be preserved and launched.
+	 * The base name to give to the created jar.
 	 */
 	@Input
-	var rebuildWorkbenchJar: Boolean = false
+	var version: String = ""
 
 	/**
-	 * The name of the [Configuration] that the dependencies are added to.
+	 * The [AvailArtifactType] for this Avail artifact.
 	 */
-	private val configName = "_configWb$name"
-
-	/**
-	 * The [Configuration] for adding [dependencies][Dependency] to be included
-	 * in the workbench jar.
-	 */
-	private val localConfig: Configuration by lazy {
-		project.configurations.create(configName)
-	}
+	@Input
+	var artifactType: AvailArtifactType = AvailArtifactType.LIBRARY
 
 	/**
 	 * Get the active [AvailExtension] from the host [Project].
 	 */
 	private val availExtension: AvailExtension get() =
-		(project.extensions.getByName(AvailPlugin.AVAIL) as AvailExtension)
+		(project.extensions.getByName(AVAIL) as AvailExtension)
 
 	/**
 	 * The directory location where the Avail roots repositories exist for this
@@ -104,11 +96,23 @@ open class AvailWorkbenchTask: DefaultTask()
 	var repositoryDirectory: String = availExtension.repositoryDirectory
 
 	/**
+	 * The current time as a String in the format `yyyy-MM-ddTHH:mm:ss.SSSZ`.
+	 */
+	private val formattedNow: String get()
+	{
+		val formatter = DateTimeFormatter
+			.ofPattern("yyyy-MM-ddTHH:mm:ss.SSSZ")
+			.withLocale(Locale.getDefault())
+			.withZone(ZoneId.of("UTC"))
+		return formatter.format(Instant.now())
+	}
+
+	/**
 	 * The list of additional local jar dependencies to be bundled in with the
 	 * fat jar of the Workbench. These strings should be absolute paths to an
 	 * existing jar.
 	 */
-	private val workbenchJarDependencies = mutableSetOf<String>()
+	private val localJarDependencies = mutableSetOf<String>()
 
 	/**
 	 * Add a local jar file to be included in the workbench jar.
@@ -120,34 +124,9 @@ open class AvailWorkbenchTask: DefaultTask()
 	 *   The String path to the jar that must be added.
 	 */
 	@Suppress("unused")
-	fun workbenchLocalJarDependency(dependency: String)
+	fun localJarDependency(dependency: String)
 	{
-		workbenchJarDependencies.add(dependency)
-	}
-
-	/**
-	 * Add a dependency to be included in the jar.
-	 *
-	 * @param dependency
-	 *   The string that identifies the dependency such as:
-	 *   `org.package:myLibrary:2.3.1`.
-	 */
-	@Suppress("unused")
-	fun dependency (dependency: String)
-	{
-		localConfig.dependencies.add(project.dependencies.create(dependency))
-	}
-
-	/**
-	 * Add a dependency to be included in the jar.
-	 *
-	 * @param dependency
-	 *   The [Dependency] to add.
-	 */
-	@Suppress("unused")
-	fun dependency (dependency: Dependency)
-	{
-		localConfig.dependencies.add(dependency)
+		localJarDependencies.add(dependency)
 	}
 
 	/**
@@ -234,10 +213,10 @@ open class AvailWorkbenchTask: DefaultTask()
 
 	/**
 	 * Add an Avail root with the provided name and [URI] to be added to the
-	 * workbench when it is launched..
+	 * workbench when it is launched.
 	 *
 	 * There is no need to prefix the file scheme, `file://`, if it exists on
-	 * the local file file system; otherwise the scheme should be prefixed.
+	 * the local file system; otherwise the scheme should be prefixed.
 	 *
 	 * @param name
 	 *   The name of the root to add.
@@ -265,54 +244,72 @@ open class AvailWorkbenchTask: DefaultTask()
 	}
 
 	/**
-	 * Assembles the custom workbench jar if it doesn't exist or
-	 * [rebuildWorkbenchJar] is `true`.
+	 * Assembles the application into a fully self-contained runnable JAR.
 	 *
 	 * @param fullPathToFile
 	 *   The location the jar will end up.
 	 */
 	private fun assemble (fullPathToFile: String)
 	{
-		if (!rebuildWorkbenchJar)
-		{
-			if (project.file(fullPathToFile).exists()) { return }
-		}
-		val workbenchConfig =
-			project.configurations.getByName(WORKBENCH_INTERNAL_CONFIG)
-		val workbenchDependency =
-			project.dependencies.create(
-				"${WORKBENCH_DEP}:$workbenchVersion")
-		workbenchConfig.dependencies.add(workbenchDependency)
+		val implementations = project.configurations.getByName("implementation")
+		val api = project.configurations.getByName("api")
+
 		println("Building $fullPathToFile")
-		project.tasks.create("__wbassm_$name", AvailJarPackager::class.java)
+		project.tasks.create("__avassm_$name", AvailJarPackager::class.java)
 		{
-			group = AvailPlugin.AVAIL
+			// jar {
+			//		description = "The Avail standard library"
+			//		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
+			//		manifest.attributes["Implementation-Version"] = project.version
+			//		archiveFileName.set(standardLibraryName)
+			//		isZip64 = true
+			//		dependsOn(createDigests)
+			//		from(sourcesRoot) {
+			//			include("**/*.*")
+			//
+			//			into(AvailArtifact.rootArtifactSourcesDir(availRootName))
+			//		}
+			//		from(digestsDirectory) {
+			//			include(AvailArtifact.digestsFileName)
+			//			into(availRootDigestsFilePath)
+			//		}
+			//		// Eventually we will add Avail-Compilations or something, to capture
+			//		// serialized compiled modules, serialized phrases, manifest entries,
+			//		// style information, and navigation indices.
+			//		duplicatesStrategy = DuplicatesStrategy.FAIL
+			//		manifest.attributes["Implementation-Title"] = "Avail standard library"
+			//		manifest.attributes["Implementation-Version"] = project.version
+			//		// Even though the jar only includes .avail source files, we need the
+			//		// content to be available at runtime, so we use "" for the archive
+			//		// classifier instead of "sources".
+			//		archiveClassifier.set("")
+			//	}
+
+			group = AVAIL
 			description =
 				"Assemble a standalone Workbench fat jar and run it. " +
 					"This task will require `initializeAvail` to be run " +
 					"once to initialize the environment before building " +
 					"the workbench.jar that will then be run using " +
 					"configurations from the `avail` extension."
-			manifest.attributes["Main-Class"] =
-				"avail.environment.AvailWorkbench"
-			val workbenchDir = "${project.buildDir}/$WORKBENCH"
-			project.mkdir(workbenchDir)
-			archiveBaseName.set(workbenchJarBaseName)
-			archiveVersion.set("")
-			destinationDirectory.set(project.file(workbenchDir))
+			manifest.attributes["Main-Class"] = mainClass
+			manifest.attributes["Version"] = project.version
+			manifest.attributes["Assembled-Timestamp-UTC"] = formattedNow
+			val availArtifactDir = "${project.buildDir}/$AVAIL"
+			project.mkdir(availArtifactDir)
+			archiveBaseName.set(jarBaseName)
+			archiveVersion.set(this@AvailAssembleTask.version)
+			destinationDirectory.set(project.file(availArtifactDir))
 			// Explicitly gather the dependencies, so that we end up with a JAR
-			// including the complete Avail workbench plus any workbench
+			// including the complete "org.availlang:avail" plus any other
 			// dependencies explicitly stated in the Avail extension.
-			// Additionally, anything added to the "workbench" configuration in
-			// the host project's dependencies section of the build script will
-			// also be added.
 			from(
-				workbenchConfig.resolve().map {
+				implementations.resolve().map {
 					if (it.isDirectory) it else project.zipTree(it) } +
-					localConfig.resolve().map {
+					api.resolve().map {
 						if (it.isDirectory) it
 						else project.zipTree(it) } +
-					workbenchJarDependencies.map {
+					localJarDependencies.map {
 						val f = project.file(it)
 						JarFile(f).manifest
 							.mainAttributes[Attributes.Name("Implementation-Version")] as? String
@@ -322,27 +319,26 @@ open class AvailWorkbenchTask: DefaultTask()
 		}.doCopy()
 	}
 
-	/**
-	 * Launches the [assembled][assemble] workbench jar.
-	 */
-	private fun launch (fullPathToFile: String)
+	private fun createDigests (
+		rootName: String,
+		rootPath: String,
+		project: Project)
 	{
-		project.tasks.create("__wbrun_$name", JavaExec::class.java)
-		{
-			group = AvailPlugin.AVAIL
-			description =
-				"Run the Avail Workbench jar that was assembled " +
-					"in the parent task, `assembleAndRunWorkbench`."
-			workingDir = project.projectDir
-			jvmArgs(assembledVmOptions)
-			classpath = project.files(fullPathToFile)
-			println(buildString {
-				append("Launching: $fullPathToFile with VM options:")
-				assembledVmOptions.forEach {
-					append("\n\t • $it")
+		val digestsDirectory = "${project.buildDir}/$AVAIL/$rootName/Avail-Digests"
+		val baseFile = File(rootPath)
+		val digestsString = buildString {
+			inputs.files.files
+				.filter(File::isFile)
+				.forEach { file ->
+					val digest = MessageDigest.getInstance("SHA-256")
+					digest.update(file.readBytes())
+					val hex = digest.digest()
+						.joinToString("") { String.format("%02X", it) }
+					append("${file.toRelativeString(baseFile)}:$hex\n")
 				}
-			})
-		}.exec()
+		}
+		File("$digestsDirectory/all_digests.txt")
+			.writeText(digestsString)
 	}
 
 	/**
@@ -351,24 +347,18 @@ open class AvailWorkbenchTask: DefaultTask()
 	@TaskAction
 	protected fun run ()
 	{
+		val v = if (version.isNotEmpty()) "-$version" else ""
 		val fullPathToFile =
-			"${project.buildDir}/$WORKBENCH/$workbenchJarBaseName.jar"
+			"${project.buildDir}/$AVAIL/$jarBaseName$v.jar"
 		assemble(fullPathToFile)
-		launch(fullPathToFile)
 	}
 
 	companion object
 	{
 		/**
 		 * The dependency group-artifact String dependency that points to the
-		 * published Avail Workbench Jar. This is absent the version.
+		 * published Avail code. This is absent the version.
 		 */
 		internal const val WORKBENCH_DEP: String = "org.availlang:avail"
-
-		/**
-		 * The name of the custom [Project] [Configuration],
-		 * `__internalAvailWorkbench`, where the [WORKBENCH_DEP] is added.
-		 */
-		internal const val WORKBENCH_INTERNAL_CONFIG = "__internalAvailWorkbench"
 	}
 }

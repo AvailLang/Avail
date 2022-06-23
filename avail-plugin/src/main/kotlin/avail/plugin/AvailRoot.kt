@@ -602,7 +602,7 @@ class AvailStandardLibrary internal constructor(var jarLibBaseName: String )
 	var name: String = AvailPlugin.AVAIL
 
 	/**
-	 * The version of the Avail standard library to use (avail:avail-stdlib). By
+	 * The version of the Avail standard library to use (org.availlang:avail-stdlib). By
 	 * default, it is set to `+` which indicates the latest version in the
 	 * repository should be used.
 	 */

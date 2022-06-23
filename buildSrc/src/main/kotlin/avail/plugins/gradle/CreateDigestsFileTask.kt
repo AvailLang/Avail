@@ -36,6 +36,7 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import java.io.File
 import java.security.MessageDigest
+import org.availlang.artifact.DigestUtility
 
 /**
  * Construct a single file that summarizes message digests of all files of a
@@ -47,6 +48,7 @@ import java.security.MessageDigest
  * This digests file is used within an .avail library, such as avail-stdlib.jar.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Richard Arriaga
  */
 abstract class CreateDigestsFileTask : DefaultTask()
 {
@@ -57,19 +59,9 @@ abstract class CreateDigestsFileTask : DefaultTask()
 	var digestAlgorithm: String = "SHA-256"
 
 	@TaskAction
-	fun createDigestsFile() {
-		val baseFile = File(basePath)
-		val digestsString = buildString {
-			inputs.files.files
-				.filter(File::isFile)
-				.forEach { file ->
-					val digest = MessageDigest.getInstance(digestAlgorithm)
-					digest.update(file.readBytes())
-					val hex = digest.digest()
-						.joinToString("") { String.format("%02X", it) }
-					append("${file.toRelativeString(baseFile)}:$hex\n")
-				}
-		}
-		outputs.files.singleFile.writeText(digestsString)
+	fun createDigestsFile()
+	{
+		outputs.files.singleFile.writeText(
+			DigestUtility.createDigest(basePath, digestAlgorithm))
 	}
 }

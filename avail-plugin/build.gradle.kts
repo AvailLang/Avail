@@ -30,9 +30,7 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import java.util.Properties
-import java.io.FileInputStream
-import java.io.FileOutputStream
+import org.jetbrains.dokka.gradle.DokkaTask
 import org.gradle.api.tasks.compile.JavaCompile
 import org.gradle.kotlin.dsl.withType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -50,7 +48,10 @@ plugins {
 	kotlin("jvm") version Versions.kotlin
 	`java-gradle-plugin`
 	`kotlin-dsl`
+	id("org.jetbrains.dokka") version "1.6.21"
+	id("java-gradle-plugin")
 	`maven-publish`
+	id("com.gradle.plugin-publish") version "0.18.0"
 }
 
 gradlePlugin {
@@ -63,7 +64,7 @@ gradlePlugin {
 }
 
 group = "avail"
-version = "1.6.1.rc1"// Versions.getReleaseVersion()
+version = "1.6.1.rc1-SNAPSHOT"// Versions.getReleaseVersion()
 
 repositories {
 	mavenLocal()
@@ -85,38 +86,38 @@ kotlin {
 
 dependencies {
 	implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:${Versions.kotlin}")
+	implementation("org.availlang:avail-artifact:2.0.0-SNAPSHOT")
 }
 
 tasks {
-	tasks {
-		withType<JavaCompile> {
-			options.encoding = "UTF-8"
-			sourceCompatibility = Versions.jvmTargetString
-			targetCompatibility = Versions.jvmTargetString
-		}
 
-		withType<KotlinCompile> {
-			kotlinOptions {
-				jvmTarget = Versions.jvmTargetString
-				freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-				languageVersion = Versions.kotlinLanguage
-			}
+	withType<JavaCompile> {
+		options.encoding = "UTF-8"
+		sourceCompatibility = Versions.jvmTargetString
+		targetCompatibility = Versions.jvmTargetString
+	}
+
+	withType<KotlinCompile> {
+		kotlinOptions {
+			jvmTarget = Versions.jvmTargetString
+			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+			languageVersion = Versions.kotlinLanguage
 		}
-		withType<Test> {
-			val toolChains =
-				project.extensions.getByType(JavaToolchainService::class)
-			javaLauncher.set(
-				toolChains.launcherFor {
-					languageVersion.set(JavaLanguageVersion.of(
-						Versions.jvmTarget))
-				})
-			testLogging {
-				events = setOf(FAILED)
-				exceptionFormat = TestExceptionFormat.FULL
-				showExceptions = true
-				showCauses = true
-				showStackTraces = true
-			}
+	}
+	withType<Test> {
+		val toolChains =
+			project.extensions.getByType(JavaToolchainService::class)
+		javaLauncher.set(
+			toolChains.launcherFor {
+				languageVersion.set(JavaLanguageVersion.of(
+					Versions.jvmTarget))
+			})
+		testLogging {
+			events = setOf(FAILED)
+			exceptionFormat = TestExceptionFormat.FULL
+			showExceptions = true
+			showCauses = true
+			showStackTraces = true
 		}
 	}
 
@@ -128,6 +129,17 @@ tasks {
 		manifest.attributes["Implementation-Version"] =
 			project.version
 		from(sourceSets["main"].allSource)
+	}
+
+	val dokkaHtml by getting(DokkaTask::class)
+
+	val javadocJar by creating(Jar::class)
+	{
+		dependsOn(dokkaHtml)
+		description = "Creates Javadoc JAR."
+		dependsOn(JavaPlugin.CLASSES_TASK_NAME)
+		archiveClassifier.set("javadoc")
+		from(dokkaHtml.outputDirectory)
 	}
 
 	jar {
@@ -148,6 +160,24 @@ tasks {
 		add("archives", sourceJar)
 	}
 }
+
+pluginBundle {
+	website = "https://www.availlang.org/"
+	vcsUrl = "<uri to project source repository>"
+	tags = listOf("avail")
+}
+
+gradlePlugin {
+	plugins {
+		create("avail") {
+			id = "avail"
+			displayName = "Avail Gradle Plugin"
+			description = "This plugin assists in Avail project setup "
+			implementationClass = "avail.plugin.AvailPlugin"
+		}
+	}
+}
+
 
 publishing {
 	repositories {

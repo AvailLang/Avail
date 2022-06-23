@@ -46,6 +46,9 @@ import avail.resolver.ResourceType.PACKAGE
 import avail.resolver.ResourceType.REPRESENTATIVE
 import avail.resolver.ResourceType.RESOURCE
 import avail.resolver.ResourceType.ROOT
+import org.availlang.json.JSONFriendly
+import org.availlang.json.JSONObject
+import org.availlang.json.JSONWriter
 import java.io.BufferedInputStream
 import java.io.DataInputStream
 import java.io.File
@@ -116,7 +119,7 @@ constructor(
 					jarFile = JarFile(uri.path)
 					// First, fetch the digests file and populate the digestMap.
 					val digestEntry =
-						jarFile!!.getEntry(availDigestsPathInJar)!!
+						jarFile!!.getEntry("$name/$availDigestsPathInJar")!!
 					val bytes = ByteArray(digestEntry.size.toInt())
 					val stream = DataInputStream(
 						BufferedInputStream(
@@ -139,19 +142,20 @@ constructor(
 						}
 					jarFile!!.entries()
 				}
+				val prefix = "$name/$availSourcesPathInJar"
 				for (entry in entries.iterator())
 				{
-					var name = entry.name
-					if (!name.startsWith(availSourcesPathInJar)) continue
-					name = name.removePrefix(availSourcesPathInJar)
+					var entryName = entry.name
+					if (!entryName.startsWith(prefix)) continue
+					entryName = entryName.removePrefix(prefix)
 					val type = when
 					{
 						entry.name.endsWith(availExtensionWithSlash) -> PACKAGE
-						name.endsWith("/") -> DIRECTORY
-						name.endsWith(availExtension) ->
+						entryName.endsWith("/") -> DIRECTORY
+						entryName.endsWith(availExtension) ->
 						{
 							assert(!entry.isDirectory)
-							val parts = name.split("/")
+							val parts = entryName.split("/")
 							when
 							{
 								(parts.size >= 2
@@ -162,8 +166,8 @@ constructor(
 						}
 						else -> RESOURCE
 					}
-					name = name.removeSuffix("/")
-					val qualifiedName = name
+					entryName = entryName.removeSuffix("/")
+					val qualifiedName = entryName
 						.split("/")
 						.joinToString("/", prefix = "$rootPrefix/") {
 							it.removeSuffix(availExtension)
@@ -182,7 +186,7 @@ constructor(
 						mimeType,
 						entry.lastModifiedTime.toMillis(),
 						entry.size,
-						forcedDigest = digests[name])
+						forcedDigest = digests[entryName])
 					map[qualifiedName] = reference
 				}
 				// Add the root.
@@ -364,6 +368,62 @@ constructor(
 		withContents(fileContent, null)
 	}
 
+	/**
+	 * The manifest that describes the contents of the [availRootsDirInJar]
+	 * inside the associated JAR.
+	 *
+	 * @property packageVersion
+	 *   The packaging version that the contents of the [availRootsDirInJar] was
+	 *   packaged under.
+	 * @property roots
+	 *   The list of the [ModuleRoot.name]s that are present in the
+	 *   [availRootsDirInJar].
+	 */
+	class AvailRootsManifest constructor (
+		val packageVersion: Int,
+		val roots: List<String>
+	): JSONFriendly
+	{
+		/**
+		 * Construct an [AvailRootsManifest] from the [JSONObject].
+		 *
+		 * @param obj
+		 *   The [JSONObject] that represents the [AvailRootsManifest].
+		 */
+		constructor(obj: JSONObject): this(
+			obj.getNumber(AvailRootsManifest::packageVersion.name).int,
+			obj.getArray(AvailRootsManifest::roots.name).strings)
+
+		override fun writeTo(writer: JSONWriter)
+		{
+			writer.writeObject {
+				at(AvailRootsManifest::packageVersion.name) {
+					write(packageVersion)
+				}
+				at(AvailRootsManifest::roots.name) {
+					writeStrings(roots)
+				}
+			}
+		}
+
+		init
+		{
+			if (packageVersion < 0 && packageVersion > CURRENT_PACKAGE_VERSION)
+			{
+				// TODO this is a problem!
+			}
+		}
+
+		companion object
+		{
+			/**
+			 * The version that represents the structure under which Avail libs
+			 * are packaged in a JAR.
+			 */
+			const val CURRENT_PACKAGE_VERSION = 1
+		}
+	}
+
 	companion object
 	{
 		/**
@@ -371,6 +431,18 @@ constructor(
 		 * file.
 		 */
 		const val availSourcesPathInJar = "Avail-Sources/"
+
+		/**
+		 * The prefix of the path where all Avail module roots in this jar are
+		 * located.
+		 */
+		const val availRootsDirInJar = "avail-roots"
+
+		/**
+		 * The path within this jar file of the roots manifest file. The file
+		 * contains the list of root modules stored in the JAR file.
+		 */
+		const val availRootsManifestPathInJar = "avail-roots/avail-roots.json"
 
 		/**
 		 * The path within this jar file of the digests file.  The file contains

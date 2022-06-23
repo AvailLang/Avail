@@ -32,6 +32,7 @@
 
 import avail.build.AvailSetupContext.distroLib
 import avail.plugins.gradle.CreateDigestsFileTask
+import org.availlang.artifact.AvailArtifact
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -42,7 +43,7 @@ plugins {
 	id("org.jetbrains.dokka")
 }
 
-version = "1.6.1"
+version = "2.0.0-1.6.2-SNAPSHOT"
 
 dependencies {
 	// Avail.
@@ -76,16 +77,20 @@ fun checkCredentials ()
 ///////////////////////////////////////////////////////////////////////////////
 
 tasks {
-	val sourcesRoot = "$projectDir/../distro/src/avail"
-	// Produce a JAR with the source of every module in the standard Avail library.
+	val availRootName = "avail"
+	val sourcesRoot = "$projectDir/../distro/src/$availRootName"
+	// Produce a JAR with the source of every module in the standard Avail
+	// library.
 	val standardLibraryName = "$buildDir/avail-standard-library.jar"
-	val digestsDirectory = "$buildDir/Avail-Digests"
-	val digestsLocalFileName = "all_digests.txt"
+	val digestsDirectory =
+		"$buildDir/${AvailArtifact.availDigestsPathInArtifact}"
+	val availRootDigestsFilePath =
+		AvailArtifact.rootArtifactDigestFilePath(availRootName)
 
 	val createDigests by creating(CreateDigestsFileTask::class) {
 		basePath = sourcesRoot
 		inputs.files(fileTree(sourcesRoot))
-		outputs.file("$digestsDirectory/$digestsLocalFileName")
+		outputs.file("$digestsDirectory/${AvailArtifact.digestsFileName}")
 	}
 
 	jar {
@@ -97,11 +102,12 @@ tasks {
 		dependsOn(createDigests)
 		from(sourcesRoot) {
 			include("**/*.*")
-			into("Avail-Sources")
+
+			into(AvailArtifact.rootArtifactSourcesDir(availRootName))
 		}
 		from(digestsDirectory) {
-			include(digestsLocalFileName)
-			into("Avail-Digests")
+			include(AvailArtifact.digestsFileName)
+			into(availRootDigestsFilePath)
 		}
 		// Eventually we will add Avail-Compilations or something, to capture
 		// serialized compiled modules, serialized phrases, manifest entries,

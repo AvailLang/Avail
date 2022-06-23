@@ -35,7 +35,6 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.Dependency
 import java.io.File
 import java.util.jar.Attributes
 import java.util.jar.JarFile
@@ -134,6 +133,20 @@ class AvailPlugin : Plugin<Project>
 			vmOption("-DavailDeveloper=true")
 		}
 
+		target.tasks.register(
+			"assembleArtifact", AvailAssembleTask::class.java)
+		{
+			// Create Dependencies
+			group = AVAIL
+			description = "Assembles project into deployable, runnable JAR."
+			jarBaseName = project.name
+			extension.roots.forEach { (t, u) ->  root(t, u.uri)}
+			maximumJavaHeap = "6g"
+			vmOption("-ea")
+			vmOption("-XX:+UseCompressedOops")
+			vmOption("-DavailDeveloper=true")
+		}
+
 		target.tasks.register("packageRoots", DefaultTask::class.java)
 		{
 			group = AVAIL
@@ -158,14 +171,14 @@ class AvailPlugin : Plugin<Project>
 		 * published Avail Workbench Jar. This is absent the version.
 		 */
 		internal const val WORKBENCH_DEP: String =
-			"avail:avail-workbench"
+			"org.availlang:avail-workbench"
 
 		/**
 		 * The dependency group-artifact String dependency that points to the
 		 * published Avail Standard Library Jar. This is absent the version.
 		 */
 		internal const val AVAIL_STDLIB_DEP: String =
-			"avail:avail-stdlib"
+			"org.availlang:avail-stdlib"
 
 		/**
 		 * The name of the custom [Project] [Configuration], `availLibrary`,

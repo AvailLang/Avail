@@ -30,13 +30,45 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import org.gradle.kotlin.dsl.`kotlin-dsl`
-
 plugins {
-	`kotlin-dsl`
-	`kotlin-dsl-precompiled-script-plugins`
+	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
+	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
+	kotlin("jvm") version "1.7.0"
 }
 
 repositories {
+	mavenLocal()
 	mavenCentral()
+}
+
+java {
+	toolchain {
+		languageVersion.set(JavaLanguageVersion.of(17))
+	}
+}
+
+kotlin {
+	jvmToolchain {
+		languageVersion.set(JavaLanguageVersion.of(17))
+	}
+}
+
+dependencies {
+	implementation("org.availlang:avail-artifact:2.0.0-SNAPSHOT")
+}
+
+tasks {
+	withType<JavaCompile> {
+		options.encoding = "UTF-8"
+		sourceCompatibility = "17"
+		targetCompatibility = "17"
+	}
+
+	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
+		kotlinOptions {
+			jvmTarget = "17"
+			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
+			languageVersion = "1.6"
+		}
+	}
 }

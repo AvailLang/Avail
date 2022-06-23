@@ -1,8 +1,5 @@
-import java.io.FileInputStream
-import java.util.Properties
-
 /*
- * Versions.kt
+ * CreateDigestsFileTask.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -33,41 +30,41 @@ import java.util.Properties
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
+package avail.plugin
+
+import org.availlang.artifact.DigestUtility
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.*
+
 /**
- * The central source of all versions. This ranges from dependency versions
- * to language level versions.
+ * Construct a single file that summarizes message digests of all files of a
+ * directory structure.  Each input file is read, digested with the specified
+ * [digestAlgorithm] (default is SHA-256), and written to the digests file.
+ * The entries are the file name relative to the basePath, a colon, the hex
+ * representation of the digest of that file, and a linefeed.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * This digests file is used within an avail artifact, such as avail-stdlib.jar.
+ *
+ * @author Richard Arriaga
  */
-object Versions
+abstract class CreateRootDigestsFileTask : DefaultTask()
 {
-	/** The version of Kotlin to be used by Avail. */
-	const val kotlin = "1.6.21"
-
-	/** The JVM target version for Kotlin. */
-	const val jvmTarget = 17
-
-	/** The JVM target version for Kotlin. */
-	const val jvmTargetString = jvmTarget.toString()
-
-	/** The language level version of Kotlin. */
-	const val kotlinLanguage = "1.6"
+	/**
+	 * The path to the root to create digests for.
+	 */
+	@Input
+	var rootBasePath: String = ""
 
 	/**
-	 * The location of the properties file that contains the last published
-	 * release of the avail libraries.
+	 * The digest algorithm to use to create the digests for each file.
 	 */
-	@Suppress("MemberVisibilityCanBePrivate")
-	const val releaseVersionFile =
-		"src/main/resources/releaseVersion.properties"
+	@Input
+	var digestAlgorithm: String = "SHA-256"
 
-	/**
-	 * The version for `org.availlang:avail`.
-	 */
-	const val availVersion = "1.6.1"
-
-	/**
-	 * The version for `org.availlang:avail-stdlib`.
-	 */
-	const val availStdlib = "1.6.1"
+	@TaskAction
+	fun createDigestsFile()
+	{
+		outputs.files.singleFile.writeText(
+			DigestUtility.createDigest(rootBasePath, digestAlgorithm))
+	}
 }
