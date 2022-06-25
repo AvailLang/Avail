@@ -364,7 +364,7 @@ class L1Disassembler constructor(
 	{
 		if (depth > 3)
 		{
-			builder.append("***depth***")
+			builder.append(" = ***depth***")
 			return
 		}
 		val (print, expand) = simplePrintable(value)
@@ -380,7 +380,7 @@ class L1Disassembler constructor(
 		if (value.isInstanceOf(mostGeneralVariableType))
 		{
 			// Allow
-			builder.append("var(")
+			builder.append(" = var(")
 			val variableValue = value.value()
 			printIfSimple(variableValue, builder, null, depth + 1)
 			builder.append(")")

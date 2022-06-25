@@ -168,13 +168,6 @@ class CharacterDescriptor private constructor(
 		return self
 	}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		if (!isShared) {
-			self.setDescriptor(shared)
-		}
-		return self
-	}
-
 	override fun o_Kind(self: AvailObject): A_Type = CHARACTER.o
 
 	override fun o_MarshalToJava(

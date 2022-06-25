@@ -39,7 +39,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.ContinuationDescriptor.Companion.createContinuationWithFrame
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithOuterType
 import avail.interpreter.Primitive
@@ -130,7 +130,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 			when
 			{
 				// The 0th position will never be accessed
-				i == 0 -> NilDescriptor.nil
+				i == 0 -> nil
 				// Populate the arguments from argsBuffer.
 				i <= numArgs -> interpreter.argsBuffer[i - 1]
 				// Create actual local variables.
@@ -143,7 +143,7 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 					// use, but they must still be transferred into a
 					// continuation during reification.  Therefore, don't
 					// use Java nulls here.
-					NilDescriptor.nil
+					nil
 				}
 			}
 		}
@@ -170,8 +170,8 @@ object L2_PREPARE_NEW_FRAME_FOR_L1 : L2Operation()
 			// the interrupt, which may or may not suspend the fiber.
 			val continuation: A_Continuation = createContinuationWithFrame(
 				function = function,
-				caller = NilDescriptor.nil,
-				registerDump = NilDescriptor.nil,
+				caller = nil,
+				registerDump = nil,
 				pc = 1,  // start of function
 				stackp = numSlots + 1,  // empty stack
 				levelTwoChunk = L2Chunk.unoptimizedChunk,

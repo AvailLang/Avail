@@ -798,13 +798,28 @@ class AvailObject private constructor(
 			}
 		}
 
-	override fun makeShared() =
-		descriptor().let {
-			when(it.mutability) {
-				Mutability.SHARED -> this
-				else -> it.o_MakeShared(this)
-			}
-		}
+	override fun makeShared(): AvailObject
+	{
+		if (descriptor().isShared) return this
+		// Switch the descriptor to prevent it from being added to the queue
+		// again.
+		setDescriptor(descriptor().shared())
+		// Create a queue of marked-shared-but-not-yet-scanned objects, seeded
+		// with the root of the graph.
+		val queue =	mutableListOf(this)
+		val fixups = mutableListOf<()->Unit>()
+		do
+		{
+			queue.removeFirst().makeSharedInternal(queue, fixups)
+		} while (queue.isNotEmpty())
+		fixups.forEach { it() }
+		return traversed()
+	}
+
+	override fun makeSharedInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = descriptor().o_MakeSharedInternal(this, queueToProcess, fixups)
 
 	override fun makeSubobjectsImmutable() =
 		descriptor().o_MakeSubobjectsImmutable(this)
@@ -814,9 +829,6 @@ class AvailObject private constructor(
 
 	override fun removeDependentChunk(chunk: L2Chunk) =
 		descriptor().o_RemoveDependentChunk(this, chunk)
-
-	override fun scanSubobjects(visitor: (AvailObject) -> AvailObject) =
-		descriptor().o_ScanSubobjects(this, visitor)
 
 	@Throws(VariableSetException::class)
 	override fun setValue(newValue: A_BasicObject) =
@@ -832,6 +844,9 @@ class AvailObject private constructor(
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
 
 	override fun traversed() = descriptor().o_Traversed(this)
+
+	override fun traversedWhileMakingShared() =
+		descriptor().o_TraversedWhileMakingShared(this)
 
 	override fun kind() = descriptor().o_Kind(this)
 

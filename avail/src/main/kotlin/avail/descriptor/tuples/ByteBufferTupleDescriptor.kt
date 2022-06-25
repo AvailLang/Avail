@@ -391,26 +391,6 @@ class ByteBufferTupleDescriptor constructor(mutability: Mutability)
 	override fun o_TupleSize(self: AvailObject): Int =
 		self.slot(BYTE_BUFFER).javaObjectNotNull<ByteBuffer>().limit()
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(immutable)
-			self.slot(BYTE_BUFFER).makeImmutable()
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(shared)
-			self.slot(BYTE_BUFFER).makeShared()
-		}
-		return self
-	}
-
 	override fun o_ConcatenateWith(
 		self: AvailObject,
 		otherTuple: A_Tuple,

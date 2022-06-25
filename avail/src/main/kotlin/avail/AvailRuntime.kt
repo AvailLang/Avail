@@ -132,7 +132,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -245,6 +244,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.general.P_ToString
+import avail.interpreter.primitive.style.P_DefaultStyler
 import avail.io.IOSystem
 import avail.io.TextInterface
 import avail.io.TextInterface.Companion.systemTextInterface
@@ -622,7 +622,7 @@ class AvailRuntime constructor(
 		}
 
 	/**
-	 * A `HookType` describes an abstract missing behavior in the virtual
+	 * A [HookType] describes an abstract missing behavior in the virtual
 	 * machine, where an actual hook will have to be constructed to hold an
 	 * [A_Function] within each separate `AvailRuntime`.
 	 *
@@ -647,7 +647,7 @@ class AvailRuntime constructor(
 		primitive: Primitive?)
 	{
 		/**
-		 * The `HookType` for a hook that holds the stringification function.
+		 * The [HookType] for a hook that holds the stringification function.
 		 */
 		STRINGIFICATION(
 			"«stringification»",
@@ -655,7 +655,7 @@ class AvailRuntime constructor(
 			P_ToString),
 
 		/**
-		 * The `HookType` for a hook that holds the function to invoke whenever
+		 * The [HookType] for a hook that holds the function to invoke whenever
 		 * an unassigned variable is read.
 		 */
 		READ_UNASSIGNED_VARIABLE(
@@ -664,7 +664,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the function to invoke whenever
+		 * The [HookType] for a hook that holds the function to invoke whenever
 		 * a returned value disagrees with the expected type.
 		 */
 		RESULT_DISAGREED_WITH_EXPECTED_TYPE(
@@ -678,7 +678,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the function to invoke whenever
+		 * The [HookType] for a hook that holds the function to invoke whenever
 		 * an [A_Method] send fails for a definitional reason.
 		 */
 		INVALID_MESSAGE_SEND(
@@ -698,7 +698,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the [A_Function] to invoke
+		 * The [HookType] for a hook that holds the [A_Function] to invoke
 		 * whenever an [A_Variable] with
 		 * [write&#32;reactors][VariableDescriptor.VariableAccessReactor] is
 		 * written to when
@@ -715,7 +715,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the [A_Function] to invoke when
+		 * The [HookType] for a hook that holds the [A_Function] to invoke when
 		 * an exception is caught in a Pojo invocation of a Java method or
 		 * [CallbackSystem.Callback].
 		 */
@@ -728,7 +728,7 @@ class AvailRuntime constructor(
 			null),
 
 		/**
-		 * The `HookType` for a hook that holds the [A_Function] to invoke at
+		 * The [HookType] for a hook that holds the [A_Function] to invoke at
 		 * the outermost stack frame to run a fiber.  This function is passed a
 		 * function to execute and the arguments to supply to it.  The result
 		 * returned by the passed function is returned from this frame.
@@ -740,10 +740,26 @@ class AvailRuntime constructor(
 					mostGeneralFunctionType(),
 					mostGeneralTupleType),
 				Types.TOP.o),
-			P_InvokeWithTuple);
+			P_InvokeWithTuple),
+
+		/**
+		 * The [HookType] for a hook that holds the [A_Function] to invoke when
+		 * a method or macro send is ready to be styled (a top-level statement
+		 * was parsed unambiguously, and this phrase's children have had their
+		 * chance to apply styling), but the most specific method/macro
+		 * definition being invoked does not specify its own styler.
+		 */
+		DEFAULT_STYLER(
+			"«default styler»",
+			functionType(
+				tuple(
+					PhraseKind.PARSE_PHRASE.mostGeneralType),
+				Types.TOP.o),
+			P_DefaultStyler
+		);
 
 		/** The name to attach to functions plugged into this hook. */
-		private val hookName: A_String = stringFrom(hookName).makeShared()
+		val hookName: A_String = stringFrom(hookName).makeShared()
 
 		/**
 		 * A [supplier][OnceSupplier] of a default [A_Function] to use for this
@@ -777,44 +793,37 @@ class AvailRuntime constructor(
 				OnceSupplier { createFunction(code, emptyTuple).makeShared() }
 			}
 		}
-
-		/**
-		 * Extract the current [A_Function] for this hook from the given
-		 * runtime.
-		 *
-		 * @param runtime
-		 *   The [AvailRuntime] to examine.
-		 * @return
-		 *   The [A_Function] currently in that hook.
-		 */
-		operator fun get(runtime: AvailRuntime): A_Function =
-			runtime.hooks[this]!!.function
-
-		/**
-		 * Set this hook for the given runtime to the given function.
-		 *
-		 * @param runtime
-		 *   The [AvailRuntime] to examine.
-		 * @param function
-		 *   The [A_Function] to plug into this hook.
-		 */
-		operator fun set(runtime: AvailRuntime, function: A_Function)
-		{
-			assert(function.isInstanceOf(functionType))
-			function.code().methodName = hookName
-			runtime.hooks[this]!!.function = function.makeShared()
-		}
 	}
 
-	/** A volatile holder, to ensure visibility of writes to readers. */
-	data class VolatileHookEntry(
-		/** The assignable function for some hook. */
-		@Volatile
-		var function: A_Function)
+	/**
+	 * Extract the current [A_Function] for the given hook from this runtime.
+	 *
+	 * @param hookType
+	 *   The [HookType] to examine.
+	 * @return
+	 *   The [A_Function] currently in that hook.
+	 */
+	operator fun get(hookType: HookType): A_Function =
+		hooks[hookType]!!.get()
+
+	/**
+	 * Set the given hook's function for this runtime.
+	 *
+	 * @param hookType
+	 *   The [HookType] to modify for this runtime.
+	 * @param function
+	 *   The [A_Function] to plug into this hook.
+	 */
+	operator fun set(hookType: HookType, function: A_Function)
+	{
+		assert(function.isInstanceOf(hookType.functionType))
+		function.code().methodName = hookType.hookName
+		hooks[hookType]!!.set(function.makeShared())
+	}
 
 	/** The collection of hooks for this runtime. */
 	val hooks = enumMap { hook: HookType ->
-		VolatileHookEntry(hook.defaultFunctionSupplier())
+		AtomicReference(hook.defaultFunctionSupplier())
 	}
 
 	/**
@@ -832,7 +841,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	@ReferencedInGeneratedCode
 	fun resultDisagreedWithExpectedTypeFunction(): A_Function =
-		HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE[this]
+		get(HookType.RESULT_DISAGREED_WITH_EXPECTED_TYPE)
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever a
@@ -846,7 +855,7 @@ class AvailRuntime constructor(
 	 */
 	@ThreadSafe
 	@ReferencedInGeneratedCode
-	fun implicitObserveFunction(): A_Function = HookType.IMPLICIT_OBSERVE[this]
+	fun implicitObserveFunction(): A_Function = get(HookType.IMPLICIT_OBSERVE)
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever a
@@ -859,7 +868,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	@ReferencedInGeneratedCode
 	fun invalidMessageSendFunction(): A_Function =
-		HookType.INVALID_MESSAGE_SEND[this]
+		get(HookType.INVALID_MESSAGE_SEND)
 
 	/**
 	 * Answer the [function][FunctionDescriptor] to invoke whenever an
@@ -872,7 +881,7 @@ class AvailRuntime constructor(
 	@ThreadSafe
 	@ReferencedInGeneratedCode
 	fun unassignedVariableReadFunction(): A_Function =
-		HookType.READ_UNASSIGNED_VARIABLE[this]
+		get(HookType.READ_UNASSIGNED_VARIABLE)
 
 	/**
 	 * All [fibers][A_Fiber] that have not yet [retired][RETIRED] *or* been
@@ -1292,7 +1301,7 @@ class AvailRuntime constructor(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
 					stringType))
-			put(stylerFunctionType)
+			put(Styles.stylerFunctionType)
 			put(
 				enumerationWith(
 					set(
@@ -1385,6 +1394,9 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.SEMANTIC_RESTRICTION.atom)
 			put(SpecialMethodAtom.LEXER_DEFINER.atom)
 			put(SpecialMethodAtom.PUBLISH_NEW_NAME.atom)
+			put(SpecialMethodAtom.CREATE_ATOM.atom)
+			put(SpecialMethodAtom.CREATE_HERITABLE_ATOM.atom)
+			put(SpecialMethodAtom.CREATE_EXPLICIT_SUBCLASS_ATOM.atom)
 			put(Exceptions.exceptionAtom)
 			put(Exceptions.stackDumpAtom)
 			put(pojoSelfTypeAtom())
@@ -1875,7 +1887,7 @@ class AvailRuntime constructor(
 			assert(aFiber.continuation.isNil)
 			// Invoke the base-frame (hook) function with the given function
 			// and its arguments collected as a tuple.
-			val baseFrameFunction = HookType.BASE_FRAME[runtime]
+			val baseFrameFunction = get(HookType.BASE_FRAME)
 			exitNow = false
 			returnNow = false
 			setReifiedContinuation(nil)
@@ -2097,7 +2109,7 @@ class AvailRuntime constructor(
 		setup: A_Fiber.()->Unit = { },
 		continuation: (String)->Unit)
 	{
-		val stringifierFunction = HookType.STRINGIFICATION[this]
+		val stringifierFunction = get(HookType.STRINGIFICATION)
 		// If the stringifier function is not defined, then use the basic
 		// mechanism for stringification.
 		// Create the fiber that will execute the function.

@@ -1150,7 +1150,7 @@ class TypeRestriction private constructor(
 	companion object
 	{
 		/**
-		 * The [TypeRestriction] for a register that holds [NilDescriptor.nil].
+		 * The [TypeRestriction] for a register that holds [nil].
 		 *
 		 * It's marked as immutable because there is no way to create another
 		 * [AvailObject] with a [NilDescriptor] as its descriptor.
@@ -1175,7 +1175,7 @@ class TypeRestriction private constructor(
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
-		 * including [NilDescriptor.nil], and is not known to be immutable.
+		 * including [nil], and is not known to be immutable.
 		 */
 		private val topRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
@@ -1197,7 +1197,7 @@ class TypeRestriction private constructor(
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
-		 * including [NilDescriptor.nil], but is known to be immutable.
+		 * including [nil], but is known to be immutable.
 		 */
 		private val topRestrictionImmutable = TypeRestriction(
 			positiveGroup = RestrictionGroup(
@@ -1219,7 +1219,7 @@ class TypeRestriction private constructor(
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
-		 * excluding [NilDescriptor.nil], but it's not known to be immutable.
+		 * excluding [nil], but it's not known to be immutable.
 		 */
 		val anyRestriction = TypeRestriction(
 			positiveGroup = RestrictionGroup(
@@ -1241,7 +1241,7 @@ class TypeRestriction private constructor(
 
 		/**
 		 * The [TypeRestriction] for a register that has any value whatsoever,
-		 * excluding [NilDescriptor.nil], but it's known to be immutable.
+		 * excluding [nil], but it's known to be immutable.
 		 */
 		private val anyRestrictionImmutable = TypeRestriction(
 			positiveGroup = RestrictionGroup(

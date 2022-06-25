@@ -42,14 +42,12 @@ import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.plusCanDestroy
 import avail.descriptor.pojos.RawPojoDescriptor
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.types.A_Type
@@ -62,7 +60,6 @@ import avail.descriptor.types.TypeTag
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.Companion.HASH_ALWAYS_SET
 import avail.descriptor.variables.VariableSharedDescriptor.IntegerSlots.HASH_AND_MORE
-import avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.DEPENDENT_CHUNKS_WEAK_SET_POJO
 import avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.KIND
 import avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.VALUE
 import avail.descriptor.variables.VariableSharedDescriptor.ObjectSlots.WRITE_REACTORS
@@ -73,14 +70,7 @@ import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
-import avail.interpreter.levelTwo.L2Chunk
-import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.SLOW_VARIABLE
-import avail.performance.Statistic
-import avail.performance.StatisticReport.L2_OPTIMIZATION_TIME
 import org.availlang.json.JSONWriter
-import java.util.Collections.newSetFromMap
-import java.util.Collections.synchronizedSet
-import java.util.WeakHashMap
 
 /**
  * My [object&#32;instances][AvailObject] are [shared][Mutability.SHARED]
@@ -164,17 +154,7 @@ open class VariableSharedDescriptor protected constructor(
 		 * respond to writes of the [variable][VariableDescriptor].
 		 */
 		@HideFieldJustForPrinting
-		WRITE_REACTORS,
-
-		/**
-		 * A [raw&#32;pojo][RawPojoDescriptor] holding a weak set (implemented
-		 * as the [key&#32;set][Map.keys] of a [WeakHashMap]) of [L2Chunk]s that
-		 * depend on the membership of this method.  A change to the membership
-		 * will invalidate all such chunks.  This field holds the
-		 * [nil][NilDescriptor.nil] object initially.
-		 */
-		@HideFieldJustForPrinting
-		DEPENDENT_CHUNKS_WEAK_SET_POJO;
+		WRITE_REACTORS;
 
 		companion object
 		{
@@ -195,7 +175,6 @@ open class VariableSharedDescriptor protected constructor(
 	) = (super.allowsImmutableToMutableReferenceInField(e)
 		|| e === VALUE
 		|| e === WRITE_REACTORS
-		|| e === DEPENDENT_CHUNKS_WEAK_SET_POJO
 		|| e === HASH_AND_MORE) // only for flags.
 
 	override fun o_Hash(self: AvailObject): Int =
@@ -502,44 +481,6 @@ open class VariableSharedDescriptor protected constructor(
 		recordWriteToSharedVariable()
 	}
 
-	/**
-	 * Record the fact that the chunk depends on this object not changing.
-	 */
-	override fun o_AddDependentChunk(self: AvailObject, chunk: L2Chunk)
-	{
-		// Record the fact that the given chunk depends on this object not
-		// changing.  Local synchronization is sufficient, since invalidation
-		// can't happen while L2 code is running (and therefore when the
-		// L2Generator could be calling this).
-		var pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-		if (pojo.isNil)
-		{
-			pojo = identityPojo(
-				synchronizedSet<L2Chunk>(newSetFromMap(WeakHashMap())))
-			self.compareAndSetVolatileSlot(
-				DEPENDENT_CHUNKS_WEAK_SET_POJO,
-				nil,
-				pojo.makeShared())
-			// Ignore the result of the compare, and simply read it back.  If
-			// the write failed due to somebody initializing this field first,
-			// we'll use that version and ignore the weak set that we created.
-			pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-		}
-		val chunkSet: MutableSet<L2Chunk> = pojo.javaObjectNotNull()
-		chunkSet.add(chunk)
-	}
-
-	override fun o_RemoveDependentChunk(self: AvailObject, chunk: L2Chunk)
-	{
-		assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
-		// Remove this chunk from the variable's set of dependent chunks.
-		// The weak set *must* have been initialized first.
-		val pojo = self.volatileSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-		assert(pojo.notNil)
-		val chunkSet: MutableSet<L2Chunk> = pojo.javaObjectNotNull()
-		chunkSet.remove(chunk)
-	}
-
 	override fun o_AddWriteReactor(
 		self: AvailObject,
 		key: A_Atom,
@@ -555,14 +496,6 @@ open class VariableSharedDescriptor protected constructor(
 		recordReadFromSharedVariable(self)
 		super.o_RemoveWriteReactor(self, key)
 	}
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		// Do nothing; just answer the (shared) receiver.
-		self
-
-	override fun o_MakeShared(self: AvailObject): AvailObject =
-		// Do nothing; just answer the (shared) receiver.
-		self
 
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter) =
 		writer.writeObject {
@@ -646,40 +579,8 @@ open class VariableSharedDescriptor protected constructor(
 		}
 
 		/**
-		 * Invalidate any dependent [Level&#32;Two&#32;chunks][L2Chunk].
-		 *
-		 * @param self
-		 *   The method that changed.
-		 */
-		@Suppress("unused")
-		private fun invalidateChunks(self: AvailObject)
-		{
-			assert(L2Chunk.invalidationLock.isHeldByCurrentThread)
-			// Invalidate any affected level two chunks.
-			val pojo: A_BasicObject = self.slot(DEPENDENT_CHUNKS_WEAK_SET_POJO)
-			if (pojo.notNil)
-			{
-				// Copy the set of chunks to avoid modification while iterating.
-				val originalSet = pojo.javaObjectNotNull<Set<L2Chunk>>()
-				val chunksToInvalidate = originalSet.toSet()
-				chunksToInvalidate.forEach {
-					it.invalidate(SLOW_VARIABLE)
-				}
-				assert(originalSet.isEmpty())
-			}
-		}
-
-		/**
-		 * The [Statistic] tracking the cost of invalidations for a change to a
-		 * nearly-constant variable.
-		 */
-		private val invalidationForSlowVariable = Statistic(
-			L2_OPTIMIZATION_TIME,
-			"(invalidation for slow variable change)")
-
-		/**
-		 * Create a [shared][Mutability.SHARED] [variable][A_Variable]. This
-		 * method should only be used to "upgrade" a variable's representation.
+		 * Create a [shared][Mutability.SHARED] [variable][A_Variable] that has
+		 * the given characteristics.
 		 *
 		 * @param kind
 		 *   The [variable&#32;type][VariableTypeDescriptor].
@@ -687,46 +588,26 @@ open class VariableSharedDescriptor protected constructor(
 		 *   The hash of the variable.
 		 * @param value
 		 *   The contents of the variable.
-		 * @param oldVariable
-		 *   The variable being made shared.
+		 * @param writeReactors
+		 *   The write reactors weak map pojo to use.
 		 * @return
 		 *   The shared variable.
 		 */
-		fun createSharedFrom(
+		fun createSharedLike(
 			kind: A_Type,
 			hash: Int,
 			value: A_BasicObject,
-			oldVariable: AvailObject
-		): AvailObject {
-			// Make the parts immutable (not shared), just so they won't be
-			// destroyed when the original variable becomes an indirection.
-			kind.makeImmutable()
-			value.makeImmutable()
-
-			// Create the new variable, but allow the slots to be made shared
-			// *after* its initialization.  The existence of a shared object
-			// temporarily having non-shared fields is not a violation of the
-			// invariant, since no other fibers can access the value until the
-			// entire makeShared activity has completed.
+			writeReactors: A_BasicObject
+		): AvailObject
+		{
+			assert(kind.descriptor().isShared)
+			assert(value.descriptor().isShared)
 			return mutableInitial.create {
 				setSlot(KIND, kind)
 				setSlot(HASH_ALWAYS_SET, hash)
 				setSlot(VALUE, value)
-				setSlot(WRITE_REACTORS, nil)
-				setSlot(DEPENDENT_CHUNKS_WEAK_SET_POJO, nil)
-				assert(!oldVariable.descriptor().isShared)
-				oldVariable.becomeIndirectionTo(this)
-
-				// Make the parts shared.  This may recurse, but it will
-				// terminate when it sees this variable again.  Write back the
-				// shared versions for efficiency.
-				setSlot(KIND, kind.makeShared())
-				setSlot(VALUE, value.makeShared())
-				assert(descriptor() === mutableInitial)
+				setSlot(WRITE_REACTORS, writeReactors)
 				setDescriptor(shared)
-
-				// For safety, make sure the indirection is also shared.
-				oldVariable.makeShared()
 			}
 		}
 

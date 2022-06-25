@@ -46,7 +46,6 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerEnumSlotDescriptionEnum
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.CommentTokenDescriptor.Companion.newCommentToken
@@ -77,7 +76,7 @@ import java.util.IdentityHashMap
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
- * Construct a new `TokenDescriptor`.
+ * Construct a new [TokenDescriptor].
  *
  * @param mutability
  *   The [mutability][Mutability] of the new descriptor.
@@ -388,11 +387,11 @@ open class TokenDescriptor protected constructor(
 
 		/**
 		 * Create and initialize a new [A_Token].  The [NEXT_LEXING_STATE_POJO]
-		 * is initially set to [NilDescriptor.nil].  For a token constructed by
-		 * a lexer body, this pojo is updated automatically by the lexical
-		 * scanning machinery to wrap a new [LexingState].  That machinery also
-		 * sets up the new scanning position, the new line number, and the list
-		 * of [LexingState.allTokens].
+		 * is initially set to [nil].  For a token constructed by a lexer body,
+		 * this pojo is updated automatically by the lexical scanning machinery
+		 * to wrap a new [LexingState].  That machinery also sets up the new
+		 * scanning position, the new line number, and the list of
+		 * [LexingState.allTokens].
 		 *
 		 * @param string
 		 *   The token text.

@@ -213,29 +213,6 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		return propertyMap[key] ?: nil
 	}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		assert(!isShared)
-		val propertyMapPojo = self.slot(PROPERTY_MAP_POJO)
-		assert(propertyMapPojo.notNil)
-		val substituteAtom: AvailObject =
-			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
-				self.slot(NAME),
-				self.slot(ISSUING_MODULE),
-				propertyMapPojo,
-				self.slot(HASH_OR_ZERO))
-		self.becomeIndirectionTo(substituteAtom)
-		// In case a property key is the atom itself, only make the property
-		// keys and atoms shared after making self shared.  Otherwise there
-		// could be unbounded recursion.
-		val propertyMap: Map<A_Atom, AvailObject> =
-			propertyMapPojo.javaObjectNotNull()
-		propertyMap.forEach { (key, value) ->
-			key.makeShared()
-			value.makeShared()
-		}
-		return substituteAtom
-	}
-
 	override fun o_SerializerOperation (self: AvailObject) = when {
 		self.getAtomProperty(HERITABLE_KEY.atom).notNil ->
 			SerializerOperation.HERITABLE_ATOM
@@ -263,9 +240,17 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		}
 	}
 
+	override fun propertyMapOrNil(self: AvailObject): AvailObject =
+		self.slot(PROPERTY_MAP_POJO)
+
 	override fun mutable() = mutable
 
 	override fun immutable() = immutable
+
+	@Deprecated(
+		"Shared atoms are implemented in subclasses",
+		level = DeprecationLevel.HIDDEN)
+	override fun shared() = transientShared
 
 	companion object {
 		/**
@@ -314,5 +299,16 @@ open class AtomWithPropertiesDescriptor protected constructor(
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)
+
+		/**
+		 * The shared [AtomDescriptor] used *only* for marking the object prior
+		 * to adding it to the marking queue.
+		 */
+		private val transientShared = AtomWithPropertiesDescriptor(
+			Mutability.SHARED,
+			TypeTag.ATOM_TAG,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
+
 	}
 }

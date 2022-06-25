@@ -254,6 +254,6 @@ class VariableUsePhraseDescriptor private constructor(
 		private val mutable = VariableUsePhraseDescriptor(Mutability.MUTABLE)
 
 		/** The shared [VariableUsePhraseDescriptor]. */
-		private val shared = VariableUsePhraseDescriptor(Mutability.IMMUTABLE)
+		private val shared = VariableUsePhraseDescriptor(Mutability.SHARED)
 	}
 }

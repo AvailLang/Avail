@@ -438,35 +438,36 @@ class ObjectTypeDescriptor internal constructor(
 			self.slot(FIELD_TYPES_, it).isVacuousType
 		}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		if (isShared) return self
-		self.setDescriptor(variant.sharedObjectTypeDescriptor)
-		self.makeSubobjectsShared()
-		var canonical: AvailObject?
-		do
-		{
-			canonical = synchronized(sharedCanonicalTypes) {
-				sharedCanonicalTypes.getOrPut(self) {
-					// Self was made shared above, but has not been made visible
-					// to other fibers yet.  Clobber it into an indirection
-					WeakReference(self)
-				}.get()
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		fixups.add {
+			var canonical: AvailObject?
+			do
+			{
+				canonical = synchronized(sharedCanonicalTypes) {
+					sharedCanonicalTypes.getOrPut(self) {
+						WeakReference(self)
+					}.get()
+				}
+				// An older weak reference might have been found, then cleared by
+				// the JVM.  Just try again until we're successful (and therefore
+				// have a strong reference that prevents it from dissolving).
 			}
-			// An older soft reference might have been found, then cleared by
-			// the JVM.  Just try again until we're successful (and therefore
-			// have a strong reference that prevents it from dissolving).
+			while (canonical === null)
+			if (!canonical.sameAddressAs(self))
+			{
+				// Indirect self to be the canonical value.  This is safe
+				// because, even though self is shared now, no other thread has
+				// seen it.
+				self.setDescriptor(self.descriptor().mutable())
+				self.becomeIndirectionTo(canonical)
+				self.setDescriptor(self.descriptor().shared())
+			}
 		}
-		while (canonical === null)
-
-		if (canonical.sameAddressAs(self)) return canonical
-		// This newly shared instance was *not* the one in the map.
-		// Therefore, no other fiber has seen it yet, so clobber it into an
-		// indirection.
-		self.setDescriptor(self.descriptor().mutable())
-		self.becomeIndirectionTo(canonical)
-		self.makeShared()
-		return canonical
 	}
 
 	override fun o_NameForDebugger(self: AvailObject): String
@@ -1072,8 +1073,7 @@ class ObjectTypeDescriptor internal constructor(
 						tuple(subclassAtom, instanceType(subclassAtom)),
 						tuple(semanticClassifierAtom, stringType),
 						tuple(methodNameAtom, stringType),
-						tuple(sourceModuleAtom, zeroOrOneOf(
-							Types.MODULE.o)),
+						tuple(sourceModuleAtom, zeroOrOneOf(Types.MODULE.o)),
 						tuple(generatedAtom, booleanType),
 						tuple(lineNumberAtom, wholeNumbers)))
 				setNameForType(type, stringFrom("style"), true)
@@ -1085,17 +1085,27 @@ class ObjectTypeDescriptor internal constructor(
 			 */
 			val stylerFunctionType: A_Type = functionType(
 				tuple(
+					// The phrase being styled.
 					SEND_PHRASE.mostGeneralType,
+					// A variable holding the map from phrase to style.
 					variableTypeFor(
 						mapTypeForSizesKeyTypeValueType(
 							wholeNumbers,
 							SEND_PHRASE.mostGeneralType,
 							styleType)),
+					// A variable holding the map from token to style.
 					variableTypeFor(
 						mapTypeForSizesKeyTypeValueType(
 							wholeNumbers,
 							TOKEN.o,
-							styleType))),
+							styleType)),
+					// A variable mapping from variable-use (or other) tokens to
+					// declaration (or other) tokens within the same module.
+					variableTypeFor(
+						mapTypeForSizesKeyTypeValueType(
+							wholeNumbers,
+							TOKEN.o,
+							TOKEN.o))),
 				TOP.o)
 
 			private val variant = styleType.objectTypeVariant

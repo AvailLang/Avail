@@ -43,6 +43,7 @@ import avail.descriptor.objects.ObjectLayoutVariant
 import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
+import avail.descriptor.representation.Mutability.SHARED
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
@@ -695,10 +696,19 @@ interface A_BasicObject : JSONFriendly
 	fun scanSubobjects(visitor: (AvailObject) -> AvailObject)
 
 	/**
-	 * Dispatch to the descriptor.
+	 * Follow indirections until a non-indirection is reached.  Replace each
+	 * indirection's target with the ultimate target.
 	 */
 	@ReferencedInGeneratedCode
 	fun traversed(): AvailObject
+
+	/**
+	 * Follow indirections until a non-indirection is reached.  Replace each
+	 * indirection's target with the ultimate target, even if it would cause the
+	 * otherwise-forbidden shared->unshared references.  Only used during
+	 * [makeShared].
+	 */
+	fun traversedWhileMakingShared(): AvailObject
 
 	/**
 	 * Dispatch to the descriptor.
@@ -1079,6 +1089,22 @@ interface A_BasicObject : JSONFriendly
 	 *   The field's type or null.
 	 */
 	fun fieldTypeAtOrNull(field: A_Atom): A_Type?
+
+	/**
+	 * The receiver is marked with a [SHARED] descriptor, but its subobjects
+	 * have not yet been made shared.  Scan them now, and do any additional
+	 * fix-ups necessary for the kind of object.
+	 *
+	 * @param queueToProcess
+	 *   The queue on which to add newly discovered unshared objects, after
+	 *   marking them as shared (but not scanning them yet).
+	 * @param fixups
+	 *   The mutable list of actions to perform after the *entire* graph has
+	 *   been shared.
+	 */
+	fun makeSharedInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 
 	companion object
 	{

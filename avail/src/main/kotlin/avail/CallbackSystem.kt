@@ -42,7 +42,7 @@ import avail.descriptor.pojos.PojoDescriptor.Companion.newPojo
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PojoTypeDescriptor.Companion.resolvePojoType
@@ -133,8 +133,7 @@ class CallbackSystem
 		 *
 		 * @param result
 		 *   The [AvailObject] that was produced by the callback. This should be
-		 *   [NilDescriptor.nil] if Avail is not expecting a value to be
-		 *   produced.
+		 *   [nil] if Avail is not expecting a value to be produced.
 		 */
 		fun complete(result: A_BasicObject)
 	}

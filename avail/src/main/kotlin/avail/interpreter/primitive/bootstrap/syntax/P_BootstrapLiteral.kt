@@ -44,6 +44,7 @@ import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.CannotFail
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapLiteralStyler
 
 /**
  * **Primitive:** Create a literal phrase from a literal token (already wrapped
@@ -70,4 +71,6 @@ object P_BootstrapLiteral :
 			tuple(
 				LITERAL_PHRASE.create(literalTokenType(ANY.o))),
 			LITERAL_PHRASE.create(ANY.o))
+
+	override fun bootstrapStyler() = P_BootstrapLiteralStyler
 }

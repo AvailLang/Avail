@@ -41,7 +41,6 @@ import avail.descriptor.parsing.DefinitionParsingPlanDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_String
@@ -198,7 +197,7 @@ interface A_BundleTree : A_BasicObject {
 
 		/**
 		 * If this message bundle tree has a type filter tree, return the raw
-		 * pojo holding it, otherwise [NilDescriptor.nil].
+		 * pojo holding it, otherwise [nil].
 		 *
 		 * The type filter tree is used to quickly eliminate potential bundle
 		 * invocations based on the type of an argument that has just been

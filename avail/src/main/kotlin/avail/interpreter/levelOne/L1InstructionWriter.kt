@@ -46,7 +46,7 @@ import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.constants
 import avail.descriptor.phrases.BlockPhraseDescriptor.Companion.locals
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.NybbleTupleDescriptor
 import avail.descriptor.tuples.NybbleTupleDescriptor.Companion.generateNybbleTupleFrom
@@ -75,8 +75,8 @@ import java.util.Collections.addAll
  * @property startingLineNumber
  *   The line number at which this code starts.
  * @property phrase
- *   The phrase that should be captured for this raw function.
- *   [nil][NilDescriptor.nil] is also valid.
+ *   The phrase that should be captured for this raw function. [nil] is also
+ *   valid.
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  *
  * @constructor
@@ -89,7 +89,7 @@ import java.util.Collections.addAll
  *   Where this code starts in the module.
  * @param phrase
  *   The phrase that should be captured for this raw function.
- *   [nil][NilDescriptor.nil] is also valid, but less informative.
+ *   [nil] is also valid, but less informative.
  */
 class L1InstructionWriter constructor(
 	internal val module: A_Module,
@@ -332,7 +332,9 @@ class L1InstructionWriter constructor(
 		val newLineNumber =
 			if (lineNumber == 0) currentLineNumber else lineNumber
 		val delta = newLineNumber - currentLineNumber
-		val encodedDelta = if (delta < 0) delta shl 1 else -delta shl 1 or 1
+		val encodedDelta =
+			if (delta > 0) delta shl 1
+			else -delta shl 1 or 1
 		lineNumberEncodedDeltas.add(encodedDelta)
 		currentLineNumber = newLineNumber
 

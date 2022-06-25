@@ -41,7 +41,6 @@ import avail.descriptor.numbers.A_Number
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.SetDescriptor
@@ -79,7 +78,7 @@ interface A_Variable : A_ChunkDependable
 
 	/**
 	 * Extract the current value of the [variable][VariableDescriptor].  Answer
-	 * [nil][NilDescriptor.nil] if the variable has no value.
+	 * [nil] if the variable has no value.
 	 *
 	 * @return
 	 *   The variable's value or nil.
@@ -117,7 +116,7 @@ interface A_Variable : A_ChunkDependable
 	/**
 	 * Answer `true` if the variable currently has a value, otherwise answer
 	 * `false`.  No value is typically represented by the variable's value slot
-	 * containing [NilDescriptor.nil].
+	 * containing [nil].
 	 *
 	 * @return
 	 *   Whether the variable has a value.

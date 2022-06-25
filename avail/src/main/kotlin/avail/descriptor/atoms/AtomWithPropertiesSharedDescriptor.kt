@@ -233,7 +233,11 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 
 	override fun o_MakeImmutable(self: AvailObject) = self
 
-	override fun o_MakeShared(self: AvailObject): AvailObject = self
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = unsupported
 
 	override fun o_MarshalToJava (
 		self: AvailObject,

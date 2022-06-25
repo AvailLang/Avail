@@ -35,7 +35,7 @@ package avail.interpreter.levelOne
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
 import avail.descriptor.methods.MethodDefinitionDescriptor
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 
 /**
  * Provide a generic mechanism for visiting instructions.  In particular, each
@@ -52,11 +52,11 @@ interface L1OperationDispatcher
 	 * Pop the arguments for this message off the stack (the message itself
 	 * knows how many to expect). The first argument was pushed first, and is
 	 * the deepest on the stack. Use these arguments to look up the method
-	 * dynamically. Before invoking the method, push [nil][NilDescriptor.nil]
-	 * onto the stack. Its presence will help distinguish continuations produced
-	 * by the pushLabel instruction from their senders. When the call completes
-	 * (if ever) by using an implicit return instruction, it will replace this
-	 * nil with the result of the call.
+	 * dynamically. Before invoking the method, push [nil] onto the stack. Its
+	 * presence will help distinguish continuations produced by the pushLabel
+	 * instruction from their senders. When the call completes (if ever) by
+	 * using an implicit return instruction, it will replace this nil with the
+	 * result of the call.
 	 */
 	fun L1_doCall()
 

@@ -38,7 +38,7 @@ import avail.descriptor.functions.A_Continuation.Companion.numSlots
 import avail.descriptor.functions.A_Continuation.Companion.pc
 import avail.descriptor.functions.A_Continuation.Companion.stackAt
 import avail.descriptor.functions.A_Continuation.Companion.stackp
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.execution.Interpreter.Companion.log
 import avail.interpreter.levelTwo.L2Instruction
@@ -123,13 +123,10 @@ object L2_REENTER_L1_CHUNK_FROM_CALL : L2Operation()
 		val stepper = interpreter.levelOneStepper
 		stepper.pointers = Array(numSlots + 1)
 		{
-			if (it == 0)
+			when (it)
 			{
-				NilDescriptor.nil
-			}
-			else
-			{
-				continuation.stackAt(it)
+				0 -> nil
+				else -> continuation.stackAt(it)
 			}
 		}
 		returneeFunction.code().setUpInstructionDecoder(

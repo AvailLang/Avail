@@ -70,7 +70,6 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		ObjectSlots::class.java,
 		IntegerSlots::class.java)
 {
-	//this.string().asNativeString() - gets at the string contents.
 	/**
 	 * My class's slots of type int.
 	 */

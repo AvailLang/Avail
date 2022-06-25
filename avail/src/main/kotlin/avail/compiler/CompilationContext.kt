@@ -79,6 +79,7 @@ import avail.descriptor.types.A_Type.Companion.returnType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailRuntimeException
+import avail.interpreter.effects.LoadingEffect
 import avail.interpreter.execution.AvailLoader
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelOne.L1Decompiler
@@ -671,6 +672,81 @@ class CompilationContext constructor(
 	}
 
 	/**
+	 * Allow multiple sequential statements to have their effects accumulated.
+	 * As soon as there's a non-summarizable statement, force these delayed
+	 * early effects to be flushed, and then separately the regular delayed
+	 * effects.
+	 *
+	 * The entries are <lineNumber, phrase, effect> triples, so that the
+	 * generated function can more accurately identify where an effect was
+	 * defined.
+	 */
+	private val delayedSerializedEarlyEffects =
+		mutableListOf<Triple<Int, A_Phrase, LoadingEffect>>()
+
+	/**
+	 * Allow multiple sequential statements to have their effects accumulated.
+	 * As soon as there's a non-summarizable statement, force these delayed
+	 * effects to be flushed.
+	 *
+	 * The entries are <lineNumber, phrase, effect> triples, so that the
+	 * generated function can more accurately identify where an effect was
+	 * defined.
+	 */
+	private val delayedSerializedEffects =
+		mutableListOf<Triple<Int, A_Phrase, LoadingEffect>>()
+
+	/**
+	 * Flush the [delayedSerializedEarlyEffects] and [delayedSerializedEffects]
+	 * to top-level functions that perform those actions.
+	 */
+	fun flushDelayedSerializedEffects()
+	{
+		flushDelayedSerializedEffects(delayedSerializedEarlyEffects)
+		flushDelayedSerializedEffects(delayedSerializedEffects)
+	}
+
+	/**
+	 * Flush the given mutable list of effects to be flushed as a top-level
+	 * function that performs that series of actions, and clear the list.
+	 */
+	private fun flushDelayedSerializedEffects(
+		effects: MutableList<Triple<Int, A_Phrase, LoadingEffect>>)
+	{
+		if (effects.isEmpty()) return
+		var currentLine = effects.first().first
+		val writer = L1InstructionWriter(
+			module, currentLine, effects.first().second)
+		writer.argumentTypes()
+		writer.returnType = TOP.o
+		writer.returnTypeIfPrimitiveFails = TOP.o
+		effects.forEachIndexed { i, (line, _, effect) ->
+			if (i > 0) writer.write(currentLine, L1Operation.L1_doPop)
+			currentLine = line
+			effect.writeEffectTo(writer)
+		}
+		val summaryFunction = createFunction(writer.compiledCode(), emptyTuple)
+		if (AvailLoader.debugUnsummarizedStatements)
+		{
+			println(
+				buildString {
+					append(module.moduleNameNative)
+					append(':')
+					append(effects.first().first)
+					append('-')
+					append(effects.last().first)
+					if (effects === delayedSerializedEarlyEffects)
+						append(" Early Summary -- \n")
+					else append(" Summary -- \n")
+					append(L1Decompiler.decompile(summaryFunction.code()))
+					append("(batch = ${effects.size})")
+				})
+		}
+		serializer.serialize(summaryFunction)
+		effects.clear()
+	}
+
+	/**
 	 * Serialize either the given function or something semantically equivalent.
 	 * The equivalent is expected to be faster, but can only be used if no
 	 * triggers had been tripped during execution of the function.  The triggers
@@ -692,45 +768,19 @@ class CompilationContext constructor(
 			// original phrase with it, which allows the subphrases to be marked
 			// up in an editor and stepped in a debugger, even though the
 			// top-level phrase itself will be invalid.
-			val iterator = loader.recordedEffects().iterator()
-			while (iterator.hasNext())
-			{
-				val writer = L1InstructionWriter(
-					module,
-					startingLineNumber,
-					code.originatingPhrase)
-				writer.argumentTypes()
-				writer.returnType = TOP.o
-				writer.returnTypeIfPrimitiveFails = TOP.o
-				var batchCount = 0
-				while (batchCount < 100 && iterator.hasNext())
-				{
-					if (batchCount > 0)
-					{
-						writer.write(
-							startingLineNumber, L1Operation.L1_doPop)
-					}
-					iterator.next().writeEffectTo(writer)
-					batchCount++
-				}
-				assert(batchCount > 0)
-				// Flush the batch.
-				val summaryFunction =
-					createFunction(writer.compiledCode(), emptyTuple)
-				if (AvailLoader.debugUnsummarizedStatements)
-				{
-					println(
-						module.moduleNameNative
-							+ ':'.toString() + startingLineNumber
-							+ " Summary -- \n"
-							+ L1Decompiler.decompile(summaryFunction.code())
-							+ "(batch = $batchCount)")
-				}
-				serializer.serialize(summaryFunction)
+			val newEarlyEffects = loader.recordedEarlyEffects()
+			val newEffects = loader.recordedEffects()
+			val phrase = code.originatingPhrase
+			newEarlyEffects.mapTo(delayedSerializedEarlyEffects) { effect ->
+				Triple(startingLineNumber, phrase, effect)
+			}
+			newEffects.mapTo(delayedSerializedEffects) { effect ->
+				Triple(startingLineNumber, phrase, effect)
 			}
 		}
 		else
 		{
+			flushDelayedSerializedEffects()
 			// Can't summarize; write the original function.
 			if (AvailLoader.debugUnsummarizedStatements)
 			{

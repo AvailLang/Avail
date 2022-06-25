@@ -80,7 +80,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -230,7 +229,7 @@ class ContinuationDescriptor private constructor(
 		 * [L2Chunk.unoptimizedChunk] and its [L1InstructionStepper] always rely
 		 * solely on the pure L1 state.
 		 *
-		 * This slot can be [NilDescriptor.nil] if it's not needed.
+		 * This slot can be [nil] if it's not needed.
 		 */
 		LEVEL_TWO_REGISTER_DUMP,
 

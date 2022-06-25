@@ -811,7 +811,7 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedPc = pc()
 			val savedStackp = stackp
 			val implicitObserveFunction =
-				HookType.READ_UNASSIGNED_VARIABLE[interpreter.runtime]
+				interpreter.runtime[HookType.READ_UNASSIGNED_VARIABLE]
 			interpreter.argsBuffer.clear()
 			val reifier =
 				interpreter.invokeFunction(implicitObserveFunction)!!
@@ -869,10 +869,9 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 			val savedPc = pc()
 			val savedStackp = stackp
 			val implicitObserveFunction =
-				HookType.READ_UNASSIGNED_VARIABLE[interpreter.runtime]
+				interpreter.runtime[HookType.READ_UNASSIGNED_VARIABLE]
 			interpreter.argsBuffer.clear()
-			val reifier =
-				interpreter.invokeFunction(implicitObserveFunction)!!
+			val reifier = interpreter.invokeFunction(implicitObserveFunction)!!
 			pointers = savedPointers
 			interpreter.chunk = L2Chunk.unoptimizedChunk
 			interpreter.setOffset(savedOffset)

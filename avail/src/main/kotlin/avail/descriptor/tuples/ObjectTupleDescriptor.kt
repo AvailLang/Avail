@@ -40,7 +40,7 @@ import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLi
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tuples.A_Tuple.Companion.compareFromToWithObjectTupleStartingAt
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateWith
@@ -443,7 +443,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			result = newLike(mutable, self, 0, 0)
 			if (isMutable)
 			{
-				result.setSlot(TUPLE_AT_, index, NilDescriptor.nil)
+				result.setSlot(TUPLE_AT_, index, nil)
 				result.makeSubobjectsImmutable()
 			}
 		}
@@ -518,7 +518,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			val result = createUninitialized(size)
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.
-			result.fillSlots(TUPLE_AT_, 1, size, NilDescriptor.nil)
+			result.fillSlots(TUPLE_AT_, 1, size, nil)
 			for (i in 1 .. size)
 			{
 				result.setSlot(TUPLE_AT_, i, generator(i))
@@ -547,7 +547,7 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 			// Initialize it for safe GC within the loop below.  Might be
 			// unnecessary if the substrate already initialized it safely.
 			//
-			//result.fillSlots(TUPLE_AT_, 1, size, NilDescriptor.nil)
+			//result.fillSlots(TUPLE_AT_, 1, size, nil)
 			for (i in size downTo 1)
 			{
 				result.setSlot(TUPLE_AT_, i, generator(i))

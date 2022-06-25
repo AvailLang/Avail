@@ -42,7 +42,7 @@ import avail.descriptor.functions.ContinuationDescriptor.Companion.createDummyCo
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
 import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
@@ -282,8 +282,8 @@ class JVMTranslator constructor(
 	 * order.
 	 *
 	 * First, we stash the live registers in a bogus continuation that will
-	 * resume at the specified target (onReification's target), which must be an
-	 * [L2_ENTER_L2_CHUNK]. Then we create an action to invoke that
+	 * resume at the specified target ([onReification]'s target), which must be
+	 * an [L2_ENTER_L2_CHUNK]. Then we create an action to invoke that
 	 * continuation, and push that action onto the current StackReifier's action
 	 * stack. Finally, we exit with the current reifier. When the
 	 * [L2_ENTER_L2_CHUNK] is reached later, it will restore the registers and
@@ -1800,7 +1800,7 @@ class JVMTranslator constructor(
 	{
 		val validParamSet =
 			literals.entries.filter { it.value.classLoaderIndex > -1 }
-		val parameters = Array<Any>(validParamSet.size) { NilDescriptor.nil }
+		val parameters = Array<Any>(validParamSet.size) { nil }
 		for ((key, value) in validParamSet)
 		{
 			parameters[value.classLoaderIndex] = key
@@ -1942,7 +1942,7 @@ class JVMTranslator constructor(
 		 * potential class name.
 		 */
 		private val classNameUnquoter =
-			Pattern.compile("^[\"](.*)[\"]([^\"]*)$")
+			Pattern.compile("^\"(.*)\"([^\"]*)$")
 
 		/**
 		 * A regex [Pattern] to find runs of characters that are forbidden in a
@@ -2002,15 +2002,11 @@ class JVMTranslator constructor(
 
 	init
 	{
-		val module = code?.module ?: NilDescriptor.nil
-		val moduleName =
-			if (module === NilDescriptor.nil)
+		val module = code?.module ?: nil
+		val moduleName = when
 			{
-				"NoModule"
-			}
-			else
-			{
-				moduleNameStripper.matcher(module.moduleNameNative)
+				module === nil -> "NoModule"
+				else -> moduleNameStripper.matcher(module.moduleNameNative)
 					.replaceAll("$1")
 			}
 

@@ -41,7 +41,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
@@ -212,7 +212,7 @@ constructor(
 			}
 		}
 		return newSelfPojoType(
-			NilDescriptor.nil,
+			nil,
 			ancestors.setUnionCanDestroy(otherAncestors, false))
 	}
 
@@ -348,7 +348,7 @@ constructor(
 			val pojoClass = selfPojo.javaClass()
 			val mainClassName = if (pojoClass.isNil)
 			{
-				NilDescriptor.nil
+				nil
 			}
 			else
 			{
@@ -387,7 +387,7 @@ constructor(
 			val className: A_String = selfPojoProxy.tupleAt(1)
 			val mainRawType = if (className.isNil)
 			{
-				NilDescriptor.nil
+				nil
 			}
 			else
 			{

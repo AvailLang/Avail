@@ -55,9 +55,9 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_AMBIGUOUS_NAME
 import avail.exceptions.AvailErrorCode.E_ATOM_ALREADY_EXISTS
@@ -115,7 +115,7 @@ object P_Alias : Primitive(2, CanInline, HasSideEffect)
 		{
 			val oldBundle = oldAtom.bundleOrCreate()
 			val method = oldBundle.bundleMethod
-			loader.recordEffect(
+			loader.recordEarlyEffect(
 				LoadingEffectToRunPrimitive(
 					SpecialMethodAtom.ALIAS.bundle, newString, oldAtom))
 			newBundle(newAtom, method, MessageSplitter(newString))

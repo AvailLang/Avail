@@ -37,7 +37,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.AssignmentPhraseDescriptor
 import avail.descriptor.phrases.AssignmentPhraseDescriptor.Companion.newAssignment
 import avail.descriptor.phrases.SequencePhraseDescriptor
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
@@ -68,7 +68,7 @@ import avail.interpreter.execution.Interpreter
  * used as subexpressions), we actually produce a
  * [sequence&#32;phrase][SequencePhraseDescriptor] here, consisting of the
  * assignment phrase proper (whose output is effectively discarded) and a
- * literal [null&#32;value][NilDescriptor.nil].
+ * literal [nil].
  */
 @Suppress("unused")
 object P_CreateAssignmentStatement : Primitive(2, CanFold, CanInline)

@@ -49,7 +49,7 @@ import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.hasElement
@@ -164,9 +164,8 @@ private constructor(
 		INSTANCES,
 
 		/**
-		 * Either [nil][NilDescriptor.nil] or
-		 * this enumeration's nearest superkind (i.e., the nearest type that
-		 * isn't a union}.
+		 * Either [nil] or this enumeration's nearest superkind (i.e., the
+		 * nearest type that isn't a union}.
 		 */
 		CACHED_SUPERKIND
 	}
@@ -759,7 +758,7 @@ private constructor(
 			assert(normalizedSet.setSize > 1)
 			return mutable.create {
 				setSlot(INSTANCES, normalizedSet.makeImmutable())
-				setSlot(CACHED_SUPERKIND, NilDescriptor.nil)
+				setSlot(CACHED_SUPERKIND, nil)
 			}
 		}
 

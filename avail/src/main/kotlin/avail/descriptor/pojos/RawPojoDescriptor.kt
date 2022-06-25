@@ -115,34 +115,6 @@ open class RawPojoDescriptor protected constructor(
 
 	override fun o_Kind(self: AvailObject): A_Type = RAW_POJO.o
 
-	/**
-	 * Replace the descriptor with a newly synthesized one that has the same
-	 * [javaObject] but is [immutable][Mutability.IMMUTABLE].
-	 */
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(
-				RawPojoDescriptor(Mutability.IMMUTABLE, javaObject))
-		}
-		return self
-	}
-
-	/**
-	 * Replace the descriptor with a newly synthesized one that has the same
-	 * [javaObject] but is [shared][Mutability.SHARED].
-	 */
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(
-				RawPojoDescriptor(Mutability.SHARED, javaObject))
-		}
-		return self
-	}
-
 	override fun o_MarshalToJava(
 		self: AvailObject,
 		classHint: Class<*>?
@@ -208,21 +180,10 @@ open class RawPojoDescriptor protected constructor(
 		unsupportedOperation()
 	}
 
-	@Deprecated(
-		"Not applicable to pojos",
-		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun immutable(): Nothing
-	{
-		unsupportedOperation()
-	}
+	override fun immutable() =
+		RawPojoDescriptor(Mutability.IMMUTABLE, javaObject)
 
-	@Deprecated(
-		"Not applicable to pojos",
-		replaceWith = ReplaceWith("Create a new pojo object instead"))
-	override fun shared(): Nothing
-	{
-		unsupportedOperation()
-	}
+	override fun shared() = RawPojoDescriptor(Mutability.SHARED, javaObject)
 
 	companion object
 	{

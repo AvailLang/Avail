@@ -399,26 +399,6 @@ class ByteArrayTupleDescriptor private constructor(mutability: Mutability)
 		return true
 	}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(immutable)
-			self.slot(BYTE_ARRAY_POJO).makeImmutable()
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(shared)
-			self.slot(BYTE_ARRAY_POJO).makeShared()
-		}
-		return self
-	}
-
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,

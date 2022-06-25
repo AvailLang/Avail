@@ -41,14 +41,14 @@ import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
+import avail.descriptor.atoms.A_Atom.Companion.getAtomProperty
 import avail.descriptor.atoms.A_Atom.Companion.issuingModule
-import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createAtom
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
-import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
+import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.HERITABLE_KEY
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.addGrammaticalRestriction
 import avail.descriptor.bundles.A_Bundle.Companion.bundleAddMacro
@@ -71,14 +71,17 @@ import avail.descriptor.fiber.FiberDescriptor.Companion.newFiber
 import avail.descriptor.fiber.FiberDescriptor.Companion.newLoaderFiber
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
+import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapIterable
+import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import avail.descriptor.methods.A_GrammaticalRestriction
@@ -109,7 +112,11 @@ import avail.descriptor.methods.MacroDescriptor.Companion.newMacroDefinition
 import avail.descriptor.methods.MethodDefinitionDescriptor
 import avail.descriptor.methods.MethodDefinitionDescriptor.Companion.newMethodDefinition
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
+import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_ATOM
+import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_EXPLICIT_SUBCLASS_ATOM
+import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_HERITABLE_ATOM
 import avail.descriptor.methods.SemanticRestrictionDescriptor
+import avail.descriptor.methods.StylerDescriptor
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addLexer
 import avail.descriptor.module.A_Module.Companion.addPrivateName
@@ -131,6 +138,8 @@ import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.State.Loading
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.styleType
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.definitionModule
@@ -156,6 +165,7 @@ import avail.descriptor.sets.A_Set.Companion.setWithoutElementCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
+import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -163,6 +173,7 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.acceptsArgTypesFromFunctionType
@@ -174,8 +185,13 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor
+import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
+import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.variables.A_Variable
+import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
@@ -230,8 +246,8 @@ import kotlin.concurrent.withLock
  * @property module
  *   The Avail [module][ModuleDescriptor] undergoing loading.
  * @property textInterface
- *   The [text&#32;interface][TextInterface] for any [fibers][A_Fiber] started by
- *   this [AvailLoader].
+ *   The [TextInterface] for any [fibers][A_Fiber] started by this
+ *   [AvailLoader].
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
@@ -736,10 +752,33 @@ constructor(
 	fun statementCanBeSummarized() = statementCanBeSummarized
 
 	/**
+	 * The sequence of special effects performed by the current top-level
+	 * statement of a module being compiled, prior to deserializing and
+	 * executing the main [effectsAddedByTopStatement].
+	 */
+	private val earlyEffectsAddedByTopStatement = mutableListOf<LoadingEffect>()
+
+	/**
 	 * The sequence of effects performed by the current top-level statement of a
 	 * module being compiled.
 	 */
 	private val effectsAddedByTopStatement = mutableListOf<LoadingEffect>()
+
+	/**
+	 * Record a [LoadingEffect] to ensure it will be replayed when the module
+	 * which is currently being compiled is later loaded.
+	 *
+	 * @param anEffect
+	 *   The effect to record.
+	 */
+	@Synchronized
+	fun recordEarlyEffect(anEffect: LoadingEffect)
+	{
+		if (determiningSummarizability)
+		{
+			earlyEffectsAddedByTopStatement.add(anEffect)
+		}
+	}
 
 	/**
 	 * Record a [LoadingEffect] to ensure it will be replayed when the module
@@ -767,6 +806,7 @@ constructor(
 		assert(!determiningSummarizability)
 		determiningSummarizability = true
 		statementCanBeSummarized = enableFastLoader
+		earlyEffectsAddedByTopStatement.clear()
 		effectsAddedByTopStatement.clear()
 	}
 
@@ -782,14 +822,48 @@ constructor(
 	}
 
 	/**
-	 * Answer the list of [LoadingEffect]s.
+	 * Answer the list of special [LoadingEffect]s that execute before the
+	 * ordinary effects can be deserialized and executed.
 	 *
 	 * @return
-	 *   Answer the recorded [LoadingEffect]s.
+	 *   The recorded [LoadingEffect]s.
+	 */
+	@Synchronized
+	fun recordedEarlyEffects(): List<LoadingEffect> =
+		earlyEffectsAddedByTopStatement.toList()
+
+	/**
+	 * Answer the list of ordinary [LoadingEffect]s.
+	 *
+	 * @return
+	 *   The recorded [LoadingEffect]s.
 	 */
 	@Synchronized
 	fun recordedEffects(): List<LoadingEffect> =
 		effectsAddedByTopStatement.toList()
+
+	/**
+	 * A [variable][A_Variable] containing the current [map][A_Map] from
+	 * [token][A_Token] to [style][styleType].  The variable's map can be
+	 * examined and updated by any styling operation executed during the
+	 * compilation phase.
+	 */
+	lateinit var tokenStyles: A_Variable
+
+	/**
+	 * A [variable][A_Variable] containing the current [map][A_Map] from
+	 * [phrase][A_Phrase] to [style][styleType].  The variable's map can be
+	 * examined and updated by any styling operation executed during the
+	 * compilation phase.
+	 */
+	lateinit var phraseStyles: A_Variable
+
+	/**
+	 * A [variable][A_Variable] containing the current [map][A_Map] from
+	 * [A_Token] to [A_Token], where the key is the token for a variable usage,
+	 * and the value is the token for that variable's declaration.
+	 */
+	lateinit var usesToDefinitions: A_Variable
 
 	/**
 	 * Set up the [rootBundleTree] and [lexicalScanner] for compiling the body
@@ -799,6 +873,30 @@ constructor(
 	{
 		rootBundleTree = module.buildFilteredBundleTree()
 		lexicalScanner = module.createLexicalScanner()
+		tokenStyles =
+			newVariableWithContentType(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers, Types.TOKEN.o, styleType)
+			).run {
+				setValueNoCheck(emptyMap)
+				makeShared()
+			}
+		phraseStyles =
+			newVariableWithContentType(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers, Types.TOKEN.o, styleType)
+			).run {
+				setValueNoCheck(emptyMap)
+				makeShared()
+			}
+		usesToDefinitions =
+			newVariableWithContentType(
+				mapTypeForSizesKeyTypeValueType(
+					wholeNumbers, Types.TOKEN.o, Types.TOKEN.o)
+			).run {
+				setValueNoCheck(emptyMap)
+				makeShared()
+			}
 	}
 
 	/**
@@ -923,6 +1021,8 @@ constructor(
 	 *   The body [function][FunctionDescriptor].
 	 * @throws MalformedMessageException
 	 *   If the message name is malformed.
+	 * @return
+	 *   The newly added [A_Definition].
 	 * @throws SignatureException
 	 *   If the signature is invalid.
 	 */
@@ -931,7 +1031,8 @@ constructor(
 		SignatureException::class)
 	fun addMethodBody(
 		methodName: A_Atom,
-		bodyBlock: A_Function)
+		bodyBlock: A_Function
+	): A_Definition
 	{
 		assert(methodName.isAtom)
 		assert(bodyBlock.isFunction)
@@ -943,12 +1044,12 @@ constructor(
 		{
 			throw SignatureException(E_INCORRECT_NUMBER_OF_ARGUMENTS)
 		}
-		addDefinition(
-			methodName.makeShared(),
-			newMethodDefinition(
-				bundle.bundleMethod,
-				module,
-				bodyBlock.makeShared()))
+		val newDefinition = newMethodDefinition(
+			bundle.bundleMethod,
+			module,
+			bodyBlock.makeShared())
+		addDefinition(methodName.makeShared(), newDefinition)
+		return newDefinition
 	}
 
 	/**
@@ -1386,6 +1487,28 @@ constructor(
 	}
 
 	/**
+	 * Define and install a new [styler][StylerDescriptor] based on the given
+	 * [stylerFunction].  Install it for the given definition, within the
+	 * current [A_Module].
+	 *
+	 * @param definition
+	 *   The [A_Definition] for which the styler is to be added.
+	 * @param stylerFunction
+	 *   The [A_Function], a [stylerFunctionType], which is to be executed to
+	 *   style invocations of the [definition].
+	 */
+	fun addStyler(definition: A_Definition, stylerFunction: A_Function)
+	{
+		val atomName = definition.definitionMethod.chooseBundle(module)
+		stylerFunction.code().methodName = stringFrom("Styler for $atomName")
+		recordEffect(
+			LoadingEffectToRunPrimitive(
+				SpecialMethodAtom.SET_STYLER.bundle,
+				definition,
+				stylerFunction))
+	}
+
+	/**
 	 * Unbind the specified method definition from this loader and runtime.
 	 *
 	 * @param definition
@@ -1476,8 +1599,10 @@ constructor(
 	 *
 	 * @param stringName
 	 *   An Avail [string][A_String].
-	 * @param isExplicitSubclassAtom
-	 *   Whether to mark a new atom for creating an explicit subclass.
+	 * @param ifNew
+	 *   An [A_Atom] lambda to run if the atom had to be created.  This should
+	 *   set up basic properties of the new atom, such as heritability and
+	 *   whether it's for explicit object type subclassing.
 	 * @return
 	 *   An [atom][A_Atom].
 	 * @throws AmbiguousNameException
@@ -1487,7 +1612,7 @@ constructor(
 	@Throws(AmbiguousNameException::class)
 	fun lookupName(
 		stringName: A_String,
-		isExplicitSubclassAtom: Boolean = false
+		ifNew: (A_Atom.()->Unit)? = null
 	): A_Atom = module.lock {
 		//  Check if it's already defined somewhere...
 		val who = module.trueNamesForStringName(stringName)
@@ -1496,7 +1621,22 @@ constructor(
 			1 -> who.single()
 			0 ->
 			{
-				val trueName = createAtom(stringName, module)
+				val newAtom = createAtom(stringName, module)
+				ifNew?.invoke(newAtom)
+				// Hoist creation of the atom to a block that runs prior to any
+				// place that it might be used.
+				recordEarlyEffect(
+					LoadingEffectToRunPrimitive(
+						when {
+							newAtom.getAtomProperty(
+								HERITABLE_KEY.atom
+							).notNil -> CREATE_HERITABLE_ATOM.bundle
+							newAtom.getAtomProperty(
+								EXPLICIT_SUBCLASSING_KEY.atom
+							).notNil -> CREATE_EXPLICIT_SUBCLASS_ATOM.bundle
+							else -> CREATE_ATOM.bundle
+						},
+						stringName))
 				if (phase == EXECUTING_FOR_COMPILE)
 				{
 					val topStart = topLevelStatementBeingCompiled!!
@@ -1508,14 +1648,9 @@ constructor(
 							topStart,
 							topStart))
 				}
-				if (isExplicitSubclassAtom)
-				{
-					trueName.setAtomProperty(
-						EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
-				}
-				trueName.makeShared()
-				module.addPrivateName(trueName)
-				trueName
+				newAtom.makeShared()
+				module.addPrivateName(newAtom)
+				newAtom
 			}
 			else -> throw AmbiguousNameException()
 		}

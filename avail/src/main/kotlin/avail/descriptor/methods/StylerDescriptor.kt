@@ -49,11 +49,12 @@ import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.TypeTag
 
 /**
  * An [A_Styler] is the mechanism by which abstract styles are associated with a
- * module's top-level phrases.  Stylers are created within the scope of a
+ * module's phrases and tokens.  Stylers are created within the scope of a
  * module, and attached to a single [A_Definition] (typically a method or macro
  * definition).
  *
@@ -120,6 +121,23 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * The [module][ModuleDescriptor] in which this styler was added.
 		 */
 		MODULE
+	}
+
+	enum class BaseStyle(kotlinString: String)
+	{
+		DEFINITION("Definition"),
+
+		DEFINITION_NAME("DefinitionName"),
+
+		STRING_LITERAL("StringLiteral"),
+
+		INTEGER_LITERAL("IntegerLiteral"),
+
+		FLOAT_LITERAL("FloatLiteral"),
+
+		DOUBLE_LITERAL("DoubleLiteral");
+
+		val string = stringFrom(kotlinString).makeShared()
 	}
 
 	override fun o_Hash(self: AvailObject): Int = combine4(

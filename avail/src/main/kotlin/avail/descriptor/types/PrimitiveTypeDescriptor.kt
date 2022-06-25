@@ -535,10 +535,10 @@ private constructor(
 		 * This is the second-most general type in Avail's type lattice.  It is
 		 * the only direct descendant of [top&#32;(⊤)][TOP], and all types
 		 * except ⊤ are subtypes of it.  Like ⊤, all Avail objects are instances
-		 * of `ANY`. Technically there is also a [nil][NilDescriptor.nil], but
-		 * that is only used internally by the Avail machinery (e.g., the value
-		 * of an unassigned [variable][VariableDescriptor]) and can never be
-		 * manipulated by an Avail program.
+		 * of `ANY`. Technically there is also a [nil], but that is only used
+		 * internally by the Avail machinery (e.g., the value of an unassigned
+		 * [variable][VariableDescriptor]) and can never be manipulated by an
+		 * Avail program.
 		 */
 		ANY(TOP, TypeTag.ANY_TYPE_TAG, TypeTag.TOP_TAG),
 

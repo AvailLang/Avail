@@ -81,7 +81,6 @@ import avail.descriptor.representation.BitField
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
@@ -130,6 +129,8 @@ import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.anyRestriction
 import avail.interpreter.primitive.atoms.P_AtomRemoveProperty
 import avail.interpreter.primitive.atoms.P_AtomSetProperty
+import avail.interpreter.primitive.atoms.P_CreateAtom
+import avail.interpreter.primitive.atoms.P_CreateExplicitSubclassAtom
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckImportVersion
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleName
 import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPrefixCheckModuleVersion
@@ -137,6 +138,7 @@ import avail.interpreter.primitive.bootstrap.syntax.P_ModuleHeaderPseudoMacro
 import avail.interpreter.primitive.continuations.P_ContinuationCaller
 import avail.interpreter.primitive.controlflow.P_InvokeWithTuple
 import avail.interpreter.primitive.controlflow.P_ResumeContinuation
+import avail.interpreter.primitive.fibers.P_CreateFiberHeritableAtom
 import avail.interpreter.primitive.general.P_EmergencyExit
 import avail.interpreter.primitive.hooks.P_DeclareStringificationAtom
 import avail.interpreter.primitive.hooks.P_GetRaiseJavaExceptionInAvailFunction
@@ -159,6 +161,7 @@ import avail.interpreter.primitive.modules.P_PublishName
 import avail.interpreter.primitive.objects.P_RecordNewTypeName
 import avail.interpreter.primitive.phrases.P_CreateLiteralExpression
 import avail.interpreter.primitive.phrases.P_CreateLiteralToken
+import avail.interpreter.primitive.style.P_SetStyleFunction
 import avail.interpreter.primitive.rawfunctions.P_SetCompiledCodeName
 import avail.interpreter.primitive.variables.P_AtomicAddToMap
 import avail.interpreter.primitive.variables.P_AtomicRemoveFromMap
@@ -330,7 +333,7 @@ class MethodDescriptor private constructor(
 		SEALED_ARGUMENTS_TYPES_TUPLE,
 
 		/**
-		 * The method's [lexer][A_Lexer] or [nil][NilDescriptor.nil].
+		 * The method's [lexer][A_Lexer] or [nil].
 		 */
 		LEXER_OR_NIL
 	}
@@ -559,7 +562,7 @@ class MethodDescriptor private constructor(
 	/**
 	 * Look up the definition to invoke, given a [List] of argument values. Use
 	 * the [methodTestingTree] to find the definition to invoke.  Answer
-	 * [nil][NilDescriptor.nil] if a lookup error occurs.
+	 * [nil] if a lookup error occurs.
 	 */
 	@Throws(MethodDefinitionException::class)
 	override fun o_LookupByValuesFromList(
@@ -882,7 +885,7 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
-			"vm method_is_",
+			"vm method_is_«styled by_»",
 			P_SimpleMethodDeclaration::class.java.name,
 			P_MethodDeclarationFromAtom::class.java.name),
 
@@ -893,6 +896,21 @@ class MethodDescriptor private constructor(
 		SET_COMPILED_CODE_NAME(
 			"vm set name of raw function_to_",
 			P_SetCompiledCodeName::class.java.name),
+
+		/** The special atom for creating ordinary atoms. */
+		CREATE_ATOM(
+			"vm create atom_",
+			P_CreateAtom::class.java.name),
+
+		/** The special atom for creating fiber-heritable atoms. */
+		CREATE_HERITABLE_ATOM(
+			"vm create heritable atom_",
+			P_CreateFiberHeritableAtom::class.java.name),
+
+		/** The special atom for creating explicit-subclass atoms. */
+		CREATE_EXPLICIT_SUBCLASS_ATOM(
+			"vm create explicit subclass atom_",
+			P_CreateExplicitSubclassAtom::class.java.name),
 
 		/** The special atom for publishing atoms. */
 		PUBLISH_ATOMS(
@@ -918,7 +936,7 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for creating a module variable/constant. */
 		CREATE_MODULE_VARIABLE(
-			"vm in module_create_with variable type_«constant»?«stably computed»?",
+			"vm in_create_with variable type_«constant»?«stably computed»?",
 			P_PrivateCreateModuleVariable::class.java.name),
 
 		/** The special atom for sealing methods. */
@@ -940,6 +958,10 @@ class MethodDescriptor private constructor(
 		GET_RETHROW_JAVA_EXCEPTION(
 			"vm get rethrow in Avail hook",
 			P_GetRaiseJavaExceptionInAvailFunction::class.java.name),
+
+		SET_STYLER(
+			"vm set styler of definition_to function_",
+			P_SetStyleFunction::class.java.name),
 
 		/** The special atom for parsing module headers. */
 		MODULE_HEADER(

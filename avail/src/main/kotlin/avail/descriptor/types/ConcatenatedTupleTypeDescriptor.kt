@@ -276,14 +276,19 @@ class ConcatenatedTupleTypeDescriptor private constructor(
 		(self.slot(FIRST_TUPLE_TYPE).isVacuousType
 			|| self.slot(SECOND_TUPLE_TYPE).isVacuousType)
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		// Before an object using this descriptor can be shared, it must first
-		// become (an indirection to) a proper tuple type.
-		assert(!isShared)
+		// This was only surface shared at this point, and the internals have
+		// not yet been scanned, nor could any other threads access this object.
+		// Unshared it and flatten it into a real tuple type.
+		self.setDescriptor(mutable())
 		becomeRealTupleType(self)
-		self.makeShared()
-		return self.traversed()
+		self.setDescriptor(self.descriptor().shared())
+		// Process self, now that it's a surface-shared indirection object.
+		self.makeSharedInternal(queueToProcess, fixups)
 	}
 
 	override fun o_SerializerOperation(

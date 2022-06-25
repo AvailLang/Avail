@@ -37,7 +37,7 @@ import avail.descriptor.pojos.RawPojoDescriptor.Companion.rawNullPojo
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.A_Type.Companion.isSupertypeOfPojoBottomType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.serialization.SerializerOperation
@@ -88,8 +88,7 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 		self: AvailObject,
 		aPojoType: A_Type): Boolean = aPojoType.equalsPojoBottomType()
 
-	override fun o_JavaAncestors(self: AvailObject): AvailObject =
-		NilDescriptor.nil
+	override fun o_JavaAncestors(self: AvailObject): AvailObject = nil
 
 	override fun o_JavaClass(self: AvailObject): AvailObject = rawNullPojo()
 
@@ -103,21 +102,12 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 		return self
 	}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(shared)
-		}
-		return self
-	}
-
 	// The pojo bottom type is its own self type.
 	override fun o_PojoSelfType(self: AvailObject): A_Type = self
 
 	override fun o_MarshalToJava(
 		self: AvailObject,
-		classHint: Class<*>?): Any? = Any::class.java
+		classHint: Class<*>?) = Any::class.java
 
 	override fun o_TypeIntersectionOfPojoType(
 		self: AvailObject,

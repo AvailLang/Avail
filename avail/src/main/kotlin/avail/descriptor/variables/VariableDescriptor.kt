@@ -320,7 +320,11 @@ open class VariableDescriptor protected constructor(
 		assert(newValue.notNil)
 		handleVariableWriteTracing(self)
 		self.setSlot(
-			VALUE, if (isMutable) newValue else newValue.makeImmutable())
+			VALUE,
+			if (isMutable) newValue
+			else
+				//TODO Mark/Todd – This is probably unnecessary, at least for L1 code.
+				newValue.makeImmutable())
 	}
 
 	@Throws(VariableGetException::class, VariableSetException::class)
@@ -604,15 +608,29 @@ open class VariableDescriptor protected constructor(
 		return self
 	}
 
-	override fun o_MakeShared(self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		assert(!isShared)
-		//TODO: Determine if we should be transferring the write-reactors.
-		return VariableSharedDescriptor.createSharedFrom(
+		assert(this === transientShared)
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		val newVariable = VariableSharedDescriptor.createSharedLike(
 			self.slot(KIND),
 			self.hash(),
 			self.slot(VALUE),
-			self)
+			self.slot(WRITE_REACTORS))
+		assert(newVariable.descriptor().isShared)
+
+		// The old variable (self) was marked as shared when it was added to the
+		// queueToProcess.  Therefore, it's not truly shared yet, as other
+		// threads cannot actually see it.  Since shared objects can't become
+		// indirections, we switch the descriptor back to its mutable form
+		// before making it an indirection to the newVariable.
+		self.setDescriptor(self.descriptor().mutable())
+		self.becomeIndirectionTo(newVariable)
+		// Make the indirection shared, too.
+		self.setDescriptor(self.descriptor().shared())
 	}
 
 	override fun o_IsInitializedWriteOnceVariable(self: AvailObject)
@@ -740,7 +758,11 @@ open class VariableDescriptor protected constructor(
 
 	override fun immutable() = immutable
 
-	override fun shared() = VariableSharedDescriptor.shared
+	/**
+	 * This should only be used transiently when transitioning to a
+	 * [VariableSharedDescriptor].
+	 */
+	override fun shared() = transientShared
 
 	companion object
 	{
@@ -830,6 +852,16 @@ open class VariableDescriptor protected constructor(
 		/** The immutable [VariableDescriptor]. */
 		private val immutable = VariableDescriptor(
 			Mutability.IMMUTABLE,
+			TypeTag.VARIABLE_TAG,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
+
+		/**
+		 * The shared [VariableDescriptor], which is only used transiently
+		 * during a transition to a [VariableSharedDescriptor].
+		 */
+		private val transientShared = VariableDescriptor(
+			Mutability.SHARED,
 			TypeTag.VARIABLE_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)

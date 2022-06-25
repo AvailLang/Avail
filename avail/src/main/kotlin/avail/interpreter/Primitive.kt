@@ -192,6 +192,13 @@ import java.util.regex.Pattern
 abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 {
 	/**
+	 * To simplify styling during bootstrapping, a method defined by the
+	 * [pragma][avail.compiler.PragmaKind] mechanism can have its primitive
+	 * declare a styler primitive to plug in as that method definition's styler.
+	 */
+	open fun bootstrapStyler(): Primitive? = null
+
+	/**
 	 * A [function&#32;type][FunctionTypeDescriptor] that restricts the type of
 	 * block that can use this primitive.  This is set during initialization to
 	 * the value provided by [privateBlockTypeRestriction], to avoid having to

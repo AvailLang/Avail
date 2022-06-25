@@ -121,6 +121,11 @@ internal class LoadingEffectToAddDefinition constructor(
 						0,
 						L1Operation.L1_doPushLiteral,
 						addLiteral(definition.bodyBlock()))
+					// Push an empty tuple for the empty styler.
+					write(
+						0,
+						L1Operation.L1_doMakeTuple,
+						0)
 					// Call the definition loading method.
 					write(
 						0,

@@ -547,12 +547,6 @@ class L2Chunk private constructor(
 		DEPENDENCY_CHANGED(200),
 
 		/**
-		 * The chunk is being invalidated because a rarely-changing global
-		 * variable that it is treating as effectively constant has changed.
-		 */
-		SLOW_VARIABLE(10000),
-
-		/**
 		 * The chunk is being invalidated due to it being evicted due to too
 		 * many chunks being in existence.
 		 */

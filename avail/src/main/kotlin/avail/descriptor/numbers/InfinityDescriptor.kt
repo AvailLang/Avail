@@ -349,8 +349,6 @@ class InfinityDescriptor private constructor(
 
 	override fun o_MakeImmutable(self: AvailObject): AvailObject = self
 
-	override fun o_MakeShared(self: AvailObject): AvailObject = self
-
 	/*
 	 * Not finite, so not numerically equal to an integer.
 	 */
