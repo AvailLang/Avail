@@ -207,15 +207,6 @@ private constructor(
 			SerializerOperation.READ_WRITE_VARIABLE_TYPE
 		}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared rather than immutable (since there isn't
-			// actually an immutable descriptor).
-			self.makeShared()
-		}
-		else self
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
@@ -242,8 +233,7 @@ private constructor(
 
 	override fun mutable(): ReadWriteVariableTypeDescriptor = mutable
 
-	// There isn't an immutable variant.
-	override fun immutable(): ReadWriteVariableTypeDescriptor = shared
+	override fun immutable(): ReadWriteVariableTypeDescriptor = immutable
 
 	override fun shared(): ReadWriteVariableTypeDescriptor = shared
 
@@ -252,6 +242,10 @@ private constructor(
 		/** The mutable [ReadWriteVariableTypeDescriptor]. */
 		private val mutable =
 			ReadWriteVariableTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [ReadWriteVariableTypeDescriptor]. */
+		private val immutable =
+			ReadWriteVariableTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [ReadWriteVariableTypeDescriptor]. */
 		private val shared =

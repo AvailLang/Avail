@@ -320,6 +320,8 @@ class ListPhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -362,6 +364,9 @@ class ListPhraseDescriptor private constructor(
 
 		/** The mutable [ListPhraseDescriptor]. */
 		private val mutable = ListPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [ListPhraseDescriptor]. */
+		private val immutable = ListPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [ListPhraseDescriptor]. */
 		private val shared = ListPhraseDescriptor(Mutability.SHARED)

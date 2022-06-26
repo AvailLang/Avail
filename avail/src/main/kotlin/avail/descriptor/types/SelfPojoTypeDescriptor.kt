@@ -163,14 +163,6 @@ constructor(
 
 	override fun o_PojoSelfType(self: AvailObject): A_Type = self
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared, since there's not an immutable variant.
-			self.makeShared()
-		}
-		else self
-
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
@@ -291,8 +283,7 @@ constructor(
 
 	override fun mutable(): SelfPojoTypeDescriptor = mutable
 
-	// There is no immutable descriptor.
-	override fun immutable(): SelfPojoTypeDescriptor = shared
+	override fun immutable(): SelfPojoTypeDescriptor = immutable
 
 	override fun shared(): SelfPojoTypeDescriptor = shared
 
@@ -300,6 +291,9 @@ constructor(
 	{
 		/** The mutable [SelfPojoTypeDescriptor]. */
 		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SelfPojoTypeDescriptor]. */
+		private val immutable = SelfPojoTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SelfPojoTypeDescriptor]. */
 		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)

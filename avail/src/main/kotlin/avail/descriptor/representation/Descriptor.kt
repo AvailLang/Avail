@@ -1298,19 +1298,6 @@ protected constructor (
 
 	override fun o_IsFunction (self: AvailObject) = false
 
-	override fun o_MakeImmutable (self: AvailObject): AvailObject
-	{
-		// Make the object immutable. If I was mutable I have to scan my
-		// children and make them immutable as well (recursively down to
-		// immutable descendants).
-		if (isMutable)
-		{
-			self.setDescriptor(self.descriptor().immutable())
-			self.makeSubobjectsImmutable()
-		}
-		return self
-	}
-
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1367,6 +1354,11 @@ protected constructor (
 
 	// Overridden in IndirectionDescriptor to skip over indirections.
 	override fun o_Traversed (self: AvailObject): AvailObject = self
+
+	// Overridden in IndirectionDescriptor to skip over indirections.
+	override fun o_TraversedWhileMakingImmutable (
+		self: AvailObject
+	): AvailObject = self
 
 	// Overridden in IndirectionDescriptor to skip over indirections.
 	override fun o_TraversedWhileMakingShared (self: AvailObject): AvailObject =

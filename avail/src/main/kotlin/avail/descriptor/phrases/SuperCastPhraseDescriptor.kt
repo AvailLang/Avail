@@ -191,6 +191,8 @@ class SuperCastPhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -218,6 +220,9 @@ class SuperCastPhraseDescriptor private constructor(
 
 		/** The mutable [SuperCastPhraseDescriptor]. */
 		private val mutable = SuperCastPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SuperCastPhraseDescriptor]. */
+		private val immutable = SuperCastPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SuperCastPhraseDescriptor]. */
 		private val shared = SuperCastPhraseDescriptor(Mutability.SHARED)

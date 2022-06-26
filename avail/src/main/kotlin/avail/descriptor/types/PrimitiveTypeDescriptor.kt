@@ -31,6 +31,7 @@
  */
 package avail.descriptor.types
 
+import avail.AvailRuntimeSupport
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCompiler
 import avail.descriptor.atoms.AtomDescriptor
@@ -52,7 +53,6 @@ import avail.descriptor.parsing.ParsingPlanInProgressDescriptor
 import avail.descriptor.pojos.PojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.AvailObject.Companion.multiplier
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
@@ -320,16 +320,6 @@ private constructor(
 	@ThreadSafe
 	override fun o_IsTop(self: AvailObject): Boolean = self.sameAddressAs(TOP.o)
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			// There is no immutable descriptor; use the shared one.
-			self.makeShared()
-		}
-		return self
-	}
-
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
 		for (type in all())
@@ -422,12 +412,7 @@ private constructor(
 
 	override fun mutable(): PrimitiveTypeDescriptor = transientMutable
 
-	override fun immutable(): PrimitiveTypeDescriptor
-	{
-		// There are no immutable versions.
-		assert(mutability === Mutability.SHARED)
-		return this
-	}
+	override fun immutable(): PrimitiveTypeDescriptor = unsupported
 
 	override fun shared(): PrimitiveTypeDescriptor
 	{
@@ -467,7 +452,8 @@ private constructor(
 		 * Create a partially-initialized primitive type with the given name.
 		 * The type's parent will be set later, to facilitate arbitrary
 		 * construction order.  Set these fields to [nil][NilDescriptor] to
-		 * ensure pointer safety.
+		 * ensure pointer safety.  We will make all such objects shared after
+		 * all the linkages have been set up.
 		 *
 		 * @param typeNameString
 		 *   The name to give the object being initialized.
@@ -477,19 +463,16 @@ private constructor(
 		fun createMutablePrimitiveObjectNamed(
 			typeNameString: String
 		): AvailObject = transientMutable.create {
-			val name = stringFrom(typeNameString)
-			setSlot(NAME, name.makeShared())
+			setSlot(NAME, stringFrom(typeNameString).makeShared())
 			setSlot(PARENT, nil)
-			setSlot(HASH, typeNameString.hashCode() * multiplier)
+			setSlot(HASH, AvailRuntimeSupport.nextNonzeroHash())
 		}
 
 		/**
 		 * The sole mutable [PrimitiveTypeDescriptor], only used during early
 		 * instantiation.
 		 */
-		val transientMutable = PrimitiveTypeDescriptor(
-			Mutability.MUTABLE,
-			TOP)
+		val transientMutable = PrimitiveTypeDescriptor(Mutability.MUTABLE, TOP)
 	}
 
 	/**

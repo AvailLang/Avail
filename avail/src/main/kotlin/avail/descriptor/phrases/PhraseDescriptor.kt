@@ -39,7 +39,6 @@ import avail.descriptor.phrases.A_Phrase.Companion.flattenStatementsInto
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AbstractDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObjectRepresentation.Companion.newLike
 import avail.descriptor.representation.Descriptor
@@ -246,13 +245,6 @@ abstract class PhraseDescriptor protected constructor(
 		self.phraseKind.create(self.phraseExpressionType)
 
 	/**
-	 * None of the subclasses define an immutable descriptor, so make the
-	 * argument shared instead.
-	 */
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable) self.makeShared() else self
-
-	/**
 	 * Return the [PhraseKind] that this phrase's type implements.
 	 *
 	 * @return
@@ -298,9 +290,9 @@ abstract class PhraseDescriptor protected constructor(
 	 * Subclasses do not have an immutable descriptor, so use the shared one
 	 * instead.
 	 */
-	override fun immutable() = shared()
+	abstract override fun immutable(): PhraseDescriptor
 
-	abstract override fun shared(): AbstractDescriptor
+	abstract override fun shared(): PhraseDescriptor
 
 	companion object {
 		/**

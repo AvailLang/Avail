@@ -171,6 +171,8 @@ class SequenceAsExpressionPhraseDescriptor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -193,6 +195,10 @@ class SequenceAsExpressionPhraseDescriptor(
 		/** The mutable [SequenceAsExpressionPhraseDescriptor]. */
 		private val mutable =
 			SequenceAsExpressionPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SequenceAsExpressionPhraseDescriptor]. */
+		private val immutable =
+			SequenceAsExpressionPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SequenceAsExpressionPhraseDescriptor]. */
 		private val shared =

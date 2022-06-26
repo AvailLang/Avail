@@ -790,13 +790,30 @@ class AvailObject private constructor(
 
 	override fun literal() = descriptor().o_Literal(this)
 
-	override fun makeImmutable() =
-		descriptor().let {
-			when(it.mutability) {
-				Mutability.MUTABLE -> it.o_MakeImmutable(this)
-				else -> this
-			}
-		}
+	override fun makeImmutable(): AvailObject
+	{
+		val descriptor = descriptor()
+		if (!descriptor.isMutable) return this
+		// Switch the descriptor to prevent it from being added to the queue
+		// again.
+		setDescriptor(descriptor.immutable())
+		// Create a queue of marked-immutable-but-not-yet-scanned objects,
+		// seeded with the root of the graph.
+		val queue =	mutableListOf(this)
+		val fixups = mutableListOf<()->Unit>()
+		do
+		{
+			queue.removeLast().makeImmutableInternal(queue, fixups)
+		} while (queue.isNotEmpty())
+		fixups.forEach { it() }
+		return traversed()
+	}
+
+	override fun makeImmutableInternal(
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = descriptor().o_MakeImmutableInternal(this, queueToProcess, fixups)
+
 
 	override fun makeShared(): AvailObject
 	{
@@ -810,7 +827,7 @@ class AvailObject private constructor(
 		val fixups = mutableListOf<()->Unit>()
 		do
 		{
-			queue.removeFirst().makeSharedInternal(queue, fixups)
+			queue.removeLast().makeSharedInternal(queue, fixups)
 		} while (queue.isNotEmpty())
 		fixups.forEach { it() }
 		return traversed()
@@ -844,6 +861,9 @@ class AvailObject private constructor(
 	override fun tokenType(): TokenType = descriptor().o_TokenType(this)
 
 	override fun traversed() = descriptor().o_Traversed(this)
+
+	override fun traversedWhileMakingImmutable() =
+		descriptor().o_TraversedWhileMakingImmutable(this)
 
 	override fun traversedWhileMakingShared() =
 		descriptor().o_TraversedWhileMakingShared(this)

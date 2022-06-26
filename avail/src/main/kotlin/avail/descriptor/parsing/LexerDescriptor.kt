@@ -237,13 +237,6 @@ class LexerDescriptor private constructor(
 	override fun o_LexerMethod(self: AvailObject): A_Method =
 		self.slot(LEXER_METHOD)
 
-	// A method is always shared. Never make it immutable.
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		when {
-			isMutable -> self.makeShared()
-			else -> self
-		}
-
 	/**
 	 * @see [o_LexerApplicability].
 	 */
@@ -282,8 +275,7 @@ class LexerDescriptor private constructor(
 
 	override fun mutable() = mutable
 
-	// There is no immutable descriptor. Use the shared one.
-	override fun immutable() = shared
+	override fun immutable() = unsupported
 
 	override fun shared() = shared
 

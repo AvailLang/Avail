@@ -46,8 +46,8 @@ import avail.descriptor.types.A_Type.Companion.typeIntersectionOfTokenType
 import avail.descriptor.types.A_Type.Companion.typeUnionOfTokenType
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
+import avail.descriptor.types.TokenTypeDescriptor.IntegerSlots.TOKEN_TYPE_CODE
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.util.IdentityHashMap
@@ -110,14 +110,6 @@ private constructor(
 		combine2(self.slot(TOKEN_TYPE_CODE).toInt(), -0x32659c49)
 
 	override fun o_IsTokenType(self: AvailObject): Boolean = true
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// There is no immutable descriptor, so share the object.
-			self.makeShared()
-		}
-		else self
 
 	// Check if object (a type) is a subtype of aType (should also be a type).
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -186,8 +178,7 @@ private constructor(
 
 	override fun mutable(): TokenTypeDescriptor = mutable
 
-	// There is no immutable variant.
-	override fun immutable(): TokenTypeDescriptor = shared
+	override fun immutable(): TokenTypeDescriptor = immutable
 
 	override fun shared(): TokenTypeDescriptor = shared
 
@@ -209,6 +200,9 @@ private constructor(
 
 		/** The mutable [TokenTypeDescriptor]. */
 		private val mutable = TokenTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [TokenTypeDescriptor]. */
+		private val immutable = TokenTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [TokenTypeDescriptor]. */
 		private val shared = TokenTypeDescriptor(Mutability.SHARED)

@@ -808,15 +808,6 @@ class MessageBundleTreeDescriptor private constructor(
 		synchronized(self) { return self.slot(LAZY_TYPE_FILTER_TREE_POJO) }
 	}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Never actually make a message bundle tree immutable. They are
-			// always shared.
-			self.makeShared()
-		}
-		else self
-
 	/**
 	 * Remove the plan from this bundle tree.  We don't need to remove the
 	 * bundle itself if this is the last plan for that bundle, since this can
@@ -862,8 +853,7 @@ class MessageBundleTreeDescriptor private constructor(
 
 	override fun mutable() = mutable
 
-	// There is no immutable descriptor. Use the shared one.
-	override fun immutable() = shared
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
@@ -1322,6 +1312,10 @@ class MessageBundleTreeDescriptor private constructor(
 
 		/** The mutable [MessageBundleTreeDescriptor]. */
 		private val mutable = MessageBundleTreeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [MessageBundleTreeDescriptor]. */
+		private val immutable =
+			MessageBundleTreeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [MessageBundleTreeDescriptor]. */
 		private val shared = MessageBundleTreeDescriptor(Mutability.SHARED)

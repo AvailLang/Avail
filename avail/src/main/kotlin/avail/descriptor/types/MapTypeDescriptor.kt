@@ -208,15 +208,6 @@ private constructor(
 			&& (self.slot(KEY_TYPE).isVacuousType
 				|| self.slot(VALUE_TYPE).isVacuousType))
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared, since there isn't an immutable
-			// descriptor.
-			self.makeShared()
-		}
-		else self
-
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.MAP_TYPE
 
@@ -360,8 +351,7 @@ private constructor(
 
 	override fun mutable(): MapTypeDescriptor = mutable
 
-	// There is no immutable descriptor.
-	override fun immutable(): MapTypeDescriptor = shared
+	override fun immutable(): MapTypeDescriptor = immutable
 
 	override fun shared(): MapTypeDescriptor = shared
 
@@ -472,6 +462,9 @@ private constructor(
 
 		/** The mutable [MapTypeDescriptor]. */
 		private val mutable = MapTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [MapTypeDescriptor]. */
+		private val immutable = MapTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [MapTypeDescriptor]. */
 		private val shared = MapTypeDescriptor(Mutability.SHARED)

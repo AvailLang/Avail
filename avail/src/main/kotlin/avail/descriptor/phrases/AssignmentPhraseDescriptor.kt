@@ -260,6 +260,8 @@ class AssignmentPhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -305,6 +307,9 @@ class AssignmentPhraseDescriptor private constructor(
 
 		/** The mutable [AssignmentPhraseDescriptor]. */
 		private val mutable = AssignmentPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [AssignmentPhraseDescriptor]. */
+		private val immutable = AssignmentPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [AssignmentPhraseDescriptor]. */
 		private val shared = AssignmentPhraseDescriptor(Mutability.SHARED)

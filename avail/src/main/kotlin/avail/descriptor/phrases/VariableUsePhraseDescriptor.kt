@@ -223,6 +223,8 @@ class VariableUsePhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -252,6 +254,10 @@ class VariableUsePhraseDescriptor private constructor(
 
 		/** The mutable [VariableUsePhraseDescriptor]. */
 		private val mutable = VariableUsePhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [VariableUsePhraseDescriptor]. */
+		private val immutable =
+			VariableUsePhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [VariableUsePhraseDescriptor]. */
 		private val shared = VariableUsePhraseDescriptor(Mutability.SHARED)

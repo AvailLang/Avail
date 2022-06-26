@@ -182,6 +182,8 @@ class LiteralPhraseDescriptor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -237,6 +239,9 @@ class LiteralPhraseDescriptor(
 
 		/** The mutable [LiteralPhraseDescriptor]. */
 		private val mutable = LiteralPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [LiteralPhraseDescriptor]. */
+		private val immutable = LiteralPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [LiteralPhraseDescriptor]. */
 		private val shared = LiteralPhraseDescriptor(Mutability.SHARED)

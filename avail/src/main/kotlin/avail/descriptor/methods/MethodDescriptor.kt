@@ -572,12 +572,6 @@ class MethodDescriptor private constructor(
 		runtimeDispatcher.lookupByValues(
 			methodTestingTree(self), argumentList, Unit, dynamicLookupStats()))
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		// A method is always shared, except during construction.
-		assert(isShared)
-		return self
-	}
-
 	override fun o_MethodAddBundle(
 		self: AvailObject,
 		bundle: A_Bundle)

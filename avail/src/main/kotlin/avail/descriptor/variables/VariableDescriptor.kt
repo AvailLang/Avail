@@ -204,10 +204,11 @@ open class VariableDescriptor protected constructor(
 	}
 
 	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum): Boolean =
-			e === VALUE
-				|| e === IntegerSlots.HASH_AND_MORE
-				|| e === WRITE_REACTORS
+		e: AbstractSlotsEnum
+	): Boolean =
+		e === VALUE
+			|| e === IntegerSlots.HASH_AND_MORE
+			|| e === WRITE_REACTORS
 
 	override fun o_Hash(self: AvailObject): Int =
 		self.slot(HASH_OR_ZERO).ifZero {
@@ -323,7 +324,7 @@ open class VariableDescriptor protected constructor(
 			VALUE,
 			if (isMutable) newValue
 			else
-				//TODO Mark/Todd – This is probably unnecessary, at least for L1 code.
+				//TODO Mark/Todd – This is probably unnecessary.
 				newValue.makeImmutable())
 	}
 
@@ -596,16 +597,36 @@ open class VariableDescriptor protected constructor(
 		another: A_BasicObject
 	): Boolean = another.traversed().sameAddressAs(self)
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
+	override fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		// If I am being frozen (a variable), I don't need to freeze my current
-		// value. I do, on the other hand, have to freeze my kind object.
-		if (isMutable)
-		{
-			self.setDescriptor(immutable)
-			self.slot(KIND).makeImmutable()
+		assert(super.mutability == Mutability.IMMUTABLE) {
+			"The descriptor should have been switched to immutable already"
 		}
-		return self
+		val value = self.slot(VALUE)
+		self.scanSubobjects { subobject ->
+			// If I am being frozen (a variable), I don't need to freeze my
+			// current value. I do, on the other hand, have to freeze my kind
+			// object, and any other fields that my subclasses define.  It's
+			// safe to just identity check against the current value, because if
+			// it's mutable, there are no other references to it from other
+			// fields, and if it's not, we don't care.
+			if (subobject.sameAddressAs(value))
+			{
+				// Eliminate indirections during this step.
+				val traversed = subobject.traversedWhileMakingImmutable()
+				val descriptor = traversed.descriptor()
+				if (descriptor.isMutable)
+				{
+					traversed.setDescriptor(descriptor.immutable())
+					queueToProcess.add(traversed)
+				}
+				traversed
+			}
+			else subobject
+		}
 	}
 
 	override fun o_MakeSharedInternal(
@@ -685,7 +706,7 @@ open class VariableDescriptor protected constructor(
 	 *   A function that runs with either this variable's [MutableMap] from
 	 *   [A_Atom] to [VariableAccessReactor], or `null`.
 	 */
-	open fun<T> withWriteReactorsToModify(
+	open fun <T> withWriteReactorsToModify(
 		self: AvailObject,
 		toModify: Boolean,
 		body: (MutableMap<A_Atom, VariableAccessReactor>?)->T): T
@@ -703,7 +724,6 @@ open class VariableDescriptor protected constructor(
 		}
 		return body(pojo.javaObjectNotNull())
 	}
-
 
 	/**
 	 * If [variable&#32;write&#32;tracing][Interpreter.traceVariableWrites]

@@ -491,20 +491,21 @@ open class PhraseTypeDescriptor protected constructor(
 		/** The descriptor for mutable instances of this kind. */
 		val mutableDescriptor: PhraseTypeDescriptor
 
+		/** The descriptor for mutable instances of this kind. */
+		val immutableDescriptor: PhraseTypeDescriptor
+
 		/** The descriptor for shared instances of this kind. */
 		val sharedDescriptor: PhraseTypeDescriptor
 
 		init
 		{
-			depth = if (parentKind !== null)
+			depth = when
 			{
-				parentKind.depth + 1
-			}
-			else
-			{
-				0
+				parentKind === null -> 0
+				else -> parentKind.depth + 1
 			}
 			mutableDescriptor = createDescriptor(Mutability.MUTABLE)
+			immutableDescriptor = createDescriptor(Mutability.IMMUTABLE)
 			sharedDescriptor = createDescriptor(Mutability.SHARED)
 		}
 
@@ -881,7 +882,7 @@ open class PhraseTypeDescriptor protected constructor(
 	override fun mutable(): PhraseTypeDescriptor = kind.mutableDescriptor
 
 	// There are no immutable descriptors.
-	override fun immutable(): PhraseTypeDescriptor = kind.sharedDescriptor
+	override fun immutable(): PhraseTypeDescriptor = kind.immutableDescriptor
 
 	override fun shared(): PhraseTypeDescriptor = kind.sharedDescriptor
 }

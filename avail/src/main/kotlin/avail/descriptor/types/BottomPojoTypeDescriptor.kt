@@ -92,16 +92,6 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 
 	override fun o_JavaClass(self: AvailObject): AvailObject = rawNullPojo()
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			// There is no immutable descriptor.
-			self.setDescriptor(shared)
-		}
-		return self
-	}
-
 	// The pojo bottom type is its own self type.
 	override fun o_PojoSelfType(self: AvailObject): A_Type = self
 
@@ -174,8 +164,7 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 
 	override fun mutable(): BottomPojoTypeDescriptor = mutable
 
-	// There is no immutable descriptor, just a shared one.
-	override fun immutable(): BottomPojoTypeDescriptor = shared
+	override fun immutable(): BottomPojoTypeDescriptor = immutable
 
 	override fun shared(): BottomPojoTypeDescriptor = shared
 
@@ -183,6 +172,9 @@ constructor(mutability: Mutability) : PojoTypeDescriptor(mutability, null, null)
 	{
 		/** The mutable [BottomPojoTypeDescriptor]. */
 		val mutable = BottomPojoTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [BottomPojoTypeDescriptor]. */
+		private val immutable = BottomPojoTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [BottomPojoTypeDescriptor]. */
 		private val shared = BottomPojoTypeDescriptor(Mutability.SHARED)

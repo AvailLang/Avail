@@ -213,6 +213,37 @@ open class AtomWithPropertiesDescriptor protected constructor(
 		return propertyMap[key] ?: nil
 	}
 
+	/**
+	 * Convert to use an [AtomWithPropertiesSharedDescriptor], replacing self
+	 * with an indirection.
+	 */
+	override fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+	{
+		assert(mutability == Mutability.IMMUTABLE)
+		super.o_MakeImmutableInternal(self, queueToProcess, fixups)
+		// Scan the property map as well.
+		val map = self.slot(PROPERTY_MAP_POJO)
+		// The map can only be nil in a subclasses, but it's always shared, so
+		// this code wouldn't be reached.
+		assert(map.notNil)
+		val propertyMap: Map<A_Atom, AvailObject> = map.javaObjectNotNull()
+		propertyMap.forEach { (key, value) ->
+			if (key.descriptor().isMutable)
+			{
+				key.setDescriptor(key.descriptor().immutable())
+				queueToProcess.add(key as AvailObject)
+			}
+			if (value.descriptor().isMutable)
+			{
+				value.setDescriptor(value.descriptor().immutable())
+				queueToProcess.add(value)
+			}
+		}
+	}
+
 	override fun o_SerializerOperation (self: AvailObject) = when {
 		self.getAtomProperty(HERITABLE_KEY.atom).notNil ->
 			SerializerOperation.HERITABLE_ATOM

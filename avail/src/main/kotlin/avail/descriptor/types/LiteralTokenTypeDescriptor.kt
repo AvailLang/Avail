@@ -117,14 +117,6 @@ private constructor(
 
 	override fun o_IsLiteralTokenType(self: AvailObject): Boolean = true
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// There is no immutable descriptor, so share the object.
-			self.makeShared()
-		}
-		else self
-
 	// Check if object (a type) is a subtype of aType (should also be a
 	// type).
 	override fun o_IsSubtypeOf(self: AvailObject, aType: A_Type): Boolean =
@@ -210,8 +202,7 @@ private constructor(
 
 	override fun mutable(): LiteralTokenTypeDescriptor = mutable
 
-	// There is no immutable variant.
-	override fun immutable(): LiteralTokenTypeDescriptor = shared
+	override fun immutable(): LiteralTokenTypeDescriptor = immutable
 
 	override fun shared(): LiteralTokenTypeDescriptor = shared
 
@@ -233,6 +224,9 @@ private constructor(
 
 		/** The mutable [LiteralTokenTypeDescriptor]. */
 		private val mutable = LiteralTokenTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [LiteralTokenTypeDescriptor]. */
+		private val immutable = LiteralTokenTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [LiteralTokenTypeDescriptor]. */
 		private val shared = LiteralTokenTypeDescriptor(Mutability.SHARED)

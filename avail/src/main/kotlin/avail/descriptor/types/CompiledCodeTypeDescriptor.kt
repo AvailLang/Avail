@@ -216,14 +216,6 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.COMPILED_CODE_TYPE
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared.
-			self.makeShared()
-		}
-		else self
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
@@ -236,8 +228,7 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 
 	override fun mutable(): TypeDescriptor = mutable
 
-	// There is only a shared descriptor, not an immutable one.
-	override fun immutable(): TypeDescriptor = shared
+	override fun immutable(): TypeDescriptor = immutable
 
 	override fun shared(): TypeDescriptor = shared
 
@@ -264,6 +255,10 @@ class CompiledCodeTypeDescriptor private constructor(mutability: Mutability)
 		/** The mutable [CompiledCodeTypeDescriptor]. */
 		private val mutable: TypeDescriptor =
 			CompiledCodeTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [CompiledCodeTypeDescriptor]. */
+		private val immutable: TypeDescriptor =
+			CompiledCodeTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [CompiledCodeTypeDescriptor]. */
 		private val shared: TypeDescriptor =

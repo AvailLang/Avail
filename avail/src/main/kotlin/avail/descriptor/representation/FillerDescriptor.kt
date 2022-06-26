@@ -59,7 +59,11 @@ class FillerDescriptor private constructor() : Descriptor(
 		builder.append("(*** a destroyed object ***)")
 	}
 
-	override fun o_MakeImmutable(self: AvailObject) = unsupported
+	override fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>
+	) = unsupported
 
 	override fun o_MakeSharedInternal(
 		self: AvailObject,

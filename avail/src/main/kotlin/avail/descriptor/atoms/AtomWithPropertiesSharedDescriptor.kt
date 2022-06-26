@@ -231,8 +231,6 @@ internal class AtomWithPropertiesSharedDescriptor private constructor(
 	override fun o_IsBoolean (self: AvailObject) =
 		this === sharedForTrue || this === sharedForFalse
 
-	override fun o_MakeImmutable(self: AvailObject) = self
-
 	override fun o_MakeSharedInternal(
 		self: AvailObject,
 		queueToProcess: MutableList<AvailObject>,

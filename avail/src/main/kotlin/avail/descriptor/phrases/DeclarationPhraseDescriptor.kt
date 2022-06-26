@@ -948,6 +948,10 @@ class DeclarationPhraseDescriptor(
 			DeclarationPhraseDescriptor(Mutability.MUTABLE, it)
 		}.toTypedArray()
 
+		/** The immutable [DeclarationPhraseDescriptor]s. */
+		private val immutables = DeclarationKind.values().map {
+			DeclarationPhraseDescriptor(Mutability.IMMUTABLE, it)
+		}.toTypedArray()
 
 		/** The shared [DeclarationPhraseDescriptor]s. */
 		private val shareds = DeclarationKind.values().map {
@@ -955,9 +959,9 @@ class DeclarationPhraseDescriptor(
 		}.toTypedArray()
 	}
 
-	override fun mutable() =
-		mutables[declarationKind.ordinal]
+	override fun mutable() = mutables[declarationKind.ordinal]
 
-	override fun shared() =
-		shareds[declarationKind.ordinal]
+	override fun immutable() = immutables[declarationKind.ordinal]
+
+	override fun shared() = shareds[declarationKind.ordinal]
 }
