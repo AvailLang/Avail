@@ -82,9 +82,7 @@ object P_SealMethod : Primitive(2, CanInline, HasSideEffect)
 		}
 		try
 		{
-			loader.addSeal(
-				loader.lookupName(methodName),
-				argumentTypes)
+			loader.addSeal(loader.lookupName(methodName), argumentTypes)
 		}
 		catch (e: MalformedMessageException)
 		{

@@ -118,12 +118,17 @@ abstract class DefinitionDescriptor protected constructor(
 		 * unambiguously compiled.  Child phrases are processed before their
 		 * parent.
 		 *
-		 * The function accepts three arguments:
+		 * The function accepts four arguments:
 		 *   1. The send phrase, which is possibly the original phrase of a
 		 *      macro substitution.
 		 *   2. An [A_Variable] containing an [A_Map] from [A_Phrase] to a
 		 *      style, and
-		 *   3. Another [A_Variable] containing a map from [A_Token] to style.
+		 *   3. An [A_Variable] containing a map from [A_Token] to style.
+		 *   3. An [A_Variable] containing a map from [A_Token] to [A_Token],
+		 *      where the key token is the use of some variable, and the value
+		 *      token identifies its points of declaration.  While not strictly
+		 *      a styling output, we take this opportunity nevertheless to
+		 *      introduce this local navigation helper.
 		 *
 		 * The maps will already have been populated by running the styling
 		 * function for each of the children (perhaps running all children in

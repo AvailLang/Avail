@@ -31,18 +31,18 @@
  */
 package avail.interpreter.primitive.methods
 
-import avail.descriptor.atoms.A_Atom.Companion.bundleOrNil
+import avail.compiler.splitter.MessageSplitter
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.methods.MethodDescriptor
-import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ATOM
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
-import avail.exceptions.AvailErrorCode.E_NO_METHOD
+import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
@@ -57,19 +57,21 @@ object P_MethodFromName : Primitive(1, CanInline)
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(1)
-		val trueName = interpreter.argument(0)
-		val bundle = trueName.bundleOrNil
-		if (bundle.isNil)
+		val atom = interpreter.argument(0)
+
+		return try
 		{
-			return interpreter.primitiveFailure(E_NO_METHOD)
+			interpreter.primitiveSuccess(atom.bundleOrCreate().bundleMethod)
 		}
-		val method = bundle.bundleMethod
-		return interpreter.primitiveSuccess(method)
+		catch (e: MalformedMessageException)
+		{
+			interpreter.primitiveFailure(e)
+		}
 	}
 
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(tuple(ATOM.o), METHOD.o)
 
 	override fun privateFailureVariableType(): A_Type =
-		enumerationWith(set(E_NO_METHOD))
+		enumerationWith(MessageSplitter.possibleErrors)
 }

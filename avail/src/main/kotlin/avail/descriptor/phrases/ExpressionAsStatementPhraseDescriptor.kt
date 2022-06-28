@@ -158,6 +158,8 @@ class ExpressionAsStatementPhraseDescriptor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -179,6 +181,10 @@ class ExpressionAsStatementPhraseDescriptor(
 		/** The mutable [ExpressionAsStatementPhraseDescriptor]. */
 		private val mutable =
 			ExpressionAsStatementPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [ExpressionAsStatementPhraseDescriptor]. */
+		private val immutable =
+			ExpressionAsStatementPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [ExpressionAsStatementPhraseDescriptor]. */
 		private val shared =

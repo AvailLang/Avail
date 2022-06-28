@@ -195,6 +195,8 @@ class ReferencePhraseDescriptor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -214,6 +216,9 @@ class ReferencePhraseDescriptor(
 
 		/** The mutable [ReferencePhraseDescriptor]. */
 		private val mutable = ReferencePhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [ReferencePhraseDescriptor]. */
+		private val immutable = ReferencePhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [ReferencePhraseDescriptor]. */
 		private val shared = ReferencePhraseDescriptor(Mutability.SHARED)

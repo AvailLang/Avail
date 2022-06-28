@@ -228,6 +228,8 @@ class SendPhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -267,6 +269,9 @@ class SendPhraseDescriptor private constructor(
 
 		/** The mutable [SendPhraseDescriptor]. */
 		private val mutable = SendPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SendPhraseDescriptor]. */
+		private val immutable = SendPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SendPhraseDescriptor]. */
 		private val shared = SendPhraseDescriptor(Mutability.SHARED)

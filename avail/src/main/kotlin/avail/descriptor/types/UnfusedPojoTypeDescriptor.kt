@@ -52,7 +52,7 @@ import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.BitField
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.SetDescriptor
 import avail.descriptor.tuples.A_Tuple
@@ -569,8 +569,8 @@ constructor(
 			setSlot(HASH_OR_ZERO, 0)
 			setSlot(JAVA_CLASS, javaClass)
 			setSlot(JAVA_ANCESTORS, javaAncestors)
-			setSlot(TYPE_VARIABLES, NilDescriptor.nil)
-			setSlot(SELF_TYPE, NilDescriptor.nil)
+			setSlot(TYPE_VARIABLES, nil)
+			setSlot(SELF_TYPE, nil)
 		}
 	}
 }

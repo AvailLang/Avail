@@ -78,7 +78,6 @@ object P_CreateAtom : Primitive(1, CanInline)
 			{
 				return interpreter.primitiveFailure(E_AMBIGUOUS_NAME)
 			}
-
 		}
 		return interpreter.primitiveSuccess(atom)
 	}

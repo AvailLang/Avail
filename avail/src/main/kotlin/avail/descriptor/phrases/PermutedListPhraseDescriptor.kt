@@ -274,6 +274,8 @@ class PermutedListPhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -327,6 +329,10 @@ class PermutedListPhraseDescriptor private constructor(
 
 		/** The mutable [PermutedListPhraseDescriptor]. */
 		private val mutable = PermutedListPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [PermutedListPhraseDescriptor]. */
+		private val immutable =
+			PermutedListPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [PermutedListPhraseDescriptor]. */
 		private val shared = PermutedListPhraseDescriptor(Mutability.SHARED)

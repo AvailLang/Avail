@@ -690,36 +690,6 @@ protected constructor (
 		self: AvailObject,
 		forwardDefinition: A_BasicObject): Unit = unsupported
 
-	/**
-	 * Visit all of the object's object slots, passing the parent and child
-	 * objects to the provided visitor.
-	 *
-	 * @param self
-	 *   The object to scan.
-	 * @param visitor
-	 *   The visitor to invoke.
-	 */
-	override fun o_ScanSubobjects (
-		self: AvailObject,
-		visitor: (AvailObject) -> AvailObject)
-	{
-		val limit = self.objectSlotsCount()
-		for (i in 1 .. limit)
-		{
-			val child = self.slot(
-				FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
-				i)
-			val replacementChild = visitor(child)
-			if (replacementChild !== child)
-			{
-				self.writeBackSlot(
-					FakeObjectSlotsForScanning.ALL_OBJECT_SLOTS_,
-					i,
-					replacementChild)
-			}
-		}
-	}
-
 	override fun o_SetIntersectionCanDestroy (
 		self: AvailObject,
 		otherSet: A_Set,
@@ -1328,32 +1298,6 @@ protected constructor (
 
 	override fun o_IsFunction (self: AvailObject) = false
 
-	override fun o_MakeImmutable (self: AvailObject): AvailObject
-	{
-		// Make the object immutable. If I was mutable I have to scan my
-		// children and make them immutable as well (recursively down to
-		// immutable descendants).
-		if (isMutable)
-		{
-			self.setDescriptor(self.descriptor().immutable())
-			self.makeSubobjectsImmutable()
-		}
-		return self
-	}
-
-	override fun o_MakeShared (self: AvailObject): AvailObject
-	{
-		// Make the object shared. If I wasn't shared I have to scan my
-		// children and make them shared as well (recursively down to
-		// shared descendants).
-		if (!isShared)
-		{
-			self.setDescriptor(self.descriptor().shared())
-			self.makeSubobjectsShared()
-		}
-		return self
-	}
-
 	/**
 	 * {@inheritDoc}
 	 *
@@ -1410,6 +1354,15 @@ protected constructor (
 
 	// Overridden in IndirectionDescriptor to skip over indirections.
 	override fun o_Traversed (self: AvailObject): AvailObject = self
+
+	// Overridden in IndirectionDescriptor to skip over indirections.
+	override fun o_TraversedWhileMakingImmutable (
+		self: AvailObject
+	): AvailObject = self
+
+	// Overridden in IndirectionDescriptor to skip over indirections.
+	override fun o_TraversedWhileMakingShared (self: AvailObject): AvailObject =
+		self
 
 	override fun o_IsMap (self: AvailObject) = false
 

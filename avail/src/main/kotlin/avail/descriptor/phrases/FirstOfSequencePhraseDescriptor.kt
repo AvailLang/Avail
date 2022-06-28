@@ -216,6 +216,8 @@ class FirstOfSequencePhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -239,6 +241,10 @@ class FirstOfSequencePhraseDescriptor private constructor(
 		/** The mutable [FirstOfSequencePhraseDescriptor]. */
 		private val mutable =
 			FirstOfSequencePhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [FirstOfSequencePhraseDescriptor]. */
+		private val immutable =
+			FirstOfSequencePhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [FirstOfSequencePhraseDescriptor]. */
 		private val shared =

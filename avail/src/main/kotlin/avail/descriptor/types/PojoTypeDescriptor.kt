@@ -57,6 +57,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
@@ -754,7 +755,7 @@ protected constructor(
 					val javaClass = rawType.javaObjectNotNull<Class<*>>()
 					if (!javaClass.isAssignableFrom(mostSpecific))
 					{
-						return NilDescriptor.nil
+						return nil
 					}
 				}
 			}

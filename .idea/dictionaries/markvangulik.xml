@@ -13,6 +13,7 @@
       <w>boundedly</w>
       <w>calendrical</w>
       <w>canonicalized</w>
+      <w>canonicity</w>
       <w>cardinalities</w>
       <w>cellspacing</w>
       <w>checkable</w>
@@ -34,9 +35,11 @@
       <w>enablements</w>
       <w>enqueuer</w>
       <w>exponentiating</w>
+      <w>fernflower</w>
       <w>ffff</w>
       <w>fileanalyzer</w>
       <w>fillcolor</w>
+      <w>fixups</w>
       <w>genericity</w>
       <w>getenv</w>
       <w>hasher</w>
@@ -66,18 +69,23 @@
       <w>metainvariance</w>
       <w>metametatype</w>
       <w>metatype's</w>
+      <w>metavariance</w>
       <w>methvin</w>
       <w>misconnected</w>
       <w>mutable's</w>
+      <w>mutables</w>
       <w>noncanonical</w>
       <w>noninline</w>
       <w>nonlocal</w>
       <w>nonprimitive</w>
+      <w>nontype</w>
       <w>nulled</w>
       <w>nullness</w>
       <w>nybblecoded</w>
       <w>observerless</w>
+      <w>opcode's</w>
       <w>optional's</w>
+      <w>parameterizations</w>
       <w>parameters'type</w>
       <w>postinvoke</w>
       <w>pragma's</w>
@@ -103,6 +111,7 @@
       <w>send's</w>
       <w>sendable</w>
       <w>setfile</w>
+      <w>shareds</w>
       <w>situ</w>
       <w>spliterate</w>
       <w>spliterated</w>
@@ -117,6 +126,7 @@
       <w>submap</w>
       <w>subnode</w>
       <w>subphrase</w>
+      <w>subphrases</w>
       <w>subrange</w>
       <w>subranges</w>
       <w>subregion</w>

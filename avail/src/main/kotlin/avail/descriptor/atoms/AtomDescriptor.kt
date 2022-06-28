@@ -84,7 +84,7 @@ import java.util.IdentityHashMap
 import java.util.regex.Pattern
 
 /**
- * An `atom` is an object that has identity by fiat, i.e., it is distinguished
+ * An _atom_ is an object that has identity by fiat, i.e., it is distinguished
  * from all other objects by the fact of its creation event and the history of
  * what happens to its references.  Not all objects in Avail have that property
  * (hence the acronym Advanced Value And Identity Language), unlike most
@@ -110,7 +110,7 @@ import java.util.regex.Pattern
  * representing `true` and another representing `false`. The boolean type itself
  * is merely an enumeration of these two values.  The only thing special about
  * booleans is that they are referenced by the Avail virtual machine.  In fact,
- * this very class, `AtomDescriptor`, contains these references in [trueObject]
+ * this very class, [AtomDescriptor], contains these references in [trueObject]
  * and [falseObject].
  *
  * @constructor
@@ -252,17 +252,49 @@ open class AtomDescriptor protected constructor (
 	 * Convert to use an [AtomWithPropertiesSharedDescriptor], replacing self
 	 * with an indirection.
 	 */
-	override fun o_MakeShared (self: AvailObject): AvailObject
+	override fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
 	{
-		assert(!isShared) // shared subclass should override.
+		assert(isShared)
+		super.o_MakeSharedInternal(self, queueToProcess, fixups)
+		val map = propertyMapOrNil(self)
+		if (map.notNil)
+		{
+			// Scan the property map as well.
+			val propertyMap: Map<A_Atom, AvailObject> = map.javaObjectNotNull()
+			propertyMap.forEach { (key, value) ->
+				if (!key.descriptor().isShared)
+				{
+					key.setDescriptor(key.descriptor().shared())
+					queueToProcess.add(key as AvailObject)
+				}
+				if (!value.descriptor().isShared)
+				{
+					value.setDescriptor(value.descriptor().shared())
+					queueToProcess.add(value)
+				}
+			}
+		}
 		val substituteAtom: AvailObject =
 			AtomWithPropertiesSharedDescriptor.shared.createInitialized(
 				self.slot(NAME),
 				self.slot(ISSUING_MODULE),
-				nil,  // subclass with properties should override.
+				map,
 				self.slot(HASH_OR_ZERO))
+
+		assert(substituteAtom.descriptor().isShared)
+
+		// The old atom (self) was marked as shared when it was added to the
+		// queueToProcess.  Therefore, it's not truly shared yet, as other
+		// threads cannot actually see it.  Since shared objects can't become
+		// indirections, we switch the descriptor back to its mutable form
+		// before making it an indirection to the substituteAtom.
+		self.setDescriptor(self.descriptor().mutable())
 		self.becomeIndirectionTo(substituteAtom)
-		return substituteAtom
+		// Make the indirection shared, too.
+		self.setDescriptor(self.descriptor().shared())
 	}
 
 	override fun o_SetAtomBundle(self: AvailObject, bundle: A_Bundle) =
@@ -301,6 +333,8 @@ open class AtomDescriptor protected constructor (
 			}
 		}
 
+	protected open fun propertyMapOrNil(self: AvailObject): AvailObject = nil
+
 	override fun mutable () = mutable
 
 	override fun immutable () = immutable
@@ -308,15 +342,15 @@ open class AtomDescriptor protected constructor (
 	@Deprecated(
 		"Shared atoms are implemented in subclasses",
 		level = DeprecationLevel.HIDDEN)
-	override fun shared () = unsupported
+	override fun shared () = transientShared
 
 	/**
-	 * `SpecialAtom` enumerates [atoms][A_Atom] that are known to the virtual
+	 * [SpecialAtom] enumerates [atoms][A_Atom] that are known to the virtual
 	 * machine.
 	 *
 	 * @constructor
 	 *
-	 * Create a `SpecialAtom` to hold the given already constructed [A_Atom].
+	 * Create a [SpecialAtom] to hold the given already constructed [A_Atom].
 	 *
 	 * @param atom
 	 *   The actual [A_Atom] to be held by this [SpecialAtom].
@@ -460,6 +494,16 @@ open class AtomDescriptor protected constructor (
 		/** The immutable [AtomDescriptor]. */
 		private val immutable = AtomDescriptor(
 			Mutability.IMMUTABLE,
+			TypeTag.ATOM_TAG,
+			ObjectSlots::class.java,
+			IntegerSlots::class.java)
+
+		/**
+		 * The shared [AtomDescriptor] used *only* for marking the object prior
+		 * to adding it to the marking queue.
+		 */
+		private val transientShared = AtomDescriptor(
+			Mutability.SHARED,
 			TypeTag.ATOM_TAG,
 			ObjectSlots::class.java,
 			IntegerSlots::class.java)

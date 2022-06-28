@@ -41,7 +41,7 @@ import avail.descriptor.objects.ObjectTypeDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.objectTypeFromMap
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -85,16 +85,16 @@ import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoArrayType
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClass
 import avail.descriptor.types.PojoTypeDescriptor.Companion.pojoTypeForClassWithTypeArguments
 import avail.descriptor.types.PojoTypeDescriptor.Companion.selfTypeForClass
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.SetTypeDescriptor.Companion.mostGeneralSetType
 import avail.descriptor.types.SetTypeDescriptor.Companion.setMeta
 import avail.descriptor.types.TokenTypeDescriptor
 import avail.descriptor.types.TokenTypeDescriptor.Companion.tokenType
+import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mostGeneralTupleType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TupleTypeDescriptor.Companion.tupleMeta
-import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrMoreOf
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.VariableTypeDescriptor
 import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariableType
 import avail.descriptor.types.VariableTypeDescriptor.Companion.variableReadWriteType
@@ -361,7 +361,7 @@ class TypeConsistencyTest
 				instanceType(
 					createAtom(
 						stringFrom("something"),
-						NilDescriptor.nil)),
+						nil)),
 				primitiveTypes[Types.ATOM]!!)
 
 			/**
@@ -373,7 +373,7 @@ class TypeConsistencyTest
 				instanceType(
 					createAtom(
 						stringFrom("another"),
-						NilDescriptor.nil)),
+						nil)),
 				primitiveTypes[Types.ATOM]!!)
 
 			/**

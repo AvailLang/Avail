@@ -153,6 +153,7 @@ import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.A_Number
 import avail.descriptor.numbers.A_Number.Companion.extractInt
+import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.parsing.A_DefinitionParsingPlan.Companion.parsingInstructions
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.nameHighlightingPc
@@ -206,7 +207,6 @@ import avail.descriptor.phrases.SendPhraseDescriptor.Companion.newSendNode
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.Companion.newUse
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.asTuple
@@ -858,9 +858,8 @@ class AvailCompiler constructor(
 	 *   local-scoped to module-scoped.
 	 * @param onSuccess
 	 *   What to do after success. Note that the result of executing the
-	 *   statement must be [nil][NilDescriptor.nil], so there is no point in
-	 *   having the continuation accept this value, hence the nullary
-	 *   continuation.
+	 *   statement must be [nil], so there is no point in having the
+	 *   continuation accept this value, hence the nullary continuation.
 	 */
 	internal fun evaluateModuleStatementThen(
 		startState: LexingState,
@@ -968,6 +967,9 @@ class AvailCompiler constructor(
 						// Force the declaration to be serialized.
 						compilationContext.serializeWithoutSummary(
 							creationFunction)
+						// Don't allow global constant declarations to be
+						// batched with their initialization.
+						compilationContext.flushDelayedSerializedEffects()
 						val variable = createGlobal(varType, module, name, true)
 						variable.setValueWasStablyComputed(canSummarize)
 						module.addConstantBinding(name, variable)
@@ -1003,6 +1005,9 @@ class AvailCompiler constructor(
 							replacement.token.lineNumber())
 						compilationContext.serializeWithoutSummary(
 							assignFunction)
+						// Don't allow global constant initialization to be
+						// batched with subsequent effects.
+						compilationContext.flushDelayedSerializedEffects()
 						loader.manifestEntries!!.add(
 							ModuleManifestEntry(
 								SideEffectKind.MODULE_CONSTANT_KIND,
@@ -1041,14 +1046,17 @@ class AvailCompiler constructor(
 							syntheticLiteralNodeFor(falseObject))),
 					TOP.o)
 				val creationFunction = createFunctionForPhrase(
-					creationSend,
-					module,
-					replacement.token.lineNumber())
+					creationSend, module, replacement.token.lineNumber())
 				creationFunction.makeImmutable()
 				// Force the declaration to be serialized.
 				compilationContext.serializeWithoutSummary(creationFunction)
+				// Don't allow global variable declarations to be batched with
+				// their initialization.
+				compilationContext.flushDelayedSerializedEffects()
 				val variable = createGlobal(varType, module, name, false)
 				module.addVariableBinding(name, variable)
+				// Don't allow global variable declarations to be batched with
+				// their initialization.
 				if (replacement.initializationExpression.notNil)
 				{
 					val newDeclaration = newModuleVariable(
@@ -1073,6 +1081,9 @@ class AvailCompiler constructor(
 							variable.setValue(value)
 							compilationContext.serializeWithoutSummary(
 								assignFunction)
+							// Don't allow global variable initialization to be
+							// batched with subsequent effects.
+							compilationContext.flushDelayedSerializedEffects()
 							module.lock {
 								loader.manifestEntries!!.add(
 									ModuleManifestEntry(
@@ -2861,6 +2872,11 @@ class AvailCompiler constructor(
 	 * suitable primitive failure code (to invoke the [CRASH]
 	 * [method][MethodDescriptor]'s [bundle][A_BundleTree]).
 	 *
+	 * As a nicety, a [Primitive] may declared a
+	 * [bootstrapStyler][Primitive.bootstrapStyler], which is another primitive
+	 * having the [stylerFunctionType] signature, which we wrap in a function
+	 * and attach as the new method definition's styler.
+	 *
 	 * @param state
 	 *   The [state][LexingState] following a parse of the
 	 *   [module&#32;header][ModuleHeader].
@@ -2896,14 +2912,26 @@ class AvailCompiler constructor(
 		val send = newSendNode(
 			emptyTuple,
 			METHOD_DEFINER.bundle,
-			newListNode(tuple(nameLiteral, syntheticLiteralNodeFor(function))),
+			newListNode(
+				tuple(
+					nameLiteral,
+					syntheticLiteralNodeFor(function),
+					newListNode(emptyTuple))),
 			TOP.o)
 		evaluateModuleStatementThen(
-			token.synthesizeCurrentLexingState(),
-			state,
-			send,
-			mutableMapOf(),
-			success)
+			token.synthesizeCurrentLexingState(), state, send, mutableMapOf()
+		) {
+			// Create a bootstrap styler for it, if so indicated.
+			primitive.bootstrapStyler()?.let { stylerPrimitive ->
+				val stylerFunction = createFunction(
+					newPrimitiveRawFunction(
+						stylerPrimitive,
+						compilationContext.module,
+						token.lineNumber()),
+					emptyTuple)
+			}
+			success()
+		}
 	}
 
 	/**
@@ -3324,6 +3352,7 @@ class AvailCompiler constructor(
 	 */
 	private fun reachedEndOfModule(afterModule: ParserState)
 	{
+		compilationContext.flushDelayedSerializedEffects()
 		val theLoader = compilationContext.loader
 		if (theLoader.pendingForwards.setSize != 0)
 		{

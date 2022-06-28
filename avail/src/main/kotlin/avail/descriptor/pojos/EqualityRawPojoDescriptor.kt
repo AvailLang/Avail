@@ -35,6 +35,8 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.Mutability.IMMUTABLE
+import avail.descriptor.representation.Mutability.SHARED
 import java.util.IdentityHashMap
 
 /**
@@ -103,34 +105,6 @@ internal class EqualityRawPojoDescriptor(
 			else -> combine2(javaObject.hashCode(), 0x59EEE44C)
 		}
 
-	/**
-	 * Replace the descriptor with a newly synthesized one that has the same
-	 * [javaObject] but is [immutable][Mutability.IMMUTABLE].
-	 */
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(
-				EqualityRawPojoDescriptor(Mutability.IMMUTABLE, javaObject))
-		}
-		return self
-	}
-
-	/**
-	 * Replace the descriptor with a newly synthesized one that has the same
-	 * [javaObject] but is [shared][Mutability.SHARED].
-	 */
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(
-				EqualityRawPojoDescriptor(Mutability.SHARED, javaObject))
-		}
-		return self
-	}
-
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
 		builder: StringBuilder,
@@ -140,4 +114,8 @@ internal class EqualityRawPojoDescriptor(
 		builder.append("equality raw pojo: ")
 		builder.append(javaObject)
 	}
+
+	override fun immutable() = EqualityRawPojoDescriptor(IMMUTABLE, javaObject)
+
+	override fun shared() = EqualityRawPojoDescriptor(SHARED, javaObject)
 }

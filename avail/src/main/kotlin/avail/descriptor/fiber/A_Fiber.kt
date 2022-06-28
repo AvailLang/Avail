@@ -57,7 +57,7 @@ import avail.io.TextInterface
 import java.util.TimerTask
 
 /**
- * `A_Fiber` is an interface that specifies the fiber-specific operations that
+ * [A_Fiber] is an interface that specifies the fiber-specific operations that
  * an [AvailObject] must implement.  It's a sub-interface of [A_BasicObject],
  * the interface that defines the behavior that all AvailObjects are required to
  * support.
@@ -77,8 +77,8 @@ interface A_Fiber : A_BasicObject
 	{
 		/**
 		 * Answer the [loader][AvailLoader] bound to the
-		 * [receiver][FiberDescriptor], or `null` if the receiver is not a loader
-		 * fiber.
+		 * [receiver][FiberDescriptor], or `null` if the receiver is not a
+		 * loader fiber.
 		 */
 		var A_Fiber.availLoader: AvailLoader?
 			get() = dispatch { o_AvailLoader(it) }
@@ -251,10 +251,10 @@ interface A_Fiber : A_BasicObject
 			dispatch { o_SetGeneralFlag(it, flag) }
 
 		/**
-		 * Set the success and failure actions of this fiber.  The former
-		 * runs if the fiber succeeds, passing the resulting [AvailObject], and also
-		 * stashing it in the fiber.  The latter runs if the fiber fails, passing
-		 * the [Throwable] that caused the failure.
+		 * Set the success and failure actions of this fiber.  The former runs
+		 * if the fiber succeeds, passing the resulting [AvailObject], and also
+		 * stashing it in the fiber.  The latter runs if the fiber fails,
+		 * passing the [Throwable] that caused the failure.
 		 *
 		 * @param onSuccess
 		 *   The action to invoke with the fiber's result value.
@@ -303,10 +303,10 @@ interface A_Fiber : A_BasicObject
 			get() = dispatch { o_VariablesReadBeforeWritten(it) }
 
 		/**
-		 * Answer the [set][SetDescriptor] of [variables][VariableDescriptor] that
-		 * were written. Only variables still live are included in this set; the
-		 * [trace][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES] mechanism retains
-		 * variables only weakly.
+		 * Answer the [set][SetDescriptor] of [variables][VariableDescriptor]
+		 * that were written. Only variables still live are included in this
+		 * set; the [trace][TraceFlag.TRACE_VARIABLE_READS_BEFORE_WRITES]
+		 * mechanism retains variables only weakly.
 		 *
 		 * @return
 		 *   The requested variables.
@@ -316,9 +316,9 @@ interface A_Fiber : A_BasicObject
 
 		/**
 		 * Ensure the specified action is invoked with this fiber's reified
-		 * [continuation][ContinuationDescriptor] as soon as it's available.  Note
-		 * that this triggers an interrupt on the fiber to ensure a timely capture
-		 * of the stack.
+		 * [continuation][ContinuationDescriptor] as soon as it's available.
+		 * Note that this triggers an interrupt on the fiber to ensure a timely
+		 * capture of the stack.
 		 *
 		 * @param whenReified
 		 *   What to run with the Avail [continuation][ContinuationDescriptor].
@@ -328,8 +328,8 @@ interface A_Fiber : A_BasicObject
 		) = dispatch { o_WhenContinuationIsAvailableDo(it, whenReified) }
 
 		/**
-		 * Extract the current [A_Set] of [pojo][PojoDescriptor]-wrapped
-		 * actions to perform when this fiber is next reified.  Replace it with the
+		 * Extract the current [A_Set] of [pojo][PojoDescriptor]-wrapped actions
+		 * to perform when this fiber is next reified.  Replace it with the
 		 * empty set.
 		 *
 		 * @return
@@ -350,7 +350,7 @@ interface A_Fiber : A_BasicObject
 		 * Answer the unique identifier of this `A_Fiber fiber`.
 		 *
 		 * @return
-		 *   The unique identifier, a `long`.
+		 *   The unique identifier, a [Long].
 		 */
 		val A_Fiber.uniqueId: Long
 			get() = dispatch { o_UniqueId(it) }
@@ -377,9 +377,9 @@ interface A_Fiber : A_BasicObject
 			dispatch { o_CaptureInDebugger(it, debugger) }
 
 		/**
-		 * This fiber was captured by a debugger.  Release it from that debugger,
-		 * allowing it to continue running freely when/if its state indicates it
-		 * should.
+		 * This fiber was captured by a debugger.  Release it from that
+		 * debugger, allowing it to continue running freely when/if its state
+		 * indicates it should.
 		 */
 		fun A_Fiber.releaseFromDebugger() =
 			dispatch { o_ReleaseFromDebugger(it) }

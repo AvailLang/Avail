@@ -1043,13 +1043,6 @@ class ModuleDescriptor private constructor(
 
 	override fun o_Kind(self: AvailObject): A_Type = Types.MODULE.o
 
-	// Modules are always shared, never immutable.
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		when {
-			isMutable -> self.makeShared()
-			else -> self
-		}
-
 	override fun o_ModuleAddGrammaticalRestriction(
 		self: AvailObject,
 		grammaticalRestriction: A_GrammaticalRestriction
@@ -1491,6 +1484,7 @@ class ModuleDescriptor private constructor(
 				setSlot(ALL_BLOCK_PHRASES, emptyTuple)
 				setSlot(ALL_TOP_PHRASE_STYLES, emptyTuple)
 				setSlot(ALL_MANIFEST_ENTRIES, nil)
+				// Create a new shared descriptor.
 				setDescriptor(ModuleDescriptor(SHARED, moduleName.makeShared()))
 			}
 

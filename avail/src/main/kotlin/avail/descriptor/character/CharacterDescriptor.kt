@@ -160,21 +160,6 @@ class CharacterDescriptor private constructor(
 
 	override fun o_IsCharacter(self: AvailObject): Boolean = true
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		if (isMutable) {
-			// Make the object shared instead.
-			self.setDescriptor(shared)
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		if (!isShared) {
-			self.setDescriptor(shared)
-		}
-		return self
-	}
-
 	override fun o_Kind(self: AvailObject): A_Type = CHARACTER.o
 
 	override fun o_MarshalToJava(
@@ -222,8 +207,7 @@ class CharacterDescriptor private constructor(
 
 	override fun mutable() = mutable
 
-	/** There is no immutable variant; answer the shared descriptor. */
-	override fun immutable() = shared
+	override fun immutable() = immutable
 
 	override fun shared() = shared
 
@@ -256,6 +240,9 @@ class CharacterDescriptor private constructor(
 
 		/** The mutable [CharacterDescriptor]. */
 		private val mutable = CharacterDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [CharacterDescriptor]. */
+		private val immutable = CharacterDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [CharacterDescriptor]. */
 		private val shared = CharacterDescriptor(Mutability.SHARED)

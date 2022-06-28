@@ -42,7 +42,6 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
@@ -616,7 +615,7 @@ interface A_Phrase : A_BasicObject {
 
 		/**
 		 * Answer the [phrase][A_Phrase] that produced the type of the
-		 * declaration. Answer [nil][NilDescriptor.nil] if there was no such
+		 * declaration. Answer [nil] if there was no such
 		 * phrase.
 		 *
 		 * @return

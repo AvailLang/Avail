@@ -387,6 +387,8 @@ class MacroSubstitutionPhraseDescriptor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object
@@ -420,6 +422,10 @@ class MacroSubstitutionPhraseDescriptor(
 		/** The mutable [MacroSubstitutionPhraseDescriptor]. */
 		private val mutable =
 			MacroSubstitutionPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [MacroSubstitutionPhraseDescriptor]. */
+		private val immutable =
+			MacroSubstitutionPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The immutable [MacroSubstitutionPhraseDescriptor]. */
 		private val shared =

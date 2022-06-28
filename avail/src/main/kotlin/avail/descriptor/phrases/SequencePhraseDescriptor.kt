@@ -182,6 +182,8 @@ class SequencePhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -202,6 +204,9 @@ class SequencePhraseDescriptor private constructor(
 
 		/** The mutable [SequencePhraseDescriptor]. */
 		private val mutable = SequencePhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SequencePhraseDescriptor]. */
+		private val immutable = SequencePhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SequencePhraseDescriptor]. */
 		private val shared = SequencePhraseDescriptor(Mutability.SHARED)

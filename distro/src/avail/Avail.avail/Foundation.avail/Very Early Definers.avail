@@ -39,7 +39,7 @@ Names
 	"<«_‡,»>",
 	"Assert:_",
 	"Assert:_(_)",
-	"Method_is_",
+	"Method_is_«styled by_»",
 	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Reject parse(confidence=_),expected:_",
 	"Replace assertion failure function with_",
@@ -112,21 +112,27 @@ Semantic restriction "Invoke|invoke_with_" is
 	aFunction's return type
 ];
 
+/* The range from zero to one. */
+zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+
 /**
  * Define a new method.
  *
- * @method "Method_is_"
+ * @method "Method_is_«styled by_»"
  * @category "Methods"
  * @param "methodName" "string"
  *        The method to extend.
- * @param "function" "function"
+ * @param "body" "function"
  *        An implementation of the method.
+ * @param "optionalStyler" "<stylerFunction|0..1>"
+ *        An optional styler function.
  * @returns "⊤"
  */
-Primitive "Method_is_" is
+Primitive "Method_is_«styled by_»" is
 [
 	methodName : string,
-	function : function
+	body : function,
+	optionalStyler : <<>, styler function…|zeroOrOne>
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -135,18 +141,21 @@ Primitive "Method_is_" is
 /**
  * Define a new method.
  *
- * @method "Method_is_"
+ * @method "Method_is_«styled by_»"
  * @category "Methods"
  * @param "methodName" "atom"
  *        The method to extend.
- * @param "function" "function"
+ * @param "body" "function"
  *        An implementation of the method.
+ * @param "optionalStyler" "<stylerFunction|0..1>"
+ *        An optional styler function.
  * @returns "⊤"
  */
-Primitive "Method_is_" is
+Primitive "Method_is_«styled by_»" is
 [
 	methodName : atom,
-	function : function
+	body : function,
+	optionalStyler : <<>, styler function…|zeroOrOne>
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>

@@ -2551,11 +2551,79 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_IsFunction (self: AvailObject): Boolean
 
-	abstract fun o_MakeImmutable (self: AvailObject): AvailObject
-
 	abstract fun o_MakeSubobjectsImmutable (self: AvailObject): AvailObject
 
-	abstract fun o_MakeShared (self: AvailObject): AvailObject
+	/**
+	 * Given that the receiver is marked immutable, but its slots have not yet
+	 * been made immutable, scan them now.  For each slot found to be mutable,
+	 * mark it immutable and add it to the supplied list.
+	 *
+	 * @param self
+	 *   An [AvailObject].
+	 * @param queueToProcess
+	 *   The queue on which to write subobjects that still need to be scanned,
+	 *   after marking them here as immutable.
+	 * @param fixups
+	 *   The list of actions to perform after the *entire* graph has been made
+	 *   immutable.
+	 */
+	open fun o_MakeImmutableInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+	{
+		assert(mutability == Mutability.IMMUTABLE) {
+			"The descriptor should have been switched to immutable already"
+		}
+		self.scanSubobjects { subobject ->
+			// Eliminate indirections during this step.
+			val traversed = subobject.traversedWhileMakingImmutable()
+			val descriptor = traversed.descriptor()
+			if (descriptor.isMutable)
+			{
+				val immutableDescriptor = descriptor.immutable()
+				//assert(immutableDescriptor.mutability == Mutability.IMMUTABLE)
+				traversed.setDescriptor(immutableDescriptor)
+				queueToProcess.add(traversed)
+			}
+			traversed
+		}
+	}
+
+	/**
+	 * Given that the receiver is marked shared, but its slots have not yet been
+	 * shared, scan them now.  For each slot found to be unshared, mark it and
+	 * add it to the supplied list.
+	 *
+	 * @param self
+	 *   An [AvailObject].
+	 * @param queueToProcess
+	 *   The queue on which to write subobjects that still need to be scanned,
+	 *   after marking them here as shared.
+	 * @param fixups
+	 *   The list of actions to perform after the *entire* graph has been
+	 *   shared.
+	 */
+	open fun o_MakeSharedInternal(
+		self: AvailObject,
+		queueToProcess: MutableList<AvailObject>,
+		fixups: MutableList<()->Unit>)
+	{
+		assert(isShared) {
+			"The descriptor should have been switched to shared already"
+		}
+		self.scanSubobjects { subobject ->
+			// Eliminate indirections during this step.
+			val traversed = subobject.traversedWhileMakingShared()
+			val descriptor = traversed.descriptor()
+			if (!descriptor.isShared)
+			{
+				traversed.setDescriptor(descriptor.shared())
+				queueToProcess.add(traversed)
+			}
+			traversed
+		}
+	}
 
 	abstract fun o_MakeSubobjectsShared (self: AvailObject): AvailObject
 
@@ -2606,6 +2674,12 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_IsString (self: AvailObject): Boolean
 
 	abstract fun o_Traversed (self: AvailObject): AvailObject
+
+	abstract fun o_TraversedWhileMakingImmutable (
+		self: AvailObject
+	): AvailObject
+
+	abstract fun o_TraversedWhileMakingShared (self: AvailObject): AvailObject
 
 	/**
 	 * Is the specified [AvailObject] an Avail map?
@@ -2728,10 +2802,6 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_IsTupleType (self: AvailObject): Boolean
 
 	abstract fun o_IsType (self: AvailObject): Boolean
-
-	abstract fun o_ScanSubobjects (
-		self: AvailObject,
-		visitor: (AvailObject) -> AvailObject)
 
 	/**
 	 * Answer an [iterator][Iterator] suitable for traversing the elements of

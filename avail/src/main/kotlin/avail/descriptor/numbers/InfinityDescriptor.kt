@@ -347,13 +347,7 @@ class InfinityDescriptor private constructor(
 		aDouble: Double
 	): Order = compareDoubles(sign.limitDouble(), aDouble)
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject = self
-
-	override fun o_MakeShared(self: AvailObject): AvailObject = self
-
-	/*
-	 * Not finite, so not numerically equal to an integer.
-	 */
+	/** Not finite, so not numerically equal to an integer. */
 	override fun o_IsNumericallyIntegral(self: AvailObject): Boolean = false
 
 	/**

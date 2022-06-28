@@ -480,24 +480,6 @@ private constructor(
 
 	override fun o_IsLongTuple(self: AvailObject): Boolean = true
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(immutable())
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(shared())
-		}
-		return self
-	}
-
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,

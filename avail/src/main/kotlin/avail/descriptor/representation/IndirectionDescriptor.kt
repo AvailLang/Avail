@@ -679,14 +679,7 @@ class IndirectionDescriptor private constructor(
 		 * The target [object][AvailObject] to which my instance is delegating
 		 * all behavior.
 		 */
-		INDIRECTION_TARGET,
-
-		/**
-		 * All other object slots should be ignored.
-		 */
-		@Suppress("unused")
-		@HideFieldInDebugger
-		IGNORED_OBJECT_SLOT_
+		INDIRECTION_TARGET
 	}
 
 	/**
@@ -713,29 +706,6 @@ class IndirectionDescriptor private constructor(
 		indent: Int
 	) = self.traversed().printOnAvoidingIndent(builder, recursionMap, indent)
 
-	override fun o_ScanSubobjects(
-		self: AvailObject,
-		visitor: (AvailObject) -> AvailObject)
-	{
-		visitor(self.slot(INDIRECTION_TARGET))
-	}
-
-	override fun o_MakeImmutable(self: AvailObject): AvailObject {
-		if (isMutable) {
-			self.setDescriptor(immutable(typeTag))
-			return self.slot(INDIRECTION_TARGET).makeImmutable()
-		}
-		return self.slot(INDIRECTION_TARGET)
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject {
-		if (!isShared) {
-			self.setDescriptor(shared(typeTag))
-			return self.slot(INDIRECTION_TARGET).makeShared()
-		}
-		return self.slot(INDIRECTION_TARGET)
-	}
-
 	/**
 	 * Answer the non-indirection pointed to (transitively) by object.  Also
 	 * changes the object to point directly at the ultimate target to save hops
@@ -746,6 +716,44 @@ class IndirectionDescriptor private constructor(
 		val finalObject = next.traversed()
 		if (!finalObject.sameAddressAs(next)) {
 			self.setSlot(INDIRECTION_TARGET, finalObject)
+		}
+		return finalObject
+	}
+
+	/**
+	 * Answer the non-indirection pointed to (transitively) by object.  Also
+	 * changes the object to point directly at the ultimate target to save hops
+	 * next time if possible.  While shortening chains of indirections, it
+	 * ignores the otherwise forbidden immutable->mutable pointers.
+	 */
+	override fun o_TraversedWhileMakingImmutable(self: AvailObject): AvailObject
+	{
+		val next = self.slot(INDIRECTION_TARGET)
+		val finalObject = next.traversedWhileMakingImmutable()
+		if (!finalObject.sameAddressAs(next)) {
+			// Allow immutable -> mutable pointers, since we're doing an
+			// iterative makeImmutable() operation, and the graph is allowed to
+			// have that form temporarily.
+			self.writeBackSlot(INDIRECTION_TARGET, 1, finalObject)
+		}
+		return finalObject
+	}
+
+	/**
+	 * Answer the non-indirection pointed to (transitively) by object.  Also
+	 * changes the object to point directly at the ultimate target to save hops
+	 * next time if possible.  While shortening chains of indirections, it
+	 * ignores the otherwise forbidden shared->unshared pointers.
+	 */
+	override fun o_TraversedWhileMakingShared(self: AvailObject): AvailObject
+	{
+		val next = self.slot(INDIRECTION_TARGET)
+		val finalObject = next.traversedWhileMakingShared()
+		if (!finalObject.sameAddressAs(next)) {
+			// Allow shared -> unshared pointers, since we're doing an iterative
+			// makeShared() operation, and the graph is allowed to have that
+			// form temporarily.
+			self.writeBackSlot(INDIRECTION_TARGET, 1, finalObject)
 		}
 		return finalObject
 	}

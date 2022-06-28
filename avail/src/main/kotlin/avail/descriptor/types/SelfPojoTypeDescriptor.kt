@@ -41,7 +41,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.sets.A_Set
 import avail.descriptor.sets.A_Set.Companion.setIntersectionCanDestroy
@@ -163,14 +163,6 @@ constructor(
 
 	override fun o_PojoSelfType(self: AvailObject): A_Type = self
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject =
-		if (isMutable)
-		{
-			// Make the object shared, since there's not an immutable variant.
-			self.makeShared()
-		}
-		else self
-
 	override fun o_MarshalToJava(self: AvailObject, classHint: Class<*>?): Any?
 	{
 		val javaClass: A_BasicObject = self.slot(JAVA_CLASS)
@@ -212,7 +204,7 @@ constructor(
 			}
 		}
 		return newSelfPojoType(
-			NilDescriptor.nil,
+			nil,
 			ancestors.setUnionCanDestroy(otherAncestors, false))
 	}
 
@@ -291,8 +283,7 @@ constructor(
 
 	override fun mutable(): SelfPojoTypeDescriptor = mutable
 
-	// There is no immutable descriptor.
-	override fun immutable(): SelfPojoTypeDescriptor = shared
+	override fun immutable(): SelfPojoTypeDescriptor = immutable
 
 	override fun shared(): SelfPojoTypeDescriptor = shared
 
@@ -300,6 +291,9 @@ constructor(
 	{
 		/** The mutable [SelfPojoTypeDescriptor]. */
 		private val mutable = SelfPojoTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [SelfPojoTypeDescriptor]. */
+		private val immutable = SelfPojoTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [SelfPojoTypeDescriptor]. */
 		private val shared = SelfPojoTypeDescriptor(Mutability.SHARED)
@@ -348,7 +342,7 @@ constructor(
 			val pojoClass = selfPojo.javaClass()
 			val mainClassName = if (pojoClass.isNil)
 			{
-				NilDescriptor.nil
+				nil
 			}
 			else
 			{
@@ -387,7 +381,7 @@ constructor(
 			val className: A_String = selfPojoProxy.tupleAt(1)
 			val mainRawType = if (className.isNil)
 			{
-				NilDescriptor.nil
+				nil
 			}
 			else
 			{

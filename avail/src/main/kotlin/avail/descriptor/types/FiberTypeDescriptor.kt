@@ -151,16 +151,6 @@ constructor (
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.FIBER_TYPE
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		return if (isMutable)
-		{
-			// Make the object shared.
-			self.makeShared()
-		}
-		else self
-	}
-
 	override fun o_WriteTo(self: AvailObject, writer: JSONWriter)
 	{
 		writer.startObject()
@@ -195,8 +185,7 @@ constructor (
 
 	override fun mutable(): FiberTypeDescriptor = mutable
 
-	// There is no immutable variation.
-	override fun immutable(): FiberTypeDescriptor = shared
+	override fun immutable(): FiberTypeDescriptor = immutable
 
 	override fun shared(): FiberTypeDescriptor = shared
 
@@ -204,6 +193,9 @@ constructor (
 	{
 		/** The mutable [FiberTypeDescriptor]. */
 		val mutable = FiberTypeDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [FiberTypeDescriptor]. */
+		private val immutable = FiberTypeDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [FiberTypeDescriptor]. */
 		private val shared = FiberTypeDescriptor(Mutability.SHARED)

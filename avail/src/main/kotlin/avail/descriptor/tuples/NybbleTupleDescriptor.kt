@@ -506,24 +506,6 @@ class NybbleTupleDescriptor private constructor(
 		}
 	}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(descriptorFor(IMMUTABLE, self.tupleSize))
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(descriptorFor(SHARED, self.tupleSize))
-		}
-		return self
-	}
-
 	override fun o_SerializerOperation(
 		self: AvailObject): SerializerOperation =
 			SerializerOperation.NYBBLE_TUPLE

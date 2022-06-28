@@ -497,6 +497,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object
@@ -724,6 +726,9 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 
 		/** The mutable [BlockPhraseDescriptor]. */
 		private val mutable = BlockPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [BlockPhraseDescriptor]. */
+		private val immutable = BlockPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [BlockPhraseDescriptor]. */
 		private val shared = BlockPhraseDescriptor(Mutability.SHARED)

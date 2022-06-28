@@ -42,11 +42,11 @@ Uses
 Names
 	"Private abstract method_is_",
 	"Private forward method_is_",
-	"Private method_is_",
+	"Private method_is_«styled by_»",
 	"Private macro_is«_,»_",
 	"Public abstract method_is_",
 	"Public forward method_is_",
-	"Public method_is_",
+	"Public method_is_«styled by_»",
 	"Public macro_is«_,»_",
 	"Require:_is public",
 	"Require:_is private",
@@ -402,12 +402,15 @@ Semantic restriction "Public forward method_is_" is
 	⊤
 ];
 
+/* The range from zero to one. */
+zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
+
 /**
  * Define a new public method. The semantic restriction ensures that the method
  * is named in the current module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»"
  * @param "methodName" "string"
  *        The name of the new method.
  * @param "function" "function"
@@ -415,10 +418,11 @@ Semantic restriction "Public forward method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Method "Public method_is_" is
+Method "Public method_is_«styled by_»" is
 [
 	methodName : string,
-	function : function
+	function : function,
+	styler : <<>, styler function…|zeroOrOne>
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -427,14 +431,15 @@ Method "Public method_is_" is
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»"
  * @restricts "string's type"
  * @restricts "function meta"
  */
-Semantic restriction "Public method_is_" is
+Semantic restriction "Public method_is_«styled by_»" is
 [
 	nameType : string's type,
-	functionType : function meta
+	functionType : function meta,
+	styler : <<>, styler function…|zeroOrOne>'s type
 |
 	Require: nameType is public;
 	⊤
@@ -445,7 +450,7 @@ Semantic restriction "Public method_is_" is
  * is named in the current module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»"
  * @param "methodName" "atom"
  *        The atom that uniquely names the new method.
  * @param "function" "function"
@@ -453,10 +458,11 @@ Semantic restriction "Public method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Public method "Public method_is_" is
+Public method "Public method_is_«styled by_»" is
 [
 	methodName : atom,
-	function : function
+	function : function,
+	styler : <<>, styler function…|zeroOrOne>
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -465,14 +471,15 @@ Public method "Public method_is_" is
 /**
  * Ensure that the new method is introduced by the module's "Names" section.
  *
- * @method "Public method_is_"
+ * @method "Public method_is_«styled by_»"
  * @restricts "atom's type"
  * @restricts "function meta"
  */
-Semantic restriction "Public method_is_" is
+Semantic restriction "Public method_is_«styled by_»" is
 [
 	nameType : atom's type,
-	functionType : function meta
+	functionType : function meta,
+	styler : <<>, styler function…|zeroOrOne>'s type
 |
 	Require: nameType is public;
 	⊤
@@ -607,7 +614,7 @@ Semantic restriction "Private forward method_is_" is
  * is not named in the module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»"
  * @param "methodName" "string"
  *        The name of the new method.
  * @param "function" "function"
@@ -615,10 +622,11 @@ Semantic restriction "Private forward method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Public method "Private method_is_" is
+Public method "Private method_is_«styled by_»" is
 [
 	methodName : string,
-	function : function
+	function : function,
+	styler : <<>, styler function…|zeroOrOne>
 |
 	Primitive SimpleMethodDeclaration (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -627,14 +635,15 @@ Public method "Private method_is_" is
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»"
  * @restricts "string's type"
  * @restricts "function meta"
  */
-Semantic restriction "Private method_is_" is
+Semantic restriction "Private method_is_«styled by_»" is
 [
 	nameType : string's type,
-	functionType : function meta
+	functionType : function meta,
+	styler : <<>, styler function…|zeroOrOne>'s type
 |
 	Require: nameType is private;
 	⊤
@@ -645,7 +654,7 @@ Semantic restriction "Private method_is_" is
  * is not named in the module's "Names" section. This should not be used to
  * extend existing methods.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»"
  * @param "methodName" "atom"
  *        The atom that uniquely names the new method.
  * @param "function" "function"
@@ -653,10 +662,11 @@ Semantic restriction "Private method_is_" is
  * @returns "⊤"
  * @category "Primitives" "Declarations" "Methods"
  */
-Public method "Private method_is_" is
+Public method "Private method_is_«styled by_»" is
 [
 	methodName : atom,
-	function : function
+	function : function,
+	styler : <<>, styler function…|zeroOrOne>
 |
 	Primitive MethodDeclarationFromAtom (failureCode : natural number);
 	Invoke early failure function with <failureCode>
@@ -665,14 +675,15 @@ Public method "Private method_is_" is
 /**
  * Ensure that the new method is not introduced by the module's "Names" section.
  *
- * @method "Private method_is_"
+ * @method "Private method_is_«styled by_»"
  * @restricts "atom's type"
  * @restricts "function meta"
  */
-Semantic restriction "Private method_is_" is
+Semantic restriction "Private method_is_«styled by_»" is
 [
 	nameType : atom's type,
-	functionType : function meta
+	functionType : function meta,
+	stylerType : <<>, styler function…|zeroOrOne>'s type
 |
 	Require: nameType is private;
 	⊤

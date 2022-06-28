@@ -531,26 +531,6 @@ class IntTupleDescriptor private constructor(
 		return true
 	}
 
-	override fun o_MakeImmutable(self: AvailObject): AvailObject
-	{
-		if (isMutable)
-		{
-			self.setDescriptor(
-				descriptorFor(Mutability.IMMUTABLE, self.tupleSize))
-		}
-		return self
-	}
-
-	override fun o_MakeShared(self: AvailObject): AvailObject
-	{
-		if (!isShared)
-		{
-			self.setDescriptor(
-				descriptorFor(Mutability.SHARED, self.tupleSize))
-		}
-		return self
-	}
-
 	override fun o_TransferIntoByteBuffer(
 		self: AvailObject,
 		startIndex: Int,

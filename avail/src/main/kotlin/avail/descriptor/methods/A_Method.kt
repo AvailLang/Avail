@@ -39,7 +39,7 @@ import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
-import avail.descriptor.representation.NilDescriptor
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
@@ -175,8 +175,7 @@ interface A_Method : A_ChunkDependable {
 		 * Answer the [definition][A_Definition] of this [A_Method] that should
 		 * be invoked for the given values. Use the testing tree to select a
 		 * definition. If lookup fails, then write an appropriate
-		 * [error&#32;code][AvailErrorCode] into `errorCode` and answer
-		 * [nil][NilDescriptor.nil].
+		 * [error&#32;code][AvailErrorCode] into `errorCode` and answer [nil].
 		 *
 		 * @param argumentList
 		 *   The [List] of arguments, ordered by position.
@@ -327,7 +326,7 @@ interface A_Method : A_ChunkDependable {
 			dispatch { o_ChooseBundle(it, currentModule) }
 
 		/**
-		 * This method's lexer, or [NilDescriptor.nil].
+		 * This method's lexer, or [nil].
 		 */
 		var A_Method.lexer: A_Lexer
 			get() = dispatch { o_Lexer(it) }

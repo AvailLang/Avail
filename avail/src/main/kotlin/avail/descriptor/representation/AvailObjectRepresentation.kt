@@ -158,14 +158,18 @@ sealed class AvailObjectRepresentation constructor(
 			scanSubobjects(marker)
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
-			objectSlots[0] = anotherTraversed
+			// In a non-JVM system, we would convert the surrounding unused
+			// space into Fillers.
+			objectSlots = arrayOf(anotherTraversed)
 		}
 		else
 		{
 			anotherObject.makeImmutable()
 			currentDescriptor = IndirectionDescriptor.mutable(
 				anotherTraversed.currentDescriptor.typeTag)
-			objectSlots[0] = anotherTraversed
+			// In a non-JVM system, we would convert the surrounding unused
+			// space into Fillers.
+			objectSlots = arrayOf(anotherTraversed)
 			currentDescriptor = IndirectionDescriptor.immutable(
 				anotherTraversed.currentDescriptor.typeTag)
 		}
@@ -1747,6 +1751,26 @@ sealed class AvailObjectRepresentation constructor(
 				else -> tag
 			}
 		}
+
+	/**
+	 * Visit all of the object's object slots, passing the parent and child
+	 * objects to the provided visitor.
+	 *
+	 * @param visitor
+	 *   The visitor to invoke.
+	 */
+	final override fun scanSubobjects(visitor: (AvailObject) -> AvailObject)
+	{
+		for (i in objectSlots.indices)
+		{
+			val child = objectSlots[i]!!
+			val replacementChild = visitor(child)
+			if (replacementChild !== child)
+			{
+				objectSlots[i] = replacementChild
+			}
+		}
+	}
 
 	companion object
 	{

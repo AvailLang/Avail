@@ -119,7 +119,8 @@ object P_BootstrapDefineSpecialObjectMacro
 						literalType,
 						emptySet,
 						0,
-						emptyTuple))),
+						emptyTuple),
+					newListNode(emptyTuple))),
 			TOP.o)
 		// Create a send of the bootstrap macro definer that, when actually
 		// sent, will produce a method that literalizes the special object.

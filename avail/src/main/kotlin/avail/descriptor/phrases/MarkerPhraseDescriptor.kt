@@ -183,6 +183,8 @@ class MarkerPhraseDescriptor private constructor(
 
 	override fun mutable() = mutable
 
+	override fun immutable() = immutable
+
 	override fun shared() = shared
 
 	companion object {
@@ -208,6 +210,9 @@ class MarkerPhraseDescriptor private constructor(
 
 		/** The mutable [MarkerPhraseDescriptor]. */
 		private val mutable = MarkerPhraseDescriptor(Mutability.MUTABLE)
+
+		/** The immutable [MarkerPhraseDescriptor]. */
+		private val immutable = MarkerPhraseDescriptor(Mutability.IMMUTABLE)
 
 		/** The shared [MarkerPhraseDescriptor]. */
 		private val shared = MarkerPhraseDescriptor(Mutability.SHARED)
