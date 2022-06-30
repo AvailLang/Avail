@@ -46,6 +46,7 @@ import avail.files.FileErrorCode
 import avail.files.FileManager
 import avail.files.ManagedFileWrapper
 import avail.persistence.cache.Repository
+import org.availlang.artifact.ResourceType
 import java.net.URI
 import java.net.URLEncoder
 import java.nio.charset.StandardCharsets

@@ -51,31 +51,8 @@ val isReleaseVersion =
 dependencies {
 	api("org.availlang:avail-json:${Versions.availJsonVersion}")
 	api("org.availlang:avail-storage:${Versions.availStorageVersion}")
+	implementation("org.availlang:avail-artifact:2.0.0-SNAPSHOT")
 	AvailModule.addDependencies(this)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//                       Publish Utilities
-///////////////////////////////////////////////////////////////////////////////
-val ossrhUsername: String get() =
-	System.getenv("OSSRH_USER") ?: ""
-val ossrhPassword: String get() =
-	System.getenv("OSSRH_PASSWORD") ?: ""
-
-private val credentialsWarning =
-	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
-		"JIRA account. Then ensure the user name, and password are available " +
-		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
-
-/**
- * Check that the publish task has access to the necessary credentials.
- */
-fun checkCredentials ()
-{
-	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
-	{
-		System.err.println(credentialsWarning)
-	}
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
@@ -162,7 +139,7 @@ tasks {
 		add("archives", javadocJar)
 	}
 	publish {
-		checkCredentials()
+		PublishingUtility.checkCredentials()
 		dependsOn(build)
 	}
 }
@@ -188,8 +165,8 @@ publishing {
 			println("Publishing snapshot: $isReleaseVersion")
 			println("Publishing URL: $url")
 			credentials {
-				username = System.getenv("OSSRH_USER")
-				password = System.getenv("OSSRH_PASSWORD")
+				username = PublishingUtility.ossrhUsername
+				password = PublishingUtility.ossrhPassword
 			}
 		}
 	}

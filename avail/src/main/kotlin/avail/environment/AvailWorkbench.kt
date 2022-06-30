@@ -121,7 +121,7 @@ import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
-import avail.resolver.ResourceType
+import org.availlang.artifact.ResourceType
 import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.cast

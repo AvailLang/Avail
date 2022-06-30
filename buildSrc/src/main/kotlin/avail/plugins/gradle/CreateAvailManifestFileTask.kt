@@ -32,41 +32,38 @@
 
 package avail.plugins.gradle
 
+import org.availlang.artifact.AvailArtifactType
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
 import java.io.File
 import java.security.MessageDigest
 import org.availlang.artifact.DigestUtility
+import org.availlang.artifact.manifest.AvailArtifactManifest
+import org.availlang.artifact.manifest.AvailManifestRoot
+import org.availlang.artifact.AvailArtifact
 
 /**
- * Construct a single file that summarizes message digests of all files of a
- * directory structure.  Each input file is read, digested with the specified
- * [digestAlgorithm] (default is SHA-256), and written to the digests file.
- * The entries are the file name relative to the basePath, a colon, the hex
- * representation of the digest of that file, and a linefeed.
+ * Construct the [AvailArtifactManifest] file.
  *
- * This digests file is used within an .avail library, such as avail-stdlib.jar.
+ * This manifest file is stored inside all [AvailArtifact]s.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
  * @author Richard Arriaga
  */
-abstract class CreateDigestsFileTask : DefaultTask()
+abstract class CreateAvailManifestFileTask : DefaultTask()
 {
-	@Input
-	var basePath: String = ""
-
-	@Input
-	var digestAlgorithm: String = "SHA-256"
-
+	/**
+	 * Create the manifest file and write it to the
+	 */
 	@TaskAction
-	fun createDigestsFile()
+	fun createManifest()
 	{
-		val sourceRoot: String =
-			"${project.projectDir}/../distro/src/avail"
-
-		DigestUtility.writeDigestFile(
-			basePath,
+		val manifestRoot = AvailManifestRoot(
+			"avail",
+			listOf(".avail"),
+			listOf("!_"))
+		AvailArtifactManifest.writeManifestFile(
+			AvailArtifactType.LIBRARY,
 			outputs.files.singleFile,
-			digestAlgorithm)
+			mapOf("avail" to manifestRoot))
 	}
 }

@@ -1,6 +1,3 @@
-import org.gradle.api.DefaultTask
-import org.gradle.api.tasks.TaskAction
-
 /*
  * RunPluginPublish.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
@@ -34,23 +31,41 @@ import org.gradle.api.tasks.TaskAction
  */
 
 /**
- * A `RunPluginPublish` is TODO: Document this!
+ * A utility object for publishing.
  *
- * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ * @author Richard Arriaga
  */
-open class RunPluginPublish: DefaultTask()
+object PublishingUtility
 {
-	@TaskAction
-	fun buildIt ()
-	{
-//		project.tasks.create("execPlugin", Exec::class.java)
-//		{
-//			workingDir = project.file("${project.projectDir}/avail-plugin")
-//
-//			commandLine.add("./gradlew")
-//			commandLine.add("jar")
-////			this.setExecutable("./gradlew")
-//		}.exec()
+	/**
+	 * The Sonatype username used for publishing.
+	 */
+	val ossrhUsername: String get() =
+		System.getenv("OSSRH_USER") ?: ""
 
+	/**
+	 * The Sonatype password used for publishing.
+	 */
+	val ossrhPassword: String get() =
+		System.getenv("OSSRH_PASSWORD") ?: ""
+
+	/**
+	 * The warning that indicates the system does not have environment variables
+	 * for publishing credentials.
+	 */
+	private val credentialsWarning =
+		"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
+			"JIRA account. Then ensure the user name, and password are available " +
+			"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
+
+	/**
+	 * Check that the publisher has access to the necessary credentials.
+	 */
+	fun checkCredentials ()
+	{
+		if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
+		{
+			System.err.println(credentialsWarning)
+		}
 	}
 }

@@ -31,8 +31,11 @@
  */
 
 import avail.build.AvailSetupContext.distroLib
-import avail.plugins.gradle.CreateDigestsFileTask
+import avail.plugins.gradle.PrepareArtifactTask
+import avail.plugins.gradle.PrepareArtifactTask.Companion.availStandardLibraryJarFileName
+import avail.plugins.gradle.PrepareArtifactTask.Companion.availStdLibRootName
 import org.availlang.artifact.AvailArtifact
+import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -43,82 +46,44 @@ plugins {
 	id("org.jetbrains.dokka")
 }
 
-version = "2.0.0-1.6.2-SNAPSHOT"
-
-dependencies {
-	// Avail.
-	implementation(project(":avail"))
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//                       Publish Utilities
-///////////////////////////////////////////////////////////////////////////////
-val ossrhUsername: String get() =
-	System.getenv("OSSRH_USER") ?: ""
-val ossrhPassword: String get() =
-	System.getenv("OSSRH_PASSWORD") ?: ""
-
-private val credentialsWarning =
-	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
-		"JIRA account. Then ensure the user name, and password are available " +
-		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
-
-/**
- * Check that the publish task has access to the necessary credentials.
- */
-fun checkCredentials ()
-{
-	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
-	{
-		System.err.println(credentialsWarning)
-	}
-}
-
-///////////////////////////////////////////////////////////////////////////////
+version = "2.0.0-1.6.1-SNAPSHOT"
 
 tasks {
-	val availRootName = "avail"
-	val sourcesRoot = "$projectDir/../distro/src/$availRootName"
-	// Produce a JAR with the source of every module in the standard Avail
-	// library.
-	val standardLibraryName = "$buildDir/avail-standard-library.jar"
-	val digestsDirectory =
-		"$buildDir/${AvailArtifact.availDigestsPathInArtifact}"
-	val availRootDigestsFilePath =
-		AvailArtifact.rootArtifactDigestFilePath(availRootName)
-
-	val createDigests by creating(CreateDigestsFileTask::class) {
-		basePath = sourcesRoot
-		inputs.files(fileTree(sourcesRoot))
-		outputs.file("$digestsDirectory/${AvailArtifact.digestsFileName}")
-	}
+	val standardLibraryName = "$buildDir/$availStandardLibraryJarFileName"
+	val prepareAvailArtifactContents by creating(PrepareArtifactTask::class) {}
 
 	jar {
-		description = "The Avail standard library"
+		// Produce a JAR with the source of every module in the standard Avail
+		// library.
+		description = "Create the Avail standard library artifact jar"
 		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
 		manifest.attributes["Implementation-Version"] = project.version
+		manifest.attributes["Implementation-Title"] = "Avail standard library"
 		archiveFileName.set(standardLibraryName)
 		isZip64 = true
-		dependsOn(createDigests)
-		from(sourcesRoot) {
-			include("**/*.*")
-
-			into(AvailArtifact.rootArtifactSourcesDir(availRootName))
-		}
-		from(digestsDirectory) {
-			include(AvailArtifact.digestsFileName)
-			into(availRootDigestsFilePath)
-		}
 		// Eventually we will add Avail-Compilations or something, to capture
 		// serialized compiled modules, serialized phrases, manifest entries,
 		// style information, and navigation indices.
 		duplicatesStrategy = DuplicatesStrategy.FAIL
-		manifest.attributes["Implementation-Title"] = "Avail standard library"
-		manifest.attributes["Implementation-Version"] = project.version
+
 		// Even though the jar only includes .avail source files, we need the
 		// content to be available at runtime, so we use "" for the archive
 		// classifier instead of "sources".
 		archiveClassifier.set("")
+
+		dependsOn(prepareAvailArtifactContents)
+
+		// Copy Avail source files
+		from("$projectDir/../distro/src/$availStdLibRootName") {
+			include("**/*.*")
+			into(AvailArtifact.rootArtifactSourcesDir(availStdLibRootName))
+		}
+		// Copy Avail artifact content files created by
+		// prepareAvailArtifactContents
+		from("$buildDir/$artifactRootDirectory") {
+			include("**/*")
+			into(artifactRootDirectory)
+		}
 	}
 
 	// Copy the library into the distribution directory.
@@ -157,7 +122,7 @@ tasks {
 		add("archives", javadocJar)
 	}
 	publish {
-		checkCredentials()
+		PublishingUtility.checkCredentials()
 		dependsOn(build)
 	}
 }
@@ -190,8 +155,8 @@ publishing {
 			println("Publishing snapshot: $isReleaseVersion")
 			println("Publishing URL: $url")
 			credentials {
-				username = System.getenv("OSSRH_USER")
-				password = System.getenv("OSSRH_PASSWORD")
+				username = PublishingUtility.ossrhUsername
+				password = PublishingUtility.ossrhPassword
 			}
 		}
 	}

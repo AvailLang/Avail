@@ -34,7 +34,7 @@ package avail.files
 
 import avail.error.ErrorCode
 import avail.resolver.ResolverReference
-import avail.resolver.ResourceType
+import org.availlang.artifact.ResourceType
 import java.nio.file.Files
 import java.nio.file.Paths
 import java.util.*
