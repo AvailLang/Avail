@@ -110,7 +110,6 @@ constructor(
 					digests = artifactJar.extractDigestForRoot(name)
 					artifactJar.jarFileEntries
 				}
-				// Add the root.
 				artifactJar.extractFileMetadataForRoot(name, entries, digests)
 					.forEach {
 						val reference = ResolverReference(
@@ -125,7 +124,16 @@ constructor(
 							forcedDigest = digests[it.path])
 						map[it.qualifiedName] = reference
 					}
-
+				// Add the root.
+				map[rootPrefix] = ResolverReference(
+					this,
+					URI(rootPrefix),
+					rootPrefix,
+					ROOT,
+					"",
+					0,
+					0,
+					moduleRoot.name)
 				// Connect parents to children, and register them all in the
 				// referenceMap.
 				map.forEach { (name, reference) ->
