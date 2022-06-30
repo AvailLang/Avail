@@ -106,28 +106,25 @@ constructor(
 			try
 			{
 				val digests: Map<String, ByteArray>
-				jarFileLock.withLock {
+				val entries = jarFileLock.withLock {
 					digests = artifactJar.extractDigestForRoot(name)
-					artifactJar
-						.extractFileMetadataForRoot(
-							name, artifactJar.jarFileEntries, digests)
-						.forEach {
-							val reference = ResolverReference(
-								this,
-								// exact relative path within jar
-								URI(null, it.path, null),
-								it.qualifiedName,
-								it.type,
-								it.mimeType,
-								it.lastModified,
-								it.size,
-								forcedDigest = digests[it.path])
-							map[it.qualifiedName] = reference
-						}
 					artifactJar.jarFileEntries
 				}
-
 				// Add the root.
+				artifactJar.extractFileMetadataForRoot(name, entries, digests)
+					.forEach {
+						val reference = ResolverReference(
+							this,
+							// exact relative path within jar
+							URI(null, it.path, null),
+							it.qualifiedName,
+							it.type,
+							it.mimeType,
+							it.lastModified,
+							it.size,
+							forcedDigest = digests[it.path])
+						map[it.qualifiedName] = reference
+					}
 
 				// Connect parents to children, and register them all in the
 				// referenceMap.
