@@ -41,8 +41,7 @@ import java.io.DataOutputStream
 
 /**
  * Apply a variable-length universal coding strategy to the supplied value,
- * encoding it onto the receiver using MIDI VLQ. The receiver is treated as
- * unsigned.
+ * encoding it onto the receiver using MIDI VLQ. The value must be non-negative.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param value
@@ -65,8 +64,7 @@ internal fun DataOutputStream.vlq(value: Int)
 
 /**
  * Apply a variable-length universal coding strategy to the supplied value,
- * encoding it onto the receiver using MIDI VLQ. The receiver is treated as
- * unsigned.
+ * encoding it onto the receiver using MIDI VLQ. The value must be non-negative.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @param value
@@ -89,7 +87,8 @@ internal fun DataOutputStream.vlq(value: Long)
 /**
  * Unapply the variable-length universal coding strategy applied by
  * [`vlq`][DataOutputStream.vlq] to decode a nonnegative integer from the
- * receiver.
+ * receiver. If the stored encoding does not denote a valid value, the result is
+ * undefined, and the number of bytes consumed is also undefined.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @return
@@ -123,7 +122,8 @@ internal fun DataInputStream.unvlqInt(): Int
 /**
  * Unapply the variable-length universal coding strategy applied by
  * [`vlq`][DataOutputStream.vlq] to decode a nonnegative integer from the
- * receiver.
+ * receiver. If the stored encoding does not denote a valid value, the result is
+ * undefined, and the number of bytes consumed is also undefined.
  *
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  * @return
@@ -273,7 +273,7 @@ internal fun DataInputStream.decodeByteArray(): ByteArray
  *   The string to write.
  */
 internal fun DataOutputStream.sizedString(s: String) =
-	sizedByteArray(s.encodeToByteArray())
+	sizedByteArray(s.toByteArray())
 
 /**
  * Unapply the encoding strategy applied by [sizedString] to decode a string
