@@ -228,7 +228,6 @@ class LiteralPhraseDescriptor(
 		 * @return
 		 *   The new literal phrase.
 		 */
-		@JvmOverloads
 		fun syntheticLiteralNodeFor(
 			literalValue: A_BasicObject,
 			literalAsString: A_String =

@@ -485,9 +485,8 @@ interface A_Module : A_BasicObject
 		): AvailObject = dispatch { o_GetAndSetManifestEntries(it, newValue) }
 
 		/**
-		 * Atomically get and set this module's manifest entries.  The input
-		 * and output may be an integer indicating a record in the repository, a
-		 * pojo containing an [Array] of [ModuleManifestEntry], or [nil].
+		 * Get the module's [List] of manifest [entries][ModuleManifestEntry].
+		 * This may involve fetching and decoding data from the repository.
 		 */
 		fun A_Module.manifestEntries(): List<ModuleManifestEntry> =
 			dispatch { o_ManifestEntries(it) }

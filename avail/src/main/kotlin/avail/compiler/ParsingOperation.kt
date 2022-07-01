@@ -474,7 +474,6 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token)
-				compiler.compilationContext.recordToken(syntheticToken)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -542,7 +541,6 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token)
-				compiler.compilationContext.recordToken(syntheticToken)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -609,8 +607,6 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token)
-				compiler.compilationContext.recordToken(syntheticToken)
-
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)

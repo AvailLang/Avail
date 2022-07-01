@@ -261,11 +261,9 @@ class LiteralTokenDescriptor private constructor(
 			setSlot(START, start)
 			setSlot(LINE_NUMBER, lineNumber)
 			setSlot(LITERAL, literal)
-			if (literal.isInstanceOfKind(TOKEN.o)) {
-				// We're wrapping another token, so share that token's
-				// nextLexingState pojo, if set.
-				val innerToken: A_Token = literal.traversed()
-				val nextStatePojo = innerToken.nextLexingStatePojo()
+			if (literal.isInstanceOfKind(TOKEN.o))
+			{
+				val nextStatePojo = (literal as A_Token).nextLexingStatePojo()
 				setSlot(NEXT_LEXING_STATE_POJO, nextStatePojo)
 				// Also add this token to the same CompilationContext that the
 				// inner token might also be inside.  Even if it isn't, the new
@@ -276,7 +274,7 @@ class LiteralTokenDescriptor private constructor(
 				{
 					val nextState: LexingState =
 						nextStatePojo.javaObjectNotNull()
-					nextState.compilationContext.recordToken(innerToken)
+					nextState.compilationContext.recordToken(this)
 				}
 			}
 			else

@@ -3314,7 +3314,8 @@ class AvailCompiler constructor(
 			recurse = recurse@{
 				if (!simpleStatementIterator.hasNext())
 				{
-					resumeParsing()
+					compilationContext.applyAllStylesThen(
+						unambiguousStatement, resumeParsing)
 					return@recurse
 				}
 				val statement = simpleStatementIterator.next()

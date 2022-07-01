@@ -1092,13 +1092,13 @@ class ObjectTypeDescriptor internal constructor(
 						mapTypeForSizesKeyTypeValueType(
 							wholeNumbers,
 							SEND_PHRASE.mostGeneralType,
-							styleType)),
+							stringType)),
 					// A variable holding the map from token to style.
 					variableTypeFor(
 						mapTypeForSizesKeyTypeValueType(
 							wholeNumbers,
 							TOKEN.o,
-							styleType)),
+							stringType)),
 					// A variable mapping from variable-use (or other) tokens to
 					// declaration (or other) tokens within the same module.
 					variableTypeFor(

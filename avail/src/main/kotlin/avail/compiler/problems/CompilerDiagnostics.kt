@@ -692,14 +692,9 @@ class CompilerDiagnostics constructor(
 			liveTokens = mutableListOf()
 			old
 		}
-
 		for (token in priorTokens)
 		{
 			token.clearLexingState()
-		}
-
-		liveTokensLock.safeWrite {
-			liveTokens = mutableListOf()
 		}
 	}
 
