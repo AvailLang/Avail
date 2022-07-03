@@ -41,7 +41,7 @@ import avail.descriptor.maps.LinearMapBinDescriptor.IntegerSlots.KEY_HASHES_AREA
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_KEY_UNION_KIND_OR_NIL
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_SLOT_AT_
 import avail.descriptor.maps.LinearMapBinDescriptor.ObjectSlots.BIN_VALUE_UNION_KIND_OR_NIL
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.synchronizeIf
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -548,9 +548,9 @@ internal class LinearMapBinDescriptor private constructor(
 	override fun o_MapBinValuesHash(self: AvailObject): Int =
 		self.synchronizeIf(isShared) { mapBinValuesHash(self) }
 
-	override fun o_MapBinIterable(self: AvailObject): MapIterable
+	override fun o_MapBinIterator(self: AvailObject): MapIterator
 	{
-		return object : MapIterable() {
+		return object : MapIterator() {
 			/** A countdown of entry indices. */
 			var index = entryCount(self)
 

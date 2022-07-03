@@ -193,14 +193,15 @@ import avail.descriptor.maps.A_MapBin.Companion.isHashedMapBin
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinIterable
+import avail.descriptor.maps.A_MapBin.Companion.mapBinIterator
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
 import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
 import avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
 import avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionStylers
 import avail.descriptor.methods.A_Definition.Companion.updateStylers
@@ -2449,7 +2450,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_IsSetBin(self: AvailObject): Boolean =
 		self .. { isSetBin }
 
-	override fun o_MapIterable(self: AvailObject): MapIterable =
+	override fun o_MapIterable(
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry> =
 		self .. { mapIterable }
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
@@ -2984,9 +2987,9 @@ class IndirectionDescriptor private constructor(
 		kind: AvailObject
 	): Boolean = self .. { setElementsAreAllInstancesOfKind(kind) }
 
-	override fun o_MapBinIterable(
+	override fun o_MapBinIterator(
 		self: AvailObject
-	): MapIterable = self .. { mapBinIterable }
+	): MapIterator = self .. { mapBinIterator }
 
 	override fun o_RangeIncludesLong(
 		self: AvailObject,

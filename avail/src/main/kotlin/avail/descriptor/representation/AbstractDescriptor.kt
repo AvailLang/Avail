@@ -62,7 +62,8 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_MapBin
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
@@ -2935,7 +2936,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsSetBin (self: AvailObject): Boolean
 
-	abstract fun o_MapIterable (self: AvailObject): MapIterable
+	abstract fun o_MapIterable (
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry>
 
 	abstract fun o_DeclaredExceptions (self: AvailObject): A_Set
 
@@ -3351,7 +3354,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		kind: AvailObject): Boolean
 
-	abstract fun o_MapBinIterable (self: AvailObject): MapIterable
+	abstract fun o_MapBinIterator (self: AvailObject): MapIterator
 
 	abstract fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 

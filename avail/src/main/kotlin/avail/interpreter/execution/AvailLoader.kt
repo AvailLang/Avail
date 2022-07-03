@@ -1755,7 +1755,7 @@ constructor(
 			}
 			val headerPlan: A_DefinitionParsingPlan =
 				headerMethodBundle.definitionParsingPlans.mapIterable
-					.next()
+					.first()
 					.value()
 			addPlanInProgress(newPlanInProgress(headerPlan, 1))
 		}

@@ -72,6 +72,7 @@ import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.childrenDo
+import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
@@ -84,6 +85,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -92,6 +94,7 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
@@ -177,6 +180,13 @@ class CompilationContext constructor(
 	 */
 	val diagnostics = CompilerDiagnostics(
 		source, moduleName, pollForAbort, problemHandler)
+
+	/**
+	 * A tool for converting character positions between Avail's Unicode strings
+	 * and Java/Kotlin's UTF-16 representation.
+	 */
+	val surrogateIndexConverter: SurrogateIndexConverter
+		get() = diagnostics.surrogateIndexConverter
 
 	/**
 	 * The [AvailRuntime] for the compiler. Since a compiler cannot migrate
@@ -1040,9 +1050,17 @@ class CompilationContext constructor(
 				}
 				else
 				{
-					// Any other literal we can ignore.
-					then()
+					// We can ignore any other literal.
+					runtime.execute(compilerPriority, then)
 				}
+			}
+			phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) ->
+			{
+				// Record the link between the variable use and its declaration.
+				val useToken = phrase.token
+				val declarationToken = phrase.declaration.token
+				variableUsesMap.atomicAddToMap(useToken, declarationToken)
+				runtime.execute(compilerPriority, then)
 			}
 			else ->
 			{

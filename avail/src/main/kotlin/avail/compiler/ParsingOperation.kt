@@ -932,9 +932,9 @@ enum class ParsingOperation constructor(
 			// Look inside the only successor to find the only bundle.
 			val bundlesMap = successorTree.allParsingPlansInProgress
 			assert(bundlesMap.mapSize == 1)
-			val submap = bundlesMap.mapIterable.next().value()
+			val submap = bundlesMap.mapIterable.first().value()
 			assert(submap.mapSize == 1)
-			val definition = submap.mapIterable.next().key()
+			val definition = submap.mapIterable.first().key()
 			val prefixFunctions = definition.prefixFunctions()
 			val prefixIndex = operand(instruction)
 			val prefixFunction = prefixFunctions.tupleAt(prefixIndex)

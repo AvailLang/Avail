@@ -479,7 +479,7 @@ class AvailCompiler constructor(
 					}
 					val plans = bundlesMap.mapAt(bundle)
 					// Pick an active plan arbitrarily for this bundle.
-					val plansInProgress = plans.mapIterable.next().value()
+					val plansInProgress = plans.mapIterable.first().value()
 					val planInProgress = plansInProgress.first()
 					// Adjust the pc to refer to the actual instruction that
 					// caused the argument parse, not the successor instruction

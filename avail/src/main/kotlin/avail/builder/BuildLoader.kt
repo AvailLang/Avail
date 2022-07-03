@@ -49,6 +49,8 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
+import avail.descriptor.maps.A_Map
+import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.removeFrom
@@ -60,6 +62,9 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tokens.A_Token
+import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -577,13 +582,36 @@ internal class BuildLoader constructor(
 							module.getAndSetManifestEntries(
 								identityPojo(manifestEntries))
 
+							val context = compiler.compilationContext
+							val converter = context.surrogateIndexConverter
+							val tokenStyles: A_Map = context.tokenStyles.value()
+							val styleMap = mutableMapOf<A_String, String>()
+							val styleRanges = tokenStyles.mapIterable
+								.map { (token: A_Token, style: A_String) ->
+									val availStart = token.start()
+									val availPastEnd = availStart +
+										token.string().tupleSize
+									val utf16Start = converter
+										.availIndexToJavaIndex(availStart)
+									val utf16PastEnd = converter
+										.availIndexToJavaIndex(availPastEnd)
+									val styleString = styleMap.computeIfAbsent(
+										style, A_String::asNativeString)
+									(utf16Start until utf16PastEnd) to
+										styleString
+								}
+								.sortedBy { (range, _) -> range.first }
+
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()
 							val compilation = repository.ModuleCompilation(
 								compilationTime,
 								stream.toByteArray(),
 								blockPhrasesOutputStream.toByteArray(),
-								manifestEntries)
+								manifestEntries,
+								Repository.StylingRecord(
+									styleRanges,
+									emptyList()))
 							archive.putCompilation(
 								versionKey, compilationKey, compilation)
 

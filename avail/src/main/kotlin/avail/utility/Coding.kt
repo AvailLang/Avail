@@ -51,6 +51,7 @@ import java.io.DataOutputStream
  */
 internal fun DataOutputStream.vlq(value: Int)
 {
+	assert (value >= 0)
 	var residue = value
 	while (residue >= 128)
 	{
@@ -74,6 +75,7 @@ internal fun DataOutputStream.vlq(value: Int)
  */
 internal fun DataOutputStream.vlq(value: Long)
 {
+	assert (value >= 0)
 	var residue = value
 	while (residue >= 128)
 	{
