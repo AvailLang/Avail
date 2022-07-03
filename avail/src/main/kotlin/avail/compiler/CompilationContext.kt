@@ -34,6 +34,7 @@ package avail.compiler
 
 import avail.AvailRuntime
 import avail.AvailRuntime.Companion.currentRuntime
+import avail.AvailRuntimeConfiguration.debugStyling
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.compiler.problems.CompilerDiagnostics
@@ -1110,10 +1111,16 @@ class CompilationContext constructor(
 	 */
 	private fun styleMacroSendThen(sendPhrase: A_Phrase, then: ()->Unit)
 	{
-		println("style macro: ${sendPhrase.bundle}")
+		if (debugStyling)
+		{
+			println("style macro: ${sendPhrase.bundle}")
+		}
 		//TODO Hack for now.  Color each keyword of send as a double literal.
 		sendPhrase.tokens.forEach { token ->
-			println("${token.lineNumber()}: macro token ${token.string()}")
+			if (debugStyling)
+			{
+				println("${token.lineNumber()}: macro token ${token.string()}")
+			}
 			tokenStyles.atomicAddToMap(
 				token, StylerDescriptor.BaseStyle.DOUBLE_LITERAL.string)
 		}
@@ -1127,9 +1134,15 @@ class CompilationContext constructor(
 	private fun styleMethodSendThen(sendPhrase: A_Phrase, then: ()->Unit)
 	{
 		//TODO Hack for now.  Color each keyword of send as a float literal.
-		println("style method: ${sendPhrase.bundle}")
+		if (debugStyling)
+		{
+			println("style method: ${sendPhrase.bundle}")
+		}
 		sendPhrase.tokens.forEach { token ->
-			println("${token.lineNumber()}: method token ${token.string()}")
+			if (debugStyling)
+			{
+				println("${token.lineNumber()}: method token ${token.string()}")
+			}
 			tokenStyles.atomicAddToMap(
 				token, StylerDescriptor.BaseStyle.FLOAT_LITERAL.string)
 		}

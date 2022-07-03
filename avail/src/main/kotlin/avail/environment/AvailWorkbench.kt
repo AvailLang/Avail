@@ -93,6 +93,7 @@ import avail.environment.actions.ToggleL2SanityCheck
 import avail.environment.actions.TraceCompilerAction
 import avail.environment.actions.TraceLoadedStatementsAction
 import avail.environment.actions.TraceMacrosAction
+import avail.environment.actions.TraceStylingAction
 import avail.environment.actions.TraceSummarizeStatementsAction
 import avail.environment.actions.UnloadAction
 import avail.environment.actions.UnloadAllAction
@@ -417,6 +418,9 @@ class AvailWorkbench internal constructor (
 
 	/** The [toggle trace compiler action][TraceCompilerAction]. */
 	private val debugCompilerAction = TraceCompilerAction(this)
+
+	/** The [toggle trace styling action][TraceStylingAction]. */
+	private val debugStylingAction = TraceStylingAction(this)
 
 	/** The [toggle fast-loader action][ToggleFastLoaderAction]. */
 	private val toggleFastLoaderAction = ToggleFastLoaderAction(this)
@@ -1635,6 +1639,7 @@ class AvailWorkbench internal constructor (
 					check(traceSummarizeStatementsAction)
 					check(traceLoadedStatementsAction)
 					check(toggleFastLoaderAction)
+					check(debugStylingAction)
 					separator()
 					check(toggleDebugL1)
 					check(toggleDebugL2)

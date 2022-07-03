@@ -258,7 +258,6 @@ import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.A_Module.Companion.exportedNames
-import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
@@ -280,8 +279,11 @@ import avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.stylers
+import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.A_Module.Companion.versions
@@ -608,6 +610,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -3864,10 +3867,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
 		self .. { computeInstanceTag() }
 
-	override fun o_GetAndSetManifestEntries(
+	override fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject = self .. { getAndSetManifestEntries(newValue) }
+		recordNumber: Long
+	) = self .. { setManifestEntriesIndex(recordNumber) }
 
 	override fun o_ManifestEntries(
 		self: AvailObject
@@ -3904,4 +3907,12 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		debugger: AvailDebuggerModel
 	) = self .. { captureInDebugger(debugger) }
+
+	override fun o_SetStylingRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	) = self .. { setStylingRecordIndex(recordNumber) }
+
+	override fun o_StylingRecord(self: AvailObject): StylingRecord =
+		self .. { stylingRecord() }
 }

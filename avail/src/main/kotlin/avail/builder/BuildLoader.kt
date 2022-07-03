@@ -51,15 +51,15 @@ import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapIterable
-import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
-import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tokens.A_Token
@@ -330,6 +330,7 @@ internal class BuildLoader constructor(
 		// block phrases will retrieve them from the repository.
 		module.getAndSetTupleOfBlockPhrases(
 			fromLong(compilation.recordNumberOfBlockPhrases))
+		module.setStylingRecordIndex(compilation.recordNumberOfStyling)
 		val availLoader = AvailLoader(
 			availBuilder.runtime, module, availBuilder.textInterface)
 		availLoader.prepareForLoadingModuleBody()
@@ -579,8 +580,6 @@ internal class BuildLoader constructor(
 							appendCRC(blockPhrasesOutputStream)
 							val manifestEntries = compiler.compilationContext
 								.loader.manifestEntries!!
-							module.getAndSetManifestEntries(
-								identityPojo(manifestEntries))
 
 							val context = compiler.compilationContext
 							val converter = context.surrogateIndexConverter
@@ -630,9 +629,10 @@ internal class BuildLoader constructor(
 							module.getAndSetTupleOfBlockPhrases(
 								fromLong(
 									compilation.recordNumberOfBlockPhrases))
-							module.getAndSetManifestEntries(
-								fromLong(
-									compilation.recordNumberOfManifestEntries))
+							module.setManifestEntriesIndex(
+								compilation.recordNumberOfManifestEntries)
+							module.setStylingRecordIndex(
+								compilation.recordNumberOfStyling)
 							repository.commitIfStaleChanges(
 								AvailBuilder.maximumStaleRepositoryMs)
 							postLoad(moduleName, lastPosition)

@@ -84,6 +84,11 @@ object AvailRuntimeConfiguration
 	 */
 	var debugCompilerSteps = false
 
+	/**
+	 * Whether to show detailed styling trace information.
+	 */
+	var debugStyling = false
+
 	/*
 	 * Initialize the build version from a resource bundled with the
 	 * distribution JAR.

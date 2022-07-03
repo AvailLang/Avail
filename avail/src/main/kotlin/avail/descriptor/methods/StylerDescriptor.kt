@@ -123,7 +123,7 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		MODULE
 	}
 
-	enum class BaseStyle(kotlinString: String)
+	enum class BaseStyle(val kotlinString: String)
 	{
 		DEFINITION("Definition"),
 

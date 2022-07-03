@@ -165,6 +165,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
@@ -3945,10 +3946,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ComputeInstanceTag(self: AvailObject): TypeTag
 
-	abstract fun o_GetAndSetManifestEntries(
+	abstract fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject
+		recordNumber: Long)
 
 	abstract fun o_ManifestEntries(
 		self: AvailObject
@@ -3973,6 +3973,10 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_CaptureInDebugger(
 		self: AvailObject,
 		debugger: AvailDebuggerModel)
+
+	abstract fun o_SetStylingRecordIndex(self: AvailObject, recordNumber: Long)
+
+	abstract fun o_StylingRecord(self: AvailObject): StylingRecord
 
 	companion object
 	{

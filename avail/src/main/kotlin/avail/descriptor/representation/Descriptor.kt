@@ -103,6 +103,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -2672,10 +2673,10 @@ protected constructor (
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 
-	override fun o_GetAndSetManifestEntries(
+	override fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject = unsupported
+		recordNumber: Long
+	): Unit = unsupported
 
 	override fun o_ManifestEntries(
 		self: AvailObject
@@ -2710,4 +2711,11 @@ protected constructor (
 		self: AvailObject,
 		debugger: AvailDebuggerModel
 	): Unit = unsupported
+
+	override fun o_SetStylingRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit = unsupported
+
+	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
 }
