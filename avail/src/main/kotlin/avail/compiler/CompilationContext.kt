@@ -34,6 +34,7 @@ package avail.compiler
 
 import avail.AvailRuntime
 import avail.AvailRuntime.Companion.currentRuntime
+import avail.AvailRuntime.HookType.DEFAULT_STYLER
 import avail.AvailRuntimeConfiguration.debugStyling
 import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
@@ -46,6 +47,8 @@ import avail.compiler.problems.ProblemType.INTERNAL
 import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.CLIENT_DATA_GLOBAL_KEY
+import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
+import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.fiberGlobals
 import avail.descriptor.fiber.A_Fiber.Companion.fiberHelper
@@ -64,8 +67,10 @@ import avail.descriptor.functions.FunctionDescriptor.Companion.createFunctionFor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import avail.descriptor.methods.StylerDescriptor
+import avail.descriptor.methods.A_Method.Companion.methodStylers
+import avail.descriptor.methods.A_Styler.Companion.function
 import avail.descriptor.module.A_Module
+import avail.descriptor.module.A_Module.Companion.allAncestors
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.ModuleDescriptor
@@ -79,9 +84,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.PhraseDescriptor
-import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.tokens.A_Token
@@ -291,7 +294,7 @@ class CompilationContext constructor(
 	 */
 	val phraseStyles = newVariableWithContentType(
 		mapTypeForSizesKeyTypeValueType(
-			wholeNumbers, PARSE_PHRASE.mostGeneralType, stringType)
+			wholeNumbers, SEND_PHRASE.mostGeneralType, stringType)
 	).run {
 		setValue(emptyMap)
 		makeShared()
@@ -1018,9 +1021,9 @@ class CompilationContext constructor(
 				val arguments = originalSend.argumentsListNode.expressionsTuple
 				runtime.execute(compilerPriority) {
 					visitAll(arguments.iterator()) {
-						// This was a macro substitution, so use the macro's
-						// styler.
-						styleMacroSendThen(originalSend, then)
+						// Style the original send, since that's what the tokens
+						// are definitely a part of.
+						styleSendThen(originalSend, then)
 					}
 				}
 			}
@@ -1030,9 +1033,7 @@ class CompilationContext constructor(
 				val arguments = phrase.argumentsListNode.expressionsTuple
 				runtime.execute(compilerPriority) {
 					visitAll(arguments.iterator()) {
-						// This was a method invocation, so use the method
-						// definition's styler.
-						styleMethodSendThen(phrase, then)
+						styleSendThen(phrase, then)
 					}
 				}
 			}
@@ -1102,100 +1103,61 @@ class CompilationContext constructor(
 	}
 
 	/**
-	 * Apply the style for a single send phrase, which is the original phrase of
-	 * a macro substitution.  The subphrases have already been processed.
-	 *
-	 * @param sendPhrase
-	 *   The [send][SendPhraseDescriptor] phrase that was transformed to
-	 *   something else by a macro.
-	 */
-	private fun styleMacroSendThen(sendPhrase: A_Phrase, then: ()->Unit)
-	{
-		if (debugStyling)
-		{
-			println("style macro: ${sendPhrase.bundle}")
-		}
-		//TODO Hack for now.  Color each keyword of send as a double literal.
-		sendPhrase.tokens.forEach { token ->
-			if (debugStyling)
-			{
-				println("${token.lineNumber()}: macro token ${token.string()}")
-			}
-			tokenStyles.atomicAddToMap(
-				token, StylerDescriptor.BaseStyle.DOUBLE_LITERAL.string)
-		}
-		runtime.execute(compilerPriority, then)
-	}
-
-	/**
 	 * Apply the style for a single *method* send phrase, without considering
 	 * its subphrases.
 	 */
-	private fun styleMethodSendThen(sendPhrase: A_Phrase, then: ()->Unit)
+	private fun styleSendThen(sendPhrase: A_Phrase, then: ()->Unit)
 	{
-		//TODO Hack for now.  Color each keyword of send as a float literal.
 		if (debugStyling)
 		{
-			println("style method: ${sendPhrase.bundle}")
+			println("style send: ${sendPhrase.bundle}")
 		}
-		sendPhrase.tokens.forEach { token ->
-			if (debugStyling)
-			{
-				println("${token.lineNumber()}: method token ${token.string()}")
+		val ancestorModules = module.allAncestors
+		val eligibleStylers = sendPhrase.bundle.bundleMethod.methodStylers
+			.filter {
+				it.module.equals(module)
+					|| it.module in ancestorModules
 			}
-			tokenStyles.atomicAddToMap(
-				token, StylerDescriptor.BaseStyle.FLOAT_LITERAL.string)
+		val mostSpecificStylers = when (eligibleStylers.size)
+		{
+			in 0..1 -> eligibleStylers
+			else ->
+			{
+				// There can't be multiple built-in (no-module) stylers, so let
+				// one defined by a module win.
+				val notBuiltIn = eligibleStylers.filter { it.module.notNil }
+				notBuiltIn.filter { styler ->
+					notBuiltIn.none { otherStyler ->
+						!styler.equals(otherStyler) &&
+							styler.module in otherStyler.module.allAncestors
+					}
+				}
+			}
+		}
+		val stylerFn = when (mostSpecificStylers.size)
+		{
+			0 -> runtime[DEFAULT_STYLER]
+			1 -> mostSpecificStylers[0].function
+			else ->
+				// TODO - Use the conflict style, which isn't coded yet.
+				runtime[DEFAULT_STYLER]
 		}
 
-		runtime.execute(compilerPriority, then)
-
-
-		//val method = sendPhrase.bundle.bundleMethod
-		//val argumentTypes = sendPhrase.argumentsTuple.map { argument ->
-		//	restrictionForType(argument.phraseExpressionType, BOXED_FLAG)
-		//}
-		//val ancestorModules = module.allAncestors
-		//val visibleWithStylers =
-		//	mutableListOf<Pair<A_Definition, List<A_Styler>>>()
-		////TODO We should look it up as a macro first, but we don't have stylers
-		//// an macros yet.  Soon (2022.06.28).
-		//val allDefinitions = method.definitionsAtOrBelow(argumentTypes)
-		//allDefinitions
-		//	.filter { def ->
-		//		val defModule = def.definitionModule()
-		//		defModule.isNil
-		//			|| defModule.equals(module)
-		//			|| ancestorModules.hasElement(defModule)
-		//	}
-		//	.forEach { def ->
-		//		val defStylers =
-		//			def.definitionStylers.filter { styler: A_Styler ->
-		//				styler.module.isNil
-		//					|| styler.module.equals(module)
-		//					|| ancestorModules.hasElement(styler.module)
-		//			}
-		//		if (defStylers.isNotEmpty())
-		//		{
-		//			visibleWithStylers.add(def to defStylers)
-		//		}
-		//	}
-		//// We now have the applicable definitions, with their visible stylers.
-		//// Next, find the Pair with the most specific definition.
-		//val functionToRun = when (visibleWithStylers.size)
-		//{
-		//	// No stylers were visible.  Apply the default styler.
-		//	0 -> runtime[DEFAULT_STYLER]
-		//	1 ->
-		//	{
-		//		val stylers = visibleWithStylers.single()
-		//	}
-		//	else ->
-		//}
-		//if (visibleWithStylers.isEmpty())
-		//{
-		//	//
-		//}
-		//val mostSpecific = method.lookupByValuesFromList(argumentTypes)
+		val fiber = newLoaderFiber(TOP.o, loader)
+		{
+			formatString(
+				"Style %s (%s)",
+				sendPhrase.bundle.message,
+				stylerFn.code().methodName)
+		}
+		fiber.setSuccessAndFailure(
+			onSuccess = { then() },
+			// Ignore styler failures for now.
+			onFailure = { then() })
+		runtime.runOutermostFunction(
+			fiber,
+			stylerFn,
+			listOf(sendPhrase, phraseStyles, tokenStyles, variableUsesMap))
 	}
 
 	companion object

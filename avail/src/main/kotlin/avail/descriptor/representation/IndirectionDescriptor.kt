@@ -203,8 +203,6 @@ import avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Definition.Companion.definitionStylers
-import avail.descriptor.methods.A_Definition.Companion.updateStylers
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Method
@@ -224,12 +222,14 @@ import avail.descriptor.methods.A_Method.Companion.membershipChanged
 import avail.descriptor.methods.A_Method.Companion.methodAddBundle
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
+import avail.descriptor.methods.A_Method.Companion.methodStylers
 import avail.descriptor.methods.A_Method.Companion.removeDefinition
 import avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import avail.descriptor.methods.A_Method.Companion.testingTree
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
@@ -240,6 +240,7 @@ import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import avail.descriptor.methods.A_Styler
+import avail.descriptor.methods.A_Styler.Companion.stylerMethod
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addBundle
 import avail.descriptor.module.A_Module.Companion.addConstantBinding
@@ -3856,9 +3857,9 @@ class IndirectionDescriptor private constructor(
 		updater: A_Set.() -> A_Set
 	) = self .. { updateStylers(updater) }
 
-	override fun o_DefinitionStylers(
+	override fun o_MethodStylers(
 		self: AvailObject
-	): A_Set = self .. { definitionStylers }
+	): A_Set = self .. { methodStylers }
 
 	override fun o_InstanceTag(
 		self: AvailObject
@@ -3915,4 +3916,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_StylingRecord(self: AvailObject): StylingRecord =
 		self .. { stylingRecord() }
+
+	override fun o_StylerMethod(self: AvailObject): A_Method =
+		self .. { stylerMethod }
 }

@@ -32,26 +32,20 @@
 package avail.descriptor.methods
 
 import avail.annotations.HideFieldJustForPrinting
-import avail.descriptor.maps.A_Map
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.MODULE
-import avail.descriptor.methods.DefinitionDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.numbers.A_Number.Companion.extractInt
-import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.AbstractSlotsEnum
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.IntegerSlotsEnum
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type
@@ -63,7 +57,6 @@ import avail.descriptor.types.ListPhraseTypeDescriptor.Companion.createListPhras
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.TupleTypeDescriptor.Companion.mappingElementTypes
 import avail.descriptor.types.TypeTag
-import avail.descriptor.variables.A_Variable
 import avail.serialization.SerializerOperation
 
 /**
@@ -108,57 +101,8 @@ abstract class DefinitionDescriptor protected constructor(
 
 		/** The [module][ModuleDescriptor] in which this definition occurs. */
 		@HideFieldJustForPrinting
-		MODULE,
-
-		/**
-		 * The [A_Set] of [A_Styler]s that have been added to this definition.
-		 * At most one may be added to each definition per module.
-		 *
-		 * Styling only happens when a top-level statement of a module has been
-		 * unambiguously compiled.  Child phrases are processed before their
-		 * parent.
-		 *
-		 * The function accepts four arguments:
-		 *   1. The send phrase, which is possibly the original phrase of a
-		 *      macro substitution.
-		 *   2. An [A_Variable] containing an [A_Map] from [A_Phrase] to a
-		 *      style, and
-		 *   3. An [A_Variable] containing a map from [A_Token] to style.
-		 *   3. An [A_Variable] containing a map from [A_Token] to [A_Token],
-		 *      where the key token is the use of some variable, and the value
-		 *      token identifies its points of declaration.  While not strictly
-		 *      a styling output, we take this opportunity nevertheless to
-		 *      introduce this local navigation helper.
-		 *
-		 * The maps will already have been populated by running the styling
-		 * function for each of the children (perhaps running all children in
-		 * parallel).  These variables should be updated to reflect how the
-		 * invocation of this bundle should be presented.
-		 *
-		 * These maps will later be used to produce a linear sequence of styled
-		 * substrings, suitable for passing to an IDE or other technology
-		 * capable of presenting styled text.
-		 *
-		 * The linearization of the fully populated style information proceeds
-		 * by scanning the map from phrase to style, and for each phrase adding
-		 * an entry to the map from token to style for each of the phrase's
-		 * static tokens.  If there is already an entry for some static token,
-		 * the map is not updated for that token.  Afterward, the token map is
-		 * sorted, and used to partition the module text.
-		 *
-		 * The resulting tuple of ranges and styles (perhaps with line numbers)
-		 * might even be accessed with a binary search, to deliver a windowed
-		 * view into the styled text.  This allows enormous files to be
-		 * presented in an IDE without having to transfer and decode all of the
-		 * styling information for the entire file.
-		 */
-		@HideFieldJustForPrinting
-		STYLERS
+		MODULE
 	}
-
-	override fun allowsImmutableToMutableReferenceInField(
-		e: AbstractSlotsEnum
-	) = e === STYLERS
 
 	abstract override fun o_BodySignature(self: AvailObject): A_Type
 
@@ -207,16 +151,6 @@ abstract class DefinitionDescriptor protected constructor(
 	abstract override fun o_SerializerOperation(
 		self: AvailObject
 	): SerializerOperation
-
-	override fun o_UpdateStylers (
-		self: AvailObject,
-		updater: A_Set.() -> A_Set)
-	{
-		self.atomicUpdateSlot(STYLERS, 1, updater)
-	}
-
-	override fun o_DefinitionStylers(self: AvailObject): A_Set =
-		self.volatileSlot(STYLERS)
 
 	companion object
 	{

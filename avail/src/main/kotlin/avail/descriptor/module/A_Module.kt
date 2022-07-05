@@ -203,7 +203,7 @@ interface A_Module : A_BasicObject
 		 * module from the set.
 		 *
 		 * @return
-		 *   The set of all ancestors of this module, including itself.
+		 *   The set of all ancestors of this module, excluding itself.
 		 */
 		val A_Module.allAncestors: A_Set get() = dispatch { o_AllAncestors(it) }
 

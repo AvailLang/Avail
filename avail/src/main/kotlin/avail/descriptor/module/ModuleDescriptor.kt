@@ -74,16 +74,16 @@ import avail.descriptor.maps.A_Map.Companion.valuesAsTuple
 import avail.descriptor.maps.MapDescriptor
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Definition.Companion.updateStylers
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Styler
-import avail.descriptor.methods.A_Styler.Companion.definition
+import avail.descriptor.methods.A_Styler.Companion.stylerMethod
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.ForwardDefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
@@ -1214,7 +1214,7 @@ class ModuleDescriptor private constructor(
 		val runtime = loader.runtime
 		// Remove stylers.
 		(self as A_Module).stylers.forEach { styler ->
-			styler.definition.updateStylers {
+			styler.stylerMethod.updateStylers {
 				setWithoutElementCanDestroy(styler, true)
 			}
 		}

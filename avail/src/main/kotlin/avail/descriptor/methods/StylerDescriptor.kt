@@ -31,12 +31,15 @@
  */
 package avail.descriptor.methods
 
+import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.functions.A_Function
-import avail.descriptor.methods.StylerDescriptor.ObjectSlots.DEFINITION
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.FUNCTION
+import avail.descriptor.methods.StylerDescriptor.ObjectSlots.METHOD
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.MODULE
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
+import avail.descriptor.numbers.DoubleDescriptor
+import avail.descriptor.numbers.FloatDescriptor
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.styleType
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
@@ -50,13 +53,14 @@ import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
+import java.awt.Color
 
 /**
  * An [A_Styler] is the mechanism by which abstract styles are associated with a
  * module's phrases and tokens.  Stylers are created within the scope of a
- * module, and attached to a single [A_Definition] (typically a method or macro
- * definition).
+ * module, and attached to a single [A_Method].
  *
  * At compilation time, after a top-level phrase has been compiled and executed,
  * the [send][SendPhraseDescriptor] phrase (which may be the original of a
@@ -66,26 +70,10 @@ import avail.descriptor.types.TypeTag
  * established by the child phrases, such as to highlight constant strings used
  * as a method name in a method definition, versus arbitrary constant strings.
  *
- * The definitions of the method referenced by the send are filtered to include
- * only those for which:
- *   1. the styler is non-nil,
- *   2. the styler was defined in an ancestor of the current module, and
- *   3. the styler's definition was also defined in an ancestor module.
- * Note that this list cannot change due to other modules being loaded
- * concurrently, but it can change when a styler is added in the current module.
- *
- * Given these definitions, a lookup tree is constructed for the [A_Method].
- * The tree is cached for the duration of the current module's loading activity,
- * and is invalidated when a new styler is added for this [A_Method].  Other
- * modules are unaffected by new stylers.
- *
- * The static types of the method arguments are used to look up the most
- * specific styler in this tree.  If none is applicable, the default styler is
- * used.  If multiple most-specific stylers apply (i.e., there are at least two
- * which have no more specific definition in the tree), a conflict is reported,
- * probably by the use of a special conflict style.  Otherwise only one styler
- * applies, and its function is evaluated to update the maps from phrases and
- * tokens to styles.
+ * The stylers of the method referenced by the send are filtered to include only
+ * those for which the defining module is an ancestor, and the most specific
+ * (one that has all the others as ancestor) is chosen to style the send.  If
+ * there is no such most specific module, a special conflict style is used.
  *
  * @constructor
  *
@@ -113,9 +101,9 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		FUNCTION,
 
 		/**
-		 * The [A_Definition] for which this is a styler.
+		 * The [A_Method] for which this is a styler.
 		 */
-		DEFINITION,
+		METHOD,
 
 		/**
 		 * The [module][ModuleDescriptor] in which this styler was added.
@@ -123,34 +111,78 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		MODULE
 	}
 
-	enum class BaseStyle(val kotlinString: String)
+	enum class BaseStyle(
+		val kotlinString: String,
+		rgbInt: Int)
 	{
-		DEFINITION("Definition"),
+		/** Default coloring of keywords. */
+		KEYWORD("Keyword", 0xC0C0FF),
 
-		DEFINITION_NAME("DefinitionName"),
+		/** Default coloring of operator tokens. */
+		OPERATOR("Operator", 0xFFB0B0),
 
-		STRING_LITERAL("StringLiteral"),
 
-		INTEGER_LITERAL("IntegerLiteral"),
+		/** The declaration of a variable/constant. */
+		VARIABLE_DECLARATION("VariableDeclaration", 0xB0FFB0),
 
-		FLOAT_LITERAL("FloatLiteral"),
+		/** The declaration of a block argument. */
+		ARGUMENT_DECLARATION("ArgumentDeclaration", 0xB0FFF0),
 
-		DOUBLE_LITERAL("DoubleLiteral");
+		/** The declaration of a label in a block. */
+		LABEL_DECLARATION("LabelDeclaration", 0x90E080),
+
+		/** The use of a variable/constant. */
+		VARIABLE_USE("VariableUse", 0x90FF90),
+
+
+		/** The definition of some method, restriction, atom, etc. */
+		DEFINITION("Definition", 0xE0E050),
+
+		/** The name of the thing being defined. */
+		DEFINITION_NAME("DefinitionName", 0xF0F080),
+
+		/** The optional primitive name in a block. */
+		PRIMITIVE_NAME("PrimitiveName", 0xF0FF50),
+
+
+		/** An (extended) integer literal token. */
+		INTEGER_LITERAL("IntegerLiteral", 0xC0F080),
+
+		/** A [stringType] literal token. */
+		STRING_LITERAL("StringLiteral", 0xF0C080),
+
+		/** A [character][CharacterDescriptor] literal token. */
+		CHARACTER_LITERAL("CharacterLiteral", 0x8090FF),
+
+		/** A [float][FloatDescriptor] literal token. */
+		FLOAT_LITERAL("FloatLiteral", 0xC0F0A0),
+
+		/** A [double][DoubleDescriptor] literal token. */
+		DOUBLE_LITERAL("DoubleLiteral", 0xC0F0FF);
 
 		val string = stringFrom(kotlinString).makeShared()
+
+		val color = Color(rgbInt)
+
+		companion object
+		{
+			/** The map from each style name to its [BaseStyle]. */
+			val stylesMap = values().associateByTo(
+				mutableMapOf(), BaseStyle::string)
+		}
 	}
 
 	override fun o_Hash(self: AvailObject): Int = combine4(
 		self.slot(FUNCTION).hash(),
-		self.slot(DEFINITION).hash(),
+		self.slot(METHOD).hash(),
 		self.slot(MODULE).hash(),
 		0x443046b4)
 
 	override fun o_Function(self: AvailObject): A_Function =
 		self.slot(FUNCTION)
 
-	override fun o_Definition(self: AvailObject): A_Definition =
-		self.slot(DEFINITION)
+	override fun o_StylerMethod(self: AvailObject): A_Method =
+		self.slot(METHOD)
 
 	override fun o_Module(self: AvailObject): A_Module =
 		self.slot(MODULE)
@@ -179,8 +211,8 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * @param function
 		 *   The [function][A_Function] to run against a call site's phrase to
 		 *   generate styles.
-		 * @param definition
-		 *   The [definition][A_Definition] that will hold this styler.
+		 * @param method
+		 *   The [A_Method] that will hold this styler.
 		 * @param module
 		 *   The [module][ModuleDescriptor] in which this styler was defined.
 		 * @return
@@ -188,11 +220,11 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 */
 		fun newStyler(
 			function: A_Function,
-			definition: A_Definition,
+			method: A_Method,
 			module: A_Module
 		): A_Styler = mutable.createShared {
 			setSlot(FUNCTION, function)
-			setSlot(DEFINITION, definition)
+			setSlot(METHOD, method)
 			setSlot(MODULE, module)
 		}
 	}

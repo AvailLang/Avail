@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 6/28/22, 3:46 PM
+ * * Last Generated: 7/4/22, 8:34 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -3728,17 +3728,18 @@ Primitive "_[_]:=_" is
 ] : ⊤;
 
 /**
- * Associate a styler function with this definition. The styling mechanism is
+ * Associate a styler function with this method. The styling mechanism is
  * applied to each top-level phrase of a module to style its tokens. Of the
- * definitions that have stylers from visible modules, choose the most specific
- * definition, then choose the styler from most specific module within that set.
- * If there is no most specific definition or module, a special conflict style
- * will be produced instead, to indicate this conflict.
+ * stylers from visible modules, choose the styler of the most specific
+ * module.
+ *
+ * If there is no most specific module, a special conflict style will be
+ * produced instead, to indicate this conflict.
  *
  * @category "Primitives"
  * @method "Style_with_"
- * @param "definition" "definition"
- *        The definition for which invocations should be styled.
+ * @param "method" "method"
+ *        The method for which invocations should be styled.
  * @param "function" "[send phrase⇒⊤, ↑{send phrase⇒⊤→string|}, ↑{token→string|}, ↑{token→token|}]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
@@ -3768,10 +3769,10 @@ Primitive "_[_]:=_" is
  */
 Primitive "Style_with_" is
 [
-	definition : definition,
+	method : method,
 	function : styler function
 |
-	Primitive SetStyleFunction (failureCode : {
+	Primitive SetStylerFunction (failureCode : {
 		incorrect-argument-type code,
 		styler-already-set-by-this-module code,
 		incorrect-type-for-group code,

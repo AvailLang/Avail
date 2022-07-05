@@ -37,15 +37,12 @@ import avail.descriptor.methods.A_Sendable.Companion.definitionModuleName
 import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.BODY_SIGNATURE
 import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.DEFINITION_METHOD
 import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.MODULE
-import avail.descriptor.methods.AbstractDefinitionDescriptor.ObjectSlots.STYLERS
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.sets.A_Set
-import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.ABSTRACT_DEFINITION
@@ -83,12 +80,6 @@ class AbstractDefinitionDescriptor private constructor(
 		MODULE,
 
 		/**
-		 * The [A_Set] of [A_Styler]s that have been added to this definition.
-		 */
-		@HideFieldJustForPrinting
-		STYLERS,
-
-		/**
 		 * The [function&#32;type][FunctionTypeDescriptor] for which this
 		 * signature is being specified.
 		 */
@@ -104,9 +95,6 @@ class AbstractDefinitionDescriptor private constructor(
 				assert(
 					DefinitionDescriptor.ObjectSlots.MODULE.ordinal
 						== MODULE.ordinal)
-				assert(
-					DefinitionDescriptor.ObjectSlots.STYLERS.ordinal
-						== STYLERS.ordinal)
 			}
 		}
 	}
@@ -181,7 +169,6 @@ class AbstractDefinitionDescriptor private constructor(
 		): A_Definition = mutable.createShared {
 			setSlot(DEFINITION_METHOD, definitionMethod)
 			setSlot(MODULE, definitionModule)
-			setSlot(STYLERS, emptySet)
 			setSlot(BODY_SIGNATURE, bodySignature)
 		}
 

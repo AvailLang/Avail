@@ -32,9 +32,12 @@
 
 package avail.interpreter.primitive.style
 
+import avail.descriptor.methods.StylerDescriptor.BaseStyle
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.types.A_Type
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
@@ -62,7 +65,18 @@ object P_DefaultStyler : Primitive(2, CanSuspend, CannotFail, Unknown)
 		val tokenStyles: A_Variable = interpreter.argument(2)
 		val tokenDefinitions: A_Variable = interpreter.argument(3)
 
-		// Do nothing.  At some point we could do something more elegant.
+		// Color all keyword and operator tokens.
+		for (token in sendPhrase.tokens)
+		{
+			val styleString = when (token.tokenType())
+			{
+				TokenType.KEYWORD -> BaseStyle.KEYWORD.string
+				TokenType.OPERATOR -> BaseStyle.OPERATOR.string
+				// Skip other tokens... although they won't actually occur here.
+				else -> continue
+			}
+			tokenStyles.atomicAddToMap(token, styleString)
+		}
 		return interpreter.primitiveSuccess(nil)
 	}
 

@@ -1,5 +1,5 @@
 /*
- * P_SetStyleFunction.kt
+ * P_SetStylerFunction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -36,7 +36,8 @@ import avail.compiler.splitter.MessageSplitter
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Definition.Companion.updateStylers
+import avail.descriptor.methods.A_Method
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.A_Styler.Companion.module
 import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
@@ -50,7 +51,7 @@ import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.DEFINITION
+import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -68,12 +69,12 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_SetStyleFunction : Primitive(2, CanSuspend, Unknown)
+object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
 		interpreter.checkArgumentCount(2)
-		val definition: A_Definition = interpreter.argument(0)
+		val method: A_Method = interpreter.argument(0)
 		val function: A_Function = interpreter.argument(1)
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -84,9 +85,9 @@ object P_SetStyleFunction : Primitive(2, CanSuspend, Unknown)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 		return interpreter.suspendInSafePointThen {
-			val styler = newStyler(function, definition, module)
+			val styler = newStyler(function, method, module)
 			var bad = false
-			definition.updateStylers {
+			method.updateStylers {
 				bad = any { it.module.equals(module) }
 				if (bad) this else setWithElementCanDestroy(styler, true)
 			}
@@ -105,7 +106,7 @@ object P_SetStyleFunction : Primitive(2, CanSuspend, Unknown)
 	override fun privateBlockTypeRestriction(): A_Type =
 		functionType(
 			tuple(
-				DEFINITION.o,
+				METHOD.o,
 				stylerFunctionType),
 			TOP.o)
 

@@ -1107,44 +1107,6 @@ class ObjectTypeDescriptor internal constructor(
 							TOKEN.o,
 							TOKEN.o))),
 				TOP.o)
-
-			private val variant = styleType.objectTypeVariant
-
-			private val semanticClassifierIndex =
-				variant.fieldToSlotIndex[semanticClassifierAtom]!!
-
-			private val methodNameIndex =
-				variant.fieldToSlotIndex[methodNameAtom]!!
-
-			private val sourceModuleIndex =
-				variant.fieldToSlotIndex[sourceModuleAtom]!!
-
-			private val generatedIndex =
-				variant.fieldToSlotIndex[generatedAtom]!!
-
-			private val lineNumberIndex =
-				variant.fieldToSlotIndex[lineNumberAtom]!!
-
-			/**
-			 * Create a style object from the given values.
-			 */
-			fun createStyle(
-				semanticClassifier: A_String,
-				methodName: A_String,
-				sourceModuleOrNil: A_Module,
-				generated: Boolean,
-				lineNumber: Int
-			): AvailObject = createUninitializedObject(variant).also { style ->
-				setField(style, semanticClassifierIndex, semanticClassifier)
-				setField(style, methodNameIndex, methodName as AvailObject)
-				setField(
-					style,
-					sourceModuleIndex,
-					if (sourceModuleOrNil.isNil) emptyTuple
-					else tuple(sourceModuleOrNil))
-				setField(style, generatedIndex, objectFromBoolean(generated))
-				setField(style, lineNumberIndex, fromInt(lineNumber))
-			}
 		}
 
 		/**

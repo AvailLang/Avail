@@ -64,8 +64,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.methods.StylerDescriptor.BaseStyle.DOUBLE_LITERAL
-import avail.descriptor.methods.StylerDescriptor.BaseStyle.FLOAT_LITERAL
+import avail.descriptor.methods.StylerDescriptor.BaseStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.stylingRecord
@@ -764,15 +763,12 @@ class AvailDebugger internal constructor (
 								sourcePane.text = source
 								val doc = sourcePane.styledDocument
 								//TODO Replace hack
-								val doubleStyle = doc.addStyle(
-									DOUBLE_LITERAL.kotlinString, null)
-								StyleConstants.setForeground(
-									doubleStyle, Color(0xFFB0B0)
-								)
-								val floatStyle = doc.addStyle(
-									FLOAT_LITERAL.kotlinString, null)
-								StyleConstants.setForeground(
-									floatStyle, Color(0xC0C0FF))
+								BaseStyle.stylesMap.forEach { (_, baseStyle) ->
+									val style = doc.addStyle(
+										baseStyle.kotlinString, null)
+									StyleConstants.setForeground(
+										style, baseStyle.color)
+								}
 								stylingRecord.styleRuns.forEach {
 										(range, styleName) ->
 									doc.setCharacterAttributes(

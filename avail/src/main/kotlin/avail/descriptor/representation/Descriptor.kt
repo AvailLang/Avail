@@ -725,7 +725,7 @@ protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set): Unit = unsupported
 
-	override fun o_DefinitionStylers(self: AvailObject): A_Set = unsupported
+	override fun o_MethodStylers(self: AvailObject): A_Set = unsupported
 
 	override fun o_SubtractFromInfinityCanDestroy (
 		self: AvailObject,
@@ -2718,4 +2718,6 @@ protected constructor (
 	): Unit = unsupported
 
 	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
+
+	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
 }

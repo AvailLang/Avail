@@ -1785,7 +1785,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set)
 
-	abstract fun o_DefinitionStylers (self: AvailObject): A_Set
+	abstract fun o_MethodStylers(self: AvailObject): A_Set
 
 	/**
 	 * Difference the [operands][AvailObject] and answer the result.
@@ -3977,6 +3977,8 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_SetStylingRecordIndex(self: AvailObject, recordNumber: Long)
 
 	abstract fun o_StylingRecord(self: AvailObject): StylingRecord
+
+	abstract fun o_StylerMethod(self: AvailObject): A_Method
 
 	companion object
 	{

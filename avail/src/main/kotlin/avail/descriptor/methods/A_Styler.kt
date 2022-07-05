@@ -55,14 +55,14 @@ interface A_Styler : A_BasicObject
 		val A_Styler.function: A_Function get() = dispatch { o_Function(it) }
 
 		/**
-		 * Answer the [definition][A_Definition], whether method-, abstract-, or
-		 * even forward-, that this styler is intended to style invocations of.
+		 * Answer the [method][A_Method] that this styler is intended to style
+		 * invocations of.
 		 *
 		 * @return
-		 *   The definition that this styler is attached to.
+		 *   The method that this styler is attached to.
 		 */
-		val A_Styler.definition: A_Definition get() =
-			dispatch { o_Definition(it) }
+		val A_Styler.stylerMethod: A_Method get() =
+			dispatch { o_StylerMethod(it) }
 
 		/**
 		 * Answer the [module][A_Module] in which this styler was defined.
