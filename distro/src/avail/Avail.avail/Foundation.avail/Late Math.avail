@@ -1023,8 +1023,9 @@ smallPrimes ::= {
 
 /**
  * Attempt to use trial division within the given range to find a pair of
- * nontrivial factors <p, q> such that p×q = n. If no such pair can be found,
- * return the sentinel value <0, 0>.
+ * nontrivial factors <p, q> such that p×q = n.  In addition, if n is known not
+ * to contain any factors smaller than start, q will be the smallest prime
+ * factor of n. If no such pair can be found, return the sentinel value <0, 0>.
  *
  * If bounds are provided, the algorithm will guarantee all values within are
  * tested before returning a failure, but due to its naive windowing it does NOT
@@ -1220,7 +1221,8 @@ Private method "factor_by hybrid-fermat" is
 */
 
 /**
- * Fully factor the given number into a tuple of its nontrivial prime divisors.
+ * Fully factor the given number into a tuple of its nontrivial prime divisors,
+ * in ascending order.
  *
  * @method "factor_"
  * @category "Integers"
@@ -1231,29 +1233,33 @@ Method "factor_" is
 [
 	n : natural number
 |
-	found : natural number+ := <n>;
-	i : natural number := 1;
-	knownFactors : {natural number → <whole number…|2>|0..} := {};
-	While i ≤ |found| do
 	[
-		target ::= found[i];
-		knownFactors :=
-			knownFactors + target → (trial division factorization of target);
-		Cast knownFactors[target] into
-		[
-			pair : <[2..∞)…|2>
-		|
-			// We found non-trivial factors, splice them in place of the target
-			found := found[i..i] → pair;
-		]
-		else
-		[
-			// Only trivial factors found, move to the next possible dividend
-			i++;
-		];
-	];
-	found
+		residue : natural number,
+		start : natural number,
+		found : natural number*
+	|
+		$loop : natural number+;
+		pair ::= trial division factorization of residue from start;
+		Exit loop with found ++ <residue> if pair = <0, 0>;
+		prime ::= pair[2] ?→ natural number;
+		Restart loop with <
+			pair[1] ?→ natural number,
+			prime,
+			found ++ <prime>>
+	](n, 2, <>)
 ];
+
+//TODO Fix L2 bug that this test case encounters...
+Repeat
+[
+	Ignore: factor 200;
+] 10000 times;
+
+//TODO As of 2022-07-07, if this line is reached, it means the L2 bug has been
+// fixed.  The bug manifests (reliably) as a null pointer exception, due to
+// semanticValueToSynonym() not being able to look up "residue@3" during the
+// POSTPONE_CONDITIONALLY_USED_VALUES_1 phase.
+Breakpoint;
 
 /**
 * Answer a map of the given number's prime divisors to their exponents.
