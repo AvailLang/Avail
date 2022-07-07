@@ -497,11 +497,9 @@ is
 		if delimiterSize < 3 then
 		[
 			Reject parse silently, expected:
-				format
-					"raw string to begin with three (3) or more “①” \
-					\|characters"
-				with
-					startChar
+				"raw string to begin with three (3) or more "
+					++ “startChar”
+					++ " characters"
 		]
 		else
 		[
@@ -520,10 +518,9 @@ is
 			if i > limit then
 			[
 				Reject parse, expected:
-					format
-						"raw string to terminate with ‘①’ before end of file"
-					with
-						endDelimiter
+					"raw string to terminate with "
+						++ endDelimiter
+						++ " before end of file"
 			]
 			else
 			[

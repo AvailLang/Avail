@@ -35,10 +35,11 @@ package avail.interpreter.primitive.style
 import avail.descriptor.methods.StylerDescriptor.BaseStyle
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
+import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
+import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.isSubtypeOf
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
@@ -65,18 +66,22 @@ object P_BootstrapLiteralStyler :
 		val tokenToStyle: A_Variable = interpreter.argument(2)
 		val usesToDeclaration: A_Variable = interpreter.argument(3)
 
-		val literalType = phrase.phraseExpressionType
+		val literalPhrase = phrase.argumentsListNode.expressionAt(1)
+		val literal = literalPhrase.token.literal().literal()
 		val style = when
 		{
-			literalType.isSubtypeOf(stringType) -> BaseStyle.STRING_LITERAL
-			literalType.isSubtypeOf(extendedIntegers) ->
+			literal.isInstanceOf(stringType) -> BaseStyle.STRING_LITERAL
+			literal.isInstanceOf(Types.CHARACTER.o) ->
+				BaseStyle.CHARACTER_LITERAL
+			literal.isInstanceOf(extendedIntegers) ->
 				BaseStyle.INTEGER_LITERAL
-			literalType.isSubtypeOf(Types.FLOAT.o) -> BaseStyle.FLOAT_LITERAL
-			literalType.isSubtypeOf(Types.DOUBLE.o) -> BaseStyle.DOUBLE_LITERAL
+			literal.isInstanceOf(Types.FLOAT.o) -> BaseStyle.FLOAT_LITERAL
+			literal.isInstanceOf(Types.DOUBLE.o) -> BaseStyle.DOUBLE_LITERAL
 			// Don't apply any bootstrap style for other literal types.
 			else -> return interpreter.primitiveSuccess(nil)
 		}
-		phraseToStyle.atomicAddToMap(phrase, style.string)
+		val token = phrase.argumentsListNode.expressionAt(1).token.literal()
+		tokenToStyle.atomicAddToMap(token, style.string)
 		return interpreter.primitiveSuccess(nil)
 	}
 

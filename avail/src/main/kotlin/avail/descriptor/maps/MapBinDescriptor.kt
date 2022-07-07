@@ -33,7 +33,7 @@ package avail.descriptor.maps
 
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.maps.MapBinDescriptor.IntegerSlots.Companion.KEYS_HASH
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.BitField
@@ -125,5 +125,5 @@ abstract class MapBinDescriptor protected constructor(
 
 	override fun o_ShowValueInNameForDebugger(self: AvailObject) = false
 
-	abstract override fun o_MapBinIterable(self: AvailObject): MapIterable
+	abstract override fun o_MapBinIterator(self: AvailObject): MapIterator
 }

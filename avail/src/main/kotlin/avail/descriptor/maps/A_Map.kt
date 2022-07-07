@@ -33,7 +33,6 @@ package avail.descriptor.maps
 
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.maps.MapDescriptor.Entry
-import avail.descriptor.maps.MapDescriptor.MapIterable
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
@@ -194,9 +193,9 @@ interface A_Map : A_BasicObject
 		 * Kotlin) for-each syntax hack to be used.
 		 *
 		 * @return
-		 *   A [MapIterable].
+		 *   An [Iterable] over [Entry].
 		 */
-		val A_Map.mapIterable: MapIterable
+		val A_Map.mapIterable: Iterable<Entry>
 			get() = dispatch { o_MapIterable(it) }
 
 		/**

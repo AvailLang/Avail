@@ -1,5 +1,5 @@
 /*
- * A_Styler.kt
+ * TraceStylingAction.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,47 +29,38 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-package avail.descriptor.methods
 
-import avail.descriptor.functions.A_Function
-import avail.descriptor.module.A_Module
-import avail.descriptor.representation.A_BasicObject
-import avail.descriptor.representation.A_BasicObject.Companion.dispatch
-import avail.descriptor.representation.AvailObject
+package avail.environment.actions
+
+import avail.AvailRuntimeConfiguration
+import avail.environment.AvailWorkbench
+import java.awt.event.ActionEvent
+import javax.swing.Action
 
 /**
- * `A_Styler` is an interface that specifies the operations specific to
- * [stylers][StylerDescriptor] of a method [definition][A_Definition] in Avail.
- * It's a sub-interface of [A_BasicObject], the interface that defines the
- * behavior that all [AvailObject]s are required to support.
+ * A [TraceStylingAction] toggles the flag that indicates whether to show
+ * detailed styling traces.
  *
- * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * Construct a new [TraceStylingAction].
+ *
+ * @param workbench
+ *   The owning [AvailWorkbench].
  */
-interface A_Styler : A_BasicObject
+class TraceStylingAction constructor(workbench: AvailWorkbench)
+	: AbstractWorkbenchAction(workbench, "Trace styling")
 {
-	companion object
+	override fun actionPerformed(event: ActionEvent)
 	{
-		/**
-		 * Answer the [A_Function] that implements this styler's logic.
-		 */
-		val A_Styler.function: A_Function get() = dispatch { o_Function(it) }
+		AvailRuntimeConfiguration.debugStyling =
+			AvailRuntimeConfiguration.debugStyling xor true
+	}
 
-		/**
-		 * Answer the [method][A_Method] that this styler is intended to style
-		 * invocations of.
-		 *
-		 * @return
-		 *   The method that this styler is attached to.
-		 */
-		val A_Styler.stylerMethod: A_Method get() =
-			dispatch { o_StylerMethod(it) }
-
-		/**
-		 * Answer the [module][A_Module] in which this styler was defined.
-		 *
-		 * @return
-		 *   The styler's defining module.
-		 */
-		val A_Styler.module: A_Module get() = dispatch { o_Module(it) }
+	init
+	{
+		putValue(
+			Action.SHORT_DESCRIPTION,
+			"Show detailed styling activity during compilation.")
+		putValue(
+			Action.SELECTED_KEY, AvailRuntimeConfiguration.debugStyling)
 	}
 }

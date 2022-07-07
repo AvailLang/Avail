@@ -314,18 +314,9 @@ class FunctionTypeDescriptor private constructor(mutability: Mutability)
 		argRestrictions: List<TypeRestriction>): Boolean
 	{
 		val tupleType: A_Type = self.slot(ARGS_TUPLE_TYPE)
-		var i = 1
-		val end = argRestrictions.size
-		while (i <= end)
-		{
-			if (!argRestrictions[i - 1].intersectsType(
-					tupleType.typeAtIndex(i)))
-			{
-				return false
-			}
-			i++
+		return (1..argRestrictions.size).all {
+			argRestrictions[it - 1].intersectsType(tupleType.typeAtIndex(it))
 		}
-		return true
 	}
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =

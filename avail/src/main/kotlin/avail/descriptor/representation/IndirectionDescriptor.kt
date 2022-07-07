@@ -193,17 +193,16 @@ import avail.descriptor.maps.A_MapBin.Companion.isHashedMapBin
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashPutLevelCanDestroy
 import avail.descriptor.maps.A_MapBin.Companion.mapBinAtHashReplacingLevelCanDestroy
-import avail.descriptor.maps.A_MapBin.Companion.mapBinIterable
+import avail.descriptor.maps.A_MapBin.Companion.mapBinIterator
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeyUnionKind
 import avail.descriptor.maps.A_MapBin.Companion.mapBinKeysHash
 import avail.descriptor.maps.A_MapBin.Companion.mapBinRemoveKeyHashCanDestroy
 import avail.descriptor.maps.A_MapBin.Companion.mapBinSize
 import avail.descriptor.maps.A_MapBin.Companion.mapBinValueUnionKind
 import avail.descriptor.maps.A_MapBin.Companion.mapBinValuesHash
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.A_Definition.Companion.definitionStylers
-import avail.descriptor.methods.A_Definition.Companion.updateStylers
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
 import avail.descriptor.methods.A_Method
@@ -223,12 +222,14 @@ import avail.descriptor.methods.A_Method.Companion.membershipChanged
 import avail.descriptor.methods.A_Method.Companion.methodAddBundle
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import avail.descriptor.methods.A_Method.Companion.methodRemoveBundle
+import avail.descriptor.methods.A_Method.Companion.methodStylers
 import avail.descriptor.methods.A_Method.Companion.removeDefinition
 import avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import avail.descriptor.methods.A_Method.Companion.sealedArgumentsTypesTuple
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
 import avail.descriptor.methods.A_Method.Companion.testingTree
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
@@ -239,6 +240,7 @@ import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
 import avail.descriptor.methods.A_Sendable.Companion.parsingSignature
 import avail.descriptor.methods.A_Styler
+import avail.descriptor.methods.A_Styler.Companion.stylerMethod
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addBundle
 import avail.descriptor.module.A_Module.Companion.addConstantBinding
@@ -257,7 +259,6 @@ import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.createLexicalScanner
 import avail.descriptor.module.A_Module.Companion.entryPoints
 import avail.descriptor.module.A_Module.Companion.exportedNames
-import avail.descriptor.module.A_Module.Companion.getAndSetManifestEntries
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
@@ -279,8 +280,11 @@ import avail.descriptor.module.A_Module.Companion.recordBlockPhrase
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.resolveForward
 import avail.descriptor.module.A_Module.Companion.serializedObjects
+import avail.descriptor.module.A_Module.Companion.setManifestEntriesIndex
+import avail.descriptor.module.A_Module.Companion.setStylingRecordIndex
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
 import avail.descriptor.module.A_Module.Companion.stylers
+import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.A_Module.Companion.versions
@@ -607,6 +611,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -2449,7 +2454,9 @@ class IndirectionDescriptor private constructor(
 	override fun o_IsSetBin(self: AvailObject): Boolean =
 		self .. { isSetBin }
 
-	override fun o_MapIterable(self: AvailObject): MapIterable =
+	override fun o_MapIterable(
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry> =
 		self .. { mapIterable }
 
 	override fun o_DeclaredExceptions(self: AvailObject): A_Set =
@@ -2984,9 +2991,9 @@ class IndirectionDescriptor private constructor(
 		kind: AvailObject
 	): Boolean = self .. { setElementsAreAllInstancesOfKind(kind) }
 
-	override fun o_MapBinIterable(
+	override fun o_MapBinIterator(
 		self: AvailObject
-	): MapIterable = self .. { mapBinIterable }
+	): MapIterator = self .. { mapBinIterator }
 
 	override fun o_RangeIncludesLong(
 		self: AvailObject,
@@ -3850,9 +3857,9 @@ class IndirectionDescriptor private constructor(
 		updater: A_Set.() -> A_Set
 	) = self .. { updateStylers(updater) }
 
-	override fun o_DefinitionStylers(
+	override fun o_MethodStylers(
 		self: AvailObject
-	): A_Set = self .. { definitionStylers }
+	): A_Set = self .. { methodStylers }
 
 	override fun o_InstanceTag(
 		self: AvailObject
@@ -3861,10 +3868,10 @@ class IndirectionDescriptor private constructor(
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag =
 		self .. { computeInstanceTag() }
 
-	override fun o_GetAndSetManifestEntries(
+	override fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject = self .. { getAndSetManifestEntries(newValue) }
+		recordNumber: Long
+	) = self .. { setManifestEntriesIndex(recordNumber) }
 
 	override fun o_ManifestEntries(
 		self: AvailObject
@@ -3901,4 +3908,15 @@ class IndirectionDescriptor private constructor(
 		self: AvailObject,
 		debugger: AvailDebuggerModel
 	) = self .. { captureInDebugger(debugger) }
+
+	override fun o_SetStylingRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	) = self .. { setStylingRecordIndex(recordNumber) }
+
+	override fun o_StylingRecord(self: AvailObject): StylingRecord =
+		self .. { stylingRecord() }
+
+	override fun o_StylerMethod(self: AvailObject): A_Method =
+		self .. { stylerMethod }
 }

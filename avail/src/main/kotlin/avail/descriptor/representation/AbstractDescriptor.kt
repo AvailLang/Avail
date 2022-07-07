@@ -62,7 +62,8 @@ import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_MapBin
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
@@ -164,6 +165,7 @@ import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.performance.Statistic
 import avail.performance.StatisticReport.ALLOCATIONS_BY_DESCRIPTOR_CLASS
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import avail.utility.Strings.newlineTab
 import avail.utility.cast
@@ -1783,7 +1785,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set)
 
-	abstract fun o_DefinitionStylers (self: AvailObject): A_Set
+	abstract fun o_MethodStylers(self: AvailObject): A_Set
 
 	/**
 	 * Difference the [operands][AvailObject] and answer the result.
@@ -2935,7 +2937,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_IsSetBin (self: AvailObject): Boolean
 
-	abstract fun o_MapIterable (self: AvailObject): MapIterable
+	abstract fun o_MapIterable (
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry>
 
 	abstract fun o_DeclaredExceptions (self: AvailObject): A_Set
 
@@ -3351,7 +3355,7 @@ abstract class AbstractDescriptor protected constructor (
 		self: AvailObject,
 		kind: AvailObject): Boolean
 
-	abstract fun o_MapBinIterable (self: AvailObject): MapIterable
+	abstract fun o_MapBinIterator (self: AvailObject): MapIterator
 
 	abstract fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean
 
@@ -3942,10 +3946,9 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ComputeInstanceTag(self: AvailObject): TypeTag
 
-	abstract fun o_GetAndSetManifestEntries(
+	abstract fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject
+		recordNumber: Long)
 
 	abstract fun o_ManifestEntries(
 		self: AvailObject
@@ -3970,6 +3973,12 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_CaptureInDebugger(
 		self: AvailObject,
 		debugger: AvailDebuggerModel)
+
+	abstract fun o_SetStylingRecordIndex(self: AvailObject, recordNumber: Long)
+
+	abstract fun o_StylingRecord(self: AvailObject): StylingRecord
+
+	abstract fun o_StylerMethod(self: AvailObject): A_Method
 
 	companion object
 	{

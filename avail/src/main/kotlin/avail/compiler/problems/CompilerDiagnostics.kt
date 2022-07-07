@@ -45,6 +45,7 @@ import avail.descriptor.tokens.TokenDescriptor.Companion.newToken
 import avail.descriptor.tokens.TokenDescriptor.TokenType.END_OF_FILE
 import avail.descriptor.tokens.TokenDescriptor.TokenType.WHITESPACE
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.A_Tuple.Companion.appendCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
 import avail.descriptor.tuples.A_Tuple.Companion.tupleCodePointAt
@@ -157,7 +158,6 @@ class CompilerDiagnostics constructor(
 	@Volatile
 	var compilationIsInvalid = false
 
-
 	/**
 	 * The continuation that reports success of compilation.
 	 */
@@ -169,6 +169,14 @@ class CompilerDiagnostics constructor(
 	 */
 	@Volatile
 	private var failureReporter: (()->Unit)? = null
+
+	/**
+	 * A tool for converting character positions between Avail's Unicode strings
+	 * and Java/Kotlin's UTF-16 representation.
+	 */
+	val surrogateIndexConverter: SurrogateIndexConverter by lazy {
+		SurrogateIndexConverter(source.asNativeString())
+	}
 
 	/**
 	 * These enumeration values form a priority scheme for reporting parsing
@@ -692,14 +700,9 @@ class CompilerDiagnostics constructor(
 			liveTokens = mutableListOf()
 			old
 		}
-
 		for (token in priorTokens)
 		{
 			token.clearLexingState()
-		}
-
-		liveTokensLock.safeWrite {
-			liveTokens = mutableListOf()
 		}
 	}
 

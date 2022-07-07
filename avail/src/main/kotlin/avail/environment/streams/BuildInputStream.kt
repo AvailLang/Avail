@@ -100,8 +100,7 @@ class BuildInputStream(
 		commandText: String)
 	{
 		val textToInsert = "\n" + commandText + "\n"
-		workbench.writeText(textToInsert,
-			StreamStyle.COMMAND)
+		workbench.writeText(textToInsert, StreamStyle.COMMAND)
 	}
 
 	override fun markSupported(): Boolean

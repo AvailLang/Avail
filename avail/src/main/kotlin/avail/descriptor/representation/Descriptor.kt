@@ -51,7 +51,8 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_MapBin
-import avail.descriptor.maps.MapDescriptor.MapIterable
+import avail.descriptor.maps.MapDescriptor
+import avail.descriptor.maps.MapDescriptor.MapIterator
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_GrammaticalRestriction
 import avail.descriptor.methods.A_Macro
@@ -102,6 +103,7 @@ import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.io.TextInterface
 import avail.performance.Statistic
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
 import java.math.BigInteger
@@ -153,18 +155,6 @@ protected constructor (
 	objectSlotsEnumClass,
 	integerSlotsEnumClass)
 {
-	/**
-	 * A special enumeration used to visit all object slots within an instance
-	 * of the receiver.
-	 */
-	internal enum class FakeObjectSlotsForScanning : ObjectSlotsEnum
-	{
-		/**
-		 * An indexed object slot that makes it easy to visit all object slots.
-		 */
-		ALL_OBJECT_SLOTS_
-	}
-
 	override fun o_AcceptsArgTypesFromFunctionType (
 		self: AvailObject,
 		functionType: A_Type): Boolean = unsupported
@@ -735,7 +725,7 @@ protected constructor (
 		self: AvailObject,
 		updater: A_Set.() -> A_Set): Unit = unsupported
 
-	override fun o_DefinitionStylers(self: AvailObject): A_Set = unsupported
+	override fun o_MethodStylers(self: AvailObject): A_Set = unsupported
 
 	override fun o_SubtractFromInfinityCanDestroy (
 		self: AvailObject,
@@ -1607,7 +1597,9 @@ protected constructor (
 
 	override fun o_IsSetBin (self: AvailObject) = false
 
-	override fun o_MapIterable (self: AvailObject): MapIterable = unsupported
+	override fun o_MapIterable (
+		self: AvailObject
+	): Iterable<MapDescriptor.Entry> = unsupported
 
 	override fun o_DeclaredExceptions (self: AvailObject): A_Set = unsupported
 
@@ -1991,7 +1983,7 @@ protected constructor (
 		self: AvailObject,
 		kind: AvailObject): Boolean = unsupported
 
-	override fun o_MapBinIterable (self: AvailObject): MapIterable = unsupported
+	override fun o_MapBinIterator (self: AvailObject): MapIterator = unsupported
 
 	override fun o_RangeIncludesLong(self: AvailObject, aLong: Long): Boolean =
 		unsupported
@@ -2681,10 +2673,10 @@ protected constructor (
 
 	override fun o_ComputeInstanceTag(self: AvailObject): TypeTag = unsupported
 
-	override fun o_GetAndSetManifestEntries(
+	override fun o_SetManifestEntriesIndex(
 		self: AvailObject,
-		newValue: AvailObject
-	): AvailObject = unsupported
+		recordNumber: Long
+	): Unit = unsupported
 
 	override fun o_ManifestEntries(
 		self: AvailObject
@@ -2719,4 +2711,13 @@ protected constructor (
 		self: AvailObject,
 		debugger: AvailDebuggerModel
 	): Unit = unsupported
+
+	override fun o_SetStylingRecordIndex(
+		self: AvailObject,
+		recordNumber: Long
+	): Unit = unsupported
+
+	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
+
+	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
 }

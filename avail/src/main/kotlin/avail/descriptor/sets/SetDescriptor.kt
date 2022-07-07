@@ -337,14 +337,14 @@ private constructor(
 	override fun o_SetIntersects(
 		self: AvailObject,
 		otherSet: A_Set
-	): Boolean
+	): Boolean = when
 	{
-		val (smaller, larger) = when
+		self.setSize <= otherSet.setSize ->
+			self.any { otherSet.hasElement(it) }
+		else ->
 		{
-			self.setSize <= otherSet.setSize -> self to otherSet.traversed()
-			else -> otherSet.traversed() to self
+			otherSet.traversed().any { self.hasElement(it) }
 		}
-		return smaller.any { larger.hasElement(it) }
 	}
 
 	/**

@@ -38,6 +38,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.statements
+import avail.descriptor.phrases.A_Phrase.Companion.statementsDo
 import avail.descriptor.phrases.SequencePhraseDescriptor.ObjectSlots.STATEMENTS
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
@@ -154,7 +155,7 @@ class SequencePhraseDescriptor private constructor(
 	override fun o_StatementsDo(
 		self: AvailObject,
 		continuation: (A_Phrase) -> Unit
-	) = self.slot(STATEMENTS).forEach(continuation)
+	) = self.slot(STATEMENTS).forEach { it.statementsDo(continuation) }
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.SEQUENCE_PHRASE

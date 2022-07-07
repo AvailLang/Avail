@@ -48,6 +48,13 @@ import avail.descriptor.tuples.TupleDescriptor
 import avail.error.ErrorCode
 import avail.resolver.ResolverReference
 import avail.serialization.Serializer
+import avail.utility.decodeString
+import avail.utility.sizedString
+import avail.utility.unvlqInt
+import avail.utility.unvlqLong
+import avail.utility.unzigzagLong
+import avail.utility.vlq
+import avail.utility.zigzag
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.ByteArrayOutputStream
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
@@ -120,6 +127,8 @@ import kotlin.concurrent.withLock
  * 1. compilationTime (long)
  * 2. recordNumber (long)
  * 3. recordNumberOfBlockPhrases (long)
+ * 4. recordNumberOfManifestEntries (long)
+ * 5. recordNumberOfStyling (long)
  * ```
  *
  * @property rootName
@@ -154,7 +163,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V6")
+		"Avail compiled module repository V7")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe
@@ -353,14 +362,14 @@ class Repository constructor(
 		@Throws(IOException::class)
 		fun write(binaryStream: DataOutputStream)
 		{
-			binaryStream.writeUTF(rootRelativeName)
-			binaryStream.writeInt(digestCache.size)
+			binaryStream.sizedString(rootRelativeName)
+			binaryStream.vlq(digestCache.size)
 			for ((key, value) in digestCache)
 			{
 				binaryStream.writeLong(key)
 				binaryStream.write(value)
 			}
-			binaryStream.writeInt(versions.size)
+			binaryStream.vlq(versions.size)
 			for ((key, value) in versions)
 			{
 				key.write(binaryStream)
@@ -380,8 +389,8 @@ class Repository constructor(
 		@Throws(IOException::class)
 		internal constructor(binaryStream: DataInputStream)
 		{
-			rootRelativeName = binaryStream.readUTF()
-			var digestCount = binaryStream.readInt()
+			rootRelativeName = binaryStream.decodeString()
+			var digestCount = binaryStream.unvlqInt()
 			while (digestCount-- > 0)
 			{
 				val lastModification = binaryStream.readLong()
@@ -389,7 +398,7 @@ class Repository constructor(
 				binaryStream.readFully(digest)
 				digestCache[lastModification] = digest
 			}
-			var versionCount = binaryStream.readInt()
+			var versionCount = binaryStream.unvlqInt()
 			while (versionCount-- > 0)
 			{
 				val versionKey = ModuleVersionKey(binaryStream)
@@ -644,12 +653,12 @@ class Repository constructor(
 		 */
 		private fun computeHash(): Int
 		{
-			var h = 0x9E5_90125
+			var h = 0x9E5_90125.toInt()
 			for (predecessorCompilationTime in predecessorCompilationTimes)
 			{
-				h = mix(h.toInt(), predecessorCompilationTime).toLong()
+				h = mix(h, predecessorCompilationTime)
 			}
-			return h.toInt()
+			return h
 		}
 
 		override fun equals(other: Any?): Boolean
@@ -681,7 +690,7 @@ class Repository constructor(
 		@Throws(IOException::class)
 		fun write(binaryStream: DataOutputStream)
 		{
-			binaryStream.writeInt(predecessorCompilationTimes.size)
+			binaryStream.vlq(predecessorCompilationTimes.size)
 			for (predecessorCompilationTime in predecessorCompilationTimes)
 			{
 				binaryStream.writeLong(predecessorCompilationTime)
@@ -700,7 +709,7 @@ class Repository constructor(
 		@Throws(IOException::class)
 		internal constructor(binaryStream: DataInputStream)
 		{
-			val predecessorsCount = binaryStream.readInt()
+			val predecessorsCount = binaryStream.unvlqInt()
 			predecessorCompilationTimes = LongArray(predecessorsCount)
 			for (i in 0 until predecessorsCount)
 			{
@@ -885,25 +894,25 @@ class Repository constructor(
 		@Throws(IOException::class)
 		internal fun write(binaryStream: DataOutputStream)
 		{
-			binaryStream.writeLong(moduleSize)
-			binaryStream.writeInt(localImportNames.size)
+			binaryStream.vlq(moduleSize)
+			binaryStream.vlq(localImportNames.size)
 			for (importName in localImportNames)
 			{
-				binaryStream.writeUTF(importName)
+				binaryStream.sizedString(importName)
 			}
-			binaryStream.writeInt(entryPoints.size)
+			binaryStream.vlq(entryPoints.size)
 			for (entryPoint in entryPoints)
 			{
-				binaryStream.writeUTF(entryPoint)
+				binaryStream.sizedString(entryPoint)
 			}
-			binaryStream.writeInt(compilations.size)
+			binaryStream.vlq(compilations.size)
 			for ((key, value) in compilations)
 			{
 				key.write(binaryStream)
 				value.write(binaryStream)
 			}
-			binaryStream.writeLong(moduleHeaderRecordNumber)
-			binaryStream.writeLong(stacksRecordNumber)
+			binaryStream.zigzag(moduleHeaderRecordNumber)
+			binaryStream.zigzag(stacksRecordNumber)
 		}
 
 		override fun toString(): String =
@@ -934,27 +943,27 @@ class Repository constructor(
 		@Throws(IOException::class)
 		internal constructor(binaryStream: DataInputStream)
 		{
-			moduleSize = binaryStream.readLong()
-			var localImportCount = binaryStream.readInt()
+			moduleSize = binaryStream.unvlqLong()
+			var localImportCount = binaryStream.unvlqInt()
 			localImportNames = mutableListOf()
 			while (localImportCount-- > 0)
 			{
-				localImportNames.add(binaryStream.readUTF())
+				localImportNames.add(binaryStream.decodeString())
 			}
-			var entryPointCount = binaryStream.readInt()
+			var entryPointCount = binaryStream.unvlqInt()
 			entryPoints = mutableListOf()
 			while (entryPointCount-- > 0)
 			{
-				entryPoints.add(binaryStream.readUTF())
+				entryPoints.add(binaryStream.decodeString())
 			}
-			var compilationsCount = binaryStream.readInt()
+			var compilationsCount = binaryStream.unvlqInt()
 			while (compilationsCount-- > 0)
 			{
 				compilations[ModuleCompilationKey(binaryStream)] =
 					ModuleCompilation(binaryStream)
 			}
-			moduleHeaderRecordNumber = binaryStream.readLong()
-			stacksRecordNumber = binaryStream.readLong()
+			moduleHeaderRecordNumber = binaryStream.unzigzagLong()
+			stacksRecordNumber = binaryStream.unzigzagLong()
 		}
 
 		/**
@@ -1008,6 +1017,15 @@ class Repository constructor(
 		 */
 		val recordNumberOfManifestEntries: Long
 
+		/**
+		 * The record number at which a [ByteArray] was recorded for this
+		 * module. That record should be fetched as needed and decoded into a
+		 * [StylingRecord].
+		 * array of module manifest [entries][ModuleManifestEntry] and stored
+		 * in the [A_Module]'s [ModuleDescriptor.o_ManifestEntries].
+		 */
+		val recordNumberOfStyling: Long
+
 		/** The byte array containing a serialization of this compilation. */
 		val bytes: ByteArray
 			get() = lock.withLock { repository!![recordNumber] }
@@ -1026,18 +1044,21 @@ class Repository constructor(
 		internal fun write(binaryStream: DataOutputStream)
 		{
 			binaryStream.writeLong(compilationTime)
-			binaryStream.writeLong(recordNumber)
-			binaryStream.writeLong(recordNumberOfBlockPhrases)
-			binaryStream.writeLong(recordNumberOfManifestEntries)
+			binaryStream.zigzag(recordNumber)
+			binaryStream.zigzag(recordNumberOfBlockPhrases)
+			binaryStream.zigzag(recordNumberOfManifestEntries)
+			binaryStream.zigzag(recordNumberOfStyling)
 		}
 
 		override fun toString(): String =
 			String.format(
-				"Compilation(%tFT%<tTZ, rec=%d, phrases=%d, manifest=%d)",
+				"Compilation(%tFT%<tTZ, rec=%d, phrases=%d, manifest=%d, " +
+					"styling=%d)",
 				compilationTime,
 				recordNumber,
 				recordNumberOfBlockPhrases,
-				recordNumberOfManifestEntries)
+				recordNumberOfManifestEntries,
+				recordNumberOfStyling)
 
 		/**
 		 * Reconstruct a `ModuleCompilation`, having previously been written via
@@ -1052,9 +1073,10 @@ class Repository constructor(
 		internal constructor(binaryStream: DataInputStream)
 		{
 			compilationTime = binaryStream.readLong()
-			recordNumber = binaryStream.readLong()
-			recordNumberOfBlockPhrases = binaryStream.readLong()
-			recordNumberOfManifestEntries = binaryStream.readLong()
+			recordNumber = binaryStream.unzigzagLong()
+			recordNumberOfBlockPhrases = binaryStream.unzigzagLong()
+			recordNumberOfManifestEntries = binaryStream.unzigzagLong()
+			recordNumberOfStyling = binaryStream.unzigzagLong()
 		}
 
 		/**
@@ -1075,7 +1097,8 @@ class Repository constructor(
 			compilationTime: Long,
 			serializedBody: ByteArray,
 			serializedBlockPhrases: ByteArray,
-			manifestEntries: List<ModuleManifestEntry>)
+			manifestEntries: List<ModuleManifestEntry>,
+			stylingRecord: StylingRecord)
 		{
 			// No need to hold a lock during initialization.
 			this.compilationTime = compilationTime
@@ -1083,6 +1106,7 @@ class Repository constructor(
 			var indexOfRecord: Long
 			var indexOfBlockPhrasesRecord: Long
 			var indexOfManifestEntries: Long
+			var indexOfStyling: Long
 			val innerSerializedManifestEntries = ByteArrayOutputStream(4096)
 			val serializedManifestEntries =
 				DataOutputStream(innerSerializedManifestEntries)
@@ -1090,15 +1114,222 @@ class Repository constructor(
 				entry.write(serializedManifestEntries)
 			}
 			appendCRC(innerSerializedManifestEntries)
+			val innerStylingRecordBytes = ByteArrayOutputStream(4096)
+			stylingRecord.write(DataOutputStream(innerStylingRecordBytes))
 			lock.withLock {
 				indexOfRecord = repo.add(serializedBody)
 				indexOfBlockPhrasesRecord = repo.add(serializedBlockPhrases)
 				indexOfManifestEntries = repo.add(
 					innerSerializedManifestEntries.toByteArray())
+				indexOfStyling = repo.add(innerStylingRecordBytes.toByteArray())
 			}
 			this.recordNumber = indexOfRecord
 			this.recordNumberOfBlockPhrases = indexOfBlockPhrasesRecord
 			this.recordNumberOfManifestEntries = indexOfManifestEntries
+			this.recordNumberOfStyling = indexOfStyling
+		}
+	}
+
+
+	/**
+	 * Styling information that was collected during compilation of a
+	 * [module][A_Module].
+	 */
+	class StylingRecord
+	{
+		/**
+		 * An ascending sequence of non-overlapping, non-empty [IntRange]s, with
+		 * the style name to apply to that range.
+		 */
+		val styleRuns: List<Pair<IntRange, String>>
+
+		/**
+		 * Information about variable uses and definitions.  The pairs go from
+		 * use to definition.
+		 */
+		val variableUses: List<Pair<IntRange, IntRange>>
+
+		/**
+		 * Output this styling record to the provided [DataOutputStream].
+		 * It can later be reconstructed via the constructor taking a
+		 * [DataInputStream].
+		 *
+		 * @param binaryStream
+		 *   A DataOutputStream on which to write this styling record.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal fun write(binaryStream: DataOutputStream)
+		{
+			val styleToIndex = mutableMapOf<String, Int>()
+			val stylesList = mutableListOf<String>()
+			styleRuns.forEach { (_, styleName) ->
+				styleToIndex.computeIfAbsent(styleName) {
+					stylesList.add(it)
+					stylesList.size
+				}
+			}
+			// Output all style names.
+			binaryStream.vlq(styleToIndex.size)
+			stylesList.forEach(binaryStream::sizedString)
+			var pos = 0
+			// Collect the <style#, length> pairs, dropping any zero-length
+			// spans.
+			val nonemptyRuns = mutableListOf<Pair<Int, Int>>()
+			styleRuns.forEach { (run, styleName) ->
+				val delta = run.first - pos
+				assert (delta >= 0)
+				if (delta > 0)
+				{
+					// Output an unstyled span.
+					nonemptyRuns.add(0 to delta)
+				}
+				assert (run.last >= run.first)
+				nonemptyRuns.add(
+					styleToIndex[styleName]!! to run.last - run.first + 1)
+				pos = run.last + 1
+			}
+			// Output contiguous styled (and unstyled) spans.
+			binaryStream.vlq(nonemptyRuns.size)
+			nonemptyRuns.forEach { (styleNumber, length) ->
+				binaryStream.vlq(styleNumber)
+				binaryStream.vlq(length)
+			}
+			val declarationsWithUses = variableUses
+				// Convert to map<decl, list<uses>>.
+				.groupBy({ it.second }) { it.first }
+				// Convert to list<pair<decl, sorted_list<uses>>>.
+				.map { (k, v) -> k to v.sortedBy { it.first }}
+				// Convert to sorted_list<pair<decl, sorted_list<uses>>>.
+				.sortedBy { it.first.first }
+			// Output declaration information.
+			binaryStream.vlq(declarationsWithUses.size)
+			var previousDeclarationEnd = 0
+			declarationsWithUses.forEach { (decl, uses) ->
+				// Write decl's start relative to previous decl's end
+				binaryStream.vlq(decl.first - previousDeclarationEnd)
+				// And the decl string size.
+				val declSize = decl.last - decl.first + 1
+				binaryStream.vlq(declSize)
+				// Use a compact encoding if the uses are all after the
+				// declaration, and the uses all have the same size as the
+				// declaration.  This will be the usual case.
+				val isCompact = uses.all {
+					it.last - it.first + 1 == declSize
+						&& it.first > decl.last
+				}
+				if (isCompact)
+				{
+					var previousUseEnd = previousDeclarationEnd
+					uses.forEach { use ->
+						binaryStream.vlq(use.first - previousUseEnd)
+						previousUseEnd = use.last + 1
+					}
+				}
+				else
+				{
+					var previousUseEnd = 0
+					uses.forEach { use ->
+						binaryStream.vlq(use.first - previousUseEnd)
+						binaryStream.vlq(use.last - use.first + 1)
+						previousUseEnd = use.last + 1
+					}
+				}
+				previousDeclarationEnd = decl.last + 1
+			}
+		}
+
+		override fun toString(): String =
+			String.format(
+				"StylingRecord (%d styled runs)",
+				styleRuns.size)
+
+		/**
+		 * Reconstruct a `ModuleCompilation`, having previously been written via
+		 * [write].
+		 *
+		 * @param binaryStream
+		 *   Where to read the key from.
+		 * @throws IOException
+		 *   If I/O fails.
+		 */
+		@Throws(IOException::class)
+		internal constructor(binaryStream: DataInputStream)
+		{
+			val styles = Array(binaryStream.unvlqInt()) {
+				binaryStream.decodeString()
+			}
+			// Read all the spans, including unstyled ones.
+			var pos = 0
+
+			val allRuns = mutableListOf<Pair<IntRange, String>>()
+			repeat(binaryStream.unvlqInt()) {
+				val styleNumber = binaryStream.unvlqInt()
+				val length = binaryStream.unvlqInt()
+				pos += length
+				if (styleNumber > 0)
+				{
+					allRuns.add(
+						(pos - length until pos)
+							to styles[styleNumber - 1])
+				}
+			}
+			styleRuns = allRuns
+			val usesToDeclarations = mutableListOf<Pair<IntRange, IntRange>>()
+			var previousDeclarationEnd = 0
+			repeat(binaryStream.unvlqInt()) {
+				val declStart = previousDeclarationEnd + binaryStream.unvlqInt()
+				val length = binaryStream.unvlqInt()
+				val decl = declStart until declStart + length
+				val usagesOrZero = binaryStream.unvlqInt()
+				if (usagesOrZero == 0)
+				{
+					// Special form, where uses may precede declaration, or have
+					// tokens of a different size.  Rare.
+					var previousUseEnd = 0
+					repeat(binaryStream.unvlqInt()) {
+						val useStart = previousUseEnd + binaryStream.unvlqInt()
+						val size = binaryStream.unvlqInt()
+						val use = useStart until useStart + size
+						usesToDeclarations.add(use to decl)
+						previousUseEnd = use.last + 1
+					}
+				}
+				else
+				{
+					// Compact form.  Uses must follow declaration, and must all
+					// have the same size token as the declaration.
+					var previousUseEnd = previousDeclarationEnd
+					repeat(usagesOrZero) {
+						val useStart = previousUseEnd + binaryStream.unvlqInt()
+						val use = useStart until useStart + length
+						usesToDeclarations.add(use to decl)
+						previousUseEnd = use.last + 1
+					}
+				}
+				previousDeclarationEnd = declStart + length
+			}
+			variableUses = usesToDeclarations
+		}
+
+		/**
+		 * Construct a new `ModuleCompilation`, adding the serialized compiled
+		 * module bytes to the repository without committing.
+		 *
+		 * @param styleRuns
+		 *   An ascending sequence of non-overlapping, non-empty [IntRange]s,
+		 *   with the style name to apply to that range.
+		 * @param variableUses
+		 *   Information about variable uses and definitions.  The pairs go from
+		 *   use to definition.
+		*/
+		constructor(
+			styleRuns: List<Pair<IntRange, String>>,
+			variableUses: List<Pair<IntRange, IntRange>>)
+		{
+			this.styleRuns = styleRuns
+			this.variableUses = variableUses
 		}
 	}
 

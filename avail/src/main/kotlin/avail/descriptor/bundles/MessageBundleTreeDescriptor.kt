@@ -344,7 +344,9 @@ class MessageBundleTreeDescriptor private constructor(
 		 * remains is to check right after an argument has been parsed (or
 		 * replayed due to memoization). The check for now is simple and doesn't
 		 * consider argument types, simply excluding methods based on the
-		 * grammatical restrictions.
+		 * grammatical restrictions.  Type culling is more expensive, and is
+		 * postponed in the [ParsingOperation] sequence until after any easy
+		 * tests have passed, like consuming additional fixed tokens.
 		 *
 		 * When a message bundle's next instruction is
 		 * [ParsingOperation.CHECK_ARGUMENT] (which must be all or nothing

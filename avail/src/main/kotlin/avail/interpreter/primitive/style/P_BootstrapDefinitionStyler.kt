@@ -38,9 +38,15 @@ import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunc
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
+import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
+import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
+import avail.descriptor.phrases.A_Phrase.Companion.macroOriginalSendNode
+import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
+import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
@@ -65,12 +71,32 @@ object P_BootstrapDefinitionStyler :
 		val tokenToStyle: A_Variable = interpreter.argument(2)
 		val usesToDeclaration: A_Variable = interpreter.argument(3)
 
+		// TODO This should *really* be written to the phraseToStyle map.
 		phrase.tokens.forEach { token ->
 			tokenToStyle.atomicAddToMap(token, BaseStyle.DEFINITION.string)
 		}
 		val namePhrase = phrase.argumentsListNode.expressionAt(1)
-		phraseToStyle.atomicAddToMap(
-			namePhrase, BaseStyle.DEFINITION_NAME.string)
+		val nameLiteralSend = when
+		{
+			namePhrase.isMacroSubstitutionNode ->
+				namePhrase.macroOriginalSendNode
+			else -> namePhrase
+		}
+		val nameLiteralSendArgs = nameLiteralSend.argumentsListNode
+		if (nameLiteralSendArgs.expressionsSize == 1)
+		{
+			// The first argument of the definition is a one-argument send.
+			// Keep drilling to find the literal token to style, if any.
+			var nameLiteralArg = nameLiteralSendArgs.expressionAt(1)
+			if (nameLiteralArg.isMacroSubstitutionNode)
+				nameLiteralArg = nameLiteralArg.macroOriginalSendNode
+			if (nameLiteralArg.phraseKindIsUnder(LITERAL_PHRASE))
+			{
+				tokenToStyle.atomicAddToMap(
+					nameLiteralArg.token.literal(),
+					BaseStyle.DEFINITION_NAME.string)
+			}
+		}
 		return interpreter.primitiveSuccess(nil)
 	}
 

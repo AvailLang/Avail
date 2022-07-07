@@ -33,6 +33,7 @@
 package avail.environment.debugger
 
 import avail.AvailDebuggerModel
+import avail.AvailRuntimeSupport.AvailLazyFuture
 import avail.builder.ModuleName
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
@@ -63,8 +64,10 @@ import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
+import avail.descriptor.methods.StylerDescriptor.BaseStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
+import avail.descriptor.module.A_Module.Companion.stylingRecord
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
@@ -83,6 +86,7 @@ import avail.environment.scroll
 import avail.environment.scrollTextWithLineNumbers
 import avail.environment.showTextRange
 import avail.interpreter.levelOne.L1Disassembler
+import avail.persistence.cache.Repository.StylingRecord
 import avail.utility.safeWrite
 import java.awt.BorderLayout
 import java.awt.Color
@@ -116,6 +120,7 @@ import javax.swing.border.EmptyBorder
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
+import javax.swing.text.StyleConstants
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -270,15 +275,13 @@ class AvailDebugger internal constructor (
 			variable: Any?,
 			index: Int,
 			isSelected: Boolean,
-			cellHasFocus: Boolean): Component
-		{
-			return super.getListCellRendererComponent(
-				list,
-				(variable as Variable).presentationString,
-				index,
-				isSelected,
-				cellHasFocus)
-		}
+			cellHasFocus: Boolean
+		): Component = super.getListCellRendererComponent(
+			list,
+			(variable as Variable).presentationString,
+			index,
+			isSelected,
+			cellHasFocus)
 	}
 
 	/**
@@ -325,48 +328,61 @@ class AvailDebugger internal constructor (
 	}
 
 	/**
+	 * Information about the source code for some module.
+	 *
+	 * @constructor
+	 * Create a new record with the given content.
+	 */
+	inner class SourceCodeInfo
+	constructor (val module: A_Module)
+	{
+		val resolverReference = runtime.moduleNameResolver
+			.resolve(ModuleName(module.moduleNameNative), null)
+			.resolverReference
+
+		val source = AvailLazyFuture<String>(runtime) { withSource ->
+			resolverReference.readFileString(
+				false,
+				{ string, _ -> withSource(string) },
+				{ errorCode, _ ->
+					// Cheesy, but good enough.
+					withSource("Cannot retrieve source: $errorCode")
+				})
+
+		}
+
+		val lineEnds = AvailLazyFuture<List<Int>>(runtime) { withLineEnds ->
+			source.withValue { string ->
+				val ends = string.withIndex()
+					.filter { it.value == '\n' }
+					.map(IndexedValue<Char>::index)
+				withLineEnds(ends)
+			}
+		}
+
+		val stylingRecord: StylingRecord get() = module.stylingRecord()
+	}
+
+	/**
 	 * A cache of the source code for [A_Module]s, each with a [List] of
 	 * positions in the string where a linefeed occurs.
 	 */
 	private val sourceCache =
-		synchronizedMap<A_Module, Pair<String, List<Int>>>(
-			mutableMapOf())
+		synchronizedMap<A_Module, SourceCodeInfo>(mutableMapOf())
 
 	/**
 	 * Extract the source of the current frame's module, along with the list
 	 * of positions where linefeeds are.
 	 */
-	private fun sourceWithLineEndsThen(
+	private fun sourceWithLineEndsAndStylingThen(
 		module: A_Module,
-		then: (String, List<Int>)->Unit)
+		then: (String, List<Int>, StylingRecord)->Unit)
 	{
-		// Access the cache in a wait-free manner, where multiple simultaneous
-		// requesters for the same source code will simply compute the
-		// (idempotent) value redundantly.
-		sourceCache[module]?.let {
-			then(it.first, it.second)
-			return
-		}
-		// The source isn't cached yet.  Compute it in an AvailThread.
-		runtime.whenRunningInterpretersDo(debuggerPriority) {
-			val name = module.moduleNameNative
-			val resolverReference =
-				runtime.moduleNameResolver.resolve(
-					ModuleName(name), null
-				).resolverReference
-			resolverReference.readFileString(
-				false,
-				{ string, _ ->
-					val lineEnds = string.withIndex()
-						.filter { it.value == '\n' }
-						.map { it.index }
-					// Write to the cache, even if it overwrites.
-					sourceCache[module] = string to lineEnds
-					then(string, lineEnds)
-				},
-				{ errorCode, _ ->
-					then("Cannot retrieve source: $errorCode", emptyList())
-				})
+		val info = sourceCache.computeIfAbsent(module, ::SourceCodeInfo)
+		info.source.withValue { source ->
+			info.lineEnds.withValue { lineEnds ->
+				then(source, lineEnds, info.stylingRecord)
+			}
 		}
 	}
 
@@ -594,11 +610,13 @@ class AvailDebugger internal constructor (
 	private var currentModule: A_Module = nil
 
 	/**
-	 * A pair consisting of the current source [String] and a [List] of [Int]s
-	 * that indicate the position of each linefeed in the source.
+	 * A [Triple] consisting of the current source [String], a [List] of [Int]s
+	 * that indicate the position of each linefeed in the source, and the
+	 * [StylingRecord] to apply to the text.
 	 */
-	private var currentSourceAndLineEnds: Pair<String, List<Int>> =
-		Pair("", emptyList())
+	private var currentSourceAndLineEndsAndStyling:
+			Triple<String, List<Int>, StylingRecord> =
+		Triple("", emptyList(), StylingRecord(emptyList(), emptyList()))
 
 	/**
 	 * The list of fibers has changed.  Refresh its visual presentation,
@@ -737,10 +755,28 @@ class AvailDebugger internal constructor (
 					}
 					if (module.notNil)
 					{
-						sourceWithLineEndsThen(module) { source, lineEnds ->
-							currentSourceAndLineEnds = Pair(source, lineEnds)
+						sourceWithLineEndsAndStylingThen(module) {
+								source, lineEnds, stylingRecord ->
+							currentSourceAndLineEndsAndStyling =
+								Triple(source, lineEnds, stylingRecord)
 							SwingUtilities.invokeLater {
 								sourcePane.text = source
+								val doc = sourcePane.styledDocument
+								//TODO Replace hack
+								BaseStyle.stylesMap.forEach { (_, baseStyle) ->
+									val style = doc.addStyle(
+										baseStyle.kotlinString, null)
+									StyleConstants.setForeground(
+										style, baseStyle.color)
+								}
+								stylingRecord.styleRuns.forEach {
+										(range, styleName) ->
+									doc.setCharacterAttributes(
+										range.first - 1,
+										range.last - range.first + 1,
+										doc.getStyle(styleName),
+										false)
+								}
 								// Setting the source does not immediately
 								// update the layout, so postpone scrolling to
 								// the selected line.
@@ -772,8 +808,7 @@ class AvailDebugger internal constructor (
 		lineNumber: Int,
 		isTopFrame: Boolean)
 	{
-		val source = currentSourceAndLineEnds.first
-		val lineEnds = currentSourceAndLineEnds.second
+		val (source, lineEnds, _) = currentSourceAndLineEndsAndStyling
 		if (lineNumber == 0)
 		{
 			// Don't change the highlight if the line number is 0, indicating
@@ -1045,14 +1080,16 @@ class AvailDebugger internal constructor (
 		codeHighlightPainter = run {
 			val selectionColor = disassemblyPane.selectionColor
 			val currentLineColor = AdaptiveColor(
-				selectionColor.darker(), selectionColor.brighter())
+				selectionColor.darker(), selectionColor.brighter()
+			).blend(background, 0.2f)
 			DefaultHighlightPainter(currentLineColor.color)
 		}
 		secondaryCodeHighlightPainter = run {
 			val washedOut = AdaptiveColor.blend(
 				codeHighlightPainter.color,
 				background,
-				0.15f)
+				// Half as strong as the primary highlight.
+				0.5f)
 			DefaultHighlightPainter(washedOut)
 		}
 
