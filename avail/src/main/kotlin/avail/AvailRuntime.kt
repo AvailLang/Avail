@@ -107,6 +107,7 @@ import avail.descriptor.methods.A_Method.Companion.removeSealedArgumentsType
 import avail.descriptor.methods.A_Method.Companion.removeSemanticRestriction
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.DefinitionDescriptor
 import avail.descriptor.methods.MethodDescriptor
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
@@ -131,7 +132,6 @@ import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.numbers.IntegerDescriptor.Companion.two
 import avail.descriptor.numbers.IntegerDescriptor.Companion.zero
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Exceptions
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectMeta
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.mostGeneralObjectType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
@@ -1301,7 +1301,7 @@ class AvailRuntime constructor(
 				tupleTypeForTypes(
 					zeroOrOneOf(PhraseKind.SEND_PHRASE.mostGeneralType),
 					stringType))
-			put(Styles.stylerFunctionType)
+			put(stylerFunctionType)
 			put(
 				enumerationWith(
 					set(
@@ -1407,12 +1407,6 @@ class AvailRuntime constructor(
 			put(TokenType.COMMENT.atom)
 			put(TokenType.WHITESPACE.atom)
 			put(StaticInit.tokenTypeOrdinalKey)
-			put(Styles.subclassAtom)
-			put(Styles.semanticClassifierAtom)
-			put(Styles.methodNameAtom)
-			put(Styles.sourceModuleAtom)
-			put(Styles.generatedAtom)
-			put(Styles.lineNumberAtom)
 		}.list().onEach { assert(it.isAtomSpecial) }
 	}
 

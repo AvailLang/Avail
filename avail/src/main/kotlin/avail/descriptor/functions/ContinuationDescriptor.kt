@@ -35,7 +35,6 @@ import avail.AvailRuntime
 import avail.annotations.HideFieldInDebugger
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
-import avail.descriptor.functions.A_Continuation.Companion.callDepth
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
 import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
@@ -54,7 +53,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
 import avail.descriptor.functions.CompiledCodeDescriptor.*
-import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.CALL_DEPTH
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.LEVEL_TWO_OFFSET
 import avail.descriptor.functions.ContinuationDescriptor.IntegerSlots.Companion.PROGRAM_COUNTER
@@ -146,10 +144,10 @@ class ContinuationDescriptor private constructor(
 	 */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * A composite field containing the [PROGRAM_COUNTER], the
-		 * [STACK_POINTER], and the [CALL_DEPTH].
+		 * A composite field containing the [PROGRAM_COUNTER] and the
+		 * [STACK_POINTER].
 		 */
-		PC_STACK_POINTER_AND_CALL_DEPTH,
+		PC_AND_STACK_POINTER,
 
 		/**
 		 * A composite field containing the [LEVEL_TWO_OFFSET], and the cached
@@ -163,7 +161,7 @@ class ContinuationDescriptor private constructor(
 			 * code's tuple of nybblecodes at which execution will next occur.
 			 */
 			val PROGRAM_COUNTER = BitField(
-				PC_STACK_POINTER_AND_CALL_DEPTH, 44, 20, Int::toString)
+				PC_AND_STACK_POINTER, 32, 32, Int::toString)
 
 			/**
 			 * An index into this continuation's [frame&#32;slots][FRAME_AT_].
@@ -171,14 +169,7 @@ class ContinuationDescriptor private constructor(
 			 * just abuts the last local variable.
 			 */
 			val STACK_POINTER = BitField(
-				PC_STACK_POINTER_AND_CALL_DEPTH, 28, 16, Int::toString)
-
-			/**
-			 * The number of continuations in my caller chain.  It can be as low
-			 * as zero, indicating this is a base frame.
-			 */
-			val CALL_DEPTH = BitField(
-				PC_STACK_POINTER_AND_CALL_DEPTH, 0, 28, Int::toString)
+				PC_AND_STACK_POINTER, 0, 32, Int::toString)
 
 			/**
 			 * The Level Two [instruction][L2Chunk.instructions] index at
@@ -273,8 +264,6 @@ class ContinuationDescriptor private constructor(
 		self.setSlot(FRAME_AT_, index, value)
 		return self
 	}
-
-	override fun o_CallDepth(self: AvailObject): Int = self.slot(CALL_DEPTH)
 
 	override fun o_Caller(self: AvailObject): A_Continuation = self.slot(CALLER)
 
@@ -401,7 +390,6 @@ class ContinuationDescriptor private constructor(
 	{
 		var a: A_Continuation = self
 		var b = aContinuation
-		if (a.callDepth() != b.callDepth()) return false
 		// Iterate over the potentially deep call chain, rather than recurse.
 		while (true)
 		{
@@ -417,11 +405,10 @@ class ContinuationDescriptor private constructor(
 			}
 			a = a.caller()
 			b = b.caller()
-			if (a.isNil)
+			when
 			{
-				// We already checked that the depths agree before the loop.
-				assert(b.isNil)
-				return true
+				a.isNil -> return b.isNil
+				b.isNil -> return a.isNil
 			}
 		}
 	}
@@ -627,8 +614,6 @@ class ContinuationDescriptor private constructor(
 				setSlot(LEVEL_TWO_REGISTER_DUMP, nil)
 				setSlot(PROGRAM_COUNTER, 0) // Indicates this is a label.
 				setSlot(STACK_POINTER, frameSize + 1)
-				setSlot(
-					CALL_DEPTH, if (caller.isNil) 0 else caller.callDepth() + 1)
 				setSlot(LEVEL_TWO_CHUNK, startingChunk.chunkPojo)
 				setSlot(LEVEL_TWO_OFFSET, startingOffset)
 				//  Set up arguments...
@@ -686,8 +671,6 @@ class ContinuationDescriptor private constructor(
 				setSlot(LEVEL_TWO_REGISTER_DUMP, registerDump)
 				setSlot(PROGRAM_COUNTER, pc)
 				setSlot(STACK_POINTER, stackp)
-				setSlot(
-					CALL_DEPTH, if (caller.isNil) 0 else caller.callDepth() + 1)
 				setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
 				setSlot(LEVEL_TWO_OFFSET, levelTwoOffset)
 				fillSlots(FRAME_AT_, 1, frameSize, nil)
@@ -795,7 +778,6 @@ class ContinuationDescriptor private constructor(
 				createRegisterDump(boxedRegisters, unboxedRegisters))
 			setSlot(PROGRAM_COUNTER, -1)
 			setSlot(STACK_POINTER, -1)
-			setSlot(CALL_DEPTH, -1)
 			setSlot(LEVEL_TWO_CHUNK, levelTwoChunk.chunkPojo)
 			setSlot(LEVEL_TWO_OFFSET, levelTwoOffset)
 		}

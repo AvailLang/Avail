@@ -33,6 +33,7 @@ package avail.descriptor.methods
 
 import avail.descriptor.character.CharacterDescriptor
 import avail.descriptor.functions.A_Function
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.FUNCTION
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.METHOD
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.MODULE
@@ -40,11 +41,11 @@ import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.numbers.DoubleDescriptor
 import avail.descriptor.numbers.FloatDescriptor
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.styleType
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
+import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine4
@@ -95,8 +96,10 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		/**
 		 * The [function][stylerFunctionType] to invoke for styling.  It should
 		 * accept the phrase being styled, a variable holding a map from
-		 * [A_Phrase] to [style][styleType], and a variable holding a map from
-		 * [A_Token] to style.
+		 * [A_Phrase] to style [name][stringType], a variable holding a map
+		 * from [A_Token] to style [name][stringType], and a variable holding a
+		 * map from each [variable-use][VariableUsePhraseDescriptor] to its
+		 * [declaration][DeclarationPhraseDescriptor].
 		 */
 		FUNCTION,
 

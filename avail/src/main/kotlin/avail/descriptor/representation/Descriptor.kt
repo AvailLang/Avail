@@ -2696,8 +2696,6 @@ protected constructor (
 
 	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
 
-	override fun o_CallDepth(self: AvailObject): Int = unsupported
-
 	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
 		unsupported
 

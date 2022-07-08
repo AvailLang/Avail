@@ -40,9 +40,9 @@ import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_Styler
 import avail.descriptor.methods.A_Styler.Companion.module
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.module.A_Module.Companion.moduleAddStyler
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.A_Set.Companion.setWithElementCanDestroy

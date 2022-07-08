@@ -541,18 +541,12 @@ class ObjectTupleDescriptor private constructor(mutability: Mutability)
 		 */
 		inline fun generateReversedFrom(
 			size: Int,
-			generator: (Int)->A_BasicObject): AvailObject
-		{
-			val result = mutable.create(size)
-			// Initialize it for safe GC within the loop below.  Might be
-			// unnecessary if the substrate already initialized it safely.
-			//
-			//result.fillSlots(TUPLE_AT_, 1, size, nil)
+			generator: (Int)->A_BasicObject
+		): AvailObject = mutable.create(size) {
 			for (i in size downTo 1)
 			{
-				result.setSlot(TUPLE_AT_, i, generator(i))
+				setSlot(TUPLE_AT_, i, generator(i))
 			}
-			return result
 		}
 
 		/**

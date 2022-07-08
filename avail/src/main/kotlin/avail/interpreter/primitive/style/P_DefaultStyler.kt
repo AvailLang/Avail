@@ -32,8 +32,8 @@
 
 package avail.interpreter.primitive.style
 
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.BaseStyle
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -41,9 +41,9 @@ import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.types.A_Type
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.CanSuspend
+import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CannotFail
-import avail.interpreter.Primitive.Flag.Unknown
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -55,7 +55,8 @@ import avail.interpreter.execution.Interpreter
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_DefaultStyler : Primitive(2, CanSuspend, CannotFail, Unknown)
+object P_DefaultStyler : Primitive(
+	4, CannotFail, Bootstrap, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

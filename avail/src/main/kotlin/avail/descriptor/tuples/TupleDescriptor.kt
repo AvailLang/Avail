@@ -1355,14 +1355,13 @@ abstract class TupleDescriptor protected constructor(
 		}
 
 		/**
-		 * Concatenate two `A_Tuple`s.
+		 * Concatenate two [A_Tuple]s, allowing either to be destroyed if it's
+		 * mutable.
 		 *
 		 * @param firstTuple
 		 *   The first tuple to concatenate.
 		 * @param secondTuple
 		 *   The second tuple to concatenate.
-		 * @param canDestroy
-		 *   Whether either input tuple may be destroyed if it's also mutable.
 		 * @return
 		 *   The concatenated tuple.
 		 */
@@ -1370,9 +1369,8 @@ abstract class TupleDescriptor protected constructor(
 		@JvmStatic
 		fun staticConcatenateTuples(
 			firstTuple: A_Tuple,
-			secondTuple: A_Tuple,
-			canDestroy: Boolean
-		): A_Tuple = firstTuple.concatenateWith(secondTuple, canDestroy)
+			secondTuple: A_Tuple
+		): A_Tuple = firstTuple.concatenateWith(secondTuple, true)
 
 		/** The [CheckedMethod] for [staticConcatenateTuples]. */
 		val concatenateTupleMethod = staticMethod(
@@ -1380,8 +1378,7 @@ abstract class TupleDescriptor protected constructor(
 			::staticConcatenateTuples.name,
 			A_Tuple::class.java,
 			A_Tuple::class.java,
-			A_Tuple::class.java,
-			Boolean::class.javaPrimitiveType!!)
+			A_Tuple::class.java)
 
 		/**
 		 * Answer the specified element of the tuple.

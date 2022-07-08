@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/4/22, 8:34 PM
+ * * Last Generated: 7/6/22, 12:33 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -3740,7 +3740,7 @@ Primitive "_[_]:=_" is
  * @method "Style_with_"
  * @param "method" "method"
  *        The method for which invocations should be styled.
- * @param "function" "[send phrase⇒⊤, ↑{send phrase⇒⊤→string|}, ↑{token→string|}, ↑{token→token|}]→⊤"
+ * @param "function" "[send phrase⇒⊤, ↑{phrase⇒⊤→string|}, ↑{token→string|}, ↑{token→token|}]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"

@@ -33,8 +33,8 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.BaseStyle
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
@@ -72,7 +72,7 @@ import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
-@Suppress("unused", "GrazieInspection")
+@Suppress("unused")
 object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 {
 	override fun attempt(interpreter: Interpreter): Result

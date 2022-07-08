@@ -546,16 +546,16 @@ internal class BuildLoader constructor(
 							assert(!old) {
 								"Completed module compilation twice!"
 							}
-							val stream = compiler.compilationContext
-								.serializerOutputStream
+							val context = compiler.compilationContext
+							val stream = context.serializerOutputStream
 							appendCRC(stream)
 
 							// Also produce the serialization of the module's
 							// tuple of block phrases.
 							val blockPhrasesOutputStream =
 								IndexedFile.ByteArrayOutputStream(5000)
-							val bodyObjectsTuple = compiler.compilationContext
-								.serializer.serializedObjectsTuple()
+							val bodyObjectsTuple =
+								context.serializer.serializedObjectsTuple()
 							val bodyObjectsMap =
 								mutableMapOf<AvailObject, Int>()
 							bodyObjectsTuple.forEachIndexed {
@@ -578,12 +578,11 @@ internal class BuildLoader constructor(
 							blockPhraseSerializer.serialize(
 								module.getAndSetTupleOfBlockPhrases(nil))
 							appendCRC(blockPhrasesOutputStream)
-							val manifestEntries = compiler.compilationContext
-								.loader.manifestEntries!!
+							val loader = context.loader
+							val manifestEntries = loader.manifestEntries!!
 
-							val context = compiler.compilationContext
 							val converter = context.surrogateIndexConverter
-							val tokenStyles: A_Map = context.tokenStyles.value()
+							val tokenStyles: A_Map = loader.tokenStyles.value()
 							val styleMap = mutableMapOf<A_String, String>()
 							val styleRanges = tokenStyles.mapIterable
 								.map { (token: A_Token, style: A_String) ->

@@ -593,12 +593,11 @@ abstract class L2Regenerator internal constructor(
 	}
 
 	/**
-	 * A helper method for instruction postponement.  Given an
-	 * [L2Regenerator] and an [L2Instruction] from the old graph being
-	 * regenerated, emit a translated version of that instruction.  If the
-	 * instruction uses values that are not yet available in registers due
-	 * to postponement, first translate the instructions that produce those
-	 * values.
+	 * A helper method for instruction postponement.  Given an [L2Regenerator]
+	 * and an [L2Instruction] from the old graph being regenerated, emit a
+	 * translated version of that instruction.  If the instruction uses values
+	 * that are not yet available in registers due to postponement, first
+	 * translate the instructions that produce those values.
 	 *
 	 * TODO Make this iterative instead of recursive.
 	 */

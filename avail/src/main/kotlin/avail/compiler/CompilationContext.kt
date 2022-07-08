@@ -93,16 +93,12 @@ import avail.descriptor.tuples.A_String.SurrogateIndexConverter
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type.Companion.returnType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AvailEmergencyExitException
 import avail.exceptions.AvailRuntimeException
 import avail.interpreter.effects.LoadingEffect
@@ -288,39 +284,6 @@ class CompilationContext constructor(
 
 	/** The current number of work units that have been completed. */
 	val workUnitsCompleted get() = atomicWorkUnitsCompleted.get()
-
-	/**
-	 * The map from phrases to styles, updated after a top-level phrase runs.
-	 */
-	val phraseStyles = newVariableWithContentType(
-		mapTypeForSizesKeyTypeValueType(
-			wholeNumbers, SEND_PHRASE.mostGeneralType, stringType)
-	).run {
-		setValue(emptyMap)
-		makeShared()
-	}
-
-	/**
-	 * The map from tokens to styles, updated after a top-level phrase runs.
-	 */
-	val tokenStyles = newVariableWithContentType(
-		mapTypeForSizesKeyTypeValueType(wholeNumbers, TOKEN.o, stringType)
-	).run {
-		setValue(emptyMap)
-		makeShared()
-	}
-
-	/**
-	 * The map from tokens within variable uses to tokens within the
-	 * corresponding variable declarations.
-	 */
-	val variableUsesMap = newVariableWithContentType(
-		mapTypeForSizesKeyTypeValueType(wholeNumbers, TOKEN.o, TOKEN.o)
-	).run {
-		setValue(emptyMap)
-		makeShared()
-	}
-
 
 	/**
 	 * Record the fact that this token was encountered while parsing the current
@@ -1061,7 +1024,8 @@ class CompilationContext constructor(
 				// Record the link between the variable use and its declaration.
 				val useToken = phrase.token
 				val declarationToken = phrase.declaration.token
-				variableUsesMap.atomicAddToMap(useToken, declarationToken)
+				loader.usesToDefinitions.atomicAddToMap(
+					useToken, declarationToken)
 				runtime.execute(compilerPriority, then)
 			}
 			else ->
@@ -1157,7 +1121,11 @@ class CompilationContext constructor(
 		runtime.runOutermostFunction(
 			fiber,
 			stylerFn,
-			listOf(sendPhrase, phraseStyles, tokenStyles, variableUsesMap))
+			listOf(
+				sendPhrase,
+				loader.phraseStyles,
+				loader.tokenStyles,
+				loader.usesToDefinitions))
 	}
 
 	companion object

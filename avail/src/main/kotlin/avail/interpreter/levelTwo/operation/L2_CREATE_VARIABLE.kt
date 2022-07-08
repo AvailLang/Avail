@@ -42,6 +42,7 @@ import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
 import avail.optimizer.jvm.JVMTranslator
 import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 
 /**
  * Create a new [variable&#32;object][VariableDescriptor] of the
@@ -75,13 +76,12 @@ object L2_CREATE_VARIABLE : L2Operation(
 		method: MethodVisitor,
 		instruction: L2Instruction)
 	{
-		val outerType =
-			instruction.operand<L2ConstantOperand>(0)
-		val variable =
-			instruction.operand<L2WriteBoxedOperand>(1)
+		val outerType = instruction.operand<L2ConstantOperand>(0)
+		val variable = instruction.operand<L2WriteBoxedOperand>(1)
 
-		// :: newVar = newVariableWithOuterType(outerType);
+		// :: newVar = newVariableWithOuterType(outerType  [,null] );
 		translator.literal(method, outerType.constant)
+		method.visitInsn(Opcodes.ACONST_NULL)
 		VariableDescriptor.newVariableWithOuterTypeMethod.generateCall(method)
 		translator.store(method, variable.register())
 	}

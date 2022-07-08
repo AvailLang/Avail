@@ -101,6 +101,7 @@ import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
 import avail.descriptor.methods.DefinitionDescriptor
@@ -138,8 +139,6 @@ import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.State.Loading
 import avail.descriptor.numbers.A_Number.Companion.equalsInt
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.styleType
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.parsing.A_DefinitionParsingPlan
 import avail.descriptor.parsing.A_Lexer
 import avail.descriptor.parsing.A_Lexer.Companion.definitionModule
@@ -190,6 +189,7 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
+import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AmbiguousNameException
@@ -696,8 +696,8 @@ constructor(
 	 * A stream on which to serialize each [ModuleManifestEntry] when the
 	 * definition actually occurs during compilation.  After compilation, the
 	 * bytes of this stream are written to a record whose index is captured in
-	 * the [A_Module]'s [ModuleDescriptor.ObjectSlots.ALL_MANIFEST_ENTRIES], and
-	 * fetched from the repository and decoded into a pojo array when needed.
+	 * the [A_Module]'s [manifestEntries], and fetched from the repository and
+	 * decoded into a pojo array when needed.
 	 */
 	var manifestEntries: MutableList<ModuleManifestEntry>? = null
 
@@ -844,26 +844,44 @@ constructor(
 
 	/**
 	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [token][A_Token] to [style][styleType].  The variable's map can be
+	 * [token][A_Token] to style name ([stringType]).  The variable's map can be
 	 * examined and updated by any styling operation executed during the
 	 * compilation phase.
 	 */
-	lateinit var tokenStyles: A_Variable
+	val tokenStyles: A_Variable by lazy {
+		newVariableWithContentType(
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers, Types.TOKEN.o, stringType),
+			emptyMap
+		).makeShared()
+	}
 
 	/**
 	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [phrase][A_Phrase] to [style][styleType].  The variable's map can be
-	 * examined and updated by any styling operation executed during the
+	 * [phrase][A_Phrase] to style's name ([stringType]).  The variable's map
+	 * can be examined and updated by any styling operation executed during the
 	 * compilation phase.
 	 */
-	lateinit var phraseStyles: A_Variable
+	val phraseStyles: A_Variable by lazy {
+		newVariableWithContentType(
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers, PARSE_PHRASE.mostGeneralType, stringType),
+			emptyMap
+		).makeShared()
+	}
 
 	/**
 	 * A [variable][A_Variable] containing the current [map][A_Map] from
 	 * [A_Token] to [A_Token], where the key is the token for a variable usage,
 	 * and the value is the token for that variable's declaration.
 	 */
-	lateinit var usesToDefinitions: A_Variable
+	val usesToDefinitions: A_Variable by lazy {
+		newVariableWithContentType(
+			mapTypeForSizesKeyTypeValueType(
+				wholeNumbers, Types.TOKEN.o, Types.TOKEN.o),
+			emptyMap
+		).makeShared()
+	}
 
 	/**
 	 * Set up the [rootBundleTree] and [lexicalScanner] for compiling the body
@@ -873,30 +891,6 @@ constructor(
 	{
 		rootBundleTree = module.buildFilteredBundleTree()
 		lexicalScanner = module.createLexicalScanner()
-		tokenStyles =
-			newVariableWithContentType(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.TOKEN.o, styleType)
-			).run {
-				setValueNoCheck(emptyMap)
-				makeShared()
-			}
-		phraseStyles =
-			newVariableWithContentType(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.TOKEN.o, styleType)
-			).run {
-				setValueNoCheck(emptyMap)
-				makeShared()
-			}
-		usesToDefinitions =
-			newVariableWithContentType(
-				mapTypeForSizesKeyTypeValueType(
-					wholeNumbers, Types.TOKEN.o, Types.TOKEN.o)
-			).run {
-				setValueNoCheck(emptyMap)
-				makeShared()
-			}
 	}
 
 	/**

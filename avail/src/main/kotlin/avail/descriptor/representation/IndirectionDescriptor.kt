@@ -128,7 +128,6 @@ import avail.descriptor.fiber.FiberDescriptor.SynchronizationFlag
 import avail.descriptor.fiber.FiberDescriptor.TraceFlag
 import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.adjustPcAndStackp
-import avail.descriptor.functions.A_Continuation.Companion.callDepth
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
 import avail.descriptor.functions.A_Continuation.Companion.deoptimizedForDebugger
@@ -3892,8 +3891,6 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ReleaseFromDebugger(self: AvailObject) =
 		self .. { releaseFromDebugger() }
-
-	override fun o_CallDepth(self: AvailObject): Int = self .. { callDepth() }
 
 	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
 		self .. { deoptimizedForDebugger() }

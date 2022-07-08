@@ -3962,8 +3962,6 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleNameNative(self: AvailObject): String
 
-	abstract fun o_CallDepth(self: AvailObject): Int
-
 	abstract fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
 
 	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject

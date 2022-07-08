@@ -38,8 +38,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.FunctionDescriptor
+import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set.Companion.setUnionCanDestroy
 import avail.descriptor.sets.SetDescriptor.Companion.set

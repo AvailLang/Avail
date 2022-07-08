@@ -39,7 +39,6 @@ import avail.descriptor.atoms.A_Atom.Companion.isAtomSpecial
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
-import avail.descriptor.atoms.AtomDescriptor.Companion.objectFromBoolean
 import avail.descriptor.atoms.AtomDescriptor.Companion.trueObject
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.EXPLICIT_SUBCLASSING_KEY
 import avail.descriptor.atoms.AtomDescriptor.SpecialAtom.OBJECT_TYPE_NAME_PROPERTY_KEY
@@ -53,10 +52,6 @@ import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.maps.A_Map.Companion.mapSize
 import avail.descriptor.maps.A_Map.Companion.mapWithoutKeyCanDestroy
 import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
-import avail.descriptor.module.A_Module
-import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
-import avail.descriptor.objects.ObjectDescriptor.Companion.createUninitializedObject
-import avail.descriptor.objects.ObjectDescriptor.Companion.setField
 import avail.descriptor.objects.ObjectLayoutVariant.Companion.variantForFields
 import avail.descriptor.objects.ObjectTypeDescriptor.IntegerSlots.Companion.HASH_OR_ZERO
 import avail.descriptor.objects.ObjectTypeDescriptor.ObjectSlots.FIELD_TYPES_
@@ -90,10 +85,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.component2
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.generateObjectTupleFrom
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
-import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromArray
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.tuples.TupleDescriptor.Companion.emptyTuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.A_Type.Companion.fieldTypeMap
 import avail.descriptor.types.A_Type.Companion.isSubtypeOf
@@ -105,22 +98,11 @@ import avail.descriptor.types.A_Type.Companion.typeUnion
 import avail.descriptor.types.A_Type.Companion.typeUnionOfObjectType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.instanceTypeOrMetaOn
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
-import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
-import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.InstanceMetaDescriptor
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceTypeDescriptor.Companion.instanceType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.SEND_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOKEN
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.TupleTypeDescriptor.Companion.zeroOrOneOf
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 import avail.serialization.SerializerOperation
@@ -1011,102 +993,6 @@ class ObjectTypeDescriptor internal constructor(
 				setNameForType(type, stringFrom("exception"), true)
 				type.makeShared()
 			}
-		}
-
-		/**
-		 * Declarations related to style objects, for styling phrases.
-		 */
-		object Styles
-		{
-			/**
-			 * The [A_Atom] used to indicate that an object is a *style*.  Style
-			 * objects are normally stored separate from the serialized sequence
-			 * of functions to invoke for fast-loading, and also separate from
-			 * the parse phrases corresponding to those functions.
-			 */
-			val subclassAtom =
-				createSpecialAtom("explicit-style").apply {
-					setAtomProperty(EXPLICIT_SUBCLASSING_KEY.atom, trueObject)
-				}
-
-			/**
-			 * The field of a style object for identifying a semantic style name
-			 * with which to look up a concrete style for rendering a
-			 * subexpression.
-			 */
-			val semanticClassifierAtom = createSpecialAtom("semanticClassifier")
-
-			/**
-			 * The name of the method being invoked at this call site. This is
-			 * used with the [sourceModuleAtom] to ensure modular naming.
-			 */
-			val methodNameAtom = createSpecialAtom("methodName")
-
-			/**
-			 * The fully qualified module name that defined the atom named in
-			 * the [methodNameAtom] field.
-			 */
-			val sourceModuleAtom = createSpecialAtom("sourceModule")
-
-			/**
-			 * The field of a style object for identifying whether this send is
-			 * generated from a macro (true) or was parsed directly as a method
-			 * send (false).
-			 */
-			val generatedAtom = createSpecialAtom("generated")
-
-			/**
-			 * The line number in the [sourceModuleAtom] which acts as the
-			 * target of this call site.  If the call site is an ordinary send,
-			 * this should be the most specific applicable method definition.
-			 * If it was generated from a macro, it should lead to some function
-			 * that was "most responsible" for its definition.
-			 */
-			val lineNumberAtom = createSpecialAtom("lineNumber")
-
-			/**
-			 * The type for abstract code styles.
-			 */
-			val styleType: A_Type = run {
-				val type: A_Type = objectTypeFromTuple(
-					tupleFromArray(
-						tuple(subclassAtom, instanceType(subclassAtom)),
-						tuple(semanticClassifierAtom, stringType),
-						tuple(methodNameAtom, stringType),
-						tuple(sourceModuleAtom, zeroOrOneOf(Types.MODULE.o)),
-						tuple(generatedAtom, booleanType),
-						tuple(lineNumberAtom, wholeNumbers)))
-				setNameForType(type, stringFrom("style"), true)
-				type.makeShared()
-			}
-
-			/**
-			 * The function type for styler functions.
-			 */
-			val stylerFunctionType: A_Type = functionType(
-				tuple(
-					// The phrase being styled.
-					SEND_PHRASE.mostGeneralType,
-					// A variable holding the map from phrase to style.
-					variableTypeFor(
-						mapTypeForSizesKeyTypeValueType(
-							wholeNumbers,
-							SEND_PHRASE.mostGeneralType,
-							stringType)),
-					// A variable holding the map from token to style.
-					variableTypeFor(
-						mapTypeForSizesKeyTypeValueType(
-							wholeNumbers,
-							TOKEN.o,
-							stringType)),
-					// A variable mapping from variable-use (or other) tokens to
-					// declaration (or other) tokens within the same module.
-					variableTypeFor(
-						mapTypeForSizesKeyTypeValueType(
-							wholeNumbers,
-							TOKEN.o,
-							TOKEN.o))),
-				TOP.o)
 		}
 
 		/**
