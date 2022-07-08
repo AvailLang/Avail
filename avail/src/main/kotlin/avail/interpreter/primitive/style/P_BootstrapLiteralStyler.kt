@@ -32,7 +32,7 @@
 
 package avail.interpreter.primitive.style
 
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
@@ -70,13 +70,13 @@ object P_BootstrapLiteralStyler :
 		val literal = literalPhrase.token.literal().literal()
 		val style = when
 		{
-			literal.isInstanceOf(stringType) -> BaseStyle.STRING_LITERAL
+			literal.isInstanceOf(stringType) -> SystemStyle.STRING_LITERAL
 			literal.isInstanceOf(Types.CHARACTER.o) ->
-				BaseStyle.CHARACTER_LITERAL
+				SystemStyle.CHARACTER_LITERAL
 			literal.isInstanceOf(extendedIntegers) ->
-				BaseStyle.INTEGER_LITERAL
-			literal.isInstanceOf(Types.FLOAT.o) -> BaseStyle.FLOAT_LITERAL
-			literal.isInstanceOf(Types.DOUBLE.o) -> BaseStyle.DOUBLE_LITERAL
+				SystemStyle.NUMERIC_LITERAL
+			literal.isInstanceOf(Types.FLOAT.o) -> SystemStyle.NUMERIC_LITERAL
+			literal.isInstanceOf(Types.DOUBLE.o) -> SystemStyle.NUMERIC_LITERAL
 			// Don't apply any bootstrap style for other literal types.
 			else -> return interpreter.primitiveSuccess(nil)
 		}

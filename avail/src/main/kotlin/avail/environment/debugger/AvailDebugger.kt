@@ -64,7 +64,6 @@ import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.stylingRecord
@@ -120,7 +119,6 @@ import javax.swing.border.EmptyBorder
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.Highlighter.HighlightPainter
-import javax.swing.text.StyleConstants
 
 /**
  * [AvailDebugger] presents a user interface for debugging Avail
@@ -762,13 +760,6 @@ class AvailDebugger internal constructor (
 							SwingUtilities.invokeLater {
 								sourcePane.text = source
 								val doc = sourcePane.styledDocument
-								//TODO Replace hack
-								BaseStyle.stylesMap.forEach { (_, baseStyle) ->
-									val style = doc.addStyle(
-										baseStyle.kotlinString, null)
-									StyleConstants.setForeground(
-										style, baseStyle.color)
-								}
 								stylingRecord.styleRuns.forEach {
 										(range, styleName) ->
 									doc.setCharacterAttributes(

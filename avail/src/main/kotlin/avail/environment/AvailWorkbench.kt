@@ -823,7 +823,7 @@ class AvailWorkbench internal constructor (
 				document.insertString(
 					document.length, // The current length
 					entry.string,
-					entry.style.styleIn(document))
+					entry.style.getStyle(document))
 				// Always use index 0, since this only happens in the UI thread.
 				insertStringStat.record(System.nanoTime() - before)
 			}
@@ -1447,7 +1447,7 @@ class AvailWorkbench internal constructor (
 			doc.insertString(
 				0,
 				string,
-				BUILD_PROGRESS.styleIn(doc))
+				BUILD_PROGRESS.getStyle(doc))
 			// Always use index 0, since this only happens in the UI thread.
 			insertStringStat.record(System.nanoTime() - beforeInsert)
 		}
@@ -2041,15 +2041,15 @@ class AvailWorkbench internal constructor (
 		 * The background color of the input field when a command is running.
 		 */
 		val inputBackgroundWhenRunning = AdaptiveColor(
-			light = Color(192, 255, 192),
-			dark = Color(55, 156, 26))
+			light = LightColors.consoleBackground,
+			dark = DarkColors.consoleBackground)
 
 		/**
 		 * The foreground color of the input field when a command is running.
 		 */
 		val inputForegroundWhenRunning = AdaptiveColor(
-			light = Color.black,
-			dark = Color.white)
+			light = LightColors.consoleText,
+			dark = DarkColors.consoleText)
 
 		/**
 		 * The numeric mask for the modifier key suitable for the current

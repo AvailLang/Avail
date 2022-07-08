@@ -1130,7 +1130,6 @@ class Repository constructor(
 		}
 	}
 
-
 	/**
 	 * Styling information that was collected during compilation of a
 	 * [module][A_Module].
@@ -1141,7 +1140,7 @@ class Repository constructor(
 		 * An ascending sequence of non-overlapping, non-empty [IntRange]s, with
 		 * the style name to apply to that range.
 		 */
-		val styleRuns: List<Pair<IntRange, String>>
+		val styleRuns: List<StyleRun>
 
 		/**
 		 * Information about variable uses and definitions.  The pairs go from
@@ -1263,7 +1262,7 @@ class Repository constructor(
 			// Read all the spans, including unstyled ones.
 			var pos = 0
 
-			val allRuns = mutableListOf<Pair<IntRange, String>>()
+			val allRuns = mutableListOf<StyleRun>()
 			repeat(binaryStream.unvlqInt()) {
 				val styleNumber = binaryStream.unvlqInt()
 				val length = binaryStream.unvlqInt()
@@ -1325,7 +1324,7 @@ class Repository constructor(
 		 *   use to definition.
 		*/
 		constructor(
-			styleRuns: List<Pair<IntRange, String>>,
+			styleRuns: List<StyleRun>,
 			variableUses: List<Pair<IntRange, IntRange>>)
 		{
 			this.styleRuns = styleRuns
@@ -1753,3 +1752,9 @@ class Repository constructor(
 		}
 	}
 }
+
+/**
+ * An [int&#32;range][IntRange] and name of the style to apply to the
+ * source characters of that range.
+ */
+typealias StyleRun = Pair<IntRange, String>

@@ -45,8 +45,8 @@ import java.awt.Color
  * Construct a new `AdaptiveColor`.
  */
 data class AdaptiveColor constructor(
-	private val light: Color,
-	private val dark: Color)
+	val light: Color,
+	val dark: Color)
 {
 	val color: Color get() = if (AvailWorkbench.darkMode) dark else light
 

@@ -33,7 +33,7 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.methods.A_Definition
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.objects.ObjectTypeDescriptor.Companion.Styles.stylerFunctionType
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
@@ -73,7 +73,8 @@ object P_BootstrapDefinitionStyler :
 
 		// TODO This should *really* be written to the phraseToStyle map.
 		phrase.tokens.forEach { token ->
-			tokenToStyle.atomicAddToMap(token, BaseStyle.DEFINITION.string)
+			tokenToStyle.atomicAddToMap(
+				token, SystemStyle.METHOD_DEFINITION.string)
 		}
 		val namePhrase = phrase.argumentsListNode.expressionAt(1)
 		val nameLiteralSend = when
@@ -94,7 +95,7 @@ object P_BootstrapDefinitionStyler :
 			{
 				tokenToStyle.atomicAddToMap(
 					nameLiteralArg.token.literal(),
-					BaseStyle.DEFINITION_NAME.string)
+					SystemStyle.METHOD_NAME.string)
 			}
 		}
 		return interpreter.primitiveSuccess(nil)
