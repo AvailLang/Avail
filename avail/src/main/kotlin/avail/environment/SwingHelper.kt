@@ -32,7 +32,7 @@
 
 package avail.environment
 
-import avail.environment.streams.StreamStyle
+import avail.environment.BoundStyle.Companion.defaultStyle
 import avail.environment.text.AvailEditorKit
 import avail.environment.text.TextLineNumber
 import java.awt.Component
@@ -46,7 +46,6 @@ import javax.swing.text.BadLocationException
 import javax.swing.text.JTextComponent
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
-import javax.swing.text.StyleContext
 import javax.swing.text.StyledDocument
 import javax.swing.text.TabSet
 import javax.swing.text.TabStop
@@ -94,16 +93,16 @@ fun codeSuitableTextPane(
 	isFocusable = true
 	preferredSize = Dimension(0, 500)
 	editorKit = AvailEditorKit(workbench)
+	background = SystemColors.active.codeBackground
 	val attributes = SimpleAttributeSet()
 	StyleConstants.setTabSet(
 		attributes, TabSet(Array(500) { TabStop(32.0f * (it + 1)) }))
 	styledDocument.run {
 		setParagraphAttributes(0, length, attributes, false)
-		val defaultStyle = StyleContext.getDefaultStyleContext().getStyle(
-			StyleContext.DEFAULT_STYLE)
+		val defaultStyle = defaultStyle
 		defaultStyle.addAttributes(attributes)
 		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
-		StreamStyle.values().forEach { style -> style.defineStyleIn(this) }
+		StyleRegistry.addAllStyles(this)
 	}
 }
 

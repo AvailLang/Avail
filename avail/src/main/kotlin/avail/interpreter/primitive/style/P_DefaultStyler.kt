@@ -33,7 +33,7 @@
 package avail.interpreter.primitive.style
 
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -71,8 +71,8 @@ object P_DefaultStyler : Primitive(
 		{
 			val styleString = when (token.tokenType())
 			{
-				TokenType.KEYWORD -> BaseStyle.KEYWORD.string
-				TokenType.OPERATOR -> BaseStyle.OPERATOR.string
+				TokenType.KEYWORD -> SystemStyle.METHOD_SEND.string
+				TokenType.OPERATOR -> SystemStyle.METHOD_SEND.string
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}

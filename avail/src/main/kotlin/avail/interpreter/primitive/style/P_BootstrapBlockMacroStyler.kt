@@ -34,7 +34,7 @@ package avail.interpreter.primitive.style
 
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.methods.StylerDescriptor.BaseStyle
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
@@ -99,8 +99,8 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 		{
 			val styleString = when (token.tokenType())
 			{
-				TokenType.KEYWORD -> BaseStyle.KEYWORD.string
-				TokenType.OPERATOR -> BaseStyle.OPERATOR.string
+				TokenType.KEYWORD -> SystemStyle.METHOD_SEND.string
+				TokenType.OPERATOR -> SystemStyle.METHOD_SEND.string
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}
@@ -115,7 +115,7 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 				val argNameLiteral = argPart.expressionAt(1)
 				tokenStyles.atomicAddToMap(
 					argNameLiteral.token.literal(),
-					BaseStyle.ARGUMENT_DECLARATION.string)
+					SystemStyle.PARAMETER_DEFINITION.string)
 			}
 		}
 
@@ -125,7 +125,7 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 			val primNamePhrase = optPrim.expressionAt(1).expressionAt(1)
 			assert(primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			tokenStyles.atomicAddToMap(
-				primNamePhrase.token.literal(), BaseStyle.PRIMITIVE_NAME.string)
+				primNamePhrase.token.literal(), SystemStyle.PRIMITIVE_NAME.string)
 		}
 
 		// Deal with the label if present.
@@ -134,7 +134,7 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 			val labelPhrase = optLabel.expressionAt(1).expressionAt(1)
 			assert(labelPhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			tokenStyles.atomicAddToMap(
-				labelPhrase.token.literal(), BaseStyle.LABEL_DECLARATION.string)
+				labelPhrase.token.literal(), SystemStyle.LABEL_DEFINITION.string)
 		}
 
 		// TODO Do more block styling work.
