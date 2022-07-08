@@ -49,6 +49,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.localTypeAt
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
+import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.A_RawFunction.Companion.numSlots
@@ -256,6 +257,7 @@ class L1Translator private constructor(
 	private val slotNames =
 		code.declarationNamesWithoutOuters
 			.map(AvailObject::asNativeString)
+			.subList(0, code.numArgs() + code.numLocals + code.numConstants)
 			.toTypedArray()
 
 	/**
@@ -2350,17 +2352,14 @@ class L1Translator private constructor(
 
 	override fun L1_doCall()
 	{
-		val bundle: A_Bundle =
-			code.literalAt(instructionDecoder.getOperand())
-		val expectedType: A_Type =
-			code.literalAt(instructionDecoder.getOperand())
+		val bundle = code.literalAt(instructionDecoder.getOperand())
+		val expectedType = code.literalAt(instructionDecoder.getOperand())
 		generateCall(bundle, expectedType, bottom)
 	}
 
 	override fun L1_doPushLiteral()
 	{
-		val constant =
-			code.literalAt(instructionDecoder.getOperand())
+		val constant = code.literalAt(instructionDecoder.getOperand())
 		stackp--
 		moveConstantToSlot(constant, stackp)
 	}
@@ -2378,8 +2377,7 @@ class L1Translator private constructor(
 	{
 		val localIndex = instructionDecoder.getOperand()
 		stackp--
-		val sourceRegister =
-			generator.makeImmutable(readSlot(localIndex))
+		val sourceRegister = generator.makeImmutable(readSlot(localIndex))
 		forceSlotRegister(stackp, pc, sourceRegister)
 		forceSlotRegister(localIndex, pc, sourceRegister)
 	}
@@ -2437,10 +2435,7 @@ class L1Translator private constructor(
 		// Now we have to nil the stack slot which held the value that we
 		// assigned.  This same slot potentially captured the expectedType in a
 		// continuation if we needed to reify during the failure path.
-		forceSlotRegister(
-			stackp,
-			pc,
-			generator.boxedConstant(nil))
+		forceSlotRegister(stackp, pc, generator.boxedConstant(nil))
 		stackp++
 	}
 
@@ -2490,8 +2485,7 @@ class L1Translator private constructor(
 	{
 		val outerIndex = instructionDecoder.getOperand()
 		val outerType = code.outerTypeAt(outerIndex)
-		val tempVarReg =
-			getOuterRegister(outerIndex, outerType)
+		val tempVarReg = getOuterRegister(outerIndex, outerType)
 		emitSetVariableOffRamp(
 			L2_SET_VARIABLE_NO_CHECK,
 			tempVarReg,

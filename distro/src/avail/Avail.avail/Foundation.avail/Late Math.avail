@@ -1016,10 +1016,10 @@ Public method "_is a perfect square" is
 ];
 
 // The first 31 primes, i.e. all 7-bit primes (actually covering [0..130])
-smallPrimes ::= {
+smallPrimes ::= <
 	2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
 	73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127
-};
+>;
 
 /**
  * Attempt to use trial division within the given range to find a pair of
@@ -1052,11 +1052,14 @@ Private method "trial division factorization of_«,⁇from_»?«,⁇to_»?" is
 	// default behavior.
 	stop ::= min end ++ <⌊√n⌋>;
 
-	// Might as well check our list of small primes since we have it
+	Exit body with <0, 0> if i > stop;
+
+	// Might as well check our list of small primes since we have it.
 	If i < 120 ∧ i ≤ stop then
 	[
 		For each p in smallPrimes do
 		[
+			Exit body with <0, 0> if p > stop;
 			Exit body with <n ÷ p, p> if p|n;
 		];
 		i := 120;
@@ -1248,18 +1251,6 @@ Method "factor_" is
 			found ++ <prime>>
 	](n, 2, <>)
 ];
-
-//TODO Fix L2 bug that this test case encounters...
-Repeat
-[
-	Ignore: factor 200;
-] 10000 times;
-
-//TODO As of 2022-07-07, if this line is reached, it means the L2 bug has been
-// fixed.  The bug manifests (reliably) as a null pointer exception, due to
-// semanticValueToSynonym() not being able to look up "residue@3" during the
-// POSTPONE_CONDITIONALLY_USED_VALUES_1 phase.
-Breakpoint;
 
 /**
 * Answer a map of the given number's prime divisors to their exponents.
