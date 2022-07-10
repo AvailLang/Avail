@@ -146,13 +146,14 @@ tasks {
 		dependsOn(build)
 	}
 
-	shadowJar {
-//		doFirst { cleanupAllJars() }
-		archiveBaseName.set("avail-workbench")
-		archiveClassifier.set("")
-		archiveVersion.set("")
-		destinationDirectory.set(file("$buildDir/workbench"))
-	}
+	// TODO this creates duplicates causing publish to fail
+//	shadowJar {
+////		doFirst { cleanupAllJars() }
+//		archiveBaseName.set("avail-workbench")
+//		archiveClassifier.set("")
+//		archiveVersion.set("")
+//		destinationDirectory.set(file("$buildDir/workbench"))
+//	}
 }
 
 signing {
