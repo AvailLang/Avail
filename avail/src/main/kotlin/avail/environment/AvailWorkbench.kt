@@ -228,11 +228,14 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
+ * @param windowTitle
+ *   The [AvailWorkbench]'s frame's [title].
  */
 class AvailWorkbench internal constructor (
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
-	val resolver: ModuleNameResolver) : JFrame()
+	val resolver: ModuleNameResolver,
+	windowTitle: String = "Avail Workbench") : JFrame()
 {
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -1583,7 +1586,7 @@ class AvailWorkbench internal constructor (
 		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
 		// Set *just* the window title...
-		title = "Avail Workbench"
+		title = windowTitle
 		isResizable = true
 		background = rootPane.background
 
@@ -1959,7 +1962,19 @@ class AvailWorkbench internal constructor (
 		layoutConfiguration.saveWindowPosition()
 	}
 
-	/** Perform the first refresh of the workbench. */
+	/**
+	 * Perform the first refresh of the workbench.
+	 *
+	 * @param failedResolutions
+	 *   The list of specified Avail roots that could not be resolved.
+	 * @param resolutionTime
+	 *   The amount of time it took in milliseconds to resolve the module roots.
+	 * @param initial
+	 *   The name of the module to have selected when the workbench frame is
+	 *   opened.
+	 * @param afterExecute
+	 *   The function to run after the refresh is complete.
+	 */
 	private fun initialRefresh(
 		failedResolutions: MutableList<String>,
 		resolutionTime: Long,
@@ -2031,11 +2046,16 @@ class AvailWorkbench internal constructor (
 				System.getProperty("availDeveloper"), ignoreCase = true)
 
 		/**
+		 * The key for the dark mode [System.setProperty] [darkMode].
+		 */
+		const val DARK_MODE_KEY = "darkMode"
+
+		/**
 		 * An indicator of whether to show the user interface in dark (Darcula)
 		 * mode.
 		 */
 		val darkMode: Boolean =
-			System.getProperty("darkMode")?.equals("true") ?: true
+			System.getProperty(DARK_MODE_KEY)?.equals("true") ?: true
 
 		/**
 		 * The background color of the input field when a command is running.
@@ -2302,6 +2322,21 @@ class AvailWorkbench internal constructor (
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			launchWorkbenchWithArgs(args)
+		}
+
+		/**
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
+		 *
+		 * @param args
+		 * The command line arguments.
+		 * @throws Exception
+		 * If something goes wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun launchWorkbenchWithArgs(args: Array<String>)
+		{
 			val fileManager = FileManager()
 			// Do the slow Swing setup in parallel with other things...
 			val swingReady = Semaphore(0)
@@ -2412,8 +2447,10 @@ class AvailWorkbench internal constructor (
 							bench.initialRefresh(
 								failedResolutions,
 								resolutionTime,
-								if (args.isNotEmpty()) args[0] else "",
-								afterExecute)
+								if (args.isNotEmpty()) args[0] else "")
+							{
+								afterExecute()
+							}
 					}
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()

@@ -33,19 +33,15 @@
 package avail.plugins.gradle
 
 import org.availlang.artifact.ArtifactDescriptor
-import org.availlang.artifact.ArtifactDescriptor.Companion.artifactDescriptorFileName
 import org.availlang.artifact.AvailArtifactType
 import org.gradle.api.DefaultTask
 import org.gradle.api.tasks.*
-import org.availlang.artifact.DigestUtility
 import org.availlang.artifact.manifest.AvailArtifactManifest
 import org.availlang.artifact.manifest.AvailManifestRoot
 import org.availlang.artifact.AvailArtifact
-import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
-import org.availlang.artifact.AvailArtifact.Companion.availDigestsPathInArtifact
-import org.availlang.artifact.AvailArtifact.Companion.digestsFileName
-import org.availlang.artifact.PackageType
-import org.availlang.artifact.manifest.AvailArtifactManifest.Companion.manifestFileName
+import org.availlang.artifact.jar.AvailLibraryJarBuilder
+import org.availlang.artifact.jar.JvmComponent
+import org.gradle.jvm.tasks.Jar
 import java.io.File
 
 /**
@@ -59,7 +55,7 @@ import java.io.File
  *
  * @author Richard Arriaga
  */
-abstract class PrepareArtifactTask : DefaultTask()
+abstract class CreateAvailStandardLibraryJar : Jar()
 {
 	/**
 	 * The algorithm to use to create the digests of the Avail Standard Library
@@ -71,43 +67,31 @@ abstract class PrepareArtifactTask : DefaultTask()
 	init
 	{
 		group = "build"
-		description = "Prepare all Avail artifact files for inclusion in the " +
-			"Avail Standard Library jar."
+		description = "Creaate the Avail Standard Library jar."
 	}
 
 	@TaskAction
-	fun prepareAvailArtifactContent()
+	fun createAvailStandardLibraryJar ()
 	{
 		File("${project.buildDir}").mkdirs()
-		// Where all artifact content file will be stored.
-		val availLibraryContentDir =
-			"${project.buildDir}/$artifactRootDirectory"
-		File(availLibraryContentDir).mkdirs()
-		File("$availLibraryContentDir/$availStdLibRootName/").mkdirs()
-		// Create Avail Artifact Descriptor File
-		PackageType.JAR.artifactDescriptor.writeFile(
-			File("$availLibraryContentDir/$artifactDescriptorFileName"))
-
-		// Create Avail Artifact Manifest File
-		val manifestRoot = AvailManifestRoot(
+		val location = "${project.rootDir}/distro/src/$availStdLibRootName"
+		val jarBuilder = AvailLibraryJarBuilder(
+			"${project.buildDir}/$availStandardLibraryJarFileName",
+			project.version.toString(),
 			"avail",
-			listOf(".avail"),
-			listOf("!_"))
-		AvailArtifactManifest.writeManifestFile(
-			AvailArtifactType.LIBRARY,
-			File("$availLibraryContentDir/$manifestFileName"),
-			mapOf("avail" to manifestRoot))
-
-		// Create Avail Standard Library `avail` root digests file
-		val digestDir =
-			"$availLibraryContentDir/$availStdLibRootName/" +
-				availDigestsPathInArtifact
-		File(digestDir).mkdirs()
-		val digestTargetLocation = "$digestDir/$digestsFileName"
-		DigestUtility.writeDigestFile(
-			"${project.projectDir}/$availSourceLocation",
-			File(digestTargetLocation),
-			digestAlgorithm)
+			AvailArtifactManifest.manifestFile(
+				AvailArtifactType.LIBRARY,
+				mapOf(
+					availStdLibRootName to
+					AvailManifestRoot(
+						"avail",
+						listOf(".avail"),
+						listOf("!_"),
+						"The singular module root of Avail standard library.")),
+				"The official Avail standard library.",
+				JvmComponent.NONE))
+		jarBuilder.addRoot(location, availStdLibRootName, digestAlgorithm)
+		jarBuilder.finish()
 	}
 
 	companion object

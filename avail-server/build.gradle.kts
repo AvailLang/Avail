@@ -69,7 +69,7 @@ tasks {
 	jar {
 		doFirst { cleanupJars() }
 		manifest.attributes["Main-Class"] = "avail.server.AvailServer"
-		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
+		manifest.attributes["Build-Time"] = project.extra.get("builtTime")
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 	}
 

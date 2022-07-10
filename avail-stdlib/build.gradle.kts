@@ -31,11 +31,8 @@
  */
 
 import avail.build.AvailSetupContext.distroLib
-import avail.plugins.gradle.PrepareArtifactTask
-import avail.plugins.gradle.PrepareArtifactTask.Companion.availStandardLibraryJarFileName
-import avail.plugins.gradle.PrepareArtifactTask.Companion.availStdLibRootName
-import org.availlang.artifact.AvailArtifact
-import org.availlang.artifact.AvailArtifact.Companion.artifactRootDirectory
+import avail.plugins.gradle.CreateAvailStandardLibraryJar
+import avail.plugins.gradle.CreateAvailStandardLibraryJar.Companion.availStandardLibraryJarFileName
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -50,41 +47,7 @@ version = "2.0.0-1.6.1-SNAPSHOT"
 
 tasks {
 	val standardLibraryName = "$buildDir/$availStandardLibraryJarFileName"
-	val prepareAvailArtifactContents by creating(PrepareArtifactTask::class) {}
-
-	jar {
-		// Produce a JAR with the source of every module in the standard Avail
-		// library.
-		description = "Create the Avail standard library artifact jar"
-		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
-		manifest.attributes["Implementation-Version"] = project.version
-		manifest.attributes["Implementation-Title"] = "Avail standard library"
-		archiveFileName.set(standardLibraryName)
-		isZip64 = true
-		// Eventually we will add Avail-Compilations or something, to capture
-		// serialized compiled modules, serialized phrases, manifest entries,
-		// style information, and navigation indices.
-		duplicatesStrategy = DuplicatesStrategy.FAIL
-
-		// Even though the jar only includes .avail source files, we need the
-		// content to be available at runtime, so we use "" for the archive
-		// classifier instead of "sources".
-		archiveClassifier.set("")
-
-		dependsOn(prepareAvailArtifactContents)
-
-		// Copy Avail source files
-		from("$projectDir/../distro/src/$availStdLibRootName") {
-			include("**/*.*")
-			into(AvailArtifact.rootArtifactSourcesDir(availStdLibRootName))
-		}
-		// Copy Avail artifact content files created by
-		// prepareAvailArtifactContents
-		from("$buildDir/$artifactRootDirectory") {
-			include("**/*")
-			into(artifactRootDirectory)
-		}
-	}
+	val availStdLibJar by creating(CreateAvailStandardLibraryJar::class) {}
 
 	// Copy the library into the distribution directory.
 	val releaseStandardLibrary by creating(Copy::class) {
@@ -93,11 +56,27 @@ tasks {
 		into("${rootProject.projectDir}/$distroLib")
 		duplicatesStrategy = DuplicatesStrategy.INCLUDE
 
-		dependsOn(jar)
+		dependsOn(availStdLibJar)
+	}
+
+	// Copy the library into the build libs directory with the publishing name.
+	val publishAvailLibrary by creating(Copy::class) {
+		group = "release"
+		from(standardLibraryName)
+		rename {
+			"${project.name}-$version.jar"
+		}
+		into("$buildDir/libs")
+		duplicatesStrategy = DuplicatesStrategy.INCLUDE
+
+		dependsOn(availStdLibJar)
 	}
 
 	// Update the dependencies of "assemble".
-	assemble { dependsOn(releaseStandardLibrary) }
+	assemble {
+		dependsOn(releaseStandardLibrary)
+		dependsOn(publishAvailLibrary)
+	}
 
 	val sourceJar by creating(Jar::class) {
 		description = "Creates sources JAR."
@@ -123,7 +102,12 @@ tasks {
 	}
 	publish {
 		PublishingUtility.checkCredentials()
-		dependsOn(build)
+		dependsOn(releaseStandardLibrary)
+		dependsOn(publishAvailLibrary)
+	}
+	publishToMavenLocal {
+		dependsOn(releaseStandardLibrary)
+		dependsOn(publishAvailLibrary)
 	}
 }
 

@@ -43,6 +43,7 @@ plugins {
 	publishing
 	signing
 	id("org.jetbrains.dokka")
+	id("com.github.johnrengelman.shadow")
 }
 
 val isReleaseVersion =
@@ -92,7 +93,9 @@ tasks {
 
 	jar {
 		manifest.attributes["Implementation-Version"] = project.version
-		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
+		manifest.attributes["Build-Time"] = project.extra.get("builtTime")
+		manifest.attributes["SplashScreen-Image"] =
+			"resources/resources/workbench/AvailWBSplash.png"
 		// The All_Primitives.txt file must be added to the build resources
 		// directory before we can build the jar.
 	}
@@ -141,6 +144,14 @@ tasks {
 	publish {
 		PublishingUtility.checkCredentials()
 		dependsOn(build)
+	}
+
+	shadowJar {
+//		doFirst { cleanupAllJars() }
+		archiveBaseName.set("avail-workbench")
+		archiveClassifier.set("")
+		archiveVersion.set("")
+		destinationDirectory.set(file("$buildDir/workbench"))
 	}
 }
 
