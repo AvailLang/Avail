@@ -39,12 +39,8 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
-import avail.descriptor.types.VariableTypeDescriptor.Companion.variableTypeFor
 
 /**
  * `A_Styler` is an interface that specifies the operations specific to
@@ -87,26 +83,7 @@ interface A_Styler : A_BasicObject
 		val stylerFunctionType: A_Type = functionType(
 			tuple(
 				// The phrase being styled.
-				PhraseKind.SEND_PHRASE.mostGeneralType,
-				// A variable holding the map from phrase to style.
-				variableTypeFor(
-					mapTypeForSizesKeyTypeValueType(
-						wholeNumbers,
-						PhraseKind.PARSE_PHRASE.mostGeneralType,
-						stringType)),
-				// A variable holding the map from token to style.
-				variableTypeFor(
-					mapTypeForSizesKeyTypeValueType(
-						wholeNumbers,
-						Types.TOKEN.o,
-						stringType)),
-				// A variable mapping from variable-use (or other) tokens to
-				// declaration (or other) tokens within the same module.
-				variableTypeFor(
-					mapTypeForSizesKeyTypeValueType(
-						wholeNumbers,
-						Types.TOKEN.o,
-						Types.TOKEN.o))),
+				PhraseKind.SEND_PHRASE.mostGeneralType),
 			Types.TOP.o)
 	}
 }

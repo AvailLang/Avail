@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/6/22, 12:33 PM
+ * * Last Generated: 7/12/22, 11:56 AM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -145,6 +145,7 @@ Uses
 		"send_with_:_",
 		"seq`«_`»",
 		"static method_._,⁇parameterized by_",
+		"style token_as_«overwriting»?",
 		"↓_"
 	)
 Names
@@ -3740,7 +3741,7 @@ Primitive "_[_]:=_" is
  * @method "Style_with_"
  * @param "method" "method"
  *        The method for which invocations should be styled.
- * @param "function" "[send phrase⇒⊤, ↑{phrase⇒⊤→string|}, ↑{token→string|}, ↑{token→token|}]→⊤"
+ * @param "function" "[send phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
  * @raises "incorrect-argument-type exception"
@@ -3795,6 +3796,35 @@ Primitive "Style_with_" is
 		loading-is-over code,
 		up-arrow-must-follow-argument code,
 		inconsistent-argument-reordering code}ᵀ);
+	Private invoke _fail_primitive with failureCode
+] : ⊤;
+
+/**
+ * Apply the given style name to the region of the current module covered by the
+ * given token.  If `overwriting` is true, replace the style entirely for that
+ * region, otherwise merge the style with the existing styles in that region.
+ *
+ * @category "Primitives"
+ * @method "style token_as_«overwriting»?"
+ * @param "token" "token"
+ *        The token to style.
+ * @param "styleName" "string"
+ *        The name of the style to apply.
+ * @param "overwriting" "boolean"
+ *        `true` to completely overwrite the style, `false` to merge them.
+ * @returns "⊤"
+ * @raises "cannot-define-during-compilation exception"
+ * @raises "loading-is-over exception"
+ */
+Primitive "style token_as_«overwriting»?" is
+[
+	token : token,
+	styleName : string,
+	overwriting : boolean
+|
+	Primitive StyleToken (failureCode : {
+		cannot-define-during-compilation code,
+		loading-is-over code}ᵀ);
 	Private invoke _fail_primitive with failureCode
 ] : ⊤;
 

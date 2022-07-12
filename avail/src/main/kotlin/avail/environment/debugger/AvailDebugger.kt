@@ -758,8 +758,9 @@ class AvailDebugger internal constructor (
 							currentSourceAndLineEndsAndStyling =
 								Triple(source, lineEnds, stylingRecord)
 							SwingUtilities.invokeLater {
-								sourcePane.text = source
 								val doc = sourcePane.styledDocument
+								doc.remove(0, doc.length)
+								doc.insertString(0, source, null)
 								stylingRecord.styleRuns.forEach {
 										(range, styleName) ->
 									doc.setCharacterAttributes(

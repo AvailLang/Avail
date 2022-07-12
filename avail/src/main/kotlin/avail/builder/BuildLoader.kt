@@ -49,8 +49,6 @@ import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.module
-import avail.descriptor.maps.A_Map
-import avail.descriptor.maps.A_Map.Companion.mapIterable
 import avail.descriptor.module.A_Module.Companion.getAndSetTupleOfBlockPhrases
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.serializedObjects
@@ -62,9 +60,6 @@ import avail.descriptor.module.ModuleDescriptor.Companion.newModule
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromLong
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
-import avail.descriptor.tokens.A_Token
-import avail.descriptor.tuples.A_String
-import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.StringDescriptor.Companion.formatString
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
 import avail.descriptor.types.A_Type.Companion.returnType
@@ -582,23 +577,16 @@ internal class BuildLoader constructor(
 							val manifestEntries = loader.manifestEntries!!
 
 							val converter = context.surrogateIndexConverter
-							val tokenStyles: A_Map = loader.tokenStyles.value()
-							val styleMap = mutableMapOf<A_String, String>()
-							val styleRanges = tokenStyles.mapIterable
-								.map { (token: A_Token, style: A_String) ->
-									val availStart = token.start()
-									val availPastEnd = availStart +
-										token.string().tupleSize
+							val styleRanges = loader.lockStyles {
+								map { (start, pastEnd, style) ->
 									val utf16Start = converter
-										.availIndexToJavaIndex(availStart)
+										.availIndexToJavaIndex(start.toInt())
 									val utf16PastEnd = converter
-										.availIndexToJavaIndex(availPastEnd)
-									val styleString = styleMap.computeIfAbsent(
-										style, A_String::asNativeString)
+										.availIndexToJavaIndex(pastEnd.toInt())
 									(utf16Start until utf16PastEnd) to
-										styleString
+										style
 								}
-								.sortedBy { (range, _) -> range.first }
+							}
 
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()

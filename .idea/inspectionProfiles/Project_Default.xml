@@ -338,6 +338,7 @@
       <option name="ignoreLazyOperators" value="true" />
       <option name="ignoreObscureOperators" value="false" />
     </inspection_tool>
+    <inspection_tool class="ReplaceCollectionCountWithSize" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
     <inspection_tool class="ResultOfObjectAllocationIgnored" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SafeLock" enabled="true" level="WARNING" enabled_by_default="true" />
     <inspection_tool class="SameParameterValue" enabled="true" level="WEAK WARNING" enabled_by_default="true" />
@@ -448,9 +449,6 @@
       <option name="ADD_SERVLET_TO_ENTRIES" value="true" />
       <option name="ADD_NONJAVA_TO_ENTRIES" value="false" />
       <option name="ADD_EXPORTED_PACKAGES_AND_SERVICES_TO_ENTRIES" value="false" />
-      <option name="selected" value="false" />
-      <option name="ADD_ANDROID_COMPONENTS_TO_ENTRIES" value="false" />
-      <option name="selected" value="false" />
       <option name="selected" value="false" />
       <option name="DEPRECATED_ENTRY_POINT" value="false" />
     </inspection_tool>

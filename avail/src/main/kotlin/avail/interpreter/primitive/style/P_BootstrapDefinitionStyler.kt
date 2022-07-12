@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.style
 
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
@@ -45,12 +46,16 @@ import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.variables.A_Variable
+import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
-import avail.interpreter.Primitive.Flag.CannotFail
+import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
@@ -61,22 +66,25 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapDefinitionStyler :
-	Primitive(4, Bootstrap, CannotFail)
+	Primitive(1, CanInline, Bootstrap, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(4)
-		val phrase: A_Phrase = interpreter.argument(0)
-		val phraseToStyle: A_Variable = interpreter.argument(1)
-		val tokenToStyle: A_Variable = interpreter.argument(2)
-		val usesToDeclaration: A_Variable = interpreter.argument(3)
+		interpreter.checkArgumentCount(1)
+		val sendPhrase: A_Phrase = interpreter.argument(0)
 
-		// TODO This should *really* be written to the phraseToStyle map.
-		phrase.tokens.forEach { token ->
-			tokenToStyle.atomicAddToMap(
-				token, SystemStyle.METHOD_DEFINITION.string)
+		val loader = interpreter.fiber().availLoader
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		if (!loader.phase().isExecuting)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
-		val namePhrase = phrase.argumentsListNode.expressionAt(1)
+
+		sendPhrase.tokens.forEach { token ->
+			loader.styleToken(token, SystemStyle.METHOD_DEFINITION.kotlinString)
+		}
+		val namePhrase = sendPhrase.argumentsListNode.expressionAt(1)
 		val nameLiteralSend = when
 		{
 			namePhrase.isMacroSubstitutionNode ->
@@ -93,13 +101,19 @@ object P_BootstrapDefinitionStyler :
 				nameLiteralArg = nameLiteralArg.macroOriginalSendNode
 			if (nameLiteralArg.phraseKindIsUnder(LITERAL_PHRASE))
 			{
-				tokenToStyle.atomicAddToMap(
+				loader.styleToken(
 					nameLiteralArg.token.literal(),
-					SystemStyle.METHOD_NAME.string)
+					SystemStyle.METHOD_NAME.kotlinString)
 			}
 		}
 		return interpreter.primitiveSuccess(nil)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION))
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

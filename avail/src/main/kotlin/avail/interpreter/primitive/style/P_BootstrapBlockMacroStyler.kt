@@ -32,6 +32,7 @@
 
 package avail.interpreter.primitive.style
 
+import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
@@ -45,6 +46,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
+import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -54,12 +56,15 @@ import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.component7
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.variables.A_Variable
+import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
+import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
 
@@ -73,15 +78,21 @@ import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
+object P_BootstrapBlockMacroStyler :
+	Primitive(1, CanInline, Bootstrap, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(4)
+		interpreter.checkArgumentCount(1)
 		val sendPhrase: A_Phrase = interpreter.argument(0)
-		val phraseStyles: A_Variable = interpreter.argument(1)
-		val tokenStyles: A_Variable = interpreter.argument(2)
-		val tokenDefinitions: A_Variable = interpreter.argument(3)
+
+		val loader = interpreter.fiber().availLoader
+			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
+		if (!loader.phase().isExecuting)
+		{
+			return interpreter.primitiveFailure(
+				E_CANNOT_DEFINE_DURING_COMPILATION)
+		}
 
 		val (
 			optArgs,
@@ -97,14 +108,14 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 		// tokens.
 		for (token in sendPhrase.tokens)
 		{
-			val styleString = when (token.tokenType())
+			val style = when (token.tokenType())
 			{
-				TokenType.KEYWORD -> SystemStyle.METHOD_SEND.string
-				TokenType.OPERATOR -> SystemStyle.METHOD_SEND.string
+				TokenType.KEYWORD -> SystemStyle.METHOD_SEND
+				TokenType.OPERATOR -> SystemStyle.METHOD_SEND
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}
-			tokenStyles.atomicAddToMap(token, styleString)
+			loader.styleToken(token, style.kotlinString)
 		}
 
 		// Add styles specific to blocks.  Start with the arguments...
@@ -113,9 +124,9 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 			optArgs.expressionAt(1).expressionsTuple.forEach { argPart ->
 				assert(argPart.phraseKindIsUnder(LIST_PHRASE))
 				val argNameLiteral = argPart.expressionAt(1)
-				tokenStyles.atomicAddToMap(
+				loader.styleToken(
 					argNameLiteral.token.literal(),
-					SystemStyle.PARAMETER_DEFINITION.string)
+					SystemStyle.PARAMETER_DEFINITION.kotlinString)
 			}
 		}
 
@@ -124,8 +135,9 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 		{
 			val primNamePhrase = optPrim.expressionAt(1).expressionAt(1)
 			assert(primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
-			tokenStyles.atomicAddToMap(
-				primNamePhrase.token.literal(), SystemStyle.PRIMITIVE_NAME.string)
+			loader.styleToken(
+				primNamePhrase.token.literal(),
+				SystemStyle.PRIMITIVE_NAME.kotlinString)
 		}
 
 		// Deal with the label if present.
@@ -133,8 +145,9 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 		{
 			val labelPhrase = optLabel.expressionAt(1).expressionAt(1)
 			assert(labelPhrase.phraseKindIsUnder(LITERAL_PHRASE))
-			tokenStyles.atomicAddToMap(
-				labelPhrase.token.literal(), SystemStyle.LABEL_DEFINITION.string)
+			loader.styleToken(
+				labelPhrase.token.literal(),
+				SystemStyle.LABEL_DEFINITION.kotlinString)
 		}
 
 		// TODO Do more block styling work.
@@ -246,6 +259,12 @@ object P_BootstrapBlockMacroStyler : Primitive(7, CanInline, Bootstrap)
 		//}
 		return interpreter.primitiveSuccess(nil)
 	}
+
+	override fun privateFailureVariableType(): A_Type =
+		enumerationWith(
+			set(
+				E_LOADING_IS_OVER,
+				E_CANNOT_DEFINE_DURING_COMPILATION))
 
 	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
 }

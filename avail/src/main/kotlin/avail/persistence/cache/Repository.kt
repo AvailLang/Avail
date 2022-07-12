@@ -163,7 +163,7 @@ class Repository constructor(
 	 * @author Mark van Gulik &lt;mark@availlang.org&gt;
 	 */
 	private object IndexedRepositoryBuilder : IndexedFileBuilder(
-		"Avail compiled module repository V7")
+		"Avail compiled module repository V8")
 
 	/**
 	 * The [lock][ReentrantLock] responsible for guarding against unsafe

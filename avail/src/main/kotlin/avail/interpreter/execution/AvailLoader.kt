@@ -189,7 +189,6 @@ import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.variables.A_Variable
 import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AmbiguousNameException
@@ -225,10 +224,15 @@ import avail.interpreter.primitive.methods.P_Alias
 import avail.io.TextInterface
 import avail.utility.StackPrinter
 import avail.utility.evaluation.Combinator.recurse
+import avail.utility.safeWrite
+import avail.utility.structures.RunTree
 import java.util.ArrayDeque
+import java.util.TreeMap
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReferenceArray
 import java.util.concurrent.locks.ReentrantLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
+import javax.annotation.concurrent.GuardedBy
 import kotlin.concurrent.withLock
 
 /**
@@ -843,31 +847,35 @@ constructor(
 		effectsAddedByTopStatement.toList()
 
 	/**
-	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [token][A_Token] to style name ([stringType]).  The variable's map can be
-	 * examined and updated by any styling operation executed during the
-	 * compilation phase.
+	 * A lock for the [styledRanges] run tree.
 	 */
-	val tokenStyles: A_Variable by lazy {
-		newVariableWithContentType(
-			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, Types.TOKEN.o, stringType),
-			emptyMap
-		).makeShared()
-	}
+	private val styledRangesLock = ReentrantReadWriteLock()
 
 	/**
-	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [phrase][A_Phrase] to style's name ([stringType]).  The variable's map
-	 * can be examined and updated by any styling operation executed during the
-	 * compilation phase.
+	 * A [TreeMap] containing this module's styling information during
+	 * compilation.
 	 */
-	val phraseStyles: A_Variable by lazy {
-		newVariableWithContentType(
-			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, PARSE_PHRASE.mostGeneralType, stringType),
-			emptyMap
-		).makeShared()
+	@GuardedBy("styledRangesLock")
+	private val styledRanges = RunTree<String>()
+
+	/**
+	 * Access the styledRanges in the [action] while holding the lock.
+	 *
+	 * @param action
+	 *   The action to perform with [styledRanges] while holding the lock.
+	 */
+	fun <T> lockStyles(action: RunTree<String>.()->T): T =
+		styledRangesLock.safeWrite { styledRanges.action() }
+
+	/**
+	 * Helper method to style a token's range in a particular named style,
+	 * discarding any style information previously attached to all or parts of
+	 * the token's range.
+	 */
+	fun styleToken(token: A_Token, style: String) = lockStyles {
+		val start = token.start().toLong()
+		val pastEnd = start + token.string().tupleSize
+		edit(start, pastEnd) { style }
 	}
 
 	/**

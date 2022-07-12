@@ -1121,11 +1121,7 @@ class CompilationContext constructor(
 		runtime.runOutermostFunction(
 			fiber,
 			stylerFn,
-			listOf(
-				sendPhrase,
-				loader.phraseStyles,
-				loader.tokenStyles,
-				loader.usesToDefinitions))
+			listOf(sendPhrase))
 	}
 
 	companion object

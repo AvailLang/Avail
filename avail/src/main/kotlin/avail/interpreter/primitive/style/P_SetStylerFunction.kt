@@ -78,12 +78,12 @@ object P_SetStylerFunction : Primitive(2, CanSuspend, Unknown)
 		val function: A_Function = interpreter.argument(1)
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
-		val module = loader.module
 		if (!loader.phase().isExecuting)
 		{
 			return interpreter.primitiveFailure(
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
+		val module = loader.module
 		return interpreter.suspendInSafePointThen {
 			val styler = newStyler(function, method, module)
 			var bad = false

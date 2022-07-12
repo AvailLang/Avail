@@ -241,6 +241,7 @@ Extends
 		"statement phrase",
 		"static method_._,⁇parameterized by_",
 		"string",
+		"style token_as_«overwriting»?",
 		"super cast phrase",
 		"termination requested",
 		"token",

@@ -1,5 +1,5 @@
 /*
- * P_BootstrapLiteralStyler.kt
+ * P_StyleToken.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -32,41 +32,47 @@
 
 package avail.interpreter.primitive.style
 
+import avail.descriptor.atoms.A_Atom.Companion.extractBoolean
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
-import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
-import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
-import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tokens.A_Token
+import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.functionType
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
-import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
 /**
- * **Primitive:** Apply bootstrap styling to a phrase that produces a literal.
+ * **Primitive:** Apply the given style name to the region of the file being
+ * compiled designated by the given token.  The token may be synthetic, and/or
+ * include whitespace or comments.  If the "overwrite" argument is true, the
+ * style for that region is replaced, otherwise the style name is appended (with
+ * a separating ",") to the existing style name.  If the "overwrite" argument is
+ * true, but the style name is the empty string, clear all styles for that
+ * range.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
  */
 @Suppress("unused")
-object P_BootstrapLiteralStyler :
-	Primitive(1, CanInline, Bootstrap, WritesToHiddenGlobalState)
+object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
+		interpreter.checkArgumentCount(3)
+		val token: A_Token = interpreter.argument(0)
+		val styleName: A_String = interpreter.argument(1)
+		val overwrite = interpreter.argument(2).extractBoolean
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -76,22 +82,26 @@ object P_BootstrapLiteralStyler :
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		val literalPhrase = sendPhrase.argumentsListNode.expressionAt(1)
-		val token = literalPhrase.token.literal()
-		val literal = token.literal()
-		val style = when
+		val start = token.start().toLong()
+		val pastEnd = start + token.string().tupleSize
+		if (start == pastEnd) return interpreter.primitiveSuccess(nil)
+		val styleOrNull = when (styleName.tupleSize)
 		{
-			literal.isInstanceOf(stringType) -> SystemStyle.STRING_LITERAL
-			literal.isInstanceOf(Types.CHARACTER.o) ->
-				SystemStyle.CHARACTER_LITERAL
-			literal.isInstanceOf(extendedIntegers) ->
-				SystemStyle.NUMERIC_LITERAL
-			literal.isInstanceOf(Types.FLOAT.o) -> SystemStyle.NUMERIC_LITERAL
-			literal.isInstanceOf(Types.DOUBLE.o) -> SystemStyle.NUMERIC_LITERAL
-			// Don't apply any bootstrap style for other literal types.
-			else -> return interpreter.primitiveSuccess(nil)
+			0 -> null
+			else -> styleName.asNativeString()
 		}
-		loader.styleToken(token, style.kotlinString)
+		if (styleOrNull === null && !overwrite)
+			return interpreter.primitiveSuccess(nil)
+		loader.lockStyles {
+			edit(start, pastEnd) { old ->
+				when
+				{
+					overwrite -> styleOrNull
+					old == null -> styleOrNull
+					else -> "$old,$styleOrNull"
+				}
+			}
+		}
 		return interpreter.primitiveSuccess(nil)
 	}
 
@@ -101,5 +111,10 @@ object P_BootstrapLiteralStyler :
 				E_LOADING_IS_OVER,
 				E_CANNOT_DEFINE_DURING_COMPILATION))
 
-	override fun privateBlockTypeRestriction(): A_Type = stylerFunctionType
+	override fun privateBlockTypeRestriction(): A_Type = functionType(
+		tuple(
+			Types.TOKEN.o,
+			stringType,
+			booleanType),
+		Types.TOP.o)
 }
