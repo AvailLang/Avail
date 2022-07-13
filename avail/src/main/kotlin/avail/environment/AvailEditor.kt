@@ -34,9 +34,16 @@ package avail.environment
 
 import avail.AvailRuntime
 import avail.builder.ModuleName
+import avail.builder.ResolvedModuleName
+import avail.descriptor.module.A_Module
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
 import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
+import avail.persistence.cache.Repository
+import avail.persistence.cache.Repository.ModuleCompilation
+import avail.persistence.cache.Repository.ModuleVersion
+import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.Repository.StylingRecord
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Toolkit
@@ -44,6 +51,8 @@ import java.awt.event.ActionEvent
 import java.awt.event.KeyEvent
 import java.awt.event.WindowAdapter
 import java.awt.event.WindowEvent
+import java.io.ByteArrayInputStream
+import java.io.DataInputStream
 import java.util.TimerTask
 import java.util.concurrent.Semaphore
 import javax.swing.GroupLayout
@@ -85,12 +94,14 @@ constructor(
 	 */
 	private var lastSaveTime = 0L
 
+	/** The [resolved][ResolvedModuleName] [module&#32;name][ModuleName]. */
+	private val resolvedName = runtime.moduleNameResolver.resolve(moduleName)
+
 	/**
-	 * The resolved reference to the module.
-	 * Only access within the Swing UI thread.
+	 * The resolved reference to the module. **Only access within the Swing UI
+	 * thread.**
 	 */
-	private val resolverReference =
-		runtime.moduleNameResolver.resolve(moduleName).resolverReference
+	private val resolverReference = resolvedName.resolverReference
 
 	/**
 	 * The [UndoManager] for supplying undo/redo for edits to the underlying
@@ -146,16 +157,91 @@ constructor(
 		}
 	}
 
+	/**
+	 * Fetch the active [StylingRecord] for the target [module][A_Module].
+	 *
+	 * @param onSuccess
+	 *   What to do with a [StylingRecord]. Might be applied to `null`, if
+	 *   nothing went wrong but no [ModuleVersion], [ModuleCompilation], or
+	 *   [StylingRecord] exists for the target module, e.g., because the module
+	 *   has never been compiled.
+	 * @param onError
+	 *   What to do when the fetch fails unexpectedly, e.g., because of a
+	 *   corrupt [Repository] or [StylingRecord].
+	 */
+	private fun getActiveStylingRecord(
+		onSuccess: (StylingRecord?)->Unit,
+		onError: (Throwable?)->Unit
+	)
+	{
+		val repository = resolvedName.repository
+		repository.reopenIfNecessary()
+		val archive = repository.getArchive(resolvedName.rootRelativeName)
+		archive.digestForFile(
+			resolvedName,
+			false,
+			withDigest = { digest ->
+				try
+				{
+					val versionKey = ModuleVersionKey(resolvedName, digest)
+					val version = archive.getVersion(versionKey)
+					if (version !== null)
+					{
+						val compilation = version.allCompilations.maxByOrNull(
+							ModuleCompilation::compilationTime)
+						if (compilation !== null)
+						{
+							val index = compilation.recordNumberOfStyling
+							val stylingRecordBytes =
+								repository.repository!![index]
+							val inputStream = DataInputStream(
+								ByteArrayInputStream(stylingRecordBytes))
+							val stylingRecord = StylingRecord(inputStream)
+							return@digestForFile onSuccess(stylingRecord)
+						}
+					}
+					onSuccess(null)
+				}
+				catch (e: Throwable)
+				{
+					onError(e)
+				}
+			},
+			failureHandler = { _, e -> onError(e) }
+		)
+	}
+
 	/** The editor pane. */
 	private val sourcePane = codeSuitableTextPane(workbench).apply {
 		val semaphore = Semaphore(0)
 		resolverReference.readFileString(
 			true,
-			{ string, _ ->
+			withContents = { string, _ ->
 				text = string
-				semaphore.release()
+				getActiveStylingRecord(
+					onSuccess = { stylingRecordOrNull ->
+						stylingRecordOrNull?.let { stylingRecord ->
+							val doc = styledDocument
+							stylingRecord.styleRuns.forEach {
+									(range, styleName) ->
+								doc.setCharacterAttributes(
+									range.first - 1,
+									range.last - range.first + 1,
+									doc.getStyle(styleName),
+									false)
+							}
+						}
+						semaphore.release()
+					},
+					onError = { e ->
+						e?.let { e.printStackTrace() }
+							?: System.err.println(
+								"unable to style editor for $resolvedName")
+						semaphore.release()
+					}
+				)
 			},
-			{ code, throwable ->
+			failureHandler = { code, throwable ->
 				text = "Error reading module: $throwable, code=$code"
 				semaphore.release()
 			})
