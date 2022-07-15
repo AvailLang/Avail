@@ -1332,8 +1332,9 @@ class AvailRuntime constructor(
 								// Wildcard.
 								booleanType)))))
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
+			put(zeroOrOneOf(stylerFunctionType))
 
-			at(177)
+			at(178)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**
@@ -1397,6 +1398,7 @@ class AvailRuntime constructor(
 			put(SpecialMethodAtom.CREATE_ATOM.atom)
 			put(SpecialMethodAtom.CREATE_HERITABLE_ATOM.atom)
 			put(SpecialMethodAtom.CREATE_EXPLICIT_SUBCLASS_ATOM.atom)
+			put(SpecialMethodAtom.SET_STYLER.atom)
 			put(Exceptions.exceptionAtom)
 			put(Exceptions.stackDumpAtom)
 			put(pojoSelfTypeAtom())

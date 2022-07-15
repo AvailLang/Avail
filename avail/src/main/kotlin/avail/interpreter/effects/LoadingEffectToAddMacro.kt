@@ -84,6 +84,11 @@ internal class LoadingEffectToAddMacro constructor(
 				0,
 				L1Operation.L1_doPushLiteral,
 				addLiteral(macro.bodyBlock()))
+			// Push an empty tuple for the empty styler.
+			write(
+				0,
+				L1Operation.L1_doMakeTuple,
+				0)
 			// Call the macro definition method.
 			write(
 				0,

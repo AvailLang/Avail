@@ -287,7 +287,7 @@ Public macro "sub…{§«_!»}" is
 		name ++= ")";
 	];
 	defaultScalarDecl ::= scope map["_"];
-	send $"Method_is_«styled by_»" with
+	send $"Method_is_«styled by_»?" with
 	«<
 		‘name’,
 		«[

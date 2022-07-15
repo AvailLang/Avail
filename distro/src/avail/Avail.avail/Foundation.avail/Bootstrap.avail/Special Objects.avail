@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/12/22, 11:56 AM
+ * * Last Generated: 7/14/22, 9:04 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -144,6 +144,7 @@ Names
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
 	/* 170 */ "optional send phrase and report string",
+	/* 177 */ "optionalStylerFunction",
 	/* 143 */ "parse map key",
 	/* 166 */ "parse rejection level",
 	/* 151 */ "permutation tuple",
@@ -2346,4 +2347,13 @@ Special object "module imports tuple" is special object 175;
  * @alias "sequence-as-expression phrase"
  */
 Special object "sequence-as-expression phrase" is special object 176;
+
+/**
+ * A tuple with zero or one occurrences of a styler function.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "optionalStylerFunction"
+ */
+Special object "optionalStylerFunction" is special object 177;
 

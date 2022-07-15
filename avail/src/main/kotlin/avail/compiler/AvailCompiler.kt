@@ -117,7 +117,6 @@ import avail.descriptor.methods.A_Method.Companion.bundles
 import avail.descriptor.methods.A_Method.Companion.definitionsTuple
 import avail.descriptor.methods.A_Method.Companion.filterByTypes
 import avail.descriptor.methods.A_Method.Companion.semanticRestrictions
-import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
@@ -138,7 +137,6 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.MODULE_HEADER
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ALL_ATOMS_FROM_OTHER_MODULE
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.PUBLISH_ATOMS
 import avail.descriptor.methods.SemanticRestrictionDescriptor
-import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addConstantBinding
 import avail.descriptor.module.A_Module.Companion.addVariableBinding
@@ -146,13 +144,11 @@ import avail.descriptor.module.A_Module.Companion.constantBindings
 import avail.descriptor.module.A_Module.Companion.exportedNames
 import avail.descriptor.module.A_Module.Companion.hasAncestor
 import avail.descriptor.module.A_Module.Companion.importedNames
-import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleName
 import avail.descriptor.module.A_Module.Companion.moduleNameNative
 import avail.descriptor.module.A_Module.Companion.privateNames
 import avail.descriptor.module.A_Module.Companion.removeFrom
 import avail.descriptor.module.A_Module.Companion.shortModuleNameNative
-import avail.descriptor.module.A_Module.Companion.trueNamesForStringName
 import avail.descriptor.module.A_Module.Companion.variableBindings
 import avail.descriptor.module.ModuleDescriptor
 import avail.descriptor.module.ModuleDescriptor.Companion.newModule
@@ -2909,8 +2905,19 @@ class AvailCompiler constructor(
 				primitive,
 				compilationContext.module,
 				token.lineNumber()),
-			emptyTuple)
-		function.makeShared()
+			emptyTuple
+		).makeShared()
+		var optionalStyler: A_Phrase = emptyListNode()
+		primitive.bootstrapStyler()?.let { stylerPrimitive ->
+			val module = compilationContext.module
+			val stylerFunction = createFunction(
+				newPrimitiveRawFunction(
+					stylerPrimitive, module, token.lineNumber()),
+				emptyTuple)
+			optionalStyler = newListNode(
+				tuple(
+					syntheticLiteralNodeFor(stylerFunction)))
+		}
 		val send = newSendNode(
 			emptyTuple,
 			METHOD_DEFINER.bundle,
@@ -2918,40 +2925,14 @@ class AvailCompiler constructor(
 				tuple(
 					nameLiteral,
 					syntheticLiteralNodeFor(function),
-					newListNode(emptyTuple))),
+					optionalStyler)),
 			TOP.o)
 		evaluateModuleStatementThen(
-			token.synthesizeCurrentLexingState(), state, send, mutableMapOf()
-		) {
-			// Create a bootstrap styler for it, if so indicated.
-			primitive.bootstrapStyler()?.let { stylerPrimitive ->
-				val module = compilationContext.module
-				val stylerFunction = createFunction(
-					newPrimitiveRawFunction(
-						stylerPrimitive,
-						module,
-						token.lineNumber()),
-					emptyTuple)
-				val atoms = module.trueNamesForStringName(availName)
-				if (atoms.setSize == 1)
-				{
-					val method = atoms.first().bundleOrNil.bundleMethod
-					val styler = newStyler(stylerFunction, method, module)
-					method.updateStylers {
-						setWithElementCanDestroy(styler, true)
-					}
-					module.moduleAddStyler(styler)
-				}
-				else
-				{
-					state.compilationContext.diagnostics.reportError(
-						token.nextLexingState(),
-						"Internal problem at %1 in pragma (line %2).",
-						"Mentioned atom $availName should have been created.")
-				}
-			}
-			success()
-		}
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**
@@ -3008,8 +2989,18 @@ class AvailCompiler constructor(
 			compilationContext.diagnostics.reportError()
 			return
 		}
-
 		val bodyLiteral = functionLiterals.removeLast()
+		val macroPrimitive = primitiveByName(primitiveNames.last())!!
+		var optionalStyler: A_Phrase = emptyListNode()
+		macroPrimitive.bootstrapStyler()?.let { stylerPrimitive ->
+			val module = compilationContext.module
+			val stylerFunction = createFunction(
+				newPrimitiveRawFunction(
+					stylerPrimitive, module, token.lineNumber()),
+				emptyTuple)
+			optionalStyler = newListNode(
+				tuple(syntheticLiteralNodeFor(stylerFunction)))
+		}
 		val send = newSendNode(
 			emptyTuple,
 			MACRO_DEFINER.bundle,
@@ -3017,39 +3008,15 @@ class AvailCompiler constructor(
 				tuple(
 					nameLiteral,
 					newListNode(tupleFromList(functionLiterals)),
-					bodyLiteral)),
+					bodyLiteral,
+					optionalStyler)),
 			TOP.o)
 		evaluateModuleStatementThen(
-			token.synthesizeCurrentLexingState(), state, send, mutableMapOf()
-		) {
-			// Create a bootstrap styler for it, if so indicated.
-			val bodyCode = bodyLiteral.token.literal().code()
-			bodyCode.codePrimitive()!!.bootstrapStyler()?.let { stylerPrim ->
-				val module = compilationContext.module
-				val stylerFunction = createFunction(
-					newPrimitiveRawFunction(
-						stylerPrim, module, token.lineNumber()),
-					emptyTuple)
-				val atoms = module.trueNamesForStringName(availName)
-				if (atoms.setSize == 1)
-				{
-					val method = atoms.first().bundleOrNil.bundleMethod
-					val styler = newStyler(stylerFunction, method, module)
-					method.updateStylers {
-						setWithElementCanDestroy(styler, true)
-					}
-					module.moduleAddStyler(styler)
-				}
-				else
-				{
-					state.compilationContext.diagnostics.reportError(
-						token.nextLexingState(),
-						"Internal problem at %1 in pragma (line %2).",
-						"Mentioned atom $availName should have been created.")
-				}
-			}
-			success()
-		}
+			token.synthesizeCurrentLexingState(),
+			state,
+			send,
+			mutableMapOf(),
+			success)
 	}
 
 	/**

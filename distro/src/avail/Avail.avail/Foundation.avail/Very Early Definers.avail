@@ -39,7 +39,7 @@ Names
 	"<«_‡,»>",
 	"Assert:_",
 	"Assert:_(_)",
-	"Method_is_«styled by_»",
+	"Method_is_«styled by_»?",
 	"Reject parse«silently|weakly|moderately|strongly⁇»!,expected:_",
 	"Reject parse(confidence=_),expected:_",
 	"Replace assertion failure function with_",
@@ -118,7 +118,7 @@ zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
 /**
  * Define a new method.
  *
- * @method "Method_is_«styled by_»"
+ * @method "Method_is_«styled by_»?"
  * @category "Methods"
  * @param "methodName" "string"
  *        The method to extend.
@@ -128,7 +128,7 @@ zeroOrOne ::= integer range from 0 (inclusive = true) to 1 (inclusive = true);
  *        An optional styler function.
  * @returns "⊤"
  */
-Primitive "Method_is_«styled by_»" is
+Primitive "Method_is_«styled by_»?" is
 [
 	methodName : string,
 	body : function,
@@ -141,7 +141,7 @@ Primitive "Method_is_«styled by_»" is
 /**
  * Define a new method.
  *
- * @method "Method_is_«styled by_»"
+ * @method "Method_is_«styled by_»?"
  * @category "Methods"
  * @param "methodName" "atom"
  *        The method to extend.
@@ -151,7 +151,7 @@ Primitive "Method_is_«styled by_»" is
  *        An optional styler function.
  * @returns "⊤"
  */
-Primitive "Method_is_«styled by_»" is
+Primitive "Method_is_«styled by_»?" is
 [
 	methodName : atom,
 	body : function,

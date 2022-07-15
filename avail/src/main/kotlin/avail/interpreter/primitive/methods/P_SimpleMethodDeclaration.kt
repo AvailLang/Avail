@@ -33,6 +33,7 @@ package avail.interpreter.primitive.methods
 
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.descriptor.atoms.A_Atom.Companion.atomName
+import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.atoms.AtomDescriptor
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_Function
@@ -90,6 +91,7 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 		val string: A_String = interpreter.argument(0)
 		val function: A_Function = interpreter.argument(1)
 		val optionalStylerFunction: A_Tuple = interpreter.argument(2)
+
 		val fiber = interpreter.fiber()
 		val loader = fiber.availLoader
 		if (loader === null || loader.module.isNil)
@@ -105,16 +107,14 @@ object P_SimpleMethodDeclaration : Primitive(3, Bootstrap, CanSuspend, Unknown)
 			try
 			{
 				val atom = loader.lookupName(string)
-				val newDefinition = loader.addMethodBody(atom, function)
+				loader.addMethodBody(atom, function)
 				// Quote the string to make the method name.
 				val atomName = atom.atomName
 				function.code().methodName = stringFrom(atomName.toString())
 				if (optionalStylerFunction.tupleSize == 1)
 				{
 					val stylerFunction = optionalStylerFunction.tupleAt(1)
-					stylerFunction.code().methodName =
-						stringFrom("Styler for $atomName")
-					loader.addStyler(newDefinition, stylerFunction)
+					loader.addStyler(atom.bundleOrCreate(), stylerFunction)
 				}
 				succeed(nil)
 			}
