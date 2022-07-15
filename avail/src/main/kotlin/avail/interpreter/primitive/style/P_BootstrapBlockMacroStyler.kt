@@ -36,6 +36,8 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.METHOD_SEND
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.TYPE
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
@@ -70,7 +72,7 @@ import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
-import avail.interpreter.execution.AvailLoader.Companion.overrideMethodSendStyle
+import avail.interpreter.execution.AvailLoader.Companion.overrideStyle
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
 
@@ -122,8 +124,8 @@ object P_BootstrapBlockMacroStyler :
 		{
 			val style = when (token.tokenType())
 			{
-				TokenType.KEYWORD -> SystemStyle.METHOD_SEND
-				TokenType.OPERATOR -> SystemStyle.METHOD_SEND
+				TokenType.KEYWORD -> METHOD_SEND
+				TokenType.OPERATOR -> METHOD_SEND
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}
@@ -147,7 +149,7 @@ object P_BootstrapBlockMacroStyler :
 						token,
 						argTypeStyle,
 						false,
-						overrideMethodSendStyle(argTypeStyle))
+						overrideStyle(METHOD_SEND, argTypeStyle))
 				}
 			}
 		}
@@ -155,11 +157,34 @@ object P_BootstrapBlockMacroStyler :
 		// Deal with the primitive declaration if present.
 		if (optPrim.expressionsSize > 0)
 		{
-			val primNamePhrase = optPrim.expressionAt(1).expressionAt(1)
+			val primDecl = optPrim.expressionAt(1)
+			val primNamePhrase = primDecl.expressionAt(1)
 			assert(primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			loader.styleToken(
 				primNamePhrase.token.literal(),
 				SystemStyle.PRIMITIVE_NAME)
+			if (primDecl.expressionsSize > 1)
+			{
+				val failureDecl = primDecl.expressionAt(2)
+				if (failureDecl.expressionsSize > 0)
+				{
+					val failureWrapper = failureDecl.expressionAt(1)
+					val failureConst = failureWrapper.expressionAt(1)
+					loader.styleToken(
+						failureConst.token.literal(),
+						SystemStyle.LOCAL_CONSTANT_DEFINITION)
+					val failureType = failureWrapper.expressionAt(2)
+					val failureTypeStyle =
+						failureType.phraseExpressionType.systemStyleForType
+					failureType.allTokens.forEach { token ->
+						loader.styleToken(
+							token,
+							failureTypeStyle,
+							false,
+							overrideStyle(METHOD_SEND, failureTypeStyle))
+					}
+				}
+			}
 		}
 
 		// Deal with the label if present.
@@ -194,7 +219,7 @@ object P_BootstrapBlockMacroStyler :
 					token,
 					returnTypeStyle,
 					false,
-					overrideMethodSendStyle(returnTypeStyle))
+					overrideStyle(METHOD_SEND, returnTypeStyle))
 			}
 		}
 
@@ -207,9 +232,9 @@ object P_BootstrapBlockMacroStyler :
 				exTypePhrase.allTokens.forEach { token ->
 					loader.styleToken(
 						token,
-						SystemStyle.TYPE,
+						TYPE,
 						false,
-						overrideMethodSendStyle(SystemStyle.TYPE))
+						overrideStyle(METHOD_SEND, TYPE))
 				}
 			}
 		}

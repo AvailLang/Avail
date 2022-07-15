@@ -2251,22 +2251,23 @@ constructor(
 
 		/**
 		 * Answer a merge function that accepts an existing regional style and
-		 * clobbers it with [replacement] iff the existing style is
-		 * [SystemStyle.METHOD_SEND]. The resultant function is suitable for use
-		 * with [styleToken].
+		 * clobbers it with [replacement] iff the existing style is [original].
+		 * The resultant function is suitable for use with [styleToken].
 		 *
+		 * @param original
+		 *   The [style][SystemStyle] to replace.
 		 * @param replacement
-		 *   The replacement [style][SystemStyle] to use iff the existing style is
-		 *   [SystemStyle.METHOD_SEND].
+		 *   The replacement [style][SystemStyle] to use for [original].
 		 * @return
 		 *   The requested merge function.
 		 */
-		fun overrideMethodSendStyle(
+		fun overrideStyle(
+			original: SystemStyle,
 			replacement: SystemStyle
 		): (String?)->String? = { old ->
 			when (old)
 			{
-				SystemStyle.METHOD_SEND.kotlinString -> replacement.kotlinString
+				original.kotlinString -> replacement.kotlinString
 				// Anything else was chosen for a narrower contextual reason, so
 				// honor the styling decisions already made.
 				else -> old
