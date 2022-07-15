@@ -49,6 +49,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_SpecialObjectStyler
 
 /**
  * **Primitive:** Retrieve the [special&#32;object][AvailRuntime.specialObject]
@@ -92,4 +93,6 @@ object P_SpecialObject : Primitive(1, CanInline, Bootstrap)
 
 	override fun privateFailureVariableType(): A_Type =
 		enumerationWith(set(E_NO_SPECIAL_OBJECT))
+
+	override fun bootstrapStyler() = P_SpecialObjectStyler
 }

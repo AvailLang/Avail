@@ -67,6 +67,8 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.execution.Interpreter
+import avail.interpreter.primitive.style.P_BootstrapDefineSpecialObjectMacroStyler
+import avail.interpreter.primitive.style.P_BootstrapDefinitionStyler
 
 /**
  * **Primitive**: Construct a method and an accompanying literalizing macro that
@@ -183,4 +185,6 @@ object P_BootstrapDefineSpecialObjectMacro
 				LITERAL_PHRASE.create(nonemptyStringType),
 				LITERAL_PHRASE.create(ANY.o)),
 			SEQUENCE_PHRASE.mostGeneralType)
+
+	override fun bootstrapStyler() = P_BootstrapDefineSpecialObjectMacroStyler
 }

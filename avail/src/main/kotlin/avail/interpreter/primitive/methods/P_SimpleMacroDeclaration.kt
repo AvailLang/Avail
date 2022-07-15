@@ -34,7 +34,6 @@ package avail.interpreter.primitive.methods
 import avail.compiler.splitter.MessageSplitter
 import avail.compiler.splitter.MessageSplitter.Companion.possibleErrors
 import avail.compiler.splitter.MessageSplitter.Metacharacter
-import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.A_RawFunction.Companion.methodName

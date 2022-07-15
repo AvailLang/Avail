@@ -404,9 +404,9 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 
 		/**
 		 * The characters and whitespace that signal a special object is being
-		 * bound, excluding the name.
+		 * bound or accessed, excluding any literals (like name or ordinal).
 		 */
-		SPECIAL_OBJECT_DEFINITION("#special-object-definition"),
+		SPECIAL_OBJECT("#special-object-definition"),
 
 		/** The optional primitive name in a block. */
 		PRIMITIVE_NAME("#primitive-name"),

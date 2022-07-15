@@ -454,9 +454,9 @@ enum class DefaultBoundSystemStyle(
 		foreground = SystemColors::blue
 	),
 
-	/** Default style for [SystemStyle.SPECIAL_OBJECT_DEFINITION]. */
-	SPECIAL_OBJECT_DEFINITION(
-		SystemStyle.SPECIAL_OBJECT_DEFINITION,
+	/** Default style for [SystemStyle.SPECIAL_OBJECT]. */
+	SPECIAL_OBJECT(
+		SystemStyle.SPECIAL_OBJECT,
 		foreground = SystemColors::rose
 	),
 
