@@ -139,12 +139,12 @@ class SendPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(ARGUMENTS_LIST_NODE))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.setSlot(ARGUMENTS_LIST_NODE,
 		transformer(self.slot(ARGUMENTS_LIST_NODE)))
 

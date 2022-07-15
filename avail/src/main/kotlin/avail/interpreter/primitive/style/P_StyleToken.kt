@@ -91,17 +91,10 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 			else -> styleName.asNativeString()
 		}
 		if (styleOrNull === null && !overwrite)
+		{
 			return interpreter.primitiveSuccess(nil)
-		loader.lockStyles {
-			edit(start, pastEnd) { old ->
-				when
-				{
-					overwrite -> styleOrNull
-					old == null -> styleOrNull
-					else -> "$old,$styleOrNull"
-				}
-			}
 		}
+		loader.styleToken(token, styleOrNull, overwrite)
 		return interpreter.primitiveSuccess(nil)
 	}
 

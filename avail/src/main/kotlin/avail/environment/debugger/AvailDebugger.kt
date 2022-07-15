@@ -79,6 +79,7 @@ import avail.descriptor.types.VariableTypeDescriptor.Companion.mostGeneralVariab
 import avail.environment.AdaptiveColor
 import avail.environment.AvailWorkbench
 import avail.environment.MenuBarBuilder
+import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.codeSuitableTextPane
 import avail.environment.scroll
@@ -761,14 +762,7 @@ class AvailDebugger internal constructor (
 								val doc = sourcePane.styledDocument
 								doc.remove(0, doc.length)
 								doc.insertString(0, source, null)
-								stylingRecord.styleRuns.forEach {
-										(range, styleName) ->
-									doc.setCharacterAttributes(
-										range.first - 1,
-										range.last - range.first + 1,
-										doc.getStyle(styleName),
-										false)
-								}
+								doc.applyStyleRuns(stylingRecord.styleRuns)
 								// Setting the source does not immediately
 								// update the layout, so postpone scrolling to
 								// the selected line.

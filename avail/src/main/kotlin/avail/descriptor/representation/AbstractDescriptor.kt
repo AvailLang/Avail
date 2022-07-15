@@ -2885,7 +2885,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_ChildrenMap (
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase)
+		transformer: (A_Phrase)->A_Phrase)
 
 	/**
 	 * Visit my child phrases with aBlock.
@@ -2895,7 +2895,7 @@ abstract class AbstractDescriptor protected constructor (
 	 */
 	abstract fun o_ChildrenDo (
 		self: AvailObject,
-		action: (A_Phrase) -> Unit)
+		action: (A_Phrase)->Unit)
 
 	abstract fun o_ValidateLocally (
 		self: AvailObject,

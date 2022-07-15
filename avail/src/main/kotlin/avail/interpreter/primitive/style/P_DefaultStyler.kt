@@ -85,7 +85,7 @@ object P_DefaultStyler :
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}
-			loader.styleToken(token, style.kotlinString)
+			loader.styleToken(token, style)
 		}
 		return interpreter.primitiveSuccess(nil)
 	}

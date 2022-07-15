@@ -97,13 +97,16 @@ class LiteralPhraseDescriptor(
 		builder.append(self.token.string().asNativeString())
 	}
 
-	override fun o_ChildrenDo(self: AvailObject, action: (A_Phrase) -> Unit) {
+	override fun o_ChildrenDo(
+		self: AvailObject,
+		action: (A_Phrase)->Unit
+	) {
 		// Do nothing.
 	}
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		// Do nothing.
 	}

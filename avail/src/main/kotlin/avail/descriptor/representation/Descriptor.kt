@@ -1550,14 +1550,16 @@ protected constructor (
 
 	override fun o_ChildrenMap (
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase): Unit = unsupported
+		transformer: (A_Phrase)->A_Phrase
+	): Unit = unsupported
 
 	/**
 	 * Visit my child phrases with the action.
 	 */
 	override fun o_ChildrenDo (
 		self: AvailObject,
-		action: (A_Phrase) -> Unit): Unit = unsupported
+		action: (A_Phrase)->Unit
+	): Unit = unsupported
 
 	override fun o_ValidateLocally (
 		self: AvailObject,

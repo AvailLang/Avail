@@ -37,6 +37,7 @@ import avail.builder.ModuleName
 import avail.builder.ResolvedModuleName
 import avail.descriptor.module.A_Module
 import avail.environment.MenuBarBuilder.Companion.createMenuBar
+import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
 import avail.environment.editor.AbstractEditorAction
 import avail.persistence.cache.Repository
@@ -221,15 +222,7 @@ constructor(
 				getActiveStylingRecord(
 					onSuccess = { stylingRecordOrNull ->
 						stylingRecordOrNull?.let { stylingRecord ->
-							val doc = styledDocument
-							stylingRecord.styleRuns.forEach {
-									(range, styleName) ->
-								doc.setCharacterAttributes(
-									range.first - 1,
-									range.last - range.first + 1,
-									doc.getStyle(styleName),
-									false)
-							}
+							styledDocument.applyStyleRuns(stylingRecord.styleRuns)
 						}
 						semaphore.release()
 					},

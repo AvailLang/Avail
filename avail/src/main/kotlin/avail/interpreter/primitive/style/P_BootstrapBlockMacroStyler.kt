@@ -37,10 +37,12 @@ import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
+import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -56,7 +58,9 @@ import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.component7
 import avail.descriptor.types.A_Type
+import avail.descriptor.types.A_Type.Companion.systemStyleForType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
@@ -65,6 +69,7 @@ import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
+import avail.interpreter.execution.AvailLoader.Companion.overrideMethodSendStyle
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
 
@@ -76,6 +81,7 @@ import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
  * See also [P_BootstrapBlockMacro], the primitive for creating blocks.
  *
  * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 @Suppress("unused")
 object P_BootstrapBlockMacroStyler :
@@ -98,9 +104,9 @@ object P_BootstrapBlockMacroStyler :
 			optArgs,
 			optPrim,
 			optLabel,
-			statements,
+			@Suppress("UNUSED_VARIABLE") statements,
 			optReturn,
-			optResult,
+			optReturnType,
 			optExceptions
 		) = sendPhrase.argumentsListNode.expressionsTuple
 
@@ -115,7 +121,7 @@ object P_BootstrapBlockMacroStyler :
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}
-			loader.styleToken(token, style.kotlinString)
+			loader.styleToken(token, style)
 		}
 
 		// Add styles specific to blocks.  Start with the arguments...
@@ -126,7 +132,17 @@ object P_BootstrapBlockMacroStyler :
 				val argNameLiteral = argPart.expressionAt(1)
 				loader.styleToken(
 					argNameLiteral.token.literal(),
-					SystemStyle.PARAMETER_DEFINITION.kotlinString)
+					SystemStyle.PARAMETER_DEFINITION)
+				val argType = argPart.expressionAt(2)
+				val argTypeStyle =
+					argType.phraseExpressionType.systemStyleForType
+				argType.allTokens.forEach { token ->
+					loader.styleToken(
+						token,
+						argTypeStyle,
+						false,
+						overrideMethodSendStyle(argTypeStyle))
+				}
 			}
 		}
 
@@ -137,7 +153,7 @@ object P_BootstrapBlockMacroStyler :
 			assert(primNamePhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			loader.styleToken(
 				primNamePhrase.token.literal(),
-				SystemStyle.PRIMITIVE_NAME.kotlinString)
+				SystemStyle.PRIMITIVE_NAME)
 		}
 
 		// Deal with the label if present.
@@ -147,116 +163,51 @@ object P_BootstrapBlockMacroStyler :
 			assert(labelPhrase.phraseKindIsUnder(LITERAL_PHRASE))
 			loader.styleToken(
 				labelPhrase.token.literal(),
-				SystemStyle.LABEL_DEFINITION.kotlinString)
+				SystemStyle.LABEL_DEFINITION)
 		}
 
-		// TODO Do more block styling work.
+		// Deal with the return expression.
+		if (optReturn.expressionsSize > 0)
+		{
+			val returnPhrase = optReturn.expressionAt(1).token.literal()
+			assert(returnPhrase.phraseKindIsUnder(EXPRESSION_PHRASE))
+			returnPhrase.allTokens.forEach { token ->
+				loader.styleToken(token, SystemStyle.RETURN_VALUE)
+			}
+		}
 
-		//// Deal with the statements.
-		//for (statement in statements.expressionsTuple)
-		//{
-		//	allStatements.add(statement.token.literal())
-		//}
-		//assert(optionalReturnExpression.expressionsSize <= 1)
-		//val deducedReturnType: A_Type = when
-		//{
-		//	optionalReturnExpression.expressionsSize == 1 ->
-		//	{
-		//		val returnLiteralPhrase =
-		//			optionalReturnExpression.expressionAt(1)
-		//		assert(returnLiteralPhrase.phraseKindIsUnder(LITERAL_PHRASE))
-		//		val returnExpression = returnLiteralPhrase.token.literal()
-		//		allStatements.add(returnExpression)
-		//		if (labelReturnType === null)
-		//		{
-		//			returnExpression.phraseExpressionType
-		//		}
-		//		else
-		//		{
-		//			returnExpression.phraseExpressionType.typeUnion(
-		//				labelReturnType)
-		//		}
-		//	}
-		//	primitive !== null && primitive.hasFlag(CannotFail) ->
-		//	{
-		//		// An infallible primitive must have no statements.
-		//		primitive.blockTypeRestriction().returnType
-		//	}
-		//	else -> TOP.o
-		//}
-		//
-		//if (allStatements.size > 0 && !canHaveStatements)
-		//{
-		//	throw AvailRejectedParseException(
-		//		STRONG,
-		//		"infallible primitive function not to have statements")
-		//}
-		//
-		//val declaredReturnType = when
-		//{
-		//	optionalReturnType.expressionsSize != 0 ->
-		//		optionalReturnType.expressionAt(1).token.literal()
-		//	else -> null
-		//}
-		//// Make sure the last expression's type ⊆ the declared return type, if
-		//// applicable.  Also make sure the primitive's return type ⊆ the
-		//// declared return type.  Finally, make sure that the label's return
-		//// type ⊆ the block's effective return type.
-		//if (declaredReturnType !== null)
-		//{
-		//	if (!deducedReturnType.isSubtypeOf(declaredReturnType))
-		//	{
-		//		throw AvailRejectedParseException(
-		//			STRONG,
-		//			labelReturnType?.let {
-		//				"the union ($deducedReturnType) of the final " +
-		//					"expression's type and the label's declared type " +
-		//					"to agree with the declared return type (" +
-		//					"$declaredReturnType)"
-		//			} ?: ("final expression's type ($deducedReturnType) to " +
-		//				"agree with the declared return type " +
-		//				"($declaredReturnType)"))
-		//	}
-		//	if (primitiveReturnType !== null
-		//		&& !primitiveReturnType.isSubtypeOf(declaredReturnType))
-		//	{
-		//		throw AvailRejectedParseException(
-		//			STRONG,
-		//			"primitive's intrinsic return type ("
-		//				+ primitiveReturnType
-		//				+ ") to agree with the declared return type ("
-		//				+ declaredReturnType
-		//				+ ")")
-		//	}
-		//	if (labelReturnType !== null
-		//		&& !labelReturnType.isSubtypeOf(declaredReturnType))
-		//	{
-		//		throw AvailRejectedParseException(
-		//			STRONG,
-		//			"label's declared return type ($labelReturnType) to agree "
-		//			+ "with the function's declared return type "
-		//			+ "($declaredReturnType)")
-		//	}
-		//}
-		//else if (primitiveReturnType !== null)
-		//{
-		//	// If it's a primitive, then the block must declare an explicit
-		//	// return type.
-		//	throw AvailRejectedParseException(
-		//		// In case we're trying a parse that stops before the type.
-		//		WEAK,
-		//		"primitive function to declare its return type")
-		//}
-		//val returnType = declaredReturnType ?: deducedReturnType
-		//var exceptionsSet: A_Set = emptySet
-		//if (optionalExceptionTypes.expressionsSize == 1)
-		//{
-		//	val expressions =
-		//		optionalExceptionTypes.lastExpression.expressionsTuple
-		//	exceptionsSet = generateSetFrom(expressions) {
-		//		it.token.literal()
-		//	}.makeImmutable()
-		//}
+		// Deal with the return type if present.
+		if (optReturnType.expressionsSize > 0)
+		{
+			val returnTypePhrase = optReturnType.expressionAt(1)
+			assert(returnTypePhrase.phraseKindIsUnder(EXPRESSION_PHRASE))
+			val returnTypeStyle =
+				returnTypePhrase.phraseExpressionType.systemStyleForType
+			returnTypePhrase.allTokens.forEach { token ->
+				loader.styleToken(
+					token,
+					returnTypeStyle,
+					false,
+					overrideMethodSendStyle(returnTypeStyle))
+			}
+		}
+
+		// Deal with exception types if present.
+		if (optExceptions.expressionsSize > 0)
+		{
+			optExceptions.expressionAt(1).expressionsTuple.forEach { exPart ->
+				assert(exPart.phraseKindIsUnder(LIST_PHRASE))
+				val exTypePhrase = exPart.expressionAt(1)
+				exTypePhrase.allTokens.forEach { token ->
+					loader.styleToken(
+						token,
+						SystemStyle.TYPE,
+						false,
+						overrideMethodSendStyle(SystemStyle.TYPE))
+				}
+			}
+		}
+
 		return interpreter.primitiveSuccess(nil)
 	}
 

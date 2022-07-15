@@ -618,7 +618,7 @@ class DeclarationPhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		val typeExpression = self.typeExpression
 		if (typeExpression.notNil) {
@@ -632,7 +632,7 @@ class DeclarationPhraseDescriptor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) {
 		val expression = self.initializationExpression
 		if (expression.notNil) {

@@ -43,6 +43,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
+import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.extendedIntegers
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
@@ -81,17 +82,26 @@ object P_BootstrapLiteralStyler :
 		val literal = token.literal()
 		val style = when
 		{
-			literal.isInstanceOf(stringType) -> SystemStyle.STRING_LITERAL
+			literal.isInstanceOf(stringType) ->
+			{
+				loader.styleStringLiteral(token)
+				return interpreter.primitiveSuccess(nil)
+			}
 			literal.isInstanceOf(Types.CHARACTER.o) ->
 				SystemStyle.CHARACTER_LITERAL
 			literal.isInstanceOf(extendedIntegers) ->
 				SystemStyle.NUMERIC_LITERAL
 			literal.isInstanceOf(Types.FLOAT.o) -> SystemStyle.NUMERIC_LITERAL
 			literal.isInstanceOf(Types.DOUBLE.o) -> SystemStyle.NUMERIC_LITERAL
+			// Given the actual library bindings (2022.07.14), boolean literals
+			// and atom literals will not be ingested via this primitive, so
+			// these cases are here for speculative future-proofing only.
+			literal.isInstanceOf(booleanType) -> SystemStyle.BOOLEAN_LITERAL
+			literal.isInstanceOf(Types.ATOM.o) -> SystemStyle.ATOM_LITERAL
 			// Don't apply any bootstrap style for other literal types.
 			else -> return interpreter.primitiveSuccess(nil)
 		}
-		loader.styleToken(token, style.kotlinString)
+		loader.styleToken(token, style)
 		return interpreter.primitiveSuccess(nil)
 	}
 

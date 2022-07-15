@@ -2386,12 +2386,12 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self .. { childrenMap(transformer) }
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self .. { childrenDo(action) }
 
 	override fun o_ValidateLocally(

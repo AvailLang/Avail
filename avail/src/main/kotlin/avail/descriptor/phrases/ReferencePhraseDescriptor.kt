@@ -142,12 +142,12 @@ class ReferencePhraseDescriptor(
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.setSlot(VARIABLE, transformer(self.slot(VARIABLE)))
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(VARIABLE))
 
 	override fun o_StatementsDo(

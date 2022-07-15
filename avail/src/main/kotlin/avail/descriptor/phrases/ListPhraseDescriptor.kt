@@ -136,12 +136,12 @@ class ListPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = self.expressionsTuple.forEach(action)
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) {
 		self.setSlot(
 			EXPRESSIONS_TUPLE,

@@ -82,7 +82,7 @@ object P_BootstrapDefinitionStyler :
 		}
 
 		sendPhrase.tokens.forEach { token ->
-			loader.styleToken(token, SystemStyle.METHOD_DEFINITION.kotlinString)
+			loader.styleToken(token, SystemStyle.METHOD_DEFINITION)
 		}
 		val namePhrase = sendPhrase.argumentsListNode.expressionAt(1)
 		val nameLiteralSend = when
@@ -103,7 +103,7 @@ object P_BootstrapDefinitionStyler :
 			{
 				loader.styleToken(
 					nameLiteralArg.token.literal(),
-					SystemStyle.METHOD_NAME.kotlinString)
+					SystemStyle.METHOD_NAME)
 			}
 		}
 		return interpreter.primitiveSuccess(nil)

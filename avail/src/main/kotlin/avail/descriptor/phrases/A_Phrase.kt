@@ -38,6 +38,7 @@ import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.functions.CompiledCodeDescriptor
 import avail.descriptor.module.A_Module
+import avail.descriptor.phrases.PhraseDescriptor.Companion.treeDoWithParent
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
@@ -46,9 +47,14 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
+import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.variables.A_Variable
 import avail.interpreter.Primitive
@@ -612,6 +618,51 @@ interface A_Phrase : A_BasicObject {
 		 *   The requested tuple of [tokens][A_Token].
 		 */
 		val A_Phrase.tokens: A_Tuple get() = dispatch { o_Tokens(it) }
+
+		/**
+		 * Answer all [tokens][A_Token] belong to the receiver or its
+		 * subexpressions, lexically ordered, without positionless synthetic
+		 * tokens.
+		 *
+		 * @return
+		 *   The requested tuple of tokens.
+		 */
+		val A_Phrase.allTokens: A_Tuple get()
+		{
+			val tokens = mutableListOf<A_Token>()
+			treeDoWithParent(
+				this,
+				children = { phrase, withChild ->
+					when
+					{
+						// Traverse through the original macro send phrase, not
+						// the substitute.
+						phrase.phraseKindIsUnder(MACRO_SUBSTITUTION_PHRASE) ->
+							withChild(phrase.macroOriginalSendNode)
+						// Do not traverse into the (nonlocal) declaration that
+						// created the used variable.
+						phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
+						phrase.phraseKindIsUnder(LITERAL_PHRASE) ->
+						{
+							val value = phrase.token.literal()
+							if (value.isInstanceOf(
+								PARSE_PHRASE.mostGeneralType))
+							{
+								// This supports _!.
+								withChild(value)
+							}
+							// TODO: Also check the original phrase (to support
+							//   _†).
+						}
+						else -> phrase.childrenDo(withChild)
+					}
+				}
+			) { child, _ ->
+				tokens.addAll(child.tokens.filter { it.start() != 0 })
+			}
+			tokens.sortBy { it.start() }
+			return tupleFromList(tokens)
+		}
 
 		/**
 		 * Answer the [phrase][A_Phrase] that produced the type of the

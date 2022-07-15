@@ -46,6 +46,7 @@ import avail.descriptor.numbers.A_Number.Companion.isInt
 import avail.descriptor.numbers.A_Number.Companion.isLong
 import avail.descriptor.numbers.InfinityDescriptor.Companion.positiveInfinity
 import avail.descriptor.numbers.IntegerDescriptor.Companion.one
+import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.concatenateTuplesCanDestroy
@@ -264,7 +265,8 @@ object P_FileRead : Primitive(6, CanInline, HasSideEffect)
 		{
 			// We began with buffer hits, so don't fetch anything.
 			// Concatenate the buffers we have.
-			val buffersTuple = tupleFromList(buffers)
+			@Suppress("UNCHECKED_CAST")
+			val buffersTuple = tupleFromList(buffers as List<A_BasicObject>)
 			val concatenated = buffersTuple.concatenateTuplesCanDestroy(false)
 			runtime.runOutermostFunction(
 				newFiber, succeed, listOf(concatenated))

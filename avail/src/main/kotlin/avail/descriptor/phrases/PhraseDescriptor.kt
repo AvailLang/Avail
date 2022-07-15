@@ -109,7 +109,8 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	abstract override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit)
+		action: (A_Phrase)->Unit
+	)
 
 	/**
 	 * Visit and transform the direct descendants of this phrase.  Map this
@@ -123,7 +124,8 @@ abstract class PhraseDescriptor protected constructor(
 	 */
 	abstract override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase)
+		transformer: (A_Phrase)->A_Phrase
+	)
 
 	/**
 	 * If the receiver is immutable, make an equivalent mutable copy of that
@@ -294,24 +296,29 @@ abstract class PhraseDescriptor protected constructor(
 
 	abstract override fun shared(): PhraseDescriptor
 
-	companion object {
+	companion object
+	{
 		/**
 		 * Visit the entire tree with the given consumer, children before
 		 * parents.  The block takes two arguments: the phrase and its parent.
 		 *
 		 * @param self
 		 *   The current [A_Phrase].
+		 * @param parentNode
+		 *   This phrase's parent, or `null`. Defaults to `null`.
 		 * @param aBlock
 		 *   What to do with each descendant.
-		 * @param parentNode
-		 *   This phrase's parent, or `null`.
 		 */
 		fun treeDoWithParent(
 			self: A_Phrase,
-			aBlock: (A_Phrase, A_Phrase?) -> Unit,
-			parentNode: A_Phrase?)
+			parentNode: A_Phrase? = null,
+			children: (A_Phrase, (A_Phrase) -> Unit) -> Unit =
+				{ phrase, withChild -> phrase.childrenDo(withChild) },
+			aBlock: (A_Phrase, A_Phrase?) -> Unit)
 		{
-			self.childrenDo { child -> treeDoWithParent(child, aBlock, self) }
+			children(self) { child ->
+				treeDoWithParent(child, self, children, aBlock)
+			}
 			aBlock(self, parentNode)
 		}
 

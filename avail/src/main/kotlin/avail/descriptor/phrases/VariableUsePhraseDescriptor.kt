@@ -126,13 +126,17 @@ class VariableUsePhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
-	) = action(self.slot(DECLARATION))
+		action: (A_Phrase)->Unit)
+	{
+		action(self.slot(DECLARATION))
+	}
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
-	) = self.setSlot(DECLARATION, transformer(self.slot(DECLARATION)))
+		transformer: (A_Phrase)->A_Phrase)
+	{
+		self.setSlot(DECLARATION, transformer(self.slot(DECLARATION)))
+	}
 
 	override fun o_Declaration(self: AvailObject): A_Phrase =
 		self.slot(DECLARATION)

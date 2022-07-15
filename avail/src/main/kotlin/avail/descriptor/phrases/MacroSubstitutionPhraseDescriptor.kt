@@ -183,7 +183,8 @@ class MacroSubstitutionPhraseDescriptor(
 	 */
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase)->A_Phrase)
+		transformer: (A_Phrase)->A_Phrase
+	)
 	{
 		self.setSlot(
 			OUTPUT_PHRASE,

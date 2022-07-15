@@ -35,7 +35,9 @@ package avail.environment
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.environment.BoundStyle.Companion.defaultStyle
 import avail.environment.streams.StreamStyle
+import avail.persistence.cache.StyleRun
 import java.awt.Color
+import javax.swing.SwingUtilities
 import javax.swing.text.Style
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyleContext
@@ -579,4 +581,37 @@ object StyleRegistry: Iterable<BoundStyle>
 	}
 
 	override fun iterator() = allStyles.values.iterator()
+}
+
+/**
+ * Utility for applying [bound&#32;styles][BoundStyle] to [StyledDocument]s.
+ *
+ * @author Todd Smith &lt;todd@availlang.org&gt;
+ */
+object StyleApplicator
+{
+	/**
+	 * Apply all [style&#32;runs] to the receiver. Each style name is treated as
+	 * a comma-separated composite. Rendered styles compose rather than replace.
+	 * **Must be invoked on the Swing UI thread.**
+	 *
+	 * @param runs
+	 *   The style runs to apply to the [document][StyledDocument].
+	 */
+	fun StyledDocument.applyStyleRuns(runs: List<StyleRun>)
+	{
+		assert(SwingUtilities.isEventDispatchThread())
+		runs.forEach { (range, compositeStyleName) ->
+			val styleNames = compositeStyleName.split(",")
+			styleNames.forEach { styleName ->
+				getStyle(styleName)?.let { style ->
+					setCharacterAttributes(
+						range.first - 1,
+						range.last - range.first + 1,
+						style,
+						false)
+				}
+			}
+		}
+	}
 }

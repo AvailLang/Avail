@@ -33,6 +33,7 @@ package avail.interpreter.execution
 
 import avail.AvailRuntime
 import avail.AvailThread
+import avail.annotations.ThreadSafe
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
 import avail.compiler.scanning.LexingState
@@ -63,6 +64,8 @@ import avail.descriptor.bundles.A_BundleTree.Companion.removePlanInProgress
 import avail.descriptor.bundles.A_BundleTree.Companion.updateForNewGrammaticalRestriction
 import avail.descriptor.bundles.MessageBundleTreeDescriptor
 import avail.descriptor.bundles.MessageBundleTreeDescriptor.Companion.newBundleTree
+import avail.descriptor.character.A_Character
+import avail.descriptor.character.A_Character.Companion.codePoint
 import avail.descriptor.character.CharacterDescriptor.Companion.fromCodePoint
 import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.A_Fiber.Companion.setSuccessAndFailure
@@ -118,6 +121,7 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_EXPLIC
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_HERITABLE_ATOM
 import avail.descriptor.methods.SemanticRestrictionDescriptor
 import avail.descriptor.methods.StylerDescriptor
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addLexer
 import avail.descriptor.module.A_Module.Companion.addPrivateName
@@ -868,14 +872,197 @@ constructor(
 		styledRangesLock.safeWrite { styledRanges.action() }
 
 	/**
-	 * Helper method to style a token's range in a particular named style,
-	 * discarding any style information previously attached to all or parts of
-	 * the token's range.
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param token
+	 *   The token to style. May be synthetic, and need not correspond to any
+	 *   actual token accepted by a lexer.
+	 * @param style
+	 *   The [system&#32;style][SystemStyle] to apply to the token.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
 	 */
-	fun styleToken(token: A_Token, style: String) = lockStyles {
+	@ThreadSafe
+	fun styleToken(
+		token: A_Token,
+		style: SystemStyle,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when (old)
+			{
+				null -> style.kotlinString
+				else -> "$old,${style.kotlinString}"
+			}
+		}
+	) = lockStyles {
 		val start = token.start().toLong()
 		val pastEnd = start + token.string().tupleSize
-		edit(start, pastEnd) { style }
+		edit(start, pastEnd) { old ->
+			when (overwrite)
+			{
+				true -> style.kotlinString
+				false -> editor(old)
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param token
+	 *   The token to style. May be synthetic, and need not correspond to any
+	 *   actual token accepted by a lexer.
+	 * @param style
+	 *   The optional [system&#32;style][SystemStyle] to apply to the token. If
+	 *   `null`, then clear the style iff `overwrite` is `true`; otherwise,
+	 *   preserve the original style.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
+	 */
+	@ThreadSafe
+	fun styleToken(
+		token: A_Token,
+		style: String?,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when
+			{
+				old === null -> style
+				style === null -> old
+				else -> "$old,$style"
+			}
+		}
+	) = lockStyles {
+		val start = token.start().toLong()
+		val pastEnd = start + token.string().tupleSize
+		edit(start, pastEnd) { old ->
+			when (overwrite)
+			{
+				true -> style
+				false -> editor(old)
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style an ordinary string literal, i.e., one that is not
+	 * also a method name.
+	 *
+	 * @param stringLiteral
+	 *   The string literal to style.
+	 */
+	@ThreadSafe
+	fun styleStringLiteral(stringLiteral: A_Token) = lockStyles {
+		val characters =
+			stringLiteral.string().iterator() as ListIterator<A_Character>
+		var start = stringLiteral.start().toLong()
+		while (characters.hasNext())
+		{
+			var count = 0L
+			when (characters.next().codePoint)
+			{
+				'"'.code ->
+				{
+					edit(start, start + 1) {
+						SystemStyle.STRING_ESCAPE_SEQUENCE.kotlinString
+					}
+					start++
+				}
+				'\\'.code ->
+				{
+					count++
+					// We know that the string lexed correctly, so there can't
+					// be a dangling escape.
+					when (characters.next().codePoint)
+					{
+						'('.code ->
+						{
+							count++
+							// Search for the close parenthesis.
+							while (characters.hasNext())
+							{
+								count++
+								if (characters.next().codePoint == ')'.code)
+								{
+									edit(start, start + count) {
+										SystemStyle
+											.STRING_ESCAPE_SEQUENCE
+											.kotlinString
+									}
+									start += count
+									break
+								}
+							}
+						}
+						'n'.code, 'r'.code, 't'.code,
+						'\\'.code, '\"'.code, '|'.code ->
+						{
+							count++
+							edit(start, start + count) {
+								SystemStyle
+									.STRING_ESCAPE_SEQUENCE
+									.kotlinString
+							}
+							start += count
+						}
+						'\r'.code, '\n'.code ->
+						{
+							// Explicitly don't style the escaped carriage
+							// return or line feed, but do style the backslash.
+							edit(start, start + count) {
+								SystemStyle
+									.STRING_ESCAPE_SEQUENCE
+									.kotlinString
+							}
+							start += count
+						}
+						// We know that the string lexed correctly, so there
+						// can't be a malformed escape.
+						else ->
+						{
+							assert(false) { "Unreachable" }
+						}
+					}
+				}
+				else ->
+				{
+					count++
+					while (characters.hasNext())
+					{
+						val c = characters.next().codePoint
+						if (c == '"'.code || c == '\\'.code)
+						{
+							edit(start, start + count) {
+								SystemStyle.STRING_LITERAL.kotlinString
+							}
+							start += count
+							characters.previous()
+							break
+						}
+						else
+						{
+							count++
+						}
+					}
+					// We know that the string lexed correctly, so there have to
+					// be more characters (because we haven't seen the closing
+					// double quote yet).
+					assert(characters.hasNext())
+				}
+			}
+		}
 	}
 
 	/**
@@ -1837,6 +2024,30 @@ constructor(
 			val lexer = newLexer(
 				stringLexerFilter, stringLexerBody, bundle.bundleMethod, nil)
 			addLexer(lexer)
+		}
+
+		/**
+		 * Answer a merge function that accepts an existing regional style and
+		 * clobbers it with [replacement] iff the existing style is
+		 * [SystemStyle.METHOD_SEND]. The resultant function is suitable for use
+		 * with [styleToken].
+		 *
+		 * @param replacement
+		 *   The replacement [style][SystemStyle] to use iff the existing style is
+		 *   [SystemStyle.METHOD_SEND].
+		 * @return
+		 *   The requested merge function.
+		 */
+		fun overrideMethodSendStyle(
+			replacement: SystemStyle
+		): (String?)->String? = { old ->
+			when (old)
+			{
+				SystemStyle.METHOD_SEND.kotlinString -> replacement.kotlinString
+				// Anything else was chosen for a narrower contextual reason, so
+				// honor the styling decisions already made.
+				else -> old
+			}
 		}
 	}
 }

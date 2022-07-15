@@ -136,12 +136,12 @@ class PermutedListPhraseDescriptor private constructor(
 
 	override fun o_ChildrenDo(
 		self: AvailObject,
-		action: (A_Phrase) -> Unit
+		action: (A_Phrase)->Unit
 	) = action(self.slot(LIST))
 
 	override fun o_ChildrenMap(
 		self: AvailObject,
-		transformer: (A_Phrase) -> A_Phrase
+		transformer: (A_Phrase)->A_Phrase
 	) = self.setSlot(LIST, transformer(self.slot(LIST)))
 
 	override fun o_EmitAllValuesOn(

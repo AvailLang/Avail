@@ -954,7 +954,7 @@ abstract class TupleDescriptor protected constructor(
 	 *   The tuple over which to iterate.
 	 */
 	private class TupleIterator(
-		private val tuple: AvailObject) : Iterator<AvailObject>
+		private val tuple: AvailObject) : ListIterator<AvailObject>
 	{
 		/**
 		 * The size of the tuple.
@@ -966,7 +966,13 @@ abstract class TupleDescriptor protected constructor(
 		 */
 		var index = 1
 
-		override fun hasNext(): Boolean = index <= size
+		override fun hasNext() = index <= size
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun nextIndex() = index - 1
 
 		override fun next(): AvailObject
 		{
@@ -975,6 +981,23 @@ abstract class TupleDescriptor protected constructor(
 				throw NoSuchElementException()
 			}
 			return tuple.tupleAt(index++)
+		}
+
+		override fun hasPrevious() = size > 0 && index >= 1
+
+		/**
+		 * **Warning**: To conform to [nextIndex], the index must be
+		 * **0**-based, even though tuple access is ordinarily **1**-based.
+		 */
+		override fun previousIndex() = index - 2
+
+		override fun previous(): AvailObject
+		{
+			if (size == 0 || index < 1)
+			{
+				throw NoSuchElementException()
+			}
+			return tuple.tupleAt(--index)
 		}
 	}
 
