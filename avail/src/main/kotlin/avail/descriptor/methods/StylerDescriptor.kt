@@ -299,7 +299,7 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		LABEL_USE("#label-use"),
 
 		/**
-		 * A string literal, including quotation marks around it. Does not
+		 * A string literal, excluding quotation marks around it. Does not
 		 * include escape sequences.
 		 */
 		STRING_LITERAL("#string-literal"),
@@ -309,7 +309,7 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * the character(s) that follow it that are being escaped. ALL escape
 		 * sequences are styled similarly, even \\ and \", which serve to mark
 		 * the escape character \ and the delimiter " as actual characters
-		 * within the string.
+		 * within the string. Also used for delimiting quotes.
 		 */
 		STRING_ESCAPE_SEQUENCE("#string-escape-sequence"),
 
