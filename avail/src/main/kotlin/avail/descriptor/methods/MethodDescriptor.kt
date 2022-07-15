@@ -935,13 +935,13 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for defining macros. */
 		MACRO_DEFINER(
-			"vm macro_is«_,»_",
+			"vm macro_is«_,»_«styled by_»?",
 			P_SimpleMacroDeclaration::class.java.name,
 			P_SimpleMacroDefinitionForAtom::class.java.name),
 
 		/** The special atom for defining methods. */
 		METHOD_DEFINER(
-			"vm method_is_«styled by_»",
+			"vm method_is_«styled by_»?",
 			P_SimpleMethodDeclaration::class.java.name,
 			P_MethodDeclarationFromAtom::class.java.name),
 
@@ -1016,7 +1016,7 @@ class MethodDescriptor private constructor(
 			P_GetRaiseJavaExceptionInAvailFunction::class.java.name),
 
 		SET_STYLER(
-			"vm set styler of definition_to function_",
+			"vm add styler of bundle_is_",
 			P_SetStylerFunction::class.java.name),
 
 		/** The special atom for parsing module headers. */

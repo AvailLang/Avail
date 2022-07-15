@@ -32,6 +32,7 @@
 package avail.interpreter.execution
 
 import avail.AvailRuntime
+import avail.AvailRuntimeConfiguration
 import avail.AvailThread
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
@@ -95,12 +96,14 @@ import avail.descriptor.methods.A_Method.Companion.lexer
 import avail.descriptor.methods.A_Method.Companion.methodAddDefinition
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.methods.A_Method.Companion.removeDefinition
+import avail.descriptor.methods.A_Method.Companion.updateStylers
 import avail.descriptor.methods.A_SemanticRestriction
 import avail.descriptor.methods.A_Sendable.Companion.bodyBlock
 import avail.descriptor.methods.A_Sendable.Companion.bodySignature
 import avail.descriptor.methods.A_Sendable.Companion.isAbstractDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isForwardDefinition
 import avail.descriptor.methods.A_Sendable.Companion.isMethodDefinition
+import avail.descriptor.methods.A_Styler.Companion.module
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.AbstractDefinitionDescriptor
 import avail.descriptor.methods.AbstractDefinitionDescriptor.Companion.newAbstractDefinition
@@ -130,6 +133,7 @@ import avail.descriptor.module.A_Module.Companion.moduleAddDefinition
 import avail.descriptor.module.A_Module.Companion.moduleAddGrammaticalRestriction
 import avail.descriptor.module.A_Module.Companion.moduleAddMacro
 import avail.descriptor.module.A_Module.Companion.moduleAddSemanticRestriction
+import avail.descriptor.module.A_Module.Companion.moduleAddStyler
 import avail.descriptor.module.A_Module.Companion.moduleState
 import avail.descriptor.module.A_Module.Companion.newNames
 import avail.descriptor.module.A_Module.Companion.privateNames
@@ -197,6 +201,8 @@ import avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
 import avail.exceptions.AvailErrorCode.E_METHOD_RETURN_TYPE_NOT_AS_FORWARD_DECLARED
 import avail.exceptions.AvailErrorCode.E_REDEFINED_WITH_SAME_ARGUMENT_TYPES
 import avail.exceptions.AvailErrorCode.E_RESULT_TYPE_SHOULD_COVARY_WITH_ARGUMENTS
+import avail.exceptions.AvailErrorCode.E_STYLER_ALREADY_SET_BY_THIS_MODULE
+import avail.exceptions.AvailException
 import avail.exceptions.MalformedMessageException
 import avail.exceptions.SignatureException
 import avail.interpreter.Primitive
@@ -1490,24 +1496,48 @@ constructor(
 
 	/**
 	 * Define and install a new [styler][StylerDescriptor] based on the given
-	 * [stylerFunction].  Install it for the given definition, within the
-	 * current [A_Module].
+	 * [stylerFunction].  Install it for the given [A_Bundle]'s method, within
+	 * the current [A_Module].
 	 *
-	 * @param definition
-	 *   The [A_Definition] for which the styler is to be added.
+	 * @param bundle
+	 *   The [A_Bundle] whose method will have the styler added.
 	 * @param stylerFunction
 	 *   The [A_Function], a [stylerFunctionType], which is to be executed to
-	 *   style invocations of the [definition].
+	 *   style invocations of the [bundle] or its aliases.
+	 *
+	 * @throws AvailException
+	 *   With [E_STYLER_ALREADY_SET_BY_THIS_MODULE] if this module has already
+	 *   defined a styler for this method.
 	 */
-	fun addStyler(definition: A_Definition, stylerFunction: A_Function)
+	@Throws(AvailException::class)
+	fun addStyler(bundle: A_Bundle, stylerFunction: A_Function)
 	{
-		val atomName = definition.definitionMethod.chooseBundle(module)
+		val method = bundle.bundleMethod
+		val styler = StylerDescriptor.newStyler(stylerFunction, method, module)
+		var bad = false
+		method.updateStylers {
+			bad = any { it.module.equals(module) }
+			if (bad) this else setWithElementCanDestroy(styler, true)
+		}
+		if (bad)
+		{
+			throw AvailException(E_STYLER_ALREADY_SET_BY_THIS_MODULE)
+		}
+		module.moduleAddStyler(styler)
+		if (phase == EXECUTING_FOR_COMPILE)
+		{
+			recordEffect(
+				LoadingEffectToRunPrimitive(
+					SpecialMethodAtom.SET_STYLER.bundle,
+					bundle,
+					stylerFunction))
+		}
+		val atomName = bundle.message.atomName
 		stylerFunction.code().methodName = stringFrom("Styler for $atomName")
-		recordEffect(
-			LoadingEffectToRunPrimitive(
-				SpecialMethodAtom.SET_STYLER.bundle,
-				definition,
-				stylerFunction))
+		if (AvailRuntimeConfiguration.debugStyling)
+		{
+			println("Defined styler: ${stylerFunction.code().methodName}")
+		}
 	}
 
 	/**

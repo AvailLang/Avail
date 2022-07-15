@@ -177,9 +177,9 @@ do
 
 For each name of
 <
-	"Method_is_«styled by_»",
-	"Private method_is_«styled by_»",
-	"Public method_is_«styled by_»"
+	"Method_is_«styled by_»?",
+	"Private method_is_«styled by_»?",
+	"Public method_is_«styled by_»?"
 >
 do
 [

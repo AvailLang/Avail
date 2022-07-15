@@ -166,7 +166,8 @@ object P_BootstrapDefineSpecialObjectMacro
 								literalType),
 							emptySet,
 							0,
-							emptyTuple))),
+							emptyTuple),
+						emptyListNode())),
 				TOP.o)
 		return interpreter.primitiveSuccess(
 			newSequence(

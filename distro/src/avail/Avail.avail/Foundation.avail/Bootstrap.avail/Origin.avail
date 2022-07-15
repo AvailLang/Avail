@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/12/22, 11:56 AM
+ * * Last Generated: 7/14/22, 9:04 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -44,7 +44,7 @@ Versions
 Extends
 Uses
 Names
-	"Primitive_is_«styled by_»",
+	"Primitive_is_«styled by_»?",
 	"special object_",
 	"Special object_is_;",
 	"whitespace lexer",
@@ -79,7 +79,7 @@ Pragma
 	"lexer=BootstrapLexerWholeNumberFilter,BootstrapLexerWholeNumberBody=whole number lexer",
 	"lexer=BootstrapLexerKeywordFilter,BootstrapLexerKeywordBody=keyword lexer",
 	"lexer=BootstrapLexerOperatorFilter,BootstrapLexerOperatorBody=operator lexer",
-	"method=SimpleMethodDeclaration=Primitive_is_«styled by_»",
+	"method=SimpleMethodDeclaration=Primitive_is_«styled by_»?",
 	"macro=SpecialObject=special object_",
 	"macro=BootstrapDefineSpecialObjectMacro=Special object_is_;",
 	"macro=\

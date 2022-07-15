@@ -63,7 +63,7 @@ Uses
 		"…#",
 
 		/* Methods */
-		"Method_is_«styled by_»",
+		"Method_is_«styled by_»?",
 		"$…#"
 	),
 	"Core" =
