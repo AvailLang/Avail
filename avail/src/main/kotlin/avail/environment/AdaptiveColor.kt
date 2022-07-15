@@ -84,11 +84,9 @@ data class AdaptiveColor constructor(
 			val otherWeight = 1.0f - selfWeight
 			val vector = selfColor.getRGBComponents(null)
 				.zip(otherColor.getRGBComponents(null))
-				.map { (a, b) ->
-					a * selfWeight + b * otherWeight
-				}
+				.map { (a, b) -> a * selfWeight + b * otherWeight }
 				.toFloatArray()
-			return Color(vector[0], vector[1], vector[2])
+			return Color(vector[0], vector[1], vector[2], vector[3])
 		}
 	}
 }

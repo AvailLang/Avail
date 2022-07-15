@@ -93,6 +93,7 @@ fun codeSuitableTextPane(
 	isFocusable = true
 	preferredSize = Dimension(0, 500)
 	editorKit = AvailEditorKit(workbench)
+	foreground = SystemColors.active.baseCode
 	background = SystemColors.active.codeBackground
 	val attributes = SimpleAttributeSet()
 	StyleConstants.setTabSet(

@@ -39,8 +39,22 @@ import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
-import avail.compiler.splitter.MessageSplitter.Metacharacter.*
+import avail.compiler.splitter.MessageSplitter.Metacharacter.BACK_QUOTE
+import avail.compiler.splitter.MessageSplitter.Metacharacter.CLOSE_GUILLEMET
 import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
+import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_DAGGER
+import avail.compiler.splitter.MessageSplitter.Metacharacter.DOUBLE_QUESTION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.ELLIPSIS
+import avail.compiler.splitter.MessageSplitter.Metacharacter.EXCLAMATION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.OCTOTHORP
+import avail.compiler.splitter.MessageSplitter.Metacharacter.OPEN_GUILLEMET
+import avail.compiler.splitter.MessageSplitter.Metacharacter.QUESTION_MARK
+import avail.compiler.splitter.MessageSplitter.Metacharacter.SECTION_SIGN
+import avail.compiler.splitter.MessageSplitter.Metacharacter.SINGLE_DAGGER
+import avail.compiler.splitter.MessageSplitter.Metacharacter.TILDE
+import avail.compiler.splitter.MessageSplitter.Metacharacter.UNDERSCORE
+import avail.compiler.splitter.MessageSplitter.Metacharacter.UP_ARROW
+import avail.compiler.splitter.MessageSplitter.Metacharacter.VERTICAL_BAR
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -175,6 +189,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.A_Tuple.Companion.tupleAt
@@ -910,7 +925,7 @@ constructor(
 		}
 	) = lockStyles {
 		val start = token.start().toLong()
-		val pastEnd = start + token.string().tupleSize
+		val pastEnd = token.pastEnd().toLong()
 		edit(start, pastEnd) { old ->
 			when (overwrite)
 			{
@@ -954,7 +969,7 @@ constructor(
 		}
 	) = lockStyles {
 		val start = token.start().toLong()
-		val pastEnd = start + token.string().tupleSize
+		val pastEnd = token.pastEnd().toLong()
 		edit(start, pastEnd) { old ->
 			when (overwrite)
 			{

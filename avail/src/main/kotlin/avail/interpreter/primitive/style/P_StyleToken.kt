@@ -37,6 +37,7 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tuple
@@ -82,8 +83,8 @@ object P_StyleToken : Primitive(3, CanInline, WritesToHiddenGlobalState)
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		val start = token.start().toLong()
-		val pastEnd = start + token.string().tupleSize
+		val start = token.start()
+		val pastEnd = token.pastEnd()
 		if (start == pastEnd) return interpreter.primitiveSuccess(nil)
 		val styleOrNull = when (styleName.tupleSize)
 		{
