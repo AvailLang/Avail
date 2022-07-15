@@ -130,13 +130,15 @@ enum class ParsingConversionRule constructor(val number: Int)
 				lexingState,
 				input,
 				{ value ->
+					val literalPhrase = syntheticLiteralNodeFor(
+						value,
+						optionalGeneratingPhrase = input)
 					when
 					{
 						input.isMacroSubstitutionNode -> continuation(
 							newMacroSubstitution(
-								input.macroOriginalSendNode,
-								syntheticLiteralNodeFor(value)))
-						else -> continuation(syntheticLiteralNodeFor(value))
+								input.macroOriginalSendNode, literalPhrase))
+						else -> continuation(literalPhrase)
 					}
 				},
 				onProblem)

@@ -1333,8 +1333,9 @@ class AvailRuntime constructor(
 								booleanType)))))
 			put(PhraseKind.SEQUENCE_AS_EXPRESSION_PHRASE.mostGeneralType)
 			put(zeroOrOneOf(stylerFunctionType))
+			put(zeroOrOneOf(PhraseKind.PARSE_PHRASE.mostGeneralType))
 
-			at(178)
+			at(179)
 		}.list().onEach { assert(!it.isAtom || it.isAtomSpecial) }
 
 		/**

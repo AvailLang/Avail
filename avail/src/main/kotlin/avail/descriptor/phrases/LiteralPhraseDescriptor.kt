@@ -39,6 +39,7 @@ import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.combine2
 import avail.descriptor.representation.Mutability
+import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.A_Token
 import avail.descriptor.tokens.LiteralTokenDescriptor
@@ -228,6 +229,8 @@ class LiteralPhraseDescriptor(
 		 *   The value that this literal phrase should produce.
 		 * @param literalAsString
 		 *   The optional [A_String] used to describe this literal.
+		 * @param optionalGeneratingPhrase
+		 *   The optional [A_Phrase] from which this literal node was created.
 		 * @return
 		 *   The new literal phrase.
 		 */
@@ -235,9 +238,11 @@ class LiteralPhraseDescriptor(
 			literalValue: A_BasicObject,
 			literalAsString: A_String =
 				if (literalValue.isString) literalValue as A_String
-				else stringFrom(literalValue.toString())
+				else stringFrom(literalValue.toString()),
+			optionalGeneratingPhrase: A_Phrase = nil
 		): A_Phrase = literalNodeFromToken(
-			literalToken(literalAsString, 0, 0, literalValue))
+			literalToken(
+				literalAsString, 0, 0, literalValue, optionalGeneratingPhrase))
 
 		/** The mutable [LiteralPhraseDescriptor]. */
 		private val mutable = LiteralPhraseDescriptor(Mutability.MUTABLE)

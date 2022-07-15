@@ -1913,12 +1913,12 @@ After the current module is unloaded, do
 [
 	unexpected result function :=
 		[
-    		badMessage : function,
-    		expectedType : type,
-    		actualValue : ↑any
-    	|
-    		Crash: <badMessage, expectedType, actualValue>
-    	];
+			badMessage : function,
+			expectedType : type,
+			actualValue : ↑any
+		|
+			Crash: <badMessage, expectedType, actualValue>
+		];
 ];
 
 /* Raise a result-disagreed-with-expected-type whenever a method send produces

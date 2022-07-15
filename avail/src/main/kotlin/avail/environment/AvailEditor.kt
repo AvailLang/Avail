@@ -214,6 +214,7 @@ constructor(
 
 	/** The editor pane. */
 	private val sourcePane = codeSuitableTextPane(workbench).apply {
+		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
 		resolverReference.readFileString(
 			true,
@@ -221,9 +222,7 @@ constructor(
 				text = string
 				getActiveStylingRecord(
 					onSuccess = { stylingRecordOrNull ->
-						stylingRecordOrNull?.let { stylingRecord ->
-							styledDocument.applyStyleRuns(stylingRecord.styleRuns)
-						}
+						stylingRecord = stylingRecordOrNull
 						semaphore.release()
 					},
 					onError = { e ->
@@ -239,6 +238,9 @@ constructor(
 				semaphore.release()
 			})
 		semaphore.acquire()
+		stylingRecord?.let {
+			styledDocument.applyStyleRuns(it.styleRuns)
+		}
 		isEditable = resolverReference.resolver.canSave
 		document.addDocumentListener(object : DocumentListener {
 			override fun insertUpdate(e: DocumentEvent) = editorChanged()

@@ -905,7 +905,7 @@ class MethodDescriptor private constructor(
 
 		/** The special atom for creating a literal token. */
 		CREATE_LITERAL_TOKEN(
-			"vm create literal token_,_,_,_",
+			"vm create literal token_,_,_,_«from phrase_»?",
 			P_CreateLiteralToken::class.java.name),
 
 		/** The special atom for declaring the stringifier atom. */

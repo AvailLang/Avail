@@ -3916,4 +3916,7 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_StylerMethod(self: AvailObject): A_Method =
 		self .. { stylerMethod }
+
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
+		self .. { generatingPhrase }
 }

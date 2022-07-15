@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/14/22, 9:04 PM
+ * * Last Generated: 7/14/22, 10:57 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -144,6 +144,7 @@ Names
 	/*  23 */ "object meta",
 	/* 163 */ "operator",
 	/* 170 */ "optional send phrase and report string",
+	/* 178 */ "optionalPhrase",
 	/* 177 */ "optionalStylerFunction",
 	/* 143 */ "parse map key",
 	/* 166 */ "parse rejection level",
@@ -2356,4 +2357,13 @@ Special object "sequence-as-expression phrase" is special object 176;
  * @alias "optionalStylerFunction"
  */
 Special object "optionalStylerFunction" is special object 177;
+
+/**
+ * A tuple with either zero or one phrase.
+ *
+ * @category "Primitives" "Types"
+ * @type "{1}"
+ * @alias "optionalPhrase"
+ */
+Special object "optionalPhrase" is special object 178;
 

@@ -32,7 +32,9 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
+import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
@@ -51,6 +53,13 @@ interface A_Token : A_BasicObject
 	 * Disconnect this token from its internal cache of what comes next.
 	 */
 	fun clearLexingState()
+
+	/**
+	 * Extract from this literal token the phrase that was responsible for
+	 * generating it.
+	 */
+	val generatingPhrase: A_Phrase
+		get() = dispatch { o_GeneratingPhrase(it) }
 
 	/**
 	 * Answer whether this token is a

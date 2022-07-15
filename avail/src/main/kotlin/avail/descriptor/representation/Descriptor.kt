@@ -2720,4 +2720,6 @@ protected constructor (
 	override fun o_StylingRecord(self: AvailObject): StylingRecord = unsupported
 
 	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
+
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase = unsupported
 }

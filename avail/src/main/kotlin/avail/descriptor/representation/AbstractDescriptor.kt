@@ -3978,6 +3978,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_StylerMethod(self: AvailObject): A_Method
 
+	abstract fun o_GeneratingPhrase(self: AvailObject): A_Phrase
+
 	companion object
 	{
 		/**

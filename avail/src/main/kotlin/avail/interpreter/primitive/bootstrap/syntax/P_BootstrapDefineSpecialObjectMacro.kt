@@ -142,7 +142,8 @@ object P_BootstrapDefineSpecialObjectMacro
 						syntheticLiteralNodeFor(
 							fromInt(0)),
 						syntheticLiteralNodeFor(
-							fromInt(0)))),
+							fromInt(0)),
+						emptyListNode())),
 				literalTokenType(literalType))
 		val createLiteralNode =
 			newSendNode(

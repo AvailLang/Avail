@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/14/22, 9:04 PM
+ * * Last Generated: 7/14/22, 10:57 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -110,7 +110,7 @@ Uses
 		"_→tuple",
 		"_∈_",
 		"_∈current fiber",
-		"``_``(_)@_:_",
+		"``_``(_)@_:_«from phrase_»?",
 		"`|message_'s⁇parameters`|",
 		"`«(_:=_)`»",
 		"`«[_`|Primitive__]:_^_`»",
@@ -3083,7 +3083,7 @@ Primitive "first-of-seq`«_`»" is
  * Construct and answer a literal token.
  *
  * @category "Primitives" "Tokens" "Constructors"
- * @method "``_``(_)@_:_"
+ * @method "``_``(_)@_:_«from phrase_»?"
  * @param "value" "any"
  *        The value of the literal.
  * @param "lexeme" "string"
@@ -3094,17 +3094,21 @@ Primitive "first-of-seq`«_`»" is
  * @param "line" "[0..∞)"
  *        The one-based line number of the literal. A {@code 0}
  *        indicates that the line number is unknown or meaningless.
+ * @param "optionalGeneratingPhrase" "<phrase⇒⊤…|0..1>"
+ *        The optional phrase from which this token is considered to have been
+ *        constructed.
  * @returns "literal token⇒any"
  *          The requested literal token.
  * @raises "exceeds-VM-limit exception"
  *         If a numeric parameter is outside the range supported by the VM.
  */
-Primitive "``_``(_)@_:_" is
+Primitive "``_``(_)@_:_«from phrase_»?" is
 [
 	value : any,
 	lexeme : string,
 	start : whole number,
-	line : whole number
+	line : whole number,
+	optionalGeneratingPhrase : optionalPhrase
 |
 	Primitive CreateLiteralToken (failureCode : {
 		exceeds-VM-limit code}ᵀ);

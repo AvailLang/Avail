@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/14/22, 9:04 PM
+ * * Last Generated: 7/14/22, 10:57 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -228,7 +228,7 @@ Names
 	"_≤_",
 	"_⊆_",
 	"_⨉_^_",
-	"``_``(_)@_:_",
+	"``_``(_)@_:_«from phrase_»?",
 	"`|_'s⁇local variables`|",
 	"`|_'s⁇outer variables`|",
 	"`|_'s⁇parameters`|",

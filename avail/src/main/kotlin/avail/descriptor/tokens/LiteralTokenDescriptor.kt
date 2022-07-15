@@ -32,6 +32,7 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.AbstractSlotsEnum
@@ -43,6 +44,7 @@ import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.START
+import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.GENERATING_PHRASE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.LITERAL
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.STRING
@@ -140,7 +142,13 @@ class LiteralTokenDescriptor private constructor(
 		NEXT_LEXING_STATE_POJO,
 
 		/** The actual [AvailObject] wrapped by this token. */
-		LITERAL;
+		LITERAL,
+
+		/**
+		 * The [A_Phrase] that produced this literal token, if known, otherwise
+		 * [nil].
+		 */
+		GENERATING_PHRASE;
 
 		companion object
 		{
@@ -203,6 +211,9 @@ class LiteralTokenDescriptor private constructor(
 
 	override fun o_IsLiteralToken(self: AvailObject): Boolean = true
 
+	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
+		self.slot(GENERATING_PHRASE)
+
 	override fun o_SerializerOperation(self: AvailObject)
 		: SerializerOperation = SerializerOperation.LITERAL_TOKEN
 
@@ -248,6 +259,8 @@ class LiteralTokenDescriptor private constructor(
 		 *   The line number on which the token occurred.
 		 * @param literal
 		 *   The literal value.
+		 * @param generatingPhrase
+		 *   Either [nil] or the phrase that generated this token.
 		 * @return
 		 *   The new literal token.
 		 */
@@ -255,12 +268,14 @@ class LiteralTokenDescriptor private constructor(
 			string: A_String,
 			start: Int,
 			lineNumber: Int,
-			literal: A_BasicObject
+			literal: A_BasicObject,
+			generatingPhrase: A_Phrase = nil
 		): AvailObject = mutable.createShared {
 			setSlot(STRING, string)
 			setSlot(START, start)
 			setSlot(LINE_NUMBER, lineNumber)
 			setSlot(LITERAL, literal)
+			setSlot(GENERATING_PHRASE, generatingPhrase)
 			if (literal.isInstanceOfKind(TOKEN.o))
 			{
 				val nextStatePojo = (literal as A_Token).nextLexingStatePojo()
