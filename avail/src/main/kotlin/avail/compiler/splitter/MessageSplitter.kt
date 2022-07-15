@@ -201,11 +201,11 @@ constructor(messageName: A_String) {
 	 *    therefore a method definition) cannot accept a ⊤-valued argument, this
 	 *    mechanism only makes sense for macros, since macros bodies are passed
 	 *    phrases, which may be typed as *yielding* a top-valued result.
-	 *  * An [ELLIPSIS][Metacharacter.ELLIPSIS] (…) matches a single
+	 *  * An [ellipsis][Metacharacter.ELLIPSIS] (…) matches a single
 	 *    [keyword&#32;token][A_Token].
 	 *  * An [exclamation&#32;mark][Metacharacter.EXCLAMATION_MARK] (!) after an
 	 *    ELLIPSIS indicates *any* token will be accepted at that position.
-	 *  * An [OCTOTHORP][Metacharacter.OCTOTHORP] (#) after an ellipsis
+	 *  * An [octothorp][Metacharacter.OCTOTHORP] (#) after an ellipsis
 	 *    indicates only a *literal* token will be accepted.
 	 *  * The N<sup>th</sup> [section][Metacharacter.SECTION_SIGN] (§) in a
 	 *    message name indicates where a macro's N<sup>th</sup>
@@ -491,7 +491,7 @@ constructor(messageName: A_String) {
 
 			/**
 			 * Answer whether the given Unicode codepoint may be
-			 * [backquoted][BACK_QUOTE]
+			 * [backquoted][BACK_QUOTE].
 			 *
 			 * @param codePoint
 			 *   The Unicode codepoint to check.

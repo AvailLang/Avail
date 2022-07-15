@@ -52,6 +52,7 @@ import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
 import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
+import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
 import avail.interpreter.execution.Interpreter
 
@@ -62,7 +63,12 @@ import avail.interpreter.execution.Interpreter
  */
 @Suppress("unused")
 object P_BootstrapLiteralStyler :
-	Primitive(1, CanInline, Bootstrap, WritesToHiddenGlobalState)
+	Primitive(
+		1,
+		CanInline,
+		Bootstrap,
+		ReadsFromHiddenGlobalState,
+		WritesToHiddenGlobalState)
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{

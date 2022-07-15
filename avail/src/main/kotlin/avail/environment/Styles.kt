@@ -185,7 +185,8 @@ enum class DefaultBoundSystemStyle(
 	/** Default style for [SystemStyle.METHOD_NAME]. */
 	METHOD_NAME(
 		SystemStyle.METHOD_NAME,
-		foreground = SystemColors::mango
+		foreground = SystemColors::mango,
+		bold = true
 	),
 
 	/** Default style for [SystemStyle.PARAMETER_DEFINITION]. */
@@ -359,7 +360,8 @@ enum class DefaultBoundSystemStyle(
 	/** Default style for [SystemStyle.STRING_ESCAPE_SEQUENCE]. */
 	STRING_ESCAPE_SEQUENCE(
 		SystemStyle.STRING_ESCAPE_SEQUENCE,
-		foreground = SystemColors::transparentGreen
+		foreground = SystemColors::transparentGreen,
+		bold = true
 	),
 
 	/** Default style for [SystemStyle.NUMERIC_LITERAL]. */

@@ -39,6 +39,8 @@ import avail.compiler.ModuleManifestEntry
 import avail.compiler.SideEffectKind
 import avail.compiler.scanning.LexingState
 import avail.compiler.splitter.MessageSplitter
+import avail.compiler.splitter.MessageSplitter.Metacharacter.*
+import avail.compiler.splitter.MessageSplitter.Metacharacter.Companion.canBeBackQuoted
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.atomName
 import avail.descriptor.atoms.A_Atom.Companion.bundleOrCreate
@@ -1032,7 +1034,7 @@ constructor(
 									.STRING_ESCAPE_SEQUENCE
 									.kotlinString
 							}
-							start += count
+							start += count + 1
 						}
 						// We know that the string lexed correctly, so there
 						// can't be a malformed escape.
@@ -1049,6 +1051,197 @@ constructor(
 					{
 						val c = characters.next().codePoint
 						if (c == '"'.code || c == '\\'.code)
+						{
+							edit(start, start + count) {
+								SystemStyle.STRING_LITERAL.kotlinString
+							}
+							start += count
+							characters.previous()
+							break
+						}
+						else
+						{
+							count++
+						}
+					}
+					// We know that the string lexed correctly, so there have to
+					// be more characters (because we haven't seen the closing
+					// double quote yet).
+					assert(characters.hasNext())
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a method name.
+	 *
+	 * @param stringLiteral
+	 *   The string literal to style as a method name.
+	 */
+	@ThreadSafe
+	fun styleMethodName(stringLiteral: A_Token) = lockStyles {
+		val characters =
+			stringLiteral.string().iterator() as ListIterator<A_Character>
+		var start = stringLiteral.start().toLong()
+		while (characters.hasNext())
+		{
+			var count = 0L
+			when (characters.next().codePoint)
+			{
+				'"'.code ->
+				{
+					edit(start, start + 1) {
+						SystemStyle.METHOD_NAME.kotlinString
+					}
+					start++
+				}
+				'\\'.code ->
+				{
+					count++
+					// We know that the string lexed correctly, so there can't
+					// be a dangling escape.
+					when (characters.next().codePoint)
+					{
+						'('.code ->
+						{
+							count++
+							edit(start, start + count) {
+								SystemStyle
+									.STRING_ESCAPE_SEQUENCE
+									.kotlinString
+							}
+							start += count
+							var value = 0
+							// Process the Unicode escape sequences, looking
+							// for hidden metacharacters.
+							while (characters.hasNext())
+							{
+								when (val c = characters.next().codePoint)
+								{
+									','.code, ')'.code ->
+									{
+										edit(start, start + count) {
+											if (canBeBackQuoted(value))
+											{
+												SystemStyle
+													.METHOD_NAME
+													.kotlinString
+											}
+											else
+											{
+												SystemStyle
+													.STRING_ESCAPE_SEQUENCE
+													.kotlinString
+											}
+										}
+										start += count
+										value = 0
+										edit(start, start + 1) {
+											SystemStyle
+												.STRING_ESCAPE_SEQUENCE
+												.kotlinString
+										}
+										start++
+										break
+									}
+									in '0'.code .. '9'.code ->
+									{
+										count++
+										value = (value shl 4) + c - '0'.code
+									}
+									in 'A'.code .. 'F'.code ->
+									{
+										count++
+										value =
+											(value shl 4) + c - 'A'.code + 10
+									}
+									in 'a'.code .. 'f'.code ->
+									{
+										count++
+										value =
+											(value shl 4) + c - 'a'.code + 10
+									}
+									else ->
+									{
+										assert(false) { "Unreachable" }
+									}
+								}
+							}
+						}
+						'n'.code, 'r'.code, 't'.code,
+						'\\'.code, '\"'.code, '|'.code ->
+						{
+							count++
+							edit(start, start + count) {
+								SystemStyle
+									.STRING_ESCAPE_SEQUENCE
+									.kotlinString
+							}
+							start += count
+						}
+						'\r'.code, '\n'.code ->
+						{
+							// Explicitly don't style the escaped carriage
+							// return or line feed, but do style the backslash.
+							edit(start, start + count) {
+								SystemStyle
+									.STRING_ESCAPE_SEQUENCE
+									.kotlinString
+							}
+							start += count + 1
+						}
+						// We know that the string lexed correctly, so there
+						// can't be a malformed escape.
+						else ->
+						{
+							assert(false) { "Unreachable" }
+						}
+					}
+				}
+				BACK_QUOTE.codepoint ->
+				{
+					// We know that the message split correctly, so there can't
+					// be a dangling escape.
+					val c = characters.next().codePoint
+					assert(canBeBackQuoted(c))
+					edit(start, start + 1) {
+						SystemStyle.METHOD_NAME.kotlinString
+					}
+					edit(start + 1, start + 2) {
+						SystemStyle.STRING_LITERAL.kotlinString
+					}
+					start += 2
+				}
+				CLOSE_GUILLEMET.codepoint,
+					DOUBLE_DAGGER.codepoint,
+					DOUBLE_QUESTION_MARK.codepoint,
+					ELLIPSIS.codepoint,
+					EXCLAMATION_MARK.codepoint,
+					OCTOTHORP.codepoint,
+					OPEN_GUILLEMET.codepoint,
+					QUESTION_MARK.codepoint,
+					SECTION_SIGN.codepoint,
+					SINGLE_DAGGER.codepoint,
+					TILDE.codepoint,
+					UNDERSCORE.codepoint,
+					UP_ARROW.codepoint,
+					VERTICAL_BAR.codepoint ->
+				{
+					edit(start, start + 1) {
+						SystemStyle.METHOD_NAME.kotlinString
+					}
+					start++
+				}
+				else ->
+				{
+					count++
+					while (characters.hasNext())
+					{
+						val c = characters.next().codePoint
+						if (c == '"'.code
+							|| c == '\\'.code
+							|| canBeBackQuoted(c))
 						{
 							edit(start, start + count) {
 								SystemStyle.STRING_LITERAL.kotlinString

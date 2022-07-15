@@ -97,11 +97,11 @@ fun codeSuitableTextPane(
 	val attributes = SimpleAttributeSet()
 	StyleConstants.setTabSet(
 		attributes, TabSet(Array(500) { TabStop(32.0f * (it + 1)) }))
+	StyleConstants.setFontFamily(attributes, "Monospaced")
 	styledDocument.run {
 		setParagraphAttributes(0, length, attributes, false)
 		val defaultStyle = defaultStyle
 		defaultStyle.addAttributes(attributes)
-		StyleConstants.setFontFamily(defaultStyle, "Monospaced")
 		StyleRegistry.addAllStyles(this)
 	}
 }
