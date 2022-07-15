@@ -36,7 +36,7 @@ import javax.swing.JMenu
 import javax.swing.JMenuBar
 
 /** A helper class for building the menu bar. */
-class MenuBarBuilder constructor(val theMenuBar: JMenuBar)
+class MenuBarBuilder constructor(private val theMenuBar: JMenuBar)
 {
 	/** Add a pre-built menu. */
 	fun menu(menu: JMenu)

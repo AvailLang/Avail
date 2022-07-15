@@ -37,7 +37,7 @@ import javax.swing.JCheckBoxMenuItem
 import javax.swing.JMenu
 
 /** A helper class for building menus. */
-class MenuBuilder constructor(val theMenu: JMenu)
+class MenuBuilder constructor(private val theMenu: JMenu)
 {
 	fun item(item: Action)
 	{

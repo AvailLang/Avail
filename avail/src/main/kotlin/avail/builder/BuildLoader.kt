@@ -283,7 +283,8 @@ internal class BuildLoader constructor(
 							compilationKey,
 							completionAction)
 					}
-				}) { code, ex ->
+				}
+			) { code, ex ->
 				// TODO figure out what to do with these!!! Probably report them?
 				System.err.println(
 					"Received ErrorCode: $code with exception:\n")
@@ -662,10 +663,15 @@ internal class BuildLoader constructor(
 	private fun postLoad(moduleName: ResolvedModuleName, lastPosition: Long)
 	{
 		val moduleSize = moduleName.moduleSize
-		globalTracker(
-			bytesCompiled.addAndGet(moduleSize - lastPosition),
-			globalCodeSize)
-		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) { null }
+		val newPosition = bytesCompiled.addAndGet(moduleSize - lastPosition)
+		// Don't report progress if the build is canceled.
+		if (!availBuilder.shouldStopBuild)
+		{
+			globalTracker(newPosition, globalCodeSize)
+			localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) {
+				null
+			}
+		}
 	}
 
 	/**

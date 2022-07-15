@@ -62,6 +62,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.module
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numConstants
 import avail.descriptor.functions.A_RawFunction.Companion.numLocals
+import avail.descriptor.functions.A_RawFunction.Companion.numNybbles
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.maps.A_Map.Companion.mapAtPuttingCanDestroy
 import avail.descriptor.module.A_Module
@@ -315,10 +316,14 @@ class AvailDebugger internal constructor (
 				{ pc, line, string ->
 					val before = length
 					append("$pc. [:$line] $string")
-					val after = length
-					map[pc] = before .. after
+					map[pc] = before .. length
 					append("\n")
 				}
+				val pcPastEnd = code.numNybbles + 1
+				val returnStart = length
+				append("($pcPastEnd. return)")
+				map[pcPastEnd] = returnStart .. length
+				append("\n")
 			}
 			// Write to the cache, even if it overwrites.
 			disassemblyCache[code] = string to map

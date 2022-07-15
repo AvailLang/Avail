@@ -258,8 +258,13 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 		}
 		val debugger = interpreter.debugger
 		code.setUpInstructionDecoder(instructionDecoder)
-		while (!instructionDecoder.atEnd())
+		while (true)
 		{
+			// Check the debugger *prior* to checking for running past the end
+			// of the nybblecodes (an implicit return), since we want to be able
+			// to pause before returning, say in a chain of returns, or when a
+			// breakpoint occurs as a top-level module statement at a point
+			// prior to installing the base frame hook.
 			if (debugger !== null)
 			{
 				val f = interpreter.fiber()
@@ -313,6 +318,27 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 					}
 				}
 			}
+
+			if (instructionDecoder.atEnd())
+			{
+				// It ran off the end of the nybblecodes, which is how a
+				// function returns in Level One. Pop the return result and
+				// return to the Kotlin caller.
+				interpreter.setLatestResult(pop())
+				assert(stackp == pointers.size)
+				interpreter.returnNow = true
+				interpreter.returningFunction = function
+				if (Interpreter.debugL1)
+				{
+					log(
+						Interpreter.loggerDebugL1,
+						Level.FINER,
+						"{0}L1 return",
+						interpreter.debugModeString)
+				}
+				return null
+			}
+
 			val operationOrdinal = instructionDecoder.getOperationOrdinal()
 			if (Interpreter.debugL1)
 			{
@@ -723,22 +749,6 @@ class L1InstructionStepper constructor(val interpreter: Interpreter)
 				}
 			}
 		}
-		// It ran off the end of the nybblecodes, which is how a function
-		// returns in Level One.  Capture the result and return to the Java
-		// caller.
-		interpreter.setLatestResult(pop())
-		assert(stackp == pointers.size)
-		interpreter.returnNow = true
-		interpreter.returningFunction = function
-		if (Interpreter.debugL1)
-		{
-			log(
-				Interpreter.loggerDebugL1,
-				Level.FINER,
-				"{0}L1 return",
-				interpreter.debugModeString)
-		}
-		return null
 	}
 
 	/**
