@@ -232,7 +232,7 @@ import kotlin.math.min
 class AvailWorkbench internal constructor (
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
-	val resolver: ModuleNameResolver) : JFrame()
+	val resolver: ModuleNameResolver) : JFrame("Avail Workbench")
 {
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -311,7 +311,7 @@ class AvailWorkbench internal constructor (
 	 * The [text&#32;area][JTextPane] that displays the [build][AvailBuilder]
 	 * transcript.
 	 */
-	val transcript = codeSuitableTextPane(this)
+	val transcript = codeSuitableTextPane(this, this)
 
 	/** The [scroll bars][JScrollPane] for the [transcript]. */
 	private val transcriptScrollArea: JScrollPane
@@ -355,7 +355,7 @@ class AvailWorkbench internal constructor (
 	private val refreshAction = RefreshAction(this)
 
 	/** The [FindAction] for finding/replacing text in a text area. */
-	val findAction = FindAction(this)
+	private val findAction = FindAction(this, this)
 
 	/** The [&quot;about Avail&quot; action][AboutAction]. */
 	private val aboutAction = AboutAction(this)
@@ -1582,8 +1582,6 @@ class AvailWorkbench internal constructor (
 
 		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
-		// Set *just* the window title...
-		title = "Avail Workbench"
 		isResizable = true
 		background = rootPane.background
 
@@ -1659,6 +1657,7 @@ class AvailWorkbench internal constructor (
 					item(graphAction)
 				}
 			}
+//			addWindowMenu()
 		}
 
 		// The refresh item needs a little help ...
@@ -2247,6 +2246,43 @@ class AvailWorkbench internal constructor (
 				verticalScrollBarPolicy = VERTICAL_SCROLLBAR_ALWAYS
 				minimumSize = Dimension(100, 50)
 			}
+
+		///**
+		// * Create a Window menu that appears suitable for the platform.  Which is
+		// * only Mac at the moment, although these commands should work anywhere.
+		// */
+		//fun addWindowMenu()
+		//{
+		//	menu("Window")
+		//	{
+		//		item(minimizeWindowAction)
+		//		item(zoomWindowAction)
+		//		item(closeWindowAction)
+		//		separator()
+		//		item(bringAllToFrontAction)
+		//	}
+		//}
+		//
+		//private object minimizeWindowAction : AbstractAction("Minimize")
+		//{
+		//	init {
+		//		putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"))
+		//		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+		//			keyStroke, this)
+		//	}
+		//
+		//	override fun actionPerformed(e: ActionEvent?)
+		//	{
+		//		keyStroke?.let {
+		//			putValue(Action.ACCELERATOR_KEY, keyStroke)
+		//			rootPane.actionMap.put(this, this)
+		//			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+		//				keyStroke, this)
+		//		}
+		//		) : AbstractWorkbenchAction(workbench, "Refresh", KeyStroke.getKeyStroke("F5"))
+		//		TODO("Not yet implemented")
+		//	}
+		//}
 
 		/**
 		 * Pass this method an Object and Method equipped to perform application

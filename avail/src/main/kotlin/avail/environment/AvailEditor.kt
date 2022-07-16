@@ -213,7 +213,7 @@ constructor(
 	}
 
 	/** The editor pane. */
-	private val sourcePane = codeSuitableTextPane(workbench).apply {
+	private val sourcePane = codeSuitableTextPane(workbench, this).apply {
 		var stylingRecord: StylingRecord? = null
 		val semaphore = Semaphore(0)
 		resolverReference.readFileString(
@@ -364,7 +364,7 @@ constructor(
 		jMenuBar = createMenuBar {
 			menu("Edit")
 			{
-				item(FindAction(workbench))
+				item(FindAction(workbench, this@AvailEditor))
 			}
 		}
 	}

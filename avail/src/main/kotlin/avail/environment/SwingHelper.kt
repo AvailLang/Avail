@@ -35,20 +35,28 @@ package avail.environment
 import avail.environment.BoundStyle.Companion.defaultStyle
 import avail.environment.text.AvailEditorKit
 import avail.environment.text.TextLineNumber
+import java.awt.Color
 import java.awt.Component
 import java.awt.Dimension
 import java.awt.Frame
+import java.awt.Graphics
 import java.awt.Rectangle
+import java.awt.Shape
 import javax.swing.BorderFactory
+import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
 import javax.swing.text.BadLocationException
+import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
+import javax.swing.text.Position.Bias
 import javax.swing.text.SimpleAttributeSet
 import javax.swing.text.StyleConstants
 import javax.swing.text.StyledDocument
 import javax.swing.text.TabSet
 import javax.swing.text.TabStop
+import javax.swing.text.View
+import kotlin.math.max
 
 /**
  * Either places the receiver JTextArea inside a JScrollPane with line numbers
@@ -85,14 +93,15 @@ fun Component.scroll(): JScrollPane
  */
 // Set up styles for the transcript.
 fun codeSuitableTextPane(
-	workbench: AvailWorkbench
+	workbench: AvailWorkbench,
+	frame: JFrame
 ): JTextPane = JTextPane().apply {
 	border = BorderFactory.createEtchedBorder()
 	isEditable = true
 	isEnabled = true
 	isFocusable = true
 	preferredSize = Dimension(0, 500)
-	editorKit = AvailEditorKit(workbench)
+	editorKit = AvailEditorKit(workbench, frame)
 	background = SystemColors.active.codeBackground
 	val attributes = SimpleAttributeSet()
 	StyleConstants.setTabSet(
@@ -131,5 +140,49 @@ fun JTextComponent.showTextRange(rangeStart: Int, rangeEnd: Int)
 	catch (ble: BadLocationException)
 	{
 		// Ignore text range problems.
+	}
+}
+
+class GlowHighlightPainter
+constructor (
+	color: Color
+): DefaultHighlightPainter(color)
+{
+	override fun paintLayer(
+		g: Graphics,
+		offs0: Int,
+		offs1: Int,
+		bounds: Shape,
+		c: JTextComponent,
+		view: View
+	): Shape?
+	{
+		g.color = color ?: c.selectionColor
+		val r = if (false) //(offs0 == view.startOffset && offs1 == view.endOffset)
+		{
+			// Contained in view, can just use bounds.
+			bounds as? Rectangle ?: bounds.bounds
+		}
+		else
+		{
+			// Should only render part of View.
+			try
+			{
+				// --- determine locations ---
+				val shape = view.modelToView(
+					offs0, Bias.Forward, offs1, Bias.Backward, bounds)
+				shape as? Rectangle ?: shape.bounds
+			}
+			catch (e: BadLocationException)
+			{
+				// can't render
+				return null
+			}
+		}
+		// If we are asked to highlight, we should draw something even
+		// if the model-to-view projection is of zero width (6340106).
+		r.width = max(r.width, 1)
+		g.drawRect(r.x, r.y, r.width, r.height - 1)
+		return Rectangle(r.x - 1, r.y - 1, r.width + 3, r.height + 2)
 	}
 }

@@ -573,14 +573,16 @@ class AvailDebugger internal constructor (
 	}
 
 	/** A view of the L1 disassembly for the selected frame. */
-	private val disassemblyPane = codeSuitableTextPane(workbench).apply {
-		isEditable = false
-	}
+	private val disassemblyPane =
+		codeSuitableTextPane(workbench, workbench).apply {
+			isEditable = false
+		}
 
 	/** A view of the source code for the selected frame. */
-	private val sourcePane = codeSuitableTextPane(workbench).apply {
-		isEditable = false
-	}
+	private val sourcePane =
+		codeSuitableTextPane(workbench, workbench).apply {
+			isEditable = false
+		}
 
 	/** The list of variables in scope in the selected frame. */
 	private val variablesPane = JList(arrayOf<Variable>()).apply {
@@ -1099,7 +1101,7 @@ class AvailDebugger internal constructor (
 		jMenuBar = MenuBarBuilder.createMenuBar {
 			menu("Edit")
 			{
-				item(FindAction(workbench))
+				item(FindAction(workbench, this@AvailDebugger))
 			}
 		}
 	}
