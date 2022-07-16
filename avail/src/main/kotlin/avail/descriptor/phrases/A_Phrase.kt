@@ -52,7 +52,6 @@ import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.MACRO_SUBSTITUTION_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.VARIABLE_USE_PHRASE
 import avail.descriptor.types.TypeDescriptor
@@ -629,7 +628,8 @@ interface A_Phrase : A_BasicObject {
 		 */
 		val A_Phrase.allTokens: A_Tuple get()
 		{
-			val tokens = mutableListOf<A_Token>()
+			val tokens = mutableSetOf<A_Token>()
+			val exclude = mutableSetOf<A_Phrase>()
 			treeDoWithParent(
 				this,
 				children = { phrase, withChild ->
@@ -637,31 +637,47 @@ interface A_Phrase : A_BasicObject {
 					{
 						// Traverse through the original macro send phrase, not
 						// the substitute.
-						phrase.phraseKindIsUnder(MACRO_SUBSTITUTION_PHRASE) ->
+						phrase.isMacroSubstitutionNode ->
+						{
+							exclude.add(phrase)
 							withChild(phrase.macroOriginalSendNode)
+						}
 						// Do not traverse into the (nonlocal) declaration that
 						// created the used variable.
 						phrase.phraseKindIsUnder(VARIABLE_USE_PHRASE) -> {}
+						// Literal phrases may require additional traversal, if
+						// they were produced in special circumstances, e.g.,
+						// by _† or _!.
 						phrase.phraseKindIsUnder(LITERAL_PHRASE) ->
 						{
-							val value = phrase.token.literal()
-							if (value.isInstanceOf(
+							val token = phrase.token
+							val value = token.literal()
+							val generator = token.generatingPhrase
+							// This deals with: _†
+							if (generator.notNil)
+							{
+								exclude.add(phrase)
+								withChild(generator)
+							}
+							// This deals with: _!
+							else if (value.isInstanceOf(
 								PARSE_PHRASE.mostGeneralType))
 							{
-								// This supports _!.
+								exclude.add(phrase)
 								withChild(value)
 							}
-							// TODO: Also check the original phrase (to support
-							//   _†).
 						}
 						else -> phrase.childrenDo(withChild)
 					}
 				}
-			) { child, _ ->
-				tokens.addAll(child.tokens.filter { it.start() != 0 })
+			) { phrase, _ ->
+				if (!exclude.contains(phrase))
+				{
+					tokens.addAll(phrase.tokens.filter { it.start() != 0 })
+				}
 			}
-			tokens.sortBy { it.start() }
-			return tupleFromList(tokens)
+			val sorted = tokens.sortedBy { it.start() }
+			return tupleFromList(sorted)
 		}
 
 		/**

@@ -38,6 +38,7 @@ import avail.descriptor.representation.A_BasicObject.Companion.dispatch
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.tuples.A_String
+import avail.descriptor.tuples.A_Tuple.Companion.tupleSize
 
 /**
  * `A_Token` is an interface that specifies the token-specific operations that
@@ -151,4 +152,24 @@ interface A_Token : A_BasicObject
 	 * token.  It should *not* be used for subsequent parsing/lexing.
 	 */
 	fun synthesizeCurrentLexingState(): LexingState
+
+	companion object
+	{
+		/**
+		 * Answer the token's final character position in the source file.
+		 *
+		 * @return
+		 *   The token's end position, inclusive.
+		 */
+		fun A_Token.end(): Int = start() + string().tupleSize - 1
+
+		/**
+		 * Answer this position in the source file just beyond the final
+		 * character of this token.
+		 *
+		 * @return
+		 *   The token's end position, exclusive.
+		 */
+		fun A_Token.pastEnd(): Int = start() + string().tupleSize
+	}
 }

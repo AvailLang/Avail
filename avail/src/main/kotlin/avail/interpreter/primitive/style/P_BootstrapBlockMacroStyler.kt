@@ -51,6 +51,7 @@ import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
+import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
@@ -72,7 +73,6 @@ import avail.interpreter.Primitive.Flag.Bootstrap
 import avail.interpreter.Primitive.Flag.CanInline
 import avail.interpreter.Primitive.Flag.ReadsFromHiddenGlobalState
 import avail.interpreter.Primitive.Flag.WritesToHiddenGlobalState
-import avail.interpreter.execution.AvailLoader.Companion.overrideStyle
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
 
@@ -145,11 +145,7 @@ object P_BootstrapBlockMacroStyler :
 				val argTypeStyle =
 					argType.phraseExpressionType.systemStyleForType
 				argType.allTokens.forEach { token ->
-					loader.styleToken(
-						token,
-						argTypeStyle,
-						false,
-						overrideStyle(METHOD_SEND, argTypeStyle))
+					loader.styleToken(token, argTypeStyle, true)
 				}
 			}
 		}
@@ -177,11 +173,7 @@ object P_BootstrapBlockMacroStyler :
 					val failureTypeStyle =
 						failureType.phraseExpressionType.systemStyleForType
 					failureType.allTokens.forEach { token ->
-						loader.styleToken(
-							token,
-							failureTypeStyle,
-							false,
-							overrideStyle(METHOD_SEND, failureTypeStyle))
+						loader.styleToken(token, failureTypeStyle, true)
 					}
 				}
 			}
@@ -202,8 +194,21 @@ object P_BootstrapBlockMacroStyler :
 		{
 			val returnPhrase = optReturn.expressionAt(1).token.literal()
 			assert(returnPhrase.phraseKindIsUnder(EXPRESSION_PHRASE))
-			returnPhrase.allTokens.forEach { token ->
-				loader.styleToken(token, SystemStyle.RETURN_VALUE)
+			val tokens = returnPhrase.allTokens
+			loader.lockStyles {
+				val lines = tokens.groupBy { it.lineNumber() }
+				lines.forEach { (_, line) ->
+					val start = line.first().start().toLong()
+					val pastEnd = line.last().pastEnd().toLong()
+					edit(start, pastEnd) { old ->
+						val new = SystemStyle.RETURN_VALUE.kotlinString
+						when (old)
+						{
+							null -> new
+							else -> "$new,$old"
+						}
+					}
+				}
 			}
 		}
 
@@ -215,11 +220,7 @@ object P_BootstrapBlockMacroStyler :
 			val returnTypeStyle =
 				returnTypePhrase.phraseExpressionType.systemStyleForType
 			returnTypePhrase.allTokens.forEach { token ->
-				loader.styleToken(
-					token,
-					returnTypeStyle,
-					false,
-					overrideStyle(METHOD_SEND, returnTypeStyle))
+				loader.styleToken(token, returnTypeStyle, true)
 			}
 		}
 
@@ -230,11 +231,7 @@ object P_BootstrapBlockMacroStyler :
 				assert(exPart.phraseKindIsUnder(LIST_PHRASE))
 				val exTypePhrase = exPart.expressionAt(1)
 				exTypePhrase.allTokens.forEach { token ->
-					loader.styleToken(
-						token,
-						TYPE,
-						false,
-						overrideStyle(METHOD_SEND, TYPE))
+					loader.styleToken(token, TYPE, true)
 				}
 			}
 		}

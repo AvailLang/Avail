@@ -33,6 +33,7 @@
 package avail.environment
 
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
+import avail.environment.AdaptiveColor.Companion.blend
 import avail.environment.BoundStyle.Companion.defaultStyle
 import avail.environment.streams.StreamStyle
 import avail.persistence.cache.StyleRun
@@ -127,9 +128,11 @@ interface BoundStyle
  * @property family
  *   The font family.
  * @property foreground
- *   How to obtain a [system&#32;color][SystemColors] for the foreground.
+ *   How to obtain a [system&#32;color][SystemColors] for the foreground. May be
+ *   `null`, to use the default foreground. Defaults to `null`.
  * @property background
- *   How to obtain a [system&#32;color][SystemColors] for the background.
+ *   How to obtain a [system&#32;color][SystemColors] for the background. May be
+ *   `null`, to use the default background. Defaults to `null`.
  * @property bold
  *   Whether to use bold font weight.
  * @property italic
@@ -588,7 +591,7 @@ object StyleRegistry: Iterable<BoundStyle>
 /**
  * Utility for applying [bound&#32;styles][BoundStyle] to [StyledDocument]s.
  *
- * @author Todd Smith &lt;todd@availlang.org&gt;
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
  */
 object StyleApplicator
 {
@@ -603,17 +606,98 @@ object StyleApplicator
 	fun StyledDocument.applyStyleRuns(runs: List<StyleRun>)
 	{
 		assert(SwingUtilities.isEventDispatchThread())
+		val compositeStyles = mutableMapOf<String, Style>()
 		runs.forEach { (range, compositeStyleName) ->
 			val styleNames = compositeStyleName.split(",")
-			styleNames.forEach { styleName ->
+			if (styleNames.size == 1)
+			{
+				// All simple styles should already have been added to the
+				// document, so just ask the document for its registered style
+				// and use it to style the range.
+				val styleName = styleNames.first()
 				getStyle(styleName)?.let { style ->
 					setCharacterAttributes(
 						range.first - 1,
 						range.last - range.first + 1,
 						style,
-						false)
+						false
+					)
 				}
 			}
+			else
+			{
+				// Compute the composite styles on demand, using a cache to
+				// avoid redundant effort.
+				val style =
+					compositeStyles.computeIfAbsent(compositeStyleName) {
+						val style = addStyle(it, defaultStyle)
+						val combined = styleNames.drop(1).fold(
+							StyleAspects(getStyle(styleNames.first()))
+						) { aspect, nextStyleName ->
+							aspect + StyleAspects(getStyle(nextStyleName))
+						}
+						combined.applyTo(style)
+						style
+					}
+				setCharacterAttributes(
+					range.first - 1,
+					range.last - range.first + 1,
+					style,
+					false
+				)
+			}
 		}
+	}
+}
+
+/**
+ * Concentrate the renderable aspects of a [BoundStyle].
+ *
+ * @author Todd L Smith &lt;todd@availlang.org&gt;
+ */
+private data class StyleAspects(
+	val fontFamily: String,
+	val foreground: Color,
+	val background: Color,
+	val bold: Boolean,
+	val italic: Boolean,
+	val underline: Boolean)
+{
+	constructor(style: Style) : this(
+		StyleConstants.getFontFamily(style),
+		StyleConstants.getForeground(style),
+		StyleConstants.getBackground(style),
+		StyleConstants.isBold(style),
+		StyleConstants.isItalic(style),
+		StyleConstants.isUnderline(style)
+	)
+
+	operator fun plus(other: StyleAspects) = StyleAspects(
+		other.fontFamily,
+		when
+		{
+			foreground == SystemColors.active.baseCode -> other.foreground
+			other.foreground == SystemColors.active.baseCode -> foreground
+			else -> blend(foreground, other.foreground, 0.15f)
+		},
+		when
+		{
+			background == SystemColors.active.codeBackground -> other.background
+			other.background == SystemColors.active.codeBackground -> background
+			else -> blend(background, other.background, 0.15f)
+		},
+		bold || other.bold,
+		italic || other.italic,
+		underline || other.underline
+	)
+
+	fun applyTo(style: Style)
+	{
+		StyleConstants.setFontFamily(style, fontFamily)
+		StyleConstants.setForeground(style, foreground)
+		StyleConstants.setBackground(style, background)
+		StyleConstants.setBold(style, bold)
+		StyleConstants.setItalic(style, italic)
+		StyleConstants.setUnderline(style, underline)
 	}
 }
