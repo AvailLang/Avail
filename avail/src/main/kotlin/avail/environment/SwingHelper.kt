@@ -42,10 +42,18 @@ import java.awt.Frame
 import java.awt.Graphics
 import java.awt.Rectangle
 import java.awt.Shape
+import java.awt.event.ActionEvent
+import java.awt.event.InputEvent
+import java.awt.event.KeyEvent
+import java.awt.event.WindowEvent
+import javax.swing.AbstractAction
+import javax.swing.Action
 import javax.swing.BorderFactory
+import javax.swing.JComponent
 import javax.swing.JFrame
 import javax.swing.JScrollPane
 import javax.swing.JTextPane
+import javax.swing.KeyStroke
 import javax.swing.text.BadLocationException
 import javax.swing.text.DefaultHighlighter.DefaultHighlightPainter
 import javax.swing.text.JTextComponent
@@ -159,31 +167,97 @@ constructor (
 	): Shape?
 	{
 		g.color = color ?: c.selectionColor
-		val r = if (false) //(offs0 == view.startOffset && offs1 == view.endOffset)
+		val shape = try
 		{
-			// Contained in view, can just use bounds.
-			bounds as? Rectangle ?: bounds.bounds
+			view.modelToView(offs0, Bias.Backward, offs1, Bias.Forward, bounds)
 		}
-		else
+		catch (e: BadLocationException)
 		{
-			// Should only render part of View.
-			try
-			{
-				// --- determine locations ---
-				val shape = view.modelToView(
-					offs0, Bias.Forward, offs1, Bias.Backward, bounds)
-				shape as? Rectangle ?: shape.bounds
-			}
-			catch (e: BadLocationException)
-			{
-				// can't render
-				return null
-			}
+			return null
 		}
+		val r = shape as? Rectangle ?: shape.bounds
 		// If we are asked to highlight, we should draw something even
-		// if the model-to-view projection is of zero width (6340106).
+		// if the model-to-view projection is of zero width.
 		r.width = max(r.width, 1)
 		g.drawRect(r.x, r.y, r.width, r.height - 1)
 		return Rectangle(r.x - 1, r.y - 1, r.width + 3, r.height + 2)
+	}
+}
+
+/**
+ * Create a Window menu that appears suitable for the platform.  Which is
+ * only Mac at the moment, although these commands should work anywhere.
+ */
+fun MenuBarBuilder.addWindowMenu(frame: JFrame)
+{
+	menu("Window")
+	{
+		item(
+			WindowAction(
+				"Minimize",
+				frame,
+				KeyStroke.getKeyStroke(
+					KeyEvent.VK_M, AvailWorkbench.menuShortcutMask)
+			) {
+				val mask = JFrame.ICONIFIED
+				val state = frame.extendedState
+				when (state and mask)
+				{
+					0 -> frame.extendedState = state or mask
+					else -> frame.extendedState = state and (mask.inv())
+				}
+			})
+		item(
+			WindowAction(
+				"Zoom",
+				frame,
+				KeyStroke.getKeyStroke(
+					KeyEvent.VK_F,
+					AvailWorkbench.menuShortcutMask
+						or InputEvent.CTRL_DOWN_MASK)
+			) {
+				val mask = JFrame.MAXIMIZED_BOTH
+				val state = frame.extendedState
+				when (state and mask)
+				{
+					0 -> frame.extendedState = state or mask
+					else -> frame.extendedState = state and (mask.inv())
+				}
+			})
+		item(
+			WindowAction(
+				"Close",
+				frame,
+				KeyStroke.getKeyStroke(
+					KeyEvent.VK_W, AvailWorkbench.menuShortcutMask)
+			) {
+				frame.dispatchEvent(
+					WindowEvent(frame, WindowEvent.WINDOW_CLOSING))
+			})
+	}
+}
+
+class WindowAction
+constructor(
+	name: String,
+	frame: JFrame,
+	keyStroke: KeyStroke? = null,
+	val action: ()->Unit
+): AbstractAction(name)
+{
+	init
+	{
+		val rootPane = frame.rootPane
+		rootPane.actionMap.put(this, this)
+		keyStroke?.let {
+			putValue(Action.ACCELERATOR_KEY, it)
+			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
+				it, this)
+		}
+	}
+
+	override fun actionPerformed(e: ActionEvent?)
+	{
+		action()
 	}
 }

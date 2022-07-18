@@ -366,6 +366,7 @@ constructor(
 			{
 				item(FindAction(workbench, this@AvailEditor))
 			}
+			addWindowMenu(this@AvailEditor)
 		}
 	}
 }

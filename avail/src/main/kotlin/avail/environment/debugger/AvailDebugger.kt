@@ -82,6 +82,7 @@ import avail.environment.AvailWorkbench
 import avail.environment.MenuBarBuilder
 import avail.environment.StyleApplicator.applyStyleRuns
 import avail.environment.actions.FindAction
+import avail.environment.addWindowMenu
 import avail.environment.codeSuitableTextPane
 import avail.environment.scroll
 import avail.environment.scrollTextWithLineNumbers
@@ -1103,6 +1104,7 @@ class AvailDebugger internal constructor (
 			{
 				item(FindAction(workbench, this@AvailDebugger))
 			}
+			addWindowMenu(this@AvailDebugger)
 		}
 	}
 

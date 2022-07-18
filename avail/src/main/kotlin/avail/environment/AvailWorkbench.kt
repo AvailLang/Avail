@@ -1620,6 +1620,7 @@ class AvailWorkbench internal constructor (
 				separator()
 				item(clearTranscriptAction)
 			}
+			addWindowMenu(this@AvailWorkbench)
 			if (showDeveloperTools)
 			{
 				menu("Developer")
@@ -2246,43 +2247,6 @@ class AvailWorkbench internal constructor (
 				verticalScrollBarPolicy = VERTICAL_SCROLLBAR_ALWAYS
 				minimumSize = Dimension(100, 50)
 			}
-
-		///**
-		// * Create a Window menu that appears suitable for the platform.  Which is
-		// * only Mac at the moment, although these commands should work anywhere.
-		// */
-		//fun addWindowMenu()
-		//{
-		//	menu("Window")
-		//	{
-		//		item(minimizeWindowAction)
-		//		item(zoomWindowAction)
-		//		item(closeWindowAction)
-		//		separator()
-		//		item(bringAllToFrontAction)
-		//	}
-		//}
-		//
-		//private object minimizeWindowAction : AbstractAction("Minimize")
-		//{
-		//	init {
-		//		putValue(Action.ACCELERATOR_KEY, KeyStroke.getKeyStroke("F5"))
-		//		rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-		//			keyStroke, this)
-		//	}
-		//
-		//	override fun actionPerformed(e: ActionEvent?)
-		//	{
-		//		keyStroke?.let {
-		//			putValue(Action.ACCELERATOR_KEY, keyStroke)
-		//			rootPane.actionMap.put(this, this)
-		//			rootPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(
-		//				keyStroke, this)
-		//		}
-		//		) : AbstractWorkbenchAction(workbench, "Refresh", KeyStroke.getKeyStroke("F5"))
-		//		TODO("Not yet implemented")
-		//	}
-		//}
 
 		/**
 		 * Pass this method an Object and Method equipped to perform application
