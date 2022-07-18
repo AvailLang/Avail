@@ -78,7 +78,6 @@ import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import org.availlang.persistence.IndexedFile.Companion.validatedBytesFrom
 import org.availlang.persistence.MalformedSerialStreamException
-import java.lang.String.format
 import java.util.concurrent.Semaphore
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicLong
@@ -241,11 +240,9 @@ internal class BuildLoader constructor(
 						catch (e: UnresolvedDependencyException)
 						{
 							availBuilder.stopBuildReason =
-								format(
-									"A module predecessor was malformed or absent: "
-										+ "%s -> %s\n",
-									moduleName.qualifiedName,
-									localName)
+								"A module predecessor was malformed or " +
+									"absent: ${moduleName.qualifiedName} " +
+									"-> $localName\n"
 							completionAction()
 							return@digestForFile
 						}
@@ -279,9 +276,7 @@ internal class BuildLoader constructor(
 					{
 						// Compile the module and cache its compiled form.
 						compileModule(
-							moduleName,
-							compilationKey,
-							completionAction)
+							moduleName, compilationKey, completionAction)
 					}
 				}
 			) { code, ex ->
@@ -668,9 +663,9 @@ internal class BuildLoader constructor(
 		if (!availBuilder.shouldStopBuild)
 		{
 			globalTracker(newPosition, globalCodeSize)
-			localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) {
-				null
-			}
+		}
+		localTracker(moduleName, moduleSize, moduleSize, Int.MAX_VALUE) {
+			null
 		}
 	}
 
