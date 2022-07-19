@@ -48,9 +48,11 @@ import avail.descriptor.sets.A_Set
 import avail.descriptor.tokens.TokenDescriptor
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.tuples.TupleDescriptor
+import avail.descriptor.types.BottomTypeDescriptor.Companion.bottomMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.instanceMeta
 import avail.descriptor.types.InstanceMetaDescriptor.Companion.topMeta
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
+import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
 import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
@@ -1054,9 +1056,16 @@ interface A_Type : A_BasicObject
 		 * a metatype or just an ordinary type.
 		 */
 		val A_Type.systemStyleForType get() =
-			if (isSubtypeOf(instanceMeta(topMeta()))) SystemStyle.METATYPE
-			else SystemStyle.TYPE
-
+			when
+			{
+				isSubtypeOf(instanceMeta(bottomMeta)) ->
+					SystemStyle.TYPE
+				isSubtypeOf(instanceMeta(PARSE_PHRASE.mostGeneralType)) ->
+					SystemStyle.PHRASE_TYPE
+				isSubtypeOf(instanceMeta(topMeta())) ->
+					SystemStyle.METATYPE
+				else -> SystemStyle.TYPE
+			}
 
 		// Static methods referenced from generated code.
 

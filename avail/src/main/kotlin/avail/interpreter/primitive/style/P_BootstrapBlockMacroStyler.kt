@@ -36,7 +36,6 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.methods.StylerDescriptor.SystemStyle.METHOD_SEND
 import avail.descriptor.methods.StylerDescriptor.SystemStyle.TYPE
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.allTokens
@@ -118,21 +117,20 @@ object P_BootstrapBlockMacroStyler :
 			optExceptions
 		) = sendPhrase.argumentsListNode.expressionsTuple
 
-		// Give an initial default style to all the fixed keyword and operator
-		// tokens.
+		// Style all the fixed keyword and operator tokens.
 		for (token in sendPhrase.tokens)
 		{
 			val style = when (token.tokenType())
 			{
-				TokenType.KEYWORD -> METHOD_SEND
-				TokenType.OPERATOR -> METHOD_SEND
+				TokenType.KEYWORD -> SystemStyle.BLOCK
+				TokenType.OPERATOR -> SystemStyle.BLOCK
 				// Skip other tokens... although they won't actually occur here.
 				else -> continue
 			}
 			loader.styleToken(token, style)
 		}
 
-		// Add styles specific to blocks.  Start with the arguments...
+		// Style the formal parameters.
 		if (optArgs.expressionsSize > 0)
 		{
 			optArgs.expressionAt(1).expressionsTuple.forEach { argPart ->
@@ -145,12 +143,12 @@ object P_BootstrapBlockMacroStyler :
 				val argTypeStyle =
 					argType.phraseExpressionType.systemStyleForType
 				argType.allTokens.forEach { token ->
-					loader.styleToken(token, argTypeStyle, true)
+					loader.styleToken(token, argTypeStyle)
 				}
 			}
 		}
 
-		// Deal with the primitive declaration if present.
+		// Style the primitive declaration, if present.
 		if (optPrim.expressionsSize > 0)
 		{
 			val primDecl = optPrim.expressionAt(1)
@@ -173,13 +171,13 @@ object P_BootstrapBlockMacroStyler :
 					val failureTypeStyle =
 						failureType.phraseExpressionType.systemStyleForType
 					failureType.allTokens.forEach { token ->
-						loader.styleToken(token, failureTypeStyle, true)
+						loader.styleToken(token, failureTypeStyle)
 					}
 				}
 			}
 		}
 
-		// Deal with the label if present.
+		// Style the label, if present.
 		if (optLabel.expressionsSize > 0)
 		{
 			val labelPhrase = optLabel.expressionAt(1).expressionAt(1)
@@ -189,7 +187,7 @@ object P_BootstrapBlockMacroStyler :
 				SystemStyle.LABEL_DEFINITION)
 		}
 
-		// Deal with the return expression.
+		// Style the return expression, if present.
 		if (optReturn.expressionsSize > 0)
 		{
 			val returnPhrase = optReturn.expressionAt(1).token.literal()
@@ -212,7 +210,7 @@ object P_BootstrapBlockMacroStyler :
 			}
 		}
 
-		// Deal with the return type if present.
+		// Style the return type, if present.
 		if (optReturnType.expressionsSize > 0)
 		{
 			val returnTypePhrase = optReturnType.expressionAt(1)
@@ -220,18 +218,18 @@ object P_BootstrapBlockMacroStyler :
 			val returnTypeStyle =
 				returnTypePhrase.phraseExpressionType.systemStyleForType
 			returnTypePhrase.allTokens.forEach { token ->
-				loader.styleToken(token, returnTypeStyle, true)
+				loader.styleToken(token, returnTypeStyle)
 			}
 		}
 
-		// Deal with exception types if present.
+		// Style the exception types, if present.
 		if (optExceptions.expressionsSize > 0)
 		{
 			optExceptions.expressionAt(1).expressionsTuple.forEach { exPart ->
 				assert(exPart.phraseKindIsUnder(LIST_PHRASE))
 				val exTypePhrase = exPart.expressionAt(1)
 				exTypePhrase.allTokens.forEach { token ->
-					loader.styleToken(token, TYPE, true)
+					loader.styleToken(token, TYPE)
 				}
 			}
 		}
