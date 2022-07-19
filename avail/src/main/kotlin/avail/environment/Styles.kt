@@ -653,9 +653,40 @@ object StyleApplicator
 /**
  * Concentrate the renderable aspects of a [BoundStyle].
  *
+ * @property fontFamily
+ *   The font family for text rendition.
+ * @property foreground
+ *   The foreground color, i.e., the color of rendered text.
+ * @property background
+ *   The background color.
+ * @property bold
+ *   Whether the font weight is **bold**.
+ * @property italic
+ *   Whether the font style is _italic_.
+ * @property underline
+ *   Whether the font decoration is
+ *   <span style="text-decoration: underline">underline</span>.
  * @author Todd L Smith &lt;todd@availlang.org&gt;
+ *
+ * @constructor
+ * Construct an immutable representation of the complete set of supported style
+ * attributes available for a [BoundStyle].
+ *
+ * @param fontFamily
+ *   The font family for text rendition.
+ * @param foreground
+ *   The foreground color, i.e., the color of rendered text.
+ * @param background
+ *   The background color.
+ * @param bold
+ *   Whether the font weight is **bold**.
+ * @param italic
+ *   Whether the font style is _italic_.
+ * @param underline
+ *   Whether the font decoration is
+ *   <span style="text-decoration: underline">underline</span>.
  */
-private data class StyleAspects(
+private data class StyleAspects constructor(
 	val fontFamily: String,
 	val foreground: Color,
 	val background: Color,
@@ -663,6 +694,13 @@ private data class StyleAspects(
 	val italic: Boolean,
 	val underline: Boolean)
 {
+	/**
+	 * Construct an instance by summarizing the supported style attributes of
+	 * the specified [Style].
+	 *
+	 * @param style
+	 *   The style to summarize.
+	 */
 	constructor(style: Style) : this(
 		StyleConstants.getFontFamily(style),
 		StyleConstants.getForeground(style),
@@ -672,6 +710,31 @@ private data class StyleAspects(
 		StyleConstants.isUnderline(style)
 	)
 
+	/**
+	 * Derive an instance by compositing the receiver and the argument,
+	 * according to the following rules:
+	 *
+	 * * Use the argument's [fontFamily] unconditionally.
+	 * * If either the receiver's or the argument's [foreground] is
+	 *   [SystemColors.baseCode], then use the other color.
+	 * * If neither the receiver's nor the argument's [foreground] is
+	 *   [SystemColors.baseCode], then [blend] both colors, giving 15% to the
+	 *   receiver and %85 to the argument.
+	 * * If either the receiver's or the argument's [background] is
+	 *   [SystemColors.codeBackground], then use the other color.
+	 * * If neither the receiver's nor the argument's [foreground] is
+	 *   [SystemColors.codeBackground], then [blend] both colors, giving 15% to
+	 *   the receiver and %85 to the argument.
+	 * * If either the receiver or the argument is [bold], then use [bold].
+	 * * If either the receiver or the argument is [italic], then use [italic].
+	 * * If either the receiver or the argument is [underline], then use
+	 *   [underline].
+	 *
+	 * @param other
+	 *   The aspects to merge.
+	 * @return
+	 *   The merged instance.
+	 */
 	operator fun plus(other: StyleAspects) = StyleAspects(
 		other.fontFamily,
 		when
@@ -691,6 +754,13 @@ private data class StyleAspects(
 		underline || other.underline
 	)
 
+	/**
+	 * Apply the consolidated aspects to the specified [style], i.e., for
+	 * subsequent use in a [StyledDocument].
+	 *
+	 * @param style
+	 *   The style to modify.
+	 */
 	fun applyTo(style: Style)
 	{
 		StyleConstants.setFontFamily(style, fontFamily)
