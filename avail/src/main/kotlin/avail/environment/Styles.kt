@@ -314,6 +314,19 @@ enum class DefaultBoundSystemStyle(
 		underline = true
 	),
 
+	/** Default style for [SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION]. */
+	PRIMITIVE_FAILURE_REASON_DEFINITION(
+		SystemStyle.PRIMITIVE_FAILURE_REASON_DEFINITION,
+		foreground = SystemColors::transparentMagenta,
+		bold = true
+	),
+
+	/** Default style for [SystemStyle.PRIMITIVE_FAILURE_REASON_USE]. */
+	PRIMITIVE_FAILURE_REASON_USE(
+		SystemStyle.PRIMITIVE_FAILURE_REASON_USE,
+		foreground = SystemColors::transparentMagenta
+	),
+
 	/** Default style for [SystemStyle.LOCAL_CONSTANT_DEFINITION]. */
 	LOCAL_CONSTANT_DEFINITION(
 		SystemStyle.LOCAL_CONSTANT_DEFINITION,

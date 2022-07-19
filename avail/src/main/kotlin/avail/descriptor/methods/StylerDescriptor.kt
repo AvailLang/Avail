@@ -269,6 +269,18 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		MODULE_VARIABLE_USE("#module-variable-use"),
 
 		/**
+		 * The name of a primitive failure reason constant at its definition
+		 * site.
+		 */
+		PRIMITIVE_FAILURE_REASON_DEFINITION(
+			"#primitive-failure-reason-definition"),
+
+		/**
+		 * A use of a primitive failure reason constant.
+		 */
+		PRIMITIVE_FAILURE_REASON_USE("#primitive-failure-reason-definition"),
+
+		/**
 		 * The name of a local constant at its definition site.
 		 */
 		LOCAL_CONSTANT_DEFINITION("#local-constant-definition"),
