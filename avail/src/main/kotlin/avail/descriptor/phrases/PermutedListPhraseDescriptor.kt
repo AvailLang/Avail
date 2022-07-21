@@ -167,7 +167,7 @@ class PermutedListPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.list.equals(aPhrase.list)
+		&& self.list.equalsPhrase(aPhrase.list)
 		&& self.permutation.equals(aPhrase.permutation))
 
 	/** DON'T transform the index. */

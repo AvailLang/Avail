@@ -55,7 +55,6 @@ import javax.swing.JLabel
 import javax.swing.JPanel
 import javax.swing.JTextPane
 import javax.swing.KeyStroke
-import javax.swing.SwingConstants
 import javax.swing.border.EmptyBorder
 import javax.swing.event.DocumentEvent
 import javax.swing.event.DocumentListener
@@ -146,6 +145,7 @@ class FindAction constructor(
 		textPane!!.document.addDocumentListener(documentListener)
 		updateHighlights()
 		findDialog!!.isVisible = true
+		findText.requestFocusInWindow()
 	}
 
 	/**
@@ -319,9 +319,8 @@ class FindAction constructor(
 	private fun createDialog()
 	{
 		val panel = JPanel(BorderLayout(20, 20))
-		panel.border = EmptyBorder(10, 10, 10, 10)
-
 		panel.run {
+			border = EmptyBorder(10, 10, 10, 10)
 			add(findLabel)
 			add(replaceLabel)
 			add(findText)
@@ -377,17 +376,17 @@ class FindAction constructor(
 						.addComponent(replaceNextButton)
 						.addComponent(replaceAllButton)
 						.addComponent(closeButton)))
-			linkSize(
-				SwingConstants.HORIZONTAL,
-				findNextButton,
-				findPreviousButton,
-				replaceNextButton,
-				replaceAllButton,
-				closeButton)
+			//linkSize(
+			//	SwingConstants.HORIZONTAL,
+			//	findNextButton,
+			//	findPreviousButton,
+			//	replaceNextButton,
+			//	replaceAllButton,
+			//	closeButton)
 		}
 		findDialog = JDialog(frame, name(), ModalityType.MODELESS)
 		findDialog!!.run {
-			minimumSize = Dimension(300, 200)
+			minimumSize = Dimension(400, 200)
 			preferredSize = Dimension(600, 200)
 			contentPane.add(panel)
 			isResizable = true
@@ -397,8 +396,7 @@ class FindAction constructor(
 				topLeft.x + workbench.width - width - 100, topLeft.y + 30)
 			addWindowListener(object : WindowAdapter()
 			{
-				override fun windowClosing(e: WindowEvent) {
-					//isVisible = false
+				override fun windowClosed(e: WindowEvent) {
 					dialogWasClosed()
 				}
 			})
@@ -411,7 +409,7 @@ class FindAction constructor(
 	 */
 	private fun dialogWasClosed()
 	{
-		allMatches.forEach { highlighter?.removeHighlight(it.second) }
+		allMatches.forEach { (_, tag) -> highlighter?.removeHighlight(tag) }
 		allMatches.clear()
 		currentMatchIndex = null
 		textPane?.document?.removeDocumentListener(documentListener)

@@ -70,7 +70,7 @@ internal class CompilerSolution constructor(
 		{
 			return false
 		}
-		return endState == other.endState && phrase.equals(other.phrase)
+		return endState == other.endState && phrase.equalsPhrase(other.phrase)
 	}
 
 	override fun hashCode() = phrase.hash()

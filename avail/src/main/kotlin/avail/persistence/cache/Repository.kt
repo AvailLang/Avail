@@ -1220,6 +1220,7 @@ class Repository constructor(
 				}
 				if (isCompact)
 				{
+					binaryStream.vlq(uses.size)
 					var previousUseEnd = previousDeclarationEnd
 					uses.forEach { use ->
 						binaryStream.vlq(use.first - previousUseEnd)
@@ -1228,6 +1229,9 @@ class Repository constructor(
 				}
 				else
 				{
+					// Flag to indicate it was non-compact
+					binaryStream.vlq(0)
+					binaryStream.vlq(uses.size)
 					var previousUseEnd = 0
 					uses.forEach { use ->
 						binaryStream.vlq(use.first - previousUseEnd)

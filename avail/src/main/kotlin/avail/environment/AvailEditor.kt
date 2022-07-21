@@ -352,7 +352,7 @@ constructor(
 				createSequentialGroup()
 					.addComponent(sourcePaneScroll))
 		}
-		minimumSize = Dimension(550, 350)
+		minimumSize = Dimension(650, 350)
 		preferredSize = Dimension(800, 1000)
 		add(panel)
 		pack()

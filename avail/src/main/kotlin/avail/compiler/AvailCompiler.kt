@@ -163,6 +163,7 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.lexerBodyFunctionType
 import avail.descriptor.parsing.LexerDescriptor.Companion.lexerFilterFunctionType
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
+import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -292,11 +293,11 @@ import avail.performance.StatisticReport.TYPE_CHECKING_FOR_PARSER
 import avail.persistence.cache.Repository
 import avail.utility.Mutable
 import avail.utility.PrefixSharingList.Companion.append
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.Strings.increaseIndentation
 import avail.utility.evaluation.Describer
 import avail.utility.evaluation.FormattingDescriber
 import avail.utility.safeWrite
+import avail.utility.trace
 import java.util.Arrays
 import java.util.Collections.emptyList
 import java.util.Formatter
@@ -621,7 +622,7 @@ class AvailCompiler constructor(
 	{
 		val phrase1 = Mutable(interpretation1)
 		val phrase2 = Mutable(interpretation2)
-		if (phrase1.value.equals(phrase2.value))
+		if (phrase1.value.equalsPhrase(phrase2.value))
 		{
 			where.expected(
 				STRONG,
@@ -637,7 +638,7 @@ class AvailCompiler constructor(
 		else
 		{
 			findParseTreeDiscriminants(phrase1, phrase2)
-			val tokens = phrase1.value.tokens
+			val tokens = phrase1.value.allTokens
 			val line =
 				if (tokens.tupleSize > 0) tokens.tupleAt(1).lineNumber()
 				else 0
@@ -3298,8 +3299,10 @@ class AvailCompiler constructor(
 			// their initialization expressions.
 
 			// What to do after running all these simple statements.
+			val ran = AtomicBoolean(false)
 			val resumeParsing = {
 				// Report progress.
+				assert(!ran.getAndSet(true))
 				compilationContext.progressReporter(
 					moduleName,
 					source.tupleSize.toLong(),
@@ -3319,7 +3322,7 @@ class AvailCompiler constructor(
 				if (!simpleStatementIterator.hasNext())
 				{
 					compilationContext.applyAllStylesThen(
-						unambiguousStatement, resumeParsing)
+						unambiguousStatement, then = resumeParsing)
 					return@recurse
 				}
 				val statement = simpleStatementIterator.next()
@@ -3856,7 +3859,6 @@ class AvailCompiler constructor(
 		// The first time we parse at this position the fragmentCache will have
 		// no knowledge about it.
 		val rendezvous = fragmentCache.getRendezvous(start)
-		@Suppress("GrazieInspection")
 		if (!rendezvous.getAndSetStartedParsing())
 		{
 			// We're the (only) cause of the transition from hasn't-started to

@@ -126,7 +126,7 @@ class SequencePhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(STATEMENTS).equals(aPhrase.statements))
+		&& equalPhrases(self.slot(STATEMENTS), aPhrase.statements))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type {
 		val statements: A_Tuple = self.slot(STATEMENTS)

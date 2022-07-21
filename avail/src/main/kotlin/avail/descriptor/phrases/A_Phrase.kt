@@ -33,6 +33,7 @@ package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
 import avail.compiler.AvailCompiler
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.functions.A_RawFunction
@@ -71,6 +72,27 @@ import avail.optimizer.jvm.ReferencedInGeneratedCode
  */
 interface A_Phrase : A_BasicObject {
 	companion object {
+		/**
+		 * Apply styles for this phrase in the [context].  Apply the styles for
+		 * interesting subcomponents first.  After these styles have been
+		 * applied, invoke the [then] continuation action.
+		 *
+		 * The [visitedSet] is passed along on this journey.  At this point, it
+		 * does not contain the receiver.
+		 *
+		 * @param context
+		 *   The [CompilationContext] in which to write style information.
+		 * @param visitedSet
+		 *   The [MutableSet] of [A_Phrase]s that have been visited so far.
+		 * @param then
+		 *   What to do after this phrase has been styled.
+		 */
+		fun A_Phrase.applyStylesThen(
+			context: CompilationContext,
+			visitedSet: MutableSet<A_Phrase>,
+			then: ()->Unit
+		) = dispatch { o_ApplyStylesThen(it, context, visitedSet, then) }
+
 		/**
 		 * Answer the [A_Atom] that this phrase is a
 		 * [send][SendPhraseDescriptor] of.  If this is a

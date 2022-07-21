@@ -38,8 +38,6 @@ import avail.descriptor.methods.StylerDescriptor.ObjectSlots.METHOD
 import avail.descriptor.methods.StylerDescriptor.ObjectSlots.MODULE
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.ModuleDescriptor
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.DeclarationPhraseDescriptor
 import avail.descriptor.phrases.MacroSubstitutionPhraseDescriptor
 import avail.descriptor.phrases.SendPhraseDescriptor
 import avail.descriptor.phrases.VariableUsePhraseDescriptor
@@ -49,9 +47,7 @@ import avail.descriptor.representation.AvailObject.Companion.combine4
 import avail.descriptor.representation.Descriptor
 import avail.descriptor.representation.Mutability
 import avail.descriptor.representation.ObjectSlotsEnum
-import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.StringDescriptor.Companion.stringFrom
-import avail.descriptor.types.TupleTypeDescriptor.Companion.stringType
 import avail.descriptor.types.TypeTag
 
 /**
@@ -91,11 +87,14 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 	enum class ObjectSlots : ObjectSlotsEnum {
 		/**
 		 * The [function][stylerFunctionType] to invoke for styling.  It should
-		 * accept the phrase being styled, a variable holding a map from
-		 * [A_Phrase] to style [name][stringType], a variable holding a map
-		 * from [A_Token] to style [name][stringType], and a variable holding a
-		 * map from each [variable-use][VariableUsePhraseDescriptor] to its
-		 * [declaration][DeclarationPhraseDescriptor].
+		 * accept the original send phrase being styled, plus the phrase that
+		 * was produced by a macro, if one was applied, otherwise the original
+		 * send phrase again.  Most functions are only interested in the first
+		 * argument, but some, like the variable-use macro's styler, require
+		 * access to the resulting [variable-use][VariableUsePhraseDescriptor]
+		 * phrase, to get to the declaration that it's a use of, so that it can
+		 * determine if it should be styled as a use of a constant, variable,
+		 * function argument, etc.
 		 */
 		FUNCTION,
 
@@ -479,8 +478,8 @@ class StylerDescriptor private constructor(mutability: Mutability) : Descriptor(
 		 * information.  Make it [Mutability.SHARED].
 		 *
 		 * @param function
-		 *   The [function][A_Function] to run against a call site's phrase to
-		 *   generate styles.
+		 *   The [function][A_Function] to run against a call site's send phrase
+		 *   and its transformed phrase, to generate styles.
 		 * @param method
 		 *   The [A_Method] that will hold this styler.
 		 * @param module

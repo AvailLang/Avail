@@ -47,6 +47,7 @@ import avail.descriptor.tokens.LiteralTokenDescriptor.IntegerSlots.Companion.STA
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.GENERATING_PHRASE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.LITERAL
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.LiteralTokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
@@ -141,6 +142,15 @@ class LiteralTokenDescriptor private constructor(
 		 */
 		NEXT_LEXING_STATE_POJO,
 
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE,
+
 		/** The actual [AvailObject] wrapped by this token. */
 		LITERAL,
 
@@ -160,6 +170,9 @@ class LiteralTokenDescriptor private constructor(
 				assert(
 					TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
 						== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(
+					TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+						== ORIGINATING_MODULE.ordinal)
 			}
 		}
 	}
@@ -167,6 +180,7 @@ class LiteralTokenDescriptor private constructor(
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
 		(e === NEXT_LEXING_STATE_POJO
+			|| e === ORIGINATING_MODULE
 			|| super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun printObjectOnAvoidingIndent(
@@ -296,6 +310,7 @@ class LiteralTokenDescriptor private constructor(
 			{
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
 			}
+			setSlot(ORIGINATING_MODULE, nil)
 		}
 
 		/** The mutable [LiteralTokenDescriptor]. */

@@ -251,13 +251,13 @@ import avail.io.TextInterface.Companion.systemTextInterface
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.WorkStealingQueue
 import avail.utility.evaluation.OnceSupplier
 import avail.utility.javaNotifyAll
 import avail.utility.javaWait
 import avail.utility.safeWrite
 import avail.utility.structures.EnumMap.Companion.enumMap
+import avail.utility.trace
 import java.util.Collections.emptyList
 import java.util.Collections.newSetFromMap
 import java.util.Collections.synchronizedSet

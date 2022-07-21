@@ -32,17 +32,20 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.bundles.A_Bundle
 import avail.descriptor.bundles.A_Bundle.Companion.bundleMethod
 import avail.descriptor.bundles.A_Bundle.Companion.message
 import avail.descriptor.bundles.A_Bundle.Companion.messageSplitter
 import avail.descriptor.bundles.MessageBundleDescriptor
+import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.methods.A_Method
 import avail.descriptor.methods.A_Method.Companion.numArgs
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
 import avail.descriptor.phrases.A_Phrase.Companion.emitAllValuesOn
+import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
@@ -62,8 +65,8 @@ import avail.descriptor.tokens.A_Token
 import avail.descriptor.tuples.A_Tuple
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind
-import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
+import avail.descriptor.types.TypeDescriptor
 import avail.descriptor.types.TypeTag
 import avail.serialization.SerializerOperation
 import org.availlang.json.JSONWriter
@@ -132,6 +135,23 @@ class SendPhraseDescriptor private constructor(
 	override fun o_ApparentSendName(self: AvailObject): A_Atom =
 		self.slot(BUNDLE).message
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		// Process the children, then this phrase.
+		context.runtime.execute(FiberDescriptor.compilerPriority) {
+			context.visitAll(
+				self.argumentsListNode.expressionsTuple.iterator(),
+				visitedSet
+			) {
+				context.styleSendThen(self, self, then)
+			}
+		}
+	}
+
 	override fun o_ArgumentsListNode(self: AvailObject): A_Phrase =
 		self.slot(ARGUMENTS_LIST_NODE)
 
@@ -175,7 +195,8 @@ class SendPhraseDescriptor private constructor(
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
 		&& self.slot(BUNDLE).equals(aPhrase.bundle)
-		&& self.slot(ARGUMENTS_LIST_NODE).equals(aPhrase.argumentsListNode)
+		&& self.slot(ARGUMENTS_LIST_NODE).equalsPhrase(
+			aPhrase.argumentsListNode)
 		&& self.slot(RETURN_TYPE).equals(aPhrase.phraseExpressionType))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =

@@ -601,9 +601,6 @@ class AvailWorkbench internal constructor (
 		/** The start time. */
 		private var startTimeMillis: Long = 0
 
-		/** The stop time. */
-		private var stopTimeMillis: Long = 0
-
 		/** The [exception][Throwable] that terminated the build. */
 		private var terminator: Throwable? = null
 
@@ -623,7 +620,7 @@ class AvailWorkbench internal constructor (
 		 */
 		protected fun reportDone()
 		{
-			val durationMillis = stopTimeMillis - startTimeMillis
+			val durationMillis = currentTimeMillis() - startTimeMillis
 			val status: String?
 			val t = terminator
 			status = when
@@ -655,7 +652,6 @@ class AvailWorkbench internal constructor (
 				try
 				{
 					Repositories.closeAllRepositories()
-					stopTimeMillis = currentTimeMillis()
 				}
 				finally
 				{
@@ -1658,7 +1654,6 @@ class AvailWorkbench internal constructor (
 					item(graphAction)
 				}
 			}
-//			addWindowMenu()
 		}
 
 		// The refresh item needs a little help ...

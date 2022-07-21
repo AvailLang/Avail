@@ -91,9 +91,9 @@ import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.staticMethod
 import avail.optimizer.jvm.ReferencedInGeneratedCode
-import avail.utility.StackPrinter
 import avail.utility.Strings.traceFor
 import avail.utility.cast
+import avail.utility.trace
 import org.availlang.json.JSONWriter
 import org.jetbrains.annotations.Debug.Renderer
 import java.util.IdentityHashMap
@@ -207,11 +207,11 @@ class AvailObject private constructor(
 		}
 		catch (e: Exception)
 		{
-			append("EXCEPTION while printing.${StackPrinter.trace(e)}")
+			append("EXCEPTION while printing.${trace(e)}")
 		}
 		catch (e: AssertionError)
 		{
-			append("ASSERTION ERROR while printing.${StackPrinter.trace(e)}")
+			append("ASSERTION ERROR while printing.${trace(e)}")
 		}
 	}
 
@@ -1134,6 +1134,12 @@ class AvailObject private constructor(
 
 	override fun synthesizeCurrentLexingState(): LexingState =
 		descriptor().o_SynthesizeCurrentLexingState(this)
+
+	override fun isInCurrentModule(currentModule: A_Module): Boolean =
+		descriptor().o_IsInCurrentModule(this, currentModule)
+
+	override fun setCurrentModule(currentModule: A_Module) =
+		descriptor().o_SetCurrentModule(this, currentModule)
 
 	companion object {
 		/**

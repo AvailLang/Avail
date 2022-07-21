@@ -43,6 +43,7 @@ import avail.descriptor.representation.ObjectSlotsEnum
 import avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.LINE_NUMBER
 import avail.descriptor.tokens.CommentTokenDescriptor.IntegerSlots.Companion.START
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.CommentTokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.StringDescriptor
@@ -122,7 +123,16 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
 		 * this token.
 		 */
-		NEXT_LEXING_STATE_POJO;
+		NEXT_LEXING_STATE_POJO,
+
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE;
 
 		companion object
 		{
@@ -132,6 +142,8 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 					== STRING.ordinal)
 				assert(TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO.ordinal
 					== NEXT_LEXING_STATE_POJO.ordinal)
+				assert(TokenDescriptor.ObjectSlots.ORIGINATING_MODULE.ordinal
+					== ORIGINATING_MODULE.ordinal)
 			}
 		}
 	}
@@ -139,6 +151,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 	override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum): Boolean =
 			(e === NEXT_LEXING_STATE_POJO
+				|| e === ORIGINATING_MODULE
 				|| super.allowsImmutableToMutableReferenceInField(e))
 
 	override fun o_SerializerOperation(
@@ -189,6 +202,7 @@ class CommentTokenDescriptor private constructor(mutability: Mutability)
 				setSlot(START, start)
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
+				setSlot(ORIGINATING_MODULE, nil)
 			}
 		}
 

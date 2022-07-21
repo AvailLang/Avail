@@ -92,8 +92,8 @@ import avail.performance.StatisticReport.EXPANDING_PARSING_INSTRUCTIONS
 import avail.performance.StatisticReport.RUNNING_PARSING_INSTRUCTIONS
 import avail.utility.PrefixSharingList.Companion.append
 import avail.utility.PrefixSharingList.Companion.withoutLast
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.evaluation.Describer
+import avail.utility.trace
 import java.util.concurrent.atomic.AtomicBoolean
 
 /**
@@ -474,6 +474,8 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token)
+				syntheticToken.setCurrentModule(
+					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -541,6 +543,8 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token)
+				syntheticToken.setCurrentModule(
+					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)
@@ -607,6 +611,8 @@ enum class ParsingOperation constructor(
 					token.start(),
 					token.lineNumber(),
 					token)
+				syntheticToken.setCurrentModule(
+					compiler.compilationContext.module)
 				val stepStateCopy = stepState.copy {
 					start = ParserState(
 						token.nextLexingState(), stepState.start.clientDataMap)

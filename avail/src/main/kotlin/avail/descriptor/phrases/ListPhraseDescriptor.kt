@@ -206,7 +206,7 @@ class ListPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expressionsTuple.equals(aPhrase.expressionsTuple))
+		&& equalPhrases(self.expressionsTuple, aPhrase.expressionsTuple))
 
 	override fun o_ExpressionAt(self: AvailObject, index: Int): A_Phrase =
 		self.slot(EXPRESSIONS_TUPLE).tupleAt(index)

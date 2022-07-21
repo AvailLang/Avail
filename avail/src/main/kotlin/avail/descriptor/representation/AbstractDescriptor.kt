@@ -37,6 +37,7 @@ import avail.annotations.HideFieldInDebugger
 import avail.annotations.HideFieldJustForPrinting
 import avail.annotations.ThreadSafe
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -3979,6 +3980,21 @@ abstract class AbstractDescriptor protected constructor (
 	abstract fun o_StylerMethod(self: AvailObject): A_Method
 
 	abstract fun o_GeneratingPhrase(self: AvailObject): A_Phrase
+
+	abstract fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean
+
+	abstract fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module)
+
+	abstract fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
 
 	companion object
 	{

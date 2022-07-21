@@ -125,7 +125,7 @@ class SequenceAsExpressionPhraseDescriptor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(SEQUENCE).equals(aPhrase.sequence))
+		&& self.slot(SEQUENCE).equalsPhrase(aPhrase.sequence))
 
 	override fun o_Sequence(self: AvailObject): A_Phrase =
 		self.slot(SEQUENCE)

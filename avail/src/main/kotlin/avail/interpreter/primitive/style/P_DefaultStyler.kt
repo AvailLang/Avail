@@ -34,12 +34,8 @@ package avail.interpreter.primitive.style
 
 import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
-import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.phrases.A_Phrase
-import avail.descriptor.phrases.A_Phrase.Companion.tokens
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
-import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
@@ -62,7 +58,7 @@ import avail.interpreter.execution.Interpreter
 @Suppress("unused")
 object P_DefaultStyler :
 	Primitive(
-		1,
+		2,
 		CanInline,
 		Bootstrap,
 		ReadsFromHiddenGlobalState,
@@ -70,8 +66,9 @@ object P_DefaultStyler :
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
-		val sendPhrase: A_Phrase = interpreter.argument(0)
+		interpreter.checkArgumentCount(2)
+//		val sendPhrase: A_Phrase = interpreter.argument(0)
+//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -81,18 +78,8 @@ object P_DefaultStyler :
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		// Color all keyword and operator tokens.
-		for (token in sendPhrase.tokens)
-		{
-			val style = when (token.tokenType())
-			{
-				TokenType.KEYWORD -> SystemStyle.METHOD_SEND
-				TokenType.OPERATOR -> SystemStyle.METHOD_SEND
-				// Skip other tokens... although they won't actually occur here.
-				else -> continue
-			}
-			loader.styleToken(token, style)
-		}
+		// Do nothing.  Fixed tokens will already have been styled as
+		// METHOD_SEND.
 		return interpreter.primitiveSuccess(nil)
 	}
 

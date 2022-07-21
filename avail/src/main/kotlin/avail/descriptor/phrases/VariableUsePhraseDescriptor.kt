@@ -32,13 +32,15 @@
 package avail.descriptor.phrases
 
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
+import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.phrases.A_Phrase.Companion.declaration
 import avail.descriptor.phrases.A_Phrase.Companion.declaredType
-import avail.descriptor.phrases.A_Phrase.Companion.isLastUse
 import avail.descriptor.phrases.A_Phrase.Companion.isMacroSubstitutionNode
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKind
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
+import avail.descriptor.phrases.DeclarationPhraseDescriptor.DeclarationKind
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.Companion.LAST_USE
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.IntegerSlots.FLAGS
 import avail.descriptor.phrases.VariableUsePhraseDescriptor.ObjectSlots.DECLARATION
@@ -124,6 +126,34 @@ class VariableUsePhraseDescriptor private constructor(
 		e: AbstractSlotsEnum
 	) = e === FLAGS
 
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit)
+	{
+		// The parser can't produce variable-use phrases of its own, but the
+		// bootstrap macros can, so when we visit the output of one of those
+		// macros, we can find variable uses to style.  Which is here.
+		val declaration = self.declaration
+		val style = when (declaration.declarationKind())
+		{
+			DeclarationKind.ARGUMENT -> SystemStyle.PARAMETER_USE
+			DeclarationKind.LABEL -> SystemStyle.LABEL_USE
+			DeclarationKind.LOCAL_VARIABLE -> SystemStyle.LOCAL_VARIABLE_USE
+			DeclarationKind.LOCAL_CONSTANT -> SystemStyle.LOCAL_CONSTANT_USE
+			DeclarationKind.MODULE_VARIABLE -> SystemStyle.MODULE_VARIABLE_USE
+			DeclarationKind.MODULE_CONSTANT -> SystemStyle.MODULE_CONSTANT_USE
+			DeclarationKind.PRIMITIVE_FAILURE_REASON ->
+				SystemStyle.PRIMITIVE_FAILURE_REASON_USE
+		}
+		val useToken = self.token
+		context.loader.styleToken(useToken, style.kotlinString)
+		val declarationToken = declaration.token
+		context.loader.addVariableUse(useToken, declarationToken)
+		then()
+	}
+
 	override fun o_ChildrenDo(
 		self: AvailObject,
 		action: (A_Phrase)->Unit)
@@ -156,8 +186,7 @@ class VariableUsePhraseDescriptor private constructor(
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
 		&& self.slot(USE_TOKEN).equals(aPhrase.token)
-		&& self.slot(DECLARATION).equals(aPhrase.declaration)
-		&& self.isLastUse == aPhrase.isLastUse)
+		&& self.slot(DECLARATION).equalsPhrase(aPhrase.declaration))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =
 		self.slot(DECLARATION).declaredType

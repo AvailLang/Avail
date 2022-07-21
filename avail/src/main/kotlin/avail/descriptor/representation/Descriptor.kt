@@ -33,6 +33,7 @@ package avail.descriptor.representation
 
 import avail.AvailDebuggerModel
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -2722,4 +2723,21 @@ protected constructor (
 	override fun o_StylerMethod(self: AvailObject): A_Method = unsupported
 
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase = unsupported
+
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = unsupported
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Unit = unsupported
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit
+	): Unit = unsupported
 }

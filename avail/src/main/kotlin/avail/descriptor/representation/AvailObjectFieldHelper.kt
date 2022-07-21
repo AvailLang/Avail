@@ -34,8 +34,8 @@ package avail.descriptor.representation
 import avail.descriptor.representation.AbstractDescriptor.Companion.bitFieldsFor
 import avail.descriptor.representation.AbstractDescriptor.Companion.describeIntegerSlot
 import avail.descriptor.representation.AbstractSlotsEnum.Companion.fieldName
-import avail.utility.StackPrinter
 import avail.utility.cast
+import avail.utility.trace
 import org.jetbrains.annotations.Debug.Renderer
 
 /**
@@ -185,7 +185,7 @@ class AvailObjectFieldHelper(
 				catch (e: Throwable)
 				{
 					append("PROBLEM DESCRIBING INTEGER FIELD:\n")
-					append(StackPrinter.trace(e))
+					append(trace(e))
 				}
 			}
 			is String -> append(" = Java String: $value")

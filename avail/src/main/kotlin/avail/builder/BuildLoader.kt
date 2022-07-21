@@ -35,6 +35,7 @@ package avail.builder
 import avail.AvailRuntime
 import avail.builder.AvailBuilder.LoadedModule
 import avail.compiler.AvailCompiler
+import avail.compiler.CompilationContext
 import avail.compiler.CompilerProgressReporter
 import avail.compiler.GlobalProgressReporter
 import avail.compiler.ModuleHeader
@@ -71,6 +72,7 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleCompilationKey
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.persistence.cache.Repository.ModuleVersionKey
+import avail.persistence.cache.Repository.StylingRecord
 import avail.serialization.Deserializer
 import avail.serialization.Serializer
 import avail.utility.evaluation.Combinator.recurse
@@ -572,18 +574,6 @@ internal class BuildLoader constructor(
 							val loader = context.loader
 							val manifestEntries = loader.manifestEntries!!
 
-							val converter = context.surrogateIndexConverter
-							val styleRanges = loader.lockStyles {
-								map { (start, pastEnd, style) ->
-									val utf16Start = converter
-										.availIndexToJavaIndex(start.toInt())
-									val utf16PastEnd = converter
-										.availIndexToJavaIndex(pastEnd.toInt())
-									(utf16Start until utf16PastEnd) to
-										style
-								}
-							}
-
 							// This is the moment of compilation.
 							val compilationTime = System.currentTimeMillis()
 							val compilation = repository.ModuleCompilation(
@@ -591,9 +581,7 @@ internal class BuildLoader constructor(
 								stream.toByteArray(),
 								blockPhrasesOutputStream.toByteArray(),
 								manifestEntries,
-								Repository.StylingRecord(
-									styleRanges,
-									emptyList()))
+								assembleStylingRecord(context))
 							archive.putCompilation(
 								versionKey, compilationKey, compilation)
 
@@ -642,6 +630,39 @@ internal class BuildLoader constructor(
 				"Received ErrorCode: $code with exception:\n")
 			ex?.printStackTrace()
 		}
+	}
+
+	private fun assembleStylingRecord(
+		context: CompilationContext
+	): StylingRecord
+	{
+		val loader = context.loader
+		val converter = context.surrogateIndexConverter
+		val styleRanges = loader.lockStyles {
+			map { (start, pastEnd, style) ->
+				val utf16Start = converter
+					.availIndexToJavaIndex(start.toInt())
+				val utf16PastEnd = converter
+					.availIndexToJavaIndex(pastEnd.toInt())
+				(utf16Start until utf16PastEnd) to style
+			}
+		}
+		val uses = loader.lockUsesToDefinitions {
+			map { (useStart, usePastEnd, defRange) ->
+				val utf16UseStart = converter.availIndexToJavaIndex(
+					useStart.toInt())
+				val utf16UsePastEnd = converter.availIndexToJavaIndex(
+					usePastEnd.toInt())
+				val utf16DefStart = converter.availIndexToJavaIndex(
+					defRange.first.toInt())
+				val utf16DefEnd = converter.availIndexToJavaIndex(
+					defRange.last.toInt())
+				Pair(
+					(utf16UseStart until utf16UsePastEnd),
+					(utf16DefStart .. utf16DefEnd))
+			}
+		}
+		return StylingRecord(styleRanges, uses)
 	}
 
 	/**

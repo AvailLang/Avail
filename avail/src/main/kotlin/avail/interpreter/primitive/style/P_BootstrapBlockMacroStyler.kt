@@ -36,14 +36,13 @@ import avail.descriptor.fiber.A_Fiber.Companion.availLoader
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.methods.A_Styler.Companion.stylerFunctionType
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
-import avail.descriptor.methods.StylerDescriptor.SystemStyle.TYPE
+import avail.descriptor.methods.StylerDescriptor.SystemStyle.BLOCK
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.allTokens
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.expressionAt
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsSize
 import avail.descriptor.phrases.A_Phrase.Companion.expressionsTuple
-import avail.descriptor.phrases.A_Phrase.Companion.phraseExpressionType
 import avail.descriptor.phrases.A_Phrase.Companion.phraseKindIsUnder
 import avail.descriptor.phrases.A_Phrase.Companion.token
 import avail.descriptor.phrases.A_Phrase.Companion.tokens
@@ -51,7 +50,6 @@ import avail.descriptor.phrases.BlockPhraseDescriptor
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.descriptor.sets.SetDescriptor.Companion.set
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
-import avail.descriptor.tokens.TokenDescriptor.TokenType
 import avail.descriptor.tuples.A_Tuple.Companion.component1
 import avail.descriptor.tuples.A_Tuple.Companion.component2
 import avail.descriptor.tuples.A_Tuple.Companion.component3
@@ -60,10 +58,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.component5
 import avail.descriptor.tuples.A_Tuple.Companion.component6
 import avail.descriptor.tuples.A_Tuple.Companion.component7
 import avail.descriptor.types.A_Type
-import avail.descriptor.types.A_Type.Companion.systemStyleForType
 import avail.descriptor.types.AbstractEnumerationTypeDescriptor.Companion.enumerationWith
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.EXPRESSION_PHRASE
-import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LIST_PHRASE
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.LITERAL_PHRASE
 import avail.exceptions.AvailErrorCode.E_CANNOT_DEFINE_DURING_COMPILATION
 import avail.exceptions.AvailErrorCode.E_LOADING_IS_OVER
@@ -88,7 +84,7 @@ import avail.interpreter.primitive.bootstrap.syntax.P_BootstrapBlockMacro
 @Suppress("unused")
 object P_BootstrapBlockMacroStyler :
 	Primitive(
-		1,
+		2,
 		CanInline,
 		Bootstrap,
 		ReadsFromHiddenGlobalState,
@@ -96,8 +92,9 @@ object P_BootstrapBlockMacroStyler :
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
+		interpreter.checkArgumentCount(2)
 		val sendPhrase: A_Phrase = interpreter.argument(0)
+//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -108,45 +105,17 @@ object P_BootstrapBlockMacroStyler :
 		}
 
 		val (
-			optArgs,
+			_, //optArgs,
 			optPrim,
-			optLabel,
-			@Suppress("UNUSED_VARIABLE") statements,
+			_, //optLabel,
+			_, //statements,
 			optReturn,
-			optReturnType,
-			optExceptions
+			_, //optReturnType,
+			_, //optExceptions
 		) = sendPhrase.argumentsListNode.expressionsTuple
 
 		// Style all the fixed keyword and operator tokens.
-		for (token in sendPhrase.tokens)
-		{
-			val style = when (token.tokenType())
-			{
-				TokenType.KEYWORD -> SystemStyle.BLOCK
-				TokenType.OPERATOR -> SystemStyle.BLOCK
-				// Skip other tokens... although they won't actually occur here.
-				else -> continue
-			}
-			loader.styleToken(token, style)
-		}
-
-		// Style the formal parameters.
-		if (optArgs.expressionsSize > 0)
-		{
-			optArgs.expressionAt(1).expressionsTuple.forEach { argPart ->
-				assert(argPart.phraseKindIsUnder(LIST_PHRASE))
-				val argNameLiteral = argPart.expressionAt(1)
-				loader.styleToken(
-					argNameLiteral.token.literal(),
-					SystemStyle.PARAMETER_DEFINITION)
-				val argType = argPart.expressionAt(2)
-				val argTypeStyle =
-					argType.phraseExpressionType.systemStyleForType
-				argType.allTokens.forEach { token ->
-					loader.styleToken(token, argTypeStyle)
-				}
-			}
-		}
+		loader.styleTokens(sendPhrase.tokens, BLOCK)
 
 		// Style the primitive declaration, if present.
 		if (optPrim.expressionsSize > 0)
@@ -157,34 +126,6 @@ object P_BootstrapBlockMacroStyler :
 			loader.styleToken(
 				primNamePhrase.token.literal(),
 				SystemStyle.PRIMITIVE_NAME)
-			if (primDecl.expressionsSize > 1)
-			{
-				val failureDecl = primDecl.expressionAt(2)
-				if (failureDecl.expressionsSize > 0)
-				{
-					val failureWrapper = failureDecl.expressionAt(1)
-					val failureConst = failureWrapper.expressionAt(1)
-					loader.styleToken(
-						failureConst.token.literal(),
-						SystemStyle.LOCAL_CONSTANT_DEFINITION)
-					val failureType = failureWrapper.expressionAt(2)
-					val failureTypeStyle =
-						failureType.phraseExpressionType.systemStyleForType
-					failureType.allTokens.forEach { token ->
-						loader.styleToken(token, failureTypeStyle)
-					}
-				}
-			}
-		}
-
-		// Style the label, if present.
-		if (optLabel.expressionsSize > 0)
-		{
-			val labelPhrase = optLabel.expressionAt(1).expressionAt(1)
-			assert(labelPhrase.phraseKindIsUnder(LITERAL_PHRASE))
-			loader.styleToken(
-				labelPhrase.token.literal(),
-				SystemStyle.LABEL_DEFINITION)
 		}
 
 		// Style the return expression, if present.
@@ -206,30 +147,6 @@ object P_BootstrapBlockMacroStyler :
 							else -> "$new,$old"
 						}
 					}
-				}
-			}
-		}
-
-		// Style the return type, if present.
-		if (optReturnType.expressionsSize > 0)
-		{
-			val returnTypePhrase = optReturnType.expressionAt(1)
-			assert(returnTypePhrase.phraseKindIsUnder(EXPRESSION_PHRASE))
-			val returnTypeStyle =
-				returnTypePhrase.phraseExpressionType.systemStyleForType
-			returnTypePhrase.allTokens.forEach { token ->
-				loader.styleToken(token, returnTypeStyle)
-			}
-		}
-
-		// Style the exception types, if present.
-		if (optExceptions.expressionsSize > 0)
-		{
-			optExceptions.expressionAt(1).expressionsTuple.forEach { exPart ->
-				assert(exPart.phraseKindIsUnder(LIST_PHRASE))
-				val exTypePhrase = exPart.expressionAt(1)
-				exTypePhrase.allTokens.forEach { token ->
-					loader.styleToken(token, TYPE)
 				}
 			}
 		}

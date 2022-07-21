@@ -96,12 +96,10 @@ import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.FunctionDescriptor
 import avail.descriptor.functions.FunctionDescriptor.Companion.createFunction
 import avail.descriptor.functions.PrimitiveCompiledCodeDescriptor.Companion.newPrimitiveRawFunction
-import avail.descriptor.maps.A_Map
 import avail.descriptor.maps.A_Map.Companion.forEach
 import avail.descriptor.maps.A_Map.Companion.mapAt
 import avail.descriptor.maps.A_Map.Companion.mapAtOrNull
 import avail.descriptor.maps.A_Map.Companion.mapIterable
-import avail.descriptor.maps.MapDescriptor.Companion.emptyMap
 import avail.descriptor.methods.A_Definition
 import avail.descriptor.methods.A_Definition.Companion.definitionMethod
 import avail.descriptor.methods.A_GrammaticalRestriction
@@ -140,6 +138,7 @@ import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_EXPLIC
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom.CREATE_HERITABLE_ATOM
 import avail.descriptor.methods.SemanticRestrictionDescriptor
 import avail.descriptor.methods.StylerDescriptor
+import avail.descriptor.methods.StylerDescriptor.Companion.newStyler
 import avail.descriptor.methods.StylerDescriptor.SystemStyle
 import avail.descriptor.module.A_Module
 import avail.descriptor.module.A_Module.Companion.addLexer
@@ -175,6 +174,7 @@ import avail.descriptor.parsing.LexerDescriptor.Companion.newLexer
 import avail.descriptor.parsing.ParsingPlanInProgressDescriptor.Companion.newPlanInProgress
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.startingLineNumber
+import avail.descriptor.phrases.VariableUsePhraseDescriptor
 import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.AvailObject.Companion.error
 import avail.descriptor.representation.NilDescriptor.Companion.nil
@@ -189,6 +189,7 @@ import avail.descriptor.sets.SetDescriptor.Companion.emptySet
 import avail.descriptor.sets.SetDescriptor.Companion.setFromCollection
 import avail.descriptor.sets.SetDescriptor.Companion.singletonSet
 import avail.descriptor.tokens.A_Token
+import avail.descriptor.tokens.A_Token.Companion.end
 import avail.descriptor.tokens.A_Token.Companion.pastEnd
 import avail.descriptor.tuples.A_String
 import avail.descriptor.tuples.A_Tuple
@@ -209,13 +210,8 @@ import avail.descriptor.types.A_Type.Companion.sizeRange
 import avail.descriptor.types.A_Type.Companion.upperBound
 import avail.descriptor.types.EnumerationTypeDescriptor.Companion.booleanType
 import avail.descriptor.types.FunctionTypeDescriptor
-import avail.descriptor.types.IntegerRangeTypeDescriptor.Companion.wholeNumbers
-import avail.descriptor.types.MapTypeDescriptor.Companion.mapTypeForSizesKeyTypeValueType
 import avail.descriptor.types.PhraseTypeDescriptor.PhraseKind.PARSE_PHRASE
-import avail.descriptor.types.PrimitiveTypeDescriptor.Types
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.TOP
-import avail.descriptor.variables.A_Variable
-import avail.descriptor.variables.VariableDescriptor.Companion.newVariableWithContentType
 import avail.exceptions.AmbiguousNameException
 import avail.exceptions.AvailErrorCode.E_INCORRECT_NUMBER_OF_ARGUMENTS
 import avail.exceptions.AvailErrorCode.E_MACRO_MUST_RETURN_A_PHRASE
@@ -249,10 +245,10 @@ import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceBo
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerWhitespaceFilter
 import avail.interpreter.primitive.methods.P_Alias
 import avail.io.TextInterface
-import avail.utility.StackPrinter
 import avail.utility.evaluation.Combinator.recurse
 import avail.utility.safeWrite
 import avail.utility.structures.RunTree
+import avail.utility.trace
 import java.util.ArrayDeque
 import java.util.TreeMap
 import java.util.concurrent.ConcurrentHashMap
@@ -767,7 +763,7 @@ constructor(
 				// Here's a good place for a breakpoint, to see why an
 				// expression couldn't be summarized.
 				val e = Throwable().fillInStackTrace()
-				println("Disabled summary:\n${StackPrinter.trace(e)}")
+				println("Disabled summary:\n${trace(e)}")
 			}
 			statementCanBeSummarized = summarizable
 		}
@@ -891,6 +887,7 @@ constructor(
 	 * @param action
 	 *   The action to perform with [styledRanges] while holding the lock.
 	 */
+	@ThreadSafe
 	fun <T> lockStyles(action: RunTree<String>.()->T): T =
 		styledRangesLock.safeWrite { styledRanges.action() }
 
@@ -900,8 +897,8 @@ constructor(
 	 * to all or parts of the token's range.
 	 *
 	 * @param token
-	 *   The token to style. May be synthetic, and need not correspond to any
-	 *   actual token accepted by a lexer.
+	 *   The token to style.  Only a token taken from the source of the current
+	 *   module will have its style honored.
 	 * @param style
 	 *   The [system&#32;style][SystemStyle] to apply to the token.
 	 * @param overwrite
@@ -922,15 +919,64 @@ constructor(
 				null -> style.kotlinString
 				else -> "$old,${style.kotlinString}"
 			}
+		})
+	{
+		if (!token.isInCurrentModule(module)) return
+		lockStyles {
+			val start = token.start().toLong()
+			val pastEnd = token.pastEnd().toLong()
+			edit(start, pastEnd) { old ->
+				when (overwrite)
+				{
+					true -> style.kotlinString
+					false -> editor(old)
+				}
+			}
+		}
+	}
+
+	/**
+	 * Helper method to style a token's range in a particular named style, using
+	 * the specified function to merge any style information previously attached
+	 * to all or parts of the token's range.
+	 *
+	 * @param tokens
+	 *   The tokens to style.  Only tokens actually taken from the source of the
+	 *   current module will be styled.
+	 * @param style
+	 *   The [system&#32;style][SystemStyle] to apply to the token.
+	 * @param overwrite
+	 *   Whether the new style should clobber the old style.
+	 * @param editor
+	 *   How to reconcile an existing style with the new style. Applied to the
+	 *   existing style. Evaluates to the replacement style, which may be a
+	 *   comma-separated composite of styles. Defaults to style composition.
+	 */
+	@ThreadSafe
+	fun styleTokens(
+		tokens: Iterable<A_Token>,
+		style: SystemStyle,
+		overwrite: Boolean = false,
+		editor: (String?)->String? = { old ->
+			when (old)
+			{
+				null -> style.kotlinString
+				else -> "$old,${style.kotlinString}"
+			}
 		}
 	) = lockStyles {
-		val start = token.start().toLong()
-		val pastEnd = token.pastEnd().toLong()
-		edit(start, pastEnd) { old ->
-			when (overwrite)
+		tokens.forEach { token ->
+			if (token.isInCurrentModule(module))
 			{
-				true -> style.kotlinString
-				false -> editor(old)
+				val start = token.start().toLong()
+				val pastEnd = token.pastEnd().toLong()
+				edit(start, pastEnd) { old ->
+					when (overwrite)
+					{
+						true -> style.kotlinString
+						false -> editor(old)
+					}
+				}
 			}
 		}
 	}
@@ -941,8 +987,8 @@ constructor(
 	 * to all or parts of the token's range.
 	 *
 	 * @param token
-	 *   The token to style. May be synthetic, and need not correspond to any
-	 *   actual token accepted by a lexer.
+	 *   The token to style.  Only a token taken from the source of the current
+	 *   module will have its style honored.
 	 * @param style
 	 *   The optional [system&#32;style][SystemStyle] to apply to the token. If
 	 *   `null`, then clear the style iff `overwrite` is `true`; otherwise,
@@ -966,15 +1012,18 @@ constructor(
 				style === null -> old
 				else -> "$old,$style"
 			}
-		}
-	) = lockStyles {
-		val start = token.start().toLong()
-		val pastEnd = token.pastEnd().toLong()
-		edit(start, pastEnd) { old ->
-			when (overwrite)
-			{
-				true -> style
-				false -> editor(old)
+		})
+	{
+		if (!token.isInCurrentModule(module)) return
+		lockStyles {
+			val start = token.start().toLong()
+			val pastEnd = token.pastEnd().toLong()
+			edit(start, pastEnd) { old ->
+				when (overwrite)
+				{
+					true -> style
+					false -> editor(old)
+				}
 			}
 		}
 	}
@@ -983,106 +1032,111 @@ constructor(
 	 * Helper method to style an ordinary string literal, i.e., one that is not
 	 * also a method name.
 	 *
-	 * @param stringLiteral
+	 * @param stringLiteralToken
 	 *   The string literal to style.
 	 */
 	@ThreadSafe
-	fun styleStringLiteral(stringLiteral: A_Token) = lockStyles {
-		val characters =
-			stringLiteral.string().iterator() as ListIterator<A_Character>
-		var start = stringLiteral.start().toLong()
-		while (characters.hasNext())
-		{
-			var count = 0L
-			when (characters.next().codePoint)
+	fun styleStringLiteral(stringLiteralToken: A_Token)
+	{
+		if (!stringLiteralToken.isInCurrentModule(module)) return
+		lockStyles {
+			val characters = stringLiteralToken.string().iterator() as
+				ListIterator<A_Character>
+			var start = stringLiteralToken.start().toLong()
+			while (characters.hasNext())
 			{
-				'"'.code ->
+				var count = 0L
+				when (characters.next().codePoint)
 				{
-					edit(start, start + 1) {
-						SystemStyle.STRING_ESCAPE_SEQUENCE.kotlinString
-					}
-					start++
-				}
-				'\\'.code ->
-				{
-					count++
-					// We know that the string lexed correctly, so there can't
-					// be a dangling escape.
-					when (characters.next().codePoint)
+					'"'.code ->
 					{
-						'('.code ->
+						edit(start, start + 1) {
+							SystemStyle.STRING_ESCAPE_SEQUENCE.kotlinString
+						}
+						start++
+					}
+					'\\'.code ->
+					{
+						count++
+						// We know that the string lexed correctly, so there
+						// can't be a dangling escape.
+						when (characters.next().codePoint)
 						{
-							count++
-							// Search for the close parenthesis.
-							while (characters.hasNext())
+							'('.code ->
 							{
 								count++
-								if (characters.next().codePoint == ')'.code)
+								// Search for the close parenthesis.
+								while (characters.hasNext())
 								{
-									edit(start, start + count) {
-										SystemStyle
-											.STRING_ESCAPE_SEQUENCE
-											.kotlinString
+									count++
+									if (characters.next().codePoint == ')'.code)
+									{
+										edit(start, start + count) {
+											SystemStyle
+												.STRING_ESCAPE_SEQUENCE
+												.kotlinString
+										}
+										start += count
+										break
 									}
-									start += count
-									break
 								}
 							}
-						}
-						'n'.code, 'r'.code, 't'.code,
-						'\\'.code, '\"'.code, '|'.code ->
-						{
-							count++
-							edit(start, start + count) {
-								SystemStyle
-									.STRING_ESCAPE_SEQUENCE
-									.kotlinString
+							'n'.code, 'r'.code, 't'.code,
+							'\\'.code, '\"'.code, '|'.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
 							}
-							start += count
-						}
-						'\r'.code, '\n'.code ->
-						{
-							// Explicitly don't style the escaped carriage
-							// return or line feed, but do style the backslash.
-							edit(start, start + count) {
-								SystemStyle
-									.STRING_ESCAPE_SEQUENCE
-									.kotlinString
+							'\r'.code, '\n'.code ->
+							{
+								// Explicitly don't style the escaped carriage
+								// return or line feed, but do style the
+								// backslash.
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count + 1
 							}
-							start += count + 1
+							// We know that the string lexed correctly, so there
+							// can't be a malformed escape.
+							else ->
+							{
+								assert(false) { "Unreachable" }
+							}
+						}
+					}
+					else ->
+					{
+						count++
+						while (characters.hasNext())
+						{
+							val c = characters.next().codePoint
+							if (c == '"'.code || c == '\\'.code)
+							{
+								edit(start, start + count) {
+									SystemStyle.STRING_LITERAL.kotlinString
+								}
+								start += count
+								characters.previous()
+								break
+							}
+							else
+							{
+								count++
+							}
 						}
 						// We know that the string lexed correctly, so there
-						// can't be a malformed escape.
-						else ->
-						{
-							assert(false) { "Unreachable" }
-						}
+						// have to be more characters (because we haven't seen
+						// the closing double quote yet).
+						assert(characters.hasNext())
 					}
-				}
-				else ->
-				{
-					count++
-					while (characters.hasNext())
-					{
-						val c = characters.next().codePoint
-						if (c == '"'.code || c == '\\'.code)
-						{
-							edit(start, start + count) {
-								SystemStyle.STRING_LITERAL.kotlinString
-							}
-							start += count
-							characters.previous()
-							break
-						}
-						else
-						{
-							count++
-						}
-					}
-					// We know that the string lexed correctly, so there have to
-					// be more characters (because we haven't seen the closing
-					// double quote yet).
-					assert(characters.hasNext())
 				}
 			}
 		}
@@ -1091,144 +1145,147 @@ constructor(
 	/**
 	 * Helper method to style a method name.
 	 *
-	 * @param stringLiteral
+	 * @param stringLiteralToken
 	 *   The string literal to style as a method name.
 	 */
 	@ThreadSafe
-	fun styleMethodName(stringLiteral: A_Token) = lockStyles {
-		val characters =
-			stringLiteral.string().iterator() as ListIterator<A_Character>
-		var start = stringLiteral.start().toLong()
-		while (characters.hasNext())
-		{
-			var count = 0L
-			when (characters.next().codePoint)
+	fun styleMethodName(stringLiteralToken: A_Token)
+	{
+		if (!stringLiteralToken.isInCurrentModule(module)) return
+		var start = stringLiteralToken.start().toLong()
+		lockStyles {
+			val characters =
+				stringLiteralToken.string().iterator() as ListIterator<A_Character>
+			while (characters.hasNext())
 			{
-				'"'.code ->
+				var count = 0L
+				when (characters.next().codePoint)
 				{
-					edit(start, start + 1) {
-						SystemStyle.METHOD_NAME.kotlinString
-					}
-					start++
-				}
-				'\\'.code ->
-				{
-					count++
-					// We know that the string lexed correctly, so there can't
-					// be a dangling escape.
-					when (characters.next().codePoint)
+					'"'.code ->
 					{
-						'('.code ->
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
+						}
+						start++
+					}
+					'\\'.code ->
+					{
+						count++
+						// We know that the string lexed correctly, so there
+						// can't be a dangling escape.
+						when (characters.next().codePoint)
 						{
-							count++
-							edit(start, start + count) {
-								SystemStyle
-									.STRING_ESCAPE_SEQUENCE
-									.kotlinString
-							}
-							start += count
-							var value = 0
-							// Process the Unicode escape sequences, looking
-							// for hidden metacharacters.
-							while (characters.hasNext())
+							'('.code ->
 							{
-								when (val c = characters.next().codePoint)
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
+								var value = 0
+								// Process the Unicode escape sequences, looking
+								// for hidden metacharacters.
+								while (characters.hasNext())
 								{
-									','.code, ')'.code ->
+									when (val c = characters.next().codePoint)
 									{
-										edit(start, start + count) {
-											if (canBeBackQuoted(value))
-											{
-												SystemStyle
-													.METHOD_NAME
-													.kotlinString
+										','.code, ')'.code ->
+										{
+											edit(start, start + count) {
+												if (canBeBackQuoted(value))
+												{
+													SystemStyle
+														.METHOD_NAME
+														.kotlinString
+												}
+												else
+												{
+													SystemStyle
+														.STRING_ESCAPE_SEQUENCE
+														.kotlinString
+												}
 											}
-											else
-											{
+											start += count
+											value = 0
+											edit(start, start + 1) {
 												SystemStyle
 													.STRING_ESCAPE_SEQUENCE
 													.kotlinString
 											}
+											start++
+											break
 										}
-										start += count
-										value = 0
-										edit(start, start + 1) {
-											SystemStyle
-												.STRING_ESCAPE_SEQUENCE
-												.kotlinString
+										in '0'.code .. '9'.code ->
+										{
+											count++
+											value = (value shl 4) + c - '0'.code
 										}
-										start++
-										break
-									}
-									in '0'.code .. '9'.code ->
-									{
-										count++
-										value = (value shl 4) + c - '0'.code
-									}
-									in 'A'.code .. 'F'.code ->
-									{
-										count++
-										value =
-											(value shl 4) + c - 'A'.code + 10
-									}
-									in 'a'.code .. 'f'.code ->
-									{
-										count++
-										value =
-											(value shl 4) + c - 'a'.code + 10
-									}
-									else ->
-									{
-										assert(false) { "Unreachable" }
+										in 'A'.code .. 'F'.code ->
+										{
+											count++
+											value =
+												(value shl 4) + c - 'A'.code + 10
+										}
+										in 'a'.code .. 'f'.code ->
+										{
+											count++
+											value =
+												(value shl 4) + c - 'a'.code + 10
+										}
+										else ->
+										{
+											assert(false) { "Unreachable" }
+										}
 									}
 								}
 							}
-						}
-						'n'.code, 'r'.code, 't'.code,
-						'\\'.code, '\"'.code, '|'.code ->
-						{
-							count++
-							edit(start, start + count) {
-								SystemStyle
-									.STRING_ESCAPE_SEQUENCE
-									.kotlinString
+							'n'.code, 'r'.code, 't'.code,
+							'\\'.code, '\"'.code, '|'.code ->
+							{
+								count++
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count
 							}
-							start += count
-						}
-						'\r'.code, '\n'.code ->
-						{
-							// Explicitly don't style the escaped carriage
-							// return or line feed, but do style the backslash.
-							edit(start, start + count) {
-								SystemStyle
-									.STRING_ESCAPE_SEQUENCE
-									.kotlinString
+							'\r'.code, '\n'.code ->
+							{
+								// Explicitly don't style the escaped carriage
+								// return or line feed, but do style the backslash.
+								edit(start, start + count) {
+									SystemStyle
+										.STRING_ESCAPE_SEQUENCE
+										.kotlinString
+								}
+								start += count + 1
 							}
-							start += count + 1
+							// We know that the string lexed correctly, so there
+							// can't be a malformed escape.
+							else ->
+							{
+								assert(false) { "Unreachable" }
+							}
 						}
-						// We know that the string lexed correctly, so there
-						// can't be a malformed escape.
-						else ->
-						{
-							assert(false) { "Unreachable" }
+					}
+					BACK_QUOTE.codepoint ->
+					{
+						// We know that the message split correctly, so there can't
+						// be a dangling escape.
+						val c = characters.next().codePoint
+						assert(canBeBackQuoted(c))
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
 						}
+						edit(start + 1, start + 2) {
+							SystemStyle.STRING_LITERAL.kotlinString
+						}
+						start += 2
 					}
-				}
-				BACK_QUOTE.codepoint ->
-				{
-					// We know that the message split correctly, so there can't
-					// be a dangling escape.
-					val c = characters.next().codePoint
-					assert(canBeBackQuoted(c))
-					edit(start, start + 1) {
-						SystemStyle.METHOD_NAME.kotlinString
-					}
-					edit(start + 1, start + 2) {
-						SystemStyle.STRING_LITERAL.kotlinString
-					}
-					start += 2
-				}
-				CLOSE_GUILLEMET.codepoint,
+					CLOSE_GUILLEMET.codepoint,
 					DOUBLE_DAGGER.codepoint,
 					DOUBLE_QUESTION_MARK.codepoint,
 					ELLIPSIS.codepoint,
@@ -1242,54 +1299,78 @@ constructor(
 					UNDERSCORE.codepoint,
 					UP_ARROW.codepoint,
 					VERTICAL_BAR.codepoint ->
-				{
-					edit(start, start + 1) {
-						SystemStyle.METHOD_NAME.kotlinString
-					}
-					start++
-				}
-				else ->
-				{
-					count++
-					while (characters.hasNext())
 					{
-						val c = characters.next().codePoint
-						if (c == '"'.code
-							|| c == '\\'.code
-							|| canBeBackQuoted(c))
-						{
-							edit(start, start + count) {
-								SystemStyle.STRING_LITERAL.kotlinString
-							}
-							start += count
-							characters.previous()
-							break
+						edit(start, start + 1) {
+							SystemStyle.METHOD_NAME.kotlinString
 						}
-						else
-						{
-							count++
-						}
+						start++
 					}
-					// We know that the string lexed correctly, so there have to
-					// be more characters (because we haven't seen the closing
-					// double quote yet).
-					assert(characters.hasNext())
+					else ->
+					{
+						count++
+						while (characters.hasNext())
+						{
+							val c = characters.next().codePoint
+							if (c == '"'.code
+								|| c == '\\'.code
+								|| canBeBackQuoted(c))
+							{
+								edit(start, start + count) {
+									SystemStyle.STRING_LITERAL.kotlinString
+								}
+								start += count
+								characters.previous()
+								break
+							}
+							else
+							{
+								count++
+							}
+						}
+						// We know that the string lexed correctly, so there have to
+						// be more characters (because we haven't seen the closing
+						// double quote yet).
+						assert(characters.hasNext())
+					}
 				}
 			}
 		}
 	}
 
 	/**
-	 * A [variable][A_Variable] containing the current [map][A_Map] from
-	 * [A_Token] to [A_Token], where the key is the token for a variable usage,
-	 * and the value is the token for that variable's declaration.
+	 * A mapping from ranges where variable uses occur to ranges where the
+	 * corresponding declarations occur.
 	 */
-	val usesToDefinitions: A_Variable by lazy {
-		newVariableWithContentType(
-			mapTypeForSizesKeyTypeValueType(
-				wholeNumbers, Types.TOKEN.o, Types.TOKEN.o),
-			emptyMap
-		).makeShared()
+	@GuardedBy("styledRangesLock")
+	val usesToDefinitions = RunTree<LongRange>()
+
+	/**
+	 * Access the [usesToDefinitions] in the [action] while holding the lock.
+	 *
+	 * @param action
+	 *   The action to perform with [usesToDefinitions] while holding the lock.
+	 */
+	@ThreadSafe
+	fun <T> lockUsesToDefinitions(action: RunTree<LongRange>.()->T): T =
+		styledRangesLock.safeWrite { usesToDefinitions.action() }
+
+	/**
+	 * A [variable-use][VariableUsePhraseDescriptor] was encountered, so record
+	 * information about where it is, and where its associated definition is.
+	 */
+	fun addVariableUse(useToken: A_Token, declarationToken: A_Token)
+	{
+		if (!useToken.isInCurrentModule(module)) return
+		if (!declarationToken.isInCurrentModule(module)) return
+		val useStart = useToken.start().toLong()
+		val declarationRange = declarationToken.start().toLong() ..
+			declarationToken.end().toLong()
+		styledRangesLock.safeWrite {
+			usesToDefinitions.edit(useStart, useToken.pastEnd().toLong()) {
+				// Just overwrite it, in the unexpected case of a conflict.
+				declarationRange
+			}
+		}
 	}
 
 	/**
@@ -1908,7 +1989,7 @@ constructor(
 	fun addStyler(bundle: A_Bundle, stylerFunction: A_Function)
 	{
 		val method = bundle.bundleMethod
-		val styler = StylerDescriptor.newStyler(stylerFunction, method, module)
+		val styler = newStyler(stylerFunction, method, module)
 		var bad = false
 		method.updateStylers {
 			bad = any { it.module.equals(module) }

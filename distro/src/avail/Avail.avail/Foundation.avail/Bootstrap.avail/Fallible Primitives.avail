@@ -33,7 +33,7 @@
 /*
  * GENERATED FILE
  * * Generator: avail.tools.bootstrap.BootstrapGenerator
- * * Last Generated: 7/14/22, 10:57 PM
+ * * Last Generated: 7/19/22, 4:17 PM
  *
  * DO NOT MODIFY MANUALLY. ALL MANUAL CHANGES WILL BE LOST.
  */
@@ -2448,7 +2448,7 @@ Primitive "Lexer_when_is_" is
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
- * @param "optionalStyler" "<[send phrase⇒⊤]→⊤…|0..1>"
+ * @param "optionalStyler" "<[send phrase⇒⊤, phrase⇒⊤]→⊤…|0..1>"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -2547,7 +2547,7 @@ Primitive "Macro_is«_,»_«styled by_»?" is
  *        A tuple of zero or more prefix functions.
  * @param "body" "[…]→phrase⇒⊤"
  *        The function that implements the macro.
- * @param "optionalStyler" "<[send phrase⇒⊤]→⊤…|0..1>"
+ * @param "optionalStyler" "<[send phrase⇒⊤, phrase⇒⊤]→⊤…|0..1>"
  *        The optional function used for styling invocations of this macro.
  * @returns "⊤"
  * @raises "incorrect-number-of-arguments exception"
@@ -3752,7 +3752,7 @@ Primitive "_[_]:=_" is
  * @method "Style_with_"
  * @param "bundle" "message bundle"
  *        The bundle for which invocations should be styled.
- * @param "function" "[send phrase⇒⊤]→⊤"
+ * @param "function" "[send phrase⇒⊤, phrase⇒⊤]→⊤"
  *        The function that applies the styling.
  * @returns "⊤"
  * @raises "styler-already-set-by-this-module exception"

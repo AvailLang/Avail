@@ -125,7 +125,7 @@ class ReferencePhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.slot(VARIABLE).equals(aPhrase.variable))
+			&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable))
 	}
 
 	override fun o_Hash(self: AvailObject): Int =

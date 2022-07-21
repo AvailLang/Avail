@@ -1058,8 +1058,10 @@ interface A_Type : A_BasicObject
 		val A_Type.systemStyleForType get() =
 			when
 			{
-				isSubtypeOf(instanceMeta(bottomMeta)) ->
+				isSubtypeOf(bottomMeta) ->
 					SystemStyle.TYPE
+				isSubtypeOf(instanceMeta(bottomMeta)) ->
+					SystemStyle.METATYPE
 				isSubtypeOf(instanceMeta(PARSE_PHRASE.mostGeneralType)) ->
 					SystemStyle.PHRASE_TYPE
 				isSubtypeOf(instanceMeta(topMeta())) ->

@@ -80,8 +80,8 @@ import avail.persistence.cache.Repository.ModuleCompilation
 import avail.persistence.cache.Repository.ModuleVersion
 import avail.serialization.Serializer
 import avail.utility.Graph
-import avail.utility.StackPrinter.Companion.trace
 import avail.utility.safeWrite
+import avail.utility.trace
 import org.availlang.persistence.IndexedFile
 import org.availlang.persistence.IndexedFile.Companion.appendCRC
 import java.io.File

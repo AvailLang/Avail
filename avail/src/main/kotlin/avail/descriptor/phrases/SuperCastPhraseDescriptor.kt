@@ -123,7 +123,7 @@ class SuperCastPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.expression.equals(aPhrase.expression)
+		&& self.expression.equalsPhrase(aPhrase.expression)
 		&& self.superUnionType.equals(aPhrase.superUnionType))
 
 	/**

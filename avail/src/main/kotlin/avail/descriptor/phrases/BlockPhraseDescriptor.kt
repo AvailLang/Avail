@@ -378,8 +378,8 @@ private constructor(mutability: Mutability) : PhraseDescriptor(
 	): Boolean {
 		return (!aPhrase.isMacroSubstitutionNode
 			&& self.phraseKind == aPhrase.phraseKind
-			&& self.argumentsTuple.equals(aPhrase.argumentsTuple)
-			&& self.statementsTuple.equals(aPhrase.statementsTuple)
+			&& equalPhrases(self.argumentsTuple, aPhrase.argumentsTuple)
+			&& equalPhrases(self.statementsTuple, aPhrase.statementsTuple)
 			&& self.resultType().equals(aPhrase.resultType())
 			&& self.primitive === aPhrase.primitive)
 	}

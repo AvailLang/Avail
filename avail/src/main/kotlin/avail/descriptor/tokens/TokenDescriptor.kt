@@ -34,6 +34,7 @@ import avail.compiler.scanning.LexingState
 import avail.descriptor.atoms.A_Atom
 import avail.descriptor.atoms.A_Atom.Companion.setAtomProperty
 import avail.descriptor.atoms.AtomDescriptor.Companion.createSpecialAtom
+import avail.descriptor.module.A_Module
 import avail.descriptor.numbers.IntegerDescriptor.Companion.fromInt
 import avail.descriptor.pojos.RawPojoDescriptor
 import avail.descriptor.pojos.RawPojoDescriptor.Companion.identityPojo
@@ -53,6 +54,7 @@ import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.LINE_NUMBE
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.START
 import avail.descriptor.tokens.TokenDescriptor.IntegerSlots.Companion.TOKEN_TYPE_CODE
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.NEXT_LEXING_STATE_POJO
+import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.ORIGINATING_MODULE
 import avail.descriptor.tokens.TokenDescriptor.ObjectSlots.STRING
 import avail.descriptor.tokens.TokenDescriptor.TokenType.Companion.lookupTokenType
 import avail.descriptor.tuples.A_String
@@ -150,7 +152,16 @@ open class TokenDescriptor protected constructor(
 		 * A [raw&#32;pojo][RawPojoDescriptor] holding the [LexingState] after
 		 * this token.
 		 */
-		NEXT_LEXING_STATE_POJO
+		NEXT_LEXING_STATE_POJO,
+
+		/**
+		 * During compilation, tokens constructed by the compiler capture the
+		 * module that was under compilation.  This field holds the module
+		 * reliably only while the module is being compiled.  At other times, it
+		 * may be either the module that it's a part of or nil.  The serializer
+		 * makes no effort to reconstruct this field.
+		 */
+		ORIGINATING_MODULE
 	}
 
 	/**
@@ -248,6 +259,7 @@ open class TokenDescriptor protected constructor(
 	public override fun allowsImmutableToMutableReferenceInField(
 		e: AbstractSlotsEnum
 	) = e === NEXT_LEXING_STATE_POJO
+		|| e === ORIGINATING_MODULE
 
 	override fun printObjectOnAvoidingIndent(
 		self: AvailObject,
@@ -299,6 +311,11 @@ open class TokenDescriptor protected constructor(
 	override fun o_LowerCaseString(self: AvailObject): A_String =
 		lowerCaseStringFrom(self)
 
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = self.slot(ORIGINATING_MODULE).equals(currentModule)
+
 	override fun o_NextLexingState(self: AvailObject): LexingState =
 		self.slot(NEXT_LEXING_STATE_POJO).javaObjectNotNull()
 
@@ -327,6 +344,14 @@ open class TokenDescriptor protected constructor(
 
 	override fun o_SerializerOperation(self: AvailObject): SerializerOperation =
 		SerializerOperation.TOKEN
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module)
+	{
+		assert(self.slot(START) > 0)
+		self.setSlot(ORIGINATING_MODULE, currentModule)
+	}
 
 	override fun o_Start(self: AvailObject): Int = self.slot(START)
 
@@ -420,6 +445,7 @@ open class TokenDescriptor protected constructor(
 				setSlot(LINE_NUMBER, lineNumber)
 				setSlot(TOKEN_TYPE_CODE, tokenType.ordinal)
 				setSlot(NEXT_LEXING_STATE_POJO, nil)
+				setSlot(ORIGINATING_MODULE, nil)
 			}
 		}
 

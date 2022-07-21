@@ -32,6 +32,7 @@
 package avail.descriptor.tokens
 
 import avail.compiler.scanning.LexingState
+import avail.descriptor.module.A_Module
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.representation.A_BasicObject
 import avail.descriptor.representation.A_BasicObject.Companion.dispatch
@@ -61,6 +62,18 @@ interface A_Token : A_BasicObject
 	 */
 	val generatingPhrase: A_Phrase
 		get() = dispatch { o_GeneratingPhrase(it) }
+
+	/**
+	 * Given a module in the process of being compiled, answer whether this
+	 * token was constructed by the compiler from the module's source.
+	 */
+	fun isInCurrentModule(currentModule: A_Module): Boolean
+
+	/**
+	 * Given a module in the process of being compiled, alter this token to
+	 * indicate that it was created directly from that module's source.
+	 */
+	fun setCurrentModule(currentModule: A_Module)
 
 	/**
 	 * Answer whether this token is a

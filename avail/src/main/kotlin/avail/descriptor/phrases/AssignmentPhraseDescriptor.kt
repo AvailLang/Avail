@@ -161,8 +161,8 @@ class AssignmentPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(VARIABLE).equals(aPhrase.variable)
-		&& self.slot(EXPRESSION).equals(aPhrase.expression)
+		&& self.slot(VARIABLE).equalsPhrase(aPhrase.variable)
+		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression)
 		&& self.slot(TOKENS).equals(aPhrase.tokens))
 
 	override fun o_EmitEffectOn(

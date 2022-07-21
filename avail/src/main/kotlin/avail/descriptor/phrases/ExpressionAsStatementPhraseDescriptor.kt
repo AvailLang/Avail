@@ -112,7 +112,7 @@ class ExpressionAsStatementPhraseDescriptor(
 		aPhrase: A_Phrase
 	) = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
-		&& self.slot(EXPRESSION).equals(aPhrase.expression))
+		&& self.slot(EXPRESSION).equalsPhrase(aPhrase.expression))
 
 	override fun o_Expression(self: AvailObject): A_Phrase =
 		self.slot(EXPRESSION)

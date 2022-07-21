@@ -82,8 +82,10 @@ interface A_Styler : A_BasicObject
 		 */
 		val stylerFunctionType: A_Type = functionType(
 			tuple(
-				// The phrase being styled.
-				PhraseKind.SEND_PHRASE.mostGeneralType),
+				// The original phrase being styled.
+				PhraseKind.SEND_PHRASE.mostGeneralType,
+				// The transformed phrase which is useful to some stylers.
+				PhraseKind.PARSE_PHRASE.mostGeneralType),
 			Types.TOP.o)
 	}
 }

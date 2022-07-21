@@ -68,7 +68,7 @@ import avail.interpreter.execution.Interpreter
 @Suppress("unused")
 object P_BootstrapDefinitionStyler :
 	Primitive(
-		1,
+		2,
 		CanInline,
 		Bootstrap,
 		ReadsFromHiddenGlobalState,
@@ -76,8 +76,9 @@ object P_BootstrapDefinitionStyler :
 {
 	override fun attempt(interpreter: Interpreter): Result
 	{
-		interpreter.checkArgumentCount(1)
+		interpreter.checkArgumentCount(2)
 		val sendPhrase: A_Phrase = interpreter.argument(0)
+//		val transformedPhrase: A_Phrase = interpreter.argument(1)
 
 		val loader = interpreter.fiber().availLoader
 			?: return interpreter.primitiveFailure(E_LOADING_IS_OVER)
@@ -87,9 +88,8 @@ object P_BootstrapDefinitionStyler :
 				E_CANNOT_DEFINE_DURING_COMPILATION)
 		}
 
-		sendPhrase.tokens.forEach { token ->
-			loader.styleToken(token, SystemStyle.METHOD_DEFINITION)
-		}
+		loader.styleTokens(sendPhrase.tokens, SystemStyle.METHOD_DEFINITION)
+
 		val namePhrase = sendPhrase.argumentsListNode.expressionAt(1)
 		val nameLiteralSend = when
 		{

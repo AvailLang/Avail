@@ -148,6 +148,8 @@ class MarkerPhraseDescriptor private constructor(
 		aPhrase: A_Phrase
 	): Boolean = (!aPhrase.isMacroSubstitutionNode
 		&& self.phraseKind == aPhrase.phraseKind
+		// We don't traverse (with equalsPhrase) inside markers that happen to
+		// contain phrases.
 		&& self.markerValue.equals(aPhrase.markerValue))
 
 	override fun o_PhraseExpressionType(self: AvailObject): A_Type =

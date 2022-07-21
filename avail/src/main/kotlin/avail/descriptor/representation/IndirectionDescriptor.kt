@@ -33,6 +33,7 @@ package avail.descriptor.representation
 import avail.AvailDebuggerModel
 import avail.annotations.HideFieldInDebugger
 import avail.compiler.AvailCodeGenerator
+import avail.compiler.CompilationContext
 import avail.compiler.ModuleHeader
 import avail.compiler.ModuleManifestEntry
 import avail.compiler.scanning.LexingState
@@ -369,6 +370,7 @@ import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPc
 import avail.descriptor.parsing.A_ParsingPlanInProgress.Companion.parsingPlan
 import avail.descriptor.phrases.A_Phrase
 import avail.descriptor.phrases.A_Phrase.Companion.apparentSendName
+import avail.descriptor.phrases.A_Phrase.Companion.applyStylesThen
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsListNode
 import avail.descriptor.phrases.A_Phrase.Companion.argumentsTuple
 import avail.descriptor.phrases.A_Phrase.Companion.bundle
@@ -3919,4 +3921,21 @@ class IndirectionDescriptor private constructor(
 
 	override fun o_GeneratingPhrase(self: AvailObject): A_Phrase =
 		self .. { generatingPhrase }
+
+	override fun o_IsInCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Boolean = self .. { isInCurrentModule(currentModule) }
+
+	override fun o_SetCurrentModule(
+		self: AvailObject,
+		currentModule: A_Module
+	): Unit = self .. { setCurrentModule(currentModule) }
+
+	override fun o_ApplyStylesThen(
+		self: AvailObject,
+		context: CompilationContext,
+		visitedSet: MutableSet<A_Phrase>,
+		then: ()->Unit
+	): Unit = self .. { applyStylesThen(context, visitedSet, then) }
 }

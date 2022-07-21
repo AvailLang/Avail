@@ -385,6 +385,7 @@ class LexingState constructor(
 			assert(run.tupleSize > 0)
 			for (token in run)
 			{
+				token.setCurrentModule(compilationContext.module)
 				compilationContext.recordToken(token)
 			}
 			nextTokens.add(run.tupleAt(1))
