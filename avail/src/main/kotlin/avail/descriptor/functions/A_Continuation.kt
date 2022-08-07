@@ -39,6 +39,7 @@ import avail.descriptor.representation.AvailObject
 import avail.descriptor.representation.NilDescriptor.Companion.nil
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.optimizer.jvm.ReferencedInGeneratedCode
 
 /**
@@ -157,20 +158,17 @@ interface A_Continuation : A_BasicObject
 			dispatch { o_EnsureMutable(it) }
 
 		/**
-		 * Answer a continuation like this, but deoptimized for debugging.  If
-		 * the continuation is already deoptimized, just return it.  This must
-		 * be performed inside a [safe point][AvailRuntime.whenSafePointDo].
-		 *
-		 * @return
-		 *   A mutable continuation like the receiver.
+		 * Alter this continuation to be suitable for use by a debugger.  This
+		 * must be performed inside a [safe][AvailRuntime.whenSafePointDo]
+		 * point.
 		 */
-		fun A_Continuation.deoptimizedForDebugger(): A_Continuation =
-			dispatch { o_DeoptimizedForDebugger(it) }
+		fun A_Continuation.deoptimizeForDebugger() =
+			dispatch { o_DeoptimizeForDebugger(it) }
 
 		/**
 		 * Answer the current [L2Chunk] to run when resuming this continuation.
 		 * Always check that the chunk is still [valid][L2Chunk.isValid],
-		 * otherwise the [L2Chunk.unoptimizedChunk] should be resumed instead.
+		 * otherwise the [unoptimizedChunk] should be resumed instead.
 		 *
 		 * @return
 		 *   The L2Chunk to resume if the chunk is still valid.
@@ -260,3 +258,5 @@ interface A_Continuation : A_BasicObject
 			dispatch { o_HighlightPc(it, isTopFrame) }
 	}
 }
+
+

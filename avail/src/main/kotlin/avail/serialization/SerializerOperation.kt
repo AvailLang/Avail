@@ -290,9 +290,9 @@ import avail.exceptions.AvailErrorCode.E_JAVA_METHOD_NOT_AVAILABLE
 import avail.exceptions.AvailRuntimeException
 import avail.exceptions.MalformedMessageException
 import avail.interpreter.Primitive.PrimitiveHolder.Companion.primitiveByName
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RESTART
-import avail.interpreter.levelTwo.L2Chunk.ChunkEntryPoint.TO_RETURN_INTO
-import avail.interpreter.levelTwo.L2Chunk.Companion.unoptimizedChunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RESTART
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint.TO_RETURN_INTO
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.primitive.pojos.P_CreatePojoConstructorFunction
 import avail.interpreter.primitive.pojos.P_CreatePojoInstanceMethodFunction
 import avail.performance.Statistic
@@ -1724,10 +1724,8 @@ enum class SerializerOperation constructor(
 				pcInteger.extractInt,
 				stackpInteger.extractInt,
 				unoptimizedChunk,
-				if (pcInteger.equalsInt(0))
-					TO_RESTART.offsetInDefaultChunk
-				else
-					TO_RETURN_INTO.offsetInDefaultChunk,
+				if (pcInteger.equalsInt(0)) TO_RESTART.offsetInDefaultChunk
+				else TO_RETURN_INTO.offsetInDefaultChunk,
 				toList(frameSlots),
 				0)
 			return continuation.makeImmutable()

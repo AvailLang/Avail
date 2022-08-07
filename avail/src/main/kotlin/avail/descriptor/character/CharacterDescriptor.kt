@@ -86,8 +86,7 @@ class CharacterDescriptor private constructor(
 	/** The layout of integer slots for my instances. */
 	enum class IntegerSlots : IntegerSlotsEnum {
 		/**
-		 * The Unicode code point.  Don't bother with a [BitField], as all uses
-		 * should restrict this to a valid Unicode range, which fits in 21 bits.
+		 * The Unicode code point and hash.
 		 */
 		CODE_POINT_AND_HASH;
 

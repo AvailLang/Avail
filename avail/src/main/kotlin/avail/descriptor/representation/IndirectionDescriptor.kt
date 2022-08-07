@@ -131,7 +131,7 @@ import avail.descriptor.functions.A_Continuation
 import avail.descriptor.functions.A_Continuation.Companion.adjustPcAndStackp
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
-import avail.descriptor.functions.A_Continuation.Companion.deoptimizedForDebugger
+import avail.descriptor.functions.A_Continuation.Companion.deoptimizeForDebugger
 import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.frameAtPut
@@ -2064,7 +2064,7 @@ class IndirectionDescriptor private constructor(
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
 		continuation: (Boolean)->Unit
-	) = self .. { decrementCountdownToReoptimize(continuation) }
+	): Boolean = self .. { decrementCountdownToReoptimize(continuation) }
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
@@ -3894,8 +3894,8 @@ class IndirectionDescriptor private constructor(
 	override fun o_ReleaseFromDebugger(self: AvailObject) =
 		self .. { releaseFromDebugger() }
 
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
-		self .. { deoptimizedForDebugger() }
+	override fun o_DeoptimizeForDebugger(self: AvailObject) =
+		self .. { deoptimizeForDebugger() }
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =
 		self .. { getValueForDebugger() }

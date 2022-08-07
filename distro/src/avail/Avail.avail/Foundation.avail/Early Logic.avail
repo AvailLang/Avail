@@ -61,25 +61,8 @@ Public stable method "¬_" is
 [
 	predicate : boolean
 |
-	false
+	predicate = false
 ] : boolean;
-
-/**
- * Compute and answer the logical negation, i.e., NOT, of the argument.
- *
- * @method "¬_"
- * @param "predicate" "false's type"
- *        A boolean.
- * @returns "true's type"
- *          ¬{@method "predicate"}.
- * @category "Logic"
- */
-Method "¬_" is
-[
-	predicate : false's type
-|
-	true
-] : true's type;
 
 /**
  * Compute and answer the logical conjunction, i.e., AND, of the arguments.

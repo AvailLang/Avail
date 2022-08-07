@@ -44,7 +44,7 @@ import java.nio.file.Files
 import java.nio.file.Paths
 
 /**
- * A `JVMChunk` is an [ExecutableChunk] for the Java Virtual Machine. It is
+ * A [JVMChunk] is an [ExecutableChunk] for the Java Virtual Machine. It is
  * produced by a [JVMTranslator] on behalf of an [L2Generator] that has just
  * completed a
  * [translation&#32;or&#32;optimization][L1Translator.translateToLevelTwo].
@@ -59,8 +59,9 @@ import java.nio.file.Paths
  * @constructor
  *   Construct a `JVMChunk`.
  */
-abstract class JVMChunk @ReferencedInGeneratedCode constructor()
-	: ExecutableChunk
+abstract class JVMChunk
+@ReferencedInGeneratedCode
+constructor() : ExecutableChunk
 {
 	/**
 	 * The L1 source code, if any is available; `null` otherwise. Primarily

@@ -1822,7 +1822,7 @@ class AvailRuntime constructor(
 	 *   How to set up the interpreter prior to running the fiber for a
 	 *   while. Pass in the interpreter as the receiver.
 	 */
-	fun executeFiber(
+	private fun executeFiber(
 		aFiber: A_Fiber,
 		setup: Interpreter.()->Unit)
 	{
@@ -2076,7 +2076,7 @@ class AvailRuntime constructor(
 			setLatestResult(failureValue)
 			val startingChunk = code.startingChunk
 			chunk = startingChunk
-			offset = startingChunk.offsetAfterInitialTryPrimitive()
+			offset = startingChunk.offsetAfterInitialTryPrimitive
 			exitNow = false
 			returnNow = false
 		}

@@ -33,6 +33,7 @@
 package avail.interpreter
 
 import avail.AvailRuntime.HookType.IMPLICIT_OBSERVE
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.methods.MethodDescriptor.SpecialMethodAtom
 import avail.descriptor.numbers.A_Number.Companion.extractInt
@@ -77,14 +78,17 @@ import avail.interpreter.levelOne.L1InstructionWriter
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Instruction
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.levelTwo.operand.L2ConstantOperand
 import avail.interpreter.levelTwo.operand.L2PrimitiveOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
 import avail.interpreter.levelTwo.operand.L2ReadBoxedVectorOperand
 import avail.interpreter.levelTwo.operand.L2WriteBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
 import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionForType
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.optimizer.ExecutableChunk
@@ -209,6 +213,12 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		privateBlockTypeRestriction().makeShared()
 
 	/**
+	 * The flags that indicate to the [L2Generator] how an invocation of
+	 * this primitive should be handled.
+	 */
+	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
+
+	/**
 	 * A [type][TypeDescriptor] to constrain the [A_Type.writeType] of the
 	 * variable declaration within the primitive declaration of a block.  The
 	 * actual variable's inner type must be this or a supertype.
@@ -216,12 +226,6 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	@Suppress("LeakingThis")
 	val failureVariableType: AvailObject =
 		privateFailureVariableType().makeShared()
-
-	/**
-	 * The flags that indicate to the [L2Generator] how an invocation of
-	 * this primitive should be handled.
-	 */
-	private val primitiveFlags = EnumSet.noneOf(Flag::class.java)
 
 	/**
 	 * The [Statistic] for abandoning the stack due to a primitive attempt
@@ -597,7 +601,9 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 *   A type which is at least as specific as the type of the failure
 	 *   variable declared in a block using this primitive.
 	 */
-	protected open fun privateFailureVariableType(): A_Type = naturalNumbers
+	protected open fun privateFailureVariableType(): A_Type =
+		if (CannotFail in primitiveFlags) bottom
+		else naturalNumbers
 
 	/**
 	 * Answer the [fallibility][Fallibility] of the [primitive][Primitive] for a
@@ -916,6 +922,30 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 		}
 		return true
 	}
+
+	/**
+	 * Attempt to generate a simplified, faster invocation of the given constant
+	 * function, with the given argument restrictions.  The arguments will be on
+	 * the stack, the last-pushed one at stackp.  If this code generation
+	 * attempt is successful, code will be generated to invoke the given
+	 * function, and if it completes without reification, to check the return
+	 * result if it's not already guaranteed correct.  Note that the call and
+	 * the return type check can't be in separate instructions, since there's
+	 * nowhere to store the unchecked return value to compare it against the
+	 * expected type.  We can't just clobber the expected type (that was pushed
+	 * at the start of the call), since that would
+	 *
+	 * If reification happens, the continuation that will be produced at runtime
+	 * should be of the simple L1 form, using the [unoptimizedChunk].  It should
+	 * have the expected type pushed on the stack in preparation for checking
+	 * against the return type, once the continuation is "returned into".
+	 */
+	open fun attemptToGenerateSimpleInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		function: A_Function,
+		restrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): TypeRestriction? = null
 
 	companion object
 	{

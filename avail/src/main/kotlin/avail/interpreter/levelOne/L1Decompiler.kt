@@ -788,7 +788,7 @@ class L1Decompiler constructor(
 			pushExpression(sendNode)
 		}
 
-		override fun L1Ext_doSetSlot()
+		override fun L1Ext_doSetLocalSlot()
 		{
 			// This instruction is only used to initialize local constants.
 			// In fact, the constant declaration isn't even created until we

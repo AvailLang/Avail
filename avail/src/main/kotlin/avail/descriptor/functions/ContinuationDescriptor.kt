@@ -37,7 +37,6 @@ import avail.descriptor.fiber.A_Fiber
 import avail.descriptor.fiber.FiberDescriptor
 import avail.descriptor.functions.A_Continuation.Companion.caller
 import avail.descriptor.functions.A_Continuation.Companion.currentLineNumber
-import avail.descriptor.functions.A_Continuation.Companion.ensureMutable
 import avail.descriptor.functions.A_Continuation.Companion.frameAt
 import avail.descriptor.functions.A_Continuation.Companion.function
 import avail.descriptor.functions.A_Continuation.Companion.highlightPc
@@ -95,6 +94,8 @@ import avail.interpreter.levelOne.L1Disassembler
 import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2Chunk
+import avail.interpreter.levelTwo.L2JVMChunk.ChunkEntryPoint
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.primitive.continuations.P_ContinuationStackData
 import avail.interpreter.primitive.controlflow.P_CatchException
 import avail.interpreter.primitive.controlflow.P_ExitContinuationWithResultIf
@@ -172,8 +173,7 @@ class ContinuationDescriptor private constructor(
 				PC_AND_STACK_POINTER, 0, 32, Int::toString)
 
 			/**
-			 * The Level Two [instruction][L2Chunk.instructions] index at
-			 * which to resume.
+			 * The Level Two instruction index at which to resume.
 			 */
 			val LEVEL_TWO_OFFSET = BitField(
 				LEVEL_TWO_OFFSET_AND_HASH, 32, 32, Int::toString)
@@ -217,7 +217,7 @@ class ContinuationDescriptor private constructor(
 		 * collection of [AvailObject] and [Long] values. These values are
 		 * stored in the continuation for an [L2Chunk] to use as it wishes, but
 		 * it's simply ignored when a chunk becomes invalid, since the
-		 * [L2Chunk.unoptimizedChunk] and its [L1InstructionStepper] always rely
+		 * [unoptimizedChunk] and its [L1InstructionStepper] always rely
 		 * solely on the pure L1 state.
 		 *
 		 * This slot can be [nil] if it's not needed.
@@ -295,19 +295,16 @@ class ContinuationDescriptor private constructor(
 		return lineNumber
 	}
 
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+	override fun o_DeoptimizeForDebugger(self: AvailObject)
 	{
-		AvailRuntime.currentRuntime().assertInSafePoint()
-		val mutableCopy = self.ensureMutable() as AvailObject
-		if (mutableCopy.levelTwoChunk() != L2Chunk.unoptimizedChunk)
+		if (self.levelTwoChunk() != unoptimizedChunk)
 		{
-			mutableCopy.setSlot(
-				LEVEL_TWO_CHUNK, L2Chunk.unoptimizedChunk.chunkPojo)
-			mutableCopy.setSlot(
+			self.setSlot(
+				LEVEL_TWO_CHUNK, unoptimizedChunk.chunkPojo)
+			self.setSlot(
 				LEVEL_TWO_OFFSET,
-				L2Chunk.ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
+				ChunkEntryPoint.TO_RESUME.offsetInDefaultChunk)
 		}
-		return mutableCopy
 	}
 
 	override fun o_DescribeForDebugger(
@@ -486,7 +483,7 @@ class ContinuationDescriptor private constructor(
 	{
 		val chunk: L2Chunk =
 			self.mutableSlot(LEVEL_TWO_CHUNK).javaObjectNotNull()
-		if (chunk != L2Chunk.unoptimizedChunk && chunk.isValid) {
+		if (chunk != unoptimizedChunk && chunk.isValid) {
 			L2Chunk.Generation.usedChunk(chunk)
 		}
 		return chunk

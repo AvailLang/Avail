@@ -554,7 +554,7 @@ open class VariableDescriptor protected constructor(
 	{
 		withWriteReactorsToModify(self, true) { writeReactors ->
 			discardInvalidWriteReactors(writeReactors!!)
-			writeReactors[key] = reactor
+			writeReactors[key.makeShared()] = reactor
 		}
 	}
 

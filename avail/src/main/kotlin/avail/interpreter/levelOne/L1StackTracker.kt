@@ -190,7 +190,7 @@ internal abstract class L1StackTracker : L1OperationDispatcher
 		currentDepth++
 	}
 
-	override fun L1Ext_doSetSlot()
+	override fun L1Ext_doSetLocalSlot()
 	{
 		currentDepth--
 	}

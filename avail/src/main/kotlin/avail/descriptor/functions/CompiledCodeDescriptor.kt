@@ -114,7 +114,9 @@ import avail.interpreter.levelOne.L1Operation
 import avail.interpreter.levelOne.L1Operation.Companion.lookup
 import avail.interpreter.levelTwo.L2Chunk
 import avail.interpreter.levelTwo.L2Chunk.InvalidationReason.CODE_COVERAGE
+import avail.interpreter.levelTwo.L2JVMChunk.Companion.unoptimizedChunk
 import avail.interpreter.primitive.bootstrap.lexing.P_BootstrapLexerStringBody
+import avail.optimizer.OptimizationLevel
 import avail.optimizer.jvm.CheckedMethod
 import avail.optimizer.jvm.CheckedMethod.Companion.instanceMethod
 import avail.performance.Statistic
@@ -209,11 +211,11 @@ open class CompiledCodeDescriptor protected constructor(
 	/**
 	 * The [L2Chunk] that should be invoked whenever this code is started. The
 	 * chunk may no longer be [valid][L2Chunk.isValid], in which case the
-	 * [L2Chunk.unoptimizedChunk] will be used instead until the next
+	 * [unoptimizedChunk] will be used instead until the next
 	 * reoptimization.
 	 */
 	@Volatile
-	private var startingChunk = L2Chunk.unoptimizedChunk
+	private var startingChunk: L2Chunk = unoptimizedChunk
 
 	/**
 	 * An [InvocationStatistic] for tracking invocations of this
@@ -343,7 +345,8 @@ open class CompiledCodeDescriptor protected constructor(
 		 * An [AtomicLong] that indicates how many more invocations can take
 		 * place before the corresponding [L2Chunk] should be re-optimized.
 		 */
-		val countdownToReoptimize = AtomicLong(L2Chunk.countdownForNewCode)
+		val countdownToReoptimize =
+			AtomicLong(OptimizationLevel.UNOPTIMIZED.countdown)
 
 		/** A statistic for all functions that return. */
 		@Volatile
@@ -640,7 +643,8 @@ open class CompiledCodeDescriptor protected constructor(
 
 	override fun o_DecrementCountdownToReoptimize(
 		self: AvailObject,
-		continuation: (Boolean)->Unit)
+		continuation: (Boolean)->Unit
+	): Boolean
 	{
 		val newCount =
 			invocationStatistic.countdownToReoptimize.decrementAndGet()
@@ -658,7 +662,9 @@ open class CompiledCodeDescriptor protected constructor(
 				continuation(
 					invocationStatistic.countdownToReoptimize.get() <= 0)
 			}
+			return true
 		}
+		return false
 	}
 
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
@@ -999,7 +1005,7 @@ open class CompiledCodeDescriptor protected constructor(
 	{
 		val chunk = startingChunk
 		assert(chunk.isValid)
-		if (chunk != L2Chunk.unoptimizedChunk)
+		if (chunk != unoptimizedChunk)
 		{
 			L2Chunk.Generation.usedChunk(chunk)
 		}
@@ -1166,7 +1172,7 @@ open class CompiledCodeDescriptor protected constructor(
 						if (descriptor.module.notNil)
 						{
 							val chunk = descriptor.startingChunk
-							if (chunk != L2Chunk.unoptimizedChunk)
+							if (chunk != unoptimizedChunk)
 							{
 								chunk.invalidate(CODE_COVERAGE)
 							}
@@ -1202,7 +1208,7 @@ open class CompiledCodeDescriptor protected constructor(
 				{
 					val report = CodeCoverageReport(
 						descriptor.invocationStatistic.hasRun,
-						descriptor.startingChunk != L2Chunk.unoptimizedChunk,
+						descriptor.startingChunk != unoptimizedChunk,
 						descriptor.lineNumber,
 						module.moduleNameNative,
 						descriptor.methodName.asNativeString())

@@ -316,7 +316,6 @@ abstract class AbstractDescriptor protected constructor (
 			if (objectSlotsEnumClass !== null)
 				objectSlotsEnumClass.enumConstants
 			else arrayOf()
-		@Suppress("ConstantConditionIf")
 		debugObjectSlots =
 			if (AvailObjectRepresentation.shouldCheckSlots)
 				arrayOfNulls(max(objectSlots.size, 1))
@@ -332,7 +331,6 @@ abstract class AbstractDescriptor protected constructor (
 				integerSlotsEnumClass.enumConstants
 			else
 				arrayOf()
-		@Suppress("ConstantConditionIf")
 		debugIntegerSlots =
 			if (AvailObjectRepresentation.shouldCheckSlots)
 				arrayOfNulls(max(integerSlots.size, 1))
@@ -436,7 +434,7 @@ abstract class AbstractDescriptor protected constructor (
 	open fun o_DescribeForDebugger (
 		self: AvailObject): Array<AvailObjectFieldHelper>
 	{
-		val cls: Class<Descriptor> = this@AbstractDescriptor.javaClass.cast()!!
+		val cls: Class<AbstractDescriptor> = javaClass
 		val loader = cls.classLoader
 		var enumClass: Class<Enum<*>>? =
 			try
@@ -2127,7 +2125,8 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
-		continuation: (Boolean) -> Unit)
+		continuation: (Boolean) -> Unit
+	): Boolean
 
 	abstract fun o_DecreaseCountdownToReoptimizeFromPoll (
 		self: AvailObject,
@@ -3963,7 +3962,7 @@ abstract class AbstractDescriptor protected constructor (
 
 	abstract fun o_ModuleNameNative(self: AvailObject): String
 
-	abstract fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation
+	abstract fun o_DeoptimizeForDebugger(self: AvailObject)
 
 	abstract fun o_GetValueForDebugger (self: AvailObject): AvailObject
 
@@ -4296,14 +4295,13 @@ abstract class AbstractDescriptor protected constructor (
 		with(builder) {
 			if (enumAnnotation !== null)
 			{
-				val describingClass: Class<Enum<*>> =
-					enumAnnotation.describedBy.java.cast()!!
+				val describingClass = enumAnnotation.describedBy.java
 				val lookupName = enumAnnotation.lookupMethodName
 				if (lookupName.isEmpty())
 				{
 					// Look it up by ordinal (must be an actual Enum).
 					val allValues: Array<IntegerEnumSlotDescriptionEnum> =
-						describingClass.enumConstants.cast()!!
+						describingClass.enumConstants.cast()
 					if (value in allValues.indices)
 					{
 						append(allValues[value.toInt()].fieldName)

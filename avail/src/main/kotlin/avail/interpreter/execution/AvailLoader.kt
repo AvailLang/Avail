@@ -543,7 +543,7 @@ constructor(
 				val fiber = newLoaderFiber(booleanType, loader)
 				{
 					formatString(
-						"Check lexer filter %s for U+%06x",
+						"Check lexer filter %s for U+%04x",
 						lexer.lexerMethod.chooseBundle(loader.module)
 							.message.atomName,
 						codePoint)

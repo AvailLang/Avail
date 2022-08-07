@@ -1145,6 +1145,7 @@ class AvailDebugger internal constructor (
 		val semaphore = Semaphore(0)
 		debuggerModel.whenPausedActions.clear()
 		debuggerModel.releaseFibersThen { semaphore.release() }
+		semaphore.acquire()
 	}
 }
 

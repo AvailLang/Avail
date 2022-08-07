@@ -40,6 +40,7 @@ import avail.descriptor.functions.A_RawFunction.Companion.codeStartingLineNumber
 import avail.descriptor.functions.A_RawFunction.Companion.declarationNames
 import avail.descriptor.functions.A_RawFunction.Companion.lineNumberEncodedDeltas
 import avail.descriptor.functions.A_RawFunction.Companion.literalAt
+import avail.descriptor.functions.A_RawFunction.Companion.methodName
 import avail.descriptor.functions.A_RawFunction.Companion.numArgs
 import avail.descriptor.functions.A_RawFunction.Companion.numOuters
 import avail.descriptor.functions.CompiledCodeDescriptor
@@ -53,6 +54,8 @@ import avail.descriptor.tuples.A_Tuple.Companion.tupleIntAt
 import avail.descriptor.tuples.ObjectTupleDescriptor.Companion.tupleFromList
 import avail.descriptor.types.A_Type.Companion.instance
 import avail.descriptor.types.A_Type.Companion.instanceCount
+import avail.descriptor.types.CompiledCodeTypeDescriptor.Companion.mostGeneralCompiledCodeType
+import avail.descriptor.types.FunctionTypeDescriptor.Companion.mostGeneralFunctionType
 import avail.descriptor.types.PrimitiveTypeDescriptor
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.MESSAGE_BUNDLE
 import avail.descriptor.types.PrimitiveTypeDescriptor.Types.METHOD
@@ -444,6 +447,10 @@ class L1Disassembler constructor(
 				value.traversed().descriptor() is PrimitiveTypeDescriptor ->
 					value to false
 				value.isBottom -> value to false
+				value.isInstanceOf(mostGeneralCompiledCodeType()) ->
+					value.methodName to true
+				value.isInstanceOf(mostGeneralFunctionType()) ->
+					value.code().methodName to true
 				else -> null to true
 			}
 	}

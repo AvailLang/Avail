@@ -851,6 +851,7 @@ class AvailObject private constructor(
 	override fun setValue(newValue: A_BasicObject) =
 		descriptor().o_SetValue(this, newValue)
 
+	@Throws(VariableSetException::class)
 	override fun setValueNoCheck(newValue: A_BasicObject) =
 		descriptor().o_SetValueNoCheck(this, newValue)
 

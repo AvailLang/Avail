@@ -990,7 +990,7 @@ protected constructor (
 	override fun o_DecrementCountdownToReoptimize (
 		self: AvailObject,
 		continuation: (Boolean)->Unit
-	): Unit = unsupported
+	): Boolean = unsupported
 	override fun o_DecreaseCountdownToReoptimizeFromPoll(
 		self: AvailObject,
 		delta: Long
@@ -2699,7 +2699,7 @@ protected constructor (
 
 	override fun o_ModuleNameNative(self: AvailObject): String = unsupported
 
-	override fun o_DeoptimizedForDebugger(self: AvailObject): A_Continuation =
+	override fun o_DeoptimizeForDebugger(self: AvailObject): Unit =
 		unsupported
 
 	override fun o_GetValueForDebugger(self: AvailObject): AvailObject =

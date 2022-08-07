@@ -83,7 +83,7 @@ import java.util.Deque
  */
 class StackReifier constructor(
 	private val actuallyReify: Boolean,
-	val reificationStatistic: Statistic,
+	private val reificationStatistic: Statistic,
 	val postReificationAction: ()->Unit)
 {
 	/**

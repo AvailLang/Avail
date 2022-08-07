@@ -213,5 +213,5 @@ interface L1OperationDispatcher
 	 * Pop the stack, writing the value directly into the indicated local slot.
 	 * This is how local constants become initialized.
 	 */
-	fun L1Ext_doSetSlot()
+	fun L1Ext_doSetLocalSlot()
 }
