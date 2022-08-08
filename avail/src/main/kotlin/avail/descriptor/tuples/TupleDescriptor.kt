@@ -115,11 +115,13 @@ import java.util.stream.StreamSupport
  *   object's object slots layout, or null if there are no integer slots.
  */
 @Suppress("UNCHECKED_CAST")
-abstract class TupleDescriptor protected constructor(
-	mutability: Mutability?,
+abstract class TupleDescriptor
+protected constructor(
+	mutability: Mutability,
 	objectSlotsEnumClass: Class<out ObjectSlotsEnum?>?,
-	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?) : Descriptor(
-	mutability!!,
+	integerSlotsEnumClass: Class<out IntegerSlotsEnum?>?
+) : Descriptor(
+	mutability,
 	TypeTag.TUPLE_TAG,
 	objectSlotsEnumClass,
 	integerSlotsEnumClass)

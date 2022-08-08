@@ -31,6 +31,7 @@
  */
 package avail.interpreter.primitive.privatehelpers
 
+import avail.descriptor.functions.A_Function
 import avail.descriptor.functions.A_RawFunction
 import avail.descriptor.types.A_Type
 import avail.descriptor.types.BottomTypeDescriptor.Companion.bottom
@@ -41,6 +42,9 @@ import avail.interpreter.Primitive.Flag.Private
 import avail.interpreter.Primitive.Flag.SpecialForm
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.operand.L2ReadBoxedOperand
+import avail.interpreter.levelTwo.operand.TypeRestriction
+import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.L2Simple_Move
 import avail.optimizer.L1Translator
 import avail.optimizer.L1Translator.CallSiteHelper
 
@@ -90,5 +94,18 @@ object P_PushArgument2 : Primitive(
 		// through the call return type checks.
 		callSiteHelper.useAnswer(arguments[1])
 		return true
+	}
+
+	override fun attemptToGenerateSimpleInvocation(
+		simpleTranslator: L2SimpleTranslator,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
+		expectedType: A_Type
+	): TypeRestriction
+	{
+		simpleTranslator.add(
+			L2Simple_Move(simpleTranslator.stackp - 1, simpleTranslator.stackp))
+		return argRestrictions[1]
 	}
 }

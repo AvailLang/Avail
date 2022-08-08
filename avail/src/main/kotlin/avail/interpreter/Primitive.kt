@@ -89,6 +89,7 @@ import avail.interpreter.levelTwo.operand.TypeRestriction.Companion.restrictionF
 import avail.interpreter.levelTwo.operand.TypeRestriction.RestrictionFlagEncoding.BOXED_FLAG
 import avail.interpreter.levelTwo.operation.L2_RUN_INFALLIBLE_PRIMITIVE
 import avail.interpreter.levelTwoSimple.L2SimpleTranslator
+import avail.interpreter.levelTwoSimple.L2Simple_RunInfalliblePrimitiveNoCheck
 import avail.interpreter.primitive.hooks.P_SetImplicitObserveFunction
 import avail.interpreter.primitive.privatehelpers.P_PushConstant
 import avail.optimizer.ExecutableChunk
@@ -942,10 +943,41 @@ abstract class Primitive constructor (val argCount: Int, vararg flags: Flag)
 	 */
 	open fun attemptToGenerateSimpleInvocation(
 		simpleTranslator: L2SimpleTranslator,
-		function: A_Function,
-		restrictions: List<TypeRestriction>,
+		functionIfKnown: A_Function?,
+		rawFunction: A_RawFunction,
+		argRestrictions: List<TypeRestriction>,
 		expectedType: A_Type
-	): TypeRestriction? = null
+	): TypeRestriction?
+	{
+		val argTypes = argRestrictions.map { it.type }
+		if (functionIfKnown === null)
+		{
+			// Subclasses may be more lenient about the function being absent.
+			return null
+		}
+		if (!hasFlag(CanInline)
+			|| hasFlag(CanSwitchContinuations)
+			|| hasFlag(CanSuspend)
+			|| hasFlag(Invokes)
+			|| fallibilityForArgumentTypes(argTypes) != CallSiteCannotFail)
+		{
+			// The primitive might fail.
+			return null
+		}
+		// The primitive cannot fail here.
+		val guaranteedType = returnTypeGuaranteedByVM(rawFunction, argTypes)
+		if (!guaranteedType.isSubtypeOf(expectedType))
+		{
+			// The result isn't strong enough to satisfy the expectedType.
+			return null
+		}
+		simpleTranslator.add(
+			L2Simple_RunInfalliblePrimitiveNoCheck(
+				simpleTranslator.stackp,
+				functionIfKnown,
+				rawFunction))
+		return restrictionForType(guaranteedType, BOXED_FLAG)
+	}
 
 	companion object
 	{

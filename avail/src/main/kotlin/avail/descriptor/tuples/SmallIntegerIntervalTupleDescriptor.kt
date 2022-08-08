@@ -79,9 +79,10 @@ import java.util.IdentityHashMap
  * @param mutability
  *   The mutability of the descriptor.
  */
-class SmallIntegerIntervalTupleDescriptor constructor(mutability: Mutability?)
-	: NumericTupleDescriptor(
-		mutability!!, null, IntegerSlots::class.java)
+class SmallIntegerIntervalTupleDescriptor
+constructor(
+	mutability: Mutability
+) : NumericTupleDescriptor(mutability, null, IntegerSlots::class.java)
 {
 	/**
 	 * The layout of integer slots for my instances.

@@ -172,7 +172,7 @@ constructor(
 		return chunk
 	}
 
-	private fun add(instruction: L2SimpleInstruction)
+	fun add(instruction: L2SimpleInstruction)
 	{
 		instructions.add(instruction)
 	}
@@ -354,7 +354,7 @@ constructor(
 		if (primitive != null)
 		{
 			outputRestriction = primitive.attemptToGenerateSimpleInvocation(
-				this, calledFunction, argRestrictions, expectedType)
+				this, calledFunction, calledCode, argRestrictions, expectedType)
 		}
 		if (outputRestriction == null)
 		{

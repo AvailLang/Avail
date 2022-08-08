@@ -87,7 +87,9 @@ import avail.exceptions.MethodDefinitionException.Companion.abstractMethod
 import avail.exceptions.MethodDefinitionException.Companion.forwardMethod
 import avail.exceptions.VariableGetException
 import avail.exceptions.VariableSetException
+import avail.interpreter.Primitive
 import avail.interpreter.Primitive.Flag
+import avail.interpreter.Primitive.Result.SUCCESS
 import avail.interpreter.execution.Interpreter
 import avail.interpreter.levelTwo.L1InstructionStepper
 import avail.interpreter.levelTwo.L2AbstractInstruction
@@ -103,7 +105,6 @@ import avail.optimizer.jvm.JVMChunk
 import avail.performance.Statistic
 import avail.performance.StatisticReport.REIFICATIONS
 import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.internal.impl.load.kotlin.JvmType.Primitive
 
 /**
  * [L2SimpleInstruction] is the abstract class for a simplified level two
@@ -1408,6 +1409,47 @@ class L2Simple_SuperCall(
 		// Lookup was successful.  Invoke it, with the arguments that are still
 		// in the interpreter's argsBuffer.
 		return invocationHelper(interpreter, registers, matching.bodyBlock())
+	}
+}
+
+/**
+ * Invoke a primitive which is infallible for the given arguments, and does not
+ * invoke, suspend, or switch continuations.  I.e., it will run to completion
+ * and return some value (possibly [nil]).
+ *
+ * The call from which this is distilled must have an expectedType no stronger
+ * than the type that the primitive is guaranteed to produce for these
+ * arguments. If the expectedType is too strong for this primitive's guarantees
+ * (due to a semantic restriction), an [L2Simple_Invoke] must be generated
+ * instead.
+ */
+class L2Simple_RunInfalliblePrimitiveNoCheck
+constructor(
+	val stackp: Int,
+	val function: A_Function,
+	val rawFunction: A_RawFunction,
+	val primitive: Primitive = rawFunction.codePrimitive()!!
+) : L2SimpleInstruction()
+{
+	override fun step(
+		registers: Array<AvailObject>,
+		interpreter: Interpreter
+	): StackReifier?
+	{
+		val args = interpreter.argsBuffer
+		args.clear()
+		for (i in stackp downTo stackp - rawFunction.numArgs() + 1)
+		{
+			args.add(registers[i])
+		}
+		interpreter.function = function
+		val timeBefore = interpreter.beforeAttemptPrimitive(primitive)
+		val result = primitive.attempt(interpreter)
+		interpreter.afterAttemptPrimitive(primitive, timeBefore, result)
+		assert(result === SUCCESS)
+		interpreter.function = registers[0]
+		registers[stackp] = interpreter.getLatestResult()
+		return null
 	}
 }
 
