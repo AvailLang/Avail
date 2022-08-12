@@ -32,6 +32,7 @@
 
 package avail.plugins.gradle
 
+import avail.build.AvailSetupContext
 import org.availlang.artifact.ArtifactDescriptor
 import org.availlang.artifact.AvailArtifactType
 import org.gradle.api.DefaultTask
@@ -75,8 +76,10 @@ abstract class CreateAvailStandardLibraryJar : Jar()
 	{
 		File("${project.buildDir}").mkdirs()
 		val location = "${project.rootDir}/distro/src/$availStdLibRootName"
+		val outputLocation = "${project.buildDir}/libs/${project.name}-${project.version}.jar"
+		File("${project.buildDir}/libs/").mkdirs()
 		val jarBuilder = AvailArtifactJarBuilder(
-			"${project.buildDir}/$availStandardLibraryJarFileName",
+			outputLocation,
 			project.version.toString(),
 			"avail",
 			AvailArtifactManifest.manifestFile(

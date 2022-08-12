@@ -32,7 +32,6 @@
 
 import avail.build.AvailSetupContext.distroLib
 import avail.plugins.gradle.CreateAvailStandardLibraryJar
-import avail.plugins.gradle.CreateAvailStandardLibraryJar.Companion.availStandardLibraryJarFileName
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -45,8 +44,14 @@ plugins {
 
 version = "2.0.0-1.6.1-SNAPSHOT"
 
+
+
+
+
+
+
 tasks {
-	val standardLibraryName = "$buildDir/$availStandardLibraryJarFileName"
+	val standardLibraryName = "$buildDir/libs/$name-${version}.jar"
 	val availStdLibJar by creating(CreateAvailStandardLibraryJar::class) {}
 
 	// Copy the library into the distribution directory.
@@ -59,23 +64,17 @@ tasks {
 		dependsOn(availStdLibJar)
 	}
 
-	// Copy the library into the build libs directory with the publishing name.
-	val publishAvailLibrary by creating(Copy::class) {
-		group = "release"
-		from(standardLibraryName)
-		rename {
-			"${project.name}-$version.jar"
-		}
-		into("$buildDir/libs")
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
+	jar {
+		enabled = false
+	}
+	build {
 		dependsOn(availStdLibJar)
 	}
 
 	// Update the dependencies of "assemble".
 	assemble {
+		dependsOn(availStdLibJar)
 		dependsOn(releaseStandardLibrary)
-		dependsOn(publishAvailLibrary)
 	}
 
 	val sourceJar by creating(Jar::class) {
@@ -102,12 +101,19 @@ tasks {
 	}
 	publish {
 		PublishingUtility.checkCredentials()
+		dependsOn(availStdLibJar)
 		dependsOn(releaseStandardLibrary)
-		dependsOn(publishAvailLibrary)
 	}
 	publishToMavenLocal {
+		dependsOn(availStdLibJar)
 		dependsOn(releaseStandardLibrary)
-		dependsOn(publishAvailLibrary)
+	}
+
+	configurations {
+		listOf(apiElements, runtimeElements).forEach {
+			it.get().outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
+			it.get().outgoing.artifact(availStdLibJar)
+		}
 	}
 }
 
