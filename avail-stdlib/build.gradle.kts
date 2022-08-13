@@ -55,7 +55,6 @@ avail {
 	artifact {
 		artifactType = LIBRARY
 		implementationTitle = "Avail Standard Library"
-		jarManifestMainClass = "com.foo.ITIT"
 	}
 }
 

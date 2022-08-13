@@ -76,7 +76,7 @@ kotlin {
 
 allprojects {
 	group = "org.availlang"
-	version = "1.6.2-SNAPSHOT"
+	version = "2.0.0-SNAPSHOT"
 
 	// Define versions in a single place
 	extra.apply{

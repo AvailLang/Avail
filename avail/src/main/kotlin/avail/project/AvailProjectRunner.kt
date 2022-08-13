@@ -37,9 +37,12 @@ import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoots
 import avail.environment.AvailWorkbench
 import avail.files.FileManager
-import avail.project.AvailProjectConfiguration.Companion.CONFIG_FILE_NAME
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import org.availlang.artifact.environment.project.AvailProject
+import org.availlang.artifact.environment.project.AvailProject.Companion.CONFIG_FILE_NAME
+import org.availlang.artifact.environment.AvailEnvironment.getProjectRootDirectory
+import org.availlang.artifact.environment.AvailEnvironment.optionallyCreateAvailUserHome
 import org.availlang.json.jsonObject
 import java.io.File
 import java.util.concurrent.Semaphore
@@ -47,109 +50,89 @@ import javax.swing.UIManager
 import kotlin.concurrent.thread
 
 /**
- * A `AvailProject` is TODO: Document this!
+ * The representation of an Avail
  *
  * @author Richard Arriaga
  */
-class AvailProject constructor(
-	val configuration: AvailProjectConfiguration,
-)
+object AvailProjectRunner
 {
-
-
-	companion object
+	/**
+	 * Launch an [AvailWorkbench] for a specific [AvailProjectRunner].
+	 *
+	 * @param args
+	 *   The command line arguments.
+	 * @throws Exception
+	 *   If something goes wrong.
+	 */
+	@Throws(Exception::class)
+	@JvmStatic
+	fun main(args: Array<String>)
 	{
-		/**
-		 * Add the `.avail` directory in the user's home directory if it doesn't
-		 * already exist.
-		 */
-		private fun optionallyCreateAvailUserHome ()
-		{
-			val home = System.getProperty("user.home")
-			val availRepos = File("$home/.avail/repositories/")
-			if (!availRepos.exists())
-			{
-				availRepos.mkdirs()
+		val rootDirectory = getProjectRootDirectory(args)
+		optionallyCreateAvailUserHome()
+		val configFile = File("$rootDirectory/$CONFIG_FILE_NAME")
+		val config =
+			AvailProject.from(
+				rootDirectory,
+				jsonObject(configFile.readText(Charsets.UTF_8)))
+		System.setProperty(
+			AvailWorkbench.DARK_MODE_KEY, config.darkMode.toString())
+
+		val fileManager = FileManager()
+		val failedResolutions = mutableListOf<String>()
+		val moduleRoots = ModuleRoots(fileManager, "") {}
+		val semaphore = Semaphore(0)
+		val rootResolutionStart = System.currentTimeMillis()
+		config.roots.values.forEach {
+			moduleRoots.addRoot(
+				it.name,
+				it.location.fullPath(rootDirectory))
+			{ fails ->
+				if (fails.isNotEmpty())
+				{
+					failedResolutions.addAll(fails)
+				}
+				semaphore.release()
 			}
 		}
+		semaphore.acquireUninterruptibly()
+		val resolutionTime =
+			System.currentTimeMillis() - rootResolutionStart
 
-		/**
-		 * Launch an [AvailWorkbench] for a specific [AvailProject].
-		 *
-		 * @param args
-		 *   The command line arguments.
-		 * @throws Exception
-		 *   If something goes wrong.
-		 */
-		@Throws(Exception::class)
-		@JvmStatic
-		fun main(args: Array<String>)
+		// Do the slow Swing setup in parallel with other things...
+		val swingReady = Semaphore(0)
+		val runtimeReady = Semaphore(0)
+		if (SystemInfo.isMacOS)
 		{
-			optionallyCreateAvailUserHome()
-			val rootDirectory = File("").absoluteFile.parent
-			val configFile = File("$rootDirectory/$CONFIG_FILE_NAME")
-			val config =
-				AvailProjectConfiguration.from(
-					rootDirectory,
-					jsonObject(configFile.readText(Charsets.UTF_8)))
-			System.setProperty(
-				AvailWorkbench.DARK_MODE_KEY, config.darkMode.toString())
+			// enable screen menu bar
+			// (moves menu bar from JFrame window to top of screen)
+			System.setProperty("apple.laf.useScreenMenuBar", "true")
 
-			val fileManager = FileManager()
-			val failedResolutions = mutableListOf<String>()
-			val moduleRoots = ModuleRoots(fileManager, "") {}
-			val semaphore = Semaphore(0)
-			val rootResolutionStart = System.currentTimeMillis()
-			config.roots.values.forEach {
-				moduleRoots.addRoot(
-					it.name,
-					it.location.fullPath(rootDirectory))
-				{ fails ->
-					if (fails.isNotEmpty())
-					{
-						failedResolutions.addAll(fails)
-					}
-					semaphore.release()
-				}
-			}
-			semaphore.acquireUninterruptibly()
-			val resolutionTime =
-				System.currentTimeMillis() - rootResolutionStart
-
-			// Do the slow Swing setup in parallel with other things...
-			val swingReady = Semaphore(0)
-			val runtimeReady = Semaphore(0)
-			if (SystemInfo.isMacOS)
+			// appearance of window title bars
+			// possible values:
+			//   - "system": use current macOS appearance (light or dark)
+			//   - "NSAppearanceNameAqua": use light appearance
+			//   - "NSAppearanceNameDarkAqua": use dark appearance
+			System.setProperty("apple.awt.application.appearance", "system")
+		}
+		thread(name = "Set up LAF") {
+			if (AvailWorkbench.darkMode)
 			{
-				// enable screen menu bar
-				// (moves menu bar from JFrame window to top of screen)
-				System.setProperty("apple.laf.useScreenMenuBar", "true")
-
-				// appearance of window title bars
-				// possible values:
-				//   - "system": use current macOS appearance (light or dark)
-				//   - "NSAppearanceNameAqua": use light appearance
-				//   - "NSAppearanceNameDarkAqua": use dark appearance
-				System.setProperty("apple.awt.application.appearance", "system")
-			}
-			thread(name = "Set up LAF") {
-				if (AvailWorkbench.darkMode)
+				try
 				{
-					try
-					{
-						FlatDarculaLaf.setup()
-					}
-					catch (ex: Exception)
-					{
-						System.err.println("Failed to initialize LaF")
-					}
-					UIManager.put("ScrollPane.smoothScrolling", false)
+					FlatDarculaLaf.setup()
 				}
-				swingReady.release()
+				catch (ex: Exception)
+				{
+					System.err.println("Failed to initialize LaF")
+				}
+				UIManager.put("ScrollPane.smoothScrolling", false)
 			}
+			swingReady.release()
+		}
 
-			lateinit var resolver: ModuleNameResolver
-			lateinit var runtime: AvailRuntime
+		lateinit var resolver: ModuleNameResolver
+		lateinit var runtime: AvailRuntime
 //		thread(name = "Parse renames")
 //		{
 //			var reader: Reader? = null
@@ -182,8 +165,8 @@ class AvailProject constructor(
 //			runtimeReady.release()
 //		}
 
-			runtimeReady.acquire()
-			swingReady.acquire()
+		runtimeReady.acquire()
+		swingReady.acquire()
 //		AvailWorkbench.launchWorkbench(
 //			runtime,
 //			fileManager,
@@ -191,6 +174,5 @@ class AvailProject constructor(
 //			failedResolutions,
 //			resolutionTime,
 //			args)
-		}
 	}
 }
