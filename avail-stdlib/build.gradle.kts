@@ -77,6 +77,15 @@ fun copyArtifactToDistroLib ()
 tasks {
 	jar {
 		doLast {
+			// This re-creates the JAR, deleting the present JAR first. This
+			// is done due to the publishing sanity check introduced in Gradle
+			// 6.3 that does an internal check to confirm that the jar was
+			// effectively constructed by the standard JAR task in some
+			// predetermined internal order. This problem manifests with this
+			// error message:
+			// `Artifact <TARGET JAR>.jar wasn't produced by this build.`
+			// At the time of writing this was the only solution identified so
+			// far that overcame the issue. 
 			availExtension.createArtifact()
 		}
 	}
