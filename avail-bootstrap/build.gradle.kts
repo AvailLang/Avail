@@ -40,7 +40,6 @@ plugins {
 }
 
 dependencies {
-	implementation("org.availlang:avail-json:${Versions.availJsonVersion}")
 	implementation(project(":avail"))
 	AvailBootstrapModule.addDependencies(this)
 }

@@ -1,5 +1,5 @@
 /*
- * AvailPlugin.kt
+ * AvailRoot.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,51 +30,25 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-package avail.plugins.gradle
+package avail.build
 
-import org.gradle.api.Plugin
-import org.gradle.api.Project
-import org.gradle.api.tasks.TaskContainer
-import org.gradle.api.tasks.TaskProvider
-import org.gradle.kotlin.dsl.create
-import org.gradle.kotlin.dsl.named
+import java.net.URI
+
+// Herein lies the functionality surrounding the configuration for the Avail
+// Gradle plugin.
 
 /**
- * `AvailPlugin` is TODO: WIP
+ * `Avail` Root represents an Avail source root.
  *
  * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property name
+ *   The name of the root.
+ * @property uri
+ *   The [URI] location of the root.
  */
-class AvailPlugin : Plugin<Project>
+data class AvailRoot constructor(val name: String, val uri: URI)
 {
-	override fun apply(target: Project)
-	{
-		target.extensions.create<AvailPluginExtension>("roots")
-		target.extensions.create<String>("stdlibVersion")
-	}
+	/** The VM Options, `-DavailRoot`, root string. */
+	val rootString: String by lazy { "$name=$uri" }
 }
-
-class ConfigureAvail: AbstractAvailTask()
-{
-	// TODO this is where the roots can be set. The `avail-stdlib`, which just
-	//  builds a jar with all of the stdlib roots (Avail.avail), should always
-	//  be available to get by the plugin using the jar from maven. The default
-	//  version should be the version build at the time, but alternate versions
-	//  could be set. The option to include the stdlib as a root should be set
-	//  to true by default, but can be set to false to allow for alternate
-	//  libraries or direct Avail standard library development.
-	//
-	// TODO The plugin should support:
-	//  - Set stdlib version
-	//  - Setting the roots
-	//  - Setting the repository location, but lets the system use the default
-	//    location ("${System.getProperty("user.home")}/.avail/repositories/
-	//  - Launch a workbench (includes set roots)
-	//  - Clean repo
-	//  - Unload module
-	//  - Load/Build targeted module
-	//  - configure `avail-server`
-	//  - Launch Avail server
-}
-
-val TaskContainer.`configureAvail`: TaskProvider<ConfigureAvail>
-	get() = named<ConfigureAvail>("configureAvail")

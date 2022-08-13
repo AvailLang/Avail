@@ -286,7 +286,9 @@ constructor(
 			jarFileLock.withLock {
 				// We stashed the exact path within the jar inside the
 				// schemaSpecificPart of the URI.
-				artifactJar.extractFile(reference.uri.schemeSpecificPart)
+				artifactJar.extractRooteFile(
+					reference.resolver.name,
+					reference.uri.schemeSpecificPart)
 			}
 		}
 		catch (e: IOException)

@@ -77,15 +77,6 @@ object Versions
 	/** The JVM target version for Kotlin. */
 	const val jvmTargetString = jvmTarget.toString()
 
-	/**
-	 * The version of `org.availlang:avail-json`.
-	 */
-	const val availJsonVersion = "1.1.1"
-
-	/**
-	 * The version of `org.availlang:avail-storage`.
-	 */
-	const val availStorageVersion = "1.1.0"
 
 	/** The JVM target version for Kotlin. */
 	const val intellij = "1.3.1"

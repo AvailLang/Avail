@@ -33,7 +33,7 @@
 import avail.build.computeAvailRootsForTest
 import avail.build.modules.AvailModule
 import avail.build.scrubReleases
-import avail.plugins.gradle.GenerateFileManifestTask
+import avail.tasks.GenerateFileManifestTask
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -50,8 +50,8 @@ val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 dependencies {
-	api("org.availlang:avail-json:${Versions.availJsonVersion}")
-	api("org.availlang:avail-storage:${Versions.availStorageVersion}")
+	api("org.availlang:avail-json:1.1.1")
+	api("org.availlang:avail-storage:1.1.0")
 	implementation("org.availlang:avail-artifact:2.0.0-SNAPSHOT")
 	AvailModule.addDependencies(this)
 }
@@ -60,6 +60,7 @@ dependencies {
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
 	val generated = layout.buildDirectory.dir("generated-resources")
+
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating(GenerateFileManifestTask::class) {
@@ -145,15 +146,6 @@ tasks {
 		PublishingUtility.checkCredentials()
 		dependsOn(build)
 	}
-
-	// TODO this creates duplicates causing publish to fail
-//	shadowJar {
-////		doFirst { cleanupAllJars() }
-//		archiveBaseName.set("avail-workbench")
-//		archiveClassifier.set("")
-//		archiveVersion.set("")
-//		destinationDirectory.set(file("$buildDir/workbench"))
-//	}
 }
 
 signing {

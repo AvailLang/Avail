@@ -30,8 +30,8 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-import avail.build.AvailSetupContext.distroLib
-import avail.plugins.gradle.CreateAvailStandardLibraryJar
+import avail.plugin.AvailExtension
+import org.availlang.artifact.AvailArtifactType.LIBRARY
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -40,42 +40,57 @@ plugins {
 	publishing
 	signing
 	id("org.jetbrains.dokka")
+	id("avail.avail-plugin")
 }
 
 version = "2.0.0-1.6.1-SNAPSHOT"
 
+avail {
+	projectDescription = "The Avail Standard Library"
+	rootsDirectory = "$rootDir/distro/src"
+	root(
+		"avail",
+		entryPoints = listOf("!_"),
+		description = "The Avail Standard Library primary module root" )
+	artifact {
+		artifactType = LIBRARY
+		implementationTitle = "Avail Standard Library"
+		jarManifestMainClass = "com.foo.ITIT"
+	}
+}
 
+val availExtension get() = project.extensions
+	.findByType(AvailExtension::class.java)!!
 
-
-
-
+/**
+ * Copy the generated library jar to distro/lib to enable testing of workbench
+ * with jar file library.
+ */
+fun copyArtifactToDistroLib ()
+{
+	val availExtension = project.extensions
+		.findByType(AvailExtension::class.java)!!
+	File(availExtension.targetOutputJar).apply {
+		copyTo(File("$rootDir/distro/lib/${name}"), true)
+	}
+}
 
 tasks {
-	val standardLibraryName = "$buildDir/libs/$name-${version}.jar"
-	val availStdLibJar by creating(CreateAvailStandardLibraryJar::class) {}
-
-	// Copy the library into the distribution directory.
-	val releaseStandardLibrary by creating(Copy::class) {
-		group = "release"
-		from(standardLibraryName)
-		into("${rootProject.projectDir}/$distroLib")
-		duplicatesStrategy = DuplicatesStrategy.INCLUDE
-
-		dependsOn(availStdLibJar)
-	}
-
 	jar {
-		enabled = false
-	}
-	build {
-		dependsOn(availStdLibJar)
+		doLast {
+			availExtension.createArtifact()
+		}
 	}
 
-	// Update the dependencies of "assemble".
-	assemble {
-		dependsOn(availStdLibJar)
-		dependsOn(releaseStandardLibrary)
+	// Copy the library into the distribution directory. This is used by the
+	// workbench configuration that uses the standard library jar to start the
+	// workbench with the Avail Standard Library.
+	@Suppress("UNUSED_VARIABLE")
+	val copyToDistroLib by creating(DefaultTask::class) {
+		dependsOn(availArtifactJar)
+		doLast { copyArtifactToDistroLib() }
 	}
+
 
 	val sourceJar by creating(Jar::class) {
 		description = "Creates sources JAR."
@@ -101,28 +116,15 @@ tasks {
 	}
 	publish {
 		PublishingUtility.checkCredentials()
-		dependsOn(availStdLibJar)
-		dependsOn(releaseStandardLibrary)
+		doLast { copyArtifactToDistroLib() }
 	}
 	publishToMavenLocal {
-		dependsOn(availStdLibJar)
-		dependsOn(releaseStandardLibrary)
-	}
-
-	configurations {
-		listOf(apiElements, runtimeElements).forEach {
-			it.get().outgoing.artifacts.removeIf { it.buildDependencies.getDependencies(null).contains(jar) }
-			it.get().outgoing.artifact(availStdLibJar)
-		}
+		doLast { copyArtifactToDistroLib() }
 	}
 }
 
 val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
-
-rootProject.tasks.assemble {
-	dependsOn(tasks.getByName("releaseStandardLibrary"))
-}
 
 signing {
 	useGpgCmd()
