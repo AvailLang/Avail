@@ -54,10 +54,10 @@ import kotlin.concurrent.thread
  *
  * @author Richard Arriaga
  */
-object AvailProjectRunner
+object AvailProjectWorkbenchRunner
 {
 	/**
-	 * Launch an [AvailWorkbench] for a specific [AvailProjectRunner].
+	 * Launch an [AvailWorkbench] for a specific [AvailProjectWorkbenchRunner].
 	 *
 	 * @param args
 	 *   The command line arguments.
@@ -83,18 +83,18 @@ object AvailProjectRunner
 		val moduleRoots = ModuleRoots(fileManager, "") {}
 		val semaphore = Semaphore(0)
 		val rootResolutionStart = System.currentTimeMillis()
-		config.roots.values.forEach {
-			moduleRoots.addRoot(
-				it.name,
-				it.location.fullPath(rootDirectory))
-			{ fails ->
-				if (fails.isNotEmpty())
-				{
-					failedResolutions.addAll(fails)
-				}
-				semaphore.release()
-			}
-		}
+//		config.roots.values.forEach {
+//			moduleRoots.addRoot(
+//				it.name,
+//				it.location.fullPath(rootDirectory))
+//			{ fails ->
+//				if (fails.isNotEmpty())
+//				{
+//					failedResolutions.addAll(fails)
+//				}
+//				semaphore.release()
+//			}
+//		}
 		semaphore.acquireUninterruptibly()
 		val resolutionTime =
 			System.currentTimeMillis() - rootResolutionStart
