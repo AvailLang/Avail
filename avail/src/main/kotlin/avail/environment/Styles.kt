@@ -669,13 +669,8 @@ constructor(styleConstantsObject: Any)
  *   The foreground color, i.e., the color of rendered text.
  * @property background
  *   The background color.
- * @property bold
- *   Whether the font weight is **bold**.
- * @property italic
- *   Whether the font style is _italic_.
- * @property underline
- *   Whether the font decoration is
- *   <span style="text-decoration: underline">underline</span>.
+ * @property flags
+ *   The [style&#32;flags][StyleFlag].
  * @author Todd L Smith &lt;todd@availlang.org&gt;
  *
  * @constructor
@@ -688,13 +683,8 @@ constructor(styleConstantsObject: Any)
  *   The foreground color, i.e., the color of rendered text.
  * @param background
  *   The background color.
- * @param bold
- *   Whether the font weight is **bold**.
- * @param italic
- *   Whether the font style is _italic_.
- * @param underline
- *   Whether the font decoration is
- *   <span style="text-decoration: underline">underline</span>.
+ * @param flags
+ *   The [style&#32;flags][StyleFlag].
  */
 private data class StyleAspects constructor(
 	val fontFamily: String,
@@ -733,10 +723,19 @@ private data class StyleAspects constructor(
 	 * * If neither the receiver's nor the argument's [foreground] is
 	 *   [SystemColors.codeBackground], then [blend] both colors, giving 15% to
 	 *   the receiver and %85 to the argument.
-	 * * If either the receiver or the argument is [bold], then use [bold].
-	 * * If either the receiver or the argument is [italic], then use [italic].
-	 * * If either the receiver or the argument is [underline], then use
-	 *   [underline].
+	 * * If either the receiver or the argument is [bold][StyleFlag.Bold], then
+	 *   use [bold][StyleFlag.Bold].
+	 * * If either the receiver or the argument is [italic][StyleFlag.Italic],
+	 *   then use [italic][StyleFlag.Italic].
+	 * * If either the receiver or the argument is
+	 *   [underline][StyleFlag.Underline], then use
+	 *   [underline][StyleFlag.Underline].
+	 * * If either the receiver or the argument is
+	 *   [superscript][StyleFlag.Superscript], then use
+	 *   [superscript][StyleFlag.Superscript].
+	 * * If either the receiver or the argument is
+	 *   [subscript][StyleFlag.Subscript], then use
+	 *   [subscript][StyleFlag.Subscript].
 	 *
 	 * @param other
 	 *   The aspects to merge.
