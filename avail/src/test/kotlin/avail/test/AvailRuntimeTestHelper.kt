@@ -343,7 +343,7 @@ class AvailRuntimeTestHelper constructor (
 		val userDir = System.getProperty("user.dir")
 		val path = userDir
 			.replace("/avail-server", "")
-			.replace("/avail", "")
+			.replace("/avail/", "/")
 		val uri = "file://$path"
 		val rootsList = mutableListOf(
 			"avail" to "$uri/distro/src/avail",

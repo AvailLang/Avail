@@ -33,7 +33,7 @@
 import avail.build.computeAvailRootsForTest
 import avail.build.modules.AvailModule
 import avail.build.scrubReleases
-import avail.plugins.gradle.GenerateFileManifestTask
+import avail.tasks.GenerateFileManifestTask
 import org.jetbrains.kotlin.util.capitalizeDecapitalize.toUpperCaseAsciiOnly
 
 plugins {
@@ -43,45 +43,24 @@ plugins {
 	publishing
 	signing
 	id("org.jetbrains.dokka")
+	id("com.github.johnrengelman.shadow")
 }
 
 val isReleaseVersion =
 	!version.toString().toUpperCaseAsciiOnly().endsWith("SNAPSHOT")
 
 dependencies {
-	api("org.availlang:avail-json:${Versions.availJsonVersion}")
-	api("org.availlang:avail-storage:${Versions.availStorageVersion}")
+	api("org.availlang:avail-json:1.1.1")
+	api("org.availlang:avail-storage:1.1.0")
+	implementation("org.availlang:avail-artifact:2.0.0-SNAPSHOT")
 	AvailModule.addDependencies(this)
-}
-
-///////////////////////////////////////////////////////////////////////////////
-//                       Publish Utilities
-///////////////////////////////////////////////////////////////////////////////
-val ossrhUsername: String get() =
-	System.getenv("OSSRH_USER") ?: ""
-val ossrhPassword: String get() =
-	System.getenv("OSSRH_PASSWORD") ?: ""
-
-private val credentialsWarning =
-	"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
-		"JIRA account. Then ensure the user name, and password are available " +
-		"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
-
-/**
- * Check that the publish task has access to the necessary credentials.
- */
-fun checkCredentials ()
-{
-	if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
-	{
-		System.err.println(credentialsWarning)
-	}
 }
 
 // Compute the Avail roots. This is needed to properly configure "test".
 val availRoots: String by lazy { computeAvailRootsForTest() }
 tasks {
 	val generated = layout.buildDirectory.dir("generated-resources")
+
 	// Generate the list of all primitives, which a running Avail system uses
 	// during setup to reflectively identify the complete catalog of primitives.
 	val generatePrimitivesList by creating(GenerateFileManifestTask::class) {
@@ -115,14 +94,11 @@ tasks {
 
 	jar {
 		manifest.attributes["Implementation-Version"] = project.version
-		manifest.attributes["Build-Version"] = project.extra.get("buildVersion")
+		manifest.attributes["Build-Time"] = project.extra.get("builtTime")
+		manifest.attributes["SplashScreen-Image"] =
+			"resources/resources/workbench/AvailWBSplash.png"
 		// The All_Primitives.txt file must be added to the build resources
 		// directory before we can build the jar.
-	}
-
-	// Update the dependencies of "assemble".
-	assemble {
-		dependsOn(":avail-stdlib:releaseStandardLibrary")
 	}
 
 	/**
@@ -162,7 +138,7 @@ tasks {
 		add("archives", javadocJar)
 	}
 	publish {
-		checkCredentials()
+		PublishingUtility.checkCredentials()
 		dependsOn(build)
 	}
 }
@@ -188,8 +164,8 @@ publishing {
 			println("Publishing snapshot: $isReleaseVersion")
 			println("Publishing URL: $url")
 			credentials {
-				username = System.getenv("OSSRH_USER")
-				password = System.getenv("OSSRH_PASSWORD")
+				username = PublishingUtility.ossrhUsername
+				password = PublishingUtility.ossrhPassword
 			}
 		}
 	}

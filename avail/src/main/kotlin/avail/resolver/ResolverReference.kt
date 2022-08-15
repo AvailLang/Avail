@@ -37,6 +37,7 @@ import avail.builder.ModuleName
 import avail.builder.ModuleNameResolver
 import avail.builder.ModuleRoot
 import avail.builder.ResolvedModuleName
+import org.availlang.artifact.ResourceType
 import avail.builder.UnresolvedModuleException
 import avail.error.ErrorCode
 import avail.files.AvailFile
@@ -596,31 +597,31 @@ class ResolverReference constructor(
 	}
 }
 
-/**
- * A `ResourceType` represents the type of a [ResolverReference].
- *
- * @author Todd L Smith &lt;todd@availlang.org&gt;
- */
-enum class ResourceType
-{
-	/** Represents an ordinary Avail module. */
-	MODULE,
-
-	/** Represents an Avail package representative. */
-	REPRESENTATIVE,
-
-	/** Represents an Avail package. */
-	PACKAGE,
-
-	/** Represents an Avail root. */
-	ROOT,
-
-	/** Represents an arbitrary directory. */
-	DIRECTORY,
-
-	/** Represents an arbitrary resource. */
-	RESOURCE;
-
-	/** A short description of the receiver. */
-	val label get() = name.lowercase()
-}
+///**
+// * A `ResourceType` represents the type of a [ResolverReference].
+// *
+// * @author Todd L Smith &lt;todd@availlang.org&gt;
+// */
+//enum class ResourceType
+//{
+//	/** Represents an ordinary Avail module. */
+//	MODULE,
+//
+//	/** Represents an Avail package representative. */
+//	REPRESENTATIVE,
+//
+//	/** Represents an Avail package. */
+//	PACKAGE,
+//
+//	/** Represents an Avail root. */
+//	ROOT,
+//
+//	/** Represents an arbitrary directory. */
+//	DIRECTORY,
+//
+//	/** Represents an arbitrary resource. */
+//	RESOURCE;
+//
+//	/** A short description of the receiver. */
+//	val label get() = name.lowercase()
+//}

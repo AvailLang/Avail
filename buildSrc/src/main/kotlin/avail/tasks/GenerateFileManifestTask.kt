@@ -1,5 +1,5 @@
 /*
- * build.gradle.kts
+ * GenerateFileManifestTask.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -30,45 +30,58 @@
  * POSSIBILITY OF SUCH DAMAGE.
  */
 
-plugins {
-	id("org.gradle.kotlin.kotlin-dsl") version "2.4.0"
-	id("org.gradle.kotlin.kotlin-dsl.precompiled-script-plugins") version "2.4.0"
-	kotlin("jvm") version "1.7.0"
-}
+package avail.tasks
 
-repositories {
-	mavenLocal()
-	mavenCentral()
-}
+import org.gradle.api.DefaultTask
+import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.TaskAction
 
-java {
-	toolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+/**
+ * Construct a single file that names all files matching a given pattern inside
+ * a directory structure.  Each entry is the file name relative to the basePath,
+ * followed by a linefeed.
+ *
+ * @author Mark van Gulik &lt;mark@availlang.org&gt;
+ */
+abstract class GenerateFileManifestTask: DefaultTask()
+{
+	/**
+	 * The base path String containing files to scan. This path is stripped from
+	 * each file name prefix prior to invoking the [fileNameTransformer].
+	 */
+	@Input
+	lateinit var basePath: String
 
-kotlin {
-	jvmToolchain {
-		languageVersion.set(JavaLanguageVersion.of(17))
-	}
-}
+	/**
+	 * A transformer from the basePath-relative file name to a string to write
+	 * to the output file.
+	 */
+	@Input
+	var fileNameTransformer: String.() -> String = { this }
 
-dependencies {
-	implementation("org.availlang:avail-artifact:2.0.0-SNAPSHOT")
-}
+	/**
+	 * The path to the output file, relative to outputs.files.singleFile.
+	 */
+	@Input
+	var outputFilePath = ""
 
-tasks {
-	withType<JavaCompile> {
-		options.encoding = "UTF-8"
-		sourceCompatibility = "17"
-		targetCompatibility = "17"
-	}
-
-	withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile> {
-		kotlinOptions {
-			jvmTarget = "17"
-			freeCompilerArgs = listOf("-Xjvm-default=all-compatibility")
-			languageVersion = "1.6"
+	@TaskAction
+	fun createFileManifest()
+	{
+		val primitivesSourceTree = inputs.files
+		val baseSourcePath = basePath + "/"
+		val allFileNames = primitivesSourceTree.map {
+			it.absolutePath
+				.replace("\\\\", "/")
+				.replaceFirst(baseSourcePath, "")
+				.fileNameTransformer()
+		}.sorted().joinToString("\n")
+		val outBase = outputs.files.singleFile
+		val outFile = outBase.resolve(outputFilePath)
+		if (!outFile.exists() || outFile.readText() != allFileNames)
+		{
+			outFile.parentFile.mkdirs()
+			outFile.writeText(allFileNames)
 		}
 	}
 }

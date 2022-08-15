@@ -3,7 +3,7 @@
     <option name="MAIN_CLASS_NAME" value="avail.environment.AvailWorkbench" />
     <module name="avail.avail.main" />
     <option name="PROGRAM_PARAMETERS" value="&quot;/avail/Avail Tests&quot;" />
-    <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/debug-logging.properties -DavailDeveloper=true -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;builder-tests=$PROJECT_DIR$/distro/src/builder-tests;examples=$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/distro/src/website" />
+    <option name="VM_PARAMETERS" value="-ea -Xmx4g -Djava.util.logging.config.file=$PROJECT_DIR$/distro/etc/debug-logging.properties -DavailDeveloper=true -splash:$PROJECT_DIR$/avail/src/main/resources/resources/workbench/AvailWBSplash.png -DavailRoots=avail=$PROJECT_DIR$/distro/src/avail;builder-tests=$PROJECT_DIR$/distro/src/builder-tests;examples=$PROJECT_DIR$/distro/src/examples;website=$PROJECT_DIR$/distro/src/website" />
     <method v="2">
       <option name="Make" enabled="true" />
     </method>

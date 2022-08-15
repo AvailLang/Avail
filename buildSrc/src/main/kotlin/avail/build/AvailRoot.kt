@@ -1,5 +1,5 @@
 /*
- * settings.gradle.kts
+ * AvailRoot.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,19 +29,26 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-pluginManagement {
-	repositories {
-		google()
-		gradlePluginPortal()
-		maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-		mavenLocal()
-	}
+
+package avail.build
+
+import java.net.URI
+
+// Herein lies the functionality surrounding the configuration for the Avail
+// Gradle plugin.
+
+/**
+ * `Avail` Root represents an Avail source root.
+ *
+ * @author Richard Arriaga &lt;rich@availlang.org&gt;
+ *
+ * @property name
+ *   The name of the root.
+ * @property uri
+ *   The [URI] location of the root.
+ */
+data class AvailRoot constructor(val name: String, val uri: URI)
+{
+	/** The VM Options, `-DavailRoot`, root string. */
+	val rootString: String by lazy { "$name=$uri" }
 }
-rootProject.name = "avail"
-include(
-	"avail",
-	"avail-bootstrap",
-	"avail-cli",
-	"avail-server",
-	"avail-stdlib"
-)

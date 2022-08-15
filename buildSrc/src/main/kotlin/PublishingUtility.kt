@@ -1,5 +1,5 @@
 /*
- * settings.gradle.kts
+ * RunPluginPublish.kt
  * Copyright © 1993-2022, The Avail Foundation, LLC.
  * All rights reserved.
  *
@@ -29,19 +29,43 @@
  * ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE
  * POSSIBILITY OF SUCH DAMAGE.
  */
-pluginManagement {
-	repositories {
-		google()
-		gradlePluginPortal()
-		maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
-		mavenLocal()
+
+/**
+ * A utility object for publishing.
+ *
+ * @author Richard Arriaga
+ */
+object PublishingUtility
+{
+	/**
+	 * The Sonatype username used for publishing.
+	 */
+	val ossrhUsername: String get() =
+		System.getenv("OSSRH_USER") ?: ""
+
+	/**
+	 * The Sonatype password used for publishing.
+	 */
+	val ossrhPassword: String get() =
+		System.getenv("OSSRH_PASSWORD") ?: ""
+
+	/**
+	 * The warning that indicates the system does not have environment variables
+	 * for publishing credentials.
+	 */
+	private val credentialsWarning =
+		"Missing OSSRH credentials.  To publish, you'll need to create an OSSRH " +
+			"JIRA account. Then ensure the user name, and password are available " +
+			"as the environment variables: 'OSSRH_USER' and 'OSSRH_PASSWORD'"
+
+	/**
+	 * Check that the publisher has access to the necessary credentials.
+	 */
+	fun checkCredentials ()
+	{
+		if (ossrhUsername.isEmpty() || ossrhPassword.isEmpty())
+		{
+			System.err.println(credentialsWarning)
+		}
 	}
 }
-rootProject.name = "avail"
-include(
-	"avail",
-	"avail-bootstrap",
-	"avail-cli",
-	"avail-server",
-	"avail-stdlib"
-)

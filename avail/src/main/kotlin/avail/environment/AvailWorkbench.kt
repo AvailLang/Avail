@@ -123,13 +123,14 @@ import avail.performance.StatisticReport.WORKBENCH_TRANSCRIPT
 import avail.persistence.cache.Repositories
 import avail.resolver.ModuleRootResolver
 import avail.resolver.ResolverReference
-import avail.resolver.ResourceType
+import org.availlang.artifact.ResourceType
 import avail.stacks.StacksGenerator
 import avail.utility.IO
 import avail.utility.cast
 import avail.utility.safeWrite
 import com.formdev.flatlaf.FlatDarculaLaf
 import com.formdev.flatlaf.util.SystemInfo
+import org.availlang.artifact.environment.project.AvailProject
 import java.awt.Color
 import java.awt.Component
 import java.awt.Desktop
@@ -229,11 +230,14 @@ import kotlin.math.min
  *   The [FileManager] used to manage Avail files.
  * @param resolver
  *   The [module&#32;name resolver][ModuleNameResolver].
+ * @param windowTitle
+ *   The [AvailWorkbench]'s frame's [title].
  */
 class AvailWorkbench internal constructor (
 	val runtime: AvailRuntime,
 	private val fileManager: FileManager,
-	val resolver: ModuleNameResolver) : JFrame("Avail Workbench")
+	val resolver: ModuleNameResolver,
+	windowTitle: String = "Avail Workbench") : JFrame()
 {
 	/**
 	 * The [StyledDocument] into which to write both error and regular
@@ -1584,6 +1588,8 @@ class AvailWorkbench internal constructor (
 
 		defaultCloseOperation = WindowConstants.EXIT_ON_CLOSE
 
+		// Set *just* the window title...
+		title = windowTitle
 		isResizable = true
 		background = rootPane.background
 
@@ -1961,7 +1967,19 @@ class AvailWorkbench internal constructor (
 		layoutConfiguration.saveWindowPosition()
 	}
 
-	/** Perform the first refresh of the workbench. */
+	/**
+	 * Perform the first refresh of the workbench.
+	 *
+	 * @param failedResolutions
+	 *   The list of specified Avail roots that could not be resolved.
+	 * @param resolutionTime
+	 *   The amount of time it took in milliseconds to resolve the module roots.
+	 * @param initial
+	 *   The name of the module to have selected when the workbench frame is
+	 *   opened.
+	 * @param afterExecute
+	 *   The function to run after the refresh is complete.
+	 */
 	private fun initialRefresh(
 		failedResolutions: MutableList<String>,
 		resolutionTime: Long,
@@ -2033,11 +2051,16 @@ class AvailWorkbench internal constructor (
 				System.getProperty("availDeveloper"), ignoreCase = true)
 
 		/**
+		 * The key for the dark mode [System.setProperty] [darkMode].
+		 */
+		const val DARK_MODE_KEY = "darkMode"
+
+		/**
 		 * An indicator of whether to show the user interface in dark (Darcula)
 		 * mode.
 		 */
 		val darkMode: Boolean =
-			System.getProperty("darkMode")?.equals("true") ?: true
+			System.getProperty(DARK_MODE_KEY)?.equals("true") ?: true
 
 		/**
 		 * The background color of the input field when a command is running.
@@ -2304,7 +2327,42 @@ class AvailWorkbench internal constructor (
 		@JvmStatic
 		fun main(args: Array<String>)
 		{
+			launchWorkbench(
+				System.getProperty("availRoots", ""),
+				darkMode,
+				if (args.isNotEmpty()) args[0] else "")
+		}
+
+		/**
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
+		 *
+		 *
+		 * @param rootsString
+		 *   An Avail [module][ModuleDescriptor] path.
+		 * @param inDarkMode
+		 *   An indicator of whether to show the user interface in dark mode.
+		 * @param initial
+		 *   The name of the module to have selected when the workbench frame is
+		 *   opened.
+		 * @param repositoryDirectory
+		 *   The [File] directory for [Repositories.directory] or `null` to
+		 *   leave as the default value.
+		 * @throws Exception
+		 * If something goes wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun launchWorkbench(
+			rootsString: String = "",
+			inDarkMode: Boolean = darkMode,
+			initial: String = "",
+			repositoryDirectory: File? = null)
+		{
 			val fileManager = FileManager()
+			if (repositoryDirectory != null)
+			{
+				Repositories.setDirectoryLocation(repositoryDirectory)
+			}
 			// Do the slow Swing setup in parallel with other things...
 			val swingReady = Semaphore(0)
 			val runtimeReady = Semaphore(0)
@@ -2322,7 +2380,7 @@ class AvailWorkbench internal constructor (
 				System.setProperty("apple.awt.application.appearance", "system")
 			}
 			thread(name = "Set up LAF") {
-				if (darkMode)
+				if (inDarkMode)
 				{
 					try
 					{
@@ -2338,7 +2396,6 @@ class AvailWorkbench internal constructor (
 			}
 			val rootResolutionStart = currentTimeMillis()
 			val failedResolutions = mutableListOf<String>()
-			val rootsString = System.getProperty("availRoots", "")
 			val roots = when
 			{
 				// Read the persistent preferences file...
@@ -2414,8 +2471,10 @@ class AvailWorkbench internal constructor (
 							bench.initialRefresh(
 								failedResolutions,
 								resolutionTime,
-								if (args.isNotEmpty()) args[0] else "",
-								afterExecute)
+								initial)
+							{
+								afterExecute()
+							}
 					}
 				bench.backgroundTask = initialRefreshTask
 				bench.setEnablements()
@@ -2432,6 +2491,27 @@ class AvailWorkbench internal constructor (
 				}
 				initialRefreshTask.execute()
 			}
+		}
+
+		/**
+		 * Launch the [Avail&#32;builder][AvailBuilder] [UI][AvailWorkbench].
+		 *
+		 * @param project
+		 *  The [AvailProject] to use to launch the workbench.
+		 * @throws Exception
+		 * If something goes wrong.
+		 */
+		@Throws(Exception::class)
+		@JvmStatic
+		fun launchWorkbenchWithProject(project: AvailProject)
+		{
+			launchWorkbench(
+				project.availProjectRoots.joinToString(";") {
+					it.modulePath
+				},
+				project.darkMode,
+				"",
+				File(project.repositoryLocation.fullPathNoPrefix))
 		}
 	}
 }

@@ -38,6 +38,7 @@ import org.gradle.api.file.DuplicatesStrategy
 import org.gradle.api.file.FileCollection
 import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
+import org.availlang.artifact.formattedNow
 
 /// Herein lies utility functions and state for use in `build.gradle.kts` files.
 
@@ -49,11 +50,10 @@ object BuildContext
 	const val buildClassesPath = "classes/kotlin/main"
 
 	/**
-	 * The build version string of the form:
-	 * [Versions.avail]-"yyyyMMdd.HHmmss", representing the time of the
-	 * build.
+	 * The build time string of the form: "yyyy-MM-ddTHH:mm:ss.SSSZ",
+	 * representing the time of the build.
 	 */
-	val buildVersion: String get() = "${Versions.avail}-${Utility.formattedNow}"
+	val built: String get() = formattedNow
 }
 
 /**
