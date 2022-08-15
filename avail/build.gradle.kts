@@ -101,11 +101,6 @@ tasks {
 		// directory before we can build the jar.
 	}
 
-	// Update the dependencies of "assemble".
-	assemble {
-		dependsOn(":avail-stdlib:releaseStandardLibrary")
-	}
-
 	/**
 	 * Remove released libraries.
 	 *
